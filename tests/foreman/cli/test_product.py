@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Repositories
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_alphanumeric, gen_integer, gen_string, gen_url
 import pytest
@@ -172,7 +167,6 @@ def test_product_list_with_default_settings(module_org, target_sat):
     :customerscenario: true
 
     :expectedresults: product/reporsitory list should work as expected.
-
     """
     org_id = str(module_org.id)
     default_product_name = gen_string('alpha')
@@ -227,7 +221,7 @@ def test_positive_product_sync_state(module_org, module_target_sat):
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
         1. Sync a custom repository that fails.
         2. Run `hammer product info --product-id <id>`.
         3. Successfully sync another repository under the same product.

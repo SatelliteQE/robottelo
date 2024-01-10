@@ -4,17 +4,12 @@
 
 :CaseAutomation: ManualOnly
 
-:CaseLevel: Integration
-
 :CaseComponent: ForemanMaintain
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import pytest
 
@@ -28,12 +23,10 @@ def test_offload_internal_db_to_external_db_host():
 
     :id: d07235c8-4584-469a-a87d-ace4dadb0a1f
 
-    :Steps: Run satellite-installer with foreman, candlepin and pulpcore options
+    :steps: Run satellite-installer with foreman, candlepin and pulpcore options
         referring to external DB host
 
     :expectedresults: Installed successful, all services running
-
-    :CaseLevel: Integration
 
     :CaseComponent: Installer
     """

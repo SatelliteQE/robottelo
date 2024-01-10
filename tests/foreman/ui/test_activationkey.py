@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: ActivationKeys
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import random
 
@@ -39,8 +34,6 @@ def test_positive_end_to_end_crud(session, module_org):
     :id: b6b98c45-e41e-4c7a-9be4-997273b7e24d
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -91,8 +84,6 @@ def test_positive_end_to_end_register(
     :expectedresults: Content host was registered successfully using activation
         key, association is reflected on webUI
 
-    :CaseLevel: System
-
     :parametrized: yes
 
     :CaseImportance: High
@@ -126,8 +117,6 @@ def test_positive_create_with_cv(session, module_org, cv_name, target_sat):
     :parametrized: yes
 
     :expectedresults: Activation key is created
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     env_name = gen_string('alpha')
@@ -154,8 +143,6 @@ def test_positive_search_scoped(session, module_org, target_sat):
     :expectedresults: Search functionality returns correct activation key
 
     :BZ: 1259374
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -190,8 +177,6 @@ def test_positive_create_with_host_collection(session, module_org):
     :id: 0e4ad2b4-47a7-4087-828f-2b0535a97b69
 
     :expectedresults: Activation key is created
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     hc = entities.HostCollection(organization=module_org).create()
@@ -211,8 +196,6 @@ def test_positive_create_with_envs(session, module_org, target_sat):
     :id: f75e994a-6da1-40a3-9685-f8387388b3f0
 
     :expectedresults: Activation key is created
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     cv_name = gen_string('alpha')
@@ -241,8 +224,6 @@ def test_positive_add_host_collection_non_admin(module_org, test_name, target_sa
         listed
 
     :BZ: 1473212
-
-    :CaseLevel: Integration
     """
     ak_name = gen_string('alpha')
     hc = entities.HostCollection(organization=module_org).create()
@@ -277,8 +258,6 @@ def test_positive_remove_host_collection_non_admin(module_org, test_name, target
 
     :expectedresults: Activation key is created, removed host collection is not
         listed
-
-    :CaseLevel: Integration
     """
     ak_name = gen_string('alpha')
     hc = entities.HostCollection(organization=module_org).create()
@@ -314,8 +293,6 @@ def test_positive_delete_with_env(session, module_org, target_sat):
     :id: b6019881-3d6e-4b75-89f5-1b62aff3b1ca
 
     :expectedresults: Activation key is deleted
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     cv_name = gen_string('alpha')
@@ -338,8 +315,6 @@ def test_positive_delete_with_cv(session, module_org, target_sat):
     :id: 7e40e1ed-8314-406b-9451-05f64806a6e6
 
     :expectedresults: Activation key is deleted
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     cv_name = gen_string('alpha')
@@ -364,8 +339,6 @@ def test_positive_update_env(session, module_org, target_sat):
     :id: 895cda6a-bb1e-4b94-a858-95f0be78a17b
 
     :expectedresults: Activation key is updated
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     cv_name = gen_string('alpha')
@@ -395,14 +368,12 @@ def test_positive_update_cv(session, module_org, cv2_name, target_sat):
 
     :parametrized: yes
 
-    :Steps:
+    :steps:
         1. Create Activation key
         2. Update the Content view with another Content view which has custom
             products
 
     :expectedresults: Activation key is updated
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     env1_name = gen_string('alpha')
@@ -434,15 +405,13 @@ def test_positive_update_rh_product(function_entitlement_manifest_org, session, 
 
     :id: 9b0ac209-45de-4cc4-97e8-e191f3f37239
 
-    :Steps:
+    :steps:
 
         1. Create an activation key
         2. Update the content view with another content view which has RH
             products
 
     :expectedresults: Activation key is updated
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     env1_name = gen_string('alpha')
@@ -491,8 +460,6 @@ def test_positive_add_rh_product(function_entitlement_manifest_org, session, tar
     :id: d805341b-6d2f-4e16-8cb4-902de00b9a6c
 
     :expectedresults: RH products are successfully associated to Activation key
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     cv_name = gen_string('alpha')
@@ -528,8 +495,6 @@ def test_positive_add_custom_product(session, module_org, target_sat):
 
     :expectedresults: Custom products are successfully associated to Activation
         key
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     cv_name = gen_string('alpha')
@@ -561,15 +526,13 @@ def test_positive_add_rh_and_custom_products(
 
     :id: 3d8876fa-1412-47ca-a7a4-bce2e8baf3bc
 
-    :Steps:
+    :steps:
         1. Create Activation key
         2. Associate RH product(s) to Activation Key
         3. Associate custom product(s) to Activation Key
 
     :expectedresults: RH/Custom product is successfully associated to
         Activation key
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     rh_repo = {
@@ -626,8 +589,6 @@ def test_positive_fetch_product_content(target_sat, function_entitlement_manifes
         assigned as Activation Key's product content
 
     :BZ: 1426386, 1432285
-
-    :CaseLevel: Integration
     """
     org = function_entitlement_manifest_org
     rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
@@ -675,8 +636,6 @@ def test_positive_access_non_admin_user(session, test_name):
         admin user
 
     :BZ: 1463813
-
-    :CaseLevel: Integration
     """
     ak_name = gen_string('alpha')
     non_searchable_ak_name = gen_string('alpha')
@@ -787,8 +746,6 @@ def test_positive_add_docker_repo_cv(session, module_org):
 
     :expectedresults: Content view with docker repo can be added to
         activation key
-
-    :CaseLevel: Integration
     """
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     repo = entities.Repository(
@@ -823,8 +780,6 @@ def test_positive_add_docker_repo_ccv(session, module_org):
 
     :expectedresults: Docker-based content view can be added to activation
         key
-
-    :CaseLevel: Integration
     """
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     repo = entities.Repository(
@@ -861,7 +816,7 @@ def test_positive_add_host(session, module_org, rhel6_contenthost, target_sat):
 
     :id: 886e9ea5-d917-40e0-a3b1-41254c4bf5bf
 
-    :Steps:
+    :steps:
         1. Create Activation key
         2. Create different hosts
         3. Associate the hosts to Activation key
@@ -869,8 +824,6 @@ def test_positive_add_host(session, module_org, rhel6_contenthost, target_sat):
     :expectedresults: Hosts are successfully associated to Activation key
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     ak = entities.ActivationKey(
         environment=entities.LifecycleEnvironment(
@@ -897,7 +850,7 @@ def test_positive_delete_with_system(session, rhel6_contenthost, target_sat):
 
     :id: 86cd070e-cf46-4bb1-b555-e7cb42e4dc9f
 
-    :Steps:
+    :steps:
         1. Create an Activation key
         2. Register systems to it
         3. Delete the Activation key
@@ -905,8 +858,6 @@ def test_positive_delete_with_system(session, rhel6_contenthost, target_sat):
     :expectedresults: Activation key is deleted
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     name = gen_string('alpha')
     cv_name = gen_string('alpha')
@@ -939,7 +890,7 @@ def test_negative_usage_limit(session, module_org, target_sat):
 
     :id: 9fe2d661-66f8-46a4-ae3f-0a9329494bdd
 
-    :Steps:
+    :steps:
         1. Create Activation key
         2. Update Usage Limit to a finite number
         3. Register Systems to match the Usage Limit
@@ -947,8 +898,6 @@ def test_negative_usage_limit(session, module_org, target_sat):
             Limit
 
     :expectedresults: System Registration fails. Appropriate error shown
-
-    :CaseLevel: System
     """
     name = gen_string('alpha')
     hosts_limit = '1'
@@ -982,8 +931,6 @@ def test_positive_add_multiple_aks_to_system(session, module_org, rhel6_contenth
     :expectedresults: Multiple Activation keys are attached to a system
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     key_1_name = gen_string('alpha')
     key_2_name = gen_string('alpha')
@@ -1046,8 +993,6 @@ def test_positive_host_associations(session, target_sat):
     :customerscenario: true
 
     :BZ: 1344033, 1372826, 1394388
-
-    :CaseLevel: System
     """
     org = entities.Organization().create()
     org_entities = target_sat.cli_factory.setup_org_for_a_custom_repo(
@@ -1110,8 +1055,6 @@ def test_positive_service_level_subscription_with_custom_product(
     :BZ: 1394357
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     org = function_entitlement_manifest_org
     entities_ids = target_sat.cli_factory.setup_org_for_a_custom_repo(
@@ -1155,15 +1098,13 @@ def test_positive_delete_manifest(session, function_entitlement_manifest_org):
 
     :id: 512d8e41-b937-451e-a9c6-840457d3d7d4
 
-    :Steps:
+    :steps:
         1. Create Activation key
         2. Associate a manifest to the Activation Key
         3. Delete the manifest
 
     :expectedresults: Deleting a manifest removes it from the Activation
         key
-
-    :CaseLevel: Integration
     """
     org = function_entitlement_manifest_org
     # Create activation key
@@ -1202,7 +1143,7 @@ def test_positive_ak_with_custom_product_on_rhel6(session, rhel6_contenthost, ta
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
         1. Create a custom repo
         2. Create ak and add custom repo to ak
         3. Add subscriptions to the ak
@@ -1211,8 +1152,6 @@ def test_positive_ak_with_custom_product_on_rhel6(session, rhel6_contenthost, ta
     :expectedresults: Host is registered successfully
 
     :bz: 2038388
-
-    :CaseLevel: Integration
     """
     org = target_sat.api.Organization().create()
     entities_ids = target_sat.cli_factory.setup_org_for_a_custom_repo(

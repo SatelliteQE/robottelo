@@ -8,17 +8,12 @@ http://www.katello.org/docs/api/apidoc/lifecycle_environments.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: LifecycleEnvironments
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -138,8 +133,6 @@ def test_positive_update_description(module_lce, new_desc, module_target_sat):
 
     :expectedresults: Lifecycle environment is created and updated properly
 
-    :CaseLevel: Integration
-
     :CaseImportance: Low
 
     :parametrized: yes
@@ -197,7 +190,7 @@ def test_positive_search_in_org(name, target_sat):
 
     :id: 110e4777-c374-4365-b676-b1db4552fe51
 
-    :Steps:
+    :steps:
 
         1. Create an organization.
         2. Create a lifecycle environment belonging to the organization.
@@ -205,8 +198,6 @@ def test_positive_search_in_org(name, target_sat):
 
     :expectedresults: Only "Library" and the lifecycle environment just
         created are in the search results.
-
-    :CaseLevel: Integration
 
     :parametrized: yes
     """
@@ -232,11 +223,9 @@ def test_positive_create_environment_after_host_register():
         2. Create a new content host.
         3. Register the content host to the Library environment.
 
-    :Steps: Create a new environment.
+    :steps: Create a new environment.
 
     :expectedresults: The environment is created without any errors.
-
-    :CaseLevel: Integration
 
     :CaseAutomation: NotAutomated
     """

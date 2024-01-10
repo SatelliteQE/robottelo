@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: RemoteExecution
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -158,7 +153,6 @@ def test_positive_view_dump(module_org, module_target_sat):
     :id: 25fcfcaa-fc4c-425e-919e-330e36195c4a
 
     :expectedresults: Verify no errors are thrown
-
     """
     template_name = gen_string('alpha', 7)
     module_target_sat.cli_factory.job_template(

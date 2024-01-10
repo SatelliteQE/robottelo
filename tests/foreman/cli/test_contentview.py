@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: ContentViews
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import random
 
@@ -205,8 +200,6 @@ class TestContentView:
         :expectedresults: Edited content view save is successful and info is
             updated
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         # Create CV
@@ -289,7 +282,6 @@ class TestContentView:
 
         :CaseImportance: High
 
-        :CaseLevel: Integration
         """
         content_view = module_target_sat.cli_factory.make_content_view(
             {'organization-id': module_org.id}
@@ -372,7 +364,6 @@ class TestContentView:
 
         :CaseImportance: Critical
 
-        :CaseLevel: Integration
         """
         content_view = module_target_sat.cli_factory.make_content_view(
             {'organization-id': module_org.id}
@@ -417,7 +408,6 @@ class TestContentView:
 
         :CaseImportance: Medium
 
-        :CaseLevel: Integration
         """
         env = [
             module_target_sat.cli_factory.make_lifecycle_environment(
@@ -484,7 +474,6 @@ class TestContentView:
 
         :CaseImportance: Low
 
-        :CaseLevel: Integration
         """
         env = [
             module_target_sat.cli_factory.make_lifecycle_environment(
@@ -668,8 +657,6 @@ class TestContentView:
 
         :expectedresults: Composite content views are created
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         # Create REPO
@@ -713,8 +700,6 @@ class TestContentView:
             view associated to it
 
         :BZ: 1416857
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -764,8 +749,6 @@ class TestContentView:
 
         :expectedresults: Composite content view info output does not contain
             any values
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -820,8 +803,6 @@ class TestContentView:
 
         :BZ: 1416857
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         # Create new repository
@@ -874,8 +855,6 @@ class TestContentView:
 
         :BZ: 1487265
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         # Create first CV
@@ -911,8 +890,6 @@ class TestContentView:
 
         :BZ: 1487265
 
-        :CaseLevel: Integration
-
         :CaseImportance: Low
         """
         # Create CV
@@ -942,8 +919,6 @@ class TestContentView:
 
             :expectedresults: Composite content view component ids are similar to
                 the nested content view versions ids
-
-            :CaseLevel: Integration
 
             :CaseImportance: Low
             """
@@ -979,8 +954,6 @@ class TestContentView:
         :setup: Sync RH content
 
         :expectedresults: RH Content can be seen in the content view
-
-        :CaseLevel: Integration
 
         :CaseImportance: Critical
         """
@@ -1018,8 +991,6 @@ class TestContentView:
             a view
 
         :CaseImportance: Low
-
-        :CaseLevel: Integration
 
         :BZ: 1359665
         """
@@ -1064,7 +1035,6 @@ class TestContentView:
 
         :CaseImportance: Low
 
-        :CaseLevel: Integration
         """
         filter_name = gen_string('alpha')
         repo_name = gen_string('alpha')
@@ -1112,7 +1082,6 @@ class TestContentView:
 
         :CaseImportance: High
 
-        :CaseLevel: Integration
         """
         new_repo = module_target_sat.cli_factory.make_repository(
             {'content-type': 'yum', 'product-id': module_product.id}
@@ -1172,7 +1141,6 @@ class TestContentView:
 
         :CaseImportance: Low
 
-        :CaseLevel: Integration
         """
         # Create REPO
         new_repo = module_target_sat.cli_factory.make_repository(
@@ -1209,7 +1177,6 @@ class TestContentView:
 
         :CaseImportance: Low
 
-        :CaseLevel: Integration
         """
         new_repo = module_target_sat.cli_factory.make_repository(
             {'content-type': 'yum', 'product-id': module_product.id}
@@ -1247,7 +1214,6 @@ class TestContentView:
 
         :CaseImportance: Critical
 
-        :CaseLevel: Integration
         """
         # Create CV
         new_cv = module_target_sat.cli_factory.make_content_view(
@@ -1287,7 +1253,6 @@ class TestContentView:
 
         :CaseImportance: Low
 
-        :CaseLevel: Integration
         """
         # Create custom repo
         new_repo = module_target_sat.cli_factory.make_repository(
@@ -1348,7 +1313,6 @@ class TestContentView:
 
         :CaseImportance: High
 
-        :CaseLevel: Integration
         """
         # Create REPO
         new_repo = module_target_sat.cli_factory.make_repository(
@@ -1395,7 +1359,6 @@ class TestContentView:
 
         :CaseImportance: High
 
-        :CaseLevel: Integration
         """
         # Create REPO
         new_repo = module_target_sat.cli_factory.make_repository(
@@ -1452,7 +1415,6 @@ class TestContentView:
 
         :CaseImportance: Low
 
-        :CaseLevel: Integration
         """
         environment = module_target_sat.cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id}
@@ -1482,7 +1444,6 @@ class TestContentView:
 
         :CaseImportance: Low
 
-        :CaseLevel: Integration
         """
         # Create REPO
         new_repo = module_target_sat.cli_factory.make_repository(
@@ -1527,7 +1488,6 @@ class TestContentView:
 
         :CaseImportance: Critical
 
-        :CaseLevel: Integration
         """
         # Create CV
         new_cv = module_target_sat.cli_factory.make_content_view(
@@ -1561,7 +1521,6 @@ class TestContentView:
 
         :CaseImportance: High
 
-        :CaseLevel: Integration
         """
         # Create custom repo
         new_repo = module_target_sat.cli_factory.make_repository(
@@ -1615,7 +1574,6 @@ class TestContentView:
 
         :CaseImportance: Critical
 
-        :CaseLevel: Integration
         """
         new_repo = module_target_sat.cli_factory.make_repository(
             {'content-type': 'yum', 'product-id': module_product.id}
@@ -1651,7 +1609,6 @@ class TestContentView:
 
             1. CV version with custom major and minor versions is created
 
-        :CaseLevel: System
         """
         org = module_target_sat.cli_factory.make_org()
         major = random.randint(1, 1000)
@@ -1687,7 +1644,6 @@ class TestContentView:
 
         :CaseImportance: Medium
 
-        :CaseLevel: Integration
         """
         software_repo = module_target_sat.cli_factory.make_repository(
             {
@@ -1756,7 +1712,6 @@ class TestContentView:
 
         :customerscenario: true
 
-        :CaseLevel: Integration
         """
         # Create new Yum repository
         yum_repo = module_target_sat.cli_factory.make_repository(
@@ -1824,8 +1779,6 @@ class TestContentView:
 
         :BZ: 1323751
 
-        :CaseLevel: Integration
-
         :customerscenario: true
 
         :CaseImportance: Medium
@@ -1871,7 +1824,6 @@ class TestContentView:
 
         :CaseImportance: Critical
 
-        :CaseLevel: Integration
         """
         repository = module_target_sat.cli_factory.make_repository(
             {'content-type': 'yum', 'product-id': module_product.id}
@@ -1931,8 +1883,6 @@ class TestContentView:
         :expectedresults: Content view version is updated in target
             environment.
 
-
-        :CaseLevel: Integration
 
         :CaseImportance: Critical
         """
@@ -2011,7 +1961,6 @@ class TestContentView:
 
         :CaseImportance: Low
 
-        :CaseLevel: Integration
         """
         # Create REPO
         new_repo = module_target_sat.cli_factory.make_repository(
@@ -2098,8 +2047,6 @@ class TestContentView:
 
         :BZ: 1177766
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         content_view = module_target_sat.cli_factory.make_content_view(
@@ -2155,7 +2102,6 @@ class TestContentView:
 
         :CaseImportance: High
 
-        :CaseLevel: System
         """
         env = module_target_sat.cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id}
@@ -2194,8 +2140,6 @@ class TestContentView:
 
         :expectedresults: Content Host can be subscribed to content view with
             Red Hat repository
-
-        :CaseLevel: System
 
         :CaseImportance: Medium
         """
@@ -2246,8 +2190,6 @@ class TestContentView:
 
         :expectedresults: Content Host can be subscribed to filtered content
             view with Red Hat repository
-
-        :CaseLevel: System
 
         :BZ: 1359665
 
@@ -2320,8 +2262,6 @@ class TestContentView:
         :expectedresults: Content Host can be subscribed to content view with
             custom repository
 
-        :CaseLevel: System
-
         :CaseImportance: High
         """
         new_product = module_target_sat.cli_factory.make_product({'organization-id': module_org.id})
@@ -2375,7 +2315,6 @@ class TestContentView:
 
         :CaseImportance: High
 
-        :CaseLevel: System
         """
         env = module_target_sat.cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id}
@@ -2448,7 +2387,6 @@ class TestContentView:
 
         :parametrized: yes
 
-        :CaseLevel: System
         """
         # Note: this test has been stubbed waitin for bug 1511481 resolution
         # prepare the user and the required permissions data
@@ -2605,7 +2543,6 @@ class TestContentView:
 
         :parametrized: yes
 
-        :CaseLevel: System
         """
         # prepare the user and the required permissions data
         user_name = gen_alphanumeric()
@@ -2777,8 +2714,6 @@ class TestContentView:
         :expectedresults: Cloned content view can be published and promoted to
             the same environment as the original content view
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         cloned_cv_name = gen_string('alpha')
@@ -2818,7 +2753,6 @@ class TestContentView:
 
         :CaseImportance: Low
 
-        :CaseLevel: Integration
         """
         cloned_cv_name = gen_string('alpha')
         lc_env = module_target_sat.cli_factory.make_lifecycle_environment(
@@ -2893,7 +2827,7 @@ class TestContentView:
 
         :id: aa9bbfda-72e8-45ec-b26d-fdf2691980cf
 
-        :Steps:
+        :steps:
 
             1. Create a content view
             2. Add a yum repo to the content view
@@ -2903,8 +2837,6 @@ class TestContentView:
 
         :expectedresults: content view version is removed from Library
             environment
-
-        :CaseLevel: Integration
 
         :CaseImportance: Low
         """
@@ -2969,7 +2901,7 @@ class TestContentView:
 
         :id: 6643837a-560a-47de-aa4d-90778914dcfa
 
-        :Steps:
+        :steps:
 
             1. Create a content view
             2. Add a yum repo to the content view
@@ -2981,8 +2913,6 @@ class TestContentView:
 
             1. Content view version exist only in DEV and not in Library
             2. The yum repo exists in content view version
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -3061,7 +2991,7 @@ class TestContentView:
 
         :id: e286697f-4113-40a3-b8e8-9ca50647e6d5
 
-        :Steps:
+        :steps:
 
             1. Create a content view
             2. Add docker repo(s) to it
@@ -3072,8 +3002,6 @@ class TestContentView:
 
         :expectedresults: Content view version exist only in DEV, QE and not in
             Library
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -3150,7 +3078,7 @@ class TestContentView:
 
         :id: ffe3d64e-c3d2-4889-9454-ccc6b10f4db7
 
-        :Steps:
+        :steps:
 
             1. Create a content view
             2. Add yum repositories and docker repositories to CV
@@ -3164,7 +3092,6 @@ class TestContentView:
 
         :CaseImportance: High
 
-        :CaseLevel: Integration
         """
         lce_dev = module_target_sat.cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id}
@@ -3257,7 +3184,7 @@ class TestContentView:
 
         :id: 577757ac-b184-4ece-9310-182dd5ceb718
 
-        :Steps:
+        :steps:
 
             1. Create a content view
             2. Add a yum repo and a docker repo to the content view
@@ -3271,8 +3198,6 @@ class TestContentView:
 
         :expectedresults: Content view version exist in Library, DEV, QE,
             STAGE, PROD
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -3385,7 +3310,7 @@ class TestContentView:
 
         :id: 997cfd7d-9029-47e2-a41e-84f4370b5ce5
 
-        :Steps:
+        :steps:
 
             1. Create a content view
             2. Add a yum repo and a docker to the content view
@@ -3395,8 +3320,6 @@ class TestContentView:
             5. Remove content view version from QE, STAGE and PROD
 
         :expectedresults: Content view version exists only in Library, DEV
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -3491,7 +3414,7 @@ class TestContentView:
 
         :id: 93dd7518-5901-4a71-a4c3-0f1215238b26
 
-        :Steps:
+        :steps:
 
             1. Create a content view
             2. Add a yum repo and a docker to the content view
@@ -3502,8 +3425,6 @@ class TestContentView:
                environments prior this step)
 
         :expectedresults: The content view doesn't exists
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -3603,7 +3524,7 @@ class TestContentView:
 
         :id: 001a2b76-a87b-4c11-8837-f5fe3c04a075
 
-        :Steps:
+        :steps:
 
             1. Create a content view cv1
             2. Add a yum repo to the content view
@@ -3630,7 +3551,6 @@ class TestContentView:
 
         :CaseAutomation: NotAutomated
 
-        :CaseLevel: System
         """
 
     @pytest.mark.stubbed
@@ -3642,7 +3562,7 @@ class TestContentView:
 
         :id: 82442d23-45b5-4d39-b867-c5d46bbcbbf9
 
-        :Steps:
+        :steps:
 
             1. Create two content view cv1 and cv2
             2. Add a yum repo to both content views
@@ -3670,7 +3590,6 @@ class TestContentView:
 
         :CaseAutomation: NotAutomated
 
-        :CaseLevel: System
         """
 
     @pytest.mark.run_in_one_thread
@@ -3687,7 +3606,7 @@ class TestContentView:
 
         :id: 3725fef6-73a4-4dcb-a306-70e6ba826a3d
 
-        :Steps:
+        :steps:
 
             1. Create a content view
             2. Setup satellite to use a capsule and to sync all lifecycle
@@ -3711,8 +3630,6 @@ class TestContentView:
             Library and DEV and exists only in QE and PROD
 
         :CaseAutomation: Automated
-
-        :CaseLevel: System
 
         :CaseImportance: High
         """
@@ -3911,8 +3828,6 @@ class TestContentView:
 
         :BZ: 1922134
 
-        :CaseLevel: Integration
-
         :CaseImportance: Critical
         """
         cv = module_target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
@@ -3988,8 +3903,6 @@ class TestContentView:
 
         :BZ: 1464414
 
-        :CaseLevel: Integration
-
         :CaseImportance: Critical
         """
         cv = module_target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
@@ -4062,7 +3975,6 @@ class TestContentView:
 
         :CaseImportance: Medium
 
-        :CaseLevel: Integration
         """
         repo = module_target_sat.cli_factory.make_repository(
             {
@@ -4156,14 +4068,12 @@ class TestContentViewFileRepo:
             2. Upload an arbitrary file to it
             3. Create a Content View (CV)
 
-        :Steps:
+        :steps:
             1. Add the FR to the CV
 
         :expectedresults: Check FR is added to CV
 
         :CaseAutomation: Automated
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
 
@@ -4201,14 +4111,12 @@ class TestContentViewFileRepo:
             3. Create a Content View (CV)
             4. Add the FR to the CV
 
-        :Steps:
+        :steps:
             1. Remove the FR from the CV
 
         :expectedresults: Check FR is removed from CV
 
         :CaseAutomation: Automated
-
-        :CaseLevel: Integration
 
         :BZ: 1908465
         """
@@ -4241,14 +4149,13 @@ class TestContentViewFileRepo:
             5. Create a Capsule
             6. Connect the Capsule with Satellite/Foreman host
 
-        :Steps:
+        :steps:
             1. Start synchronization
 
         :expectedresults: Check CV with FR is synced over Capsule
 
         :CaseAutomation: NotAutomated
 
-        :CaseLevel: System
         """
 
     @pytest.mark.tier3
@@ -4267,15 +4174,13 @@ class TestContentViewFileRepo:
             4. Add the FR to the CV
             5. Create an Environment
 
-        :Steps:
+        :steps:
             1. Promote the CV to the Environment
 
         :expectedresults: Check arbitrary files from FR is available on
             content view version environment
 
         :CaseAutomation: Automated
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """

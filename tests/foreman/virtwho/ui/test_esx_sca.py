@@ -4,15 +4,10 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Virt-whoConfigurePlugin
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
-:Upstream: No
 """
 from datetime import datetime
 
@@ -57,8 +52,6 @@ class TestVirtwhoConfigforEsx:
             4. Virtual sku can be generated and attached
             5. Config can be deleted
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         assert org_session.virtwho_configure.search(form_data_ui['name'])[0]['Status'] == 'ok'
@@ -74,8 +67,6 @@ class TestVirtwhoConfigforEsx:
         :expectedresults:
             1. if debug is checked, VIRTWHO_DEBUG=1 in /etc/sysconfig/virt-who
             2. if debug is unchecked, VIRTWHO_DEBUG=0 in /etc/sysconfig/virt-who
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -105,8 +96,6 @@ class TestVirtwhoConfigforEsx:
         :expectedresults:
             VIRTWHO_INTERVAL can be changed in /etc/sysconfig/virt-who if the
             dropdown option is selected to Every 2/4/8/12/24 hours, Every 2/3 days.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -144,8 +133,6 @@ class TestVirtwhoConfigforEsx:
             hypervisor_id can be changed in virt-who-config-{}.conf if the
             dropdown option is selected to uuid/hwuuid/hostname.
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
         name = form_data_ui['name']
@@ -181,7 +168,6 @@ class TestVirtwhoConfigforEsx:
             'Filter hosts' can be set.
             4. Create virtwho config if filtering is selected to Blacklist,
             'Exclude hosts' can be set.
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
 
@@ -267,8 +253,6 @@ class TestVirtwhoConfigforEsx:
 
         :BZ: 1652323
 
-        :CaseLevel: Integration
-
         :customerscenario: true
 
         :CaseImportance: Medium
@@ -304,8 +288,6 @@ class TestVirtwhoConfigforEsx:
         :expectedresults:
             1. the option "env=" should be removed from etc/virt-who.d/virt-who.conf
             2. /var/log/messages should not display warning message
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
 
@@ -343,8 +325,6 @@ class TestVirtwhoConfigforEsx:
 
         :expectedresults:
             'Virt-who Manager', 'Virt-who Reporter', 'Virt-who Viewer' existing
-
-        :CaseLevel: Integration
 
         :CaseImportance: Low
         """
@@ -385,8 +365,6 @@ class TestVirtwhoConfigforEsx:
             1. Verify the virt-who server can no longer connect to the
                Satellite.
 
-        :CaseLevel: Integration
-
         :CaseImportance: Low
         """
         name = gen_string('alpha')
@@ -416,8 +394,6 @@ class TestVirtwhoConfigforEsx:
             Virt-who Reporter Role granting minimal set of permissions for virt-who
             to upload the report, it can be used if you configure virt-who manually
             and want to use user that has locked down account.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Low
         """
@@ -476,8 +452,6 @@ class TestVirtwhoConfigforEsx:
             Virt-who Viewer Role granting permissions to see all configurations
             including their configuration scripts, which means viewers could still
             deploy the virt-who instances for existing virt-who configurations.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Low
         """
@@ -541,7 +515,6 @@ class TestVirtwhoConfigforEsx:
         :expectedresults:
             Virt-who Manager Role granting all permissions to manage virt-who configurations,
             user needs this role to create, delete or update configurations.
-        :CaseLevel: Integration
 
         :CaseImportance: Low
         """
@@ -604,8 +577,6 @@ class TestVirtwhoConfigforEsx:
         :id: 0cefdbb3-fc23-49c4-b1fb-78004db1c7bc
 
         :expectedresults: Config can be created and deployed without any error
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
 

@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Hosts-Content
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from datetime import datetime, timedelta
 
@@ -200,8 +195,6 @@ def test_positive_noapply_api(
         Content view has a newer version
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     # Promote CV to new LCE
     versions = sorted(module_cv.read().version, key=lambda ver: ver.id)

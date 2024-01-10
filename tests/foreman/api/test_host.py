@@ -8,17 +8,12 @@ http://theforeman.org/api/apidoc/v2/hosts.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Hosts
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import http
 
@@ -93,8 +88,6 @@ def test_positive_search_by_org_id(target_sat):
         organization id was done
 
     :BZ: 1447958
-
-    :CaseLevel: Integration
     """
     host = target_sat.api.Host().create()
     # adding org id as GET parameter for correspondence with BZ
@@ -220,8 +213,6 @@ def test_positive_create_and_update_with_hostgroup(
     :id: 8f9601f9-afd8-4a88-8f28-a5cbc996e805
 
     :expectedresults: A host is created and updated with expected hostgroup assigned
-
-    :CaseLevel: Integration
     """
     module_published_cv.version[0].promote(data={'environment_ids': module_lce.id, 'force': False})
     hostgroup = module_target_sat.api.HostGroup(
@@ -260,8 +251,6 @@ def test_positive_create_inherit_lce_cv(
 
     :expectedresults: Host's lifecycle environment and content view match
         the ones specified in hostgroup
-
-    :CaseLevel: Integration
 
     :BZ: 1391656
     """
@@ -413,8 +402,6 @@ def test_positive_create_and_update_with_subnet(
     :id: 9aa97aff-8439-4027-89ee-01c643fbf7d1
 
     :expectedresults: A host is created and updated with expected subnet assigned
-
-    :CaseLevel: Integration
     """
     host = module_target_sat.api.Host(
         location=module_location, organization=module_org, subnet=module_default_subnet
@@ -438,8 +425,6 @@ def test_positive_create_and_update_with_compresource(
 
     :expectedresults: A host is created and updated with expected compute resource
         assigned
-
-    :CaseLevel: Integration
     """
     host = module_target_sat.api.Host(
         compute_resource=module_cr_libvirt, location=module_location, organization=module_org
@@ -460,8 +445,6 @@ def test_positive_create_and_update_with_model(module_model, module_target_sat):
     :id: 7a912a19-71e4-4843-87fd-bab98c156f4a
 
     :expectedresults: A host is created and updated with expected model assigned
-
-    :CaseLevel: Integration
     """
     host = module_target_sat.api.Host(model=module_model).create()
     assert host.model.read().name == module_model.name
@@ -480,8 +463,6 @@ def test_positive_create_and_update_with_user(
     :id: 72e20f8f-17dc-4e38-8ac1-d08df8758f56
 
     :expectedresults: A host is created and updated with expected user assigned
-
-    :CaseLevel: Integration
     """
     host = module_target_sat.api.Host(
         owner=module_user, owner_type='User', organization=module_org, location=module_location
@@ -504,8 +485,6 @@ def test_positive_create_and_update_with_usergroup(
     :id: 706e860c-8c05-4ddc-be20-0ecd9f0da813
 
     :expectedresults: A host is created and updated with expected user group assigned
-
-    :CaseLevel: Integration
     """
     user = module_target_sat.api.User(
         location=[module_location], organization=[module_org], role=[function_role]
@@ -619,8 +598,6 @@ def test_positive_create_and_update_with_compute_profile(module_compute_profile,
 
     :expectedresults: A host is created and updated with expected compute profile
         assigned
-
-    :CaseLevel: Integration
     """
     host = module_target_sat.api.Host(compute_profile=module_compute_profile).create()
     assert host.compute_profile.read().name == module_compute_profile.name
@@ -639,8 +616,6 @@ def test_positive_create_and_update_with_content_view(
     :id: 10f69c7a-088e-474c-b869-1ad12deda2ad
 
     :expectedresults: A host is created and updated with expected content view
-
-    :CaseLevel: Integration
     """
     host = module_target_sat.api.Host(
         organization=module_org,
@@ -710,8 +685,6 @@ def test_positive_end_to_end_with_image(
 
     :expectedresults: A host is created with expected image, image is removed and
         host is updated with expected image
-
-    :CaseLevel: Integration
     """
     host = module_target_sat.api.Host(
         organization=module_org,
@@ -780,8 +753,6 @@ def test_positive_create_and_update_domain(
     :id: 8ca9f67c-4c11-40f9-b434-4f200bad000f
 
     :expectedresults: A host is created and updated with expected domain
-
-    :CaseLevel: Integration
     """
     host = module_target_sat.api.Host(
         organization=module_org, location=module_location, domain=module_domain
@@ -805,8 +776,6 @@ def test_positive_create_and_update_env(
     :id: 87a08dbf-fd4c-4b6c-bf73-98ab70756fc6
 
     :expectedresults: A host is created and updated with expected environment
-
-    :CaseLevel: Integration
     """
     host = session_puppet_enabled_sat.api.Host(
         organization=module_puppet_org,
@@ -830,8 +799,6 @@ def test_positive_create_and_update_arch(module_architecture, module_target_sat)
     :id: 5f190b14-e6db-46e1-8cd1-e94e048e6a77
 
     :expectedresults: A host is created and updated with expected architecture
-
-    :CaseLevel: Integration
     """
     host = module_target_sat.api.Host(architecture=module_architecture).create()
     assert host.architecture.read().name == module_architecture.name
@@ -849,8 +816,6 @@ def test_positive_create_and_update_os(module_os, module_target_sat):
     :id: 46edced1-8909-4066-b196-b8e22512341f
 
     :expectedresults: A host is created updated with expected operating system
-
-    :CaseLevel: Integration
     """
     host = module_target_sat.api.Host(operatingsystem=module_os).create()
     assert host.operatingsystem.read().name == module_os.name
@@ -873,8 +838,6 @@ def test_positive_create_and_update_medium(module_org, module_location, module_t
     :id: d81cb65c-48b3-4ce3-971e-51b9dd123697
 
     :expectedresults: A host is created and updated with expected medium
-
-    :CaseLevel: Integration
     """
     medium = module_target_sat.api.Media(
         organization=[module_org], location=[module_location]
@@ -938,8 +901,6 @@ def test_negative_update_arch(module_architecture, module_target_sat):
     :id: 07b9c0e7-f02b-4aff-99ae-5c203255aba1
 
     :expectedresults: A host is not updated
-
-    :CaseLevel: Integration
     """
     host = module_target_sat.api.Host().create()
     host.architecture = module_architecture
@@ -956,8 +917,6 @@ def test_negative_update_os(target_sat):
     :id: 40e79f73-6356-4d61-9806-7ade2f4f8829
 
     :expectedresults: A host is not updated
-
-    :CaseLevel: Integration
     """
     host = target_sat.api.Host().create()
     new_os = target_sat.api.OperatingSystem(
@@ -984,8 +943,6 @@ def test_positive_read_content_source_id(
         response
 
     :BZ: 1339613, 1488130
-
-    :CaseLevel: System
     """
     proxy = target_sat.api.SmartProxy().search(query={'url': f'{target_sat.url}:9090'})[0].read()
     module_published_cv.version[0].promote(data={'environment_ids': module_lce.id, 'force': False})
@@ -1020,8 +977,6 @@ def test_positive_update_content_source_id(
         response
 
     :BZ: 1339613, 1488130
-
-    :CaseLevel: System
     """
     proxy = target_sat.api.SmartProxy().search(query={'url': f'{target_sat.url}:9090'})[0]
     module_published_cv.version[0].promote(data={'environment_ids': module_lce.id, 'force': False})
@@ -1065,8 +1020,6 @@ def test_positive_read_enc_information(
     :expectedresults: host ENC information read successfully
 
     :BZ: 1362372
-
-    :CaseLevel: Integration
     """
     lce = (
         session_puppet_enabled_sat.api.LifecycleEnvironment()
@@ -1127,8 +1080,6 @@ def test_positive_add_future_subscription():
         2. Add the subscription to the content host
 
     :expectedresults: The future-dated subscription was added to the host
-
-    :CaseLevel: Integration
     """
 
 
@@ -1148,8 +1099,6 @@ def test_positive_add_future_subscription_with_ak():
         3. Register a new content host with the activation key
 
     :expectedresults: The host was registered and future subscription added
-
-    :CaseLevel: Integration
     """
 
 
@@ -1168,8 +1117,6 @@ def test_negative_auto_attach_future_subscription():
         3. Run auto-attach on the content host
 
     :expectedresults: Only the current subscription was added to the host
-
-    :CaseLevel: Integration
     """
 
 
@@ -1189,8 +1136,6 @@ def test_positive_create_baremetal_with_bios():
     :expectedresults: Host is created
 
     :CaseAutomation: NotAutomated
-
-    :CaseLevel: System
     """
 
 
@@ -1210,8 +1155,6 @@ def test_positive_create_baremetal_with_uefi():
     :expectedresults: Host is created
 
     :CaseAutomation: NotAutomated
-
-    :CaseLevel: System
     """
 
 
@@ -1242,8 +1185,6 @@ def test_positive_verify_files_with_pxegrub_uefi():
         And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
     :CaseAutomation: NotAutomated
-
-    :CaseLevel: System
     """
 
 
@@ -1278,8 +1219,6 @@ def test_positive_verify_files_with_pxegrub_uefi_secureboot():
     :CaseComponent: TFTP
 
     :Team: Rocket
-
-    :CaseLevel: Integration
     """
 
 
@@ -1314,8 +1253,6 @@ def test_positive_verify_files_with_pxegrub2_uefi():
     :CaseComponent: TFTP
 
     :Team: Rocket
-
-    :CaseLevel: Integration
     """
 
 
@@ -1346,8 +1283,6 @@ def test_positive_verify_files_with_pxegrub2_uefi_secureboot():
         And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
     :CaseAutomation: NotAutomated
-
-    :CaseLevel: Integration
 
     :CaseComponent: TFTP
 
