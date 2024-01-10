@@ -4,7 +4,7 @@ It is not meant to be used directly, but as part of a robottelo.hosts.Satellite 
 example: my_satellite.cli_factory.make_org()
 """
 import datetime
-from functools import partial
+from functools import lru_cache, partial
 import inspect
 import os
 from os import chmod
@@ -14,7 +14,6 @@ from tempfile import mkstemp
 from time import sleep
 
 from box import Box
-from cachetools import cachedmethod
 from fauxfactory import (
     gen_alpha,
     gen_alphanumeric,
@@ -250,6 +249,7 @@ class CLIFactory:
         self._satellite = satellite
         self.__dict__.update(initiate_repo_helpers(self._satellite))
 
+    @lru_cache
     def __getattr__(self, name):
         """We intercept the usual attribute behavior on this class to emulate make_entity methods
         The keys in the dictionary above correspond to potential make_<key> methods
@@ -295,7 +295,7 @@ class CLIFactory:
                 if not key.startswith('_')
             }
 
-    @cachedmethod
+    @lru_cache
     def _find_entity_class(self, entity_name):
         entity_name = entity_name.replace('_', '').lower()
         for name, class_obj in self._satellite.cli.__dict__.items():
