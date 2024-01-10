@@ -27,11 +27,14 @@ class SimpleContentAccess(Base):
     command_base = 'simple-content-access'
 
     @classmethod
-    def disable(cls, options=None, timeout=None):
+    def disable(cls, options=None, timeout=None, raw=False):
         """Disable simple content access for a manifest"""
         cls.command_sub = 'disable'
         return cls.execute(
-            cls._construct_command(options), return_raw_response=True, timeout=timeout
+            cls._construct_command(options),
+            ignore_stderr=True,
+            timeout=timeout,
+            return_raw_response=raw,
         )
 
     @classmethod

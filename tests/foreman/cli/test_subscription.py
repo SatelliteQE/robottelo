@@ -296,7 +296,9 @@ def test_positive_prepare_for_sca_only_hammer(function_org, target_sat):
         'Simple Content Access will be required for all organizations in the next release'
         in str(org_results.stderr)
     )
-    sca_results = target_sat.cli.SimpleContentAccess.disable({'organization-id': function_org.id})
+    sca_results = target_sat.cli.SimpleContentAccess.disable(
+        {'organization-id': function_org.id}, raw=True
+    )
     assert (
         'Simple Content Access will be required for all organizations in the next release'
         in str(sca_results.stderr)
