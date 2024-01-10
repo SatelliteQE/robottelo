@@ -1,10 +1,10 @@
 import contextlib
+from functools import lru_cache
 import io
 import os
 import random
 import re
 
-from cachetools import cachedmethod
 import requests
 
 from robottelo.cli.proxy import CapsuleTunnelError
@@ -235,7 +235,7 @@ class SystemInfo:
         :rtype: int
         """
         port_pool_range = settings.fake_capsules.port_range
-        if isinstance(port_pool_range, list):
+        if isinstance(port_pool_range, str):
             port_pool_range = tuple(port_pool_range.split('-'))
         if isinstance(port_pool_range, tuple) and len(port_pool_range) == 2:
             port_pool = range(int(port_pool_range[0]), int(port_pool_range[1]))
@@ -358,6 +358,6 @@ class Factories:
             self._api_factory = APIFactory(self)
         return self._api_factory
 
-    @cachedmethod
+    @lru_cache
     def ui_factory(self, session):
         return UIFactory(self, session=session)
