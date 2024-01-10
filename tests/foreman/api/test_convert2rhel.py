@@ -153,10 +153,9 @@ def centos(
     enable_rhel_subscriptions,
 ):
     """Deploy and register Centos host"""
-    # updating centos packages on CentOS 8 is necessary for conversion
+    # updating centos packages is necessary for conversion
     major = version.split('.')[0]
-    if major == '8':
-        centos_host.execute('yum -y update centos-*')
+    centos_host.execute('yum -y update centos-*')
     repo_url = settings.repos.convert2rhel.convert_to_rhel_repo.format(major)
     repo = create_repo(module_target_sat, module_entitlement_manifest_org, repo_url)
     cv = update_cv(
@@ -298,7 +297,9 @@ def test_convert2rhel_oracle(module_target_sat, oracle, activation_key_rhel, ver
 
 @pytest.mark.e2e
 @pytest.mark.parametrize('version', ['centos7', 'centos8'], indirect=True)
-def test_convert2rhel_centos(module_target_sat, centos, activation_key_rhel, version):
+def test_convert2rhel_centos_with_pre_conversion_template_check(
+    module_target_sat, centos, activation_key_rhel, version
+):
     """Convert Centos linux to RHEL
 
     :id: 6f698440-7d85-4deb-8dd9-363ea9003b92
@@ -306,7 +307,8 @@ def test_convert2rhel_centos(module_target_sat, centos, activation_key_rhel, ver
     :steps:
         0. Have host registered to Satellite
         1. Check for operating system
-        2. Convert host to RHEL
+        2. Run the pre-conversion template
+        3. Convert host to RHEL
 
     :expectedresults: Host is converted to RHEL with correct os facts
         and subscription status
@@ -318,6 +320,33 @@ def test_convert2rhel_centos(module_target_sat, centos, activation_key_rhel, ver
     host_content = module_target_sat.api.Host(id=centos.hostname).read_json()
     major = version.split('.')[0]
     assert host_content['operatingsystem_name'] == f'CentOS {major}'
+
+    # Pre-conversion template job
+    template_id = (
+        module_target_sat.api.JobTemplate()
+        .search(query={'search': 'name="Convert2RHEL analyze"'})[0]
+        .id
+    )
+    job = module_target_sat.api.JobInvocation().run(
+        synchronous=False,
+        data={
+            'job_template_id': template_id,
+            'inputs': {
+                'Data telemetry': 'yes',
+            },
+            'targeting_type': 'static_query',
+            'search_query': f'name = {centos.hostname}',
+        },
+    )
+    # wait for job to complete
+    module_target_sat.wait_for_tasks(
+        f'resource_type = JobInvocation and resource_id = {job["id"]}',
+        poll_timeout=5500,
+        search_rate=20,
+    )
+    result = module_target_sat.api.JobInvocation(id=job['id']).read()
+    assert result.succeeded == 1
+
     # execute job 'Convert 2 RHEL' on host
     template_id = (
         module_target_sat.api.JobTemplate().search(query={'search': 'name="Convert to RHEL"'})[0].id
