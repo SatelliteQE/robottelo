@@ -283,7 +283,7 @@ def deploy_type_cli(
         hypervisor_name, guest_name = deploy_configure_by_script(
             script, form_data_cli['hypervisor-type'], debug=True, org=org_module.label
         )
-    elif deploy_type == "organization-title":
+    elif deploy_type == 'organization-title':
         virtwho_config_cli['organization-title'] = org_module.title
     elif deploy_type == "location-id":
         virtwho_config_cli['location-id'] = default_location.id
