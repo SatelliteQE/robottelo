@@ -194,7 +194,7 @@ def test_positive_auto_provision_host_with_rule(
     discovered_host.build = True
 
     discovered_host_name = discovered_host.name
-    domain_name = provisioning_hostgroup.domain.name
+    domain_name = provisioning_hostgroup.domain.read().name
     host_name = f'{discovered_host_name}.{domain_name}'
 
     discovery_rule = sat.api.DiscoveryRule(
