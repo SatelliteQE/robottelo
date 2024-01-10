@@ -115,8 +115,8 @@ def products_with_repos(orgs, module_target_sat):
     """Create and return a list of products. For each product, create and sync a single repo."""
     products = []
     # Create one product for each org, and a second product for the last org.
-    for org, params in zip(orgs + orgs[-1:], REPOS_WITH_ERRATA):
-        product = entities.Product(organization=org).create()
+    for org, params in zip(orgs + orgs[-1:], REPOS_WITH_ERRATA, strict=True):
+        product = module_target_sat.api.Product(organization=org).create()
         # Replace the organization entity returned by create(), which contains only the id,
         # with the one we already have.
         product.organization = org
@@ -291,7 +291,7 @@ def check_errata(errata_ids, by_org=False):
     :param errata_ids: a list containing a list of errata ids for each repo
     :type errata_ids: list[list]
     """
-    for ids, repo_with_errata in zip(errata_ids, REPOS_WITH_ERRATA):
+    for ids, repo_with_errata in zip(errata_ids, REPOS_WITH_ERRATA, strict=True):
         assert len(ids) == repo_with_errata['org_errata_count' if by_org else 'errata_count']
         assert repo_with_errata['errata_id'] in ids
 

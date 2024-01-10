@@ -27,8 +27,10 @@ sat_x_y_release = f'{get_sat_version().major}.{get_sat_version().minor}'
 
 
 def get_satellite_capsule_repos(
-    x_y_release=sat_x_y_release, product='satellite', os_major_ver=get_sat_rhel_version().major
+    x_y_release=sat_x_y_release, product='satellite', os_major_ver=None
 ):
+    if os_major_ver is None:
+        os_major_ver = get_sat_rhel_version().major
     if product == 'capsule':
         product = 'satellite-capsule'
     repos = [
