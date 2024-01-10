@@ -276,7 +276,7 @@ def deploy_type_cli(
 ):
     deploy_type = request.param.lower()
     assert virtwho_config_cli['status'] == 'No Report Yet'
-    if "script" in deploy_type:
+    if 'script' in deploy_type:
         script = target_sat.cli.VirtWhoConfig.fetch(
             {'id': virtwho_config_cli['id']}, output_format='base'
         )
