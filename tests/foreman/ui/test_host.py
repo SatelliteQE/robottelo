@@ -1535,7 +1535,7 @@ def test_global_registration_upgrade_subscription_manager(
 
 @pytest.mark.tier3
 @pytest.mark.usefixtures('enable_capsule_for_registration')
-@pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.rhel_ver_match('[^6].*')
 def test_global_re_registration_host_with_force_ignore_error_options(
     session, module_activation_key, default_os, default_smart_proxy, rhel_contenthost
 ):
