@@ -2485,6 +2485,17 @@ class TestTokenAuthContainerRepository:
             container_repo = container_repos[0]
         except IndexError:
             pytest.skip('No registries with "long_pass" set to true')
+
+        to_clean = []
+
+        @request.addfinalizer
+        def clean_repos():
+            for repo in to_clean:
+                try:
+                    repo.delete(synchronous=False)
+                except Exception:
+                    logger.exception(f'Exception cleaning up docker repo:\n{repo}')
+
         for docker_repo_name in container_repo.repos_to_sync:
             repo_options = dict(
                 content_type='docker',
@@ -2502,15 +2513,9 @@ class TestTokenAuthContainerRepository:
                 pytest.skip('The "long_pass" registry does not meet length requirement')
 
             repo = module_target_sat.api.Repository(**repo_options).create()
-
-            @request.addfinalizer
-            def clean_repo():
-                try:
-                    repo.delete(synchronous=False)
-                except Exception:
-                    logger.exception('Exception cleaning up docker repo:')
-
             repo = repo.read()
+            to_clean.append(repo)
+
             for field in 'name', 'docker_upstream_name', 'content_type', 'upstream_username':
                 assert getattr(repo, field) == repo_options[field]
             repo.sync(timeout=600)
@@ -2535,6 +2540,17 @@ class TestTokenAuthContainerRepository:
         :expectedresults: multiple products and repos are created
         """
         container_repo = getattr(settings.container_repo.registries, repo_key)
+
+        to_clean = []
+
+        @request.addfinalizer
+        def clean_repos():
+            for repo in to_clean:
+                try:
+                    repo.delete(synchronous=False)
+                except Exception:
+                    logger.exception(f'Exception cleaning up docker repo:\n{repo}')
+
         for docker_repo_name in container_repo.repos_to_sync:
             repo_options = dict(
                 content_type='docker',
@@ -2549,13 +2565,8 @@ class TestTokenAuthContainerRepository:
             repo_options['product'] = module_product
 
             repo = module_target_sat.api.Repository(**repo_options).create()
-
-            @request.addfinalizer
-            def clean_repo():
-                try:
-                    repo.delete(synchronous=False)
-                except Exception:
-                    logger.exception('Exception cleaning up docker repo:')
+            repo = repo.read()
+            to_clean.append(repo)
 
             for field in 'name', 'docker_upstream_name', 'content_type', 'upstream_username':
                 assert getattr(repo, field) == repo_options[field]

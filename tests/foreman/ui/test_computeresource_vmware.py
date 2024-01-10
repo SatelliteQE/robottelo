@@ -294,8 +294,8 @@ def test_positive_resource_vm_power_management(session):
                 timeout=30,
                 delay=2,
             )
-        except TimedOutError:
-            raise AssertionError('Timed out waiting for VM to toggle power state')
+        except TimedOutError as err:
+            raise AssertionError('Timed out waiting for VM to toggle power state') from err
 
 
 @pytest.mark.tier2
