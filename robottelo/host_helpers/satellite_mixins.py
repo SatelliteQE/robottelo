@@ -1,10 +1,10 @@
 import contextlib
+from functools import lru_cache
 import io
 import os
 import random
 import re
 
-from cachetools import cachedmethod
 import requests
 
 from robottelo.cli.proxy import CapsuleTunnelError
@@ -357,6 +357,6 @@ class Factories:
             self._api_factory = APIFactory(self)
         return self._api_factory
 
-    @cachedmethod
+    @lru_cache
     def ui_factory(self, session):
         return UIFactory(self, session=session)
