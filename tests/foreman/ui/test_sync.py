@@ -80,7 +80,7 @@ def test_positive_sync_rh_repos(session, target_sat, module_entitlement_manifest
     distros = ['rhel6', 'rhel7']
     repo_collections = [
         target_sat.cli_factory.RepositoryCollection(distro=distro, repositories=[repo])
-        for distro, repo in zip(distros, repos)
+        for distro, repo in zip(distros, repos, strict=True)
     ]
     for repo_collection in repo_collections:
         repo_collection.setup(module_entitlement_manifest_org.id, synchronize=False)

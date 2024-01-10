@@ -538,7 +538,7 @@ class TestFuncShared:
         """
         prefixes = [f'pre_{i}' for i in range(10)]
         suffixes = [f'suf_{i}' for i in range(10)]
-        for prefix, suffix in zip(prefixes, suffixes):
+        for prefix, suffix in zip(prefixes, suffixes, strict=True):
             counter_value = gen_integer(min_value=2, max_value=10000)
             inc_string = basic_shared_counter_string(
                 prefix=prefix, suffix=suffix, counter=counter_value

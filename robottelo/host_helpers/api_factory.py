@@ -468,14 +468,14 @@ class APIFactory:
                     if entity_permission.name != name:
                         raise self._satellite.api.APIResponseError(
                             'the returned permission is different from the'
-                            ' requested one "{} != {}"'.format(entity_permission.name, name)
+                            f' requested one "{entity_permission.name} != {name}"'
                         )
                     permissions_entities.append(entity_permission)
             else:
                 if not permissions_name:
                     raise ValueError(
-                        'resource type "{}" empty. You must select at'
-                        ' least one permission'.format(resource_type)
+                        f'resource type "{resource_type}" empty. You must select at'
+                        ' least one permission'
                     )
 
                 resource_type_permissions_entities = self._satellite.api.Permission().search(
@@ -575,8 +575,8 @@ class APIFactory:
                 setting = self._satellite.api.Setting().search(
                     query={'search': f'name={name.strip()}'}
                 )[0]
-            except IndexError:
-                raise KeyError(f'The setting {name} in not available in satellite.')
+            except IndexError as err:
+                raise KeyError(f'The setting {name} in not available in satellite.') from err
             old_value = setting.value
             setting.value = value.strip()
             setting.update({'value'})

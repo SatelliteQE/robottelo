@@ -1762,11 +1762,11 @@ def test_positive_erratum_applicability(
             timeout=300,
             delay=5,
         )
-    except TimedOutError:
+    except TimedOutError as err:
         raise TimedOutError(
             f"Timed out waiting for erratum \"{setup_custom_repo['security_errata']}\""
             " to disappear from the list"
-        )
+        ) from err
 
 
 @pytest.mark.cli_katello_host_tools

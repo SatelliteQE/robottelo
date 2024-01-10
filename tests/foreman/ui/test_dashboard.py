@@ -86,7 +86,7 @@ def test_positive_host_configuration_status(session):
             else:
                 assert dashboard_values['status_list'][criteria] == 0
 
-        for criteria, search in zip(criteria_list, search_strings_list):
+        for criteria, search in zip(criteria_list, search_strings_list, strict=True):
             if criteria == 'Hosts with no reports':
                 session.dashboard.action({'HostConfigurationStatus': {'status_list': criteria}})
                 values = session.host.read_all()
