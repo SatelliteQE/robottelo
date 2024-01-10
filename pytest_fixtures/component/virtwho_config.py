@@ -285,7 +285,7 @@ def deploy_type_cli(
         )
     elif deploy_type == 'organization-title':
         virtwho_config_cli['organization-title'] = org_module.title
-    elif deploy_type == "location-id":
+    elif deploy_type == 'location-id':
         virtwho_config_cli['location-id'] = default_location.id
     if deploy_type in ['id', 'name', 'organization-title', 'location-id']:
         if 'id' in deploy_type:
