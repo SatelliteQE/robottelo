@@ -13,12 +13,10 @@
 """
 from datetime import datetime
 
-from airgun.session import Session
 from broker import Broker
 from dateutil.parser import parse
 from fauxfactory import gen_string
 from manifester import Manifester
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -54,9 +52,9 @@ RHVA_ERRATA_CVES = REAL_4_ERRATA_CVES
 pytestmark = [pytest.mark.run_in_one_thread]
 
 
-def _generate_errata_applicability(hostname):
+def _generate_errata_applicability(hostname, module_target_sat):
     """Force host to generate errata applicability"""
-    host = entities.Host().search(query={'search': f'name={hostname}'})[0].read()
+    host = module_target_sat.api.Host().search(query={'search': f'name={hostname}'})[0].read()
     host.errata_applicability(synchronous=False)
 
 
@@ -123,9 +121,9 @@ def erratatype_vm(module_repos_collection_with_setup, target_sat):
 
 
 @pytest.fixture
-def errata_status_installable():
+def errata_status_installable(module_target_sat):
     """Fixture to allow restoring errata_status_installable setting after usage"""
-    errata_status_installable = entities.Setting().search(
+    errata_status_installable = module_target_sat.api.Setting().search(
         query={'search': 'name="errata_status_installable"'}
     )[0]
     original_value = errata_status_installable.value
@@ -530,7 +528,7 @@ def test_positive_list(session, function_org_with_parameter, lce, target_sat):
     indirect=True,
 )
 def test_positive_list_permission(
-    test_name, module_org_with_parameter, module_repos_collection_with_setup
+    test_name, module_org_with_parameter, module_repos_collection_with_setup, module_target_sat
 ):
     """Show errata only if the User has permissions to view them
 
@@ -548,23 +546,25 @@ def test_positive_list_permission(
         product only.
     """
     module_org = module_org_with_parameter
-    role = entities.Role().create()
-    entities.Filter(
+    role = module_target_sat.api.Role().create()
+    module_target_sat.api.Filter(
         organization=[module_org],
-        permission=entities.Permission().search(
+        permission=module_target_sat.api.Permission().search(
             query={'search': 'resource_type="Katello::Product"'}
         ),
         role=role,
         search='name = "{}"'.format(PRDS['rhel']),
     ).create()
     user_password = gen_string('alphanumeric')
-    user = entities.User(
+    user = module_target_sat.api.User(
         default_organization=module_org,
         organization=[module_org],
         role=[role],
         password=user_password,
     ).create()
-    with Session(test_name, user=user.login, password=user_password) as session:
+    with module_target_sat.ui_session(
+        test_name, user=user.login, password=user_password
+    ) as session:
         assert (
             session.errata.search(RHVA_ERRATA_ID, applicable=False)[0]['Errata ID']
             == RHVA_ERRATA_ID
@@ -704,14 +704,16 @@ def test_positive_filter_by_environment(
             module_repos_collection_with_setup.setup_virtual_machine(client)
             assert client.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
         # Promote the latest content view version to a new lifecycle environment
-        content_view = entities.ContentView(
+        content_view = target_sat.api.ContentView(
             id=module_repos_collection_with_setup.setup_content_data['content_view']['id']
         ).read()
         content_view_version = content_view.version[-1].read()
         lce = content_view_version.environment[-1].read()
-        new_lce = entities.LifecycleEnvironment(organization=module_org, prior=lce).create()
+        new_lce = target_sat.api.LifecycleEnvironment(organization=module_org, prior=lce).create()
         content_view_version.promote(data={'environment_ids': new_lce.id})
-        host = entities.Host().search(query={'search': f'name={clients[0].hostname}'})[0].read()
+        host = (
+            target_sat.api.Host().search(query={'search': f'name={clients[0].hostname}'})[0].read()
+        )
         host.content_facet_attributes = {
             'content_view_id': content_view.id,
             'lifecycle_environment_id': new_lce.id,
@@ -752,7 +754,7 @@ def test_positive_filter_by_environment(
     indirect=True,
 )
 def test_positive_content_host_previous_env(
-    session, module_org_with_parameter, module_repos_collection_with_setup, vm
+    session, module_org_with_parameter, module_repos_collection_with_setup, vm, module_target_sat
 ):
     """Check if the applicable errata are available from the content
     host's previous environment
@@ -775,14 +777,16 @@ def test_positive_content_host_previous_env(
     hostname = vm.hostname
     assert vm.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     # Promote the latest content view version to a new lifecycle environment
-    content_view = entities.ContentView(
+    content_view = module_target_sat.api.ContentView(
         id=module_repos_collection_with_setup.setup_content_data['content_view']['id']
     ).read()
     content_view_version = content_view.version[-1].read()
     lce = content_view_version.environment[-1].read()
-    new_lce = entities.LifecycleEnvironment(organization=module_org, prior=lce).create()
+    new_lce = module_target_sat.api.LifecycleEnvironment(
+        organization=module_org, prior=lce
+    ).create()
     content_view_version.promote(data={'environment_ids': new_lce.id})
-    host = entities.Host().search(query={'search': f'name={hostname}'})[0].read()
+    host = module_target_sat.api.Host().search(query={'search': f'name={hostname}'})[0].read()
     host.content_facet_attributes = {
         'content_view_id': content_view.id,
         'lifecycle_environment_id': new_lce.id,
@@ -1050,7 +1054,7 @@ def test_positive_filtered_errata_status_installable_param(
     :CaseImportance: Medium
     """
     org = function_entitlement_manifest_org
-    lce = entities.LifecycleEnvironment(organization=org).create()
+    lce = target_sat.api.LifecycleEnvironment(organization=org).create()
     repos_collection = target_sat.cli_factory.RepositoryCollection(
         distro='rhel7',
         repositories=[
@@ -1067,16 +1071,16 @@ def test_positive_filtered_errata_status_installable_param(
         assert client.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
         # Adding content view filter and content view filter rule to exclude errata for the
         # installed package.
-        content_view = entities.ContentView(
+        content_view = target_sat.api.ContentView(
             id=repos_collection.setup_content_data['content_view']['id']
         ).read()
-        cv_filter = entities.ErratumContentViewFilter(
+        cv_filter = target_sat.api.ErratumContentViewFilter(
             content_view=content_view, inclusion=False
         ).create()
-        errata = entities.Errata(content_view_version=content_view.version[-1]).search(
+        errata = target_sat.api.Errata(content_view_version=content_view.version[-1]).search(
             query=dict(search=f'errata_id="{CUSTOM_REPO_ERRATA_ID}"')
         )[0]
-        entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
+        target_sat.api.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
         content_view.publish()
         content_view = content_view.read()
         content_view_version = content_view.version[-1]
