@@ -249,7 +249,6 @@ class CLIFactory:
         self._satellite = satellite
         self.__dict__.update(initiate_repo_helpers(self._satellite))
 
-    @lru_cache
     def __getattr__(self, name):
         """We intercept the usual attribute behavior on this class to emulate make_entity methods
         The keys in the dictionary above correspond to potential make_<key> methods

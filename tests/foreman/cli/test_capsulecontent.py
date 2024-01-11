@@ -201,3 +201,19 @@ def test_positive_update_counts(target_sat, module_capsule_configured):
         search_rate=5,
         max_tries=5,
     )
+
+
+@pytest.mark.parametrize(
+    'repos_collection',
+    [
+        {
+            'distro': 'rhel8',
+            'YumRepository': {'url': settings.repos.module_stream_1.url},
+            'FileRepository': {'url': CUSTOM_FILE_REPO},
+        }
+    ],
+    indirect=True,
+)
+def test_dummie(repos_collection, function_org, function_lce):
+    repos_collection.setup_content(function_org.id, function_lce.id, upload_manifest=False)
+    pass
