@@ -155,6 +155,7 @@ def centos(
     """Deploy and register Centos host"""
     # updating centos packages on CentOS 8 is necessary for conversion
     major = version.split('.')[0]
+    centos_host.execute('yum -y update')
     if major == '8':
         centos_host.execute('yum -y update centos-*')
     repo_url = settings.repos.convert2rhel.convert_to_rhel_repo.format(major)
@@ -199,12 +200,22 @@ def oracle(
     # disable rhn-client-tools because it obsoletes the subscription manager package
     oracle_host.execute('echo "exclude=rhn-client-tools" >> /etc/yum.conf')
     # install and set correct kernel, based on convert2rhel docs
+    oracle_host.execute('yum -y update kernel*')
+    oracle_host.execute('yum -y install kernel-uek-core qemu-guest-agent')
     result = oracle_host.execute(
         'yum install -y kernel && '
         'grubby --set-default /boot/vmlinuz-'
         '`rpm -q --qf "%{BUILDTIME}\t%{EVR}.%{ARCH}\n" kernel | sort -nr | head -1 | cut -f2`'
     )
     assert result.status == 0
+    # Fix inhibitor CHECK_FIREWALLD_AVAILABILITY::FIREWALLD_MODULES_CLEANUP_ON_EXIT_CONFIG -
+    # Firewalld is set to cleanup modules after exit
+    result = oracle_host.execute(
+        'sed -i -- "s/CleanupModulesOnExit=yes/CleanupModulesOnExit=no/g" '
+        '/etc/firewalld/firewalld.conf && firewall-cmd --reload'
+    )
+    assert result.status == 0
+
     oracle_host.power_control(state='reboot')
     major = version.split('.')[0]
     repo_url = settings.repos.convert2rhel.convert_to_rhel_repo.format(major)
@@ -263,6 +274,14 @@ def test_convert2rhel_oracle(module_target_sat, oracle, activation_key_rhel, ver
 
     :CaseImportance: Medium
     """
+    major = version.split('.')[0]
+    oracle.execute('yum -y update')
+    if major == '8':
+        # Fix inhibitor TAINTED_KMODS::TAINTED_KMODS_DETECTED - Tainted kernel modules detected
+        blacklist_cfg = '/etc/modprobe.d/blacklist.conf'
+        assert oracle.execute('modprobe -r nvme_tcp').status == 0
+        assert oracle.execute(f'echo "blacklist nvme_tcp" >> {blacklist_cfg}').status == 0
+        assert oracle.execute(f'echo "install nvme_tcp /bin/false" >> {blacklist_cfg}').status == 0
     host_content = module_target_sat.api.Host(id=oracle.hostname).read_json()
     assert host_content['operatingsystem_name'] == f"OracleLinux {version}"
 
