@@ -619,3 +619,34 @@ class TestVirtwhoConfigforEsx:
             )
             org_session.virtwho_configure.delete(name)
             assert not org_session.virtwho_configure.search(name)
+
+    @pytest.mark.tier2
+    def test_positive_hypervisor_password_option(
+        self, module_sca_manifest_org, virtwho_config_ui, org_session, form_data_ui
+    ):
+        """Verify Hypervisor password.
+
+        :id: 8362955a-4daa-4332-9559-b526d9095a61
+
+        :expectedresults:
+            hypervisor_password has been set in virt-who-config-{}.conf
+            hypervisor_password has been encrypted in satellite WEB UI Edit page
+            hypervisor_password has been encrypted in satellite WEB UI Details page
+
+        :CaseImportance: Medium
+
+        :BZ: 2256927
+        """
+        name = form_data_ui['name']
+        config_id = get_configure_id(name)
+        config_command = get_configure_command(config_id, module_sca_manifest_org.name)
+        deploy_configure_by_command(
+            config_command, form_data_ui['hypervisor_type'], org=module_sca_manifest_org.label
+        )
+        config_file = get_configure_file(config_id)
+        assert get_configure_option('encrypted_password', config_file)
+        res = org_session.virtwho_configure.read_edit(name)
+        assert 'encrypted-' in res['hypervisor_content']['password']
+        org_session.virtwho_configure.edit(name, {'hypervisor_password': "Welcome1!"})
+        results = org_session.virtwho_configure.read(name)
+        assert 'encrypted_password=$cr_password' in results['deploy']['script']
