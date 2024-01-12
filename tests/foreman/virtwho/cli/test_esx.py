@@ -215,7 +215,7 @@ class TestVirtWhoConfigforEsx:
 
     @pytest.mark.tier2
     def test_positive_proxy_option(
-        self, default_org, form_data_cli, virtwho_config_cli, target_sat
+        self, default_org, default_location, form_data_cli, virtwho_config_cli, target_sat
     ):
         """Verify http_proxy option by hammer virt-who-config update"
 
@@ -228,7 +228,9 @@ class TestVirtWhoConfigforEsx:
         :BZ: 1902199
         """
         # Check the https proxy option, update it via http proxy name
-        https_proxy_url, https_proxy_name, https_proxy_id = create_http_proxy(org=default_org)
+        https_proxy_url, https_proxy_name, https_proxy_id = create_http_proxy(
+            org=default_org, location=default_location
+        )
         no_proxy = 'test.satellite.com'
         target_sat.cli.VirtWhoConfig.update(
             {'id': virtwho_config_cli['id'], 'http-proxy': https_proxy_name, 'no-proxy': no_proxy}
@@ -245,7 +247,7 @@ class TestVirtWhoConfigforEsx:
 
         # Check the http proxy option, update it via http proxy id
         http_proxy_url, http_proxy_name, http_proxy_id = create_http_proxy(
-            http_type='http', org=default_org
+            http_type='http', org=default_org, location=default_location
         )
         target_sat.cli.VirtWhoConfig.update(
             {'id': virtwho_config_cli['id'], 'http-proxy-id': http_proxy_id}
