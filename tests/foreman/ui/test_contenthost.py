@@ -15,9 +15,7 @@ from datetime import datetime, timedelta
 import re
 from urllib.parse import urlparse
 
-from airgun.session import Session
 from fauxfactory import gen_integer, gen_string
-from nailgun import entities
 import pytest
 
 from robottelo.config import setting_is_set, settings
@@ -44,8 +42,10 @@ if not setting_is_set('clients') or not setting_is_set('fake_manifest'):
 
 
 @pytest.fixture(scope='module', autouse=True)
-def host_ui_default():
-    settings_object = entities.Setting().search(query={'search': 'name=host_details_ui'})[0]
+def host_ui_default(module_target_sat):
+    settings_object = module_target_sat.api.Setting().search(
+        query={'search': 'name=host_details_ui'}
+    )[0]
     settings_object.value = 'No'
     settings_object.update({'value'})
     yield
@@ -54,10 +54,10 @@ def host_ui_default():
 
 
 @pytest.fixture(scope='module')
-def module_org():
-    org = entities.Organization(simple_content_access=False).create()
+def module_org(module_target_sat):
+    org = module_target_sat.api.Organization(simple_content_access=False).create()
     # adding remote_execution_connect_by_ip=Yes at org level
-    entities.Parameter(
+    module_target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
         value='Yes',
         organization=org.id,
@@ -84,9 +84,9 @@ def vm_module_streams(module_repos_collection_with_manifest, rhel8_contenthost, 
     return rhel8_contenthost
 
 
-def set_ignore_facts_for_os(value=False):
+def set_ignore_facts_for_os(module_target_sat, value=False):
     """Helper to set 'ignore_facts_for_operatingsystem' setting"""
-    ignore_setting = entities.Setting().search(
+    ignore_setting = module_target_sat.api.Setting().search(
         query={'search': 'name="ignore_facts_for_operatingsystem"'}
     )[0]
     ignore_setting.value = str(value)
@@ -603,7 +603,7 @@ def test_positive_remove_package_group(session, default_location, vm):
     indirect=True,
 )
 def test_positive_search_errata_non_admin(
-    session, default_location, vm, test_name, default_viewer_role
+    default_location, vm, test_name, default_viewer_role, module_target_sat
 ):
     """Search for host's errata by non-admin user with enough permissions
 
@@ -619,7 +619,7 @@ def test_positive_search_errata_non_admin(
     :parametrized: yes
     """
     vm.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
-    with Session(
+    with module_target_sat.ui_session(
         test_name, user=default_viewer_role.login, password=default_viewer_role.password
     ) as session:
         session.location.select(default_location.name)
@@ -766,7 +766,9 @@ def test_positive_host_re_registration_with_host_rename(
     ],
     indirect=True,
 )
-def test_positive_check_ignore_facts_os_setting(session, default_location, vm, module_org, request):
+def test_positive_check_ignore_facts_os_setting(
+    session, default_location, vm, module_org, request, module_target_sat
+):
     """Verify that 'Ignore facts for operating system' setting works
     properly
 
@@ -799,9 +801,9 @@ def test_positive_check_ignore_facts_os_setting(session, default_location, vm, m
     major = str(gen_integer(15, 99))
     minor = str(gen_integer(1, 9))
     expected_os = f'RedHat {major}.{minor}'
-    set_ignore_facts_for_os(False)
+    set_ignore_facts_for_os(module_target_sat, False)
     host = (
-        entities.Host()
+        module_target_sat.api.Host()
         .search(query={'search': f'name={vm.hostname} and organization_id={module_org.id}'})[0]
         .read()
     )
@@ -810,7 +812,7 @@ def test_positive_check_ignore_facts_os_setting(session, default_location, vm, m
         # Get host current operating system value
         os = session.contenthost.read(vm.hostname, widget_names='details')['details']['os']
         # Change necessary setting to true
-        set_ignore_facts_for_os(True)
+        set_ignore_facts_for_os(module_target_sat, True)
         # Add cleanup function to roll back setting to default value
         request.addfinalizer(set_ignore_facts_for_os)
         # Read all facts for corresponding host
@@ -827,7 +829,7 @@ def test_positive_check_ignore_facts_os_setting(session, default_location, vm, m
         # Check that host OS was not changed due setting was set to true
         assert os == updated_os
         # Put it to false and re-run the process
-        set_ignore_facts_for_os(False)
+        set_ignore_facts_for_os(module_target_sat, False)
         host.upload_facts(data={'name': vm.hostname, 'facts': facts})
         session.contenthost.search('')
         updated_os = session.contenthost.read(vm.hostname, widget_names='details')['details']['os']
@@ -864,8 +866,8 @@ def test_positive_virt_who_hypervisor_subscription_status(
 
     :parametrized: yes
     """
-    org = entities.Organization().create()
-    lce = entities.LifecycleEnvironment(organization=org).create()
+    org = target_sat.api.Organization().create()
+    lce = target_sat.api.LifecycleEnvironment(organization=org).create()
     # TODO move this to either hack around virt-who service or use an env-* compute resource
     provisioning_server = settings.libvirt.libvirt_hostname
     # Create a new virt-who config
@@ -936,7 +938,9 @@ def test_positive_virt_who_hypervisor_subscription_status(
     ],
     indirect=True,
 )
-def test_module_stream_actions_on_content_host(session, default_location, vm_module_streams):
+def test_module_stream_actions_on_content_host(
+    session, default_location, vm_module_streams, module_target_sat
+):
     """Check remote execution for module streams actions e.g. install, remove, disable
     works on content host. Verify that correct stream module stream
     get installed/removed.
@@ -949,7 +953,7 @@ def test_module_stream_actions_on_content_host(session, default_location, vm_mod
     """
     stream_version = '5.21'
     run_remote_command_on_content_host('dnf -y upload-profile', vm_module_streams)
-    entities.Parameter(
+    module_target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
         value='Yes',
         parameter_type='boolean',
@@ -1726,7 +1730,7 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template,
 
 
 @pytest.mark.tier3
-def test_search_for_virt_who_hypervisors(session, default_location):
+def test_search_for_virt_who_hypervisors(session, default_location, module_target_sat):
     """
     Search the virt_who hypervisors with hypervisor=True or hypervisor=False.
 
@@ -1740,7 +1744,7 @@ def test_search_for_virt_who_hypervisors(session, default_location):
 
     :CaseImportance: Medium
     """
-    org = entities.Organization().create()
+    org = module_target_sat.api.Organization().create()
     with session:
         session.organization.select(org.name)
         session.location.select(default_location.name)
