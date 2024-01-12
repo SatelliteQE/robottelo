@@ -227,7 +227,9 @@ class TestVirtWhoConfigforEsx:
                 assert result.exclude_host_parents == regex
 
     @pytest.mark.tier2
-    def test_positive_proxy_option(self, module_sca_manifest_org, form_data_api, target_sat):
+    def test_positive_proxy_option(
+        self, module_sca_manifest_org, default_location, form_data_api, target_sat
+    ):
         """Verify http_proxy option by "PUT
 
         /foreman_virt_who_configure/api/v2/configs/:id""
@@ -251,7 +253,7 @@ class TestVirtWhoConfigforEsx:
         assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == '*'
         # Check HTTTP Proxy and No_PROXY option
         http_proxy_url, http_proxy_name, http_proxy_id = create_http_proxy(
-            http_type='http', org=module_sca_manifest_org
+            http_type='http', org=module_sca_manifest_org, location=default_location
         )
         no_proxy = 'test.satellite.com'
         virtwho_config.http_proxy_id = http_proxy_id
@@ -269,7 +271,7 @@ class TestVirtWhoConfigforEsx:
         assert result.no_proxy == no_proxy
         # Check HTTTPs Proxy option
         https_proxy_url, https_proxy_name, https_proxy_id = create_http_proxy(
-            org=module_sca_manifest_org
+            org=module_sca_manifest_org, location=default_location
         )
         virtwho_config.http_proxy_id = https_proxy_id
         virtwho_config.update(['http_proxy_id'])
