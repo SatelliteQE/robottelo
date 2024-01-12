@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: RemoteExecution
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from datetime import datetime, timedelta
 from time import sleep
@@ -404,7 +399,7 @@ class TestAnsibleREX:
 
         :id: a5fa20d8-c2bd-4bbf-a6dc-bf307b59dd8c
 
-        :Steps:
+        :steps:
 
             0. Create a VM and register to SAT and prepare for REX (ssh key)
 
@@ -417,8 +412,6 @@ class TestAnsibleREX:
         :expectedresults: multiple asserts along the code
 
         :CaseAutomation: Automated
-
-        :CaseLevel: System
 
         :parametrized: yes
         """
@@ -459,7 +452,7 @@ class TestAnsibleREX:
 
         :id: 49b0d31d-58f9-47f1-aa5d-561a1dcb0d66
 
-        :Steps:
+        :steps:
 
             0. Create a VM and register to SAT and prepare for REX (ssh key)
 
@@ -471,7 +464,9 @@ class TestAnsibleREX:
 
         :CaseAutomation: Automated
 
-        :CaseLevel: System
+        :customerscenario: true
+
+        :bz: 2129432
 
         :parametrized: yes
         """
@@ -498,7 +493,7 @@ class TestAnsibleREX:
 
         :id: ad0f108c-03f2-49c7-8732-b1056570567b
 
-        :Steps:
+        :steps:
 
             0. Create 2 hosts, disable foreman_tasks_proxy_batch_trigger
 
@@ -509,8 +504,6 @@ class TestAnsibleREX:
         :CaseAutomation: Automated
 
         :customerscenario: true
-
-        :CaseLevel: System
 
         :BZ: 1817320
 
@@ -560,7 +553,7 @@ class TestAnsibleREX:
 
         :id: 47ed82fb-77ca-43d6-a52e-f62bae5d3a42
 
-        :Steps:
+        :steps:
 
             0. Create a VM and register to SAT and prepare for REX (ssh key)
 
@@ -575,8 +568,6 @@ class TestAnsibleREX:
         :expectedresults: multiple asserts along the code
 
         :CaseAutomation: Automated
-
-        :CaseLevel: System
 
         :bz: 1872688, 1811166
 
@@ -641,7 +632,7 @@ class TestAnsibleREX:
     ):
         """Test whether Ansible collection can be installed via REX
 
-        :Steps:
+        :steps:
             1. Upload a manifest.
             2. Enable and sync Ansible repository.
             3. Register content host to Satellite.

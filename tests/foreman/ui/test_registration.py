@@ -2,8 +2,6 @@
 
 :Requirement: Registration
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Registration
 
 :CaseAutomation: Automated
@@ -11,10 +9,6 @@
 :CaseImportance: Critical
 
 :Team: Rocket
-
-:TestType: Functional
-
-:Upstream: No
 """
 import pytest
 
@@ -32,8 +26,6 @@ def test_positive_verify_default_values_for_global_registration(
 
     :expectedresults: Default fields in the form should be auto-populated
         e.g. organization, location, rex, insights setup, etc
-
-    :CaseLevel: Component
 
     :steps:
         1. Check for the default values in the global registration template
@@ -75,8 +67,6 @@ def test_positive_org_loc_change_for_registration(
     :id: e83ed6bc-ceae-4021-87fe-3ecde1cbf347
 
     :expectedresults: organization and location is updated correctly on the global registration page as well as in the command.
-
-    :CaseLevel: Component
 
     :CaseImportance: Medium
     """

@@ -2,19 +2,14 @@
 
 :Requirement: HttpProxy
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Repositories
 
 :team: Phoenix-content
-
-:TestType: Functional
 
 :CaseImportance: High
 
 :CaseAutomation: Automated
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -157,8 +152,6 @@ def test_positive_auto_attach_with_http_proxy(
     :BZ: 2046337
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     org = function_entitlement_manifest_org
     lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()

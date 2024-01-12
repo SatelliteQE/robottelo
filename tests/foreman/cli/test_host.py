@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Hosts
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from random import choice
 import re
@@ -574,8 +569,6 @@ def test_positive_katello_and_openscap_loaded(target_sat):
         and foreman_openscap are available in help message
         (note: help is generated dynamically based on apipie cache)
 
-    :CaseLevel: System
-
     :customerscenario: true
 
     :CaseImportance: Medium
@@ -602,8 +595,6 @@ def test_positive_list_and_unregister(
         Unlike content host, host has not disappeared from list of hosts after unregistering.
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     rhel7_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
     assert rhel7_contenthost.subscribed
@@ -631,8 +622,6 @@ def test_positive_list_by_last_checkin(
     :BZ: 1285992
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(
@@ -659,8 +648,6 @@ def test_positive_list_infrastructure_hosts(
     :expectedresults: Infrastructure hosts are listed
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     rhel7_contenthost.install_katello_ca(target_sat)
     rhel7_contenthost.register_contenthost(
@@ -696,8 +683,6 @@ def test_positive_create_inherit_lce_cv(
     :expectedresults: Host's lifecycle environment and content view match
         the ones specified in hostgroup
 
-    :CaseLevel: Integration
-
     :BZ: 1391656
     """
     hostgroup = target_sat.api.HostGroup(
@@ -724,8 +709,6 @@ def test_positive_create_inherit_nested_hostgroup(target_sat):
     :id: 7bc95130-3f20-493d-b54c-04c444d97563
 
     :expectedresults: Host created successfully using host group title
-
-    :CaseLevel: System
 
     :customerscenario: true
 
@@ -787,8 +770,6 @@ def test_positive_list_with_nested_hostgroup(target_sat):
         nested host groups names in its hostgroup parameter
 
     :BZ: 1427554, 1955421
-
-    :CaseLevel: System
     """
     options = target_sat.api.Host()
     options.create_missing()
@@ -864,9 +845,7 @@ def test_negative_create_with_incompatible_pxe_loader():
       2. Files not deployed on TFTP
       3. Host not created
 
-        :CaseAutomation: NotAutomated
-
-    :CaseLevel: System
+    :CaseAutomation: NotAutomated
     """
 
 
@@ -980,8 +959,6 @@ def test_negative_update_arch(function_host, module_architecture, target_sat):
     :id: a86524da-8caf-472b-9a3d-17a4385c3a18
 
     :expectedresults: A host is not updated
-
-    :CaseLevel: Integration
     """
     with pytest.raises(CLIReturnCodeError):
         target_sat.cli.Host.update(
@@ -1000,8 +977,6 @@ def test_negative_update_os(target_sat, function_host, module_architecture):
     :id: ff13d2af-e54a-4daf-a24d-7ec930b4fbbe
 
     :expectedresults: A host is not updated
-
-    :CaseLevel: Integration
     """
     p_table = function_host['operating-system']['partition-table']
     p_table = target_sat.api.PartitionTable().search(query={'search': f'name="{p_table}"'})[0]
@@ -1031,7 +1006,7 @@ def test_hammer_host_info_output(target_sat, module_user):
 
     :id: 03468516-0ebb-11eb-8ad8-0c7a158cbff4
 
-    :Steps:
+    :steps:
         1. Update the host with any owner
         2. Get host info by running `hammer host info`
         3. Create new user and update his location and organization based on the hosts
@@ -1279,8 +1254,6 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(function_host, 
         from yaml format
 
     :BZ: 1315282
-
-    :CaseLevel: Integration
     """
     param_name = gen_string('alpha').lower()
     # long string that should be escaped and affected by line break with
@@ -1348,9 +1321,7 @@ def test_positive_provision_baremetal_with_bios_syslinux():
       6. GRUB config changes the boot order (boot local first)
       7. Hosts boots straight to RHEL after reboot (step #4)
 
-        :CaseAutomation: NotAutomated
-
-    :CaseLevel: System
+    :CaseAutomation: NotAutomated
     """
 
 
@@ -1386,9 +1357,7 @@ def test_positive_provision_baremetal_with_uefi_syslinux():
       6. GRUB config changes the boot order (boot local first)
       7. Hosts boots straight to RHEL after reboot (step #4)
 
-        :CaseAutomation: NotAutomated
-
-    :CaseLevel: System
+    :CaseAutomation: NotAutomated
     """
 
 
@@ -1427,9 +1396,7 @@ def test_positive_provision_baremetal_with_uefi_grub():
       7. Hosts boots straight to RHEL after reboot (step #4)
 
 
-        :CaseAutomation: NotAutomated
-
-    :CaseLevel: System
+    :CaseAutomation: NotAutomated
     """
 
 
@@ -1470,9 +1437,7 @@ def test_positive_provision_baremetal_with_uefi_grub2():
       7. Hosts boots straight to RHEL after reboot (step #4)
 
 
-        :CaseAutomation: NotAutomated
-
-    :CaseLevel: System
+    :CaseAutomation: NotAutomated
     """
 
 
@@ -1505,9 +1470,7 @@ def test_positive_provision_baremetal_with_uefi_secureboot():
 
     :expectedresults: Host is provisioned
 
-        :CaseAutomation: NotAutomated
-
-    :CaseLevel: System
+    :CaseAutomation: NotAutomated
     """
 
 
@@ -1610,8 +1573,6 @@ def test_positive_report_package_installed_removed(
     :BZ: 1463809
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     client = katello_host_tools_host
     host_info = target_sat.cli.Host.info({'name': client.hostname})
@@ -1656,8 +1617,6 @@ def test_positive_package_applicability(katello_host_tools_host, setup_custom_re
     :BZ: 1463809
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     client = katello_host_tools_host
     host_info = target_sat.cli.Host.info({'name': client.hostname})
@@ -1719,8 +1678,6 @@ def test_positive_erratum_applicability(
     :BZ: 1463809,1740790
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     client = katello_host_tools_host
     host_info = target_sat.cli.Host.info({'name': client.hostname})
@@ -1774,8 +1731,6 @@ def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_r
     :expectedresults: erratum is recognized by the
         `yum update --security` command on client
 
-    :CaseLevel: System
-
     :customerscenario: true
 
     :BZ: 1420671
@@ -1813,8 +1768,6 @@ def test_positive_install_package_via_rex(
     :id: 751c05b4-d7a3-48a2-8860-f0d15fdce204
 
     :expectedresults: Package was installed
-
-    :CaseLevel: System
 
     :parametrized: yes
     """
@@ -1878,8 +1831,6 @@ def test_positive_register(
     :expectedresults: host successfully registered
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     hosts = target_sat.cli.Host.list(
         {
@@ -1942,8 +1893,6 @@ def test_positive_attach(
         enabled, and repository package installed
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     # create an activation key without subscriptions
     # register the client host
@@ -1999,8 +1948,6 @@ def test_positive_attach_with_lce(
         repository enabled, and repository package installed
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     host_subscription_client.register_contenthost(
         module_org.name,
@@ -2038,8 +1985,6 @@ def test_negative_without_attach(
     :expectedresults: repository list is empty
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     target_sat.cli.Host.subscription_register(
         {
@@ -2077,8 +2022,6 @@ def test_negative_without_attach_with_lce(
     :expectedresults: repository not enabled on host
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     content_view = target_sat.api.ContentView(organization=function_org).create()
     ak = target_sat.api.ActivationKey(
@@ -2140,8 +2083,6 @@ def test_positive_remove(
     :expectedresults: subscription successfully removed from host
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     target_sat.cli.Host.subscription_register(
         {
@@ -2215,8 +2156,6 @@ def test_positive_auto_attach(
         repository enabled, and repository package installed
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     target_sat.cli.Host.subscription_register(
         {
@@ -2251,8 +2190,6 @@ def test_positive_unregister_host_subscription(
     :expectedresults: host subscription is unregistered
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     # register the host client
     host_subscription_client.register_contenthost(
@@ -2309,8 +2246,6 @@ def test_syspurpose_end_to_end(
     :CaseImportance: Critical
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     # Create an activation key with test values
     purpose_addons = "test-addon1, test-addon2"
@@ -2570,8 +2505,6 @@ def test_positive_list_scparams(
 
     :expectedresults: Overridden sc-param from puppet
         class are listed
-
-    :CaseLevel: Integration
     """
     update_smart_proxy(session_puppet_enabled_sat, module_puppet_loc, session_puppet_enabled_proxy)
     # Create hostgroup with associated puppet class

@@ -4,17 +4,11 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: ErrataManagement
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
-
-:Upstream: No
 """
 from datetime import date, datetime, timedelta
 from operator import itemgetter
@@ -401,8 +395,6 @@ def test_positive_install_by_host_collection_and_org(
 
     :expectedresults: Erratum is installed.
 
-    :CaseLevel: System
-
     :BZ: 1457977, 1983043
     """
     errata_id = REPO_WITH_ERRATA['errata'][0]['id']
@@ -456,7 +448,6 @@ def test_negative_install_by_hc_id_without_errata_info(
 
     :CaseImportance: Low
 
-    :CaseLevel: System
     """
     with pytest.raises(CLIReturnCodeError, match="Error: Option '--errata' is required"):
         target_sat.cli.HostCollection.erratum_install(
@@ -485,7 +476,6 @@ def test_negative_install_by_hc_name_without_errata_info(
 
     :CaseImportance: Low
 
-    :CaseLevel: System
     """
     with pytest.raises(CLIReturnCodeError, match="Error: Option '--errata' is required"):
         target_sat.cli.HostCollection.erratum_install(
@@ -516,8 +506,6 @@ def test_negative_install_without_hc_info(
     :BZ: 1928281
 
     :CaseImportance: Low
-
-    :CaseLevel: System
     """
     module_target_sat.cli_factory.make_host_collection(
         {'organization-id': module_entitlement_manifest_org.id}
@@ -548,7 +536,6 @@ def test_negative_install_by_hc_id_without_org_info(
 
     :CaseImportance: Low
 
-    :CaseLevel: System
     """
     with pytest.raises(CLIReturnCodeError, match='Error: Could not find organization'):
         module_target_sat.cli.HostCollection.erratum_install(
@@ -573,7 +560,6 @@ def test_negative_install_by_hc_name_without_org_info(
 
     :CaseImportance: Low
 
-    :CaseLevel: System
     """
     with pytest.raises(CLIReturnCodeError, match='Error: Could not find organization'):
         module_target_sat.cli.HostCollection.erratum_install(
@@ -1112,8 +1098,6 @@ def test_negative_list_filter_by_product_name(products_with_repos, module_target
     :expectedresults: Error must be returned.
 
     :CaseImportance: Low
-
-    :CaseLevel: System
     """
     with pytest.raises(CLIReturnCodeError):
         module_target_sat.cli.Erratum.list(
@@ -1168,7 +1152,6 @@ def test_positive_list_filter_by_cve(module_entitlement_manifest_org, rh_repo, t
     :Steps: erratum list --cve <cve_id>
 
     :expectedresults: Errata is filtered by CVE.
-
     """
     target_sat.cli.RepositorySet.enable(
         {

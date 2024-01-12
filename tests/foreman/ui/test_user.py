@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: UsersRoles
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import random
 
@@ -34,8 +29,6 @@ def test_positive_end_to_end(session, target_sat, test_name, module_org, module_
     :id: 2794fdd0-cfe3-4f1a-aa5f-25b2d211ae12
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -110,8 +103,6 @@ def test_positive_create_with_multiple_roles(session, target_sat):
 
     :expectedresults: User is created successfully and has proper roles
         assigned
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     role1 = gen_string('alpha')
@@ -141,8 +132,6 @@ def test_positive_create_with_all_roles(session):
     :id: 814593ca-1566-45ea-9eff-e880183b1ee3
 
     :expectedresults: User is created successfully
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     password = gen_string('alpha')
@@ -168,8 +157,6 @@ def test_positive_create_with_multiple_orgs(session, target_sat):
     :id: d74c0284-3995-4a4a-8746-00858282bf5d
 
     :expectedresults: User is created successfully
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     org_name1 = gen_string('alpha')
@@ -204,8 +191,6 @@ def test_positive_update_with_multiple_roles(session, target_sat):
     :id: 127fb368-09fd-4f10-8319-566a1bcb5cd2
 
     :expectedresults: User is updated successfully
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     role_names = [target_sat.api.Role().create().name for _ in range(3)]
@@ -232,8 +217,6 @@ def test_positive_update_with_all_roles(session):
     :id: cd7a9cfb-a700-45f2-a11d-bba6be3c810d
 
     :expectedresults: User is updated successfully
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     password = gen_string('alpha')
@@ -259,8 +242,6 @@ def test_positive_update_orgs(session, target_sat):
     :id: a207188d-1ad1-4ff1-9906-bae1d91104fd
 
     :expectedresults: User is updated
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     password = gen_string('alpha')
@@ -293,8 +274,6 @@ def test_positive_create_product_with_limited_user_permission(
     :expectedresults: User successfully creates new product
 
     :customerscenario: true
-
-    :CaseLevel: Component
 
     :CaseImportance: High
 
@@ -343,8 +322,6 @@ def test_personal_access_token_admin():
         1. Should show output of the api endpoint
         2. When revoked, authentication error
 
-    :CaseLevel: System
-
     :CaseImportance: High
     """
 
@@ -368,8 +345,6 @@ def test_positive_personal_access_token_user_with_role():
         2. When an incorrect role and end point is used, missing
            permission should be displayed.
 
-    :CaseLevel: System
-
     :CaseImportance: High
     """
 
@@ -387,8 +362,6 @@ def test_expired_personal_access_token():
         3. Try using the token with any end point.
 
     :expectedresults: Authentication error
-
-    :CaseLevel: System
 
     :CaseImportance: Medium
     """

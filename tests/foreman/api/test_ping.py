@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: API
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 import pytest
 

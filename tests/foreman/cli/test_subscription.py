@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: SubscriptionManagement
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -91,8 +86,6 @@ def test_positive_enable_manifest_reposet(function_entitlement_manifest_org, mod
 
     :expectedresults: you are able to enable and synchronize repository
         contained in a manifest
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """

@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: OrganizationsandLocations
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -171,8 +166,6 @@ def test_positive_add_and_remove_subnets(module_org, module_target_sat):
     :expectedresults: Subnets are handled as expected
 
     :BZ: 1395229
-
-    :CaseLevel: Integration
     """
     subnets = [module_target_sat.cli_factory.make_subnet() for _ in range(0, 2)]
     module_target_sat.cli.Org.add_subnet({'name': module_org.name, 'subnet': subnets[0]['name']})
@@ -202,8 +195,6 @@ def test_positive_add_and_remove_users(module_org, module_target_sat):
         4. create and delete admin user by id
 
     :BZ: 1395229
-
-    :CaseLevel: Integration
     """
     user = module_target_sat.cli_factory.user()
     admin_user = module_target_sat.cli_factory.user({'admin': '1'})
@@ -249,8 +240,6 @@ def test_positive_add_and_remove_hostgroups(module_org, module_target_sat):
     :steps:
         1. add and remove hostgroup by name
         2. add and remove hostgroup by id
-
-    :CaseLevel: Integration
     """
     hostgroups = [module_target_sat.cli_factory.hostgroup() for _ in range(0, 2)]
 
@@ -290,8 +279,6 @@ def test_positive_add_and_remove_compute_resources(module_org, module_target_sat
     :steps:
         1. Add and remove compute resource by id
         2. Add and remove compute resource by name
-
-    :CaseLevel: Integration
     """
     compute_resources = [
         module_target_sat.cli_factory.compute_resource(
@@ -338,8 +325,6 @@ def test_positive_add_and_remove_media(module_org, module_target_sat):
     :steps:
         1. add and remove medium by id
         2. add and remove medium by name
-
-    :CaseLevel: Integration
     """
     media = [module_target_sat.cli_factory.make_medium() for _ in range(0, 2)]
     module_target_sat.cli.Org.add_medium({'id': module_org.id, 'medium-id': media[0]['id']})
@@ -369,8 +354,6 @@ def test_positive_add_and_remove_templates(module_org, module_target_sat):
     :steps:
         1. Add and remove template by id
         2. Add and remove template by name
-
-    :CaseLevel: Integration
     """
     # create and remove templates by name
     name = list(valid_data_list().values())[0]
@@ -427,8 +410,6 @@ def test_positive_add_and_remove_domains(module_org, module_target_sat):
     :steps:
         1. Add and remove domain by name
         2. Add and remove domain by id
-
-    :CaseLevel: Integration
     """
     domains = [module_target_sat.cli_factory.make_domain() for _ in range(0, 2)]
     module_target_sat.cli.Org.add_domain({'domain-id': domains[0]['id'], 'name': module_org.name})
@@ -455,8 +436,6 @@ def test_positive_add_and_remove_lce(module_org, module_target_sat):
     :steps:
         1. create and add lce to org
         2. remove lce from org
-
-    :CaseLevel: Integration
     """
     # Create a lifecycle environment.
     lc_env_name = module_target_sat.cli_factory.make_lifecycle_environment(
@@ -487,8 +466,6 @@ def test_positive_add_and_remove_capsules(proxy, module_org, module_target_sat):
     :steps:
         1. add and remove capsule by ip
         2. add and remove capsule by name
-
-    :CaseLevel: Integration
     """
     module_target_sat.cli.Org.add_smart_proxy({'id': module_org.id, 'smart-proxy-id': proxy['id']})
     org_info = module_target_sat.cli.Org.info({'name': module_org.name})
@@ -524,8 +501,6 @@ def test_positive_add_and_remove_locations(module_org, module_target_sat):
     :steps:
         1. add and remove locations by name
         2. add and remove locations by id
-
-    :CaseLevel: Integration
     """
     locations = [module_target_sat.cli_factory.make_location() for _ in range(0, 2)]
     module_target_sat.cli.Org.add_location(
@@ -599,7 +574,6 @@ def test_negative_create_with_invalid_name(name, module_target_sat):
     :parametrized: yes
 
     :expectedresults: organization is not created
-
     """
     with pytest.raises(CLIFactoryError):
         module_target_sat.cli_factory.make_org(
@@ -666,7 +640,6 @@ def test_negative_update_name(new_name, module_org, module_target_sat):
     :parametrized: yes
 
     :expectedresults: organization name is not updated
-
     """
     with pytest.raises(CLIReturnCodeError):
         module_target_sat.cli.Org.update({'id': module_org.id, 'new-name': new_name})
@@ -682,8 +655,6 @@ def test_positive_create_user_with_timezone(module_org, module_target_sat):
 
     :BZ: 1733269
 
-    :CaseLevel: Integration
-
     :CaseImportance: Medium
 
     :steps:
@@ -692,7 +663,6 @@ def test_positive_create_user_with_timezone(module_org, module_target_sat):
         3. Remove user from organization and validate
 
     :expectedresults: User created and removed successfully with valid timezone
-
     """
     users_timezones = [
         'Pacific Time (US & Canada)',

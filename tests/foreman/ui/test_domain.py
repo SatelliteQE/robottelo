@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Hosts
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -40,8 +35,6 @@ def test_positive_set_parameter(session, valid_domain_name, param_value):
     :parametrized: yes
 
     :expectedresults: Domain parameter is created.
-
-    :CaseLevel: Integration
     """
     new_param = {'name': gen_string('alpha', 255), 'value': param_value}
     with session:
@@ -61,8 +54,6 @@ def test_negative_set_parameter(session, valid_domain_name):
     :id: 1c647d66-6a3f-4d88-8e6b-60f2fc7fd603
 
     :expectedresults: Domain parameter is not updated. Error is raised
-
-    :CaseLevel: Integration
 
     :CaseImportance: Medium
     """
@@ -85,8 +76,6 @@ def test_negative_set_parameter_same(session, valid_domain_name):
 
     :expectedresults: Domain parameter with same values is not created.
 
-    :CaseLevel: Integration
-
     :CaseImportance: Medium
     """
     param_name = gen_string('alpha')
@@ -107,8 +96,6 @@ def test_positive_remove_parameter(session, valid_domain_name):
     :id: 8f7f8501-cf39-418f-a412-1a4b53698bc3
 
     :expectedresults: Domain parameter is removed
-
-    :CaseLevel: Integration
 
     :CaseImportance: Medium
     """
@@ -131,8 +118,6 @@ def test_positive_end_to_end(session, module_org, module_location, valid_domain_
     :id: ce90fd87-3e63-4298-a771-38f4aacce091
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """

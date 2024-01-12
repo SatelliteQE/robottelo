@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Ansible
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import pytest
 
@@ -30,7 +25,7 @@ def test_positive_persistent_ansible_cfg_change(target_sat):
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
         1. Update value in ansible.cfg.
         2. Verify value is updated in the file.
         3. Run "satellite-installer".
@@ -53,7 +48,7 @@ def test_positive_import_all_roles(target_sat):
 
     :id: 53fe3857-a08f-493d-93c7-3fed331ed391
 
-    :Steps:
+    :steps:
 
         1. Navigate to the Configure > Roles page.
         2. Click the `Import from [hostname]` button.

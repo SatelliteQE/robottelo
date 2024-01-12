@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Virt-whoConfigurePlugin
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from datetime import datetime
 
@@ -59,8 +54,6 @@ class TestVirtwhoConfigforEsx:
             4. Virtual sku can be generated and attached
             5. Config can be deleted
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         hypervisor_name, guest_name = deploy_type_ui
@@ -93,8 +86,6 @@ class TestVirtwhoConfigforEsx:
             1. if debug is checked, VIRTWHO_DEBUG=1 in /etc/sysconfig/virt-who
             2. if debug is unchecked, VIRTWHO_DEBUG=0 in /etc/sysconfig/virt-who
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
         name = form_data_ui['name']
@@ -123,8 +114,6 @@ class TestVirtwhoConfigforEsx:
         :expectedresults:
             VIRTWHO_INTERVAL can be changed in /etc/sysconfig/virt-who if the
             dropdown option is selected to Every 2/4/8/12/24 hours, Every 2/3 days.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -162,8 +151,6 @@ class TestVirtwhoConfigforEsx:
             hypervisor_id can be changed in virt-who-config-{}.conf if the
             dropdown option is selected to uuid/hwuuid/hostname.
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
         name = form_data_ui['name']
@@ -192,8 +179,6 @@ class TestVirtwhoConfigforEsx:
         :expectedresults:
             1. if filtering is selected to Whitelist, 'Filter hosts' can be set.
             2. if filtering is selected to Blacklist, 'Exclude hosts' can be set.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
 
@@ -239,8 +224,6 @@ class TestVirtwhoConfigforEsx:
         :expectedresults:
             http_proxy/https_proxy and NO_PROXY will be setting in /etc/sysconfig/virt-who.
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
         https_proxy, https_proxy_name, https_proxy_id = create_http_proxy(org=default_org)
@@ -279,8 +262,6 @@ class TestVirtwhoConfigforEsx:
         :expectedresults:
             'Virt-who Manager', 'Virt-who Reporter', 'Virt-who Viewer' existing
 
-        :CaseLevel: Integration
-
         :CaseImportance: Low
         """
         roles = {
@@ -311,15 +292,13 @@ class TestVirtwhoConfigforEsx:
 
         :id: 5d61ce00-a640-4823-89d4-7b1d02b50ea6
 
-        :Steps:
+        :steps:
 
             1. Create a Virt-who Configuration
             2. Navigate Monitor -> Dashboard
             3. Review the Virt-who Configurations Status widget
 
         :expectedresults: The widget is updated with all details.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Low
         """
@@ -572,8 +551,6 @@ class TestVirtwhoConfigforEsx:
 
         :BZ: 1649928
 
-        :CaseLevel: Integration
-
         :customerscenario: true
 
         :CaseImportance: Medium
@@ -638,8 +615,6 @@ class TestVirtwhoConfigforEsx:
 
         :BZ: 1652323
 
-        :CaseLevel: Integration
-
         :customerscenario: true
 
         :CaseImportance: Medium
@@ -673,8 +648,6 @@ class TestVirtwhoConfigforEsx:
         :id: 654f869e-182b-4951-bc4e-8761d666a449
 
         :expectedresults: Config can be created and deployed without any error
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
 
@@ -729,8 +702,6 @@ class TestVirtwhoConfigforEsx:
         :expectedresults:
             the option "env=" should be removed from etc/virt-who.d/virt-who.conf
             /var/log/messages should not display warning message
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
 

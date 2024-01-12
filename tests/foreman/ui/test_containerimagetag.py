@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: ContainerManagement-Content
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from nailgun import entities
 import pytest
@@ -59,7 +54,7 @@ def test_positive_search(session, module_org, module_product, module_repository)
     :expectedresults: The docker image tag can be searched and found,
         details are read
 
-    :CaseLevel: Integration
+    :BZ: 2009069, 2242515
     """
     with session:
         session.organization.select(org_name=module_org.name)

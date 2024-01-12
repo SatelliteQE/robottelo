@@ -8,13 +8,8 @@
 
 :Team: Rocket
 
-:TestType: Functional
-
-:CaseLevel: Acceptance
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_choice, gen_integer, gen_string
 import pytest

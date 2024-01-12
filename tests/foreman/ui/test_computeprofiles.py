@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: ComputeResources
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -29,8 +24,6 @@ def test_positive_end_to_end(session, module_location, module_org):
     :id: 5445fc7e-7b3f-472f-8a94-93f89aca6c22
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """

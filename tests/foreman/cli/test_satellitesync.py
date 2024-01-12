@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: InterSatelliteSync
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import os
 from time import sleep
@@ -239,8 +234,6 @@ class TestRepositoryExport:
             1. Complete export succeeds, exported files are present on satellite machine.
             2. Incremental export succeeds, exported files are present on satellite machine.
 
-        :CaseLevel: System
-
         :BZ: 1944733
 
         :customerscenario: true
@@ -298,7 +291,6 @@ class TestRepositoryExport:
             1. Complete export succeeds, exported files are present on satellite machine.
             2. Incremental export succeeds, exported files are present on satellite machine.
 
-        :CaseLevel: System
         """
         # Create cv and publish
         cv_name = gen_string('alpha')
@@ -352,7 +344,6 @@ class TestRepositoryExport:
         :expectedresults:
             1. Repository was successfully exported, exported files are present on satellite machine
 
-        :CaseLevel: System
         """
         # Create cv and publish
         cv_name = gen_string('alpha')
@@ -562,8 +553,6 @@ class TestContentViewSync:
             1. CV version custom contents has been exported to directory.
             2. All The exported custom contents has been imported in org/satellite.
 
-        :CaseLevel: System
-
         :BZ: 1832858
 
         :customerscenario: true
@@ -653,8 +642,6 @@ class TestContentViewSync:
         :expectedresults:
             1. Default Organization View version custom contents has been exported.
             2. All the exported custom contents has been imported in org/satellite.
-
-        :CaseLevel: System
 
         :BZ: 1671319
 
@@ -753,7 +740,6 @@ class TestContentViewSync:
             1. Filtered CV version custom contents has been exported to directory
             2. Filtered exported custom contents has been imported in org/satellite
 
-        :CaseLevel: System
         """
         exporting_cv_name = importing_cvv = gen_string('alpha')
         exporting_cv, exporting_cvv = _create_cv(
@@ -846,7 +832,6 @@ class TestContentViewSync:
             2. Promoted CV version contents has been imported successfully.
             3. The imported CV should only be published and not promoted.
 
-        :CaseLevel: System
         """
         import_cv_name = class_export_entities['exporting_cv_name']
         export_cv_id = class_export_entities['exporting_cv']['id']
@@ -932,7 +917,6 @@ class TestContentViewSync:
 
         :customerscenario: true
 
-        :CaseLevel: System
         """
         # Create cv and publish
         cv_name = gen_string('alpha')
@@ -1728,8 +1712,6 @@ class TestContentViewSync:
             1. Complete and incremental export succeed.
             2. All files referenced in the repomd.xml files are present in the exports.
 
-        :CaseLevel: System
-
         :BZ: 2212523
 
         :customerscenario: true
@@ -1814,7 +1796,6 @@ class TestInterSatelliteSync:
 
         :CaseAutomation: NotAutomated
 
-        :CaseLevel: System
         """
 
     @pytest.mark.stubbed
@@ -1836,7 +1817,6 @@ class TestInterSatelliteSync:
 
         :CaseAutomation: NotAutomated
 
-        :CaseLevel: System
         """
 
     @pytest.mark.stubbed
@@ -1854,7 +1834,6 @@ class TestInterSatelliteSync:
 
         :CaseAutomation: NotAutomated
 
-        :CaseLevel: System
         """
 
     @pytest.mark.tier3
@@ -1886,7 +1865,6 @@ class TestInterSatelliteSync:
                in the importing organization and content counts match.
             2. Incremental export and import succeeds, content counts match the updated counts.
 
-        :CaseLevel: System
         """
         export_cc = target_sat.cli.Repository.info({'id': function_synced_custom_repo.id})[
             'content-counts'
@@ -1973,8 +1951,6 @@ class TestInterSatelliteSync:
         :expectedresults:
             1. All exports and imports succeed.
 
-        :CaseLevel: System
-
         :CaseImportance: Medium
 
         :BZ: 2092039
@@ -2057,5 +2033,4 @@ class TestInterSatelliteSync:
 
         :CaseAutomation: NotAutomated
 
-        :CaseLevel: System
         """

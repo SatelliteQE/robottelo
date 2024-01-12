@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Repositories
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from datetime import timedelta
 
@@ -45,8 +40,6 @@ def test_positive_end_to_end(session, module_org):
     :id: d0e1f0d1-2380-4508-b270-62c1d8b3e2ff
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -113,8 +106,6 @@ def test_positive_create_in_different_orgs(session, product_name):
 
     :expectedresults: Product is created successfully in both
         organizations.
-
-    :CaseLevel: Integration
     """
     orgs = [entities.Organization().create() for _ in range(2)]
     with session:
@@ -133,8 +124,6 @@ def test_positive_product_create_with_create_sync_plan(session, module_org):
     :id: 4a87b533-12b6-4d4e-8a99-4bb95efc4321
 
     :expectedresults: Ensure sync get created and assigned to Product.
-
-    :CaseLevel: Integration
 
     :CaseImportance: Medium
     """
@@ -180,7 +169,7 @@ def test_positive_bulk_action_advanced_sync(session, module_org):
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
         1. Enable or create a repository and sync it.
         2. Navigate to Content > Product > click on the product.
         3. Click Select Action > Advanced Sync.
