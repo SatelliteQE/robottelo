@@ -215,7 +215,9 @@ class TestVirtwhoConfigforEsx:
         assert regex == get_configure_option('exclude_host_parents', config_file)
 
     @pytest.mark.tier2
-    def test_positive_proxy_option(self, default_org, virtwho_config_ui, org_session, form_data_ui):
+    def test_positive_proxy_option(
+        self, default_org, default_location, virtwho_config_ui, org_session, form_data_ui
+    ):
         """Verify 'HTTP Proxy' and 'Ignore Proxy' options.
 
         :id: 6659d577-0135-4bf0-81af-14b930011536
@@ -225,9 +227,11 @@ class TestVirtwhoConfigforEsx:
 
         :CaseImportance: Medium
         """
-        https_proxy, https_proxy_name, https_proxy_id = create_http_proxy(org=default_org)
+        https_proxy, https_proxy_name, https_proxy_id = create_http_proxy(
+            org=default_org, location=default_location
+        )
         http_proxy, http_proxy_name, http_proxy_id = create_http_proxy(
-            http_type='http', org=default_org
+            http_type='http', org=default_org, location=default_location
         )
         name = form_data_ui['name']
         config_id = get_configure_id(name)
@@ -547,7 +551,9 @@ class TestVirtwhoConfigforEsx:
             assert not org_session.user.search(username)
 
     @pytest.mark.tier2
-    def test_positive_overview_label_name(self, default_org, form_data_ui, org_session):
+    def test_positive_overview_label_name(
+        self, default_org, default_location, form_data_ui, org_session
+    ):
         """Verify the label name on virt-who config Overview Page.
 
         :id: 21df8175-bb41-422e-a263-8677bc3a9565
@@ -561,7 +567,9 @@ class TestVirtwhoConfigforEsx:
         name = gen_string('alpha')
         form_data_ui['name'] = name
         hypervisor_type = form_data_ui['hypervisor_type']
-        http_proxy_url, proxy_name, proxy_id = create_http_proxy(org=default_org)
+        http_proxy_url, proxy_name, proxy_id = create_http_proxy(
+            org=default_org, location=default_location
+        )
         form_data_ui['proxy'] = http_proxy_url
         form_data_ui['no_proxy'] = 'test.satellite.com'
         regex = '.*redhat.com'
