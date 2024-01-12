@@ -112,7 +112,7 @@ def test_plugin_installation(target_sat, command_args, command_opts, rpm_command
 
 
 @pytest.mark.e2e
-@pytest.mark.parametrize('module_sync_kickstart_content', [8], indirect=True)
+@pytest.mark.rhel_ver_match('[8]')
 def test_infoblox_end_to_end(
     request,
     module_sync_kickstart_content,

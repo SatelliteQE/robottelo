@@ -240,7 +240,7 @@ class TestProvisioningTemplate:
                     in rendered
                 )
 
-    @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
+    @pytest.mark.rhel_ver_match('[^6]')
     def test_positive_provision_template_check_net_interface(
         self,
         module_sync_kickstart_content,
@@ -286,7 +286,7 @@ class TestProvisioningTemplate:
         assert 'ifcfg-$sanitized_real' in provision_template
 
     @pytest.mark.e2e
-    @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
+    @pytest.mark.rhel_ver_match('[^6]')
     def test_positive_template_check_ipxe(
         self,
         module_sync_kickstart_content,
@@ -334,7 +334,7 @@ class TestProvisioningTemplate:
         ks_param = 'ks=' if module_sync_kickstart_content.rhel_ver <= 8 else 'inst.ks='
         assert ipxe_template.count(ks_param) == 1
 
-    @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
+    @pytest.mark.rhel_ver_match('[^6]')
     def test_positive_template_check_vlan_parameter(
         self,
         module_sync_kickstart_content,
@@ -401,9 +401,9 @@ class TestProvisioningTemplate:
         ipxe_template = host.read_template(data={'template_kind': 'iPXE'})['template']
         assert f'vlan={identifier}.{tag}:{identifier}' in ipxe_template
 
-    @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
     @pytest.mark.parametrize('pxe_loader', ['uefi'], indirect=True)
     @pytest.mark.parametrize('boot_mode', ['Static', 'DHCP'])
+    @pytest.mark.rhel_ver_match('[^6]')
     def test_positive_template_subnet_with_boot_mode(
         self,
         module_sync_kickstart_content,
@@ -495,7 +495,7 @@ class TestProvisioningTemplate:
         assert 'graphical' in render
         assert 'skipx' not in render
 
-    @pytest.mark.parametrize('module_sync_kickstart_content', [8], indirect=True)
+    @pytest.mark.rhel_ver_match('[8]')
     def test_positive_template_check_aap_snippet(
         self,
         module_sync_kickstart_content,
@@ -552,7 +552,7 @@ class TestProvisioningTemplate:
         assert f'"host_config_key":"{config_key}"' in render
         assert '{"package_install": "zsh"}' in render
 
-    @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
+    @pytest.mark.rhel_ver_match('[^6]')
     def test_positive_template_check_rex_snippet(
         self,
         module_sync_kickstart_content,
@@ -631,7 +631,7 @@ class TestProvisioningTemplate:
         )
         assert ssh_key in rex_snippet
 
-    @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
+    @pytest.mark.rhel_ver_match('[^6]')
     def test_positive_template_check_rex_pull_mode_snippet(
         self,
         module_sync_kickstart_content,
@@ -692,7 +692,7 @@ class TestProvisioningTemplate:
         assert 'yggdrasil status' in rex_snippet
         assert 'Remote execution pull provider successfully configured!' in rex_snippet
 
-    @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
+    @pytest.mark.rhel_ver_match('[^6]')
     def test_positive_template_check_fips_enabled(
         self,
         module_sync_kickstart_content,
