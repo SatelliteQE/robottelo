@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: ErrataManagement
 
 :Team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 import pytest
 from wait_for import wait_for

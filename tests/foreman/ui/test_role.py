@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: UsersRoles
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import random
 
@@ -36,8 +31,6 @@ def test_positive_end_to_end(session, module_org, module_location):
     :id: 3284016a-e2df-4a0e-aa24-c95ab132eec1
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :customerscenario: true
 

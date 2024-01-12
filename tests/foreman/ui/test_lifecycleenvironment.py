@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: LifecycleEnvironments
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from airgun.session import Session
 from navmazing import NavigationTriesExceeded
@@ -41,8 +36,6 @@ def test_positive_end_to_end(session):
     :id: b2293de9-7a71-462e-b988-321b07c01642
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -79,8 +72,6 @@ def test_positive_create_chain(session):
     :id: ed3d2c88-ef0a-4a1a-9f11-5bdb2119fc18
 
     :expectedresults: Environment is created
-
-    :CaseLevel: Integration
     """
     lce_path_name = gen_string('alpha')
     lce_name = gen_string('alpha')
@@ -120,8 +111,6 @@ def test_positive_search_lce_content_view_packages_by_full_name(session, module_
     :expectedresults: only the searched packages where found
 
     :BZ: 1432155
-
-    :CaseLevel: System
     """
     packages = [
         {'name': FAKE_0_CUSTOM_PACKAGE_NAME, 'full_names': [FAKE_0_CUSTOM_PACKAGE]},
@@ -173,8 +162,6 @@ def test_positive_search_lce_content_view_packages_by_name(session, module_org, 
     :expectedresults: only the searched packages where found
 
     :BZ: 1432155
-
-    :CaseLevel: System
     """
     packages = [
         {'name': FAKE_0_CUSTOM_PACKAGE_NAME, 'packages_count': 1},
@@ -218,8 +205,6 @@ def test_positive_search_lce_content_view_module_streams_by_name(session, module
         5. Search by module stream names
 
     :expectedresults: only the searched module streams where found
-
-    :CaseLevel: System
     """
     module_streams = [
         {'name': FAKE_1_CUSTOM_PACKAGE_NAME, 'streams_count': 2},
@@ -254,7 +239,7 @@ def test_positive_custom_user_view_lce(session, test_name, target_sat):
 
     :BZ: 1420511
 
-    :Steps:
+    :steps:
 
         As an admin user:
 
@@ -281,8 +266,6 @@ def test_positive_custom_user_view_lce(session, test_name, target_sat):
 
     :expectedresults: The additional lifecycle environment is viewable and
         accessible by the custom user.
-
-    :CaseLevel: Integration
     """
     role_name = gen_string('alpha')
     lce_name = gen_string('alpha')

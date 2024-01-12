@@ -40,7 +40,6 @@ def test_positive_apply_errata(katello_agent_client):
 
     :parametrized: yes
 
-    :CaseLevel: System
     """
     sat = katello_agent_client['sat']
     client = katello_agent_client['client']
@@ -68,7 +67,6 @@ def test_positive_install_and_remove_package(katello_agent_client):
 
     :parametrized: yes
 
-    :CaseLevel: System
     """
     sat = katello_agent_client['sat']
     client = katello_agent_client['client']
@@ -93,7 +91,6 @@ def test_positive_upgrade_package(katello_agent_client):
 
     :parametrized: yes
 
-    :CaseLevel: System
     """
     sat = katello_agent_client['sat']
     client = katello_agent_client['client']
@@ -115,7 +112,6 @@ def test_positive_upgrade_packages_all(katello_agent_client):
 
     :parametrized: yes
 
-    :CaseLevel: System
     """
     sat = katello_agent_client['sat']
     client = katello_agent_client['client']
@@ -135,7 +131,6 @@ def test_positive_install_and_remove_package_group(katello_agent_client):
 
     :parametrized: yes
 
-    :CaseLevel: System
     """
     sat = katello_agent_client['sat']
     client = katello_agent_client['client']
@@ -156,7 +151,6 @@ def test_positive_upgrade_warning(sat_with_katello_agent):
 
     :expectedresults: Upgrade check fails and warning with proper message is displayed.
 
-    :CaseLevel: System
     """
     sat = sat_with_katello_agent
     ver = sat.version.split('.')

@@ -4,15 +4,10 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Medium
-
 :CaseComponent: AuditLog
 
 :Team: Endeavour
 
-:TestType: Functional
-
-:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -39,8 +34,6 @@ def test_positive_create_event(session, module_org, module_location):
     :expectedresults: Audit entry for created host contains valid data
 
     :CaseAutomation: Automated
-
-    :CaseLevel: Integration
 
     :CaseImportance: Medium
 
@@ -87,8 +80,6 @@ def test_positive_audit_comment(session, module_org):
 
     :CaseAutomation: Automated
 
-    :CaseLevel: Component
-
     :CaseImportance: Low
     """
     name = gen_string('alpha')
@@ -122,8 +113,6 @@ def test_positive_update_event(session, module_org):
 
     :CaseAutomation: Automated
 
-    :CaseLevel: Integration
-
     :CaseImportance: Medium
 
     :bz: 2222890
@@ -156,8 +145,6 @@ def test_positive_delete_event(session, module_org):
 
     :CaseAutomation: Automated
 
-    :CaseLevel: Component
-
     :CaseImportance: Medium
     """
     architecture = entities.Architecture().create()
@@ -182,8 +169,6 @@ def test_positive_add_event(session, module_org):
     :expectedresults: Audit entry for added environment contains valid data
 
     :CaseAutomation: Automated
-
-    :CaseLevel: Integration
 
     :CaseImportance: Medium
     """

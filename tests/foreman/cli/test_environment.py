@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Puppet
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 from random import choice
 
@@ -48,8 +43,6 @@ def test_negative_list_with_parameters(
 
     :expectedresults: Server returns empty result as there is no
         environment associated with location
-
-    :CaseLevel: Integration
 
     :BZ: 1337947
     """

@@ -4,15 +4,10 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Integration
-
 :CaseComponent: TemplatesPlugin
 
 :Team: Endeavour
 
-:TestType: Functional
-
-:Upstream: No
 """
 import base64
 
@@ -66,7 +61,7 @@ class TestTemplateSyncTestCase:
 
         :id: b80fbfc4-bcab-4a5d-b6c1-0e22906cd8ab
 
-        :Steps:
+        :steps:
             1. Import some of the locked template specifying the `force`
                parameter `false`.
             2. After ensuring the template is not updated, Import same locked template
@@ -134,7 +129,7 @@ class TestTemplateSyncTestCase:
 
         :id: 5b0be026-2983-4570-bc63-d9aba36fca65
 
-        :Steps:
+        :steps:
             1. Repository contains file with same name as exported template.
             2. Export "Atomic Kickstart default" templates to git repo.
 
@@ -201,7 +196,7 @@ class TestTemplateSyncTestCase:
 
         :id: fd583f85-f170-4b93-b9b1-36d72f31c31f
 
-        :Steps:
+        :steps:
             1. Export only the templates matching with regex e.g: `^atomic.*` to git repo.
 
         :expectedresults:
@@ -242,7 +237,7 @@ class TestTemplateSyncTestCase:
 
         :bz: 1778177
 
-        :Steps: Export the templates matching with regex e.g: `ansible` to /tmp directory.
+        :steps: Export the templates matching with regex e.g: `ansible` to /tmp directory.
 
         :expectedresults: The templates are exported /tmp directory
 

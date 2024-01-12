@@ -49,7 +49,6 @@ def session(test_name, module_user):
             with session:
                 # your ui test steps here
                 session.architecture.create({'name': 'bar'})
-
     """
     return Session(test_name, module_user.login, module_user.password)
 
@@ -97,6 +96,5 @@ def session_sca(test_name, module_user_sca):
             with session:
                 # your ui test steps here
                 session.architecture.create({'name': 'bar'})
-
     """
     return Session(test_name, module_user_sca.login, module_user_sca.password)

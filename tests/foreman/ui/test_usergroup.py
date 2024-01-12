@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: UsersRoles
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string, gen_utf8
 from nailgun import entities
@@ -29,8 +24,6 @@ def test_positive_delete_with_user(session, module_org, module_location):
     :id: 2bda3db5-f54f-412f-831f-8e005631f271
 
     :expectedresults: Usergroup is deleted but added user is not
-
-    :CaseLevel: Integration
     """
     user_name = gen_string('alpha')
     group_name = gen_utf8(smp=False)
@@ -59,8 +52,6 @@ def test_positive_end_to_end(session, module_org, module_location):
     :id: c1c7c383-b118-4caf-a5ef-4e75fdbbacdc
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """

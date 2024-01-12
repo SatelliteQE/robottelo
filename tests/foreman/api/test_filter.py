@@ -8,17 +8,12 @@ http://theforeman.org/api/apidoc/v2/filters.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: UsersRoles
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 
 import pytest

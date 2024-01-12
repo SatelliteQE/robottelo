@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Installer
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 import random
 
@@ -56,8 +51,6 @@ def test_installer_sat_pub_directory_accessibility(target_sat):
         2. It should not be accessible if accessibility is disabled in custom_hiera.yaml file.
 
     :CaseImportance: High
-
-    :CaseLevel: System
 
     :BZ: 1960801
 

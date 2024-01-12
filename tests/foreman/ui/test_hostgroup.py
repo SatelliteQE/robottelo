@@ -6,15 +6,10 @@
 
 :CaseComponent: HostGroup
 
-:CaseLevel: Integration
-
 :Team: Endeavour
-
-:TestType: Functional
 
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -179,7 +174,7 @@ def test_positive_create_new_host():
 
     :id: 49704437-5ca1-46cb-b74e-de58396add37
 
-    :Steps:
+    :steps:
 
         1. Create hostgroup with the Content Source field populated.
         2. Create host from Hosts > Create Host, selecting the hostgroup in the Host Group field.
@@ -202,7 +197,7 @@ def test_positive_nested_host_groups(
 
     :id: 547f8e72-df65-48eb-aeb1-6b5fd3cbf4e5
 
-    :Steps:
+    :steps:
 
         1. Create the parent host-group.
         2. Create, Update and Delete the nested host-group.
@@ -276,7 +271,7 @@ def test_positive_clone_host_groups(
 
     :id: 9f02dcc5-98aa-48bd-8114-edd3a0be65c1
 
-    :Steps:
+    :steps:
         1. Create the host-group.
         2. Clone the host-group created in step 1
         3. Update and Delete the cloned host-group.

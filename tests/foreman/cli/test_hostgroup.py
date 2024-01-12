@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: HostGroup
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_integer
 from nailgun import entities
@@ -116,8 +111,6 @@ def test_positive_create_with_multiple_entities_and_delete(
 
     :BZ: 1395254, 1313056
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     with session_puppet_enabled_sat:
@@ -215,8 +208,6 @@ def test_negative_create_with_content_source(module_org, module_target_sat):
     :BZ: 1260697
 
     :expectedresults: Hostgroup was not created
-
-    :CaseLevel: Integration
     """
     with pytest.raises(CLIFactoryError):
         module_target_sat.cli_factory.hostgroup(
@@ -248,8 +239,6 @@ def test_positive_update_hostgroup_with_puppet(
 
     :expectedresults: Hostgroup was successfully updated with new content
         source, name and puppet classes
-
-    :CaseLevel: Integration
     """
     with session_puppet_enabled_sat as puppet_sat:
         hostgroup = puppet_sat.cli_factory.hostgroup(
@@ -303,8 +292,6 @@ def test_positive_update_hostgroup(
 
     :expectedresults: Hostgroup was successfully updated with new content
         source and name
-
-    :CaseLevel: Integration
     """
     hostgroup = module_target_sat.cli_factory.hostgroup(
         {
@@ -338,8 +325,6 @@ def test_negative_update_content_source(hostgroup, content_source, module_target
 
     :expectedresults: Host group was not updated. Content source remains
         the same as it was before update
-
-    :CaseLevel: Integration
     """
     with pytest.raises(CLIReturnCodeError):
         module_target_sat.cli.HostGroup.update(
@@ -371,8 +356,6 @@ def test_negative_delete_by_id(module_target_sat):
     :id: 047c9f1a-4dd6-4fdc-b7ed-37cc725c68d3
 
     :expectedresults: HostGroup is not deleted
-
-    :CaseLevel: Integration
     """
     entity_id = invalid_id_list()[0]
     with pytest.raises(CLIReturnCodeError):
@@ -391,7 +374,6 @@ def test_positive_created_nested_hostgroup(module_org, module_target_sat):
     :customerscenario: true
 
     :CaseImportance: Low
-
     """
     parent_hg = module_target_sat.cli_factory.hostgroup({'organization-ids': module_org.id})
     nested = module_target_sat.cli_factory.hostgroup(
@@ -413,7 +395,7 @@ def test_positive_nested_hostgroup_info():
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
 
         1. Create parent hostgroup and nested hostgroup, with puppet environment, classes, and
            parameters on each.

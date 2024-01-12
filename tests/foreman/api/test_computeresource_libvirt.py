@@ -8,17 +8,12 @@ http://www.katello.org/docs/api/apidoc/compute_resources.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: ComputeResources-libvirt
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -46,8 +41,6 @@ def test_positive_crud_libvirt_cr(module_target_sat, module_org, module_location
     :expectedresults: Compute resources are created with expected names
 
     :CaseImportance: Critical
-
-    :CaseLevel: Component
     """
     name = gen_string('alphanumeric')
     description = gen_string('alphanumeric')
@@ -111,8 +104,6 @@ def test_positive_create_with_name_description(
 
     :CaseImportance: Critical
 
-    :CaseLevel: Component
-
     :parametrized: yes
     """
     compresource = module_target_sat.api.LibvirtComputeResource(
@@ -137,8 +128,6 @@ def test_positive_create_with_orgs_and_locs(request, module_target_sat):
         locations assigned
 
     :CaseImportance: High
-
-    :CaseLevel: Integration
     """
     orgs = [module_target_sat.api.Organization().create() for _ in range(2)]
     locs = [module_target_sat.api.Location(organization=[org]).create() for org in orgs]
@@ -161,8 +150,6 @@ def test_negative_create_with_invalid_name(name, module_target_sat, module_org, 
 
     :CaseImportance: High
 
-    :CaseLevel: Component
-
     :parametrized: yes
     """
     with pytest.raises(HTTPError):
@@ -183,8 +170,6 @@ def test_negative_create_with_same_name(request, module_target_sat, module_org, 
     :expectedresults: Compute resources is not created
 
     :CaseImportance: High
-
-    :CaseLevel: Component
     """
     name = gen_string('alphanumeric')
     cr = module_target_sat.api.LibvirtComputeResource(
@@ -212,8 +197,6 @@ def test_negative_create_with_url(module_target_sat, module_org, module_location
 
     :CaseImportance: High
 
-    :CaseLevel: Component
-
     :parametrized: yes
     """
     with pytest.raises(HTTPError):
@@ -234,8 +217,6 @@ def test_negative_update_invalid_name(
     :expectedresults: Compute resource is not updated
 
     :CaseImportance: High
-
-    :CaseLevel: Component
 
     :parametrized: yes
     """
@@ -259,8 +240,6 @@ def test_negative_update_same_name(request, module_target_sat, module_org, modul
     :expectedresults: Compute resources is not updated
 
     :CaseImportance: High
-
-    :CaseLevel: Component
     """
     name = gen_string('alphanumeric')
     compresource = module_target_sat.api.LibvirtComputeResource(
@@ -290,8 +269,6 @@ def test_negative_update_url(url, request, module_target_sat, module_org, module
     :expectedresults: Compute resources is not updated
 
     :CaseImportance: High
-
-    :CaseLevel: Component
 
     :parametrized: yes
     """

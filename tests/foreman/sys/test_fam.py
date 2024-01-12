@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: System
-
-:TestType: Functional
-
 :CaseImportance: High
 
 :CaseComponent: AnsibleCollection
 
 :Team: Platform
 
-:Upstream: No
 """
 import pytest
 
@@ -46,7 +41,6 @@ def test_positive_ansible_modules_installation(target_sat):
 
     :expectedresults: ansible-collection-redhat-satellite package is
         available and supported modules are contained
-
     """
     # list installed modules
     result = target_sat.execute(f'ls {FAM_MODULE_PATH} | grep .py$ | sed "s/.[^.]*$//"')
@@ -72,7 +66,6 @@ def test_positive_import_run_roles(sync_roles, target_sat):
     :id: d3379fd3-b847-43ce-a51f-c02170e7b267
 
     :expectedresults: fam roles import and run successfully
-
     """
     roles = sync_roles.get('roles')
     target_sat.cli.Host.ansible_roles_assign({'ansible-roles': roles, 'name': target_sat.hostname})

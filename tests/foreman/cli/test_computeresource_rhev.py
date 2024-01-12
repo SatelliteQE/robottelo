@@ -3,17 +3,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: ComputeResources-RHEV
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -344,7 +339,6 @@ def test_negative_add_image_rhev_with_invalid_name(rhev, module_os, module_targe
            name parameter, compute-resource image create.
 
     :expectedresults: The image should not be added to the CR
-
     """
     if rhev.image_uuid is None:
         pytest.skip('Missing configuration for rhev.image_uuid')
@@ -538,8 +532,6 @@ def test_positive_provision_rhev_without_host_group(rhev):
     :expectedresults: The host should be provisioned successfully
 
     :CaseAutomation: NotAutomated
-
-    :CaseLevel: Integration
     """
 
 

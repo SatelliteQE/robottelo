@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Networking
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: Medium
 
-:Upstream: No
 """
 import random
 import re
