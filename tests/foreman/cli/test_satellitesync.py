@@ -1784,6 +1784,8 @@ class TestContentViewSync:
 
         :id: 6ff771cd-39ef-4865-8ae8-629f4baf5f98
 
+        :parametrized: yes
+
         :setup:
             1. Enabled and synced RH repository.
 
@@ -1905,22 +1907,80 @@ class TestInterSatelliteSync:
 
         """
 
-    @pytest.mark.stubbed
     @pytest.mark.tier3
-    def test_negative_export_repo_from_future_datetime(self):
-        """Incremental export fails with future datetime.
+    @pytest.mark.parametrize(
+        'function_synced_rh_repo',
+        ['rhae2'],
+        indirect=True,
+    )
+    def test_export_repo_incremental_with_history_id(
+        self,
+        target_sat,
+        export_import_cleanup_function,
+        config_export_import_settings,
+        function_sca_manifest_org,
+        function_synced_rh_repo,
+    ):
+        """Test incremental export with history id.
 
         :id: 1e8bc352-198f-4d59-b437-1b184141fab4
 
+        :parametrized: yes
+
+        :setup:
+            1. Enabled and synced RH repository.
+
         :steps:
-            1. Export the repo incrementally from the future date time.
+            1. Run repo complete export, ensure it's listed in history.
+            2. Run incremental export using history id of the complete export,
+               ensure it's listed in history.
+            3. Run incremental export using non-existent history id.
 
         :expectedresults:
-            1. Error is raised for attempting to export from future datetime.
-
-        :CaseAutomation: NotAutomated
+            1. First (complete) export succeeds and can be listed including history id.
+            2. Second (incremental) export succeeds and can be listed including history id.
+            3. Third (incremental) export fails when wrong id is provided.
 
         """
+        # Verify export directory is empty
+        assert target_sat.validate_pulp_filepath(function_sca_manifest_org, PULP_EXPORT_DIR) == ''
+
+        # Run repo complete export, ensure it's listed in history.
+        target_sat.cli.ContentExport.completeRepository({'id': function_synced_rh_repo['id']})
+        assert '1.0' in target_sat.validate_pulp_filepath(
+            function_sca_manifest_org, PULP_EXPORT_DIR
+        )
+
+        history = target_sat.cli.ContentExport.list(
+            {'organization-id': function_sca_manifest_org.id}
+        )
+        assert len(history) == 1, 'Expected just one item in the export history'
+
+        # Run incremental export using history id of the complete export,
+        # ensure it's listed in history.
+        target_sat.cli.ContentExport.incrementalRepository(
+            {'id': function_synced_rh_repo['id'], 'from-history-id': history[0]['id']}
+        )
+        assert '2.0' in target_sat.validate_pulp_filepath(
+            function_sca_manifest_org, PULP_EXPORT_DIR
+        )
+
+        history = target_sat.cli.ContentExport.list(
+            {'organization-id': function_sca_manifest_org.id}
+        )
+        assert len(history) == 2, 'Expected two items in the export history'
+        assert int(history[1]['id']) == int(history[0]['id']) + 1, 'Inconsistent history spotted'
+
+        # Run incremental export using non-existent history id.
+        next_id = int(history[1]['id']) + 1
+        with pytest.raises(CLIReturnCodeError) as error:
+            target_sat.cli.ContentExport.incrementalRepository(
+                {'id': function_synced_rh_repo['id'], 'from-history-id': next_id}
+            )
+        assert (
+            f"Couldn't find Katello::ContentViewVersionExportHistory with 'id'={next_id}"
+            in error.value.message
+        ), 'Unexpected error message'
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
@@ -2025,6 +2085,8 @@ class TestInterSatelliteSync:
         """Export and import repo with mismatched label
 
         :id: eb2f3e8e-3ee6-4713-80ab-3811a098e079
+
+        :parametrized: yes
 
         :setup:
             1. Enabled and synced RH yum repository.
