@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: System
-
 :CaseComponent: ErrataManagement
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 # For ease of use hc refers to host-collection throughout this document
 from time import sleep, time
@@ -516,13 +511,12 @@ def test_positive_install_in_hc(
 
     :CaseImportance: Medium
 
-    :CaseLevel: System
 
     :BZ: 1983043
     """
     # custom_repo already in published a module_cv version
     repo_id = custom_repo['repository-id']
-    # just promote to lce, do not promote
+    # just promote to lce, do not publish
     cv_publish_promote(
         target_sat, module_sca_manifest_org, module_cv, module_lce, needs_publish=False
     )
@@ -565,9 +559,13 @@ def test_positive_install_in_hc(
         _fetch_available_errata_instances(target_sat, client, expected_amount=1)
 
         """ Did installing outdated package, update applicability as expected?
+            * Call method package_applicability_changed_as_expected *
             returns: False if no applicability change occured or expected (package not applicable).
                 True if applicability changes were expected and occured (package is applicable).
             raises: `AssertionError` if any expected changes did not occur, or unexpected changes were found.
+
+            Expected: that each outdated package install: updated one or more errata to applicable,
+                if those now applicable errata(s) were not already applicable to some package prior.
         """
         passed_checks = package_applicability_changed_as_expected(
             target_sat,
@@ -673,7 +671,6 @@ def test_positive_install_multiple_in_host(
 
     :parametrized: yes
 
-    :CaseLevel: System
     """
     # Associate custom repos with org, lce, ak:
     custom_repo_id = target_sat.cli_factory.setup_org_for_a_custom_repo(
@@ -708,23 +705,16 @@ def test_positive_install_multiple_in_host(
         )
     except AssertionError:
         # Yum remove did not trigger any errata recalculate task,
-        # assert YUM_9 packages were/are not present, then continue
-        assert not set(FAKE_9_YUM_OUTDATED_PACKAGES).intersection(
-            set(
-                [
-                    package.filename
-                    for package in target_sat.api.Package(repository=custom_repo_id).search()
-                ]
-            )
+        # assert any YUM_9 packages were/are not present, then continue
+        present_packages = set(
+            [
+                package.filename
+                for package in target_sat.api.Package(repository=custom_repo_id).search()
+            ]
         )
-        assert not set(FAKE_9_YUM_UPDATED_PACKAGES).intersection(
-            set(
-                [
-                    package.filename
-                    for package in target_sat.api.Package(repository=custom_repo_id).search()
-                ]
-            )
-        )
+        assert not set(FAKE_9_YUM_OUTDATED_PACKAGES).intersection(present_packages)
+        assert not set(FAKE_9_YUM_UPDATED_PACKAGES).intersection(present_packages)
+
     # No applicable errata to start
     assert rhel_contenthost.applicable_errata_count == 0
     present_applicable_packages = []
@@ -934,7 +924,6 @@ def test_positive_list_sorted_filtered(custom_repo, target_sat):
         2. Check that the errata can be sorted by updated date,
             issued date, and filtered by CVE.
 
-    :CaseLevel: System
     """
     repo1 = target_sat.api.Repository(id=custom_repo['repository-id']).read()
     repo2 = target_sat.api.Repository(
@@ -1062,7 +1051,6 @@ def test_positive_get_count_for_host(
 
     :expectedresults: The applicable errata count is retrieved.
 
-    :CaseLevel: System
 
     :parametrized: yes
 
@@ -1131,8 +1119,6 @@ def test_positive_get_applicable_for_host(
 
     :expectedresults: The available errata is retrieved.
 
-    :CaseLevel: System
-
     :parametrized: yes
 
     :CaseImportance: Medium
@@ -1194,7 +1180,6 @@ def test_positive_get_diff_for_cv_envs(target_sat):
     :expectedresults: Difference in errata between a set of environments
         for a content view is retrieved.
 
-    :CaseLevel: System
     """
     org = target_sat.api.Organization().create()
     env = target_sat.api.LifecycleEnvironment(organization=org).create()
@@ -1267,8 +1252,6 @@ def test_positive_incremental_update_required(
     :expectedresults: Incremental update requirement is detected.
 
     :parametrized: yes
-
-    :CaseLevel: System
 
     :BZ: 2013093
     """
@@ -1389,7 +1372,6 @@ def test_errata_installation_with_swidtags(
 
     :CaseImportance: Critical
 
-    :CaseLevel: System
     """
     module_name = 'kangaroo'
     version = '20180704111719'
@@ -1538,7 +1520,6 @@ def test_apply_modular_errata_using_default_content_view(
 
     :parametrized: yes
 
-    :CaseLevel: System
     """
     module_name = 'duck'
     stream = '0'
@@ -1585,8 +1566,6 @@ def test_apply_modular_errata_using_default_content_view(
         :customerscenario: true
 
         :BZ: 1463811
-
-        :CaseLevel: Integration
 
         :expectedresults: both repositories were successfully synchronized
         """

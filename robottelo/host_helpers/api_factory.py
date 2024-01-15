@@ -692,12 +692,14 @@ class APIFactory:
             for task in tasks:
                 if (
                     task.label == 'Actions::Katello::Applicability::Hosts::BulkGenerate'
+                    and 'host_ids' in task.input
                     and host_id in task.input['host_ids']
                 ):
                     task.poll(poll_rate=poll_rate, timeout=poll_timeout)
                     tasks_finished += 1
                 elif (
                     task.label == 'Actions::Katello::Host::UploadPackageProfile'
+                    and 'host' in task.input
                     and host_id == task.input['host']['id']
                 ):
                     task.poll(poll_rate=poll_rate, timeout=poll_timeout)
