@@ -62,7 +62,7 @@ def module_sync_kickstart_content(
     """
     repo_names = []
     tasks = []
-    rhel_ver = request.param
+    rhel_ver = request.param['rhel_version']
     if int(rhel_ver) <= 7:
         repo_names.append(f'rhel{rhel_ver}')
     else:
