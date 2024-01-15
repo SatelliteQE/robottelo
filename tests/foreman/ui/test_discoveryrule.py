@@ -4,19 +4,13 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: System
-
 :CaseComponent: DiscoveryPlugin
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
-from airgun.session import Session
 from fauxfactory import gen_integer, gen_ipaddr, gen_string
 import pytest
 
@@ -77,8 +71,6 @@ def test_positive_crud_with_non_admin_user(
     :id: 6a03983b-363d-4646-b277-34af5f5abc55
 
     :expectedresults: All crud operations should work with non_admin user.
-
-    :CaseLevel: Integration
     """
     rule_name = gen_string('alpha')
     search = gen_string('alpha')
@@ -89,7 +81,9 @@ def test_positive_crud_with_non_admin_user(
     new_priority = str(gen_integer(101, 200))
     hg = module_target_sat.api.HostGroup(organization=[module_org]).create()
     new_hg_name = module_target_sat.api.HostGroup(organization=[module_org]).create()
-    with Session(user=manager_user.login, password=manager_user.password) as session:
+    with module_target_sat.ui_session(
+        user=manager_user.login, password=manager_user.password
+    ) as session:
         session.location.select(loc_name=module_location.name)
         session.discoveryrule.create(
             {
@@ -138,8 +132,6 @@ def test_negative_delete_rule_with_non_admin_user(
 
     :expectedresults: User should validation error and rule should not be
         deleted successfully.
-
-    :CaseLevel: Integration
     """
     hg_name = gen_string('alpha')
     rule_name = gen_string('alpha')
@@ -154,7 +146,9 @@ def test_negative_delete_rule_with_non_admin_user(
         organization=[module_org],
         location=[module_location],
     ).create()
-    with Session(user=reader_user.login, password=reader_user.password) as session:
+    with module_target_sat.ui_session(
+        user=reader_user.login, password=reader_user.password
+    ) as session:
         with pytest.raises(ValueError):  # noqa: PT011 - TODO Adarsh determine better exception
             session.discoveryrule.delete(dr.name)
         dr_val = session.discoveryrule.read_all()
@@ -172,7 +166,7 @@ def test_positive_list_host_based_on_rule_search_query(
 
     :id: f7473fa2-7349-42d3-9cdb-f74b55d2f440
 
-    :Steps:
+    :steps:
 
         1. discovered host with cpu_count = 2
         2. Define a rule 'rule1' with search query cpu_count = 2
@@ -216,6 +210,8 @@ def test_positive_list_host_based_on_rule_search_query(
     target_sat.api_factory.create_discovered_host(options={'physicalprocessorcount': cpu_count + 1})
     provisioned_host_name = f'{host.domain.read().name}'
     with session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
         values = session.discoveryrule.read_all()
         assert discovery_rule.name in [rule['Name'] for rule in values]
         values = session.discoveryrule.read_discovered_hosts(discovery_rule.name)
@@ -224,8 +220,8 @@ def test_positive_list_host_based_on_rule_search_query(
         assert values['table'][0]['IP Address'] == ip_address
         assert values['table'][0]['CPUs'] == str(cpu_count)
         # auto provision the discovered host
-        session.discoveredhosts.apply_action('Auto Provision', [discovered_host['name']])
-        assert not session.discoveredhosts.search('name = "{}"'.format(discovered_host['name']))
+        result = target_sat.api.DiscoveredHost(id=discovered_host['id']).auto_provision()
+        assert f'provisioned with rule {discovery_rule.name}' in result['message']
         values = session.discoveryrule.read_associated_hosts(discovery_rule.name)
         host_name = values['table'][0]['Name']
         assert values['searchbox'] == f'discovery_rule = "{discovery_rule.name}"'

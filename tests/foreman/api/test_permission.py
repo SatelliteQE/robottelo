@@ -8,17 +8,12 @@ http://<satellite-host>/apidoc/v2/permissions.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: UsersRoles
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from itertools import chain
 import json
@@ -261,7 +256,7 @@ class TestUserRole:
         'entity_cls',
         **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),
     )
-    def test_positive_check_create(self, entity_cls, class_org, class_location):
+    def test_positive_check_create(self, entity_cls, class_org, class_location, target_sat):
         """Check whether the "create_*" role has an effect.
 
         :id: e4c92365-58b7-4538-9d1b-93f3cf51fbef
@@ -278,14 +273,14 @@ class TestUserRole:
         """
         with pytest.raises(HTTPError):
             entity_cls(self.cfg).create()
-        self.give_user_permission(_permission_name(entity_cls, 'create'))
+        self.give_user_permission(_permission_name(entity_cls, 'create'), target_sat)
         new_entity = self.set_taxonomies(entity_cls(self.cfg), class_org, class_location)
         # Entities with both org and loc require
         # additional permissions to set them.
         fields = {'organization', 'location'}
         if fields.issubset(set(new_entity.get_fields())):
-            self.give_user_permission('assign_organizations')
-            self.give_user_permission('assign_locations')
+            self.give_user_permission('assign_organizations', target_sat)
+            self.give_user_permission('assign_locations', target_sat)
         new_entity = new_entity.create_json()
         entity_cls(id=new_entity['id']).read()  # As admin user.
 
@@ -294,7 +289,7 @@ class TestUserRole:
         'entity_cls',
         **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),
     )
-    def test_positive_check_read(self, entity_cls, class_org, class_location):
+    def test_positive_check_read(self, entity_cls, class_org, class_location, target_sat):
         """Check whether the "view_*" role has an effect.
 
         :id: 55689121-2646-414f-beb1-dbba5973c523
@@ -312,7 +307,7 @@ class TestUserRole:
         new_entity = new_entity.create()
         with pytest.raises(HTTPError):
             entity_cls(self.cfg, id=new_entity.id).read()
-        self.give_user_permission(_permission_name(entity_cls, 'read'))
+        self.give_user_permission(_permission_name(entity_cls, 'read'), target_sat)
         entity_cls(self.cfg, id=new_entity.id).read()
 
     @pytest.mark.upgrade
@@ -321,7 +316,7 @@ class TestUserRole:
         'entity_cls',
         **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),
     )
-    def test_positive_check_delete(self, entity_cls, class_org, class_location):
+    def test_positive_check_delete(self, entity_cls, class_org, class_location, target_sat):
         """Check whether the "destroy_*" role has an effect.
 
         :id: 71365147-51ef-4602-948f-78a5e78e32b4
@@ -339,7 +334,7 @@ class TestUserRole:
         new_entity = new_entity.create()
         with pytest.raises(HTTPError):
             entity_cls(self.cfg, id=new_entity.id).delete()
-        self.give_user_permission(_permission_name(entity_cls, 'delete'))
+        self.give_user_permission(_permission_name(entity_cls, 'delete'), target_sat)
         entity_cls(self.cfg, id=new_entity.id).delete()
         with pytest.raises(HTTPError):
             new_entity.read()  # As admin user
@@ -376,7 +371,7 @@ class TestUserRole:
             update_entity = entity_cls(self.cfg, id=new_entity.id, name=name)
         with pytest.raises(HTTPError):
             update_entity.update(['name'])
-        self.give_user_permission(_permission_name(entity_cls, 'update'))
+        self.give_user_permission(_permission_name(entity_cls, 'update'), target_sat)
         # update() calls read() under the hood, which triggers
         # permission error
         if entity_cls is target_sat.api.ActivationKey:

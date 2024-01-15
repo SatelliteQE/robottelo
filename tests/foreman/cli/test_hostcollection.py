@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: HostCollections
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from broker import Broker
 from fauxfactory import gen_string
@@ -30,15 +25,13 @@ from robottelo.utils.datafactory import (
 )
 
 
-def _make_fake_host_helper(module_org, module_target_sat):
+def _make_fake_host_helper(module_org, sat):
     """Make a new fake host"""
-    library = module_target_sat.cli.LifecycleEnvironment.info(
+    library = sat.cli.LifecycleEnvironment.info(
         {'organization-id': module_org.id, 'name': ENVIRONMENT}
     )
-    default_cv = module_target_sat.cli.ContentView.info(
-        {'organization-id': module_org.id, 'name': DEFAULT_CV}
-    )
-    return module_target_sat.cli_factory.make_fake_host(
+    default_cv = sat.cli.ContentView.info({'organization-id': module_org.id, 'name': DEFAULT_CV})
+    return sat.cli_factory.make_fake_host(
         {
             'content-view-id': default_cv['id'],
             'lifecycle-environment-id': library['id'],
@@ -226,8 +219,6 @@ def test_positive_list_by_org_id(module_org, module_target_sat):
     :id: afbe077a-0de1-432c-a0c4-082129aab92e
 
     :expectedresults: Only host-collection within specific org is listed
-
-    :CaseLevel: Integration
     """
     # Create two host collections within different organizations
     module_target_sat.cli_factory.make_host_collection({'organization-id': module_org.id})
@@ -255,14 +246,12 @@ def test_positive_host_collection_host_pagination(module_org, module_target_sat)
 
     :expectedresults: Number of host per page follows per_page
         configuration restriction
-
-    :CaseLevel: Integration
     """
     host_collection = module_target_sat.cli_factory.make_host_collection(
         {'organization-id': module_org.id}
     )
     host_ids = ','.join(
-        _make_fake_host_helper((module_org)['id'] for _ in range(2)), module_target_sat
+        _make_fake_host_helper(module_org, module_target_sat)['id'] for _ in range(2)
     )
     module_target_sat.cli.HostCollection.add_host(
         {'host-ids': host_ids, 'id': host_collection['id']}
@@ -289,8 +278,6 @@ def test_positive_copy_by_id(module_org, module_target_sat):
     :expectedresults: Host collection is cloned successfully
 
     :BZ: 1328925
-
-    :CaseLevel: Integration
     """
     host_collection = module_target_sat.cli_factory.make_host_collection(
         {'name': gen_string('alpha', 15), 'organization-id': module_org.id}
@@ -313,10 +300,8 @@ def test_positive_register_host_ak_with_host_collection(module_org, module_ak_wi
     :expectedresults: Host successfully registered and listed in host collection
 
     :BZ: 1385814
-
-    :CaseLevel: System
     """
-    host_info = _make_fake_host_helper(module_org)
+    host_info = _make_fake_host_helper(module_org, target_sat)
 
     hc = target_sat.cli_factory.make_host_collection({'organization-id': module_org.id})
     target_sat.cli.ActivationKey.add_host_collection(

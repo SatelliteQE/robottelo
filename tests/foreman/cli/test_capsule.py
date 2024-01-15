@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Capsule
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 import pytest
 
@@ -29,8 +24,6 @@ def test_positive_import_puppet_classes(session_puppet_enabled_sat):
     :id: 42e3a9c0-62e1-4049-9667-f3c0cdfe0b04
 
     :expectedresults: Puppet classes are imported from proxy
-
-    :CaseLevel: Component
     """
     with session_puppet_enabled_sat as puppet_sat:
         port = puppet_sat.available_capsule_port
@@ -50,7 +43,7 @@ def test_positive_capsule_content():
 
     :Setup: Capsule with some content synced
 
-    :Steps:
+    :steps:
 
         1. Register a host to the capsule
         2. Sync content from capsule to the host

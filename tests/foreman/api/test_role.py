@@ -8,17 +8,12 @@ http://theforeman.org/api/apidoc/v2/roles.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: UsersRoles
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from nailgun.config import ServerConfig
 import pytest
@@ -37,7 +32,7 @@ class TestRole:
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         ('name', 'new_name'),
-        **parametrized(list(zip(generate_strings_list(), generate_strings_list()))),
+        **parametrized(list(zip(generate_strings_list(), generate_strings_list(), strict=True))),
     )
     def test_positive_crud(self, name, new_name, target_sat):
         """Create, update and delete role with name ``name_generator()``.
@@ -90,7 +85,7 @@ class TestCannedRole:
             return target_sat.api.Role(id=org_admin['role']['id']).read()
         return target_sat.api.Role(id=org_admin['id']).read()
 
-    def create_org_admin_user(self, role_taxos, user_taxos, target_sat):
+    def create_org_admin_user(self, target_sat, role_taxos, user_taxos):
         """Helper function to create an Org Admin user by assigning org admin
         role and assign taxonomies to Role and User
 
@@ -526,7 +521,7 @@ class TestCannedRole:
         default_org_admin = target_sat.api.Role().search(
             query={'search': 'name="Organization admin"'}
         )
-        org_admin = self.create_org_admin_role()
+        org_admin = self.create_org_admin_role(target_sat)
         default_filters = target_sat.api.Role(id=default_org_admin[0].id).read().filters
         orgadmin_filters = target_sat.api.Role(id=org_admin.id).read().filters
         assert len(default_filters) == len(orgadmin_filters)
@@ -550,7 +545,7 @@ class TestCannedRole:
         :CaseImportance: Critical
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         org_admin = target_sat.api.Role(id=org_admin.id).read()
         assert role_taxonomies['org'].id == org_admin.organization[0].id
@@ -576,16 +571,17 @@ class TestCannedRole:
         :expectedresults: User should not be able to access any resources and
             permissions in taxonomies selected in Org Admin role
 
-        :CaseLevel: System
         """
-        user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=filter_taxonomies)
+        user = self.create_org_admin_user(
+            target_sat, role_taxos=role_taxonomies, user_taxos=filter_taxonomies
+        )
         domain = self.create_domain(
             orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         sc = self.user_config(user, target_sat)
         # Getting the domain from user
         with pytest.raises(HTTPError):
-            target_sat.api.Domain(sc, id=domain.id).read()
+            target_sat.api.Domain(server_config=sc, id=domain.id).read()
 
     @pytest.mark.tier3
     def test_negative_access_entities_from_user(
@@ -607,16 +603,17 @@ class TestCannedRole:
         :expectedresults: User should not be able to access any resources and
             permissions in its own taxonomies
 
-        :CaseLevel: System
         """
-        user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=filter_taxonomies)
+        user = self.create_org_admin_user(
+            target_sat, role_taxos=role_taxonomies, user_taxos=filter_taxonomies
+        )
         domain = self.create_domain(
             orgs=[filter_taxonomies['org'].id], locs=[filter_taxonomies['loc'].id]
         )
         sc = self.user_config(user, target_sat)
         # Getting the domain from user
         with pytest.raises(HTTPError):
-            target_sat.api.Domain(sc, id=domain.id).read()
+            target_sat.api.Domain(server_config=sc, id=domain.id).read()
 
     @pytest.mark.tier2
     def test_positive_override_cloned_role_filter(self, role_taxonomies, target_sat):
@@ -632,7 +629,6 @@ class TestCannedRole:
 
         :expectedresults: Filter in cloned role should be overridden
 
-        :CaseLevel: Integration
         """
         role_name = gen_string('alpha')
         role = target_sat.api.Role(name=role_name).create()
@@ -675,7 +671,6 @@ class TestCannedRole:
                 None in cloned role
             2. Override flag is set to True in cloned role filter
 
-        :CaseLevel: Integration
         """
         role = target_sat.api.Role(
             name=gen_string('alpha'),
@@ -718,7 +713,6 @@ class TestCannedRole:
         :expectedresults: Unlimited and Override flags should be set to True on
             filter for filter that is overridden in parent role
 
-        :CaseLevel: Integration
         """
         role = target_sat.api.Role(
             name=gen_string('alpha'),
@@ -766,7 +760,6 @@ class TestCannedRole:
         :expectedresults: Both unlimited and override flag should be set to
             False on filter for filter that is not overridden in parent role
 
-        :CaseLevel: Integration
         """
         role = target_sat.api.Role(
             name=gen_string('alpha'),
@@ -807,7 +800,6 @@ class TestCannedRole:
         :expectedresults: Both unlimited and override flags should be set to
             False on filter for filter that is unlimited in parent role
 
-        :CaseLevel: Integration
         """
         role = target_sat.api.Role(
             name=gen_string('alpha'),
@@ -848,7 +840,6 @@ class TestCannedRole:
         :expectedresults: Both unlimited and Override flags should be set to
             True on filter for filter that is overridden in parent role
 
-        :CaseLevel: Integration
         """
         role = target_sat.api.Role(
             name=gen_string('alpha'),
@@ -891,8 +882,6 @@ class TestCannedRole:
             1. Unlimited flag should be set to True
             2. Override flag should be set to False
 
-        :CaseLevel: Integration
-
         :BZ: 1488908
         """
         role = target_sat.api.Role(
@@ -931,8 +920,6 @@ class TestCannedRole:
             1. Unlimited flag should be set to True
             2. Override flag should be set to False
 
-        :CaseLevel: Integration
-
         :BZ: 1488908
         """
         role = target_sat.api.Role(
@@ -970,10 +957,9 @@ class TestCannedRole:
         :expectedresults: Both the user should have access to the resources of
             organization A and Location A
 
-        :CaseLevel: System
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         userone_login = gen_string('alpha')
         userone_pass = gen_string('alphanumeric')
@@ -1014,13 +1000,13 @@ class TestCannedRole:
                 auth=(login, password), url=target_sat.url, verify=settings.server.verify_ca
             )
             try:
-                target_sat.api.Domain(sc).search(
+                target_sat.api.Domain(server_config=sc).search(
                     query={
                         'organization-id': role_taxonomies['org'].id,
                         'location-id': role_taxonomies['loc'].id,
                     }
                 )
-                target_sat.api.Subnet(sc).search(
+                target_sat.api.Subnet(server_config=sc).search(
                     query={
                         'organization-id': role_taxonomies['org'].id,
                         'location-id': role_taxonomies['loc'].id,
@@ -1028,8 +1014,8 @@ class TestCannedRole:
                 )
             except HTTPError as err:
                 pytest.fail(str(err))
-            assert domain.id in [dom.id for dom in target_sat.api.Domain(sc).search()]
-            assert subnet.id in [sub.id for sub in target_sat.api.Subnet(sc).search()]
+            assert domain.id in [dom.id for dom in target_sat.api.Domain(server_config=sc).search()]
+            assert subnet.id in [sub.id for sub in target_sat.api.Subnet(server_config=sc).search()]
 
     @pytest.mark.tier3
     def test_positive_user_group_users_access_contradict_as_org_admins(self):
@@ -1055,7 +1041,6 @@ class TestCannedRole:
             2. User assigned to Organization A and Location A should have
                 access to the resources of organization A and Location A
 
-        :CaseLevel: System
         """
 
     @pytest.mark.tier2
@@ -1078,10 +1063,9 @@ class TestCannedRole:
         :expectedresults: Both the user shouldn't have access to the resources
             of organization A,B and Location A,B
 
-        :CaseLevel: System
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         user_one = self.create_simple_user(target_sat, filter_taxos=filter_taxonomies)
         user_two = self.create_simple_user(target_sat, filter_taxos=filter_taxonomies)
@@ -1094,7 +1078,7 @@ class TestCannedRole:
         for user in [user_one, user_two]:
             sc = self.user_config(user, target_sat)
             with pytest.raises(HTTPError):
-                target_sat.api.Domain(sc, id=dom.id).read()
+                target_sat.api.Domain(server_config=sc, id=dom.id).read()
 
     @pytest.mark.tier2
     def test_negative_assign_taxonomies_by_org_admin(
@@ -1120,10 +1104,9 @@ class TestCannedRole:
         :expectedresults: Org Admin should not be able to assign the
             organizations to any of its resources
 
-        :CaseLevel: Integration
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         # Creating resource
         dom_name = gen_string('alpha')
@@ -1145,7 +1128,7 @@ class TestCannedRole:
             auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
         )
         # Getting the domain from user1
-        dom = target_sat.api.Domain(sc, id=dom.id).read()
+        dom = target_sat.api.Domain(server_config=sc, id=dom.id).read()
         dom.organization = [filter_taxonomies['org']]
         with pytest.raises(HTTPError):
             dom.update(['organization'])
@@ -1168,7 +1151,7 @@ class TestCannedRole:
         :CaseImportance: Critical
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
@@ -1202,9 +1185,10 @@ class TestCannedRole:
         :expectedresults: Super admin should be able to access the target_sat.api in
             taxonomies assigned to Org Admin
 
-        :CaseLevel: Integration
         """
-        user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=role_taxonomies)
+        user = self.create_org_admin_user(
+            target_sat, role_taxos=role_taxonomies, user_taxos=role_taxonomies
+        )
         sc = self.user_config(user, target_sat)
         # Creating resource
         dom_name = gen_string('alpha')
@@ -1245,9 +1229,10 @@ class TestCannedRole:
         :expectedresults: Super admin should be able to access the target_sat.api in
             taxonomies assigned to Org Admin after deleting Org Admin
 
-        :CaseLevel: Integration
         """
-        user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=role_taxonomies)
+        user = self.create_org_admin_user(
+            target_sat, role_taxos=role_taxonomies, user_taxos=role_taxonomies
+        )
         sc = self.user_config(user, target_sat)
         # Creating resource
         dom_name = gen_string('alpha')
@@ -1293,7 +1278,7 @@ class TestCannedRole:
             create new role
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
@@ -1311,7 +1296,7 @@ class TestCannedRole:
         role_name = gen_string('alpha')
         with pytest.raises(HTTPError):
             target_sat.api.Role(
-                sc,
+                server_config=sc,
                 name=role_name,
                 organization=[role_taxonomies['org']],
                 location=[role_taxonomies['loc']],
@@ -1333,10 +1318,12 @@ class TestCannedRole:
         :expectedresults: Org Admin should not have permissions to update
             existing roles
         """
-        user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=role_taxonomies)
+        user = self.create_org_admin_user(
+            target_sat, role_taxos=role_taxonomies, user_taxos=role_taxonomies
+        )
         test_role = target_sat.api.Role().create()
         sc = self.user_config(user, target_sat)
-        test_role = target_sat.api.Role(sc, id=test_role.id).read()
+        test_role = target_sat.api.Role(server_config=sc, id=test_role.id).read()
         test_role.organization = [role_taxonomies['org']]
         test_role.location = [role_taxonomies['loc']]
         with pytest.raises(HTTPError):
@@ -1357,10 +1344,9 @@ class TestCannedRole:
 
         :expectedresults: Org Admin should not have access of Admin user
 
-        :CaseLevel: Integration
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
@@ -1376,7 +1362,7 @@ class TestCannedRole:
             auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
         )
         with pytest.raises(HTTPError):
-            target_sat.api.User(sc, id=1).read()
+            target_sat.api.User(server_config=sc, id=1).read()
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
@@ -1404,10 +1390,9 @@ class TestCannedRole:
 
         :customerscenario: true
 
-        :CaseLevel: Integration
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
@@ -1425,7 +1410,7 @@ class TestCannedRole:
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
         user = target_sat.api.User(
-            sc_user,
+            server_config=sc_user,
             login=user_login,
             password=user_pass,
             role=[org_admin.id],
@@ -1458,13 +1443,14 @@ class TestCannedRole:
         :expectedresults: Org Admin should be able to access users inside
             its taxonomies
 
-        :CaseLevel: Integration
         """
-        user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=role_taxonomies)
+        user = self.create_org_admin_user(
+            target_sat, role_taxos=role_taxonomies, user_taxos=role_taxonomies
+        )
         test_user = self.create_simple_user(filter_taxos=role_taxonomies)
         sc = self.user_config(user, target_sat)
         try:
-            target_sat.api.User(sc, id=test_user.id).read()
+            target_sat.api.User(server_config=sc, id=test_user.id).read()
         except HTTPError as err:
             pytest.fail(str(err))
 
@@ -1487,7 +1473,6 @@ class TestCannedRole:
         :expectedresults: after adding the needed permissions, user should be
             able to create nested locations
 
-        :CaseLevel: Integration
         """
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
@@ -1498,7 +1483,7 @@ class TestCannedRole:
             location=[role_taxonomies['loc']],
         ).create()
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         user.role = [org_admin]
         user = user.update(['role'])
@@ -1506,7 +1491,9 @@ class TestCannedRole:
             auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
         )
         name = gen_string('alphanumeric')
-        location = target_sat.api.Location(sc, name=name, parent=role_taxonomies['loc'].id).create()
+        location = target_sat.api.Location(
+            server_config=sc, name=name, parent=role_taxonomies['loc'].id
+        ).create()
         assert location.name == name
 
     @pytest.mark.tier2
@@ -1530,13 +1517,14 @@ class TestCannedRole:
         :expectedresults: Org Admin should not be able to access users outside
             its taxonomies
 
-        :CaseLevel: Integration
         """
-        user = self.create_org_admin_user(role_taxos=role_taxonomies, user_taxos=role_taxonomies)
+        user = self.create_org_admin_user(
+            target_sat, role_taxos=role_taxonomies, user_taxos=role_taxonomies
+        )
         test_user = self.create_simple_user(filter_taxos=filter_taxonomies)
         sc = self.user_config(user, target_sat)
         with pytest.raises(HTTPError):
-            target_sat.api.User(sc, id=test_user.id).read()
+            target_sat.api.User(server_config=sc, id=test_user.id).read()
 
     @pytest.mark.tier1
     def test_negative_create_taxonomies_by_org_admin(self, role_taxonomies, target_sat):
@@ -1557,7 +1545,7 @@ class TestCannedRole:
             1. Org Admin should not have access to create organizations
             2. Org Admin should have access to create locations
         """
-        org_admin = self.create_org_admin_role(orgs=[role_taxonomies['org'].id])
+        org_admin = self.create_org_admin_role(target_sat, orgs=[role_taxonomies['org'].id])
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
         user = target_sat.api.User(
@@ -1572,11 +1560,11 @@ class TestCannedRole:
             auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
         )
         with pytest.raises(HTTPError):
-            target_sat.api.Organization(sc, name=gen_string('alpha')).create()
+            target_sat.api.Organization(server_config=sc, name=gen_string('alpha')).create()
         if not is_open("BZ:1825698"):
             try:
                 loc_name = gen_string('alpha')
-                loc = target_sat.api.Location(sc, name=loc_name).create()
+                loc = target_sat.api.Location(server_config=sc, name=loc_name).create()
             except HTTPError as err:
                 pytest.fail(str(err))
             assert loc_name == loc.name
@@ -1603,7 +1591,7 @@ class TestCannedRole:
         :expectedresults: Org Admin should have access to all the global
             target_sat.api in any taxonomies
         """
-        org_admin = self.create_org_admin_role(orgs=[role_taxonomies['org'].id])
+        org_admin = self.create_org_admin_role(target_sat, orgs=[role_taxonomies['org'].id])
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
         user = target_sat.api.User(
@@ -1629,7 +1617,7 @@ class TestCannedRole:
                 target_sat.api.Errata,
                 target_sat.api.OperatingSystem,
             ]:
-                entity(sc).search()
+                entity(server_config=sc).search()
         except HTTPError as err:
             pytest.fail(str(err))
 
@@ -1653,12 +1641,10 @@ class TestCannedRole:
         :expectedresults: LDAP User should not be able to access resources and
             permissions in taxonomies selected in Org Admin role
 
-        :CaseLevel: System
-
         :CaseAutomation: Automated
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         # Creating Domain resource in same taxonomies as Org Admin role to access later
         domain = self.create_domain(
@@ -1670,7 +1656,7 @@ class TestCannedRole:
             verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
-            target_sat.api.Architecture(sc).search()
+            target_sat.api.Architecture(server_config=sc).search()
         user = target_sat.api.User().search(
             query={'search': f"login={create_ldap['ldap_user_name']}"}
         )[0]
@@ -1678,7 +1664,7 @@ class TestCannedRole:
         user.update(['role'])
         # Trying to access the domain resource created in org admin role
         with pytest.raises(HTTPError):
-            target_sat.api.Domain(sc, id=domain.id).read()
+            target_sat.api.Domain(server_config=sc, id=domain.id).read()
 
     @pytest.mark.tier3
     def test_negative_access_entities_from_ldap_user(
@@ -1700,12 +1686,10 @@ class TestCannedRole:
         :expectedresults: LDAP User should not be able to access any resources
             and permissions in its own taxonomies
 
-        :CaseLevel: System
-
         :CaseAutomation: Automated
         """
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         # Creating Domain resource in different taxonomies to access later
         domain = self.create_domain(orgs=[module_org.id], locs=[module_location.id])
@@ -1715,7 +1699,7 @@ class TestCannedRole:
             verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
-            target_sat.api.Architecture(sc).search()
+            target_sat.api.Architecture(server_config=sc).search()
         user = target_sat.api.User().search(
             query={'search': f"login={create_ldap['ldap_user_name']}"}
         )[0]
@@ -1723,7 +1707,7 @@ class TestCannedRole:
         user.update(['role'])
         # Trying to access the Domain resource
         with pytest.raises(HTTPError):
-            target_sat.api.Domain(sc, id=domain.id).read()
+            target_sat.api.Domain(server_config=sc, id=domain.id).read()
 
     @pytest.mark.tier3
     def test_positive_assign_org_admin_to_ldap_user_group(
@@ -1746,13 +1730,12 @@ class TestCannedRole:
             resources in taxonomies if the taxonomies of Org Admin role are
             same
 
-        :CaseLevel: System
-
         :CaseAutomation: Automated
         """
         group_name = gen_string("alpha")
         password = gen_string("alpha")
         org_admin = self.create_org_admin_role(
+            target_sat,
             orgs=[create_ldap['authsource'].organization[0].id],
             locs=[create_ldap['authsource'].location[0].id],
         )
@@ -1785,7 +1768,7 @@ class TestCannedRole:
                 verify=settings.server.verify_ca,
             )
             # Accessing the Domain resource
-            target_sat.api.Domain(sc, id=domain.id).read()
+            target_sat.api.Domain(server_config=sc, id=domain.id).read()
 
     @pytest.mark.tier3
     def test_negative_assign_org_admin_to_ldap_user_group(
@@ -1808,14 +1791,12 @@ class TestCannedRole:
             resources in taxonomies if the taxonomies of Org Admin role is not
             same
 
-        :CaseLevel: System
-
         :CaseAutomation: Automated
         """
         group_name = gen_string("alpha")
         password = gen_string("alpha")
         org_admin = self.create_org_admin_role(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         # Creating Domain resource in same taxonomies as Org Admin role to access later
         domain = self.create_domain(
@@ -1846,7 +1827,7 @@ class TestCannedRole:
             )
             # Trying to access the Domain resource
             with pytest.raises(HTTPError):
-                target_sat.api.Domain(sc, id=domain.id).read()
+                target_sat.api.Domain(server_config=sc, id=domain.id).read()
 
 
 class TestRoleSearchFilter:

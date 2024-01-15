@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: RHCloud-CloudConnector
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from datetime import datetime, timedelta
 
@@ -86,9 +81,12 @@ def fixture_setup_rhc_satellite(
         repo2_id = module_target_sat.api_factory.enable_sync_redhat_repo(
             constants.REPOS['rhel7'], module_rhc_org.id
         )
+        repo3_id = module_target_sat.api_factory.enable_sync_redhat_repo(
+            constants.REPOS['rhel8_bos'], module_rhc_org.id
+        )
         # Add repos to Content view
         content_view = module_target_sat.api.ContentView(
-            organization=module_rhc_org, repository=[repo1_id, repo2_id]
+            organization=module_rhc_org, repository=[repo1_id, repo2_id, repo3_id]
         ).create()
         content_view.publish()
         # Create Activation key
@@ -117,15 +115,13 @@ def test_positive_configure_cloud_connector(
 
     :id: 67e45cfe-31bb-51a8-b88f-27918c68f32e
 
-    :Steps:
+    :steps:
 
         1. Navigate to Configure > Inventory Upload
         2. Click Configure Cloud Connector
         3. Open the started job and wait until it is finished
 
     :expectedresults: The Cloud Connector has been installed and the service is running
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
 

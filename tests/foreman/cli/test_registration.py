@@ -2,8 +2,6 @@
 
 :Requirement: Registration
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Registration
 
 :CaseAutomation: Automated
@@ -12,14 +10,12 @@
 
 :Team: Rocket
 
-:TestType: Functional
-
-:Upstream: No
 """
 import pytest
 
 from robottelo.config import settings
 from robottelo.constants import CLIENT_PORT
+from robottelo.exceptions import CLIReturnCodeError
 
 pytestmark = pytest.mark.tier1
 
@@ -27,9 +23,9 @@ pytestmark = pytest.mark.tier1
 @pytest.mark.e2e
 @pytest.mark.no_containers
 def test_host_registration_end_to_end(
-    module_org,
+    module_sca_manifest_org,
     module_location,
-    module_ak_with_synced_repo,
+    module_activation_key,
     module_target_sat,
     module_capsule_configured,
     rhel_contenthost,
@@ -47,8 +43,9 @@ def test_host_registration_end_to_end(
 
     :customerscenario: true
     """
+    org = module_sca_manifest_org
     result = rhel_contenthost.register(
-        module_org, module_location, module_ak_with_synced_repo.name, module_target_sat
+        org, module_location, [module_activation_key.name], module_target_sat
     )
 
     rc = 1 if rhel_contenthost.os_version.major == 6 else 0
@@ -62,14 +59,14 @@ def test_host_registration_end_to_end(
     module_target_sat.cli.Capsule.update(
         {
             'name': module_capsule_configured.hostname,
-            'organization-ids': module_org.id,
+            'organization-ids': org.id,
             'location-ids': module_location.id,
         }
     )
     result = rhel_contenthost.register(
-        module_org,
+        org,
         module_location,
-        module_ak_with_synced_repo.name,
+        [module_activation_key.name],
         module_capsule_configured,
         force=True,
     )
@@ -159,8 +156,6 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost
     :expectedresults: host cannot be registered twice
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
     assert rhel_contenthost.subscribed
@@ -170,3 +165,19 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost
     # host being already registered.
     assert result.status == 1
     assert 'This system is already registered' in str(result.stderr)
+
+
+@pytest.mark.tier1
+def test_negative_global_registration_without_ak(module_target_sat):
+    """Attempt to register a host without ActivationKey
+
+    :id: e48a6260-97e0-4234-a69c-77bbbcde85df
+
+    :expectedresults: Generate command is disabled without ActivationKey
+    """
+    with pytest.raises(CLIReturnCodeError) as context:
+        module_target_sat.cli.HostRegistration.generate_command(options=None)
+    assert (
+        'Failed to generate registration command:\n  Missing activation key!'
+        in context.value.message
+    )

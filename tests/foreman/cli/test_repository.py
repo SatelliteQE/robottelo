@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Repositories
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from random import choice
 from string import punctuation
@@ -32,6 +27,7 @@ from robottelo.constants import (
     CUSTOM_FILE_REPO_FILES_COUNT,
     CUSTOM_LOCAL_FOLDER,
     DOWNLOAD_POLICIES,
+    FAKE_3_YUM_REPO_RPMS,
     MIRRORING_POLICIES,
     OS_TEMPLATE_DATA_FILE,
     REPO_TYPE,
@@ -269,7 +265,7 @@ class TestRepository:
         for key in 'url', 'content-type':
             assert repo.get(key) == repo_options[key]
         repo = entities.Repository(id=repo['id']).read()
-        assert getattr(repo, 'upstream_username') == repo_options['upstream-username']
+        assert repo.upstream_username == repo_options['upstream-username']
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
@@ -729,8 +725,6 @@ class TestRepository:
 
         :expectedresults: Repository is created and synced
 
-        :CaseLevel: Integration
-
         :CaseImportance: Critical
         """
         # Repo is not yet synced
@@ -755,8 +749,6 @@ class TestRepository:
         :parametrized: yes
 
         :expectedresults: Repository is created and synced
-
-        :CaseLevel: Integration
 
         :CaseImportance: Critical
         """
@@ -798,7 +790,6 @@ class TestRepository:
 
         :BZ: 1328092
 
-        :CaseLevel: Integration
         """
         # Assertion that repo is not yet synced
         assert repo['sync']['status'] == 'Not Synced'
@@ -839,7 +830,6 @@ class TestRepository:
 
         :BZ: 1405503, 1453118
 
-        :CaseLevel: Integration
         """
         # Try to synchronize it
         repo_sync = target_sat.cli.Repository.synchronize({'id': repo['id'], 'async': True})
@@ -1121,7 +1111,6 @@ class TestRepository:
 
         :BZ: 1459845, 1459874, 1318004
 
-        :CaseLevel: Integration
         """
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = target_sat.cli.Repository.info({'id': repo['id']})
@@ -1178,7 +1167,7 @@ class TestRepository:
             3. Delete one package from repo 1.
             4. Sync the second repo (repo 2) from the first repo (repo 1).
 
-        :Steps:
+        :steps:
             1. Check that the package deleted from repo 1 was removed from repo 2.
 
         :expectedresults: A package removed from repo 1 is removed from repo 2 when synced.
@@ -1249,8 +1238,6 @@ class TestRepository:
         :expectedresults: No SRPM Content is Synced
 
         :BZ: 1591358
-
-        :CaseLevel: Integration
 
         """
         target_sat.cli.Repository.synchronize({'id': repo['id']})
@@ -1680,7 +1667,7 @@ class TestRepository:
 
         :BZ: 1436209,1410916
 
-        :Steps:
+        :steps:
             1. Setup a restricted user with permissions that filter the
                products with names like Test_* or "rhel7*"
             2. Create a content view
@@ -1696,7 +1683,6 @@ class TestRepository:
                view, assert that the restricted user still cannot view the
                product repository.
 
-        :CaseLevel: Integration
         """
         required_permissions = {
             'Katello::Product': (
@@ -1979,7 +1965,7 @@ class TestRepository:
         :Setup:
             1. valid yum repo with Module Streams.
 
-        :Steps:
+        :steps:
             1. Create Yum Repository with url contain module-streams
             2. Initialize synchronization
             3. Another Repository with same Url
@@ -2048,7 +2034,7 @@ class TestRepository:
         :Setup:
             1. valid yum repo with Module Streams.
 
-        :Steps:
+        :steps:
             1. Create Yum Repositories with url contain module-streams and Products
             2. Initialize synchronization
             3. Verify the module-stream list with various inputs options
@@ -2086,7 +2072,7 @@ class TestRepository:
         :Setup:
             1. valid yum repo with Module Streams.
 
-        :Steps:
+        :steps:
             1. Create Yum Repositories with url contain module-streams
             2. Initialize synchronization
             3. Verify the module-stream info with various inputs options
@@ -2120,7 +2106,7 @@ class TestRepository:
 
         :BZ: 1756951, 2002653
 
-        :Steps:
+        :steps:
             1. Import manifest and enable a Red Hat repository.
             2. Attempt to update the Red Hat repository:
                # hammer repository update --id <id> --url http://example.com/repo
@@ -2358,9 +2344,8 @@ class TestRepository:
 #         :parametrized: yes
 #
 #         :expectedresults: Ostree repository is created and synced
-#
-#         :CaseLevel: Integration
-#
+
+
 #         :BZ: 1625783
 #         """
 #         # Synchronize it
@@ -2545,15 +2530,13 @@ class TestAnsibleCollectionRepository:
 
         :expectedresults: All content synced successfully
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
 
         :parametrized: yes
 
         """
-        module_target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
-        repo = module_target_sat.cli_factory.Repository.info({'id': repo['id']})
+        module_target_sat.cli.Repository.synchronize({'id': repo['id']})
+        repo = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
 
     @pytest.mark.tier2
@@ -2579,14 +2562,12 @@ class TestAnsibleCollectionRepository:
 
         :expectedresults: All content exported and imported successfully
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
 
         """
         import_org = target_sat.cli_factory.make_org()
-        target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
-        repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
         # export
         result = target_sat.cli.ContentExport.completeLibrary({'organization-id': module_org.id})
@@ -2602,15 +2583,15 @@ class TestAnsibleCollectionRepository:
             {'name': 'Import-Library', 'organization-label': import_org['label']}
         )
         assert cv['description'] == 'Content View used for importing into library'
-        prods = target_sat.cli_factory.Product.list({'organization-id': import_org['id']})
-        prod = target_sat.cli_factory.Product.info(
+        prods = target_sat.cli.Product.list({'organization-id': import_org['id']})
+        prod = target_sat.cli.Product.info(
             {'id': prods[0]['id'], 'organization-id': import_org['id']}
         )
         ac_content = [
             cont for cont in prod['content'] if cont['content-type'] == 'ansible_collection'
         ]
         assert len(ac_content) > 0
-        repo = target_sat.cli_factory.Repository.info(
+        repo = target_sat.cli.Repository.info(
             {'name': ac_content[0]['repo-name'], 'product-id': prod['id']}
         )
         result = target_sat.execute(f'curl {repo["published-at"]}')
@@ -2639,14 +2620,12 @@ class TestAnsibleCollectionRepository:
 
         :expectedresults: All content synced successfully
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
 
         """
         import_org = target_sat.cli_factory.make_org()
-        target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
-        repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
         published_url = repo['published-at']
         # sync from different org
@@ -2663,8 +2642,8 @@ class TestAnsibleCollectionRepository:
                     [{ name: theforeman.operations, version: "0.1.0"}]}',
             }
         )
-        target_sat.cli_factory.Repository.synchronize({'id': repo_2['id']})
-        repo_2_status = target_sat.cli_factory.Repository.info({'id': repo_2['id']})
+        target_sat.cli.Repository.synchronize({'id': repo_2['id']})
+        repo_2_status = target_sat.cli.Repository.info({'id': repo_2['id']})
         assert repo_2_status['sync']['status'] == 'Success'
 
 
@@ -2688,8 +2667,8 @@ class TestMD5Repository:
             lifecycle environment
         """
         lce = target_sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
-        target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
-        synced_repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+        synced_repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert synced_repo['sync']['status'].lower() == 'success'
         assert synced_repo['content-counts']['packages'] == '35'
         cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
@@ -2723,7 +2702,7 @@ class TestDRPMRepository:
 
         :expectedresults: drpms can be listed in repository
         """
-        target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
         result = target_sat.execute(
             f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/Library"
             f"/custom/{module_product.label}/{repo['label']}/drpms/ | grep .drpm"
@@ -2746,7 +2725,7 @@ class TestDRPMRepository:
 
         :expectedresults: drpms can be listed in content view
         """
-        target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
         cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
         target_sat.cli.ContentView.add_repository({'id': cv['id'], 'repository-id': repo['id']})
         target_sat.cli.ContentView.publish({'id': cv['id']})
@@ -2775,7 +2754,7 @@ class TestDRPMRepository:
             lifecycle environment
         """
         lce = target_sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
-        target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
         cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
         target_sat.cli.ContentView.add_repository({'id': cv['id'], 'repository-id': repo['id']})
         target_sat.cli.ContentView.publish({'id': cv['id']})
@@ -2812,11 +2791,9 @@ class TestGitPuppetMirror:
 
         :id: 89211cd5-82b8-4391-b729-a7502e57f824
 
-        :CaseLevel: Integration
-
         :Setup: Assure local GIT puppet has been created and found by pulp
 
-        :Steps: Create link to local puppet mirror via cli
+        :steps: Create link to local puppet mirror via cli
 
         :expectedresults: Content source containing local GIT puppet mirror
             content is created
@@ -2831,11 +2808,9 @@ class TestGitPuppetMirror:
 
         :id: 341f40f2-3501-4754-9acf-7cda1a61f7db
 
-        :CaseLevel: Integration
-
         :Setup: Assure local GIT puppet has been created and found by pulp
 
-        :Steps: Modify details for existing puppet repo (name, etc.) via cli
+        :steps: Modify details for existing puppet repo (name, etc.) via cli
 
         :expectedresults: Content source containing local GIT puppet mirror
             content is modified
@@ -2851,11 +2826,9 @@ class TestGitPuppetMirror:
 
         :id: a243f5bb-5186-41b3-8e8a-07d5cc784ccd
 
-        :CaseLevel: Integration
-
         :Setup: Assure local GIT puppet has been created and found by pulp
 
-        :Steps: Delete link to local puppet mirror via cli
+        :steps: Delete link to local puppet mirror via cli
 
         :expectedresults: Content source containing local GIT puppet mirror
             content no longer exists/is available.
@@ -2870,11 +2843,9 @@ class TestGitPuppetMirror:
 
         :id: 8582529f-3112-4b49-8d8f-f2bbf7dceca7
 
-        :CaseLevel: Integration
-
         :Setup: Assure remote GIT puppet has been created and found by pulp
 
-        :Steps: Create link to local puppet mirror via cli
+        :steps: Create link to local puppet mirror via cli
 
         :expectedresults: Content source containing remote GIT puppet mirror
             content is created
@@ -2889,11 +2860,9 @@ class TestGitPuppetMirror:
 
         :id: 582c50b3-3b90-4244-b694-97642b1b13a9
 
-        :CaseLevel: Integration
-
         :Setup: Assure remote  GIT puppet has been created and found by pulp
 
-        :Steps: modify details for existing puppet repo (name, etc.) via cli
+        :steps: modify details for existing puppet repo (name, etc.) via cli
 
         :expectedresults: Content source containing remote GIT puppet mirror
             content is modified
@@ -2909,11 +2878,9 @@ class TestGitPuppetMirror:
 
         :id: 0a23f969-b202-4c6c-b12e-f651a0b7d049
 
-        :CaseLevel: Integration
-
         :Setup: Assure remote GIT puppet has been created and found by pulp
 
-        :Steps: Delete link to remote puppet mirror via cli
+        :steps: Delete link to remote puppet mirror via cli
 
         :expectedresults: Content source containing remote GIT puppet mirror
             content no longer exists/is available.
@@ -2928,11 +2895,9 @@ class TestGitPuppetMirror:
 
         :id: a46c16bd-0986-48db-8e62-aeb3907ba4d2
 
-        :CaseLevel: Integration
-
         :Setup: git mirror (local or remote) exists as a content source
 
-        :Steps: Attempt to sync content from mirror via cli
+        :steps: Attempt to sync content from mirror via cli
 
         :expectedresults: Content is pulled down without error
 
@@ -2949,11 +2914,9 @@ class TestGitPuppetMirror:
 
         :id: 0d58d180-9836-4524-b608-66b67f9cab12
 
-        :CaseLevel: Integration
-
         :Setup: git mirror (local or remote) exists as a content source
 
-        :Steps: Attempt to create a scheduled sync content from mirror, via cli
+        :steps: Attempt to create a scheduled sync content from mirror, via cli
 
         :expectedresults: Content is pulled down without error  on expected
             schedule
@@ -2968,11 +2931,9 @@ class TestGitPuppetMirror:
 
         :id: 02f06092-dd6c-49fa-be9f-831e52476e41
 
-        :CaseLevel: Integration
-
         :Setup: git mirror (local or remote) exists as a content source
 
-        :Steps: Attempt to list contents of repo via cli
+        :steps: Attempt to list contents of repo via cli
 
         :expectedresults: Spot-checked items (filenames, dates, perhaps
             checksums?) are correct.
@@ -2997,7 +2958,7 @@ class TestFileRepository:
 
         :parametrized: yes
 
-        :Steps:
+        :steps:
             1. Create a File Repository
             2. Upload an arbitrary file to it
 
@@ -3011,7 +2972,7 @@ class TestFileRepository:
             local_path=DataFile.RPM_TO_UPLOAD,
             remote_path=f"/tmp/{RPM_TO_UPLOAD}",
         )
-        result = target_sat.cli_factory.Repository.upload_content(
+        result = target_sat.cli.Repository.upload_content(
             {
                 'name': repo['name'],
                 'organization': repo['organization'],
@@ -3020,7 +2981,7 @@ class TestFileRepository:
             }
         )
         assert f"Successfully uploaded file '{RPM_TO_UPLOAD}'" in result[0]['message']
-        repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['content-counts']['files'] == '1'
         filesearch = entities.File().search(
             query={"search": f"name={RPM_TO_UPLOAD} and repository={repo['name']}"}
@@ -3038,7 +2999,7 @@ class TestFileRepository:
             1. Create a File Repository
             2. Upload an arbitrary file to it
 
-        :Steps: Retrieve file permissions from File Repository
+        :steps: Retrieve file permissions from File Repository
 
         :expectedresults: uploaded file permissions are kept after upload
 
@@ -3065,7 +3026,7 @@ class TestFileRepository:
             1. Create a File Repository
             2. Upload an arbitrary file to it
 
-        :Steps: Remove a file from File Repository
+        :steps: Remove a file from File Repository
 
         :expectedresults: file is not listed under File Repository after
             removal
@@ -3076,7 +3037,7 @@ class TestFileRepository:
             local_path=DataFile.RPM_TO_UPLOAD,
             remote_path=f"/tmp/{RPM_TO_UPLOAD}",
         )
-        result = target_sat.cli_factory.Repository.upload_content(
+        result = target_sat.cli.Repository.upload_content(
             {
                 'name': repo['name'],
                 'organization': repo['organization'],
@@ -3085,13 +3046,13 @@ class TestFileRepository:
             }
         )
         assert f"Successfully uploaded file '{RPM_TO_UPLOAD}'" in result[0]['message']
-        repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert int(repo['content-counts']['files']) > 0
         files = target_sat.cli.File.list({'repository-id': repo['id']})
-        target_sat.cli_factory.Repository.remove_content(
+        target_sat.cli.Repository.remove_content(
             {'id': repo['id'], 'ids': [file_['id'] for file_ in files]}
         )
-        repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['content-counts']['files'] == '0'
 
     @pytest.mark.tier2
@@ -3121,7 +3082,7 @@ class TestFileRepository:
             1. Create a directory to be synced with a pulp manifest on its root
             2. Make the directory available through http
 
-        :Steps:
+        :steps:
             1. Create a File Repository with url pointing to http url
                 created on setup
             2. Initialize synchronization
@@ -3129,8 +3090,8 @@ class TestFileRepository:
         :expectedresults: entire directory is synced over http
 
         """
-        module_target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
-        repo = module_target_sat.cli_factory.Repository.info({'id': repo['id']})
+        module_target_sat.cli.Repository.synchronize({'id': repo['id']})
+        repo = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
         assert repo['content-counts']['files'] == '2'
 
@@ -3151,7 +3112,7 @@ class TestFileRepository:
             1. Create a directory to be synced with a pulp manifest on its root
                 locally (on the Satellite/Foreman host)
 
-        :Steps:
+        :steps:
             1. Create a File Repository with url pointing to local url
                 created on setup
             2. Initialize synchronization
@@ -3167,8 +3128,8 @@ class TestFileRepository:
             f'wget -P {CUSTOM_LOCAL_FOLDER} -r -np -nH --cut-dirs=5 -R "index.html*" '
             f'{CUSTOM_FILE_REPO}'
         )
-        target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
-        repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert int(repo['content-counts']['files']) > 1
 
     @pytest.mark.tier2
@@ -3189,7 +3150,7 @@ class TestFileRepository:
                 locally (on the Satellite/Foreman host)
             2. Make sure it contains symlinks
 
-        :Steps:
+        :steps:
             1. Create a File Repository with url pointing to local url
                 created on setup
             2. Initialize synchronization
@@ -3207,8 +3168,8 @@ class TestFileRepository:
         )
         target_sat.execute(f'ln -s {CUSTOM_LOCAL_FOLDER} /{gen_string("alpha")}')
 
-        target_sat.cli_factory.Repository.synchronize({'id': repo['id']})
-        repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert int(repo['content-counts']['files']) > 1
 
     @pytest.mark.tier2
@@ -3231,7 +3192,7 @@ class TestFileRepository:
             4. Add some text keyword to the file locally.
             5. Upload new version of file.
 
-        :Steps:
+        :steps:
             1. Check that the repo contains only the new version of the file
 
         :expectedresults: The file is not duplicated and only the latest version of the file
@@ -3241,7 +3202,7 @@ class TestFileRepository:
         """
         text_file_name = f'test-{gen_string("alpha", 5)}.txt'.lower()
         target_sat.execute(f'echo "First File" > /tmp/{text_file_name}')
-        result = target_sat.cli_factory.Repository.upload_content(
+        result = target_sat.cli.Repository.upload_content(
             {
                 'name': repo['name'],
                 'organization': repo['organization'],
@@ -3250,7 +3211,7 @@ class TestFileRepository:
             }
         )
         assert f"Successfully uploaded file '{text_file_name}'" in result[0]['message']
-        repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         # Assert there is only one file
         assert repo['content-counts']['files'] == '1'
         filesearch = entities.File().search(
@@ -3259,7 +3220,7 @@ class TestFileRepository:
         assert text_file_name == filesearch[0].name
         # Create new version of the file by changing the text
         target_sat.execute(f'echo "Second File" > /tmp/{text_file_name}')
-        result = target_sat.cli_factory.Repository.upload_content(
+        result = target_sat.cli.Repository.upload_content(
             {
                 'name': repo['name'],
                 'organization': repo['organization'],
@@ -3268,7 +3229,7 @@ class TestFileRepository:
             }
         )
         assert f"Successfully uploaded file '{text_file_name}'" in result[0]['message']
-        repo = target_sat.cli_factory.Repository.info({'id': repo['id']})
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
         # Assert there is still only one file
         assert repo['content-counts']['files'] == '1'
         filesearch = entities.File().search(
@@ -3294,7 +3255,7 @@ def test_copy_package_group_between_repos():
         2. Create another product and create a yum repo (repo 2)
         3. Select the package group from repo 1 and sync it to repo 2
 
-    :Steps:
+    :steps:
         Assert the list of package in repo 2 matches the group list from repo 1
 
     :CaseAutomation: NotAutomated
@@ -3319,7 +3280,7 @@ def test_include_and_exclude_content_units():
         4. Select a package and exclude its dependencies
         5. Copy packages from repo 1 to repo 2
 
-    :Steps:
+    :steps:
         Assert the list of packages in repo 2 matches the packages selected in repo 1,
         including only those dependencies expected.
 
@@ -3346,7 +3307,7 @@ def test_copy_erratum_and_RPMs_within_a_date_range():
         5. Copy filtered list of items from repo 1 to repo 2
         6. Repeat using errata in place of RPMs
 
-    :Steps:
+    :steps:
         Assert the list of packages or errata in repo 2 matches those selected
         and filtered in repo 1, including those dependencies expected.
 
@@ -3390,3 +3351,89 @@ def test_positive_syncable_yum_format_repo_import(target_sat, module_org):
     )
     assert repodata['content-counts']['packages'] != 0
     assert repodata['sync']['status'] == 'Success'
+
+
+@pytest.mark.rhel_ver_list([9])
+def test_positive_install_uploaded_rpm_on_host(
+    target_sat, rhel_contenthost, function_org, function_lce
+):
+    """Verify that uploaded rpm successfully install on content host
+
+    :id: 8701782e-2d1e-41b7-a9dc-07325bfeaf1c
+
+    :steps:
+        1. Create product, custom repo and upload rpm into repo
+        2. Create CV, add repo into it & publish CV
+        3. Upload package on to the satellite, rename it then upload it into repo
+        4. Register host with satellite and install rpm on it
+
+    :expectedresults: rpm should install successfully
+
+    :customerscenario: true
+
+    :BZ: 2161993
+    """
+    product = target_sat.cli_factory.make_product({'organization-id': function_org.id})
+    repo = target_sat.cli_factory.make_repository(
+        {
+            'content-type': 'yum',
+            'name': gen_string('alpha', 5),
+            'product-id': product['id'],
+        }
+    )
+    target_sat.cli.Repository.synchronize({'id': repo['id']})
+    sync_status = target_sat.cli.Repository.info({'id': repo['id']})['sync']['status']
+    assert sync_status == 'Success', f'Failed to sync {repo["name"]} repo'
+
+    # Upload package
+    target_sat.put(
+        local_path=DataFile.FAKE_3_YUM_REPO_RPMS_ANT,
+        remote_path=f"/tmp/{FAKE_3_YUM_REPO_RPMS[0]}",
+    )
+    # Rename uploaded package name
+    rpm_new_name = f'{gen_string(str_type="alpha", length=5)}.rpm'
+    target_sat.execute(f"mv /tmp/{FAKE_3_YUM_REPO_RPMS[0]} /tmp/{rpm_new_name}")
+
+    result = target_sat.cli.Repository.upload_content(
+        {
+            'name': repo['name'],
+            'organization': repo['organization'],
+            'path': f"/tmp/{rpm_new_name}",
+            'product-id': repo['product']['id'],
+        }
+    )
+    assert f"Successfully uploaded file {rpm_new_name}" == result[0]['message']
+    queryinfo = target_sat.execute(f"rpm -q /tmp/{rpm_new_name}")
+
+    content_view = target_sat.cli_factory.make_content_view(
+        {'organization-id': function_org.id, 'name': gen_string('alpha', 5)}
+    )
+    target_sat.cli.ContentView.add_repository(
+        {'id': content_view['id'], 'repository-id': repo['id']}
+    )
+    target_sat.cli.ContentView.publish({'id': content_view['id']})
+    content_view = target_sat.cli.ContentView.info({'id': content_view['id']})
+    target_sat.cli.ContentView.version_promote(
+        {'id': content_view['versions'][0]['id'], 'to-lifecycle-environment-id': function_lce.id}
+    )
+    activation_key = target_sat.cli_factory.make_activation_key(
+        {
+            'organization-id': function_org.id,
+            'lifecycle-environment-id': function_lce.id,
+            'content-view-id': content_view['id'],
+        }
+    )
+    target_sat.cli.ActivationKey.content_override(
+        {'id': activation_key.id, 'content-label': repo.content_label, 'value': 'true'}
+    )
+    assert (
+        rhel_contenthost.register(function_org, None, activation_key.name, target_sat).status == 0
+    )
+    assert (
+        rhel_contenthost.execute(f'yum install -y {FAKE_3_YUM_REPO_RPMS[0].split("-")[0]}').status
+        == 0
+    )
+    installed_package_name = rhel_contenthost.execute(
+        f'rpm -q {FAKE_3_YUM_REPO_RPMS[0].split("-")[0]}'
+    )
+    assert installed_package_name.stdout == queryinfo.stdout

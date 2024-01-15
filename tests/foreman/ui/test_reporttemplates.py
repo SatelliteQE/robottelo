@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Integration
-
 :CaseComponent: Reporting
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import csv
 import json
@@ -145,8 +140,6 @@ def test_positive_end_to_end(session, module_org, module_location):
 
     :expectedresults: All expected CRUD actions finished successfully
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     name = gen_string('alpha')
@@ -245,8 +238,6 @@ def test_positive_generate_registered_hosts_report(target_sat, module_org, modul
     :expectedresults: The Host - Registered Content Hosts report is generated (with host filter)
                       and it contains created host with correct data
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     # generate Host Status report
@@ -299,8 +290,6 @@ def test_positive_generate_subscriptions_report_json(
     :id: b44d4cd8-a88e-47cf-9993-0bb871ac2c96
 
     :expectedresults: The Subscriptions report is generated in JSON
-
-    :CaseLevel: Integration
 
     :CaseImportance: Medium
     """
@@ -496,6 +485,7 @@ def test_negative_nonauthor_of_report_cant_download_it(session):
         4. Wait for dynflow
         5. As a different user, try to download the generated report
     :expectedresults: Report can't be downloaded. Error.
+
     :CaseImportance: High
     """
 

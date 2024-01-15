@@ -126,6 +126,20 @@ def session_satellite_host(request, satellite_factory):
         yield sat
 
 
+@pytest.fixture(scope='module')
+def module_satellite_mqtt(module_target_sat):
+    """Configure satellite with MQTT broker enabled"""
+    module_target_sat.set_rex_script_mode_provider('pull-mqtt')
+    # lower the mqtt_resend_interval interval
+    module_target_sat.set_mqtt_resend_interval('30')
+    result = module_target_sat.execute('systemctl status mosquitto')
+    assert result.status == 0, 'MQTT broker is not running'
+    result = module_target_sat.execute('firewall-cmd --permanent --add-port="1883/tcp"')
+    assert result.status == 0, 'Failed to open mqtt port on capsule'
+    module_target_sat.execute('firewall-cmd --reload')
+    return module_target_sat
+
+
 @pytest.fixture
 def capsule_host(request, capsule_factory):
     """A fixture that provides a Capsule based on config settings"""
@@ -277,7 +291,7 @@ def module_sat_ready_rhels(request):
 
 @pytest.fixture
 def cap_ready_rhel():
-    rhel_version = Version(settings.capsule.version.release)
+    rhel_version = Version(settings.capsule.version.rhel_version)
     deploy_args = {
         'deploy_rhel_version': rhel_version.base_version,
         'deploy_flavor': settings.flavors.default,

@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: System
-
 :CaseComponent: Capsule-Content
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from box import Box
 from fauxfactory import gen_alpha
@@ -52,7 +47,6 @@ def test_positive_sync_without_deadlock(
     :customerscenario: true
 
     :BZ: 2062526
-
     """
     # Note: As of now BZ#2122872 prevents us to use the originally intended RHEL7 repo because
     # of a memory leak causing Satellite OOM crash in this scenario. Therefore, for now we use
@@ -71,7 +65,7 @@ def test_positive_sync_without_deadlock(
 
     cv = target_sat.publish_content_view(function_entitlement_manifest_org, repo)
 
-    for i in range(4):
+    for _ in range(4):
         copy_id = target_sat.api.ContentView(id=cv.id).copy(data={'name': gen_alpha()})['id']
         copy_cv = target_sat.api.ContentView(id=copy_id).read()
         copy_cv.publish()

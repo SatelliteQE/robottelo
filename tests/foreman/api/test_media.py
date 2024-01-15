@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Hosts
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import random
 
@@ -41,7 +36,9 @@ class TestMedia:
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         ('name', 'new_name'),
-        **parametrized(list(zip(valid_data_list().values(), valid_data_list().values())))
+        **parametrized(
+            list(zip(valid_data_list().values(), valid_data_list().values(), strict=True))
+        )
     )
     def test_positive_crud_with_name(self, module_org, name, new_name, module_target_sat):
         """Create, update, delete media with valid name only
@@ -88,7 +85,6 @@ class TestMedia:
 
         :expectedresults: Media entity is created and has proper location
 
-        :CaseLevel: Integration
         """
         media = module_target_sat.api.Media(
             organization=[module_org], location=[module_location]
@@ -103,7 +99,6 @@ class TestMedia:
 
         :expectedresults: Media entity is created and assigned to expected OS
 
-        :CaseLevel: Integration
         """
         os = module_target_sat.api.OperatingSystem().create()
         media = module_target_sat.api.Media(

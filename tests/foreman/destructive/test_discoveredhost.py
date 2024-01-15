@@ -8,11 +8,6 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: System
-
-:TestType: Functional
-
-:Upstream: No
 """
 from copy import copy
 import re
@@ -70,9 +65,9 @@ def _assert_discovered_host(host, channel=None, user_config=None, sat=None):
     ]:
         try:
             dhcp_pxe = _wait_for_log(channel, pattern[0], timeout=10)
-        except TimedOutError:
+        except TimedOutError as err:
             # raise assertion error
-            raise AssertionError(f'Timed out waiting for {pattern[1]} from VM')
+            raise AssertionError(f'Timed out waiting for {pattern[1]} from VM') from err
 
     groups = re.search('DHCPACK on (\\d.+) to', dhcp_pxe.out)
     assert len(groups.groups()) == 1, 'Unable to parse bootloader ip address'
@@ -87,9 +82,9 @@ def _assert_discovered_host(host, channel=None, user_config=None, sat=None):
     ]:
         try:
             _wait_for_log(channel, pattern[0], timeout=20)
-        except TimedOutError:
+        except TimedOutError as err:
             # raise assertion error
-            raise AssertionError(f'Timed out waiting for VM (tftp) to fetch {pattern[1]}')
+            raise AssertionError(f'Timed out waiting for VM (tftp) to fetch {pattern[1]}') from err
 
     # assert that server receives DHCP discover from FDI
     for pattern in [
@@ -101,9 +96,9 @@ def _assert_discovered_host(host, channel=None, user_config=None, sat=None):
     ]:
         try:
             dhcp_fdi = _wait_for_log(channel, pattern[0], timeout=30)
-        except TimedOutError:
+        except TimedOutError as err:
             # raise assertion error
-            raise AssertionError(f'Timed out waiting for {pattern[1]} from VM')
+            raise AssertionError(f'Timed out waiting for {pattern[1]} from VM') from err
     groups = re.search('DHCPACK on (\\d.+) to', dhcp_fdi.out)
     assert len(groups.groups()) == 1, 'Unable to parse FDI ip address'
     fdi_ip = groups.groups()[0]
@@ -116,18 +111,18 @@ def _assert_discovered_host(host, channel=None, user_config=None, sat=None):
             f'"/api/v2/discovered_hosts/facts" for {fdi_ip}',
             timeout=60,
         )
-    except TimedOutError:
+    except TimedOutError as err:
         # raise assertion error
-        raise AssertionError('Timed out waiting for /facts POST request')
+        raise AssertionError('Timed out waiting for /facts POST request') from err
     groups = re.search('\\[I\\|app\\|([a-z0-9]+)\\]', facts_fdi.out)
     assert len(groups.groups()) == 1, 'Unable to parse POST request UUID'
     req_id = groups.groups()[0]
 
     try:
         _wait_for_log(channel, f'\\[I\\|app\\|{req_id}\\] Completed 201 Created')
-    except TimedOutError:
+    except TimedOutError as err:
         # raise assertion error
-        raise AssertionError('Timed out waiting for "/facts" 201 response')
+        raise AssertionError('Timed out waiting for "/facts" 201 response') from err
 
     default_config = entity_mixins.DEFAULT_SERVER_CONFIG
 
@@ -143,8 +138,10 @@ def _assert_discovered_host(host, channel=None, user_config=None, sat=None):
             delay=2,
             logger=logger,
         )
-    except TimedOutError:
-        raise AssertionError('Timed out waiting for discovered_host to appear on satellite')
+    except TimedOutError as err:
+        raise AssertionError(
+            'Timed out waiting for discovered_host to appear on satellite'
+        ) from err
     discovered_host = sat.api.DiscoveredHost(user_config or default_config).search(
         query={'search': f'name={host.guest_name}'}
     )
@@ -210,7 +207,7 @@ def test_positive_provision_pxe_host_dhcp_change():
     :Setup: Provisioning should be configured and a host should be
         discovered
 
-    :Steps:
+    :steps:
         1. Set some dhcp range in dhcpd.conf in satellite.
         2. Create subnet entity in satellite with a range different from whats defined
             in `dhcpd.conf`.

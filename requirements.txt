@@ -1,18 +1,18 @@
 # Version updates managed by dependabot
 
-betelgeuse==1.10.0
+betelgeuse==1.11.0
 broker[docker]==0.4.1
 cryptography==41.0.7
 deepdiff==6.7.1
 dynaconf[vault]==3.2.4
 fauxfactory==3.1.0
-jinja2==3.1.2
+jinja2==3.1.3
 manifester==0.0.14
 navmazing==1.2.2
 productmd==1.38
 pyotp==2.9.0
 python-box==7.1.1
-pytest==7.4.3
+pytest==7.4.4
 pytest-order==1.2.0
 pytest-services==2.2.1
 pytest-mock==3.12.0

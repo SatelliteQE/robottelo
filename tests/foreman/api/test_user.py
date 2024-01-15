@@ -8,17 +8,12 @@ http://<satellite-host>/apidoc/v2/users.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: UsersRoles
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import json
 import re
@@ -420,8 +415,12 @@ class TestUser:
         sc = ServerConfig(
             auth=(user.login, password), url=module_target_sat.url, verify=settings.server.verify_ca
         )
-        module_target_sat.api.TablePreferences(sc, user=user, name=name, columns=columns).create()
-        table_preferences = module_target_sat.api.TablePreferences(sc, user=user).search()
+        module_target_sat.api.TablePreferences(
+            server_config=sc, user=user, name=name, columns=columns
+        ).create()
+        table_preferences = module_target_sat.api.TablePreferences(
+            server_config=sc, user=user
+        ).search()
         assert len(table_preferences) == 1
         tp = table_preferences[0]
         assert hasattr(tp, 'name')
@@ -636,7 +635,6 @@ class TestSshKeyInUser:
 
         :expectedresults: SSH key should be added to host ENC output
 
-        :CaseLevel: Integration
         """
         org = class_target_sat.api.Organization().create()
         loc = class_target_sat.api.Location(organization=[org]).create()
@@ -705,7 +703,6 @@ class TestActiveDirectoryUser:
 
         :expectedresults: User is created without specifying the password
 
-        :CaseLevel: Integration
         """
         user = target_sat.api.User(
             login=username, auth_source=create_ldap['authsource'], password=''
@@ -724,7 +721,6 @@ class TestActiveDirectoryUser:
 
         :expectedresults: Log in to foreman successfully but cannot access target_sat.api.
 
-        :CaseLevel: System
         """
         sc = ServerConfig(
             auth=(create_ldap['ldap_user_name'], create_ldap['ldap_user_passwd']),
@@ -732,7 +728,7 @@ class TestActiveDirectoryUser:
             verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
-            target_sat.api.Architecture(sc).search()
+            target_sat.api.Architecture(server_config=sc).search()
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
@@ -752,7 +748,6 @@ class TestActiveDirectoryUser:
         :expectedresults: LDAP User should be able to access all the resources
             and permissions in taxonomies selected in Org Admin role
 
-        :CaseLevel: System
         """
         # Workaround issue where, in an upgrade template, there is already
         # some auth source present with this user. That auth source instance
@@ -783,7 +778,7 @@ class TestActiveDirectoryUser:
             verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
-            module_target_sat.api.Architecture(sc).search()
+            module_target_sat.api.Architecture(server_config=sc).search()
         user = module_target_sat.api.User().search(
             query={'search': 'login={}'.format(create_ldap['ldap_user_name'])}
         )[0]
@@ -800,7 +795,7 @@ class TestActiveDirectoryUser:
             module_target_sat.api.Errata,
             module_target_sat.api.OperatingSystem,
         ]:
-            entity(sc).search()
+            entity(server_config=sc).search()
 
 
 @pytest.mark.run_in_one_thread
@@ -857,7 +852,6 @@ class TestFreeIPAUser:
 
         :expectedresults: Log in to foreman successfully but cannot access target_sat.api.
 
-        :CaseLevel: System
         """
         sc = ServerConfig(
             auth=(create_ldap['username'], create_ldap['ldap_user_passwd']),
@@ -865,7 +859,7 @@ class TestFreeIPAUser:
             verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
-            target_sat.api.Architecture(sc).search()
+            target_sat.api.Architecture(server_config=sc).search()
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
@@ -885,7 +879,6 @@ class TestFreeIPAUser:
         :expectedresults: FreeIPA User should be able to access all the resources
             and permissions in taxonomies selected in Org Admin role
 
-        :CaseLevel: System
         """
         role_name = gen_string('alpha')
         default_org_admin = target_sat.api.Role().search(
@@ -906,7 +899,7 @@ class TestFreeIPAUser:
             verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
-            target_sat.api.Architecture(sc).search()
+            target_sat.api.Architecture(server_config=sc).search()
         user = target_sat.api.User().search(
             query={'search': 'login={}'.format(create_ldap['username'])}
         )[0]
@@ -923,7 +916,7 @@ class TestFreeIPAUser:
             target_sat.api.Errata,
             target_sat.api.OperatingSystem,
         ]:
-            entity(sc).search()
+            entity(server_config=sc).search()
 
 
 class TestPersonalAccessToken:
@@ -944,8 +937,6 @@ class TestPersonalAccessToken:
         :expectedresults:
             1. Should show output of the api endpoint
             2. When revoked, authentication error
-
-        :CaseLevel: System
 
         :CaseImportance: High
         """
@@ -969,10 +960,7 @@ class TestPersonalAccessToken:
             2. When an incorrect role and end point is used, missing
                permission should be displayed.
 
-        :CaseLevel: System
-
         :CaseImportance: High
-
         """
 
     @pytest.mark.tier2
@@ -988,8 +976,6 @@ class TestPersonalAccessToken:
             3. Try using the token with any end point.
 
         :expectedresults: Authentication error
-
-        :CaseLevel: System
 
         :CaseImportance: Medium
 

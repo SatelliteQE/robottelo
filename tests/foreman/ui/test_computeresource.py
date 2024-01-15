@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Integration
-
 :CaseComponent: ComputeResources
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from nailgun import entities
 import pytest
@@ -62,8 +57,6 @@ def test_positive_end_to_end(session, rhev_data, module_org, module_location):
 
     :expectedresults: All expected CRUD actions finished successfully.
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     name = gen_string('alpha')
@@ -105,8 +98,6 @@ def test_positive_add_resource(session, rhev_data):
 
     :expectedresults: resource created successfully
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     # Our RHEV testing uses custom cert which we specify manually.
@@ -138,8 +129,6 @@ def test_positive_edit_resource_description(session, rhev_data):
     :parametrized: yes
 
     :expectedresults: resource updated successfully and has new description
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     description = gen_string('alpha')
@@ -173,8 +162,6 @@ def test_positive_list_resource_vms(session, rhev_data):
     :parametrized: yes
 
     :expectedresults: VMs listed for provided compute resource
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     with session:
@@ -205,8 +192,6 @@ def test_positive_resource_vm_power_management(session, rhev_data):
 
     :expectedresults: virtual machine is powered on or powered off depending on
         its initial state
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     with session:
@@ -248,8 +233,6 @@ def test_positive_VM_import(session, module_org, module_location, rhev_data):
     :parametrized: yes
 
     :expectedresults: VM is shown as Host in Foreman
-
-    :CaseLevel: Integration
 
     :CaseImportance: Medium
 
@@ -380,8 +363,6 @@ def test_positive_image_end_to_end(session, rhev_data, module_location, target_s
     :id: 62a5c52f-dd15-45e7-8200-c64bb335474f
 
     :expectedresults: All expected CRUD actions finished successfully.
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """

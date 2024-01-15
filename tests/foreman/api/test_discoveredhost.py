@@ -8,11 +8,6 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: System
-
-:TestType: Functional
-
-:Upstream: No
 """
 import re
 
@@ -72,9 +67,9 @@ def _assert_discovered_host(host, channel=None, user_config=None):
     ]:
         try:
             dhcp_pxe = _wait_for_log(channel, pattern[0], timeout=10)
-        except TimedOutError:
+        except TimedOutError as err:
             # raise assertion error
-            raise AssertionError(f'Timed out waiting for {pattern[1]} from VM')
+            raise AssertionError(f'Timed out waiting for {pattern[1]} from VM') from err
     groups = re.search('DHCPACK on (\\d.+) to', dhcp_pxe.out)
     assert len(groups.groups()) == 1, 'Unable to parse bootloader ip address'
     pxe_ip = groups.groups()[0]
@@ -87,9 +82,9 @@ def _assert_discovered_host(host, channel=None, user_config=None):
     ]:
         try:
             _wait_for_log(channel, pattern[0], timeout=20)
-        except TimedOutError:
+        except TimedOutError as err:
             # raise assertion error
-            raise AssertionError(f'Timed out waiting for VM (tftp) to fetch {pattern[1]}')
+            raise AssertionError(f'Timed out waiting for VM (tftp) to fetch {pattern[1]}') from err
     # assert that server receives DHCP discover from FDI
     for pattern in [
         (
@@ -100,9 +95,9 @@ def _assert_discovered_host(host, channel=None, user_config=None):
     ]:
         try:
             dhcp_fdi = _wait_for_log(channel, pattern[0], timeout=30)
-        except TimedOutError:
+        except TimedOutError as err:
             # raise assertion error
-            raise AssertionError(f'Timed out waiting for {pattern[1]} from VM')
+            raise AssertionError(f'Timed out waiting for {pattern[1]} from VM') from err
     groups = re.search('DHCPACK on (\\d.+) to', dhcp_fdi.out)
     assert len(groups.groups()) == 1, 'Unable to parse FDI ip address'
     fdi_ip = groups.groups()[0]
@@ -114,17 +109,17 @@ def _assert_discovered_host(host, channel=None, user_config=None):
             f'"/api/v2/discovered_hosts/facts" for {fdi_ip}',
             timeout=60,
         )
-    except TimedOutError:
+    except TimedOutError as err:
         # raise assertion error
-        raise AssertionError('Timed out waiting for /facts POST request')
+        raise AssertionError('Timed out waiting for /facts POST request') from err
     groups = re.search('\\[I\\|app\\|([a-z0-9]+)\\]', facts_fdi.out)
     assert len(groups.groups()) == 1, 'Unable to parse POST request UUID'
     req_id = groups.groups()[0]
     try:
         _wait_for_log(channel, f'\\[I\\|app\\|{req_id}\\] Completed 201 Created')
-    except TimedOutError:
+    except TimedOutError as err:
         # raise assertion error
-        raise AssertionError('Timed out waiting for "/facts" 201 response')
+        raise AssertionError('Timed out waiting for "/facts" 201 response') from err
     default_config = entity_mixins.DEFAULT_SERVER_CONFIG
     try:
         wait_for(
@@ -138,8 +133,10 @@ def _assert_discovered_host(host, channel=None, user_config=None):
             delay=2,
             logger=logger,
         )
-    except TimedOutError:
-        raise AssertionError('Timed out waiting for discovered_host to appear on satellite')
+    except TimedOutError as err:
+        raise AssertionError(
+            'Timed out waiting for discovered_host to appear on satellite'
+        ) from err
     discovered_host = host.api.DiscoveredHost(user_config or default_config).search(
         query={'search': f'name={host.guest_name}'}
     )
@@ -153,8 +150,8 @@ def assert_discovered_host_provisioned(channel, ksrepo):
     try:
         log = _wait_for_log(channel, pattern, timeout=300, delay=10)
         assert pattern in log
-    except TimedOutError:
-        raise AssertionError(f'Timed out waiting for {pattern} from VM')
+    except TimedOutError as err:
+        raise AssertionError(f'Timed out waiting for {pattern} from VM') from err
 
 
 @pytest.fixture
@@ -190,7 +187,7 @@ class TestDiscoveredHost:
 
         :Setup: Provisioning and discovery should be configured
 
-        :Steps:
+        :steps:
 
             1. Boot up the host to discover
             2. Provision the host
@@ -204,7 +201,7 @@ class TestDiscoveredHost:
         mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
         wait_for(
             lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
-            timeout=600,
+            timeout=1500,
             delay=40,
         )
         discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
@@ -243,7 +240,7 @@ class TestDiscoveredHost:
         :Setup: Provisioning should be configured and a host should be
             discovered
 
-        :Steps: PUT /api/v2/discovered_hosts/:id
+        :steps: PUT /api/v2/discovered_hosts/:id
 
         :expectedresults: Host should be provisioned successfully
 
@@ -254,7 +251,7 @@ class TestDiscoveredHost:
         mac = pxeless_discovery_host._broker_args['provisioning_nic_mac_addr']
         wait_for(
             lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
-            timeout=600,
+            timeout=1500,
             delay=40,
         )
         discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
@@ -285,7 +282,7 @@ class TestDiscoveredHost:
         :Setup: Provisioning should be configured and a host should be
             discovered
 
-        :Steps: POST /api/v2/discovered_hosts/:id/auto_provision
+        :steps: POST /api/v2/discovered_hosts/:id/auto_provision
 
         :expectedresults: Selected Host should be auto-provisioned successfully
 
@@ -314,7 +311,7 @@ class TestDiscoveredHost:
         :Setup: Provisioning should be configured and more than one host should
             be discovered
 
-        :Steps: POST /api/v2/discovered_hosts/auto_provision_all
+        :steps: POST /api/v2/discovered_hosts/auto_provision_all
 
         :expectedresults: All discovered hosts should be auto-provisioned
             successfully
@@ -349,7 +346,7 @@ class TestDiscoveredHost:
             be discovered
             2. Add a NIC on discovered host
 
-        :Steps: PUT /api/v2/discovered_hosts/:id/refresh_facts
+        :steps: PUT /api/v2/discovered_hosts/:id/refresh_facts
 
         :expectedresults: Added Fact should be displayed on refreshing the
             facts
@@ -378,7 +375,7 @@ class TestDiscoveredHost:
 
         :Setup: Provisioning should be configured and a host should be discovered via PXE boot.
 
-        :Steps: PUT /api/v2/discovered_hosts/:id/reboot
+        :steps: PUT /api/v2/discovered_hosts/:id/reboot
 
         :expectedresults: Selected host should be rebooted successfully
 
@@ -389,7 +386,7 @@ class TestDiscoveredHost:
         mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
         wait_for(
             lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
-            timeout=240,
+            timeout=1500,
             delay=20,
         )
 
@@ -423,7 +420,7 @@ class TestDiscoveredHost:
 
         :Setup: Provisioning should be configured and hosts should be discovered via PXE boot.
 
-        :Steps: PUT /api/v2/discovered_hosts/reboot_all
+        :steps: PUT /api/v2/discovered_hosts/reboot_all
 
         :expectedresults: All discovered hosst should be rebooted successfully
 
@@ -434,8 +431,8 @@ class TestDiscoveredHost:
             host.power_control(ensure=False)
             mac = host._broker_args['provisioning_nic_mac_addr']
             wait_for(
-                lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
-                timeout=240,
+                lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],  # noqa: B023
+                timeout=1500,
                 delay=20,
             )
             discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
@@ -493,14 +490,12 @@ class TestFakeDiscoveryTests:
 
         :BZ: 1349364, 1392919
 
-        :Steps:
+        :steps:
 
             1. POST /api/v2/discovered_hosts/facts
             2. Read the created discovered host
 
         :expectedresults: Host should be created successfully
-
-        :CaseLevel: Integration
 
         :BZ: 1731112
         """
@@ -519,7 +514,7 @@ class TestFakeDiscoveryTests:
         :Setup: Provisioning should be configured and a host should be
             discovered
 
-        :Steps: DELETE /api/v2/discovered_hosts/:id
+        :steps: DELETE /api/v2/discovered_hosts/:id
 
         :expectedresults: Discovered Host should be deleted successfully
         """

@@ -2,19 +2,14 @@
 
 :Requirement: leapp
 
-:CaseLevel: Integration
-
 :CaseComponent: Leappintegration
 
 :Team: Rocket
-
-:TestType: Functional
 
 :CaseImportance: High
 
 :CaseAutomation: Automated
 
-:Upstream: No
 """
 from broker import Broker
 import pytest
@@ -27,8 +22,8 @@ from robottelo.logging import logger
 synced_repos = pytest.StashKey[dict]
 
 RHEL7_VER = '7.9'
-RHEL8_VER = '8.8'
-RHEL9_VER = '9.2'
+RHEL8_VER = '8.9'
+RHEL9_VER = '9.3'
 
 RHEL_REPOS = {
     'rhel7_server': {
@@ -228,7 +223,7 @@ def test_leapp_upgrade_rhel(
 
     :id: 8eccc689-3bea-4182-84f3-c121e95d54c3
 
-    :Steps:
+    :steps:
         1. Import a subscription manifest and enable, sync source & target repositories
         2. Create LCE, Create CV, add repositories to it, publish and promote CV, Create AK, etc.
         3. Register content host with AK

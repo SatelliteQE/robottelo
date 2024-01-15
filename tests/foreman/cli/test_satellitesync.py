@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: InterSatelliteSync
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import os
 from time import sleep
@@ -101,23 +96,6 @@ def function_import_org_with_manifest(target_sat, function_import_org):
     return function_import_org
 
 
-@pytest.fixture(scope='class')
-def docker_repo(module_target_sat, module_org):
-    product = module_target_sat.cli_factory.make_product({'organization-id': module_org.id})
-    repo = module_target_sat.cli_factory.make_repository(
-        {
-            'organization-id': module_org.id,
-            'product-id': product['id'],
-            'content-type': REPO_TYPE['docker'],
-            'download-policy': 'immediate',
-            'url': 'https://quay.io',
-            'docker-upstream-name': 'quay/busybox',
-        }
-    )
-    module_target_sat.cli.Repository.synchronize({'id': repo['id']})
-    return repo
-
-
 @pytest.fixture(scope='module')
 def module_synced_custom_repo(module_target_sat, module_org, module_product):
     repo = module_target_sat.cli_factory.make_repository(
@@ -147,8 +125,8 @@ def function_synced_custom_repo(target_sat, function_org, function_product):
 
 
 @pytest.fixture
-def function_synced_rhel_repo(request, target_sat, function_sca_manifest_org):
-    """Enable and synchronize rhel content with immediate policy"""
+def function_synced_rh_repo(request, target_sat, function_sca_manifest_org):
+    """Enable and synchronize RH repo with immediate policy"""
     repo_dict = (
         REPOS['kickstart'][request.param.replace('kickstart', '')[1:]]
         if 'kickstart' in request.param
@@ -256,8 +234,6 @@ class TestRepositoryExport:
             1. Complete export succeeds, exported files are present on satellite machine.
             2. Incremental export succeeds, exported files are present on satellite machine.
 
-        :CaseLevel: System
-
         :BZ: 1944733
 
         :customerscenario: true
@@ -315,7 +291,6 @@ class TestRepositoryExport:
             1. Complete export succeeds, exported files are present on satellite machine.
             2. Incremental export succeeds, exported files are present on satellite machine.
 
-        :CaseLevel: System
         """
         # Create cv and publish
         cv_name = gen_string('alpha')
@@ -342,7 +317,7 @@ class TestRepositoryExport:
     @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
-        'function_synced_rhel_repo',
+        'function_synced_rh_repo',
         ['rhae2'],
         indirect=True,
     )
@@ -351,7 +326,7 @@ class TestRepositoryExport:
         target_sat,
         export_import_cleanup_function,
         function_sca_manifest_org,
-        function_synced_rhel_repo,
+        function_synced_rh_repo,
     ):
         """Export RedHat repo via complete library
 
@@ -369,7 +344,6 @@ class TestRepositoryExport:
         :expectedresults:
             1. Repository was successfully exported, exported files are present on satellite machine
 
-        :CaseLevel: System
         """
         # Create cv and publish
         cv_name = gen_string('alpha')
@@ -380,7 +354,7 @@ class TestRepositoryExport:
             {
                 'id': cv['id'],
                 'organization-id': function_sca_manifest_org.id,
-                'repository-id': function_synced_rhel_repo['id'],
+                'repository-id': function_synced_rh_repo['id'],
             }
         )
         target_sat.cli.ContentView.publish({'id': cv['id']})
@@ -499,7 +473,7 @@ def class_export_entities(module_org, module_target_sat):
     exporting_repo = module_target_sat.cli_factory.make_repository(
         {
             'name': exporting_repo_name,
-            'mirror-on-sync': 'no',
+            'mirroring-policy': 'mirror_content_only',
             'download-policy': 'immediate',
             'product-id': product['id'],
         }
@@ -579,8 +553,6 @@ class TestContentViewSync:
             1. CV version custom contents has been exported to directory.
             2. All The exported custom contents has been imported in org/satellite.
 
-        :CaseLevel: System
-
         :BZ: 1832858
 
         :customerscenario: true
@@ -638,7 +610,7 @@ class TestContentViewSync:
     @pytest.mark.upgrade
     @pytest.mark.tier3
     @pytest.mark.parametrize(
-        'function_synced_rhel_repo',
+        'function_synced_rh_repo',
         ['rhae2'],
         indirect=True,
     )
@@ -650,7 +622,7 @@ class TestContentViewSync:
         function_sca_manifest_org,
         function_import_org_with_manifest,
         function_synced_custom_repo,
-        function_synced_rhel_repo,
+        function_synced_rh_repo,
     ):
         """Export Default Organization View version contents in directory and Import them.
 
@@ -670,8 +642,6 @@ class TestContentViewSync:
         :expectedresults:
             1. Default Organization View version custom contents has been exported.
             2. All the exported custom contents has been imported in org/satellite.
-
-        :CaseLevel: System
 
         :BZ: 1671319
 
@@ -693,7 +663,7 @@ class TestContentViewSync:
             {
                 'id': cv['id'],
                 'organization-id': function_sca_manifest_org.id,
-                'repository-id': function_synced_rhel_repo['id'],
+                'repository-id': function_synced_rh_repo['id'],
             }
         )
         target_sat.cli.ContentView.publish({'id': cv['id']})
@@ -770,7 +740,6 @@ class TestContentViewSync:
             1. Filtered CV version custom contents has been exported to directory
             2. Filtered exported custom contents has been imported in org/satellite
 
-        :CaseLevel: System
         """
         exporting_cv_name = importing_cvv = gen_string('alpha')
         exporting_cv, exporting_cvv = _create_cv(
@@ -863,7 +832,6 @@ class TestContentViewSync:
             2. Promoted CV version contents has been imported successfully.
             3. The imported CV should only be published and not promoted.
 
-        :CaseLevel: System
         """
         import_cv_name = class_export_entities['exporting_cv_name']
         export_cv_id = class_export_entities['exporting_cv']['id']
@@ -914,7 +882,7 @@ class TestContentViewSync:
     @pytest.mark.upgrade
     @pytest.mark.e2e
     @pytest.mark.parametrize(
-        'function_synced_rhel_repo',
+        'function_synced_rh_repo',
         ['kickstart-rhel7', 'kickstart-rhel8_bos', 'rhscl7'],
         indirect=True,
     )
@@ -925,7 +893,7 @@ class TestContentViewSync:
         config_export_import_settings,
         function_sca_manifest_org,
         function_import_org_with_manifest,
-        function_synced_rhel_repo,
+        function_synced_rh_repo,
     ):
         """Export CV version with RedHat contents in directory and import them.
 
@@ -949,7 +917,6 @@ class TestContentViewSync:
 
         :customerscenario: true
 
-        :CaseLevel: System
         """
         # Create cv and publish
         cv_name = gen_string('alpha')
@@ -960,7 +927,7 @@ class TestContentViewSync:
             {
                 'id': cv['id'],
                 'organization-id': function_sca_manifest_org.id,
-                'repository-id': function_synced_rhel_repo['id'],
+                'repository-id': function_synced_rh_repo['id'],
             }
         )
         target_sat.cli.ContentView.publish({'id': cv['id']})
@@ -997,15 +964,15 @@ class TestContentViewSync:
         assert len(exported_packages) == len(imported_packages)
         exported_repo = target_sat.cli.Repository.info(
             {
-                'name': function_synced_rhel_repo['name'],
-                'product': function_synced_rhel_repo['product']['name'],
+                'name': function_synced_rh_repo['name'],
+                'product': function_synced_rh_repo['product']['name'],
                 'organization-id': function_sca_manifest_org.id,
             }
         )
         imported_repo = target_sat.cli.Repository.info(
             {
-                'name': function_synced_rhel_repo['name'],
-                'product': function_synced_rhel_repo['product']['name'],
+                'name': function_synced_rh_repo['name'],
+                'product': function_synced_rh_repo['product']['name'],
                 'organization-id': function_import_org_with_manifest.id,
             }
         )
@@ -1224,6 +1191,7 @@ class TestContentViewSync:
         :BZ: 1726457
 
         :customerscenario: true
+
         """
         content_view = target_sat.cli_factory.make_content_view(
             {'organization-id': function_org.id}
@@ -1252,57 +1220,6 @@ class TestContentViewSync:
         # check packages
         exported_packages = target_sat.cli.Package.list(
             {'content-view-version-id': exporting_cvv['id']}
-        )
-        product = target_sat.cli_factory.make_product(
-            {
-                'organization-id': function_org.id,
-                'name': gen_string('alpha'),
-            }
-        )
-        nonyum_repo = target_sat.cli_factory.make_repository(
-            {
-                'content-type': 'docker',
-                'docker-upstream-name': 'quay/busybox',
-                'organization-id': function_org.id,
-                'product-id': product['id'],
-                'url': CONTAINER_REGISTRY_HUB,
-            },
-        )
-        target_sat.cli.Repository.synchronize({'id': nonyum_repo['id']})
-        yum_repo = target_sat.cli_factory.make_repository(
-            {
-                'name': gen_string('alpha'),
-                'download-policy': 'immediate',
-                'mirror-on-sync': 'no',
-                'product-id': product['id'],
-            }
-        )
-        target_sat.cli.Repository.synchronize({'id': yum_repo['id']})
-        content_view = target_sat.cli_factory.make_content_view(
-            {'organization-id': function_org.id}
-        )
-        # Add docker and yum repo
-        target_sat.cli.ContentView.add_repository(
-            {
-                'id': content_view['id'],
-                'organization-id': function_org.id,
-                'repository-id': nonyum_repo['id'],
-            }
-        )
-        target_sat.cli.ContentView.add_repository(
-            {
-                'id': content_view['id'],
-                'organization-id': function_org.id,
-                'repository-id': yum_repo['id'],
-            }
-        )
-        target_sat.cli.ContentView.publish({'id': content_view['id']})
-        exporting_cv_id = target_sat.cli.ContentView.info({'id': content_view['id']})
-        assert len(exporting_cv_id['versions']) == 1
-        exporting_cvv_id = exporting_cv_id['versions'][0]
-        # check packages
-        exported_packages = target_sat.cli.Package.list(
-            {'content-view-version-id': exporting_cvv_id['id']}
         )
         assert len(exported_packages)
         # Verify export directory is empty
@@ -1388,7 +1305,7 @@ class TestContentViewSync:
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
-        'function_synced_rhel_repo',
+        'function_synced_rh_repo',
         ['rhae2'],
         indirect=True,
     )
@@ -1397,7 +1314,7 @@ class TestContentViewSync:
         target_sat,
         config_export_import_settings,
         export_import_cleanup_function,
-        function_synced_rhel_repo,
+        function_synced_rh_repo,
         function_sca_manifest_org,
         function_import_org_with_manifest,
     ):
@@ -1434,7 +1351,7 @@ class TestContentViewSync:
             {
                 'id': cv['id'],
                 'organization-id': function_sca_manifest_org.id,
-                'repository-id': function_synced_rhel_repo['id'],
+                'repository-id': function_synced_rh_repo['id'],
             }
         )
         target_sat.cli.ContentView.publish({'id': cv['id']})
@@ -1615,7 +1532,7 @@ class TestContentViewSync:
 
     @pytest.mark.tier3
     @pytest.mark.parametrize(
-        'function_synced_rhel_repo',
+        'function_synced_rh_repo',
         ['rhae2'],
         indirect=True,
     )
@@ -1625,7 +1542,7 @@ class TestContentViewSync:
         export_import_cleanup_function,
         config_export_import_settings,
         function_sca_manifest_org,
-        function_synced_rhel_repo,
+        function_synced_rh_repo,
     ):
         """Redhat content can't be imported into satellite/organization without manifest
 
@@ -1655,7 +1572,7 @@ class TestContentViewSync:
             {
                 'id': cv['id'],
                 'organization-id': function_sca_manifest_org.id,
-                'repository-id': function_synced_rhel_repo['id'],
+                'repository-id': function_synced_rh_repo['id'],
             }
         )
         target_sat.cli.ContentView.publish({'id': cv['id']})
@@ -1764,7 +1681,7 @@ class TestContentViewSync:
 
     @pytest.mark.tier3
     @pytest.mark.parametrize(
-        'function_synced_rhel_repo',
+        'function_synced_rh_repo',
         ['rhae2'],
         indirect=True,
     )
@@ -1774,7 +1691,7 @@ class TestContentViewSync:
         export_import_cleanup_function,
         config_export_import_settings,
         function_sca_manifest_org,
-        function_synced_rhel_repo,
+        function_synced_rh_repo,
     ):
         """Export complete and incremental CV version in syncable format and assert that all
         files referenced in the repomd.xml (including productid) are present in the exports.
@@ -1795,8 +1712,6 @@ class TestContentViewSync:
             1. Complete and incremental export succeed.
             2. All files referenced in the repomd.xml files are present in the exports.
 
-        :CaseLevel: System
-
         :BZ: 2212523
 
         :customerscenario: true
@@ -1810,7 +1725,7 @@ class TestContentViewSync:
             {
                 'id': cv['id'],
                 'organization-id': function_sca_manifest_org.id,
-                'repository-id': function_synced_rhel_repo['id'],
+                'repository-id': function_synced_rh_repo['id'],
             }
         )
         target_sat.cli.ContentView.publish({'id': cv['id']})
@@ -1881,7 +1796,6 @@ class TestInterSatelliteSync:
 
         :CaseAutomation: NotAutomated
 
-        :CaseLevel: System
         """
 
     @pytest.mark.stubbed
@@ -1903,7 +1817,6 @@ class TestInterSatelliteSync:
 
         :CaseAutomation: NotAutomated
 
-        :CaseLevel: System
         """
 
     @pytest.mark.stubbed
@@ -1921,7 +1834,6 @@ class TestInterSatelliteSync:
 
         :CaseAutomation: NotAutomated
 
-        :CaseLevel: System
         """
 
     @pytest.mark.tier3
@@ -1953,7 +1865,6 @@ class TestInterSatelliteSync:
                in the importing organization and content counts match.
             2. Incremental export and import succeeds, content counts match the updated counts.
 
-        :CaseLevel: System
         """
         export_cc = target_sat.cli.Repository.info({'id': function_synced_custom_repo.id})[
             'content-counts'
@@ -2012,7 +1923,7 @@ class TestInterSatelliteSync:
 
     @pytest.mark.tier3
     @pytest.mark.parametrize(
-        'function_synced_rhel_repo',
+        'function_synced_rh_repo',
         ['rhae2'],
         indirect=True,
     )
@@ -2023,7 +1934,7 @@ class TestInterSatelliteSync:
         config_export_import_settings,
         function_sca_manifest_org,
         function_import_org_with_manifest,
-        function_synced_rhel_repo,
+        function_synced_rh_repo,
     ):
         """Export and import repo with mismatched label
 
@@ -2040,8 +1951,6 @@ class TestInterSatelliteSync:
         :expectedresults:
             1. All exports and imports succeed.
 
-        :CaseLevel: System
-
         :CaseImportance: Medium
 
         :BZ: 2092039
@@ -2052,7 +1961,7 @@ class TestInterSatelliteSync:
         assert target_sat.validate_pulp_filepath(function_sca_manifest_org, PULP_EXPORT_DIR) == ''
         # Export the repository and check the export directory
         export = target_sat.cli.ContentExport.completeRepository(
-            {'id': function_synced_rhel_repo['id']}
+            {'id': function_synced_rh_repo['id']}
         )
         assert '1.0' in target_sat.validate_pulp_filepath(
             function_sca_manifest_org, PULP_EXPORT_DIR
@@ -2066,8 +1975,8 @@ class TestInterSatelliteSync:
         )
         import_repo = target_sat.cli.Repository.info(
             {
-                'name': function_synced_rhel_repo['name'],
-                'product': function_synced_rhel_repo['product']['name'],
+                'name': function_synced_rh_repo['name'],
+                'product': function_synced_rh_repo['product']['name'],
                 'organization-id': function_sca_manifest_org.id,
             }
         )
@@ -2075,7 +1984,7 @@ class TestInterSatelliteSync:
 
         # Export again and check the export directory
         export = target_sat.cli.ContentExport.completeRepository(
-            {'id': function_synced_rhel_repo['id']}
+            {'id': function_synced_rh_repo['id']}
         )
         assert '2.0' in target_sat.validate_pulp_filepath(
             function_sca_manifest_org, PULP_EXPORT_DIR
@@ -2084,7 +1993,7 @@ class TestInterSatelliteSync:
         # Change the repo label in metadata.json and run the import again
         import_path = target_sat.move_pulp_archive(function_sca_manifest_org, export['message'])
         target_sat.execute(
-            f'''sed -i 's/"label":"{function_synced_rhel_repo['label']}"/'''
+            f'''sed -i 's/"label":"{function_synced_rh_repo['label']}"/'''
             f'''"label":"{gen_string("alpha")}"/g' {import_path}/metadata.json'''
         )
         target_sat.cli.ContentImport.repository(
@@ -2100,6 +2009,135 @@ class TestInterSatelliteSync:
         assert all(
             ['success' in task['result'] for task in tasks]
         ), 'Not every import task succeeded'
+
+    @pytest.mark.tier3
+    @pytest.mark.parametrize(
+        'function_synced_rh_repo',
+        ['rhae2'],
+        indirect=True,
+    )
+    def test_positive_custom_cdn_with_credential(
+        self,
+        request,
+        target_sat,
+        export_import_cleanup_function,
+        config_export_import_settings,
+        function_sca_manifest_org,
+        function_synced_rh_repo,
+        satellite_host,
+        function_sca_manifest,
+    ):
+        """Export and sync repository using custom cert for custom CDN.
+
+        :id: de1f4b06-267a-4bad-9a90-665f2906ef5f
+
+        :parametrized: yes
+
+        :setup:
+            1. Upstream Satellite with enabled and synced RH yum repository.
+            2. Downstream Satellite to sync from Upstream Satellite.
+
+        :steps:
+            On the Upstream Satellite:
+                1. Export the repository in syncable format and move it
+                   to /var/www/html/pub/repos to mimic custom CDN.
+            On the Downstream Satellite:
+                2. Create new Organization, import manifest.
+                3. Create Content Credentials with Upstream Satellite's katello-server-ca.crt.
+                4. Set the CDN configuration to custom CDN and use the url and CC from above.
+                5. Enable and sync the repository.
+
+        :expectedresults:
+            1. Repository can be enabled and synced from Upstream to Downstream Satellite.
+
+        :BZ: 2112098
+
+        :customerscenario: true
+        """
+        meta_file = 'metadata.json'
+        crt_file = 'source.crt'
+        pub_dir = '/var/www/html/pub/repos'
+
+        # Export the repository in syncable format and move it
+        # to /var/www/html/pub/repos to mimic custom CDN.
+        target_sat.cli.ContentExport.completeRepository(
+            {'id': function_synced_rh_repo['id'], 'format': 'syncable'}
+        )
+        assert '1.0' in target_sat.validate_pulp_filepath(
+            function_sca_manifest_org, PULP_EXPORT_DIR
+        )
+        exp_dir = target_sat.execute(
+            f'find {PULP_EXPORT_DIR}{function_sca_manifest_org.name}/ -name {meta_file}'
+        ).stdout.splitlines()
+        assert len(exp_dir) == 1
+        exp_dir = exp_dir[0].replace(meta_file, '')
+
+        assert target_sat.execute(f'mv {exp_dir} {pub_dir}').status == 0
+        request.addfinalizer(lambda: target_sat.execute(f'rm -rf {pub_dir}'))
+        target_sat.execute(f'semanage fcontext -a -t httpd_sys_content_t "{pub_dir}(/.*)?"')
+        target_sat.execute(f'restorecon -R {pub_dir}')
+
+        # Create new Organization, import manifest.
+        import_org = satellite_host.api.Organization().create()
+        satellite_host.upload_manifest(import_org.id, function_sca_manifest.content)
+
+        # Create Content Credentials with Upstream Satellite's katello-server-ca.crt.
+        satellite_host.execute(
+            f'curl -o {crt_file} http://{target_sat.hostname}/pub/katello-server-ca.crt'
+        )
+        cc = satellite_host.cli.ContentCredential.create(
+            {
+                'name': gen_string('alpha'),
+                'organization-id': import_org.id,
+                'path': crt_file,
+                'content-type': 'cert',
+            }
+        )
+        assert cc, 'No content credential created'
+
+        # Set the CDN configuration to custom CDN and use the url and CC from above.
+        res = satellite_host.cli.Org.configure_cdn(
+            {
+                'id': import_org.id,
+                'type': 'custom_cdn',
+                'ssl-ca-credential-id': cc['id'],
+                'url': f'https://{target_sat.hostname}/pub/repos/',
+            }
+        )
+        assert 'Updated CDN configuration' in res
+
+        # Enable and sync the repository.
+        reposet = satellite_host.cli.RepositorySet.list(
+            {
+                'organization-id': import_org.id,
+                'search': f'content_label={function_synced_rh_repo["content-label"]}',
+            }
+        )
+        assert (
+            len(reposet) == 1
+        ), f'Expected just one reposet for "{function_synced_rh_repo["content-label"]}"'
+        res = satellite_host.cli.RepositorySet.enable(
+            {
+                'organization-id': import_org.id,
+                'id': reposet[0]['id'],
+                'basearch': DEFAULT_ARCHITECTURE,
+            }
+        )
+        assert 'Repository enabled' in str(res)
+
+        repos = satellite_host.cli.Repository.list({'organization-id': import_org.id})
+        assert len(repos) == 1, 'Expected 1 repo enabled'
+        repo = repos[0]
+        satellite_host.cli.Repository.synchronize({'id': repo['id']})
+
+        repo = satellite_host.cli.Repository.info({'id': repo['id']})
+        assert (
+            f'{target_sat.hostname}/pub/repos/' in repo['url']
+        ), 'Enabled repo does not point to the upstream Satellite'
+        assert 'Success' in repo['sync']['status'], 'Sync did not succeed'
+        assert (
+            repo['content-counts'] == function_synced_rh_repo['content-counts']
+        ), 'Content counts do not match'
 
     @pytest.mark.stubbed
     @pytest.mark.tier3
@@ -2124,5 +2162,153 @@ class TestInterSatelliteSync:
 
         :CaseAutomation: NotAutomated
 
-        :CaseLevel: System
         """
+
+
+@pytest.fixture(scope='module')
+def module_downstream_sat(module_satellite_host):
+    """Provides Downstream Satellite."""
+    module_satellite_host.cli.Settings.set(
+        {'name': 'subscription_connection_enabled', 'value': 'No'}
+    )
+    return module_satellite_host
+
+
+@pytest.fixture
+def function_downstream_org(module_downstream_sat, function_sca_manifest):
+    """Provides organization with manifest on Downstream Satellite."""
+    org = module_downstream_sat.api.Organization().create()
+    module_downstream_sat.upload_manifest(org.id, function_sca_manifest.content)
+    return org
+
+
+def _set_downstream_org(
+    downstream_sat,
+    upstream_sat,
+    downstream_org,
+    upstream_org='Default_Organization',
+    username=settings.server.admin_username,
+    password=settings.server.admin_password,
+    lce_label=None,
+    cv_label=None,
+):
+    """Configures Downstream organization to sync from particular Upstream organization.
+
+    :param downstream_sat: Downstream Satellite instance.
+    :param upstream_sat: Upstream Satellite instance.
+    :param downstream_org: Downstream organization to be configured.
+    :param upstream_org: Upstream organization to sync CDN content from,
+                         default: Default_Organization
+    :param username: Username for authentication, default: admin username from settings.
+    :param password: Password for authentication, default: admin password from settings.
+    :param lce_label: Upstream Lifecycle Environment, default: Library
+    :param cv_label: Upstream Content View Label, default: Default_Organization_View.
+    :return: True if succeeded.
+    """
+    # Create Content Credentials with Upstream Satellite's katello-server-ca.crt.
+    crt_file = f'{upstream_sat.hostname}.crt'
+    downstream_sat.execute(
+        f'curl -o {crt_file} http://{upstream_sat.hostname}/pub/katello-server-ca.crt'
+    )
+    cc = downstream_sat.cli.ContentCredential.create(
+        {
+            'name': upstream_sat.hostname,
+            'organization-id': downstream_org.id,
+            'path': crt_file,
+            'content-type': 'cert',
+        }
+    )
+    # Set the CDN configuration to Network Sync.
+    res = downstream_sat.cli.Org.configure_cdn(
+        {
+            'id': downstream_org.id,
+            'type': 'network_sync',
+            'url': f'https://{upstream_sat.hostname}/',
+            'username': username,
+            'password': password,
+            'upstream-organization-label': upstream_org.label,
+            'upstream-lifecycle-environment-label': lce_label,
+            'upstream-content-view-label': cv_label,
+            'ssl-ca-credential-id': cc['id'],
+        }
+    )
+    return 'Updated CDN configuration' in res
+
+
+class TestNetworkSync:
+    """Implements Network Sync scenarios."""
+
+    @pytest.mark.tier2
+    @pytest.mark.parametrize(
+        'function_synced_rh_repo',
+        ['rhae2'],
+        indirect=True,
+    )
+    def test_positive_network_sync_rh_repo(
+        self,
+        target_sat,
+        function_sca_manifest_org,
+        function_synced_rh_repo,
+        module_downstream_sat,
+        function_downstream_org,
+    ):
+        """Sync a RH repo from Upstream to Downstream Satellite
+
+        :id: fdb58c18-0a64-418b-990d-2233381fee8f
+
+        :parametrized: yes
+
+        :setup:
+            1. Enabled and synced RH yum repository at Upstream Sat.
+            2. Organization with manifest at Downstream Sat.
+
+        :steps:
+            1. Set the Downstream org to sync from Upstream org.
+            2. Enable and sync the repository from Upstream to Downstream.
+
+        :expectedresults:
+            1. Repository can be enabled and synced.
+
+        :BZ: 2213128
+
+        :customerscenario: true
+
+        """
+        assert _set_downstream_org(
+            downstream_sat=module_downstream_sat,
+            upstream_sat=target_sat,
+            downstream_org=function_downstream_org,
+            upstream_org=function_sca_manifest_org,
+        ), 'Downstream org configuration failed'
+
+        # Enable and sync the repository.
+        reposet = module_downstream_sat.cli.RepositorySet.list(
+            {
+                'organization-id': function_downstream_org.id,
+                'search': f'content_label={function_synced_rh_repo["content-label"]}',
+            }
+        )
+        assert (
+            len(reposet) == 1
+        ), f'Expected just one reposet for "{function_synced_rh_repo["content-label"]}"'
+        res = module_downstream_sat.cli.RepositorySet.enable(
+            {
+                'organization-id': function_downstream_org.id,
+                'id': reposet[0]['id'],
+                'basearch': DEFAULT_ARCHITECTURE,
+            }
+        )
+        assert 'Repository enabled' in str(res), 'Repository enable failed'
+
+        repos = module_downstream_sat.cli.Repository.list(
+            {'organization-id': function_downstream_org.id}
+        )
+        assert len(repos) == 1, 'Expected 1 repo enabled'
+        repo = repos[0]
+        module_downstream_sat.cli.Repository.synchronize({'id': repo['id']})
+
+        repo = module_downstream_sat.cli.Repository.info({'id': repo['id']})
+        assert 'Success' in repo['sync']['status'], 'Sync did not succeed'
+        assert (
+            repo['content-counts'] == function_synced_rh_repo['content-counts']
+        ), 'Content counts do not match'

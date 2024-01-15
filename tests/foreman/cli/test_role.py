@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: UsersRoles
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from math import ceil
 from random import choice
@@ -35,7 +30,9 @@ class TestRole:
     @pytest.mark.parametrize(
         ('name', 'new_name'),
         **parametrized(
-            list(zip(generate_strings_list(length=10), generate_strings_list(length=10)))
+            list(
+                zip(generate_strings_list(length=10), generate_strings_list(length=10), strict=True)
+            )
         ),
     )
     def test_positive_crud_with_name(self, name, new_name, module_target_sat):
@@ -150,7 +147,7 @@ class TestRole:
 
         :BZ: 1296782
         """
-        with pytest.raises(CLIReturnCodeError, CLIDataBaseError) as err:
+        with pytest.raises(CLIReturnCodeError) as err:
             module_target_sat.cli.Role.filters()
         if isinstance(err.type, CLIDataBaseError):
             pytest.fail(err)
@@ -281,7 +278,6 @@ class TestSystemAdmin:
             4. System Admin role should be able to create Organization admins
             5. User with sys admin role should be able to edit filters on roles
 
-        :CaseLevel: System
         """
         org = target_sat.cli_factory.make_org()
         location = target_sat.cli_factory.make_location()

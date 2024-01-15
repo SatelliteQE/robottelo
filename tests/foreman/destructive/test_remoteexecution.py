@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: RemoteExecution
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import client
@@ -131,14 +126,14 @@ def test_positive_use_alternate_directory(
     result = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
     try:
         assert result['success'] == '1'
-    except AssertionError:
+    except AssertionError as err:
         output = ' '.join(
             target_sat.cli.JobInvocation.get_output(
                 {'id': invocation_command['id'], 'host': client.hostname}
             )
         )
         result = f'host output: {output}'
-        raise AssertionError(result)
+        raise AssertionError(result) from err
 
     task = target_sat.cli.Task.list_tasks({'search': command})[0]
     search = target_sat.cli.Task.list_tasks({'search': f'id={task["id"]}'})

@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Repositories
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -70,8 +65,6 @@ def test_positive_sync_rh_repos(session, target_sat, module_entitlement_manifest
     :id: e30f6509-0b65-4bcc-a522-b4f3089d3911
 
     :expectedresults: Sync procedure for RedHat Repos is successful
-
-    :CaseLevel: Integration
     """
     repos = (
         target_sat.cli_factory.SatelliteCapsuleRepository(cdn=True),
@@ -80,7 +73,7 @@ def test_positive_sync_rh_repos(session, target_sat, module_entitlement_manifest
     distros = ['rhel6', 'rhel7']
     repo_collections = [
         target_sat.cli_factory.RepositoryCollection(distro=distro, repositories=[repo])
-        for distro, repo in zip(distros, repos)
+        for distro, repo in zip(distros, repos, strict=True)
     ]
     for repo_collection in repo_collections:
         repo_collection.setup(module_entitlement_manifest_org.id, synchronize=False)
@@ -113,8 +106,6 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product):
 
     :customerscenario: true
 
-    :CaseLevel: Integration
-
     :BZ: 1625783
     """
     repo = entities.Repository(
@@ -139,15 +130,13 @@ def test_positive_sync_rh_ostree_repo(session, target_sat, module_entitlement_ma
 
     :id: 4d28fff0-5fda-4eee-aa0c-c5af02c31de5
 
-    :Steps:
+    :steps:
         1. Import a valid manifest
         2. Enable the OStree repo and sync it
 
     :customerscenario: true
 
     :expectedresults: ostree repo should be synced successfully from CDN
-
-    :CaseLevel: Integration
 
     :BZ: 1625783
     """
@@ -175,8 +164,6 @@ def test_positive_sync_docker_via_sync_status(session, module_org):
 
     :expectedresults: Sync procedure for specific docker repository is
         successful
-
-    :CaseLevel: Integration
     """
     product = entities.Product(organization=module_org).create()
     repo_name = gen_string('alphanumeric')

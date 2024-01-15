@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: SyncPlans
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from datetime import datetime, timedelta
 from time import sleep
@@ -349,8 +344,6 @@ def test_positive_info_with_assigned_product(module_org, module_target_sat):
     :BZ: 1390545
 
     :CaseImportance: Critical
-
-    :CaseLevel: Integration
     """
     prod1 = gen_string('alpha')
     prod2 = gen_string('alpha')
@@ -368,7 +361,7 @@ def test_positive_info_with_assigned_product(module_org, module_target_sat):
         module_target_sat.cli.Product.set_sync_plan(
             {'id': product['id'], 'sync-plan-id': sync_plan['id']}
         )
-    updated_plan = module_target_sat.info({'id': sync_plan['id']})
+    updated_plan = module_target_sat.cli.SyncPlan.info({'id': sync_plan['id']})
     assert len(updated_plan['products']) == 2
     assert {prod['name'] for prod in updated_plan['products']} == {prod1, prod2}
 
@@ -384,8 +377,6 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org, request,
     :expectedresults: Repository was not synchronized
 
     :BZ: 1279539
-
-    :CaseLevel: System
     """
     new_sync_plan = target_sat.cli_factory.sync_plan(
         {
@@ -415,8 +406,6 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org, request,
     :expectedresults: Product is synchronized successfully.
 
     :BZ: 1279539
-
-    :CaseLevel: System
     """
     interval = 60 * 60  # 'hourly' sync interval in seconds
     delay = 2 * 60
@@ -466,8 +455,6 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org, reques
     :id: 635bffe2-df98-4971-8950-40edc89e479e
 
     :expectedresults: Product is synchronized successfully.
-
-    :CaseLevel: System
 
     :BZ: 1655595
     """
@@ -525,8 +512,6 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
     :id: dd262cf3-b836-422c-baca-b3adbc532478
 
     :expectedresults: Products are synchronized successfully.
-
-    :CaseLevel: System
 
     :BZ: 1655595
     """
@@ -606,8 +591,6 @@ def test_positive_synchronize_rh_product_past_sync_date(
     :expectedresults: Product is synchronized successfully.
 
     :BZ: 1279539
-
-    :CaseLevel: System
     """
     interval = 60 * 60  # 'hourly' sync interval in seconds
     delay = 2 * 60
@@ -672,8 +655,6 @@ def test_positive_synchronize_rh_product_future_sync_date(
     :id: 6ce2f777-f230-4bb8-9822-2cf3580c21aa
 
     :expectedresults: Product is synchronized successfully.
-
-    :CaseLevel: System
 
     :BZ: 1655595
     """
@@ -746,8 +727,6 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org, reques
     :id: 8d882e8b-b5c1-4449-81c6-0efd31ad75a7
 
     :expectedresults: Product is synchronized successfully.
-
-    :CaseLevel: System
     """
     delay = 2 * 60
     product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
@@ -797,8 +776,6 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org, reque
     :expectedresults: Product is synchronized successfully.
 
     :BZ: 1396647
-
-    :CaseLevel: System
     """
     delay = 2 * 60
     product = target_sat.cli_factory.make_product({'organization-id': module_org.id})

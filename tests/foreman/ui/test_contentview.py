@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: ContentViews
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -32,8 +27,6 @@ def test_positive_create_cv(session, target_sat):
         2. Search for the CV
 
     :expectedresults: CV is visible in the UI, and matches the given name
-
-    :CaseLevel: System
 
     :CaseImportance: High
     """
@@ -100,8 +93,6 @@ def test_no_blank_page_on_language_switch(session, target_sat, module_org):
         2. Attempt to view the CV UI, and read the CV table
 
     :expectedresults: CV UI is visible, and isn't a blank page
-
-    :CaseLevel: System
 
     :BZ: 2163538
 

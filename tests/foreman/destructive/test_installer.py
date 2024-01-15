@@ -4,18 +4,15 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Installer
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
+import random
+
 from fauxfactory import gen_domain, gen_string
 import pytest
 
@@ -54,8 +51,6 @@ def test_installer_sat_pub_directory_accessibility(target_sat):
         2. It should not be accessible if accessibility is disabled in custom_hiera.yaml file.
 
     :CaseImportance: High
-
-    :CaseLevel: System
 
     :BZ: 1960801
 
@@ -147,3 +142,40 @@ def test_positive_installer_certs_regenerate(target_sat):
     )
     assert result.status == 0
     assert 'FAIL' not in target_sat.cli.Base.ping()
+
+
+def test_positive_installer_puma_worker_count(target_sat):
+    """Installer should set the puma worker count and thread max without having to manually
+    restart the foreman service.
+
+    :id: d0e7d958-dd3e-4962-bf5a-8d7ec36f3485
+
+    :steps:
+        1. Check how many puma workers there are
+        2. Select a new worker count that is less than the default
+        2. Change answer's file to have new count for puma workers
+        3. Run satellite-installer --foreman-foreman-service-puma-workers new_count --foreman-foreman-service-puma-threads-max new_count
+
+    :expectedresults: aux should show there are only new_count puma workers after installer runs
+
+    :BZ: 2025760
+
+    :customerscenario: true
+    """
+    count = int(target_sat.execute('pgrep --full "puma: cluster worker" | wc -l').stdout)
+    worker_count = str(random.randint(1, count - 1))
+    result = target_sat.install(
+        InstallerCommand(
+            foreman_foreman_service_puma_workers=worker_count,
+            foreman_foreman_service_puma_threads_max=worker_count,
+        )
+    )
+    assert result.status == 0
+    result = target_sat.execute(f'grep "foreman_service_puma_workers" {SATELLITE_ANSWER_FILE}')
+    assert worker_count in result.stdout
+    result = target_sat.execute('ps aux | grep -v grep | grep -e USER -e puma')
+    for i in range(count):
+        if i < int(worker_count):
+            assert f'cluster worker {i}' in result.stdout
+        else:
+            assert f'cluster worker {i}' not in result.stdout

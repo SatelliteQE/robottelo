@@ -4,26 +4,19 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: ErrataManagement
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from datetime import datetime
 
-from airgun.session import Session
 from broker import Broker
 from dateutil.parser import parse
 from fauxfactory import gen_string
 from manifester import Manifester
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -59,9 +52,9 @@ RHVA_ERRATA_CVES = REAL_4_ERRATA_CVES
 pytestmark = [pytest.mark.run_in_one_thread]
 
 
-def _generate_errata_applicability(hostname):
+def _generate_errata_applicability(hostname, module_target_sat):
     """Force host to generate errata applicability"""
-    host = entities.Host().search(query={'search': f'name={hostname}'})[0].read()
+    host = module_target_sat.api.Host().search(query={'search': f'name={hostname}'})[0].read()
     host.errata_applicability(synchronous=False)
 
 
@@ -128,9 +121,9 @@ def erratatype_vm(module_repos_collection_with_setup, target_sat):
 
 
 @pytest.fixture
-def errata_status_installable():
+def errata_status_installable(module_target_sat):
     """Fixture to allow restoring errata_status_installable setting after usage"""
-    errata_status_installable = entities.Setting().search(
+    errata_status_installable = module_target_sat.api.Setting().search(
         query={'search': 'name="errata_status_installable"'}
     )[0]
     original_value = errata_status_installable.value
@@ -154,7 +147,7 @@ def registered_contenthost(
     module_cv,
     module_target_sat,
     request,
-    repos=[CUSTOM_REPO_URL],
+    repos=None,
 ):
     """RHEL ContentHost registered in satellite,
     Using SCA and global registration.
@@ -162,6 +155,8 @@ def registered_contenthost(
     :param repos: list of upstream URLs for custom repositories,
         default to CUSTOM_REPO_URL
     """
+    if not repos:
+        repos = [CUSTOM_REPO_URL]
     activation_key = module_target_sat.api.ActivationKey(
         organization=module_org,
         environment=module_lce,
@@ -278,8 +273,6 @@ def test_end_to_end(
     :BZ: 2029192
 
     :customerscenario: true
-
-    :CaseLevel: System
     """
 
     ERRATA_DETAILS = {
@@ -410,7 +403,7 @@ def test_content_host_errata_page_pagination(session, function_org_with_paramete
 
     :id: 6363eda7-a162-4a4a-b70f-75decbd8202e
 
-    :Steps:
+    :steps:
         1. Install more than 20 packages that need errata
         2. View Content Host's Errata page
         3. Assert total_pages > 1
@@ -432,8 +425,6 @@ def test_content_host_errata_page_pagination(session, function_org_with_paramete
     :customerscenario: true
 
     :BZ: 1662254, 1846670
-
-    :CaseLevel: System
     """
 
     org = function_org_with_parameter
@@ -497,15 +488,13 @@ def test_positive_list(session, function_org_with_parameter, lce, target_sat):
 
     :Setup: Errata synced on satellite server.
 
-    :Steps: Create two Orgs each having a product synced which contains errata.
+    :steps: Create two Orgs each having a product synced which contains errata.
 
     :expectedresults: Check that the errata belonging to one Org is not showing in the other.
 
     :BZ: 1659941, 1837767
 
     :customerscenario: true
-
-    :CaseLevel: Integration
     """
     org = function_org_with_parameter
     rc = target_sat.cli_factory.RepositoryCollection(
@@ -539,7 +528,7 @@ def test_positive_list(session, function_org_with_parameter, lce, target_sat):
     indirect=True,
 )
 def test_positive_list_permission(
-    test_name, module_org_with_parameter, module_repos_collection_with_setup
+    test_name, module_org_with_parameter, module_repos_collection_with_setup, module_target_sat
 ):
     """Show errata only if the User has permissions to view them
 
@@ -551,31 +540,31 @@ def test_positive_list_permission(
         2. Make sure that they both have errata.
         3. Create a user with view access on one product and not on the other.
 
-    :Steps: Go to Content -> Errata.
+    :steps: Go to Content -> Errata.
 
     :expectedresults: Check that the new user is able to see errata for one
         product only.
-
-    :CaseLevel: Integration
     """
     module_org = module_org_with_parameter
-    role = entities.Role().create()
-    entities.Filter(
+    role = module_target_sat.api.Role().create()
+    module_target_sat.api.Filter(
         organization=[module_org],
-        permission=entities.Permission().search(
+        permission=module_target_sat.api.Permission().search(
             query={'search': 'resource_type="Katello::Product"'}
         ),
         role=role,
         search='name = "{}"'.format(PRDS['rhel']),
     ).create()
     user_password = gen_string('alphanumeric')
-    user = entities.User(
+    user = module_target_sat.api.User(
         default_organization=module_org,
         organization=[module_org],
         role=[role],
         password=user_password,
     ).create()
-    with Session(test_name, user=user.login, password=user_password) as session:
+    with module_target_sat.ui_session(
+        test_name, user=user.login, password=user_password
+    ) as session:
         assert (
             session.errata.search(RHVA_ERRATA_ID, applicable=False)[0]['Errata ID']
             == RHVA_ERRATA_ID
@@ -608,15 +597,13 @@ def test_positive_apply_for_all_hosts(
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
 
         1. Go to Content -> Errata. Select an erratum -> Content Hosts tab.
         2. Select all Content Hosts and apply the erratum.
 
     :expectedresults: Check that the erratum is applied in all the content
         hosts.
-
-    :CaseLevel: System
     """
     with Broker(
         nick=module_repos_collection_with_setup.distro, host_class=ContentHost, _count=2
@@ -660,14 +647,12 @@ def test_positive_view_cve(session, module_repos_collection_with_setup):
 
     :Setup: Errata synced on satellite server.
 
-    :Steps: Go to Content -> Errata.  Select an Errata.
+    :steps: Go to Content -> Errata.  Select an Errata.
 
     :expectedresults:
 
         1. Check if the CVE information is shown in Errata Details page.
         2. Check if 'N/A' is displayed if CVE information is not present.
-
-    :CaseLevel: Integration
     """
     with session:
         errata_values = session.errata.read(RHVA_ERRATA_ID)
@@ -706,12 +691,10 @@ def test_positive_filter_by_environment(
 
     :Setup: Errata synced on satellite server.
 
-    :Steps: Go to Content -> Errata.  Select an Errata -> Content Hosts tab
+    :steps: Go to Content -> Errata.  Select an Errata -> Content Hosts tab
         -> Filter content hosts by Environment.
 
     :expectedresults: Content hosts can be filtered by Environment.
-
-    :CaseLevel: System
     """
     module_org = module_org_with_parameter
     with Broker(
@@ -721,14 +704,16 @@ def test_positive_filter_by_environment(
             module_repos_collection_with_setup.setup_virtual_machine(client)
             assert client.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
         # Promote the latest content view version to a new lifecycle environment
-        content_view = entities.ContentView(
+        content_view = target_sat.api.ContentView(
             id=module_repos_collection_with_setup.setup_content_data['content_view']['id']
         ).read()
         content_view_version = content_view.version[-1].read()
         lce = content_view_version.environment[-1].read()
-        new_lce = entities.LifecycleEnvironment(organization=module_org, prior=lce).create()
+        new_lce = target_sat.api.LifecycleEnvironment(organization=module_org, prior=lce).create()
         content_view_version.promote(data={'environment_ids': new_lce.id})
-        host = entities.Host().search(query={'search': f'name={clients[0].hostname}'})[0].read()
+        host = (
+            target_sat.api.Host().search(query={'search': f'name={clients[0].hostname}'})[0].read()
+        )
         host.content_facet_attributes = {
             'content_view_id': content_view.id,
             'lifecycle_environment_id': new_lce.id,
@@ -769,7 +754,7 @@ def test_positive_filter_by_environment(
     indirect=True,
 )
 def test_positive_content_host_previous_env(
-    session, module_org_with_parameter, module_repos_collection_with_setup, vm
+    session, module_org_with_parameter, module_repos_collection_with_setup, vm, module_target_sat
 ):
     """Check if the applicable errata are available from the content
     host's previous environment
@@ -781,27 +766,27 @@ def test_positive_content_host_previous_env(
         1. Make sure multiple environments are present.
         2. Content host's previous environments have additional errata.
 
-    :Steps: Go to Content Hosts -> Select content host -> Errata Tab ->
+    :steps: Go to Content Hosts -> Select content host -> Errata Tab ->
         Select Previous environments.
 
     :expectedresults: The errata from previous environments are displayed.
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     module_org = module_org_with_parameter
     hostname = vm.hostname
     assert vm.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     # Promote the latest content view version to a new lifecycle environment
-    content_view = entities.ContentView(
+    content_view = module_target_sat.api.ContentView(
         id=module_repos_collection_with_setup.setup_content_data['content_view']['id']
     ).read()
     content_view_version = content_view.version[-1].read()
     lce = content_view_version.environment[-1].read()
-    new_lce = entities.LifecycleEnvironment(organization=module_org, prior=lce).create()
+    new_lce = module_target_sat.api.LifecycleEnvironment(
+        organization=module_org, prior=lce
+    ).create()
     content_view_version.promote(data={'environment_ids': new_lce.id})
-    host = entities.Host().search(query={'search': f'name={hostname}'})[0].read()
+    host = module_target_sat.api.Host().search(query={'search': f'name={hostname}'})[0].read()
     host.content_facet_attributes = {
         'content_view_id': content_view.id,
         'lifecycle_environment_id': new_lce.id,
@@ -840,13 +825,11 @@ def test_positive_content_host_library(session, module_org_with_parameter, vm):
         1. Make sure multiple environments are present.
         2. Content host's Library environment has additional errata.
 
-    :Steps: Go to Content Hosts -> Select content host -> Errata Tab -> Select 'Library'.
+    :steps: Go to Content Hosts -> Select content host -> Errata Tab -> Select 'Library'.
 
     :expectedresults: The errata from Library are displayed.
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     hostname = vm.hostname
     assert vm.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
@@ -880,14 +863,12 @@ def test_positive_content_host_search_type(session, erratatype_vm):
 
     :customerscenario: true
 
-    :Steps: Search for errata on content host by type (e.g. 'type = security')
+    :steps: Search for errata on content host by type (e.g. 'type = security')
      Step 1 Search for "type = security", assert expected amount and IDs found
      Step 2 Search for "type = bugfix", assert expected amount and IDs found
      Step 3 Search for "type = enhancement", assert expected amount and IDs found
 
     :BZ: 1653293
-
-    :CaseLevel: Integration
     """
 
     pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
@@ -955,15 +936,13 @@ def test_positive_show_count_on_content_host_page(
         1. Errata synced on satellite server.
         2. Some content hosts are present.
 
-    :Steps: Go to Hosts -> Content Hosts.
+    :steps: Go to Hosts -> Content Hosts.
 
     :expectedresults: The available errata count is displayed.
 
     :BZ: 1484044, 1775427
 
     :customerscenario: true
-
-    :CaseLevel: System
     """
     vm = erratatype_vm
     hostname = vm.hostname
@@ -1013,13 +992,11 @@ def test_positive_show_count_on_content_host_details_page(
         1. Errata synced on satellite server.
         2. Some content hosts are present.
 
-    :Steps: Go to Hosts -> Content Hosts -> Select Content Host -> Details page.
+    :steps: Go to Hosts -> Content Hosts -> Select Content Host -> Details page.
 
     :expectedresults: The errata section should be displayed with Security, Bug fix, Enhancement.
 
     :BZ: 1484044
-
-    :CaseLevel: System
     """
     vm = erratatype_vm
     hostname = vm.hostname
@@ -1059,7 +1036,7 @@ def test_positive_filtered_errata_status_installable_param(
 
     :id: ed94cf34-b8b9-4411-8edc-5e210ea6af4f
 
-    :Steps:
+    :steps:
 
         1. Prepare setup: Create Lifecycle Environment, Content View,
             Activation Key and all necessary repos
@@ -1075,11 +1052,9 @@ def test_positive_filtered_errata_status_installable_param(
     :BZ: 1368254, 2013093
 
     :CaseImportance: Medium
-
-    :CaseLevel: System
     """
     org = function_entitlement_manifest_org
-    lce = entities.LifecycleEnvironment(organization=org).create()
+    lce = target_sat.api.LifecycleEnvironment(organization=org).create()
     repos_collection = target_sat.cli_factory.RepositoryCollection(
         distro='rhel7',
         repositories=[
@@ -1096,16 +1071,16 @@ def test_positive_filtered_errata_status_installable_param(
         assert client.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
         # Adding content view filter and content view filter rule to exclude errata for the
         # installed package.
-        content_view = entities.ContentView(
+        content_view = target_sat.api.ContentView(
             id=repos_collection.setup_content_data['content_view']['id']
         ).read()
-        cv_filter = entities.ErratumContentViewFilter(
+        cv_filter = target_sat.api.ErratumContentViewFilter(
             content_view=content_view, inclusion=False
         ).create()
-        errata = entities.Errata(content_view_version=content_view.version[-1]).search(
+        errata = target_sat.api.Errata(content_view_version=content_view.version[-1]).search(
             query=dict(search=f'errata_id="{CUSTOM_REPO_ERRATA_ID}"')
         )[0]
-        entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
+        target_sat.api.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
         content_view.publish()
         content_view = content_view.read()
         content_view_version = content_view.version[-1]
@@ -1175,7 +1150,7 @@ def test_content_host_errata_search_commands(
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
         1.  host list --search "errata_status = security_needed"
         2.  host list --search "errata_status = errata_needed"
         3.  host list --search "applicable_errata = RHSA-2012:0055"

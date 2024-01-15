@@ -2,8 +2,6 @@
 
 :Requirement: Registration
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Registration
 
 :CaseAutomation: Automated
@@ -12,14 +10,12 @@
 
 :Team: Rocket
 
-:TestType: Functional
-
-:Upstream: No
 """
 import uuid
 
 from fauxfactory import gen_ipaddr, gen_mac
 import pytest
+from requests import HTTPError
 
 from robottelo import constants
 from robottelo.config import settings
@@ -30,9 +26,9 @@ pytestmark = pytest.mark.tier1
 @pytest.mark.e2e
 @pytest.mark.no_containers
 def test_host_registration_end_to_end(
-    module_org,
+    module_sca_manifest_org,
     module_location,
-    module_ak_with_synced_repo,
+    module_activation_key,
     module_target_sat,
     module_capsule_configured,
     rhel_contenthost,
@@ -50,9 +46,10 @@ def test_host_registration_end_to_end(
 
     :customerscenario: true
     """
+    org = module_sca_manifest_org
     command = module_target_sat.api.RegistrationCommand(
-        organization=module_org,
-        activation_keys=[module_ak_with_synced_repo.name],
+        organization=org,
+        activation_keys=[module_activation_key.name],
         location=module_location,
     ).create()
 
@@ -66,13 +63,13 @@ def test_host_registration_end_to_end(
 
     # Update module_capsule_configured to include module_org/module_location
     nc = module_capsule_configured.nailgun_smart_proxy
-    module_target_sat.api.SmartProxy(id=nc.id, organization=[module_org]).update(['organization'])
+    module_target_sat.api.SmartProxy(id=nc.id, organization=[org]).update(['organization'])
     module_target_sat.api.SmartProxy(id=nc.id, location=[module_location]).update(['location'])
 
     command = module_target_sat.api.RegistrationCommand(
         smart_proxy=nc,
-        organization=module_org,
-        activation_keys=[module_ak_with_synced_repo.name],
+        organization=org,
+        activation_keys=[module_activation_key.name],
         location=module_location,
         force=True,
     ).create()
@@ -92,7 +89,11 @@ def test_host_registration_end_to_end(
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6]')
 def test_positive_allow_reregistration_when_dmi_uuid_changed(
-    module_org, rhel_contenthost, target_sat, module_ak_with_synced_repo, module_location
+    module_sca_manifest_org,
+    rhel_contenthost,
+    target_sat,
+    module_activation_key,
+    module_location,
 ):
     """Register a content host with a custom DMI UUID, unregistering it, change
     the DMI UUID, and re-registering it again
@@ -104,15 +105,14 @@ def test_positive_allow_reregistration_when_dmi_uuid_changed(
     :customerscenario: true
 
     :BZ: 1747177,2229112
-
-    :CaseLevel: Integration
     """
     uuid_1 = str(uuid.uuid1())
     uuid_2 = str(uuid.uuid4())
+    org = module_sca_manifest_org
     target_sat.execute(f'echo \'{{"dmi.system.uuid": "{uuid_1}"}}\' > /etc/rhsm/facts/uuid.facts')
     command = target_sat.api.RegistrationCommand(
-        organization=module_org,
-        activation_keys=[module_ak_with_synced_repo.name],
+        organization=org,
+        activation_keys=[module_activation_key.name],
         location=module_location,
     ).create()
     result = rhel_contenthost.execute(command)
@@ -121,8 +121,8 @@ def test_positive_allow_reregistration_when_dmi_uuid_changed(
     assert result.status == 0
     target_sat.execute(f'echo \'{{"dmi.system.uuid": "{uuid_2}"}}\' > /etc/rhsm/facts/uuid.facts')
     command = target_sat.api.RegistrationCommand(
-        organization=module_org,
-        activation_keys=[module_ak_with_synced_repo.name],
+        organization=org,
+        activation_keys=[module_activation_key.name],
         location=module_location,
     ).create()
     result = rhel_contenthost.execute(command)
@@ -131,7 +131,7 @@ def test_positive_allow_reregistration_when_dmi_uuid_changed(
 
 def test_positive_update_packages_registration(
     module_target_sat,
-    module_entitlement_manifest_org,
+    module_sca_manifest_org,
     module_location,
     rhel8_contenthost,
     module_activation_key,
@@ -141,10 +141,8 @@ def test_positive_update_packages_registration(
     :id: 3d0a3252-ab81-4acf-bca6-253b746f26bb
 
     :expectedresults: Package update is successful on host post registration.
-
-    :CaseLevel: Component
     """
-    org = module_entitlement_manifest_org
+    org = module_sca_manifest_org
     command = module_target_sat.api.RegistrationCommand(
         organization=org,
         location=module_location,
@@ -164,7 +162,7 @@ def test_positive_update_packages_registration(
 @pytest.mark.no_containers
 def test_positive_rex_interface_for_global_registration(
     module_target_sat,
-    module_entitlement_manifest_org,
+    module_sca_manifest_org,
     module_location,
     rhel8_contenthost,
     module_activation_key,
@@ -188,7 +186,7 @@ def test_positive_rex_interface_for_global_registration(
     add_interface_command = f'ip link add eth1 type dummy;ifconfig eth1 hw ether {mac_address};ip addr add {ip}/24 brd + dev eth1 label eth1:1;ip link set dev eth1 up'
     result = rhel8_contenthost.execute(add_interface_command)
     assert result.status == 0
-    org = module_entitlement_manifest_org
+    org = module_sca_manifest_org
     command = module_target_sat.api.RegistrationCommand(
         organization=org,
         location=module_location,
@@ -207,3 +205,60 @@ def test_positive_rex_interface_for_global_registration(
             assert interface['execution'] is True
             assert interface['ip'] == ip
             assert interface['mac'] == mac_address
+
+
+@pytest.mark.tier1
+def test_negative_global_registration_without_ak(module_target_sat):
+    """Attempt to register a host without ActivationKey
+
+    :id: e48a6260-97e0-4234-a69c-77bbbcde85de
+
+    :expectedresults: Generate command is disabled without ActivationKey
+    """
+    with pytest.raises(HTTPError) as context:
+        module_target_sat.api.RegistrationCommand().create()
+    assert 'Missing activation key!' in context.value.response.text
+
+
+def test_negative_capsule_without_registration_enabled(
+    module_target_sat,
+    module_capsule_configured,
+    module_ak_with_cv,
+    module_entitlement_manifest_org,
+    module_location,
+):
+    """Verify registration with Capsule, when registration isn't configured in installer
+
+    :id: a2f23e42-648d-4428-a961-6e0b933c6dff
+
+    :steps:
+            1. Get a configured capsule
+            2. The registration is set to False on capsule by default
+            3. Try to register host with that capsule
+
+    :expectedresults: Registration fails with HTTP error code 422 and an error message.
+    """
+    org = module_entitlement_manifest_org
+
+    nc = module_capsule_configured.nailgun_smart_proxy
+    module_target_sat.api.SmartProxy(id=nc.id, organization=[org]).update(['organization'])
+    module_target_sat.api.SmartProxy(id=nc.id, location=[module_location]).update(['location'])
+
+    res = module_capsule_configured.install(
+        cmd_args={},
+        cmd_kwargs={'foreman-proxy-registration': 'false', 'foreman-proxy-templates': 'true'},
+    )
+    assert res.status == 0
+    error_message = '422 Client Error'
+    with pytest.raises(HTTPError, match=f'{error_message}') as context:
+        module_target_sat.api.RegistrationCommand(
+            smart_proxy=nc,
+            organization=org,
+            location=module_location,
+            activation_keys=[module_ak_with_cv.name],
+            insecure=True,
+        ).create()
+    assert (
+        "Proxy lacks one of the following features: 'Registration', 'Templates'"
+        in context.value.response.text
+    )

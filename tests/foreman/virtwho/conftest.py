@@ -1,4 +1,3 @@
-from airgun.session import Session
 from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError
@@ -37,7 +36,7 @@ def module_user(request, module_target_sat, default_org, default_location):
 
 
 @pytest.fixture
-def session(test_name, module_user):
+def session(test_name, module_user, module_target_sat):
     """Session fixture which automatically initializes (but does not start!)
     airgun UI session and correctly passes current test name to it. Uses shared
     module user credentials to log in.
@@ -49,9 +48,8 @@ def session(test_name, module_user):
             with session:
                 # your ui test steps here
                 session.architecture.create({'name': 'bar'})
-
     """
-    return Session(test_name, module_user.login, module_user.password)
+    return module_target_sat.ui_session(test_name, module_user.login, module_user.password)
 
 
 @pytest.fixture(scope='module')
@@ -85,7 +83,7 @@ def module_user_sca(request, module_target_sat, module_org, module_location):
 
 
 @pytest.fixture
-def session_sca(test_name, module_user_sca):
+def session_sca(test_name, module_user_sca, module_target_sat):
     """Session fixture which automatically initializes (but does not start!)
     airgun UI session and correctly passes current test name to it. Uses shared
     module user credentials to log in.
@@ -97,6 +95,5 @@ def session_sca(test_name, module_user_sca):
             with session:
                 # your ui test steps here
                 session.architecture.create({'name': 'bar'})
-
     """
-    return Session(test_name, module_user_sca.login, module_user_sca.password)
+    return module_target_sat.ui_session(test_name, module_user_sca.login, module_user_sca.password)

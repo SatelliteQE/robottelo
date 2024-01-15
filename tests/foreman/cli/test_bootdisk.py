@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: System
-
 :CaseComponent: BootdiskPlugin
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_mac, gen_string
 import pytest
@@ -23,7 +18,7 @@ from robottelo.config import settings
 from robottelo.constants import HTTPS_MEDIUM_URL
 
 
-@pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
+@pytest.mark.rhel_ver_match('[^6]')
 def test_positive_bootdisk_download_https(
     module_location,
     module_sync_kickstart_content,

@@ -4,15 +4,10 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Virt-whoConfigurePlugin
 
 :Team: Phoenix
 
-:TestType: Functional
-
-:Upstream: No
 """
 import re
 
@@ -37,8 +32,12 @@ from robottelo.utils.virtwho import (
 class TestVirtWhoConfigforEsx:
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('deploy_type_cli', ['id', 'script'], indirect=True)
-    def test_positive_deploy_configure_by_id_script(
+    @pytest.mark.parametrize(
+        'deploy_type_cli',
+        ['id', 'script', 'name', 'location-id', 'organization-title'],
+        indirect=True,
+    )
+    def test_positive_deploy_configure_by_id_script_name_locationid_organizationtitle(
         self, module_sca_manifest_org, target_sat, virtwho_config_cli, deploy_type_cli
     ):
         """Verify "hammer virt-who-config deploy & fetch"
@@ -48,8 +47,6 @@ class TestVirtWhoConfigforEsx:
         :expectedresults:
             1. Config can be created and deployed
             2. Config can be created, fetch and deploy
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -68,8 +65,6 @@ class TestVirtWhoConfigforEsx:
         :id: 995a6709-e839-4198-89db-37cde8fd0a7b
 
         :expectedresults: hypervisor_id option can be updated.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -96,8 +91,6 @@ class TestVirtWhoConfigforEsx:
 
         :expectedresults: debug option can be updated.
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
         assert virtwho_config_cli['name'] == form_data_cli['name']
@@ -119,8 +112,6 @@ class TestVirtWhoConfigforEsx:
         :id: 8d22c7b8-756b-4f79-83be-34ccb2609388
 
         :expectedresults: name option can be updated.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -144,8 +135,6 @@ class TestVirtWhoConfigforEsx:
         :id: 9b2ffa5a-c0e9-43e7-bf63-f64832cf7715
 
         :expectedresults: interval option can be updated.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -186,8 +175,6 @@ class TestVirtWhoConfigforEsx:
         :expectedresults:
             1. filter and filter_hosts can be updated.
             2. create virt-who config with filter and filter_hosts options work well.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -263,7 +250,12 @@ class TestVirtWhoConfigforEsx:
 
     @pytest.mark.tier2
     def test_positive_proxy_option(
-        self, module_sca_manifest_org, form_data_cli, virtwho_config_cli, target_sat
+        self,
+        module_sca_manifest_org,
+        default_location,
+        form_data_cli,
+        virtwho_config_cli,
+        target_sat,
     ):
         """Verify http_proxy option by hammer virt-who-config update"
 
@@ -273,15 +265,13 @@ class TestVirtWhoConfigforEsx:
             1. http_proxy and no_proxy option can be updated.
             2. create virt-who config with http_proxy and no_proxy options work well.
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
 
         :BZ: 1902199
         """
         # Check the https proxy option, update it via http proxy name
         https_proxy_url, https_proxy_name, https_proxy_id = create_http_proxy(
-            org=module_sca_manifest_org
+            org=module_sca_manifest_org, location=default_location
         )
         no_proxy = 'test.satellite.com'
         target_sat.cli.VirtWhoConfig.update(
@@ -299,7 +289,7 @@ class TestVirtWhoConfigforEsx:
 
         # Check the http proxy option, update it via http proxy id
         http_proxy_url, http_proxy_name, http_proxy_id = create_http_proxy(
-            http_type='http', org=module_sca_manifest_org
+            http_type='http', org=module_sca_manifest_org, location=default_location
         )
         target_sat.cli.VirtWhoConfig.update(
             {'id': virtwho_config_cli['id'], 'http-proxy-id': http_proxy_id}
@@ -355,8 +345,6 @@ class TestVirtWhoConfigforEsx:
             1. rhsm_hostname, rhsm_prefix are expected
             2. rhsm_username is not a login account
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
         config_file = get_configure_file(virtwho_config_cli['id'])
@@ -377,8 +365,6 @@ class TestVirtWhoConfigforEsx:
 
         :expectedresults:
             hypervisor/guest json can be posted and the task is success status
-
-        :CaseLevel: Integration
 
         :customerscenario: true
 
@@ -409,8 +395,6 @@ class TestVirtWhoConfigforEsx:
             1. virt-who packages can be installed
             2. the virt-who plugin can be deployed successfully
 
-        :CaseLevel: Integration
-
         :customerscenario: true
 
         :CaseImportance: Medium
@@ -436,8 +420,6 @@ class TestVirtWhoConfigforEsx:
         :id: a691267a-008e-4f22-ab49-c1ec1612a628
 
         :expectedresults: Config can be created and deployed without any error
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
 
@@ -492,8 +474,6 @@ class TestVirtWhoConfigforEsx:
         :expectedresults:
             1. the option "env=" should be removed from etc/virt-who.d/virt-who.conf
             2. /var/log/messages should not display warning message
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
 

@@ -301,9 +301,9 @@ def get_hypervisor_ahv_mapping(hypervisor_type):
     # Always check the last json section to get the host_uuid
     for item in mapping:
         if 'entities' in item:
-            for item in item['entities']:
-                if 'host_uuid' in item:
-                    system_uuid = item['host_uuid']
+            for _item in item['entities']:
+                if 'host_uuid' in _item:
+                    system_uuid = _item['host_uuid']
                     break
     message = f"Host UUID {system_uuid} found for VM: {guest_uuid}"
     for line in logs.split('\n'):
@@ -384,8 +384,8 @@ def deploy_configure_by_command_check(command):
     virtwho_cleanup()
     try:
         ret, stdout = runcmd(command)
-    except Exception:
-        raise VirtWhoError(f"Failed to deploy configure by {command}")
+    except Exception as err:
+        raise VirtWhoError(f"Failed to deploy configure by {command}") from err
     else:
         if ret != 0 or 'Finished successfully' not in stdout:
             raise VirtWhoError(f"Failed to deploy configure by {command}")
@@ -410,7 +410,7 @@ def update_configure_option(option, value, config_file):
     :param value:  set the option to the value
     :param config_file: path of virt-who config file
     """
-    cmd = 'sed -i "s|^{0}.*|{0}={1}|g" {2}'.format(option, value, config_file)
+    cmd = f'sed -i "s|^{option}.*|{option}={value}|g" {config_file}'
     ret, output = runcmd(cmd)
     if ret != 0:
         raise VirtWhoError(f"Failed to set option {option} value to {value}")
@@ -422,7 +422,7 @@ def delete_configure_option(option, config_file):
     :param option: the option you want to delete
     :param config_file: path of virt-who config file
     """
-    cmd = 'sed -i "/^{0}/d" {1}; sed -i "/^#{0}/d" {1}'.format(option, config_file)
+    cmd = f'sed -i "/^{option}/d" {config_file}; sed -i "/^#{option}/d" {config_file}'
     ret, output = runcmd(cmd)
     if ret != 0:
         raise VirtWhoError(f"Failed to delete option {option}")
@@ -437,11 +437,11 @@ def add_configure_option(option, value, config_file):
     """
     try:
         get_configure_option(option, config_file)
-    except Exception:
+    except Exception as err:
         cmd = f'echo -e "\n{option}={value}" >> {config_file}'
-        ret, output = runcmd(cmd)
+        ret, _ = runcmd(cmd)
         if ret != 0:
-            raise VirtWhoError(f"Failed to add option {option}={value}")
+            raise VirtWhoError(f"Failed to add option {option}={value}") from err
     else:
         raise VirtWhoError(f"option {option} is already exist in {config_file}")
 
@@ -456,9 +456,9 @@ def hypervisor_json_create(hypervisors, guests):
     :param guests: how many guests will be created
     """
     hypervisors_list = []
-    for i in range(hypervisors):
+    for _ in range(hypervisors):
         guest_list = []
-        for c in range(guests):
+        for _ in range(guests):
             guest_list.append(
                 {
                     "guestId": str(uuid.uuid4()),
@@ -506,7 +506,7 @@ def virtwho_package_locked():
     assert "Packages are locked" in result[1]
 
 
-def create_http_proxy(org, name=None, url=None, http_type='https'):
+def create_http_proxy(org, location, name=None, url=None, http_type='https'):
     """
     Creat a new http-proxy with attributes.
     :param name: Name of the proxy
@@ -524,5 +524,20 @@ def create_http_proxy(org, name=None, url=None, http_type='https'):
         name=http_proxy_name,
         url=http_proxy_url,
         organization=[org.id],
+        location=[location.id],
     ).create()
     return http_proxy.url, http_proxy.name, http_proxy.id
+
+
+def get_configure_command_option(deploy_type, args, org=DEFAULT_ORG):
+    """Return the deploy command line based on option.
+    :param str option: the unique id of the configure file you have created.
+    :param str org: the satellite organization name.
+    """
+    username, password = Base._get_username_password()
+    if deploy_type == 'location-id':
+        return f"hammer -u {username} -p {password} virt-who-config deploy --id {args['id']} --location-id '{args['location-id']}' "
+    elif deploy_type == 'organization-title':
+        return f"hammer -u {username} -p {password} virt-who-config deploy --id {args['id']} --organization-title '{args['organization-title']}' "
+    elif deploy_type == 'name':
+        return f"hammer -u {username} -p {password} virt-who-config deploy --name {args['name']} --organization '{org}' "

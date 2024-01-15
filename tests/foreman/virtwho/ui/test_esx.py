@@ -4,21 +4,15 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Virt-whoConfigurePlugin
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from datetime import datetime
 
-from airgun.session import Session
 from fauxfactory import gen_string
 import pytest
 
@@ -59,8 +53,6 @@ class TestVirtwhoConfigforEsx:
             4. Virtual sku can be generated and attached
             5. Config can be deleted
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         hypervisor_name, guest_name = deploy_type_ui
@@ -93,8 +85,6 @@ class TestVirtwhoConfigforEsx:
             1. if debug is checked, VIRTWHO_DEBUG=1 in /etc/sysconfig/virt-who
             2. if debug is unchecked, VIRTWHO_DEBUG=0 in /etc/sysconfig/virt-who
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
         name = form_data_ui['name']
@@ -123,8 +113,6 @@ class TestVirtwhoConfigforEsx:
         :expectedresults:
             VIRTWHO_INTERVAL can be changed in /etc/sysconfig/virt-who if the
             dropdown option is selected to Every 2/4/8/12/24 hours, Every 2/3 days.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -162,8 +150,6 @@ class TestVirtwhoConfigforEsx:
             hypervisor_id can be changed in virt-who-config-{}.conf if the
             dropdown option is selected to uuid/hwuuid/hostname.
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
         name = form_data_ui['name']
@@ -192,8 +178,6 @@ class TestVirtwhoConfigforEsx:
         :expectedresults:
             1. if filtering is selected to Whitelist, 'Filter hosts' can be set.
             2. if filtering is selected to Blacklist, 'Exclude hosts' can be set.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
 
@@ -231,7 +215,9 @@ class TestVirtwhoConfigforEsx:
         assert regex == get_configure_option('exclude_host_parents', config_file)
 
     @pytest.mark.tier2
-    def test_positive_proxy_option(self, default_org, virtwho_config_ui, org_session, form_data_ui):
+    def test_positive_proxy_option(
+        self, default_org, default_location, virtwho_config_ui, org_session, form_data_ui
+    ):
         """Verify 'HTTP Proxy' and 'Ignore Proxy' options.
 
         :id: 6659d577-0135-4bf0-81af-14b930011536
@@ -239,13 +225,13 @@ class TestVirtwhoConfigforEsx:
         :expectedresults:
             http_proxy/https_proxy and NO_PROXY will be setting in /etc/sysconfig/virt-who.
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
-        https_proxy, https_proxy_name, https_proxy_id = create_http_proxy(org=default_org)
+        https_proxy, https_proxy_name, https_proxy_id = create_http_proxy(
+            org=default_org, location=default_location
+        )
         http_proxy, http_proxy_name, http_proxy_id = create_http_proxy(
-            http_type='http', org=default_org
+            http_type='http', org=default_org, location=default_location
         )
         name = form_data_ui['name']
         config_id = get_configure_id(name)
@@ -279,8 +265,6 @@ class TestVirtwhoConfigforEsx:
         :expectedresults:
             'Virt-who Manager', 'Virt-who Reporter', 'Virt-who Viewer' existing
 
-        :CaseLevel: Integration
-
         :CaseImportance: Low
         """
         roles = {
@@ -311,15 +295,13 @@ class TestVirtwhoConfigforEsx:
 
         :id: 5d61ce00-a640-4823-89d4-7b1d02b50ea6
 
-        :Steps:
+        :steps:
 
             1. Create a Virt-who Configuration
             2. Navigate Monitor -> Dashboard
             3. Review the Virt-who Configurations Status widget
 
         :expectedresults: The widget is updated with all details.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Low
         """
@@ -390,7 +372,7 @@ class TestVirtwhoConfigforEsx:
 
     @pytest.mark.tier2
     def test_positive_virtwho_reporter_role(
-        self, default_org, org_session, test_name, form_data_ui
+        self, default_org, org_session, test_name, form_data_ui, target_sat
     ):
         """Verify the virt-who reporter role can TRULY work.
 
@@ -439,13 +421,15 @@ class TestVirtwhoConfigforEsx:
             assert user['roles']['resources']['assigned'] == ['Virt-who Reporter']
             restart_virtwho_service()
             assert get_virtwho_status() == 'running'
-            with Session(test_name, username, password) as newsession:
+            with target_sat.ui_session(test_name, username, password) as newsession:
                 assert not newsession.virtwho_configure.check_create_permission()['can_view']
             org_session.user.delete(username)
             assert not org_session.user.search(username)
 
     @pytest.mark.tier2
-    def test_positive_virtwho_viewer_role(self, default_org, org_session, test_name, form_data_ui):
+    def test_positive_virtwho_viewer_role(
+        self, default_org, org_session, test_name, form_data_ui, target_sat
+    ):
         """Verify the virt-who viewer role can TRULY work.
 
         :id: bf3be2e4-3853-41cc-9b3e-c8677f0b8c5f
@@ -490,7 +474,7 @@ class TestVirtwhoConfigforEsx:
             add_configure_option('rhsm_password', password, config_file)
             restart_virtwho_service()
             assert get_virtwho_status() == 'logerror'
-            with Session(test_name, username, password) as newsession:
+            with target_sat.ui_session(test_name, username, password) as newsession:
                 create_permission = newsession.virtwho_configure.check_create_permission()
                 update_permission = newsession.virtwho_configure.check_update_permission(
                     config_name
@@ -505,7 +489,9 @@ class TestVirtwhoConfigforEsx:
             assert not org_session.user.search(username)
 
     @pytest.mark.tier2
-    def test_positive_virtwho_manager_role(self, default_org, org_session, test_name, form_data_ui):
+    def test_positive_virtwho_manager_role(
+        self, default_org, org_session, test_name, form_data_ui, target_sat
+    ):
         """Verify the virt-who manager role can TRULY work.
 
         :id: a72023fb-7b23-4582-9adc-c5227dc7859c
@@ -541,7 +527,7 @@ class TestVirtwhoConfigforEsx:
             org_session.user.update(username, {'roles.resources.assigned': ['Virt-who Manager']})
             user = org_session.user.read(username)
             assert user['roles']['resources']['assigned'] == ['Virt-who Manager']
-            with Session(test_name, username, password) as newsession:
+            with target_sat.ui_session(test_name, username, password) as newsession:
                 # create_virt_who_config
                 new_virt_who_name = gen_string('alpha')
                 form_data_ui['name'] = new_virt_who_name
@@ -565,14 +551,14 @@ class TestVirtwhoConfigforEsx:
             assert not org_session.user.search(username)
 
     @pytest.mark.tier2
-    def test_positive_overview_label_name(self, default_org, form_data_ui, org_session):
+    def test_positive_overview_label_name(
+        self, default_org, default_location, form_data_ui, org_session
+    ):
         """Verify the label name on virt-who config Overview Page.
 
         :id: 21df8175-bb41-422e-a263-8677bc3a9565
 
         :BZ: 1649928
-
-        :CaseLevel: Integration
 
         :customerscenario: true
 
@@ -581,7 +567,9 @@ class TestVirtwhoConfigforEsx:
         name = gen_string('alpha')
         form_data_ui['name'] = name
         hypervisor_type = form_data_ui['hypervisor_type']
-        http_proxy_url, proxy_name, proxy_id = create_http_proxy(org=default_org)
+        http_proxy_url, proxy_name, proxy_id = create_http_proxy(
+            org=default_org, location=default_location
+        )
         form_data_ui['proxy'] = http_proxy_url
         form_data_ui['no_proxy'] = 'test.satellite.com'
         regex = '.*redhat.com'
@@ -638,8 +626,6 @@ class TestVirtwhoConfigforEsx:
 
         :BZ: 1652323
 
-        :CaseLevel: Integration
-
         :customerscenario: true
 
         :CaseImportance: Medium
@@ -673,8 +659,6 @@ class TestVirtwhoConfigforEsx:
         :id: 654f869e-182b-4951-bc4e-8761d666a449
 
         :expectedresults: Config can be created and deployed without any error
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
 
@@ -729,8 +713,6 @@ class TestVirtwhoConfigforEsx:
         :expectedresults:
             the option "env=" should be removed from etc/virt-who.d/virt-who.conf
             /var/log/messages should not display warning message
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
 

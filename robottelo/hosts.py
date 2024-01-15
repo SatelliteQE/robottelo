@@ -125,7 +125,7 @@ def setup_capsule(satellite, capsule, org, registration_args=None, installation_
     capsule.unregister()
 
     # Add a manifest to the Satellite
-    with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
+    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
         satellite.upload_manifest(org.id, manifest.content)
 
     # Enable RHEL 8 BaseOS and AppStream repos and sync
@@ -151,7 +151,7 @@ def setup_capsule(satellite, capsule, org, registration_args=None, installation_
         f'{file} root@{capsule.hostname}:{file}'
     )
     capsule.install_katello_ca(satellite)
-    capsule.register_contenthost(**registration_args)
+    capsule.register_contenthost(org=org.label, **registration_args)
     return capsule.install(cmd_args)
 
 
@@ -414,11 +414,11 @@ class ContentHost(Host, ContentHostMixins):
         try:
             vm_operation = POWER_OPERATIONS.get(state)
             workflow_name = settings.broker.host_workflows.power_control
-        except (AttributeError, KeyError):
+        except (AttributeError, KeyError) as err:
             raise NotImplementedError(
                 'No workflow in broker.host_workflows for power control, '
                 'or VM operation not supported'
-            )
+            ) from err
         assert (
             # TODO read the kwarg name from settings too?
             Broker()
@@ -525,10 +525,12 @@ class ContentHost(Host, ContentHostMixins):
     def subscription_manager_list(self):
         return self.execute('subscription-manager list')
 
-    def subscription_manager_get_pool(self, sub_list=[]):
+    def subscription_manager_get_pool(self, sub_list=None):
         """
         Return pool ids for the corresponding subscriptions in the list
         """
+        if sub_list is None:
+            sub_list = []
         pool_ids = []
         for sub in sub_list:
             result = self.execute(
@@ -540,10 +542,12 @@ class ContentHost(Host, ContentHostMixins):
             pool_ids.append(result)
         return pool_ids
 
-    def subscription_manager_attach_pool(self, pool_list=[]):
+    def subscription_manager_attach_pool(self, pool_list=None):
         """
         Attach pool ids to the host and return the result
         """
+        if pool_list is None:
+            pool_list = []
         result = []
         for pool in pool_list:
             result.append(self.execute(f'subscription-manager attach --pool={pool}'))
@@ -621,6 +625,7 @@ class ContentHost(Host, ContentHostMixins):
         warnings.warn(
             message='The install_katello_ca method is deprecated, use the register method instead.',
             category=DeprecationWarning,
+            stacklevel=2,
         )
         self._satellite = satellite
         self.execute(
@@ -673,6 +678,7 @@ class ContentHost(Host, ContentHostMixins):
                 'use the register method instead.'
             ),
             category=DeprecationWarning,
+            stacklevel=2,
         )
         url = urlunsplit(('http', capsule, 'pub/', '', ''))
         ca_url = urljoin(url, 'katello-ca-consumer-latest.noarch.rpm')
@@ -699,7 +705,6 @@ class ContentHost(Host, ContentHostMixins):
         setup_insights=False,
         setup_remote_execution=True,
         setup_remote_execution_pull=False,
-        lifecycle_environment=None,
         operating_system=None,
         packages=None,
         repo=None,
@@ -721,7 +726,6 @@ class ContentHost(Host, ContentHostMixins):
         :param setup_insights: Install and register Insights client, requires OS repo.
         :param setup_remote_execution: Copy remote execution SSH key.
         :param setup_remote_execution_pull: Deploy pull provider client on host
-        :param lifecycle_environment: Lifecycle environment.
         :param operating_system: Operating system.
         :param packages: A list of packages to install on the host when registered.
         :param repo: Repository to be added before the registration is performed, supply url.
@@ -760,8 +764,6 @@ class ContentHost(Host, ContentHostMixins):
         elif target is not None and target.__class__.__name__ not in ['Capsule', 'Satellite']:
             raise ValueError('Global registration method can be used with Satellite/Capsule only')
 
-        if lifecycle_environment is not None:
-            options['lifecycle-environment-id'] = lifecycle_environment.id
         if operating_system is not None:
             options['operatingsystem-id'] = operating_system.id
         if hostgroup is not None:
@@ -1448,8 +1450,10 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError('There was an error installing katello-host-tools-tracer')
         self.execute('katello-tracer-upload')
 
-    def register_to_cdn(self, pool_ids=[settings.subscription.rhn_poolid]):
+    def register_to_cdn(self, pool_ids=None):
         """Subscribe satellite to CDN"""
+        if pool_ids is None:
+            pool_ids = [settings.subscription.rhn_poolid]
         self.remove_katello_ca()
         cmd_result = self.register_contenthost(
             org=None,
@@ -1652,11 +1656,13 @@ class Capsule(ContentHost, CapsuleMixins):
     def set_rex_script_mode_provider(self, mode='ssh'):
         """Set provider for remote execution script mode. One of: ssh(default),
         pull-mqtt, ssh-async"""
-        installer_opts = {
-            'foreman-proxy-templates': 'true',
-            'foreman-proxy-registration': 'true',
-            'foreman-proxy-plugin-remote-execution-script-mode': mode,
-        }
+
+        installer_opts = {'foreman-proxy-plugin-remote-execution-script-mode': mode}
+
+        if self.__class__.__name__ == 'Capsule':
+            installer_opts['foreman-proxy-templates'] = 'true'
+            installer_opts['foreman-proxy-registration'] = 'true'
+
         enable_mqtt_command = InstallerCommand(
             installer_opts=installer_opts,
         )
@@ -1850,11 +1856,12 @@ class Satellite(Capsule, SatelliteMixins):
         except Exception:
             raise
         finally:
-            video_url = settings.ui.grid_url.replace(
-                ':4444', f'/videos/{ui_session.ui_session_id}.mp4'
-            )
-            self.record_property('video_url', video_url)
-            self.record_property('session_id', ui_session.ui_session_id)
+            if self.record_property is not None and settings.ui.record_video:
+                video_url = settings.ui.grid_url.replace(
+                    ':4444', f'/videos/{ui_session.ui_session_id}/video.mp4'
+                )
+                self.record_property('video_url', video_url)
+                self.record_property('session_id', ui_session.ui_session_id)
 
     @property
     def satellite(self):

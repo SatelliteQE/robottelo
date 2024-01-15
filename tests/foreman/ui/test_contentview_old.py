@@ -7,24 +7,17 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: ContentViews
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import datetime
 from random import randint
 
 from airgun.exceptions import InvalidElementStateException, NoSuchElementException
-from airgun.session import Session
-from nailgun import entities
 from nailgun.entity_mixins import call_entity_method_with_timeout
 from navmazing import NavigationTriesExceeded
 from productmd.common import parse_nvra
@@ -59,17 +52,17 @@ VERSION = 'Version 1.0'
 
 
 @pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
+def module_org(module_target_sat):
+    return module_target_sat.api.Organization().create()
 
 
 @pytest.fixture(scope='module')
-def module_prod(module_org):
-    return entities.Product(organization=module_org).create()
+def module_prod(module_org, module_target_sat):
+    return module_target_sat.api.Product(organization=module_org).create()
 
 
 @pytest.mark.tier2
-def test_positive_add_custom_content(session):
+def test_positive_add_custom_content(session, module_target_sat):
     """Associate custom content in a view
 
     :id: 7128fc8b-0e8c-4f00-8541-2ca2399650c8
@@ -78,15 +71,13 @@ def test_positive_add_custom_content(session):
 
     :expectedresults: Custom content can be seen in a view
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
-    org = entities.Organization().create()
+    org = module_target_sat.api.Organization().create()
     cv_name = gen_string('alpha')
     repo_name = gen_string('alpha')
-    product = entities.Product(organization=org).create()
-    entities.Repository(name=repo_name, product=product).create()
+    product = module_target_sat.api.Product(organization=org).create()
+    module_target_sat.api.Repository(name=repo_name, product=product).create()
     with session:
         session.organization.select(org_name=org.name)
         session.contentview.create({'name': cv_name})
@@ -98,7 +89,7 @@ def test_positive_add_custom_content(session):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, target_sat):
+def test_positive_end_to_end(session, module_target_sat, module_org, target_sat):
     """Create content view with yum repo, publish it and promote it to Library
         +1 env
 
@@ -112,8 +103,6 @@ def test_positive_end_to_end(session, module_org, target_sat):
 
     :expectedresults: content view is created, updated with repo publish and
         promoted to next selected env
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -138,7 +127,7 @@ def test_positive_end_to_end(session, module_org, target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_publish_version_changes_in_source_env(session, module_org):
+def test_positive_publish_version_changes_in_source_env(session, module_target_sat, module_org):
     """When publishing new version to environment, version gets updated
 
     :id: 576ac8b4-7efe-4267-a672-868a5f3eb28a
@@ -150,12 +139,10 @@ def test_positive_publish_version_changes_in_source_env(session, module_org):
     :expectedresults: Content view version is updated in source
         environment.
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
-    lce = entities.LifecycleEnvironment(organization=module_org).create()
-    cv = entities.ContentView(organization=module_org).create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
+    cv = module_target_sat.api.ContentView(organization=module_org).create()
     with session:
         result = session.contentview.publish(cv.name)
         assert result['Version'] == 'Version 1.0'
@@ -191,7 +178,7 @@ def test_positive_publish_version_changes_in_source_env(session, module_org):
 
 
 @pytest.mark.tier2
-def test_positive_repo_count_for_composite_cv(session, module_org, target_sat):
+def test_positive_repo_count_for_composite_cv(session, module_target_sat, module_org, target_sat):
     """Create some content views with synchronized repositories and
     promoted to one lce. Add them to composite content view and check repo
     count for it.
@@ -203,11 +190,9 @@ def test_positive_repo_count_for_composite_cv(session, module_org, target_sat):
 
     :BZ: 1431778
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
-    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
     ccv_name = gen_string('alpha')
     repo_name = gen_string('alpha')
     # Create a product and sync'ed repository
@@ -217,7 +202,7 @@ def test_positive_repo_count_for_composite_cv(session, module_org, target_sat):
         session.contentview.create({'name': ccv_name, 'composite_view': True})
         # Create three content-views and add synced repo to them
         for _ in range(3):
-            cv_name = entities.ContentView(organization=module_org).create().name
+            cv_name = module_target_sat.api.ContentView(organization=module_org).create().name
             assert session.contentview.search(cv_name)[0]['Name'] == cv_name
             # Add repository to selected CV
             session.contentview.add_yum_repo(cv_name, repo_name)
@@ -252,8 +237,6 @@ def test_positive_create_composite(
 
     :expectedresults: Composite content views are created
 
-    :CaseLevel: System
-
     :CaseImportance: High
     """
     org = module_entitlement_manifest_org
@@ -267,7 +250,7 @@ def test_positive_create_composite(
         'basearch': 'x86_64',
         'releasever': None,
     }
-    docker_repo = entities.Repository(
+    docker_repo = target_sat.api.Repository(
         url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
 
@@ -297,7 +280,9 @@ def test_positive_create_composite(
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_add_rh_content(session, function_entitlement_manifest_org, target_sat):
+def test_positive_add_rh_content(
+    session, module_target_sat, function_entitlement_manifest_org, target_sat
+):
     """Add Red Hat content to a content view
 
     :id: c370fd79-0c0d-4685-99cb-848556c786c1
@@ -305,8 +290,6 @@ def test_positive_add_rh_content(session, function_entitlement_manifest_org, tar
     :setup: Sync RH content
 
     :expectedresults: RH Content can be seen in a view
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -332,19 +315,19 @@ def test_positive_add_rh_content(session, function_entitlement_manifest_org, tar
 
 
 @pytest.mark.tier2
-def test_positive_add_docker_repo(session, module_org, module_prod):
+def test_positive_add_docker_repo(session, module_target_sat, module_org, module_prod):
     """Add one Docker-type repository to a non-composite content view
 
     :id: 2868cfd5-d27e-4db9-b4a3-2827e31d1601
 
     :expectedresults: The repo is added to a non-composite content view
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
-    content_view = entities.ContentView(composite=False, organization=module_org).create()
-    repo = entities.Repository(
+    content_view = module_target_sat.api.ContentView(
+        composite=False, organization=module_org
+    ).create()
+    repo = module_target_sat.api.Repository(
         url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     with session:
@@ -354,7 +337,7 @@ def test_positive_add_docker_repo(session, module_org, module_prod):
 
 
 @pytest.mark.tier2
-def test_positive_add_docker_repos(session, module_org, module_prod):
+def test_positive_add_docker_repos(session, module_target_sat, module_org, module_prod):
     """Add multiple Docker-type repositories to a non-composite
     content view.
 
@@ -363,13 +346,13 @@ def test_positive_add_docker_repos(session, module_org, module_prod):
     :expectedresults: The repos are added to a non-composite content
         view.
 
-    :CaseLevel: Integration
-
     :CaseImportance: Low
     """
-    content_view = entities.ContentView(composite=False, organization=module_org).create()
+    content_view = module_target_sat.api.ContentView(
+        composite=False, organization=module_org
+    ).create()
     repos = [
-        entities.Repository(
+        module_target_sat.api.Repository(
             url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
         ).create()
         for _ in range(randint(2, 3))
@@ -384,7 +367,7 @@ def test_positive_add_docker_repos(session, module_org, module_prod):
 
 
 @pytest.mark.tier2
-def test_positive_add_synced_docker_repo(session, module_org, module_prod):
+def test_positive_add_synced_docker_repo(session, module_target_sat, module_org, module_prod):
     """Create and sync a docker repository, then add it to content view
 
     :id: 338a7ed4-9e10-4bc0-8666-5c8cd0ff0504
@@ -392,12 +375,12 @@ def test_positive_add_synced_docker_repo(session, module_org, module_prod):
     :expectedresults: Synchronized docker repository was successfully added
         to content view.
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
-    content_view = entities.ContentView(composite=False, organization=module_org).create()
-    repo = entities.Repository(
+    content_view = module_target_sat.api.ContentView(
+        composite=False, organization=module_org
+    ).create()
+    repo = module_target_sat.api.Repository(
         url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     with session:
@@ -410,7 +393,7 @@ def test_positive_add_synced_docker_repo(session, module_org, module_prod):
 
 
 @pytest.mark.tier2
-def test_positive_add_docker_repo_to_ccv(session, module_org, module_prod):
+def test_positive_add_docker_repo_to_ccv(session, module_target_sat, module_org, module_prod):
     """Add one docker repository to a composite content view
 
     :id: 76b68407-b429-4ad7-b8b5-bfde327a0404
@@ -418,13 +401,15 @@ def test_positive_add_docker_repo_to_ccv(session, module_org, module_prod):
     :expectedresults: The repository is added to a content view which
         is then added to a composite content view.
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
-    content_view = entities.ContentView(composite=False, organization=module_org).create()
-    composite_cv = entities.ContentView(composite=True, organization=module_org).create()
-    repo = entities.Repository(
+    content_view = module_target_sat.api.ContentView(
+        composite=False, organization=module_org
+    ).create()
+    composite_cv = module_target_sat.api.ContentView(
+        composite=True, organization=module_org
+    ).create()
+    repo = module_target_sat.api.Repository(
         url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     with session:
@@ -438,7 +423,7 @@ def test_positive_add_docker_repo_to_ccv(session, module_org, module_prod):
 
 
 @pytest.mark.tier2
-def test_positive_add_docker_repos_to_ccv(session, module_org, module_prod):
+def test_positive_add_docker_repos_to_ccv(session, module_target_sat, module_org, module_prod):
     """Add multiple docker repositories to a composite content view.
 
     :id: 30187102-7106-45de-a68b-e32fbaecedb9
@@ -446,21 +431,21 @@ def test_positive_add_docker_repos_to_ccv(session, module_org, module_prod):
     :expectedresults: The repository is added to a random number of content
         views which are then added to a composite content view.
 
-    :CaseLevel: Integration
-
     :CaseImportance: Low
     """
     cvs = []
     for _ in range(randint(2, 3)):
-        repo = entities.Repository(
+        repo = module_target_sat.api.Repository(
             url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
         ).create()
-        content_view = entities.ContentView(
+        content_view = module_target_sat.api.ContentView(
             composite=False, organization=module_org, repository=[repo]
         ).create()
         content_view.publish()
         cvs.append(content_view.name)
-    composite_cv = entities.ContentView(composite=True, organization=module_org).create()
+    composite_cv = module_target_sat.api.ContentView(
+        composite=True, organization=module_org
+    ).create()
     with session:
         for cv in cvs:
             session.contentview.add_cv(composite_cv.name, cv)
@@ -473,7 +458,7 @@ def test_positive_add_docker_repos_to_ccv(session, module_org, module_prod):
 
 
 @pytest.mark.tier2
-def test_positive_publish_with_docker_repo(session, module_org, module_prod):
+def test_positive_publish_with_docker_repo(session, module_target_sat, module_org, module_prod):
     """Add docker repository to content view and publish it once.
 
     :id: 2004b2d4-177b-47de-9e61-bcfb58f05f88
@@ -481,12 +466,12 @@ def test_positive_publish_with_docker_repo(session, module_org, module_prod):
     :expectedresults: The repo is added to a content view which is then
         successfully published.
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
-    content_view = entities.ContentView(composite=False, organization=module_org).create()
-    repo = entities.Repository(
+    content_view = module_target_sat.api.ContentView(
+        composite=False, organization=module_org
+    ).create()
+    repo = module_target_sat.api.Repository(
         url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     with session:
@@ -498,7 +483,9 @@ def test_positive_publish_with_docker_repo(session, module_org, module_prod):
 
 
 @pytest.mark.tier2
-def test_positive_publish_with_docker_repo_composite(session, module_org, module_prod):
+def test_positive_publish_with_docker_repo_composite(
+    session, module_target_sat, module_org, module_prod
+):
     """Add docker repository to composite content view and publish it once.
 
     :id: 7aad525a-a9d3-4100-9611-ca02c6a95a22
@@ -507,18 +494,18 @@ def test_positive_publish_with_docker_repo_composite(session, module_org, module
         which is then published only once and then added to a composite
         content view which is also published only once.
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
-    repo = entities.Repository(
+    repo = module_target_sat.api.Repository(
         url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
-    content_view = entities.ContentView(
+    content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]
     ).create()
     content_view.publish()
-    composite_cv = entities.ContentView(composite=True, organization=module_org).create()
+    composite_cv = module_target_sat.api.ContentView(
+        composite=True, organization=module_org
+    ).create()
     with session:
         session.contentview.add_cv(composite_cv.name, content_view.name)
         result = session.contentview.publish(composite_cv.name)
@@ -528,7 +515,9 @@ def test_positive_publish_with_docker_repo_composite(session, module_org, module
 
 
 @pytest.mark.tier2
-def test_positive_publish_multiple_with_docker_repo(session, module_org, module_prod):
+def test_positive_publish_multiple_with_docker_repo(
+    session, module_target_sat, module_org, module_prod
+):
     """Add docker repository to content view and publish it multiple times.
 
     :id: acc703b7-6e99-48d7-96ce-ea0985409ef9
@@ -536,14 +525,12 @@ def test_positive_publish_multiple_with_docker_repo(session, module_org, module_
     :expectedresults: Content view with docker repo is successfully published
         multiple times.
 
-    :CaseLevel: Integration
-
     :CaseImportance: Low
     """
-    repo = entities.Repository(
+    repo = module_target_sat.api.Repository(
         url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
-    content_view = entities.ContentView(
+    content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]
     ).create()
     with session:
@@ -553,7 +540,9 @@ def test_positive_publish_multiple_with_docker_repo(session, module_org, module_
 
 
 @pytest.mark.tier2
-def test_positive_publish_multiple_with_docker_repo_composite(session, module_org, module_prod):
+def test_positive_publish_multiple_with_docker_repo_composite(
+    session, module_target_sat, module_org, module_prod
+):
     """Add docker repository to composite content view and publish it multiple times.
 
     :id: 07755bff-9071-45e5-b861-77a5c2fed3d9
@@ -561,18 +550,18 @@ def test_positive_publish_multiple_with_docker_repo_composite(session, module_or
     :expectedresults: Composite content view with docker repo is successfully
         published multiple times.
 
-    :CaseLevel: Integration
-
     :CaseImportance: Low
     """
-    repo = entities.Repository(
+    repo = module_target_sat.api.Repository(
         url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
-    content_view = entities.ContentView(
+    content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]
     ).create()
     content_view.publish()
-    composite_cv = entities.ContentView(composite=True, organization=module_org).create()
+    composite_cv = module_target_sat.api.ContentView(
+        composite=True, organization=module_org
+    ).create()
     with session:
         session.contentview.add_cv(composite_cv.name, content_view.name)
         for version in range(randint(2, 5)):
@@ -581,7 +570,7 @@ def test_positive_publish_multiple_with_docker_repo_composite(session, module_or
 
 
 @pytest.mark.tier2
-def test_positive_promote_with_docker_repo(session, module_org, module_prod):
+def test_positive_promote_with_docker_repo(session, module_target_sat, module_org, module_prod):
     """Add docker repository to content view and publish it.
     Then promote it to the next available lifecycle environment.
 
@@ -590,15 +579,13 @@ def test_positive_promote_with_docker_repo(session, module_org, module_prod):
     :expectedresults: Docker repository is promoted to content view
         found in the specific lifecycle-environment.
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
-    lce = entities.LifecycleEnvironment(organization=module_org).create()
-    repo = entities.Repository(
+    lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
+    repo = module_target_sat.api.Repository(
         url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
-    content_view = entities.ContentView(
+    content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]
     ).create()
     content_view.publish()
@@ -609,7 +596,9 @@ def test_positive_promote_with_docker_repo(session, module_org, module_prod):
 
 
 @pytest.mark.tier2
-def test_positive_promote_multiple_with_docker_repo(session, module_org, module_prod):
+def test_positive_promote_multiple_with_docker_repo(
+    session, module_target_sat, module_org, module_prod
+):
     """Add docker repository to content view and publish it.
     Then promote it to multiple available lifecycle-environments.
 
@@ -618,27 +607,27 @@ def test_positive_promote_multiple_with_docker_repo(session, module_org, module_
     :expectedresults: Docker repository is promoted to content view
         found in the specific lifecycle-environments.
 
-    :CaseLevel: Integration
-
     :CaseImportance: Low
     """
-    repo = entities.Repository(
+    repo = module_target_sat.api.Repository(
         url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
-    content_view = entities.ContentView(
+    content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]
     ).create()
     content_view.publish()
     with session:
         for _ in range(randint(2, 3)):
-            lce = entities.LifecycleEnvironment(organization=module_org).create()
+            lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
             result = session.contentview.promote(content_view.name, VERSION, lce.name)
             assert f'Promoted to {lce.name}' in result['Status']
             assert lce.name in result['Environments']
 
 
 @pytest.mark.tier2
-def test_positive_promote_with_docker_repo_composite(session, module_org, module_prod):
+def test_positive_promote_with_docker_repo_composite(
+    session, module_target_sat, module_org, module_prod
+):
     """Add docker repository to composite content view and publish it.
     Then promote it to the next available lifecycle-environment.
 
@@ -647,20 +636,18 @@ def test_positive_promote_with_docker_repo_composite(session, module_org, module
     :expectedresults: Docker repository is promoted to content view
         found in the specific lifecycle-environment.
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
-    lce = entities.LifecycleEnvironment(organization=module_org).create()
-    repo = entities.Repository(
+    lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
+    repo = module_target_sat.api.Repository(
         url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
-    content_view = entities.ContentView(
+    content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]
     ).create()
     content_view.publish()
     content_view = content_view.read()
-    composite_cv = entities.ContentView(
+    composite_cv = module_target_sat.api.ContentView(
         component=[content_view.version[-1]], composite=True, organization=module_org
     ).create()
     composite_cv.publish()
@@ -672,7 +659,9 @@ def test_positive_promote_with_docker_repo_composite(session, module_org, module
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_promote_multiple_with_docker_repo_composite(session, module_org, module_prod):
+def test_positive_promote_multiple_with_docker_repo_composite(
+    session, module_target_sat, module_org, module_prod
+):
     """Add docker repository to composite content view and publish it
     Then promote it to the multiple available lifecycle environments.
 
@@ -681,39 +670,35 @@ def test_positive_promote_multiple_with_docker_repo_composite(session, module_or
     :expectedresults: Docker repository is promoted to content view
         found in the specific lifecycle-environments.
 
-    :CaseLevel: Integration
-
     :CaseImportance: Low
     """
-    repo = entities.Repository(
+    repo = module_target_sat.api.Repository(
         url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
-    content_view = entities.ContentView(
+    content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]
     ).create()
     content_view.publish()
     content_view = content_view.read()
-    composite_cv = entities.ContentView(
+    composite_cv = module_target_sat.api.ContentView(
         component=[content_view.version[-1]], composite=True, organization=module_org
     ).create()
     composite_cv.publish()
     with session:
         for _ in range(randint(2, 3)):
-            lce = entities.LifecycleEnvironment(organization=module_org).create()
+            lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
             result = session.contentview.promote(composite_cv.name, VERSION, lce.name)
             assert f'Promoted to {lce.name}' in result['Status']
             assert lce.name in result['Environments']
 
 
 @pytest.mark.tier2
-def test_negative_add_components_to_non_composite(session):
+def test_negative_add_components_to_non_composite(session, module_target_sat):
     """Attempt to associate components to a non-composite content view
 
     :id: fa3e6aea-7ee3-46a6-a5ba-248de3c20a8f
 
     :expectedresults: User cannot add components to the view
-
-    :CaseLevel: Integration
 
     :CaseImportance: Low
     """
@@ -730,7 +715,7 @@ def test_negative_add_components_to_non_composite(session):
 
 
 @pytest.mark.tier2
-def test_positive_add_unpublished_cv_to_composite(session):
+def test_positive_add_unpublished_cv_to_composite(session, module_target_sat):
     """Attempt to associate unpublished non-composite content view with
     composite content view.
 
@@ -742,8 +727,6 @@ def test_positive_add_unpublished_cv_to_composite(session):
         2. Create a new composite content view
 
     :expectedresults: Non-composite content view is added to composite one
-
-    :CaseLevel: Integration
 
     :CaseImportance: Low
 
@@ -763,7 +746,7 @@ def test_positive_add_unpublished_cv_to_composite(session):
 
 
 @pytest.mark.tier3
-def test_positive_add_non_composite_cv_to_composite(session):
+def test_positive_add_non_composite_cv_to_composite(session, module_target_sat):
     """Attempt to associate both published and unpublished non-composite
     content views with composite content view.
 
@@ -786,8 +769,6 @@ def test_positive_add_non_composite_cv_to_composite(session):
         2. Published non-composite content view is successfully added to
             composite content view.
         3. Composite content view is successfully published
-
-    :CaseLevel: Integration
 
     :BZ: 1367123
 
@@ -824,7 +805,7 @@ def test_positive_add_non_composite_cv_to_composite(session):
 
 
 @pytest.mark.tier3
-def test_positive_check_composite_cv_addition_list_versions(session):
+def test_positive_check_composite_cv_addition_list_versions(session, module_target_sat):
     """Create new content view and publish two times. After that remove
     first content view version from the list and try to add that view to
     composite one. Check what content view version is going to be added
@@ -833,8 +814,6 @@ def test_positive_check_composite_cv_addition_list_versions(session):
 
     :expectedresults: second non-composite content view version should be
         listed as default one to be added to composite view
-
-    :CaseLevel: Integration
 
     :BZ: 1411074
 
@@ -865,15 +844,13 @@ def test_positive_check_composite_cv_addition_list_versions(session):
 
 
 @pytest.mark.tier2
-def test_negative_add_dupe_repos(session, module_org, target_sat):
+def test_negative_add_dupe_repos(session, module_target_sat, module_org, target_sat):
     """attempt to associate the same repo multiple times within a
     content view
 
     :id: 24b98075-fca6-4d80-a778-066193c71e7f
 
     :expectedresults: User cannot add repos multiple times to the view
-
-    :CaseLevel: Integration
 
     :CaseImportance: Low
     """
@@ -892,7 +869,7 @@ def test_negative_add_dupe_repos(session, module_org, target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_publish_with_custom_content(session, module_org, target_sat):
+def test_positive_publish_with_custom_content(session, module_target_sat, module_org, target_sat):
     """Attempt to publish a content view containing custom content
 
     :id: 66b5efc7-2e43-438e-bd80-a754814222f9
@@ -900,8 +877,6 @@ def test_positive_publish_with_custom_content(session, module_org, target_sat):
     :setup: Multiple environments for an org; custom content synced
 
     :expectedresults: Content view can be published
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -921,7 +896,9 @@ def test_positive_publish_with_custom_content(session, module_org, target_sat):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_publish_with_rh_content(session, function_entitlement_manifest_org, target_sat):
+def test_positive_publish_with_rh_content(
+    session, module_target_sat, function_entitlement_manifest_org, target_sat
+):
     """Attempt to publish a content view containing RH content
 
     :id: bd24dc13-b6c4-4a9b-acb2-cd6df30f436c
@@ -929,8 +906,6 @@ def test_positive_publish_with_rh_content(session, function_entitlement_manifest
     :setup: RH content synced
 
     :expectedresults: Content view can be published
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -970,8 +945,6 @@ def test_positive_publish_composite_with_custom_content(
 
     :expectedresults: Composite content view can be published
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     cv1_name = gen_string('alpha')
@@ -982,7 +955,7 @@ def test_positive_publish_composite_with_custom_content(
     custom_repo1_url = settings.repos.yum_0.url
     custom_repo2_url = settings.repos.yum_1.url
     org = function_entitlement_manifest_org
-    product = entities.Product(organization=org).create()
+    product = target_sat.api.Product(organization=org).create()
     rh7_repo = {
         'name': REPOS['rhst7']['name'],
         'product': PRDS['rhel'],
@@ -991,10 +964,10 @@ def test_positive_publish_composite_with_custom_content(
         'releasever': None,
     }
     # Create docker repos and sync
-    docker_repo1 = entities.Repository(
+    docker_repo1 = target_sat.api.Repository(
         url=CONTAINER_REGISTRY_HUB, product=product, content_type=REPO_TYPE['docker']
     ).create()
-    docker_repo2 = entities.Repository(
+    docker_repo2 = target_sat.api.Repository(
         url=CONTAINER_REGISTRY_HUB, product=product, content_type=REPO_TYPE['docker']
     ).create()
     docker_repo1.sync()
@@ -1044,7 +1017,9 @@ def test_positive_publish_composite_with_custom_content(
 
 
 @pytest.mark.tier2
-def test_positive_publish_version_changes_in_target_env(session, module_org, target_sat):
+def test_positive_publish_version_changes_in_target_env(
+    session, module_target_sat, module_org, target_sat
+):
     # Dev notes:
     # If Dev has version x, then when I promote version y into
     # Dev, version x goes away (ie when I promote version 1 to Dev,
@@ -1062,8 +1037,6 @@ def test_positive_publish_version_changes_in_target_env(session, module_org, tar
 
     :expectedresults: Content view version is updated in target environment.
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     cv_name = gen_string('alpha')
@@ -1071,7 +1044,7 @@ def test_positive_publish_version_changes_in_target_env(session, module_org, tar
     versions_count = 3
     versions = (f'Version {ver + 1}.0' for ver in range(versions_count))
     # create environment lifecycle
-    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
     repo_names = [gen_string('alphanumeric') for _ in range(versions_count)]
     # before each content view publishing add a new repository
     for repo_name in repo_names:
@@ -1104,7 +1077,7 @@ def test_positive_publish_version_changes_in_target_env(session, module_org, tar
 
 
 @pytest.mark.tier2
-def test_positive_promote_with_custom_content(session, module_org, target_sat):
+def test_positive_promote_with_custom_content(session, module_target_sat, module_org, target_sat):
     """Attempt to promote a content view containing custom content,
         check dashboard
 
@@ -1114,15 +1087,13 @@ def test_positive_promote_with_custom_content(session, module_org, target_sat):
 
     :expectedresults: Content view can be promoted
 
-    :CaseLevel: Integration
-
     :BZ: 1361793
 
     :CaseImportance: Critical
     """
     repo_name = gen_string('alpha')
     cv_name = gen_string('alpha')
-    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
     target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     with session:
         session.contentview.create({'name': cv_name})
@@ -1142,7 +1113,7 @@ def test_positive_promote_with_custom_content(session, module_org, target_sat):
         assert cv_name in values['content_views'][1]['Content View']
         assert values['content_views'][1]['Task'] == 'Published new version'
         assert 'Success' in values['content_views'][1]['Status']
-        entities.LifecycleEnvironment(id=lce.id).delete()
+        module_target_sat.api.LifecycleEnvironment(id=lce.id).delete()
         values = session.dashboard.search(f'lifecycle_environment={lce.name}')
         assert cv_name in values['ContentViews']['content_views'][0]['Content View']
 
@@ -1150,7 +1121,9 @@ def test_positive_promote_with_custom_content(session, module_org, target_sat):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_promote_with_rh_content(session, function_entitlement_manifest_org, target_sat):
+def test_positive_promote_with_rh_content(
+    session, module_target_sat, function_entitlement_manifest_org, target_sat
+):
     """Attempt to promote a content view containing RH content
 
     :id: 82f71639-3580-49fd-bd5a-8dba568b98d1
@@ -1158,8 +1131,6 @@ def test_positive_promote_with_rh_content(session, function_entitlement_manifest
     :setup: Multiple environments for an org; RH content synced
 
     :expectedresults: Content view can be promoted
-
-    :CaseLevel: System
 
     :CaseImportance: Critical
     """
@@ -1173,7 +1144,7 @@ def test_positive_promote_with_rh_content(session, function_entitlement_manifest
     }
     org = function_entitlement_manifest_org
     target_sat.api_factory.enable_sync_redhat_repo(rh_repo, org.id)
-    lce = entities.LifecycleEnvironment(organization=org).create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
     with session:
         session.organization.select(org.name)
         session.contentview.create({'name': cv_name})
@@ -1202,8 +1173,6 @@ def test_positive_promote_composite_with_custom_content(
 
     :expectedresults: Composite content view can be promoted
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     cv1_name = gen_string('alpha')
@@ -1214,7 +1183,7 @@ def test_positive_promote_composite_with_custom_content(
     custom_repo1_url = settings.repos.yum_0.url
     custom_repo2_url = settings.repos.yum_1.url
     org = function_entitlement_manifest_org
-    product = entities.Product(organization=org).create()
+    product = target_sat.api.Product(organization=org).create()
     rh7_repo = {
         'name': REPOS['rhst7']['name'],
         'product': PRDS['rhel'],
@@ -1223,7 +1192,7 @@ def test_positive_promote_composite_with_custom_content(
         'releasever': None,
     }
     # create a life cycle environment
-    lce = entities.LifecycleEnvironment(organization=org).create()
+    lce = target_sat.api.LifecycleEnvironment(organization=org).create()
     # Enable and sync RH repository
     target_sat.api_factory.enable_sync_redhat_repo(rh7_repo, org.id)
     # Create custom yum repositories
@@ -1233,10 +1202,10 @@ def test_positive_promote_composite_with_custom_content(
     ):
         target_sat.api_factory.create_sync_custom_repo(repo_name=name, repo_url=url, org_id=org.id)
     # Create docker repo and sync
-    docker_repo1 = entities.Repository(
+    docker_repo1 = target_sat.api.Repository(
         url=CONTAINER_REGISTRY_HUB, product=product, content_type=REPO_TYPE['docker']
     ).create()
-    docker_repo2 = entities.Repository(
+    docker_repo2 = target_sat.api.Repository(
         url=CONTAINER_REGISTRY_HUB,
         product=product,
         content_type=REPO_TYPE['docker'],
@@ -1284,7 +1253,9 @@ def test_positive_promote_composite_with_custom_content(
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
-def test_positive_publish_rh_content_with_errata_by_date_filter(session, target_sat):
+def test_positive_publish_rh_content_with_errata_by_date_filter(
+    session, module_target_sat, target_sat
+):
     """Publish a CV, containing only RH repo, having errata excluding by
     date filter
 
@@ -1301,19 +1272,21 @@ def test_positive_publish_rh_content_with_errata_by_date_filter(session, target_
     :CaseImportance: High
     """
     version = 'Version 2.0'
-    org = entities.Organization().create()
-    lce = entities.LifecycleEnvironment(organization=org).create()
+    org = module_target_sat.api.Organization().create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
     repos_collection = target_sat.cli_factory.RepositoryCollection(
         distro='rhel6', repositories=[target_sat.cli_factory.VirtualizationAgentsRepository()]
     )
     repos_collection.setup_content(
         org.id, lce.id, download_policy='immediate', upload_manifest=True
     )
-    cv = entities.ContentView(id=repos_collection.setup_content_data['content_view']['id']).read()
-    cvf = entities.ErratumContentViewFilter(
+    cv = module_target_sat.api.ContentView(
+        id=repos_collection.setup_content_data['content_view']['id']
+    ).read()
+    cvf = module_target_sat.api.ErratumContentViewFilter(
         content_view=cv, inclusion=False, repository=[repos_collection.repos_info[0]['id']]
     ).create()
-    entities.ContentViewFilterRule(
+    module_target_sat.api.ContentViewFilterRule(
         content_view_filter=cvf,
         start_date='2011-01-01',
         types=['security', 'enhancement', 'bugfix'],
@@ -1327,14 +1300,12 @@ def test_positive_publish_rh_content_with_errata_by_date_filter(session, target_
 
 
 @pytest.mark.tier3
-def test_negative_add_same_package_filter_twice(session, module_org, target_sat):
+def test_negative_add_same_package_filter_twice(session, module_target_sat, module_org, target_sat):
     """Update version of package inside exclusive cv package filter
 
     :id: 5a97de5a-679e-4150-adf7-b4a28290b834
 
     :expectedresults: Same package filter can not be added again
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -1366,12 +1337,14 @@ def test_negative_add_same_package_filter_twice(session, module_org, target_sat)
 
 
 @pytest.mark.tier2
-def test_positive_remove_cv_version_from_default_env(session, module_org, target_sat):
+def test_positive_remove_cv_version_from_default_env(
+    session, module_target_sat, module_org, target_sat
+):
     """Remove content view version from Library environment
 
     :id: 43c83c15-c883-45a7-be05-d9b26da99e3c
 
-    :Steps:
+    :steps:
 
         1. Create a content view
         2. Add a yum repo to it
@@ -1380,8 +1353,6 @@ def test_positive_remove_cv_version_from_default_env(session, module_org, target
 
     :expectedresults: content view version is removed from Library
         environment
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -1406,12 +1377,14 @@ def test_positive_remove_cv_version_from_default_env(session, module_org, target
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_remove_promoted_cv_version_from_default_env(session, module_org, target_sat):
+def test_positive_remove_promoted_cv_version_from_default_env(
+    session, module_target_sat, module_org, target_sat
+):
     """Remove promoted content view version from Library environment
 
     :id: a8649444-b063-4fb4-b932-a3fae7d4021d
 
-    :Steps:
+    :steps:
 
         1. Create a content view
         2. Add a yum repos to the content view
@@ -1423,8 +1396,6 @@ def test_positive_remove_promoted_cv_version_from_default_env(session, module_or
 
         1. Content view version exist only in DEV and not in Library
         2. The yum repos exists in content view version
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -1453,12 +1424,14 @@ def test_positive_remove_promoted_cv_version_from_default_env(session, module_or
 
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
-def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module_org, target_sat):
+def test_positive_remove_qe_promoted_cv_version_from_default_env(
+    session, module_target_sat, module_org, target_sat
+):
     """Remove QE promoted content view version from Library environment
 
     :id: 71ad8b72-68c4-4c98-9387-077f54ef0184
 
-    :Steps:
+    :steps:
 
         1. Create a content view
         2. Add docker repo(s) to it
@@ -1470,12 +1443,12 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module
     :expectedresults: Content view version exist only in DEV, QE and not in
         Library
 
-    :CaseLevel: Integration
-
     :CaseImportance: Low
     """
-    dev_lce = entities.LifecycleEnvironment(organization=module_org).create()
-    qe_lce = entities.LifecycleEnvironment(organization=module_org, prior=dev_lce).create()
+    dev_lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
+    qe_lce = module_target_sat.api.LifecycleEnvironment(
+        organization=module_org, prior=dev_lce
+    ).create()
     repo = target_sat.cli_factory.RepositoryCollection(
         repositories=[
             target_sat.cli_factory.DockerRepository(
@@ -1486,7 +1459,7 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module
     repo.setup(module_org.id)
     repo_name = repo.repos_info[0]['name']
     cv, lce = repo.setup_content_view(module_org.id, dev_lce.id)
-    cvv = entities.ContentView(id=cv['id']).read().version[0]
+    cvv = module_target_sat.api.ContentView(id=cv['id']).read().version[0]
     cvv.promote(data={'environment_ids': qe_lce.id})
     with session:
         cv_values = session.contentview.read(cv['name'])
@@ -1523,12 +1496,14 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module
     ],
     indirect=True,
 )
-def test_positive_remove_cv_version_from_env(session, module_org, repos_collection):
+def test_positive_remove_cv_version_from_env(
+    session, module_target_sat, module_org, repos_collection
+):
     """Remove promoted content view version from environment
 
     :id: d1da23ee-a5db-4990-9572-1a0919a9fe1c
 
-    :Steps:
+    :steps:
 
         1. Create a content view
         2. Add a yum repo and a docker repo to the content view
@@ -1541,12 +1516,12 @@ def test_positive_remove_cv_version_from_env(session, module_org, repos_collecti
 
     :expectedresults: Content view version exist in Library, DEV, QE
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
-    dev_lce = entities.LifecycleEnvironment(organization=module_org).create()
-    qe_lce = entities.LifecycleEnvironment(organization=module_org, prior=dev_lce).create()
+    dev_lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
+    qe_lce = module_target_sat.api.LifecycleEnvironment(
+        organization=module_org, prior=dev_lce
+    ).create()
     repos_collection.setup(module_org.id)
     yum_repo_name = [
         repo['name'] for repo in repos_collection.repos_info if repo['content-type'] == 'yum'
@@ -1555,7 +1530,7 @@ def test_positive_remove_cv_version_from_env(session, module_org, repos_collecti
         repo['name'] for repo in repos_collection.repos_info if repo['content-type'] == 'docker'
     ][0]
     cv, lce = repos_collection.setup_content_view(module_org.id, dev_lce.id)
-    cvv = entities.ContentView(id=cv['id']).read().version[0]
+    cvv = module_target_sat.api.ContentView(id=cv['id']).read().version[0]
     cvv.promote(data={'environment_ids': qe_lce.id})
     with session:
         cvv = session.contentview.read_version(cv['name'], VERSION)
@@ -1582,13 +1557,15 @@ def test_positive_remove_cv_version_from_env(session, module_org, repos_collecti
 @pytest.mark.upgrade
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_delete_cv_promoted_to_multi_env(session, module_org, target_sat):
+def test_positive_delete_cv_promoted_to_multi_env(
+    session, module_target_sat, module_org, target_sat
+):
     """Delete published content view with version promoted to multiple
      environments
 
     :id: f16f2db5-7f5b-4ebb-863e-6c18ff745ce4
 
-    :Steps:
+    :steps:
 
         1. Create a content view
         2. Add a yum repo to the content view
@@ -1598,8 +1575,6 @@ def test_positive_delete_cv_promoted_to_multi_env(session, module_org, target_sa
         6. Delete the content view.
 
     :expectedresults: The content view doesn't exists.
-
-    :CaseLevel: Integration
 
     :CaseImportance:High
     """
@@ -1627,14 +1602,12 @@ def test_positive_delete_cv_promoted_to_multi_env(session, module_org, target_sa
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_delete_composite_version(session, module_org, target_sat):
+def test_positive_delete_composite_version(session, module_target_sat, module_org, target_sat):
     """Delete a composite content-view version associated to 'Library'
 
     :id: b2d9b21d-1e0d-40f1-9bbc-3c88cddd4f5e
 
     :expectedresults: Deletion was performed successfully
-
-    :CaseLevel: Integration
 
     :BZ: 1276479
 
@@ -1664,7 +1637,7 @@ def test_positive_delete_composite_version(session, module_org, target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_delete_non_default_version(session, target_sat):
+def test_positive_delete_non_default_version(session, module_target_sat, target_sat):
     """Delete a content-view version associated to non-default
     environment
 
@@ -1672,16 +1645,16 @@ def test_positive_delete_non_default_version(session, target_sat):
 
     :expectedresults: Deletion was performed successfully
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     repo_name = gen_string('alpha')
-    org = entities.Organization().create()
+    org = module_target_sat.api.Organization().create()
     target_sat.api_factory.create_sync_custom_repo(org.id, repo_name=repo_name)
-    repo = entities.Repository(name=repo_name).search(query={'organization_id': org.id})[0]
-    cv = entities.ContentView(organization=org, repository=[repo]).create()
-    lce = entities.LifecycleEnvironment(organization=org).create()
+    repo = module_target_sat.api.Repository(name=repo_name).search(
+        query={'organization_id': org.id}
+    )[0]
+    cv = module_target_sat.api.ContentView(organization=org, repository=[repo]).create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
     with session:
         session.organization.select(org.name)
         # Publish and promote CV to next environment
@@ -1699,24 +1672,22 @@ def test_positive_delete_non_default_version(session, target_sat):
 
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_delete_version_with_ak(session):
+def test_positive_delete_version_with_ak(session, module_target_sat):
     """Delete a content-view version that had associated activation key to it
 
     :id: 0da50b26-f82b-4663-9372-4c39270d4323
 
     :expectedresults: Delete operation was performed successfully
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
-    org = entities.Organization().create()
-    cv = entities.ContentView(organization=org).create()
+    org = module_target_sat.api.Organization().create()
+    cv = module_target_sat.api.ContentView(organization=org).create()
     cv.publish()
     cvv = cv.read().version[0].read()
-    lc_env = entities.LifecycleEnvironment(organization=org).create()
+    lc_env = module_target_sat.api.LifecycleEnvironment(organization=org).create()
     cvv.promote(data={'environment_ids': lc_env.id})
-    ak = entities.ActivationKey(
+    ak = module_target_sat.api.ActivationKey(
         name=gen_string('alphanumeric'), environment=lc_env.id, organization=org, content_view=cv
     ).create()
     with session:
@@ -1737,7 +1708,7 @@ def test_positive_delete_version_with_ak(session):
 
 
 @pytest.mark.tier2
-def test_positive_clone_within_same_env(session, module_org, target_sat):
+def test_positive_clone_within_same_env(session, module_target_sat, module_org, target_sat):
     """attempt to create new content view based on existing
     view within environment
 
@@ -1746,8 +1717,6 @@ def test_positive_clone_within_same_env(session, module_org, target_sat):
     :expectedresults: Content view can be cloned
 
     :BZ: 1461017
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -1769,7 +1738,7 @@ def test_positive_clone_within_same_env(session, module_org, target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_clone_within_diff_env(session, module_org, target_sat):
+def test_positive_clone_within_diff_env(session, module_target_sat, module_org, target_sat):
     """attempt to create new content view based on existing
     view, inside a different environment
 
@@ -1780,17 +1749,17 @@ def test_positive_clone_within_diff_env(session, module_org, target_sat):
 
     :BZ: 1461017
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     repo_name = gen_string('alpha')
     copy_cv_name = gen_string('alpha')
     target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
-    repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
-    cv = entities.ContentView(organization=module_org, repository=[repo]).create()
-    lce = entities.LifecycleEnvironment(organization=module_org).create()
-    copy_lce = entities.LifecycleEnvironment(organization=module_org).create()
+    repo = module_target_sat.api.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id}
+    )[0]
+    cv = module_target_sat.api.ContentView(organization=module_org, repository=[repo]).create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
+    copy_lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
     with session:
         # publish the content view
         result = session.contentview.publish(cv.name)
@@ -1813,19 +1782,17 @@ def test_positive_clone_within_diff_env(session, module_org, target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_remove_filter(session, module_org):
+def test_positive_remove_filter(session, module_target_sat, module_org):
     """Create empty content views filter and remove it
 
     :id: 6c6deae7-13f1-4638-a960-d3565d93fd64
 
     :expectedresults: content views filter removed successfully
 
-    :CaseLevel: Integration
-
     :CaseImportance: Low
     """
     filter_name = gen_string('alpha')
-    cv = entities.ContentView(organization=module_org).create()
+    cv = module_target_sat.api.ContentView(organization=module_org).create()
     with session:
         session.contentviewfilter.create(
             cv.name,
@@ -1841,15 +1808,13 @@ def test_positive_remove_filter(session, module_org):
 
 
 @pytest.mark.tier2
-def test_positive_add_package_filter(session, module_org, target_sat):
+def test_positive_add_package_filter(session, module_target_sat, module_org, target_sat):
     """Add package to content views filter
 
     :id: 1cc8d921-92e5-4b51-8050-a7e775095f97
 
     :expectedresults: content views filter created and selected packages can be
         added for inclusion
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -1862,8 +1827,10 @@ def test_positive_add_package_filter(session, module_org, target_sat):
     filter_name = gen_string('alpha')
     repo_name = gen_string('alpha')
     target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
-    repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
-    cv = entities.ContentView(organization=module_org, repository=[repo]).create()
+    repo = module_target_sat.api.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id}
+    )[0]
+    cv = module_target_sat.api.ContentView(organization=module_org, repository=[repo]).create()
     with session:
         session.contentviewfilter.create(
             cv.name,
@@ -1885,15 +1852,15 @@ def test_positive_add_package_filter(session, module_org, target_sat):
 
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
-def test_positive_add_package_inclusion_filter_and_publish(session, module_org, target_sat):
+def test_positive_add_package_inclusion_filter_and_publish(
+    session, module_target_sat, module_org, target_sat
+):
     """Add package to inclusion content views filter, publish CV and verify
     package was actually filtered
 
     :id: 58c32cb5-1392-478e-807a-9c023d5ca0ea
 
     :expectedresults: Package is included in content view version
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -1902,8 +1869,10 @@ def test_positive_add_package_inclusion_filter_and_publish(session, module_org, 
     package1_name = 'cow'
     package2_name = 'bear'
     target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
-    repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
-    cv = entities.ContentView(organization=module_org, repository=[repo]).create()
+    repo = module_target_sat.api.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id}
+    )[0]
+    cv = module_target_sat.api.ContentView(organization=module_org, repository=[repo]).create()
     with session:
         session.contentviewfilter.create(
             cv.name,
@@ -1931,15 +1900,15 @@ def test_positive_add_package_inclusion_filter_and_publish(session, module_org, 
 
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
-def test_positive_add_package_exclusion_filter_and_publish(session, module_org, target_sat):
+def test_positive_add_package_exclusion_filter_and_publish(
+    session, module_target_sat, module_org, target_sat
+):
     """Add package to exclusion content views filter, publish CV and verify
     package was actually filtered
 
     :id: 304dfb76-a222-48ab-b6de-578a2c81210c
 
     :expectedresults: Package is excluded from content view version
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -1948,8 +1917,10 @@ def test_positive_add_package_exclusion_filter_and_publish(session, module_org, 
     package1_name = 'cow'
     package2_name = 'bear'
     target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
-    repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
-    cv = entities.ContentView(organization=module_org, repository=[repo]).create()
+    repo = module_target_sat.api.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id}
+    )[0]
+    cv = module_target_sat.api.ContentView(organization=module_org, repository=[repo]).create()
     with session:
         session.contentviewfilter.create(
             cv.name,
@@ -1978,15 +1949,15 @@ def test_positive_add_package_exclusion_filter_and_publish(session, module_org, 
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_remove_package_from_exclusion_filter(session, module_org, target_sat):
+def test_positive_remove_package_from_exclusion_filter(
+    session, module_target_sat, module_org, target_sat
+):
     """Remove package from content view exclusion filter
 
     :id: 2f0adc16-2305-4adf-8582-82e6110fa385
 
     :expectedresults: Package was successfully removed from content view
         filter and is present in next published content view version
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -2027,7 +1998,9 @@ def test_positive_remove_package_from_exclusion_filter(session, module_org, targ
 
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
-def test_positive_update_inclusive_filter_package_version(session, module_org, target_sat):
+def test_positive_update_inclusive_filter_package_version(
+    session, module_target_sat, module_org, target_sat
+):
     """Update version of package inside inclusive cv package filter
 
     :id: 8d6801de-ab82-49d6-bdeb-0f6e5c95b906
@@ -2035,16 +2008,16 @@ def test_positive_update_inclusive_filter_package_version(session, module_org, t
     :expectedresults: Version was updated, next content view version contains
         package with updated version
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     filter_name = gen_string('alpha')
     repo_name = gen_string('alpha')
     package_name = 'walrus'
     target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
-    repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
-    cv = entities.ContentView(organization=module_org, repository=[repo]).create()
+    repo = module_target_sat.api.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id}
+    )[0]
+    cv = module_target_sat.api.ContentView(organization=module_org, repository=[repo]).create()
     with session:
         session.contentviewfilter.create(
             cv.name,
@@ -2091,7 +2064,9 @@ def test_positive_update_inclusive_filter_package_version(session, module_org, t
 
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
-def test_positive_update_exclusive_filter_package_version(session, module_org, target_sat):
+def test_positive_update_exclusive_filter_package_version(
+    session, module_target_sat, module_org, target_sat
+):
     """Update version of package inside exclusive cv package filter
 
     :id: a8aa8864-190a-46c3-aeed-4953c8f3f601
@@ -2099,16 +2074,16 @@ def test_positive_update_exclusive_filter_package_version(session, module_org, t
     :expectedresults: Version was updated, next content view version
         contains package with updated version
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     filter_name = gen_string('alpha')
     repo_name = gen_string('alpha')
     package_name = 'walrus'
     target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
-    repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
-    cv = entities.ContentView(organization=module_org, repository=[repo]).create()
+    repo = module_target_sat.api.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id}
+    )[0]
+    cv = module_target_sat.api.ContentView(organization=module_org, repository=[repo]).create()
     with session:
         session.contentviewfilter.create(
             cv.name,
@@ -2156,7 +2131,9 @@ def test_positive_update_exclusive_filter_package_version(session, module_org, t
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_all_security_errata_by_date_range_filter(session, module_org, target_sat):
+def test_positive_add_all_security_errata_by_date_range_filter(
+    session, module_target_sat, module_org, target_sat
+):
     """Create erratum date range filter to include only security errata and
     publish new content view version
 
@@ -2207,7 +2184,7 @@ def test_positive_add_all_security_errata_by_date_range_filter(session, module_o
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
-def test_positive_edit_rh_custom_spin(session, target_sat):
+def test_positive_edit_rh_custom_spin(session, module_target_sat, target_sat):
     """Edit content views for a custom rh spin.  For example, modify a filter.
 
     :id: 05639074-ef6d-4c6b-8ff6-53033821e686
@@ -2215,20 +2192,20 @@ def test_positive_edit_rh_custom_spin(session, target_sat):
     :expectedresults: edited content view save is successful and info is
         updated
 
-    :CaseLevel: System
-
     :CaseImportance: High
     """
     filter_name = gen_string('alpha')
     start_date = datetime.date(2016, 1, 1)
     end_date = datetime.date(2016, 6, 1)
-    org = entities.Organization().create()
-    lce = entities.LifecycleEnvironment(organization=org).create()
+    org = module_target_sat.api.Organization().create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
     repos_collection = target_sat.cli_factory.RepositoryCollection(
         distro='rhel7', repositories=[target_sat.cli_factory.SatelliteToolsRepository()]
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    cv = entities.ContentView(id=repos_collection.setup_content_data['content_view']['id']).read()
+    cv = module_target_sat.api.ContentView(
+        id=repos_collection.setup_content_data['content_view']['id']
+    ).read()
     with session:
         session.organization.select(org.name)
         session.contentviewfilter.create(
@@ -2268,7 +2245,7 @@ def test_positive_edit_rh_custom_spin(session, target_sat):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_promote_with_rh_custom_spin(session, target_sat):
+def test_positive_promote_with_rh_custom_spin(session, module_target_sat, target_sat):
     """attempt to promote a content view containing a custom RH
     spin - i.e., contains filters.
 
@@ -2276,18 +2253,18 @@ def test_positive_promote_with_rh_custom_spin(session, target_sat):
 
     :expectedresults: Content view can be promoted
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     filter_name = gen_string('alpha')
-    org = entities.Organization().create()
-    lce = entities.LifecycleEnvironment(organization=org).create()
+    org = module_target_sat.api.Organization().create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
     repos_collection = target_sat.cli_factory.RepositoryCollection(
         distro='rhel7', repositories=[target_sat.cli_factory.SatelliteToolsRepository()]
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    cv = entities.ContentView(id=repos_collection.setup_content_data['content_view']['id']).read()
+    cv = module_target_sat.api.ContentView(
+        id=repos_collection.setup_content_data['content_view']['id']
+    ).read()
     with session:
         session.organization.select(org.name)
         # add a package exclude filter
@@ -2315,7 +2292,7 @@ def test_positive_promote_with_rh_custom_spin(session, target_sat):
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_all_security_errata_by_id_filter(session, module_org):
+def test_positive_add_all_security_errata_by_id_filter(session, module_target_sat, module_org):
     """Create erratum filter to include only security errata and publish new
     content view version
 
@@ -2331,10 +2308,12 @@ def test_positive_add_all_security_errata_by_id_filter(session, module_org):
     """
     version = 'Version 2.0'
     filter_name = gen_string('alphanumeric')
-    product = entities.Product(organization=module_org).create()
-    repo = entities.Repository(product=product, url=settings.repos.yum_9.url).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
+    repo = module_target_sat.api.Repository(product=product, url=settings.repos.yum_9.url).create()
     repo.sync()
-    content_view = entities.ContentView(organization=module_org, repository=[repo]).create()
+    content_view = module_target_sat.api.ContentView(
+        organization=module_org, repository=[repo]
+    ).create()
     content_view.publish()
     with session:
         session.contentviewfilter.create(
@@ -2360,7 +2339,7 @@ def test_positive_add_all_security_errata_by_id_filter(session, module_org):
 
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
-def test_positive_add_errata_filter(session, module_org, target_sat):
+def test_positive_add_errata_filter(session, module_target_sat, module_org, target_sat):
     """add errata to content views filter
 
     :id: bb9eef30-62c4-435c-9573-9f31210b8d7d
@@ -2368,15 +2347,15 @@ def test_positive_add_errata_filter(session, module_org, target_sat):
     :expectedresults: content views filter created and selected errata-id
         can be added for inclusion/exclusion
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     filter_name = gen_string('alpha')
     repo_name = gen_string('alpha')
     target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
-    repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
-    cv = entities.ContentView(organization=module_org, repository=[repo]).create()
+    repo = module_target_sat.api.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id}
+    )[0]
+    cv = module_target_sat.api.ContentView(organization=module_org, repository=[repo]).create()
     with session:
         session.contentviewfilter.create(
             cv.name,
@@ -2399,15 +2378,13 @@ def test_positive_add_errata_filter(session, module_org, target_sat):
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_module_stream_filter(session, module_org, target_sat):
+def test_positive_add_module_stream_filter(session, module_target_sat, module_org, target_sat):
     """add module stream filter in a content view
 
     :id: 343c543e-5773-4ea4-aff4-27e0ed6be19e
 
     :expectedresults: content views filter created and selected module stream
         can be added for inclusion/exclusion
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -2416,8 +2393,10 @@ def test_positive_add_module_stream_filter(session, module_org, target_sat):
     target_sat.api_factory.create_sync_custom_repo(
         module_org.id, repo_name=repo_name, repo_url=settings.repos.module_stream_1.url
     )
-    repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
-    cv = entities.ContentView(organization=module_org, repository=[repo]).create()
+    repo = module_target_sat.api.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id}
+    )[0]
+    cv = module_target_sat.api.ContentView(organization=module_org, repository=[repo]).create()
     with session:
         session.contentviewfilter.create(
             cv.name,
@@ -2440,7 +2419,7 @@ def test_positive_add_module_stream_filter(session, module_org, target_sat):
 
 
 @pytest.mark.tier3
-def test_positive_add_package_group_filter(session, module_org, target_sat):
+def test_positive_add_package_group_filter(session, module_target_sat, module_org, target_sat):
     """add package group to content views filter
 
     :id: 8c02a432-8b2a-4ba3-9613-7070b2dc2bcb
@@ -2448,16 +2427,16 @@ def test_positive_add_package_group_filter(session, module_org, target_sat):
     :expectedresults: content views filter created and selected package
         groups can be added for inclusion/exclusion
 
-    :CaseLevel: Integration
-
     :CaseImportance: Low
     """
     filter_name = gen_string('alpha')
     repo_name = gen_string('alpha')
     package_group = 'mammals'
     target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
-    repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
-    cv = entities.ContentView(organization=module_org, repository=[repo]).create()
+    repo = module_target_sat.api.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id}
+    )[0]
+    cv = module_target_sat.api.ContentView(organization=module_org, repository=[repo]).create()
     with session:
         session.contentviewfilter.create(
             cv.name,
@@ -2475,7 +2454,7 @@ def test_positive_add_package_group_filter(session, module_org, target_sat):
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_update_filter_affected_repos(session, module_org, target_sat):
+def test_positive_update_filter_affected_repos(session, module_target_sat, module_org, target_sat):
     """Update content view package filter affected repos
 
     :id: 8f095b11-fd63-4a23-9586-a85d6191314f
@@ -2483,8 +2462,6 @@ def test_positive_update_filter_affected_repos(session, module_org, target_sat):
     :expectedresults: Affected repos were updated, after new content view
         version publishing only updated repos are affected by content view
         filter
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -2497,9 +2474,15 @@ def test_positive_update_filter_affected_repos(session, module_org, target_sat):
         module_org.id, repo_name=repo1_name, repo_url=settings.repos.yum_3.url
     )
     target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo2_name)
-    repo1 = entities.Repository(name=repo1_name).search(query={'organization_id': module_org.id})[0]
-    repo2 = entities.Repository(name=repo2_name).search(query={'organization_id': module_org.id})[0]
-    cv = entities.ContentView(organization=module_org, repository=[repo1, repo2]).create()
+    repo1 = module_target_sat.api.Repository(name=repo1_name).search(
+        query={'organization_id': module_org.id}
+    )[0]
+    repo2 = module_target_sat.api.Repository(name=repo2_name).search(
+        query={'organization_id': module_org.id}
+    )[0]
+    cv = module_target_sat.api.ContentView(
+        organization=module_org, repository=[repo1, repo2]
+    ).create()
     with session:
         # create a filter that affects a subset of repos in the cv
         session.contentviewfilter.create(
@@ -2539,7 +2522,7 @@ def test_positive_update_filter_affected_repos(session, module_org, target_sat):
 
 
 @pytest.mark.tier3
-def test_positive_search_composite(session):
+def test_positive_search_composite(session, module_target_sat):
     """Search for content view by its composite property criteria
 
     :id: 214a721b-3993-4251-9b7c-0f6d2446c1d1
@@ -2549,8 +2532,6 @@ def test_positive_search_composite(session):
     :expectedresults: Composite content view is successfully found
 
     :BZ: 1259374
-
-    :CaseLevel: Integration
 
     :CaseImportance: Low
     """
@@ -2563,7 +2544,9 @@ def test_positive_search_composite(session):
 
 
 @pytest.mark.tier3
-def test_positive_publish_with_repo_with_disabled_http(session, module_org, target_sat):
+def test_positive_publish_with_repo_with_disabled_http(
+    session, module_target_sat, module_org, target_sat
+):
     """Attempt to publish content view with repository that set
     'Unprotected' to False
 
@@ -2583,8 +2566,6 @@ def test_positive_publish_with_repo_with_disabled_http(session, module_org, targ
     :expectedresults: Content view is published successfully
 
     :BZ: 1355752
-
-    :CaseLevel: Integration
 
     :CaseImportance: Low
     """
@@ -2631,14 +2612,12 @@ def test_positive_subscribe_system_with_custom_content(
 
     :expectedresults: Systems can be subscribed to content view(s)
 
-    :CaseLevel: Integration
-
     :parametrized: yes
 
     :CaseImportance: High
     """
-    org = entities.Organization().create()
-    lce = entities.LifecycleEnvironment(organization=org).create()
+    org = target_sat.api.Organization().create()
+    lce = target_sat.api.LifecycleEnvironment(organization=org).create()
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     repos_collection.setup_virtual_machine(rhel7_contenthost)
     assert rhel7_contenthost.subscribed
@@ -2667,22 +2646,20 @@ def test_positive_delete_with_kickstart_repo_and_host_group(
 
     :BZ: 1417072
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     hg_name = gen_string('alpha')
     sat_hostname = target_sat.hostname
-    org = entities.Organization().create()
+    org = target_sat.api.Organization().create()
     # Create a new Lifecycle environment
-    lc_env = entities.LifecycleEnvironment(organization=org).create()
+    lc_env = target_sat.api.LifecycleEnvironment(organization=org).create()
     # Create a Product and Kickstart Repository for OS distribution content
-    product = entities.Product(organization=org).create()
-    repo = entities.Repository(product=product, url=settings.repos.rhel7_os).create()
+    product = target_sat.api.Product(organization=org).create()
+    repo = target_sat.api.Repository(product=product, url=settings.repos.rhel7_os).create()
     # Repo sync procedure
     call_entity_method_with_timeout(repo.sync, timeout=3600)
     # Create, Publish and promote CV
-    content_view = entities.ContentView(organization=org).create()
+    content_view = target_sat.api.ContentView(organization=org).create()
     content_view.repository = [repo]
     content_view = content_view.update(['repository'])
     content_view.publish()
@@ -2690,13 +2667,15 @@ def test_positive_delete_with_kickstart_repo_and_host_group(
     content_view.version[0].promote(data={'environment_ids': lc_env.id})
     cv_name = content_view.name
     # Get the Partition table ID
-    ptable = entities.PartitionTable().search(query={'search': f'name="{DEFAULT_PTABLE}"'})[0]
+    ptable = target_sat.api.PartitionTable().search(query={'search': f'name="{DEFAULT_PTABLE}"'})[0]
     # Get the arch ID
     arch = (
-        entities.Architecture().search(query={'search': f'name="{DEFAULT_ARCHITECTURE}"'})[0].read()
+        target_sat.api.Architecture()
+        .search(query={'search': f'name="{DEFAULT_ARCHITECTURE}"'})[0]
+        .read()
     )
     # Get the OS ID
-    os = entities.OperatingSystem().search(
+    os = target_sat.api.OperatingSystem().search(
         query={'search': 'name="RedHat" AND (major="6" OR major="7")'}
     )[0]
     # Update the OS to associate arch and ptable
@@ -2744,14 +2723,12 @@ def test_positive_rh_mixed_content_end_to_end(
     :expectedresults: CV should be published and promoted with RH OSTree and all
         other contents. Then version is removed successfully.
 
-    :CaseLevel: System
-
     :customerscenario: true
 
     :CaseImportance: High
     """
     cv_name = gen_string('alpha')
-    docker_repo = entities.Repository(
+    docker_repo = target_sat.api.Repository(
         url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     rh_st_repo = {
@@ -2763,7 +2740,7 @@ def test_positive_rh_mixed_content_end_to_end(
     }
     target_sat.api_factory.enable_sync_redhat_repo(rh_st_repo, module_entitlement_manifest_org.id)
     docker_repo.sync()
-    lce = entities.LifecycleEnvironment(organization=module_entitlement_manifest_org).create()
+    lce = target_sat.api.LifecycleEnvironment(organization=module_entitlement_manifest_org).create()
     with session:
         session.organization.select(module_org.name)
         session.contentview.create({'name': cv_name})
@@ -2786,7 +2763,7 @@ def test_positive_rh_mixed_content_end_to_end(
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_errata_inc_update_list_package(session, target_sat):
+def test_positive_errata_inc_update_list_package(session, module_target_sat, target_sat):
     """Publish incremental update with a new errata for a custom repo
 
     :BZ: 1489778
@@ -2799,14 +2776,12 @@ def test_positive_errata_inc_update_list_package(session, target_sat):
         in new content view version
 
     :CaseImportance: High
-
-    :CaseLevel: Integration
     """
-    org = entities.Organization().create()
-    product = entities.Product(organization=org).create()
+    org = module_target_sat.api.Organization().create()
+    product = module_target_sat.api.Product(organization=org).create()
     yum_repo_name = gen_string('alpha')
     # Creates custom yum repository
-    yum_repo = entities.Repository(
+    yum_repo = module_target_sat.api.Repository(
         name=yum_repo_name,
         url=settings.repos.yum_1.url,
         content_type=REPO_TYPE['yum'],
@@ -2814,18 +2789,18 @@ def test_positive_errata_inc_update_list_package(session, target_sat):
     ).create()
     product.sync()
     # creating cv, cv filter, and publish cv
-    cv = entities.ContentView(organization=org, repository=[yum_repo]).create()
-    cvf = entities.RPMContentViewFilter(
+    cv = module_target_sat.api.ContentView(organization=org, repository=[yum_repo]).create()
+    cvf = module_target_sat.api.RPMContentViewFilter(
         content_view=cv, inclusion=True, name=gen_string('alphanumeric')
     ).create()
-    entities.ContentViewFilterRule(
+    module_target_sat.api.ContentViewFilterRule(
         content_view_filter=cvf,
         name='walrus',
         version='0.71',
     ).create()
     cv.publish()
     # Get published content-view version info
-    cvvs = entities.ContentView(id=cv.id).read().version
+    cvvs = module_target_sat.api.ContentView(id=cv.id).read().version
     assert len(cvvs) == 1
     cvv = cvvs[0].read()
     result = ContentView.version_incremental_update(
@@ -2834,7 +2809,7 @@ def test_positive_errata_inc_update_list_package(session, target_sat):
     result = [line.strip() for line_dict in result for line in line_dict.values()]
     with session:
         session.organization.select(org.name)
-        cvv = entities.ContentView(id=cv.id).read().version[1].read()
+        cvv = module_target_sat.api.ContentView(id=cv.id).read().version[1].read()
         version = session.contentview.read_version(cv.name, f'Version {cvv.version}')
         errata = version['errata']['table']
         assert len(errata) == 1
@@ -2848,7 +2823,9 @@ def test_positive_errata_inc_update_list_package(session, target_sat):
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_sat):
+def test_positive_composite_child_inc_update(
+    session, module_target_sat, rhel7_contenthost, target_sat
+):
     """Incremental update with a new errata on a child content view should
     trigger incremental update of parent composite content view
 
@@ -2858,7 +2835,7 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
 
         1. Create a custom repo with filters that excludes the updated package
         2. Create content view with custom repo publish and
@@ -2887,15 +2864,13 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_
     :CaseImportance: Medium
 
     :parametrized: yes
-
-    :CaseLevel: Integration
     """
-    org = entities.Organization().create()
-    lce = entities.LifecycleEnvironment(organization=org).create()
-    product = entities.Product(organization=org).create()
+    org = module_target_sat.api.Organization().create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
+    product = module_target_sat.api.Product(organization=org).create()
     yum_repo_name = gen_string('alpha')
     # Creates custom yum repository
-    yum_repo = entities.Repository(
+    yum_repo = module_target_sat.api.Repository(
         name=yum_repo_name,
         url=settings.repos.yum_1.url,
         content_type=REPO_TYPE['yum'],
@@ -2903,17 +2878,17 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_
     ).create()
     product.sync()
     # creating cv, cv filter, and publish cv
-    cv = entities.ContentView(organization=org, repository=[yum_repo]).create()
-    cvf = entities.RPMContentViewFilter(
+    cv = module_target_sat.api.ContentView(organization=org, repository=[yum_repo]).create()
+    cvf = module_target_sat.api.RPMContentViewFilter(
         content_view=cv, inclusion=False, name=gen_string('alphanumeric')
     ).create()
-    entities.ContentViewFilterRule(
+    module_target_sat.api.ContentViewFilterRule(
         content_view_filter=cvf,
         name='walrus',
         version='5.21',
     ).create()
     cv.publish()
-    cvv = entities.ContentView(id=cv.id).read().version[0]
+    cvv = module_target_sat.api.ContentView(id=cv.id).read().version[0]
     cvv.promote(data={'environment_ids': lce.id})
     # Setup tools repo and add it to ak
     repos_collection = target_sat.cli_factory.RepositoryCollection(
@@ -2930,10 +2905,10 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_
     result = target_sat.execute(command)
     assert result.status == 0
     # Create composite cv
-    composite_cv = entities.ContentView(composite=True, organization=org).create()
+    composite_cv = module_target_sat.api.ContentView(composite=True, organization=org).create()
     # Adds all repos to composite cv
     composite_cv.component = [
-        entities.ContentView(id=content_data['content_view']['id']).read().version[0],
+        module_target_sat.api.ContentView(id=content_data['content_view']['id']).read().version[0],
         cvv,
     ]
     composite_cv = composite_cv.update(['component'])
@@ -2941,7 +2916,7 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_
     composite_cv.publish()
     composite_cv.read().version[0].promote(data={'environment_ids': lce.id})
     # Update AK to use composite cv
-    entities.ActivationKey(
+    module_target_sat.api.ActivationKey(
         id=content_data['activation_key']['id'], content_view=composite_cv
     ).update(['content_view'])
     repos_collection.setup_virtual_machine(rhel7_contenthost)
@@ -2967,7 +2942,7 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_module_stream_end_to_end(session, module_org, target_sat):
+def test_positive_module_stream_end_to_end(session, module_target_sat, module_org, target_sat):
     """Create content view with custom module_stream contents, publish and promote it
     to Library +1 env. Then disassociate repository from that content view
 
@@ -2981,8 +2956,6 @@ def test_positive_module_stream_end_to_end(session, module_org, target_sat):
 
     :expectedresults: Content view works properly with module_streams and
         count shown should be correct
-
-    :CaseLevel: Integration
 
     :CaseImportance: Medium
     """
@@ -3017,15 +2990,15 @@ def test_positive_module_stream_end_to_end(session, module_org, target_sat):
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_search_module_streams_in_content_view(session, module_org, target_sat):
+def test_positive_search_module_streams_in_content_view(
+    session, module_target_sat, module_org, target_sat
+):
     """Search module streams in content view version
 
     :id: 7f5273ff-e80f-459d-adf4-b517b6d60fdc
 
     :expectedresults: Searching for module streams should work inside content
         view version
-
-    :CaseLevel: Integration
 
     :CaseImportance: Low
     """
@@ -3034,8 +3007,10 @@ def test_positive_search_module_streams_in_content_view(session, module_org, tar
     target_sat.api_factory.create_sync_custom_repo(
         module_org.id, repo_name=repo_name, repo_url=settings.repos.module_stream_1.url
     )
-    repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
-    cv = entities.ContentView(organization=module_org, repository=[repo]).create()
+    repo = module_target_sat.api.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id}
+    )[0]
+    cv = module_target_sat.api.ContentView(organization=module_org, repository=[repo]).create()
     with session:
         result = session.contentview.publish(cv.name)
         assert result['Version'] == VERSION
@@ -3051,7 +3026,9 @@ def test_positive_search_module_streams_in_content_view(session, module_org, tar
 
 
 @pytest.mark.tier2
-def test_positive_non_admin_user_actions(session, module_org, test_name, target_sat):
+def test_positive_non_admin_user_actions(
+    session, module_target_sat, module_org, test_name, target_sat
+):
     """Attempt to manage content views
 
     :id: c4d270fc-a3e6-4ae2-a338-41d864a5622a
@@ -3069,8 +3046,6 @@ def test_positive_non_admin_user_actions(session, module_org, test_name, target_
 
     :BZ: 1461017
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     # note: the user to be created should not have permissions to access
@@ -3081,9 +3056,9 @@ def test_positive_non_admin_user_actions(session, module_org, test_name, target_
     cv_copy_name = gen_string('alpha')
     user_login = gen_string('alpha')
     user_password = gen_string('alphanumeric')
-    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
     # create a role with all content views permissions
-    role = entities.Role().create()
+    role = module_target_sat.api.Role().create()
     target_sat.api_factory.create_role_permissions(
         role, {'Katello::ContentView': PERMISSIONS['Katello::ContentView']}
     )
@@ -3098,7 +3073,7 @@ def test_positive_non_admin_user_actions(session, module_org, test_name, target_
         search=f'name = {ENVIRONMENT} or name = {lce.name}',
     )
     # create a user and assign the above created role
-    entities.User(
+    module_target_sat.api.User(
         default_organization=module_org,
         organization=[module_org],
         role=[role],
@@ -3116,7 +3091,7 @@ def test_positive_non_admin_user_actions(session, module_org, test_name, target_
         session.contentview.copy(cv_name, cv_copy_name)
         assert session.contentview.search(cv_copy_name)[0]['Name'] == cv_copy_name
     # login as the user created above
-    with Session(test_name, user=user_login, password=user_password) as session:
+    with target_sat.ui_session(test_name, user=user_login, password=user_password) as session:
         with pytest.raises(NavigationTriesExceeded):
             session.organization.create({'name': gen_string('alpha'), 'label': gen_string('alpha')})
         # assert the user can view all the content views created
@@ -3160,20 +3135,18 @@ def test_positive_readonly_user_actions(module_org, test_name, target_sat):
     :expectedresults: User with read-only role for content view can view
         the repository in the content view
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     user_login = gen_string('alpha')
     user_password = gen_string('alphanumeric')
     # create a role with content views read only permissions
-    role = entities.Role().create()
+    role = target_sat.api.Role().create()
     target_sat.api_factory.create_role_permissions(
         role, {'Katello::ContentView': ['view_content_views']}
     )
     target_sat.api_factory.create_role_permissions(role, {'Katello::Product': ['view_products']})
     # create a user and assign the above created role
-    entities.User(
+    target_sat.api.User(
         default_organization=module_org,
         organization=[module_org],
         role=[role],
@@ -3181,11 +3154,11 @@ def test_positive_readonly_user_actions(module_org, test_name, target_sat):
         password=user_password,
     ).create()
     repo_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
-    yum_repo = entities.Repository(id=repo_id).read()
-    cv = entities.ContentView(organization=module_org, repository=[yum_repo]).create()
+    yum_repo = target_sat.api.Repository(id=repo_id).read()
+    cv = target_sat.api.ContentView(organization=module_org, repository=[yum_repo]).create()
     cv.publish()
     # login as the user created above
-    with Session(test_name, user=user_login, password=user_password) as session:
+    with target_sat.ui_session(test_name, user=user_login, password=user_password) as session:
         with pytest.raises(NavigationTriesExceeded):
             session.location.create({'name': gen_string('alpha'), 'label': gen_string('alpha')})
         assert session.contentview.search(cv.name)[0]['Name'] == cv.name
@@ -3196,7 +3169,9 @@ def test_positive_readonly_user_actions(module_org, test_name, target_sat):
 
 
 @pytest.mark.tier2
-def test_negative_read_only_user_actions(session, module_org, test_name, target_sat):
+def test_negative_read_only_user_actions(
+    session, module_target_sat, module_org, test_name, target_sat
+):
     """Attempt to manage content views
 
     :id: aae6eede-b40e-4e06-a5f7-59d9251aa35d
@@ -3214,8 +3189,6 @@ def test_negative_read_only_user_actions(session, module_org, test_name, target_
 
     :BZ: 1922134
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     # create a content view read only user with lifecycle environment
@@ -3223,9 +3196,9 @@ def test_negative_read_only_user_actions(session, module_org, test_name, target_
     # promote_or_remove_content_views_to_environments
     user_login = gen_string('alpha')
     user_password = gen_string('alphanumeric')
-    lce = entities.LifecycleEnvironment(organization=module_org).create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
     # create a role with content views read only permissions
-    role = entities.Role().create()
+    role = module_target_sat.api.Role().create()
     target_sat.api_factory.create_role_permissions(
         role, {'Katello::ContentView': ['view_content_views']}
     )
@@ -3240,7 +3213,7 @@ def test_negative_read_only_user_actions(session, module_org, test_name, target_
         search=f'name = {ENVIRONMENT} or name = {lce.name}',
     )
     # create a user and assign the above created role
-    entities.User(
+    module_target_sat.api.User(
         default_organization=module_org,
         organization=[module_org],
         role=[role],
@@ -3248,11 +3221,13 @@ def test_negative_read_only_user_actions(session, module_org, test_name, target_
         password=user_password,
     ).create()
     repo_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
-    yum_repo = entities.Repository(id=repo_id).read()
+    yum_repo = module_target_sat.api.Repository(id=repo_id).read()
     repo_name = 'fakerepo01'
-    cv = entities.ContentView(organization=module_org, repository=[yum_repo]).create()
+    cv = module_target_sat.api.ContentView(organization=module_org, repository=[yum_repo]).create()
     # login as the user created above
-    with Session(test_name, user=user_login, password=user_password) as custom_session:
+    with target_sat.ui_session(
+        test_name, user=user_login, password=user_password
+    ) as custom_session:
         with pytest.raises(NavigationTriesExceeded):
             custom_session.location.create(
                 {'name': gen_string('alpha'), 'label': gen_string('alpha')}
@@ -3268,7 +3243,7 @@ def test_negative_read_only_user_actions(session, module_org, test_name, target_
     with session:
         result = session.contentview.publish(cv.name)
         assert result['Version'] == VERSION
-    with Session(test_name, user=user_login, password=user_password) as session:
+    with target_sat.ui_session(test_name, user=user_login, password=user_password) as session:
         # Cannot create content view
         with pytest.raises(NoSuchElementException) as context:
             session.contentview.create({'name': gen_string('alpha')})
@@ -3318,17 +3293,15 @@ def test_negative_non_readonly_user_actions(module_org, test_name, target_sat):
 
     :expectedresults: the user cannot access content views web resources
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     user_login = gen_string('alpha')
     user_password = gen_string('alphanumeric')
     # create a role with all content views permissions except
     # view_content_views
-    lce = entities.LifecycleEnvironment(organization=module_org).create()
-    cv = entities.ContentView(organization=module_org).create()
-    role = entities.Role().create()
+    lce = target_sat.api.LifecycleEnvironment(organization=module_org).create()
+    cv = target_sat.api.ContentView(organization=module_org).create()
+    role = target_sat.api.Role().create()
     target_sat.api_factory.create_role_permissions(
         role,
         {
@@ -3352,7 +3325,7 @@ def test_negative_non_readonly_user_actions(module_org, test_name, target_sat):
         search=f'name = {ENVIRONMENT} or name = {lce.name}',
     )
     # create a user and assign the above created role
-    entities.User(
+    target_sat.api.User(
         default_organization=module_org,
         organization=[module_org],
         role=[role],
@@ -3360,7 +3333,7 @@ def test_negative_non_readonly_user_actions(module_org, test_name, target_sat):
         password=user_password,
     ).create()
     # login as the user created above
-    with Session(test_name, user=user_login, password=user_password) as session:
+    with target_sat.ui_session(test_name, user=user_login, password=user_password) as session:
         with pytest.raises(NavigationTriesExceeded):
             session.user.create(
                 {
@@ -3378,7 +3351,9 @@ def test_negative_non_readonly_user_actions(module_org, test_name, target_sat):
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_conservative_solve_dependencies(session, module_org, target_sat):
+def test_positive_conservative_solve_dependencies(
+    session, module_target_sat, module_org, target_sat
+):
     """Performing solve dependencies on a package that is required by another
     package.  Then performing solve dependencies on a root package with
     its corresponding dependency.
@@ -3527,7 +3502,7 @@ def test_positive_conservative_dep_solving_with_multiversion_packages(
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_depsolve_with_module_errata(session, module_org, target_sat):
+def test_positive_depsolve_with_module_errata(session, module_target_sat, module_org, target_sat):
     """Allowing users to filter module streams in content views.  This test case does not test
     against RHEL8 repos because it is known that RHEL8 filtering with depsolving creates
     inconsistent results.  The custom repo used in this test case has consistent results based
@@ -3604,7 +3579,7 @@ def test_positive_depsolve_with_module_errata(session, module_org, target_sat):
 
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier2
-def test_positive_filter_by_pkg_group_name(session, module_org, target_sat):
+def test_positive_filter_by_pkg_group_name(session, module_target_sat, module_org, target_sat):
     """Publish a filtered version of a Content View, filtering on the package group's name.
 
     :id: c7021f46-0168-44f7-a863-4aa34533efdb
@@ -3645,7 +3620,7 @@ def test_positive_filter_by_pkg_group_name(session, module_org, target_sat):
 
 @pytest.mark.skip_if_open('BZ:2086957')
 @pytest.mark.tier3
-def test_positive_inc_update_should_not_fail(session, module_org):
+def test_positive_inc_update_should_not_fail(session, module_target_sat, module_org):
     """Incremental update after removing a package should not give a 400 error code
 
     :BZ: 2041497
@@ -3666,10 +3641,10 @@ def test_positive_inc_update_should_not_fail(session, module_org):
     :CaseImportance: High
     """
     package1_name = 'bear'
-    product = entities.Product(organization=module_org).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
     yum_repo_name = gen_string('alpha')
     # Creates custom yum repository
-    yum_repo = entities.Repository(
+    yum_repo = module_target_sat.api.Repository(
         name=yum_repo_name,
         url=settings.repos.yum_1.url,
         content_type=REPO_TYPE['yum'],
@@ -3680,9 +3655,9 @@ def test_positive_inc_update_should_not_fail(session, module_org):
     package_id = yum_repo.packages()['results'][0]['id']
     yum_repo.remove_content(data={'ids': [package_id]})
     assert yum_repo.packages()['total'] == 31
-    cv = entities.ContentView(organization=module_org, repository=[yum_repo]).create()
+    cv = module_target_sat.api.ContentView(organization=module_org, repository=[yum_repo]).create()
     cv.publish()
-    cvvs = entities.ContentView(id=cv.id).read().version
+    cvvs = module_target_sat.api.ContentView(id=cv.id).read().version
     assert len(cvvs) == 1
     yum_repo.sync()
     assert yum_repo.packages()['total'] == 32
@@ -3693,7 +3668,7 @@ def test_positive_inc_update_should_not_fail(session, module_org):
     result = [line.strip() for line_dict in result for line in line_dict.values()]
     assert result[2] == FAKE_0_CUSTOM_PACKAGE
     with session:
-        cvv = entities.ContentView(id=cv.id).read().version[1].read()
+        cvv = module_target_sat.api.ContentView(id=cv.id).read().version[1].read()
         assert cvv.version == '1.1'
         packages = session.contentview.search_version_package(
             cv.name, 'Version 1.1', f'name= "{package1_name}"'
@@ -3714,7 +3689,7 @@ def test_positive_no_duplicate_key_violate_unique_constraint_using_filters(
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
         1. Sync rhel tools 6.10 repo
         2. Create cv and add rhel repo
         3. Create include package filter for 'foreman-cli' and 'katello-agent'
@@ -3739,8 +3714,6 @@ def test_positive_no_duplicate_key_violate_unique_constraint_using_filters(
             katello-host-tools-fact-plugin
 
     :CaseImportance: Medium
-
-    :CaseLevel: Integration
     """
     cv = gen_string('alpha')
     filter_name = gen_string('alpha')
@@ -3822,7 +3795,7 @@ def test_positive_no_duplicate_key_violate_unique_constraint_using_filters(
 
 
 @pytest.mark.tier2
-def test_positive_inc_publish_cv(session, module_org):
+def test_positive_inc_publish_cv(session, module_target_sat, module_org):
     """Ensure that the content count gets updated when doing incremental update
 
     :BZ: 2032098
@@ -3843,17 +3816,17 @@ def test_positive_inc_publish_cv(session, module_org):
     :CaseImportance: High
     """
     package_name = 'bear'
-    product = entities.Product(organization=module_org).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
     yum_repo_name = gen_string('alpha')
     filter_name = gen_string('alpha')
-    yum_repo = entities.Repository(
+    yum_repo = module_target_sat.api.Repository(
         name=yum_repo_name,
         url=settings.repos.yum_1.url,
         content_type=REPO_TYPE['yum'],
         product=product,
     ).create()
     yum_repo.sync()
-    cv = entities.ContentView(organization=module_org, repository=[yum_repo]).create()
+    cv = module_target_sat.api.ContentView(organization=module_org, repository=[yum_repo]).create()
     with session:
         session.contentviewfilter.create(
             cv.name,
@@ -3867,10 +3840,10 @@ def test_positive_inc_publish_cv(session, module_org):
             cv.name, filter_name, package_name, None, ('Equal To', '4.1-1')
         )
         session.contentview.publish(cv.name)
-        cvv = entities.ContentView(id=cv.id).read().version[0].read()
+        cvv = module_target_sat.api.ContentView(id=cv.id).read().version[0].read()
         assert cvv.package_count == 31
         ContentView.version_incremental_update(
             {'content-view-version-id': cvv.id, 'errata-ids': settings.repos.yum_1.errata[0]}
         )
-        cvv = entities.ContentView(id=cv.id).read().version[1].read()
+        cvv = module_target_sat.api.ContentView(id=cv.id).read().version[1].read()
         assert cvv.package_count == 32

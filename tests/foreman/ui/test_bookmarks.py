@@ -4,22 +4,15 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Search
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from airgun.exceptions import NoSuchElementException
-from airgun.session import Session
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 
 from robottelo.config import user_nailgun_config
@@ -71,8 +64,6 @@ def test_positive_end_to_end(session, ui_entity):
 
     :expectedresults: All expected CRUD actions finished successfully
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     name = gen_string('alpha')
@@ -98,14 +89,16 @@ def test_positive_end_to_end(session, ui_entity):
 
 
 @pytest.mark.tier2
-def test_positive_create_bookmark_public(session, ui_entity, default_viewer_role, test_name):
+def test_positive_create_bookmark_public(
+    session, ui_entity, default_viewer_role, test_name, module_target_sat
+):
     """Create and check visibility of the (non)public bookmarks
 
     :id: 93139529-7690-429b-83fe-3dcbac4f91dc
 
     :Setup: Create a non-admin user with 'viewer' role
 
-    :Steps:
+    :steps:
 
         1. Navigate to the entity page
         2. Choose "bookmark this search" from the search drop-down menu
@@ -120,8 +113,6 @@ def test_positive_create_bookmark_public(session, ui_entity, default_viewer_role
 
     :expectedresults: No errors, public bookmarks is displayed for all users,
         non-public bookmark is displayed for creator but not for different user
-
-    :CaseLevel: Integration
     """
     public_name = gen_string('alphanumeric')
     nonpublic_name = gen_string('alphanumeric')
@@ -132,7 +123,9 @@ def test_positive_create_bookmark_public(session, ui_entity, default_viewer_role
                 {'name': name, 'query': gen_string('alphanumeric'), 'public': name == public_name}
             )
             assert any(d['Name'] == name for d in session.bookmark.search(name))
-    with Session(test_name, default_viewer_role.login, default_viewer_role.password) as session:
+    with module_target_sat.ui_session(
+        test_name, default_viewer_role.login, default_viewer_role.password
+    ) as session:
         assert any(d['Name'] == public_name for d in session.bookmark.search(public_name))
         assert not session.bookmark.search(nonpublic_name)
 
@@ -151,7 +144,7 @@ def test_positive_update_bookmark_public(
            public and one private
         2. Create a non-admin user with 'viewer' role
 
-    :Steps:
+    :steps:
 
         1. Login to Satellite server (establish a UI session) as the
            pre-created user
@@ -177,8 +170,6 @@ def test_positive_update_bookmark_public(
     :expectedresults: New public bookmark is listed, and the private one is
         hidden
 
-    :CaseLevel: Integration
-
     :BZ: 2141187
 
     :customerscenario: true
@@ -193,7 +184,7 @@ def test_positive_update_bookmark_public(
             controller=ui_entity['controller'],
             public=name == public_name,
         ).create()
-    with Session(
+    with target_sat.ui_session(
         test_name, default_viewer_role.login, default_viewer_role.password
     ) as non_admin_session:
         assert any(d['Name'] == public_name for d in non_admin_session.bookmark.search(public_name))
@@ -201,7 +192,7 @@ def test_positive_update_bookmark_public(
     with session:
         session.bookmark.update(public_name, {'public': False})
         session.bookmark.update(nonpublic_name, {'public': True})
-    with Session(
+    with target_sat.ui_session(
         test_name, default_viewer_role.login, default_viewer_role.password
     ) as non_admin_session:
         assert any(
@@ -211,7 +202,7 @@ def test_positive_update_bookmark_public(
 
 
 @pytest.mark.tier2
-def test_negative_delete_bookmark(ui_entity, default_viewer_role, test_name):
+def test_negative_delete_bookmark(ui_entity, default_viewer_role, test_name, module_target_sat):
     """Simple removal of a bookmark query without permissions
 
     :id: 1a94bf2b-bcc6-4663-b70d-e13244a0783b
@@ -222,18 +213,18 @@ def test_negative_delete_bookmark(ui_entity, default_viewer_role, test_name):
         2. Create a non-admin user without destroy_bookmark role (e.g.
            viewer)
 
-    :Steps:
+    :steps:
 
         1. Login to Satellite server (establish a UI session) as a
            non-admin user
         2. List the bookmarks (Navigate to Administer -> Bookmarks)
 
     :expectedresults: The delete buttons are not displayed
-
-    :CaseLevel: Integration
     """
-    bookmark = entities.Bookmark(controller=ui_entity['controller'], public=True).create()
-    with Session(
+    bookmark = module_target_sat.api.Bookmark(
+        controller=ui_entity['controller'], public=True
+    ).create()
+    with module_target_sat.ui_session(
         test_name, default_viewer_role.login, default_viewer_role.password
     ) as non_admin_session:
         assert non_admin_session.bookmark.search(bookmark.name)[0]['Name'] == bookmark.name
@@ -243,7 +234,7 @@ def test_negative_delete_bookmark(ui_entity, default_viewer_role, test_name):
 
 
 @pytest.mark.tier2
-def test_negative_create_with_duplicate_name(session, ui_entity):
+def test_negative_create_with_duplicate_name(session, ui_entity, module_target_sat):
     """Create bookmark with duplicate name
 
     :id: 18168c9c-bdd1-4839-a506-cf9b06c4ab44
@@ -252,18 +243,18 @@ def test_negative_create_with_duplicate_name(session, ui_entity):
 
         1. Create a bookmark of a random name with random query.
 
-    :Steps:
+    :steps:
 
         1. Create new bookmark with duplicate name.
 
     :expectedresults: Bookmark can't be created, submit button is disabled
 
     :BZ: 1920566, 1992652
-
-    :CaseLevel: Integration
     """
     query = gen_string('alphanumeric')
-    bookmark = entities.Bookmark(controller=ui_entity['controller'], public=True).create()
+    bookmark = module_target_sat.api.Bookmark(
+        controller=ui_entity['controller'], public=True
+    ).create()
     with session:
         existing_bookmark = session.bookmark.search(bookmark.name)[0]
         assert existing_bookmark['Name'] == bookmark.name

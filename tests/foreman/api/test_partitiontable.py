@@ -8,17 +8,12 @@ http://theforeman.org/api/apidoc/v2/ptables.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Hosts
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import random
 
@@ -66,6 +61,7 @@ class TestPartitionTable:
                 zip(
                     generate_strings_list(length=gen_integer(4, 30)),
                     generate_strings_list(length=gen_integer(4, 30)),
+                    strict=True,
                 )
             )
         ),
@@ -95,7 +91,8 @@ class TestPartitionTable:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
-        ('layout', 'new_layout'), **parametrized(list(zip(valid_data_list(), valid_data_list())))
+        ('layout', 'new_layout'),
+        **parametrized(list(zip(valid_data_list(), valid_data_list(), strict=True))),
     )
     def test_positive_create_update_with_layout(self, target_sat, layout, new_layout):
         """Create new and update partition tables using different inputs as a

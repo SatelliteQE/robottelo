@@ -4,22 +4,15 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: UsersRoles
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import random
 
-from airgun.session import Session
-from nailgun import entities
 from navmazing import NavigationTriesExceeded
 import pytest
 
@@ -30,14 +23,12 @@ from robottelo.utils.datafactory import gen_string
 @pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_location):
+def test_positive_end_to_end(session, module_org, module_location, module_target_sat):
     """Perform end to end testing for role component
 
     :id: 3284016a-e2df-4a0e-aa24-c95ab132eec1
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :customerscenario: true
 
@@ -52,8 +43,8 @@ def test_positive_end_to_end(session, module_org, module_location):
     cloned_role_name = gen_string('alpha')
     new_role_name = gen_string('alpha')
     new_role_description = gen_string('alpha')
-    new_org = entities.Organization().create()
-    new_loc = entities.Location(organization=[new_org]).create()
+    new_org = module_target_sat.api.Organization().create()
+    new_loc = module_target_sat.api.Location(organization=[new_org]).create()
     with session:
         session.role.create(
             {
@@ -163,7 +154,9 @@ def test_positive_delete_cloned_builtin(session):
 
 
 @pytest.mark.tier2
-def test_positive_create_filter_without_override(session, module_org, module_location, test_name):
+def test_positive_create_filter_without_override(
+    session, module_org, module_location, test_name, module_target_sat
+):
     """Create filter in role w/o overriding it
 
     :id: a7f76f6e-6c13-4b34-b38c-19501b65786f
@@ -185,7 +178,7 @@ def test_positive_create_filter_without_override(session, module_org, module_loc
     role_name = gen_string('alpha')
     username = gen_string('alpha')
     password = gen_string('alpha')
-    subnet = entities.Subnet()
+    subnet = module_target_sat.api.Subnet()
     subnet.create_missing()
     subnet_name = subnet.name
     with session:
@@ -229,7 +222,7 @@ def test_positive_create_filter_without_override(session, module_org, module_loc
                 'locations.resources.assigned': [module_location.name],
             }
         )
-    with Session(test_name, user=username, password=password) as session:
+    with module_target_sat.ui_session(test_name, user=username, password=password) as session:
         session.subnet.create(
             {
                 'subnet.name': subnet_name,
@@ -246,7 +239,9 @@ def test_positive_create_filter_without_override(session, module_org, module_loc
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_create_non_overridable_filter(session, module_org, module_location, test_name):
+def test_positive_create_non_overridable_filter(
+    session, module_org, module_location, test_name, module_target_sat
+):
     """Create non overridden filter in role
 
     :id: 5ee281cf-28fa-439d-888d-b1f9aacc6d57
@@ -269,9 +264,9 @@ def test_positive_create_non_overridable_filter(session, module_org, module_loca
     username = gen_string('alpha')
     password = gen_string('alpha')
     new_name = gen_string('alpha')
-    user_org = entities.Organization().create()
-    user_loc = entities.Location().create()
-    arch = entities.Architecture().create()
+    user_org = module_target_sat.api.Organization().create()
+    user_loc = module_target_sat.api.Location().create()
+    arch = module_target_sat.api.Architecture().create()
     with session:
         session.role.create(
             {
@@ -300,7 +295,7 @@ def test_positive_create_non_overridable_filter(session, module_org, module_loca
                 'locations.resources.assigned': [user_loc.name],
             }
         )
-    with Session(test_name, user=username, password=password) as session:
+    with module_target_sat.ui_session(test_name, user=username, password=password) as session:
         session.architecture.update(arch.name, {'name': new_name})
         assert session.architecture.search(new_name)[0]['Name'] == new_name
         with pytest.raises(NavigationTriesExceeded):
@@ -309,7 +304,9 @@ def test_positive_create_non_overridable_filter(session, module_org, module_loca
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_create_overridable_filter(session, module_org, module_location, test_name):
+def test_positive_create_overridable_filter(
+    session, module_org, module_location, test_name, module_target_sat
+):
     """Create overridden filter in role
 
     :id: 325e7e3e-60fc-4182-9585-0449d9660e8d
@@ -334,9 +331,9 @@ def test_positive_create_overridable_filter(session, module_org, module_location
     role_name = gen_string('alpha')
     username = gen_string('alpha')
     password = gen_string('alpha')
-    role_org = entities.Organization().create()
-    role_loc = entities.Location().create()
-    subnet = entities.Subnet()
+    role_org = module_target_sat.api.Organization().create()
+    role_loc = module_target_sat.api.Location().create()
+    subnet = module_target_sat.api.Subnet()
     subnet.create_missing()
     subnet_name = subnet.name
     new_subnet_name = gen_string('alpha')
@@ -385,7 +382,7 @@ def test_positive_create_overridable_filter(session, module_org, module_location
                 'locations.resources.assigned': [role_loc.name, module_location.name],
             }
         )
-    with Session(test_name, user=username, password=password) as session:
+    with module_target_sat.ui_session(test_name, user=username, password=password) as session:
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=module_location.name)
         session.subnet.create(
@@ -492,7 +489,7 @@ def test_positive_create_with_sc_parameter_permission(session_puppet_enabled_sat
 
 
 @pytest.mark.tier2
-def test_positive_create_filter_admin_user_with_locs(test_name):
+def test_positive_create_filter_admin_user_with_locs(test_name, module_target_sat):
     """Attempt to create a role filter by admin user, who has 6+ locations assigned.
 
     :id: 688ecb7d-1d49-494c-97cc-0d5e715f3bb1
@@ -508,10 +505,10 @@ def test_positive_create_filter_admin_user_with_locs(test_name):
     role_name = gen_string('alpha')
     resource_type = 'Architecture'
     permissions = ['view_architectures', 'edit_architectures']
-    org = entities.Organization().create()
-    locations = [entities.Location(organization=[org]).create() for _ in range(6)]
+    org = module_target_sat.api.Organization().create()
+    locations = [module_target_sat.api.Location(organization=[org]).create() for _ in range(6)]
     password = gen_string('alphanumeric')
-    user = entities.User(
+    user = module_target_sat.api.User(
         admin=True,
         organization=[org],
         location=locations,
@@ -519,7 +516,7 @@ def test_positive_create_filter_admin_user_with_locs(test_name):
         default_location=locations[0],
         password=password,
     ).create()
-    with Session(test_name, user=user.login, password=password) as session:
+    with module_target_sat.ui_session(test_name, user=user.login, password=password) as session:
         session.role.create({'name': role_name})
         assert session.role.search(role_name)[0]['Name'] == role_name
         session.filter.create(
@@ -530,7 +527,7 @@ def test_positive_create_filter_admin_user_with_locs(test_name):
 
 
 @pytest.mark.tier2
-def test_positive_create_filter_admin_user_with_orgs(test_name):
+def test_positive_create_filter_admin_user_with_orgs(test_name, module_target_sat):
     """Attempt to create a role filter by admin user, who has 10 organizations assigned.
 
     :id: 04208e17-34b5-46b1-84dd-b8a973521d30
@@ -547,9 +544,9 @@ def test_positive_create_filter_admin_user_with_orgs(test_name):
     resource_type = 'Architecture'
     permissions = ['view_architectures', 'edit_architectures']
     password = gen_string('alphanumeric')
-    organizations = [entities.Organization().create() for _ in range(10)]
-    loc = entities.Location(organization=[organizations[0]]).create()
-    user = entities.User(
+    organizations = [module_target_sat.api.Organization().create() for _ in range(10)]
+    loc = module_target_sat.api.Location(organization=[organizations[0]]).create()
+    user = module_target_sat.api.User(
         admin=True,
         organization=organizations,
         location=[loc],
@@ -557,7 +554,7 @@ def test_positive_create_filter_admin_user_with_orgs(test_name):
         default_location=loc,
         password=password,
     ).create()
-    with Session(test_name, user=user.login, password=password) as session:
+    with module_target_sat.ui_session(test_name, user=user.login, password=password) as session:
         session.role.create({'name': role_name})
         assert session.role.search(role_name)[0]['Name'] == role_name
         session.filter.create(

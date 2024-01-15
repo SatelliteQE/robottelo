@@ -4,15 +4,10 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Virt-whoConfigurePlugin
 
 :Team: Phoenix
 
-:TestType: Functional
-
-:Upstream: No
 """
 import pytest
 
@@ -41,8 +36,6 @@ class TestVirtWhoConfigforEsx:
 
         :expectedresults: Config can be created and deployed
 
-        :CaseLevel: Integration
-
         :CaseImportance: High
         """
         assert virtwho_config_api.status == 'unknown'
@@ -64,8 +57,6 @@ class TestVirtWhoConfigforEsx:
         :id: 61eeef42-12a0-4b92-9b87-c409b2507052
 
         :expectedresults: debug option can be updated.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -90,8 +81,6 @@ class TestVirtWhoConfigforEsx:
         :id: aa9c7f19-c402-4197-9d3a-1379d9126620
 
         :expectedresults: interval option can be updated.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -126,8 +115,6 @@ class TestVirtWhoConfigforEsx:
 
         :expectedresults: hypervisor_id option can be updated.
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
         for value in ['uuid', 'hostname']:
@@ -155,8 +142,6 @@ class TestVirtWhoConfigforEsx:
         :expectedresults:
             1. filter and filter_hosts can be updated.
             2. create virt-who config with filter and filter_hosts options work well.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -242,7 +227,9 @@ class TestVirtWhoConfigforEsx:
                 assert result.exclude_host_parents == regex
 
     @pytest.mark.tier2
-    def test_positive_proxy_option(self, module_sca_manifest_org, form_data_api, target_sat):
+    def test_positive_proxy_option(
+        self, module_sca_manifest_org, default_location, form_data_api, target_sat
+    ):
         """Verify http_proxy option by "PUT
 
         /foreman_virt_who_configure/api/v2/configs/:id""
@@ -252,8 +239,6 @@ class TestVirtWhoConfigforEsx:
         :expectedresults:
             1. http_proxy and no_proxy option can be updated.
             2. create virt-who config with http_proxy and no_proxy options work well.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
 
@@ -268,7 +253,7 @@ class TestVirtWhoConfigforEsx:
         assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == '*'
         # Check HTTTP Proxy and No_PROXY option
         http_proxy_url, http_proxy_name, http_proxy_id = create_http_proxy(
-            http_type='http', org=module_sca_manifest_org
+            http_type='http', org=module_sca_manifest_org, location=default_location
         )
         no_proxy = 'test.satellite.com'
         virtwho_config.http_proxy_id = http_proxy_id
@@ -286,7 +271,7 @@ class TestVirtWhoConfigforEsx:
         assert result.no_proxy == no_proxy
         # Check HTTTPs Proxy option
         https_proxy_url, https_proxy_name, https_proxy_id = create_http_proxy(
-            org=module_sca_manifest_org
+            org=module_sca_manifest_org, location=default_location
         )
         virtwho_config.http_proxy_id = https_proxy_id
         virtwho_config.update(['http_proxy_id'])
@@ -330,8 +315,6 @@ class TestVirtWhoConfigforEsx:
 
         :expectedresults: Config can be searched in org list
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
         command = get_configure_command(virtwho_config_api.id, module_sca_manifest_org.name)
@@ -350,8 +333,6 @@ class TestVirtWhoConfigforEsx:
         :id: 7d957371-ae2e-440d-8e19-22eb34922b36
 
         :expectedresults: Config can be created and deployed without any error
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
 
@@ -405,8 +386,6 @@ class TestVirtWhoConfigforEsx:
         :expectedresults:
             1. the option "env=" should be removed from etc/virt-who.d/virt-who.conf
             2. /var/log/messages should not display warning message
-
-        :CaseLevel: Integration
 
         :customerscenario: true
 

@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: AlternateContentSources
 
 :Team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -50,7 +45,6 @@ def test_positive_CRUD_all_types(
         3. ACS can be updated and read with new name.
         4. ACS can be refreshed.
         5. ACS can be deleted.
-
     """
     if 'rhui' in request.node.name and 'file' in request.node.name:
         pytest.skip('unsupported parametrize combination')
@@ -127,10 +121,9 @@ def test_positive_run_bulk_actions(module_target_sat, module_yum_repo):
     :expectedresults:
         1. All ACSes can be refreshed via bulk action.
         2. Only the proper ACSes are deleted on bulk destroy.
-
     """
     acs_ids = []
-    for i in range(3):
+    for _ in range(3):
         acs = module_target_sat.api.AlternateContentSource(
             name=gen_string('alpha'),
             alternate_content_source_type='simplified',

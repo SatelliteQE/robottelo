@@ -7,17 +7,12 @@ http://<satellite-host>/apidoc/v2/organizations.html
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: OrganizationsandLocations
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import http
 import json
@@ -230,7 +225,7 @@ class TestOrganizationUpdate:
 
         :parametrized: yes
         """
-        setattr(module_org, 'name', name)
+        module_org.name = name
         module_org = module_org.update(['name'])
         assert module_org.name == name
 
@@ -247,7 +242,7 @@ class TestOrganizationUpdate:
 
         :parametrized: yes
         """
-        setattr(module_org, 'description', desc)
+        module_org.description = desc
         module_org = module_org.update(['description'])
         assert module_org.description == desc
 
@@ -259,7 +254,6 @@ class TestOrganizationUpdate:
 
         :expectedresults: User is associated with organization.
 
-        :CaseLevel: Integration
         """
         user = target_sat.api.User().create()
         module_org.user = [user]
@@ -275,7 +269,6 @@ class TestOrganizationUpdate:
 
         :expectedresults: Subnet is associated with organization.
 
-        :CaseLevel: Integration
         """
         subnet = target_sat.api.Subnet().create()
         module_org.subnet = [subnet]
@@ -292,8 +285,6 @@ class TestOrganizationUpdate:
         :BZ: 1395229
 
         :expectedresults: Hostgroup is added to organization and then removed
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -317,7 +308,6 @@ class TestOrganizationUpdate:
 
         :BZ: 1395229
 
-        :CaseLevel: Integration
         """
         # Every Satellite has a built-in smart proxy, so let's find it
         smart_proxy = target_sat.api.SmartProxy().search(

@@ -4,17 +4,12 @@
 
 :CaseAutomation: NotAutomated
 
-:CaseLevel: System
-
 :CaseComponent: Provisioning
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 from http.client import NOT_FOUND
 import random
@@ -213,7 +208,6 @@ class TestOperatingSystem:
         :expectedresults: The operating system is created and points at the
             expected architectures.
 
-        :CaseLevel: Integration
         """
         amount = range(random.randint(3, 5))
         archs = [target_sat.api.Architecture().create() for _ in amount]
@@ -231,7 +225,6 @@ class TestOperatingSystem:
         :expectedresults: The operating system is created and points at the
             expected partition tables.
 
-        :CaseLevel: Integration
         """
         amount = range(random.randint(3, 5))
         ptables = [target_sat.api.PartitionTable().create() for _ in amount]
@@ -365,7 +358,6 @@ class TestOperatingSystem:
         :expectedresults: The operating system is updated and points at the
             expected medias.
 
-        :CaseLevel: Integration
         """
         initial_media = module_target_sat.api.Media(organization=[module_org]).create()
         os = module_target_sat.api.OperatingSystem(medium=[initial_media]).create()

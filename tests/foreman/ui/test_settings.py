@@ -4,23 +4,16 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Settings
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import math
 
-from airgun.session import Session
 from fauxfactory import gen_url
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -33,14 +26,14 @@ def invalid_settings_values():
     return [' ', '-1', 'text', '0']
 
 
-def add_content_views_to_composite(composite_cv, org, repo):
+def add_content_views_to_composite(composite_cv, org, repo, module_target_sat):
     """Add necessary number of content views to the composite one
 
     :param composite_cv: Composite content view object
     :param org: Organisation of satellite
     :param repo: repository need to added in content view
     """
-    content_view = entities.ContentView(organization=org).create()
+    content_view = module_target_sat.api.ContentView(organization=org).create()
     content_view.repository = [repo]
     content_view.update(['repository'])
     content_view.publish()
@@ -52,7 +45,9 @@ def add_content_views_to_composite(composite_cv, org, repo):
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 @pytest.mark.parametrize('setting_update', ['restrict_composite_view'], indirect=True)
-def test_positive_update_restrict_composite_view(session, setting_update, repo_setup):
+def test_positive_update_restrict_composite_view(
+    session, setting_update, repo_setup, module_target_sat
+):
     """Update settings parameter restrict_composite_view to Yes/True and ensure
     a composite content view may not be published or promoted, unless the component
     content view versions that it includes exist in the target environment.
@@ -64,13 +59,13 @@ def test_positive_update_restrict_composite_view(session, setting_update, repo_s
     :expectedresults: Parameter is updated successfully
 
     :CaseImportance: Critical
-
-    :CaseLevel: Acceptance
     """
     property_name = setting_update.name
-    composite_cv = entities.ContentView(composite=True, organization=repo_setup['org']).create()
+    composite_cv = module_target_sat.api.ContentView(
+        composite=True, organization=repo_setup['org']
+    ).create()
     content_view = add_content_views_to_composite(
-        composite_cv, repo_setup['org'], repo_setup['repo']
+        composite_cv, repo_setup['org'], repo_setup['repo'], module_target_sat
     )
     composite_cv.publish()
     with session:
@@ -110,7 +105,6 @@ def test_positive_httpd_proxy_url_update(session, setting_update):
     :BZ: 1677282
 
     :CaseImportance: Medium
-
     """
     property_name = setting_update.name
     with session:
@@ -214,8 +208,6 @@ def test_positive_update_login_page_footer_text(session, setting_update):
     :customerscenario: true
 
     :BZ: 2157869
-
-    :CaseLevel: Acceptance
     """
     property_name = setting_update.name
     default_value = setting_update.default
@@ -259,14 +251,12 @@ def test_negative_settings_access_to_non_admin(module_target_sat):
     :expectedresults: Administer -> Settings tab should not be available to non admin users
 
     :CaseImportance: Medium
-
-    :CaseLevel: Acceptance
     """
     login = gen_string('alpha')
     password = gen_string('alpha')
-    entities.User(admin=False, login=login, password=password).create()
+    module_target_sat.api.User(admin=False, login=login, password=password).create()
     try:
-        with Session(user=login, password=password) as session:
+        with module_target_sat.ui_session(user=login, password=password) as session:
             result = session.settings.permission_denied()
             assert (
                 result == 'Permission denied You are not authorized to perform this action. '
@@ -306,8 +296,6 @@ def test_positive_update_email_delivery_method_smtp():
 
     :CaseImportance: Critical
 
-    :CaseLevel: Acceptance
-
     :CaseAutomation: NotAutomated
     """
 
@@ -341,8 +329,6 @@ def test_negative_update_email_delivery_method_smtp():
 
     :CaseImportance: Critical
 
-    :CaseLevel: Acceptance
-
     :CaseAutomation: NotAutomated
     """
 
@@ -372,8 +358,6 @@ def test_positive_update_email_delivery_method_sendmail(session, target_sat):
     :BZ: 2080324
 
     :CaseImportance: Critical
-
-    :CaseLevel: Acceptance
     """
     property_name = "Email"
     mail_config_default_param = {
@@ -385,7 +369,7 @@ def test_positive_update_email_delivery_method_sendmail(session, target_sat):
         "send_welcome_email": "",
     }
     mail_config_default_param = {
-        content: entities.Setting().search(query={'search': f'name={content}'})[0]
+        content: target_sat.api.Setting().search(query={'search': f'name={content}'})[0]
         for content in mail_config_default_param
     }
     mail_config_new_params = {
@@ -436,8 +420,6 @@ def test_negative_update_email_delivery_method_sendmail():
 
     :CaseImportance: Critical
 
-    :CaseLevel: Acceptance
-
     :CaseAutomation: NotAutomated
     """
 
@@ -468,8 +450,6 @@ def test_positive_email_yaml_config_precedence():
 
     :CaseImportance: Critical
 
-    :CaseLevel: Acceptance
-
     :CaseAutomation: NotAutomated
     """
 
@@ -481,7 +461,7 @@ def test_negative_update_hostname_with_empty_fact(session, setting_update):
 
     :id: e0eaab69-4926-4c1e-b111-30c51ede273e
 
-    :Steps:
+    :steps:
 
         1. Goto settings ->Discovered tab -> Hostname_facts
         2. Set empty hostname_facts (without any value)
@@ -494,7 +474,6 @@ def test_negative_update_hostname_with_empty_fact(session, setting_update):
 
     :expectedresults: Error should be raised on setting empty value for
         hostname_facts setting
-
     """
     new_hostname = ""
     property_name = setting_update.name
@@ -512,7 +491,7 @@ def test_positive_entries_per_page(session, setting_update):
 
     :id: 009026b6-7550-40aa-9f78-5eb7f7e3800f
 
-    :Steps:
+    :steps:
         1. Navigate to Administer > Settings > General tab
         2. Update the entries per page value
         3. GoTo Monitor > Tasks Table > Pagination
@@ -529,8 +508,6 @@ def test_positive_entries_per_page(session, setting_update):
     :BZ: 1746221
 
     :CaseImportance: Medium
-
-    :CaseLevel: Acceptance
     """
     property_name = setting_update.name
     property_value = 19
@@ -576,3 +553,37 @@ def test_positive_setting_display_fqdn_for_hosts(session, target_sat):
 
         values = session.host_new.get_details(target_sat.hostname, widget_names='breadcrumb')
         assert values['breadcrumb'] == full_name
+
+
+@pytest.mark.tier2
+def test_positive_show_unsupported_templates(request, target_sat, module_org, module_location):
+    """Verify setting show_unsupported_templates with new custom template
+
+    :id: e0eaab69-4926-4c1e-b111-30c51ede273z
+
+    :Steps:
+        1. Goto Settings -> Provisioning tab -> Show unsupported provisioning templates
+
+    :CaseImportance: Medium
+
+    :expectedresults: Custom template aren't searchable when set to No,
+        and are searchable when set to Yes(default)
+    """
+    pt = target_sat.api.ProvisioningTemplate(
+        name=gen_string('alpha'),
+        organization=[module_org],
+        location=[module_location],
+        template=gen_string('alpha'),
+        snippet=False,
+    ).create()
+    request.addfinalizer(pt.delete)
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+        default_value = target_sat.update_setting('show_unsupported_templates', 'No')
+        assert not session.provisioningtemplate.search(f'name={pt.name}')
+
+        # Verify with show_unsupported_templates=Yes
+        target_sat.update_setting('show_unsupported_templates', default_value)
+        template = session.provisioningtemplate.search(f'name={pt.name}')
+        assert template[0]['Name'] == pt.name

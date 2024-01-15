@@ -4,25 +4,18 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Hosts-Content
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from datetime import datetime, timedelta
 import re
 from urllib.parse import urlparse
 
-from airgun.session import Session
 from fauxfactory import gen_integer, gen_string
-from nailgun import entities
 import pytest
 
 from robottelo.config import setting_is_set, settings
@@ -49,8 +42,10 @@ if not setting_is_set('clients') or not setting_is_set('fake_manifest'):
 
 
 @pytest.fixture(scope='module', autouse=True)
-def host_ui_default():
-    settings_object = entities.Setting().search(query={'search': 'name=host_details_ui'})[0]
+def host_ui_default(module_target_sat):
+    settings_object = module_target_sat.api.Setting().search(
+        query={'search': 'name=host_details_ui'}
+    )[0]
     settings_object.value = 'No'
     settings_object.update({'value'})
     yield
@@ -59,10 +54,10 @@ def host_ui_default():
 
 
 @pytest.fixture(scope='module')
-def module_org():
-    org = entities.Organization(simple_content_access=False).create()
+def module_org(module_target_sat):
+    org = module_target_sat.api.Organization(simple_content_access=False).create()
     # adding remote_execution_connect_by_ip=Yes at org level
-    entities.Parameter(
+    module_target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
         value='Yes',
         organization=org.id,
@@ -87,9 +82,9 @@ def vm_module_streams(module_repos_collection_with_manifest, rhel8_contenthost, 
     return rhel8_contenthost
 
 
-def set_ignore_facts_for_os(value=False):
+def set_ignore_facts_for_os(module_target_sat, value=False):
     """Helper to set 'ignore_facts_for_operatingsystem' setting"""
-    ignore_setting = entities.Setting().search(
+    ignore_setting = module_target_sat.api.Setting().search(
         query={'search': 'name="ignore_facts_for_operatingsystem"'}
     )[0]
     ignore_setting.value = str(value)
@@ -100,6 +95,34 @@ def run_remote_command_on_content_host(command, vm_module_streams):
     result = vm_module_streams.run(command)
     assert result.status == 0
     return result
+
+
+def get_supported_rhel_versions():
+    """Helper to get the supported base rhel versions for contenthost.
+    return: a list of integers
+    """
+    return [
+        ver for ver in settings.supportability.content_hosts.rhel.versions if isinstance(ver, int)
+    ]
+
+
+def get_rhel_lifecycle_support(rhel_version):
+    """Helper to get what the Lifecycle Support Status should be,
+       based on provided rhel version.
+    :param rhel_version: integer of the current base rhel version
+    :return: string with the expected status of rhel version support
+    """
+    rhels = sorted(get_supported_rhel_versions(), reverse=True)
+    rhel_lifecycle_status = 'Unknown'
+    if rhel_version not in rhels:
+        return rhel_lifecycle_status
+    elif rhels.index(rhel_version) <= 1:
+        rhel_lifecycle_status = 'Full support'
+    elif rhels.index(rhel_version) == 2:
+        rhel_lifecycle_status = 'Approaching end of maintenance support'
+    elif rhels.index(rhel_version) >= 3:
+        rhel_lifecycle_status = 'End of maintenance support'
+    return rhel_lifecycle_status
 
 
 @pytest.mark.e2e
@@ -120,28 +143,53 @@ def run_remote_command_on_content_host(command, vm_module_streams):
     indirect=True,
 )
 @pytest.mark.no_containers
-def test_positive_end_to_end(session, default_location, module_repos_collection_with_manifest, vm):
+def test_positive_end_to_end(
+    vm,
+    session,
+    module_org,
+    default_location,
+    module_repos_collection_with_manifest,
+):
     """Create all entities required for content host, set up host, register it
     as a content host, read content host details, install package and errata.
 
     :id: f43f2826-47c1-4069-9c9d-2410fd1b622c
 
+    :setup: Register a rhel7 vm as a content host. Import repos
+        collection and associated manifest.
+
+    :steps:
+        1. Install some outdated version for an applicable package
+        2. In legacy Host UI, find the host status and rhel lifecycle status
+        3. Using legacy ContentHost UI, find the chost and relevant details
+        4. Install the errata, check legacy ContentHost UI and the updated package
+        5. Delete the content host, then try to find it
+
     :expectedresults: content host details are the same as expected, package
         and errata installation are successful
-
-    :CaseLevel: System
 
     :parametrized: yes
 
     :CaseImportance: Critical
     """
+    # Read rhel distro param, determine what rhel lifecycle status should be
+    _distro = module_repos_collection_with_manifest.distro
+    host_rhel_version = None
+    if _distro.startswith('rhel'):
+        host_rhel_version = int(_distro[4:])
+    rhel_status = get_rhel_lifecycle_support(host_rhel_version if not None else 0)
+
     result = vm.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
     startdate = datetime.utcnow().strftime('%m/%d/%Y')
+
     with session:
         session.location.select(default_location.name)
+        session.organization.select(module_org.name)
         # Ensure content host is searchable
-        assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
+        found_chost = session.contenthost.search(f'{vm.hostname}')
+        assert found_chost, f'Search for contenthost by name: "{vm.hostname}", returned no results.'
+        assert found_chost[0]['Name'] == vm.hostname
         chost = session.contenthost.read(
             vm.hostname, widget_names=['details', 'provisioning_details', 'subscriptions']
         )
@@ -182,6 +230,11 @@ def test_positive_end_to_end(session, default_location, module_repos_collection_
             assert startdate in custom_sub['Expires']
         else:
             assert startdate in custom_sub['Starts']
+        # Ensure host status and details show correct RHEL lifecycle status
+        host_status = session.host.host_status(vm.hostname)
+        host_rhel_lcs = session.contenthost.read(vm.hostname, widget_names=['permission_denied'])
+        assert rhel_status in host_rhel_lcs['permission_denied']
+        assert rhel_status in host_status
         # Update description
         new_description = gen_string('alpha')
         session.contenthost.update(vm.hostname, {'details.description': new_description})
@@ -196,9 +249,7 @@ def test_positive_end_to_end(session, default_location, module_repos_collection_
         packages = session.contenthost.search_package(vm.hostname, FAKE_0_CUSTOM_PACKAGE_NAME)
         assert packages[0]['Installed Package'] == FAKE_0_CUSTOM_PACKAGE
         # Install errata
-        result = session.contenthost.install_errata(
-            vm.hostname, settings.repos.yum_6.errata[2], install_via='rex'
-        )
+        result = session.contenthost.install_errata(vm.hostname, FAKE_1_ERRATA_ID)
         assert result['overview']['hosts_table'][0]['Status'] == 'success'
         # Ensure errata installed
         packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE_NAME)
@@ -243,8 +294,6 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm, target_s
     :BZ: 1712069, 1838800
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     hc_name = gen_string('alpha')
     description = gen_string('alpha')
@@ -327,8 +376,6 @@ def test_positive_search_by_subscription_status(session, default_location, vm):
     :BZ: 1406855, 1498827, 1495271
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     with session:
         session.location.select(default_location.name)
@@ -377,8 +424,6 @@ def test_positive_toggle_subscription_status(session, default_location, vm):
     :customerscenario: true
 
     :BZ: 1836868
-
-    :CaseLevel: System
 
     :parametrized: yes
 
@@ -436,8 +481,6 @@ def test_negative_install_package(session, default_location, vm):
     :expectedresults: Task finished with warning
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     with session:
         session.location.select(default_location.name)
@@ -473,8 +516,6 @@ def test_positive_remove_package(session, default_location, vm):
     :expectedresults: Package was successfully removed
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     vm.download_install_rpm(settings.repos.yum_6.url, FAKE_0_CUSTOM_PACKAGE)
     with session:
@@ -512,8 +553,6 @@ def test_positive_upgrade_package(session, default_location, vm):
     :expectedresults: Package was successfully upgraded
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     vm.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     with session:
@@ -552,8 +591,6 @@ def test_positive_install_package_group(session, default_location, vm):
     :expectedresults: Package group was successfully installed
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     with session:
         session.location.select(default_location.name)
@@ -593,8 +630,6 @@ def test_positive_remove_package_group(session, default_location, vm):
     :expectedresults: Package group was successfully removed
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     with session:
         session.location.select(default_location.name)
@@ -624,7 +659,7 @@ def test_positive_remove_package_group(session, default_location, vm):
     indirect=True,
 )
 def test_positive_search_errata_non_admin(
-    session, default_location, vm, test_name, default_viewer_role
+    default_location, vm, test_name, default_viewer_role, module_target_sat
 ):
     """Search for host's errata by non-admin user with enough permissions
 
@@ -638,11 +673,9 @@ def test_positive_search_errata_non_admin(
         listed
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     vm.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
-    with Session(
+    with module_target_sat.ui_session(
         test_name, user=default_viewer_role.login, password=default_viewer_role.password
     ) as session:
         session.location.select(default_location.name)
@@ -693,8 +726,6 @@ def test_positive_ensure_errata_applicability_with_host_reregistered(session, de
     :BZ: 1463818
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     vm.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     result = vm.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
@@ -753,8 +784,6 @@ def test_positive_host_re_registration_with_host_rename(
     :BZ: 1762793
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     vm.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     result = vm.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
@@ -793,7 +822,9 @@ def test_positive_host_re_registration_with_host_rename(
     ],
     indirect=True,
 )
-def test_positive_check_ignore_facts_os_setting(session, default_location, vm, module_org, request):
+def test_positive_check_ignore_facts_os_setting(
+    session, default_location, vm, module_org, request, module_target_sat
+):
     """Verify that 'Ignore facts for operating system' setting works
     properly
 
@@ -822,15 +853,13 @@ def test_positive_check_ignore_facts_os_setting(session, default_location, vm, m
     :BZ: 1155704
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     major = str(gen_integer(15, 99))
     minor = str(gen_integer(1, 9))
     expected_os = f'RedHat {major}.{minor}'
-    set_ignore_facts_for_os(False)
+    set_ignore_facts_for_os(module_target_sat, False)
     host = (
-        entities.Host()
+        module_target_sat.api.Host()
         .search(query={'search': f'name={vm.hostname} and organization_id={module_org.id}'})[0]
         .read()
     )
@@ -839,7 +868,7 @@ def test_positive_check_ignore_facts_os_setting(session, default_location, vm, m
         # Get host current operating system value
         os = session.contenthost.read(vm.hostname, widget_names='details')['details']['os']
         # Change necessary setting to true
-        set_ignore_facts_for_os(True)
+        set_ignore_facts_for_os(module_target_sat, True)
         # Add cleanup function to roll back setting to default value
         request.addfinalizer(set_ignore_facts_for_os)
         # Read all facts for corresponding host
@@ -856,7 +885,7 @@ def test_positive_check_ignore_facts_os_setting(session, default_location, vm, m
         # Check that host OS was not changed due setting was set to true
         assert os == updated_os
         # Put it to false and re-run the process
-        set_ignore_facts_for_os(False)
+        set_ignore_facts_for_os(module_target_sat, False)
         host.upload_facts(data={'name': vm.hostname, 'facts': facts})
         session.contenthost.search('')
         updated_os = session.contenthost.read(vm.hostname, widget_names='details')['details']['os']
@@ -892,11 +921,9 @@ def test_positive_virt_who_hypervisor_subscription_status(
     :BZ: 1336924, 1860928
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
-    org = entities.Organization().create()
-    lce = entities.LifecycleEnvironment(organization=org).create()
+    org = target_sat.api.Organization().create()
+    lce = target_sat.api.LifecycleEnvironment(organization=org).create()
     # TODO move this to either hack around virt-who service or use an env-* compute resource
     provisioning_server = settings.libvirt.libvirt_hostname
     # Create a new virt-who config
@@ -967,7 +994,9 @@ def test_positive_virt_who_hypervisor_subscription_status(
     ],
     indirect=True,
 )
-def test_module_stream_actions_on_content_host(session, default_location, vm_module_streams):
+def test_module_stream_actions_on_content_host(
+    session, default_location, vm_module_streams, module_target_sat
+):
     """Check remote execution for module streams actions e.g. install, remove, disable
     works on content host. Verify that correct stream module stream
     get installed/removed.
@@ -977,12 +1006,10 @@ def test_module_stream_actions_on_content_host(session, default_location, vm_mod
     :expectedresults: Remote execution for module actions should succeed.
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     stream_version = '5.21'
     run_remote_command_on_content_host('dnf -y upload-profile', vm_module_streams)
-    entities.Parameter(
+    module_target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
         value='Yes',
         parameter_type='boolean',
@@ -1099,8 +1126,6 @@ def test_module_streams_customize_action(session, default_location, vm_module_st
 
     :expectedresults: Remote execution for module actions should be succeed.
 
-    :CaseLevel: System
-
     :parametrized: yes
 
     :CaseImportance: Medium
@@ -1167,8 +1192,6 @@ def test_install_modular_errata(session, default_location, vm_module_streams):
     :expectedresults: Modular Errata should get installed on content host.
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     stream_version = '0'
     module_name = 'kangaroo'
@@ -1248,8 +1271,6 @@ def test_module_status_update_from_content_host_to_satellite(
     :expectedresults: module stream status should get updated in Satellite
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     module_name = 'walrus'
     stream_version = '0.71'
@@ -1314,8 +1335,6 @@ def test_module_status_update_without_force_upload_package_profile(
     :id: 16675b57-71c2-4aee-950b-844aa32002d1
 
     :expectedresults: module stream status should get updated in Satellite
-
-    :CaseLevel: System
 
     :parametrized: yes
 
@@ -1399,8 +1418,6 @@ def test_module_stream_update_from_satellite(session, default_location, vm_modul
     :expectedresults: module stream should get updated.
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     module_name = 'duck'
     stream_version = '0'
@@ -1477,8 +1494,6 @@ def test_syspurpose_attributes_empty(session, default_location, vm_module_stream
 
     :expectedresults: Syspurpose attrs are empty, and syspurpose status is set as 'Not specified'
 
-    :CaseLevel: System
-
     :parametrized: yes
 
     :CaseImportance: High
@@ -1490,7 +1505,7 @@ def test_syspurpose_attributes_empty(session, default_location, vm_module_stream
         ]
         syspurpose_status = details['system_purpose_status']
         assert syspurpose_status.lower() == 'not specified'
-        for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
+        for spname in DEFAULT_SYSPURPOSE_ATTRIBUTES:
             assert details[spname] == ''
 
 
@@ -1519,8 +1534,6 @@ def test_set_syspurpose_attributes_cli(session, default_location, vm_module_stre
 
     :expectedresults: Syspurpose attributes set for the content host
 
-    :CaseLevel: System
-
     :parametrized: yes
 
     :CaseImportance: High
@@ -1528,7 +1541,7 @@ def test_set_syspurpose_attributes_cli(session, default_location, vm_module_stre
     with session:
         session.location.select(default_location.name)
         # Set sypurpose attributes
-        for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
+        for spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.values():
             run_remote_command_on_content_host(
                 f'syspurpose set-{spdata[0]} "{spdata[1]}"', vm_module_streams
             )
@@ -1566,18 +1579,16 @@ def test_unset_syspurpose_attributes_cli(session, default_location, vm_module_st
 
     :expectedresults: Syspurpose attributes are empty
 
-    :CaseLevel: System
-
     :parametrized: yes
 
     :CaseImportance: High
     """
     # Set sypurpose attributes...
-    for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
+    for spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.values():
         run_remote_command_on_content_host(
             f'syspurpose set-{spdata[0]} "{spdata[1]}"', vm_module_streams
         )
-    for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
+    for spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.values():
         # ...and unset them.
         run_remote_command_on_content_host(f'syspurpose unset-{spdata[0]}', vm_module_streams)
 
@@ -1586,7 +1597,7 @@ def test_unset_syspurpose_attributes_cli(session, default_location, vm_module_st
         details = session.contenthost.read(vm_module_streams.hostname, widget_names='details')[
             'details'
         ]
-        for spname, spdata in DEFAULT_SYSPURPOSE_ATTRIBUTES.items():
+        for spname in DEFAULT_SYSPURPOSE_ATTRIBUTES:
             assert details[spname] == ''
 
 
@@ -1616,8 +1627,6 @@ def test_syspurpose_matched(session, default_location, vm_module_streams):
     :id: 6b1ca2f9-5bf2-414f-971e-6bb5add69789
 
     :expectedresults: Syspurpose status is Matched
-
-    :CaseLevel: System
 
     :parametrized: yes
 
@@ -1659,8 +1668,6 @@ def test_syspurpose_bulk_action(session, default_location, vm):
     :bz: 1905979, 1931527
 
     :expectedresults: Syspurpose parameters are set and reflected on the host
-
-    :CaseLevel: System
 
     :CaseImportance: High
     """
@@ -1705,8 +1712,6 @@ def test_syspurpose_mismatched(session, default_location, vm_module_streams):
     :id: de71cfd7-eeb8-4a4c-b448-8c5aa5af7f06
 
     :expectedresults: Syspurpose status is 'Mismatched'
-
-    :CaseLevel: System
 
     :parametrized: yes
 
@@ -1781,7 +1786,7 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template,
 
 
 @pytest.mark.tier3
-def test_search_for_virt_who_hypervisors(session, default_location):
+def test_search_for_virt_who_hypervisors(session, default_location, module_target_sat):
     """
     Search the virt_who hypervisors with hypervisor=True or hypervisor=False.
 
@@ -1793,11 +1798,9 @@ def test_search_for_virt_who_hypervisors(session, default_location):
 
     :customerscenario: true
 
-    :CaseLevel: System
-
     :CaseImportance: Medium
     """
-    org = entities.Organization().create()
+    org = module_target_sat.api.Organization().create()
     with session:
         session.organization.select(org.name)
         session.location.select(default_location.name)

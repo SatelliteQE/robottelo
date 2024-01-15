@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: HooksandWebhooks
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import re
 
@@ -61,8 +56,8 @@ def assert_event_triggered(channel, event):
     try:
         log = _wait_for_log(channel, pattern)
         assert pattern in log
-    except TimedOutError:
-        raise AssertionError(f'Timed out waiting for {pattern} from VM')
+    except TimedOutError as err:
+        raise AssertionError(f'Timed out waiting for {pattern} from VM') from err
 
 
 class TestWebhook:

@@ -2,7 +2,7 @@
 
 PULP_FIXTURE_ROOT = 'https://fixtures.pulpproject.org/'
 PULP_SUBPATHS_COMBINED = {
-    'yum': ['rpm-zchunk/', 'rpm-modular/'],
+    'yum': ['rpm-zstd-metadata/', 'rpm-modular/'],
     'file': ['file-large/', 'file-many/'],
 }
 CUSTOM_3RD_PARTY_REPO = 'http://repo.calcforge.org/fedora/21/x86_64/'

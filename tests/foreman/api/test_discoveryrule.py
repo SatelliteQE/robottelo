@@ -8,13 +8,8 @@
 
 :Team: Rocket
 
-:TestType: Functional
-
-:CaseLevel: Acceptance
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_choice, gen_integer, gen_string
 import pytest
@@ -116,7 +111,6 @@ def test_negative_create_with_invalid_host_limit_and_priority(module_target_sat)
         module_target_sat.api.DiscoveryRule(priority=gen_string('alpha')).create()
 
 
-@pytest.mark.stubbed
 @pytest.mark.tier3
 def test_positive_update_and_provision_with_rule_priority(
     module_target_sat, module_discovery_hostgroup, discovery_location, discovery_org
@@ -165,7 +159,7 @@ def test_positive_update_and_provision_with_rule_priority(
 
 @pytest.mark.tier3
 def test_positive_multi_provision_with_rule_limit(
-    module_target_sat, module_discovery_hostgroup, discovery_location, discovery_org
+    request, module_target_sat, module_discovery_hostgroup, discovery_location, discovery_org
 ):
     """Create a discovery rule with certain host limit and try to provision more than the passed limit
 
@@ -177,13 +171,12 @@ def test_positive_multi_provision_with_rule_limit(
 
     :CaseImportance: High
     """
-    for _ in range(2):
-        discovered_host = module_target_sat.api_factory.create_discovered_host()
-
+    discovered_host1 = module_target_sat.api_factory.create_discovered_host()
+    discovered_host2 = module_target_sat.api_factory.create_discovered_host()
     rule = module_target_sat.api.DiscoveryRule(
         max_count=1,
         hostgroup=module_discovery_hostgroup,
-        search_=f'name = {discovered_host["name"]}',
+        search_=f'name = {discovered_host1["name"]}',
         location=[discovery_location],
         organization=[discovery_org],
         priority=1000,
@@ -192,6 +185,10 @@ def test_positive_multi_provision_with_rule_limit(
     assert '1 discovered hosts were provisioned' in result['message']
 
     # Delete discovery rule
-    rule.delete()
-    with pytest.raises(HTTPError):
-        rule.read()
+    @request.addfinalizer
+    def _finalize():
+        rule.delete()
+        module_target_sat.api.Host(id=discovered_host1['id']).delete()
+        module_target_sat.api.DiscoveredHost(id=discovered_host2['id']).delete()
+        with pytest.raises(HTTPError):
+            rule.read()

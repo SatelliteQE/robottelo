@@ -4,19 +4,13 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Branding
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
-from airgun.session import Session
 import pytest
 
 
@@ -27,18 +21,16 @@ def test_verify_satellite_login_screen_info(target_sat):
 
     :id: f48110ad-29b4-49b1-972a-a70075a05732
 
-    :Steps: Get the info from the login screen
+    :steps: Get the info from the login screen
 
     :expectedresults:
         1. Correct Satellite version
         2. If 'Beta' is present, should fail until a GA snap is received
 
-    :CaseLevel: System
-
     :BZ: 1315849, 1367495, 1372436, 1502098, 1540710, 1582476, 1724738,
          1959135, 2076979, 1687250, 1686540, 1742872, 1805642, 2105949
     """
-    with Session(login=False) as session:
+    with target_sat.ui_session(login=False) as session:
         version = session.login.read_sat_version()
     assert f'Version {target_sat.version}' == version['login_text']
     assert 'Beta' not in version['login_text'], '"Beta" should not be there'
