@@ -210,6 +210,8 @@ def test_positive_list_host_based_on_rule_search_query(
     target_sat.api_factory.create_discovered_host(options={'physicalprocessorcount': cpu_count + 1})
     provisioned_host_name = f'{host.domain.read().name}'
     with session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
         values = session.discoveryrule.read_all()
         assert discovery_rule.name in [rule['Name'] for rule in values]
         values = session.discoveryrule.read_discovered_hosts(discovery_rule.name)
@@ -218,8 +220,8 @@ def test_positive_list_host_based_on_rule_search_query(
         assert values['table'][0]['IP Address'] == ip_address
         assert values['table'][0]['CPUs'] == str(cpu_count)
         # auto provision the discovered host
-        session.discoveredhosts.apply_action('Auto Provision', [discovered_host['name']])
-        assert not session.discoveredhosts.search('name = "{}"'.format(discovered_host['name']))
+        result = target_sat.api.DiscoveredHost(id=discovered_host['id']).auto_provision()
+        assert f'provisioned with rule {discovery_rule.name}' in result['message']
         values = session.discoveryrule.read_associated_hosts(discovery_rule.name)
         host_name = values['table'][0]['Name']
         assert values['searchbox'] == f'discovery_rule = "{discovery_rule.name}"'
