@@ -1164,6 +1164,91 @@ class TestContentViewSync:
         ) in error.value.message
 
     @pytest.mark.tier3
+    @pytest.mark.parametrize(
+        'function_synced_rh_repo',
+        ['rhae2'],
+        indirect=True,
+    )
+    def test_negative_import_incomplete_archive(
+        self,
+        target_sat,
+        config_export_import_settings,
+        export_import_cleanup_function,
+        function_synced_rh_repo,
+        function_sca_manifest_org,
+        function_import_org_with_manifest,
+    ):
+        """Try to import an incomplete export archive (mock interrupted transfer).
+
+        :id: c3b898bb-c6c8-402d-82f9-b15774d9f0fc
+
+        :parametrized: yes
+
+        :setup:
+            1. Enabled and synced RH repository.
+
+        :steps:
+            1. Create CV with the setup repo, publish it and export.
+            2. Corrupt the export archive so that it's incomplete.
+            3. Try to import the incomplete archive.
+            4. Verify no content is imported and the import CV can be deleted.
+
+        :expectedresults:
+            1. The import should fail.
+            2. No content should be added, the empty import CV can be deleted.
+        """
+        # Create CV with the setup repo, publish it and export
+        cv = target_sat.cli_factory.make_content_view(
+            {
+                'organization-id': function_sca_manifest_org.id,
+                'repository-ids': [function_synced_rh_repo['id']],
+            }
+        )
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        assert len(cv['versions']) == 1
+        cvv = cv['versions'][0]
+        export = target_sat.cli.ContentExport.completeVersion(
+            {'id': cvv['id'], 'organization-id': function_sca_manifest_org.id}
+        )
+        assert '1.0' in target_sat.validate_pulp_filepath(
+            function_sca_manifest_org, PULP_EXPORT_DIR
+        )
+
+        # Corrupt the export archive so that it's incomplete
+        tar_files = target_sat.execute(
+            f'find {PULP_EXPORT_DIR}{function_sca_manifest_org.name}/{cv["name"]}/ -name *.tar'
+        ).stdout.splitlines()
+        assert len(tar_files) == 1, 'Expected just one tar file in the export'
+
+        size = int(target_sat.execute(f'du -b {tar_files[0]}').stdout.split()[0])
+        assert size > 0, 'Export tar should not be empty'
+
+        res = target_sat.execute(f'truncate -s {size // 2} {tar_files[0]}')
+        assert res.status == 0, 'Truncation of the tar file failed'
+
+        # Try to import the incomplete archive
+        import_path = target_sat.move_pulp_archive(function_sca_manifest_org, export['message'])
+        with pytest.raises(CLIReturnCodeError) as error:
+            target_sat.cli.ContentImport.version(
+                {'organization-id': function_import_org_with_manifest.id, 'path': import_path}
+            )
+        assert '1 subtask(s) failed' in error.value.message
+
+        # Verify no content is imported and the import CV can be deleted
+        imported_cv = target_sat.cli.ContentView.info(
+            {'name': cv['name'], 'organization-id': function_import_org_with_manifest.id}
+        )
+        assert len(imported_cv['versions']) == 0, 'There should be no CV version imported'
+
+        target_sat.cli.ContentView.delete({'id': imported_cv['id']})
+        with pytest.raises(CLIReturnCodeError) as error:
+            target_sat.cli.ContentView.info(
+                {'name': cv['name'], 'organization-id': function_import_org_with_manifest.id}
+            )
+        assert 'content_view not found' in error.value.message, 'The imported CV should be gone'
+
+    @pytest.mark.tier3
     def test_postive_export_cv_with_mixed_content_repos(
         self,
         export_import_cleanup_function,
