@@ -4042,14 +4042,23 @@ class TestContentView:
             {'organization-id': module_org.id}
         )
         module_target_sat.cli.ContentView.publish({'id': content_view['id']})
-        content_view = module_target_sat.cli.ContentView.version_info(
-            {'id': content_view['id'], 'lifecycle-environment-id': 1}
+        lce = module_target_sat.cli_factory.make_lifecycle_environment(
+            {'organization-id': module_org.id}
         )
-        assert len(content_view['versions']) == 1
-        content_view = module_target_sat.cli.ContentView.version_info(
-            {'id': content_view['id'], 'lifecycle-environment': 'Library'}
+        module_target_sat.cli.ContentView.version_promote(
+            {'id': content_view['id'], 'to-lifecycle-environment-id': lce['id']}
         )
-        assert len(content_view['versions']) == 1
+        module_target_sat.cli.ContentView.publish({'id': content_view['id']})
+        content_view = module_target_sat.cli.ContentView.version_info(
+            {'id': content_view['id'], 'lifecycle-environment-id': lce['id'],
+             'organization-id': module_org.id}
+        )
+        assert content_view['version'] == '1.0'
+        content_view = module_target_sat.cli.ContentView.version_info(
+            {'id': content_view['id'], 'lifecycle-environment': lce['name'], 
+            'organization-id': module_org.id}
+        )
+        assert content_view['version'] == '1.0'
 
 
 class TestContentViewFileRepo:
