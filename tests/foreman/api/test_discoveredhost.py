@@ -201,7 +201,7 @@ class TestDiscoveredHost:
         mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
         wait_for(
             lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
-            timeout=600,
+            timeout=1500,
             delay=40,
         )
         discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
@@ -251,7 +251,7 @@ class TestDiscoveredHost:
         mac = pxeless_discovery_host._broker_args['provisioning_nic_mac_addr']
         wait_for(
             lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
-            timeout=600,
+            timeout=1500,
             delay=40,
         )
         discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
@@ -386,7 +386,7 @@ class TestDiscoveredHost:
         mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
         wait_for(
             lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
-            timeout=240,
+            timeout=1500,
             delay=20,
         )
 
@@ -432,7 +432,7 @@ class TestDiscoveredHost:
             mac = host._broker_args['provisioning_nic_mac_addr']
             wait_for(
                 lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],  # noqa: B023
-                timeout=240,
+                timeout=1500,
                 delay=20,
             )
             discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]

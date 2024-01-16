@@ -210,7 +210,7 @@ class TestVirtWhoConfigforEsx:
 
     @pytest.mark.tier2
     def test_positive_proxy_option(
-        self, default_org, form_data_api, virtwho_config_api, target_sat
+        self, default_org, default_location, form_data_api, virtwho_config_api, target_sat
     ):
         """Verify http_proxy option by "PUT
 
@@ -232,7 +232,7 @@ class TestVirtWhoConfigforEsx:
         assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == '*'
         # Check HTTTP Proxy and No_PROXY option
         http_proxy_url, http_proxy_name, http_proxy_id = create_http_proxy(
-            http_type='http', org=default_org
+            http_type='http', org=default_org, location=default_location
         )
         no_proxy = 'test.satellite.com'
         virtwho_config_api.http_proxy_id = http_proxy_id
@@ -245,7 +245,9 @@ class TestVirtWhoConfigforEsx:
         assert get_configure_option('http_proxy', ETC_VIRTWHO_CONFIG) == http_proxy_url
         assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == no_proxy
         # Check HTTTPs Proxy option
-        https_proxy_url, https_proxy_name, https_proxy_id = create_http_proxy(org=default_org)
+        https_proxy_url, https_proxy_name, https_proxy_id = create_http_proxy(
+            org=default_org, location=default_location
+        )
         virtwho_config_api.http_proxy_id = https_proxy_id
         virtwho_config_api.update(['http_proxy_id'])
         deploy_configure_by_command(

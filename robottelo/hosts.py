@@ -17,7 +17,6 @@ import warnings
 from box import Box
 from broker import Broker
 from broker.hosts import Host
-from cachetools import cachedmethod
 from dynaconf.vendor.box.exceptions import BoxKeyError
 from fauxfactory import gen_alpha, gen_string
 from manifester import Manifester
@@ -1857,10 +1856,10 @@ class Satellite(Capsule, SatelliteMixins):
         except Exception:
             raise
         finally:
-            video_url = settings.ui.grid_url.replace(
-                ':4444', f'/videos/{ui_session.ui_session_id}.mp4'
-            )
             if self.record_property is not None and settings.ui.record_video:
+                video_url = settings.ui.grid_url.replace(
+                    ':4444', f'/videos/{ui_session.ui_session_id}/video.mp4'
+                )
                 self.record_property('video_url', video_url)
                 self.record_property('session_id', ui_session.ui_session_id)
 
@@ -2283,7 +2282,7 @@ class SSOHost(Host):
                 break
         return client_id
 
-    @cachedmethod
+    @lru_cache
     def get_rhsso_user_details(self, username):
         """Getter method to receive the user id"""
         result = self.execute(
@@ -2292,7 +2291,7 @@ class SSOHost(Host):
         result_json = json.loads(result.stdout)
         return result_json[0]
 
-    @cachedmethod
+    @lru_cache
     def get_rhsso_groups_details(self, group_name):
         """Getter method to receive the group id"""
         result = self.execute(f"{KEY_CLOAK_CLI} get groups -r {settings.rhsso.realm}")

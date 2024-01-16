@@ -34,11 +34,26 @@ def _normalize_obj(obj):
     return obj
 
 
+def is_csv(output):
+    """Verifies if the output string is eligible for converting into CSV"""
+    sniffer = csv.Sniffer()
+    try:
+        sniffer.sniff(output)
+        return True
+    except csv.Error:
+        return False
+
+
 def parse_csv(output):
     """Parse CSV output from Hammer CLI and convert it to python dictionary."""
     # ignore warning about puppet and ostree deprecation
     output.replace('Puppet and OSTree will no longer be supported in Katello 3.16\n', '')
-    reader = csv.reader(output.splitlines())
+    is_rex = True if 'Job invocation' in output else False
+    # Validate if the output is eligible for CSV conversions else return as it is
+    if not is_csv(output) and not is_rex:
+        return output
+    output = output.splitlines()[0:2] if is_rex else output.splitlines()
+    reader = csv.reader(output)
     # Generate the key names, spaces will be converted to dashes "-"
     keys = [_normalize(header) for header in next(reader)]
     # For each entry, create a dict mapping each key with each value
