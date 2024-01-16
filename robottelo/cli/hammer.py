@@ -48,10 +48,12 @@ def parse_csv(output):
     """Parse CSV output from Hammer CLI and convert it to python dictionary."""
     # ignore warning about puppet and ostree deprecation
     output.replace('Puppet and OSTree will no longer be supported in Katello 3.16\n', '')
+    is_rex = True if 'Job invocation' in output else False
     # Validate if the output is eligible for CSV conversions else return as it is
-    if not is_csv(output):
+    if not is_csv(output) and not is_rex:
         return output
-    reader = csv.reader(output.splitlines())
+    output = output.splitlines()[0:2] if is_rex else output.splitlines()
+    reader = csv.reader(output)
     # Generate the key names, spaces will be converted to dashes "-"
     keys = [_normalize(header) for header in next(reader)]
     # For each entry, create a dict mapping each key with each value
