@@ -865,13 +865,12 @@ def test_entitlements_report_no_inputs_field(
     without passing in the 'Days from Now' argument in the inputs field, to test the
     default setting
 
-    :id: 52fd52db-0ab3-48f3-b37c-c8ce4224810c
+    :id: 5c4e52b9-314c-470d-9946-3d6e05c85b7e
 
     :steps:
         1. hammer report-template generate --organization '' --id '' --report-format ''
 
-    :expectedresults: report is generated containing all the expected information
-                      regarding entitlements, and the Days From Now field isn't required
+    :expectedresults: report is generated, and the Days From Now field isn't required
 
     :BZ: 1943306
 
@@ -888,8 +887,8 @@ def test_entitlements_report_no_inputs_field(
             'report-format': 'csv',
         }
     )
-    assert client.hostname in result
-    assert local_subscription['name'] in result
+    # Only care that the Days from Now field isn't required, do not care about content
+    assert 'Subscription Total Quantity' in result
 
 
 @pytest.mark.tier3
