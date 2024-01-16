@@ -4050,13 +4050,19 @@ class TestContentView:
         )
         module_target_sat.cli.ContentView.publish({'id': content_view['id']})
         content_view = module_target_sat.cli.ContentView.version_info(
-            {'id': content_view['id'], 'lifecycle-environment-id': lce['id'],
-             'organization-id': module_org.id}
+            {
+                'id': content_view['id'],
+                'lifecycle-environment-id': lce['id'],
+                'organization-id': module_org.id,
+            }
         )
         assert content_view['version'] == '1.0'
         content_view = module_target_sat.cli.ContentView.version_info(
-            {'id': content_view['id'], 'lifecycle-environment': lce['name'], 
-            'organization-id': module_org.id}
+            {
+                'id': content_view['id'],
+                'lifecycle-environment': lce['name'],
+                'organization-id': module_org.id,
+            }
         )
         assert content_view['version'] == '1.0'
 
