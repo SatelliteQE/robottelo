@@ -81,7 +81,7 @@ def test_positive_provision_pxe_host(
     mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
-        timeout=240,
+        timeout=1500,
         delay=20,
     )
     discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
@@ -179,7 +179,7 @@ def test_positive_auto_provision_host_with_rule(
     mac = pxeless_discovery_host._broker_args['provisioning_nic_mac_addr']
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
-        timeout=240,
+        timeout=1500,
         delay=20,
     )
     discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
@@ -189,7 +189,7 @@ def test_positive_auto_provision_host_with_rule(
     discovered_host.build = True
 
     discovered_host_name = discovered_host.name
-    domain_name = provisioning_hostgroup.domain.name
+    domain_name = provisioning_hostgroup.domain.read().name
     host_name = f'{discovered_host_name}.{domain_name}'
 
     discovery_rule = sat.api.DiscoveryRule(

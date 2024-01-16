@@ -32,8 +32,12 @@ from robottelo.utils.virtwho import (
 class TestVirtWhoConfigforEsx:
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('deploy_type_cli', ['id', 'script'], indirect=True)
-    def test_positive_deploy_configure_by_id_script(
+    @pytest.mark.parametrize(
+        'deploy_type_cli',
+        ['id', 'script', 'name', 'location-id', 'organization-title'],
+        indirect=True,
+    )
+    def test_positive_deploy_configure_by_id_script_name_locationid_organizationtitle(
         self, module_sca_manifest_org, target_sat, virtwho_config_cli, deploy_type_cli
     ):
         """Verify "hammer virt-who-config deploy & fetch"
@@ -246,7 +250,12 @@ class TestVirtWhoConfigforEsx:
 
     @pytest.mark.tier2
     def test_positive_proxy_option(
-        self, module_sca_manifest_org, form_data_cli, virtwho_config_cli, target_sat
+        self,
+        module_sca_manifest_org,
+        default_location,
+        form_data_cli,
+        virtwho_config_cli,
+        target_sat,
     ):
         """Verify http_proxy option by hammer virt-who-config update"
 
@@ -262,7 +271,7 @@ class TestVirtWhoConfigforEsx:
         """
         # Check the https proxy option, update it via http proxy name
         https_proxy_url, https_proxy_name, https_proxy_id = create_http_proxy(
-            org=module_sca_manifest_org
+            org=module_sca_manifest_org, location=default_location
         )
         no_proxy = 'test.satellite.com'
         target_sat.cli.VirtWhoConfig.update(
@@ -280,7 +289,7 @@ class TestVirtWhoConfigforEsx:
 
         # Check the http proxy option, update it via http proxy id
         http_proxy_url, http_proxy_name, http_proxy_id = create_http_proxy(
-            http_type='http', org=module_sca_manifest_org
+            http_type='http', org=module_sca_manifest_org, location=default_location
         )
         target_sat.cli.VirtWhoConfig.update(
             {'id': virtwho_config_cli['id'], 'http-proxy-id': http_proxy_id}

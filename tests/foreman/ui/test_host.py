@@ -1480,8 +1480,9 @@ def test_global_registration_upgrade_subscription_manager(
 
 @pytest.mark.tier3
 @pytest.mark.usefixtures('enable_capsule_for_registration')
+@pytest.mark.rhel_ver_match('[^6].*')
 def test_global_re_registration_host_with_force_ignore_error_options(
-    session, module_activation_key, default_os, default_smart_proxy, rhel7_contenthost
+    session, module_activation_key, default_os, default_smart_proxy, rhel_contenthost
 ):
     """If the ignore_error and force checkbox is checked then registered host can
     get re-registered without any error.
@@ -1499,7 +1500,7 @@ def test_global_re_registration_host_with_force_ignore_error_options(
 
     :parametrized: yes
     """
-    client = rhel7_contenthost
+    client = rhel_contenthost
     with session:
         cmd = session.host.get_register_command(
             {
@@ -1511,11 +1512,13 @@ def test_global_re_registration_host_with_force_ignore_error_options(
                 'advanced.ignore_error': True,
             }
         )
-    client.execute(cmd)
+    result = client.execute(cmd)
+    assert result.status == 0
     result = client.execute('subscription-manager identity')
     assert result.status == 0
     # rerun the register command
-    client.execute(cmd)
+    result = client.execute(cmd)
+    assert result.status == 0
     result = client.execute('subscription-manager identity')
     assert result.status == 0
 

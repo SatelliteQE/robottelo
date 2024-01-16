@@ -17,15 +17,16 @@ test_directories = [
 
 
 def _clean_video(session_id, test):
-    logger.info(f"cleaning up video files for session: {session_id} and test: {test}")
+    if settings.ui.record_video:
+        logger.info(f"cleaning up video files for session: {session_id} and test: {test}")
 
-    if settings.ui.grid_url and session_id:
-        grid = urlparse(url=settings.ui.grid_url)
-        infra_grid = Host(hostname=grid.hostname)
-        infra_grid.execute(command=f'rm -rf /var/www/html/videos/{session_id}')
-        logger.info(f"video cleanup for session {session_id} is complete")
-    else:
-        logger.warning("missing grid_url or session_id. unable to clean video files.")
+        if settings.ui.grid_url and session_id:
+            grid = urlparse(url=settings.ui.grid_url)
+            infra_grid = Host(hostname=grid.hostname)
+            infra_grid.execute(command=f'rm -rf /var/www/html/videos/{session_id}')
+            logger.info(f"video cleanup for session {session_id} is complete")
+        else:
+            logger.warning("missing grid_url or session_id. unable to clean video files.")
 
 
 def pytest_addoption(parser):
@@ -67,6 +68,9 @@ def pytest_runtest_makereport(item):
             if item.nodeid in test_results:
                 result_info = test_results[item.nodeid]
                 if result_info.outcome == 'passed':
+                    report.user_properties = [
+                        (key, value) for key, value in report.user_properties if key != 'video_url'
+                    ]
                     session_id_tuple = next(
                         (t for t in report.user_properties if t[0] == 'session_id'), None
                     )

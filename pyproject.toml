@@ -32,6 +32,7 @@ select = [
 ]
 
 ignore = [
+    "B019",  # lru_cache can lead to memory leaks - acceptable tradeoff
     "E501",  # line too long - handled by black
     "PT004", # pytest underscrore prefix for non-return fixtures
     "PT005", # pytest no underscrore prefix for return fixtures

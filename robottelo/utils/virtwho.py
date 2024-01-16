@@ -506,7 +506,7 @@ def virtwho_package_locked():
     assert "Packages are locked" in result[1]
 
 
-def create_http_proxy(org, name=None, url=None, http_type='https'):
+def create_http_proxy(org, location, name=None, url=None, http_type='https'):
     """
     Creat a new http-proxy with attributes.
     :param name: Name of the proxy
@@ -524,5 +524,20 @@ def create_http_proxy(org, name=None, url=None, http_type='https'):
         name=http_proxy_name,
         url=http_proxy_url,
         organization=[org.id],
+        location=[location.id],
     ).create()
     return http_proxy.url, http_proxy.name, http_proxy.id
+
+
+def get_configure_command_option(deploy_type, args, org=DEFAULT_ORG):
+    """Return the deploy command line based on option.
+    :param str option: the unique id of the configure file you have created.
+    :param str org: the satellite organization name.
+    """
+    username, password = Base._get_username_password()
+    if deploy_type == 'location-id':
+        return f"hammer -u {username} -p {password} virt-who-config deploy --id {args['id']} --location-id '{args['location-id']}' "
+    elif deploy_type == 'organization-title':
+        return f"hammer -u {username} -p {password} virt-who-config deploy --id {args['id']} --organization-title '{args['organization-title']}' "
+    elif deploy_type == 'name':
+        return f"hammer -u {username} -p {password} virt-who-config deploy --name {args['name']} --organization '{org}' "
