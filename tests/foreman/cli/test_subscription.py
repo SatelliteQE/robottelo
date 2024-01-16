@@ -289,8 +289,8 @@ def test_positive_prepare_for_sca_only_hammer(function_org, target_sat):
     :expectedresults: Hammer returns a message notifying users that Simple Content Access
         will be required for all organizations in the next release
     """
-    org_results = target_sat.execute(
-        f'hammer organization update --id {function_org.id} --simple-content-access false'
+    org_results = target_sat.cli.Org.update(
+        {'simple-content-access': 'false', 'id': function_org.id}, return_raw_response=True
     )
     assert (
         'Simple Content Access will be required for all organizations in the next release'
