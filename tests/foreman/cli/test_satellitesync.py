@@ -1217,7 +1217,7 @@ class TestContentViewSync:
 
         # Corrupt the export archive so that it's incomplete
         tar_files = target_sat.execute(
-            f'find {PULP_EXPORT_DIR}{function_sca_manifest_org.name}/{cv["name"]}/ -name *.tar'
+            f'find {PULP_EXPORT_DIR}{function_sca_manifest_org.name}/{cv["name"]}/ -name *.tar.gz'
         ).stdout.splitlines()
         assert len(tar_files) == 1, 'Expected just one tar file in the export'
 
