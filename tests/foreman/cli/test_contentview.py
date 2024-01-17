@@ -4023,6 +4023,48 @@ class TestContentView:
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         assert '1.1' in [cvv_['version'] for cvv_ in content_view['versions']]
 
+    @pytest.mark.tier2
+    def test_version_info_by_lce(self, module_org, module_target_sat):
+        """Hammer version info can be passed the lce id/name argument without error
+
+        :id: 6ab0c46c-c62a-488b-a30f-5500d6c7ec96
+
+        :steps:
+            1. Lookup CV version info passing the lce id as an argument
+
+        :expectedresults: LCE is able to be passed to version info command without error
+
+        :BZ: 2139834
+
+        :customerscenario: true
+        """
+        content_view = module_target_sat.cli_factory.make_content_view(
+            {'organization-id': module_org.id}
+        )
+        module_target_sat.cli.ContentView.publish({'id': content_view['id']})
+        lce = module_target_sat.cli_factory.make_lifecycle_environment(
+            {'organization-id': module_org.id}
+        )
+        module_target_sat.cli.ContentView.version_promote(
+            {'id': content_view['id'], 'to-lifecycle-environment-id': lce['id']}
+        )
+        content_view = module_target_sat.cli.ContentView.version_info(
+            {
+                'id': content_view['id'],
+                'lifecycle-environment-id': lce['id'],
+                'organization-id': module_org.id,
+            }
+        )
+        assert content_view['version'] == '1.0'
+        content_view = module_target_sat.cli.ContentView.version_info(
+            {
+                'id': content_view['id'],
+                'lifecycle-environment': lce['name'],
+                'organization-id': module_org.id,
+            }
+        )
+        assert content_view['version'] == '1.0'
+
 
 class TestContentViewFileRepo:
     """Specific tests for Content Views with File Repositories containing
