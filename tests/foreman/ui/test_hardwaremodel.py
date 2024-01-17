@@ -10,13 +10,12 @@
 
 """
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, host_ui_options):
+def test_positive_end_to_end(session, host_ui_options, module_target_sat):
     """Perform end to end testing for hardware model component
 
     :id: 93663cc9-7c8f-4f43-8050-444be1313bed
@@ -61,4 +60,4 @@ def test_positive_end_to_end(session, host_ui_options):
         session.host.update(host_name, {'additional_information.hardware_model': ''})
         # Delete hardware model
         session.hardwaremodel.delete(new_name)
-        assert not entities.Host().search(query={'search': f'name="{new_name}"'})
+        assert not module_target_sat.api.Host().search(query={'search': f'name="{new_name}"'})

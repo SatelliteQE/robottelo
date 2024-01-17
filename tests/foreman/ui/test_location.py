@@ -12,7 +12,6 @@
 
 """
 from fauxfactory import gen_ipaddr, gen_string
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -21,7 +20,7 @@ from robottelo.constants import ANY_CONTEXT, INSTALL_MEDIUM_URL, LIBVIRT_RESOURC
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session):
+def test_positive_end_to_end(session, target_sat):
     """Perform end to end testing for location component
 
     :id: dba5d94d-0c18-4db0-a9e8-66599bffc5d9
@@ -30,18 +29,18 @@ def test_positive_end_to_end(session):
 
     :CaseImportance: Critical
     """
-    loc_parent = entities.Location().create()
+    loc_parent = target_sat.api.Location().create()
     loc_child_name = gen_string('alpha')
     description = gen_string('alpha')
     updated_name = gen_string('alphanumeric')
 
     # create entities
     ip_addres = gen_ipaddr(ip3=True)
-    subnet = entities.Subnet(network=ip_addres, mask='255.255.255.0').create()
+    subnet = target_sat.api.Subnet(network=ip_addres, mask='255.255.255.0').create()
     subnet_name = f'{subnet.name} ({subnet.network}/{subnet.cidr})'
-    domain = entities.Domain().create()
-    user = entities.User().create()
-    media = entities.Media(
+    domain = target_sat.api.Domain().create()
+    user = target_sat.api.User().create()
+    media = target_sat.api.Media(
         path_=INSTALL_MEDIUM_URL % gen_string('alpha', 6), os_family='Redhat'
     ).create()
 
@@ -104,7 +103,7 @@ def test_positive_end_to_end(session):
 
 @pytest.mark.skip_if_open("BZ:1321543")
 @pytest.mark.tier2
-def test_positive_update_with_all_users(session):
+def test_positive_update_with_all_users(session, target_sat):
     """Create location and do not add user to it. Check and uncheck
     'all users' setting. Verify that for both operation expected location
     is assigned to user. Then add user to location and retry.
@@ -118,8 +117,8 @@ def test_positive_update_with_all_users(session):
 
     :BZ: 1321543, 1479736, 1479736
     """
-    user = entities.User().create()
-    loc = entities.Location().create()
+    user = target_sat.api.User().create()
+    loc = target_sat.api.Location().create()
     with session:
         session.organization.select(org_name=ANY_CONTEXT['org'])
         session.location.select(loc_name=loc.name)
@@ -143,7 +142,7 @@ def test_positive_update_with_all_users(session):
 
 
 @pytest.mark.tier2
-def test_positive_add_org_hostgroup_template(session):
+def test_positive_add_org_hostgroup_template(session, target_sat):
     """Add a organization, hostgroup, provisioning template by using
        the location name
 
@@ -152,10 +151,10 @@ def test_positive_add_org_hostgroup_template(session):
     :expectedresults: organization, hostgroup, provisioning template are
         added to location
     """
-    org = entities.Organization().create()
-    loc = entities.Location().create()
-    hostgroup = entities.HostGroup().create()
-    template = entities.ProvisioningTemplate().create()
+    org = target_sat.api.Organization().create()
+    loc = target_sat.api.Location().create()
+    hostgroup = target_sat.api.HostGroup().create()
+    template = target_sat.api.ProvisioningTemplate().create()
     with session:
         session.location.update(
             loc.name,
@@ -185,7 +184,7 @@ def test_positive_add_org_hostgroup_template(session):
 
 @pytest.mark.skip_if_not_set('libvirt')
 @pytest.mark.tier2
-def test_positive_update_compresource(session):
+def test_positive_update_compresource(session, target_sat):
     """Add/Remove compute resource from/to location
 
     :id: 1d24414a-666d-490d-89b9-cd0704684cdd
@@ -193,9 +192,9 @@ def test_positive_update_compresource(session):
     :expectedresults: compute resource is added and removed from the location
     """
     url = LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
-    resource = entities.LibvirtComputeResource(url=url).create()
+    resource = target_sat.api.LibvirtComputeResource(url=url).create()
     resource_name = resource.name + ' (Libvirt)'
-    loc = entities.Location().create()
+    loc = target_sat.api.Location().create()
     with session:
         session.location.update(loc.name, {'compute_resources.resources.assigned': [resource_name]})
         loc_values = session.location.read(loc.name)

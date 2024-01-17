@@ -10,7 +10,6 @@
 
 """
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 import requests
 
@@ -19,13 +18,13 @@ from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL, FOREMAN_TEMPLATE_RO
 
 
 @pytest.fixture(scope='module')
-def templates_org():
-    return entities.Organization().create()
+def templates_org(module_target_sat):
+    return module_target_sat.api.Organization().create()
 
 
 @pytest.fixture(scope='module')
-def templates_loc(templates_org):
-    return entities.Location(organization=[templates_org]).create()
+def templates_loc(templates_org, module_target_sat):
+    return module_target_sat.api.Location(organization=[templates_org]).create()
 
 
 git = settings.git
