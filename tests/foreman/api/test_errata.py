@@ -16,11 +16,9 @@ from time import sleep, time
 
 import pytest
 
-from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
-    DEFAULT_SUBSCRIPTION_NAME,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_2_CUSTOM_PACKAGE_NAME,
@@ -738,11 +736,12 @@ def test_positive_install_multiple_in_host(
         # outdated package found on host
         assert rhel_contenthost.run(f'rpm -q {package_filename}').status == 0
         """
-            Modifying the applicable package:
-            - changed package applicability count by one and only one.
-            - changed errata applicability count by number of affected errata, whose
+            Modifying the applicable package did all:
+            1. changed package applicability count by one and only one.
+            2. changed errata applicability count by number of affected errata, whose
                 applicability status changed after package was modified.
-            - changed lists of applicable packages and applicable errata accordingly.
+            3. changed lists of applicable packages and applicable errata accordingly.
+            - otherwise raise `AssertionError` in below method;
         """
         passed_checks = package_applicability_changed_as_expected(
             target_sat,
@@ -788,7 +787,6 @@ def test_positive_install_multiple_in_host(
         security_packages_to_install.update(present_packages_impacted_by_errata)
     # Are expected security errata packages found in all applicable packages ?
     assert security_packages_to_install.issubset(all_applicable_packages)
-    # errata_instances = [target_sat.api.Errata().search(query={'search': f'errata_id="{_id}"'})[0].read() for _id in FAKE_9_YUM_SECURITY_ERRATUM]
     # Try to install each ERRATUM in FAKE_9_YUM_SECURITY_ERRATUM list,
     # Each time, check lists of applicable erratum and packages, and counts
     for ERRATUM in FAKE_9_YUM_SECURITY_ERRATUM:
@@ -1416,11 +1414,6 @@ def test_errata_installation_with_swidtags(
     assert before_errata_apply_result != after_errata_apply_result
 
 
-"""Section for tests using RHEL8 Content Host.
-   The applicability tests using Default Content View are related to the introduction of Pulp3.
-   """
-
-
 @pytest.fixture(scope='module')
 def rh_repo_module_manifest(module_sca_manifest_org, module_target_sat):
     """Use module manifest org, creates tools repo, syncs and returns RH repo."""
@@ -1437,141 +1430,3 @@ def rh_repo_module_manifest(module_sca_manifest_org, module_target_sat):
     rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
     rh_repo.sync()
     return rh_repo
-
-
-@pytest.fixture(scope='module')
-def rhel8_custom_repo_cv(module_entitlement_manifest_org, module_target_sat):
-    """Create repo and publish CV so that packages are in Library"""
-    return module_target_sat.cli_factory.setup_org_for_a_custom_repo(
-        {
-            'url': settings.repos.module_stream_1.url,
-            'organization-id': module_entitlement_manifest_org.id,
-        }
-    )
-
-
-@pytest.fixture(scope='module')
-def rhel8_module_ak(
-    module_entitlement_manifest_org,
-    default_lce,
-    rh_repo_module_manifest,
-    rhel8_custom_repo_cv,
-    module_target_sat,
-):
-    rhel8_module_ak = module_target_sat.api.ActivationKey(
-        content_view=module_entitlement_manifest_org.default_content_view,
-        environment=module_target_sat.api.LifecycleEnvironment(
-            id=module_entitlement_manifest_org.library.id
-        ),
-        organization=module_entitlement_manifest_org,
-    ).create()
-    # Ensure tools repo is enabled in the activation key
-    rhel8_module_ak.content_override(
-        data={'content_overrides': [{'content_label': REPOS['rhst8']['id'], 'value': '1'}]}
-    )
-    # Fetch available subscriptions
-    subs = module_target_sat.api.Subscription(organization=module_entitlement_manifest_org).search(
-        query={'search': f'{DEFAULT_SUBSCRIPTION_NAME}'}
-    )
-    assert subs
-    # Add default subscription to activation key
-    rhel8_module_ak.add_subscriptions(data={'subscription_id': subs[0].id})
-    # Add custom subscription to activation key
-    product = module_target_sat.api.Product(organization=module_entitlement_manifest_org).search(
-        query={'search': 'redhat=false'}
-    )
-    custom_sub = module_target_sat.api.Subscription(
-        organization=module_entitlement_manifest_org
-    ).search(query={'search': f'name={product[0].name}'})
-    rhel8_module_ak.add_subscriptions(data={'subscription_id': custom_sub[0].id})
-    return rhel8_module_ak
-
-
-@pytest.mark.tier2
-def test_apply_modular_errata_using_default_content_view(
-    module_entitlement_manifest_org,
-    default_lce,
-    rhel8_contenthost,
-    rhel8_module_ak,
-    rhel8_custom_repo_cv,
-    target_sat,
-):
-    """
-    Registering a RHEL8 system to the default content view with no modules enabled results in
-    no modular errata or packages showing as applicable or installable
-
-    Enabling a module on a RHEL8 system assigned to the default content view and installing an
-    older package should result in the modular errata and package showing as applicable and
-    installable
-
-    :id: 030981dd-19ba-4f8b-9c24-0aee90aaa4c4
-
-    Steps:
-        1. Register host with AK, install tools
-        2. Assert no errata indicated
-        3. Install older version of stream
-        4. Assert errata is applicable
-        5. Update module stream
-        6. Assert errata is no longer applicable
-
-    :expectedresults:  Errata enumeration works with module streams when using default Content View
-
-    :CaseAutomation: Automated
-
-    :parametrized: yes
-
-    """
-    module_name = 'duck'
-    stream = '0'
-    version = '20180704244205'
-
-    rhel8_contenthost.install_katello_ca(target_sat)
-    rhel8_contenthost.register_contenthost(
-        module_entitlement_manifest_org.label, rhel8_module_ak.name
-    )
-    assert rhel8_contenthost.subscribed
-    host = rhel8_contenthost.nailgun_host.read()
-    # Assert no errata on host, no packages applicable or installable
-    errata = _fetch_available_errata(module_entitlement_manifest_org, host, expected_amount=0)
-    assert len(errata) == 0
-    rhel8_contenthost.install_katello_host_tools()
-    # Install older version of module stream to generate the errata
-    result = rhel8_contenthost.execute(
-        f'yum -y module install {module_name}:{stream}:{version}',
-    )
-    assert result.status == 0
-    # Check that there is now two errata applicable
-    errata = _fetch_available_errata(module_entitlement_manifest_org, host, 2)
-    target_sat.cli.Host.errata_recalculate({'host-id': rhel8_contenthost.nailgun_host.id})
-    assert len(errata) == 2
-    # Assert that errata package is required
-    assert constants.FAKE_3_CUSTOM_PACKAGE in errata[0]['module_streams'][0]['packages']
-    # Update module
-    result = rhel8_contenthost.execute(
-        f'yum -y module update {module_name}:{stream}:{version}',
-    )
-    assert result.status == 0
-    # Check that there is now no errata applicable
-    errata = _fetch_available_errata(module_entitlement_manifest_org, host, 0)
-    assert len(errata) == 0
-
-    @pytest.mark.tier2
-    @pytest.mark.skip("Uses old large_errata repo from repos.fedorapeople")
-    def test_positive_sync_repos_with_large_errata(target_sat):
-        """Attempt to synchronize 2 repositories containing large (or lots of)
-        errata.
-
-        :id: d6680b9f-4c88-40b4-8b96-3d170664cb28
-
-        :customerscenario: true
-
-        :BZ: 1463811
-
-        :expectedresults: both repositories were successfully synchronized
-        """
-        org = target_sat.api.Organization().create()
-        for _ in range(2):
-            product = target_sat.api.Product(organization=org).create()
-            repo = target_sat.api.Repository(product=product, url=settings.repos.yum_7.url).create()
-            response = repo.sync()
-            assert response, f"Repository {repo} failed to sync."
