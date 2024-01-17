@@ -14,7 +14,6 @@
 from math import floor, log10
 from random import choice
 
-from nailgun import entities
 import pytest
 from wait_for import TimedOutError, wait_for
 from wrapanapi.systems.virtualcenter import VMWareSystem, vim
@@ -82,8 +81,8 @@ def _get_vmware_datastore_summary_string(data_store_name=settings.vmware.datasto
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
-def test_positive_end_to_end(session, module_org, module_location, vmware):
-    """Perform end to end testing for compute resource VMware component.
+def test_positive_end_to_end(session, module_org, module_location, vmware, module_target_sat):
+    """Perform end-to-end testing for compute resource VMware component.
 
     :id: 47fc9e77-5b22-46b4-a76c-3217434fde2f
 
@@ -95,8 +94,8 @@ def test_positive_end_to_end(session, module_org, module_location, vmware):
     display_type = choice(('VNC', 'VMRC'))
     vnc_console_passwords = choice((False, True))
     enable_caching = choice((False, True))
-    new_org = entities.Organization().create()
-    new_loc = entities.Location().create()
+    new_org = module_target_sat.api.Organization().create()
+    new_loc = module_target_sat.api.Location().create()
     with session:
         session.computeresource.create(
             {
