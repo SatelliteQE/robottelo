@@ -11,7 +11,6 @@
 :CaseImportance: High
 
 """
-from nailgun import entities
 import pytest
 from wait_for import wait_for
 
@@ -48,7 +47,7 @@ def rhev_data():
 
 
 @pytest.mark.tier2
-def test_positive_end_to_end(session, rhev_data, module_org, module_location):
+def test_positive_end_to_end(session, rhev_data, module_org, module_location, module_target_sat):
     """Perform end to end testing for compute resource RHEV.
 
     :id: 3c079675-e5d3-490e-9b7e-1c2950f9965d
@@ -85,7 +84,9 @@ def test_positive_end_to_end(session, rhev_data, module_org, module_location):
         assert not session.computeresource.search(name)
         assert session.computeresource.search(new_name)[0]['Name'] == new_name
         session.computeresource.delete(new_name)
-        assert not entities.AbstractComputeResource().search(query={'search': f'name={new_name}'})
+        assert not module_target_sat.api.AbstractComputeResource().search(
+            query={'search': f'name={new_name}'}
+        )
 
 
 @pytest.mark.tier2
@@ -225,7 +226,7 @@ def test_positive_resource_vm_power_management(session, rhev_data):
 
 
 @pytest.mark.tier3
-def test_positive_VM_import(session, module_org, module_location, rhev_data):
+def test_positive_VM_import(session, module_org, module_location, rhev_data, module_target_sat):
     """Import an existing VM as a Host
 
     :id: 47aea4b7-9258-4863-8966-9a0bc9e94116
@@ -239,34 +240,38 @@ def test_positive_VM_import(session, module_org, module_location, rhev_data):
     :BZ: 1636067
     """
     # create entities for hostgroup
-    default_loc_id = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
-    entities.SmartProxy(id=1, location=[default_loc_id, module_location.id]).update()
-    domain = entities.Domain(organization=[module_org.id], location=[module_location]).create()
-    subnet = entities.Subnet(
-        organization=[module_org.id], location=[module_location], domain=[domain]
-    ).create()
-    architecture = entities.Architecture().create()
-    ptable = entities.PartitionTable(
+    default_loc_id = (
+        module_target_sat.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
+    )
+    module_target_sat.api.SmartProxy(id=1, location=[default_loc_id, module_location.id]).update()
+    domain = module_target_sat.api.Domain(
         organization=[module_org.id], location=[module_location]
     ).create()
-    operatingsystem = entities.OperatingSystem(
+    subnet = module_target_sat.api.Subnet(
+        organization=[module_org.id], location=[module_location], domain=[domain]
+    ).create()
+    architecture = module_target_sat.api.Architecture().create()
+    ptable = module_target_sat.api.PartitionTable(
+        organization=[module_org.id], location=[module_location]
+    ).create()
+    operatingsystem = module_target_sat.api.OperatingSystem(
         architecture=[architecture], ptable=[ptable]
     ).create()
-    medium = entities.Media(
+    medium = module_target_sat.api.Media(
         organization=[module_org.id], location=[module_location], operatingsystem=[operatingsystem]
     ).create()
     le = (
-        entities.LifecycleEnvironment(name="Library", organization=module_org.id)
+        module_target_sat.api.LifecycleEnvironment(name="Library", organization=module_org.id)
         .search()[0]
         .read()
         .id
     )
-    cv = entities.ContentView(organization=module_org).create()
+    cv = module_target_sat.api.ContentView(organization=module_org).create()
     cv.publish()
 
     # create hostgroup
     hostgroup_name = gen_string('alpha')
-    entities.HostGroup(
+    module_target_sat.api.HostGroup(
         name=hostgroup_name,
         architecture=architecture,
         domain=domain,
@@ -302,14 +307,14 @@ def test_positive_VM_import(session, module_org, module_location, rhev_data):
         )
         assert session.host.search(rhev_data['vm_name']) is not None
     # disassociate the host so the corresponding VM doesn't get removed from the CR on host delete
-    entities.Host().search(query={'search': 'name~{}'.format(rhev_data['vm_name'])})[
+    module_target_sat.api.Host().search(query={'search': 'name~{}'.format(rhev_data['vm_name'])})[
         0
     ].disassociate()
-    entities.Host(name=rhev_data['vm_name']).search()[0].delete()
+    module_target_sat.api.Host(name=rhev_data['vm_name']).search()[0].delete()
 
 
 @pytest.mark.tier3
-def test_positive_update_organization(session, rhev_data, module_location):
+def test_positive_update_organization(session, rhev_data, module_location, module_target_sat):
     """Update a rhev Compute Resource organization
 
     :id: f6656c8e-70a3-40e5-8dda-2154f2eeb042
@@ -334,7 +339,7 @@ def test_positive_update_organization(session, rhev_data, module_location):
     :expectedresults: The rhev Compute Resource is updated
     """
     name = gen_string('alpha')
-    new_organization = entities.Organization().create()
+    new_organization = module_target_sat.api.Organization().create()
     with session:
         session.computeresource.create(
             {
