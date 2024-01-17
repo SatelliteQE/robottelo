@@ -859,7 +859,12 @@ def test_positive_schedule_entitlements_report(
 
 @pytest.mark.tier3
 def test_entitlements_report_no_inputs_field(
-    module_entitlement_manifest_org, local_ak, local_subscription, rhel7_contenthost, target_sat
+    module_entitlement_manifest_org,
+    module_location,
+    local_ak,
+    local_subscription,
+    rhel7_contenthost,
+    target_sat,
 ):
     """Generate an report using the Subscription - Entitlement Report template
     without passing in the 'Days from Now' argument in the inputs field, to test the
@@ -877,8 +882,7 @@ def test_entitlements_report_no_inputs_field(
     :customerscenario: true
     """
     client = rhel7_contenthost
-    client.install_katello_ca(target_sat)
-    client.register_contenthost(module_entitlement_manifest_org.label, local_ak['name'])
+    client.register(module_entitlement_manifest_org, module_location, local_ak['name'], target_sat)
     assert client.subscribed
     result = target_sat.cli.ReportTemplate.generate(
         {
