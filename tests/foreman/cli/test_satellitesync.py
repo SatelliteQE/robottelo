@@ -2073,7 +2073,7 @@ class TestInterSatelliteSync:
     @pytest.mark.rhel_ver_list([8])
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
-        ['rhae2.9_el8'],
+        ['rhsclient8'],
         indirect=True,
     )
     def test_positive_export_import_consume_incremental_yum_repo(
@@ -2091,7 +2091,7 @@ class TestInterSatelliteSync:
         :id: f5515168-c3c9-4351-9f83-ba6265689db3
 
         :setup:
-            1. Enabled and synced RH yum repository (Ansible Engine for this case).
+            1. Enabled and synced RH yum repository (RH Satellite Client for this case).
             2. An unregistered RHEL8 host.
 
         :steps:
@@ -2100,7 +2100,7 @@ class TestInterSatelliteSync:
             3. On the importing side import version 1, check the package count.
             4. Create an AK with the imported CV, register the content host and check
                the package count available to install. Filtered package should be missing.
-            5. Update the fiter so no package is left behind, publish version 2 and export it.
+            5. Update the filter so no package is left behind, publish version 2 and export it.
             6. Import version 2, check the package count.
             7. Check the package count available to install on the content host.
             8. Install the package.
@@ -2113,9 +2113,6 @@ class TestInterSatelliteSync:
 
         :customerscenario: true
         """
-        res = rhel_contenthost.execute('dnf config-manager --set-disabled ubi-8-appstream-rpms')
-        assert res.status == 0, 'disablement of ubi-8-appstream-rpms failed'
-
         # Create a CV with the RH yum repository.
         exp_cv = target_sat.cli_factory.make_content_view(
             {
@@ -2125,7 +2122,7 @@ class TestInterSatelliteSync:
         )
 
         # Add exclude RPM filter to filter out one package, publish version 1 and export it.
-        filtered_pkg = 'sshpass'
+        filtered_pkg = 'katello-host-tools'
         cvf = target_sat.cli_factory.make_content_view_filter(
             {'content-view-id': exp_cv['id'], 'type': 'rpm'}
         )
@@ -2166,7 +2163,7 @@ class TestInterSatelliteSync:
         target_sat.cli.ActivationKey.content_override(
             {
                 'id': ak.id,
-                'content-label': function_synced_rh_repo['content-label'],
+                'content-label': REPOS['rhsclient8']['id'],
                 'value': 'true',
             }
         )
