@@ -252,12 +252,12 @@ def test_client_register_through_lb(
     :steps:
         1. Setup capsules, host and loadbalancer.
         2. Generate curl command for host registration.
-        3. Register host through loadbalancer using global registration
+        3. Register host through loadbalancer using global registration.
 
     :expectedresults: Global Registration should have option to register through
-    loadbalancer and host should get registered successfully.
+        loadbalancer and host should get registered successfully with Content Source set.
 
-    :BZ: 1963266
+    :BZ: 1963266, 2254612
 
     :customerscenario: true
     """
@@ -274,6 +274,12 @@ def test_client_register_through_lb(
         in rhel_contenthost.subscription_config['server']['hostname']
     )
     assert CLIENT_PORT == rhel_contenthost.subscription_config['server']['port']
+    assert loadbalancer_setup['module_target_sat'].cli.Host.info(
+        {'name': rhel_contenthost.hostname}, output_format='json'
+    )['content-information']['content-source']['name'] in [
+        setup_capsules['capsule_1'].hostname,
+        setup_capsules['capsule_2'].hostname,
+    ], 'Unexpected Content Source is set or missing'
 
     # Host registration by Second Capsule through Loadbalancer
     result = rhel_contenthost.register(
