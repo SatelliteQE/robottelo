@@ -647,6 +647,6 @@ class TestVirtwhoConfigforEsx:
         assert get_configure_option('encrypted_password', config_file)
         res = org_session.virtwho_configure.read_edit(name)
         assert 'encrypted-' in res['hypervisor_content']['password']
-        org_session.virtwho_configure.edit(name, {'hypervisor_password': "Welcome1!"})
+        org_session.virtwho_configure.edit(name, {'hypervisor_password': gen_string('alpha')})
         results = org_session.virtwho_configure.read(name)
         assert 'encrypted_password=$cr_password' in results['deploy']['script']
