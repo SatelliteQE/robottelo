@@ -12,25 +12,24 @@
 
 """
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
 
 
 @pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
+def module_org(module_target_sat):
+    return module_target_sat.api.Organization().create()
 
 
 @pytest.fixture(scope='module')
-def module_product(module_org):
-    return entities.Product(organization=module_org).create()
+def module_product(module_org, module_target_sat):
+    return module_target_sat.api.Product(organization=module_org).create()
 
 
 @pytest.fixture(scope='module')
-def module_yum_repo(module_product):
-    yum_repo = entities.Repository(
+def module_yum_repo(module_product, module_target_sat):
+    yum_repo = module_target_sat.api.Repository(
         name=gen_string('alpha'),
         product=module_product,
         content_type='yum',
