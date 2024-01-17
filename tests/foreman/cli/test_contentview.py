@@ -4048,7 +4048,6 @@ class TestContentView:
         module_target_sat.cli.ContentView.version_promote(
             {'id': content_view['id'], 'to-lifecycle-environment-id': lce['id']}
         )
-        module_target_sat.cli.ContentView.publish({'id': content_view['id']})
         content_view = module_target_sat.cli.ContentView.version_info(
             {
                 'id': content_view['id'],
