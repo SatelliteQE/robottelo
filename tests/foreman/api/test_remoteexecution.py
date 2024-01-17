@@ -73,6 +73,12 @@ def test_positive_run_capsule_upgrade_playbook(module_capsule_configured, target
 @pytest.mark.tier3
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list('8')
+@pytest.mark.parametrize(
+    'setting_update',
+    ['remote_execution_global_proxy=False'],
+    ids=["no_global_proxy"],
+    indirect=True,
+)
 def test_negative_time_to_pickup(
     module_org,
     module_target_sat,
@@ -80,6 +86,7 @@ def test_negative_time_to_pickup(
     module_ak_with_cv,
     module_capsule_configured_mqtt,
     rhel_contenthost,
+    setting_update,
 ):
     """Time to pickup setting is honored for host registered to mqtt
 
@@ -130,13 +137,6 @@ def test_negative_time_to_pickup(
     # stop yggdrasil client on host
     result = rhel_contenthost.execute('systemctl stop yggdrasild')
     assert result.status == 0, f'Failed to stop yggdrasil on client: {result.stderr}'
-
-    # Make sure the job is executed by the registered-trough capsule
-    global_ttp = module_target_sat.api.Setting().search(
-        query={'search': 'name="remote_execution_global_proxy"'}
-    )[0]
-    global_ttp.value = False
-    global_ttp.update(['value'])
 
     # run script provider rex command with time_to_pickup
     job = module_target_sat.api.JobInvocation().run(
