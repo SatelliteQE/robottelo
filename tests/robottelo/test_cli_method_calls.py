@@ -69,7 +69,7 @@ def test_cli_repository_method_called(mocker, command_sub):
     assert execute.return_value == getattr(Repository, command_sub.replace('-', '_'))(options)
     assert command_sub == Repository.command_sub
     construct.assert_called_once_with(options)
-    execute.assert_called_once_with(construct.return_value)
+    execute.assert_called_once_with(construct.return_value, output_format='csv', ignore_stderr=True)
 
 
 @pytest.mark.parametrize('command_sub', ['info', 'create'])
