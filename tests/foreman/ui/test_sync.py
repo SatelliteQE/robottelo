@@ -12,7 +12,6 @@
 
 """
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -28,18 +27,18 @@ from robottelo.constants.repos import FEDORA_OSTREE_REPO
 
 
 @pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
+def module_org(module_target_sat):
+    return module_target_sat.api.Organization().create()
 
 
 @pytest.fixture(scope='module')
-def module_custom_product(module_org):
-    return entities.Product(organization=module_org).create()
+def module_custom_product(module_org, module_target_sat):
+    return module_target_sat.api.Product(organization=module_org).create()
 
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_sync_custom_repo(session, module_custom_product):
+def test_positive_sync_custom_repo(session, module_custom_product, module_target_sat):
     """Create Content Custom Sync with minimal input parameters
 
     :id: 00fb0b04-0293-42c2-92fa-930c75acee89
@@ -48,7 +47,9 @@ def test_positive_sync_custom_repo(session, module_custom_product):
 
     :CaseImportance: Critical
     """
-    repo = entities.Repository(url=settings.repos.yum_1.url, product=module_custom_product).create()
+    repo = module_target_sat.api.Repository(
+        url=settings.repos.yum_1.url, product=module_custom_product
+    ).create()
     with session:
         results = session.sync_status.synchronize([(module_custom_product.name, repo.name)])
         assert len(results) == 1
@@ -97,7 +98,7 @@ def test_positive_sync_rh_repos(session, target_sat, module_entitlement_manifest
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_sync_custom_ostree_repo(session, module_custom_product):
+def test_positive_sync_custom_ostree_repo(session, module_custom_product, module_target_sat):
     """Create custom ostree repository and sync it.
 
     :id: e4119b9b-0356-4661-a3ec-e5807224f7d2
@@ -108,7 +109,7 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product):
 
     :BZ: 1625783
     """
-    repo = entities.Repository(
+    repo = module_target_sat.api.Repository(
         content_type='ostree',
         url=FEDORA_OSTREE_REPO,
         product=module_custom_product,
@@ -157,7 +158,7 @@ def test_positive_sync_rh_ostree_repo(session, target_sat, module_entitlement_ma
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_sync_docker_via_sync_status(session, module_org):
+def test_positive_sync_docker_via_sync_status(session, module_org, module_target_sat):
     """Create custom docker repo and sync it via the sync status page.
 
     :id: 00b700f4-7e52-48ed-98b2-e49b3be102f2
@@ -165,7 +166,7 @@ def test_positive_sync_docker_via_sync_status(session, module_org):
     :expectedresults: Sync procedure for specific docker repository is
         successful
     """
-    product = entities.Product(organization=module_org).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
     repo_name = gen_string('alphanumeric')
     with session:
         session.repository.create(

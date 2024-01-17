@@ -17,7 +17,6 @@ import os
 from pathlib import Path, PurePath
 
 from lxml import etree
-from nailgun import entities
 import pytest
 import yaml
 
@@ -37,25 +36,25 @@ def setup_content(module_entitlement_manifest_org, module_target_sat):
         reposet=REPOSET['rhst7'],
         releasever=None,
     )
-    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
     rh_repo.sync()
-    custom_product = entities.Product(organization=org).create()
-    custom_repo = entities.Repository(
+    custom_product = module_target_sat.api.Product(organization=org).create()
+    custom_repo = module_target_sat.api.Repository(
         name=gen_string('alphanumeric').upper(), product=custom_product
     ).create()
     custom_repo.sync()
-    lce = entities.LifecycleEnvironment(organization=org).create()
-    cv = entities.ContentView(
+    lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
+    cv = module_target_sat.api.ContentView(
         organization=org,
         repository=[rh_repo_id, custom_repo.id],
     ).create()
     cv.publish()
     cvv = cv.read().version[0].read()
     cvv.promote(data={'environment_ids': lce.id})
-    ak = entities.ActivationKey(
+    ak = module_target_sat.api.ActivationKey(
         content_view=cv, organization=org, environment=lce, auto_attach=True
     ).create()
-    subscription = entities.Subscription(organization=org).search(
+    subscription = module_target_sat.api.Subscription(organization=org).search(
         query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
     ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
@@ -276,7 +275,7 @@ def test_positive_generate_registered_hosts_report(target_sat, module_org, modul
 @pytest.mark.upgrade
 @pytest.mark.tier2
 def test_positive_generate_subscriptions_report_json(
-    session, module_org, module_location, setup_content
+    session, module_org, setup_content, module_target_sat
 ):
     """Use provided Subscriptions report, generate JSON
 
@@ -293,7 +292,7 @@ def test_positive_generate_subscriptions_report_json(
         )
     with open(file_path) as json_file:
         data = json.load(json_file)
-    subscription_cnt = len(entities.Subscription(organization=module_org).search())
+    subscription_cnt = len(module_target_sat.api.Subscription(organization=module_org).search())
     assert subscription_cnt > 0
     assert len(data) >= subscription_cnt
     keys_expected = [
