@@ -12,7 +12,6 @@
 
 """
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -44,7 +43,7 @@ def module_ec2_settings():
 @pytest.mark.skip_if_not_set('http_proxy')
 @pytest.mark.skip_if_open("BZ:2032530")
 def test_positive_default_end_to_end_with_custom_profile(
-    session, module_org, module_location, module_ec2_settings
+    session, module_org, module_location, module_ec2_settings, module_target_sat
 ):
     """Create EC2 compute resource with default properties and apply it's basic functionality.
 
@@ -67,9 +66,9 @@ def test_positive_default_end_to_end_with_custom_profile(
     cr_name = gen_string('alpha')
     new_cr_name = gen_string('alpha')
     cr_description = gen_string('alpha')
-    new_org = entities.Organization().create()
-    new_loc = entities.Location().create()
-    http_proxy = entities.HTTPProxy(
+    new_org = module_target_sat.api.Organization().create()
+    new_loc = module_target_sat.api.Location().create()
+    http_proxy = module_target_sat.api.HTTPProxy(
         name=gen_string('alpha', 15),
         url=settings.http_proxy.auth_proxy_url,
         username=settings.http_proxy.username,

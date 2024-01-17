@@ -12,13 +12,12 @@
 
 """
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session):
+def test_positive_end_to_end(session, target_sat):
     """Perform end to end testing for architecture component
 
     :id: eef14b29-9f5a-41aa-805e-73398ed2b112
@@ -29,7 +28,7 @@ def test_positive_end_to_end(session):
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
-    os = entities.OperatingSystem().create()
+    os = target_sat.api.OperatingSystem().create()
     os_name = f'{os.name} {os.major}'
     with session:
         # Create new architecture with assigned operating system
