@@ -858,6 +858,44 @@ def test_positive_schedule_entitlements_report(
 
 
 @pytest.mark.tier3
+def test_entitlements_report_no_inputs_field(
+    module_entitlement_manifest_org,
+    module_location,
+    local_ak,
+    local_subscription,
+    rhel7_contenthost,
+    target_sat,
+):
+    """Generate an report using the Subscription - Entitlement Report template
+    without passing in the 'Days from Now' argument in the inputs field, to test the
+    default setting
+
+    :id: 5c4e52b9-314c-470d-9946-3d6e05c85b7e
+
+    :steps:
+        1. hammer report-template generate --organization '' --id '' --report-format ''
+
+    :expectedresults: report is generated, and the Days From Now field isn't required
+
+    :BZ: 1943306
+
+    :customerscenario: true
+    """
+    client = rhel7_contenthost
+    client.register(module_entitlement_manifest_org, module_location, local_ak['name'], target_sat)
+    assert client.subscribed
+    result = target_sat.cli.ReportTemplate.generate(
+        {
+            'organization': module_entitlement_manifest_org.name,
+            'name': 'Subscription - Entitlement Report',
+            'report-format': 'csv',
+        }
+    )
+    # Only care that the Days from Now field isn't required, do not care about content
+    assert 'Subscription Total Quantity' in result
+
+
+@pytest.mark.tier3
 def test_positive_generate_hostpkgcompare(
     module_entitlement_manifest_org, local_ak, local_content_view, local_environment, target_sat
 ):
