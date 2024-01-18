@@ -51,6 +51,7 @@ def _is_host_reachable(host, retries=12, iteration_sleep=5, expect_reachable=Tru
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.rhel_ver_match('9')
 def test_positive_provision_pxe_host(
+    request,
     session,
     module_location,
     module_org,
@@ -93,6 +94,10 @@ def test_positive_provision_pxe_host(
     discovered_host_name = discovered_host.name
     domain_name = provisioning_hostgroup.domain.read().name
     host_name = f'{discovered_host_name}.{domain_name}'
+
+    # Teardown
+    request.addfinalizer(lambda: sat.provisioning_cleanup(host_name))
+
     with session:
         session.discoveredhosts.provision(
             discovered_host_name,
@@ -150,6 +155,7 @@ def test_positive_update_name(
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.rhel_ver_match('9')
 def test_positive_auto_provision_host_with_rule(
+    request,
     session,
     module_org,
     module_location,
@@ -191,6 +197,9 @@ def test_positive_auto_provision_host_with_rule(
     discovered_host_name = discovered_host.name
     domain_name = provisioning_hostgroup.domain.read().name
     host_name = f'{discovered_host_name}.{domain_name}'
+
+    # Teardown
+    request.addfinalizer(lambda: sat.provisioning_cleanup(host_name))
 
     discovery_rule = sat.api.DiscoveryRule(
         max_count=10,

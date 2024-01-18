@@ -36,7 +36,6 @@ def test_rhel_pxe_discovery_provisioning(
     :Setup: Satellite with Provisioning and Discovery features configured
 
     :steps:
-
         1. Boot up the host to discover
         2. Provision the host
 
@@ -68,15 +67,14 @@ def test_rhel_pxe_discovery_provisioning(
             'location-id': discovered_host.location.id,
         }
     )
-    # teardown
-    @request.addfinalizer
-    def _finalize():
-        host.delete()
-        assert not sat.api.Host().search(query={"search": f'name={host.name}'})
 
     assert 'Host created' in result[0]['message']
     host = sat.api.Host().search(query={"search": f'id={discovered_host.id}'})[0]
     assert host
+
+    # teardown
+    request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
+
     wait_for(
         lambda: host.read().build_status_label != 'Pending installation',
         timeout=1500,
@@ -131,16 +129,13 @@ def test_rhel_pxeless_discovery_provisioning(
             'location-id': discovered_host.location.id,
         }
     )
-
-    # teardown
-    @request.addfinalizer
-    def _finalize():
-        host.delete()
-        assert not sat.api.Host().search(query={"search": f'name={host.name}'})
-
     assert 'Host created' in result[0]['message']
     host = sat.api.Host().search(query={"search": f'id={discovered_host.id}'})[0]
     assert host
+
+    # teardown
+    request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
+
     wait_for(
         lambda: host.read().build_status_label != 'Pending installation',
         timeout=1500,
