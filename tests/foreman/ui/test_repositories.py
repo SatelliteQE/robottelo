@@ -137,7 +137,7 @@ def test_positive_override_custom_products_not_using_select_all(
         assert repo[0]['Repository'] == custom_repo.name
         assert repo[0]['Status'] == 'Disabled'
         session.host_new.override_multiple_repo_sets(
-            rhel_contenthost.hostname, custom_repo.name,'Custom', "Override to enabled"
+            rhel_contenthost.hostname, custom_repo.name, 'Custom', "Override to enabled"
         )
         repo = session.host_new.get_repo_sets(rhel_contenthost.hostname, custom_repo.name)
         assert repo[0]['Repository'] == custom_repo.name
