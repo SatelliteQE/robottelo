@@ -12,6 +12,9 @@ def pytest_collection_modifyitems(session, items, config):
 
     factory_fixture_names = [m[0] for m in getmembers(sat_cap_factory, isfunction)]
     for item in items:
-        has_factoryfixture = set(item.fixturenames).intersection(set(factory_fixture_names))
+        itemfixtures = [
+            itm for itm in item.fixturenames if itm not in ('satellite_factory', 'capsule_factory')
+        ]
+        has_factoryfixture = set(itemfixtures).intersection(set(factory_fixture_names))
         if has_factoryfixture:
             item.add_marker('factory_instance')
