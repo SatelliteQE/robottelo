@@ -248,3 +248,25 @@ def module_repos_collection_with_manifest(
     )
     _repos_collection.setup_content(module_entitlement_manifest_org.id, module_lce.id)
     return _repos_collection
+
+
+@pytest.fixture
+def function_repos_collection_with_manifest(
+    request, target_sat, function_sca_manifest_org, function_lce
+):
+    """This fixture and its usage is very similar to repos_collection fixture above with extra
+    setup_content and uploaded manifest capabilities using function_lce and
+    function_sca_manifest_org fixtures
+    """
+    repos = getattr(request, 'param', [])
+    repo_distro, repos = _simplify_repos(request, repos)
+    _repos_collection = target_sat.cli_factory.RepositoryCollection(
+        distro=repo_distro,
+        repositories=[
+            getattr(target_sat.cli_factory, repo_name)(**repo_params)
+            for repo in repos
+            for repo_name, repo_params in repo.items()
+        ],
+    )
+    _repos_collection.setup_content(function_sca_manifest_org.id, function_lce.id)
+    return _repos_collection

@@ -3,6 +3,7 @@ It is not meant to be used directly, but as part of a robottelo.hosts.Satellite 
 example: my_satellite.api_factory.api_method()
 """
 from contextlib import contextmanager
+from datetime import datetime
 import time
 
 from fauxfactory import gen_ipaddr, gen_mac, gen_string
@@ -647,12 +648,18 @@ class APIFactory:
         )
 
     def wait_for_errata_applicability_task(
-        self, host_id, from_when, search_rate=1, max_tries=10, poll_rate=None, poll_timeout=15
+        self,
+        host_id,
+        from_when,
+        search_rate=1,
+        max_tries=10,
+        poll_rate=None,
+        poll_timeout=15,
     ):
         """Search the generate applicability task for given host and make sure it finishes
 
         :param int host_id: Content host ID of the host where we are regenerating applicability.
-        :param int from_when: Timestamp (in UTC) to limit number of returned tasks to investigate.
+        :param int from_when: Epoch Time (seconds in UTC) to limit number of returned tasks to investigate.
         :param int search_rate: Delay between searches.
         :param int max_tries: How many times search should be executed.
         :param int poll_rate: Delay between the end of one task check-up and
@@ -666,26 +673,33 @@ class APIFactory:
         assert isinstance(host_id, int), 'Param host_id have to be int'
         assert isinstance(from_when, int), 'Param from_when have to be int'
         now = int(time.time())
-        assert from_when <= now, 'Param from_when have to be timestamp in the past'
+        assert from_when <= now, 'Param from_when have to be epoch time in the past'
         for _ in range(max_tries):
             now = int(time.time())
-            max_age = now - from_when + 1
+            # Format epoch time for search, one second prior margin of safety
+            timestamp = datetime.fromtimestamp(from_when - 1).strftime('%m-%d-%Y %H:%M:%S')
+            # Long format to match search: ex. 'January 03, 2024 at 03:08:08 PM'
+            long_format = datetime.strptime(timestamp, '%m-%d-%Y %H:%M:%S').strftime(
+                '%B %d, %Y at %I:%M:%S %p'
+            )
             search_query = (
-                '( label = Actions::Katello::Host::GenerateApplicability OR label = '
-                'Actions::Katello::Host::UploadPackageProfile ) AND started_at > "%s seconds ago"'
-                % max_age
+                '( label = Actions::Katello::Applicability::Hosts::BulkGenerate OR'
+                ' label = Actions::Katello::Host::UploadPackageProfile ) AND'
+                f' started_at >= "{long_format}" '
             )
             tasks = self._satellite.api.ForemanTask().search(query={'search': search_query})
             tasks_finished = 0
             for task in tasks:
                 if (
-                    task.label == 'Actions::Katello::Host::GenerateApplicability'
+                    task.label == 'Actions::Katello::Applicability::Hosts::BulkGenerate'
+                    and 'host_ids' in task.input
                     and host_id in task.input['host_ids']
                 ):
                     task.poll(poll_rate=poll_rate, timeout=poll_timeout)
                     tasks_finished += 1
                 elif (
                     task.label == 'Actions::Katello::Host::UploadPackageProfile'
+                    and 'host' in task.input
                     and host_id == task.input['host']['id']
                 ):
                     task.poll(poll_rate=poll_rate, timeout=poll_timeout)
@@ -695,7 +709,7 @@ class APIFactory:
             time.sleep(search_rate)
         else:
             raise AssertionError(
-                f"No task was found using query '{search_query}' for host '{host_id}'"
+                f'No task was found using query " {search_query} " for host id: {host_id}'
             )
 
     def wait_for_syncplan_tasks(self, repo_backend_id=None, timeout=10, repo_name=None):
