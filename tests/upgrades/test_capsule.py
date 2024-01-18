@@ -106,8 +106,7 @@ class TestCapsuleSync:
         ak_env = ak.environment.read()
         org = ak.organization.read()
         content_view = target_sat.api.ContentView(id=pre_upgrade_data.get('content_view_id')).read()
-        pre_configured_capsule.nailgun_capsule.content_sync(timeout=3600)
-        pre_configured_capsule.wait_for_sync(timeout=9000)
+        pre_configured_capsule.nailgun_capsule.content_sync(timeout=7200)
 
         sat_repo_url = target_sat.get_published_repo_url(
             org=org.label,
@@ -125,11 +124,16 @@ class TestCapsuleSync:
         )
         sat_files_urls = get_repo_files_urls_by_url(sat_repo_url)
         cap_files_urls = get_repo_files_urls_by_url(cap_repo_url)
-        assert len(sat_files_urls) == len(cap_files_urls) == constants.FAKE_1_YUM_REPOS_COUNT
+        assert (
+            len(sat_files_urls) == constants.FAKE_1_YUM_REPOS_COUNT
+        ), 'upstream and satellite repo rpm counts are differrent'
+        assert len(sat_files_urls) == len(
+            cap_files_urls
+        ), 'satellite and capsule repo rpm counts are differrent'
 
         sat_files = {os.path.basename(f) for f in sat_files_urls}
         cap_files = {os.path.basename(f) for f in cap_files_urls}
-        assert sat_files == cap_files
+        assert sat_files == cap_files, 'satellite and capsule rpm basenames are differrent'
 
         for pkg in constants.FAKE_1_YUM_REPO_RPMS:
             assert pkg in sat_files, f'{pkg=} is not in the {repo=} on satellite'
@@ -137,7 +141,7 @@ class TestCapsuleSync:
 
         sat_files_md5 = [target_sat.md5_by_url(url) for url in sat_files_urls]
         cap_files_md5 = [target_sat.md5_by_url(url) for url in cap_files_urls]
-        assert sat_files_md5 == cap_files_md5
+        assert sat_files_md5 == cap_files_md5, 'satellite and capsule rpm md5sums are differrent'
 
 
 class TestCapsuleSyncNewRepo:
@@ -182,8 +186,7 @@ class TestCapsuleSyncNewRepo:
         content_view.read().version[0].promote(data={'environment_ids': ak_env.id})
         content_view_env = [env.id for env in content_view.read().environment]
         assert ak_env.id in content_view_env
-        pre_configured_capsule.nailgun_capsule.content_sync()
-        pre_configured_capsule.wait_for_sync(timeout=9000)
+        pre_configured_capsule.nailgun_capsule.content_sync(timeout=7200)
 
         sat_repo_url = target_sat.get_published_repo_url(
             org=default_org.label,
@@ -202,11 +205,16 @@ class TestCapsuleSyncNewRepo:
 
         sat_files_urls = get_repo_files_urls_by_url(sat_repo_url)
         cap_files_urls = get_repo_files_urls_by_url(cap_repo_url)
-        assert len(sat_files_urls) == len(cap_files_urls) == constants.FAKE_1_YUM_REPOS_COUNT
+        assert (
+            len(sat_files_urls) == constants.FAKE_1_YUM_REPOS_COUNT
+        ), 'upstream and satellite repo rpm counts are differrent'
+        assert len(sat_files_urls) == len(
+            cap_files_urls
+        ), 'satellite and capsule repo rpm counts are differrent'
 
         sat_files = {os.path.basename(f) for f in sat_files_urls}
         cap_files = {os.path.basename(f) for f in cap_files_urls}
-        assert sat_files == cap_files
+        assert sat_files == cap_files, 'satellite and capsule rpm basenames are differrent'
 
         for pkg in constants.FAKE_1_YUM_REPO_RPMS:
             assert pkg in sat_files, f'{pkg=} is not in the {repo=} on satellite'
@@ -214,4 +222,4 @@ class TestCapsuleSyncNewRepo:
 
         sat_files_md5 = [target_sat.md5_by_url(url) for url in sat_files_urls]
         cap_files_md5 = [target_sat.md5_by_url(url) for url in cap_files_urls]
-        assert sat_files_md5 == cap_files_md5
+        assert sat_files_md5 == cap_files_md5, 'satellite and capsule rpm md5sums are differrent'
