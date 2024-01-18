@@ -157,6 +157,12 @@ class HostInfo:
         self.run('subscription-manager repos')
         return self.nailgun_host.read().content_facet_attributes['errata_counts']['total']
 
+    @property
+    def applicable_package_count(self):
+        """return the applicable package count for a host"""
+        self.run('subscription-manager repos')
+        return self.nailgun_host.read().content_facet_attributes['applicable_package_count']
+
 
 class SystemFacts:
     """Helpers mixin that enables getting/setting subscription-manager facts on a host"""
