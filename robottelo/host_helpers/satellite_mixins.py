@@ -342,6 +342,19 @@ class ProvisioningSetup:
             == 0
         )
 
+    def provisioning_cleanup(self, hostname, interface='API'):
+        if interface == 'CLI':
+            if self.cli.Host.exists(search=('name', hostname)):
+                self.cli.Host.delete({'name': hostname})
+            assert not self.cli.Host.exists(search=('name', hostname))
+        else:
+            host = self.api.Host().search(query={'search': f'name="{hostname}"'})
+            if host:
+                host[0].delete()
+            assert not self.api.Host().search(query={'search': f'name={hostname}'})
+        # Workaround BZ: 2207698
+        assert self.cli.Service.restart().status == 0
+
 
 class Factories:
     """Mixin that provides attributes for each factory type"""
