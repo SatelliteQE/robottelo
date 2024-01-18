@@ -101,7 +101,7 @@ def capsule_provisioning_lce_sync_setup(module_capsule_configured, module_lce_li
     module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
         data={'environment_id': module_lce_library.id}
     )
-    sync_status = module_capsule_configured.nailgun_capsule.content_sync(timeout=600)
+    sync_status = module_capsule_configured.nailgun_capsule.content_sync(timeout='60m')
     assert sync_status['result'] == 'success', 'Capsule sync task failed.'
 
 
