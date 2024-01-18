@@ -188,7 +188,6 @@ class TestDiscoveredHost:
         :Setup: Provisioning and discovery should be configured
 
         :steps:
-
             1. Boot up the host to discover
             2. Provision the host
 
@@ -215,8 +214,7 @@ class TestDiscoveredHost:
             host = sat.api.Host().search(query={"search": f'name={host.name}'})[0]
             assert host
             assert_discovered_host_provisioned(shell, module_provisioning_rhel_content.ksrepo)
-            host.delete()
-            assert not sat.api.Host().search(query={"search": f'name={host.name}'})
+            sat.provisioning_cleanup(host.name)
         provisioning_host.blank = True
 
     @pytest.mark.upgrade
@@ -265,8 +263,7 @@ class TestDiscoveredHost:
             host = sat.api.Host().search(query={"search": f'name={host.name}'})[0]
             assert host
             assert_discovered_host_provisioned(shell, module_provisioning_rhel_content.ksrepo)
-            host.delete()
-            assert not sat.api.Host().search(query={"search": f'name={host.name}'})
+            sat.provisioning_cleanup(host.name)
         pxeless_discovery_host.blank = True
 
     @pytest.mark.tier3
