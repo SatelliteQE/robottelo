@@ -145,7 +145,7 @@ class ContentInfo:
 
         """
         if not isinstance(manifest, bytes | io.BytesIO):
-            if manifest.content is None:
+            if not hasattr(manifest, 'content') or manifest.content is None:
                 manifest = clone()
         if timeout is None:
             # Set the timeout to 1500 seconds to align with the API timeout.
