@@ -25,6 +25,7 @@ from robottelo.constants import (
     CONTAINER_UPSTREAM_NAME,
     DEFAULT_ARCHITECTURE,
     DEFAULT_CV,
+    ENVIRONMENT,
     EXPORT_LIBRARY_NAME,
     PULP_EXPORT_DIR,
     PULP_IMPORT_DIR,
@@ -1946,34 +1947,6 @@ class TestInterSatelliteSync:
     @pytest.mark.stubbed
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    def test_positive_export_import_cv_incremental(self):
-        """Export and Import CV version contents incrementally.
-
-        :id: 3c4dfafb-fabf-406e-bca8-7af1ab551135
-
-        :steps:
-            1. In upstream, Export CV version contents to a directory specified in settings.
-            2. In downstream, Import these copied contents from some other org/satellite.
-            3. In upstream, don't add any new packages to the CV.
-            4. Export the CV incrementally.
-            5. In downstream, Import the CV incrementally.
-            6. In upstream, add new packages to the CV.
-            7. Export the CV incrementally.
-            8. In downstream, Import the CV incrementally.
-
-        :expectedresults:
-            1. On incremental export, only the new packages are exported.
-            2. New directory of incremental export with new packages is created.
-            3. On first incremental import, no new packages are imported.
-            4. On second incremental import, only the new packages are imported.
-
-        :CaseAutomation: NotAutomated
-
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    @pytest.mark.upgrade
     def test_positive_reimport_repo(self):
         """Packages missing from upstream are removed from downstream on reimport.
 
@@ -2372,30 +2345,168 @@ class TestInterSatelliteSync:
             repo['content-counts'] == function_synced_rh_repo['content-counts']
         ), 'Content counts do not match'
 
-    @pytest.mark.stubbed
+    @pytest.mark.e2e
     @pytest.mark.tier3
-    @pytest.mark.upgrade
-    def test_positive_install_package_from_imported_repos(self):
-        """Install packages in client from imported repo of Downstream satellite.
+    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.parametrize(
+        'function_synced_rh_repo',
+        ['rhsclient8'],
+        indirect=True,
+    )
+    def test_positive_export_import_consume_incremental_yum_repo(
+        self,
+        target_sat,
+        export_import_cleanup_function,
+        config_export_import_settings,
+        function_sca_manifest_org,
+        function_import_org_with_manifest,
+        function_synced_rh_repo,
+        rhel_contenthost,
+    ):
+        """Export and import RH yum repo incrementally and consume it on a content host.
 
-        :id: a81ffb55-398d-4ad0-bcae-5ed48f504ded
+        :id: f5515168-c3c9-4351-9f83-ba6265689db3
+
+        :setup:
+            1. Enabled and synced RH yum repository (RH Satellite Client for this case).
+            2. An unregistered RHEL8 host.
 
         :steps:
-
-            1. Export whole Red Hat YUM repo to a path accessible over HTTP.
-            2. Import the Red Hat repository by defining the CDN URL from the
-               exported HTTP URL.
-            3. In downstream satellite create CV, AK with this imported repo.
-            4. Register/Subscribe a client with a downstream satellite.
-            5. Attempt to install a package on a client from imported repo of
-               downstream.
+            1. Create a CV with the RH yum repository.
+            2. Add exclude RPM filter to filter out one package, publish version 1 and export it.
+            3. On the importing side import version 1, check the package count.
+            4. Create an AK with the imported CV, register the content host and check
+               the package count available to install. Filtered package should be missing.
+            5. Update the filter so no package is left behind, publish version 2 and export it.
+            6. Import version 2, check the package count.
+            7. Check the package count available to install on the content host.
+            8. Install the package.
 
         :expectedresults:
-            1. The package is installed on client from imported repo of downstream satellite.
+            1. More packages available for install after version 2 imported.
+            2. Packages can be installed successfully.
 
-        :CaseAutomation: NotAutomated
+        :BZ: 2173756
 
+        :customerscenario: true
         """
+        # Create a CV with the RH yum repository.
+        exp_cv = target_sat.cli_factory.make_content_view(
+            {
+                'organization-id': function_sca_manifest_org.id,
+                'repository-ids': [function_synced_rh_repo['id']],
+            }
+        )
+
+        # Add exclude RPM filter to filter out one package, publish version 1 and export it.
+        filtered_pkg = 'katello-host-tools'
+        cvf = target_sat.cli_factory.make_content_view_filter(
+            {'content-view-id': exp_cv['id'], 'type': 'rpm'}
+        )
+        cvf_rule = target_sat.cli_factory.content_view_filter_rule(
+            {'content-view-filter-id': cvf['filter-id'], 'name': filtered_pkg}
+        )
+        target_sat.cli.ContentView.publish({'id': exp_cv['id']})
+        exp_cv = target_sat.cli.ContentView.info({'id': exp_cv['id']})
+        assert len(exp_cv['versions']) == 1
+        cvv_1 = exp_cv['versions'][0]
+        pkg_cnt_1 = target_sat.api.ContentViewVersion(id=cvv_1['id']).read().package_count
+        export_1 = target_sat.cli.ContentExport.completeVersion({'id': cvv_1['id']})
+        assert '1.0' in target_sat.validate_pulp_filepath(
+            function_sca_manifest_org, PULP_EXPORT_DIR
+        )
+
+        # On the importing side import version 1, check the package count.
+        import_path1 = target_sat.move_pulp_archive(function_sca_manifest_org, export_1['message'])
+        target_sat.cli.ContentImport.version(
+            {'organization-id': function_import_org_with_manifest.id, 'path': import_path1}
+        )
+        imp_cv = target_sat.cli.ContentView.info(
+            {'name': exp_cv['name'], 'organization-id': function_import_org_with_manifest.id}
+        )
+        assert len(imp_cv['versions']) == 1
+        imp_cvv = imp_cv['versions'][0]
+        assert target_sat.api.ContentViewVersion(id=imp_cvv['id']).read().package_count == pkg_cnt_1
+
+        # Create an AK with the imported CV, register the content host and check
+        # the package count available to install. Filtered package should be missing.
+        ak = target_sat.cli_factory.make_activation_key(
+            {
+                'content-view': exp_cv['name'],
+                'lifecycle-environment': ENVIRONMENT,
+                'organization-id': function_import_org_with_manifest.id,
+            }
+        )
+        target_sat.cli.ActivationKey.content_override(
+            {
+                'id': ak.id,
+                'content-label': function_synced_rh_repo['content-label'],
+                'value': 'true',
+            }
+        )
+        res = rhel_contenthost.register(
+            function_import_org_with_manifest, None, ak.name, target_sat
+        )
+        assert res.status == 0, (
+            f'Failed to register host: {rhel_contenthost.hostname}\n'
+            f'StdOut: {res.stdout}\nStdErr: {res.stderr}'
+        )
+        assert rhel_contenthost.subscribed
+        res = rhel_contenthost.execute('dnf clean all && dnf repolist -v')
+        assert res.status == 0
+        assert (
+            f'Repo-available-pkgs: {pkg_cnt_1}' in res.stdout
+        ), 'Package count available on the host did not meet the expectation'
+
+        res = rhel_contenthost.execute(f'dnf -y install {filtered_pkg}')
+        assert res.status, 'Installation of filtered package succeeded unexpectedly'
+        assert f'No match for argument: {filtered_pkg}' in res.stdout
+
+        # Update the fiter so that no package is left behind, publish version 2 and export it.
+        target_sat.cli.ContentView.filter.rule.update(
+            {
+                'content-view-filter-id': cvf['filter-id'],
+                'id': cvf_rule['rule-id'],
+                'name': gen_string('alpha'),
+            }
+        )
+        target_sat.cli.ContentView.publish({'id': exp_cv['id']})
+        exp_cv = target_sat.cli.ContentView.info({'id': exp_cv['id']})
+        assert len(exp_cv['versions']) == 2
+        cvv_2 = max(exp_cv['versions'], key=lambda x: int(x['id']))
+        pkg_cnt_2 = target_sat.api.ContentViewVersion(id=cvv_2['id']).read().package_count
+        assert pkg_cnt_2 > pkg_cnt_1
+        export_2 = target_sat.cli.ContentExport.incrementalVersion({'id': cvv_2['id']})
+        assert '2.0' in target_sat.validate_pulp_filepath(
+            function_sca_manifest_org, PULP_EXPORT_DIR
+        )
+
+        # Import version 2, check the package count.
+        import_path2 = target_sat.move_pulp_archive(function_sca_manifest_org, export_2['message'])
+        target_sat.cli.ContentImport.version(
+            {'organization-id': function_import_org_with_manifest.id, 'path': import_path2}
+        )
+        imp_cv = target_sat.cli.ContentView.info(
+            {'name': exp_cv['name'], 'organization-id': function_import_org_with_manifest.id}
+        )
+        assert len(imp_cv['versions']) == 2
+        imp_cvv = max(imp_cv['versions'], key=lambda x: int(x['id']))
+        assert (
+            target_sat.api.ContentViewVersion(id=imp_cvv['id']).read().package_count
+            == pkg_cnt_2
+            == int(function_synced_rh_repo['content-counts']['packages'])
+        ), 'Unexpected package count after second import'
+
+        # Check the package count available to install on the content host.
+        res = rhel_contenthost.execute('dnf clean all && dnf repolist -v')
+        assert res.status == 0
+        assert (
+            f'Repo-available-pkgs: {pkg_cnt_2}' in res.stdout
+        ), 'Package count available on the host did not meet the expectation'
+
+        # Install the package.
+        res = rhel_contenthost.execute(f'dnf -y install {filtered_pkg}')
+        assert res.status == 0, f'Installation from the import failed:\n{res.stdout}'
 
 
 @pytest.fixture(scope='module')
