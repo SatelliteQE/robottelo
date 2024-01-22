@@ -153,7 +153,7 @@ API_PATHS = {
         '/katello/api/capsules/:id/content/sync',
         '/katello/api/capsules/:id/content/sync',
         '/katello/api/capsules/:id/content/sync',
-        '/katello/api/capsules/:id/reclaim_space',
+        '/katello/api/capsules/:id/content/reclaim_space',
     ),
     'capsules': ('/katello/api/capsules', '/katello/api/capsules/:id'),
     'common_parameters': (
