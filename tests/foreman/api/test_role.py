@@ -576,7 +576,7 @@ class TestCannedRole:
             target_sat, role_taxos=role_taxonomies, user_taxos=filter_taxonomies
         )
         domain = self.create_domain(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         sc = self.user_config(user, target_sat)
         # Getting the domain from user
@@ -608,7 +608,7 @@ class TestCannedRole:
             target_sat, role_taxos=role_taxonomies, user_taxos=filter_taxonomies
         )
         domain = self.create_domain(
-            orgs=[filter_taxonomies['org'].id], locs=[filter_taxonomies['loc'].id]
+            target_sat, orgs=[filter_taxonomies['org'].id], locs=[filter_taxonomies['loc'].id]
         )
         sc = self.user_config(user, target_sat)
         # Getting the domain from user
@@ -1074,7 +1074,9 @@ class TestCannedRole:
             name=ug_name, role=[org_admin.id], user=[user_one.id, user_two.id]
         ).create()
         assert user_group.name == ug_name
-        dom = self.create_domain(orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id])
+        dom = self.create_domain(
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+        )
         for user in [user_one, user_two]:
             sc = self.user_config(user, target_sat)
             with pytest.raises(HTTPError):
@@ -1447,7 +1449,7 @@ class TestCannedRole:
         user = self.create_org_admin_user(
             target_sat, role_taxos=role_taxonomies, user_taxos=role_taxonomies
         )
-        test_user = self.create_simple_user(filter_taxos=role_taxonomies)
+        test_user = self.create_simple_user(target_sat, filter_taxos=role_taxonomies)
         sc = self.user_config(user, target_sat)
         try:
             target_sat.api.User(sc, id=test_user.id).read()
@@ -1519,7 +1521,7 @@ class TestCannedRole:
         user = self.create_org_admin_user(
             target_sat, role_taxos=role_taxonomies, user_taxos=role_taxonomies
         )
-        test_user = self.create_simple_user(filter_taxos=filter_taxonomies)
+        test_user = self.create_simple_user(target_sat, filter_taxos=filter_taxonomies)
         sc = self.user_config(user, target_sat)
         with pytest.raises(HTTPError):
             target_sat.api.User(sc, id=test_user.id).read()
@@ -1646,7 +1648,7 @@ class TestCannedRole:
         )
         # Creating Domain resource in same taxonomies as Org Admin role to access later
         domain = self.create_domain(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         sc = ServerConfig(
             auth=(create_ldap['ldap_user_name'], create_ldap['ldap_user_passwd']),
@@ -1690,7 +1692,7 @@ class TestCannedRole:
             target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         # Creating Domain resource in different taxonomies to access later
-        domain = self.create_domain(orgs=[module_org.id], locs=[module_location.id])
+        domain = self.create_domain(target_sat, orgs=[module_org.id], locs=[module_location.id])
         sc = ServerConfig(
             auth=(create_ldap['ldap_user_name'], create_ldap['ldap_user_passwd']),
             url=create_ldap['sat_url'],
@@ -1739,6 +1741,7 @@ class TestCannedRole:
         )
         # Creating Domain resource in same taxonomies as Org Admin role to access later
         domain = self.create_domain(
+            target_sat,
             orgs=[create_ldap['authsource'].organization[0].id],
             locs=[create_ldap['authsource'].location[0].id],
         )
@@ -1798,7 +1801,7 @@ class TestCannedRole:
         )
         # Creating Domain resource in same taxonomies as Org Admin role to access later
         domain = self.create_domain(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         users = [
             target_sat.api.User(
