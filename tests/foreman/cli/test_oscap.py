@@ -286,8 +286,9 @@ class TestOpenScap:
 
         :CaseImportance: Medium
         """
+        title = gen_string('alpha')
         scap_content = module_target_sat.cli_factory.scapcontent(
-            {'original-filename': name, 'scap-file': settings.oscap.content_path}
+            {'original-filename': name, 'scap-file': settings.oscap.content_path, 'title': title}
         )
         assert scap_content['original-filename'] == name
 
@@ -406,8 +407,9 @@ class TestOpenScap:
 
         :CaseImportance: Medium
         """
+        title = gen_string('alpha')
         scap_content = module_target_sat.cli_factory.scapcontent(
-            {'scap-file': settings.oscap.content_path}
+            {'scap-file': settings.oscap.content_path, 'title': title}
         )
         module_target_sat.cli.Scapcontent.delete({'id': scap_content['id']})
         with pytest.raises(CLIReturnCodeError):
@@ -436,8 +438,9 @@ class TestOpenScap:
 
         :CaseImportance: Medium
         """
+        title = gen_string('alpha')
         scap_content = module_target_sat.cli_factory.scapcontent(
-            {'scap-file': settings.oscap.content_path}
+            {'scap-file': settings.oscap.content_path, 'title': title}
         )
         module_target_sat.cli.Scapcontent.delete({'title': scap_content['title']})
         with pytest.raises(CLIReturnCodeError):
