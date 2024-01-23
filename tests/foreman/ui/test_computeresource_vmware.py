@@ -56,7 +56,7 @@ def _get_normalized_size(size):
     return f'{size} {suffixes[suffix_index]}'
 
 
-def _get_vmware_datastore_summary_string(data_store_name=settings.vmware.datastore):
+def _get_vmware_datastore_summary_string(data_store_name=settings.vmware.datastore, vmware=None):
     """Return the datastore string summary for data_store_name
 
     For "Local-Ironforge" datastore the string looks Like:
@@ -64,7 +64,7 @@ def _get_vmware_datastore_summary_string(data_store_name=settings.vmware.datasto
         "Local-Ironforge (free: 1.66 TB, prov: 2.29 TB, total: 2.72 TB)"
     """
     system = VMWareSystem(
-        hostname=settings.vmware.vcenter,
+        hostname=vmware.hostname,
         username=settings.vmware.username,
         password=settings.vmware.password,
     )
@@ -81,7 +81,8 @@ def _get_vmware_datastore_summary_string(data_store_name=settings.vmware.datasto
 
 
 @pytest.mark.tier1
-def test_positive_end_to_end(session, module_org, module_location):
+@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
+def test_positive_end_to_end(session, module_org, module_location, vmware):
     """Perform end to end testing for compute resource VMware component.
 
     :id: 47fc9e77-5b22-46b4-a76c-3217434fde2f
@@ -102,7 +103,7 @@ def test_positive_end_to_end(session, module_org, module_location):
                 'name': cr_name,
                 'description': description,
                 'provider': FOREMAN_PROVIDERS['vmware'],
-                'provider_content.vcenter': settings.vmware.vcenter,
+                'provider_content.vcenter': vmware.hostname,
                 'provider_content.user': settings.vmware.username,
                 'provider_content.password': settings.vmware.password,
                 'provider_content.datacenter.value': settings.vmware.datacenter,
@@ -152,7 +153,8 @@ def test_positive_end_to_end(session, module_org, module_location):
 
 
 @pytest.mark.tier2
-def test_positive_retrieve_virtual_machine_list(session):
+@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
+def test_positive_retrieve_virtual_machine_list(session, vmware):
     """List the virtual machine list from vmware compute resource
 
     :id: 21ade57a-0caa-4144-9c46-c8e22f33414e
@@ -173,7 +175,7 @@ def test_positive_retrieve_virtual_machine_list(session):
             {
                 'name': cr_name,
                 'provider': FOREMAN_PROVIDERS['vmware'],
-                'provider_content.vcenter': settings.vmware.vcenter,
+                'provider_content.vcenter': vmware.hostname,
                 'provider_content.user': settings.vmware.username,
                 'provider_content.password': settings.vmware.password,
                 'provider_content.datacenter.value': settings.vmware.datacenter,
@@ -187,7 +189,8 @@ def test_positive_retrieve_virtual_machine_list(session):
 
 @pytest.mark.e2e
 @pytest.mark.tier2
-def test_positive_image_end_to_end(session, target_sat):
+@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
+def test_positive_image_end_to_end(session, target_sat, vmware):
     """Perform end to end testing for compute resource VMware component image.
 
     :id: 6b7949ef-c684-40aa-b181-11f8d4cd39c6
@@ -204,7 +207,7 @@ def test_positive_image_end_to_end(session, target_sat):
             {
                 'name': cr_name,
                 'provider': FOREMAN_PROVIDERS['vmware'],
-                'provider_content.vcenter': settings.vmware.vcenter,
+                'provider_content.vcenter': vmware.hostname,
                 'provider_content.user': settings.vmware.username,
                 'provider_content.password': settings.vmware.password,
                 'provider_content.datacenter.value': settings.vmware.datacenter,
@@ -245,7 +248,8 @@ def test_positive_image_end_to_end(session, target_sat):
 
 @pytest.mark.tier2
 @pytest.mark.run_in_one_thread
-def test_positive_resource_vm_power_management(session):
+@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
+def test_positive_resource_vm_power_management(session, vmware):
     """Read current VMware Compute Resource virtual machine power status and
     change it to opposite one
 
@@ -260,7 +264,7 @@ def test_positive_resource_vm_power_management(session):
             {
                 'name': cr_name,
                 'provider': FOREMAN_PROVIDERS['vmware'],
-                'provider_content.vcenter': settings.vmware.vcenter,
+                'provider_content.vcenter': vmware.hostname,
                 'provider_content.user': settings.vmware.username,
                 'provider_content.password': settings.vmware.password,
                 'provider_content.datacenter.value': settings.vmware.datacenter,
@@ -287,7 +291,8 @@ def test_positive_resource_vm_power_management(session):
 
 
 @pytest.mark.tier2
-def test_positive_select_vmware_custom_profile_guest_os_rhel7(session):
+@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
+def test_positive_select_vmware_custom_profile_guest_os_rhel7(session, vmware):
     """Select custom default (3-Large) compute profile guest OS RHEL7.
 
     :id: 24f7bb5f-2aaf-48cb-9a56-d2d0713dfe3d
@@ -316,7 +321,7 @@ def test_positive_select_vmware_custom_profile_guest_os_rhel7(session):
             {
                 'name': cr_name,
                 'provider': FOREMAN_PROVIDERS['vmware'],
-                'provider_content.vcenter': settings.vmware.vcenter,
+                'provider_content.vcenter': vmware.hostname,
                 'provider_content.user': settings.vmware.username,
                 'provider_content.password': settings.vmware.password,
                 'provider_content.datacenter.value': settings.vmware.datacenter,
@@ -331,7 +336,8 @@ def test_positive_select_vmware_custom_profile_guest_os_rhel7(session):
 
 
 @pytest.mark.tier2
-def test_positive_access_vmware_with_custom_profile(session):
+@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
+def test_positive_access_vmware_with_custom_profile(session, vmware):
     """Associate custom default (3-Large) compute profile
 
     :id: 751ef765-5091-4322-a0d9-0c9c73009cc4
@@ -350,7 +356,7 @@ def test_positive_access_vmware_with_custom_profile(session):
         with provided values.
     """
     cr_name = gen_string('alpha')
-    data_store_summary_string = _get_vmware_datastore_summary_string()
+    data_store_summary_string = _get_vmware_datastore_summary_string(vmware=vmware)
     cr_profile_data = dict(
         cpus='2',
         cores_per_socket='2',
@@ -412,7 +418,7 @@ def test_positive_access_vmware_with_custom_profile(session):
             {
                 'name': cr_name,
                 'provider': FOREMAN_PROVIDERS['vmware'],
-                'provider_content.vcenter': settings.vmware.vcenter,
+                'provider_content.vcenter': vmware.hostname,
                 'provider_content.user': settings.vmware.username,
                 'provider_content.password': settings.vmware.password,
                 'provider_content.datacenter.value': settings.vmware.datacenter,
@@ -461,7 +467,8 @@ def test_positive_access_vmware_with_custom_profile(session):
 
 
 @pytest.mark.tier2
-def test_positive_virt_card(session, target_sat, module_location, module_org):
+@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
+def test_positive_virt_card(session, target_sat, module_location, module_org, vmware):
     """Check to see that the Virtualization card appears for an imported VM
 
     :id: 0502d5a6-64c1-422f-a9ba-ac7c2ee7bad2
@@ -524,7 +531,7 @@ def test_positive_virt_card(session, target_sat, module_location, module_org):
             {
                 'name': cr_name,
                 'provider': FOREMAN_PROVIDERS['vmware'],
-                'provider_content.vcenter': settings.vmware.vcenter,
+                'provider_content.vcenter': vmware.hostname,
                 'provider_content.user': settings.vmware.username,
                 'provider_content.password': settings.vmware.password,
                 'provider_content.datacenter.value': settings.vmware.datacenter,
@@ -562,7 +569,7 @@ def test_positive_virt_card(session, target_sat, module_location, module_org):
         assert virt_card['cluster'] == settings.vmware.cluster
         assert virt_card['memory'] == '5 GB'
         assert 'public_ip_address' in virt_card
-        assert virt_card['mac_address'] == settings.vmware.mac_address
+        assert virt_card['mac_address'] == vmware.mac_address
         assert virt_card['cpus'] == '1'
         if 'disk_label' in virt_card:
             assert virt_card['disk_label'] == 'Hard disk 1'
