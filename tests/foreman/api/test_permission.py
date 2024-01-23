@@ -374,7 +374,7 @@ class TestUserRole:
         self.give_user_permission(_permission_name(entity_cls, 'update'), target_sat)
         # update() calls read() under the hood, which triggers
         # permission error
-        if entity_cls is target_sat.api.ActivationKey:
+        if entity_cls is entities.ActivationKey:
             entity_cls(self.cfg, id=new_entity.id, name=name, organization=class_org).update_json(
                 ['name']
             )
