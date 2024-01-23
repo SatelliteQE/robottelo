@@ -66,14 +66,14 @@ class CapsuleInfo:
         # Assert that a task to sync lifecycle environment to the capsule
         # is started (or finished already)
         if start_time is None:
-            start_time = datetime.utcnow()
+            start_time = datetime.utcnow().replace(microsecond=0)
         logger.info(f"Waiting for capsule {self.hostname} sync to finish ...")
         sync_status = self.nailgun_capsule.content_get_sync()
         logger.info(f"Active tasks {sync_status['active_sync_tasks']}")
         assert (
             len(sync_status['active_sync_tasks'])
             or datetime.strptime(sync_status['last_sync_time'], '%Y-%m-%d %H:%M:%S UTC')
-            > start_time
+            >= start_time
         )
 
         # Wait till capsule sync finishes and assert the sync task succeeded
