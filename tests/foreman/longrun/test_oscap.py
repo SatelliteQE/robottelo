@@ -43,7 +43,7 @@ ak_name = {
 }
 
 
-def fetch_scap_and_profile_id(scap_name, scap_profile, sat):
+def fetch_scap_and_profile_id(sat, scap_name, scap_profile):
     """Extracts the scap ID and scap profile id
 
     :param scap_name: Scap title
