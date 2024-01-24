@@ -175,7 +175,8 @@ def get_line_indentation_level(line, tab_spaces=4, indentation_spaces=4):
         assert get_line_indentation_level('        level 2') == 2
 
     """
-    return get_line_indentation_spaces(line, tab_spaces=tab_spaces) // indentation_spaces
+    spaces = get_line_indentation_spaces(line, tab_spaces=tab_spaces)
+    return spaces // indentation_spaces + (1 if spaces % indentation_spaces > 0 else 0)
 
 
 def parse_info(output):
@@ -249,6 +250,9 @@ def parse_info(output):
                 #     URL:       /custom/4f84fc90-9ffa-...
                 starts_with_number = re.match(r'(\d+)\)', key)
                 if starts_with_number:
+                    # if this is a numbered list on level 2, do nothing - this script doesn't support it
+                    if current_indent_level >= 2:
+                        continue
                     sub_num = int(starts_with_number.group(1))
                     # no. 1) we need to change dict() to list()
                     if sub_num == 1:
