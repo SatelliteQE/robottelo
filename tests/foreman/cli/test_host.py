@@ -2468,30 +2468,37 @@ def test_positive_host_with_puppet(
 
 
 @pytest.fixture
-def function_proxy(session_puppet_enabled_sat, puppet_proxy_port_range):
-    proxy = session_puppet_enabled_sat.cli_factory.make_proxy()
-    yield proxy
-    session_puppet_enabled_sat.cli.Proxy.delete({'id': proxy['id']})
-
-
-@pytest.fixture
 def function_host_content_source(
-    session_puppet_enabled_sat,
-    session_puppet_enabled_proxy,
-    module_puppet_lce_library,
-    module_puppet_org,
-    module_puppet_published_cv,
+    target_sat,
+    module_capsule_configured,
+    module_lce_library,
+    module_org,
+    module_ak_with_cv_repo,
+    module_product,
+    module_repository,
+    module_cv_repo,
+    rhel_contenthost,
 ):
-    host = session_puppet_enabled_sat.cli_factory.make_fake_host(
-        {
-            'content-source-id': session_puppet_enabled_proxy.id,
-            'content-view-id': module_puppet_published_cv.id,
-            'lifecycle-environment-id': module_puppet_lce_library.id,
-            'organization': module_puppet_org.name,
+    target_sat.cli.Product.info({'id': module_product.id, 'organization-id': module_org.id})
+    module_ak_with_cv_repo.content_override(
+        data={
+            'content_overrides': [
+                {
+                    'content_label': '_'.join(
+                        [module_org.name, module_product.name, module_repository.name]
+                    ),
+                    'value': '1',
+                }
+            ]
         }
     )
-    yield host
-    session_puppet_enabled_sat.cli.target_sat.cli.Host.delete({'id': host['id']})
+    target_sat.cli.Capsule.update(
+        {'name': module_capsule_configured.hostname, 'organization-ids': [module_org.id]}
+    )
+    # target_sat.cli.Capsule.info({'name': module_capsule_configured.hostname})
+    res = rhel_contenthost.register(module_org, None, module_ak_with_cv_repo.name, target_sat)
+    assert res.status == 0, f'Failed to register host: {res.stderr}'
+    return res
 
 
 @pytest.mark.tier2
@@ -2637,18 +2644,21 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
 @pytest.mark.cli_puppet_enabled
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
+@pytest.mark.rhel_ver_match('[8]')
+@pytest.mark.no_containers
 def test_positive_create_and_update_with_content_source(
-    session_puppet_enabled_sat,
-    session_puppet_enabled_proxy,
+    target_sat,
+    module_capsule_configured,
+    module_org,
+    module_lce,
+    module_repository,
+    rhel_contenthost,
     function_host_content_source,
-    function_proxy,
 ):
     """Create a host with content source specified and update content
         source
 
     :id: 5712f4db-3610-447d-b1da-0fe461577d59
-
-    :customerscenario: true
 
     :BZ: 1260697, 1483252, 1313056, 1488465
 
@@ -2657,13 +2667,45 @@ def test_positive_create_and_update_with_content_source(
 
     :CaseImportance: High
     """
-    host = function_host_content_source
+    target_sat.cli.Repository.synchronize({'id': module_repository.id})
+
+    host = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
     assert (
-        host['content-information']['content-source']['name'] == session_puppet_enabled_proxy.name
+        host['content-information']['content-source']['name'] == target_sat.hostname
+        or host['content-information']['content-source']['name'] == ''
     )
-    new_content_source = function_proxy
-    session_puppet_enabled_sat.cli.target_sat.cli.Host.update(
-        {'id': host['id'], 'content-source-id': new_content_source.id}
+
+    # set a new proxy
+    target_sat.cli.Capsule.update(
+        {'name': module_capsule_configured.hostname, 'organization-id': module_org.id}
     )
-    host = session_puppet_enabled_sat.cli.target_sat.cli.Host.info({'id': host['id']})
-    assert host['content-information']['content-source']['name'] == new_content_source.name
+    target_sat.cli.Capsule.content_add_lifecycle_environment(
+        {
+            'name': module_capsule_configured.hostname,
+            'organization-id': module_org.id,
+            'environment-id': module_lce.id,
+        }
+    )
+    target_sat.cli.Host.update(
+        {'id': host['id'], 'content-source': module_capsule_configured.hostname}
+    )
+    host = target_sat.cli.Host.info({'id': host['id']})
+    assert (
+        host['content-information']['content-source']['name'] == module_capsule_configured.hostname
+    )
+
+    # run an ansible job that makes a host aware that it should use a different content source
+    target_sat.cli_factory.job_invocation(
+        {
+            'job-template': 'Configure host for new content source',
+            'search-query': f"name ~ {rhel_contenthost.hostname}",
+        }
+    )
+
+    # test that the new content source is really used to get content
+    package = 'at'
+    assert rhel_contenthost.execute(f'rpm -q {package}').status != 0
+    assert rhel_contenthost.execute(f'dnf -y install {package}').status != 0
+    target_sat.cli.Capsule.content_synchronize({'name': module_capsule_configured.hostname})
+    assert rhel_contenthost.execute(f'dnf -y install {package}').status == 0
+    assert rhel_contenthost.execute(f'rpm -q {package}').status == 0
