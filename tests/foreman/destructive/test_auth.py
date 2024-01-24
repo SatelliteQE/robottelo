@@ -23,8 +23,6 @@ from robottelo.config import settings
 from robottelo.constants import HAMMER_CONFIG
 
 LOGEDIN_MSG = "Session exists, currently logged in as '{0}'"
-LOGEDOFF_MSG = "Using sessions, you are currently not logged in"
-NOTCONF_MSG = "Credentials are not configured."
 password = gen_string('alpha')
 pytestmark = pytest.mark.destructive
 
@@ -52,5 +50,5 @@ def test_positive_password_reset(target_sat):
         {'username': settings.server.admin_username, 'password': reset_password}
     )
     result = target_sat.cli.Auth.with_user().status()
-    assert LOGEDIN_MSG.format(settings.server.admin_username) in result[0]['message']
+    assert LOGEDIN_MSG.format(settings.server.admin_username) in result.split("\n")[1]
     assert target_sat.cli.Org.with_user().list()
