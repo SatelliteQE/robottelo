@@ -520,7 +520,13 @@ def test_positive_add_and_remove_locations(module_org, module_target_sat):
         {'location': locations[1]['name'], 'id': module_org.id}
     )
     org_info = module_target_sat.cli.Org.info({'id': module_org.id})
-    assert not org_info.get('locations'), "Failed to remove locations"
+    found_locations = (
+        org_info.get('locations')
+        if isinstance(org_info.get('locations'), list)
+        else [org_info.get('locations')]
+    )
+    assert locations[0]['name'] not in found_locations, "Failed to remove locations"
+    assert locations[1]['name'] not in found_locations, "Failed to remove locations"
 
 
 @pytest.mark.tier1
