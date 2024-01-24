@@ -1513,7 +1513,7 @@ class TestCapsuleContentManagement:
 
         # Check the counts for CVV are not present at the Capsule side before sync.
         caps_counts = module_capsule_configured.nailgun_capsule.content_counts()
-        assert caps_counts is None or cvv.id not in caps_counts['content_view_versions'].keys()
+        assert caps_counts is None or cvv.id not in caps_counts['content_view_versions']
 
         # Sync, wait for counts to be updated and get them from the Capsule.
         sync_status = module_capsule_configured.nailgun_capsule.content_sync()
@@ -1528,7 +1528,7 @@ class TestCapsuleContentManagement:
         caps_counts = module_capsule_configured.nailgun_capsule.content_counts()[
             'content_view_versions'
         ]
-        assert str(cvv.id) in caps_counts.keys(), 'CVV is missing in content counts.'
+        assert str(cvv.id) in caps_counts, 'CVV is missing in content counts.'
         caps_counts = caps_counts[str(cvv.id)]
 
         # Every "environment repo" (the one promoted to an LCE and synced to the Capsule)

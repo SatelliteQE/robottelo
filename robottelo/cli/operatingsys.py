@@ -45,9 +45,7 @@ class OperatingSys(Base):
 
         cls.command_sub = 'add-architecture'
 
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def add_provisioning_template(cls, options=None):
@@ -57,9 +55,7 @@ class OperatingSys(Base):
 
         cls.command_sub = 'add-provisioning-template'
 
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def add_ptable(cls, options=None):
@@ -69,9 +65,7 @@ class OperatingSys(Base):
 
         cls.command_sub = 'add-ptable'
 
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def remove_architecture(cls, options=None):
@@ -81,9 +75,7 @@ class OperatingSys(Base):
 
         cls.command_sub = 'remove-architecture'
 
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def remove_provisioning_template(cls, options=None):
@@ -93,9 +85,7 @@ class OperatingSys(Base):
 
         cls.command_sub = 'remove-provisioning-template'
 
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def remove_ptable(cls, options=None):
@@ -105,6 +95,4 @@ class OperatingSys(Base):
 
         cls.command_sub = 'remove-ptable '
 
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))

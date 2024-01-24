@@ -388,8 +388,7 @@ class GenericRHRepository(BaseRepository):
                 f'<RH cdn Repo: {self.data["repository"]} within distro: '
                 f'{self.distro}, object: {hex(id(self))}>'
             )
-        else:
-            return f'<RH custom Repo url: {self.url} object: {hex(id(self))}>'
+        return f'<RH custom Repo url: {self.url} object: {hex(id(self))}>'
 
     def create(
         self,

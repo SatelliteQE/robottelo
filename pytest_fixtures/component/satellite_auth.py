@@ -271,11 +271,12 @@ def auth_data(request, ad_data, ipa_data):
         ad_data['attr_login'] = LDAP_ATTR['login_ad']
         ad_data['auth_type'] = auth_type
         return ad_data
-    elif auth_type == 'ipa':
+    if auth_type == 'ipa':
         ipa_data['server_type'] = LDAP_SERVER_TYPE['UI']['ipa']
         ipa_data['attr_login'] = LDAP_ATTR['login']
         ipa_data['auth_type'] = auth_type
         return ipa_data
+    return None
 
 
 @pytest.fixture(scope='module')

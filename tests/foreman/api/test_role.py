@@ -72,7 +72,7 @@ class TestCannedRole:
         :return dict: This function returns dict representation of cloned role
             data returned from 'clone' function
         """
-        name = gen_string('alpha') if not name else name
+        name = name if name else gen_string('alpha')
         default_org_admin = target_sat.api.Role().search(
             query={'search': 'name="Organization admin"'}
         )
