@@ -101,7 +101,8 @@ jobs:
         uses: juliangruber/find-pull-request-action@v1
         id: fpr
         with:
-          branch: ${{ matrix.label }}
+          branch: "cherry-pick-${{ matrix.label }}-${{ github.sha }}"
+          base: ${{ matrix.label }}
 
       ## Failure Logging to issues and GChat Group
       - name: Create Github issue on cherrypick failure
