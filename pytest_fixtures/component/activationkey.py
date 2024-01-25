@@ -36,6 +36,16 @@ def module_ak_with_cv(module_lce, module_org, module_promoted_cv, module_target_
 
 
 @pytest.fixture(scope='module')
+def module_ak_with_cv_repo(module_lce, module_org, module_cv_repo, module_target_sat):
+    ak = module_target_sat.api.ActivationKey(
+        content_view=module_cv_repo,
+        environment=module_lce,
+        organization=module_org,
+    ).create()
+    return ak
+
+
+@pytest.fixture(scope='module')
 def module_ak_with_synced_repo(module_org, module_target_sat):
     """Prepare an activation key with synced repository for host registration"""
     with clone(name='golden_ticket') as manifest:
