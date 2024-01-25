@@ -58,6 +58,7 @@ API_PATHS = {
     'alternate_content_sources_bulk_actions': (
         '/katello/api/alternate_content_sources/bulk/destroy',
         '/katello/api/alternate_content_sources/bulk/refresh',
+        '/katello/api/alternate_content_sources/bulk/refresh_all',
     ),
     'ansible_collections': (
         '/katello/api/ansible_collections',
@@ -146,6 +147,8 @@ API_PATHS = {
         '/katello/api/systems/:id/enabled_repos',
     ),
     'capsule_content': (
+        '/katello/api/capsules/:id/content/counts',
+        '/katello/api/capsules/:id/content/update_counts',
         '/katello/api/capsules/:id/content/available_lifecycle_environments',
         '/katello/api/capsules/:id/content/lifecycle_environments',
         '/katello/api/capsules/:id/content/lifecycle_environments',
@@ -153,7 +156,7 @@ API_PATHS = {
         '/katello/api/capsules/:id/content/sync',
         '/katello/api/capsules/:id/content/sync',
         '/katello/api/capsules/:id/content/sync',
-        '/katello/api/capsules/:id/reclaim_space',
+        '/katello/api/capsules/:id/content/reclaim_space',
     ),
     'capsules': ('/katello/api/capsules', '/katello/api/capsules/:id'),
     'common_parameters': (
@@ -457,6 +460,7 @@ API_PATHS = {
         '/api/hosts/:id/inherited_parameters',
     ),
     'hosts_bulk_actions': (
+        '/api/hosts/bulk',
         '/api/hosts/bulk/add_host_collections',
         '/api/hosts/bulk/remove_host_collections',
         '/api/hosts/bulk/add_subscriptions',
@@ -469,9 +473,6 @@ API_PATHS = {
         '/api/hosts/bulk/change_content_source',
         '/api/hosts/bulk/destroy',
         '/api/hosts/bulk/environment_content_view',
-        '/api/hosts/bulk/install_content',
-        '/api/hosts/bulk/update_content',
-        '/api/hosts/bulk/remove_content',
         '/api/hosts/bulk/module_streams',
         '/api/hosts/bulk/release_version',
         '/api/hosts/bulk/resolve_traces',
@@ -482,14 +483,8 @@ API_PATHS = {
         '/api/hosts/:host_id/errata',
         '/api/hosts/:host_id/errata/:id',
         '/api/hosts/:host_id/errata/applicability',
-        '/api/hosts/:host_id/errata/apply',
     ),
-    'host_packages': (
-        '/api/hosts/:host_id/packages',
-        '/api/hosts/:host_id/packages/install',
-        '/api/hosts/:host_id/packages/remove',
-        '/api/hosts/:host_id/packages/upgrade_all',
-    ),
+    'host_packages': ('/api/hosts/:host_id/packages',),
     'http_proxies': (
         '/api/http_proxies',
         '/api/http_proxies',
@@ -724,6 +719,7 @@ API_PATHS = {
         '/api/remote_execution_features',
         '/api/remote_execution_features/:id',
         '/api/remote_execution_features/:id',
+        '/api/api/hosts/:id/available_remote_execution_features',
     ),
     'scap_content_profiles': ('/api/compliance/scap_content_profiles',),
     'simple_content_access': (
