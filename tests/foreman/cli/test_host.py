@@ -2703,7 +2703,7 @@ def test_positive_create_and_update_with_content_source(
     )
 
     # test that the new content source is really used to get content
-    package = 'bc'
+    package = 'at'
     assert rhel_contenthost.execute(f'rpm -q {package}').status != 0
     assert rhel_contenthost.execute(f'dnf -y install {package}').status != 0
     target_sat.cli.Capsule.content_synchronize({'name': module_capsule_configured.hostname})
