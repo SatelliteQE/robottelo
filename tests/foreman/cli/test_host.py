@@ -2473,19 +2473,20 @@ def function_host_content_source(
     module_capsule_configured,
     module_lce_library,
     module_org,
-    module_published_cv,
-    module_ak_with_cv,
-    module_repo,
+    module_ak_with_cv_repo,
+    module_product,
+    module_repository,
+    module_cv_repo,
     rhel_contenthost,
 ):
-    product = target_sat.cli.Product.info(
-        {'id': module_repo.product.id, 'organization-id': module_org.id}
-    )
-    module_ak_with_cv.content_override(
+    target_sat.cli.Product.info({'id': module_product.id, 'organization-id': module_org.id})
+    module_ak_with_cv_repo.content_override(
         data={
             'content_overrides': [
                 {
-                    'content_label': '_'.join([module_org.name, product['name'], module_repo.name]),
+                    'content_label': '_'.join(
+                        [module_org.name, module_product.name, module_repository.name]
+                    ),
                     'value': '1',
                 }
             ]
@@ -2494,8 +2495,8 @@ def function_host_content_source(
     target_sat.cli.Capsule.update(
         {'name': module_capsule_configured.hostname, 'organization-ids': [module_org.id]}
     )
-    target_sat.cli.Capsule.info({'name': module_capsule_configured.hostname})
-    res = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
+    # target_sat.cli.Capsule.info({'name': module_capsule_configured.hostname})
+    res = rhel_contenthost.register(module_org, None, module_ak_with_cv_repo.name, target_sat)
     assert res.status == 0, f'Failed to register host: {res.stderr}'
     return res
 
@@ -2650,7 +2651,7 @@ def test_positive_create_and_update_with_content_source(
     module_capsule_configured,
     module_org,
     module_lce,
-    module_repo,
+    module_repository,
     rhel_contenthost,
     function_host_content_source,
 ):
@@ -2666,6 +2667,8 @@ def test_positive_create_and_update_with_content_source(
 
     :CaseImportance: High
     """
+    target_sat.cli.Repository.synchronize({'id': module_repository.id})
+
     host = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
     assert (
         host['content-information']['content-source']['name'] == target_sat.hostname
@@ -2698,12 +2701,11 @@ def test_positive_create_and_update_with_content_source(
             'search-query': f"name ~ {rhel_contenthost.hostname}",
         }
     )
-    # TODO enable testing repo on the host
 
     # test that the new content source is really used to get content
-    assert rhel_contenthost.execute('rpm -q squirrel').status != 0
-    assert rhel_contenthost.execute('dnf install squirrel').status != 0
-    target_sat.cli.Repository.synchronize({'id': module_repo.id})
+    package = 'bc'
+    assert rhel_contenthost.execute(f'rpm -q {package}').status != 0
+    assert rhel_contenthost.execute(f'dnf -y install {package}').status != 0
     target_sat.cli.Capsule.content_synchronize({'name': module_capsule_configured.hostname})
-    assert rhel_contenthost.execute('dnf install squirrel').status == 0
-    assert rhel_contenthost.execute('rpm -q squirrel').status == 0
+    assert rhel_contenthost.execute(f'dnf -y install {package}').status == 0
+    assert rhel_contenthost.execute(f'rpm -q {package}').status == 0
