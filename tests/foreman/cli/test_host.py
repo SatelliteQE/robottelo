@@ -2475,8 +2475,22 @@ def function_host_content_source(
     module_org,
     module_published_cv,
     module_ak_with_cv,
+    module_repo,
     rhel_contenthost,
 ):
+    product = target_sat.cli.Product.info(
+        {'id': module_repo.product.id, 'organization-id': module_org.id}
+    )
+    module_ak_with_cv.content_override(
+        data={
+            'content_overrides': [
+                {
+                    'content_label': '_'.join([module_org.name, product['name'], module_repo.name]),
+                    'value': '1',
+                }
+            ]
+        }
+    )
     target_sat.cli.Capsule.update(
         {'name': module_capsule_configured.hostname, 'organization-ids': [module_org.id]}
     )
@@ -2484,14 +2498,6 @@ def function_host_content_source(
     res = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
     assert res.status == 0, f'Failed to register host: {res.stderr}'
     return res
-    # host = target_sat.cli_factory.make_fake_host(
-    #    {
-    #        'content-source-id': capsule['id'],
-    #        'content-view-id': module_published_cv.id,
-    #        'lifecycle-environment-id': module_lce_library.id,
-    #        'organization': module_org.name,
-    #    }
-    # )
 
 
 @pytest.mark.tier2
@@ -2638,11 +2644,12 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
 @pytest.mark.rhel_ver_match('[8]')
+@pytest.mark.no_containers
 def test_positive_create_and_update_with_content_source(
     target_sat,
     module_capsule_configured,
     module_org,
-    module_lce_library,
+    module_lce,
     module_repo,
     rhel_contenthost,
     function_host_content_source,
@@ -2673,7 +2680,7 @@ def test_positive_create_and_update_with_content_source(
         {
             'name': module_capsule_configured.hostname,
             'organization-id': module_org.id,
-            'environment-id': module_lce_library.id,
+            'environment-id': module_lce.id,
         }
     )
     target_sat.cli.Host.update(
@@ -2684,8 +2691,19 @@ def test_positive_create_and_update_with_content_source(
         host['content-information']['content-source']['name'] == module_capsule_configured.hostname
     )
 
+    # run an ansible job that makes a host aware that it should use a different content source
+    target_sat.cli_factory.job_invocation(
+        {
+            'job-template': 'Configure host for new content source',
+            'search-query': f"name ~ {rhel_contenthost.hostname}",
+        }
+    )
+    # TODO enable testing repo on the host
+
     # test that the new content source is really used to get content
-    assert not host.execute('rpm -q emacs')
-    assert not host.execute('dnf install emacs')
-    # TODO: sync capsule
-    assert host.execute('dnf install emacs')
+    assert rhel_contenthost.execute('rpm -q squirrel').status != 0
+    assert rhel_contenthost.execute('dnf install squirrel').status != 0
+    target_sat.cli.Repository.synchronize({'id': module_repo.id})
+    target_sat.cli.Capsule.content_synchronize({'name': module_capsule_configured.hostname})
+    assert rhel_contenthost.execute('dnf install squirrel').status == 0
+    assert rhel_contenthost.execute('rpm -q squirrel').status == 0
