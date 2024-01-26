@@ -2660,14 +2660,12 @@ def test_positive_create_and_update_with_content_source(
 
     :id: 5712f4db-3610-447d-b1da-0fe461577d59
 
-    :BZ: 1260697, 1483252, 1313056, 1488465, 1361309
+    :BZ: 1260697, 1483252, 1313056, 1488465
 
     :expectedresults: A host is created with expected content source
         assigned and then content source is successfully updated
 
     :CaseImportance: High
-
-    :customerscenario: true
     """
     target_sat.cli.Repository.synchronize({'id': module_repository.id})
 
