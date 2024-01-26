@@ -14,7 +14,11 @@
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants.repos import CUSTOM_FILE_REPO
+from robottelo.constants import (
+    CONTAINER_REGISTRY_HUB,
+    CONTAINER_UPSTREAM_NAME,
+)
+from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
 
 
 @pytest.mark.parametrize(
@@ -24,18 +28,17 @@ from robottelo.constants.repos import CUSTOM_FILE_REPO
             'distro': 'rhel8',
             'YumRepository': {'url': settings.repos.module_stream_1.url},
             'FileRepository': {'url': CUSTOM_FILE_REPO},
-            # TODO uncomment when BZ#2251019 is resolved
-            # 'DockerRepository': {
-            #     'url': CONTAINER_REGISTRY_HUB,
-            #     'upstream_name': CONTAINER_UPSTREAM_NAME,
-            # },
-            # 'AnsibleRepository': {
-            #     'url': ANSIBLE_GALAXY,
-            #     'requirements': [
-            #         {'name': 'theforeman.foreman', 'version': '2.1.0'},
-            #         {'name': 'theforeman.operations', 'version': '0.1.0'},
-            #     ],
-            # },
+            'DockerRepository': {
+                'url': CONTAINER_REGISTRY_HUB,
+                'upstream_name': CONTAINER_UPSTREAM_NAME,
+            },
+            'AnsibleRepository': {
+                'url': ANSIBLE_GALAXY,
+                'requirements': [
+                    {'name': 'theforeman.foreman', 'version': '2.1.0'},
+                    {'name': 'theforeman.operations', 'version': '0.1.0'},
+                ],
+            },
         }
     ],
     indirect=True,
@@ -72,7 +75,7 @@ def test_positive_content_counts_for_mixed_cv(
         2. After sync the content counts from Capsule match those from Satellite.
         3. After LCE removal it's not listed anymore.
 
-    # :BZ: 2251019  TODO uncomment when BZ#2251019 is resolved
+    :BZ: 2251019
 
     """
     expected_keys = {
