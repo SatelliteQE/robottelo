@@ -23,7 +23,7 @@ jobs:
       prt_comment: ${{steps.fc.outputs.comment-body}}
     steps:
       - name: Find Comment
-        uses: peter-evans/find-comment@v2
+        uses: peter-evans/find-comment@v3
         id: fc
         with:
           issue-number: ${{ env.number }}
