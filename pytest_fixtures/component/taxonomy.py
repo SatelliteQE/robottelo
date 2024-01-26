@@ -197,6 +197,16 @@ def module_extra_rhel_entitlement_manifest():
 
 
 @pytest.fixture(scope='module')
+def module_extra_rhel_sca_manifest():
+    """Yields a manifest in sca mode with subscriptions determined by the
+    'manifest_category.extra_rhel_entitlement` setting in conf/manifest.yaml."""
+    with Manifester(
+        manifest_category=settings.manifest.extra_rhel_entitlement, simple_content_access="enabled"
+    ) as manifest:
+        yield manifest
+
+
+@pytest.fixture(scope='module')
 def module_sca_manifest():
     """Yields a manifest in Simple Content Access mode with subscriptions determined by the
     `manifest_category.golden_ticket` setting in conf/manifest.yaml."""
