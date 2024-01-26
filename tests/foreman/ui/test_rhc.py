@@ -65,13 +65,11 @@ def fixture_setup_rhc_satellite(
     request,
     module_target_sat,
     module_rhc_org,
-    module_extra_rhel_entitlement_manifest,
+    module_extra_rhel_sca_manifest,
 ):
     """Create Organization and activation key after successful test execution"""
     if settings.rh_cloud.crc_env == 'prod':
-        module_target_sat.upload_manifest(
-            module_rhc_org.id, module_extra_rhel_entitlement_manifest.content
-        )
+        module_target_sat.upload_manifest(module_rhc_org.id, module_extra_rhel_sca_manifest.content)
     yield
     if request.node.rep_call.passed:
         # Enable and sync required repos
