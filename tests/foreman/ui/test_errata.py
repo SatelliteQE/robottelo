@@ -18,9 +18,12 @@ from dateutil.parser import parse
 from fauxfactory import gen_string
 from manifester import Manifester
 import pytest
+from selenium.common.exceptions import NoSuchElementException
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
     DEFAULT_LOC,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
@@ -39,11 +42,18 @@ from robottelo.constants import (
     REAL_0_RH_PACKAGE,
     REAL_4_ERRATA_CVES,
     REAL_4_ERRATA_ID,
+    REPOS,
+    REPOSET,
 )
 from robottelo.hosts import ContentHost
 
 CUSTOM_REPO_URL = settings.repos.yum_9.url
+CUSTOM_REPO_ERRATA = settings.repos.yum_9.errata
 CUSTOM_REPO_ERRATA_ID = settings.repos.yum_9.errata[0]
+
+CUSTOM_REPO_3_URL = settings.repos.yum_3.url
+CUSTOM_REPO_3_ERRATA = settings.repos.yum_3.errata
+CUSTOM_REPO_3_ERRATA_ID = settings.repos.yum_3.errata[0]
 
 RHVA_PACKAGE = REAL_0_RH_PACKAGE
 RHVA_ERRATA_ID = REAL_4_ERRATA_ID
@@ -139,28 +149,110 @@ def vm(module_repos_collection_with_setup, rhel7_contenthost, target_sat):
     return rhel7_contenthost
 
 
+def cv_publish_promote(sat, org, cv, lce=None, needs_publish=True):
+    """Publish & promote Content View Version with all content visible in org.
+
+    :param lce: if None, default to 'Library',
+        pass a single instance of lce, or list of instances.
+    :param bool needs_publish: if False, skip publish of a new version
+    :return dictionary:
+        'content-view': instance of updated cv
+        'content-view-version': instance of newest cv version
+    """
+    # Default to 'Library' lce, if None passed
+    # Take a single instance of lce, or list of instances
+    lce_ids = 'Library'
+    if lce is not None:
+        if not isinstance(lce, list):
+            lce_ids = [lce.id]
+        else:
+            lce_ids = sorted(_lce.id for _lce in lce)
+
+    if needs_publish is True:
+        _publish_and_wait(sat, org, cv)
+    # Content-view must have at least one published version
+    cv = sat.api.ContentView(id=cv.id).read()
+    assert cv.version, f'No version(s) are published to the Content-View: {cv.id}'
+    # Find highest version id, will be the latest
+    cvv_id = max(cvv.id for cvv in cv.version)
+    # Promote to lifecycle-environment(s)
+    if lce_ids == 'Library':
+        library_lce = cv.environment[0].read()
+        sat.api.ContentViewVersion(id=cvv_id).promote(
+            data={'environment_ids': library_lce.id, 'force': 'True'}
+        )
+    else:
+        sat.api.ContentViewVersion(id=cvv_id).promote(data={'environment_ids': lce_ids})
+    _result = {
+        'content-view': sat.api.ContentView(id=cv.id).read(),
+        'content-view-version': sat.api.ContentViewVersion(id=cvv_id).read(),
+    }
+    assert all(
+        entry for entry in _result.values()
+    ), f'One or more necessary components are missing: {_result}'
+    return _result
+
+
+def _publish_and_wait(sat, org, cv):
+    """Publish a new version of content-view to organization, wait for task(s) completion."""
+    task_id = sat.api.ContentView(id=cv.id).publish({'id': cv.id, 'organization': org})['id']
+    assert task_id, f'No task was invoked to publish the Content-View: {cv.id}.'
+    # Should take < 1 minute, check in 5s intervals
+    sat.wait_for_tasks(
+        search_query=(f'label = Actions::Katello::ContentView::Publish and id = {task_id}'),
+        search_rate=5,
+        max_tries=12,
+    ), (
+        f'Failed to publish the Content-View: {cv.id}, in time.'
+        f'Task: {task_id} failed, or timed out (60s).'
+    )
+
+
+@pytest.fixture
+def errata_host_ak(module_target_sat, module_org, module_lce):
+    """New activation key created in module_org and module_lce"""
+    ak = module_target_sat.api.ActivationKey(
+        organization=module_org,
+        environment=module_lce,
+    ).create()
+    return ak.read()
+
+
 @pytest.fixture
 def registered_contenthost(
+    module_target_sat,
     rhel_contenthost,
+    errata_host_ak,
     module_org,
     module_lce,
     module_cv,
-    module_target_sat,
     request,
     repos=None,
 ):
     """RHEL ContentHost registered in satellite,
     Using SCA and global registration.
 
-    :param repos: list of upstream URLs for custom repositories,
-        default to CUSTOM_REPO_URL
+    :note: rhel_contenthost will be parameterized by rhel6 to 9, also -fips for all distros.
+           to use specific rhel version parameterized contenthost, use pytest.mark.rhel_ver_match()
+           for marking contenthost version(s) for tests using this fixture.
+
+    :repos: pass as a parameterized request
+        list of upstream URLs for custom repositories.
+            default: None; when None set to [CUSTOM_REPO_URL,]
+        example:
+            @pytest.mark.parametrize("registered_contenthost",
+                [[repo1_url, repo2_url,]],
+                indirect=True,
+            )
     """
-    if not repos:
+    # read indirect parameterization request, could be None
+    try:
+        repos = getattr(request, 'param', repos).copy()
+    except AttributeError:
+        # Default, no parameterized request passed
         repos = [CUSTOM_REPO_URL]
-    activation_key = module_target_sat.api.ActivationKey(
-        organization=module_org,
-        environment=module_lce,
-    ).create()
+    assert isinstance(repos, list), 'Passed request must be a list of upstream url strings.'
+    assert len(repos) > 0, 'Passed request must be a non-empty list.'
 
     custom_products = []
     custom_repos = []
@@ -171,21 +263,17 @@ def registered_contenthost(
                 'url': repo_url,
                 'organization-id': module_org.id,
                 'lifecycle-environment-id': module_lce.id,
-                'activationkey-id': activation_key.id,
+                'activationkey-id': errata_host_ak.id,
                 'content-view-id': module_cv.id,
             }
         )
         custom_products.append(custom_repo_info['product-id'])
         custom_repos.append(custom_repo_info['repository-id'])
 
-    # Promote newest version with all content
-    module_cv = module_cv.read()
-    module_cv.version.sort(key=lambda version: version.id)
-    module_cv.version[-1].promote(data={'environment_ids': module_lce.id})
-    module_cv = module_cv.read()
-
+    # Publish new version and promote with all content
+    cv_publish_promote(module_target_sat, module_org, module_cv, module_lce)
     result = rhel_contenthost.register(
-        activation_keys=activation_key.name,
+        activation_keys=errata_host_ak.name,
         target=module_target_sat,
         org=module_org,
         loc=None,
@@ -206,9 +294,9 @@ def registered_contenthost(
     @request.addfinalizer
     # Cleanup for in between parameterized runs
     def cleanup():
-        nonlocal rhel_contenthost, module_cv, custom_repos, custom_products, activation_key
+        nonlocal rhel_contenthost, module_cv, custom_repos, custom_products, errata_host_ak
         rhel_contenthost.unregister()
-        activation_key.delete()
+        errata_host_ak.delete()
         # Remove CV from all lifecycle-environments
         module_target_sat.cli.ContentView.remove_from_environment(
             {
@@ -250,10 +338,9 @@ def registered_contenthost(
 @pytest.mark.no_containers
 def test_end_to_end(
     session,
-    request,
     module_org,
     module_lce,
-    module_published_cv,
+    module_cv,
     module_target_sat,
     registered_contenthost,
 ):
@@ -311,7 +398,6 @@ def test_end_to_end(
     ), f'Expected 1 applicable errata: {CUSTOM_REPO_ERRATA_ID}, after setup. Got {applicable_errata}'
 
     with session:
-
         datetime_utc_start = datetime.utcnow()
         # Check selection box function for BZ#1688636
         session.location.select(loc_name=DEFAULT_LOC)
@@ -362,7 +448,6 @@ def test_end_to_end(
         install_end = datetime.strptime(task_status['ended_at'], _UTC_format)
         assert (install_end - install_start).total_seconds() <= 60
         assert (install_end - datetime_utc_start).total_seconds() <= 600
-
         # Find bulk generate applicability task
         results = module_target_sat.wait_for_tasks(
             search_query=(
@@ -395,11 +480,27 @@ def test_end_to_end(
 
 
 @pytest.mark.tier2
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('8')
+@pytest.mark.parametrize("registered_contenthost", [[CUSTOM_REPO_3_URL]], indirect=True)
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_content_host_errata_page_pagination(session, function_org_with_parameter, lce, target_sat):
+def test_host_content_errata_tab_pagination(
+    session,
+    module_target_sat,
+    registered_contenthost,
+    module_sca_manifest_org,
+    errata_host_ak,
+    module_lce,
+    module_cv,
+):
     """
     # Test per-page pagination for BZ#1662254
     # Test apply by REX using Select All for BZ#1846670
+
+    :setup:
+        1. rhel8 registered contenthost with custom repos enabled.
+        2. enable and sync rh repository.
+        3. add rh repo to cv for registered host and publish/promote.
 
     :id: 6363eda7-a162-4a4a-b70f-75decbd8202e
 
@@ -407,76 +508,210 @@ def test_content_host_errata_page_pagination(session, function_org_with_paramete
         1. Install more than 20 packages that need errata
         2. View Content Host's Errata page
         3. Assert total_pages > 1
-        4. Change per-page setting to 100
+        4. Change per-page setting to 50
         5. Assert table has more than 20 errata
-        6. Use the selection box on the left to select all on the page.
-            The following is displayed at the top of the table:
-            All 20 items on this page are selected. Select all YYY.
+        6. Change per-page setting to 5
+        7. Assert setting changed and more total-pages now
+        8. Search and select one available errata and install it.
+        9. Assert total items in table is one less.
+        10. Assert per page count and total pages has not changed.
+        11. Use the selection box on the left to select all on this page and others.
+            All errata, from all pages, are selected. Select all YYY.
+        12. Click the drop down arrow to the right of "Apply All", click Submit.
+        13. Assert All Errata were applied, none are available anymore.
+        14. Assert no pagination on new host UI>content>errata.
+        15. Raise `NoSuchElementException` when looking for a pagination element.
 
-        7. Click the "Select all" text and assert more than 20 results are selected.
-        8. Click the drop down arrow to the right of "Apply Selected", and select
-            "via remote execution"
-        9. Click Submit
-        10. Assert Errata are applied as expected.
-
-    :expectedresults: More than page of errata can be selected and applied using REX while
-        changing per-page settings.
+    :expectedresults: More than just the current page of errata can be selected
+        and applied, with changed per-page settings.
 
     :customerscenario: true
 
     :BZ: 1662254, 1846670
     """
-
-    org = function_org_with_parameter
-    pkgs = ' '.join(FAKE_3_YUM_OUTDATED_PACKAGES)
-    repos_collection = target_sat.cli_factory.RepositoryCollection(
-        distro='rhel7',
-        repositories=[
-            target_sat.cli_factory.SatelliteToolsRepository(),
-            target_sat.cli_factory.YumRepository(url=settings.repos.yum_3.url),
-        ],
+    org = module_sca_manifest_org
+    all_repos = module_target_sat.api.Repository(organization=org).search()
+    # custom_repo was created & added to cv, in registered_contenthost fixture
+    # search for the instance
+    custom_repo = [repo for repo in all_repos if repo.url == CUSTOM_REPO_3_URL]
+    assert len(custom_repo) == 1
+    custom_repo = custom_repo[0].read()
+    custom_repo.sync()
+    # Set up rh_repo
+    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+        basearch=DEFAULT_ARCHITECTURE,
+        org_id=org.id,
+        product=PRDS['rhel8'],
+        repo=REPOS['rhst8']['name'],
+        reposet=REPOSET['rhst8'],
+        releasever='None',
     )
-    repos_collection.setup_content(org.id, lce.id)
-    with Broker(nick=repos_collection.distro, host_class=ContentHost) as client:
-        client.add_rex_key(satellite=target_sat)
-        # Add repo and install packages that need errata
-        repos_collection.setup_virtual_machine(client)
-        assert client.execute(f'yum install -y {pkgs}').status == 0
-        with session:
-            # Go to content host's Errata tab and read the page's pagination widgets
-            session.organization.select(org_name=org.name)
-            session.location.select(loc_name=DEFAULT_LOC)
-            page_values = session.contenthost.read(
-                client.hostname, widget_names=['errata.pagination']
-            )
-            assert int(page_values['errata']['pagination']['per_page']) == 20
-            # assert total_pages > 1 with default page settings
-            assert int(page_values['errata']['pagination']['pages']) > 1
+    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+    rh_repo.sync()
+    # add rh_repo to cv, publish version and promote w/ the repository
+    module_target_sat.cli.ContentView.add_repository(
+        {
+            'id': module_cv.id,
+            'organization-id': org.id,
+            'repository-id': rh_repo_id,
+        }
+    )
+    module_cv = module_cv.read()
+    cv_publish_promote(
+        module_target_sat,
+        org,
+        module_cv,
+        module_lce,
+    )
+    registered_contenthost.add_rex_key(satellite=module_target_sat)
+    assert registered_contenthost.execute(r'subscription-manager repos --enable \*').status == 0
+    _chost_name = registered_contenthost.hostname
+    # Install all YUM 3 packages
+    pkgs = ' '.join(FAKE_3_YUM_OUTDATED_PACKAGES)
+    assert registered_contenthost.execute(f'yum install -y {pkgs}').status == 0
 
-            view = session.contenthost.navigate_to(
-                session.contenthost, 'Edit', entity_name=client.hostname
-            )
-            per_page_value = view.errata.pagination.per_page
-            # Change per-page setting to 100 and assert there is now only one page
-            assert per_page_value.fill('100')
-            page_values = session.contenthost.read(
-                client.hostname, widget_names=['errata.pagination']
-            )
-            assert int(page_values['errata']['pagination']['per_page']) == 100
-            assert int(page_values['errata']['pagination']['pages']) == 1
-            # assert at least the 28 errata from fake repo are present
-            assert int(page_values['errata']['pagination']['total_items']) >= 28
+    with session:
+        # Go to new host's page UI, Content>Errata tab,
+        # read the view's pagination entitity
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        # There are two pagination objects on errata tab, we read the top one
+        pf4_pagination = session.host_new.get_errata_pagination(_chost_name)
+        assert pf4_pagination.read()
+        assert pf4_pagination.current_per_page == 20
+        # assert total_pages > 1 with default page settings
+        assert pf4_pagination.total_pages > 1
+        assert pf4_pagination.current_page == 1
+        assert pf4_pagination.total_items == registered_contenthost.applicable_errata_count
+        # Change per-page setting to 50, and assert there is now only one page
+        pf4_pagination.set_per_page(50)
+        pf4_pagination = session.host_new.get_errata_pagination(_chost_name)
+        assert pf4_pagination.read()
+        assert pf4_pagination.current_per_page == 50
+        assert pf4_pagination.current_page == 1
+        assert pf4_pagination.total_pages == 1
+        # assert at least the 28 errata from fake repo are present
+        assert pf4_pagination.total_items >= 28
+        _prior_app_count = pf4_pagination.total_items
+        # Change to a low per-page setting of 5
+        pf4_pagination.set_per_page(5)
+        pf4_pagination = session.host_new.get_errata_pagination(_chost_name)
+        assert pf4_pagination.read()
+        assert pf4_pagination.current_per_page == 5
+        assert pf4_pagination.current_page == 1
+        assert pf4_pagination.total_pages > 2
+        _prior_pagination = pf4_pagination.read()
 
-            # install all errata using REX
-            status = session.contenthost.install_errata(client.hostname, 'All', install_via='rex')
-            # Assert errata are listed on job invocation page
-            assert status['overview']['job_status'] == 'Success'
-            assert status['overview']['job_status_progress'] == '100%'
-            # check that there are no applicable errata left on the CHost's errata page
-            page_values = session.contenthost.read(
-                client.hostname, widget_names=['errata.pagination']
+        # Install one available errata from UI with REX by default
+        errata_id = CUSTOM_REPO_3_ERRATA[1]
+        session.host_new.apply_erratas(_chost_name, f'errata_id="{errata_id}"')
+        # find host errata install job and status, timeout is 120s
+        # may take some time, wait for any not pending
+        status = module_target_sat.wait_for_tasks(
+            search_query=(f'Remote action: Install errata on {_chost_name} and result != pending'),
+            search_rate=2,
+            max_tries=60,
+        )
+        assert len(status) >= 1
+        task = status[0]
+        assert task.result == 'success'
+        assert 'host' in task.input
+        assert registered_contenthost.nailgun_host.id == task.input['host']['id']
+        # find bulk applicability task and status
+        status = module_target_sat.wait_for_tasks(
+            search_query=(
+                f'Bulk generate applicability for host {_chost_name} and result != pending'
+            ),
+            search_rate=2,
+            max_tries=60,
+        )
+        assert len(status) >= 1
+        task = status[0]
+        assert task.result == 'success'
+        assert 'host_ids' in task.input
+        assert registered_contenthost.nailgun_host.id in task.input['host_ids']
+        # applicable errata is now one less
+        assert registered_contenthost.applicable_errata_count == _prior_app_count - 1
+        # wait for the tab to load with updated pagination, sat may be slow, timeout 30s.
+        # lambda: read is not the same as prior pagination read, and is also not empty {}.
+        _invalid_pagination = ({}, _prior_pagination)
+        wait_for(
+            lambda: session.host_new.get_errata_pagination(_chost_name).read()
+            not in _invalid_pagination,
+            timeout=30,
+            delay=5,
+        )
+        # read updated pagination, handle slower UI loading
+        pf4_pagination = session.host_new.get_errata_pagination(_chost_name)
+        assert (_read_page := pf4_pagination.read())
+        assert _read_page != _prior_pagination
+        # assert per_page and total_pages remained the same
+        assert pf4_pagination.current_per_page == 5
+        assert pf4_pagination.current_page == 1
+        assert pf4_pagination.total_pages > 1
+        # total_items decreased by one
+        item_count = pf4_pagination.total_items
+        assert item_count == _prior_app_count - 1
+
+        # Install all available from errata tab, we pass no search filter,
+        # so that all errata are selected, on all pages.
+        session.host_new.apply_erratas(_chost_name)
+        # find host's errata install job non-pending, timeout is 120s
+        status = module_target_sat.wait_for_tasks(
+            search_query=(f'Remote action: Install errata on {_chost_name} and result != pending'),
+            search_rate=2,
+            max_tries=60,
+        )
+        assert len(status) >= 1
+        task = status[0]
+        assert task.result == 'success'
+        assert 'host' in task.input
+        assert registered_contenthost.nailgun_host.id == task.input['host']['id']
+        # find bulk applicability task and status
+        status = module_target_sat.wait_for_tasks(
+            search_query=(
+                f'Bulk generate applicability for host {_chost_name} and result != pending'
+            ),
+            search_rate=2,
+            max_tries=60,
+        )
+        assert len(status) >= 1
+        task = status[0]
+        assert task.result == 'success'
+        assert 'host_ids' in task.input
+        assert registered_contenthost.nailgun_host.id in task.input['host_ids']
+
+        # check there are no applicable errata left for Chost
+        assert registered_contenthost.applicable_errata_count == 0
+        # The errata table is not present when empty, it should not be paginated.
+        # timeout is 30s, for tab loading with no pagination {}, on read.
+        _items = -1
+        _ex_raised = False
+        try:
+            wait_for(
+                lambda: not session.host_new.get_errata_pagination(_chost_name).read(),
+                timeout=20,
+                delay=5,
             )
-            assert int(page_values['errata']['pagination']['total_items']) == 0
+        except NoSuchElementException:
+            # pagination read raised exception, does not exist
+            _ex_raised = True
+        if not _ex_raised:
+            # pagination exists, reads empty {}, but we expect an
+            # exception when looking for a pagination element:
+            pf4_pagination = session.host_new.get_errata_pagination(_chost_name)
+            # exception trying to find element
+            with pytest.raises(NoSuchElementException):
+                _items = pf4_pagination.total_items
+            # assert nothing was found to update value
+            assert (
+                _items == -1
+            ), f'Found updated pagination total_items: {_items}, but expected to be empty.'
+            # would get failure at pytest.raises if no matching exception
+            _ex_raised = True
+        assert (
+            _ex_raised
+        ), 'Search for empty pagination did not raise expected `NoSuchElementException`.'
 
 
 @pytest.mark.tier2
