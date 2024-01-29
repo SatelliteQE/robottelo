@@ -66,6 +66,7 @@ class TestSmartClassParameters:
     @pytest.mark.e2e
     def test_positive_list(
         self,
+        request,
         session_puppet_enabled_sat,
         module_puppet_org,
         module_puppet_loc,
@@ -86,6 +87,7 @@ class TestSmartClassParameters:
             environment=module_puppet['env'].name,
         ).create()
         host.add_puppetclass(data={'puppetclass_id': module_puppet['class']['id']})
+        request.addfinalizer(host.delete)
         hostgroup = session_puppet_enabled_sat.cli_factory.hostgroup(
             {
                 'puppet-environment-id': module_puppet['env'].id,
