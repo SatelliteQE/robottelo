@@ -14,6 +14,7 @@
 from datetime import datetime, timedelta
 
 from fauxfactory import gen_string
+from manifester import Manifester
 import pytest
 
 from robottelo import constants
@@ -65,11 +66,16 @@ def fixture_setup_rhc_satellite(
     request,
     module_target_sat,
     module_rhc_org,
-    module_extra_rhel_sca_manifest,
 ):
     """Create Organization and activation key after successful test execution"""
     if settings.rh_cloud.crc_env == 'prod':
-        module_target_sat.upload_manifest(module_rhc_org.id, module_extra_rhel_sca_manifest.content)
+        manifester = Manifester(
+            allocation_name=module_rhc_org.name,
+            manifest_category=settings.manifest.extra_rhel_entitlement,
+            simple_content_access="enabled",
+        )
+        rhcloud_manifest = manifester.get_manifest()
+        module_target_sat.upload_manifest(module_rhc_org.id, rhcloud_manifest.content)
     yield
     if request.node.rep_call.passed:
         # Enable and sync required repos
