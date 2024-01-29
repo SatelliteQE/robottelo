@@ -18,7 +18,10 @@ import pytest
 from requests import HTTPError
 
 from robottelo import constants
-from robottelo.config import settings
+from robottelo.config import (
+    settings,
+    user_nailgun_config,
+)
 
 pytestmark = pytest.mark.tier1
 
@@ -265,23 +268,22 @@ def test_negative_capsule_without_registration_enabled(
 
 
 @pytest.mark.rhel_ver_match('[^6]')
-def test_positive_host_registration_with_non_admin_user(
+def test_positive_host_registration_with_non_admin_user_with_setup_false(
     module_org,
     module_location,
     module_activation_key,
     module_target_sat,
     rhel_contenthost,
 ):
-    """Verify host registration with non admin user
+    """Verify host registration with non admin user with setup false
 
     :id: 02bdda6a-010d-4098-a7e0-e4b5e8416ce3
 
     :steps:
-        1. Enable the required repositories on the satellite and get a host(RHEL7/RHEL8/RHEL9)
+        1. Sync the content repositories, add and publish it in CV
         2. Create a non-admin user and assign "Register Hosts" role to it.
         3. Create an activation key and assign CV and LCE to it.
-        4. Login Satellite with new user and generate curl command to register host with all setup options set to NO.
-        5. Run the curl command on the host.
+        4. Create new user and generate curl command to register host
 
     :expectedresults: Host registered successfully with all setup options set to 'NO' for non admin user
 
@@ -289,18 +291,22 @@ def test_positive_host_registration_with_non_admin_user(
 
     :customerscenario: true
     """
-    changed_org_admin = module_target_sat.api.Role().search(
+    register_host_role = module_target_sat.api.Role().search(
         query={'search': 'name="Register hosts"'}
     )
+    login = gen_string('alphanumeric')
+    password = gen_string('alphanumeric')
     module_target_sat.api.User(
-        role=changed_org_admin,
+        role=register_host_role,
         admin=False,
-        login=gen_string('alpha'),
-        password=gen_string('alpha'),
+        login=login,
+        password=password,
         organization=[module_org],
         location=[module_location],
     ).create()
+    user_cfg = user_nailgun_config(login, password)
     command = module_target_sat.api.RegistrationCommand(
+        server_config=user_cfg,
         organization=module_org,
         activation_keys=[module_activation_key.name],
         location=module_location,
@@ -311,8 +317,12 @@ def test_positive_host_registration_with_non_admin_user(
     ).create()
     result = rhel_contenthost.execute(command)
     assert result.status == 0, f'Failed to register host: {result.stderr}'
-    package = constants.FAKE_7_CUSTOM_PACKAGE
-    assert_info = ['dnf -y install insights-client', 'Starting deployment of REX pull provider',
-                   f'yum install - y {package}', '/usr/sbin/restorecon']
-    for data in assert_info:
-        assert data not in result.stdout
+
+    # verify package install for insights-client didn't run when Setup Insights is false
+    assert 'dnf -y install insights-client' not in result.stdout
+    # verify  package install for foreman_ygg_worker didn't run when REX pull mode is false
+    assert 'dnf -y install foreman_ygg_worker' not in result.stdout
+    # verify packages aren't getting updated when Update packages is false
+    assert '# Updating packages' not in result.stdout
+    # verify foreman-proxy ssh pubkey isn't present when Setup REX is false
+    assert rhel_contenthost.execute('cat ~/.ssh/authorized_keys | grep foreman-proxy').status == 1
