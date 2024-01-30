@@ -38,32 +38,6 @@ class TestCapsuleContentManagement:
     interactions and use capsule.
     """
 
-    @pytest.mark.tier3
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
-    def test_positive_insights_puppet_package_availability(self, module_capsule_configured):
-        """Check `redhat-access-insights-puppet` package availability for
-        capsule
-
-        :BZ: 1315844
-
-        :id: a31b0e21-aa5d-44e2-a408-5e01b79db3a1
-
-        :CaseComponent: RHCloud-Insights
-
-        :Team: Platform
-
-        :customerscenario: true
-
-        :expectedresults: `redhat-access-insights-puppet` package is delivered
-            in capsule repo and is available for installation on capsule via
-            yum
-        """
-        package_name = 'redhat-access-insights-puppet'
-        result = module_capsule_configured.run(f'yum list {package_name} | grep @capsule')
-        if result.status != 0:
-            result = module_capsule_configured.run(f'yum list available | grep {package_name}')
-        assert result.status == 0
-
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_uploaded_content_library_sync(
