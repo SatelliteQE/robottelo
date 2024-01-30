@@ -529,7 +529,7 @@ def test_positive_remove_parameter_non_admin_user(
         organization=module_org,
         host_parameters_attributes=[parameter],
     ).create()
-    with target_sat.ui_seesion(test_name, user=user.login, password=user_password) as session:
+    with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
         values = session.host.read(host.name, 'parameters')
         assert values['parameters']['host_params'][0] == parameter
         session.host.update(host.name, {'parameters.host_params': []})
