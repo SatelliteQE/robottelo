@@ -914,6 +914,12 @@ class TestPullProviderRex:
     @pytest.mark.upgrade
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('[^6].*')
+    @pytest.mark.parametrize(
+        'setting_update',
+        ['remote_execution_global_proxy=False'],
+        ids=["no_global_proxy"],
+        indirect=True,
+    )
     def test_positive_run_job_on_host_converted_to_pull_provider(
         self,
         module_org,
@@ -922,6 +928,7 @@ class TestPullProviderRex:
         module_target_sat,
         module_capsule_configured_mqtt,
         rhel_contenthost,
+        setting_update,
     ):
         """Run custom template on host converted to mqtt
 
@@ -1018,6 +1025,12 @@ class TestPullProviderRex:
     @pytest.mark.e2e
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('[^6].*')
+    @pytest.mark.parametrize(
+        'setting_update',
+        ['remote_execution_global_proxy=False'],
+        ids=["no_global_proxy"],
+        indirect=True,
+    )
     def test_positive_run_job_on_host_registered_to_pull_provider(
         self,
         module_org,
@@ -1026,6 +1039,7 @@ class TestPullProviderRex:
         module_ak_with_cv,
         module_capsule_configured_mqtt,
         rhel_contenthost,
+        setting_update,
     ):
         """Run custom template on host registered to mqtt, check effective user setting
 
