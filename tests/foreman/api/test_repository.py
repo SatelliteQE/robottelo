@@ -1442,7 +1442,7 @@ class TestRepositorySync:
         time.sleep(30)
         target_sat.api.ForemanTask().bulk_cancel(data={"task_ids": sync_ids[5:]})
         for sync_id in sync_ids:
-            sync_result = target_sat.api.ForemanTask(id=sync_id).poll(canceled=True)
+            sync_result = target_sat.api.ForemanTask(id=sync_id).poll(must_succeed=False)
             assert (
                 'Task canceled' in sync_result['humanized']['errors']
                 or 'No content added' in sync_result['humanized']['output']
@@ -1703,7 +1703,7 @@ class TestDockerRepository:
         # Need to wait for sync to actually start up
         time.sleep(2)
         target_sat.api.ForemanTask().bulk_cancel(data={"task_ids": [sync_task['id']]})
-        sync_task = target_sat.api.ForemanTask(id=sync_task['id']).poll(canceled=True)
+        sync_task = target_sat.api.ForemanTask(id=sync_task['id']).poll(must_succeed=False)
         assert 'Task canceled' in sync_task['humanized']['errors']
         assert 'No content added' in sync_task['humanized']['output']
 
