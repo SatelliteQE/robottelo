@@ -2638,7 +2638,7 @@ class TestAnsibleCollectionRepository:
                 'product-id': prod_2['id'],
                 'url': published_url,
                 'content-type': 'ansible_collection',
-                'ansible-collection-reqirements': '{collections: \
+                'ansible-collection-requirements': '{collections: \
                     [{ name: theforeman.operations, version: "0.1.0"}]}',
             }
         )
