@@ -76,7 +76,12 @@ def test_positive_run_default_job_template_by_ip(session, rex_contenthost, modul
 @pytest.mark.skip_if_open('BZ:2182353')
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.tier3
-def test_positive_run_custom_job_template_by_ip(session, module_org, rex_contenthost):
+@pytest.mark.parametrize(
+    'ui_user', [{'admin': True}, {'admin': False}], indirect=True, ids=['adminuser', 'nonadminuser']
+)
+def test_positive_run_custom_job_template_by_ip(
+    session, module_org, target_sat, default_location, ui_user, rex_contenthost
+):
     """Run a job template on a host connected by ip
 
     :id: 3a59eb15-67c4-46e1-ba5f-203496ec0b0c
@@ -93,8 +98,13 @@ def test_positive_run_custom_job_template_by_ip(session, module_org, rex_content
     :expectedresults: Verify the job was successfully ran against the host
 
     :parametrized: yes
-    """
 
+    :bz: 2220965
+
+    :customerscenario: true
+    """
+    ui_user.location.append(target_sat.api.Location(id=default_location.id))
+    ui_user.update(['location'])
     hostname = rex_contenthost.hostname
     job_template_name = gen_string('alpha')
     with session:
