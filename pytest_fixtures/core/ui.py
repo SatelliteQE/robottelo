@@ -18,7 +18,7 @@ def ui_user(request, module_org, module_location, module_target_sat):
     test_module_name = request.module.__name__.split('.')[-1].split('_', 1)[-1]
     login = f"{test_module_name}_{gen_string('alphanumeric')}"
     password = gen_string('alphanumeric')
-    admin = request.param.get('admin', True)
+    admin = request.param.get('admin', True) if hasattr(request, 'param') else True
     logger.debug('Creating session user %r', login)
     user = module_target_sat.api.User(
         admin=admin,
