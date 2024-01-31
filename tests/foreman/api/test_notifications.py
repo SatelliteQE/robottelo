@@ -84,8 +84,8 @@ def reschedule_long_running_tasks_notification(target_sat):
 
     assert (
         target_sat.execute(
-            f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{every_minute_cron_schedule}' "
-            "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker"
+            "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker "
+            f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{every_minute_cron_schedule}'"
         ).status
         == 0
     )
@@ -94,8 +94,8 @@ def reschedule_long_running_tasks_notification(target_sat):
 
     assert (
         target_sat.execute(
-            f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{default_cron_schedule}' "
-            "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker"
+            "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker "
+            f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{default_cron_schedule}'"
         ).status
         == 0
     )
