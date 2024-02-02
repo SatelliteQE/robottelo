@@ -1243,7 +1243,7 @@ class TestRepository:
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
-        assert repo['content-counts']['source-rpms'] == '0', 'content not ignored correctly'
+        assert repo['content-counts']['srpms'] == '0', 'content not ignored correctly'
 
     @pytest.mark.tier1
     @pytest.mark.skipif(
@@ -1839,8 +1839,7 @@ class TestRepository:
         )
         assert f"Successfully uploaded file '{SRPM_TO_UPLOAD}'" in result[0]['message']
         assert (
-            int(target_sat.cli.Repository.info({'id': repo['id']})['content-counts']['source-rpms'])
-            == 1
+            int(target_sat.cli.Repository.info({'id': repo['id']})['content-counts']['srpms']) == 1
         )
 
         # Remove uploaded SRPM
@@ -1852,8 +1851,7 @@ class TestRepository:
             }
         )
         assert (
-            int(target_sat.cli.Repository.info({'id': repo['id']})['content-counts']['source-rpms'])
-            == 0
+            int(target_sat.cli.Repository.info({'id': repo['id']})['content-counts']['srpms']) == 0
         )
 
     @pytest.mark.upgrade
@@ -1895,8 +1893,7 @@ class TestRepository:
         assert len(srpm_list) == 1
         assert target_sat.cli.Srpm.info({'id': srpm_list[0]['id']})[0]['filename'] == SRPM_TO_UPLOAD
         assert (
-            int(target_sat.cli.Repository.info({'id': repo['id']})['content-counts']['source-rpms'])
-            == 1
+            int(target_sat.cli.Repository.info({'id': repo['id']})['content-counts']['srpms']) == 1
         )
         assert (
             len(
@@ -1944,7 +1941,7 @@ class TestRepository:
             }
         )
         assert int(
-            target_sat.cli.Repository.info({'id': repo['id']})['content-counts']['source-rpms']
+            target_sat.cli.Repository.info({'id': repo['id']})['content-counts']['srpms']
         ) == len(target_sat.cli.Srpm.list({'repository-id': repo['id']}))
 
     @pytest.mark.tier1
