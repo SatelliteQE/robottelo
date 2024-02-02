@@ -132,26 +132,26 @@ class Base:
         return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)
 
     @classmethod
-    def delete_parameter(cls, options=None):
+    def delete_parameter(cls, options=None, timeout=None):
         """
         Deletes parameter from record.
         """
 
         cls.command_sub = 'delete-parameter'
 
-        result = cls.execute(cls._construct_command(options))
+        result = cls.execute(cls._construct_command(options), ignore_stderr=False, timeout=timeout)
 
         return result
 
     @classmethod
-    def dump(cls, options=None):
+    def dump(cls, options=None, timeout=None):
         """
         Displays the content for existing partition table.
         """
 
         cls.command_sub = 'dump'
 
-        result = cls.execute(cls._construct_command(options))
+        result = cls.execute(cls._construct_command(options), ignore_stderr=False, timeout=timeout)
 
         return result
 
