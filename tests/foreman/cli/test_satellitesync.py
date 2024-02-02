@@ -151,7 +151,7 @@ def function_synced_rh_repo(request, target_sat, function_sca_manifest_org):
     )
     # Update the download policy to 'immediate' and sync
     target_sat.cli.Repository.update({'download-policy': 'immediate', 'id': repo['id']})
-    target_sat.cli.Repository.synchronize({'id': repo['id']}, timeout=7200000)
+    target_sat.cli.Repository.synchronize({'id': repo['id']}, timeout='2h')
     repo = target_sat.cli.Repository.info(
         {
             'organization-id': function_sca_manifest_org.id,
@@ -605,8 +605,9 @@ class TestContentViewSync:
                 'organization-id': function_import_org.id,
             }
         )
-        for item in ['packages', 'source-rpms', 'package-groups', 'errata', 'module-streams']:
-            assert exported_repo['content-counts'][item] == imported_repo['content-counts'][item]
+        assert (
+            exported_repo['content-counts'] == imported_repo['content-counts']
+        ), 'Exported and imported counts do not match'
 
     @pytest.mark.upgrade
     @pytest.mark.tier3
@@ -940,7 +941,7 @@ class TestContentViewSync:
         # Export cv
         export = target_sat.cli.ContentExport.completeVersion(
             {'id': cvv['id'], 'organization-id': function_sca_manifest_org.id},
-            timeout=7200000,
+            timeout='2h',
         )
         # Verify export directory is not empty
         assert target_sat.validate_pulp_filepath(function_sca_manifest_org, PULP_EXPORT_DIR) != ''
@@ -952,7 +953,7 @@ class TestContentViewSync:
         target_sat.cli.Settings.set({'name': 'subscription_connection_enabled', 'value': "No"})
         target_sat.cli.ContentImport.version(
             {'organization-id': function_import_org_with_manifest.id, 'path': import_path},
-            timeout=7200000,
+            timeout='2h',
         )
         importing_cvv = target_sat.cli.ContentView.info(
             {'name': cv_name, 'organization-id': function_import_org_with_manifest.id}
@@ -977,8 +978,9 @@ class TestContentViewSync:
                 'organization-id': function_import_org_with_manifest.id,
             }
         )
-        for item in ['packages', 'source-rpms', 'package-groups', 'errata', 'module-streams']:
-            assert exported_repo['content-counts'][item] == imported_repo['content-counts'][item]
+        assert (
+            exported_repo['content-counts'] == imported_repo['content-counts']
+        ), 'Exported and imported counts do not match'
 
     @pytest.mark.tier2
     def test_positive_export_cv_with_on_demand_repo(
