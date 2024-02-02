@@ -726,17 +726,7 @@ class CLIFactory:
         # If manifest does not exist, clone and upload it
         if len(self._satellite.cli.Subscription.exists({'organization-id': org_id})) == 0:
             with clone() as manifest:
-                remote_name = gen_alpha()
-                _, temporary_local_manifest_path = mkstemp(prefix='manifest-', suffix='.zip')
-                with open(temporary_local_manifest_path, 'wb') as file_handler:
-                    file_handler.write(manifest.content.read())
-                    self._satellite.put(temporary_local_manifest_path, remote_name)
-            try:
-                self._satellite.cli.Subscription.upload(
-                    {'file': remote_name, 'organization-id': org_id}
-                )
-            except CLIReturnCodeError as err:
-                raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}') from err
+                self._satellite.upload_manifest(org_id, manifest.content)
         # Enable repo from Repository Set
         try:
             self._satellite.cli.RepositorySet.enable(
