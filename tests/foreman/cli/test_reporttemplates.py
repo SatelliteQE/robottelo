@@ -321,9 +321,7 @@ def test_positive_dump_report(module_target_sat):
     """
     name = gen_alpha()
     content = gen_alpha()
-    report_template = module_target_sat.cli_factory.report_template(
-        {'name': name, 'content': content}
-    )
+    report_template = module_target_sat.cli_factory.report_template({'name': name, 'file': content})
     result = module_target_sat.cli.ReportTemplate.dump({'id': report_template['id']})
     assert content in result
 
@@ -402,9 +400,7 @@ def test_positive_generate_report_sanitized(module_target_sat):
         }
     )
 
-    report_template = module_target_sat.cli_factory.report_template(
-        {'content': REPORT_TEMPLATE_FILE}
-    )
+    report_template = module_target_sat.cli_factory.report_template({'file': REPORT_TEMPLATE_FILE})
 
     result = module_target_sat.cli.ReportTemplate.generate({'name': report_template['name']})
     assert 'Name,Operating System' in result  # verify header of custom template
