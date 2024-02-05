@@ -153,7 +153,10 @@ ENTITY_FIELDS = {
     'host_collection': {
         'name': gen_alpha,
     },
-    'job_invocation': {},
+    'job_invocation': {'_redirect': 'job_invocation_with_credentials'},
+    'job_invocation_with_credentials': {
+        '_entity_cls': 'JobInvocation',
+    },
     'job_template': {
         'job-category': 'Miscellaneous',
         'provider-type': 'SSH',
