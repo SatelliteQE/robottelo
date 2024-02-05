@@ -878,7 +878,7 @@ def test_positive_delete_rhel_repo(session, module_entitlement_manifest_org, tar
 
 
 @pytest.mark.tier2
-def test_positive_recommended_repos(session, module_entitlement_manifest_org):
+def test_positive_recommended_repos(session, module_sca_manifest_org):
     """list recommended repositories using
      On/Off 'Recommended Repositories' toggle.
 
@@ -893,7 +893,7 @@ def test_positive_recommended_repos(session, module_entitlement_manifest_org):
     :BZ: 1776108
     """
     with session:
-        session.organization.select(module_entitlement_manifest_org.name)
+        session.organization.select(module_sca_manifest_org.name)
         rrepos_on = session.redhatrepository.read(recommended_repo='on')
         assert REPOSET['rhel7'] in [repo['name'] for repo in rrepos_on]
         assert REPOSET['rhsclient7'] in [repo['name'] for repo in rrepos_on]
