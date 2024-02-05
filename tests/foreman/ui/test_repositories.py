@@ -111,14 +111,16 @@ def test_positive_override_custom_products_not_using_select_all(
 
     :id: 9d5c05fb-3683-40a2-91fd-a3aa526b25f4
 
-    :steps:
+    :setup:
         1. Create custom product and upload repository
         2. Attach to activation key
-        3. Register Host
-        4. Assert that custom proudcts are disabled by default
-        5. Override custom products to enabled by selecting the repos individually and
+
+    :steps:
+        1. Register Host
+        2. Assert that custom proudcts are disabled by default
+        3. Override custom products to enabled by selecting the repos individually and
            using the new funtionality at the top
-        6. Assert custom products are now enabled
+        4. Assert custom products are now enabled
 
     :expectedresults: Custom products should be easily enable NOT using the select all method
 
@@ -127,9 +129,8 @@ def test_positive_override_custom_products_not_using_select_all(
     :parametrized: yes
     """
     ak, org, custom_repo = setup_content
-    client = rhel_contenthost
-    client.register(org, default_location, ak.name, target_sat)
-    assert client.subscribed
+    rhel_contenthost.register(org, default_location, ak.name, target_sat)
+    assert rhel_contenthost.subscribed
     with session:
         session.organization.select(org.name)
         session.location.select(default_location.name)
@@ -137,7 +138,7 @@ def test_positive_override_custom_products_not_using_select_all(
         assert repo[0]['Repository'] == custom_repo.name
         assert repo[0]['Status'] == 'Disabled'
         session.host_new.override_multiple_repo_sets(
-            rhel_contenthost.hostname, custom_repo.name, 'Custom', "Override to enabled"
+            rhel_contenthost.hostname, custom_repo.name, 'Custom', 'Override to enabled'
         )
         repo = session.host_new.get_repo_sets(rhel_contenthost.hostname, custom_repo.name)
         assert repo[0]['Repository'] == custom_repo.name
