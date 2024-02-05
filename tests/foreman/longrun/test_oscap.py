@@ -147,7 +147,9 @@ def test_positive_oscap_run_via_ansible(
 
     :expectedresults: REX job should be success and ARF report should be sent to satellite
 
-    :BZ: 1716307
+    :BZ: 1716307, 1992229
+
+    :customerscenario: true
 
     :CaseImportance: Critical
     """
