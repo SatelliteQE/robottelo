@@ -887,7 +887,8 @@ def test_positive_recommended_repos(session, module_entitlement_manifest_org):
     :expectedresults:
 
            1. Shows repositories as per On/Off 'Recommended Repositories'.
-           2. Check last Satellite version Capsule/Tools repos do not exist.
+           2. Check that client repositories are in 'Recommended Repsitories'.
+           2. Check last Satellite version Utils/Capsule/Maintenance repos do not exist.
 
     :BZ: 1776108
     """
@@ -895,15 +896,20 @@ def test_positive_recommended_repos(session, module_entitlement_manifest_org):
         session.organization.select(module_entitlement_manifest_org.name)
         rrepos_on = session.redhatrepository.read(recommended_repo='on')
         assert REPOSET['rhel7'] in [repo['name'] for repo in rrepos_on]
+        assert REPOSET['rhsclient7'] in [repo['name'] for repo in rrepos_on]
+        assert REPOSET['rhsclient8'] in [repo['name'] for repo in rrepos_on]
+        assert REPOSET['rhsclient9'] in [repo['name'] for repo in rrepos_on]
         v = get_sat_version()
         sat_version = f'{v.major}.{v.minor}'
-        cap_tool_repos = [
+        cap_utils_repos = [
             repo['name']
             for repo in rrepos_on
-            if 'Utils' in repo['name'] or 'Capsule' in repo['name']
+            if 'Utils' in repo['name'] or 'Capsule' in repo['name'] or 'Maintenance' in repo['name']
         ]
-        cap_tools_repos = [repo for repo in cap_tool_repos if repo.split()[4] != sat_version]
-        assert not cap_tools_repos, 'Utils/Capsule repos do not match with Satellite version'
+        cap_tools_repos = [repo for repo in cap_utils_repos if repo.split()[4] != sat_version]
+        assert (
+            not cap_tools_repos
+        ), 'Utils/Capsule/Maintenance repos do not match with Satellite version'
         rrepos_off = session.redhatrepository.read(recommended_repo='off')
         assert len(rrepos_off) > len(rrepos_on)
 
