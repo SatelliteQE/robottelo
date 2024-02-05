@@ -907,9 +907,7 @@ def test_positive_recommended_repos(session, module_sca_manifest_org):
             if 'Utils' in repo['name'] or 'Capsule' in repo['name'] or 'Maintenance' in repo['name']
         ]
         rec_repos = [repo for repo in cap_utils_main_repos if repo.split()[4] != sat_version]
-        assert (
-            not rec_repos
-        ), 'Utils/Capsule/Maintenance repos do not match with Satellite version'
+        assert not rec_repos, 'Utils/Capsule/Maintenance repos do not match with Satellite version'
         rrepos_off = session.redhatrepository.read(recommended_repo='off')
         assert len(rrepos_off) > len(rrepos_on)
 
