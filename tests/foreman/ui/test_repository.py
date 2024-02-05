@@ -901,14 +901,14 @@ def test_positive_recommended_repos(session, module_entitlement_manifest_org):
         assert REPOSET['rhsclient9'] in [repo['name'] for repo in rrepos_on]
         v = get_sat_version()
         sat_version = f'{v.major}.{v.minor}'
-        cap_utils_repos = [
+        cap_utils_main_repos = [
             repo['name']
             for repo in rrepos_on
             if 'Utils' in repo['name'] or 'Capsule' in repo['name'] or 'Maintenance' in repo['name']
         ]
-        cap_tools_repos = [repo for repo in cap_utils_repos if repo.split()[4] != sat_version]
+        rec_repos = [repo for repo in cap_utils_main_repos if repo.split()[4] != sat_version]
         assert (
-            not cap_tools_repos
+            not rec_repos
         ), 'Utils/Capsule/Maintenance repos do not match with Satellite version'
         rrepos_off = session.redhatrepository.read(recommended_repo='off')
         assert len(rrepos_off) > len(rrepos_on)
