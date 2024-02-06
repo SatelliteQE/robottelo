@@ -22,7 +22,8 @@ from robottelo.constants import FOREMAN_PROVIDERS
 @pytest.mark.tier1
 @pytest.mark.e2e
 @pytest.mark.upgrade
-def test_positive_vmware_cr_end_to_end(target_sat, module_org, module_location):
+@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
+def test_positive_vmware_cr_end_to_end(target_sat, module_org, module_location, vmware):
     """Create, Read, Update and Delete VMware compute resources
 
     :id: 96faae3f-bc64-4147-a9fc-09c858e0a68f
@@ -43,7 +44,7 @@ def test_positive_vmware_cr_end_to_end(target_sat, module_org, module_location):
             'organization-ids': module_org.id,
             'location-ids': module_location.id,
             'provider': FOREMAN_PROVIDERS['vmware'],
-            'server': settings.vmware.vcenter,
+            'server': vmware.hostname,
             'user': settings.vmware.username,
             'password': settings.vmware.password,
             'datacenter': settings.vmware.datacenter,
@@ -52,7 +53,7 @@ def test_positive_vmware_cr_end_to_end(target_sat, module_org, module_location):
     assert vmware_cr['name'] == cr_name
     assert vmware_cr['locations'][0] == module_location.name
     assert vmware_cr['organizations'][0] == module_org.name
-    assert vmware_cr['server'] == settings.vmware.vcenter
+    assert vmware_cr['server'] == vmware.hostname
     assert vmware_cr['datacenter'] == settings.vmware.datacenter
     # List
     target_sat.cli.ComputeResource.list({'search': f'name="{cr_name}"'})
@@ -76,6 +77,7 @@ def test_positive_vmware_cr_end_to_end(target_sat, module_org, module_location):
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
+@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.parametrize('provision_method', ['build', 'bootdisk'])
 @pytest.mark.rhel_ver_match('[^6]')
@@ -90,6 +92,7 @@ def test_positive_provision_end_to_end(
     module_vmware_cr,
     module_vmware_hostgroup,
     provision_method,
+    vmware,
 ):
     """Provision a host on vmware compute resource with
     the help of hostgroup.
@@ -137,7 +140,7 @@ def test_positive_provision_end_to_end(
     assert hostname == host['name']
     # check if vm is created on vmware
     vmware = VMWareSystem(
-        hostname=settings.vmware.vcenter,
+        hostname=vmware.hostname,
         username=settings.vmware.username,
         password=settings.vmware.password,
     )
