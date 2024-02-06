@@ -4,12 +4,21 @@ import pytest
 from robottelo.config import settings
 
 
+@pytest.fixture
+def vmware(request):
+    versions = {
+        'vmware7': settings.vmware.vcenter7,
+        'vmware8': settings.vmware.vcenter8,
+    }
+    return versions[getattr(request, 'param', 'vmware8')]
+
+
 @pytest.fixture(scope='module')
-def module_vmware_cr(module_provisioning_sat, module_sca_manifest_org, module_location):
+def module_vmware_cr(module_provisioning_sat, module_sca_manifest_org, module_location, vmware):
     vmware_cr = module_provisioning_sat.sat.api.VMWareComputeResource(
         name=gen_string('alpha'),
         provider='Vmware',
-        url=settings.vmware.vcenter,
+        url=vmware.hostname,
         user=settings.vmware.username,
         password=settings.vmware.password,
         datacenter=settings.vmware.datacenter,
