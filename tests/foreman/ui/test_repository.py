@@ -887,18 +887,19 @@ def test_positive_recommended_repos(session, module_sca_manifest_org):
     :expectedresults:
 
            1. Shows repositories as per On/Off 'Recommended Repositories'.
-           2. Check that client repositories are in 'Recommended Repsitories'.
-           2. Check last Satellite version Utils/Capsule/Maintenance repos do not exist.
+           2. Check that client repositories are in 'Recommended Repositories'.
+           3. Check last Satellite version Utils/Capsule/Maintenance repos do not exist.
 
     :BZ: 1776108
     """
     with session:
         session.organization.select(module_sca_manifest_org.name)
         rrepos_on = session.redhatrepository.read(recommended_repo='on')
-        assert REPOSET['rhel7'] in [repo['name'] for repo in rrepos_on]
-        assert REPOSET['rhsclient7'] in [repo['name'] for repo in rrepos_on]
-        assert REPOSET['rhsclient8'] in [repo['name'] for repo in rrepos_on]
-        assert REPOSET['rhsclient9'] in [repo['name'] for repo in rrepos_on]
+        all_recommended_repos = [repo['name'] for repo in rrepos_on]
+        assert REPOSET['rhel7'] in all_recommended_repos
+        assert REPOSET['rhsclient7'] in all_recommended_repos
+        assert REPOSET['rhsclient8'] in all_recommended_repos
+        assert REPOSET['rhsclient9'] in all_recommended_repos
         v = get_sat_version()
         sat_version = f'{v.major}.{v.minor}'
         cap_utils_main_repos = [
