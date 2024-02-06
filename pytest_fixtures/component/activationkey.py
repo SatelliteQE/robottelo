@@ -15,6 +15,16 @@ def module_activation_key(module_sca_manifest_org, module_target_sat):
     ).create()
 
 
+@pytest.fixture
+def function_activation_key(function_sca_manifest_org, target_sat):
+    """Create activation key using default CV and library environment."""
+    return target_sat.api.ActivationKey(
+        content_view=function_sca_manifest_org.default_content_view.id,
+        environment=function_sca_manifest_org.library.id,
+        organization=function_sca_manifest_org,
+    ).create()
+
+
 @pytest.fixture(scope='module')
 def module_ak(module_lce, module_org, module_target_sat):
     return module_target_sat.api.ActivationKey(
