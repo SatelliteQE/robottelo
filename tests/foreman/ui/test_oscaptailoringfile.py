@@ -11,7 +11,6 @@
 :CaseImportance: High
 
 """
-from nailgun import entities
 import pytest
 
 from robottelo.utils.datafactory import gen_string
@@ -19,7 +18,9 @@ from robottelo.utils.datafactory import gen_string
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, tailoring_file_path, default_org, default_location):
+def test_positive_end_to_end(
+    session, tailoring_file_path, default_org, default_location, module_target_sat
+):
     """Perform end to end testing for tailoring file component
 
     :id: 9aebccb8-6837-4583-8a8a-8883480ab688
@@ -52,7 +53,9 @@ def test_positive_end_to_end(session, tailoring_file_path, default_org, default_
         assert session.oscaptailoringfile.search(new_name)[0]['Name'] == new_name
         assert not session.oscaptailoringfile.search(name)
         session.oscaptailoringfile.delete(new_name)
-        assert not entities.TailoringFile().search(query={'search': f'name={new_name}'})
+        assert not module_target_sat.api.TailoringFile().search(
+            query={'search': f'name={new_name}'}
+        )
 
 
 @pytest.mark.tier2

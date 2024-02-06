@@ -12,7 +12,6 @@
 
 """
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 
 from robottelo.utils.datafactory import valid_domain_names
@@ -113,7 +112,9 @@ def test_positive_remove_parameter(session, valid_domain_name):
 @pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_location, valid_domain_name):
+def test_positive_end_to_end(
+    session, module_org, module_location, valid_domain_name, module_target_sat
+):
     """Perform end to end testing for domain component
 
     :id: ce90fd87-3e63-4298-a771-38f4aacce091
@@ -148,4 +149,4 @@ def test_positive_end_to_end(session, module_org, module_location, valid_domain_
         assert session.domain.search(new_name)[0]['Description'] == new_name
         # Delete domain
         session.domain.delete(new_name)
-        assert not entities.Domain().search(query={'search': f'name={new_name}'})
+        assert not module_target_sat.api.Domain().search(query={'search': f'name={new_name}'})

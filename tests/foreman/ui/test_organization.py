@@ -12,7 +12,6 @@
 
 """
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -47,7 +46,7 @@ def module_repos_col(request, module_entitlement_manifest_org, module_lce, modul
 @pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session):
+def test_positive_end_to_end(session, module_target_sat):
     """Perform end to end testing for organization component
 
     :id: abe878a9-a6bc-41e5-a39a-0fed9012b80f
@@ -62,15 +61,15 @@ def test_positive_end_to_end(session):
     description = gen_string('alpha')
 
     # entities to be added and removed
-    user = entities.User().create()
-    media = entities.Media(
+    user = module_target_sat.api.User().create()
+    media = module_target_sat.api.Media(
         path_=INSTALL_MEDIUM_URL % gen_string('alpha', 6), os_family='Redhat'
     ).create()
-    template = entities.ProvisioningTemplate().create()
-    ptable = entities.PartitionTable().create()
-    domain = entities.Domain().create()
-    hostgroup = entities.HostGroup().create()
-    location = entities.Location().create()
+    template = module_target_sat.api.ProvisioningTemplate().create()
+    ptable = module_target_sat.api.PartitionTable().create()
+    domain = module_target_sat.api.Domain().create()
+    hostgroup = module_target_sat.api.HostGroup().create()
+    location = module_target_sat.api.Location().create()
 
     widget_list = [
         'primary',
@@ -189,7 +188,7 @@ def test_positive_search_scoped(session):
 
 @pytest.mark.skip_if_open("BZ:1321543")
 @pytest.mark.tier2
-def test_positive_create_with_all_users(session):
+def test_positive_create_with_all_users(session, module_target_sat):
     """Create organization and new user. Check 'all users' setting for
     organization. Verify that user is assigned to organization and
     vice versa organization is assigned to user
@@ -202,8 +201,8 @@ def test_positive_create_with_all_users(session):
 
     :BZ: 1321543
     """
-    user = entities.User().create()
-    org = entities.Organization().create()
+    user = module_target_sat.api.User().create()
+    org = module_target_sat.api.Organization().create()
     with session:
         session.organization.update(org.name, {'users.all_users': True})
         org_values = session.organization.read(org.name, widget_names='users')
@@ -218,7 +217,7 @@ def test_positive_create_with_all_users(session):
 
 @pytest.mark.skip_if_not_set('libvirt')
 @pytest.mark.tier2
-def test_positive_update_compresource(session):
+def test_positive_update_compresource(session, module_target_sat):
     """Add/Remove compute resource from/to organization.
 
     :id: a49349b9-4637-4ef6-b65b-bd3eccb5a12a
@@ -226,9 +225,9 @@ def test_positive_update_compresource(session):
     :expectedresults: Compute resource is added and then removed.
     """
     url = f'{LIBVIRT_RESOURCE_URL}{settings.libvirt.libvirt_hostname}'
-    resource = entities.LibvirtComputeResource(url=url).create()
+    resource = module_target_sat.api.LibvirtComputeResource(url=url).create()
     resource_name = resource.name + ' (Libvirt)'
-    org = entities.Organization().create()
+    org = module_target_sat.api.Organization().create()
     with session:
         session.organization.update(
             org.name, {'compute_resources.resources.assigned': [resource_name]}
@@ -291,7 +290,9 @@ def test_positive_download_debug_cert_after_refresh(
                 assert org.download_debug_certificate()
                 session.subscription.refresh_manifest()
     finally:
-        entities.Subscription(organization=org).delete_manifest(data={'organization_id': org.id})
+        target_sat.api.Subscription(organization=org).delete_manifest(
+            data={'organization_id': org.id}
+        )
 
 
 @pytest.mark.tier2
