@@ -1781,13 +1781,12 @@ def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_
         assert session.all_hosts.bulk_delete_all()
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def change_content_source_prep(
-    target_sat,
+    module_target_sat,
     module_sca_manifest_org,
     module_capsule_configured,
     module_location,
-    rhel_contenthost,
 ):
     """
     This fixture sets up all necessary stuff for tests excercising the Change of the hosts's content source.
@@ -1802,7 +1801,7 @@ def change_content_source_prep(
     updates the capsule's taxonomies
     adds the lifecycle environment to the capsule's content.
 
-    Fixture returns target_sat, rhel_contenthost, org, lce, capsule, content_view
+    Fixture returns module_target_sat, org, lce, capsule, content_view, loc, ak
     """
     product_name, lce_name = (gen_string('alpha') for _ in range(2))
     repos_to_enable = ['rhae2.9_el8']
@@ -1810,19 +1809,19 @@ def change_content_source_prep(
     org = module_sca_manifest_org
     loc = module_location
 
-    product = target_sat.api.Product(
+    product = module_target_sat.api.Product(
         name=product_name,
         organization=org.id,
     ).create()
 
-    repository = target_sat.api.Repository(
+    repository = module_target_sat.api.Repository(
         product=product,
         content_type=REPO_TYPE['file'],
         url=CUSTOM_FILE_REPO,
     ).create()
 
     for repo in repos_to_enable:
-        target_sat.cli.RepositorySet.enable(
+        module_target_sat.cli.RepositorySet.enable(
             {
                 'organization-id': org.id,
                 'name': constants.REPOS[repo]['reposet'],
@@ -1832,12 +1831,12 @@ def change_content_source_prep(
             }
         )
 
-    lce = target_sat.cli_factory.make_lifecycle_environment(
+    lce = module_target_sat.cli_factory.make_lifecycle_environment(
         {'name': lce_name, 'organization-id': org.id}
     )
 
     # Create CV
-    content_view = target_sat.api.ContentView(organization=org.id).create()
+    content_view = module_target_sat.api.ContentView(organization=org.id).create()
     # Add repos to CV
     content_view.repository = [repository]
     content_view = content_view.update(['repository'])
@@ -1845,14 +1844,12 @@ def change_content_source_prep(
     content_view.publish()
     content_view.read().version[0].promote(data={'environment_ids': lce.id})
 
-    ak = target_sat.api.ActivationKey(
+    ak = module_target_sat.api.ActivationKey(
         content_view=content_view, organization=org.id, environment=lce.id
     ).create()
 
-    rhel_contenthost.register(org, loc, ak.name, target_sat)
-
     # Edit capsule's taxonomies
-    capsule = target_sat.cli.Capsule.update(
+    capsule = module_target_sat.cli.Capsule.update(
         {
             'name': module_capsule_configured.hostname,
             'organization-ids': org.id,
@@ -1860,7 +1857,7 @@ def change_content_source_prep(
         }
     )
 
-    target_sat.cli.Capsule.content_add_lifecycle_environment(
+    module_target_sat.cli.Capsule.content_add_lifecycle_environment(
         {
             'id': module_capsule_configured.nailgun_capsule.id,
             'organization-id': org.id,
@@ -1868,12 +1865,12 @@ def change_content_source_prep(
         }
     )
 
-    return target_sat, rhel_contenthost, org, lce, capsule, content_view
+    return module_target_sat, org, lce, capsule, content_view, loc, ak
 
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('[78]')
-def test_change_content_source(session, change_content_source_prep):
+def test_change_content_source(session, change_content_source_prep, rhel_contenthost):
     """
     This test excercises different ways to change host's content source
 
@@ -1886,9 +1883,11 @@ def test_change_content_source(session, change_content_source_prep):
     :Team: Phoenix-content
     """
 
-    target_sat, rhel_contenthost, org, lce, capsule, content_view = change_content_source_prep
+    module_target_sat, org, lce, capsule, content_view, loc, ak = change_content_source_prep
 
-    with target_sat.ui_session() as session:
+    rhel_contenthost.register(org, loc, ak.name, module_target_sat)
+
+    with module_target_sat.ui_session() as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=ANY_CONTEXT['location'])
 
