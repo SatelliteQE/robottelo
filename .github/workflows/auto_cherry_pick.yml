@@ -100,6 +100,7 @@ jobs:
       - name: Check if cherrypick pr is created
         uses: juliangruber/find-pull-request-action@v1
         id: fpr
+        if: always()
         with:
           branch: "cherry-pick-${{ matrix.label }}-${{ github.sha }}"
           base: ${{ matrix.label }}
