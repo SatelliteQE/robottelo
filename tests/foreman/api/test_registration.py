@@ -285,7 +285,7 @@ def test_positive_host_registration_with_non_admin_user_with_setup_false(
         3. Create an activation key and assign CV and LCE to it.
         4. Create new user and generate curl command to register host
 
-    :expectedresults: Host registered successfully with all setup options set to 'NO' for non admin user
+    :expectedresults: Host registered successfully with all setup options set to 'NO' with non-admin user
 
     :BZ: 2211484
 
