@@ -590,6 +590,7 @@ def test_rhel_pxe_provisioning_fips_enabled(
 
 @pytest.mark.e2e
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
+@pytest.mark.skip(reason='Skipping till we have destructive support')
 @pytest.mark.on_premises_provisioning
 @pytest.mark.rhel_ver_match('[^6]')
 def test_capsule_pxe_provisioning(
