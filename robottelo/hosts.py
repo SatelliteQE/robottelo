@@ -983,7 +983,7 @@ class ContentHost(Host, ContentHostMixins):
                 f'Failed to put hostname in ssh known_hosts files:\n{result.stderr}'
             )
 
-    def configure_puppet(self, proxy_hostname=None):
+    def configure_puppet(self, proxy_hostname=None, run_puppet_agent=True):
         """Configures puppet on the virtual machine/Host.
         :param proxy_hostname: external capsule hostname
         :return: None.
@@ -1023,12 +1023,14 @@ class ContentHost(Host, ContentHostMixins):
         self.execute('/opt/puppetlabs/bin/puppet agent -t')
         proxy_host = Host(hostname=proxy_hostname)
         proxy_host.execute(f'puppetserver ca sign --certname {cert_name}')
-        # This particular puppet run would create the host entity under
-        # 'All Hosts' and let's redirect stderr to /dev/null as errors at
-        #  this stage can be ignored.
-        result = self.execute('/opt/puppetlabs/bin/puppet agent -t 2> /dev/null')
-        if result.status:
-            raise ContentHostError('Failed to configure puppet on the content host')
+
+        if run_puppet_agent:
+            # This particular puppet run would create the host entity under
+            # 'All Hosts' and let's redirect stderr to /dev/null as errors at
+            #  this stage can be ignored.
+            result = self.execute('/opt/puppetlabs/bin/puppet agent -t 2> /dev/null')
+            if result.status:
+                raise ContentHostError('Failed to configure puppet on the content host')
 
     def execute_foreman_scap_client(self, policy_id=None):
         """Executes foreman_scap_client on the vm to create security audit report.
