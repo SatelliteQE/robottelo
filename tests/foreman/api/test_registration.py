@@ -13,12 +13,15 @@
 """
 import uuid
 
-from fauxfactory import gen_ipaddr, gen_mac
+from fauxfactory import gen_ipaddr, gen_mac, gen_string
 import pytest
 from requests import HTTPError
 
 from robottelo import constants
-from robottelo.config import settings
+from robottelo.config import (
+    settings,
+    user_nailgun_config,
+)
 
 pytestmark = pytest.mark.tier1
 
@@ -263,3 +266,64 @@ def test_negative_capsule_without_registration_enabled(
         "Proxy lacks one of the following features: 'Registration', 'Templates'"
         in context.value.response.text
     )
+
+
+@pytest.mark.rhel_ver_match('[^6]')
+def test_positive_host_registration_with_non_admin_user_with_setup_false(
+    module_org,
+    module_location,
+    module_activation_key,
+    module_target_sat,
+    rhel_contenthost,
+):
+    """Verify host registration with non admin user with setup false
+
+    :id: 02bdda6a-010d-4098-a7e0-e4b5e8416ce3
+
+    :steps:
+        1. Sync the content repositories, add and publish it in CV
+        2. Create a non-admin user and assign "Register Hosts" role to it.
+        3. Create an activation key and assign CV and LCE to it.
+        4. Create new user and generate curl command to register host
+
+    :expectedresults: Host registered successfully with all setup options set to 'NO' with non-admin user
+
+    :BZ: 2211484
+
+    :customerscenario: true
+    """
+    register_host_role = module_target_sat.api.Role().search(
+        query={'search': 'name="Register hosts"'}
+    )
+    login = gen_string('alphanumeric')
+    password = gen_string('alphanumeric')
+    module_target_sat.api.User(
+        role=register_host_role,
+        admin=False,
+        login=login,
+        password=password,
+        organization=[module_org],
+        location=[module_location],
+    ).create()
+    user_cfg = user_nailgun_config(login, password)
+    command = module_target_sat.api.RegistrationCommand(
+        server_config=user_cfg,
+        organization=module_org,
+        activation_keys=[module_activation_key.name],
+        location=module_location,
+        setup_insights=False,
+        setup_remote_execution=False,
+        setup_remote_execution_pull=False,
+        update_packages=False,
+    ).create()
+    result = rhel_contenthost.execute(command)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+    # verify package install for insights-client didn't run when Setup Insights is false
+    assert 'dnf -y install insights-client' not in result.stdout
+    # verify  package install for foreman_ygg_worker didn't run when REX pull mode is false
+    assert 'dnf -y install foreman_ygg_worker' not in result.stdout
+    # verify packages aren't getting updated when Update packages is false
+    assert '# Updating packages' not in result.stdout
+    # verify foreman-proxy ssh pubkey isn't present when Setup REX is false
+    assert rhel_contenthost.execute('cat ~/.ssh/authorized_keys | grep foreman-proxy').status == 1
