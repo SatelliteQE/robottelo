@@ -4,7 +4,7 @@ import pytest
 from robottelo.config import settings
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def vmware(request):
     versions = {
         'vmware7': settings.vmware.vcenter7,
