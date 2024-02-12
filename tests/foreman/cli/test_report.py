@@ -127,6 +127,7 @@ def test_positive_run_puppet_agent_generate_report_when_no_message(
     :customerscenario: true
 
     :BZ: 2192939, 2257327, 2257314
+    :parametrized: yes
     """
     sat = session_puppet_enabled_sat
     client = rhel_contenthost
