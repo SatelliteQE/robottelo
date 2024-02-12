@@ -171,8 +171,11 @@ def test_positive_multi_provision_with_rule_limit(
 
     :CaseImportance: High
     """
+
     discovered_host1 = module_target_sat.api_factory.create_discovered_host()
+    request.addfinalizer(module_target_sat.api.Host(id=discovered_host1['id']).delete)
     discovered_host2 = module_target_sat.api_factory.create_discovered_host()
+    request.addfinalizer(module_target_sat.api.Host(id=discovered_host2['id']).delete)
     rule = module_target_sat.api.DiscoveryRule(
         max_count=1,
         hostgroup=module_discovery_hostgroup,
@@ -181,14 +184,6 @@ def test_positive_multi_provision_with_rule_limit(
         organization=[discovery_org],
         priority=1000,
     ).create()
+    request.addfinalizer(rule.delete)
     result = module_target_sat.api.DiscoveredHost().auto_provision_all()
     assert '1 discovered hosts were provisioned' in result['message']
-
-    # Delete discovery rule
-    @request.addfinalizer
-    def _finalize():
-        rule.delete()
-        module_target_sat.api.Host(id=discovered_host1['id']).delete()
-        module_target_sat.api.DiscoveredHost(id=discovered_host2['id']).delete()
-        with pytest.raises(HTTPError):
-            rule.read()

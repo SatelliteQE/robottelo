@@ -688,16 +688,11 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
             'inclusion': 'false',
         }
     )
-
-    @request.addfinalizer
-    def cleanup():
+    request.addfinalizer(
         cv_filter_cleanup(
-            target_sat,
-            cv_filter['filter-id'],
-            module_cv,
-            module_sca_manifest_org,
-            module_lce,
+            target_sat, cv_filter['filter-id'], module_cv, module_sca_manifest_org, module_lce
         )
+    )
 
     # Make rule to hide the RPM that creates the need for the installable erratum
     target_sat.cli_factory.content_view_filter_rule(
@@ -861,17 +856,11 @@ def test_host_errata_search_commands(
             'inclusion': 'false',
         }
     )
-
-    @request.addfinalizer
-    def cleanup():
+    request.addfinalizer(
         cv_filter_cleanup(
-            target_sat,
-            cv_filter['filter-id'],
-            module_cv,
-            module_sca_manifest_org,
-            module_lce,
+            target_sat, cv_filter['filter-id'], module_cv, module_sca_manifest_org, module_lce
         )
-
+    )
     # Make rule to exclude the specified bugfix package
     target_sat.cli_factory.content_view_filter_rule(
         {

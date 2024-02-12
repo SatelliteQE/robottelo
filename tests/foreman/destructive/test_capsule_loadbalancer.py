@@ -191,6 +191,7 @@ def test_loadbalancer_install_package(
         registration.
 
         """
+
     # Register content host
     result = rhel7_contenthost.register(
         org=module_org,
@@ -219,6 +220,7 @@ def test_loadbalancer_install_package(
         if loadbalancer_setup['setup_capsules']['capsule_1'].hostname in result.stdout
         else loadbalancer_setup['setup_capsules']['capsule_2']
     )
+    request.addfinalizer(registered_to_capsule.power_control(state=VmState.RUNNING, ensure=True))
 
     # Remove the packages from the client
     result = rhel7_contenthost.execute('yum remove -y tree')
@@ -230,10 +232,6 @@ def test_loadbalancer_install_package(
     # Try package installation again
     result = rhel7_contenthost.execute('yum install -y tree')
     assert result.status == 0
-
-    @request.addfinalizer
-    def _finalize():
-        registered_to_capsule.power_control(state=VmState.RUNNING, ensure=True)
 
 
 @pytest.mark.rhel_ver_match('[^6]')
