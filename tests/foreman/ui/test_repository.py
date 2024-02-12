@@ -888,7 +888,7 @@ def test_positive_recommended_repos(session, module_sca_manifest_org):
 
            1. Shows repositories as per On/Off 'Recommended Repositories'.
            2. Check that client repositories are in 'Recommended Repositories'.
-           3. Check last Satellite version Utils/Capsule/Maintenance repos do not exist.
+           3. Check that the Utils/Capsule/Maintenance repos for previous versions do not exist.
 
     :BZ: 1776108
     """
