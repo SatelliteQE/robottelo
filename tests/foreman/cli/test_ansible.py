@@ -20,7 +20,7 @@ from robottelo.config import settings
 @pytest.mark.e2e
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('[^6].*')
-def test_positive_ansible_e2e(target_sat, module_org, rhel_contenthost):
+def test_positive_ansible_e2e(target_sat, module_org, rhel_contenthost, module_ak_with_cv):
     """
     Test successful execution of Ansible Job on host.
 
@@ -57,8 +57,9 @@ def test_positive_ansible_e2e(target_sat, module_org, rhel_contenthost):
     if rhel_contenthost.os_version.major <= 7:
         rhel_contenthost.create_custom_repos(rhel7=settings.repos.rhel7_os)
         assert rhel_contenthost.execute('yum install -y insights-client').status == 0
-    rhel_contenthost.install_katello_ca(target_sat)
-    rhel_contenthost.register_contenthost(module_org.label, force=True)
+    result = rhel_contenthost.register(
+        module_org, None, module_ak_with_cv.name, target_sat, force=True
+    )
     assert rhel_contenthost.subscribed
     rhel_contenthost.add_rex_key(satellite=target_sat)
     proxy_id = target_sat.nailgun_smart_proxy.id

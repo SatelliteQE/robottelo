@@ -625,10 +625,14 @@ def test_positive_list_by_last_checkin(
 
     :parametrized: yes
     """
-    rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(
-        module_org.label,
-        lce=f'{module_lce.label}/{module_promoted_cv.label}',
+    # rhel7_contenthost.install_katello_ca(target_sat)
+    # rhel7_contenthost.register_contenthost(
+    #     module_org.label,
+    #     lce=f'{module_lce.label}/{module_promoted_cv.label}',
+    # )
+    lce = f'{module_lce.label}/{module_promoted_cv.label}'
+    result = rhel7_contenthost.register(
+        module_org, None, module_promoted_cv.name, target_sat
     )
     assert rhel7_contenthost.subscribed
     hosts = target_sat.cli.Host.list(
