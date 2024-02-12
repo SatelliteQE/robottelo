@@ -472,7 +472,7 @@ class TestProvisioningTemplate:
         :expectedresults: Rendered template should contain value set as per use_graphical_installer
                           host parameter for respective rhel hosts.
 
-        :BZ: 2106753
+        :BZ: 2106753, 2193010
 
         :customerscenario: true
         """
@@ -486,6 +486,8 @@ class TestProvisioningTemplate:
         render = host.read_template(data={'template_kind': 'provision'})['template']
         assert 'skipx' in render
         assert 'text' in render
+        assert 'chvt 1' in render
+
         # Using use_graphical_installer host param to override and use graphical mode to boot
         host.host_parameters_attributes = [
             {'name': 'use_graphical_installer', 'value': 'true', 'parameter_type': 'boolean'}
@@ -494,6 +496,7 @@ class TestProvisioningTemplate:
         render = host.read_template(data={'template_kind': 'provision'})['template']
         assert 'graphical' in render
         assert 'skipx' not in render
+        assert 'chvt 6' in render
 
     @pytest.mark.rhel_ver_match('[8]')
     def test_positive_template_check_aap_snippet(
