@@ -594,7 +594,7 @@ def test_negative_update_usage_limit(module_org, module_target_sat):
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_usage_limit(module_org, target_sat):
+def test_positive_usage_limit(module_org, module_location, target_sat):
     """Test that Usage limit actually limits usage
 
     :id: 00ded856-e939-4140-ac84-91b6a8643623
@@ -629,11 +629,9 @@ def test_positive_usage_limit(module_org, target_sat):
     )
     with Broker(nick='rhel7', host_class=ContentHost, _count=2) as clients:
         vm1, vm2 = clients
-        vm1.install_katello_ca(target_sat)
-        vm1.register_contenthost(module_org.label, new_ak['name'])
+        vm1.register(module_org, module_location, new_ak['name'], target_sat)
         assert vm1.subscribed
-        vm2.install_katello_ca(target_sat)
-        result = vm2.register_contenthost(module_org.label, new_ak['name'])
+        result = vm2.register(module_org, module_location, new_ak['name'], target_sat)
         assert not vm2.subscribed
         assert result.status == 70
         assert len(result.stderr) > 0
@@ -877,7 +875,7 @@ def test_positive_delete_subscription(function_entitlement_manifest_org, module_
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_update_aks_to_chost(module_org, rhel7_contenthost, target_sat):
+def test_positive_update_aks_to_chost(module_org, module_location, rhel7_contenthost, target_sat):
     """Check if multiple Activation keys can be attached to a
     Content host
 
@@ -905,9 +903,13 @@ def test_positive_update_aks_to_chost(module_org, rhel7_contenthost, target_sat)
         )
         for _ in range(2)
     ]
-    rhel7_contenthost.install_katello_ca(target_sat)
     for i in range(2):
-        rhel7_contenthost.register_contenthost(module_org.label, new_aks[i]['name'])
+        rhel7_contenthost.register(
+            org=module_org,
+            loc=module_location,
+            activation_keys=new_aks[i]['name'],
+            target=target_sat,
+        )
         assert rhel7_contenthost.subscribed
 
 
@@ -1636,20 +1638,19 @@ def test_positive_subscription_quantity_attached(function_org, rhel7_contenthost
     target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_0.url,
-            'organization-id': org['id'],
+            'organization-id': org.id,
             'activationkey-id': result['activationkey-id'],
             'content-view-id': result['content-view-id'],
             'lifecycle-environment-id': result['lifecycle-environment-id'],
         }
     )
-    subs = target_sat.cli.Subscription.list({'organization-id': org['id']}, per_page=False)
+    subs = target_sat.cli.Subscription.list({'organization-id': org.id}, per_page=False)
     subs_lookup = {s['id']: s for s in subs}
-    rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(org['label'], activation_key=ak['name'])
+    rhel7_contenthost.register(org, None, ak['name'], target_sat)
     assert rhel7_contenthost.subscribed
 
     ak_subs = target_sat.cli.ActivationKey.subscriptions(
-        {'activation-key': ak['name'], 'organization-id': org['id']}, output_format='json'
+        {'activation-key': ak['name'], 'organization-id': org.id}, output_format='json'
     )
     assert len(ak_subs) == 2  # one for #rh product, one for custom product
     for ak_sub in ak_subs:
@@ -1662,7 +1663,9 @@ def test_positive_subscription_quantity_attached(function_org, rhel7_contenthost
 
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
-def test_positive_ak_with_custom_product_on_rhel6(module_org, rhel6_contenthost, target_sat):
+def test_positive_ak_with_custom_product_on_rhel6(
+    module_org, module_location, rhel6_contenthost, target_sat
+):
     """Registering a rhel6 host using an ak with custom repos should not fail
 
     :id: d02c2664-8034-4562-914a-3b68f0c35b32
@@ -1683,8 +1686,7 @@ def test_positive_ak_with_custom_product_on_rhel6(module_org, rhel6_contenthost,
         {'url': settings.repos.yum_1.url, 'organization-id': module_org.id}
     )
     ak = target_sat.api.ActivationKey(id=entities_ids['activationkey-id']).read()
-    rhel6_contenthost.install_katello_ca(target_sat)
-    result = rhel6_contenthost.register_contenthost(module_org.label, activation_key=ak.name)
+    result = rhel6_contenthost.register(module_org.label, module_location, ak.name, target_sat)
     assert 'The system has been registered with ID' in result.stdout
 
 
