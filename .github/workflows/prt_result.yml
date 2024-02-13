@@ -1,0 +1,84 @@
+### The prt result workflow triggered through dispatch request from CI
+name: post-prt-result
+
+# Run on workflow dispatch from CI
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        type: string
+        description: pr number for PRT run
+      build_number:
+        type: string
+        description: build number for PRT run
+      pytest_result:
+        type: string
+        description: pytest summary result line
+      build_status:
+        type: string
+        description: status of jenkins build e.g. success, unstable or error
+      prt_comment:
+        type: string
+        description: prt pytest comment triggered the PRT checks
+
+
+jobs:
+  post-the-prt-result:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Add last PRT result into the github comment
+        id: add-prt-comment
+        if: ${{ always() && github.event.inputs.pytest_result != '' }}
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            **PRT Result**
+            ```
+            Build Number: ${{ github.event.inputs.build_number }}
+            Build Status: ${{ github.event.inputs.build_status }}
+            PRT Comment: ${{ github.event.inputs.prt_comment }}
+            Test Result : ${{ github.event.inputs.pytest_result }}
+            ```
+          pr_number: ${{ github.event.inputs.pr_number }}
+          GITHUB_TOKEN: ${{ secrets.CHERRYPICK_PAT }}
+
+      - name: Add the PRT passed/failed labels
+        id: prt-status
+        if: ${{ always() && github.event.inputs.build_status != '' }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.CHERRYPICK_PAT }}
+          script: |
+            const prNumber = ${{ github.event.inputs.pr_number }};
+            const buildStatus = "${{ github.event.inputs.build_status }}";
+            const labelToAdd = buildStatus === "SUCCESS" ? "PRT-Passed" : "PRT-Failed";
+            github.rest.issues.addLabels({
+              issue_number: prNumber,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: [labelToAdd]
+            });
+      - name: Remove failed label on test pass or vice-versa
+        if: ${{ always() && github.event.inputs.build_status != '' }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.CHERRYPICK_PAT }}
+          script: |
+            const prNumber = ${{ github.event.inputs.pr_number }};
+            const issue = await github.rest.issues.get({
+              owner: context.issue.owner,
+              repo: context.issue.repo,
+              issue_number: prNumber,
+            });
+            const buildStatus = "${{ github.event.inputs.build_status }}";
+            const labelToRemove = buildStatus === "SUCCESS" ? "PRT-Failed" : "PRT-Passed";
+            const labelExists = issue.data.labels.some(({ name }) => name === labelToRemove);
+            if (labelExists) {
+              github.rest.issues.removeLabel({
+                issue_number: prNumber,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: [labelToRemove]
+              });
+            }
