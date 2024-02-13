@@ -1,5 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
+
+from dateutil.parser import parse
 
 from robottelo.constants import PUPPET_CAPSULE_INSTALLER, PUPPET_COMMON_INSTALLER_OPTS
 from robottelo.logging import logger
@@ -60,26 +62,85 @@ class CapsuleInfo:
             raise AssertionError(f"No task was found using query '{search_query}'")
         return tasks
 
-    def wait_for_sync(self, timeout=600, start_time=None):
-        """Wait for capsule sync to finish and assert the sync task succeeded"""
-        # Assert that a task to sync lifecycle environment to the capsule
-        # is started (or finished already)
+    def wait_for_sync(self, start_time=None, timeout=600):
+        """Wait for capsule sync to finish and assert success.
+        Assert that a task to sync lifecycle environment to the
+        capsule is started (or finished already), and succeeded.
+        :raises: ``AssertionError``: If a capsule sync verification fails based on the conditions.
+
+        - Found some active sync task(s) for capsule, or it just finished (recent sync time).
+        - Any active sync task(s) polled, succeeded, and the capsule last_sync_time is updated.
+        - last_sync_time after final task is on or newer than start_time.
+        - The total sync time duration (seconds) is within timeout and not negative.
+
+        :param start_time: (datetime): UTC time to compare against capsule's last_sync_time.
+            Default: None (current UTC).
+        :param timeout: (int) maximum seconds for active task(s) and queries to finish.
+
+        :return:
+            list of polled finished tasks that were in-progress from `active_sync_tasks`.
+        """
+        # Fetch initial capsule sync status
+        logger.info(f"Waiting for capsule {self.hostname} sync to finish ...")
+        sync_status = self.nailgun_capsule.content_get_sync(timeout=timeout, synchronous=True)
+        # Current UTC time for start_time, if not provided
         if start_time is None:
             start_time = datetime.utcnow().replace(microsecond=0)
-        logger.info(f"Waiting for capsule {self.hostname} sync to finish ...")
-        sync_status = self.nailgun_capsule.content_get_sync()
-        logger.info(f"Active tasks {sync_status['active_sync_tasks']}")
-        assert (
-            len(sync_status['active_sync_tasks'])
-            or datetime.strptime(sync_status['last_sync_time'], '%Y-%m-%d %H:%M:%S UTC')
-            >= start_time
+        # 1s margin of safety for rounding
+        start_time = (
+            (start_time - timedelta(seconds=1))
+            .replace(microsecond=0)
+            .strftime('%Y-%m-%d %H:%M:%S UTC')
         )
-
-        # Wait till capsule sync finishes and assert the sync task succeeded
+        # Assert presence of recent sync activity:
+        #   one or more ongoing sync tasks for the capsule,
+        #   Or, capsule's last_sync_time is on or after start_time
+        assert len(sync_status['active_sync_tasks']) or (
+            parse(sync_status['last_sync_time']) >= parse(start_time)
+        ), (
+            f"No active or recent sync found for capsule {self.hostname}."
+            f" `active_sync_tasks` was empty: {sync_status['active_sync_tasks']},"
+            f" and the `last_sync_time`: {sync_status['last_sync_time']},"
+            f" was prior to the `start_time`: {start_time}."
+        )
+        sync_tasks = []
+        # Poll and verify succeeds, any active sync task from initial status.
+        logger.info(f"Active tasks: {sync_status['active_sync_tasks']}")
         for task in sync_status['active_sync_tasks']:
-            self.satellite.api.ForemanTask(id=task['id']).poll(timeout=timeout)
-        sync_status = self.nailgun_capsule.content_get_sync()
-        assert len(sync_status['last_failed_sync_tasks']) == 0
+            sync_tasks.append(self.satellite.api.ForemanTask(id=task['id']).poll(timeout=timeout))
+            logger.info(f"Active sync task :id {task['id']} succeeded.")
+
+        # Fetch updated capsule status (expect no ongoing sync)
+        logger.info(f"Querying updated sync status from capsule {self.hostname}.")
+        updated_status = self.nailgun_capsule.content_get_sync(timeout=timeout, synchronous=True)
+
+        # Total time taken is not negative (sync prior to start_time),
+        # and did not exceed timeout.
+        assert (
+            timedelta(seconds=0)
+            <= parse(updated_status['last_sync_time']) - parse(start_time)
+            <= timedelta(seconds=timeout)
+        ), (
+            f"No recent sync task(s) were found for capsule: {self.hostname}, or task(s) timed out."
+            f" `last_sync_time`: ({updated_status['last_sync_time']}) was prior to `start_time`: ({start_time})"
+            f" or exceeded timeout ({timeout}s)."
+        )
+        # No failed or active tasks remaining
+        assert len(updated_status['last_failed_sync_tasks']) == 0
+        assert len(updated_status['active_sync_tasks']) == 0
+
+        # Last sync task end time is the same as capsule's last sync time.
+        if len(sync_status['active_sync_tasks']):
+            final_task_id = sync_status['active_sync_tasks'][-1]['id']
+            final_task_end_time = self.satellite.api.ForemanTask(id=final_task_id).read().ended_at
+
+            assert parse(final_task_end_time) == parse(updated_status['last_sync_time']), (
+                f"Final Task :id: {final_task_id},"
+                f" `end_time` does not match capsule `last_sync_time`. Capsule: {self.hostname}"
+            )
+
+        # return any polled sync tasks, that were initially in-progress
+        return sync_tasks
 
     def get_published_repo_url(self, org, prod, repo, lce=None, cv=None):
         """Forms url of a repo or CV published on a Satellite or Capsule.
