@@ -14,7 +14,8 @@
 from fauxfactory import gen_alphanumeric
 import pytest
 
-from robottelo.constants.repos import PULP_FIXTURE_ROOT, PULP_SUBPATHS_COMBINED
+from robottelo.config import settings
+from robottelo.constants.repos import PULP_SUBPATHS_COMBINED
 from robottelo.exceptions import CLIReturnCodeError
 
 ACS_UPDATED = 'Alternate Content Source updated.'
@@ -74,7 +75,7 @@ def test_positive_CRUD_all_types(
     else:
         params.update(
             {
-                'base-url': PULP_FIXTURE_ROOT,
+                'base-url': settings.robottelo.REPOS_HOSTING_URL,
                 'subpaths': PULP_SUBPATHS_COMBINED[cnt_type],
                 'verify-ssl': 'false',
             }
@@ -179,7 +180,7 @@ def test_negative_check_custom_rhui_validations(module_target_sat, acs_type, mod
             {
                 'name': gen_alphanumeric(),
                 'alternate-content-source-type': acs_type,
-                'base-url': PULP_FIXTURE_ROOT,
+                'base-url': settings.robottelo.REPOS_HOSTING_URL,
                 'verify-ssl': 'false',
                 'product-ids': module_yum_repo.product.id,
             }
@@ -217,7 +218,7 @@ def test_negative_check_simplified_validations(
         'content-type': cnt_type,
         'smart-proxy-ids': module_target_sat.nailgun_capsule.id,
         # forbidden options
-        'base-url': PULP_FIXTURE_ROOT,
+        'base-url': settings.robottelo.REPOS_HOSTING_URL,
         'subpaths': f'{gen_alphanumeric()}/',
         'verify-ssl': 'false',
         'ssl-ca-cert-id': '1',

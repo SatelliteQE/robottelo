@@ -1,9 +1,8 @@
 """Only External Repos url specific constants module"""
 
-PULP_FIXTURE_ROOT = 'https://fixtures.pulpproject.org/'
 PULP_SUBPATHS_COMBINED = {
-    'yum': ['rpm-zchunk/', 'rpm-modular/'],
-    'file': ['file-large/', 'file-many/'],
+    'yum': ['fake_yum0/', 'fake_yum1/'],
+    'file': ['pulp_remote/'],
 }
 CUSTOM_3RD_PARTY_REPO = 'http://repo.calcforge.org/fedora/21/x86_64/'
 CUSTOM_FILE_REPO = 'https://fixtures.pulpproject.org/file/'

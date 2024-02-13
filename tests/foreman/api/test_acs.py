@@ -15,7 +15,8 @@ from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.constants.repos import PULP_FIXTURE_ROOT, PULP_SUBPATHS_COMBINED
+from robottelo.config import settings
+from robottelo.constants.repos import PULP_SUBPATHS_COMBINED
 
 
 @pytest.mark.e2e
@@ -66,7 +67,7 @@ def test_positive_CRUD_all_types(
     else:
         params.update(
             {
-                'base_url': PULP_FIXTURE_ROOT,
+                'base_url': settings.robottelo.REPOS_HOSTING_URL,
                 'subpaths': PULP_SUBPATHS_COMBINED[cnt_type],
                 'verify_ssl': 'false',
             }
