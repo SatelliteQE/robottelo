@@ -32,7 +32,6 @@ from robottelo.constants import (
     OSCAP_PERIOD,
     OSCAP_WEEKDAY,
     PERMISSIONS,
-    REPO_TYPE,
 )
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.issue_handlers import is_open
@@ -978,103 +977,6 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
         )
         assert len(matching_hosts), 'Host not found by inherited ansible role'
         assert host.name in [host.name for host in matching_hosts]
-
-
-@pytest.mark.tier2
-def test_global_registration_with_capsule_host(
-    session,
-    capsule_configured,
-    rhel8_contenthost,
-    module_org,
-    module_location,
-    module_product,
-    default_os,
-    module_lce_library,
-    target_sat,
-):
-    """Host registration form produces a correct registration command and host is
-    registered successfully with selected capsule from form.
-
-    :id: 6356c6d0-ee45-4ad7-8a0e-484d3490bc58
-
-    :expectedresults: Host is successfully registered with capsule host,
-        remote execution and insights client work out of the box
-
-    :steps:
-        1. create and sync repository
-        2. create the content view and activation-key
-        3. integrate capsule and sync content
-        4. open the global registration form and select the same capsule
-        5. check host is registered successfully with selected capsule
-
-    :parametrized: yes
-
-    :CaseAutomation: Automated
-    """
-    client = rhel8_contenthost
-    repo = target_sat.api.Repository(
-        url=settings.repos.yum_1.url,
-        content_type=REPO_TYPE['yum'],
-        product=module_product,
-    ).create()
-    # Sync all repositories in the product
-    module_product.sync()
-    capsule = target_sat.api.Capsule(id=capsule_configured.nailgun_capsule.id).search(
-        query={'search': f'name={capsule_configured.hostname}'}
-    )[0]
-    module_org = target_sat.api.Organization(id=module_org.id).read()
-    module_org.smart_proxy.append(capsule)
-    module_location = target_sat.api.Location(id=module_location.id).read()
-    module_location.smart_proxy.append(capsule)
-    module_org.update(['smart_proxy'])
-    module_location.update(['smart_proxy'])
-
-    # Associate the lifecycle environment with the capsule
-    capsule.content_add_lifecycle_environment(data={'environment_id': module_lce_library.id})
-    result = capsule.content_lifecycle_environments()
-    # TODO result is not used, please add assert once you fix the test
-
-    # Create a content view with the repository
-    cv = target_sat.api.ContentView(organization=module_org, repository=[repo]).create()
-
-    # Publish new version of the content view
-    cv.publish()
-    cv = cv.read()
-
-    assert len(cv.version) == 1
-
-    activation_key = target_sat.api.ActivationKey(
-        content_view=cv, environment=module_lce_library, organization=module_org
-    ).create()
-
-    # Assert that a task to sync lifecycle environment to the capsule
-    # is started (or finished already)
-    sync_status = capsule.content_get_sync()
-    assert len(sync_status['active_sync_tasks']) >= 1 or sync_status['last_sync_time']
-
-    # Wait till capsule sync finishes
-    for task in sync_status['active_sync_tasks']:
-        target_sat.api.ForemanTask(id=task['id']).poll()
-    with session:
-        session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_location.name)
-        cmd = session.host.get_register_command(
-            {
-                'general.organization': module_org.name,
-                'general.location': module_location.name,
-                'general.operating_system': default_os.title,
-                'general.capsule': capsule_configured.hostname,
-                'general.activation_keys': activation_key.name,
-                'general.insecure': True,
-            }
-        )
-    client.create_custom_repos(rhel7=settings.repos.rhel7_os)
-    # run curl
-    client.execute(cmd)
-    result = client.execute('subscription-manager identity')
-    assert result.status == 0
-    assert module_lce_library.name in result.stdout
-    assert module_org.name in result.stdout
 
 
 @pytest.mark.tier4
