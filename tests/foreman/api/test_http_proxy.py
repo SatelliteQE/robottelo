@@ -2,7 +2,7 @@
 
 :Requirement: HttpProxy
 
-:CaseComponent: Repositories
+:CaseComponent: HTTPProxy
 
 :team: Phoenix-content
 
