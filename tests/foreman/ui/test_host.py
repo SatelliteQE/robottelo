@@ -70,6 +70,9 @@ def scap_policy(scap_content, target_sat):
     return scap_policy
 
 
+second_scap_policy = scap_policy
+
+
 @pytest.fixture(scope='module')
 def module_global_params(module_target_sat):
     """Create 3 global parameters and clean up at teardown"""
@@ -317,7 +320,9 @@ def test_positive_assign_taxonomies(
 
 @pytest.mark.skip_if_not_set('oscap')
 @pytest.mark.tier2
-def test_positive_assign_compliance_policy(session, scap_policy, target_sat, function_host):
+def test_positive_assign_compliance_policy(
+    session, scap_policy, second_scap_policy, target_sat, function_host
+):
     """Ensure host compliance Policy can be assigned.
 
     :id: 323661a4-e849-4cc2-aa39-4b4a5fe2abed
@@ -338,12 +343,13 @@ def test_positive_assign_compliance_policy(session, scap_policy, target_sat, fun
         organization=content.organization,
         location=content.location,
     ).update(['organization', 'location'])
+    for sp in [scap_policy, second_scap_policy]:
+        target_sat.api.CompliancePolicies(
+            id=sp['id'],
+            organization=content.organization,
+            location=content.location,
+        ).update(['organization', 'location'])
 
-    target_sat.api.CompliancePolicies(
-        id=scap_policy['id'],
-        organization=content.organization,
-        location=content.location,
-    ).update(['organization', 'location'])
     with session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
@@ -351,6 +357,9 @@ def test_positive_assign_compliance_policy(session, scap_policy, target_sat, fun
         assert session.host.search(function_host.name)[0]['Name'] == function_host.name
         session.host.apply_action(
             'Assign Compliance Policy', [function_host.name], {'policy': scap_policy['name']}
+        )
+        session.host.apply_action(
+            'Assign Compliance Policy', [function_host.name], {'policy': second_scap_policy['name']}
         )
         assert (
             session.host.search(f'compliance_policy = {scap_policy["name"]}')[0]['Name']
@@ -367,6 +376,10 @@ def test_positive_assign_compliance_policy(session, scap_policy, target_sat, fun
             'Unassign Compliance Policy', [function_host.name], {'policy': scap_policy['name']}
         )
         assert not session.host.search(f'compliance_policy = {scap_policy["name"]}')
+        assert (
+            session.host.search(f'compliance_policy = {second_scap_policy["name"]}')[0]['Name']
+            == function_host.name
+        )
 
 
 @pytest.mark.skipif((settings.ui.webdriver != 'chrome'), reason='Only tested on Chrome')
