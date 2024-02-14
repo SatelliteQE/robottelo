@@ -197,9 +197,10 @@ def test_positive_session_survives_unauthenticated_call(admin_user, target_sat):
     :steps:
 
         1. Set use_sessions
-        2. Authenticate, assert credentials are not demanded
-           on next command run
-        3. Run `hammer ping`
+        2. Authenticate
+        3. Run an authenticated call, assert credentials are not demanded
+        4. Run `hammer ping`, an unauthenticated call
+        5. Run an authenticated call, assert credentials are not demanded
 
     :CaseImportance: Medium
 
