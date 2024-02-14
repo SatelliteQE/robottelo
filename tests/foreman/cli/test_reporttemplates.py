@@ -1022,7 +1022,7 @@ def test_negative_generate_hostpkgcompare_nonexistent_host(module_target_sat):
                 'inputs': 'Host 1 = nonexistent1, ' 'Host 2 = nonexistent2',
             }
         )
-    assert "At least one of the hosts couldn't be found" in cm.exception.stderr
+    assert "At least one of the hosts couldn't be found" in cm.value.stderr
 
 
 @pytest.mark.rhel_ver_list([7, 8, 9])
