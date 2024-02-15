@@ -348,8 +348,7 @@ def test_positive_generate_report_sanitized():
 
 
 @pytest.mark.tier2
-@pytest.mark.stubbed
-def test_negative_create_report_without_name():
+def test_negative_create_report_without_name(module_target_sat):
     """Try to create a report template with empty name
 
     :id: a4b577db-144e-4771-a42e-e93887464986
@@ -364,6 +363,9 @@ def test_negative_create_report_without_name():
 
     :CaseImportance: Medium
     """
+    with pytest.raises(HTTPError) as report_response:
+        module_target_sat.api.ReportTemplate(name=' ', template=gen_string('alpha')).create()
+    assert "Name can't be blank" in report_response.value.response.text
 
 
 @pytest.mark.tier2
