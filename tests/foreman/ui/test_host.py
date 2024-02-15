@@ -14,6 +14,7 @@
 import copy
 import csv
 import os
+import re
 
 from airgun.exceptions import DisabledWidgetError, NoSuchElementException
 import pytest
@@ -32,7 +33,9 @@ from robottelo.constants import (
     OSCAP_PERIOD,
     OSCAP_WEEKDAY,
     PERMISSIONS,
+    REPO_TYPE,
 )
+from robottelo.constants.repos import CUSTOM_FILE_REPO
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.issue_handlers import is_open
 
@@ -1778,3 +1781,164 @@ def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_
         session.organization.select(function_org.name)
         session.location.select(function_location.name)
         assert session.all_hosts.bulk_delete_all()
+
+
+@pytest.fixture(scope='module')
+def change_content_source_prep(
+    module_target_sat,
+    module_sca_manifest_org,
+    module_capsule_configured,
+    module_location,
+):
+    """
+    This fixture sets up all the necessary entities for tests
+    exercising the Change of the hosts's content source.
+
+     It creates a new product in the organization,
+     creates a new repository in the product,
+     creates a new lce,
+     creates a new CV in the organization, adds the repository to the CV,
+     publishes the CV, and promotes the published version to the lifecycle environment,
+     creates a new activation key for the CV in the lce,
+     registers the RHEL content host with the activation key,
+     updates the capsule's taxonomies
+     adds the lifecycle environment to the capsule's content.
+
+     Fixture returns module_target_sat, org, lce, capsule, content_view, loc, ak
+    """
+    product_name, lce_name = (gen_string('alpha') for _ in range(2))
+
+    org = module_sca_manifest_org
+    loc = module_location
+
+    product = module_target_sat.api.Product(
+        name=product_name,
+        organization=org.id,
+    ).create()
+
+    repository = module_target_sat.api.Repository(
+        product=product,
+        content_type=REPO_TYPE['file'],
+        url=CUSTOM_FILE_REPO,
+    ).create()
+
+    lce = module_target_sat.cli_factory.make_lifecycle_environment(
+        {'name': lce_name, 'organization-id': org.id}
+    )
+
+    # Create CV
+    content_view = module_target_sat.api.ContentView(organization=org.id).create()
+    # Add repos to CV
+    content_view.repository = [repository]
+    content_view = content_view.update(['repository'])
+    # Publish that CV and promote it
+    content_view.publish()
+    content_view.read().version[0].promote(data={'environment_ids': lce.id})
+
+    ak = module_target_sat.api.ActivationKey(
+        content_view=content_view, organization=org.id, environment=lce.id
+    ).create()
+
+    # Edit capsule's taxonomies
+    capsule = module_target_sat.cli.Capsule.update(
+        {
+            'name': module_capsule_configured.hostname,
+            'organization-ids': org.id,
+            'location-ids': loc.id,
+        }
+    )
+
+    module_target_sat.cli.Capsule.content_add_lifecycle_environment(
+        {
+            'id': module_capsule_configured.nailgun_capsule.id,
+            'organization-id': org.id,
+            'lifecycle-environment': lce.name,
+        }
+    )
+
+    return module_target_sat, org, lce, capsule, content_view, loc, ak
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('[78]')
+def test_change_content_source(session, change_content_source_prep, rhel_contenthost):
+    """
+    This test excercises different ways to change host's content source
+
+    :id: 5add68c3-16b1-496d-9b24-f5388013351d
+
+    :expectedresults: Job invocation page should be correctly generated
+        by the change content source action, generated script should also be correct
+
+    :CaseComponent:Hosts-Content
+
+    :Team: Phoenix-content
+    """
+
+    module_target_sat, org, lce, capsule, content_view, loc, ak = change_content_source_prep
+
+    rhel_contenthost.register(org, loc, ak.name, module_target_sat)
+
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=ANY_CONTEXT['location'])
+
+        # STEP 1: Test the part where you use "Update hosts manually" button
+        # Set the content source to the checked-out capsule
+        # Check that generated script contains correct name of new content source
+        rhel_contenthost_pre_values = rhel_contenthost.nailgun_host.content_facet_attributes
+        generated_script = session.host.change_content_source_get_script(
+            entities_list=[
+                rhel_contenthost.hostname,
+            ],
+            content_source=capsule[0]['name'],
+            lce=lce.name,
+            content_view=content_view.name,
+        )
+        rhel_contenthost_post_values = rhel_contenthost.nailgun_host.content_facet_attributes
+        content_source_from_script = re.search(r'--server.hostname=\"(.*?)\"', generated_script)
+
+        assert content_source_from_script.group(1) == capsule[0]['name']
+        assert rhel_contenthost_post_values['content_source']['name'] == capsule[0]['name']
+        assert rhel_contenthost_post_values['content_view']['name'] == content_view.name
+        assert rhel_contenthost_post_values['lifecycle_environment']['name'] == lce.name
+
+        session.browser.refresh()
+
+        # Step 2: Test the part where you use "Run job invocation" button
+        # Change the rhel_contenthost's content source back to what it was before STEP 1
+        # Check the prefilled job invocation page
+        session.host.change_content_source(
+            entities_list=[
+                rhel_contenthost.hostname,
+            ],
+            content_source=rhel_contenthost_pre_values['content_source']['name'],
+            lce=rhel_contenthost_pre_values['lifecycle_environment']['name'],
+            content_view=rhel_contenthost_pre_values['content_view']['name'],
+            run_job_invocation=True,
+        )
+        # Getting the data from the prefilled job invocation form
+        selected_category_and_template = session.jobinvocation.get_job_category_and_template()
+        selected_targeted_hosts = session.jobinvocation.get_targeted_hosts()
+
+        assert selected_category_and_template['job_category'] == 'Katello'
+        assert (
+            selected_category_and_template['job_template']
+            == 'Configure host for new content source'
+        )
+        assert selected_targeted_hosts['selected_hosts'] == [rhel_contenthost.hostname]
+
+        session.jobinvocation.submit_prefilled_view()
+        rhel_contenthost_post_values = rhel_contenthost.nailgun_host.content_facet_attributes
+        assert (
+            rhel_contenthost_post_values['content_source']['name']
+            == rhel_contenthost_pre_values['content_source']['name']
+        )
+        assert (
+            rhel_contenthost_post_values['content_view']['name']
+            == rhel_contenthost_post_values['content_view']['name']
+        )
+        assert (
+            rhel_contenthost_post_values['lifecycle_environment']['name']
+            == rhel_contenthost_post_values['lifecycle_environment']['name']
+        )
