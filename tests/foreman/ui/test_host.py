@@ -1806,7 +1806,6 @@ def change_content_source_prep(
      Fixture returns module_target_sat, org, lce, capsule, content_view, loc, ak
     """
     product_name, lce_name = (gen_string('alpha') for _ in range(2))
-    repos_to_enable = ['rhae2.9_el8']
 
     org = module_sca_manifest_org
     loc = module_location
@@ -1821,17 +1820,6 @@ def change_content_source_prep(
         content_type=REPO_TYPE['file'],
         url=CUSTOM_FILE_REPO,
     ).create()
-
-    for repo in repos_to_enable:
-        module_target_sat.cli.RepositorySet.enable(
-            {
-                'organization-id': org.id,
-                'name': constants.REPOS[repo]['reposet'],
-                'product': constants.REPOS[repo]['product'],
-                'releasever': constants.REPOS[repo]['version'],
-                'basearch': constants.DEFAULT_ARCHITECTURE,
-            }
-        )
 
     lce = module_target_sat.cli_factory.make_lifecycle_environment(
         {'name': lce_name, 'organization-id': org.id}
@@ -1938,3 +1926,18 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
             == 'Configure host for new content source'
         )
         assert selected_targeted_hosts['selected_hosts'] == [rhel_contenthost.hostname]
+
+        session.jobinvocation.submit_prefilled_view()
+        rhel_contenthost_post_values = rhel_contenthost.nailgun_host.content_facet_attributes
+        assert (
+            rhel_contenthost_post_values['content_source']['name']
+            == rhel_contenthost_pre_values['content_source']['name']
+        )
+        assert (
+            rhel_contenthost_post_values['content_view']['name']
+            == rhel_contenthost_post_values['content_view']['name']
+        )
+        assert (
+            rhel_contenthost_post_values['lifecycle_environment']['name']
+            == rhel_contenthost_post_values['lifecycle_environment']['name']
+        )
