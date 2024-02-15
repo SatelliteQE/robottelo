@@ -449,14 +449,24 @@ class ContentHost(Host, ContentHostMixins):
 
     def wait_for_connection(self, timeout=180):
         try:
-            wait_for(
-                self.connect,
-                fail_condition=lambda res: res is not None,
-                handle_exception=True,
-                raise_original=True,
-                timeout=timeout,
-                delay=1,
-            )
+            if self.key_filename:
+                wait_for(
+                    lambda: self.connect(key_filename=self.key_filename),
+                    fail_condition=lambda res: res is not None,
+                    handle_exception=True,
+                    raise_original=True,
+                    timeout=timeout,
+                    delay=1,
+                )
+            else:
+                wait_for(
+                    self.connect,
+                    fail_condition=lambda res: res is not None,
+                    handle_exception=True,
+                    raise_original=True,
+                    timeout=timeout,
+                    delay=1,
+                )
         except (ConnectionRefusedError, ConnectionAbortedError, TimedOutError) as err:
             raise ContentHostError(
                 f'Unable to establsh SSH connection to host {self} after {timeout} seconds'
