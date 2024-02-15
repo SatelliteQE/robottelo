@@ -1796,7 +1796,6 @@ def change_content_source_prep(
 
      It creates a new product in the organization,
      creates a new repository in the product,
-     enables the specified repositories,
      creates a new lce,
      creates a new CV in the organization, adds the repository to the CV,
      publishes the CV, and promotes the published version to the lifecycle environment,
