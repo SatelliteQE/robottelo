@@ -726,10 +726,10 @@ class ContentHost(Host, ContentHostMixins):
         """Registers content host to the Satellite or Capsule server
         using a global registration template.
 
-        :param target: Satellite or Capusle object to register to, required.
         :param org: Organization to register content host to. Previously required, pass None to omit
         :param loc: Location to register content host for, Previously required, pass None to omit.
         :param activation_keys: Activation key name to register content host with, required.
+        :param target: Satellite or Capsule object to register to, required.
         :param setup_insights: Install and register Insights client, requires OS repo.
         :param setup_remote_execution: Copy remote execution SSH key.
         :param setup_remote_execution_pull: Deploy pull provider client on host
