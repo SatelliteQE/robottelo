@@ -397,9 +397,7 @@ class TestDiscoveredHost:
 
     @pytest.mark.on_premises_provisioning
     @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
-    @pytest.mark.parametrize('pxe_loader', ['bios'], indirect=True)
     @pytest.mark.rhel_ver_match('9')
-    @pytest.mark.parametrize('provision_multiple_hosts', [2])
     @pytest.mark.tier3
     def test_positive_reboot_all_pxe_hosts(
         self,
@@ -415,13 +413,15 @@ class TestDiscoveredHost:
 
         :parametrized: yes
 
-        :Setup: Provisioning should be configured and hosts should be discovered via PXE boot.
+        :setup: Provisioning should be configured and hosts should be discovered via PXE boot.
 
         :steps: PUT /api/v2/discovered_hosts/reboot_all
 
         :expectedresults: All discovered hosst should be rebooted successfully
 
         :CaseImportance: Medium
+
+        :BZ: 2264195
         """
         sat = module_discovery_sat.sat
         for host in provision_multiple_hosts:
@@ -437,8 +437,9 @@ class TestDiscoveredHost:
             discovered_host.location = provisioning_hostgroup.location[0]
             discovered_host.organization = provisioning_hostgroup.organization[0]
             discovered_host.build = True
+        # Until BZ 2264195 is resolved, reboot_all is expected to fail
         result = sat.api.DiscoveredHost().reboot_all()
-        assert 'Discovered hosts are rebooting now' in result['message']
+        assert 'Discovered hosts are rebooting now' in result['success_msg']
 
 
 class TestFakeDiscoveryTests:

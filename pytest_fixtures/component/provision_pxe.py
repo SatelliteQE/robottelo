@@ -244,13 +244,10 @@ def provision_multiple_hosts(module_ssh_key_file, pxe_loader, request):
     cd_iso = (
         ""  # TODO: Make this an optional fixture parameter (update vm_firmware when adding this)
     )
-    # Keeping the default value to 2
-    count = request.param if request.param is not None else 2
-
     with Broker(
         workflow="deploy-configure-pxe-provisioning-host-rhv",
         host_class=ContentHost,
-        _count=count,
+        _count=getattr(request, 'param', 2),
         target_vlan_id=vlan_id,
         target_vm_firmware=pxe_loader.vm_firmware,
         target_vm_cd_iso=cd_iso,
