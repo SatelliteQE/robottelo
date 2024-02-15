@@ -17,6 +17,8 @@ from wrapanapi import VMWareSystem
 
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.hosts import ContentHost
+from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.mark.tier1
@@ -150,6 +152,37 @@ def test_positive_provision_end_to_end(
         != 'Pending installation',
         timeout=1800,
         delay=30,
+        silent_failure=True,
+        handle_exception=True,
     )
+    vcenter8_issue = provision_method == 'bootdisk' and vmware == '8' and is_open('BZ:2255264')
     host_info = sat.cli.Host.info({'id': host['id']})
-    assert host_info['status']['build-status'] == 'Installed'
+    assert (
+        host_info['status']['build-status'] == 'Pending installation'
+        if vcenter8_issue
+        else 'Installed'
+    )
+
+    # Perform OS version check and check if root password is properly updated
+    provisioning_host = ContentHost(host_info['network-interfaces'][0]['ipv4-address'])
+    expected_rhel_version = host_info['operating-system']['operating-system'][-3:]
+
+    # Wait for the host to be rebooted and SSH daemon to be started.
+    provisioning_host.wait_for_connection()
+
+    if int(expected_rhel_version.split('.')[0]) >= 9:
+        assert (
+            provisioning_host.execute(
+                'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
+            ).status
+            == 0
+        )
+    host_ssh_os = sat.execute(
+        f'sshpass -p {settings.provisioning.host_root_password} '
+        'ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o PasswordAuthentication=yes '
+        f'-o UserKnownHostsFile=/dev/null root@{provisioning_host.hostname} cat /etc/redhat-release'
+    )
+    assert host_ssh_os.status == 0
+    assert (
+        expected_rhel_version in host_ssh_os.stdout
+    ), f'The installed OS version differs from the expected version {expected_rhel_version}'
