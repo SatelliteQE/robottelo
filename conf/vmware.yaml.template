@@ -1,7 +1,16 @@
 VMWARE:
   # VMware to be added as a compute resource
   # VCENTER: vmware vcenter URL
-  VCENTER:
+  VCENTER7:
+    HOSTNAME:
+    HYPERVISOR:
+    # mac_address: Mac address of the vm_name
+    MAC_ADDRESS:
+  VCENTER8:
+    HOSTNAME:
+    HYPERVISOR:
+    # mac_address: Mac address of the vm_name
+    MAC_ADDRESS:
   # USERNAME: Login for vmware
   USERNAME:
   # PASSWORD: Password for vmware
@@ -14,10 +23,6 @@ VMWARE:
   DATASTORE:
   # VM_NAME: Name of VM to power On/Off & delete
   VM_NAME:
-  # MAC_ADDRESS: Mac address of the vm
-  MAC_ADDRESS:
-  # HYPERVISOR: IP address or hostname of the hypervisor
-  HYPERVISOR:
   # VMware Compute resource image data
   # IMAGE_OS: Operating system of the image
   IMAGE_OS:
