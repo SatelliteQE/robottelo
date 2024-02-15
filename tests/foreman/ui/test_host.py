@@ -14,6 +14,7 @@
 import copy
 import csv
 import os
+import re
 
 from airgun.exceptions import DisabledWidgetError, NoSuchElementException
 import pytest
@@ -32,6 +33,7 @@ from robottelo.constants import (
     OSCAP_PERIOD,
     OSCAP_WEEKDAY,
     PERMISSIONS,
+    REPO_TYPE,
 )
 from robottelo.constants.repos import CUSTOM_FILE_REPO
 from robottelo.utils.datafactory import gen_string
