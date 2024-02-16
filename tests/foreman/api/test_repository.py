@@ -1305,7 +1305,7 @@ class TestRepositorySync:
 
     @pytest.mark.tier2
     @pytest.mark.build_sanity
-    def test_positive_sync_rh(self, module_entitlement_manifest_org, target_sat):
+    def test_positive_sync_rh(self, module_sca_manifest_org, target_sat):
         """Sync RedHat Repository.
 
         :id: d69c44cd-753c-4a75-9fd5-a8ed963b5e04
@@ -1315,7 +1315,7 @@ class TestRepositorySync:
         """
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_entitlement_manifest_org.id,
+            org_id=module_sca_manifest_org.id,
             product=constants.PRDS['rhel'],
             repo=constants.REPOS['rhst7']['name'],
             reposet=constants.REPOSET['rhst7'],
