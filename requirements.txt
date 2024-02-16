@@ -36,5 +36,5 @@ git+https://github.com/SatelliteQE/nailgun.git@master#egg=nailgun
 # In the meantime, we install directly from the repo
 # [1] - https://github.com/ParallelSSH/ssh2-python/issues/193
 # [2] - https://github.com/pypi/warehouse/issues/7136
-git+https://github.com/SatelliteQE/broker.git@0.4.3#egg=broker
+git+https://github.com/SatelliteQE/broker.git@0.4.5#egg=broker
 --editable .
