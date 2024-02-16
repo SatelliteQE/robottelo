@@ -392,6 +392,8 @@ def test_end_to_end(
     registered_contenthost.execute(f'yum remove -y {FAKE_1_CUSTOM_PACKAGE_NAME}')
     result = registered_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0, f'Failed to install package {FAKE_1_CUSTOM_PACKAGE}.'
+    # recalculate and assert applicable errata after installing outdated pkg
+    assert registered_contenthost.execute('subscription-manager repos').status == 0
     applicable_errata = registered_contenthost.applicable_errata_count
     assert (
         applicable_errata == 1
@@ -402,9 +404,13 @@ def test_end_to_end(
         # Check selection box function for BZ#1688636
         session.location.select(loc_name=DEFAULT_LOC)
         session.organization.select(org_name=module_org.name)
-        assert session.errata.search_content_hosts(
-            CUSTOM_REPO_ERRATA_ID, registered_contenthost.hostname, environment=module_lce.name
-        ), 'Errata ID not found on registered contenthost or the host lifecycle-environment.'
+        results = session.errata.search_content_hosts(
+            entity_name=CUSTOM_REPO_ERRATA_ID,
+            value=registered_contenthost.hostname,
+            environment=module_lce.name,
+        )
+        assert len(results) == 1
+        assert results[0]['Name'] == registered_contenthost.hostname
         errata = session.errata.read(CUSTOM_REPO_ERRATA_ID)
         assert errata['repositories']['table'][-1]['Name'] == _repository.name
         assert errata['repositories']['table'][-1]['Product'] == _product.name
@@ -435,6 +441,7 @@ def test_end_to_end(
             search_rate=2,
             max_tries=60,
         )
+        # poll most recent errata install (newest id#)
         results.sort(key=lambda res: res.id)
         task_status = module_target_sat.api.ForemanTask(id=results[-1].id).poll()
         assert (
@@ -469,9 +476,12 @@ def test_end_to_end(
 
         # Errata should still be visible on satellite, but not on contenthost
         assert session.errata.read(CUSTOM_REPO_ERRATA_ID)
-        assert not session.errata.search_content_hosts(
-            CUSTOM_REPO_ERRATA_ID, registered_contenthost.hostname, environment=module_lce.name
+        results = session.errata.search_content_hosts(
+            entity_name=CUSTOM_REPO_ERRATA_ID,
+            value=registered_contenthost.hostname,
+            environment=module_lce.name,
         )
+        assert len(results) == 0
         # Check package version was updated on contenthost
         _package_version = registered_contenthost.execute(
             f'rpm -q {FAKE_1_CUSTOM_PACKAGE_NAME}'
