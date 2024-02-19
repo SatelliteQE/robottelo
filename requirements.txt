@@ -14,7 +14,7 @@ paramiko==3.4.0  # Temporary until Broker is back on PyPi
 productmd==1.38
 pyotp==2.9.0
 python-box==7.1.1
-pytest==8.0.0
+pytest==8.0.1
 pytest-order==1.2.0
 pytest-services==2.2.1
 pytest-mock==3.12.0
