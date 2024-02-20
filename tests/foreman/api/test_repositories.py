@@ -138,7 +138,7 @@ def test_positive_epel_repositories_with_mirroring_policy(
 
 
 @pytest.mark.tier4
-def test_positive_sync_kickstart_repo(module_entitlement_manifest_org, target_sat):
+def test_positive_sync_kickstart_repo(module_sca_manifest_org, target_sat):
     """No encoding gzip errors on kickstart repositories
     sync.
 
@@ -165,7 +165,7 @@ def test_positive_sync_kickstart_repo(module_entitlement_manifest_org, target_sa
     distro = 'rhel8_bos'
     rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
-        org_id=module_entitlement_manifest_org.id,
+        org_id=module_sca_manifest_org.id,
         product=constants.REPOS['kickstart'][distro]['product'],
         reposet=constants.REPOS['kickstart'][distro]['reposet'],
         repo=constants.REPOS['kickstart'][distro]['name'],
