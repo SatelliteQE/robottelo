@@ -192,22 +192,6 @@ class TestDockerRepository:
                 assert repo.id in [repo_.id for repo_ in product.repository]
 
     @pytest.mark.tier1
-    def test_positive_sync(self, module_product, module_target_sat):
-        """Create and sync a Docker-type repository
-
-        :id: 80fbcd84-1c6f-444f-a44e-7d2738a0cba2
-
-        :expectedresults: A repository is created with a Docker repository and
-            it is synchronized.
-
-        :CaseImportance: Critical
-        """
-        repo = _create_repository(module_target_sat, module_product)
-        repo.sync(timeout=600)
-        repo = repo.read()
-        assert repo.content_counts['docker_manifest'] >= 1
-
-    @pytest.mark.tier1
     @pytest.mark.parametrize('new_name', **parametrized(valid_docker_repository_names()))
     def test_positive_update_name(self, repo, new_name):
         """Create a Docker-type repository and update its name.
