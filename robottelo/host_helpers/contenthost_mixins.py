@@ -100,26 +100,6 @@ class VersionedContent:
         product, release, v_major, repo = self._dogfood_helper(product, release, repo)
         return dogfood_repository(settings.ohsnap, repo, product, release, v_major, snap, self.arch)
 
-    def enable_tools_repo(self, organization_id):
-        return self.satellite.api_factory.enable_rhrepo_and_fetchid(
-            basearch=constants.DEFAULT_ARCHITECTURE,
-            org_id=organization_id,
-            product=constants.PRDS['rhel'],
-            repo=self.REPOS['rhst']['name'],
-            reposet=self.REPOSET['rhst'],
-            releasever=None,
-        )
-
-    def enable_rhel_repo(self, organization_id):
-        return self.satellite.api_factory.enable_rhrepo_and_fetchid(
-            basearch=constants.DEFAULT_ARCHITECTURE,
-            org_id=organization_id,
-            product=constants.PRDS['rhel'],
-            repo=self.REPOS['rhel']['name'],
-            reposet=self.REPOSET['rhel'],
-            releasever=None,
-        )
-
     def create_custom_html_repo(self, rpm_url, repo_name=None, update=False, remove_rpm=None):
         """Creates a custom yum repository, that will be published on https
 
