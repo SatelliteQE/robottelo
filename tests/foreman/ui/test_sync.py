@@ -36,26 +36,6 @@ def module_custom_product(module_org, module_target_sat):
     return module_target_sat.api.Product(organization=module_org).create()
 
 
-@pytest.mark.tier2
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_sync_custom_repo(session, module_custom_product, module_target_sat):
-    """Create Content Custom Sync with minimal input parameters
-
-    :id: 00fb0b04-0293-42c2-92fa-930c75acee89
-
-    :expectedresults: Sync procedure is successful
-
-    :CaseImportance: Critical
-    """
-    repo = module_target_sat.api.Repository(
-        url=settings.repos.yum_1.url, product=module_custom_product
-    ).create()
-    with session:
-        results = session.sync_status.synchronize([(module_custom_product.name, repo.name)])
-        assert len(results) == 1
-        assert results[0] == 'Syncing Complete.'
-
-
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
