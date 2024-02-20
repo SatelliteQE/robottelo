@@ -772,7 +772,7 @@ class TestContentViewSync:
             }
         )
         exporting_cv = target_sat.cli.ContentView.info({'id': exporting_cv['id']})
-        exporting_cvv_id = exporting_cv['versions'][0]['id']
+        exporting_cvv_id = max(exporting_cv['versions'], key=lambda x: int(x['id']))['id']
         # Check presence of 1 rpm due to filter
         export_packages = target_sat.cli.Package.list({'content-view-version-id': exporting_cvv_id})
         assert len(export_packages) == 1
