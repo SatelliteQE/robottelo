@@ -125,6 +125,7 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
     assert docker_repo['result'] == 'success'
 
 
+@pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.run_in_one_thread
@@ -135,29 +136,40 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
     ids=['no_http_proxy', 'auth_http_proxy', 'unauth_http_proxy'],
 )
 @pytest.mark.tier3
-def test_positive_auto_attach_with_http_proxy(
-    setup_http_proxy, module_target_sat, rhel_contenthost, function_entitlement_manifest_org
+def test_positive_install_content_with_http_proxy(
+    setup_http_proxy, module_target_sat, rhel_contenthost, function_sca_manifest_org
 ):
-    """Attempt to auto attach a subscription to content host
+    """Attempt to sync and install RH content on a content host via HTTP proxy.
 
     :id: cce888b5-e023-4ee2-bffe-efa9260224ee
 
+    :setup:
+        1. Satellite with or without Global HTTP proxy set.
+        2. Unregistered RHEL contenthost.
+
+    :steps:
+        1. Create an LCE and CV.
+        2. Sync a RH repository, publish it in the CV, promote to the LCE.
+        3. Create an AK using the created entities and override the RH repo to Enabled.
+        4. Register the content host using the AK via global registration.
+        5. Install a package from the RH repository.
+
+    :expectedresults:
+        1. RH repos can be synced successfully.
+        2. Content host can be registered via AK.
+        3. Content can be installed on the content host.
+
     :customerscenario: true
-
-    :expectedresults: host successfully subscribed, subscription
-        repository enabled, and repository package installed.
-
-    :Team: Phoenix-content
-
-    :BZ: 2046337
 
     :parametrized: yes
     """
-    org = function_entitlement_manifest_org
+    repo_to_use = 'rhae2.9_el8'
+    pkg_name = 'ansible'
+    org = function_sca_manifest_org
     lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
     content_view = module_target_sat.api.ContentView(organization=org).create()
     rh_repo_id = module_target_sat.api_factory.enable_sync_redhat_repo(
-        constants.REPOS['rhel8_bos'], org.id
+        constants.REPOS[repo_to_use], org.id
     )
     rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
     assert rh_repo.content_counts['rpm'] >= 1
@@ -167,35 +179,31 @@ def test_positive_auto_attach_with_http_proxy(
     content_view.publish()
     content_view = content_view.read()
     content_view.version[-1].promote(data={'environment_ids': lce.id})
-    subscription = module_target_sat.api.Subscription(organization=org.id).search(
-        query={'search': f'name="{constants.DEFAULT_SUBSCRIPTION_NAME}"'}
-    )
-    assert len(subscription)
+
     activation_key = module_target_sat.api.ActivationKey(
         content_view=content_view,
         organization=org,
         environment=lce,
-        auto_attach=False,
     ).create()
-    activation_key.add_subscriptions(data={'subscription_id': subscription[0].id})
-    rhel_contenthost.install_katello_ca(module_target_sat)
-    rhel_contenthost.register_contenthost(org=org.name, activation_key=activation_key.name)
-    assert rhel_contenthost.subscribed
-    module_target_sat.cli.Host.subscription_register(
-        {
-            'organization-id': org.id,
-            'content-view-id': content_view.id,
-            'lifecycle-environment-id': lce.id,
-            'name': rhel_contenthost.hostname,
+    activation_key.content_override(
+        data={
+            'content_overrides': [
+                {'content_label': constants.REPOS[repo_to_use]['id'], 'value': '1'}
+            ]
         }
     )
-    host = module_target_sat.api.Host().search(
-        query={'search': f'name={rhel_contenthost.hostname}'}
-    )[0]
-    # To Do: Use api
-    module_target_sat.cli.Host.subscription_auto_attach({'host-id': host.id})
-    result = rhel_contenthost.execute('yum install -y zsh')
-    assert result.status == 0, 'package was not installed'
+
+    result = rhel_contenthost.register(
+        org=org,
+        activation_keys=activation_key.name,
+        target=module_target_sat,
+        loc=None,
+    )
+    assert result.status == 0, f'Failed to register the host: {rhel_contenthost.hostname}'
+    assert rhel_contenthost.subscribed
+
+    result = rhel_contenthost.execute(f'yum install -y {pkg_name}')
+    assert result.status == 0, f'{pkg_name} installation failed with: {result.stderr}'
 
 
 @pytest.mark.e2e
