@@ -213,27 +213,6 @@ class TestRepository:
             assert repo.get(key) == repo_options[key]
 
     @pytest.mark.tier1
-    @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'content-type': 'file', 'url': CUSTOM_FILE_REPO}]),
-        indirect=True,
-    )
-    def test_positive_create_with_file_repo(self, repo_options, repo):
-        """Create file repository
-
-        :id: 46f63419-1acc-4ae2-be8c-d97816ba342f
-
-        :parametrized: yes
-
-        :expectedresults: file repository is created
-
-        :CaseImportance: Critical
-        """
-        for key in 'url', 'content-type':
-            assert repo.get(key) == repo_options[key]
-
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -703,40 +682,6 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                {'content-type': 'yum', 'url': url}
-                for url in (
-                    settings.repos.yum_1.url,
-                    settings.repos.yum_3.url,
-                    settings.repos.yum_4.url,
-                )
-            ]
-        ),
-        indirect=True,
-    )
-    def test_positive_synchronize_yum_repo(self, repo_options, repo, target_sat):
-        """Check if repository can be created and synced
-
-        :id: e3a62529-edbd-4062-9246-bef5f33bdcf0
-
-        :parametrized: yes
-
-        :expectedresults: Repository is created and synced
-
-        :CaseImportance: Critical
-        """
-        # Repo is not yet synced
-        assert repo['sync']['status'] == 'Not Synced'
-        # Synchronize it
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        # Verify it has finished
-        repo = target_sat.cli.Repository.info({'id': repo['id']})
-        assert repo['sync']['status'] == 'Success'
-
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
         **parametrized([{'content-type': 'file', 'url': CUSTOM_FILE_REPO}]),
         indirect=True,
     )
@@ -883,38 +828,6 @@ class TestRepository:
                 {'id': module_product.id, 'organization-id': module_org.id}
             )['content']
         )
-
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {
-                    'content-type': 'docker',
-                    'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
-                    'url': CONTAINER_REGISTRY_HUB,
-                    'include-tags': 'latest',
-                }
-            ]
-        ),
-        indirect=True,
-    )
-    def test_positive_synchronize_docker_repo_with_tags_whitelist(
-        self, repo_options, repo, target_sat
-    ):
-        """Check if only whitelisted tags are synchronized
-
-        :id: aa820c65-2de1-4b32-8890-98bd8b4320dc
-
-        :parametrized: yes
-
-        :expectedresults: Only whitelisted tag is synchronized
-        """
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        repo = _validated_image_tags_count(repo=repo, sat=target_sat)
-        assert repo_options['include-tags'] in repo['container-image-tags-filter']
-        assert int(repo['content-counts']['container-image-tags']) == 1
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
@@ -1376,27 +1289,6 @@ class TestRepository:
         """
         with pytest.raises(CLIFactoryError):
             module_target_sat.cli_factory.make_repository(repo_options)
-
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'name': name} for name in valid_data_list().values()]),
-        indirect=True,
-    )
-    def test_positive_delete_by_id(self, repo, target_sat):
-        """Check if repository can be created and deleted
-
-        :id: bcf096db-0033-4138-90a3-cb7355d5dfaf
-
-        :parametrized: yes
-
-        :expectedresults: Repository is created and then deleted
-
-        :CaseImportance: Critical
-        """
-        target_sat.cli.Repository.delete({'id': repo['id']})
-        with pytest.raises(CLIReturnCodeError):
-            target_sat.cli.Repository.info({'id': repo['id']})
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
@@ -1975,50 +1867,6 @@ class TestRepository:
         module_target_sat.cli.Repository.delete({'id': repo['id']})
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.Repository.info({'id': repo['id']})
-
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'content-type': 'yum', 'url': settings.repos.module_stream_0.url}]),
-        indirect=True,
-    )
-    @pytest.mark.parametrize(
-        'repo_options_2',
-        **parametrized([{'content-type': 'yum', 'url': settings.repos.module_stream_1.url}]),
-    )
-    def test_module_stream_list_validation(
-        self, module_org, repo, repo_options_2, module_target_sat
-    ):
-        """Check module-stream get with list on hammer.
-
-        :id: 9842a0c3-8532-4b16-a00a-534fc3b0a776ff89f23e-cd00-4d20-84d3-add0ea24abf8
-
-        :parametrized: yes
-
-        :Setup:
-            1. valid yum repo with Module Streams.
-
-        :steps:
-            1. Create Yum Repositories with url contain module-streams and Products
-            2. Initialize synchronization
-            3. Verify the module-stream list with various inputs options
-
-        :expectedresults: Verify the module-stream list response.
-
-        :CaseAutomation: Automated
-        """
-        module_target_sat.cli.Repository.synchronize({'id': repo['id']})
-
-        prod_2 = module_target_sat.cli_factory.make_product({'organization-id': module_org.id})
-        repo_options_2['organization-id'] = module_org.id
-        repo_options_2['product-id'] = prod_2['id']
-        repo_2 = module_target_sat.cli_factory.make_repository(repo_options_2)
-
-        module_target_sat.cli.Repository.synchronize({'id': repo_2['id']})
-        module_streams = module_target_sat.cli.ModuleStream.list()
-        assert len(module_streams) > 13, 'Module Streams list failed'
-        module_streams = module_target_sat.cli.ModuleStream.list({'product-id': prod_2['id']})
-        assert len(module_streams) == 7, 'Module Streams list by product failed'
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
@@ -2735,177 +2583,6 @@ class TestDRPMRepository:
         assert result.stdout
 
 
-class TestGitPuppetMirror:
-    """Tests for creating the hosts via CLI.
-
-    Notes for GIT puppet mirror content
-
-    This feature does not allow us to actually sync / update the content in a
-    GIT repo. Instead, we essentially "snapshot" a repo's contents at any
-    given time. The ability to update the GIT puppet mirror is / should
-    be provided by Pulp itself, via a script.  However, we should be able to
-    # create a sync schedule against the mirror to make sure it is periodically
-    updated to contain the latest and greatest.
-    """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier2
-    def test_positive_git_local_create(self):
-        """Create repository with local git puppet mirror.
-
-        :id: 89211cd5-82b8-4391-b729-a7502e57f824
-
-        :Setup: Assure local GIT puppet has been created and found by pulp
-
-        :steps: Create link to local puppet mirror via cli
-
-        :expectedresults: Content source containing local GIT puppet mirror
-            content is created
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier2
-    def test_positive_git_local_update(self):
-        """Update repository with local git puppet mirror.
-
-        :id: 341f40f2-3501-4754-9acf-7cda1a61f7db
-
-        :Setup: Assure local GIT puppet has been created and found by pulp
-
-        :steps: Modify details for existing puppet repo (name, etc.) via cli
-
-        :expectedresults: Content source containing local GIT puppet mirror
-            content is modified
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    def test_positive_git_local_delete(self):
-        """Delete repository with local git puppet mirror.
-
-        :id: a243f5bb-5186-41b3-8e8a-07d5cc784ccd
-
-        :Setup: Assure local GIT puppet has been created and found by pulp
-
-        :steps: Delete link to local puppet mirror via cli
-
-        :expectedresults: Content source containing local GIT puppet mirror
-            content no longer exists/is available.
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier2
-    def test_positive_git_remote_create(self):
-        """Create repository with remote git puppet mirror.
-
-        :id: 8582529f-3112-4b49-8d8f-f2bbf7dceca7
-
-        :Setup: Assure remote GIT puppet has been created and found by pulp
-
-        :steps: Create link to local puppet mirror via cli
-
-        :expectedresults: Content source containing remote GIT puppet mirror
-            content is created
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier2
-    def test_positive_git_remote_update(self):
-        """Update repository with remote git puppet mirror.
-
-        :id: 582c50b3-3b90-4244-b694-97642b1b13a9
-
-        :Setup: Assure remote  GIT puppet has been created and found by pulp
-
-        :steps: modify details for existing puppet repo (name, etc.) via cli
-
-        :expectedresults: Content source containing remote GIT puppet mirror
-            content is modified
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    def test_positive_git_remote_delete(self):
-        """Delete repository with remote git puppet mirror.
-
-        :id: 0a23f969-b202-4c6c-b12e-f651a0b7d049
-
-        :Setup: Assure remote GIT puppet has been created and found by pulp
-
-        :steps: Delete link to remote puppet mirror via cli
-
-        :expectedresults: Content source containing remote GIT puppet mirror
-            content no longer exists/is available.
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier2
-    def test_positive_git_sync(self):
-        """Sync repository with git puppet mirror.
-
-        :id: a46c16bd-0986-48db-8e62-aeb3907ba4d2
-
-        :Setup: git mirror (local or remote) exists as a content source
-
-        :steps: Attempt to sync content from mirror via cli
-
-        :expectedresults: Content is pulled down without error
-
-        :expectedresults: Confirmation that various resources actually exist in
-            local content repo
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier2
-    def test_positive_git_sync_schedule(self):
-        """Scheduled sync of git puppet mirror.
-
-        :id: 0d58d180-9836-4524-b608-66b67f9cab12
-
-        :Setup: git mirror (local or remote) exists as a content source
-
-        :steps: Attempt to create a scheduled sync content from mirror, via cli
-
-        :expectedresults: Content is pulled down without error  on expected
-            schedule
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier2
-    def test_positive_git_view_content(self):
-        """View content in synced git puppet mirror
-
-        :id: 02f06092-dd6c-49fa-be9f-831e52476e41
-
-        :Setup: git mirror (local or remote) exists as a content source
-
-        :steps: Attempt to list contents of repo via cli
-
-        :expectedresults: Spot-checked items (filenames, dates, perhaps
-            checksums?) are correct.
-
-        :CaseAutomation: NotAutomated
-        """
-
-
 class TestFileRepository:
     """Specific tests for File Repositories"""
 
@@ -2951,26 +2628,6 @@ class TestFileRepository:
             query={"search": f"name={RPM_TO_UPLOAD} and repository={repo['name']}"}
         )
         assert RPM_TO_UPLOAD == filesearch[0].name
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier1
-    def test_positive_file_permissions(self):
-        """Check file permissions after file upload to File Repository
-
-        :id: 03da888a-69ba-492f-b204-c62d85948d8a
-
-        :Setup:
-            1. Create a File Repository
-            2. Upload an arbitrary file to it
-
-        :steps: Retrieve file permissions from File Repository
-
-        :expectedresults: uploaded file permissions are kept after upload
-
-        :CaseAutomation: NotAutomated
-
-        :CaseImportance: Critical
-        """
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
@@ -3204,81 +2861,6 @@ class TestFileRepository:
         # Get the file and assert it has the updated contents
         textfile = requests.get(f"{repo['published-at']}{text_file_name}", verify=False)
         assert 'Second File' in textfile.text
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier2
-def test_copy_package_group_between_repos():
-    """
-       Copy a group of packages from one repo to another.
-
-    :id: 18d832fc-7e27-4067-99ea-5da9eef22253
-
-    :Setup:
-        1. Add a product and sync a repo which has package groups (repo 1)
-        2. Create another product and create a yum repo (repo 2)
-        3. Select the package group from repo 1 and sync it to repo 2
-
-    :steps:
-        Assert the list of package in repo 2 matches the group list from repo 1
-
-    :CaseAutomation: NotAutomated
-
-    :CaseImportance: Medium
-    """
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier2
-def test_include_and_exclude_content_units():
-    """
-       Select two packages and include and exclude some dependencies
-       and then copy them from one repo to another.
-
-    :id: 073a0ade-6860-4b34-b64f-0f1a75025356
-
-    :Setup:
-        1. Add a product and sync a repo which has packages with dependencies (repo 1)
-        2. Create another product and create a yum repo (repo 2)
-        3. Select a package and include its dependencies
-        4. Select a package and exclude its dependencies
-        5. Copy packages from repo 1 to repo 2
-
-    :steps:
-        Assert the list of packages in repo 2 matches the packages selected in repo 1,
-        including only those dependencies expected.
-
-    :CaseAutomation: NotAutomated
-
-    :CaseImportance: Medium
-    """
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier2
-def test_copy_erratum_and_RPMs_within_a_date_range():
-    """
-       Select some packages, filer by date range,
-       and then copy them from one repo to another.
-
-    :id: da48011b-841a-4706-84b5-2dcfe371c30a
-
-    :Setup:
-        1. Add a product and sync a repo which has packages with dependencies (repo 1)
-        2. Create another product and create a yum repo (repo 2)
-        3. Select some packages and include dependencies
-        4. Filter by date range
-        5. Copy filtered list of items from repo 1 to repo 2
-        6. Repeat using errata in place of RPMs
-
-    :steps:
-        Assert the list of packages or errata in repo 2 matches those selected
-        and filtered in repo 1, including those dependencies expected.
-
-    :CaseAutomation: NotAutomated
-
-    :CaseImportance: Medium
-    """
 
 
 @pytest.mark.tier2
