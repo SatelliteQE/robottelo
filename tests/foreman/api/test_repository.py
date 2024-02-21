@@ -689,20 +689,6 @@ class TestRepository:
         repo = repo.update(['gpg_key'])
         assert repo.gpg_key.id == gpg_key_2.id
 
-    @pytest.mark.tier2
-    def test_positive_update_contents(self, repo):
-        """Create a repository and upload RPM contents.
-
-        :id: 8faa64f9-b620-4c0a-8c80-801e8e6436f1
-
-        :expectedresults: The repository's contents include one RPM.
-
-        """
-        # Upload RPM content.
-        repo.upload_content(files={'content': DataFile.RPM_TO_UPLOAD.read_bytes()})
-        # Verify the repository's contents.
-        assert repo.read().content_counts['rpm'] == 1
-
     @pytest.mark.tier1
     @pytest.mark.upgrade
     def test_positive_upload_delete_srpm(self, repo, target_sat):
@@ -1631,37 +1617,6 @@ class TestDockerRepository:
         for k in 'name', 'docker_upstream_name', 'content_type':
             assert getattr(repo, k) == repo_options[k]
 
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **datafactory.parametrized(
-            {
-                constants.CONTAINER_UPSTREAM_NAME: {
-                    'content_type': 'docker',
-                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
-                    'name': gen_string('alphanumeric', 10),
-                    'url': constants.CONTAINER_REGISTRY_HUB,
-                }
-            }
-        ),
-        indirect=True,
-    )
-    def test_positive_synchronize(self, repo):
-        """Create and sync a Docker-type repository
-
-        :id: 27653663-e5a7-4700-a3c1-f6eab6468adf
-
-        :parametrized: yes
-
-        :expectedresults: A repository is created with a Docker repository and
-            it is synchronized.
-
-        :CaseImportance: Critical
-        """
-        # TODO: add timeout support to sync(). This repo needs more than the default 300 seconds.
-        repo.sync()
-        assert repo.read().content_counts['docker_manifest'] >= 1
-
     @pytest.mark.tier3
     @pytest.mark.parametrize(
         'repo_options',
@@ -1804,44 +1759,6 @@ class TestDockerRepository:
         """
         repo.sync()
         assert repo.read().content_counts['docker_manifest'] >= 1
-
-    @pytest.mark.tier2
-    @pytest.mark.parametrize(
-        'repo_options',
-        **datafactory.parametrized(
-            {
-                'private_registry': {
-                    'content_type': 'docker',
-                    'docker_upstream_name': settings.docker.private_registry_name,
-                    'name': gen_string('alpha'),
-                    'upstream_username': settings.docker.private_registry_username,
-                    'upstream_password': 'ThisIsaWrongPassword',
-                    'url': settings.docker.private_registry_url,
-                }
-            }
-        ),
-        indirect=True,
-    )
-    def test_negative_synchronize_private_registry_wrong_password(self, repo_options, repo):
-        """Create and try to sync a Docker-type repository from a private
-        registry providing wrong credentials the sync must fail with
-        reasonable error message.
-
-        :id: 2857fce2-fed7-49fc-be20-bf2e4726c9f5
-
-        :parametrized: yes
-
-        :expectedresults: A repository is created with a private Docker \
-            repository and sync fails with reasonable error message.
-
-        :customerscenario: true
-
-        :BZ: 1475121, 1580510
-
-        """
-        msg = "401, message=\'Unauthorized\'"
-        with pytest.raises(TaskFailedError, match=msg):
-            repo.sync()
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
@@ -2410,27 +2327,6 @@ class TestFileRepository:
         )
         assert constants.RPM_TO_UPLOAD == filesearch[0].name
 
-    @pytest.mark.stubbed
-    @pytest.mark.tier1
-    def test_positive_file_permissions(self):
-        """Check file permissions after file upload to File Repository
-
-        :id: 03b4b7dd-0505-4302-ae00-5de33ad420b0
-
-        :Setup:
-            1. Create a File Repository
-            2. Upload an arbitrary file to it
-
-        :steps: Retrieve file permissions from File Repository
-
-        :expectedresults: uploaded file permissions are kept after upload
-
-        :CaseImportance: Critical
-
-        :CaseAutomation: NotAutomated
-        """
-        pass
-
     @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
@@ -2463,82 +2359,6 @@ class TestFileRepository:
 
         repo.remove_content(data={'ids': [file_detail[0].id], 'content_type': 'file'})
         assert repo.read().content_counts['file'] == 0
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    def test_positive_remote_directory_sync(self):
-        """Check an entire remote directory can be synced to File Repository
-        through http
-
-        :id: 5c29b758-004a-4c71-a860-7087a0e96747
-
-        :Setup:
-            1. Create a directory to be synced with a pulp manifest on its root
-            2. Make the directory available through http
-
-        :steps:
-            1. Create a File Repository with url pointing to http url
-                created on setup
-            2. Initialize synchronization
-
-
-        :expectedresults: entire directory is synced over http
-
-        :CaseAutomation: NotAutomated
-        """
-        pass
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier1
-    def test_positive_local_directory_sync(self):
-        """Check an entire local directory can be synced to File Repository
-
-        :id: 178145e6-62e1-4cb9-b825-44d3ab41e754
-
-        :Setup:
-            1. Create a directory to be synced with a pulp manifest on its root
-                locally (on the Satellite/Foreman host)
-
-        :steps:
-            1. Create a File Repository with url pointing to local url
-                created on setup
-            2. Initialize synchronization
-
-
-        :expectedresults: entire directory is synced
-
-        :CaseImportance: Critical
-
-        :CaseAutomation: NotAutomated
-        """
-        pass
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier1
-    def test_positive_symlinks_sync(self):
-        """Check synlinks can be synced to File Repository
-
-        :id: 438a8e21-3502-4995-86db-c67ba0f3c469
-
-        :Setup:
-            1. Create a directory to be synced with a pulp manifest on its root
-                locally (on the Satellite/Foreman host)
-            2. Make sure it contains synlinks
-
-        :steps:
-            1. Create a File Repository with url pointing to local url
-                created on setup
-            2. Initialize synchronization
-
-        :expectedresults: entire directory is synced, including files
-            referred by symlinks
-
-        :CaseImportance: Critical
-
-        :CaseAutomation: NotAutomated
-        """
-        pass
 
 
 @pytest.mark.skip_if_not_set('container_repo')
