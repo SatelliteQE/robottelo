@@ -11,10 +11,15 @@
 :CaseImportance: High
 
 """
+from collections import OrderedDict
+
 from inflection import camelize
 import pytest
 
-from robottelo.utils.datafactory import gen_string
+from robottelo.utils.datafactory import (
+    gen_string,
+    valid_hostgroups_list_short,
+)
 
 
 @pytest.fixture
@@ -25,6 +30,77 @@ def module_rhel_client_by_ip(module_org, smart_proxy_location, rhel7_contenthost
         rhel7_contenthost, location_id=smart_proxy_location.id
     )
     return rhel7_contenthost
+
+
+@pytest.mark.no_containers
+@pytest.mark.tier4
+def test_positive_bz2209968(
+    session,
+    module_org,
+    smart_proxy_location,
+    target_sat,
+):
+    """Check that full host group names are displayed when invoking a job
+
+    :id: 2301cd1d-ed82-4168-9f9b-d1661ac8fc5b
+
+    :steps:
+
+        1. Go to Monitor -> Jobs -> Run job
+        2. In "Target hosts and inputs" step, choose "Host groups" targeting
+
+    :expectedresults: Verify that in the dropdown, full hostgroup names are present, e.g. Parent/Child/Grandchild
+
+    :parametrized: yes
+
+    :customerscenario: true
+
+    :BZ: 2209968
+    """
+    names = valid_hostgroups_list_short()
+    tree = OrderedDict(
+        {
+            'parent1': {'name': names[0], 'parent': None},
+            'parent2': {'name': names[1], 'parent': None},
+            'child1a': {'name': names[2], 'parent': 'parent1'},
+            'child1b': {'name': names[3], 'parent': 'parent1'},
+            'child2': {'name': names[4], 'parent': 'parent2'},
+            'grandchild1a1': {'name': names[5], 'parent': 'child1a'},
+            'grandchild1a2': {'name': names[6], 'parent': 'child1a'},
+            'grandchild1b': {'name': names[7], 'parent': 'child1b'},
+        }
+    )
+    expected_names = []
+    for identifier, data in tree.items():
+        name = data['name']
+        parent_name = None if data['parent'] is None else tree[data['parent']]['name']
+        target_sat.cli_factory.hostgroup(
+            {
+                'name': name,
+                'parent': parent_name,
+                'organization-ids': module_org.id,
+                'location-ids': smart_proxy_location.id,
+            }
+        )
+        expected_name = ''
+        current = identifier
+        while current:
+            expected_name = (
+                f"{tree[current]['name']}/{expected_name}"
+                if expected_name
+                else tree[current]['name']
+            )
+            current = tree[current]['parent']
+        # we should have something like "parent1/child1a"
+        expected_names.append(expected_name)
+
+    with session:
+        session.organization.select(module_org.name)
+        session.location.select(smart_proxy_location.name)
+        hostgroups = session.jobinvocation.read_hostgroups()
+
+    for name in expected_names:
+        assert name in hostgroups
 
 
 @pytest.mark.tier4
