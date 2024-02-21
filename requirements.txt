@@ -2,7 +2,7 @@
 
 betelgeuse==1.11.0
 # broker[docker]==0.4.1 - Temporarily disabled, see below
-cryptography==42.0.3
+cryptography==42.0.4
 deepdiff==6.7.1
 docker==7.0.0  # Temporary until Broker is back on PyPi
 dynaconf[vault]==3.2.4
