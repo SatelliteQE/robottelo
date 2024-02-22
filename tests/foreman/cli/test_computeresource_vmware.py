@@ -168,7 +168,7 @@ def test_positive_provision_end_to_end(
     expected_rhel_version = host_info['operating-system']['operating-system'][-3:]
 
     # Wait for the host to be rebooted and SSH daemon to be started.
-    provisioning_host.wait_for_connection()
+    provisioning_host.wait_for_connection(timeout=300)
 
     if int(expected_rhel_version.split('.')[0]) >= 9:
         assert (
