@@ -1381,7 +1381,10 @@ def sat_default_install(module_sat_ready_rhels):
         f'foreman-initial-admin-password {settings.server.admin_password}',
     ]
     install_satellite(module_sat_ready_rhels[0], installer_args)
-    return module_sat_ready_rhels[0]
+    sat = module_sat_ready_rhels[0]
+    http_proxy = sat.enable_ipv6_http_proxy()
+    yield
+    sat.disable_ipv6_http_proxy(http_proxy)
 
 
 @pytest.fixture(scope='module')
@@ -1394,7 +1397,10 @@ def sat_non_default_install(module_sat_ready_rhels):
         'foreman-proxy-content-pulpcore-hide-guarded-distributions false',
     ]
     install_satellite(module_sat_ready_rhels[1], installer_args, enable_fapolicyd=True)
-    return module_sat_ready_rhels[1]
+    sat = module_sat_ready_rhels[1]
+    http_proxy = sat.enable_ipv6_http_proxy()
+    yield sat
+    sat.disable_ipv6_http_proxy(http_proxy)
 
 
 @pytest.mark.e2e
