@@ -32,6 +32,8 @@ VALIDATORS = dict(
         Validator('server.ssh_username', default='root'),
         Validator('server.ssh_password', default=None),
         Validator('server.verify_ca', default=False),
+        Validator('server.is_ipv6', is_type_of=bool, default=False),
+        Validator('server.http_proxy_ipv6_url', is_type_of=str),
     ],
     content_host=[
         Validator('content_host.default_rhel_version', must_exist=True),

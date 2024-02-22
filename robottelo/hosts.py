@@ -1621,6 +1621,17 @@ class Capsule(ContentHost, CapsuleMixins):
             snap=settings.capsule.version.snap,
         )
 
+    def enable_ipv6_http_proxy(self):
+        if all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
+            url = urlparse(settings.server.http_proxy_ipv6_url)
+            self.execute(
+                f'subscription-manager config --server.proxy_hostname={url.hostname} --server.proxy_port={url.port}'
+            )
+
+    def disable_ipv6_http_proxy(self):
+        if settings.server.is_ipv6:
+            self.execute('subscription-manager remove server.proxy_hostname server.proxy_port')
+
     def capsule_setup(self, sat_host=None, capsule_cert_opts=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
         self._satellite = sat_host or Satellite()
@@ -1766,6 +1777,59 @@ class Satellite(Capsule, SatelliteMixins):
         self._api = type('api', (), {'_configured': False})
         to_clear = [k for k in sys.modules if 'nailgun' in k]
         [sys.modules.pop(k) for k in to_clear]
+
+    def enable_ipv6_http_proxy(self):
+        # Execute procedures for enabling IPv6 HTTP Proxy
+        if all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
+            proxy_name = 'Robottelo IPv6 Automation Proxy'
+            if not self.cli.HttpProxy.exists(search=('name', proxy_name)):
+                http_proxy = self.api.HTTPProxy(
+                    name=proxy_name, url=settings.server.http_proxy_ipv6_url
+                ).create()
+            else:
+                logger.info(
+                    'The IPv6 HTTP Proxy is already enabled. Skipping the IPv6 HTTP Proxy setup.'
+                )
+                http_proxy = self.api.HTTPProxy().search(query={'search': f'name={proxy_name}'})
+                if http_proxy:
+                    http_proxy = http_proxy[0]
+            # Setting HTTP Proxy as default in the settings
+            self.cli.Settings.set(
+                {
+                    'name': 'content_default_http_proxy',
+                    'value': proxy_name,
+                }
+            )
+            self.cli.Settings.set(
+                {
+                    'name': 'http_proxy',
+                    'value': proxy_name,
+                }
+            )
+            return http_proxy
+        logger.warning(
+            'The IPv6 HTTP Proxy setting is not enabled. Skipping the IPv6 HTTP Proxy setup.'
+        )
+        return None
+
+    def disable_ipv6_http_proxy(self, http_proxy):
+        """
+        Execute procedures for disabling IPv6 HTTP Proxy
+        """
+        if http_proxy:
+            http_proxy.delete()
+            self.cli.Settings.set(
+                {
+                    'name': 'content_default_http_proxy',
+                    'value': '',
+                }
+            )
+            self.cli.Settings.set(
+                {
+                    'name': 'http_proxy',
+                    'value': '',
+                }
+            )
 
     @property
     def api(self):

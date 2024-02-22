@@ -31,8 +31,10 @@ def resolve_deploy_args(args_dict):
 def _target_satellite_host(request, satellite_factory):
     if 'sanity' not in request.config.option.markexpr:
         new_sat = satellite_factory()
+        http_proxy = new_sat.enable_ipv6_http_proxy()
         yield new_sat
         new_sat.teardown()
+        new_sat.disable_ipv6_http_proxy(http_proxy)
         Broker(hosts=[new_sat]).checkin()
     else:
         yield
@@ -48,8 +50,10 @@ def cached_capsule_cdn_register(hostname=None):
 def _target_capsule_host(request, capsule_factory):
     if 'sanity' not in request.config.option.markexpr and not request.config.option.n_minus:
         new_cap = capsule_factory()
+        new_cap.enable_ipv6_http_proxy()
         yield new_cap
         new_cap.teardown()
+        new_cap.disable_ipv6_http_proxy()
         Broker(hosts=[new_cap]).checkin()
     elif request.config.option.n_minus:
         if not settings.capsule.hostname:
@@ -94,8 +98,10 @@ def satellite_factory():
 def large_capsule_host(capsule_factory):
     """A fixture that provides a Capsule based on config settings"""
     new_cap = capsule_factory(deploy_flavor=settings.flavors.custom_db)
+    new_cap.enable_ipv6_http_proxy()
     yield new_cap
     new_cap.teardown()
+    new_cap.disable_ipv6_http_proxy()
     Broker(hosts=[new_cap]).checkin()
 
 
@@ -244,9 +250,11 @@ def module_lb_capsule(retry_limit=3, delay=300, **broker_args):
         )
         cap_hosts = wait_for(hosts.checkout, timeout=timeout, delay=delay)
 
+    [cap.enable_ipv6_http_proxy() for cap in cap_hosts.out]
     yield cap_hosts.out
 
     [cap.teardown() for cap in cap_hosts.out]
+    [cap.disable_ipv6_http_proxy() for cap in cap_hosts.out]
     Broker(hosts=cap_hosts.out).checkin()
 
 
@@ -266,6 +274,7 @@ def parametrized_enrolled_sat(
 ):
     """Yields a Satellite enrolled into [IDM, AD] as parameter."""
     new_sat = satellite_factory()
+    http_proxy = new_sat.enable_ipv6_http_proxy()
     ipa_host = IPAHost(new_sat)
     new_sat.register_to_cdn()
     if 'IDM' in request.param:
@@ -277,6 +286,7 @@ def parametrized_enrolled_sat(
         yield new_sat
     new_sat.unregister()
     new_sat.teardown()
+    new_sat.disable_ipv6_http_proxy(http_proxy)
     Broker(hosts=[new_sat]).checkin()
 
 
@@ -321,7 +331,9 @@ def cap_ready_rhel():
         'workflow': settings.capsule.deploy_workflows.os,
     }
     with Broker(**deploy_args, host_class=Capsule) as host:
+        host.enable_ipv6_http_proxy()
         yield host
+        host.disable_ipv6_http_proxy()
 
 
 @pytest.fixture(scope='session')
@@ -339,6 +351,7 @@ def installer_satellite(request):
     else:
         sat = lru_sat_ready_rhel(getattr(request, 'param', None))
     sat.setup_firewall()
+    http_proxy = sat.enable_ipv6_http_proxy()
     # # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
     sat.register_to_cdn()
     sat.download_repofile(
@@ -364,7 +377,9 @@ def installer_satellite(request):
         configure_airgun()
     yield sat
     if 'sanity' not in request.config.option.markexpr:
-        sanity_sat = Satellite(sat.hostname)
-        sanity_sat.unregister()
-        broker_sat = Satellite.get_host_by_hostname(sanity_sat.hostname)
-        Broker(hosts=[broker_sat]).checkin()
+        sat = Satellite.get_host_by_hostname(sat.hostname)
+        sat.unregister()
+        sat.disable_ipv6_http_proxy(http_proxy)
+        Broker(hosts=[sat]).checkin()
+    else:
+        sat.disable_ipv6_http_proxy(http_proxy)

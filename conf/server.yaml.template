@@ -13,6 +13,10 @@ SERVER:
     SOURCE: "internal"
     # The RHEL Base OS Version(x.y) where the Satellite is installed
     RHEL_VERSION: '7'
+  # If the the satellite server is IPv6 server
+  # IS_IPV6:
+  # HTTP Proxy url for IPv6 satellite to connect for outer world access
+  # HTTP_PROXY_IPv6_URL:
   # run-on-one - All xdist runners default to the first satellite
   # balance - xdist runners will be split between available satellites
   # on-demand - any xdist runner without a satellite will have a new one provisioned.

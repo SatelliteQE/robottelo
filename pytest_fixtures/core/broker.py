@@ -13,7 +13,10 @@ def _default_sat(align_to_satellite):
     """Returns a Satellite object for settings.server.hostname"""
     if settings.server.hostname:
         try:
-            return Satellite.get_host_by_hostname(settings.server.hostname)
+            sat = Satellite.get_host_by_hostname(settings.server.hostname)
+            http_proxy = sat.enable_ipv6_http_proxy()
+            yield sat
+            sat.disable_ipv6_http_proxy(http_proxy)
         except ContentHostError:
             return Satellite()
     return None
@@ -24,8 +27,10 @@ def _target_sat_imp(request, _default_sat, satellite_factory):
     """This is the actual working part of the following target_sat fixtures"""
     if request.node.get_closest_marker(name='destructive'):
         new_sat = satellite_factory()
+        http_proxy = new_sat.sat.enable_ipv6_http_proxy()
         yield new_sat
         new_sat.teardown()
+        new_sat.disable_ipv6_http_proxy(http_proxy)
         Broker(hosts=[new_sat]).checkin()
     elif 'sanity' in request.config.option.markexpr:
         installer_sat = lru_sat_ready_rhel(settings.server.version.rhel_version)
