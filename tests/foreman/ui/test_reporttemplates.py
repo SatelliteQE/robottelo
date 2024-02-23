@@ -34,8 +34,8 @@ from robottelo.utils.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')
-def setup_content(module_entitlement_manifest_org, module_target_sat):
-    org = module_entitlement_manifest_org
+def setup_content(module_sca_manifest_org, module_target_sat):
+    org = module_sca_manifest_org
     rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
@@ -62,10 +62,13 @@ def setup_content(module_entitlement_manifest_org, module_target_sat):
     ak = module_target_sat.api.ActivationKey(
         content_view=cv, organization=org, environment=lce, auto_attach=True
     ).create()
-    subscription = module_target_sat.api.Subscription(organization=org).search(
-        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
-    )[0]
-    ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
+    all_content = ak.product_content(data={'content_access_mode_all': '1'})['results']
+    for content in all_content:
+        if content['name'] == custom_repo.name:
+            content_label = content['label']
+    ak.content_override(
+        data={'content_overrides': [{'content_label': content_label, 'value': '1'}]}
+    )
     return org, ak, cv, lce
 
 
@@ -230,54 +233,42 @@ def test_positive_end_to_end(session, module_org, module_location):
 
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_generate_registered_hosts_report(target_sat, module_org, module_location):
+def test_positive_generate_registered_hosts_report(
+    session, target_sat, setup_content, rhel7_contenthost
+):
     """Use provided Host - Registered Content Hosts report for testing
 
     :id: b44d4cd8-a78e-47cf-9993-0bb871ac2c96
 
-    :expectedresults: The Host - Registered Content Hosts report is generated (with host filter)
+    :expectedresults: The Host - Registered Content Hosts report is generated
                       and it contains created host with correct data
 
     :CaseImportance: High
     """
-    # generate Host Status report
-    os_name = 'comma,' + gen_string('alpha')
-    os = target_sat.api.OperatingSystem(name=os_name).create()
-    host_cnt = 3
-    host_templates = [
-        target_sat.api.Host(organization=module_org, location=module_location, operatingsystem=os)
-        for i in range(host_cnt)
-    ]
-    for host_template in host_templates:
-        host_template.create_missing()
-    with target_sat.ui_session() as session:
-        session.organization.select(module_org.name)
-        session.location.select(module_location.name)
-        # create multiple hosts to test filtering
-        host_names = [
-            target_sat.ui_factory(session).create_fake_host(host_template)
-            for host_template in host_templates
-        ]
-        host_name = host_names[1]  # pick some that is not first and is not last
-        file_path = session.reporttemplate.generate(
-            'Host - Registered Content Hosts', values={'hosts_filter': host_name}
+    client = rhel7_contenthost
+    client.install_katello_ca(target_sat)
+    org, ak, _, _ = setup_content
+    client.register_contenthost(org.label, ak.name)
+    assert client.subscribed
+    with session:
+        session.location.select('Default Location')
+        result_json = session.reporttemplate.generate(
+            'Host - Registered Content Hosts', values={'output_format': 'JSON'}
         )
-        with open(file_path) as csvfile:
-            dreader = csv.DictReader(csvfile)
-            res = next(dreader)
-            assert list(res.keys()) == [
-                'Name',
-                'Ip',
-                'Operating System',
-                'Subscriptions',
-                'Applicable Errata',
-                'Owner',
-                'Kernel',
-                'Latest kernel available',
-            ]
-            assert res['Name'] == host_name
-            # also tests comma in field contents
-            assert res['Operating System'] == f'{os_name} {os.major}'
+        with open(result_json) as json_file:
+            data_json = json.load(json_file)
+        assert list(data_json[0].keys()) == [
+            'Name',
+            'Ip',
+            'Operating System',
+            'Subscriptions',
+            'Applicable Errata',
+            'Owner',
+            'Kernel',
+            'Latest kernel available',
+        ]
+        assert data_json[0]['Name'] == client.hostname
+        assert data_json[0]['Operating System'].split()[-1] == client._redhat_release['VERSION_ID']
 
 
 @pytest.mark.upgrade
@@ -491,10 +482,12 @@ def test_negative_nonauthor_of_report_cant_download_it(session):
 
 
 @pytest.mark.tier3
+@pytest.mark.no_containers
 def test_positive_gen_entitlements_reports_multiple_formats(
     session, setup_content, rhel7_contenthost, target_sat
 ):
-    """Generate reports using the Entitlements template in html, yaml, json, and csv format.
+    """Generate reports using the Subscription - Entitlement Report template
+        in html, yaml, json, and csv format.
 
     :id: b268663d-c213-4e59-8f81-61bec0838b1e
 
@@ -504,11 +497,11 @@ def test_positive_gen_entitlements_reports_multiple_formats(
 
     :steps:
         1. Monitor -> Report Templates
-        2. Entitlements -> Generate
+        2. Subscription - Entitlement Report -> Generate
         3. Click the dropdown to select output format
         4. Submit
 
-    :expectedresults: reports are generated containing all the expected information
+    :expectedresults: Reports are generated containing all the expected information
                       regarding Entitlements for each output format.
 
     :parametrized: yes
@@ -517,8 +510,13 @@ def test_positive_gen_entitlements_reports_multiple_formats(
     """
     client = rhel7_contenthost
     client.install_katello_ca(target_sat)
-    module_org, ak = setup_content
-    client.register_contenthost(module_org.label, ak.name)
+    org, ak, _, _ = setup_content
+    org.sca_disable()
+    subscription = target_sat.api.Subscription(organization=org).search(
+        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
+    )[0]
+    ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
+    client.register_contenthost(org.label, ak.name)
     assert client.subscribed
     with session:
         session.location.select('Default Location')
