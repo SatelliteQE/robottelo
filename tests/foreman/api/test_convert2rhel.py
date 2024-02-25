@@ -15,7 +15,7 @@ import pytest
 import requests
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ARCHITECTURE, DEFAULT_SUBSCRIPTION_NAME, REPOS
+from robottelo.constants import DEFAULT_ARCHITECTURE, REPOS
 
 
 def create_repo(sat, org, repo_url, ssl_cert=None):
@@ -36,20 +36,19 @@ def create_repo(sat, org, repo_url, ssl_cert=None):
     return repo
 
 
-def create_activation_key(sat, org, lce, cv, subscription_id):
+def create_activation_key(sat, org, lce, cv):
     """Create activation key with subscription"""
     act_key = sat.api.ActivationKey(
         organization=org,
         content_view=cv,
         environment=lce,
     ).create()
-    act_key.add_subscriptions(data={'subscription_id': subscription_id})
-    content = sat.cli.ActivationKey.product_content({'id': act_key.id, 'organization-id': org.id})
-    act_key.content_override(
-        data={'content_overrides': [{'content_label': content[0]['label'], 'value': '1'}]}
-    )
-    ak_subscriptions = act_key.product_content()['results']
-    ak_subscriptions[0]['enabled'] = True
+    content = act_key.product_content(data={'content_access_mode_all': '1'})['results']
+    custom_repo_label = [repo['label'] for repo in content if repo['vendor'] == 'Custom']
+    if custom_repo_label:
+        act_key.content_override(
+            data={'content_overrides': [{'content_label': custom_repo_label[0], 'value': '1'}]}
+        )
     return act_key
 
 
@@ -64,38 +63,33 @@ def update_cv(sat, cv, lce, repos):
 
 
 @pytest.fixture(scope='module')
-def ssl_cert(module_target_sat, module_entitlement_manifest_org):
+def ssl_cert(module_target_sat, module_sca_manifest_org):
     """Create credetial with SSL cert for Oracle Linux"""
     res = requests.get(settings.repos.convert2rhel.ssl_cert_oracle)
     res.raise_for_status()
     return module_target_sat.api.ContentCredential(
-        content=res.text, organization=module_entitlement_manifest_org, content_type='cert'
+        content=res.text, organization=module_sca_manifest_org, content_type='cert'
     ).create()
 
 
 @pytest.fixture
 def activation_key_rhel(
-    module_target_sat, module_entitlement_manifest_org, module_lce, module_promoted_cv, version
+    module_target_sat, module_sca_manifest_org, module_lce, module_promoted_cv, version
 ):
     """Create activation key that will be used after conversion for registration"""
-    subs = module_target_sat.api.Subscription(
-        organization=module_entitlement_manifest_org.id
-    ).search(query={'search': f'{DEFAULT_SUBSCRIPTION_NAME}'})
-    assert subs
     return create_activation_key(
         module_target_sat,
-        module_entitlement_manifest_org,
+        module_sca_manifest_org,
         module_lce,
         module_promoted_cv,
-        subs[0].id,
     )
 
 
 @pytest.fixture(scope='module')
-def enable_rhel_subscriptions(module_target_sat, module_entitlement_manifest_org, version):
+def enable_rhel_subscriptions(module_target_sat, module_sca_manifest_org, version):
     """Enable and sync RHEL rpms repos"""
     major = version.split('.')[0]
-    minor = ""
+    minor = ''
     if major == '8':
         repo_names = ['rhel8_bos', 'rhel8_aps']
         minor = version[1:]
@@ -107,7 +101,7 @@ def enable_rhel_subscriptions(module_target_sat, module_entitlement_manifest_org
     for name in repo_names:
         rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
-            org_id=module_entitlement_manifest_org.id,
+            org_id=module_sca_manifest_org.id,
             product=REPOS[name]['product'],
             repo=REPOS[name]['name'] + minor,
             reposet=REPOS[name]['reposet'],
@@ -134,7 +128,7 @@ def enable_rhel_subscriptions(module_target_sat, module_entitlement_manifest_org
 def centos(
     module_target_sat,
     centos_host,
-    module_entitlement_manifest_org,
+    module_sca_manifest_org,
     smart_proxy_location,
     module_promoted_cv,
     module_lce,
@@ -145,20 +139,15 @@ def centos(
     major = version.split('.')[0]
     assert centos_host.execute('yum -y update').status == 0
     repo_url = settings.repos.convert2rhel.convert_to_rhel_repo.format(major)
-    repo = create_repo(module_target_sat, module_entitlement_manifest_org, repo_url)
+    repo = create_repo(module_target_sat, module_sca_manifest_org, repo_url)
     cv = update_cv(
         module_target_sat, module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo]
     )
-    c2r_sub = module_target_sat.api.Subscription(
-        organization=module_entitlement_manifest_org.id, name=repo.product.name
-    ).search()[0]
-    act_key = create_activation_key(
-        module_target_sat, module_entitlement_manifest_org, module_lce, cv, c2r_sub.id
-    )
+    act_key = create_activation_key(module_target_sat, module_sca_manifest_org, module_lce, cv)
 
     # Register CentOS host with Satellite
     command = module_target_sat.api.RegistrationCommand(
-        organization=module_entitlement_manifest_org,
+        organization=module_sca_manifest_org,
         activation_keys=[act_key.name],
         location=smart_proxy_location,
         insecure=True,
@@ -177,7 +166,7 @@ def centos(
 def oracle(
     module_target_sat,
     oracle_host,
-    module_entitlement_manifest_org,
+    module_sca_manifest_org,
     smart_proxy_location,
     module_promoted_cv,
     module_lce,
@@ -214,22 +203,17 @@ def oracle(
         oracle_host.power_control(state='reboot')
 
     repo_url = settings.repos.convert2rhel.convert_to_rhel_repo.format(major)
-    repo = create_repo(module_target_sat, module_entitlement_manifest_org, repo_url, ssl_cert)
+    repo = create_repo(module_target_sat, module_sca_manifest_org, repo_url, ssl_cert)
     cv = update_cv(
         module_target_sat, module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo]
     )
-    c2r_sub = module_target_sat.api.Subscription(
-        organization=module_entitlement_manifest_org, name=repo.product.name
-    ).search()[0]
-    act_key = create_activation_key(
-        module_target_sat, module_entitlement_manifest_org, module_lce, cv, c2r_sub.id
-    )
+    act_key = create_activation_key(module_target_sat, module_sca_manifest_org, module_lce, cv)
     # UBI repo required for subscription-manager packages on Oracle
     ubi_url = settings.repos.convert2rhel.ubi7 if major == '7' else settings.repos.convert2rhel.ubi8
 
     # Register Oracle host with Satellite
     command = module_target_sat.api.RegistrationCommand(
-        organization=module_entitlement_manifest_org,
+        organization=module_sca_manifest_org,
         activation_keys=[act_key.name],
         location=smart_proxy_location,
         insecure=True,
@@ -309,7 +293,8 @@ def test_convert2rhel_oracle(module_target_sat, oracle, activation_key_rhel, ver
         or host_content['operatingsystem_name'].startswith(f'RedHat {version}')
         or host_content['operatingsystem_name'].startswith(f'RHEL {version}')
     )
-    assert host_content['subscription_status'] == 0
+    assert host_content['subscription_status_label'] == 'Simple Content Access'
+    assert host_content['subscription_status'] == 5
 
 
 @pytest.mark.e2e
@@ -366,4 +351,5 @@ def test_convert2rhel_centos(module_target_sat, centos, activation_key_rhel, ver
         or host_content['operatingsystem_name'].startswith(f'RedHat {version}')
         or host_content['operatingsystem_name'].startswith(f'RHEL {version}')
     )
-    assert host_content['subscription_status'] == 0
+    assert host_content['subscription_status_label'] == 'Simple Content Access'
+    assert host_content['subscription_status'] == 5
