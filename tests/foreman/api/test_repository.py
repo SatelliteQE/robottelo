@@ -1415,7 +1415,7 @@ class TestRepositorySync:
         indirect=True,
     )
     def test_positive_sync_sha_repo(self, repo, target_sat):
-        """Sync a 'sha' repo successfully
+        """Sync repository with 'sha' checksum, which uses 'sha1' in particular actually
 
         :id: b842a21d-639a-48aa-baf3-9244d8bc1415
 
@@ -1425,7 +1425,7 @@ class TestRepositorySync:
 
         :BZ: 2024889
 
-        :SubComponent: Candlepin
+        :SubComponent: Pulp
         """
         sync_result = repo.sync()
         assert sync_result['result'] == 'success'
