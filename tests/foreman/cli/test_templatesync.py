@@ -160,7 +160,7 @@ class TestTemplateSyncTestCase:
                 'repo': url,
                 'branch': git_branch,
                 'organization-id': module_org.id,
-                'filter': 'Atomic Kickstart default',
+                'filter': 'User - Registered Users',
                 'dirname': dirname,
             }
         ).split('\n')
