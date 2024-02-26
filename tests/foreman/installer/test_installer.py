@@ -1394,7 +1394,7 @@ def sat_non_default_install(module_sat_ready_rhels):
 
 @pytest.mark.e2e
 @pytest.mark.tier1
-@pytest.mark.pit_client
+@pytest.mark.pit_server
 def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
     """Run a basic Capsule installation
 
@@ -1769,7 +1769,7 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
 @pytest.mark.tier1
 @pytest.mark.build_sanity
 @pytest.mark.first_sanity
-@pytest.mark.pit_client
+@pytest.mark.pit_server
 def test_satellite_installation(installer_satellite):
     """Run a basic Satellite installation
 
