@@ -847,7 +847,7 @@ class TestRepository:
         indirect=True,
     )
     def test_verify_checksum_container_repo(self, repo, target_sat):
-        """Check if Verify Content Checksum can be run on non container repos
+        """Check if Verify Content Checksum can be run on container repos
 
         :id: c8f0eb45-3cb6-41b2-aad9-52ac847d7bf8
 
@@ -2026,7 +2026,7 @@ class TestRepository:
         indirect=True,
     )
     def test_positive_sync_sha_repo(self, repo_options, module_target_sat):
-        """Sync a 'sha' repo successfully
+        """Sync repository with 'sha' checksum, which uses 'sha1' in particular actually
 
         :id: 20579f52-a67b-4d3f-be07-41eec059a891
 
@@ -2036,7 +2036,7 @@ class TestRepository:
 
         :BZ: 2024889
 
-        :SubComponent: Candlepin
+        :SubComponent: Pulp
         """
         sha_repo = module_target_sat.cli_factory.make_repository(repo_options)
         sha_repo = module_target_sat.cli.Repository.info({'id': sha_repo['id']})

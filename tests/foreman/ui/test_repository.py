@@ -1217,7 +1217,7 @@ def test_positive_sync_repo_and_verify_checksum(session, module_org, module_targ
 
 @pytest.mark.tier2
 def test_positive_sync_sha_repo(session, module_org, module_target_sat):
-    """Sync 'sha' repo successfully
+    """Sync repository with 'sha' checksum, which uses 'sha1' in particular actually
 
     :id: 6172035f-96c4-41e4-a79b-acfaa78ad734
 
@@ -1225,7 +1225,7 @@ def test_positive_sync_sha_repo(session, module_org, module_target_sat):
 
     :BZ: 2024889
 
-    :SubComponent: Candlepin
+    :SubComponent: Pulp
     """
     repo_name = gen_string('alpha')
     product = module_target_sat.api.Product(organization=module_org).create()
