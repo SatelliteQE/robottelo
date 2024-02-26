@@ -66,7 +66,7 @@ def git_pub_key(session_target_sat, git_port):
     id = res.json()['id']
     # add ssh key to known host
     session_target_sat.execute(
-        f'ssh-keyscan -t rsa -p {git.ssh_port} {git.hostname} > {key_path}/known_hosts'
+        f'ssh-keyscan -4 -t rsa -p {git.ssh_port} {git.hostname} > {key_path}/known_hosts'
     )
     yield
     res = requests.delete(
