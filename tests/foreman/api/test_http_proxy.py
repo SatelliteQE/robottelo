@@ -78,11 +78,9 @@ def test_positive_end_to_end(
         5. Discover yum type repo through HTTP proxy.
         6. Discover docker type repo through HTTP proxy.
 
-    :expected results:
+    :expectedresults:
         1. All repository updates and syncs succeed.
         2. Yum and docker repos can be discovered through HTTP proxy.
-
-    :Team: Phoenix-content
 
     :BZ: 2011303, 2042473, 2046337
 
@@ -223,38 +221,42 @@ def test_positive_install_content_with_http_proxy(
 
 @pytest.mark.e2e
 @pytest.mark.tier2
-def test_positive_assign_http_proxy_to_products(target_sat):
+def test_positive_assign_http_proxy_to_products(target_sat, function_org):
     """Assign http_proxy to Products and check whether http-proxy is
      used during sync.
 
     :id: c9d23aa1-3325-4abd-a1a6-d5e75c12b08a
 
-    :expectedresults: HTTP Proxy is assigned to all repos present
-        in Products and sync operation uses assigned http-proxy.
+    :setup:
+        1. Create an Organization.
 
-    :Team: Phoenix-content
+    :steps:
+        1. Create two HTTP proxies.
+        2. Create two products and two repos in each product with various HTTP proxy policies.
+        3. Set the HTTP proxy through bulk action for both products.
+        4. Bulk sync one product.
 
-    :CaseImportance: Critical
+    :expectedresults:
+        1. HTTP Proxy is assigned to all repos present in Products
+           and sync operation uses assigned http-proxy and pass.
     """
-    org = target_sat.api.Organization().create()
-    # create HTTP proxies
+    # Create two HTTP proxies
     http_proxy_a = target_sat.api.HTTPProxy(
         name=gen_string('alpha', 15),
         url=settings.http_proxy.un_auth_proxy_url,
-        organization=[org],
+        organization=[function_org],
     ).create()
-
     http_proxy_b = target_sat.api.HTTPProxy(
         name=gen_string('alpha', 15),
         url=settings.http_proxy.auth_proxy_url,
         username=settings.http_proxy.username,
         password=settings.http_proxy.password,
-        organization=[org],
+        organization=[function_org],
     ).create()
 
-    # Create products and repositories
-    product_a = target_sat.api.Product(organization=org).create()
-    product_b = target_sat.api.Product(organization=org).create()
+    # Create two products and two repos in each product with various HTTP proxy policies
+    product_a = target_sat.api.Product(organization=function_org).create()
+    product_b = target_sat.api.Product(organization=function_org).create()
     repo_a1 = target_sat.api.Repository(product=product_a, http_proxy_policy='none').create()
     repo_a2 = target_sat.api.Repository(
         product=product_a,
@@ -265,7 +267,8 @@ def test_positive_assign_http_proxy_to_products(target_sat):
     repo_b2 = target_sat.api.Repository(
         product=product_b, http_proxy_policy='global_default_http_proxy'
     ).create()
-    # Add http_proxy to products
+
+    # Set the HTTP proxy through bulk action for both products
     target_sat.api.ProductBulkAction().http_proxy(
         data={
             "ids": [product_a.id, product_b.id],
@@ -273,13 +276,11 @@ def test_positive_assign_http_proxy_to_products(target_sat):
             "http_proxy_id": http_proxy_b.id,
         }
     )
-
     for repo in repo_a1, repo_a2, repo_b1, repo_b2:
         r = repo.read()
         assert r.http_proxy_policy == "use_selected_http_proxy"
         assert r.http_proxy_id == http_proxy_b.id
-
-    product_a.sync({'async': True})
+    assert 'success' in product_a.sync()['result'], 'Product sync failed'
 
 
 @pytest.mark.tier2
@@ -309,6 +310,11 @@ def test_positive_sync_proxy_with_certificate(request, target_sat, module_org, m
 
     # Create and fetch new cerfiticate
     target_sat.custom_cert_generate(proxy_host)
+
+    @request.addfinalizer
+    def _finalize():
+        target_sat.custom_certs_cleanup()
+
     cacert = target_sat.execute(f'cat {cacert_path}').stdout
     assert 'END CERTIFICATE' in cacert
 
@@ -335,7 +341,3 @@ def test_positive_sync_proxy_with_certificate(request, target_sat, module_org, m
     assert response.get('errors') is None
     assert repo.read().last_sync is not None
     assert repo.read().content_counts['rpm'] >= 1
-
-    @request.addfinalizer
-    def _finalize():
-        target_sat.custom_certs_cleanup()
