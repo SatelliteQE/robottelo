@@ -16,6 +16,11 @@ import pytest
 
 from robottelo import constants
 from robottelo.config import settings
+from robottelo.constants import (
+    CONTAINER_REGISTRY_HUB,
+    CONTAINER_UPSTREAM_NAME,
+)
+from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
 
 
 @pytest.mark.tier2
@@ -24,25 +29,58 @@ from robottelo.config import settings
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize(
     'setup_http_proxy',
-    [None, True, False],
+    [True, False],
     indirect=True,
-    ids=['no_http_proxy', 'auth_http_proxy', 'unauth_http_proxy'],
+    ids=['auth_http_proxy', 'unauth_http_proxy'],
 )
-def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifest_org):
+@pytest.mark.parametrize(
+    'module_repos_collection_with_manifest',
+    [
+        {
+            'distro': 'rhel7',
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'YumRepository': {'url': settings.repos.module_stream_1.url},
+            'FileRepository': {'url': CUSTOM_FILE_REPO},
+            'DockerRepository': {
+                'url': CONTAINER_REGISTRY_HUB,
+                'upstream_name': CONTAINER_UPSTREAM_NAME,
+            },
+            'AnsibleRepository': {
+                'url': ANSIBLE_GALAXY,
+                'requirements': [
+                    {'name': 'theforeman.foreman', 'version': '2.1.0'},
+                    {'name': 'theforeman.operations', 'version': '0.1.0'},
+                ],
+            },
+        }
+    ],
+    indirect=True,
+)
+def test_positive_end_to_end(
+    setup_http_proxy, module_target_sat, module_org, module_repos_collection_with_manifest
+):
     """End-to-end test for HTTP Proxy related scenarios.
 
     :id: 38df5479-9127-49f3-a30e-26b33655971a
 
     :customerscenario: true
 
-    :steps:
-        1. Set Http proxy settings for Satellite.
-        2. Enable and sync redhat repository.
-        3. Assign Http Proxy to custom repository and perform repo sync.
-        4. Discover yum type repo.
-        5. Discover docker type repo.
+    :setup:
+        1. Create HTTP proxy entity at the Satellite.
+        2. Create RH yum repository.
+        3. Create custom repo of each content type (yum, file, docker, ansible collection).
 
-    :expectedresults: HTTP Proxy works with other satellite components.
+    :steps:
+        1. Set immediate download policy where applicable for complete sync testing.
+        2. For each repo set global default HTTP proxy and sync it.
+        3. For each repo set specific HTTP proxy and sync it.
+        4. For each repo set no HTTP proxy and sync it.
+        5. Discover yum type repo through HTTP proxy.
+        6. Discover docker type repo through HTTP proxy.
+
+    :expected results:
+        1. All repository updates and syncs succeed.
+        2. Yum and docker repos can be discovered through HTTP proxy.
 
     :Team: Phoenix-content
 
@@ -52,59 +90,36 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
 
     :CaseImportance: Critical
     """
-    http_proxy, http_proxy_type = setup_http_proxy
-    http_proxy_id = http_proxy.id if http_proxy_type is not None else None
-    http_proxy_policy = 'use_selected_http_proxy' if http_proxy_type is not None else 'none'
-    # Assign http_proxy to Redhat repository and perform repository sync.
-    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
-        basearch=constants.DEFAULT_ARCHITECTURE,
-        org_id=module_manifest_org.id,
-        product=constants.PRDS['rhae'],
-        repo=constants.REPOS['rhae2']['name'],
-        reposet=constants.REPOSET['rhae2'],
-        releasever=None,
-    )
-    module_target_sat.api.Repository(id=rh_repo_id).sync()
-    rh_repo = module_target_sat.api.Repository(
-        id=rh_repo_id,
-        http_proxy_policy=http_proxy_policy,
-        http_proxy_id=http_proxy_id,
-        download_policy='immediate',
-    ).update()
-    assert rh_repo.http_proxy_policy == http_proxy_policy
-    assert rh_repo.http_proxy_id == http_proxy_id
-    assert rh_repo.download_policy == 'immediate'
-    rh_repo.sync()
-    assert rh_repo.read().content_counts['rpm'] >= 1
+    # Set immediate download policy where applicable for complete sync testing
+    for repo in module_repos_collection_with_manifest.repos_info:
+        if repo['content-type'] in ['yum', 'docker']:
+            module_target_sat.api.Repository(id=repo['id'], download_policy='immediate').update()
 
-    # Assign http_proxy to Repositories and perform repository sync.
-    repo_options = {
-        'http_proxy_policy': http_proxy_policy,
-        'http_proxy_id': http_proxy_id,
-    }
-    repo = module_target_sat.api.Repository(**repo_options).create()
+    # For each repo set global/specific/no HTTP proxy and sync it
+    for policy in ['global_default_http_proxy', 'use_selected_http_proxy', 'none']:
+        for repo in module_repos_collection_with_manifest.repos_info:
+            repo = module_target_sat.api.Repository(
+                id=repo['id'],
+                http_proxy_policy=policy,
+                http_proxy_id=setup_http_proxy[0].id if 'selected' in policy else None,
+            ).update()
+            assert (
+                repo.http_proxy_policy == policy
+            ), f'Policy update failed for {repo.content_type} repo with {policy} HTTP policy'
+            assert (
+                repo.http_proxy_id == setup_http_proxy[0].id
+                if 'selected' in policy
+                else repo.http_proxy_id is None
+            ), f'Proxy id update failed for {repo.content_type} repo with {policy} HTTP policy'
+            assert (
+                'success' in module_target_sat.api.Repository(id=repo.id).sync()['result']
+            ), f'Sync of a {repo.content_type} repo with {policy} HTTP policy failed'
 
-    assert repo.http_proxy_policy == http_proxy_policy
-    assert repo.http_proxy_id == http_proxy_id
-    repo.sync()
-    assert repo.read().content_counts['rpm'] >= 1
-
-    # Use global_default_http_proxy
-    repo_options['http_proxy_policy'] = 'global_default_http_proxy'
-    repo_2 = module_target_sat.api.Repository(**repo_options).create()
-    repo_2.sync()
-    assert repo_2.http_proxy_policy == 'global_default_http_proxy'
-
-    # Update to selected_http_proxy
-    repo_2.http_proxy_policy = 'none'
-    repo_2.update(['http_proxy_policy'])
-    assert repo_2.read().http_proxy_policy == 'none'
-
-    # test scenario for yum type repo discovery.
+    # Discover yum type repo through HTTP proxy
     repo_name = 'fakerepo01'
-    yum_repo = module_target_sat.api.Organization(id=module_manifest_org.id).repo_discover(
+    yum_repo = module_target_sat.api.Organization(id=module_org.id).repo_discover(
         data={
-            "id": module_manifest_org.id,
+            "id": module_org.id,
             "url": settings.repos.repo_discovery.url,
             "content_type": "yum",
         }
@@ -112,10 +127,10 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_manifes
     assert len(yum_repo['output']) == 1
     assert yum_repo['output'][0] == f'{settings.repos.repo_discovery.url}/{repo_name}/'
 
-    # test scenario for docker type repo discovery.
-    docker_repo = module_target_sat.api.Organization(id=module_manifest_org.id).repo_discover(
+    # Discover docker type repo through HTTP proxy
+    docker_repo = module_target_sat.api.Organization(id=module_org.id).repo_discover(
         data={
-            "id": module_manifest_org.id,
+            "id": module_org.id,
             "url": 'quay.io',
             "content_type": "docker",
             "search": 'foreman/foreman',
