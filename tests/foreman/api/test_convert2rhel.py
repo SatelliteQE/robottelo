@@ -36,22 +36,6 @@ def create_repo(sat, org, repo_url, ssl_cert=None):
     return repo
 
 
-def create_activation_key(sat, org, lce, cv):
-    """Create activation key with subscription"""
-    act_key = sat.api.ActivationKey(
-        organization=org,
-        content_view=cv,
-        environment=lce,
-    ).create()
-    content = act_key.product_content(data={'content_access_mode_all': '1'})['results']
-    custom_repo_label = [repo['label'] for repo in content if repo['vendor'] == 'Custom']
-    if custom_repo_label:
-        act_key.content_override(
-            data={'content_overrides': [{'content_label': custom_repo_label[0], 'value': '1'}]}
-        )
-    return act_key
-
-
 def update_cv(sat, cv, lce, repos):
     """Update and publish Content view with repos"""
     cv = sat.api.ContentView(id=cv.id, repository=repos).update(['repository'])
@@ -73,16 +57,13 @@ def ssl_cert(module_target_sat, module_sca_manifest_org):
 
 
 @pytest.fixture
-def activation_key_rhel(
-    module_target_sat, module_sca_manifest_org, module_lce, module_promoted_cv, version
-):
+def activation_key_rhel(module_target_sat, module_sca_manifest_org, module_lce, module_promoted_cv):
     """Create activation key that will be used after conversion for registration"""
-    return create_activation_key(
-        module_target_sat,
-        module_sca_manifest_org,
-        module_lce,
-        module_promoted_cv,
-    )
+    return module_target_sat.api.ActivationKey(
+        organization=module_sca_manifest_org,
+        content_view=module_promoted_cv,
+        environment=module_lce,
+    ).create()
 
 
 @pytest.fixture(scope='module')
@@ -143,12 +124,20 @@ def centos(
     cv = update_cv(
         module_target_sat, module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo]
     )
-    act_key = create_activation_key(module_target_sat, module_sca_manifest_org, module_lce, cv)
+    ak = module_target_sat.api.ActivationKey(
+        organization=module_sca_manifest_org,
+        content_view=cv,
+        environment=module_lce,
+    ).create()
+    # Ensure C2R repo is enabled in the activation key
+    all_content = ak.product_content(data={'content_access_mode_all': '1'})['results']
+    repo_label = [content['label'] for content in all_content if content['name'] == repo.name][0]
+    ak.content_override(data={'content_overrides': [{'content_label': repo_label, 'value': '1'}]})
 
     # Register CentOS host with Satellite
     command = module_target_sat.api.RegistrationCommand(
         organization=module_sca_manifest_org,
-        activation_keys=[act_key.name],
+        activation_keys=[ak.name],
         location=smart_proxy_location,
         insecure=True,
     ).create()
@@ -207,14 +196,23 @@ def oracle(
     cv = update_cv(
         module_target_sat, module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo]
     )
-    act_key = create_activation_key(module_target_sat, module_sca_manifest_org, module_lce, cv)
+    ak = module_target_sat.api.ActivationKey(
+        organization=module_sca_manifest_org,
+        content_view=cv,
+        environment=module_lce,
+    ).create()
+    # Ensure C2R repo is enabled in the activation key
+    all_content = ak.product_content(data={'content_access_mode_all': '1'})['results']
+    repo_label = [content['label'] for content in all_content if content['name'] == repo.name][0]
+    ak.content_override(data={'content_overrides': [{'content_label': repo_label, 'value': '1'}]})
+
     # UBI repo required for subscription-manager packages on Oracle
     ubi_url = settings.repos.convert2rhel.ubi7 if major == '7' else settings.repos.convert2rhel.ubi8
 
     # Register Oracle host with Satellite
     command = module_target_sat.api.RegistrationCommand(
         organization=module_sca_manifest_org,
-        activation_keys=[act_key.name],
+        activation_keys=[ak.name],
         location=smart_proxy_location,
         insecure=True,
         repo=ubi_url,
