@@ -1557,14 +1557,22 @@ class TestRepositorySync:
         ),
         indirect=True,
     )
-    def test_missing_content_id(self, repo):
+    def test_missing_content_id(self, repo, function_entitlement_manifest_org, target_sat):
         """Handle several cases of missing content ID correctly
 
         :id: f507790a-933b-4b3f-ac93-cade6967fbd2
 
         :parametrized: yes
 
-        :expectedresults: Repository URL can be set to something new and the repo can be deleted
+        :setup:
+            1. Create product and repo, sync repo
+
+        :steps:
+            1. Try to update repo URL
+            2. Attempt to delete repo
+            3. Refresh manifest file
+
+        :expectedresults: Repo URL can be updated, repo can be deleted and manifest refresh works after repo delete
 
         :BZ:2032040
         """
@@ -1582,6 +1590,10 @@ class TestRepositorySync:
         repo.delete()
         with pytest.raises(HTTPError):
             repo.read()
+        output = target_sat.cli.Subscription.refresh_manifest(
+            {'organization-id': function_entitlement_manifest_org.id}
+        )
+        assert 'Candlepin job status: SUCCESS' in output, 'Failed to refresh manifest'
 
 
 class TestDockerRepository:
