@@ -286,17 +286,19 @@ def test_global_registration_form_populate(
         1. create and sync repository
         2. create the content view and activation-key
         3. create the host-group with activation key, operating system, host-parameters
-        4. Open the global registration form and select the same host-group
-        5. check host registration form should be populated automatically based on the host-group
+        4. create a nested host-group to inherit values
+        5. open the global registration form and select the same host-group
+        6. check host registration form should be populated automatically based on the host-group
 
-    :BZ: 2056469, 1994654
+    :BZ: 2056469, 1994654, 1955421
 
     :customerscenario: true
     """
     hg_name = gen_string('alpha')
+    hg_nested_name = gen_string('alpha')
     iface = gen_string('alpha')
     group_params = {'name': 'host_packages', 'value': constants.FAKE_0_CUSTOM_PACKAGE}
-    target_sat.api.HostGroup(
+    parent_hg = target_sat.api.HostGroup(
         name=hg_name,
         organization=[module_org],
         lifecycle_environment=module_lce,
@@ -305,24 +307,25 @@ def test_global_registration_form_populate(
         content_view=module_promoted_cv,
         group_parameters_attributes=[group_params],
     ).create()
+    target_sat.api.HostGroup(name=hg_nested_name, parent=parent_hg).create()
     new_org = target_sat.api.Organization().create()
     new_ak = target_sat.api.ActivationKey(organization=new_org).create()
     with session:
         session.hostgroup.update(
-            hg_name,
+            f'{hg_name}/{hg_nested_name}',
             {
                 'activation_keys.activation_keys': module_ak_with_cv.name,
             },
         )
         cmd = session.host.get_register_command(
             {
-                'general.host_group': hg_name,
+                'general.host_group': f'{hg_name}/{hg_nested_name}',
                 'advanced.rex_interface': iface,
                 'general.insecure': True,
             },
             full_read=True,
         )
-        assert hg_name in cmd['general']['host_group']
+        assert hg_nested_name in cmd['general']['host_group']
         assert module_ak_with_cv.name in cmd['general']['activation_key_helper']
         assert constants.FAKE_0_CUSTOM_PACKAGE in cmd['advanced']['install_packages_helper']
 
