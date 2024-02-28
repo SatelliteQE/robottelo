@@ -115,7 +115,6 @@ def rhsso_groups_teardown(module_target_sat, default_sso_host):
         default_sso_host.delete_rhsso_group(group_name)
 
 
-@pytest.mark.external_auth
 @pytest.fixture
 def configure_hammer_session(parametrized_enrolled_sat, enable=True):
     """Take backup of the hammer config file and enable use_sessions"""
