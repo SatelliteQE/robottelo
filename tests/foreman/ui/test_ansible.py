@@ -91,6 +91,7 @@ def test_positive_create_variable_with_overrides(target_sat):
         assert session.ansiblevariables.search(key)[0]['Name'] == key
 
 
+@pytest.mark.pit_server
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('[^6]')
 def test_positive_config_report_ansible(session, target_sat, module_org, rhel_contenthost):
