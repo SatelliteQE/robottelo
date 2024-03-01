@@ -208,11 +208,11 @@ def test_positive_delete_manifest_as_another_user(
     )
     # use the first admin to upload a manifest
     with function_entitlement_manifest as manifest:
-        target_sat.api.Subscription(sc1, organization=function_org).upload(
+        target_sat.api.Subscription(server_config=sc1, organization=function_org).upload(
             data={'organization_id': function_org.id}, files={'content': manifest.content}
         )
     # try to search and delete the manifest with another admin
-    target_sat.api.Subscription(sc2, organization=function_org).delete_manifest(
+    target_sat.api.Subscription(server_config=sc2, organization=function_org).delete_manifest(
         data={'organization_id': function_org.id}
     )
     assert len(target_sat.cli.Subscription.list({'organization-id': function_org.id})) == 0
