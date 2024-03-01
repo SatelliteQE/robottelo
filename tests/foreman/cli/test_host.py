@@ -2456,15 +2456,15 @@ def test_positive_host_with_puppet(
         location=[host_template.location],
     ).update(['location', 'organization'])
 
-    session_puppet_enabled_sat.cli.target_sat.cli.Host.update(
+    session_puppet_enabled_sat.cli.Host.update(
         {
             'name': host.name,
             'puppet-environment': module_puppet_environment.name,
         }
     )
-    host = session_puppet_enabled_sat.cli.target_sat.cli.Host.info({'id': host['id']})
+    host = session_puppet_enabled_sat.cli.Host.info({'id': host['id']})
     assert host['puppet-environment'] == module_puppet_environment.name
-    session_puppet_enabled_sat.cli.target_sat.cli.Host.delete({'id': host['id']})
+    session_puppet_enabled_sat.cli.Host.delete({'id': host['id']})
 
 
 @pytest.fixture
@@ -2543,9 +2543,7 @@ def test_positive_list_scparams(
     scp_id = choice(sc_params_list)['id']
     session_puppet_enabled_sat.cli.SmartClassParameter.update({'id': scp_id, 'override': 1})
     # Verify that affected sc-param is listed
-    host_scparams = session_puppet_enabled_sat.cli.target_sat.cli.Host.sc_params(
-        {'host': host['name']}
-    )
+    host_scparams = session_puppet_enabled_sat.cli.Host.sc_params({'host': host['name']})
     assert scp_id in [scp['id'] for scp in host_scparams]
 
 
@@ -2580,9 +2578,7 @@ def test_positive_create_with_puppet_class_name(
             'puppet-proxy-id': session_puppet_enabled_proxy.id,
         }
     )
-    host_classes = session_puppet_enabled_sat.cli.target_sat.cli.Host.puppetclasses(
-        {'host': host['name']}
-    )
+    host_classes = session_puppet_enabled_sat.cli.Host.puppetclasses({'host': host['name']})
     assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
 
 
@@ -2623,21 +2619,17 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
             'puppet-proxy-id': session_puppet_enabled_proxy.id,
         }
     )
-    host_classes = session_puppet_enabled_sat.cli.target_sat.cli.Host.puppetclasses(
-        {'host': host['name']}
-    )
+    host_classes = session_puppet_enabled_sat.cli.Host.puppetclasses({'host': host['name']})
     assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
 
-    session_puppet_enabled_sat.cli.target_sat.cli.Host.update(
+    session_puppet_enabled_sat.cli.Host.update(
         {'id': host['id'], 'owner': module_puppet_user.login, 'owner-type': 'User'}
     )
-    host = session_puppet_enabled_sat.cli.target_sat.cli.Host.info({'id': host['id']})
+    host = session_puppet_enabled_sat.cli.Host.info({'id': host['id']})
     assert int(host['additional-info']['owner-id']) == module_puppet_user.id
     assert host['additional-info']['owner-type'] == 'User'
 
-    host_classes = session_puppet_enabled_sat.cli.target_sat.cli.Host.puppetclasses(
-        {'host': host['name']}
-    )
+    host_classes = session_puppet_enabled_sat.cli.Host.puppetclasses({'host': host['name']})
     assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
 
 
