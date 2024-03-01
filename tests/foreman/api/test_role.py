@@ -1195,7 +1195,7 @@ class TestCannedRole:
         # Creating resource
         dom_name = gen_string('alpha')
         dom = target_sat.api.Domain(
-            sc,
+            server_config=sc,
             name=dom_name,
             organization=[role_taxonomies['org']],
             location=[role_taxonomies['loc']],
@@ -1239,7 +1239,7 @@ class TestCannedRole:
         # Creating resource
         dom_name = gen_string('alpha')
         dom = target_sat.api.Domain(
-            sc,
+            server_config=sc,
             name=dom_name,
             organization=[role_taxonomies['org']],
             location=[role_taxonomies['loc']],
