@@ -75,7 +75,7 @@ class TestWebhook:
             target_sat.api.Webhooks(event='invalid_event').create()
 
     @pytest.mark.tier2
-    @pytest.mark.parametrize('event', **parametrized(WEBHOOK_EVENTS))
+    @pytest.mark.parametrize('event', WEBHOOK_EVENTS)
     def test_positive_valid_event(self, event, target_sat):
         """Test positive webhook creation with a valid event
 
