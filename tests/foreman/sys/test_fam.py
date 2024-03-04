@@ -132,3 +132,8 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
     )
     assert 'PASSED' in result.stdout
     assert result.status == 0
+
+
+def test_test_test(module_target_sat):
+    module_target_sat.execute('rpm -qa | grep foreman')
+    assert 1 == 1
