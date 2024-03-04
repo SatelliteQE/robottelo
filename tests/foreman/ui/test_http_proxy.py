@@ -73,12 +73,18 @@ def test_positive_assign_http_proxy_to_products_repositories(
 
     :id: 2b803f9c-8d5d-4467-8eba-18244ebc0201
 
-    :expectedresults: HTTP Proxy is assigned to all repos present
-        in Products.
+    :setup:
+        1. Create an Organization and Location.
 
-    :CaseImportance: Critical
+    :steps:
+        1. Create two HTTP proxies.
+        2. Create two products and two repos in each product with various HTTP proxy policies.
+        3. Set the HTTP proxy through bulk action for both products.
+
+    :expectedresults:
+        1. HTTP Proxy is assigned to all repos present in Products.
     """
-    # create HTTP proxies
+    # Create two HTTP proxies
     http_proxy_a = target_sat.api.HTTPProxy(
         name=gen_string('alpha', 15),
         url=settings.http_proxy.un_auth_proxy_url,
@@ -93,14 +99,14 @@ def test_positive_assign_http_proxy_to_products_repositories(
         organization=[module_org.id],
         location=[module_location.id],
     ).create()
-    # Create products
+    # Create two products
     product_a = target_sat.api.Product(
         organization=module_org.id,
     ).create()
     product_b = target_sat.api.Product(
         organization=module_org.id,
     ).create()
-    # Create repositories from UI.
+    # Create two repositories in each product from UI
     with target_sat.ui_session() as session:
         repo_a1_name = gen_string('alpha')
         session.organization.select(org_name=module_org.name)
@@ -152,7 +158,7 @@ def test_positive_assign_http_proxy_to_products_repositories(
                 'repo_content.http_proxy_policy': 'No HTTP Proxy',
             },
         )
-        # Add http_proxy to products
+        # Set the HTTP proxy through bulk action for both products
         session.product.search('')
         session.product.manage_http_proxy(
             [product_a.name, product_b.name],
@@ -337,8 +343,6 @@ def test_positive_repo_discovery(setup_http_proxy, module_target_sat, module_org
     :id: fd385552-8cbb-49f7-8557-cc4e6ac7e79a
 
     :expectedresults: Repository is discovered and created.
-
-    :team: Phoenix-content
 
     :BZ: 2011303, 2042473
 
