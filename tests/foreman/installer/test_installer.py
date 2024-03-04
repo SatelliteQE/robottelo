@@ -1420,6 +1420,7 @@ def test_installer_options_and_sections(filter):
 @pytest.mark.tier1
 @pytest.mark.build_sanity
 @pytest.mark.first_sanity
+@pytest.mark.pit_server
 @pytest.mark.parametrize(
     "installer_satellite", [settings.server.version.rhel_version], indirect=True
 )
@@ -1453,6 +1454,7 @@ def test_satellite_installation(installer_satellite):
 
 @pytest.mark.e2e
 @pytest.mark.tier1
+@pytest.mark.pit_server
 @pytest.mark.parametrize(
     "installer_satellite", [settings.server.version.rhel_version], indirect=True
 )
