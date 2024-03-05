@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: RHCloud-CloudConnector
+:CaseComponent: RHCloud
 
 :Team: Platform
 
