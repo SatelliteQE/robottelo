@@ -204,6 +204,34 @@ class DockerRepository(BaseRepository):
         return repo_info
 
 
+class AnsibleRepository(BaseRepository):
+    """Custom Ansible Collection repository"""
+
+    _type = constants.REPO_TYPE['ansible_collection']
+
+    def __init__(self, url=None, distro=None, requirements=None):
+        self._requirements = requirements
+        super().__init__(url=url, distro=distro)
+
+    @property
+    def requirements(self):
+        return self._requirements
+
+    def create(self, organization_id, product_id, download_policy=None, synchronize=True):
+        repo_info = self.satellite.cli_factory.make_repository(
+            {
+                'product-id': product_id,
+                'content-type': self.content_type,
+                'url': self.url,
+                'ansible-collection-requirements': f'{{collections: {self.requirements}}}',
+            }
+        )
+        self._repo_info = repo_info
+        if synchronize:
+            self.synchronize()
+        return repo_info
+
+
 class OSTreeRepository(BaseRepository):
     """Custom OSTree repository"""
 
