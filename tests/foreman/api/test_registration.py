@@ -326,3 +326,40 @@ def test_positive_host_registration_with_non_admin_user_with_setup_false(
     assert '# Updating packages' not in result.stdout
     # verify foreman-proxy ssh pubkey isn't present when Setup REX is false
     assert rhel_contenthost.execute('cat ~/.ssh/authorized_keys | grep foreman-proxy').status == 1
+
+
+@pytest.mark.rhel_ver_match('[^6]')
+def test_negative_verify_bash_exit_status_failing_host_registration(
+    module_sca_manifest_org,
+    module_location,
+    module_target_sat,
+    rhel_contenthost,
+):
+    """Verify status code, when curl command registration fail intentionally
+
+    :id: 4789e8da-6391-4ea4-aa0d-73c93220ce44
+
+    :steps:
+        1. Generate a curl command and make the registration fail intentionally.
+        2. Check the exit code for the command.
+
+    :expectedresults: Exit code returns 1 if registration fails.
+
+    :BZ: 2155444
+
+    :customerscenario: true
+
+    :parametrized: yes
+    """
+    ak = module_target_sat.api.ActivationKey(name=gen_string('alpha')).create()
+    # Try registration command generated with AK not in same as selected organization
+    command = module_target_sat.api.RegistrationCommand(
+        organization=module_sca_manifest_org,
+        activation_keys=[ak.name],
+        location=module_location,
+    ).create()
+    result = rhel_contenthost.execute(command)
+
+    # verify status code when registrationCommand fails to register on host
+    assert result.status == 1
+    assert 'Couldn\'t find activation key' in result.stderr
