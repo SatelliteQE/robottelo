@@ -673,7 +673,7 @@ def test_positive_sync_ansible_collection_gallaxy_repo(session, module_prod):
             module_prod.name,
             {
                 'name': repo_name,
-                'repo_type': REPO_TYPE['ansible_collection'],
+                'repo_type': REPO_TYPE['ansible_collection'].replace('_', ' '),
                 'repo_content.requirements': requirements,
                 'repo_content.upstream_url': ANSIBLE_GALAXY,
             },
