@@ -123,6 +123,12 @@ class YumRepository(BaseRepository):
     _type = constants.REPO_TYPE['yum']
 
 
+class FileRepository(BaseRepository):
+    """Custom File repository"""
+
+    _type = constants.REPO_TYPE['file']
+
+
 class DebianRepository(BaseRepository):
     """Custom Debian repository."""
 
