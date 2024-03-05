@@ -224,6 +224,7 @@ REPO_TYPE = {
     'ostree': "ostree",
     'docker': "docker",
     "ansible_collection": "ansible collection",
+    'file': "file",
 }
 
 DOWNLOAD_POLICIES = {
