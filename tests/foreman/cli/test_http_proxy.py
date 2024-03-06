@@ -111,8 +111,6 @@ def test_insights_client_registration_with_http_proxy():
             works with http proxy set.
 
     :CaseAutomation: NotAutomated
-
-    :CaseImportance: High
     """
 
 
@@ -132,8 +130,6 @@ def test_positive_set_content_default_http_proxy(block_fake_repo_access, target_
             4. Sync a repo.
 
     :expectedresults:  Repo is synced
-
-    :CaseImportance: High
     """
     org = target_sat.api.Organization().create()
     proxy_name = gen_string('alpha', 15)
@@ -186,8 +182,6 @@ def test_positive_environment_variable_unset_set():
     :expectedresults: satellite-installer unsets system proxy and SSL environment variables
                       only for the duration of install and sets back those in the end.
 
-    :CaseImportance: High
-
     :CaseAutomation: NotAutomated
     """
 
@@ -200,12 +194,22 @@ def test_positive_assign_http_proxy_to_products(module_org, module_target_sat):
 
     :id: 6af7b2b8-15d5-4d9f-9f87-e76b404a966f
 
-    :expectedresults: HTTP Proxy is assigned to all repos present
-        in Products and sync operation performed successfully.
+    :steps:
+        1. Create two HTTP proxies.
+        2. Create two products and two repos in each product with various HTTP proxy policies.
+        3. Set the HTTP proxy through bulk action for both products to the selected proxy.
+        4. Bulk sync both products and verify packages counts.
+        5. Set the HTTP proxy through bulk action for both products to None.
 
-    :CaseImportance: High
+    :expectedresults:
+        1. HTTP Proxy is assigned to all repos present in Products
+           and sync operation uses assigned http-proxy and pass.
+
+    :expectedresults:
+        1. HTTP Proxy is assigned to all repos present in Products
+           and sync operation performed successfully.
     """
-    # create HTTP proxies
+    # Create two HTTP proxies
     http_proxy_a = module_target_sat.cli.HttpProxy.create(
         {
             'name': gen_string('alpha', 15),
@@ -222,7 +226,8 @@ def test_positive_assign_http_proxy_to_products(module_org, module_target_sat):
             'organization-id': module_org.id,
         },
     )
-    # Create products and repositories
+
+    # Create two products and two repos in each product with various HTTP proxy policies
     product_a = module_target_sat.cli_factory.make_product({'organization-id': module_org.id})
     product_b = module_target_sat.cli_factory.make_product({'organization-id': module_org.id})
     repo_a1 = module_target_sat.cli_factory.make_repository(
@@ -257,31 +262,37 @@ def test_positive_assign_http_proxy_to_products(module_org, module_target_sat):
             'url': settings.repos.yum_0.url,
         },
     )
-    # Add http_proxy to products
-    module_target_sat.cli.Product.update_proxy(
+
+    # Set the HTTP proxy through bulk action for both products to the selected proxy
+    res = module_target_sat.cli.Product.update_proxy(
         {
             'ids': f"{product_a['id']},{product_b['id']}",
             'http-proxy-policy': 'use_selected_http_proxy',
             'http-proxy-id': http_proxy_b['id'],
         }
     )
+    assert 'Product proxy updated' in res
     for repo in repo_a1, repo_a2, repo_b1, repo_b2:
         result = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert result['http-proxy']['http-proxy-policy'] == 'use_selected_http_proxy'
         assert result['http-proxy']['id'] == http_proxy_b['id']
-    # Perform sync and verify packages count
+
+    # Bulk sync both products and verify packages counts
     module_target_sat.cli.Product.synchronize(
         {'id': product_a['id'], 'organization-id': module_org.id}
     )
     module_target_sat.cli.Product.synchronize(
         {'id': product_b['id'], 'organization-id': module_org.id}
     )
+    for repo in repo_a1, repo_a2, repo_b1, repo_b2:
+        info = module_target_sat.cli.Repository.info({'id': repo['id']})
+        assert int(info['content-counts']['packages']) == FAKE_0_YUM_REPO_PACKAGES_COUNT
 
-    module_target_sat.cli.Product.update_proxy(
+    # Set the HTTP proxy through bulk action for both products to None
+    res = module_target_sat.cli.Product.update_proxy(
         {'ids': f"{product_a['id']},{product_b['id']}", 'http-proxy-policy': 'none'}
     )
-
+    assert 'Product proxy updated' in res
     for repo in repo_a1, repo_a2, repo_b1, repo_b2:
         result = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert result['http-proxy']['http-proxy-policy'] == 'none'
-        assert int(result['content-counts']['packages']) == FAKE_0_YUM_REPO_PACKAGES_COUNT
