@@ -35,3 +35,20 @@ def test_positive_katello_reimport(target_sat):
     result = target_sat.execute('foreman-rake katello:reimport')
     assert 'NoMethodError:' not in result.stdout
     assert 'rake aborted!' not in result.stdout
+    assert result.status == 0
+
+
+@pytest.mark.tier3
+def test_positive_katello_correct_repositories(target_sat):
+    """Make sure that foreman-rake katello:correct_repositories COMMIT=true works and doesn't throw an error.
+
+    :id: 95816f1c-e028-40e7-be6d-5bf1269daf74
+
+    :steps: Have satellite up and run the command
+
+    :expectedresults: Successfully execute without errors
+
+    """
+
+    result = target_sat.execute('foreman-rake katello:correct_repositories COMMIT=true')
+    assert result.status == 0
