@@ -44,6 +44,7 @@ def default_puppet_environment(module_puppet_org, session_puppet_enabled_sat):
     )
     if environments:
         return environments[0].read()
+    return None
 
 
 @pytest.fixture(scope='module')
@@ -101,10 +102,7 @@ def module_puppet_classes(
 
 @pytest.fixture(scope='session', params=[True, False], ids=["puppet_enabled", "puppet_disabled"])
 def parametrized_puppet_sat(request, session_target_sat, session_puppet_enabled_sat):
-    if request.param:
-        sat = session_puppet_enabled_sat
-    else:
-        sat = session_target_sat
+    sat = session_puppet_enabled_sat if request.param else session_target_sat
     return {'sat': sat, 'enabled': request.param}
 
 

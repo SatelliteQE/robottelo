@@ -35,13 +35,14 @@ def pytest_sessionstart(session):
 
     remove if resolved and set autouse=True for record_testsuite_timestamp_xml fixture
     """
-    if get_xdist_worker_id(session) == 'master':
-        if session.config.pluginmanager.hasplugin('junitxml'):
-            xml = session.config._store.get(xml_key, None)
-            if xml:
-                xml.add_global_property(
-                    'start_time', datetime.datetime.utcnow().strftime(FMT_XUNIT_TIME)
-                )
+    if get_xdist_worker_id(session) == 'master' and session.config.pluginmanager.hasplugin(
+        'junitxml'
+    ):
+        xml = session.config._store.get(xml_key, None)
+        if xml:
+            xml.add_global_property(
+                'start_time', datetime.datetime.utcnow().strftime(FMT_XUNIT_TIME)
+            )
 
 
 @pytest.fixture(autouse=False, scope='session')

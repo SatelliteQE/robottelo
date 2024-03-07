@@ -40,8 +40,7 @@ def _is_host_reachable(host, retries=12, iteration_sleep=5, expect_reachable=Tru
     result = ssh.command(cmd.format(retries, host, operator, iteration_sleep))
     if expect_reachable:
         return not result.status
-    else:
-        return bool(result.status)
+    return bool(result.status)
 
 
 @pytest.mark.tier3

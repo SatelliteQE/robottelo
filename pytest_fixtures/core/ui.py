@@ -102,7 +102,8 @@ def ui_session_record_property(request, record_property):
     test_file_path = request.node.fspath.strpath
     if any(directory in test_file_path for directory in test_directories):
         for fixture in request.node.fixturenames:
-            if request.fixturename != fixture:
-                if isinstance(request.getfixturevalue(fixture), Satellite):
-                    sat = request.getfixturevalue(fixture)
-                    sat.record_property = record_property
+            if request.fixturename != fixture and isinstance(
+                request.getfixturevalue(fixture), Satellite
+            ):
+                sat = request.getfixturevalue(fixture)
+                sat.record_property = record_property
