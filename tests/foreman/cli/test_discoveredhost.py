@@ -59,6 +59,7 @@ def test_rhel_pxe_discovery_provisioning(
     discovered_host.location = provisioning_hostgroup.location[0]
     discovered_host.organization = provisioning_hostgroup.organization[0]
     discovered_host.build = True
+    discovered_host.update(['hostgroup', 'location', 'organization', 'build'])
     result = sat.cli.DiscoveredHost.provision(
         {
             'id': discovered_host.id,
@@ -103,7 +104,7 @@ def test_rhel_pxeless_discovery_provisioning(
     :Setup: Provisioning should be configured and a host should be
         discovered via cli
 
-    :expectedresults: Host should be provisioned successfully
+    :expectedresults: Host should be provisioned successfully.
 
     :CaseImportance: Critical
     """
@@ -121,6 +122,7 @@ def test_rhel_pxeless_discovery_provisioning(
     discovered_host.location = provisioning_hostgroup.location[0]
     discovered_host.organization = provisioning_hostgroup.organization[0]
     discovered_host.build = True
+    discovered_host.update(['hostgroup', 'location', 'organization', 'build'])
     result = sat.cli.DiscoveredHost.provision(
         {
             'id': discovered_host.id,
