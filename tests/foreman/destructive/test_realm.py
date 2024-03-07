@@ -92,7 +92,7 @@ def test_positive_realm_info_name(
     )
     request.addfinalizer(lambda: module_target_sat.cli.Realm.delete({'id': realm['id']}))
     info = module_target_sat.cli.Realm.info({'name': realm['name']})
-    for key in info.keys():
+    for key in info:
         assert info[key] == realm[key]
 
 
@@ -120,7 +120,7 @@ def test_positive_realm_info_id(
     )
     request.addfinalizer(lambda: module_target_sat.cli.Realm.delete({'id': realm['id']}))
     info = module_target_sat.cli.Realm.info({'id': realm['id']})
-    for key in info.keys():
+    for key in info:
         assert info[key] == realm[key]
     assert info == module_target_sat.cli.Realm.info({'id': realm['id']})
 

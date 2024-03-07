@@ -322,7 +322,7 @@ def filter_sort_errata(sat, org, sort_by_date='issued', filter_by_org=None):
         elif filter_by_org == 'label':
             list_param['organization-label'] = org.label
 
-        sort_reversed = True if sort_order == 'DESC' else False
+        sort_reversed = sort_order == 'DESC'
 
         errata_list = sat.cli.Erratum.list(list_param)
         assert len(errata_list) > 0
@@ -1538,7 +1538,6 @@ def test_update_applicable_package_using_default_content_view(errata_host, targe
         search_rate=30,
         max_tries=10,
     )
-
     # Assert that the package is no longer applicable
     target_sat.cli.Host.errata_recalculate({'host-id': errata_host.nailgun_host.id})
     applicable_packages = target_sat.cli.Package.list(

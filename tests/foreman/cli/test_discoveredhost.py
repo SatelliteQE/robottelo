@@ -38,6 +38,7 @@ def _assertdiscoveredhost(hostname):
             sleep(10)
             continue
         return discovered_host
+    return None
 
 
 @pytest.mark.stubbed

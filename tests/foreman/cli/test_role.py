@@ -302,7 +302,7 @@ class TestSystemAdmin:
         ).set({'name': "outofsync_interval", 'value': "32"})
         sync_time = target_sat.cli.Settings.list({'search': 'name=outofsync_interval'})[0]
         # Asserts if the setting was updated successfully
-        assert '32' == sync_time['value']
+        assert sync_time['value'] == '32'
 
         # Create another System Admin user using the first one
         system_admin = target_sat.cli.User.with_user(

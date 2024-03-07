@@ -78,7 +78,7 @@ class TestOrganization:
             headers={'content-type': 'text/plain'},
             verify=False,
         )
-        assert http.client.UNSUPPORTED_MEDIA_TYPE == response.status_code
+        assert response.status_code == http.client.UNSUPPORTED_MEDIA_TYPE
 
     @pytest.mark.tier1
     @pytest.mark.build_sanity

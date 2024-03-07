@@ -33,13 +33,12 @@ def get_satellite_capsule_repos(
         os_major_ver = get_sat_rhel_version().major
     if product == 'capsule':
         product = 'satellite-capsule'
-    repos = [
+    return [
         f'{product}-{x_y_release}-for-rhel-{os_major_ver}-x86_64-rpms',
         f'satellite-maintenance-{x_y_release}-for-rhel-{os_major_ver}-x86_64-rpms',
         f'rhel-{os_major_ver}-for-x86_64-baseos-rpms',
         f'rhel-{os_major_ver}-for-x86_64-appstream-rpms',
     ]
-    return repos
 
 
 def test_positive_advanced_run_service_restart(sat_maintain):

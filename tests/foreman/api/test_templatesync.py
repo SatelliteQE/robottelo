@@ -701,7 +701,7 @@ class TestTemplateSyncTestCase:
         template = target_sat.api.Template().imports(
             data={'repo': dir_path, 'organization_ids': [module_org.id]}
         )
-        assert 'name' in template['message']['templates'][0].keys()
+        assert 'name' in template['message']['templates'][0]
         assert template_name == template['message']['templates'][0]['name']
 
     @pytest.mark.tier2
@@ -756,7 +756,7 @@ class TestTemplateSyncTestCase:
         template = module_target_sat.api.Template().imports(
             data={'repo': dir_path, 'organization_ids': [module_org.id]}
         )
-        assert 'example_template.erb' == template['message']['templates'][0]['file']
+        assert template['message']['templates'][0]['file'] == 'example_template.erb'
 
     @pytest.mark.tier2
     def test_positive_import_json_output_corrupted_metadata(
@@ -788,7 +788,7 @@ class TestTemplateSyncTestCase:
         )
         assert not bool(template['message']['templates'][0]['imported'])
         assert (
-            'Failed to parse metadata' == template['message']['templates'][0]['additional_errors']
+            template['message']['templates'][0]['additional_errors'] == 'Failed to parse metadata'
         )
 
     @pytest.mark.skip_if_open('BZ:1787355')
@@ -824,8 +824,8 @@ class TestTemplateSyncTestCase:
         )
         assert not bool(template['message']['templates'][0]['imported'])
         assert (
-            "Skipping, 'name' filtered out based on 'filter' and 'negate' settings"
-            == template['message']['templates'][0]['additional_info']
+            template['message']['templates'][0]['additional_info']
+            == "Skipping, 'name' filtered out based on 'filter' and 'negate' settings"
         )
 
     @pytest.mark.tier2
@@ -858,8 +858,8 @@ class TestTemplateSyncTestCase:
         )
         assert not bool(template['message']['templates'][0]['imported'])
         assert (
-            "No 'name' found in metadata"
-            == template['message']['templates'][0]['additional_errors']
+            template['message']['templates'][0]['additional_errors']
+            == "No 'name' found in metadata"
         )
 
     @pytest.mark.tier2
@@ -892,8 +892,8 @@ class TestTemplateSyncTestCase:
         )
         assert not bool(template['message']['templates'][0]['imported'])
         assert (
-            "No 'model' found in metadata"
-            == template['message']['templates'][0]['additional_errors']
+            template['message']['templates'][0]['additional_errors']
+            == "No 'model' found in metadata"
         )
 
     @pytest.mark.tier2
@@ -926,8 +926,8 @@ class TestTemplateSyncTestCase:
         )
         assert not bool(template['message']['templates'][0]['imported'])
         assert (
-            "Template type  was not found, are you missing a plugin?"
-            == template['message']['templates'][0]['additional_errors']
+            template['message']['templates'][0]['additional_errors']
+            == "Template type  was not found, are you missing a plugin?"
         )
 
     @pytest.mark.tier2
@@ -973,7 +973,7 @@ class TestTemplateSyncTestCase:
             template['exported'] for template in exported_templates['message']['templates']
         ].count(True)
         assert exported_count == 17
-        assert 'name' in exported_templates['message']['templates'][0].keys()
+        assert 'name' in exported_templates['message']['templates'][0]
         assert (
             target_sat.execute(
                 f'[ -d {dir_path}/job_templates ] && '

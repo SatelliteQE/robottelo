@@ -59,10 +59,9 @@ def dev_lce(module_entitlement_manifest_org):
 
 @pytest.fixture(scope='module')
 def qe_lce(module_entitlement_manifest_org, dev_lce):
-    qe_lce = entities.LifecycleEnvironment(
+    return entities.LifecycleEnvironment(
         name='QE', prior=dev_lce, organization=module_entitlement_manifest_org
     ).create()
-    return qe_lce
 
 
 @pytest.fixture(scope='module')
@@ -100,8 +99,7 @@ def module_cv(module_entitlement_manifest_org, rhel7_sat6tools_repo, custom_repo
         repository=[rhel7_sat6tools_repo.id, custom_repo.id],
     ).create()
     module_cv.publish()
-    module_cv = module_cv.read()
-    return module_cv
+    return module_cv.read()
 
 
 @pytest.fixture(scope='module')

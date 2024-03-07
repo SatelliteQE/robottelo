@@ -40,8 +40,7 @@ class TestSatelliteMaintain:
         cmd = 'satellite-maintain upgrade list-versions --disable-self-upgrade'
         list_versions = sat_obj.execute(cmd).stdout
         regex = re.compile(r'^\d+\.\d+')
-        upgradeable_versions = [version for version in list_versions if regex.match(version)]
-        return upgradeable_versions
+        return [version for version in list_versions if regex.match(version)]
 
     @pytest.mark.pre_upgrade
     def test_pre_satellite_maintain_upgrade_list_versions(self, target_sat):

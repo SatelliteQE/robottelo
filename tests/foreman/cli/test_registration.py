@@ -59,7 +59,7 @@ def test_host_registration_end_to_end(
 
     # Verify server.hostname and server.port from subscription-manager config
     assert module_target_sat.hostname == rhel_contenthost.subscription_config['server']['hostname']
-    assert CLIENT_PORT == rhel_contenthost.subscription_config['server']['port']
+    assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
 
     # Update module_capsule_configured to include module_org/module_location
     module_target_sat.cli.Capsule.update(
@@ -86,7 +86,7 @@ def test_host_registration_end_to_end(
         module_capsule_configured.hostname
         == rhel_contenthost.subscription_config['server']['hostname']
     )
-    assert CLIENT_PORT == rhel_contenthost.subscription_config['server']['port']
+    assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
 
 
 def test_upgrade_katello_ca_consumer_rpm(
@@ -123,7 +123,7 @@ def test_upgrade_katello_ca_consumer_rpm(
         f'rpm -Uvh "http://{target_sat.hostname}/pub/{consumer_cert_name}-1.0-1.noarch.rpm"'
     )
     # Check server URL is not Red Hat CDN's "subscription.rhsm.redhat.com"
-    assert 'subscription.rhsm.redhat.com' != vm.subscription_config['server']['hostname']
+    assert vm.subscription_config['server']['hostname'] != 'subscription.rhsm.redhat.com'
     assert target_sat.hostname == vm.subscription_config['server']['hostname']
 
     # Get consumer cert source file
@@ -144,7 +144,7 @@ def test_upgrade_katello_ca_consumer_rpm(
     # Install new rpmbuild/RPMS/noarch/katello-ca-consumer-*-2.noarch.rpm
     assert vm.execute(f'yum install -y rpmbuild/RPMS/noarch/{new_consumer_cert_rpm}')
     # Check server URL is not Red Hat CDN's "subscription.rhsm.redhat.com"
-    assert 'subscription.rhsm.redhat.com' != vm.subscription_config['server']['hostname']
+    assert vm.subscription_config['server']['hostname'] != 'subscription.rhsm.redhat.com'
     assert target_sat.hostname == vm.subscription_config['server']['hostname']
 
     # Register as final check

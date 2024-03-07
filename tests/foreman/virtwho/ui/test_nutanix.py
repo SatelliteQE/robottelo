@@ -32,7 +32,7 @@ from robottelo.utils.virtwho import (
 
 @pytest.fixture
 def form_data():
-    form = {
+    return {
         'debug': True,
         'interval': 'Every hour',
         'hypervisor_id': 'hostname',
@@ -42,7 +42,6 @@ def form_data():
         'hypervisor_content.password': settings.virtwho.ahv.hypervisor_password,
         'hypervisor_content.prism_flavor': "Prism Element",
     }
-    return form
 
 
 class TestVirtwhoConfigforNutanix:

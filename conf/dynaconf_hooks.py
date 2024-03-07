@@ -157,7 +157,7 @@ def get_dogfood_satclient_repos(settings):
 
 
 def get_ohsnap_repo_url(settings, repo, product=None, release=None, os_release=None, snap=''):
-    repourl = dogfood_repository(
+    return dogfood_repository(
         settings.ohsnap,
         repo=repo,
         product=product,
@@ -165,4 +165,3 @@ def get_ohsnap_repo_url(settings, repo, product=None, release=None, os_release=N
         os_release=os_release,
         snap=snap,
     ).baseurl
-    return repourl

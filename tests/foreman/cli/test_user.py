@@ -61,8 +61,8 @@ class TestUser:
             for role_name in valid_usernames_list() + include_list:
                 yield module_target_sat.cli_factory.make_role({'name': role_name})
 
-        stubbed_roles = {role['id']: role for role in roles_helper()}
-        return stubbed_roles
+        # return stubbed roles
+        return {role['id']: role for role in roles_helper()}
 
     @pytest.mark.parametrize('email', **parametrized(valid_emails_list()))
     @pytest.mark.tier2

@@ -39,7 +39,7 @@ def _read_log(ch, pattern):
 
 def _wait_for_log(channel, pattern, timeout=5, delay=0.2):
     """_read_log method enclosed in wait_for method"""
-    matching_log = wait_for(
+    return wait_for(
         _read_log,
         func_args=(
             channel,
@@ -50,7 +50,6 @@ def _wait_for_log(channel, pattern, timeout=5, delay=0.2):
         delay=delay,
         logger=logger,
     )
-    return matching_log
 
 
 def _assert_discovered_host(host, channel=None, user_config=None, sat=None):

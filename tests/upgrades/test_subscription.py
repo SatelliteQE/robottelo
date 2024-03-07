@@ -75,7 +75,7 @@ class TestManifestScenarioRefresh:
         history = target_sat.api.Subscription(organization=org).manifest_history(
             data={'organization_id': org.id}
         )
-        assert "Subscriptions deleted by foreman_admin" == history[0]['statusMessage']
+        assert history[0]['statusMessage'] == "Subscriptions deleted by foreman_admin"
 
 
 class TestSubscriptionAutoAttach:

@@ -121,7 +121,8 @@ def ohsnap_snap_rpms(ohsnap, sat_version, snap_version, os_major, is_all=True):
     rpm_repos = [f'satellite {sat_xy}', f'maintenance {sat_xy}']
     if res.status_code == 200:
         for repo_data in res.json():
-            if repo_data['rhel'] == os_major:
-                if any(repo in repo_data['repository'].lower() for repo in rpm_repos):
-                    rpms += repo_data['rpms']
+            if repo_data['rhel'] == os_major and any(
+                repo in repo_data['repository'].lower() for repo in rpm_repos
+            ):
+                rpms += repo_data['rpms']
     return rpms

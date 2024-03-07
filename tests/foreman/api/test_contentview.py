@@ -100,8 +100,7 @@ def apply_package_filter(content_view, repo, package, target_sat, inclusion=True
     assert cv_filter.id == cv_filter_rule.content_view_filter.id
     content_view.publish()
     content_view = content_view.read()
-    content_view_version_info = content_view.version[0].read()
-    return content_view_version_info
+    return content_view.version[0].read()
 
 
 class TestContentView:

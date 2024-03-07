@@ -77,10 +77,7 @@ def default_proxy(module_target_sat):
 @pytest.fixture(scope='module')
 def lifecycle_env(module_org):
     """Create lifecycle environment"""
-    lce_env = entities.LifecycleEnvironment(
-        organization=module_org, name=gen_string('alpha')
-    ).create()
-    return lce_env
+    return entities.LifecycleEnvironment(organization=module_org, name=gen_string('alpha')).create()
 
 
 @pytest.fixture(scope='module')

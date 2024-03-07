@@ -39,10 +39,9 @@ CUSTOM_REPO_ERRATA_ID = settings.repos.yum_6.errata[2]
 
 @pytest.fixture(scope='module')
 def activation_key(module_org, module_lce, module_target_sat):
-    activation_key = module_target_sat.api.ActivationKey(
+    return module_target_sat.api.ActivationKey(
         environment=module_lce, organization=module_org
     ).create()
-    return activation_key
 
 
 @pytest.fixture(scope='module')
@@ -699,6 +698,7 @@ def _run_remote_command_on_content_host(module_org, command, vm, return_result=F
     assert result.status == 0
     if return_result:
         return result.stdout
+    return None
 
 
 def _set_prerequisites_for_swid_repos(module_org, vm):
