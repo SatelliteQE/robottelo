@@ -473,6 +473,33 @@ def hypervisor_json_create(hypervisors, guests):
     return mapping
 
 
+def hypervisor_fake_json_create(hypervisors, guests):
+    """
+    Create a hypervisor guest json data for fake config usages. For example:
+    {'hypervisors': [{'uuid': '820b5143-3885-4dba-9358-4ce8c30d934e',
+    'guests': [{'guestId': 'afb91b1f-8438-46f5-bc67-d7ab328ef782', 'state': 1,
+    'attributes': {'active': 1, 'virtWhoType': 'esx'}}]}]}
+    :param hypervisors: how many hypervisors will be created
+    :param guests: how many guests will be created
+    """
+    hypervisors_list = []
+    for _ in range(hypervisors):
+        guest_list = []
+        for _ in range(guests):
+            guest_list.append(
+                {
+                    "guestId": str(uuid.uuid4()),
+                    "state": 1,
+                    "attributes": {"active": 1, "virtWhoType": "esx"},
+                }
+            )
+        name = str(uuid.uuid4())
+        hypervisor = {"guests": guest_list, "name": name, "uuid": name}
+        hypervisors_list.append(hypervisor)
+    mapping = {"hypervisors": hypervisors_list}
+    return mapping
+
+
 def create_fake_hypervisor_content(org_label, hypervisors, guests):
     """
     Post the fake hypervisor content to satellite server
@@ -541,3 +568,48 @@ def get_configure_command_option(deploy_type, args, org=DEFAULT_ORG):
         return f"hammer -u {username} -p {password} virt-who-config deploy --id {args['id']} --organization-title '{args['organization-title']}' "
     elif deploy_type == 'name':
         return f"hammer -u {username} -p {password} virt-who-config deploy --name {args['name']} --organization '{org}' "
+
+
+def vw_fake_conf_create(
+    owner,
+    rhsm_hostname,
+    rhsm_username,
+    rhsm_encrypted_password,
+    fake_conf_file,
+    json_file,
+    is_hypervisor=True,
+):
+    conf_name = fake_conf_file.split("/")[-1].split(".")[0]
+    file = f'{fake_conf_file}\n'
+    title = f'[{conf_name}]\n'
+    type = 'type=fake\n'
+    json = f'file={json_file}\n'
+    is_hypervisor = f'is_hypervisor={is_hypervisor}\n'
+    owner = f'owner={owner}\n'
+    env = 'env = Library\n'
+    rhsm_hostname = f'rhsm_hostname={rhsm_hostname}\n'
+    rhsm_username = f'rhsm_username={rhsm_username}\n'
+    rhsm_encrypted_password = f'rhsm_encrypted_password={rhsm_encrypted_password}\n'
+    rhsm_prefix = 'rhsm_prefix=/rhsm\n'
+    rhsm_port = 'rhsm_port=443\n'
+    cmd = ('cat <<EOF > {}' '{}' '{}' '{}' '{}' '{}' '{}' '{}' '{}' '{}' '{}' '{}' 'EOF').format(
+        file,
+        title,
+        type,
+        json,
+        is_hypervisor,
+        owner,
+        env,
+        rhsm_hostname,
+        rhsm_username,
+        rhsm_encrypted_password,
+        rhsm_prefix,
+        rhsm_port,
+    )
+    runcmd(cmd)
+
+
+def vw_run_option(option):
+    runcmd("systemctl stop virt-who")
+    runcmd("pkill -9 virt-who")
+    runcmd(f"virt-who -{option}")

@@ -9,6 +9,8 @@
 :Team: Phoenix
 
 """
+import json
+from pathlib import Path
 import re
 
 from fauxfactory import gen_string
@@ -18,14 +20,18 @@ import requests
 from robottelo.config import settings
 from robottelo.utils.virtwho import (
     ETC_VIRTWHO_CONFIG,
+    check_message_in_rhsm_log,
     create_http_proxy,
     deploy_configure_by_command,
     deploy_configure_by_command_check,
     get_configure_command,
     get_configure_file,
     get_configure_option,
+    hypervisor_fake_json_create,
     hypervisor_json_create,
     virtwho_package_locked,
+    vw_fake_conf_create,
+    vw_run_option,
 )
 
 
@@ -502,3 +508,87 @@ class TestVirtWhoConfigforEsx:
         env_warning = f"Ignoring unknown configuration option \"{option}\""
         result = target_sat.execute(f'grep "{env_warning}" /var/log/messages')
         assert result.status == 1
+
+    @pytest.mark.tier2
+    def test_positive_post_hypervisors_with_fake_different_org_simultaneous(
+        self, module_sca_manifest_org, form_data_cli, target_sat
+    ):
+        """create many fake conf files in two orgs with specific service account rhsm_username=virt_who_reporter_X post to satellite without task errors"
+
+        :id: ee2ec178-01e0-48b9-8c2f-5c3279eef796
+
+        :expectedresults:
+            hypervisor/guest json can be posted and the task is success status
+
+        :customerscenario: true
+
+        :CaseImportance: Medium
+
+        :BZ: 2173870
+        """
+
+        # create 3 hypersiors and each have 3 guests json file
+        json_file = Path("/tmp/fake.json")
+        data = hypervisor_fake_json_create(hypervisors=1, guests=1)
+        json_file.write_text(json.dumps(data))
+        # create 10 fake files in module_sca_manifest_org
+        virtwho_config_cli = target_sat.cli.VirtWhoConfig.create(form_data_cli)[
+            'general-information'
+        ]
+        command = get_configure_command(virtwho_config_cli['id'], module_sca_manifest_org.name)
+        deploy_configure_by_command(
+            command, form_data_cli['hypervisor-type'], org=module_sca_manifest_org.label
+        )
+        config_file_1 = get_configure_file(virtwho_config_cli['id'])
+        owner_1 = get_configure_option('owner', config_file_1)
+        rhsm_hostname_1 = get_configure_option('rhsm_hostname', config_file_1)
+        rhsm_username_1 = get_configure_option('rhsm_username', config_file_1)
+        rhsm_encrypted_password_1 = get_configure_option('rhsm_encrypted_password', config_file_1)
+        # create another org and create fake conf files in this org
+        ORG_DATA = {'name': f'virtwho_fake_{gen_string("alpha")}'}
+        org = target_sat.api.Organization(name=ORG_DATA['name']).create()
+        target_sat.api.Location(organization=[org]).create()
+        form_data_cli['organization-id'] = org.id
+        virtwho_config_cli = target_sat.cli.VirtWhoConfig.create(form_data_cli)[
+            'general-information'
+        ]
+        command = get_configure_command(virtwho_config_cli['id'], org.name)
+        deploy_configure_by_command(
+            command, form_data_cli['hypervisor-type'], debug=True, org=org.label
+        )
+        config_file_2 = get_configure_file(virtwho_config_cli['id'])
+        owner_2 = get_configure_option('owner', config_file_2)
+        rhsm_hostname_2 = get_configure_option('rhsm_hostname', config_file_2)
+        rhsm_username_2 = get_configure_option('rhsm_username', config_file_2)
+        rhsm_encrypted_password_2 = get_configure_option('rhsm_encrypted_password', config_file_2)
+        for i in range(5):
+            fake_conf_file = f"/etc/virt-who.d/virt-who-config-fake{i}.conf"
+            vw_fake_conf_create(
+                owner_1,
+                rhsm_hostname_1,
+                rhsm_username_1,
+                rhsm_encrypted_password_1,
+                fake_conf_file,
+                json_file,
+            )
+        for i in range(5, 10):
+            fake_conf_file = f"/etc/virt-who.d/virt-who-config-fake{i}.conf"
+            vw_fake_conf_create(
+                owner_2,
+                rhsm_hostname_2,
+                rhsm_username_2,
+                rhsm_encrypted_password_2,
+                fake_conf_file,
+                json_file,
+            )
+        vw_run_option("od")
+        for i in range(10):
+            fake_conf_file = f"/etc/virt-who.d/virt-who-config-fake{i}.conf"
+            conf_name = fake_conf_file.split("/")[-1].split(".")[0]
+            config_str = f'Using configuration "{conf_name}" ("fake" mode)'
+            check_message_in_rhsm_log(config_str)
+        check_message_in_rhsm_log(f"Host-to-guest mapping being sent to '{org}'")
+        task = target_sat.cli.Task.list_tasks({'search': 'label ~ Hyper'})
+        for item in task:
+            assert "Job blocked by the following existing jobs" not in item['task-errors']
+            assert "success" in item['result']
