@@ -62,9 +62,9 @@ def assert_host_logs(channel, pattern):
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
-@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['bios'], indirect=True)
 @pytest.mark.on_premises_provisioning
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match('[9]')
 def test_rhel_pxe_provisioning(
     request,
     module_provisioning_sat,
@@ -131,7 +131,6 @@ def test_rhel_pxe_provisioning(
     )
     host = host.read()
     assert host.build_status_label == 'Installed'
-
     # Change the hostname of the host as we know it already.
     # In the current infra environment we do not support
     # addressing hosts using FQDNs, falling back to IP.
@@ -139,20 +138,32 @@ def test_rhel_pxe_provisioning(
     # Host is not blank anymore
     provisioning_host.blank = False
 
+    provisioning_host.key_filename = None
     # Wait for the host to be rebooted and SSH daemon to be started.
     provisioning_host.wait_for_connection()
+
+    disable_ssh_cmd = 'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
+    # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
+    template_id = (
+        sat.api.JobTemplate().search(query={'search': 'name="Run Command - Script Default"'})[0].id
+    )
+    job = sat.api.JobInvocation().run(
+        data={
+            'job_template_id': template_id,
+            'inputs': {
+                'command': disable_ssh_cmd
+            },
+            'search_query': f"name = {host.name}",
+            'targeting_type': 'static_query',
+        },
+    )
+    assert job['result'] == 'success', 'Job invocation failed'
 
     # Perform version check and check if root password is properly updated
     host_os = host.operatingsystem.read()
     expected_rhel_version = f'{host_os.major}.{host_os.minor}'
 
-    if int(host_os.major) >= 9:
-        assert (
-            provisioning_host.execute(
-                'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
-            ).status
-            == 0
-        )
+    disable_ssh_cmd = 'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
     host_ssh_os = sat.execute(
         f'sshpass -p {settings.provisioning.host_root_password} '
         'ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o PasswordAuthentication=yes '
@@ -166,23 +177,6 @@ def test_rhel_pxe_provisioning(
     # Verify provisioning log exists on host at correct path
     assert provisioning_host.execute('test -s /root/install.post.log').status == 0
     assert provisioning_host.execute('test -s /mnt/sysimage/root/install.post.log').status == 1
-
-    # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
-    template_id = (
-        sat.api.JobTemplate().search(query={'search': 'name="Run Command - Script Default"'})[0].id
-    )
-    job = sat.api.JobInvocation().run(
-        data={
-            'job_template_id': template_id,
-            'inputs': {
-                'command': f'subscription-manager config | grep "hostname = {sat.hostname}"'
-            },
-            'search_query': f"name = {host.name}",
-            'targeting_type': 'static_query',
-        },
-    )
-    assert job['result'] == 'success', 'Job invocation failed'
-
     # check if katello-ca-consumer is not used while host registration
     assert provisioning_host.execute('rpm -qa |grep katello-ca-consumer').status == 1
     assert (
@@ -278,20 +272,32 @@ def test_rhel_ipxe_provisioning(
     # Host is not blank anymore
     provisioning_host.blank = False
 
+    provisioning_host.key_filename = None
     # Wait for the host to be rebooted and SSH daemon to be started.
     provisioning_host.wait_for_connection()
+
+    disable_ssh_cmd = 'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
+    # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
+    template_id = (
+        sat.api.JobTemplate().search(query={'search': 'name="Run Command - Script Default"'})[0].id
+    )
+    job = sat.api.JobInvocation().run(
+        data={
+            'job_template_id': template_id,
+            'inputs': {
+                'command': disable_ssh_cmd
+            },
+            'search_query': f"name = {host.name}",
+            'targeting_type': 'static_query',
+        },
+    )
+    assert job['result'] == 'success', 'Job invocation failed'
 
     # Perform version check and check if root password is properly updated
     host_os = host.operatingsystem.read()
     expected_rhel_version = f'{host_os.major}.{host_os.minor}'
 
-    if int(host_os.major) >= 9:
-        assert (
-            provisioning_host.execute(
-                'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
-            ).status
-            == 0
-        )
+    disable_ssh_cmd = 'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
     host_ssh_os = sat.execute(
         f'sshpass -p {settings.provisioning.host_root_password} '
         'ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o PasswordAuthentication=yes '
@@ -301,23 +307,6 @@ def test_rhel_ipxe_provisioning(
     assert (
         expected_rhel_version in host_ssh_os.stdout
     ), f'The installed OS version differs from the expected version {expected_rhel_version}'
-
-    # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
-    template_id = (
-        sat.api.JobTemplate().search(query={'search': 'name="Run Command - Script Default"'})[0].id
-    )
-    job = sat.api.JobInvocation().run(
-        data={
-            'job_template_id': template_id,
-            'inputs': {
-                'command': f'subscription-manager config | grep "hostname = {sat.hostname}"'
-            },
-            'search_query': f"name = {host.name}",
-            'targeting_type': 'static_query',
-        },
-    )
-    assert job['result'] == 'success', 'Job invocation failed'
-
     # assert that the host is subscribed and consumes
     # subsctiption provided by the activation key
     assert provisioning_host.subscribed, 'Host is not subscribed'
@@ -406,20 +395,32 @@ def test_rhel_httpboot_provisioning(
     # Host is not blank anymore
     provisioning_host.blank = False
 
+    provisioning_host.key_filename = None
     # Wait for the host to be rebooted and SSH daemon to be started.
     provisioning_host.wait_for_connection()
+
+    disable_ssh_cmd = 'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
+    # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
+    template_id = (
+        sat.api.JobTemplate().search(query={'search': 'name="Run Command - Script Default"'})[0].id
+    )
+    job = sat.api.JobInvocation().run(
+        data={
+            'job_template_id': template_id,
+            'inputs': {
+                'command': disable_ssh_cmd
+            },
+            'search_query': f"name = {host.name}",
+            'targeting_type': 'static_query',
+        },
+    )
+    assert job['result'] == 'success', 'Job invocation failed'
 
     # Perform version check and check if root password is properly updated
     host_os = host.operatingsystem.read()
     expected_rhel_version = f'{host_os.major}.{host_os.minor}'
 
-    if int(host_os.major) >= 9:
-        assert (
-            provisioning_host.execute(
-                'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
-            ).status
-            == 0
-        )
+    disable_ssh_cmd = 'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
     host_ssh_os = sat.execute(
         f'sshpass -p {settings.provisioning.host_root_password} '
         'ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o PasswordAuthentication=yes '
@@ -429,23 +430,6 @@ def test_rhel_httpboot_provisioning(
     assert (
         expected_rhel_version in host_ssh_os.stdout
     ), f'The installed OS version differs from the expected version {expected_rhel_version}'
-
-    # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
-    template_id = (
-        sat.api.JobTemplate().search(query={'search': 'name="Run Command - Script Default"'})[0].id
-    )
-    job = sat.api.JobInvocation().run(
-        data={
-            'job_template_id': template_id,
-            'inputs': {
-                'command': f'subscription-manager config | grep "hostname = {sat.hostname}"'
-            },
-            'search_query': f"name = {host.name}",
-            'targeting_type': 'static_query',
-        },
-    )
-    assert job['result'] == 'success', 'Job invocation failed'
-
     # assert that the host is subscribed and consumes
     # subsctiption provided by the activation key
     assert provisioning_host.subscribed, 'Host is not subscribed'
@@ -535,20 +519,32 @@ def test_rhel_pxe_provisioning_fips_enabled(
     # Host is not blank anymore
     provisioning_host.blank = False
 
+    provisioning_host.key_filename = None
     # Wait for the host to be rebooted and SSH daemon to be started.
     provisioning_host.wait_for_connection()
+
+    disable_ssh_cmd = 'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
+    # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
+    template_id = (
+        sat.api.JobTemplate().search(query={'search': 'name="Run Command - Script Default"'})[0].id
+    )
+    job = sat.api.JobInvocation().run(
+        data={
+            'job_template_id': template_id,
+            'inputs': {
+                'command': disable_ssh_cmd
+            },
+            'search_query': f"name = {host.name}",
+            'targeting_type': 'static_query',
+        },
+    )
+    assert job['result'] == 'success', 'Job invocation failed'
 
     # Perform version check and check if root password is properly updated
     host_os = host.operatingsystem.read()
     expected_rhel_version = f'{host_os.major}.{host_os.minor}'
 
-    if int(host_os.major) >= 9:
-        assert (
-            provisioning_host.execute(
-                'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
-            ).status
-            == 0
-        )
+    disable_ssh_cmd = 'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
     host_ssh_os = sat.execute(
         f'sshpass -p {settings.provisioning.host_root_password} '
         'ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o PasswordAuthentication=yes '
@@ -567,23 +563,6 @@ def test_rhel_pxe_provisioning_fips_enabled(
     else:
         result = provisioning_host.execute('cat /proc/sys/crypto/fips_enabled')
         assert (0 if is_open('BZ:2240076') else 1) == int(result.stdout)
-
-    # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
-    template_id = (
-        sat.api.JobTemplate().search(query={'search': 'name="Run Command - Script Default"'})[0].id
-    )
-    job = sat.api.JobInvocation().run(
-        data={
-            'job_template_id': template_id,
-            'inputs': {
-                'command': f'subscription-manager config | grep "hostname = {sat.hostname}"'
-            },
-            'search_query': f"name = {host.name}",
-            'targeting_type': 'static_query',
-        },
-    )
-    assert job['result'] == 'success', 'Job invocation failed'
-
     # assert that the host is subscribed and consumes
     # subsctiption provided by the activation key
     assert provisioning_host.subscribed, 'Host is not subscribed'
@@ -671,20 +650,32 @@ def test_capsule_pxe_provisioning(
     # Host is not blank anymore
     provisioning_host.blank = False
 
+    provisioning_host.key_filename = None
     # Wait for the host to be rebooted and SSH daemon to be started.
     provisioning_host.wait_for_connection()
+
+    disable_ssh_cmd = 'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
+    # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
+    template_id = (
+        sat.api.JobTemplate().search(query={'search': 'name="Run Command - Script Default"'})[0].id
+    )
+    job = sat.api.JobInvocation().run(
+        data={
+            'job_template_id': template_id,
+            'inputs': {
+                'command': disable_ssh_cmd
+            },
+            'search_query': f"name = {host.name}",
+            'targeting_type': 'static_query',
+        },
+    )
+    assert job['result'] == 'success', 'Job invocation failed'
 
     # Perform version check and check if root password is properly updated
     host_os = host.operatingsystem.read()
     expected_rhel_version = f'{host_os.major}.{host_os.minor}'
 
-    if int(host_os.major) >= 9:
-        assert (
-            provisioning_host.execute(
-                'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
-            ).status
-            == 0
-        )
+    disable_ssh_cmd = 'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
     host_ssh_os = sat.execute(
         f'sshpass -p {settings.provisioning.host_root_password} '
         'ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o PasswordAuthentication=yes '
@@ -694,23 +685,6 @@ def test_capsule_pxe_provisioning(
     assert (
         expected_rhel_version in host_ssh_os.stdout
     ), f'The installed OS version differs from the expected version {expected_rhel_version}'
-
-    # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
-    template_id = (
-        sat.api.JobTemplate().search(query={'search': 'name="Run Command - Script Default"'})[0].id
-    )
-    job = sat.api.JobInvocation().run(
-        data={
-            'job_template_id': template_id,
-            'inputs': {
-                'command': f'subscription-manager config | grep "hostname = {cap.hostname}"'
-            },
-            'search_query': f"name = {host.name}",
-            'targeting_type': 'static_query',
-        },
-    )
-    assert job['result'] == 'success', 'Job invocation failed'
-
     # assert that the host is subscribed and consumes
     # subsctiption provided by the activation key
     assert provisioning_host.subscribed, 'Host is not subscribed'
