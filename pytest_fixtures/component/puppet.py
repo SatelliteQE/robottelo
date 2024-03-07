@@ -1,7 +1,6 @@
 # Puppet Environment fixtures
 import pytest
 
-from robottelo.config import settings
 from robottelo.constants import ENVIRONMENT
 
 
@@ -55,7 +54,6 @@ def module_puppet_environment(module_puppet_org, module_puppet_loc, session_pupp
     return session_puppet_enabled_sat.api.Environment(id=environment.id).read()
 
 
-@pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 @pytest.fixture(scope='module')
 def module_import_puppet_module(session_puppet_enabled_sat):
     """Returns custom puppet environment name that contains imported puppet module
