@@ -229,4 +229,4 @@ def test_positive_content_counts_for_mixed_cv(
         # Remove the LCEs from Capsule and ensure they are not listed anymore.
         session.capsule.edit(module_capsule_configured.hostname, remove_all_lces=True)
         details = session.capsule.read_details(module_capsule_configured.hostname)
-        assert 'content' not in details.keys(), 'Content still listed for removed LCEs'
+        assert 'content' not in details, 'Content still listed for removed LCEs'

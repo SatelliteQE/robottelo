@@ -28,7 +28,7 @@ def golden_ticket_host_setup(request, module_sca_manifest_org, module_target_sat
     )
     new_repo = module_target_sat.cli_factory.make_repository({'product-id': new_product['id']})
     module_target_sat.cli.Repository.synchronize({'id': new_repo['id']})
-    new_ak = module_target_sat.cli_factory.make_activation_key(
+    return module_target_sat.cli_factory.make_activation_key(
         {
             'lifecycle-environment': 'Library',
             'content-view': 'Default Organization View',
@@ -36,7 +36,6 @@ def golden_ticket_host_setup(request, module_sca_manifest_org, module_target_sat
             'auto-attach': False,
         }
     )
-    return new_ak
 
 
 @pytest.mark.tier1
@@ -166,7 +165,7 @@ def test_positive_subscription_list(function_entitlement_manifest_org, module_ta
         {'organization-id': function_entitlement_manifest_org.id}, per_page=False
     )
     for column in ['start-date', 'end-date']:
-        assert column in subscription_list[0].keys()
+        assert column in subscription_list[0]
 
 
 @pytest.mark.tier2

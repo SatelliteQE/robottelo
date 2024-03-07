@@ -35,7 +35,7 @@ def merge_nested_dictionaries(original, new, overwrite=False):
             user_choice = click.prompt(choice_prompt, type=int, default=1, show_default=True)
             if user_choice == 1:
                 continue
-            elif user_choice == 2:
+            if user_choice == 2:
                 original[key] = value
             elif user_choice == 3 and isinstance(value, list):
                 original[key] = original[key] + value
@@ -110,7 +110,7 @@ def merge(from_, strategy):
             user_choice = click.prompt(choice_prompt, type=int, default=1, show_default=True)
             if user_choice == 1:
                 continue
-            elif user_choice == 2:
+            if user_choice == 2:
                 logger.warning(f"Overwriting {real_name} with {file}")
                 real_name.unlink()
                 real_name.write_text(file.read_text())

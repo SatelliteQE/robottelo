@@ -488,7 +488,7 @@ class TestRepository:
         **datafactory.parametrized(
             [
                 {'content_type': content_type, 'download_policy': 'on_demand'}
-                for content_type in constants.REPO_TYPE.keys()
+                for content_type in constants.REPO_TYPE
                 if content_type != 'yum'
             ]
         ),
@@ -2301,7 +2301,7 @@ class TestFileRepository:
         filesearch = target_sat.api.File().search(
             query={"search": f"name={constants.RPM_TO_UPLOAD}"}
         )
-        assert constants.RPM_TO_UPLOAD == filesearch[0].name
+        assert filesearch[0].name == constants.RPM_TO_UPLOAD
 
     @pytest.mark.tier1
     @pytest.mark.upgrade

@@ -342,7 +342,7 @@ def test_positive_product_view_organization_switch(session, module_org, module_p
     with session:
         assert session.product.search(module_product.name)
         session.organization.select(org_name="Default Organization")
-        assert not session.product.search(module_product.name) == module_product.name
+        assert session.product.search(module_product.name) != module_product.name
 
 
 @pytest.mark.tier2
