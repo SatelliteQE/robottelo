@@ -275,7 +275,7 @@ def test_positive_add_katello_role(
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
-        assert ldap_data['ldap_user_name'] in current_user
+        assert f"{auth_source.attr_firstname} {auth_source.attr_lastname}" in current_user
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
