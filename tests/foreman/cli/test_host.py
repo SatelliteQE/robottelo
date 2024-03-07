@@ -1797,7 +1797,6 @@ def test_positive_install_package_via_rex(
 
 
 # -------------------------- HOST SUBSCRIPTION SUBCOMMAND FIXTURES --------------------------
-@pytest.mark.skip_if_not_set('clients')
 @pytest.fixture
 def host_subscription_client(rhel7_contenthost, target_sat):
     rhel7_contenthost.install_katello_ca(target_sat)
