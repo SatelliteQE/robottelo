@@ -80,6 +80,7 @@ def test_positive_provision_pxe_host(
     :CaseImportance: High
     """
     sat = module_discovery_sat.sat
+    assert sat.execute('systemctl restart dhcpd').status == 0
     provisioning_host.power_control(ensure=False)
     mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
     wait_for(
@@ -163,6 +164,7 @@ def test_positive_custom_provision_pxe_host(
     :CaseImportance: High
     """
     sat = module_discovery_sat.sat
+    assert sat.execute('systemctl restart dhcpd').status == 0
     provisioning_host.power_control(ensure=False)
     mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
     wait_for(
@@ -319,6 +321,7 @@ def test_positive_auto_provision_host_with_rule(
     :CaseImportance: High
     """
     sat = module_discovery_sat.sat
+    assert sat.execute('systemctl restart dhcpd').status == 0
     pxeless_discovery_host.power_control(ensure=False)
     mac = pxeless_discovery_host._broker_args['provisioning_nic_mac_addr']
     wait_for(

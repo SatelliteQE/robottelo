@@ -49,6 +49,7 @@ def test_rhel_pxe_discovery_provisioning(
     :BZ: 1731112
     """
     sat = module_discovery_sat.sat
+    assert sat.execute('systemctl restart dhcpd').status == 0
     provisioning_host.power_control(ensure=False)
     mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
 
@@ -109,6 +110,7 @@ def test_rhel_pxeless_discovery_provisioning(
     :CaseImportance: Critical
     """
     sat = module_discovery_sat.sat
+    assert sat.execute('systemctl restart dhcpd').status == 0
     pxeless_discovery_host.power_control(ensure=False)
     mac = pxeless_discovery_host._broker_args['provisioning_nic_mac_addr']
 
