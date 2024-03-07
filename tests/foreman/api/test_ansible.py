@@ -217,7 +217,7 @@ def test_add_and_remove_ansible_role_hostgroup(target_sat):
     :id: 7672cf86-fa31-11ed-855a-0fd307d2d66b
 
     :steps:
-        1. Create a hostgroup, and nested hostgroup
+        1. Create a hostgroup and a nested hostgroup
         2. Sync a few ansible roles
         3. Assign a few ansible roles with the host group
         4. Add some ansible role with the host group
