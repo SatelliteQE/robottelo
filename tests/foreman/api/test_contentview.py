@@ -368,9 +368,6 @@ class TestContentViewCreate:
 class TestContentViewPublishPromote:
     """Tests for publishing and promoting content views."""
 
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
     @pytest.fixture(scope='class', autouse=True)
     def class_setup(self, request, module_product, class_target_sat):
         """Set up organization, product and repositories for tests."""
@@ -1240,9 +1237,6 @@ def test_negative_non_readonly_user_actions(target_sat, content_view, function_r
 class TestOstreeContentView:
     """Tests for ostree contents in content views."""
 
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
     @pytest.fixture(scope='class', autouse=True)
     def initiate_testclass(self, request, module_product, class_target_sat):
         """Set up organization, product and repositories for tests."""
@@ -1347,7 +1341,6 @@ class TestOstreeContentView:
 class TestContentViewRedHatOstreeContent:
     """Tests for publishing and promoting cv with RH ostree contents."""
 
-    @pytest.mark.run_in_one_thread
     @pytest.fixture(scope='class', autouse=True)
     def initiate_testclass(self, request, module_entitlement_manifest_org, class_target_sat):
         """Set up organization, product and repositories for tests."""
