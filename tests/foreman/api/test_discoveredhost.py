@@ -197,6 +197,7 @@ class TestDiscoveredHost:
         :CaseImportance: Critical
         """
         sat = module_discovery_sat.sat
+        assert sat.execute('systemctl restart dhcpd').status == 0
         provisioning_host.power_control(ensure=False)
         mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
         wait_for(
@@ -246,6 +247,7 @@ class TestDiscoveredHost:
         :CaseImportance: Critical
         """
         sat = module_discovery_sat.sat
+        assert sat.execute('systemctl restart dhcpd').status == 0
         pxeless_discovery_host.power_control(ensure=False)
         mac = pxeless_discovery_host._broker_args['provisioning_nic_mac_addr']
         wait_for(
@@ -380,6 +382,7 @@ class TestDiscoveredHost:
         :CaseImportance: Medium
         """
         sat = module_discovery_sat.sat
+        assert sat.execute('systemctl restart dhcpd').status == 0
         provisioning_host.power_control(ensure=False)
         mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
         wait_for(
@@ -425,6 +428,7 @@ class TestDiscoveredHost:
         :CaseImportance: Medium
         """
         sat = module_discovery_sat.sat
+        assert sat.execute('systemctl restart dhcpd').status == 0
         provisioning_host.power_control(ensure=False)
         mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
         wait_for(
