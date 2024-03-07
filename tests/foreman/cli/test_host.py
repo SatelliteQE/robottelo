@@ -232,7 +232,7 @@ def parse_cli_entity_list_help_message(help_message):
         name = name[:-1]  # remove colon from name
         if 'Usage' in name:
             continue
-        elif 'Options' in name:
+        if 'Options' in name:
             # used together with previous_line when line (message) is appended to previous line
             options = parse_two_columns(content, options_start_with_dash=True)
         elif 'field sets' in name:
@@ -1058,18 +1058,18 @@ def test_positive_parameter_crud(function_host, target_sat):
         {'host-id': function_host['id'], 'name': name, 'value': value}
     )
     host = target_sat.cli.Host.info({'id': function_host['id']})
-    assert name in host['parameters'].keys()
+    assert name in host['parameters']
     assert value == host['parameters'][name]
 
     new_value = valid_data_list()[name]
     target_sat.cli.Host.set_parameter({'host-id': host['id'], 'name': name, 'value': new_value})
     host = target_sat.cli.Host.info({'id': host['id']})
-    assert name in host['parameters'].keys()
+    assert name in host['parameters']
     assert new_value == host['parameters'][name]
 
     target_sat.cli.Host.delete_parameter({'host-id': host['id'], 'name': name})
     host = target_sat.cli.Host.info({'id': host['id']})
-    assert name not in host['parameters'].keys()
+    assert name not in host['parameters']
 
 
 # -------------------------- HOST PARAMETER SCENARIOS -------------------------
@@ -1095,7 +1095,7 @@ def test_negative_add_parameter(function_host, target_sat):
             }
         )
     host = target_sat.cli.Host.info({'id': function_host['id']})
-    assert name not in host['parameters'].keys()
+    assert name not in host['parameters']
 
 
 @pytest.mark.cli_host_parameter

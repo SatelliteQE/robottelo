@@ -272,7 +272,7 @@ def test_client_register_through_lb(
         loadbalancer_setup['setup_haproxy']['haproxy'].hostname
         in rhel_contenthost.subscription_config['server']['hostname']
     )
-    assert CLIENT_PORT == rhel_contenthost.subscription_config['server']['port']
+    assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
 
     # Host registration by Second Capsule through Loadbalancer
     result = rhel_contenthost.register(
@@ -287,7 +287,7 @@ def test_client_register_through_lb(
         loadbalancer_setup['setup_haproxy']['haproxy'].hostname
         in rhel_contenthost.subscription_config['server']['hostname']
     )
-    assert CLIENT_PORT == rhel_contenthost.subscription_config['server']['port']
+    assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
 
     hosts = loadbalancer_setup['module_target_sat'].cli.Host.list(
         {'organization-id': loadbalancer_setup['module_org'].id}
