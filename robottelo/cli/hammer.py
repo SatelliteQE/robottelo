@@ -26,10 +26,10 @@ def _normalize_obj(obj):
     """
     if isinstance(obj, dict):
         return {_normalize(k): _normalize_obj(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
+    if isinstance(obj, list):
         return [_normalize_obj(v) for v in obj]
     # doing this to conform to csv parser
-    elif isinstance(obj, int) and not isinstance(obj, bool):
+    if isinstance(obj, int) and not isinstance(obj, bool):
         return str(obj)
     return obj
 
@@ -48,8 +48,8 @@ def parse_csv(output):
     """Parse CSV output from Hammer CLI and convert it to python dictionary."""
     # ignore warning about puppet and ostree deprecation
     output.replace('Puppet and OSTree will no longer be supported in Katello 3.16\n', '')
-    is_rex = True if 'Job invocation' in output else False
-    is_pkg_list = True if 'Nvra' in output else False
+    is_rex = 'Job invocation' in output
+    is_pkg_list = 'Nvra' in output
     # Validate if the output is eligible for CSV conversions else return as it is
     if not is_csv(output) and not is_rex and not is_pkg_list:
         return output
@@ -199,7 +199,7 @@ def parse_info(output):
         if line.startswith(' '):  # sub-properties are indented
             # values are separated by ':' or '=>', but not by '::' which can be
             # entity name like 'test::params::keys'
-            if line.find(':') != -1 and not line.find('::') != -1:
+            if line.find(':') != -1 and line.find('::') == -1:
                 key, value = line.lstrip().split(":", 1)
             elif line.find('=>') != -1 and len(line.lstrip().split(" =>", 1)) == 2:
                 key, value = line.lstrip().split(" =>", 1)

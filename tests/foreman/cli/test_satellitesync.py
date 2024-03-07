@@ -85,8 +85,7 @@ def export_import_cleanup_module(target_sat, module_org):
 @pytest.fixture
 def function_import_org(target_sat):
     """Creates an Organization for content import."""
-    org = target_sat.api.Organization().create()
-    return org
+    return target_sat.api.Organization().create()
 
 
 @pytest.fixture
@@ -159,7 +158,6 @@ def function_synced_rh_repo(request, target_sat, function_sca_manifest_org):
             'product': repo_dict['product'],
         }
     )
-    return repo
 
 
 @pytest.fixture
