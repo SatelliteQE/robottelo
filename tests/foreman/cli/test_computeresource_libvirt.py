@@ -101,7 +101,6 @@ def invalid_update_data():
 
 
 @pytest.fixture(scope="module")
-@pytest.mark.skip_if_not_set('libvirt')
 def libvirt_url():
     return LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
 
