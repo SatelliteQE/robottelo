@@ -343,7 +343,7 @@ def test_positive_product_view_organization_switch(session, module_org, module_p
     with session:
         assert session.product.search(module_product.name)
         session.organization.select(org_name="Default Organization")
-        assert not session.product.search(module_product.name) == module_product.name
+        assert session.product.search(module_product.name) != module_product.name
 
 
 def test_positive_prepare_for_sca_only_organization(target_sat, function_entitlement_manifest_org):

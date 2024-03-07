@@ -565,5 +565,4 @@ def shared(
 
     if function_:
         return main_wrapper(function_)
-    else:
-        return wait_function
+    return wait_function

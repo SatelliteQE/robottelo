@@ -28,8 +28,7 @@ from robottelo.utils.datafactory import (
 @pytest.fixture(scope='module')
 def fake_hosts(module_org, module_target_sat):
     """Create content hosts that can be shared by tests."""
-    hosts = [module_target_sat.api.Host(organization=module_org).create() for _ in range(2)]
-    return hosts
+    return [module_target_sat.api.Host(organization=module_org).create() for _ in range(2)]
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))

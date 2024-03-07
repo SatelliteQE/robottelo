@@ -145,9 +145,12 @@ class ContentInfo:
         :returns: the manifest upload result
 
         """
-        if not isinstance(manifest, bytes | io.BytesIO):
-            if not hasattr(manifest, 'content') or manifest.content is None:
-                manifest = clone()
+        if (
+            not isinstance(manifest, bytes | io.BytesIO)
+            and not hasattr(manifest, 'content')
+            or manifest.content is None
+        ):
+            manifest = clone()
         if timeout is None:
             # Set the timeout to 1500 seconds to align with the API timeout.
             timeout = 1500000
@@ -191,8 +194,7 @@ class ContentInfo:
         repo = repo_list if isinstance(repo_list, list) else [repo_list]
         content_view = self.api.ContentView(organization=org, repository=repo).create()
         content_view.publish()
-        content_view = content_view.read()
-        return content_view
+        return content_view.read()
 
     def move_pulp_archive(self, org, export_message):
         """
@@ -208,11 +210,7 @@ class ContentInfo:
         # removes everything before export path,
         # replaces EXPORT_PATH by IMPORT_PATH,
         # removes metadata filename
-        import_path = os.path.dirname(
-            re.sub(rf'.*{PULP_EXPORT_DIR}', PULP_IMPORT_DIR, export_message)
-        )
-
-        return import_path
+        return os.path.dirname(re.sub(rf'.*{PULP_EXPORT_DIR}', PULP_IMPORT_DIR, export_message))
 
 
 class SystemInfo:

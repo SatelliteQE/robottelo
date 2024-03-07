@@ -19,8 +19,7 @@ def make_path_list(path_list):
         paths = path_list.split(',')
         paths = [path for path in paths if any(target in path for target in targets)]
         return set(paths)
-    else:
-        return targets
+    return targets
 
 
 def get_bz_data(paths):
@@ -31,12 +30,10 @@ def get_bz_data(paths):
         for test in tests:
             test_dict = test.to_dict()
             test_data = {**test_dict['tokens'], **test_dict['invalid-tokens']}
-            if 'bz' in test_data.keys():
-                if (
-                    'customerscenario' not in test_data.keys()
-                    or test_data['customerscenario'] == 'false'
-                ):
-                    path_result.append([test.name, test_data['bz']])
+            if 'bz' in test_data and (
+                'customerscenario' not in test_data or test_data['customerscenario'] == 'false'
+            ):
+                path_result.append([test.name, test_data['bz']])
         if path_result:
             result[path] = path_result
     return result
@@ -64,8 +61,7 @@ def get_response(bzs):
     )
     assert response.status_code == 200, 'BZ query unsuccessful'
     assert response.json().get('error') is not True, response.json().get('message')
-    bugs = response.json().get('bugs')
-    return bugs
+    return response.json().get('bugs')
 
 
 def query_bz(data):
@@ -75,7 +71,7 @@ def query_bz(data):
             for test in tests:
                 bugs = get_response(test[1])
                 for bug in bugs:
-                    if 'external_bugs' in bug.keys() and len(bug['external_bugs']) > 1:
+                    if 'external_bugs' in bug and len(bug['external_bugs']) > 1:
                         customer_cases = [
                             case
                             for case in bug['external_bugs']

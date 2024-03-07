@@ -183,7 +183,7 @@ def configure_airgun():
                 'webdriver': settings.ui.webdriver,
                 'webdriver_binary': settings.ui.webdriver_binary,
             },
-            'webkaifuku': {'config': settings.ui.webkaifuku} or {},
+            'webkaifuku': {'config': settings.ui.webkaifuku},
         }
     )
 
