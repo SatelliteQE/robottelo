@@ -30,14 +30,13 @@ def test_content_access_after_stopped_foreman(target_sat, rhel7_contenthost):
 
     :CaseImportance: Medium
 
-    :CaseComponent: Infrastructure
+    :CaseComponent: Hosts-Content
 
-    :Team: Platform
+    :Team: Phoenix-subscriptions
 
     :parametrized: yes
     """
     org = target_sat.api.Organization().create()
-    org.sca_disable()
     lce = target_sat.api.LifecycleEnvironment(organization=org).create()
     repos_collection = target_sat.cli_factory.RepositoryCollection(
         distro='rhel7',
