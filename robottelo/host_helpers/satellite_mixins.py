@@ -144,10 +144,8 @@ class ContentInfo:
         :returns: the manifest upload result
 
         """
-        if (
-            not isinstance(manifest, bytes | io.BytesIO)
-            and not hasattr(manifest, 'content')
-            or manifest.content is None
+        if not isinstance(manifest, bytes | io.BytesIO) and (
+            not hasattr(manifest, 'content') or manifest.content is None
         ):
             manifest = clone()
         if timeout is None:

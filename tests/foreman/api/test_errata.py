@@ -34,7 +34,9 @@ CUSTOM_REPO_ERRATA_ID = settings.repos.yum_6.errata[2]
 
 @pytest.fixture(scope='module')
 def activation_key(module_org, module_lce, module_target_sat):
-    module_target_sat.api.ActivationKey(environment=module_lce, organization=module_org).create()
+    return module_target_sat.api.ActivationKey(
+        environment=module_lce, organization=module_org
+    ).create()
 
 
 @pytest.fixture(scope='module')

@@ -54,7 +54,7 @@ def dev_lce(module_entitlement_manifest_org):
 
 @pytest.fixture(scope='module')
 def qe_lce(module_entitlement_manifest_org, dev_lce):
-    entities.LifecycleEnvironment(
+    return entities.LifecycleEnvironment(
         name='QE', prior=dev_lce, organization=module_entitlement_manifest_org
     ).create()
 
