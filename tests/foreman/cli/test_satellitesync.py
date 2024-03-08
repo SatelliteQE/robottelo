@@ -1235,6 +1235,14 @@ class TestContentViewSync:
                 {'organization-id': function_import_org_with_manifest.id, 'path': import_path}
             )
         assert '1 subtask(s) failed' in error.value.message
+        target_sat.wait_for_tasks(
+            search_query=(
+                'Actions::Katello::ContentView::Remove and '
+                f'organization_id = {function_import_org_with_manifest.id}'
+            ),
+            max_tries=5,
+            poll_rate=10,
+        )
 
         # Verify no content is imported and the import CV can be deleted
         imported_cv = target_sat.cli.ContentView.info(
@@ -1577,6 +1585,7 @@ class TestContentViewSync:
         assert len(importing_cvv) == 1
 
     @pytest.mark.tier3
+    @pytest.mark.skip_if_open("BZ:2262379")
     def test_postive_export_import_ansible_collection_repo(
         self,
         target_sat,
