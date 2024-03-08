@@ -151,7 +151,7 @@ def function_synced_rh_repo(request, target_sat, function_sca_manifest_org):
     # Update the download policy to 'immediate' and sync
     target_sat.cli.Repository.update({'download-policy': 'immediate', 'id': repo['id']})
     target_sat.cli.Repository.synchronize({'id': repo['id']}, timeout=7200000)
-    repo = target_sat.cli.Repository.info(
+    return target_sat.cli.Repository.info(
         {
             'organization-id': function_sca_manifest_org.id,
             'name': repo_dict['name'],
