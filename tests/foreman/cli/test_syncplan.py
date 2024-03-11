@@ -705,7 +705,7 @@ def test_positive_synchronize_rh_product_future_sync_date(
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
         validate_task_status(target_sat, repo['id'], org.id, max_tries=1)
-    validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
+    validate_repo_content(target_sat, repo, ['errata', 'packages'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
         f"Waiting {(delay * 4 / 5)} seconds to check product {product['name']}"
@@ -714,7 +714,7 @@ def test_positive_synchronize_rh_product_future_sync_date(
     sleep(delay * 4 / 5)
     # Verify product was synced successfully
     validate_task_status(target_sat, repo['id'], org.id)
-    validate_repo_content(repo, ['errata', 'packages'])
+    validate_repo_content(target_sat, repo, ['errata', 'packages'])
 
 
 @pytest.mark.tier3
