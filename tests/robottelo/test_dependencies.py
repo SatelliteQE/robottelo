@@ -81,7 +81,7 @@ def test_productmd():
 def test_pyotp():
     import pyotp
 
-    fake_secret = 'JBSWY3DPEHPK3PXP'
+    fake_secret = 'JBSWY3DPEHPK3PXP'  # notsecret
     totp = pyotp.TOTP(fake_secret)
     assert totp.now()
 
