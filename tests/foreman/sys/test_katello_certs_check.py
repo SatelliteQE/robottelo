@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: Certificates
+:CaseComponent: Installation
 
 :Team: Platform
 
