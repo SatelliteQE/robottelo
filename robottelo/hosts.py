@@ -1575,6 +1575,21 @@ class Capsule(ContentHost, CapsuleMixins):
         """Get capsule features"""
         return requests.get(f'https://{self.hostname}:9090/features', verify=False).text
 
+    def enable_capsule_downstream_repos(self):
+        """Enable CDN repos and capsule downstream repos on Capsule Host"""
+        # CDN Repos
+        self.register_to_cdn()
+        for repo in getattr(constants, f"OHSNAP_RHEL{self.os_version.major}_REPOS"):
+            result = self.enable_repo(repo, force=True)
+            if result.status:
+                raise CapsuleHostError(f'Repo enable at capsule host failed\n{result.stdout}')
+        # Downstream Capsule specific Repos
+        self.download_repofile(
+            product='capsule',
+            release=settings.capsule.version.release,
+            snap=settings.capsule.version.snap,
+        )
+
     def capsule_setup(self, sat_host=None, capsule_cert_opts=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
         self._satellite = sat_host or Satellite()
@@ -1662,7 +1677,10 @@ class Capsule(ContentHost, CapsuleMixins):
             timeout=timeout,
         )
         if result.status != 0:
-            raise SatelliteHostError(f'Failed to execute with argument: {result.stderr}')
+            raise SatelliteHostError(
+                f'Failed to execute with arguments: {installer_args} and,'
+                f' the stderr is {result.stderr}'
+            )
 
     def set_mqtt_resend_interval(self, value):
         """Set the time interval in seconds at which the notification should be

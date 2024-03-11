@@ -21,7 +21,7 @@ from robottelo.config import user_nailgun_config
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.tier1
-def test_positive_update_capsule(target_sat, module_capsule_configured):
+def test_positive_update_capsule(request, pytestconfig, target_sat, module_capsule_configured):
     """Update various capsule properties
 
     :id: a3d3eaa9-ed8d-42e6-9c83-20251e5ca9af
@@ -39,7 +39,7 @@ def test_positive_update_capsule(target_sat, module_capsule_configured):
 
     :customerscenario: true
     """
-    new_name = f'{gen_string("alpha")}-{module_capsule_configured.name}'
+    new_name = f'{gen_string("alpha")}-{module_capsule_configured.hostname}'
     capsule = target_sat.api.SmartProxy().search(
         query={'search': f'name = {module_capsule_configured.hostname}'}
     )[0]
@@ -67,6 +67,17 @@ def test_positive_update_capsule(target_sat, module_capsule_configured):
     capsule.name = new_name
     capsule = capsule.update(['name'])
     assert capsule.name == new_name
+
+    @request.addfinalizer
+    def _finalize():
+        # Updating the hostname back
+        if (
+            cap := target_sat.api.SmartProxy().search(query={'search': f'name = {new_name}'})
+            and pytestconfig.option.n_minus
+        ):
+            cap = cap[0]
+            cap.name = module_capsule_configured.hostname
+            cap.update(['name'])
 
     # serching for non-default capsule BZ#2077824
     capsules = target_sat.api.SmartProxy().search(query={'search': 'id != 1'})

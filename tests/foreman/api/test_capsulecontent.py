@@ -1261,6 +1261,7 @@ class TestCapsuleContentManagement:
     def test_positive_remove_capsule_orphans(
         self,
         target_sat,
+        pytestconfig,
         capsule_configured,
         function_entitlement_manifest_org,
         function_lce_library,
@@ -1290,6 +1291,8 @@ class TestCapsuleContentManagement:
         :BZ: 22043089, 2211962
 
         """
+        if not pytestconfig.option.n_minus:
+            pytest.skip('Test cannot be run on n-minus setups session-scoped capsule')
         # Enable RHST repo and sync it to the Library LCE.
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
