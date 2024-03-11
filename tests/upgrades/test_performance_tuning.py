@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: Installer
+:CaseComponent: Installation
 
 :Team: Platform
 
