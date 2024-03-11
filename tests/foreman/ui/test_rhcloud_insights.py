@@ -1,12 +1,12 @@
 """Tests for RH Cloud - Inventory
 
-:Requirement: RH Cloud - Inventory
+:Requirement: RHCloud
 
 :CaseAutomation: Automated
 
 :CaseLevel: System
 
-:CaseComponent: RHCloud-Inventory
+:CaseComponent: RHCloud
 
 :Team: Platform
 

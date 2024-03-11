@@ -6,7 +6,7 @@
 
 :CaseLevel: System
 
-:CaseComponent: RHCloud-Inventory
+:CaseComponent: RHCloud
 
 :Team: Platform
 

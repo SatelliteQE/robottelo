@@ -1,12 +1,12 @@
 """Tests For Disconnected Satellite Installation
 
-:Requirement: Installer (disconnected satellite installation)
+:Requirement: Installation (disconnected satellite installation)
 
 :CaseAutomation: Automated
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Installer
+:CaseComponent: Installation
 
 :Team: Platform
 

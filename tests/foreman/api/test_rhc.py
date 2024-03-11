@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: RHCloud-CloudConnector
+:CaseComponent: RHCloud
 
 :Team: Platform
 

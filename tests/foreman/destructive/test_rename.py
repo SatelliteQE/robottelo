@@ -6,7 +6,7 @@
 
 :CaseLevel: System
 
-:CaseComponent: satellite-change-hostname
+:CaseComponent: Installation
 
 :Team: Platform
 
