@@ -59,6 +59,42 @@ def ui_user(ui_user, smart_proxy_location, module_target_sat):
 
 
 @pytest.fixture
+def ui_admin_user(target_sat):
+    """Admin user."""
+    admin_user = target_sat.api.User().search(
+        query={'search': f'login={settings.server.admin_username}'}
+    )[0]
+    admin_user.password = settings.server.admin_password
+
+    return admin_user
+
+
+@pytest.fixture
+def ui_view_hosts_user(target_sat, current_sat_org, current_sat_location):
+    """User with View hosts role."""
+    role = target_sat.api.Role().search(query={'search': 'name="View hosts"'})[0]
+    password = gen_string('alphanumeric')
+    user = target_sat.api.User(
+        admin=False,
+        location=[current_sat_location],
+        organization=[current_sat_org],
+        role=[role],
+        password=password,
+    ).create()
+    user.password = password
+
+    yield user
+
+    user.delete()
+
+
+@pytest.fixture(params=['ui_admin_user', 'ui_view_hosts_user'])
+def ui_hosts_columns_user(request):
+    """Parametrized fixture returning defined users for the UI session."""
+    return request.getfixturevalue(request.param)
+
+
+@pytest.fixture
 def scap_policy(scap_content, target_sat):
     return target_sat.cli_factory.make_scap_policy(
         {
@@ -1094,7 +1130,9 @@ def test_rex_new_ui(session, target_sat, rex_contenthost):
 
 
 @pytest.mark.tier4
-def test_positive_manage_table_columns(session, current_sat_org, current_sat_location):
+def test_positive_manage_table_columns(
+    target_sat, test_name, ui_hosts_columns_user, current_sat_org, current_sat_location
+):
     """Set custom columns of the hosts table.
 
     :id: e5e18982-cc43-11ed-8562-000c2989e153
@@ -1107,7 +1145,7 @@ def test_positive_manage_table_columns(session, current_sat_org, current_sat_loc
     :expectedresults: Check if the custom columns were set properly, i.e., are displayed
         or not displayed in the table.
 
-    :BZ: 1813274
+    :BZ: 1813274, 2212499
 
     :customerscenario: true
     """
@@ -1127,9 +1165,11 @@ def test_positive_manage_table_columns(session, current_sat_org, current_sat_loc
         'Boot time': True,
         'Recommendations': False,
     }
-    with session:
-        session.organization.select(org_name=current_sat_org)
-        session.location.select(loc_name=current_sat_location)
+    with target_sat.ui_session(
+        test_name, ui_hosts_columns_user.login, ui_hosts_columns_user.password
+    ) as session:
+        session.organization.select(org_name=current_sat_org.name)
+        session.location.select(loc_name=current_sat_location.name)
         session.host.manage_table_columns(columns)
         displayed_columns = session.host.get_displayed_table_headers()
         for column, is_displayed in columns.items():
@@ -1160,8 +1200,8 @@ def test_positive_host_details_read_templates(
     host = target_sat.api.Host().search(query={'search': f'name={target_sat.hostname}'})[0]
     api_templates = [template['name'] for template in host.list_provisioning_templates()]
     with session:
-        session.organization.select(org_name=current_sat_org)
-        session.location.select(loc_name=current_sat_location)
+        session.organization.select(org_name=current_sat_org.name)
+        session.location.select(loc_name=current_sat_location.name)
         host_detail = session.host_new.get_details(target_sat.hostname, widget_names='details')
         ui_templates = [
             row['column1'].strip()
