@@ -85,9 +85,9 @@ def get_ohsnap_repos(settings):
         settings,
         repo='capsule',
         product='capsule',
-        release=settings.server.version.release,
-        os_release=settings.server.version.rhel_version,
-        snap=settings.server.version.snap,
+        release=settings.capsule.version.release,
+        os_release=settings.capsule.version.rhel_version,
+        snap=settings.capsule.version.snap,
     )
 
     data['SATELLITE_REPO'] = get_ohsnap_repo_url(
