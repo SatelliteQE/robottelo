@@ -140,7 +140,9 @@ ENTITY_FIELDS = {
     'sync_plan': {
         'description': gen_alpha,
         'enabled': 'true',
-        'interval': lambda: random.choice(list(constants.SYNC_INTERVAL.values())),
+        'interval': lambda: random.choice(
+            [i for i in constants.SYNC_INTERVAL.values() if i != 'custom cron']
+        ),
         'name': gen_alpha,
         'sync-date': lambda: datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
     },
