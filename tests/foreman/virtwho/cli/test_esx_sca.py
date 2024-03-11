@@ -527,9 +527,9 @@ class TestVirtWhoConfigforEsx:
         :BZ: 2173870
         """
 
-        # create 3 hypersiors and each have 3 guests json file
+        # create json file for 3 hyperviors, each with 3 guests
         json_file = Path("/tmp/fake.json")
-        data = hypervisor_fake_json_create(hypervisors=1, guests=1)
+        data = hypervisor_fake_json_create(hypervisors=3, guests=3)
         json_file.write_text(json.dumps(data))
         # create 10 fake files in module_sca_manifest_org
         virtwho_config_cli = target_sat.cli.VirtWhoConfig.create(form_data_cli)[
@@ -581,6 +581,7 @@ class TestVirtWhoConfigforEsx:
                 fake_conf_file,
                 json_file,
             )
+        # run virt-who with option -d, --debug and -o, --one-shot
         vw_run_option("od")
         for i in range(10):
             fake_conf_file = f"/etc/virt-who.d/virt-who-config-fake{i}.conf"

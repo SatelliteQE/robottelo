@@ -592,20 +592,7 @@ def vw_fake_conf_create(
     rhsm_encrypted_password = f'rhsm_encrypted_password={rhsm_encrypted_password}\n'
     rhsm_prefix = 'rhsm_prefix=/rhsm\n'
     rhsm_port = 'rhsm_port=443\n'
-    cmd = ('cat <<EOF > {}' '{}' '{}' '{}' '{}' '{}' '{}' '{}' '{}' '{}' '{}' '{}' 'EOF').format(
-        file,
-        title,
-        type,
-        json,
-        is_hypervisor,
-        owner,
-        env,
-        rhsm_hostname,
-        rhsm_username,
-        rhsm_encrypted_password,
-        rhsm_prefix,
-        rhsm_port,
-    )
+    cmd = f'cat <<EOF > {file}\n{title}\n{type}\n{json}\n{is_hypervisor}\n{owner}\n{env}\n{rhsm_hostname}\n{rhsm_username}\n{rhsm_encrypted_password}\n{rhsm_prefix}\n{rhsm_port}\nEOF'
     runcmd(cmd)
 
 
