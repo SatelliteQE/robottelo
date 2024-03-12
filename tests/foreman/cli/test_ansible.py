@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Ansible
+:CaseComponent: Ansible-ConfigurationManagement
 
 :Team: Rocket
 
@@ -44,8 +44,6 @@ def test_positive_ansible_e2e(target_sat, module_org, rhel_contenthost):
         1. Host should be assigned the proper role.
         2. Job execution must be successful.
         3. Operations performed with hammer must be successful.
-
-    :CaseAutomation: Automated
 
     :CaseImportance: Critical
     """

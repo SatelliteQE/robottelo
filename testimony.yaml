@@ -14,7 +14,8 @@ CaseComponent:
     choices:
     # No spaces allowed
     - ActivationKeys
-    - Ansible
+    - Ansible-ConfigurationManagement
+    - Ansible-RemoteExecution
     - AnsibleCollection
     - API
     - AuditLog
