@@ -47,16 +47,15 @@ def get_system(system_type):
             'password': getattr(settings.virtwho, system_type).guest_password,
             'port': getattr(settings.virtwho, system_type).guest_port,
         }
-    elif system_type == 'satellite':
+    if system_type == 'satellite':
         return {
             'hostname': settings.server.hostname,
             'username': settings.server.ssh_username,
             'password': settings.server.ssh_password,
         }
-    else:
-        raise VirtWhoError(
-            f'"{system_type}" system type is not supported. Please use one of {system_type_list}'
-        )
+    raise VirtWhoError(
+        f'"{system_type}" system type is not supported. Please use one of {system_type_list}'
+    )
 
 
 def get_guest_info(hypervisor_type):
@@ -115,8 +114,7 @@ def register_system(system, activation_key=None, org='Default_Organization', env
     ret, stdout = runcmd(cmd, system)
     if ret == 0 or "system has been registered" in stdout:
         return True
-    else:
-        raise VirtWhoError(f'Failed to register system: {system}')
+    raise VirtWhoError(f'Failed to register system: {system}')
 
 
 def virtwho_cleanup():
@@ -150,10 +148,9 @@ def get_virtwho_status():
         return 'logerror'
     if any(key in stdout for key in running_stauts):
         return 'running'
-    elif any(key in stdout for key in stopped_status):
+    if any(key in stdout for key in stopped_status):
         return 'stopped'
-    else:
-        return 'undefined'
+    return 'undefined'
 
 
 def get_configure_id(name):
@@ -164,8 +161,7 @@ def get_configure_id(name):
     config = VirtWhoConfig.info({'name': name})
     if 'id' in config['general-information']:
         return config['general-information']['id']
-    else:
-        raise VirtWhoError(f"No configure id found for {name}")
+    raise VirtWhoError(f"No configure id found for {name}")
 
 
 def get_configure_command(config_id, org=DEFAULT_ORG):
@@ -198,10 +194,8 @@ def get_configure_option(option, filename):
     cmd = f"grep -v '^#' {filename} | grep ^{option}"
     ret, stdout = runcmd(cmd)
     if ret == 0 and option in stdout:
-        value = stdout.split('=')[1].strip()
-        return value
-    else:
-        raise VirtWhoError(f"option {option} is not exist or not be enabled in {filename}")
+        return stdout.split('=')[1].strip()
+    raise VirtWhoError(f"option {option} is not exist or not be enabled in {filename}")
 
 
 def get_rhsm_log():
@@ -264,8 +258,7 @@ def _get_hypervisor_mapping(hypervisor_type):
                 break
     if hypervisor_name:
         return hypervisor_name, guest_name
-    else:
-        raise VirtWhoError(f"Failed to get the hypervisor_name for guest {guest_name}")
+    raise VirtWhoError(f"Failed to get the hypervisor_name for guest {guest_name}")
 
 
 def get_hypervisor_ahv_mapping(hypervisor_type):
@@ -348,6 +341,7 @@ def deploy_configure_by_command(command, hypervisor_type, debug=False, org='Defa
         raise VirtWhoError(f"Failed to deploy configure by {command}")
     if debug:
         return deploy_validation(hypervisor_type)
+    return None
 
 
 def deploy_configure_by_script(
@@ -371,6 +365,7 @@ def deploy_configure_by_script(
         raise VirtWhoError(f"Failed to deploy configure by {script_filename}")
     if debug:
         return deploy_validation(hypervisor_type)
+    return None
 
 
 def deploy_configure_by_command_check(command):
@@ -389,8 +384,7 @@ def deploy_configure_by_command_check(command):
     else:
         if ret != 0 or 'Finished successfully' not in stdout:
             raise VirtWhoError(f"Failed to deploy configure by {command}")
-        else:
-            return 'Finished successfully'
+        return 'Finished successfully'
 
 
 def restart_virtwho_service():
@@ -469,8 +463,7 @@ def hypervisor_json_create(hypervisors, guests):
         name = str(uuid.uuid4())
         hypervisor = {"guestIds": guest_list, "name": name, "hypervisorId": {"hypervisorId": name}}
         hypervisors_list.append(hypervisor)
-    mapping = {"hypervisors": hypervisors_list}
-    return mapping
+    return {"hypervisors": hypervisors_list}
 
 
 def hypervisor_fake_json_create(hypervisors, guests):
@@ -564,9 +557,9 @@ def get_configure_command_option(deploy_type, args, org=DEFAULT_ORG):
     username, password = Base._get_username_password()
     if deploy_type == 'location-id':
         return f"hammer -u {username} -p {password} virt-who-config deploy --id {args['id']} --location-id '{args['location-id']}' "
-    elif deploy_type == 'organization-title':
+    if deploy_type == 'organization-title':
         return f"hammer -u {username} -p {password} virt-who-config deploy --id {args['id']} --organization-title '{args['organization-title']}' "
-    elif deploy_type == 'name':
+    if deploy_type == 'name':
         return f"hammer -u {username} -p {password} virt-who-config deploy --name {args['name']} --organization '{org}' "
     return None
 
