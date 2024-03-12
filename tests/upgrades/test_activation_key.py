@@ -39,8 +39,7 @@ class TestActivationKey:
         ak = target_sat.api.ActivationKey(
             content_view=cv, organization=org, name=f"{request.param}_ak"
         ).create()
-        ak_details = {'org': org, "cv": cv, 'ak': ak, 'custom_repo': custom_repo}
-        return ak_details
+        return {'org': org, "cv": cv, 'ak': ak, 'custom_repo': custom_repo}
 
     @pytest.mark.pre_upgrade
     @pytest.mark.parametrize(

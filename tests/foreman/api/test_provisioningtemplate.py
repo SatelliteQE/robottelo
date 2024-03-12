@@ -120,7 +120,7 @@ def tftpboot(module_org, module_target_sat):
     for setting in default_settings:
         if setting.value is None:
             setting.value = ''
-        setting.update(fields=['value'] or '')
+        setting.update(fields=['value'])
 
 
 class TestProvisioningTemplate:

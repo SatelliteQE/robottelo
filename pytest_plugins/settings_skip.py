@@ -22,7 +22,7 @@ def pytest_runtest_setup(item):
     skip_marker = item.get_closest_marker('skip_if_not_set', None)
     if skip_marker and skip_marker.args:
         options_set = {arg.upper() for arg in skip_marker.args}
-        settings_set = {key for key in settings.keys() if not key.endswith('_FOR_DYNACONF')}
+        settings_set = {key for key in settings if not key.endswith('_FOR_DYNACONF')}
         if not options_set.issubset(settings_set):
             invalid = options_set.difference(settings_set)
             raise ValueError(

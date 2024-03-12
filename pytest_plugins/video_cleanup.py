@@ -64,15 +64,14 @@ def pytest_runtest_makereport(item):
                     'longrepr': str(report.longrepr),
                 }
             )
-        if report.when == "teardown":
-            if item.nodeid in test_results:
-                result_info = test_results[item.nodeid]
-                if result_info.outcome == 'passed':
-                    report.user_properties = [
-                        (key, value) for key, value in report.user_properties if key != 'video_url'
-                    ]
-                    session_id_tuple = next(
-                        (t for t in report.user_properties if t[0] == 'session_id'), None
-                    )
-                    session_id = session_id_tuple[1] if session_id_tuple else None
-                    _clean_video(session_id, item.nodeid)
+        if report.when == "teardown" and item.nodeid in test_results:
+            result_info = test_results[item.nodeid]
+            if result_info.outcome == 'passed':
+                report.user_properties = [
+                    (key, value) for key, value in report.user_properties if key != 'video_url'
+                ]
+                session_id_tuple = next(
+                    (t for t in report.user_properties if t[0] == 'session_id'), None
+                )
+                session_id = session_id_tuple[1] if session_id_tuple else None
+                _clean_video(session_id, item.nodeid)

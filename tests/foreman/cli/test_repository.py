@@ -652,7 +652,7 @@ class TestRepository:
         **parametrized(
             [
                 {'content-type': content_type, 'download-policy': 'on_demand'}
-                for content_type in REPO_TYPE.keys()
+                for content_type in REPO_TYPE
                 if content_type != 'yum'
                 if content_type != 'ostree'
             ]
@@ -2663,7 +2663,7 @@ class TestFileRepository:
         filesearch = entities.File().search(
             query={"search": f"name={RPM_TO_UPLOAD} and repository={repo['name']}"}
         )
-        assert RPM_TO_UPLOAD == filesearch[0].name
+        assert filesearch[0].name == RPM_TO_UPLOAD
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
