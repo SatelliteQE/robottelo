@@ -44,17 +44,16 @@ def sat_azure_default_os(sat_azure):
 
 @pytest.fixture(scope='module')
 def sat_azure_default_architecture(sat_azure):
-    arch = (
+    return (
         sat_azure.api.Architecture()
         .search(query={'search': f'name="{DEFAULT_ARCHITECTURE}"'})[0]
         .read()
     )
-    return arch
 
 
 @pytest.fixture(scope='session')
 def azurerm_settings():
-    deps = {
+    return {
         'tenant': settings.azurerm.tenant_id,
         'app_ident': settings.azurerm.client_id,
         'sub_id': settings.azurerm.subscription_id,
@@ -62,7 +61,6 @@ def azurerm_settings():
         'secret': settings.azurerm.client_secret,
         'region': settings.azurerm.azure_region.lower().replace(' ', ''),
     }
-    return deps
 
 
 @pytest.fixture(scope='session')
@@ -86,7 +84,7 @@ def azurermclient(azurerm_settings):
 @pytest.fixture(scope='module')
 def module_azurerm_cr(azurerm_settings, sat_azure_org, sat_azure_loc, sat_azure):
     """Create AzureRM Compute Resource"""
-    azure_cr = sat_azure.api.AzureRMComputeResource(
+    return sat_azure.api.AzureRMComputeResource(
         name=gen_string('alpha'),
         provider='AzureRm',
         tenant=azurerm_settings['tenant'],
@@ -97,7 +95,6 @@ def module_azurerm_cr(azurerm_settings, sat_azure_org, sat_azure_loc, sat_azure)
         organization=[sat_azure_org],
         location=[sat_azure_loc],
     ).create()
-    return azure_cr
 
 
 @pytest.fixture(scope='module')
@@ -108,7 +105,7 @@ def module_azurerm_finishimg(
     module_azurerm_cr,
 ):
     """Creates Finish Template image on AzureRM Compute Resource"""
-    finish_image = sat_azure.api.Image(
+    return sat_azure.api.Image(
         architecture=sat_azure_default_architecture,
         compute_resource=module_azurerm_cr,
         name=gen_string('alpha'),
@@ -116,7 +113,6 @@ def module_azurerm_finishimg(
         username=settings.azurerm.username,
         uuid=AZURERM_RHEL7_FT_IMG_URN,
     ).create()
-    return finish_image
 
 
 @pytest.fixture(scope='module')
@@ -127,7 +123,7 @@ def module_azurerm_byos_finishimg(
     sat_azure,
 ):
     """Creates BYOS Finish Template image on AzureRM Compute Resource"""
-    finish_image = sat_azure.api.Image(
+    return sat_azure.api.Image(
         architecture=sat_azure_default_architecture,
         compute_resource=module_azurerm_cr,
         name=gen_string('alpha'),
@@ -135,7 +131,6 @@ def module_azurerm_byos_finishimg(
         username=settings.azurerm.username,
         uuid=AZURERM_RHEL7_FT_BYOS_IMG_URN,
     ).create()
-    return finish_image
 
 
 @pytest.fixture(scope='module')
@@ -146,7 +141,7 @@ def module_azurerm_cloudimg(
     module_azurerm_cr,
 ):
     """Creates cloudinit image on AzureRM Compute Resource"""
-    finish_image = sat_azure.api.Image(
+    return sat_azure.api.Image(
         architecture=sat_azure_default_architecture,
         compute_resource=module_azurerm_cr,
         name=gen_string('alpha'),
@@ -155,7 +150,6 @@ def module_azurerm_cloudimg(
         uuid=AZURERM_RHEL7_UD_IMG_URN,
         user_data=True,
     ).create()
-    return finish_image
 
 
 @pytest.fixture(scope='module')
@@ -166,7 +160,7 @@ def module_azurerm_gallery_finishimg(
     module_azurerm_cr,
 ):
     """Creates Shared Gallery Finish Template image on AzureRM Compute Resource"""
-    finish_image = sat_azure.api.Image(
+    return sat_azure.api.Image(
         architecture=sat_azure_default_architecture,
         compute_resource=module_azurerm_cr,
         name=gen_string('alpha'),
@@ -174,7 +168,6 @@ def module_azurerm_gallery_finishimg(
         username=settings.azurerm.username,
         uuid=AZURERM_RHEL7_FT_GALLERY_IMG_URN,
     ).create()
-    return finish_image
 
 
 @pytest.fixture(scope='module')
@@ -185,7 +178,7 @@ def module_azurerm_custom_finishimg(
     module_azurerm_cr,
 ):
     """Creates Custom Finish Template image on AzureRM Compute Resource"""
-    finish_image = sat_azure.api.Image(
+    return sat_azure.api.Image(
         architecture=sat_azure_default_architecture,
         compute_resource=module_azurerm_cr,
         name=gen_string('alpha'),
@@ -193,4 +186,3 @@ def module_azurerm_custom_finishimg(
         username=settings.azurerm.username,
         uuid=AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
     ).create()
-    return finish_image

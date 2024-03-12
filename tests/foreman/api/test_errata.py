@@ -76,12 +76,11 @@ def activation_key(module_sca_manifest_org, module_cv, module_lce, module_target
         module_cv,
         module_lce,
     )['content-view']
-    activation_key = module_target_sat.api.ActivationKey(
+    return module_target_sat.api.ActivationKey(
         organization=module_sca_manifest_org,
         environment=module_lce,
         content_view=_cv,
     ).create()
-    return activation_key
 
 
 @pytest.fixture(scope='module')
@@ -144,7 +143,7 @@ def _fetch_available_errata(host, expected_amount=None, timeout=120):
     for _ in range(timeout // 5):
         if expected_amount is None:
             return errata['results']
-        elif len(errata['results']) == expected_amount:
+        if len(errata['results']) == expected_amount:
             return errata['results']
         sleep(5)
         errata = host.errata()
@@ -407,7 +406,7 @@ def package_applicability_changed_as_expected(
             prior_package = None  # package must not have been present before this modification
         else:
             prior_package = package_filename
-        _applicables = {
+        return {
             'result': True,
             'errata_count': host.applicable_errata_count,
             'package_count': host.applicable_package_count,
@@ -416,7 +415,6 @@ def package_applicability_changed_as_expected(
             'change_in_errata': change_in_errata,
             'changed_errata': list(app_errata_diff_ids),
         }
-        return _applicables
     return True
 
 
@@ -1347,6 +1345,7 @@ def _run_remote_command_on_content_host(command, vm, return_result=False):
     assert result.status == 0
     if return_result:
         return result.stdout
+    return None
 
 
 def _set_prerequisites_for_swid_repos(vm):
@@ -1688,7 +1687,7 @@ def test_positive_incremental_update_apply_to_envs_cvs(
     assert set(FAKE_9_YUM_SECURITY_ERRATUM).issubset(post_app_errata_ids)
     # expected packages from the security erratum were added to host
     added_packages = response['output']['changed_content'][0]['added_units']['rpm']
-    assert 12 == len(added_packages)
+    assert len(added_packages) == 12
     # expected that not all of the added packages will be applicable
     assert 8 == host_app_packages == rhel8_contenthost.applicable_package_count
     # install all of the newly added packages, recalculate applicability

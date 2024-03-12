@@ -36,12 +36,11 @@ def module_ak_cv_lce(module_org, module_lce, module_published_cv, module_target_
     content_view_version = module_published_cv.version[0]
     content_view_version.promote(data={'environment_ids': module_lce.id})
     module_published_cv = module_published_cv.read()
-    module_ak_with_cv_lce = module_target_sat.api.ActivationKey(
+    return module_target_sat.api.ActivationKey(
         content_view=module_published_cv,
         environment=module_lce,
         organization=module_org,
     ).create()
-    return module_ak_with_cv_lce
 
 
 @pytest.fixture(scope='module')

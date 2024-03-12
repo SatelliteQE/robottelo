@@ -101,10 +101,9 @@ class ReportPortal:
         resp.raise_for_status()
         # this should further filter out unfinished launches as RP API currently doesn't
         # support usage of the same filter type multiple times (filter.ne.status)
-        launches = [
+        return [
             launch for launch in resp.json()['content'] if launch['status'] not in ['INTERRUPTED']
         ]
-        return launches
 
     @retry(
         stop=stop_after_attempt(6),

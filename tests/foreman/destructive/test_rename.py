@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: satellite-change-hostname
+:CaseComponent: Installation
 
 :Team: Platform
 

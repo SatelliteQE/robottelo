@@ -1,10 +1,10 @@
 """Tests for RH Cloud - Inventory, also known as Insights Inventory Upload
 
-:Requirement: RH Cloud - Inventory
+:Requirement: RHCloud
 
 :CaseAutomation: Automated
 
-:CaseComponent: RHCloud-Inventory
+:CaseComponent: RHCloud
 
 :Team: Platform
 

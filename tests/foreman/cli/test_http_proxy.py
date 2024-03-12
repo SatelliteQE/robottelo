@@ -272,6 +272,13 @@ def test_positive_assign_http_proxy_to_products(module_org, module_target_sat):
         }
     )
     assert 'Product proxy updated' in res
+    module_target_sat.wait_for_tasks(
+        search_query=(
+            f'Actions::Katello::Repository::Update and organization_id = {module_org.id}'
+        ),
+        max_tries=5,
+        poll_rate=10,
+    )
     for repo in repo_a1, repo_a2, repo_b1, repo_b2:
         result = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert result['http-proxy']['http-proxy-policy'] == 'use_selected_http_proxy'
@@ -293,6 +300,13 @@ def test_positive_assign_http_proxy_to_products(module_org, module_target_sat):
         {'ids': f"{product_a['id']},{product_b['id']}", 'http-proxy-policy': 'none'}
     )
     assert 'Product proxy updated' in res
+    module_target_sat.wait_for_tasks(
+        search_query=(
+            f'Actions::Katello::Repository::Update and organization_id = {module_org.id}'
+        ),
+        max_tries=5,
+        poll_rate=10,
+    )
     for repo in repo_a1, repo_a2, repo_b1, repo_b2:
         result = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert result['http-proxy']['http-proxy-policy'] == 'none'

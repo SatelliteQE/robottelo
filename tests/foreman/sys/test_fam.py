@@ -49,7 +49,7 @@ def setup_fam(module_target_sat, module_sca_manifest):
     module_target_sat.execute(f"sed -i '/^live/ s/$(MANIFEST)//' {FAM_ROOT_DIR}/Makefile")
 
     # Upload manifest to test playbooks directory
-    module_target_sat.put(module_sca_manifest.path, module_sca_manifest.name)
+    module_target_sat.put(str(module_sca_manifest.path), str(module_sca_manifest.name))
     module_target_sat.execute(
         f'mv {module_sca_manifest.name} {FAM_ROOT_DIR}/tests/test_playbooks/data'
     )

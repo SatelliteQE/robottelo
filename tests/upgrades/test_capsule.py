@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: Capsule
+:CaseComponent: ForemanProxy
 
 :Team: Platform
 

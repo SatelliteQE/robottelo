@@ -70,5 +70,5 @@ def test_positive_search(session, module_org, module_product, module_repository)
             None,
         )
         assert module_product.name == repo_line['Product']
-        assert DEFAULT_CV == repo_line['Content View']
+        assert repo_line['Content View'] == DEFAULT_CV
         assert 'Success' in repo_line['Last Sync']

@@ -53,12 +53,11 @@ def sat_gce_default_partition_table(sat_gce):
 
 @pytest.fixture(scope='module')
 def sat_gce_default_architecture(sat_gce):
-    arch = (
+    return (
         sat_gce.api.Architecture()
         .search(query={'search': f'name="{DEFAULT_ARCHITECTURE}"'})[0]
         .read()
     )
-    return arch
 
 
 @pytest.fixture(scope='session')
@@ -96,8 +95,7 @@ def gce_latest_rhel_uuid(googleclient):
         filter_expr=f'name:{GCE_TARGET_RHEL_IMAGE_NAME}*',
     )
     latest_template_name = max(tpl.name for tpl in templates)
-    latest_template_uuid = next(tpl for tpl in templates if tpl.name == latest_template_name).uuid
-    return latest_template_uuid
+    return next(tpl for tpl in templates if tpl.name == latest_template_name).uuid
 
 
 @pytest.fixture(scope='session')
@@ -116,7 +114,7 @@ def session_default_os(session_target_sat):
 
 @pytest.fixture(scope='module')
 def module_gce_compute(sat_gce, sat_gce_org, sat_gce_loc, gce_cert):
-    gce_cr = sat_gce.api.GCEComputeResource(
+    return sat_gce.api.GCEComputeResource(
         name=gen_string('alphanumeric'),
         provider='GCE',
         key_path=settings.gce.cert_path,
@@ -124,7 +122,6 @@ def module_gce_compute(sat_gce, sat_gce_org, sat_gce_loc, gce_cert):
         organization=[sat_gce_org],
         location=[sat_gce_loc],
     ).create()
-    return gce_cr
 
 
 @pytest.fixture(scope='module')
@@ -206,7 +203,7 @@ def gce_hostgroup(
     googleclient,
 ):
     """Sets Hostgroup for GCE Host Provisioning"""
-    hgroup = sat_gce.api.HostGroup(
+    return sat_gce.api.HostGroup(
         architecture=sat_gce_default_architecture,
         compute_resource=module_gce_compute,
         domain=sat_gce_domain,
@@ -216,7 +213,6 @@ def gce_hostgroup(
         organization=[sat_gce_org],
         ptable=sat_gce_default_partition_table,
     ).create()
-    return hgroup
 
 
 @pytest.fixture(scope='module')
@@ -250,7 +246,7 @@ def module_gce_cloudimg(
     sat_gce,
 ):
     """Creates cloudinit image on GCE Compute Resource"""
-    cloud_image = sat_gce.api.Image(
+    return sat_gce.api.Image(
         architecture=sat_gce_default_architecture,
         compute_resource=module_gce_compute,
         name=gen_string('alpha'),
@@ -259,7 +255,6 @@ def module_gce_cloudimg(
         uuid=gce_custom_cloudinit_uuid,
         user_data=True,
     ).create()
-    return cloud_image
 
 
 @pytest.fixture(scope='module')
@@ -271,7 +266,7 @@ def module_gce_finishimg(
     sat_gce,
 ):
     """Creates finish image on GCE Compute Resource"""
-    finish_image = sat_gce.api.Image(
+    return sat_gce.api.Image(
         architecture=sat_gce_default_architecture,
         compute_resource=module_gce_compute,
         name=gen_string('alpha'),
@@ -279,7 +274,6 @@ def module_gce_finishimg(
         username=gen_string('alpha'),
         uuid=gce_latest_rhel_uuid,
     ).create()
-    return finish_image
 
 
 @pytest.fixture

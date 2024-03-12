@@ -54,7 +54,7 @@ def custom_repo(rh_repo, module_sca_manifest_org, module_target_sat):
 @pytest.fixture(scope='module')
 def module_ak(module_sca_manifest_org, rh_repo, custom_repo, module_target_sat):
     """rh_repo and custom_repo are included here to ensure their execution before the AK"""
-    module_ak = module_target_sat.api.ActivationKey(
+    return module_target_sat.api.ActivationKey(
         content_view=module_sca_manifest_org.default_content_view,
         max_hosts=100,
         organization=module_sca_manifest_org,
@@ -63,7 +63,6 @@ def module_ak(module_sca_manifest_org, rh_repo, custom_repo, module_target_sat):
         ),
         auto_attach=True,
     ).create()
-    return module_ak
 
 
 @pytest.mark.tier1

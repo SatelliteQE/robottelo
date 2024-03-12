@@ -39,9 +39,7 @@ class Product(Base):
 
         cls.command_sub = 'remove-sync-plan'
 
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def set_sync_plan(cls, options=None):
@@ -51,9 +49,7 @@ class Product(Base):
 
         cls.command_sub = 'set-sync-plan'
 
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def synchronize(cls, options=None):
@@ -69,6 +65,4 @@ class Product(Base):
 
         cls.command_sub = 'update-proxy'
 
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))

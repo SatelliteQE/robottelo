@@ -26,8 +26,7 @@ def default_os(
     os.ptable.append(default_partitiontable)
     os.provisioning_template.append(default_pxetemplate)
     os.update(['architecture', 'ptable', 'provisioning_template'])
-    os = entities.OperatingSystem(id=os.id).read()
-    return os
+    return entities.OperatingSystem(id=os.id).read()
 
 
 @pytest.fixture(scope='module')

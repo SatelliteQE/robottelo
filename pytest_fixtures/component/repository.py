@@ -68,8 +68,7 @@ def repo_setup():
     product = entities.Product(organization=org).create()
     repo = entities.Repository(name=repo_name, product=product).create()
     lce = entities.LifecycleEnvironment(organization=org).create()
-    details = {'org': org, 'product': product, 'repo': repo, 'lce': lce}
-    return details
+    return {'org': org, 'product': product, 'repo': repo, 'lce': lce}
 
 
 @pytest.fixture(scope='module')
@@ -190,7 +189,7 @@ def repos_collection(request, target_sat):
     """
     repos = getattr(request, 'param', [])
     repo_distro, repos = _simplify_repos(request, repos)
-    _repos_collection = target_sat.cli_factory.RepositoryCollection(
+    return target_sat.cli_factory.RepositoryCollection(
         distro=repo_distro or request.getfixturevalue('distro'),
         repositories=[
             getattr(target_sat.cli_factory, repo_name)(**repo_params)
@@ -198,7 +197,6 @@ def repos_collection(request, target_sat):
             for repo_name, repo_params in repo.items()
         ],
     )
-    return _repos_collection
 
 
 @pytest.fixture(scope='module')

@@ -44,7 +44,7 @@ class TestTemplateSyncTestCase:
 
         """
         # Check all Downloadable templates exists
-        if not requests.get(FOREMAN_TEMPLATE_IMPORT_URL).status_code == 200:
+        if requests.get(FOREMAN_TEMPLATE_IMPORT_URL).status_code != 200:
             pytest.fail('The foreman templates git url is not accessible')
 
         # Download the Test Template in test running folder

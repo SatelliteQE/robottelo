@@ -539,7 +539,7 @@ def test_positive_host_registration_with_non_admin_user(
 
         # Verify server.hostname and server.port from subscription-manager config
         assert target_sat.hostname == rhel8_contenthost.subscription_config['server']['hostname']
-        assert constants.CLIENT_PORT == rhel8_contenthost.subscription_config['server']['port']
+        assert rhel8_contenthost.subscription_config['server']['port'] == constants.CLIENT_PORT
 
 
 @pytest.mark.tier2

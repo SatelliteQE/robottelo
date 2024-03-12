@@ -16,13 +16,13 @@ def fixture_to_test(fixture_name):
     """
     if ":" not in fixture_name:
         return f"def test_runfake_{fixture_name}({fixture_name}):\n    assert True"
-    else:
-        fixture_name, params = fixture_name.split(":")
-        params = params.split(",")
-        return (
-            f"@pytest.mark.parametrize('{fixture_name}', {params}, indirect=True)\n"
-            f"def test_runfake_{fixture_name}({fixture_name}):\n    assert True"
-        )
+
+    fixture_name, params = fixture_name.split(":")
+    params = params.split(",")
+    return (
+        f"@pytest.mark.parametrize('{fixture_name}', {params}, indirect=True)\n"
+        f"def test_runfake_{fixture_name}({fixture_name}):\n    assert True"
+    )
 
 
 @click.command()

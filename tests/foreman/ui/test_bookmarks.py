@@ -17,7 +17,6 @@ import pytest
 
 from robottelo.config import user_nailgun_config
 from robottelo.constants import BOOKMARK_ENTITIES
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(
@@ -28,23 +27,21 @@ def ui_entity(module_org, module_location, request):
     required preconditions.
     """
     entity = request.param
+    entity_name, entity_setup = entity['name'], entity.get('setup')
+    # Skip the entities, which can't be tested ATM (not implemented in
+    # airgun)
+    skip = entity.get('skip_for_ui')
+    if skip:
+        pytest.skip(f'{entity_name} not implemented in airgun')
     # Some pages require at least 1 existing entity for search bar to
     # appear. Creating 1 entity for such pages
-    entity_name, entity_setup = entity['name'], entity.get('setup')
     if entity_setup:
-        # Skip the entities, which can't be tested ATM (not implemented in
-        # airgun or have open BZs)
-        skip = entity.get('skip_for_ui')
-        if isinstance(skip, tuple | list):
-            open_issues = {issue for issue in skip if is_open(issue)}
-            pytest.skip(f'There is/are an open issue(s) {open_issues} with entity {entity_name}')
         # entities with 1 organization and location
         if entity_name in ('Host',):
             entity_setup(organization=module_org, location=module_location).create()
         # entities with no organizations and locations
         elif entity_name in (
             'ComputeProfile',
-            'GlobalParameter',
             'HardwareModel',
             'UserGroup',
         ):
@@ -117,7 +114,7 @@ def test_positive_create_bookmark_public(
     public_name = gen_string('alphanumeric')
     nonpublic_name = gen_string('alphanumeric')
     with session:
-        ui_lib = getattr(session, ui_entity['name'].lower())
+        ui_lib = getattr(session, ui_entity['session_name'])
         for name in (public_name, nonpublic_name):
             ui_lib.create_bookmark(
                 {'name': name, 'query': gen_string('alphanumeric'), 'public': name == public_name}

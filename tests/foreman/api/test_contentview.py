@@ -96,8 +96,7 @@ def apply_package_filter(content_view, repo, package, target_sat, inclusion=True
     assert cv_filter.id == cv_filter_rule.content_view_filter.id
     content_view.publish()
     content_view = content_view.read()
-    content_view_version_info = content_view.version[0].read()
-    return content_view_version_info
+    return content_view.version[0].read()
 
 
 class TestContentView:
@@ -369,9 +368,6 @@ class TestContentViewCreate:
 class TestContentViewPublishPromote:
     """Tests for publishing and promoting content views."""
 
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
     @pytest.fixture(scope='class', autouse=True)
     def class_setup(self, request, module_product, class_target_sat):
         """Set up organization, product and repositories for tests."""
@@ -1429,9 +1425,6 @@ def test_negative_non_readonly_user_actions(target_sat, content_view, function_r
 class TestOstreeContentView:
     """Tests for ostree contents in content views."""
 
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
     @pytest.fixture(scope='class', autouse=True)
     def initiate_testclass(self, request, module_product, class_target_sat):
         """Set up organization, product and repositories for tests."""
@@ -1536,7 +1529,6 @@ class TestOstreeContentView:
 class TestContentViewRedHatOstreeContent:
     """Tests for publishing and promoting cv with RH ostree contents."""
 
-    @pytest.mark.run_in_one_thread
     @pytest.fixture(scope='class', autouse=True)
     def initiate_testclass(self, request, module_entitlement_manifest_org, class_target_sat):
         """Set up organization, product and repositories for tests."""

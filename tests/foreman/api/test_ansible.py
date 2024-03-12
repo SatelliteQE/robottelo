@@ -209,6 +209,7 @@ def test_positive_ansible_job_on_multiple_host(
 
 @pytest.mark.e2e
 @pytest.mark.tier2
+@pytest.mark.upgrade
 def test_add_and_remove_ansible_role_hostgroup(target_sat):
     """
     Test add and remove functionality for ansible roles in hostgroup via API
@@ -216,11 +217,12 @@ def test_add_and_remove_ansible_role_hostgroup(target_sat):
     :id: 7672cf86-fa31-11ed-855a-0fd307d2d66b
 
     :steps:
-        1. Create a hostgroup
-        2. Sync few ansible roles
+        1. Create a hostgroup and a nested hostgroup
+        2. Sync a few ansible roles
         3. Assign a few ansible roles with the host group
         4. Add some ansible role with the host group
-        5. Remove the added ansible roles from the host group
+        5. Add some ansible roles to the nested hostgroup
+        6. Remove the added ansible roles from the parent and nested hostgroup
 
     :expectedresults:
         1. Ansible role assign/add/remove functionality should work as expected in API
@@ -231,29 +233,57 @@ def test_add_and_remove_ansible_role_hostgroup(target_sat):
         'theforeman.foreman_scap_client',
         'redhat.satellite.hostgroups',
         'RedHatInsights.insights-client',
+        'redhat.satellite.compute_resources',
     ]
     hg = target_sat.api.HostGroup(name=gen_string('alpha')).create()
+    hg_nested = target_sat.api.HostGroup(name=gen_string('alpha'), parent=hg).create()
     proxy_id = target_sat.nailgun_smart_proxy.id
     target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': ROLE_NAMES})
     ROLES = [
         target_sat.api.AnsibleRoles().search(query={'search': f'name={role}'})[0].id
         for role in ROLE_NAMES
     ]
+    # Assign first 2 roles to HG and verify it
     target_sat.api.HostGroup(id=hg.id).assign_ansible_roles(data={'ansible_role_ids': ROLES[:2]})
     for r1, r2 in zip(
         target_sat.api.HostGroup(id=hg.id).list_ansible_roles(), ROLE_NAMES[:2], strict=True
     ):
         assert r1['name'] == r2
+
+    # Add next role from list to HG and verify it
     target_sat.api.HostGroup(id=hg.id).add_ansible_role(data={'ansible_role_id': ROLES[2]})
     for r1, r2 in zip(
-        target_sat.api.HostGroup(id=hg.id).list_ansible_roles(), ROLE_NAMES, strict=True
+        target_sat.api.HostGroup(id=hg.id).list_ansible_roles(), ROLE_NAMES[:3], strict=True
     ):
         assert r1['name'] == r2
 
-    for role in ROLES:
+    # Add next role to nested HG, and verify roles are also nested to HG along with assigned role
+    # Also, ensure the parent HG does not contain the roles assigned to nested HGs
+    target_sat.api.HostGroup(id=hg_nested.id).add_ansible_role(data={'ansible_role_id': ROLES[3]})
+    for r1, r2 in zip(
+        target_sat.api.HostGroup(id=hg_nested.id).list_ansible_roles(),
+        [ROLE_NAMES[-1]] + ROLE_NAMES[:-1],
+        strict=True,
+    ):
+        assert r1['name'] == r2
+
+    for r1, r2 in zip(
+        target_sat.api.HostGroup(id=hg.id).list_ansible_roles(), ROLE_NAMES[:3], strict=True
+    ):
+        assert r1['name'] == r2
+
+    # Remove roles assigned one by one from HG and nested HG
+    for role in ROLES[:3]:
         target_sat.api.HostGroup(id=hg.id).remove_ansible_role(data={'ansible_role_id': role})
-    host_roles = target_sat.api.HostGroup(id=hg.id).list_ansible_roles()
-    assert len(host_roles) == 0
+    hg_roles = target_sat.api.HostGroup(id=hg.id).list_ansible_roles()
+    assert len(hg_roles) == 0
+
+    for role in ROLES:
+        target_sat.api.HostGroup(id=hg_nested.id).remove_ansible_role(
+            data={'ansible_role_id': role}
+        )
+    hg_nested_roles = target_sat.api.HostGroup(id=hg_nested.id).list_ansible_roles()
+    assert len(hg_nested_roles) == 0
 
 
 @pytest.fixture

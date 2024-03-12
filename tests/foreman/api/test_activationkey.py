@@ -171,7 +171,7 @@ def test_positive_update_limited_host(max_host, target_sat):
     for key, value in want.items():
         setattr(act_key, key, value)
     act_key = act_key.update(want.keys())
-    actual = {attr: getattr(act_key, attr) for attr in want.keys()}
+    actual = {attr: getattr(act_key, attr) for attr in want}
     assert want == actual
 
 
@@ -219,7 +219,7 @@ def test_negative_update_limit(max_host, target_sat):
     with pytest.raises(HTTPError):
         act_key.update(want.keys())
     act_key = act_key.read()
-    actual = {attr: getattr(act_key, attr) for attr in want.keys()}
+    actual = {attr: getattr(act_key, attr) for attr in want}
     assert want == actual
 
 
@@ -293,7 +293,7 @@ def test_positive_get_releases_content(target_sat):
     """
     act_key = target_sat.api.ActivationKey().create()
     response = client.get(act_key.path('releases'), auth=get_credentials(), verify=False).json()
-    assert 'results' in response.keys()
+    assert 'results' in response
     assert isinstance(response['results'], list)
 
 

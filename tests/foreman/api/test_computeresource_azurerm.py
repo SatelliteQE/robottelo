@@ -580,4 +580,4 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
 
         # Azure cloud
         assert self.hostname.lower() == azureclient_host.name
-        assert AZURERM_VM_SIZE_DEFAULT == azureclient_host.type
+        assert azureclient_host.type == AZURERM_VM_SIZE_DEFAULT

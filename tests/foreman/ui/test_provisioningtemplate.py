@@ -200,7 +200,7 @@ def test_positive_verify_supported_templates_rhlogo(target_sat, module_org, modu
     with target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=module_location.name)
-        for template in random_templates.keys():
+        for template in random_templates:
             assert (
                 session.provisioningtemplate.is_locked(template)
                 == random_templates[template]['locked']

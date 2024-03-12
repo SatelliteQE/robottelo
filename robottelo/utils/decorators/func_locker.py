@@ -112,10 +112,7 @@ def _get_scope_path(scope, scope_kwargs=None, scope_context=None, create=True):
 
     scope_path_list = [_get_temp_lock_function_dir(create=create)]
     if scope:
-        if callable(scope):
-            scope_dir_name = scope(**scope_kwargs)
-        else:
-            scope_dir_name = scope
+        scope_dir_name = scope(**scope_kwargs) if callable(scope) else scope
         if scope_dir_name:
             scope_path_list.append(scope_dir_name)
     if scope_context:
@@ -168,8 +165,8 @@ def _check_deadlock(lock_file_path, process_id):
     """
     if os.path.exists(lock_file_path):
         try:
-            lock_file_handler = open(lock_file_path)
-            lock_file_content = lock_file_handler.read()
+            with open(lock_file_path) as lock_file_handler:
+                lock_file_content = lock_file_handler.read()
         except OSError as exp:
             # do nothing, but anyway log the exception
             logger.exception(exp)
@@ -265,8 +262,7 @@ def lock_function(
 
     if function:
         return main_wrapper(function)
-    else:
-        return wait_function
+    return wait_function
 
 
 @contextmanager

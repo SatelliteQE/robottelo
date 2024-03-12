@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: ForemanMaintain
+:CaseComponent: SatelliteMaintain
 
 :Team: Platform
 

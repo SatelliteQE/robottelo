@@ -28,12 +28,12 @@ class TestCacheable:
         """
         make_foo(cached=False)
         assert 'foo' not in decorators.OBJECT_CACHE
-        assert decorators.OBJECT_CACHE == {}
+        assert {} == decorators.OBJECT_CACHE
 
     def test_build_cache(self, make_foo):
         """Create a new object and add it to the cache."""
         obj = make_foo(cached=True)
-        assert decorators.OBJECT_CACHE == {'foo': {'id': 42}}
+        assert {'foo': {'id': 42}} == decorators.OBJECT_CACHE
         assert id(decorators.OBJECT_CACHE['foo']) == id(obj)
 
     def test_return_from_cache(self, make_foo):

@@ -239,7 +239,7 @@ class TestAllAcsTypes:
         # It loops through the keys in the parameters dictionary, and uses the keys to create a scenario ID
         # and then it uses the scenario ID to access the scenario values from the parameters dictionary.
         # The code then adds the scenario values to the list of scenario values.
-        for acs in parameters_dict.keys():
+        for acs in parameters_dict:
             if not acs.startswith('_'):
                 for cnt in parameters_dict[acs]:
                     if not cnt.startswith('_'):

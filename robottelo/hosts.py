@@ -76,8 +76,7 @@ def lru_sat_ready_rhel(rhel_ver):
         'promtail_config_template_file': 'config_sat.j2',
         'workflow': settings.server.deploy_workflows.os,
     }
-    sat_ready_rhel = Broker(**deploy_args, host_class=Satellite).checkout()
-    return sat_ready_rhel
+    return Broker(**deploy_args, host_class=Satellite).checkout()
 
 
 def get_sat_version():
@@ -245,8 +244,8 @@ class ContentHost(Host, ContentHostMixins):
                 logger.error(f'Failed to get nailgun host for {self.hostname}: {err}')
                 host = None
             return host
-        else:
-            logger.warning(f'Host {self.hostname} not registered to {self.satellite.hostname}')
+        logger.warning(f'Host {self.hostname} not registered to {self.satellite.hostname}')
+        return None
 
     @property
     def subscribed(self):
@@ -515,6 +514,7 @@ class ContentHost(Host, ContentHostMixins):
             downstream_repo = settings.repos.capsule_repo
         if force or settings.robottelo.cdn or not downstream_repo:
             return self.execute(f'subscription-manager repos --enable {repo}')
+        return None
 
     def subscription_manager_list_repos(self):
         return self.execute('subscription-manager repos --list')
@@ -1586,6 +1586,7 @@ class Capsule(ContentHost, CapsuleMixins):
         for line in result.stdout.splitlines():
             if error_msg in line:
                 return line.replace(error_msg, '').strip()
+        return None
 
     def install(self, installer_obj=None, cmd_args=None, cmd_kwargs=None):
         """General purpose installer"""
@@ -1598,6 +1599,21 @@ class Capsule(ContentHost, CapsuleMixins):
     def get_features(self):
         """Get capsule features"""
         return requests.get(f'https://{self.hostname}:9090/features', verify=False).text
+
+    def enable_capsule_downstream_repos(self):
+        """Enable CDN repos and capsule downstream repos on Capsule Host"""
+        # CDN Repos
+        self.register_to_cdn()
+        for repo in getattr(constants, f"OHSNAP_RHEL{self.os_version.major}_REPOS"):
+            result = self.enable_repo(repo, force=True)
+            if result.status:
+                raise CapsuleHostError(f'Repo enable at capsule host failed\n{result.stdout}')
+        # Downstream Capsule specific Repos
+        self.download_repofile(
+            product='capsule',
+            release=settings.capsule.version.release,
+            snap=settings.capsule.version.snap,
+        )
 
     def capsule_setup(self, sat_host=None, capsule_cert_opts=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
@@ -1686,7 +1702,10 @@ class Capsule(ContentHost, CapsuleMixins):
             timeout=timeout,
         )
         if result.status != 0:
-            raise SatelliteHostError(f'Failed to execute with argument: {result.stderr}')
+            raise SatelliteHostError(
+                f'Failed to execute with arguments: {installer_args} and,'
+                f' the stderr is {result.stderr}'
+            )
 
     def set_mqtt_resend_interval(self, value):
         """Set the time interval in seconds at which the notification should be
@@ -1754,7 +1773,7 @@ class Satellite(Capsule, SatelliteMixins):
         pip_main(['uninstall', '-y', 'nailgun'])
         pip_main(['install', f'https://github.com/SatelliteQE/nailgun/archive/{new_version}.zip'])
         self._api = type('api', (), {'_configured': False})
-        to_clear = [k for k in sys.modules.keys() if 'nailgun' in k]
+        to_clear = [k for k in sys.modules if 'nailgun' in k]
         [sys.modules.pop(k) for k in to_clear]
 
     @property
@@ -1844,6 +1863,7 @@ class Satellite(Capsule, SatelliteMixins):
             for frame in inspect.stack():
                 if frame.function.startswith('test_'):
                     return frame.function
+            return None
 
         try:
             ui_session = Session(

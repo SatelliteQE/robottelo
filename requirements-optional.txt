@@ -1,7 +1,7 @@
 # For running tests and checking code quality using these modules.
 flake8==7.0.0
 pytest-cov==4.1.0
-redis==5.0.2
+redis==5.0.3
 pre-commit==3.6.2
 
 # For generating documentation.

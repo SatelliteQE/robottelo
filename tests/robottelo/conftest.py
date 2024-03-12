@@ -1,3 +1,4 @@
+import contextlib
 import glob
 import os
 from pathlib import Path
@@ -44,8 +45,6 @@ def exec_test(request, dummy_test):
     yield report_file
     for logfile in glob.glob('robottelo*.log'):
         os.remove(logfile)
-    try:
-        os.remove(report_file)
-    except OSError:
+    with contextlib.suppress(OSError):
         # the file might not exist if the test fails prematurely
-        pass
+        os.remove(report_file)

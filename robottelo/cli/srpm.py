@@ -25,15 +25,11 @@ class Srpm(Base):
         """Show a SRPM Info"""
         cls.command_sub = 'info'
 
-        result = cls.execute(cls._construct_command(options), output_format='csv')
-
-        return result
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def list(cls, options=None):
         """List SRPMs"""
         cls.command_sub = 'list'
 
-        result = cls.execute(cls._construct_command(options), output_format='csv')
-
-        return result
+        return cls.execute(cls._construct_command(options), output_format='csv')

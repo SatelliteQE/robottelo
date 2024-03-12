@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from functools import lru_cache
 
 from broker import Broker
 from packaging.version import Version
@@ -37,13 +38,29 @@ def _target_satellite_host(request, satellite_factory):
         yield
 
 
+@lru_cache
+def cached_capsule_cdn_register(hostname=None):
+    cap = Capsule.get_host_by_hostname(hostname=hostname)
+    cap.enable_capsule_downstream_repos()
+
+
 @contextmanager
 def _target_capsule_host(request, capsule_factory):
-    if 'sanity' not in request.config.option.markexpr:
+    if 'sanity' not in request.config.option.markexpr and not request.config.option.n_minus:
         new_cap = capsule_factory()
         yield new_cap
         new_cap.teardown()
         Broker(hosts=[new_cap]).checkin()
+    elif request.config.option.n_minus:
+        if not settings.capsule.hostname:
+            hosts = Capsule.get_hosts_from_inventory(filter="'cap' in @inv.name")
+            settings.capsule.hostname = hosts[0].hostname
+            cap = hosts[0]
+        else:
+            cap = Capsule.get_host_by_hostname(settings.capsule.hostname)
+        # Capsule needs RHEL contents for some tests
+        cached_capsule_cdn_register(hostname=settings.capsule.hostname)
+        yield cap
     else:
         yield
 
@@ -162,9 +179,10 @@ def session_capsule_host(request, capsule_factory):
 
 
 @pytest.fixture
-def capsule_configured(capsule_host, target_sat):
+def capsule_configured(request, capsule_host, target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
-    capsule_host.capsule_setup(sat_host=target_sat)
+    if not request.config.option.n_minus:
+        capsule_host.capsule_setup(sat_host=target_sat)
     return capsule_host
 
 
@@ -176,21 +194,23 @@ def large_capsule_configured(large_capsule_host, target_sat):
 
 
 @pytest.fixture(scope='module')
-def module_capsule_configured(module_capsule_host, module_target_sat):
+def module_capsule_configured(request, module_capsule_host, module_target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
-    module_capsule_host.capsule_setup(sat_host=module_target_sat)
+    if not request.config.option.n_minus:
+        module_capsule_host.capsule_setup(sat_host=module_target_sat)
     return module_capsule_host
 
 
 @pytest.fixture(scope='session')
-def session_capsule_configured(session_capsule_host, session_target_sat):
+def session_capsule_configured(request, session_capsule_host, session_target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
-    session_capsule_host.capsule_setup(sat_host=session_target_sat)
+    if not request.config.option.n_minus:
+        session_capsule_host.capsule_setup(sat_host=session_target_sat)
     return session_capsule_host
 
 
 @pytest.fixture(scope='module')
-def module_capsule_configured_mqtt(module_capsule_configured):
+def module_capsule_configured_mqtt(request, module_capsule_configured):
     """Configure the capsule instance with the satellite from settings.server.hostname,
     enable MQTT broker"""
     module_capsule_configured.set_rex_script_mode_provider('pull-mqtt')
@@ -201,7 +221,9 @@ def module_capsule_configured_mqtt(module_capsule_configured):
     result = module_capsule_configured.execute('firewall-cmd --permanent --add-port="1883/tcp"')
     assert result.status == 0, 'Failed to open mqtt port on capsule'
     module_capsule_configured.execute('firewall-cmd --reload')
-    return module_capsule_configured
+    yield module_capsule_configured
+    if request.config.option.n_minus:
+        raise TypeError('The teardown is missed for MQTT configuration undo for nminus testing')
 
 
 @pytest.fixture(scope='module')

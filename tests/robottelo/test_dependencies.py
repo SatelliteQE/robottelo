@@ -1,4 +1,5 @@
 """Test important behavior in robottelo's direct dependencies"""
+import contextlib
 
 
 def test_cryptography():
@@ -81,7 +82,7 @@ def test_productmd():
 def test_pyotp():
     import pyotp
 
-    fake_secret = 'JBSWY3DPEHPK3PXP'
+    fake_secret = 'JBSWY3DPEHPK3PXP'  # notsecret
     totp = pyotp.TOTP(fake_secret)
     assert totp.now()
 
@@ -115,10 +116,8 @@ def test_tenacity():
     def test():
         raise Exception('test')
 
-    try:
+    with contextlib.suppress(Exception):
         test()
-    except Exception:
-        pass
 
 
 def test_testimony():

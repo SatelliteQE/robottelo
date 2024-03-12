@@ -64,11 +64,10 @@ def parametrized(data):
             'ids': list(data.keys()),
             'argvalues': list(data.values()),
         }
-    else:
-        return {
-            'ids': [str(i) for i in range(len(data))],
-            'argvalues': list(data),
-        }
+    return {
+        'ids': [str(i) for i in range(len(data))],
+        'argvalues': list(data),
+    }
 
 
 @filtered_datapoint
@@ -196,14 +195,13 @@ def valid_domain_names(interface=None, length=None):
         length = random.randint(1, max_len)
     if length > max_len:
         raise ValueError(f'length is too large, max: {max_len}')
-    names = {
+    return {
         'alphanumeric': DOMAIN % gen_string('alphanumeric', length),
         'alpha': DOMAIN % gen_string('alpha', length),
         'numeric': DOMAIN % gen_string('numeric', length),
         'latin1': DOMAIN % gen_string('latin1', length),
         'utf8': DOMAIN % gen_utf8(length),
     }
-    return names
 
 
 @filtered_datapoint
@@ -243,8 +241,8 @@ def invalid_values_list(interface=None):
         raise InvalidArgumentError('Valid interface values are api, cli, ui only')
     if interface == 'ui':
         return ['', ' '] + invalid_names_list()
-    else:  # interface = api or cli or None
-        return ['', ' ', '\t'] + invalid_names_list()
+    # else: interface = api or cli or None
+    return ['', ' ', '\t'] + invalid_names_list()
 
 
 @filtered_datapoint
@@ -274,7 +272,7 @@ def valid_data_list(interface=None):
 @filtered_datapoint
 def valid_docker_repository_names():
     """Generates a list of valid names for Docker repository."""
-    names = [
+    return [
         gen_string('alphanumeric', random.randint(1, 255)),
         gen_string('alpha', random.randint(1, 255)),
         gen_string('cjk', random.randint(1, 85)),
@@ -283,7 +281,6 @@ def valid_docker_repository_names():
         gen_string('utf8', random.randint(1, 85)),
         gen_string('html', random.randint(1, 85)),
     ]
-    return names
 
 
 @filtered_datapoint
@@ -512,8 +509,7 @@ def valid_http_credentials(url_encoded=False):
             }
             for cred in credentials
         ]
-    else:
-        return credentials
+    return credentials
 
 
 def invalid_http_credentials(url_encoded=False):
@@ -535,8 +531,7 @@ def invalid_http_credentials(url_encoded=False):
             }
             for cred in credentials
         ]
-    else:
-        return credentials
+    return credentials
 
 
 @filtered_datapoint

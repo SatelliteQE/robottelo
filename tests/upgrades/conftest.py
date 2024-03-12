@@ -154,8 +154,7 @@ def get_entity_data(scenario_name):
     """
     with open('scenario_entities') as pref:
         entity_data = json.load(pref)
-        entity_data = entity_data.get(scenario_name)
-    return entity_data
+        return entity_data.get(scenario_name)
 
 
 def get_all_entity_data():
@@ -171,8 +170,7 @@ def get_all_entity_data():
         with scenario_name as keys and corresponding attribute data as values.
     """
     with open('scenario_entities') as pref:
-        entity_data = json.load(pref)
-    return entity_data
+        return json.load(pref)
 
 
 def _read_test_data(test_node_id):
@@ -334,17 +332,18 @@ def __initiate(config):
     global POST_UPGRADE
     global PRE_UPGRADE_TESTS_FILE_PATH
     PRE_UPGRADE_TESTS_FILE_PATH = getattr(config.option, PRE_UPGRADE_TESTS_FILE_OPTION)
-    if not [
-        upgrade_mark
-        for upgrade_mark in (PRE_UPGRADE_MARK, POST_UPGRADE_MARK)
-        if upgrade_mark in config.option.markexpr
-    ]:
-        # Raise only if the `tests/upgrades` directory is selected
-        if 'upgrades' in config.args[0]:
-            pytest.fail(
-                f'For upgrade scenarios either {PRE_UPGRADE_MARK} or {POST_UPGRADE_MARK} mark '
-                'must be provided'
-            )
+    if (
+        not [
+            upgrade_mark
+            for upgrade_mark in (PRE_UPGRADE_MARK, POST_UPGRADE_MARK)
+            if upgrade_mark in config.option.markexpr
+        ]
+        and 'upgrades' in config.args[0]
+    ):  # Raise only if the `tests/upgrades` directory is selected
+        pytest.fail(
+            f'For upgrade scenarios either {PRE_UPGRADE_MARK} or {POST_UPGRADE_MARK} mark '
+            'must be provided'
+        )
     if PRE_UPGRADE_MARK in config.option.markexpr:
         pre_upgrade_failed_tests = []
         PRE_UPGRADE = True

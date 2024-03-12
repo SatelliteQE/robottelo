@@ -16,6 +16,7 @@ def _default_sat(align_to_satellite):
             return Satellite.get_host_by_hostname(settings.server.hostname)
         except ContentHostError:
             return Satellite()
+    return None
 
 
 @contextmanager

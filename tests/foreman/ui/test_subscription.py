@@ -93,9 +93,8 @@ def test_positive_end_to_end(session, target_sat):
     ]
     org = target_sat.api.Organization().create()
     _, temporary_local_manifest_path = mkstemp(prefix='manifest-', suffix='.zip')
-    with clone() as manifest:
-        with open(temporary_local_manifest_path, 'wb') as file_handler:
-            file_handler.write(manifest.content.read())
+    with clone() as manifest, open(temporary_local_manifest_path, 'wb') as file_handler:
+        file_handler.write(manifest.content.read())
     with session:
         session.organization.select(org.name)
         # Ignore "Danger alert: Katello::Errors::UpstreamConsumerNotFound'" as server will connect

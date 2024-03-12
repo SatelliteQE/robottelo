@@ -1,10 +1,10 @@
 """Test class for the capsule CLI.
 
-:Requirement: Capsule
+:Requirement: ForemanProxy
 
 :CaseAutomation: Automated
 
-:CaseComponent: Capsule
+:CaseComponent: ForemanProxy
 
 :Team: Platform
 

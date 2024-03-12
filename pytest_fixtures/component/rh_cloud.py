@@ -15,7 +15,7 @@ def rhcloud_manifest_org(module_target_sat, module_extra_rhel_entitlement_manife
 def rhcloud_activation_key(module_target_sat, rhcloud_manifest_org):
     """A module-level fixture to create an Activation key in module_org"""
     purpose_addons = "test-addon1, test-addon2"
-    ak = module_target_sat.api.ActivationKey(
+    return module_target_sat.api.ActivationKey(
         content_view=rhcloud_manifest_org.default_content_view,
         organization=rhcloud_manifest_org,
         environment=module_target_sat.api.LifecycleEnvironment(id=rhcloud_manifest_org.library.id),
@@ -25,7 +25,6 @@ def rhcloud_activation_key(module_target_sat, rhcloud_manifest_org):
         purpose_role='test-role',
         auto_attach=False,
     ).create()
-    return ak
 
 
 @pytest.fixture(scope='module')

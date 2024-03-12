@@ -9,5 +9,4 @@ def user_not_exists(request):
     if users:
         users[0].delete()
         return True
-    else:
-        return False
+    return False

@@ -21,7 +21,6 @@ def module_model():
     return entities.Model().create()
 
 
-@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.fixture(scope="module")
 def setup_rhst_repo(module_target_sat):
     """Prepare Satellite tools repository for usage in specified organization"""

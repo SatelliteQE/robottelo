@@ -49,10 +49,10 @@ def test_positive_end_to_end_template_combination(request, module_target_sat, mo
     assert module_hostgroup.id == combination.hostgroup.id
 
     # DELETE
-    assert 1 == len(template.read().template_combinations)
+    assert len(template.read().template_combinations) == 1
     combination.delete()
     with pytest.raises(HTTPError):
         combination.read()
-    assert 0 == len(template.read().template_combinations)
+    assert len(template.read().template_combinations) == 0
     template.delete()
     module_hostgroup.delete()
