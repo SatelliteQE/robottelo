@@ -72,7 +72,7 @@ class TestScenarioPositiveGCEHostComputeResource:
 
         Later in tests this host will be used to perform assertions
         """
-        host = sat_gce.api.Host(
+        return sat_gce.api.Host(
             architecture=sat_gce_default_architecture,
             compute_attributes=self.compute_attrs,
             domain=sat_gce_domain,
@@ -85,7 +85,6 @@ class TestScenarioPositiveGCEHostComputeResource:
             image=module_gce_finishimg,
             root_pass=gen_string('alphanumeric'),
         ).create()
-        return host
 
     def google_host(self, googleclient):
         """Returns the Google Client Host object to perform the assertions"""

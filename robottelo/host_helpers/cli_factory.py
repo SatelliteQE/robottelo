@@ -275,15 +275,13 @@ class CLIFactory:
             # evaluate functions that provide default values
             fields = self._evaluate_functions(fields)
             return partial(create_object, entity_cls, fields)
-        else:
-            raise AttributeError(f'unknown factory method name: {name}')
+        raise AttributeError(f'unknown factory method name: {name}')
 
     def _evaluate_function(self, function):
         """Some functions may require an instance reference"""
         if 'self' in inspect.signature(function).parameters:
             return function(self)
-        else:
-            return function()
+        return function()
 
     def _evaluate_functions(self, iterable):
         """Run functions that are used to populate data in lists/dicts"""
@@ -295,6 +293,7 @@ class CLIFactory:
                 for key, item in iterable.items()
                 if not key.startswith('_')
             }
+        return None
 
     @lru_cache
     def _find_entity_class(self, entity_name):
@@ -302,6 +301,7 @@ class CLIFactory:
         for name, class_obj in self._satellite.cli.__dict__.items():
             if entity_name == name.lower():
                 return class_obj
+        return None
 
     def make_content_credential(self, options=None):
         """Creates a content credential.
@@ -529,7 +529,7 @@ class CLIFactory:
         }
 
         # Write content to file or random text
-        if options is not None and 'content' in options.keys():
+        if options is not None and 'content' in options:
             content = options.pop('content')
         else:
             content = gen_alphanumeric()
@@ -866,32 +866,31 @@ class CLIFactory:
             custom_repo_url = settings.repos.capsule_repo
         if force_use_cdn or settings.robottelo.cdn or not custom_repo_url:
             return self._setup_org_for_a_rh_repo(options)
-        else:
-            options['url'] = custom_repo_url
-            result = self.setup_org_for_a_custom_repo(options)
-            if force_manifest_upload:
-                with clone() as manifest:
-                    self._satellite.put(manifest.path, manifest.name)
-                try:
-                    self._satellite.cli.Subscription.upload(
-                        {
-                            'file': manifest.name,
-                            'organization-id': result.get('organization-id'),
-                        }
-                    )
-                except CLIReturnCodeError as err:
-                    raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}') from err
+        options['url'] = custom_repo_url
+        result = self.setup_org_for_a_custom_repo(options)
+        if force_manifest_upload:
+            with clone() as manifest:
+                self._satellite.put(manifest.path, manifest.name)
+            try:
+                self._satellite.cli.Subscription.upload(
+                    {
+                        'file': manifest.name,
+                        'organization-id': result.get('organization-id'),
+                    }
+                )
+            except CLIReturnCodeError as err:
+                raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}') from err
 
-                # Add default subscription to activation-key, if SCA mode is disabled
-                if self._satellite.is_sca_mode_enabled(result['organization-id']) is False:
-                    self.activationkey_add_subscription_to_repo(
-                        {
-                            'activationkey-id': result['activationkey-id'],
-                            'organization-id': result['organization-id'],
-                            'subscription': constants.DEFAULT_SUBSCRIPTION_NAME,
-                        }
-                    )
-            return result
+            # Add default subscription to activation-key, if SCA mode is disabled
+            if self._satellite.is_sca_mode_enabled(result['organization-id']) is False:
+                self.activationkey_add_subscription_to_repo(
+                    {
+                        'activationkey-id': result['activationkey-id'],
+                        'organization-id': result['organization-id'],
+                        'subscription': constants.DEFAULT_SUBSCRIPTION_NAME,
+                    }
+                )
+        return result
 
     @staticmethod
     def _get_capsule_vm_distro_repos(distro):

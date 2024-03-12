@@ -1,4 +1,5 @@
 """Test important behavior in robottelo's direct dependencies"""
+import contextlib
 
 
 def test_cryptography():
@@ -115,10 +116,8 @@ def test_tenacity():
     def test():
         raise Exception('test')
 
-    try:
+    with contextlib.suppress(Exception):
         test()
-    except Exception:
-        pass
 
 
 def test_testimony():
