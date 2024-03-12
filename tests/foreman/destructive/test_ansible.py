@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: Ansible
+:CaseComponent: Ansible-ConfigurationManagement
 
 :Team: Rocket
 
@@ -21,10 +21,6 @@ def test_positive_persistent_ansible_cfg_change(target_sat):
 
     :id: c22fcd47-8627-4230-aa1f-7d4fc8517a0e
 
-    :BZ: 1786358
-
-    :customerscenario: true
-
     :steps:
         1. Update value in ansible.cfg.
         2. Verify value is updated in the file.
@@ -33,6 +29,10 @@ def test_positive_persistent_ansible_cfg_change(target_sat):
 
     :expectedresults: Changes in ansible.cfg are persistent after running
         "satellite-installer".
+
+    :BZ: 1786358
+
+    :customerscenario: true
     """
     ansible_cfg = '/etc/ansible/ansible.cfg'
     param = 'local_tmp = /tmp'
@@ -49,7 +49,6 @@ def test_positive_import_all_roles(target_sat):
     :id: 53fe3857-a08f-493d-93c7-3fed331ed391
 
     :steps:
-
         1. Navigate to the Configure > Roles page.
         2. Click the `Import from [hostname]` button.
         3. Get total number of importable roles from pagination.
