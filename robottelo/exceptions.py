@@ -75,6 +75,12 @@ class CLIError(Exception):
     """Indicates that a CLI command could not be run."""
 
 
+class CapsuleHostError(Exception):
+    """Indicates error in capsule configuration etc"""
+
+    pass
+
+
 class CLIBaseError(Exception):
     """Indicates that a CLI command has finished with return code different
     from zero.
