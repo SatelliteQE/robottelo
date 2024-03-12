@@ -123,7 +123,7 @@ def pytest_collection_modifyitems(items, config):
         test_args['status'].append('SKIPPED')
     if fail_args:
         test_args['status'].append('FAILED')
-        if not fail_args == 'all':
+        if fail_args != 'all':
             defect_types = fail_args.split(',')
             allowed_args = [*rp.defect_types.keys()]
             if not set(defect_types).issubset(set(allowed_args)):

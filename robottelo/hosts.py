@@ -76,8 +76,7 @@ def lru_sat_ready_rhel(rhel_ver):
         'promtail_config_template_file': 'config_sat.j2',
         'workflow': settings.server.deploy_workflows.os,
     }
-    sat_ready_rhel = Broker(**deploy_args, host_class=Satellite).checkout()
-    return sat_ready_rhel
+    return Broker(**deploy_args, host_class=Satellite).checkout()
 
 
 def get_sat_version():
@@ -245,8 +244,8 @@ class ContentHost(Host, ContentHostMixins):
                 logger.error(f'Failed to get nailgun host for {self.hostname}: {err}')
                 host = None
             return host
-        else:
-            logger.warning(f'Host {self.hostname} not registered to {self.satellite.hostname}')
+        logger.warning(f'Host {self.hostname} not registered to {self.satellite.hostname}')
+        return None
 
     @property
     def subscribed(self):
@@ -515,6 +514,7 @@ class ContentHost(Host, ContentHostMixins):
             downstream_repo = settings.repos.capsule_repo
         if force or settings.robottelo.cdn or not downstream_repo:
             return self.execute(f'subscription-manager repos --enable {repo}')
+        return None
 
     def subscription_manager_list_repos(self):
         return self.execute('subscription-manager repos --list')
@@ -1586,6 +1586,7 @@ class Capsule(ContentHost, CapsuleMixins):
         for line in result.stdout.splitlines():
             if error_msg in line:
                 return line.replace(error_msg, '').strip()
+        return None
 
     def install(self, installer_obj=None, cmd_args=None, cmd_kwargs=None):
         """General purpose installer"""
@@ -1772,7 +1773,7 @@ class Satellite(Capsule, SatelliteMixins):
         pip_main(['uninstall', '-y', 'nailgun'])
         pip_main(['install', f'https://github.com/SatelliteQE/nailgun/archive/{new_version}.zip'])
         self._api = type('api', (), {'_configured': False})
-        to_clear = [k for k in sys.modules.keys() if 'nailgun' in k]
+        to_clear = [k for k in sys.modules if 'nailgun' in k]
         [sys.modules.pop(k) for k in to_clear]
 
     @property
@@ -1862,6 +1863,7 @@ class Satellite(Capsule, SatelliteMixins):
             for frame in inspect.stack():
                 if frame.function.startswith('test_'):
                     return frame.function
+            return None
 
         try:
             ui_session = Session(

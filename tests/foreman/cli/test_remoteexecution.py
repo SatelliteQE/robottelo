@@ -47,7 +47,7 @@ def valid_feature_names():
 @pytest.fixture
 def fixture_sca_vmsetup(request, module_sca_manifest_org, target_sat):
     """Create VM and register content host to Simple Content Access organization"""
-    if '_count' in request.param.keys():
+    if '_count' in request.param:
         with Broker(
             nick=request.param['nick'],
             host_class=ContentHost,

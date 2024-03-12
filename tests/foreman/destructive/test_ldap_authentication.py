@@ -198,9 +198,8 @@ def test_positive_create_with_https(
         assert ldap_source['ldap_server']['port'] == '636'
     with module_target_sat.ui_session(
         test_name, username, auth_data['ldap_user_passwd']
-    ) as ldapsession:
-        with pytest.raises(NavigationTriesExceeded):
-            ldapsession.user.search('')
+    ) as ldapsession, pytest.raises(NavigationTriesExceeded):
+        ldapsession.user.search('')
     assert module_target_sat.api.User().search(query={'search': f'login="{username}"'})
 
 

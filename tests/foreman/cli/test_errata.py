@@ -358,7 +358,7 @@ def filter_sort_errata(sat, org, sort_by_date='issued', filter_by_org=None):
         elif filter_by_org == 'label':
             list_param['organization-label'] = org.label
 
-        sort_reversed = True if sort_order == 'DESC' else False
+        sort_reversed = sort_order == 'DESC'
 
         errata_list = sat.cli.Erratum.list(list_param)
         assert len(errata_list) > 0
@@ -1275,7 +1275,7 @@ def test_apply_errata_using_default_content_view(errata_host, module_sca_manifes
     # job invocation started, check status
     assert 'created' in _job_invoc[0]['message']
     assert (_id := _job_invoc[0]['id'])
-    assert 'succeeded' == target_sat.cli.JobInvocation().info(options={'id': _id})['status']
+    assert target_sat.cli.JobInvocation().info(options={'id': _id})['status'] == 'succeeded'
     start_and_wait_errata_recalculate(target_sat, errata_host)
 
     # Assert that the erratum is no longer applicable
@@ -1331,7 +1331,7 @@ def test_update_applicable_package_using_default_content_view(errata_host, targe
     # job invocation created, assert status
     assert 'created' in _job_invoc[0]['message']
     assert (_id := _job_invoc[0]['id'])
-    assert 'succeeded' == target_sat.cli.JobInvocation().info(options={'id': _id})['status']
+    assert target_sat.cli.JobInvocation().info(options={'id': _id})['status'] == 'succeeded'
     start_and_wait_errata_recalculate(target_sat, errata_host)
     # Assert that the package is no longer applicable
     applicable_packages = target_sat.cli.Package.list(

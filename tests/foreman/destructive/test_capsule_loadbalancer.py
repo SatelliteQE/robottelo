@@ -273,7 +273,7 @@ def test_client_register_through_lb(
         loadbalancer_setup['setup_haproxy']['haproxy'].hostname
         in rhel_contenthost.subscription_config['server']['hostname']
     )
-    assert CLIENT_PORT == rhel_contenthost.subscription_config['server']['port']
+    assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
     assert loadbalancer_setup['module_target_sat'].cli.Host.info(
         {'name': rhel_contenthost.hostname}, output_format='json'
     )['content-information']['content-source']['name'] in [
@@ -294,7 +294,7 @@ def test_client_register_through_lb(
         loadbalancer_setup['setup_haproxy']['haproxy'].hostname
         in rhel_contenthost.subscription_config['server']['hostname']
     )
-    assert CLIENT_PORT == rhel_contenthost.subscription_config['server']['port']
+    assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
 
     hosts = loadbalancer_setup['module_target_sat'].cli.Host.list(
         {'organization-id': loadbalancer_setup['module_org'].id}

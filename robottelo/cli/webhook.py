@@ -41,5 +41,4 @@ class Webhook(Base):
                 'See See "hammer webhook create --help" for the list of supported  methods'
             )
 
-        result = super().create(options)
-        return result
+        return super().create(options)

@@ -96,7 +96,7 @@ def ui_hosts_columns_user(request):
 
 @pytest.fixture
 def scap_policy(scap_content, target_sat):
-    scap_policy = target_sat.cli_factory.make_scap_policy(
+    return target_sat.cli_factory.make_scap_policy(
         {
             'name': gen_string('alpha'),
             'deploy-by': 'ansible',
@@ -106,7 +106,6 @@ def scap_policy(scap_content, target_sat):
             'weekday': OSCAP_WEEKDAY['friday'].lower(),
         }
     )
-    return scap_policy
 
 
 second_scap_policy = scap_policy
@@ -1126,8 +1125,8 @@ def test_rex_new_ui(session, target_sat, rex_contenthost):
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
         recent_jobs = session.host_new.get_details(hostname, "overview.recent_jobs")['overview']
-        assert "Run ls" == recent_jobs['recent_jobs']['finished']['table'][0]['column0']
-        assert "succeeded" == recent_jobs['recent_jobs']['finished']['table'][0]['column2']
+        assert recent_jobs['recent_jobs']['finished']['table'][0]['column0'] == "Run ls"
+        assert recent_jobs['recent_jobs']['finished']['table'][0]['column2'] == "succeeded"
 
 
 @pytest.mark.tier4
@@ -1256,18 +1255,18 @@ def test_positive_update_delete_package(
         if not is_open('BZ:2132680'):
             product_name = module_repos_collection_with_setup.custom_product.name
             repos = session.host_new.get_repo_sets(client.hostname, product_name)
-            assert 'Enabled' == repos[0].status
+            assert repos[0].status == 'Enabled'
             session.host_new.override_repo_sets(
                 client.hostname, product_name, "Override to disabled"
             )
-            assert 'Disabled' == repos[0].status
+            assert repos[0].status == 'Disabled'
             session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
             result = client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
             assert result.status != 0
             session.host_new.override_repo_sets(
                 client.hostname, product_name, "Override to enabled"
             )
-            assert 'Enabled' == repos[0].status
+            assert repos[0].status == 'Enabled'
             # refresh repos on system
             client.run('subscription-manager repos')
         # install package
@@ -1324,7 +1323,7 @@ def test_positive_update_delete_package(
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
-        assert 'table' not in packages.keys()
+        assert 'table' not in packages
         result = client.run(f'rpm -q {FAKE_8_CUSTOM_PACKAGE}')
         assert result.status != 0
 
@@ -1401,7 +1400,7 @@ def test_positive_apply_erratum(
         assert task_status['result'] == 'success'
         # verify
         values = session.host_new.get_details(client.hostname, widget_names='content.errata')
-        assert 'table' not in values['content']['errata'].keys()
+        assert 'table' not in values['content']['errata']
         result = client.run(
             'yum update --assumeno --security | grep "No packages needed for security"'
         )
