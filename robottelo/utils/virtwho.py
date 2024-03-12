@@ -489,8 +489,7 @@ def hypervisor_fake_json_create(hypervisors, guests):
         name = str(uuid.uuid4())
         hypervisor = {"guests": guest_list, "name": name, "uuid": name}
         hypervisors_list.append(hypervisor)
-    mapping = {"hypervisors": hypervisors_list}
-    return mapping
+    return {"hypervisors": hypervisors_list}
 
 
 def create_fake_hypervisor_content(org_label, hypervisors, guests):
