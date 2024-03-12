@@ -6,7 +6,7 @@
 
 :CaseLevel: Integration
 
-:CaseComponent: ForemanMaintain
+:CaseComponent: SatelliteMaintain
 
 :Team: Platform
 
@@ -35,5 +35,5 @@ def test_offload_internal_db_to_external_db_host():
 
     :CaseLevel: Integration
 
-    :CaseComponent: Installer
+    :CaseComponent: Installation
     """

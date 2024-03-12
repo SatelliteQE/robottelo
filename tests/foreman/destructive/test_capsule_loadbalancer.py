@@ -6,7 +6,7 @@
 
 :CaseLevel: Integration
 
-:CaseComponent: Capsule
+:CaseComponent: ForemanProxy
 
 :Team: Platform
 

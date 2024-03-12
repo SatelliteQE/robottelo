@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Installer
+:CaseComponent: Installation
 
 :Team: Platform
 

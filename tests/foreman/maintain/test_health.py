@@ -6,7 +6,7 @@
 
 :CaseLevel: Component
 
-:CaseComponent: ForemanMaintain
+:CaseComponent: SatelliteMaintain
 
 :Team: Platform
 

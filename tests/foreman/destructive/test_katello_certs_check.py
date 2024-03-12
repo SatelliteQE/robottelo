@@ -6,7 +6,7 @@
 
 :CaseLevel: System
 
-:CaseComponent: Certificates
+:CaseComponent: Installation
 
 :Team: Platform
 

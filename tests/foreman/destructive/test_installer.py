@@ -1,12 +1,12 @@
 """Smoke tests to check installation health
 
-:Requirement: Installer
+:Requirement: Installation
 
 :CaseAutomation: Automated
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Installer
+:CaseComponent: Installation
 
 :Team: Platform
 
