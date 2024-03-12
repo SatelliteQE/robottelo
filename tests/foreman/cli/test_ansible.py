@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: Ansible
+:CaseComponent: Ansible-ConfigurationManagement
 
 :Team: Rocket
 
@@ -41,8 +41,6 @@ def test_positive_ansible_e2e(target_sat, module_org, rhel_contenthost):
         2. Job execution must be successful.
         3. Operations performed with hammer must be successful.
 
-    :CaseAutomation: Automated
-
     :BZ: 2154184
 
     :customerscenario: true
@@ -53,7 +51,7 @@ def test_positive_ansible_e2e(target_sat, module_org, rhel_contenthost):
     SELECTED_ROLE_1 = 'theforeman.foreman_scap_client'
     SELECTED_VAR = gen_string('alpha')
     # disable batch tasks to test BZ#2154184
-    target_sat.cli.Settings.set({'name': "foreman_tasks_proxy_batch_trigger", 'value': "false"})
+    target_sat.cli.Settings.set({'name': 'foreman_tasks_proxy_batch_trigger', 'value': 'false'})
     if rhel_contenthost.os_version.major <= 7:
         rhel_contenthost.create_custom_repos(rhel7=settings.repos.rhel7_os)
         assert rhel_contenthost.execute('yum install -y insights-client').status == 0
@@ -121,7 +119,7 @@ def test_positive_ansible_e2e(target_sat, module_org, rhel_contenthost):
 @pytest.mark.tier2
 def test_add_and_remove_ansible_role_hostgroup(target_sat):
     """
-    Test add and remove functionality for ansible roles in hostgroup via cli
+    Test add and remove functionality for ansible roles in hostgroup via CLI
 
     :id: 2c6fda14-4cd2-490a-b7ef-7a08f8164fad
 
@@ -135,11 +133,9 @@ def test_add_and_remove_ansible_role_hostgroup(target_sat):
         5. Remove the added ansible roles from the host group
 
     :expectedresults:
-        1. Ansible role assign/add/remove functionality should work as expected in cli
+        1. Ansible role assign/add/remove functionality should work as expected in CLI
 
     :BZ: 2029402
-
-    :CaseAutomation: Automated
     """
     ROLES = [
         'theforeman.foreman_scap_client',
