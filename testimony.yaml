@@ -15,7 +15,8 @@ CaseComponent:
     # No spaces allowed
     - ActivationKeys
     - AlternateContentSources
-    - Ansible
+    - Ansible-ConfigurationManagement
+    - Ansible-RemoteExecution
     - AnsibleCollection
     - API
     - AuditLog
