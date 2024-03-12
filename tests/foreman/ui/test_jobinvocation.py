@@ -32,10 +32,8 @@ def module_rhel_client_by_ip(module_org, smart_proxy_location, rhel7_contenthost
     return rhel7_contenthost
 
 
-@pytest.mark.no_containers
 @pytest.mark.tier4
-def test_positive_bz2209968(
-    session,
+def test_positive_hostgroups_full_nested_names(
     module_org,
     smart_proxy_location,
     target_sat,
@@ -94,7 +92,7 @@ def test_positive_bz2209968(
         # we should have something like "parent1/child1a"
         expected_names.append(expected_name)
 
-    with session:
+    with target_sat.ui_session() as session:
         session.organization.select(module_org.name)
         session.location.select(smart_proxy_location.name)
         hostgroups = session.jobinvocation.read_hostgroups()
