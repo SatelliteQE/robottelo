@@ -4,11 +4,11 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: Ansible
+:CaseComponent: Ansible-ConfigurationManagement
 
 :Team: Rocket
 
-:CaseImportance: High
+:CaseImportance: Critical
 
 """
 from fauxfactory import gen_string
@@ -111,7 +111,7 @@ def test_positive_config_report_ansible(session, target_sat, module_org, rhel_co
         1. Host should be assigned the proper role.
         2. Job report should be created.
 
-    :CaseImportance: Critical
+    :CaseComponent: Ansible-RemoteExecution
     """
     SELECTED_ROLE = 'RedHatInsights.insights-client'
     if rhel_contenthost.os_version.major <= 7:
@@ -176,7 +176,7 @@ def test_positive_ansible_custom_role(target_sat, session, module_org, rhel_cont
 
     :BZ: 2155392
 
-    :CaseAutomation: Automated
+    :CaseComponent: Ansible-RemoteExecution
     """
     SELECTED_ROLE = 'custom_role'
     playbook = f'{robottelo_tmp_dir}/playbook.yml'
