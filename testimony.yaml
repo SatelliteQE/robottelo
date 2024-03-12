@@ -25,9 +25,8 @@ CaseComponent:
     - Branding
     - BVT
     - Candlepin
-    - Capsule
+    - ForemanProxy
     - Capsule-Content
-    - Certificates
     - ComputeResources
     - ComputeResources-Azure
     - ComputeResources-CNV
@@ -53,7 +52,7 @@ CaseComponent:
     - ErrataManagement
     - Fact
     - ForemanDebug
-    - ForemanMaintain
+    - SatelliteMaintain
     - Hammer
     - Hammer-Content
     - HTTPProxy
@@ -64,7 +63,7 @@ CaseComponent:
     - Hosts-Content
     - Infobloxintegration
     - Infrastructure
-    - Installer
+    - Installation
     - InterSatelliteSync
     - katello-agent
     - katello-tracer
@@ -77,7 +76,6 @@ CaseComponent:
     - Networking
     - Notifications
     - OrganizationsandLocations
-    - Packaging
     - Parameters
     - Provisioning
     - ProvisioningTemplates
@@ -90,16 +88,12 @@ CaseComponent:
     - RemoteExecution
     - Reporting
     - Repositories
-    - RHCloud-CloudConnector
-    - RHCloud-Insights
-    - RHCloud-Inventory
+    - RHCloud
     - rubygem-foreman-redhat_access
-    - satellite-change-hostname
     - SatelliteClone
     - SCAPPlugin
     - Search
     - Security
-    - SELinux
     - Settings
     - SubscriptionManagement
     - Subscriptions-virt-who
