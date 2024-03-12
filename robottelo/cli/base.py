@@ -138,9 +138,7 @@ class Base:
 
         cls.command_sub = 'delete-parameter'
 
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def dump(cls, options=None):
@@ -150,9 +148,7 @@ class Base:
 
         cls.command_sub = 'dump'
 
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def _get_username_password(cls, username=None, password=None):
@@ -207,16 +203,14 @@ class Base:
         )
         if return_raw_response:
             return response
-        else:
-            return cls._handle_response(response, ignore_stderr=ignore_stderr)
+        return cls._handle_response(response, ignore_stderr=ignore_stderr)
 
     @classmethod
     def sm_execute(cls, command, hostname=None, timeout=None, **kwargs):
         """Executes the satellite-maintain cli commands on the server via ssh"""
         env_var = kwargs.get('env_var') or ''
         client = get_client(hostname=hostname or cls.hostname)
-        result = client.execute(f'{env_var} satellite-maintain {command}', timeout=timeout)
-        return result
+        return client.execute(f'{env_var} satellite-maintain {command}', timeout=timeout)
 
     @classmethod
     def exists(cls, options=None, search=None):
@@ -371,6 +365,4 @@ class Base:
                 if isinstance(val, list):
                     val = ','.join(str(el) for el in val)
                 tail += f' --{key}="{val}"'
-        cmd = f"{cls.command_base or ''} {cls.command_sub or ''} {tail.strip()} {cls.command_end or ''}"
-
-        return cmd
+        return f"{cls.command_base or ''} {cls.command_sub or ''} {tail.strip()} {cls.command_end or ''}"

@@ -265,9 +265,8 @@ def test_negative_create_with_usage_limit_with_not_integers(module_org, limit, m
         module_target_sat.cli_factory.make_activation_key(
             {'organization-id': module_org.id, 'max-hosts': limit}
         )
-    if isinstance(limit, int):
-        if limit < 1:
-            assert 'Max hosts cannot be less than one' in str(raise_ctx)
+    if isinstance(limit, int) and limit < 1:
+        assert 'Max hosts cannot be less than one' in str(raise_ctx)
     if isinstance(limit, str):
         assert 'Numeric value is required.' in str(raise_ctx)
 
@@ -1445,7 +1444,7 @@ def test_positive_update_autoattach(module_org, module_target_sat):
         result = module_target_sat.cli.ActivationKey.update(
             {'auto-attach': new_value, 'id': new_ak['id'], 'organization-id': module_org.id}
         )
-        assert 'Activation key updated.' == result[0]['message']
+        assert result[0]['message'] == 'Activation key updated.'
 
 
 @pytest.mark.tier2

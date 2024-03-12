@@ -32,14 +32,13 @@ from robottelo.utils.virtwho import (
 
 @pytest.fixture
 def form_data():
-    form = {
+    return {
         'debug': True,
         'interval': 'Every hour',
         'hypervisor_id': 'hostname',
         'hypervisor_type': settings.virtwho.kubevirt.hypervisor_type,
         'hypervisor_content.kubeconfig': settings.virtwho.kubevirt.hypervisor_config_file,
     }
-    return form
 
 
 class TestVirtwhoConfigforKubevirt:

@@ -32,7 +32,7 @@ from robottelo.utils.virtwho import (
 
 @pytest.fixture
 def form_data():
-    form = {
+    return {
         'debug': True,
         'interval': 'Every hour',
         'hypervisor_id': 'hostname',
@@ -40,7 +40,6 @@ def form_data():
         'hypervisor_content.server': settings.virtwho.libvirt.hypervisor_server,
         'hypervisor_content.username': settings.virtwho.libvirt.hypervisor_username,
     }
-    return form
 
 
 class TestVirtwhoConfigforLibvirt:

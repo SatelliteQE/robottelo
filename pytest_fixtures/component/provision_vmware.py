@@ -6,7 +6,7 @@ from robottelo.config import settings
 
 @pytest.fixture(scope='module')
 def module_vmware_cr(module_provisioning_sat, module_sca_manifest_org, module_location):
-    vmware_cr = module_provisioning_sat.sat.api.VMWareComputeResource(
+    module_provisioning_sat.sat.api.VMWareComputeResource(
         name=gen_string('alpha'),
         provider='Vmware',
         url=settings.vmware.vcenter,
@@ -16,7 +16,6 @@ def module_vmware_cr(module_provisioning_sat, module_sca_manifest_org, module_lo
         organization=[module_sca_manifest_org],
         location=[module_location],
     ).create()
-    return vmware_cr
 
 
 @pytest.fixture

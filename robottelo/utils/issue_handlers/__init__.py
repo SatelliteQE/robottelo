@@ -2,7 +2,7 @@
 from robottelo.utils.issue_handlers import bugzilla
 
 handler_methods = {'BZ': bugzilla.is_open_bz}
-SUPPORTED_HANDLERS = tuple(f"{handler}:" for handler in handler_methods.keys())
+SUPPORTED_HANDLERS = tuple(f"{handler}:" for handler in handler_methods)
 
 
 def add_workaround(data, matches, usage, validation=(lambda *a, **k: True), **kwargs):
@@ -17,10 +17,11 @@ def should_deselect(issue, data=None):
     """Check if test should be deselected based on marked issue."""
     # Handlers can be extended to support different issue trackers.
     handlers = {'BZ': bugzilla.should_deselect_bz}
-    supported_handlers = tuple(f"{handler}:" for handler in handlers.keys())
+    supported_handlers = tuple(f"{handler}:" for handler in handlers)
     if str(issue).startswith(supported_handlers):
         handler_code = str(issue).partition(":")[0]
         return handlers[handler_code.strip()](issue.strip(), data)
+    return None
 
 
 def is_open(issue, data=None):

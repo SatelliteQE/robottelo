@@ -43,10 +43,12 @@ def pytest_collection_modifyitems(session, items, config):
                 deselected.append(item)
                 continue
             # Remove parametrization from organization test
-            if 'test_positive_create_with_name_and_description' in item.name:
-                if 'alphanumeric' not in item.name:
-                    deselected.append(item)
-                    continue
+            if (
+                'test_positive_create_with_name_and_description' in item.name
+                and 'alphanumeric' not in item.name
+            ):
+                deselected.append(item)
+                continue
         # Else select
         selected.append(item)
 

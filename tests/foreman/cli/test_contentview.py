@@ -240,7 +240,7 @@ class TestContentView:
             }
         )
         cvf = module_target_sat.cli.ContentView.filter.info({'id': cvf['filter-id']})
-        assert 'security' == cvf['rules'][0]['types']
+        assert cvf['rules'][0]['types'] == 'security'
 
     @pytest.mark.tier1
     def test_positive_delete_by_id(self, module_org, module_target_sat):

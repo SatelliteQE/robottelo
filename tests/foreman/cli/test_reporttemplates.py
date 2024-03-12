@@ -718,7 +718,7 @@ def test_positive_generate_ansible_template(module_target_sat):
     :CaseImportance: Medium
     """
     settings = module_target_sat.cli.Settings.list({'search': 'name=ansible_inventory_template'})
-    assert 1 == len(settings)
+    assert len(settings) == 1
     template_name = settings[0]['value']
 
     report_list = module_target_sat.cli.ReportTemplate.list()

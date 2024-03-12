@@ -89,8 +89,7 @@ def export_import_cleanup_module(target_sat, module_org):
 @pytest.fixture
 def function_import_org(target_sat):
     """Creates an Organization for content import."""
-    org = target_sat.api.Organization().create()
-    return org
+    return target_sat.api.Organization().create()
 
 
 @pytest.fixture
@@ -156,14 +155,13 @@ def function_synced_rh_repo(request, target_sat, function_sca_manifest_org):
     # Update the download policy to 'immediate' and sync
     target_sat.cli.Repository.update({'download-policy': 'immediate', 'id': repo['id']})
     target_sat.cli.Repository.synchronize({'id': repo['id']}, timeout=7200000)
-    repo = target_sat.cli.Repository.info(
+    return target_sat.cli.Repository.info(
         {
             'organization-id': function_sca_manifest_org.id,
             'name': repo_dict['name'],
             'product': repo_dict['product'],
         }
     )
-    return repo
 
 
 @pytest.fixture

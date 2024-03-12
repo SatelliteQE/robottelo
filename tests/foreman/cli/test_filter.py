@@ -24,13 +24,12 @@ from robottelo.exceptions import CLIReturnCodeError
 @pytest.fixture(scope='module')
 def module_perms(module_target_sat):
     """Search for provisioning template permissions. Set ``cls.ct_perms``."""
-    perms = [
+    return [
         permission['name']
         for permission in module_target_sat.cli.Filter.available_permissions(
             {"search": "resource_type=User"}
         )
     ]
-    return perms
 
 
 @pytest.fixture

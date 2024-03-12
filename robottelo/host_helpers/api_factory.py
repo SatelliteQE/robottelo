@@ -48,6 +48,7 @@ class APIFactory:
                 password=settings.http_proxy.password,
                 organization=[org.id],
             ).create()
+        return None
 
     def enable_rhrepo_and_fetchid(
         self, basearch, org_id, product, repo, reposet, releasever=None, strict=False
@@ -140,10 +141,9 @@ class APIFactory:
                 self.temp.template = self.temp.template.replace(old, new, 1)
                 update = self.temp.update(['template'])
             return new in update.template
-        elif new in self.temp.template:
+        if new in self.temp.template:
             return True
-        else:
-            raise ValueError(f'{old} does not exists in template {name}')
+        raise ValueError(f'{old} does not exists in template {name}')
 
     def disable_syncplan(self, sync_plan):
         """
@@ -215,10 +215,7 @@ class APIFactory:
                 if (
                     task.label == 'Actions::Katello::Host::GenerateApplicability'
                     and host_id in task.input['host_ids']
-                ):
-                    task.poll(poll_rate=poll_rate, timeout=poll_timeout)
-                    tasks_finished += 1
-                elif (
+                ) or (
                     task.label == 'Actions::Katello::Host::UploadPackageProfile'
                     and host_id == task.input['host']['id']
                 ):
@@ -286,7 +283,7 @@ class APIFactory:
             if len(req.content) > 2:
                 if req.json()[0].get('state') in ['finished']:
                     return True
-                elif req.json()[0].get('error'):
+                if req.json()[0].get('error'):
                     raise AssertionError(
                         f"Pulp task with repo_id {repo_backend_id} error or not found: "
                         f"'{req.json().get('error')}'"

@@ -1796,7 +1796,10 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
     https_curl_command = f'curl -i {capsule_configured.url}/pub/ -k'
     for command in [http_curl_command, https_curl_command]:
         accessibility_check = capsule_configured.execute(command)
-        assert 'HTTP/1.1 200 OK' or 'HTTP/2 200 ' in accessibility_check.stdout.split('\r\n')
+        assert (
+            'HTTP/1.1 200 OK' in accessibility_check.stdout
+            or 'HTTP/2 200' in accessibility_check.stdout
+        )
     capsule_configured.get(
         local_path='custom-hiera-capsule.yaml',
         remote_path=f'{custom_hiera_location}',
@@ -1806,7 +1809,8 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
     assert 'Success!' in command_output.stdout
     for command in [http_curl_command, https_curl_command]:
         accessibility_check = capsule_configured.execute(command)
-        assert 'HTTP/1.1 200 OK' or 'HTTP/2 200 ' not in accessibility_check.stdout.split('\r\n')
+        assert 'HTTP/1.1 200 OK' not in accessibility_check.stdout
+        assert 'HTTP/2 200' not in accessibility_check.stdout
     capsule_configured.put(
         local_path='custom-hiera-capsule.yaml',
         remote_path=f'{custom_hiera_location}',

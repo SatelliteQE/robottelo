@@ -55,7 +55,7 @@ def module_provisioning_rhel_content(
             releasever=constants.REPOS['kickstart'][name]['version'],
         )
         # do not sync content repos for discovery based provisioning.
-        if not module_provisioning_sat.provisioning_type == 'discovery':
+        if module_provisioning_sat.provisioning_type != 'discovery':
             rh_repo_id = sat.api_factory.enable_rhrepo_and_fetchid(
                 basearch=constants.DEFAULT_ARCHITECTURE,
                 org_id=module_sca_manifest_org.id,

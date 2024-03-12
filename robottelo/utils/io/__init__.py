@@ -82,6 +82,7 @@ def get_remote_report_checksum(satellite, org_id):
             continue
         checksum, _ = result.stdout.split(maxsplit=1)
         return checksum
+    return None
 
 
 def get_report_data(report_path):

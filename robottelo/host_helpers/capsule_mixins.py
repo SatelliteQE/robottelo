@@ -55,8 +55,7 @@ class CapsuleInfo:
                 for task in tasks:
                     task.poll(poll_rate=poll_rate, timeout=poll_timeout, must_succeed=must_succeed)
                 break
-            else:
-                time.sleep(search_rate)
+            time.sleep(search_rate)
         else:
             raise AssertionError(f"No task was found using query '{search_query}'")
         return tasks
@@ -94,5 +93,4 @@ class CapsuleInfo:
         """
         if lce and cv:
             return f'{self.url}/pulp/content/{org}/{lce}/{cv}/custom/{prod}/{repo}/'
-        else:
-            return f'{self.url}/pulp/content/{org}/Library/custom/{prod}/{repo}/'
+        return f'{self.url}/pulp/content/{org}/Library/custom/{prod}/{repo}/'

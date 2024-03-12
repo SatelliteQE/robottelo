@@ -64,7 +64,7 @@ def test_host_registration_end_to_end(
 
     # Verify server.hostname and server.port from subscription-manager config
     assert module_target_sat.hostname == rhel_contenthost.subscription_config['server']['hostname']
-    assert CLIENT_PORT == rhel_contenthost.subscription_config['server']['port']
+    assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
 
     # Update module_capsule_configured to include module_org/module_location
     nc = module_capsule_configured.nailgun_smart_proxy
@@ -90,7 +90,7 @@ def test_host_registration_end_to_end(
         module_capsule_configured.hostname
         == rhel_contenthost.subscription_config['server']['hostname']
     )
-    assert CLIENT_PORT == rhel_contenthost.subscription_config['server']['port']
+    assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
 
 
 @pytest.mark.tier3

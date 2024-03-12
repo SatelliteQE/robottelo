@@ -45,7 +45,7 @@ from robottelo.utils.virtwho import (
 
 @pytest.fixture
 def form_data():
-    form = {
+    return {
         'debug': True,
         'interval': 'Every hour',
         'hypervisor_id': 'hostname',
@@ -54,7 +54,6 @@ def form_data():
         'hypervisor_content.username': settings.virtwho.esx.hypervisor_username,
         'hypervisor_content.password': settings.virtwho.esx.hypervisor_password,
     }
-    return form
 
 
 @pytest.fixture(autouse=True)

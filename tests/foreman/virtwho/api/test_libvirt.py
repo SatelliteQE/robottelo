@@ -31,7 +31,7 @@ from robottelo.utils.virtwho import (
 
 @pytest.fixture
 def form_data(default_org, target_sat):
-    form = {
+    return {
         'name': gen_string('alpha'),
         'debug': 1,
         'interval': '60',
@@ -43,7 +43,6 @@ def form_data(default_org, target_sat):
         'satellite_url': target_sat.hostname,
         'hypervisor_username': settings.virtwho.libvirt.hypervisor_username,
     }
-    return form
 
 
 @pytest.fixture

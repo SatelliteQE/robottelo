@@ -16,6 +16,7 @@
 
 :Upstream: No
 """
+
 import os
 
 from airgun.session import Session
@@ -407,9 +408,8 @@ def test_positive_delete_external_roles(
         )
     with Session(
         test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
-    ) as ldapsession:
-        with pytest.raises(NavigationTriesExceeded):
-            ldapsession.location.create({'name': gen_string('alpha')})
+    ) as ldapsession, pytest.raises(NavigationTriesExceeded):
+        ldapsession.location.create({'name': gen_string('alpha')})
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
@@ -671,7 +671,7 @@ def test_positive_add_katello_role_with_org(
         results = session.activationkey.search(ak_name)
         assert results[0]['Name'] == ak_name
         session.organization.select(different_org.name)
-        assert not session.activationkey.search(ak_name)[0]['Name'] == ak_name
+        assert session.activationkey.search(ak_name)[0]['Name'] != ak_name
     ak = (
         entities.ActivationKey(organization=module_org)
         .search(query={'search': f'name={ak_name}'})[0]
@@ -755,9 +755,8 @@ def test_positive_login_user_basic_roles(
     target_sat.api_factory.create_role_permissions(role, permissions)
     with Session(
         test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
-    ) as ldapsession:
-        with pytest.raises(NavigationTriesExceeded):
-            ldapsession.usergroup.search('')
+    ) as ldapsession, pytest.raises(NavigationTriesExceeded):
+        ldapsession.usergroup.search('')
     with session:
         session.user.update(ldap_data['ldap_user_name'], {'roles.resources.assigned': [role.name]})
     with Session(
@@ -788,9 +787,10 @@ def test_positive_login_user_password_otp(
     otp_pass = (
         f"{default_ipa_host.ldap_user_passwd}{generate_otp(default_ipa_host.time_based_secret)}"
     )
-    with Session(test_name, default_ipa_host.ipa_otp_username, otp_pass) as ldapsession:
-        with pytest.raises(NavigationTriesExceeded):
-            ldapsession.user.search('')
+    with Session(
+        test_name, default_ipa_host.ipa_otp_username, otp_pass
+    ) as ldapsession, pytest.raises(NavigationTriesExceeded):
+        ldapsession.user.search('')
     users = entities.User().search(query={'search': f'login="{default_ipa_host.ipa_otp_username}"'})
     assert users[0].login == default_ipa_host.ipa_otp_username
 
@@ -1195,12 +1195,13 @@ def test_userlist_with_external_admin(
         assert idm_user in ldapsession.task.read_all()['current_user']
 
     # verify the users count with local admin and remote/external admin
-    with Session(user=idm_admin, password=settings.server.ssh_password) as remote_admin_session:
-        with Session(
-            user=settings.server.admin_username, password=settings.server.admin_password
-        ) as local_admin_session:
-            assert local_admin_session.user.search(idm_user)[0]['Username'] == idm_user
-            assert remote_admin_session.user.search(idm_user)[0]['Username'] == idm_user
+    with Session(
+        user=idm_admin, password=settings.server.ssh_password
+    ) as remote_admin_session, Session(
+        user=settings.server.admin_username, password=settings.server.admin_password
+    ) as local_admin_session:
+        assert local_admin_session.user.search(idm_user)[0]['Username'] == idm_user
+        assert remote_admin_session.user.search(idm_user)[0]['Username'] == idm_user
 
 
 @pytest.mark.skip_if_open('BZ:1883209')
