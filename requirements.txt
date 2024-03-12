@@ -1,7 +1,7 @@
 # Version updates managed by dependabot
 
 betelgeuse==1.11.0
-broker[docker]==0.4.1
+# broker[docker]==0.4.1 - Temporarily disabled, see below
 cryptography==42.0.5
 deepdiff==6.7.1
 docker==7.0.0  # Temporary until Broker is back on PyPi
@@ -31,4 +31,9 @@ wrapanapi==3.6.0
 # Get airgun, nailgun and upgrade from 6.12.z
 git+https://github.com/SatelliteQE/airgun.git@6.12.z#egg=airgun
 git+https://github.com/SatelliteQE/nailgun.git@6.12.z#egg=nailgun
+# Broker currently is unable to push to PyPi due to [1] and [2]
+# In the meantime, we install directly from the repo
+# [1] - https://github.com/ParallelSSH/ssh2-python/issues/193
+# [2] - https://github.com/pypi/warehouse/issues/7136
+git+https://github.com/SatelliteQE/broker.git@0.4.5#egg=broker
 --editable .
