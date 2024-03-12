@@ -168,7 +168,7 @@ class TestTemplateSyncTestCase:
         not_imported_count = [
             template['imported'] for template in filtered_imported_templates['message']['templates']
         ].count(False)
-        assert not_imported_count == 9
+        assert not_imported_count == 8
         ptemplates = module_target_sat.api.ProvisioningTemplate().search(
             query={'per_page': '100', 'search': 'name~jenkins', 'organization_id': module_org.id}
         )
@@ -955,7 +955,7 @@ class TestTemplateSyncTestCase:
         imported_count = [
             template['imported'] for template in imported_templates['message']['templates']
         ].count(True)
-        assert imported_count == 17  # Total Count
+        assert imported_count == 18  # Total Count
         # Export some filtered templates to local dir
         _, dir_path = create_import_export_local_dir
         exported_templates = target_sat.api.Template().exports(
@@ -964,7 +964,7 @@ class TestTemplateSyncTestCase:
         exported_count = [
             template['exported'] for template in exported_templates['message']['templates']
         ].count(True)
-        assert exported_count == 17
+        assert exported_count == 18
         assert 'name' in exported_templates['message']['templates'][0]
         assert (
             target_sat.execute(
