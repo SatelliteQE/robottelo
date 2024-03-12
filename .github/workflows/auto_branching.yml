@@ -1,0 +1,122 @@
+### The auto-branching workflow triggered through a dispatch request from the CI
+name: auto-branching
+
+# Run on workflow dispatch from CI
+on:
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        type: string
+        description: branch to be created from the master
+
+
+jobs:
+  auto-branching:
+    name: run this auto-branching on the master branch
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create the ${{ github.event.inputs.target_branch }} branch
+        id: create-branch
+        uses: peterjgrainger/action-create-branch@v2.2.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          branch: ${{ github.event.inputs.target_branch }}
+
+      - name: Switch to ${{ github.event.inputs.target_branch }} branch
+        run: git checkout -b "${{ github.event.inputs.target_branch }}"
+
+      - name: Checkout from ${{ github.event.inputs.target_branch }} branch for auto-branching changes
+        id: checkout-to-auto-branch
+        run: |
+            branch_name="auto-branching-${{ github.event.inputs.target_branch }}-$(date '+%s')"
+            git checkout -b "$branch_name"
+            echo "branch_name=$branch_name" >> $GITHUB_OUTPUT   
+
+      - name: Create label for the ${{ github.event.inputs.target_branch }} branch
+        id: create-label
+        run: |
+            curl -X POST \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/${{ github.repository }}/labels \
+              -d "{\"name\":\"${{ github.event.inputs.target_branch }}\",\"color\":\"fbca04\"}"
+
+      - name: Update target branch label in dependabot yml file
+        id: update-dependabot
+        run: |
+            # Read the dependabot.yml file
+            FILE_PATH="./.github/dependabot.yml"
+            TARGET_BRANCH="${{ github.event.inputs.target_branch }}"
+
+            # Append the target branch label to the labels node
+            awk -v target="'$TARGET_BRANCH'" '/^ *labels:/ {$0 = $0 "\n      - " target} 1' "$FILE_PATH" > temp.yml && mv temp.yml "$FILE_PATH"
+
+      - name: Update repository URLs in requirements.txt
+        id: update-repo-urls
+        run: |
+            # Define the file path
+            FILE_PATH="./requirements.txt"
+
+            # Define the replacement strings
+            replacements=(
+              "git+https://github.com/SatelliteQE/airgun.git@master#egg=airgun git+https://github.com/SatelliteQE/airgun.git@${{ github.event.inputs.target_branch }}#egg=airgun"
+              "git+https://github.com/SatelliteQE/nailgun.git@master#egg=nailgun git+https://github.com/SatelliteQE/nailgun.git@${{ github.event.inputs.target_branch }}#egg=nailgun"
+            )
+
+            # Create a temporary file
+            TEMP_FILE=$(mktemp)
+
+            # Perform replacements using a for loop
+            for replacement in "${replacements[@]}"; do
+              old_url=$(echo "$replacement" | cut -d' ' -f1)
+              new_url=$(echo "$replacement" | cut -d' ' -f2)
+              sed "s|${old_url}|${new_url}|g" "$FILE_PATH" > "$TEMP_FILE" && mv "$TEMP_FILE" "$FILE_PATH"
+            done
+
+      - name: Remove the dispatch release GHA
+        id: remove-dispatch-release-gha
+        run: |
+            rm -rf ./.github/workflows/dispatch_release.yml
+
+      - name: Remove lines with @pytest.mark.stream
+        id: remove-mark-stream
+        run: |
+           # Loop through files in the folder
+           grep -rl "tests/foreman" -e '@pytest\.mark\.stream' | while IFS= read -r file; do
+            awk '!/@pytest\.mark\.stream/' "$file" > temp && mv temp "$file"
+           done
+
+      - name: Update version in setup.py
+        run: sed -i "s/version=['\"][0-9.]*['\"]\+/version='${{ github.event.inputs.target_branch }}'/" setup.py
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add setup.py ./tests/foreman ./.github/workflows/dispatch_release.yml ./requirements.txt ./.github/dependabot.yml
+          git commit -m "Testing the Auto-branching with ${{ github.event.inputs.target_branch }}"
+
+      - name: git diff
+        run: git diff
+
+#      - name: Create Pull Request
+#        id: cpr
+#        uses: peter-evans/create-pull-request@v6
+#        with:
+#          commit-message: Testing the Auto-branching with ${{ github.event.inputs.target_branch }}
+#          branch: ${{steps.checkout-to-auto-branch.outputs.branch_name}}
+#          base: ${{ github.event.inputs.target_branch }}
+#          delete-branch: true
+#          title: 'Testing the Auto-branching with ${{ github.event.inputs.target_branch }}'
+#          draft: false
+
+      - name: Create pull request
+        run: |
+          gh pr create --title "Update version to 6.16.z" --body "Automated pull request to update version number" --head "${{steps.checkout-to-auto-branch.outputs.branch_name}}" --base "${{ github.event.inputs.target_branch }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
