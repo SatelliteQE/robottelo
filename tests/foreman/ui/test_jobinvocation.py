@@ -126,7 +126,7 @@ def test_positive_schedule_recurring_host_job(self):
 
     :id: 5052be04-28ab-4349-8bee-851ef76e4ffa
 
-    :caseComponent: Ansible
+    :caseComponent: Ansible-RemoteExecution
 
     :Team: Rocket
 
@@ -152,7 +152,7 @@ def test_positive_schedule_recurring_hostgroup_job(self):
 
     :id: c65db99b-11fe-4a32-89d0-0a4692b07efe
 
-    :caseComponent: Ansible
+    :caseComponent: Ansible-RemoteExecution
 
     :Team: Rocket
 

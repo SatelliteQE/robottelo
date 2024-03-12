@@ -4,11 +4,11 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: Ansible
+:CaseComponent: Ansible-ConfigurationManagement
 
 :Team: Rocket
 
-:CaseImportance: High
+:CaseImportance: Critical
 
 """
 from fauxfactory import gen_string
@@ -17,6 +17,46 @@ from wait_for import wait_for
 
 from robottelo.config import settings, user_nailgun_config
 from robottelo.utils.issue_handlers import is_open
+
+
+@pytest.fixture
+def filtered_user(target_sat, module_org, module_location):
+    """
+    :steps:
+        1. Create a role with a host view filtered
+        2. Create a user with that role
+        3. Setup a host
+    """
+    role = target_sat.api.Role(
+        name=gen_string('alpha'), location=[module_location], organization=[module_org]
+    ).create()
+    # assign view_hosts (with a filter, to test BZ 1699188),
+    # view_hostgroups, view_facts permissions to the role
+    permission_hosts = target_sat.api.Permission().search(query={'search': 'name="view_hosts"'})
+    permission_hostgroups = target_sat.api.Permission().search(
+        query={'search': 'name="view_hostgroups"'}
+    )
+    permission_facts = target_sat.api.Permission().search(query={'search': 'name="view_facts"'})
+    target_sat.api.Filter(
+        permission=permission_hosts, search='name != nonexistent', role=role
+    ).create()
+    target_sat.api.Filter(permission=permission_hostgroups, role=role).create()
+    target_sat.api.Filter(permission=permission_facts, role=role).create()
+
+    password = gen_string('alpha')
+    user = target_sat.api.User(
+        role=[role], password=password, location=[module_location], organization=[module_org]
+    ).create()
+
+    return user, password
+
+
+@pytest.fixture
+def rex_host_in_org_and_loc(target_sat, module_org, module_location, rex_contenthost):
+    host = target_sat.api.Host().search(query={'search': f'name={rex_contenthost.hostname}'})[0]
+    target_sat.api.Host(id=host.id, organization=[module_org.id]).update(['organization'])
+    target_sat.api.Host(id=host.id, location=module_location.id).update(['location'])
+    return host
 
 
 @pytest.mark.e2e
@@ -39,8 +79,6 @@ def test_fetch_and_sync_ansible_playbooks(target_sat):
         1. Playbooks should be fetched and synced successfully.
 
     :BZ: 2115686
-
-    :CaseAutomation: Automated
     """
     target_sat.execute(
         "ansible-galaxy collection install -p /usr/share/ansible/collections "
@@ -88,9 +126,7 @@ def test_positive_ansible_job_on_host(
 
     :BZ: 2164400
 
-    :CaseAutomation: Automated
-
-    :CaseImportance: Critical
+    :CaseComponent: Ansible-RemoteExecution
     """
     SELECTED_ROLE = 'RedHatInsights.insights-client'
     if rhel_contenthost.os_version.major <= 7:
@@ -161,7 +197,7 @@ def test_positive_ansible_job_on_multiple_host(
 
     :BZ: 2167396, 2190464, 2184117
 
-    :CaseAutomation: Automated
+    :CaseComponent: Ansible-RemoteExecution
     """
     hosts = [rhel9_contenthost, rhel8_contenthost, rhel7_contenthost]
     SELECTED_ROLE = 'RedHatInsights.insights-client'
@@ -284,45 +320,6 @@ def test_add_and_remove_ansible_role_hostgroup(target_sat):
         )
     hg_nested_roles = target_sat.api.HostGroup(id=hg_nested.id).list_ansible_roles()
     assert len(hg_nested_roles) == 0
-
-
-@pytest.fixture
-def filtered_user(target_sat, module_org, module_location):
-    """
-    :steps:
-        1. Create a role with a host view filtered
-        2. Create a user with that role
-        3. Setup a host
-    """
-    api = target_sat.api
-    role = api.Role(
-        name=gen_string('alpha'), location=[module_location], organization=[module_org]
-    ).create()
-    # assign view_hosts (with a filter, to test BZ 1699188),
-    # view_hostgroups, view_facts permissions to the role
-    permission_hosts = api.Permission().search(query={'search': 'name="view_hosts"'})
-    permission_hostgroups = api.Permission().search(query={'search': 'name="view_hostgroups"'})
-    permission_facts = api.Permission().search(query={'search': 'name="view_facts"'})
-    api.Filter(permission=permission_hosts, search='name != nonexistent', role=role).create()
-    api.Filter(permission=permission_hostgroups, role=role).create()
-    api.Filter(permission=permission_facts, role=role).create()
-
-    password = gen_string('alpha')
-    user = api.User(
-        role=[role], password=password, location=[module_location], organization=[module_org]
-    ).create()
-
-    return user, password
-
-
-@pytest.fixture
-def rex_host_in_org_and_loc(target_sat, module_org, module_location, rex_contenthost):
-    api = target_sat.api
-    host = api.Host().search(query={'search': f'name={rex_contenthost.hostname}'})[0]
-    host_id = host.id
-    api.Host(id=host_id, organization=[module_org.id]).update(['organization'])
-    api.Host(id=host_id, location=module_location.id).update(['location'])
-    return host
 
 
 @pytest.mark.rhel_ver_match('[78]')
