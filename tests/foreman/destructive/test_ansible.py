@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Ansible
+:CaseComponent: Ansible-ConfigurationManagement
 
 :Team: Rocket
 
@@ -26,8 +26,7 @@ def test_positive_import_all_roles(target_sat):
 
     :id: 53fe3857-a08f-493d-93c7-3fed331ed391
 
-    :Steps:
-
+    :steps:
         1. Navigate to the Configure > Roles page.
         2. Click the `Import from [hostname]` button.
         3. Get total number of importable roles from pagination.

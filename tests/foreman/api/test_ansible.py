@@ -6,13 +6,13 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Ansible
+:CaseComponent: Ansible-ConfigurationManagement
 
 :Team: Rocket
 
 :TestType: Functional
 
-:CaseImportance: High
+:CaseImportance: Critical
 
 :Upstream: No
 """
@@ -24,6 +24,46 @@ from robottelo.config import settings, user_nailgun_config
 from robottelo.utils.issue_handlers import is_open
 
 
+@pytest.fixture
+def filtered_user(target_sat, module_org, module_location):
+    """
+    :steps:
+        1. Create a role with a host view filtered
+        2. Create a user with that role
+        3. Setup a host
+    """
+    role = target_sat.api.Role(
+        name=gen_string('alpha'), location=[module_location], organization=[module_org]
+    ).create()
+    # assign view_hosts (with a filter, to test BZ 1699188),
+    # view_hostgroups, view_facts permissions to the role
+    permission_hosts = target_sat.api.Permission().search(query={'search': 'name="view_hosts"'})
+    permission_hostgroups = target_sat.api.Permission().search(
+        query={'search': 'name="view_hostgroups"'}
+    )
+    permission_facts = target_sat.api.Permission().search(query={'search': 'name="view_facts"'})
+    target_sat.api.Filter(
+        permission=permission_hosts, search='name != nonexistent', role=role
+    ).create()
+    target_sat.api.Filter(permission=permission_hostgroups, role=role).create()
+    target_sat.api.Filter(permission=permission_facts, role=role).create()
+
+    password = gen_string('alpha')
+    user = target_sat.api.User(
+        role=[role], password=password, location=[module_location], organization=[module_org]
+    ).create()
+
+    return user, password
+
+
+@pytest.fixture
+def rex_host_in_org_and_loc(target_sat, module_org, module_location, rex_contenthost):
+    host = target_sat.api.Host().search(query={'search': f'name={rex_contenthost.hostname}'})[0]
+    target_sat.api.Host(id=host.id, organization=[module_org.id]).update(['organization'])
+    target_sat.api.Host(id=host.id, location=module_location.id).update(['location'])
+    return host
+
+
 @pytest.mark.e2e
 def test_fetch_and_sync_ansible_playbooks(target_sat):
     """
@@ -33,8 +73,7 @@ def test_fetch_and_sync_ansible_playbooks(target_sat):
 
     :customerscenario: true
 
-    :Steps:
-
+    :steps:
         1. Install ansible collection with playbooks.
         2. Try to fetch the playbooks via api.
         3. Sync the playbooks.
@@ -44,8 +83,6 @@ def test_fetch_and_sync_ansible_playbooks(target_sat):
         1. Playbooks should be fetched and synced successfully.
 
     :BZ: 2115686
-
-    :CaseAutomation: Automated
     """
     target_sat.execute(
         "ansible-galaxy collection install -p /usr/share/ansible/collections "
@@ -77,7 +114,7 @@ def test_positive_ansible_job_on_host(target_sat, module_org, rhel_contenthost):
 
     :id: c8dcdc54-cb98-4b24-bff9-049a6cc36acb
 
-    :Steps:
+    :steps:
         1. Register a content host with satellite
         2. Import a role into satellite
         3. Assign that role to a host
@@ -89,9 +126,7 @@ def test_positive_ansible_job_on_host(target_sat, module_org, rhel_contenthost):
         1. Host should be assigned the proper role.
         2. Job execution must be successful.
 
-    :CaseAutomation: Automated
-
-    :CaseImportance: Critical
+    :CaseComponent: Ansible-RemoteExecution
     """
     SELECTED_ROLE = 'RedHatInsights.insights-client'
     if rhel_contenthost.os_version.major <= 7:
@@ -157,7 +192,7 @@ def test_positive_ansible_job_on_multiple_host(
 
     :BZ: 2167396, 2190464, 2184117
 
-    :CaseAutomation: Automated
+    :CaseComponent: Ansible-RemoteExecution
     """
     hosts = [rhel9_contenthost, rhel8_contenthost, rhel7_contenthost]
     SELECTED_ROLE = 'RedHatInsights.insights-client'
@@ -198,45 +233,6 @@ def test_positive_ansible_job_on_multiple_host(
     assert result.succeeded == 2  # SELECTED_ROLE working on rhel8/rhel9 clients
     assert result.failed == 1  # SELECTED_ROLE failing  on rhel7 client
     assert result.status_label == 'failed'
-
-
-@pytest.fixture
-def filtered_user(target_sat, module_org, module_location):
-    """
-    :Steps:
-        1. Create a role with a host view filtered
-        2. Create a user with that role
-        3. Setup a host
-    """
-    api = target_sat.api
-    role = api.Role(
-        name=gen_string('alpha'), location=[module_location], organization=[module_org]
-    ).create()
-    # assign view_hosts (with a filter, to test BZ 1699188),
-    # view_hostgroups, view_facts permissions to the role
-    permission_hosts = api.Permission().search(query={'search': 'name="view_hosts"'})
-    permission_hostgroups = api.Permission().search(query={'search': 'name="view_hostgroups"'})
-    permission_facts = api.Permission().search(query={'search': 'name="view_facts"'})
-    api.Filter(permission=permission_hosts, search='name != nonexistent', role=role).create()
-    api.Filter(permission=permission_hostgroups, role=role).create()
-    api.Filter(permission=permission_facts, role=role).create()
-
-    password = gen_string('alpha')
-    user = api.User(
-        role=[role], password=password, location=[module_location], organization=[module_org]
-    ).create()
-
-    return user, password
-
-
-@pytest.fixture
-def rex_host_in_org_and_loc(target_sat, module_org, module_location, rex_contenthost):
-    api = target_sat.api
-    host = api.Host().search(query={'search': f'name={rex_contenthost.hostname}'})[0]
-    host_id = host.id
-    api.Host(id=host_id, organization=[module_org.id]).update(['organization'])
-    api.Host(id=host_id, location=module_location.id).update(['location'])
-    return host
 
 
 @pytest.mark.rhel_ver_match('[78]')

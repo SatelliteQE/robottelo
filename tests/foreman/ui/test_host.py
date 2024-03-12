@@ -2512,7 +2512,7 @@ class TestHostAnsible:
 
         :id: 7da913ef-3b43-4bfa-9a45-d895431c8b56
 
-        :caseComponent: Ansible
+        :caseComponent: Ansible-ConfigurationManagement
 
         :Team: Rocket
 
@@ -2541,7 +2541,7 @@ class TestHostAnsible:
 
         :id: 4ab2813a-6b83-4907-b104-0473465814f5
 
-        :caseComponent: Ansible
+        :caseComponent: Ansible-ConfigurationManagement
 
         :Team: Rocket
 
@@ -2569,7 +2569,7 @@ class TestHostAnsible:
 
         :id: 044f38b4-cff2-4ddc-b93c-7e9f2826d00d
 
-        :caseComponent: Ansible
+        :caseComponent: Ansible-ConfigurationManagement
 
         :Team: Rocket
 
@@ -2594,7 +2594,7 @@ class TestHostAnsible:
 
         :id: d6de5130-45f6-4349-b490-fbde2aed082c
 
-        :caseComponent: Ansible
+        :caseComponent: Ansible-ConfigurationManagement
 
         :Team: Rocket
 

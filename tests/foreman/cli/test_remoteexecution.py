@@ -652,7 +652,7 @@ class TestAnsibleREX:
 
         :id: ad25aee5-4ea3-4743-a301-1c6271856f79
 
-        :CaseComponent: Ansible
+        :CaseComponent: Ansible-RemoteExecution
 
         :Team: Rocket
         """
