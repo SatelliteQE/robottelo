@@ -568,6 +568,7 @@ def get_configure_command_option(deploy_type, args, org=DEFAULT_ORG):
         return f"hammer -u {username} -p {password} virt-who-config deploy --id {args['id']} --organization-title '{args['organization-title']}' "
     elif deploy_type == 'name':
         return f"hammer -u {username} -p {password} virt-who-config deploy --name {args['name']} --organization '{org}' "
+    return None
 
 
 def vw_fake_conf_create(
