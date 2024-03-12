@@ -288,7 +288,7 @@ def test_positive_ansible_job_check_mode(session):
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: Ansible
+    :CaseComponent: Ansible-RemoteExecution
 
     :Team: Rocket
     """
@@ -311,7 +311,7 @@ def test_positive_ansible_config_report_failed_tasks_errors(session):
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: Ansible
+    :CaseComponent: Ansible-ConfigurationManagement
 
     :Team: Rocket
     """
@@ -335,7 +335,7 @@ def test_positive_ansible_config_report_changes_notice(session):
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: Ansible
+    :CaseComponent: Ansible-ConfigurationManagement
 
     :Team: Rocket
     """
@@ -356,7 +356,7 @@ def test_positive_ansible_variables_imported_with_roles(session):
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: Ansible
+    :CaseComponent: Ansible-ConfigurationManagement
 
     :Team: Rocket
     """
@@ -377,7 +377,7 @@ def test_positive_roles_import_in_background(session):
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: Ansible
+    :CaseComponent: Ansible-ConfigurationManagement
 
     :Team: Rocket
     """
@@ -399,7 +399,7 @@ def test_positive_ansible_roles_ignore_list(session):
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: Ansible
+    :CaseComponent: Ansible-ConfigurationManagement
 
     :Team: Rocket
     """
@@ -423,7 +423,7 @@ def test_positive_ansible_variables_installed_with_collection(session):
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: Ansible
+    :CaseComponent: Ansible-ConfigurationManagement
 
     :Team: Rocket
     """
@@ -449,7 +449,7 @@ def test_positive_install_ansible_collection_via_job_invocation(session):
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: Ansible
+    :CaseComponent: Ansible-RemoteExecution
 
     :Team: Rocket
     """
@@ -474,7 +474,7 @@ def test_positive_set_ansible_role_order_per_host(session):
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: Ansible
+    :CaseComponent: Ansible-ConfigurationManagement
 
     :Team: Rocket
     """
@@ -501,7 +501,7 @@ def test_positive_set_ansible_role_order_per_hostgroup(session):
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: Ansible
+    :CaseComponent: Ansible-ConfigurationManagement
 
     :Team: Rocket
     """
@@ -527,7 +527,7 @@ def test_positive_matcher_field_highlight(session):
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: Ansible
+    :CaseComponent: Ansible-ConfigurationManagement
 
     :Team: Rocket
     """
