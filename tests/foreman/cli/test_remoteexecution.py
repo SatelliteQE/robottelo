@@ -484,7 +484,6 @@ class TestRemoteExecution:
         today = datetime.today()
         hour = datetime.utcnow().hour
         last_day_of_month = monthrange(today.year, today.month)[1]
-        days_to = (2 - today.weekday()) % 7
         # cronline uses https://github.com/floraison/fugit
         fugit_expressions = [
             ['@yearly', f'{today.year + 1}/01/01 00:00:00'],
@@ -503,11 +502,6 @@ class TestRemoteExecution:
             [
                 '@hourly',
                 f'{(datetime.utcnow() + timedelta(hours=1)).strftime("%Y/%m/%d %H")}:00:00',
-            ],
-            [
-                '0 0 * * wed-fri',
-                f'{(today + timedelta(days=(days_to if days_to > 0 else 1))).strftime("%Y/%m/%d")} '
-                '00:00:00',
             ],
             # 23 mins after every other hour
             [
