@@ -365,6 +365,24 @@ def valid_hostgroups_list():
 
 
 @filtered_datapoint
+def valid_hostgroups_list_short():
+    """Generates a list of valid host group names. Shorter so they can be nested.
+
+    :return: Returns the valid host group names list
+    """
+    return [
+        gen_string('alphanumeric', random.randint(1, 15)),
+        gen_string('alpha', random.randint(1, 15)),
+        gen_string('cjk', random.randint(1, 15)),
+        gen_string('latin1', random.randint(1, 15)),
+        gen_string('numeric', random.randint(1, 15)),
+        gen_string('utf8', random.randint(1, 15)),
+        gen_string('html', random.randint(1, 15)),
+        gen_string('alphanumeric', random.randint(1, 15)),
+    ]
+
+
+@filtered_datapoint
 def valid_labels_list():
     """Generates a list of valid labels."""
     return [
