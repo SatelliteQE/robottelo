@@ -16,6 +16,7 @@ interactions and use capsule.
 from datetime import datetime, timedelta
 import re
 from time import sleep
+from urllib.parse import urlparse
 
 from nailgun import client
 from nailgun.config import ServerConfig
@@ -23,7 +24,7 @@ from nailgun.entity_mixins import call_entity_method_with_timeout
 import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.config import settings
+from robottelo.config import get_credentials, settings
 from robottelo.constants import (
     CONTAINER_CLIENTS,
     CONTAINER_REGISTRY_HUB,
@@ -1715,3 +1716,56 @@ class TestCapsuleContentManagement:
             server_config=sc, id=module_capsule_configured.nailgun_capsule.id
         ).read()
         assert res.name == module_capsule_configured.hostname, 'External Capsule not found.'
+
+    def test_positive_reclaim_space(
+        self,
+        target_sat,
+        module_capsule_configured,
+    ):
+        """Verify the reclaim_space endpoint spawns the Reclaim space task
+        and apidoc references the endpoint correctly.
+
+        :id: eb16ed53-0489-4bb9-a0da-8d857a1c7d06
+
+        :setup:
+            1. A registered external Capsule.
+
+        :steps:
+            1. Trigger the reclaim space task via API, check it succeeds.
+            2. Check the apidoc references the correct endpoint.
+
+        :expectedresults:
+            1. Reclaim_space endpoint spawns the Reclaim space task and it succeeds.
+            2. Apidoc references the correct endpoint.
+
+        :CaseImportance: Medium
+
+        :BZ: 2218179
+
+        :customerscenario: true
+        """
+        # Trigger the reclaim space task via API, check it succeeds
+        task = module_capsule_configured.nailgun_capsule.content_reclaim_space()
+        assert task, 'No task was created for reclaim space.'
+        assert (
+            'Actions::Pulp3::CapsuleContent::ReclaimSpace' in task['label']
+        ), 'Unexpected task triggered'
+        assert 'success' in task['result'], 'Reclaim task did not succeed'
+
+        # Check the apidoc references the correct endpoint
+        response = client.get(
+            f'{target_sat.url}/apidoc/v2/capsule_content/reclaim_space.en.html',
+            auth=get_credentials(),
+            verify=False,
+        )
+        assert (
+            response.status_code == 200
+        ), f'{response.request.path} returned HTTP{response.status_code}'
+
+        ep_path = target_sat.api.Capsule(id=module_capsule_configured.nailgun_capsule.id).path(
+            which='content_reclaim_space'
+        )
+        ep_path = urlparse(ep_path).path
+        ep_path = ep_path.replace(str(module_capsule_configured.nailgun_capsule.id), ':id')
+
+        assert f'POST {ep_path}' in response.text, 'Reclaim_space endpoint path missing in apidoc'
