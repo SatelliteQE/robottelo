@@ -47,8 +47,6 @@ CaseComponent:
     - DiscoveryImage
     - DiscoveryPlugin
     - Documentation
-    - Dynflow
-    - Email
     - Entitlements
     - ErrataManagement
     - Fact
@@ -67,7 +65,6 @@ CaseComponent:
     - Installation
     - InterSatelliteSync
     - katello-tracer
-    - LDAP
     - Leappintegration
     - LifecycleEnvironments
     - LocalizationInternationalization
