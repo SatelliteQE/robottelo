@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: LDAP
+:CaseComponent: Authentication
 
 :Team: Endeavour
 
