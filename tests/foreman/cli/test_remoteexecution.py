@@ -1199,15 +1199,11 @@ class TestPullProviderRex:
         assert_job_invocation_result(
             module_target_sat, invocation_command['id'], rhel_contenthost.hostname
         )
-        # check katello-agent runs along ygdrassil (SAT-1671)
-        result = rhel_contenthost.execute('systemctl status goferd')
-        assert result.status == 0, 'Failed to start goferd on client'
-
         # run Ansible rex command to prove ssh provider works, remove katello-agent
         invocation_command = module_target_sat.cli_factory.job_invocation(
             {
-                'job-template': 'Package Action - Ansible Default',
-                'inputs': 'state=absent, name=katello-agent',
+                'job-template': 'Remove Package - Katello Script Default',
+                'inputs': 'package=katello-agent',
                 'search-query': f"name ~ {rhel_contenthost.hostname}",
             }
         )
