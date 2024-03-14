@@ -1291,7 +1291,7 @@ class TestCapsuleContentManagement:
         :BZ: 22043089, 2211962
 
         """
-        if not pytestconfig.option.n_minus:
+        if pytestconfig.option.n_minus:
             pytest.skip('Test cannot be run on n-minus setups session-scoped capsule')
         # Enable RHST repo and sync it to the Library LCE.
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
