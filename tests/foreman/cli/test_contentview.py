@@ -4085,7 +4085,7 @@ class TestContentView:
         # Create 30 repositories
         repolist = []
         id_list = []
-        for _i in range(30):
+        for _ in range(30):
             repo = module_target_sat.api.Repository(
                 product=module_product,
                 checksum_type='sha256',
@@ -4094,7 +4094,6 @@ class TestContentView:
             ).create()
             repolist.append(repo)
             id_list.append(str(repo.id))
-        id_list = ', '.join(id_list)
         # Sync and publish all repos
         cv = module_target_sat.api.ContentView(
             organization=module_org, repository=repolist
@@ -4104,7 +4103,7 @@ class TestContentView:
         cv.publish()
         # Run content-view list --name cv.name
         list_info = module_target_sat.cli.ContentView.list({'name': cv.name})
-        assert (list_info[0]['repository-ids']) == id_list
+        assert (list_info[0]['repository-ids']) == ', '.join(id_list)
 
 
 class TestContentViewFileRepo:
