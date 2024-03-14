@@ -4,15 +4,10 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: ProvisioningTemplates
 
 :Team: Rocket
 
-:TestType: Functional
-
-:Upstream: No
 """
 import pytest
 from requests.exceptions import HTTPError

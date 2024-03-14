@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Dashboard
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from airgun.session import Session
 from nailgun import entities
@@ -35,7 +30,7 @@ def test_positive_host_configuration_status(session):
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
 
         1. Navigate to Monitor -> Dashboard
         2. Review the Host Configuration Status
@@ -45,8 +40,6 @@ def test_positive_host_configuration_status(session):
     :expectedresults: Each link shows the right info
 
     :BZ: 1631219
-
-    :CaseLevel: Integration
     """
     org = entities.Organization().create()
     loc = entities.Location().create()
@@ -106,15 +99,13 @@ def test_positive_host_configuration_chart(session):
 
     :id: b03314aa-4394-44e5-86da-c341c783003d
 
-    :Steps:
+    :steps:
 
         1. Navigate to Monitor -> Dashboard
         2. Review the Host Configuration Chart widget
         3. Check that chart contains correct percentage value
 
     :expectedresults: Chart showing correct data
-
-    :CaseLevel: Integration
     """
     org = entities.Organization().create()
     loc = entities.Location().create()
@@ -135,7 +126,7 @@ def test_positive_task_status(session):
 
     :id: fb667d6a-7255-4341-9f79-2f03d19e8e0f
 
-    :Steps:
+    :steps:
 
         1. Navigate to Monitor -> Dashboard
         2. Review the Latest Warning/Error Tasks widget
@@ -148,8 +139,6 @@ def test_positive_task_status(session):
         from Tasks dashboard
 
     :BZ: 1718889
-
-    :CaseLevel: Integration
     """
     url = 'www.non_existent_repo_url.org'
     org = entities.Organization().create()
@@ -214,7 +203,7 @@ def test_positive_user_access_with_host_filter(
 
     :id: 24b4b371-cba0-4bc8-bc6a-294c62e0586d
 
-    :Steps:
+    :steps:
 
         1. Specify proper filter with permission for your role
         2. Create new user and assign role to it
@@ -228,8 +217,6 @@ def test_positive_user_access_with_host_filter(
     :BZ: 1417114
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     user_login = gen_string('alpha')
     user_password = gen_string('alphanumeric')
@@ -277,12 +264,11 @@ def test_positive_user_access_with_host_filter(
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_sync_overview_widget(session, module_org, module_product):
-
     """Check if the Sync Overview widget is working in the Dashboard UI
 
     :id: 553fbe33-0f6f-46fb-8d80-5d1d9ed483cf
 
-    :Steps:
+    :steps:
         1. Sync some repositories
         2. Navigate to Monitor -> Dashboard
         3. Review the Sync Overview widget
@@ -290,8 +276,6 @@ def test_positive_sync_overview_widget(session, module_org, module_product):
     :expectedresults: Correct data should appear in the widget
 
     :BZ: 1995424
-
-    :CaseLevel: Integration
     """
     repo = entities.Repository(url=settings.repos.yum_1.url, product=module_product).create()
     with session:

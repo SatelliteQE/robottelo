@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: ComputeResources-EC2
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -55,7 +50,7 @@ def test_positive_default_end_to_end_with_custom_profile(
 
     :id: 33f80a8f-2ecf-4f15-b0c3-aab5fe0ac8d3
 
-    :Steps:
+    :steps:
 
         1. Create an EC2 compute resource with default properties and taxonomies.
         2. Update the compute resource name and add new taxonomies.
@@ -64,8 +59,6 @@ def test_positive_default_end_to_end_with_custom_profile(
 
     :expectedresults: The EC2 compute resource is created, updated, compute profile associated and
         deleted.
-
-    :CaseLevel: Integration
 
     :BZ: 1451626, 2032530
 
@@ -162,8 +155,6 @@ def test_positive_create_ec2_with_custom_region(session, module_ec2_settings):
         successfully.
 
     :BZ: 1456942
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """

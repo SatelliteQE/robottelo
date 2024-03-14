@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: System
-
 :CaseComponent: ErrataManagement
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 # For ease of use hc refers to host-collection throughout this document
 from time import sleep
@@ -166,11 +161,9 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, target_
 
     :Setup: Errata synced on satellite server.
 
-    :Steps: PUT /api/v2/hosts/bulk/update_content
+    :steps: PUT /api/v2/hosts/bulk/update_content
 
     :expectedresults: errata is installed in the host-collection.
-
-    :CaseLevel: System
 
     :BZ: 1983043
     """
@@ -227,8 +220,6 @@ def test_positive_install_in_host(
 
     :parametrized: yes
 
-    :CaseLevel: System
-
     :BZ: 1983043
     """
     rhel_contenthost.install_katello_ca(target_sat)
@@ -282,8 +273,6 @@ def test_positive_install_multiple_in_host(
     :CaseImportance: Medium
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     rhel_contenthost.install_katello_ca(target_sat)
     rhel_contenthost.register_contenthost(module_org.label, activation_key.name)
@@ -324,12 +313,10 @@ def test_positive_list(module_org, custom_repo, target_sat):
 
     :Setup: Errata synced on satellite server.
 
-    :Steps: Create two repositories each synced and containing errata
+    :steps: Create two repositories each synced and containing errata
 
     :expectedresults: Check that the errata belonging to one repo is not
         showing in the other.
-
-    :CaseLevel: System
     """
     repo1 = target_sat.api.Repository(id=custom_repo['repository-id']).read()
     repo2 = target_sat.api.Repository(
@@ -358,11 +345,9 @@ def test_positive_list_updated(module_org, custom_repo, target_sat):
 
     :Setup: Errata synced on satellite server.
 
-    :Steps: GET /katello/api/errata
+    :steps: GET /katello/api/errata
 
     :expectedresults: Errata is filtered by Org and sorted by Updated date.
-
-    :CaseLevel: System
     """
     repo = target_sat.api.Repository(id=custom_repo['repository-id']).read()
     assert repo.sync()['result'] == 'success'
@@ -381,11 +366,9 @@ def test_positive_sorted_issue_date_and_filter_by_cve(module_org, custom_repo, t
 
     :Setup: Errata synced on satellite server.
 
-    :Steps: GET /katello/api/errata
+    :steps: GET /katello/api/errata
 
     :expectedresults: Errata is sorted by issued date and filtered by CVE.
-
-    :CaseLevel: System
     """
     # Errata is sorted by issued date.
     erratum_list = target_sat.api.Errata(repository=custom_repo['repository-id']).search(
@@ -476,11 +459,9 @@ def test_positive_get_count_for_host(setup_content_rhel6, rhel6_contenthost, tar
         1. Errata synced on satellite server.
         2. Some Content hosts present.
 
-    :Steps: GET /api/v2/hosts
+    :steps: GET /api/v2/hosts
 
     :expectedresults: The available errata count is retrieved.
-
-    :CaseLevel: System
 
     :parametrized: yes
 
@@ -518,11 +499,9 @@ def test_positive_get_applicable_for_host(setup_content_rhel6, rhel6_contenthost
         1. Errata synced on satellite server.
         2. Some Content hosts present.
 
-    :Steps: GET /api/v2/hosts/:id/errata
+    :steps: GET /api/v2/hosts/:id/errata
 
     :expectedresults: The available errata is retrieved.
-
-    :CaseLevel: System
 
     :parametrized: yes
 
@@ -566,12 +545,10 @@ def test_positive_get_diff_for_cv_envs(target_sat):
         1. Errata synced on satellite server.
         2. Multiple environments present.
 
-    :Steps: GET /katello/api/compare
+    :steps: GET /katello/api/compare
 
     :expectedresults: Difference in errata between a set of environments
         for a content view is retrieved.
-
-    :CaseLevel: System
     """
     org = target_sat.api.Organization().create()
     env = target_sat.api.LifecycleEnvironment(organization=org).create()
@@ -624,7 +601,7 @@ def test_positive_incremental_update_required(
     :Setup:
         1. Errata synced on satellite server
 
-    :Steps:
+    :steps:
         1. Create VM as Content Host, registering to CV with custom errata
         2. Install package in VM so it needs one erratum
         3. Check if incremental_updates required:
@@ -641,8 +618,6 @@ def test_positive_incremental_update_required(
     :expectedresults: Incremental update requirement is detected.
 
     :parametrized: yes
-
-    :CaseLevel: System
 
     :BZ: 2013093
     """
@@ -754,8 +729,6 @@ def test_errata_installation_with_swidtags(
     :parametrized: yes
 
     :CaseImportance: Critical
-
-    :CaseLevel: System
     """
     module_name = 'kangaroo'
     version = '20180704111719'
@@ -912,8 +885,6 @@ def test_apply_modular_errata_using_default_content_view(
     :CaseAutomation: Automated
 
     :parametrized: yes
-
-    :CaseLevel: System
     """
     module_name = 'duck'
     stream = '0'
@@ -961,8 +932,6 @@ def test_apply_modular_errata_using_default_content_view(
         :customerscenario: true
 
         :BZ: 1463811
-
-        :CaseLevel: Integration
 
         :expectedresults: both repositories were successfully synchronized
         """

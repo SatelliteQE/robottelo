@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: SCAPPlugin
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from broker import Broker
 from fauxfactory import gen_string
@@ -377,7 +372,7 @@ def test_positive_has_arf_report_summary_page():
 
     :id: 25be7898-50c5-4825-adc7-978c7b4e3488
 
-    :Steps:
+    :steps:
         1. Make sure the oscap report with it's corresponding hostname
            is visible in the UI.
         2. Click on the host name to access the oscap report.
@@ -385,8 +380,6 @@ def test_positive_has_arf_report_summary_page():
     :expectedresults: Oscap ARF reports should have summary page.
 
     :CaseAutomation: NotAutomated
-
-    :CaseLevel: System
     """
 
 
@@ -397,7 +390,7 @@ def test_positive_view_full_report_button():
 
     :id: 5a41916d-66db-4d2f-8261-b83f833189b9
 
-    :Steps:
+    :steps:
         1. Make sure the oscap report with it's corresponding hostname
            is visible in the UI.
         2. Click on the host name to access the oscap report.
@@ -406,8 +399,6 @@ def test_positive_view_full_report_button():
         actual HTML report.
 
     :CaseAutomation: NotAutomated
-
-    :CaseLevel: System
     """
 
 
@@ -419,7 +410,7 @@ def test_positive_download_xml_button():
 
     :id: 07a5f495-a702-4ca4-b5a4-579a133f9181
 
-    :Steps:
+    :steps:
         1. Make sure the oscap report with it's corresponding hostname
            is visible in the UI.
         2. Click on the host name to access the oscap report.
@@ -428,8 +419,6 @@ def test_positive_download_xml_button():
         the xml report.
 
     :CaseAutomation: NotAutomated
-
-    :CaseLevel: System
     """
 
 
@@ -441,15 +430,13 @@ def test_positive_select_oscap_proxy():
 
     :id: d56576c8-6fab-4af6-91c1-6a56d9cca94b
 
-    :Steps: Choose the Oscap Proxy/capsule appropriately for the host or
+    :steps: Choose the Oscap Proxy/capsule appropriately for the host or
         host-groups.
 
     :expectedresults: Should have an Oscap-Proxy select box while filling
         hosts and host-groups form.
 
     :CaseAutomation: NotAutomated
-
-    :CaseLevel: System
     """
 
 
@@ -460,7 +447,7 @@ def test_positive_delete_multiple_arf_reports():
 
     :id: c1a8ce02-f42f-4c48-893d-8f31432b5520
 
-    :Steps:
+    :steps:
         1. Run Oscap scans are run for multiple Hosts.
         2. Make sure the oscap reports with it's corresponding hostnames
            are visible in the UI.
@@ -470,8 +457,6 @@ def test_positive_delete_multiple_arf_reports():
     :expectedresults: Multiple Oscap ARF reports can be deleted.
 
     :CaseAutomation: NotAutomated
-
-    :CaseLevel: System
     """
 
 
@@ -485,6 +470,4 @@ def test_positive_reporting_emails_of_oscap_reports():
     :expectedresults: Whether email reporting of oscap reports is possible.
 
     :CaseAutomation: NotAutomated
-
-    :CaseLevel: System
     """

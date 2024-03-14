@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Hosts
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import copy
 import csv
@@ -132,8 +127,6 @@ def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_
         and deleted.
 
     :BZ: 1419161
-
-    :CaseLevel: System
     """
     api_values, host_name = host_ui_options
     global_params = [
@@ -194,8 +187,6 @@ def test_positive_read_from_details_page(session, module_host_template):
     :id: ffba5d40-918c-440e-afbb-6b910db3a8fb
 
     :expectedresults: Host is created and has expected content
-
-    :CaseLevel: System
     """
 
     template = module_host_template
@@ -228,8 +219,6 @@ def test_positive_read_from_edit_page(session, host_ui_options):
     :id: 758fcab3-b363-4bfc-8f5d-173098a7e72d
 
     :expectedresults: Host is created and has expected content
-
-    :CaseLevel: System
     """
     api_values, host_name = host_ui_options
     with session:
@@ -277,8 +266,6 @@ def test_positive_assign_taxonomies(
 
     :expectedresults: Host Assign Organization and Location actions are
         working as expected.
-
-    :CaseLevel: Integration
     """
     host = target_sat.api.Host(organization=module_org, location=smart_proxy_location).create()
     with session:
@@ -340,8 +327,6 @@ def test_positive_assign_compliance_policy(session, scap_policy, target_sat, fun
         expected.
 
     :BZ: 1862135
-
-    :CaseLevel: Integration
     """
     org = function_host.organization.read()
     loc = function_host.location.read()
@@ -393,8 +378,6 @@ def test_positive_export(session, target_sat, function_org, function_location):
     :id: ffc512ad-982e-4b60-970a-41e940ebc74c
 
     :expectedresults: csv file contains same values as on web UI
-
-    :CaseLevel: System
     """
     hosts = [
         target_sat.api.Host(organization=function_org, location=function_location).create()
@@ -464,9 +447,6 @@ def test_negative_delete_primary_interface(session, host_ui_options):
     :BZ: 1417119
 
     :expectedresults: Interface was not deleted
-
-
-    :CaseLevel: System
     """
     values, host_name = host_ui_options
     interface_id = values['interfaces.interface.device_identifier']
@@ -493,8 +473,6 @@ def test_positive_view_hosts_with_non_admin_user(
 
     :expectedresults: user with only view_hosts, edit_hosts and view_organization permissions
         is able to read content hosts and hosts
-
-    :CaseLevel: System
     """
     user_password = gen_string('alpha')
     role = target_sat.api.Role(organization=[module_org]).create()
@@ -532,8 +510,6 @@ def test_positive_remove_parameter_non_admin_user(
 
     :expectedresults: user with sufficient permissions may remove host
         parameter
-
-    :CaseLevel: System
     """
     user_password = gen_string('alpha')
     parameter = {'name': gen_string('alpha'), 'value': gen_string('alpha')}
@@ -588,8 +564,6 @@ def test_negative_remove_parameter_non_admin_user(
 
     :expectedresults: user with insufficient permissions is unable to
         remove host parameter, 'Remove' link is not visible for him
-
-    :CaseLevel: System
     """
 
     user_password = gen_string('alpha')
@@ -644,8 +618,6 @@ def test_positive_check_permissions_affect_create_procedure(
         entities for create host procedure that he has access to
 
     :BZ: 1293716
-
-    :CaseLevel: System
     """
     # Create two lifecycle environments
     lc_env = target_sat.api.LifecycleEnvironment(organization=function_org).create()
@@ -760,8 +732,6 @@ def test_positive_search_by_parameter(session, module_org, smart_proxy_location,
     :expectedresults: Only one specific host is returned by search
 
     :BZ: 1725686
-
-    :CaseLevel: Integration
     """
     param_name = gen_string('alpha')
     param_value = gen_string('alpha')
@@ -795,8 +765,6 @@ def test_positive_search_by_parameter_with_different_values(
     :expectedresults: Only one specific host is returned by search
 
     :BZ: 1725686
-
-    :CaseLevel: Integration
     """
     param_name = gen_string('alpha')
     param_values = [gen_string('alpha'), gen_string('alphanumeric')]
@@ -831,8 +799,6 @@ def test_positive_search_by_parameter_with_prefix(
 
     :expectedresults: All assigned hosts to organization are returned by
         search
-
-    :CaseLevel: Integration
     """
     param_name = gen_string('alpha')
     param_value = gen_string('alpha')
@@ -870,8 +836,6 @@ def test_positive_search_by_parameter_with_operator(
         search
 
     :BZ: 1463806
-
-    :CaseLevel: Integration
     """
     param_name = gen_string('alpha')
     param_value = gen_string('alpha')
@@ -912,8 +876,6 @@ def test_positive_search_with_org_and_loc_context(
     :BZ: 1405496
 
     :customerscenario: true
-
-    :CaseLevel: Integration
     """
     host = target_sat.api.Host(organization=function_org, location=function_location).create()
     with session:
@@ -937,8 +899,6 @@ def test_positive_search_by_org(session, smart_proxy_location, target_sat):
         result is returned
 
     :BZ: 1447958
-
-    :CaseLevel: Integration
     """
     host = target_sat.api.Host(location=smart_proxy_location).create()
     org = host.organization.read()
@@ -958,9 +918,9 @@ def test_positive_validate_inherited_cv_lce(session, target_sat, module_host_tem
     :expectedresults: Host's lifecycle environment and content view match
        the ones specified in hostgroup.
 
-    :CaseLevel: Integration
+    :customerscenario: true
 
-    :BZ: 1391656
+    :BZ: 1391656, 2094912
     """
     cv_name = gen_string('alpha')
     lce_name = gen_string('alphanumeric')
@@ -1013,8 +973,6 @@ def test_positive_global_registration_form(
     :customerscenario: true
 
     :expectedresults: The curl command contains all required parameters
-
-    :CaseLevel: Integration
     """
     # rex and insights parameters are only specified in curl when differing from
     # inerited parameters
@@ -1089,8 +1047,6 @@ def test_positive_global_registration_end_to_end(
          client work out of the box
 
     :parametrized: yes
-
-    :CaseLevel: Integration
     """
     # make sure global parameters for rex and insights are set to true
     insights_cp = (
@@ -1224,8 +1180,6 @@ def test_global_registration_form_populate(
         e.g. activation key, operating system, life-cycle environment, host parameters for
         remote-execution, insights setup.
 
-    :CaseLevel: Integration
-
     :steps:
         1. create and sync repository
         2. create the content view and activation-key
@@ -1290,8 +1244,6 @@ def test_global_registration_with_capsule_host(
 
     :expectedresults: Host is successfully registered with capsule host,
         remote execution and insights client work out of the box
-
-    :CaseLevel: Integration
 
     :steps:
         1. create and sync repository
@@ -1385,8 +1337,6 @@ def test_global_registration_with_gpg_repo_and_default_package(
     :expectedresults: Host is successfully registered, gpg repo is enabled
         and default package is installed.
 
-    :CaseLevel: Integration
-
     :steps:
         1. create and sync repository
         2. create the content view and activation-key
@@ -1445,8 +1395,6 @@ def test_global_registration_upgrade_subscription_manager(
     :expectedresults: Host is successfully registered, repo is enabled
         on advanced tab and subscription-manager is updated.
 
-    :CaseLevel: Integration
-
     :steps:
         1. Create activation-key
         2. Open the global registration form, add repo and activation key
@@ -1498,8 +1446,6 @@ def test_global_re_registration_host_with_force_ignore_error_options(
 
     :expectedresults: Verify the force and ignore checkbox options
 
-    :CaseLevel: Integration
-
     :steps:
         1. create and sync repository
         2. create the content view and activation-key
@@ -1543,8 +1489,6 @@ def test_global_registration_token_restriction(
     :expectedresults: global registration token should be restricted for any api calls
         other than the registration
 
-    :CaseLevel: Integration
-
     :steps:
         1. open the global registration form and generate the curl token
         2. use that curl token to execute other api calls e.g. GET /hosts, /users
@@ -1584,8 +1528,6 @@ def test_positive_bulk_delete_host(session, smart_proxy_location, target_sat, fu
     :expectedresults: All selected hosts should be deleted successfully
 
     :BZ: 1368026
-
-    :CaseLevel: System
     """
     host_template = target_sat.api.Host(organization=function_org, location=smart_proxy_location)
     host_template.create_missing()
@@ -1739,8 +1681,6 @@ def test_positive_gce_provision_end_to_end(
     :id: 8d1877bb-fbc2-4969-a13e-e95e4df4f4cd
 
     :expectedresults: Host is provisioned successfully
-
-    :CaseLevel: System
     """
     name = f'test{gen_string("alpha", 4).lower()}'
     hostname = f'{name}.{gce_domain.name}'
@@ -1828,7 +1768,6 @@ def test_positive_gce_cloudinit_provision_end_to_end(
 
     :expectedresults: Host is provisioned successfully
 
-    :CaseLevel: System
     """
     name = f'test{gen_string("alpha", 4).lower()}'
     hostname = f'{name}.{gce_domain.name}'
@@ -1895,8 +1834,6 @@ def test_positive_read_details_page_from_new_ui(session, host_ui_options):
     :id: ef0c5942-9049-11ec-8029-98fa9b6ecd5a
 
     :expectedresults: Host is created and has expected content
-
-    :CaseLevel: System
     """
     with session:
         api_values, host_name = host_ui_options
@@ -1929,8 +1866,6 @@ def test_rex_new_ui(session, target_sat, rex_contenthost):
 
     :expectedresults: Remote execution succeeded and the job is visible on Recent jobs card on
         Overview tab
-
-    :CaseLevel: System
     """
     hostname = rex_contenthost.hostname
     job_args = {
@@ -1989,7 +1924,6 @@ def test_positive_update_delete_package(
         9. Delete the package
 
     :expectedresults: The package is updated and deleted
-
     """
     client = rhel_contenthost
     client.add_rex_key(target_sat)
@@ -2109,7 +2043,6 @@ def test_positive_apply_erratum(
         5. Select errata and apply via rex.
 
     :expectedresults: The erratum is applied
-
     """
     # install package
     client = rhel_contenthost
@@ -2191,7 +2124,6 @@ def test_positive_crud_module_streams(
         5. Reset the Module stream
 
     :expectedresults: Module streams can be enabled, installed, removed and reset using the new UI.
-
     """
     module_name = 'duck'
     client = rhel_contenthost
@@ -2283,8 +2215,6 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(
     :expectedresults: Expected puppet environment is inherited to the host
 
     :BZ: 1414914
-
-    :CaseLevel: System
     """
     host = session_puppet_enabled_sat.api.Host(
         organization=module_puppet_org, location=module_puppet_loc
@@ -2337,8 +2267,6 @@ def test_positive_create_with_puppet_class(
     :id: d883f169-1105-435c-8422-a7160055734a
 
     :expectedresults: Host is created and contains correct puppet class
-
-    :CaseLevel: System
     """
 
     host_template = session_puppet_enabled_sat.api.Host(
@@ -2398,8 +2326,6 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(
     :expectedresults: Expected puppet environment is inherited to the form
 
     :BZ: 1414914
-
-    :CaseLevel: Integration
     """
 
     hg_name = gen_string('alpha')
@@ -2451,8 +2377,6 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
         2. host parameter value is the same when restored from yaml format
 
     :BZ: 1315282
-
-    :CaseLevel: System
     """
     host_template = session_puppet_enabled_sat.api.Host(
         organization=module_puppet_org, location=module_puppet_loc
@@ -2515,8 +2439,6 @@ class TestHostAnsible:
 
         :Team: Rocket
 
-        :CaseLevel: System
-
         :Steps:
             1. Register a RHEL host to Satellite.
             2. Import all roles available by default.
@@ -2529,7 +2451,6 @@ class TestHostAnsible:
         :expectedresults: Roles assigned directly to the Host are visible on the subtab, and
             roles assigned to the Host Group are visible by clicking the "view all assigned
             roles" link
-
         """
 
     @pytest.mark.stubbed
@@ -2543,8 +2464,6 @@ class TestHostAnsible:
         :caseComponent: Ansible-ConfigurationManagement
 
         :Team: Rocket
-
-        :CaseLevel: System
 
         :Steps:
             1. Register a RHEL host to Satellite.
@@ -2572,8 +2491,6 @@ class TestHostAnsible:
 
         :Team: Rocket
 
-        :CaseLevel: System
-
         :Steps:
             1. Register a RHEL host to Satellite.
             2. Import all roles available by default.
@@ -2596,8 +2513,6 @@ class TestHostAnsible:
         :caseComponent: Ansible-ConfigurationManagement
 
         :Team: Rocket
-
-        :CaseLevel: System
 
         :Steps:
             1. Register a RHEL host to Satellite.

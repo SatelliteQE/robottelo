@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Puppet
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: Low
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -28,8 +23,6 @@ def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_org, modu
     :id: f837eec0-101c-4aff-a270-652005bdee51
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """

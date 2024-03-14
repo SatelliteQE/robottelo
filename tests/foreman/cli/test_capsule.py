@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: ForemanProxy
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 from fauxfactory import gen_alphanumeric, gen_string
 import pytest
@@ -48,8 +43,6 @@ def test_negative_create_with_url(target_sat):
 
     :expectedresults: Proxy is not created
 
-    :CaseLevel: Component
-
     """
     # Create a random proxy
     with pytest.raises(CLIFactoryError, match='Could not create the proxy:'):
@@ -69,8 +62,6 @@ def test_positive_create_with_name(request, target_sat, name):
     :id: 7decd7a3-2d35-43ff-9a20-de44e83c7389
 
     :expectedresults: Proxy is created
-
-    :CaseLevel: Component
 
     :Parametrized: Yes
 
@@ -92,8 +83,6 @@ def test_positive_delete_by_id(request, name, target_sat):
 
     :expectedresults: Proxy is deleted
 
-    :CaseLevel: Component
-
     :Parametrized: Yes
 
     :BZ: 1398695, 2084661
@@ -114,8 +103,6 @@ def test_positive_update_name(request, target_sat):
     :id: 1a02a06b-e9ab-4b9b-bcb0-ac7060188316
 
     :expectedresults: Proxy has the name updated
-
-    :CaseLevel: Component
 
     :BZ: 1398695, 2084661
     """
@@ -140,8 +127,6 @@ def test_positive_refresh_features_by_id(request, target_sat):
 
     :expectedresults: Proxy features are refreshed
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
 
     """
@@ -165,8 +150,6 @@ def test_positive_refresh_features_by_name(request, target_sat):
 
     :expectedresults: Proxy features are refreshed
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
 
     """
@@ -189,9 +172,6 @@ def test_positive_import_puppet_classes(session_puppet_enabled_sat):
     :id: 42e3a9c0-62e1-4049-9667-f3c0cdfe0b04
 
     :expectedresults: Puppet classes are imported from proxy
-
-    :CaseLevel: Component
-
     """
     with session_puppet_enabled_sat as puppet_sat:
         port = puppet_sat.available_capsule_port
@@ -211,7 +191,7 @@ def test_positive_provision():
         of this case for each supported compute resource type). Also,
         functioning capsule with proxy is required.
 
-    :Steps:
+    :steps:
 
         1. Attempt to route provisioning content through capsule that is
            using a proxy

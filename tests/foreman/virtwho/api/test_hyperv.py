@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Virt-whoConfigurePlugin
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -61,8 +56,6 @@ class TestVirtWhoConfigforHyperv:
         :id: f5228e01-bb8d-4c8e-877e-cd8bc494f00e
 
         :expectedresults: Config can be created and deployed
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -119,8 +112,6 @@ class TestVirtWhoConfigforHyperv:
         :id: 2c58b131-5d68-41d2-b804-4548f998ab5f
 
         :expectedresults: Config can be created and deployed
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -180,8 +171,6 @@ class TestVirtWhoConfigforHyperv:
         :id: 16344235-1607-4f60-950b-5a91546cf8f4
 
         :expectedresults: hypervisor_id option can be updated.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """

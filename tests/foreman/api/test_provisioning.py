@@ -4,17 +4,12 @@
 
 :CaseAutomation: NotAutomated
 
-:CaseLevel: System
-
 :CaseComponent: Provisioning
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 from packaging.version import Version

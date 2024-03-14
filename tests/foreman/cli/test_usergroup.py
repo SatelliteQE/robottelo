@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: UsersRoles
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import random
 
@@ -117,8 +112,6 @@ def test_positive_add_and_remove_elements(module_target_sat):
 
     :expectedresults: Elements are added to user group and then removed
                       successfully.
-
-    :CaseLevel: Integration
     """
     role = module_target_sat.cli_factory.make_role()
     user_group = module_target_sat.cli_factory.usergroup()
@@ -164,8 +157,6 @@ def test_positive_remove_user_assigned_to_usergroup(module_target_sat):
 
     :customerscenario: true
 
-    :CaseLevel: Integration
-
     :BZ: 1667704
     """
     user = module_target_sat.cli_factory.user()
@@ -188,8 +179,6 @@ def test_positive_automate_bz1426957(ldap_auth_source, function_user_group, targ
     :expectedresults: Roles from usergroup is applied on AD user successfully.
 
     :customerscenario: true
-
-    :CaseLevel: Integration
 
     :BZ: 1426957, 1667704
     """
@@ -228,8 +217,6 @@ def test_negative_automate_bz1437578(ldap_auth_source, function_user_group, modu
     :parametrized: yes
 
     :expectedresults: Error message as Domain Users is a special group in AD.
-
-    :CaseLevel: Integration
 
     :BZ: 1437578
     """

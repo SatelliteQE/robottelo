@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Integration
-
 :CaseComponent: LDAP
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 
 import os
@@ -145,8 +140,6 @@ def test_positive_end_to_end(session, ldap_auth_source, ldap_tear_down):
 
     :expectedresults: All expected CRUD actions finished successfully
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
 
     :parametrized: yes
@@ -248,7 +241,7 @@ def test_positive_add_katello_role(
 
     :id: aa5e3bf4-cb42-43a4-93ea-a2eea54b847a
 
-    :Steps:
+    :steps:
         1. Create an UserGroup.
         2. Assign some foreman roles to UserGroup.
         3. Create and associate an External UserGroup.
@@ -503,7 +496,7 @@ def test_positive_add_admin_role_with_org_loc(
     :setup: LDAP Auth Source should be created with Org and Location
             Associated.
 
-    :Steps:
+    :steps:
         1. Create an UserGroup.
         2. Assign admin role to UserGroup.
         3. Create and associate an External UserGroup.
@@ -563,7 +556,7 @@ def test_positive_add_foreman_role_with_org_loc(
     :setup: LDAP Auth Source should be created with Org and Location
             Associated.
 
-    :Steps:
+    :steps:
 
         1. Create an UserGroup.
         2. Assign some foreman roles to UserGroup.
@@ -629,7 +622,7 @@ def test_positive_add_katello_role_with_org(
 
     :setup: LDAP Auth Source should be created with Organization associated.
 
-    :Steps:
+    :steps:
         1. Create an UserGroup.
         2. Assign some katello roles to UserGroup.
         3. Create and associate an External UserGroup.
@@ -955,7 +948,7 @@ def test_onthefly_functionality(session, ldap_auth_source, ldap_tear_down):
 
     :id: 6998de30-ef77-11ea-a0ce-0c7a158cbff4
 
-    :Steps:
+    :steps:
         1. Create an auth source with onthefly disabled
         2. Try login with a user from auth source
 
@@ -1043,7 +1036,7 @@ def test_verify_attribute_of_users_are_updated(session, ldap_auth_source, ldap_t
 
     :customerscenario: true
 
-    :Steps:
+    :steps:
         1. Create authsource with onthefly disabled
         2. Create a user manually and select the authsource created
         3. Attributes of the user (like names and email) should be synced.
@@ -1221,7 +1214,7 @@ def test_positive_group_sync_open_ldap_authsource(
 
     :BZ: 1883209
 
-    :Steps:
+    :steps:
         1. Create an UserGroup.
         2. Assign some foreman roles to UserGroup.
         3. Create and associate an External OpenLDAP UserGroup.
@@ -1268,7 +1261,7 @@ def test_verify_group_permissions(
 
     :id: 7e2ef59c-0c68-11eb-b6f3-0c7a158cbff4
 
-    :Steps:
+    :steps:
         1. Create two usergroups and link it with external group having a
         user in common
         2. Give those usergroup different permissions
@@ -1316,7 +1309,7 @@ def test_verify_ldap_filters_ipa(
 
     :id: 0052b272-08b1-11eb-80c6-0c7a158cbff4
 
-    :Steps:
+    :steps:
         1. Create authsource with onthefly enabled and ldap filter
         2. Verify login from users according to the filter
 

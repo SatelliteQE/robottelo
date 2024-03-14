@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Repositories
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import re
 from string import punctuation
@@ -317,7 +312,6 @@ class TestRepository:
 
         :expectedresults: A repository is created with the given GPG key ID.
 
-        :CaseLevel: Integration
         """
         gpg_key = module_target_sat.api.GPGKey(
             organization=module_org,
@@ -336,7 +330,6 @@ class TestRepository:
         :expectedresults: The two repositories are successfully created and
             have given name.
 
-        :CaseLevel: Integration
         """
         org_2 = target_sat.api.Organization().create()
         product_2 = target_sat.api.Product(organization=org_2).create()
@@ -678,7 +671,6 @@ class TestRepository:
 
         :expectedresults: The updated repository points to a new GPG key.
 
-        :CaseLevel: Integration
         """
         # Create a repo and make it point to a GPG key.
         gpg_key_1 = module_target_sat.api.GPGKey(
@@ -705,7 +697,6 @@ class TestRepository:
 
         :expectedresults: The repository's contents include one RPM.
 
-        :CaseLevel: Integration
         """
         # Upload RPM content.
         repo.upload_content(files={'content': DataFile.RPM_TO_UPLOAD.read_bytes()})
@@ -867,7 +858,6 @@ class TestRepository:
 
         :expectedresults: The repo has at least one RPM.
 
-        :CaseLevel: Integration
         """
         repo.sync()
         assert repo.read().content_counts['rpm'] >= 1
@@ -901,7 +891,6 @@ class TestRepository:
 
         :expectedresults: Repository is created and synced
 
-        :CaseLevel: Integration
         """
         # Verify that repo is not yet synced
         assert repo.content_counts['rpm'] == 0
@@ -940,7 +929,6 @@ class TestRepository:
 
         :expectedresults: Repository is created but synchronization fails
 
-        :CaseLevel: Integration
         """
         with pytest.raises(TaskFailedError):
             repo.sync()
@@ -967,7 +955,6 @@ class TestRepository:
 
         :BZ: 1459845, 1318004
 
-        :CaseLevel: Integration
         """
         # Synchronize it
         repo.sync()
@@ -1023,7 +1010,6 @@ class TestRepository:
 
         :expectedresults: The repository deleted successfully.
 
-        :CaseLevel: Integration
         """
         repo.sync()
         # Check that there is at least one package
@@ -1057,8 +1043,6 @@ class TestRepository:
         :expectedresults: The repository data file successfully accessed.
 
         :BZ: 1242310
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -1099,8 +1083,6 @@ class TestRepository:
         :parametrized: yes
 
         :expectedresults: The repository data file is successfully accessed.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
@@ -1208,7 +1190,6 @@ class TestRepository:
         :expectedresults:
             1. The resync restores the original content properly.
 
-        :CaseLevel: System
         """
         repo_url = settings.repos.yum_0.url
         packages_count = constants.FAKE_0_YUM_REPO_PACKAGES_COUNT
@@ -1263,8 +1244,6 @@ class TestRepositorySync:
 
         :BZ: 1404345
 
-        :CaseLevel: Integration
-
         :expectedresults: repository was successfully synchronized
         """
         org = target_sat.api.Organization().create()
@@ -1282,7 +1261,6 @@ class TestRepositorySync:
 
         :expectedresults: Synced repo should fetch the data successfully.
 
-        :CaseLevel: Integration
         """
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
@@ -1314,8 +1292,6 @@ class TestRepositorySync:
         :expectedresults: Synced repo should fetch the data successfully and
          parse versions as string.
 
-        :CaseLevel: Integration
-
         :customerscenario: true
 
         :BZ: 1741011
@@ -1336,7 +1312,6 @@ class TestRepositorySync:
         :expectedresults: Synced repo should fetch the data successfully and
          it should contain the module streams.
 
-        :CaseLevel: Integration
         """
         pass
 
@@ -1702,7 +1677,6 @@ class TestDockerRepository:
 
         :BZ: 1475121
 
-        :CaseLevel: Integration
         """
         repo.sync()
         assert repo.read().content_counts['docker_manifest'] >= 1
@@ -1740,7 +1714,6 @@ class TestDockerRepository:
 
         :BZ: 1475121, 1580510
 
-        :CaseLevel: Integration
         """
         msg = "401, message=\'Unauthorized\'"
         with pytest.raises(TaskFailedError, match=msg):
@@ -1779,7 +1752,6 @@ class TestDockerRepository:
 
         :BZ: 1475121, 1580510
 
-        :CaseLevel: Integration
         """
         msg = "404, message=\'Not Found\'"
         with pytest.raises(TaskFailedError, match=msg):
@@ -1819,7 +1791,6 @@ class TestDockerRepository:
 
         :BZ: 1475121, 1580510
 
-        :CaseLevel: Integration
         """
         with pytest.raises(
             HTTPError,
@@ -2087,8 +2058,6 @@ class TestDockerRepository:
 #
 #         :expectedresults: Synced repo should fetch the data successfully.
 #
-#         :CaseLevel: Integration
-#
 #         :customerscenario: true
 #
 #         :BZ: 1625783
@@ -2189,8 +2158,6 @@ class TestSRPMRepositoryIgnoreContent:
 
     In particular sync of duplicate SRPMs would fail when using the flag
     ``ignorable_content``.
-
-    :CaseLevel: Integration
 
     :CaseComponent: Pulp
 
@@ -2301,7 +2268,7 @@ class TestFileRepository:
 
         :id: fdb46481-f0f4-45aa-b075-2a8f6725e51b
 
-        :Steps:
+        :steps:
             1. Create a File Repository
             2. Upload an arbitrary file to it
 
@@ -2330,7 +2297,7 @@ class TestFileRepository:
             1. Create a File Repository
             2. Upload an arbitrary file to it
 
-        :Steps: Retrieve file permissions from File Repository
+        :steps: Retrieve file permissions from File Repository
 
         :expectedresults: uploaded file permissions are kept after upload
 
@@ -2356,7 +2323,7 @@ class TestFileRepository:
             1. Create a File Repository
             2. Upload an arbitrary file to it
 
-        :Steps: Remove a file from File Repository
+        :steps: Remove a file from File Repository
 
         :expectedresults: file is not listed under File Repository after
             removal
@@ -2386,7 +2353,7 @@ class TestFileRepository:
             1. Create a directory to be synced with a pulp manifest on its root
             2. Make the directory available through http
 
-        :Steps:
+        :steps:
             1. Create a File Repository with url pointing to http url
                 created on setup
             2. Initialize synchronization
@@ -2409,7 +2376,7 @@ class TestFileRepository:
             1. Create a directory to be synced with a pulp manifest on its root
                 locally (on the Satellite/Foreman host)
 
-        :Steps:
+        :steps:
             1. Create a File Repository with url pointing to local url
                 created on setup
             2. Initialize synchronization
@@ -2435,7 +2402,7 @@ class TestFileRepository:
                 locally (on the Satellite/Foreman host)
             2. Make sure it contains synlinks
 
-        :Steps:
+        :steps:
             1. Create a File Repository with url pointing to local url
                 created on setup
             2. Initialize synchronization

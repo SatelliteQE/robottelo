@@ -2,8 +2,6 @@
 
 :Requirement: Registration
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Registration
 
 :CaseAutomation: Automated
@@ -12,9 +10,6 @@
 
 :Team: Rocket
 
-:TestType: Functional
-
-:Upstream: No
 """
 import pytest
 

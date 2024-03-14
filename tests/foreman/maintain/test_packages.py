@@ -4,17 +4,11 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: SatelliteMaintain
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: Critical
-
-:Upstream: No
 """
 import pytest
 

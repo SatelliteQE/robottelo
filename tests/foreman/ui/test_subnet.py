@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Networking
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_ipaddr
 import pytest
@@ -39,8 +34,6 @@ def test_positive_end_to_end(session, module_target_sat, module_dom):
     :id: f77031c9-2ca8-44db-8afa-d0212aeda540
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """

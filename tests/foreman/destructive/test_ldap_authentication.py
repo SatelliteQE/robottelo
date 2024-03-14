@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Integration
-
 :CaseComponent: LDAP
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import os
 from time import sleep
@@ -204,7 +199,6 @@ def test_single_sign_on_ldap_ipa_server(
     :expectedresults: After single sign on user should redirected from /extlogin to /hosts page
 
     :BZ: 1941997
-
     """
     result = target_sat.execute(f'echo {settings.ipa.password} | kinit {settings.ipa.user}')
     assert result.status == 0
@@ -229,7 +223,6 @@ def test_single_sign_on_ldap_ad_server(
         using curl. It should navigate to hosts page. (verify using url only)
 
     :BZ: 1941997
-
     """
     # create the kerberos ticket for authentication
     result = target_sat.execute(f'echo {settings.ldap.password} | kinit {settings.ldap.username}')
@@ -440,7 +433,6 @@ def test_user_permissions_rhsso_user_after_group_delete(
 
     :expectedresults: external rhsso user's permissions should get revoked after external rhsso
         group deletion.
-
     """
     default_sso_host.get_rhsso_client_id()
     username = settings.rhsso.rhsso_user
@@ -598,7 +590,6 @@ def test_permissions_external_ldap_mapped_rhsso_group(
 
     :expectedresults: The external ldap mapped rhsso user should contain the permissions
         based on the user group level
-
     """
     ad_data = ad_data()
     login_details = {
@@ -642,7 +633,6 @@ def test_negative_negotiate_login_without_ticket(
     :expectedresults:
         1. Proper messages are returned in all cases.
         2. Login and hosts listing fails without Kerberos ticket.
-
     """
     result = parametrized_enrolled_sat.cli.Auth.status()
     assert NO_KERB_MSG in str(result)
@@ -680,7 +670,6 @@ def test_positive_negotiate_login_with_ticket(
         2. Negotiate login works with the ticket.
         3. External user is created and permissions enforcing works.
         4. Proper messages are returned in all cases.
-
     """
     auth_type = request.node.callspec.params['parametrized_enrolled_sat']
     user = (
@@ -744,7 +733,6 @@ def test_positive_negotiate_CRUD(
         3. Listing and CRUD operations via hammer succeed.
 
     :BZ: 2122617
-
     """
     auth_type = request.node.callspec.params['parametrized_enrolled_sat']
     user = (
@@ -820,7 +808,6 @@ def test_positive_negotiate_logout(
         1. Session is closed on log out properly on logout.
         2. Hammer command fails after log out.
         3. Proper messages are returned in all cases.
-
     """
     auth_type = request.node.callspec.params['parametrized_enrolled_sat']
     user = (

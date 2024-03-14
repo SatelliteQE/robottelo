@@ -3,17 +3,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Reporting
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from broker import Broker
 from fauxfactory import gen_alpha
@@ -120,7 +115,6 @@ def test_positive_report_help(module_target_sat):
     :expectedresults: report-templates command is included in help,
                       report-templates command details are displayed,
                       report-templates create command details are displayed
-
     """
     command_output = module_target_sat.cli.Base().execute('--help')
     assert 'report-template' in command_output
@@ -298,7 +292,6 @@ def test_positive_report_add_userinput(module_target_sat):
         1. hammer template-input create ...
 
     :expectedresults: User input is assigned to the report template
-
     """
     name = gen_alpha()
     report_template = module_target_sat.cli_factory.report_template({'name': name})
@@ -441,7 +434,6 @@ def test_positive_applied_errata():
 
     :expectedresults: 1. A report is generated with all applied errata listed
                       2,3. A report is generated asynchronously
-
     """
 
 

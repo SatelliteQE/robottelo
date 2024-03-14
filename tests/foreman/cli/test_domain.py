@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Hosts
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -193,8 +188,6 @@ def test_negative_create_with_invalid_dns_id(module_target_sat):
     :expectedresults: Error is raised and user friendly message returned
 
     :BZ: 1398392
-
-    :CaseLevel: Integration
 
     :CaseImportance: Medium
     """

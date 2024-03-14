@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Hosts
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_alphanumeric
 import pytest
@@ -93,7 +88,6 @@ class TestMedium:
         :expectedresults: Operating system removed
 
 
-        :CaseLevel: Integration
         """
         medium = module_target_sat.cli_factory.make_medium()
         os = module_target_sat.cli_factory.make_os()

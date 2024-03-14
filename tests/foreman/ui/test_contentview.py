@@ -7,17 +7,12 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: ContentViews
 
 :team: Phoenix-content
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import datetime
 from random import randint
@@ -78,8 +73,6 @@ def test_positive_add_custom_content(session):
 
     :expectedresults: Custom content can be seen in a view
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     org = entities.Organization().create()
@@ -113,8 +106,6 @@ def test_positive_end_to_end(session, module_org, target_sat):
 
     :expectedresults: content view is created, updated with repo publish and
         promoted to next selected env
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -150,8 +141,6 @@ def test_positive_publish_version_changes_in_source_env(session, module_org):
 
     :expectedresults: Content view version is updated in source
         environment.
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -204,8 +193,6 @@ def test_positive_repo_count_for_composite_cv(session, module_org, target_sat):
 
     :BZ: 1431778
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     lce = entities.LifecycleEnvironment(organization=module_org).create()
@@ -252,8 +239,6 @@ def test_positive_create_composite(
     :setup: sync multiple content source/types (RH, custom, etc.)
 
     :expectedresults: Composite content views are created
-
-    :CaseLevel: System
 
     :CaseImportance: High
     """
@@ -307,8 +292,6 @@ def test_positive_add_rh_content(session, function_entitlement_manifest_org, tar
 
     :expectedresults: RH Content can be seen in a view
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     cv_name = gen_string('alpha')
@@ -340,8 +323,6 @@ def test_positive_add_docker_repo(session, module_org, module_prod):
 
     :expectedresults: The repo is added to a non-composite content view
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     content_view = entities.ContentView(composite=False, organization=module_org).create()
@@ -363,8 +344,6 @@ def test_positive_add_docker_repos(session, module_org, module_prod):
 
     :expectedresults: The repos are added to a non-composite content
         view.
-
-    :CaseLevel: Integration
 
     :CaseImportance: Low
     """
@@ -393,8 +372,6 @@ def test_positive_add_synced_docker_repo(session, module_org, module_prod):
     :expectedresults: Synchronized docker repository was successfully added
         to content view.
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     content_view = entities.ContentView(composite=False, organization=module_org).create()
@@ -418,8 +395,6 @@ def test_positive_add_docker_repo_to_ccv(session, module_org, module_prod):
 
     :expectedresults: The repository is added to a content view which
         is then added to a composite content view.
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -446,8 +421,6 @@ def test_positive_add_docker_repos_to_ccv(session, module_org, module_prod):
 
     :expectedresults: The repository is added to a random number of content
         views which are then added to a composite content view.
-
-    :CaseLevel: Integration
 
     :CaseImportance: Low
     """
@@ -482,8 +455,6 @@ def test_positive_publish_with_docker_repo(session, module_org, module_prod):
     :expectedresults: The repo is added to a content view which is then
         successfully published.
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     content_view = entities.ContentView(composite=False, organization=module_org).create()
@@ -507,8 +478,6 @@ def test_positive_publish_with_docker_repo_composite(session, module_org, module
     :expectedresults: The docker repository is added to a content view
         which is then published only once and then added to a composite
         content view which is also published only once.
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -537,8 +506,6 @@ def test_positive_publish_multiple_with_docker_repo(session, module_org, module_
     :expectedresults: Content view with docker repo is successfully published
         multiple times.
 
-    :CaseLevel: Integration
-
     :CaseImportance: Low
     """
     repo = entities.Repository(
@@ -561,8 +528,6 @@ def test_positive_publish_multiple_with_docker_repo_composite(session, module_or
 
     :expectedresults: Composite content view with docker repo is successfully
         published multiple times.
-
-    :CaseLevel: Integration
 
     :CaseImportance: Low
     """
@@ -591,8 +556,6 @@ def test_positive_promote_with_docker_repo(session, module_org, module_prod):
     :expectedresults: Docker repository is promoted to content view
         found in the specific lifecycle-environment.
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     lce = entities.LifecycleEnvironment(organization=module_org).create()
@@ -618,8 +581,6 @@ def test_positive_promote_multiple_with_docker_repo(session, module_org, module_
 
     :expectedresults: Docker repository is promoted to content view
         found in the specific lifecycle-environments.
-
-    :CaseLevel: Integration
 
     :CaseImportance: Low
     """
@@ -647,8 +608,6 @@ def test_positive_promote_with_docker_repo_composite(session, module_org, module
 
     :expectedresults: Docker repository is promoted to content view
         found in the specific lifecycle-environment.
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -682,8 +641,6 @@ def test_positive_promote_multiple_with_docker_repo_composite(session, module_or
     :expectedresults: Docker repository is promoted to content view
         found in the specific lifecycle-environments.
 
-    :CaseLevel: Integration
-
     :CaseImportance: Low
     """
     repo = entities.Repository(
@@ -714,8 +671,6 @@ def test_negative_add_components_to_non_composite(session):
 
     :expectedresults: User cannot add components to the view
 
-    :CaseLevel: Integration
-
     :CaseImportance: Low
     """
     cv1_name = gen_string('alpha')
@@ -743,8 +698,6 @@ def test_positive_add_unpublished_cv_to_composite(session):
         2. Create a new composite content view
 
     :expectedresults: Non-composite content view is added to composite one
-
-    :CaseLevel: Integration
 
     :CaseImportance: Low
 
@@ -787,8 +740,6 @@ def test_positive_add_non_composite_cv_to_composite(session):
         2. Published non-composite content view is successfully added to
             composite content view.
         3. Composite content view is successfully published
-
-    :CaseLevel: Integration
 
     :BZ: 1367123
 
@@ -835,8 +786,6 @@ def test_positive_check_composite_cv_addition_list_versions(session):
     :expectedresults: second non-composite content view version should be
         listed as default one to be added to composite view
 
-    :CaseLevel: Integration
-
     :BZ: 1411074
 
     :CaseImportance: Low
@@ -874,8 +823,6 @@ def test_negative_add_dupe_repos(session, module_org, target_sat):
 
     :expectedresults: User cannot add repos multiple times to the view
 
-    :CaseLevel: Integration
-
     :CaseImportance: Low
     """
     cv_name = gen_string('alpha')
@@ -901,8 +848,6 @@ def test_positive_publish_with_custom_content(session, module_org, target_sat):
     :setup: Multiple environments for an org; custom content synced
 
     :expectedresults: Content view can be published
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -930,8 +875,6 @@ def test_positive_publish_with_rh_content(session, function_entitlement_manifest
     :setup: RH content synced
 
     :expectedresults: Content view can be published
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -970,8 +913,6 @@ def test_positive_publish_composite_with_custom_content(
     :setup: Multiple environments for an org; custom content synced
 
     :expectedresults: Composite content view can be published
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -1063,8 +1004,6 @@ def test_positive_publish_version_changes_in_target_env(session, module_org, tar
 
     :expectedresults: Content view version is updated in target environment.
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     cv_name = gen_string('alpha')
@@ -1115,8 +1054,6 @@ def test_positive_promote_with_custom_content(session, module_org, target_sat):
 
     :expectedresults: Content view can be promoted
 
-    :CaseLevel: Integration
-
     :BZ: 1361793
 
     :CaseImportance: Critical
@@ -1160,8 +1097,6 @@ def test_positive_promote_with_rh_content(session, function_entitlement_manifest
 
     :expectedresults: Content view can be promoted
 
-    :CaseLevel: System
-
     :CaseImportance: Critical
     """
     cv_name = gen_string('alpha')
@@ -1202,8 +1137,6 @@ def test_positive_promote_composite_with_custom_content(
     :steps: create a composite view containing multiple content types
 
     :expectedresults: Composite content view can be promoted
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -1335,8 +1268,6 @@ def test_negative_add_same_package_filter_twice(session, module_org, target_sat)
 
     :expectedresults: Same package filter can not be added again
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     cv_name = gen_string('alpha')
@@ -1382,8 +1313,6 @@ def test_positive_remove_cv_version_from_default_env(session, module_org, target
     :expectedresults: content view version is removed from Library
         environment
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     cv_name = gen_string('alpha')
@@ -1424,8 +1353,6 @@ def test_positive_remove_promoted_cv_version_from_default_env(session, module_or
 
         1. Content view version exist only in DEV and not in Library
         2. The yum repos exists in content view version
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -1470,8 +1397,6 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module
 
     :expectedresults: Content view version exist only in DEV, QE and not in
         Library
-
-    :CaseLevel: Integration
 
     :CaseImportance: Low
     """
@@ -1542,8 +1467,6 @@ def test_positive_remove_cv_version_from_env(session, module_org, repos_collecti
 
     :expectedresults: Content view version exist in Library, DEV, QE
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     dev_lce = entities.LifecycleEnvironment(organization=module_org).create()
@@ -1600,8 +1523,6 @@ def test_positive_delete_cv_promoted_to_multi_env(session, module_org, target_sa
 
     :expectedresults: The content view doesn't exists.
 
-    :CaseLevel: Integration
-
     :CaseImportance:High
     """
     repo = target_sat.cli_factory.RepositoryCollection(
@@ -1634,8 +1555,6 @@ def test_positive_delete_composite_version(session, module_org, target_sat):
     :id: b2d9b21d-1e0d-40f1-9bbc-3c88cddd4f5e
 
     :expectedresults: Deletion was performed successfully
-
-    :CaseLevel: Integration
 
     :BZ: 1276479
 
@@ -1673,8 +1592,6 @@ def test_positive_delete_non_default_version(session, target_sat):
 
     :expectedresults: Deletion was performed successfully
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     repo_name = gen_string('alpha')
@@ -1706,8 +1623,6 @@ def test_positive_delete_version_with_ak(session):
     :id: 0da50b26-f82b-4663-9372-4c39270d4323
 
     :expectedresults: Delete operation was performed successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -1748,8 +1663,6 @@ def test_positive_clone_within_same_env(session, module_org, target_sat):
 
     :BZ: 1461017
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     repo_name = gen_string('alpha')
@@ -1780,8 +1693,6 @@ def test_positive_clone_within_diff_env(session, module_org, target_sat):
         environment than initial one
 
     :BZ: 1461017
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -1821,8 +1732,6 @@ def test_positive_remove_filter(session, module_org):
 
     :expectedresults: content views filter removed successfully
 
-    :CaseLevel: Integration
-
     :CaseImportance: Low
     """
     filter_name = gen_string('alpha')
@@ -1849,8 +1758,6 @@ def test_positive_add_package_filter(session, module_org, target_sat):
 
     :expectedresults: content views filter created and selected packages can be
         added for inclusion
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -1893,8 +1800,6 @@ def test_positive_add_package_inclusion_filter_and_publish(session, module_org, 
     :id: 58c32cb5-1392-478e-807a-9c023d5ca0ea
 
     :expectedresults: Package is included in content view version
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -1940,8 +1845,6 @@ def test_positive_add_package_exclusion_filter_and_publish(session, module_org, 
 
     :expectedresults: Package is excluded from content view version
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     filter_name = gen_string('alpha')
@@ -1986,8 +1889,6 @@ def test_positive_remove_package_from_exclusion_filter(session, module_org, targ
 
     :expectedresults: Package was successfully removed from content view
         filter and is present in next published content view version
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -2035,8 +1936,6 @@ def test_positive_update_inclusive_filter_package_version(session, module_org, t
 
     :expectedresults: Version was updated, next content view version contains
         package with updated version
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -2099,8 +1998,6 @@ def test_positive_update_exclusive_filter_package_version(session, module_org, t
 
     :expectedresults: Version was updated, next content view version
         contains package with updated version
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -2216,8 +2113,6 @@ def test_positive_edit_rh_custom_spin(session, target_sat):
     :expectedresults: edited content view save is successful and info is
         updated
 
-    :CaseLevel: System
-
     :CaseImportance: High
     """
     filter_name = gen_string('alpha')
@@ -2276,8 +2171,6 @@ def test_positive_promote_with_rh_custom_spin(session, target_sat):
     :id: 7d93c81f-2815-4b0e-b72c-23a902fe34b1
 
     :expectedresults: Content view can be promoted
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -2369,8 +2262,6 @@ def test_positive_add_errata_filter(session, module_org, target_sat):
     :expectedresults: content views filter created and selected errata-id
         can be added for inclusion/exclusion
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     filter_name = gen_string('alpha')
@@ -2407,8 +2298,6 @@ def test_positive_add_module_stream_filter(session, module_org, target_sat):
 
     :expectedresults: content views filter created and selected module stream
         can be added for inclusion/exclusion
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -2449,8 +2338,6 @@ def test_positive_add_package_group_filter(session, module_org, target_sat):
     :expectedresults: content views filter created and selected package
         groups can be added for inclusion/exclusion
 
-    :CaseLevel: Integration
-
     :CaseImportance: Low
     """
     filter_name = gen_string('alpha')
@@ -2484,8 +2371,6 @@ def test_positive_update_filter_affected_repos(session, module_org, target_sat):
     :expectedresults: Affected repos were updated, after new content view
         version publishing only updated repos are affected by content view
         filter
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -2551,8 +2436,6 @@ def test_positive_search_composite(session):
 
     :BZ: 1259374
 
-    :CaseLevel: Integration
-
     :CaseImportance: Low
     """
     composite_name = gen_string('alpha')
@@ -2584,8 +2467,6 @@ def test_positive_publish_with_repo_with_disabled_http(session, module_org, targ
     :expectedresults: Content view is published successfully
 
     :BZ: 1355752
-
-    :CaseLevel: Integration
 
     :CaseImportance: Low
     """
@@ -2632,8 +2513,6 @@ def test_positive_subscribe_system_with_custom_content(
 
     :expectedresults: Systems can be subscribed to content view(s)
 
-    :CaseLevel: Integration
-
     :parametrized: yes
 
     :CaseImportance: High
@@ -2667,8 +2546,6 @@ def test_positive_delete_with_kickstart_repo_and_host_group(
     :expectedresults: Deletion was performed successfully
 
     :BZ: 1417072
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -2745,8 +2622,6 @@ def test_positive_rh_mixed_content_end_to_end(
     :expectedresults: CV should be published and promoted with RH OSTree and all
         other contents. Then version is removed successfully.
 
-    :CaseLevel: System
-
     :customerscenario: true
 
     :CaseImportance: High
@@ -2801,7 +2676,6 @@ def test_positive_errata_inc_update_list_package(session, target_sat):
 
     :CaseImportance: High
 
-    :CaseLevel: Integration
     """
     org = entities.Organization().create()
     product = entities.Product(organization=org).create()
@@ -2889,7 +2763,6 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, target_
 
     :parametrized: yes
 
-    :CaseLevel: Integration
     """
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
@@ -2983,8 +2856,6 @@ def test_positive_module_stream_end_to_end(session, module_org, target_sat):
     :expectedresults: Content view works properly with module_streams and
         count shown should be correct
 
-    :CaseLevel: Integration
-
     :CaseImportance: Medium
     """
     repo_name = gen_string('alpha')
@@ -3025,8 +2896,6 @@ def test_positive_search_module_streams_in_content_view(session, module_org, tar
 
     :expectedresults: Searching for module streams should work inside content
         view version
-
-    :CaseLevel: Integration
 
     :CaseImportance: Low
     """
@@ -3069,8 +2938,6 @@ def test_positive_non_admin_user_actions(session, module_org, test_name, target_
         the content views
 
     :BZ: 1461017
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -3161,8 +3028,6 @@ def test_positive_readonly_user_actions(module_org, test_name, target_sat):
     :expectedresults: User with read-only role for content view can view
         the repository in the content view
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     user_login = gen_string('alpha')
@@ -3214,8 +3079,6 @@ def test_negative_read_only_user_actions(session, module_org, test_name, target_
         create activation key, or see repo discovery
 
     :BZ: 1922134
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -3318,8 +3181,6 @@ def test_negative_non_readonly_user_actions(module_org, test_name, target_sat):
         read role
 
     :expectedresults: the user cannot access content views web resources
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """
@@ -3741,7 +3602,6 @@ def test_positive_no_duplicate_key_violate_unique_constraint_using_filters(
 
     :CaseImportance: Medium
 
-    :CaseLevel: Integration
     """
     cv = gen_string('alpha')
     filter_name = gen_string('alpha')

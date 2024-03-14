@@ -1,19 +1,14 @@
 """
 :Requirement: Computeresource Vmware
 
-:CaseLevel: Acceptance
-
 :CaseComponent: ComputeResources-VMWare
 
 :Team: Rocket
-
-:TestType: Functional
 
 :CaseImportance: High
 
 :CaseAutomation: Automated
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest

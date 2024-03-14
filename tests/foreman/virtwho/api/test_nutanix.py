@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Virt-whoConfigurePlugin
 
 :team: Phoenix-subscriptions
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 import pytest
@@ -65,8 +60,6 @@ class TestVirtWhoConfigforNutanix:
         :id: b1d8d261-80e0-498f-89fc-b1a246b46b83
 
         :expectedresults: Config can be created and deployed
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -123,8 +116,6 @@ class TestVirtWhoConfigforNutanix:
         :id: 7aabfa3e-0ec0-44a3-8b7c-b67476318c2c
 
         :expectedresults: Config can be created and deployed
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -185,8 +176,6 @@ class TestVirtWhoConfigforNutanix:
 
         :expectedresults: hypervisor_id option can be updated.
 
-        :CaseLevel: Integration
-
         :CaseImportance: Medium
         """
         values = ['uuid', 'hostname']
@@ -212,8 +201,6 @@ class TestVirtWhoConfigforNutanix:
         :expectedresults:
             Config can be created and deployed
             The prism_central has been set in /etc/virt-who.d/vir-who.conf file
-
-        :CaseLevel: Integration
 
         :CaseImportance: High
         """
@@ -284,8 +271,6 @@ class TestVirtWhoConfigforNutanix:
         :id: 7f3b18c7-178c-4547-86ed-0e34772f755f
 
         :expectedresults: prism_flavor option can be updated.
-
-        :CaseLevel: Integration
 
         :CaseImportance: Medium
         """

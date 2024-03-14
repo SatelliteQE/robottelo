@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Installation
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: Critical
 
-:Upstream: No
 """
 import pytest
 
@@ -43,8 +38,6 @@ def test_installer_sat_pub_directory_accessibility(target_sat):
         2. It should not be accessible if accessibility is disabled in custom_hiera.yaml file.
 
     :CaseImportance: High
-
-    :CaseLevel: System
 
     :BZ: 1960801
 
@@ -93,8 +86,6 @@ def test_installer_inventory_plugin_update(target_sat):
         error.
 
     :CaseImportance: High
-
-    :CaseLevel: System
 
     :BZ: 1863597
 

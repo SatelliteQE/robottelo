@@ -4,17 +4,11 @@
 
 :CaseAutomation: ManualOnly
 
-:CaseLevel: System
-
 :CaseComponent: ForemanProxy
 
 :Team: Platform
 
-:TestType: Functional
-
 :CaseImportance: Critical
-
-:Upstream: No
 """
 import pytest
 

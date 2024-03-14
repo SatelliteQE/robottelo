@@ -8,13 +8,8 @@
 
 :Team: Rocket
 
-:CaseLevel: Acceptance
-
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from math import floor, log10
 from random import choice
@@ -91,8 +86,6 @@ def test_positive_end_to_end(session, module_org, module_location):
     :id: 47fc9e77-5b22-46b4-a76c-3217434fde2f
 
     :expectedresults: All expected CRUD actions finished successfully.
-
-    :CaseLevel: Integration
     """
     cr_name = gen_string('alpha')
     new_cr_name = gen_string('alpha')
@@ -171,8 +164,6 @@ def test_positive_retrieve_virtual_machine_list(session):
         2. Go to "Virtual Machines" tab.
 
     :expectedresults: The Virtual machines should be displayed
-
-    :CaseLevel: Integration
     """
     cr_name = gen_string('alpha')
     vm_name = settings.vmware.vm_name
@@ -201,8 +192,6 @@ def test_positive_image_end_to_end(session, target_sat):
     :id: 6b7949ef-c684-40aa-b181-11f8d4cd39c6
 
     :expectedresults: All expected CRUD actions finished successfully.
-
-    :CaseLevel: Integration
     """
     cr_name = gen_string('alpha')
     image_name = gen_string('alpha')
@@ -262,8 +251,6 @@ def test_positive_resource_vm_power_management(session):
     :id: faeabe45-5112-43a6-bde9-f869dfb26cf5
 
     :expectedresults: virtual machine is powered on or powered off depending on its initial state
-
-    :CaseLevel: Integration
     """
     cr_name = gen_string('alpha')
     vm_name = settings.vmware.vm_name
@@ -320,8 +307,6 @@ def test_positive_select_vmware_custom_profile_guest_os_rhel7(session):
     :expectedresults: Guest OS RHEL7 is selected successfully.
 
     :BZ: 1315277
-
-    :CaseLevel: Integration
     """
     cr_name = gen_string('alpha')
     guest_os_name = 'Red Hat Enterprise Linux 7 (64-bit)'
@@ -362,8 +347,6 @@ def test_positive_access_vmware_with_custom_profile(session):
 
     :expectedresults: The Compute Resource created and associated to compute profile (3-Large)
         with provided values.
-
-    :CaseLevel: Integration
     """
     cr_name = gen_string('alpha')
     data_store_summary_string = _get_vmware_datastore_summary_string()

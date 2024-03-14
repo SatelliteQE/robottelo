@@ -2,19 +2,14 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Component
-
 :CaseComponent: Dynflow
 
 :Team: Endeavour
 
 :Requirement: Dynflow
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import pytest
 

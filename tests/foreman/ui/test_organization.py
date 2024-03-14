@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: OrganizationsandLocations
 
 :Team: Endeavour
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -57,8 +52,6 @@ def test_positive_end_to_end(session):
     :id: abe878a9-a6bc-41e5-a39a-0fed9012b80f
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -202,8 +195,6 @@ def test_positive_create_with_all_users(session):
     :expectedresults: Organization and user entities assigned to each other
 
     :BZ: 1321543
-
-    :CaseLevel: Integration
     """
     user = entities.User().create()
     org = entities.Organization().create()
@@ -227,8 +218,6 @@ def test_positive_update_compresource(session):
     :id: a49349b9-4637-4ef6-b65b-bd3eccb5a12a
 
     :expectedresults: Compute resource is added and then removed.
-
-    :CaseLevel: Integration
     """
     url = f'{LIBVIRT_RESOURCE_URL}{settings.libvirt.libvirt_hostname}'
     resource = entities.LibvirtComputeResource(url=url).create()
@@ -259,8 +248,6 @@ def test_positive_delete_with_manifest_lces(session, target_sat, function_entitl
 
     :expectedresults: Organization is deleted successfully.
 
-    :CaseLevel: Integration
-
     :CaseImportance: Critical
     """
     org = function_entitlement_manifest_org
@@ -288,8 +275,6 @@ def test_positive_download_debug_cert_after_refresh(
 
     :expectedresults: Scenario passed successfully
 
-    :CaseLevel: Integration
-
     :CaseImportance: High
     """
     org = function_entitlement_manifest_org
@@ -311,14 +296,12 @@ def test_positive_errata_view_organization_switch(
 
     :id: faad9cf3-f8d5-49a6-87d1-431837b67675
 
-    :Steps: Create an Organization having a product synced which contains errata.
+    :steps: Create an Organization having a product synced which contains errata.
 
     :expectedresults: Verify that the errata belonging to one Organization is not
                       showing in the Default organization.
 
     :CaseImportance: High
-
-    :CaseLevel: Integration
     """
     rc = module_target_sat.cli_factory.RepositoryCollection(
         repositories=[module_target_sat.cli_factory.YumRepository(settings.repos.yum_3.url)]
@@ -340,15 +323,13 @@ def test_positive_product_view_organization_switch(session, module_org, module_p
 
     :id: 50cc459a-3a23-433a-99b9-9f3b929e6d64
 
-    :Steps:
+    :steps:
             1. Create an Organization having a product and verify that product is present in
                the Organization.
             2. Switch the Organization to default and verify that product is not visible in it.
 
     :expectedresults: Verify that the Product belonging to one Organization is not visible in
                       another organization.
-
-    :CaseLevel: Integration
 
     :CaseImportance: High
     """

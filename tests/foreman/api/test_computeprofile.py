@@ -4,17 +4,12 @@
 
 :CaseAutomation: Automated
 
-:CaseLevel: Acceptance
-
 :CaseComponent: ComputeResources
 
 :Team: Rocket
 
-:TestType: Functional
-
 :CaseImportance: High
 
-:Upstream: No
 """
 import pytest
 from requests.exceptions import HTTPError
@@ -37,8 +32,6 @@ def test_positive_create_with_name(name, target_sat):
 
     :CaseImportance: Critical
 
-    :CaseLevel: Component
-
     :parametrized: yes
     """
     profile = target_sat.api.ComputeProfile(name=name).create()
@@ -56,8 +49,6 @@ def test_negative_create(name, target_sat):
 
     :CaseImportance: Critical
 
-    :CaseLevel: Component
-
     :parametrized: yes
     """
     with pytest.raises(HTTPError):
@@ -74,8 +65,6 @@ def test_positive_update_name(new_name, target_sat):
     :expectedresults: Compute Profile is updated.
 
     :CaseImportance: Critical
-
-    :CaseLevel: Component
 
     :parametrized: yes
     """
@@ -96,8 +85,6 @@ def test_negative_update_name(new_name, target_sat):
 
     :CaseImportance: Critical
 
-    :CaseLevel: Component
-
     :parametrized: yes
     """
     profile = target_sat.api.ComputeProfile().create()
@@ -117,8 +104,6 @@ def test_positive_delete(new_name, target_sat):
     :expectedresults: Compute Profile is deleted successfully.
 
     :CaseImportance: Critical
-
-    :CaseLevel: Component
 
     :parametrized: yes
     """

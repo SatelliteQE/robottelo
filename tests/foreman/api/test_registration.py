@@ -2,8 +2,6 @@
 
 :Requirement: Registration
 
-:CaseLevel: Acceptance
-
 :CaseComponent: Registration
 
 :CaseAutomation: Automated
@@ -12,9 +10,6 @@
 
 :Team: Rocket
 
-:TestType: Functional
-
-:Upstream: No
 """
 import uuid
 
@@ -107,8 +102,6 @@ def test_positive_allow_reregistration_when_dmi_uuid_changed(
     :customerscenario: true
 
     :BZ: 1747177
-
-    :CaseLevel: Integration
     """
     uuid_1 = str(uuid.uuid1())
     uuid_2 = str(uuid.uuid4())
