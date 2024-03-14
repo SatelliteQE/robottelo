@@ -2331,13 +2331,14 @@ class TestFileRepository:
 
         :CaseAutomation: Automated
         """
-        repo.upload_content(files={'content': DataFile.RPM_TO_UPLOAD.read_bytes()})
+        with open(DataFile.FAKE_FILE_NEW_NAME, 'rb') as handle:
+            repo.upload_content(files={'content': handle})
         assert repo.read().content_counts['file'] == 1
 
         filesearch = target_sat.api.File().search(
-            query={"search": f"name={constants.RPM_TO_UPLOAD}"}
+            query={"search": f"name={constants.FAKE_FILE_NEW_NAME}"}
         )
-        assert filesearch[0].name == constants.RPM_TO_UPLOAD
+        assert filesearch[0].name == constants.FAKE_FILE_NEW_NAME
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
