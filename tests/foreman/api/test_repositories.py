@@ -11,7 +11,6 @@
 :CaseImportance: Critical
 
 """
-from manifester import Manifester
 from nailgun.entity_mixins import call_entity_method_with_timeout
 import pytest
 from requests.exceptions import HTTPError
@@ -187,7 +186,7 @@ def test_positive_sync_kickstart_repo(module_sca_manifest_org, target_sat):
 
 
 @pytest.mark.tier1
-def test_negative_upload_expired_manifest(module_org, target_sat):
+def test_negative_upload_expired_manifest(module_org, target_sat, function_entitlement_manifest):
     """Upload an expired manifest and attempt to refresh it
 
     :id: d6e652d8-5f46-4d15-9191-d842466d45d0
@@ -199,10 +198,9 @@ def test_negative_upload_expired_manifest(module_org, target_sat):
 
     :expectedresults: Manifest refresh should fail and return error message
     """
-    manifester = Manifester(manifest_category=settings.manifest.entitlement)
-    manifest = manifester.get_manifest()
+    manifest = function_entitlement_manifest.get_manifest()
     target_sat.upload_manifest(module_org.id, manifest.content)
-    manifester.delete_subscription_allocation()
+    function_entitlement_manifest.delete_subscription_allocation()
     with pytest.raises(CLIReturnCodeError) as error:
         target_sat.cli.Subscription.refresh_manifest({'organization-id': module_org.id})
     assert (
