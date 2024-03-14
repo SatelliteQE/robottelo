@@ -529,69 +529,69 @@ class TestVirtWhoConfigforEsx:
 
         :BZ: 2063218
         """
-        # get the service account for the first virt-who config on module_sca_manifest_org
-        name_1 = form_data_cli['name']
-        virtwho_config_cli_1 = target_sat.cli.VirtWhoConfig.create(form_data_cli)[
-            'general-information'
-        ]
-        config_file_1 = get_configure_file(virtwho_config_cli_1['id'])
-        command = get_configure_command(virtwho_config_cli_1['id'], module_sca_manifest_org.name)
-        deploy_configure_by_command(
-            command, form_data_cli['hypervisor-type'], org=module_sca_manifest_org.label
-        )
-        rhsm_username_1 = get_configure_option('rhsm_username', config_file_1)
+        # create two virt-who config in the same organization, get the service account rhsm_username
+        vc_id = []
+        rhsm_username = []
+        for _i in range(2):
+            form_data_cli['name'] = gen_string('alpha')
+            virtwho_config_cli = target_sat.cli.VirtWhoConfig.create(form_data_cli)[
+                'general-information'
+            ]
+            command = get_configure_command(virtwho_config_cli['id'], module_sca_manifest_org.name)
+            deploy_configure_by_command(
+                command, form_data_cli['hypervisor-type'], org=module_sca_manifest_org.label
+            )
+            vc_id.append(virtwho_config_cli['id'])
+            config_file = get_configure_file(virtwho_config_cli['id'])
+            rhsm_username.append(get_configure_option('rhsm_username', config_file))
 
-        # create the second virt-who config and get the service account for the first virt-who config on module_sca_manifest_org
-        name_2 = gen_string('alpha')
-        form_data_cli['name'] = name_2
-        virtwho_config_cli_2 = target_sat.cli.VirtWhoConfig.create(form_data_cli)[
-            'general-information'
-        ]
-        config_file_2 = get_configure_file(virtwho_config_cli_2['id'])
-        command_2 = get_configure_command(virtwho_config_cli_2['id'], module_sca_manifest_org.name)
-        deploy_configure_by_command(
-            command_2, form_data_cli['hypervisor-type'], org=module_sca_manifest_org.label
-        )
-        rhsm_username_2 = get_configure_option('rhsm_username', config_file_2)
-        # verify the two service account belong to the same org
-        assert rhsm_username_1 == rhsm_username_2
-        # Create a different org and then create virt-who config
+        # verify the two service account belong to the same org are the same
+        assert rhsm_username[0] == rhsm_username[1]
+
+        # Create a different org virtwho_fake_XXXX and then create virt-who config, get the service account rhsm_username
         ORG_DATA = {'name': f'virtwho_fake_{gen_string("alpha")}'}
         org = target_sat.api.Organization(name=ORG_DATA['name']).create()
         target_sat.api.Location(organization=[org]).create()
         form_data_cli['organization-id'] = org.id
         form_data_cli['name'] = gen_string('alpha')
-        virtwho_config_cli_3 = target_sat.cli.VirtWhoConfig.create(form_data_cli)[
+        virtwho_config_cli = target_sat.cli.VirtWhoConfig.create(form_data_cli)[
             'general-information'
         ]
-        command = get_configure_command(virtwho_config_cli_3['id'], org.name)
+        command = get_configure_command(virtwho_config_cli['id'], org.name)
         deploy_configure_by_command(
             command, form_data_cli['hypervisor-type'], debug=True, org=org.label
         )
-        config_file_3 = get_configure_file(virtwho_config_cli_3['id'])
-        rhsm_username_3 = get_configure_option('rhsm_username', config_file_3)
-        assert rhsm_username_3 != rhsm_username_1
-        # hypervisors and guest mapping info send by group of org and service account exist in rhsm.log
+        config_file = get_configure_file(virtwho_config_cli['id'])
+        rhsm_username.append(get_configure_option('rhsm_username', config_file))
+        vc_id.append(virtwho_config_cli['id'])
+
+        # verify the two service account belong to the different org are different
+        assert rhsm_username[2] != rhsm_username[0]
+
+        # Verify virt-who config with the same service account send hypervisors and guest mapping info in the same organization section, and service account exist in rhsm.log
+        runcmd(get_configure_command(vc_id[0], module_sca_manifest_org.name))
+        runcmd(get_configure_command(vc_id[1], module_sca_manifest_org.name))
         service_account_message = [
-            f"Authenticating with RHSM username {rhsm_username_1}",
-            f"Authenticating with RHSM username {rhsm_username_3}",
-            f"Host-to-guest mapping being sent to '{module_sca_manifest_org}'",
-            f"Host-to-guest mapping being sent to '{org}'",
+            f"Authenticating with RHSM username {rhsm_username[0]}",
+            f"Authenticating with RHSM username {rhsm_username[2]}",
+            f"Host-to-guest mapping being sent to '{module_sca_manifest_org.name}'",
+            f"Host-to-guest mapping being sent to '{org.name}'",
         ]
         for item in service_account_message:
-            check_message_in_rhsm_log(item)
-        # delete one of the virt-who config on module_sca_manifest_org, verify service account  rhsm_username_1 exit
-        target_sat.cli.VirtWhoConfig.delete({'name': name_1})
-        runcmd(command_2)
-        runcmd(f"rm -f {config_file_1}")
-        target_sat.cli.VirtWhoConfig.info({'name': name_2})
-        restart_virtwho_service()
-        message = f"Authenticating with RHSM username {rhsm_username_2}"
-        assert check_message_in_rhsm_log(message) == message
+            assert check_message_in_rhsm_log(item)
 
-        # delete all the virt-who config on module_sca_manifest_org, verify service account  rhsm_username_1 does not exit
-        target_sat.cli.VirtWhoConfig.delete({'name': name_2})
-        runcmd(f"rm -f {config_file_2}")
+        # delete one of the virt-who config belong to module_sca_manifest_org, verify service account rhsm_username_1 exist
+        target_sat.cli.VirtWhoConfig.delete({'id': vc_id[0]})
+        config_file = get_configure_file(vc_id[0])
+        runcmd(f"rm -f {config_file}")
+        runcmd(get_configure_command(vc_id[1], module_sca_manifest_org.name))
+        message = f"Authenticating with RHSM username {rhsm_username[0]}"
+        assert check_message_in_rhsm_log(message)
+
+        # delete all the virt-who config belong to module_sca_manifest_org, verify service account  rhsm_username_1 does not exist
+        target_sat.cli.VirtWhoConfig.delete({'id': vc_id[1]})
+        config_file = get_configure_file(vc_id[1])
+        runcmd(f"rm -f {config_file}")
         restart_virtwho_service()
-        message = f"Authenticating with RHSM username {rhsm_username_1}"
-        assert check_message_in_rhsm_log(message) is False
+        message = f"Authenticating with RHSM username {rhsm_username[1]}"
+        assert not check_message_in_rhsm_log(message)
