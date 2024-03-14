@@ -11,11 +11,9 @@
 :CaseImportance: High
 
 """
-from manifester import Manifester
 import pytest
 
 from robottelo import constants
-from robottelo.config import settings
 from robottelo.hosts import ContentHost
 
 
@@ -144,7 +142,9 @@ class TestSubscriptionAutoAttach:
 
     @pytest.mark.parametrize('pre_upgrade_data', ['rhel7', 'rhel8', 'rhel9'], indirect=True)
     @pytest.mark.post_upgrade(depend_on=test_pre_subscription_scenario_auto_attach)
-    def test_post_subscription_scenario_auto_attach(self, request, target_sat, pre_upgrade_data):
+    def test_post_subscription_scenario_auto_attach(
+        self, request, target_sat, pre_upgrade_data, function_entitlement_manifest
+    ):
         """Run subscription auto-attach on pre-upgrade content host registered
         with Satellite.
 
@@ -172,6 +172,6 @@ class TestSubscriptionAutoAttach:
         sub = target_sat.api.Subscription(organization=org)
         sub.delete_manifest(data={'organization_id': org.id})
         assert len(sub.search()) == 0
-        manifester = Manifester(manifest_category=settings.manifest.entitlement)
+        manifester = function_entitlement_manifest
         manifester.allocation_uuid = pre_upgrade_data.allocation_uuid
         request.addfinalizer(manifester.delete_subscription_allocation)
