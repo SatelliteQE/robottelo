@@ -199,8 +199,8 @@ def test_negative_update_attributes(request, options, module_target_sat):
     :CaseImportance: Medium
     """
     subnet = module_target_sat.cli_factory.make_subnet()
-    options['id'] = subnet['id']
     request.addfinalizer(lambda: module_target_sat.cli.Subnet.delete({'id': subnet['id']}))
+    options['id'] = subnet['id']
     with pytest.raises(CLIReturnCodeError, match='Could not update the subnet:'):
         module_target_sat.cli.Subnet.update(options)
     # check - subnet is not updated
@@ -223,8 +223,8 @@ def test_negative_update_address_pool(request, options, module_target_sat):
     :CaseImportance: Medium
     """
     subnet = module_target_sat.cli_factory.make_subnet()
-    opts = {'id': subnet['id']}
     request.addfinalizer(lambda: module_target_sat.cli.Subnet.delete({'id': subnet['id']}))
+    opts = {'id': subnet['id']}
     # generate pool range from network address
     for key, val in options.items():
         opts[key] = re.sub(r'\d+$', str(val), subnet['network-addr'])
