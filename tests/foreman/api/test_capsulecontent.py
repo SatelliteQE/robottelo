@@ -16,7 +16,6 @@ interactions and use capsule.
 from datetime import datetime, timedelta
 import re
 from time import sleep
-from urllib.parse import urlparse
 
 from nailgun import client
 from nailgun.config import ServerConfig
@@ -24,7 +23,7 @@ from nailgun.entity_mixins import call_entity_method_with_timeout
 import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.config import get_credentials, settings
+from robottelo.config import settings
 from robottelo.constants import (
     CONTAINER_CLIENTS,
     CONTAINER_REGISTRY_HUB,
@@ -1753,19 +1752,13 @@ class TestCapsuleContentManagement:
         assert 'success' in task['result'], 'Reclaim task did not succeed'
 
         # Check the apidoc references the correct endpoint
-        response = client.get(
-            f'{target_sat.url}/apidoc/v2/capsule_content/reclaim_space.en.html',
-            auth=get_credentials(),
-            verify=False,
+        reclaim_doc = next(
+            method
+            for method in target_sat.apidoc['docs']['resources']['capsule_content']['methods']
+            if '/apidoc/v2/capsule_content/reclaim_space' in method['doc_url']
         )
+        assert len(reclaim_doc['apis']) == 1
+        assert reclaim_doc['apis'][0]['http_method'] == 'POST', 'POST method was expected.'
         assert (
-            response.status_code == 200
-        ), f'{response.request.path} returned HTTP{response.status_code}'
-
-        ep_path = target_sat.api.Capsule(id=module_capsule_configured.nailgun_capsule.id).path(
-            which='content_reclaim_space'
-        )
-        ep_path = urlparse(ep_path).path
-        ep_path = ep_path.replace(str(module_capsule_configured.nailgun_capsule.id), ':id')
-
-        assert f'POST {ep_path}' in response.text, 'Reclaim_space endpoint path missing in apidoc'
+            reclaim_doc['apis'][0]['api_url'] == '/katello/api/capsules/:id/content/reclaim_space'
+        ), 'Documented path did not meet the expectation.'
