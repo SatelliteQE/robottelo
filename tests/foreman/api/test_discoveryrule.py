@@ -175,7 +175,7 @@ def test_positive_multi_provision_with_rule_limit(
     discovered_host1 = module_target_sat.api_factory.create_discovered_host()
     request.addfinalizer(module_target_sat.api.Host(id=discovered_host1['id']).delete)
     discovered_host2 = module_target_sat.api_factory.create_discovered_host()
-    request.addfinalizer(module_target_sat.api.Host(id=discovered_host2['id']).delete)
+    request.addfinalizer(module_target_sat.api.DiscoveredHost(id=discovered_host2['id']).delete)
     rule = module_target_sat.api.DiscoveryRule(
         max_count=1,
         hostgroup=module_discovery_hostgroup,
