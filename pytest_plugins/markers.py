@@ -23,6 +23,7 @@ def pytest_configure(config):
         "no_containers: Disable container hosts from being used in favor of VMs",
         "include_capsule: For satellite-maintain tests to run on Satellite and Capsule both",
         "capsule_only: For satellite-maintain tests to run only on Capsules",
+        "manifester: Tests that require manifester",
     ]
     markers.extend(module_markers())
     for marker in markers:
