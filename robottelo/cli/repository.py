@@ -85,3 +85,9 @@ class Repository(Base):
         """Verify checksum of repository contents."""
         cls.command_sub = 'verify-checksum'
         return cls.execute(cls._construct_command(options), ignore_stderr=True)
+
+    @classmethod
+    def reclaim_space(cls, options):
+        """Remove disk space from a synced repository"""
+        cls.command_sub = 'reclaim-space'
+        return cls.execute(cls._construct_command(options), output_format='csv', ignore_stderr=True)

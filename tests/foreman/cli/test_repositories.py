@@ -125,3 +125,41 @@ def test_positive_disable_rh_repo_with_basearch(module_target_sat, module_entitl
         }
     )
     assert 'Repository disabled' in disabled_repo[0]['message']
+
+
+def test_positive_reclaim_space(module_target_sat, module_entitlement_manifest_org):
+    """Hammer repository reclaim-space should not throw any improper exceptions
+
+    :id: 74b669d8-ee6b-4fc6-864f-91410d7ea3c2
+
+    :steps:
+        1. Enable and sync an On Demand repo
+
+        2. hammer repository reclaim-space --id REPOID --organization-id ORGID
+
+
+    :expectedresults: Command works as expected
+
+    :customerscenario: true
+
+    :BZ: 2164997
+    """
+    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+        basearch=DEFAULT_ARCHITECTURE,
+        org_id=module_entitlement_manifest_org.id,
+        product=REPOS['kickstart']['rhel8_aps']['product'],
+        repo=REPOS['kickstart']['rhel8_aps']['name'],
+        reposet=REPOS['kickstart']['rhel8_aps']['reposet'],
+        releasever=REPOS['kickstart']['rhel8_aps']['version'],
+    )
+    repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+    repo.sync(timeout=600)
+    output = module_target_sat.cli.Repository.reclaim_space(
+        {
+            'organization-id': module_entitlement_manifest_org.id,
+            'id': rh_repo_id,
+        }
+    )
+    # Checking that the fail message isn't present. On a success, no message is returned
+    if output != {}:
+        assert 'Could not reclaim the repository' not in output[0]['message']
