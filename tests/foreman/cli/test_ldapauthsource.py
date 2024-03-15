@@ -134,7 +134,7 @@ class TestADAuthSource:
         result = module_target_sat.cli.Auth.with_user(
             username=ad_data['ldap_user_name'], password=ad_data['ldap_user_passwd']
         ).status()
-        assert LOGEDIN_MSG.format(ad_data['ldap_user_name']) in result[0]['message']
+        assert LOGEDIN_MSG.format(ad_data['ldap_user_name']) in result.split("\n")[1]
         module_target_sat.cli.UserGroupExternal.refresh(
             {'user-group-id': user_group['id'], 'name': member_group}
         )
