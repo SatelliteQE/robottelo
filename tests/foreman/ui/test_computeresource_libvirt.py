@@ -171,14 +171,8 @@ def test_positive_provision_end_to_end(
             }
         )
         name = f'{hostname}.{module_libvirt_provisioning_sat.domain.name}'
+        request.addfinalizer(lambda: sat.provisioning_cleanup(name))
         assert session.host.search(name)[0]['Name'] == name
-
-        # teardown
-        @request.addfinalizer
-        def _finalize():
-            host = sat.api.Host().search(query={'search': f'name="{name}"'})
-            if host:
-                host[0].delete()
 
         # Check on Libvirt, if VM exists
         result = sat.execute(

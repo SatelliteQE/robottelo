@@ -1988,6 +1988,7 @@ class TestInterSatelliteSync:
         meta_file = 'metadata.json'
         crt_file = 'source.crt'
         pub_dir = '/var/www/html/pub/repos'
+        request.addfinalizer(lambda: target_sat.execute(f'rm -rf {pub_dir}'))
 
         # Export the repository in syncable format and move it
         # to /var/www/html/pub/repos to mimic custom CDN.
@@ -2004,7 +2005,6 @@ class TestInterSatelliteSync:
         exp_dir = exp_dir[0].replace(meta_file, '')
 
         assert target_sat.execute(f'mv {exp_dir} {pub_dir}').status == 0
-        request.addfinalizer(lambda: target_sat.execute(f'rm -rf {pub_dir}'))
         target_sat.execute(f'semanage fcontext -a -t httpd_sys_content_t "{pub_dir}(/.*)?"')
         target_sat.execute(f'restorecon -R {pub_dir}')
 
