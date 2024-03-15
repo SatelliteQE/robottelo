@@ -303,6 +303,11 @@ def test_positive_sync_proxy_with_certificate(request, target_sat, module_org, m
 
     :customerscenario: true
     """
+
+    @request.addfinalizer
+    def _finalize():
+        target_sat.custom_certs_cleanup()
+
     # Cleanup any existing certs that may conflict
     target_sat.custom_certs_cleanup()
     proxy_host = settings.http_proxy.auth_proxy_url.replace('http://', '').replace(':3128', '')
