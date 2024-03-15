@@ -856,7 +856,7 @@ def test_host_errata_search_commands(
             'inclusion': 'false',
         }
     )
-    request.addfinalizer(
+    request.addfinalizer(lambda:
         cv_filter_cleanup(
             target_sat, cv_filter['filter-id'], module_cv, module_sca_manifest_org, module_lce
         )
