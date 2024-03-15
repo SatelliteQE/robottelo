@@ -220,7 +220,9 @@ def test_loadbalancer_install_package(
         if loadbalancer_setup['setup_capsules']['capsule_1'].hostname in result.stdout
         else loadbalancer_setup['setup_capsules']['capsule_2']
     )
-    request.addfinalizer(registered_to_capsule.power_control(state=VmState.RUNNING, ensure=True))
+    request.addfinalizer(
+        lambda: registered_to_capsule.power_control(state=VmState.RUNNING, ensure=True)
+    )
 
     # Remove the packages from the client
     result = rhel7_contenthost.execute('yum remove -y tree')
