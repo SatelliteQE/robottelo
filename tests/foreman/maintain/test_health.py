@@ -200,6 +200,13 @@ def test_negative_health_check_upstream_repository(sat_maintain, request):
 
     :expectedresults: check-upstream-repository health check should fail.
     """
+
+    @request.addfinalizer
+    def _finalize():
+        for name in upstream_url:
+            sat_maintain.execute(f'rm -fr /etc/yum.repos.d/{name}.repo')
+        sat_maintain.execute('dnf clean all')
+
     for name, url in upstream_url.items():
         sat_maintain.create_custom_repos(**{name: url})
     result = sat_maintain.cli.Health.check(
@@ -214,12 +221,6 @@ def test_negative_health_check_upstream_repository(sat_maintain, request):
             assert 'enabled=1' in result.stdout
         elif name in ['foreman_repo', 'puppet_repo']:
             assert 'enabled=0' in result.stdout
-
-    @request.addfinalizer
-    def _finalize():
-        for name in upstream_url:
-            sat_maintain.execute(f'rm -fr /etc/yum.repos.d/{name}.repo')
-        sat_maintain.execute('dnf clean all')
 
 
 def test_positive_health_check_available_space(sat_maintain):
@@ -259,14 +260,15 @@ def test_positive_hammer_defaults_set(sat_maintain, request):
 
     :customerscenario: true
     """
-    sat_maintain.cli.Defaults.add({'param-name': 'organization_id', 'param-value': 1})
-    result = sat_maintain.cli.Health.check(options={'assumeyes': True})
-    assert result.status == 0
-    assert 'FAIL' not in result.stdout
 
     @request.addfinalizer
     def _finalize():
         sat_maintain.cli.Defaults.delete({'param-name': 'organization_id'})
+
+    sat_maintain.cli.Defaults.add({'param-name': 'organization_id', 'param-value': 1})
+    result = sat_maintain.cli.Health.check(options={'assumeyes': True})
+    assert result.status == 0
+    assert 'FAIL' not in result.stdout
 
 
 @pytest.mark.include_capsule
@@ -287,6 +289,13 @@ def test_positive_health_check_hotfix_installed(sat_maintain, request):
     :expectedresults: check-hotfix-installed check should detect modified file
         and installed hotfix.
     """
+
+    @request.addfinalizer
+    def _finalize():
+        sat_maintain.execute('rm -fr /etc/yum.repos.d/custom_repo.repo')
+        sat_maintain.execute('dnf remove -y hotfix-package')
+        assert sat_maintain.execute(f'sed -i "/#modifying_file/d" {fpath.stdout}').status == 0
+
     # Verify check-hotfix-installed without hotfix package.
     result = sat_maintain.cli.Health.check(options={'label': 'check-hotfix-installed'})
     assert result.status == 0
@@ -305,12 +314,6 @@ def test_positive_health_check_hotfix_installed(sat_maintain, request):
     assert result.status == 78
     assert 'WARNING' in result.stdout
     assert 'hotfix-package' in result.stdout
-
-    @request.addfinalizer
-    def _finalize():
-        sat_maintain.execute('rm -fr /etc/yum.repos.d/custom_repo.repo')
-        sat_maintain.execute('dnf remove -y hotfix-package')
-        assert sat_maintain.execute(f'sed -i "/#modifying_file/d" {fpath.stdout}').status == 0
 
 
 @pytest.mark.include_capsule
@@ -364,16 +367,17 @@ def test_negative_health_check_epel_repository(request, sat_maintain):
 
     :expectedresults: check-non-redhat-repository health check should fail.
     """
+
+    @request.addfinalizer
+    def _finalize():
+        assert sat_maintain.execute('dnf remove -y epel-release').status == 0
+
     epel_repo = 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm'
     sat_maintain.execute(f'dnf install -y {epel_repo}')
     result = sat_maintain.cli.Health.check(options={'label': 'check-non-redhat-repository'})
     assert 'System is subscribed to non Red Hat repositories' in result.stdout
     assert result.status == 1
     assert 'FAIL' in result.stdout
-
-    @request.addfinalizer
-    def _finalize():
-        assert sat_maintain.execute('dnf remove -y epel-release').status == 0
 
 
 def test_positive_health_check_old_foreman_tasks(sat_maintain):
@@ -470,6 +474,14 @@ def test_positive_health_check_tftp_storage(sat_maintain, request):
 
     :expectedresults: check-tftp-storage health check should pass.
     """
+
+    @request.addfinalizer
+    def _finalize():
+        sat_maintain.cli.Settings.set({'name': 'token_duration', 'value': '360'})
+        assert (
+            sat_maintain.cli.Settings.list({'search': 'name=token_duration'})[0]['value'] == '360'
+        )
+
     sat_maintain.cli.Settings.set({'name': 'token_duration', 'value': '2'})
     assert sat_maintain.cli.Settings.list({'search': 'name=token_duration'})[0]['value'] == '2'
     files_to_delete = [
@@ -502,13 +514,6 @@ def test_positive_health_check_tftp_storage(sat_maintain, request):
     result = sat_maintain.cli.Health.check({'label': 'check-tftp-storage'})
     assert result.status == 0
     assert 'FAIL' not in result.stdout
-
-    @request.addfinalizer
-    def _finalize():
-        sat_maintain.cli.Settings.set({'name': 'token_duration', 'value': '360'})
-        assert (
-            sat_maintain.cli.Settings.list({'search': 'name=token_duration'})[0]['value'] == '360'
-        )
 
 
 @pytest.mark.include_capsule
@@ -619,10 +624,20 @@ def test_positive_health_check_corrupted_roles(sat_maintain, request):
 
     :BZ: 1703041, 1908846
     """
-    # Check the filter created to verify the role, resource type, and permissions assigned.
     role_name = 'test_role'
     resource_type = gen_string("alpha")
     sat_maintain.cli.Role.create(options={'name': role_name})
+
+    @request.addfinalizer
+    def _finalize():
+        resource_type = r"'\''Host'\''"
+        sat_maintain.execute(
+            f'''sudo su - postgres -c "psql -d foreman -c 'UPDATE permissions SET
+                        resource_type = {resource_type} WHERE name = {permission_name};'"'''
+        )
+        sat_maintain.cli.Role.delete(options={'name': role_name})
+
+    # Check the filter created to verify the role, resource type, and permissions assigned.
     sat_maintain.cli.Filter.create(
         options={'role': role_name, 'permissions': ['view_hosts', 'console_hosts']}
     )
@@ -643,15 +658,6 @@ def test_positive_health_check_corrupted_roles(sat_maintain, request):
     # Verify corrupted roles are fixed and new filter is created for updated resource_type.
     result = sat_maintain.cli.Filter.list(options={'search': role_name}, output_format='yaml')
     assert result.count('Id') == 4
-
-    @request.addfinalizer
-    def _finalize():
-        resource_type = r"'\''Host'\''"
-        sat_maintain.execute(
-            f'''sudo su - postgres -c "psql -d foreman -c 'UPDATE permissions SET
-                        resource_type = {resource_type} WHERE name = {permission_name};'"'''
-        )
-        sat_maintain.cli.Role.delete(options={'name': role_name})
 
 
 @pytest.mark.include_capsule
@@ -677,6 +683,12 @@ def test_positive_health_check_non_rh_packages(sat_maintain, request):
 
     :CaseImportance: High
     """
+
+    @request.addfinalizer
+    def _finalize():
+        assert sat_maintain.execute('dnf remove -y  walrus').status == 0
+        assert sat_maintain.execute('rm -fr /etc/yum.repos.d/custom_repo.repo').status == 0
+
     sat_maintain.create_custom_repos(custom_repo=settings.repos.yum_0.url)
     assert (
         sat_maintain.cli.Packages.install(packages='walrus', options={'assumeyes': True}).status
@@ -687,11 +699,6 @@ def test_positive_health_check_non_rh_packages(sat_maintain, request):
     assert 'walrus-5.21-1.noarch' in result.stdout
     assert result.status == 78
     assert 'WARNING' in result.stdout
-
-    @request.addfinalizer
-    def _finalize():
-        assert sat_maintain.execute('dnf remove -y  walrus').status == 0
-        assert sat_maintain.execute('rm -fr /etc/yum.repos.d/custom_repo.repo').status == 0
 
 
 def test_positive_health_check_duplicate_permissions(sat_maintain):

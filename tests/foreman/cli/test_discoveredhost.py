@@ -70,10 +70,8 @@ def test_rhel_pxe_discovery_provisioning(
 
     assert 'Host created' in result[0]['message']
     host = sat.api.Host().search(query={"search": f'id={discovered_host.id}'})[0]
-    assert host
-
-    # teardown
     request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
+    assert host
 
     wait_for(
         lambda: host.read().build_status_label != 'Pending installation',
@@ -131,10 +129,8 @@ def test_rhel_pxeless_discovery_provisioning(
     )
     assert 'Host created' in result[0]['message']
     host = sat.api.Host().search(query={"search": f'id={discovered_host.id}'})[0]
-    assert host
-
-    # teardown
     request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
+    assert host
 
     wait_for(
         lambda: host.read().build_status_label != 'Pending installation',

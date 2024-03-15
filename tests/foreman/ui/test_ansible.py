@@ -178,6 +178,13 @@ def test_positive_ansible_custom_role(target_sat, session, module_org, rhel_cont
 
     :CaseComponent: Ansible-RemoteExecution
     """
+
+    @request.addfinalizer
+    def _finalize():
+        result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
+        assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
+        target_sat.execute('rm -rvf /etc/ansible/roles/custom_role')
+
     SELECTED_ROLE = 'custom_role'
     playbook = f'{robottelo_tmp_dir}/playbook.yml'
     data = {
@@ -230,12 +237,6 @@ def test_positive_ansible_custom_role(target_sat, session, module_org, rhel_cont
         session.configreport.search(rhel_contenthost.hostname)
         session.configreport.delete(rhel_contenthost.hostname)
         assert len(session.configreport.read()['table']) == 0
-
-    @request.addfinalizer
-    def _finalize():
-        result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
-        assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
-        target_sat.execute('rm -rvf /etc/ansible/roles/custom_role')
 
 
 @pytest.mark.tier2

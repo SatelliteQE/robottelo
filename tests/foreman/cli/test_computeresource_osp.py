@@ -76,6 +76,7 @@ class TestOSPComputeResourceTestCase:
                 'url': osp_version,
             }
         )
+        request.addfinalizer(lambda: self.cr_cleanup(compute_resource['id'], id_type, target_sat))
         assert compute_resource['name'] == name
         assert target_sat.cli.ComputeResource.exists(search=(id_type, compute_resource[id_type]))
 
@@ -102,7 +103,6 @@ class TestOSPComputeResourceTestCase:
         else:
             compute_resource = target_sat.cli.ComputeResource.info({'id': compute_resource['id']})
         assert new_name == compute_resource['name']
-        request.addfinalizer(lambda: self.cr_cleanup(compute_resource['id'], id_type, target_sat))
 
     @pytest.mark.tier3
     def test_negative_create_osp_with_url(self, target_sat):
