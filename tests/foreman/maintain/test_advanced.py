@@ -75,6 +75,22 @@ def test_positive_advanced_run_hammer_setup(request, sat_maintain):
 
     :BZ: 1830355
     """
+
+    @request.addfinalizer
+    def _finalize():
+        result = sat_maintain.execute(
+            f'hammer -u admin -p admin user update --login admin --password {default_admin_pass}'
+        )
+        assert result.status == 0
+        # Make default admin creds available in MAINTAIN_HAMMER_YML
+        assert sat_maintain.cli.Advanced.run_hammer_setup().status == 0
+        # Make sure default password available in MAINTAIN_HAMMER_YML
+        result = sat_maintain.execute(
+            f"grep -i ':password: {default_admin_pass}' {MAINTAIN_HAMMER_YML}"
+        )
+        assert result.status == 0
+        assert default_admin_pass in result.stdout
+
     default_admin_pass = settings.server.admin_password
     result = sat_maintain.execute(
         f'hammer -u admin -p {default_admin_pass} user update --login admin --password admin'
@@ -100,21 +116,6 @@ def test_positive_advanced_run_hammer_setup(request, sat_maintain):
     assert result.status == 0
     assert 'admin' in result.stdout
 
-    @request.addfinalizer
-    def _finalize():
-        result = sat_maintain.execute(
-            f'hammer -u admin -p admin user update --login admin --password {default_admin_pass}'
-        )
-        assert result.status == 0
-        # Make default admin creds available in MAINTAIN_HAMMER_YML
-        assert sat_maintain.cli.Advanced.run_hammer_setup().status == 0
-        # Make sure default password available in MAINTAIN_HAMMER_YML
-        result = sat_maintain.execute(
-            f"grep -i ':password: {default_admin_pass}' {MAINTAIN_HAMMER_YML}"
-        )
-        assert result.status == 0
-        assert default_admin_pass in result.stdout
-
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
@@ -131,6 +132,12 @@ def test_positive_advanced_run_packages(request, sat_maintain):
 
     :expectedresults: packages should install/downgrade/check-update/update.
     """
+
+    @request.addfinalizer
+    def _finalize():
+        assert sat_maintain.execute('dnf remove -y walrus').status == 0
+        sat_maintain.execute('rm -rf /etc/yum.repos.d/custom_repo.repo')
+
     # Setup custom_repo and install walrus package
     sat_maintain.create_custom_repos(custom_repo=settings.repos.yum_0.url)
     result = sat_maintain.cli.Advanced.run_packages_install(
@@ -159,11 +166,6 @@ def test_positive_advanced_run_packages(request, sat_maintain):
     result = sat_maintain.execute('rpm -qa walrus')
     assert result.status == 0
     assert 'walrus-5.21-1' in result.stdout
-
-    @request.addfinalizer
-    def _finalize():
-        assert sat_maintain.execute('dnf remove -y walrus').status == 0
-        sat_maintain.execute('rm -rf /etc/yum.repos.d/custom_repo.repo')
 
 
 @pytest.mark.parametrize(
@@ -250,6 +252,7 @@ def test_positive_sync_plan_with_hammer_defaults(request, sat_maintain, module_o
 
     :customerscenario: true
     """
+
     sat_maintain.cli.Defaults.add({'param-name': 'organization_id', 'param-value': module_org.id})
 
     sync_plans = []
@@ -257,16 +260,6 @@ def test_positive_sync_plan_with_hammer_defaults(request, sat_maintain, module_o
         sync_plans.append(
             sat_maintain.api.SyncPlan(enabled=True, name=name, organization=module_org).create()
         )
-
-    result = sat_maintain.cli.Advanced.run_sync_plans_disable()
-    assert 'FAIL' not in result.stdout
-    assert result.status == 0
-
-    sync_plans[0].delete()
-
-    result = sat_maintain.cli.Advanced.run_sync_plans_enable()
-    assert 'FAIL' not in result.stdout
-    assert result.status == 0
 
     @request.addfinalizer
     def _finalize():
@@ -277,6 +270,16 @@ def test_positive_sync_plan_with_hammer_defaults(request, sat_maintain, module_o
         )
         if sync_plan:
             sync_plans[0].delete()
+
+    result = sat_maintain.cli.Advanced.run_sync_plans_disable()
+    assert 'FAIL' not in result.stdout
+    assert result.status == 0
+
+    sync_plans[0].delete()
+
+    result = sat_maintain.cli.Advanced.run_sync_plans_enable()
+    assert 'FAIL' not in result.stdout
+    assert result.status == 0
 
 
 @pytest.mark.e2e
