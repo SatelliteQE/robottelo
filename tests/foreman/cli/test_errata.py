@@ -688,7 +688,7 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
             'inclusion': 'false',
         }
     )
-    request.addfinalizer(
+    request.addfinalizer(lambda:
         cv_filter_cleanup(
             target_sat, cv_filter['filter-id'], module_cv, module_sca_manifest_org, module_lce
         )
