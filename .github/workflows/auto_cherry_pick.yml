@@ -23,7 +23,7 @@ jobs:
       prt_comment: ${{steps.fc.outputs.comment-body}}
     steps:
       - name: Find Comment
-        uses: peter-evans/find-comment@v2
+        uses: peter-evans/find-comment@v3
         id: fc
         with:
           issue-number: ${{ env.number }}
@@ -76,7 +76,7 @@ jobs:
 
       - name: Add Parent PR's PRT comment to Auto_Cherry_Picked PR's
         id: add-parent-prt-comment
-        if: ${{ always() && steps.cherrypick.outcome == 'success' }}
+        if: ${{ always() && needs.find-the-parent-prt-comment.outputs.prt_comment != '' && steps.cherrypick.outcome == 'success' }}
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
@@ -98,15 +98,24 @@ jobs:
             })
 
       - name: Check if cherrypick pr is created
-        uses: juliangruber/find-pull-request-action@v1
-        id: fpr
-        with:
-          branch: ${{ matrix.label }}
+        id: search_pr
+        if: always()
+        run: |
+          PR_TITLE="[${{ matrix.label }}] ${{ env.title }}"
+          API_URL="https://api.github.com/repos/${{ github.repository }}/pulls?state=open"
+          PR_SEARCH_RESULT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$API_URL" | jq --arg title "$PR_TITLE" '.[] | select(.title == $title)')
+          if [ -n "$PR_SEARCH_RESULT" ]; then
+            echo "pr_found=true" >> $GITHUB_OUTPUT
+            echo "PR is Found with title $PR_TITLE"
+          else
+            echo "pr_found=false" >> $GITHUB_OUTPUT
+            echo "PR is not Found with title $PR_TITLE"
+          fi
 
-      ## Failure Logging to issues and GChat Group
+      ## Failure Logging to issues
       - name: Create Github issue on cherrypick failure
         id: create-issue
-        if: ${{ always() && steps.fpr.outputs.number != '' && steps.cherrypick.outcome != 'success' && startsWith(matrix.label, '6.') && matrix.label != github.base_ref }}
+        if: ${{ always() && steps.search_pr.outputs.pr_found == 'false' && steps.cherrypick.outcome != 'success' && startsWith(matrix.label, '6.') && matrix.label != github.base_ref }}
         uses: dacbd/create-issue-action@main
         with:
           token: ${{ secrets.CHERRYPICK_PAT }}
