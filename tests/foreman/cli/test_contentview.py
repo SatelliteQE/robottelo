@@ -4124,6 +4124,7 @@ class TestContentView:
             -1
         ]
         assert lce_preprod['id'] == promoted_lce['id']
+
         # Try to promote version 1.0 from Preprod to Prod, this should success without warning
         target_sat.cli.ContentView.version_promote(
             {'id': cv_version['id'], 'to-lifecycle-environment-id': lce_prod['id']}
