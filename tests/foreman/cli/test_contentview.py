@@ -4101,7 +4101,7 @@ class TestContentView:
         cv = target_sat.cli_factory.make_content_view({'organization-id': function_org.id})
         target_sat.cli.ContentView.publish({'id': cv['id']})
 
-        # Promote version 1.0 to Preprod, skip Library, this should fail with warning
+        # Promote version 1.0 to Preprod, skip Test, this should fail with warning
         cv_version = target_sat.cli.ContentView.info({'id': cv['id']})['versions'][0]
         with pytest.raises(CLIReturnCodeError) as error:
             target_sat.cli.ContentView.version_promote(
