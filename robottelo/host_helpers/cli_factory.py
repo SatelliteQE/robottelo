@@ -33,7 +33,7 @@ from robottelo.host_helpers.repository_mixins import initiate_repo_helpers
 from robottelo.utils.manifest import clone
 
 
-def create_object(cli_object, options, values=None, credentials=None):
+def create_object(cli_object, options, values=None, credentials=None, timeout=None):
     """
     Creates <object> with dictionary of arguments.
 
@@ -52,7 +52,7 @@ def create_object(cli_object, options, values=None, credentials=None):
     if credentials:
         cli_object = cli_object.with_user(*credentials)
     try:
-        result = cli_object.create(options)
+        result = cli_object.create(options, timeout)
     except CLIReturnCodeError as err:
         # If the object is not created, raise exception, stop the show.
         raise CLIFactoryError(
