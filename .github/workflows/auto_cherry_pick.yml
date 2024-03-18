@@ -3,7 +3,7 @@ name: auto_cherry_pick_commits
 
 on:
   pull_request_target:
-    types: [closed, labeled]
+    types: [closed]
 
 # Github & Parent PR Env vars
 env:
@@ -23,11 +23,12 @@ jobs:
       prt_comment: ${{steps.fc.outputs.comment-body}}
     steps:
       - name: Find Comment
-        uses: peter-evans/find-comment@v2
+        uses: peter-evans/find-comment@v3
         id: fc
         with:
           issue-number: ${{ env.number }}
           body-includes: "trigger: test-robottelo"
+          direction: last
 
   # Auto CherryPicking and Failure Recording
   auto-cherry-pick:
@@ -40,6 +41,12 @@ jobs:
         label: ${{ github.event.pull_request.labels.*.name }}
 
     steps:
+      # Needed to avoid out-of-memory error
+      - name: Set Swap Space
+        uses: pierotofy/set-swap-space@master
+        with:
+          swap-size-gb: 10
+
       ## Robottelo Repo Checkout
       - uses: actions/checkout@v4
         if: ${{ startsWith(matrix.label, '6.') && matrix.label != github.base_ref }}
@@ -69,12 +76,13 @@ jobs:
 
       - name: Add Parent PR's PRT comment to Auto_Cherry_Picked PR's
         id: add-parent-prt-comment
-        if: ${{ always() && steps.cherrypick.outcome == 'success' }}
-        uses: mshick/add-pr-comment@v2
+        if: ${{ always() && needs.find-the-parent-prt-comment.outputs.prt_comment != '' && steps.cherrypick.outcome == 'success' }}
+        uses: thollander/actions-comment-pull-request@v2
         with:
-          issue: ${{ steps.cherrypick.outputs.number }}
-          message: ${{ needs.find-the-parent-prt-comment.outputs.prt_comment }}
-          repo-token: ${{ secrets.CHERRYPICK_PAT }}
+          message: |
+            ${{ needs.find-the-parent-prt-comment.outputs.prt_comment }}
+          pr_number: ${{ steps.cherrypick.outputs.number  }}
+          GITHUB_TOKEN: ${{ secrets.CHERRYPICK_PAT }}
 
       - name: is autoMerging enabled for Auto CherryPicked PRs ?
         if: ${{ always() && steps.cherrypick.outcome == 'success' && contains(github.event.pull_request.labels.*.name, 'AutoMerge_Cherry_Picked') }}
@@ -89,10 +97,25 @@ jobs:
               labels: ["AutoMerge_Cherry_Picked"]
             })
 
-      ## Failure Logging to issues and GChat Group
+      - name: Check if cherrypick pr is created
+        id: search_pr
+        if: always()
+        run: |
+          PR_TITLE="[${{ matrix.label }}] ${{ env.title }}"
+          API_URL="https://api.github.com/repos/${{ github.repository }}/pulls?state=open"
+          PR_SEARCH_RESULT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$API_URL" | jq --arg title "$PR_TITLE" '.[] | select(.title == $title)')
+          if [ -n "$PR_SEARCH_RESULT" ]; then
+            echo "pr_found=true" >> $GITHUB_OUTPUT
+            echo "PR is Found with title $PR_TITLE"
+          else
+            echo "pr_found=false" >> $GITHUB_OUTPUT
+            echo "PR is not Found with title $PR_TITLE"
+          fi
+
+      ## Failure Logging to issues
       - name: Create Github issue on cherrypick failure
         id: create-issue
-        if: ${{ always() && steps.cherrypick.outcome != 'success' && startsWith(matrix.label, '6.') && matrix.label != github.base_ref }}
+        if: ${{ always() && steps.search_pr.outputs.pr_found == 'false' && steps.cherrypick.outcome != 'success' && startsWith(matrix.label, '6.') && matrix.label != github.base_ref }}
         uses: dacbd/create-issue-action@main
         with:
           token: ${{ secrets.CHERRYPICK_PAT }}
