@@ -4073,7 +4073,7 @@ class TestContentView:
         :steps:
             1. Create an environment path ex- Library >> Test >> Preprod >> Prod
             2. Create a CV and publish into the Library
-            3. Promote version 1.0 to Preprod, skip Library, this should fail with warning
+            3. Promote version 1.0 to Preprod, skip Test, this should fail with warning
             4. Promote version 1.0 to Preprod using force, this should success
             5. Try to promote version 1.0 from Preprod to Prod, this should success without warning
 
