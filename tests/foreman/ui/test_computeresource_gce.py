@@ -161,8 +161,17 @@ def test_positive_gce_provision_end_to_end(
 
     :expectedresults: Host is provisioned successfully
     """
+
     name = f'test{gen_string("alpha", 4).lower()}'
     hostname = f'{name}.{gce_domain.name}'
+
+    @request.addfinalizer
+    def _finalize():
+        gcehost = sat_gce.api.Host().search(query={'search': f'name={hostname}'})
+        if gcehost:
+            gcehost[0].delete()
+        googleclient.disconnect()
+
     gceapi_vmname = hostname.replace('.', '-')
     root_pwd = gen_string('alpha', 15)
     storage = [{'size': 20}]
@@ -214,13 +223,6 @@ def test_positive_gce_provision_end_to_end(
             # 2.2 GCE Backend Assertions
             assert gceapi_vm.is_stopping or gceapi_vm.is_stopped
 
-    @request.addfinalizer
-    def _finalize():
-        gcehost = sat_gce.api.Host().search(query={'search': f'name={hostname}'})
-        if gcehost:
-            gcehost[0].delete()
-        googleclient.disconnect()
-
 
 @pytest.mark.tier4
 @pytest.mark.upgrade
@@ -247,6 +249,14 @@ def test_positive_gce_cloudinit_provision_end_to_end(
     """
     name = f'test{gen_string("alpha", 4).lower()}'
     hostname = f'{name}.{gce_domain.name}'
+
+    @request.addfinalizer
+    def _finalize():
+        gcehost = sat_gce.api.Host().search(query={'search': f'name={hostname}'})
+        if gcehost:
+            gcehost[0].delete()
+        googleclient.disconnect()
+
     gceapi_vmname = hostname.replace('.', '-')
     storage = [{'size': 20}]
     root_pwd = gen_string('alpha', random.choice([8, 15]))
@@ -290,10 +300,3 @@ def test_positive_gce_cloudinit_provision_end_to_end(
             assert not sat_gce.api.Host().search(query={'search': f'name="{hostname}"'})
             # 2.2 GCE Backend Assertions
             assert gceapi_vm.is_stopping or gceapi_vm.is_stopped
-
-    @request.addfinalizer
-    def _finalize():
-        gcehost = sat_gce.api.Host().search(query={'search': f'name={hostname}'})
-        if gcehost:
-            gcehost[0].delete()
-        googleclient.disconnect()
