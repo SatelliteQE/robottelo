@@ -21,6 +21,7 @@ from robottelo.utils.datafactory import valid_data_list
 @pytest.fixture(scope='module')
 def module_hostgroup(module_org, module_target_sat):
     module_hostgroup = module_target_sat.api.HostGroup(organization=[module_org]).create()
+    yield module_hostgroup
     module_hostgroup.delete()
 
 
