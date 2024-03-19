@@ -39,7 +39,9 @@ def test_positive_parameter_precedence_impact(
     param_value = gen_string('alpha')
 
     cp = module_target_sat.api.CommonParameter(name=param_name, value=param_value).create()
+    request.addfinalizer(cp.delete)
     host = module_target_sat.api.Host(organization=module_org, location=module_location).create()
+    request.addfinalizer(host.delete)
     result = [res for res in host.all_parameters if res['name'] == param_name]
     assert result[0]['name'] == param_name
     assert result[0]['associated_type'] == 'global'
@@ -48,18 +50,13 @@ def test_positive_parameter_precedence_impact(
         organization=[module_org],
         group_parameters_attributes=[{'name': param_name, 'value': param_value}],
     ).create()
+    request.addfinalizer(hg.delete)
     host.hostgroup = hg
     host = host.update(['hostgroup'])
     result = [res for res in host.all_parameters if res['name'] == param_name]
     assert result[0]['name'] == param_name
     assert result[0]['associated_type'] != 'global'
     assert result[0]['associated_type'] == 'host group'
-
-    @request.addfinalizer
-    def _finalize():
-        host.delete()
-        hg.delete()
-        cp.delete()
 
     host.host_parameters_attributes = [{'name': param_name, 'value': param_value}]
     host = host.update(['host_parameters_attributes'])

@@ -12,19 +12,35 @@ interactions and use capsule.
 :CaseImportance: High
 
 """
-from datetime import datetime
+
+from datetime import datetime, timedelta
 import re
 from time import sleep
 
 from nailgun import client
+from nailgun.config import ServerConfig
 from nailgun.entity_mixins import call_entity_method_with_timeout
 import pytest
+from requests.exceptions import HTTPError
 
-from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import (
+    CONTAINER_CLIENTS,
     CONTAINER_REGISTRY_HUB,
     CONTAINER_UPSTREAM_NAME,
+    ENVIRONMENT,
+    FAKE_1_YUM_REPOS_COUNT,
+    FAKE_3_YUM_REPO_RPMS,
+    FAKE_3_YUM_REPOS_COUNT,
+    FAKE_FILE_LARGE_COUNT,
+    FAKE_FILE_LARGE_URL,
+    FAKE_FILE_NEW_NAME,
+    KICKSTART_CONTENT,
+    PRDS,
+    REPOS,
+    REPOSET,
+    RH_CONTAINER_REGISTRY_HUB,
+    RPM_TO_UPLOAD,
     DataFile,
 )
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
@@ -33,7 +49,23 @@ from robottelo.content_info import (
     get_repomd,
     get_repomd_revision,
 )
+from robottelo.utils.datafactory import gen_string
 from robottelo.utils.issue_handlers import is_open
+
+
+@pytest.fixture
+def default_non_admin_user(target_sat, default_org, default_location):
+    """Non-admin user with no roles assigned in the Default org/loc."""
+    password = gen_string('alphanumeric')
+    user = target_sat.api.User(
+        login=gen_string('alpha'),
+        password=password,
+        organization=[default_org],
+        location=[default_location],
+    ).create()
+    user.password = password
+    yield user
+    user.delete()
 
 
 @pytest.mark.run_in_one_thread
@@ -83,13 +115,13 @@ class TestCapsuleContentManagement:
 
         assert repo.read().content_counts['rpm'] == 1
 
+        timestamp = datetime.utcnow().replace(microsecond=0)
         # Publish new version of the content view
         cv.publish()
+        # query sync status as publish invokes sync, task succeeds
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
         cv = cv.read()
-
         assert len(cv.version) == 1
-
-        module_capsule_configured.wait_for_sync()
 
         # Verify the RPM published on Capsule
         caps_repo_url = module_capsule_configured.get_published_repo_url(
@@ -101,7 +133,7 @@ class TestCapsuleContentManagement:
         )
         caps_files = get_repo_files_by_url(caps_repo_url)
         assert len(caps_files) == 1
-        assert caps_files[0] == constants.RPM_TO_UPLOAD
+        assert caps_files[0] == RPM_TO_UPLOAD
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
@@ -149,12 +181,12 @@ class TestCapsuleContentManagement:
         assert len(cv.version) == 1
 
         cvv = cv.version[-1].read()
+        timestamp = datetime.utcnow()
         cvv.promote(data={'environment_ids': function_lce.id})
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
+
         cvv = cvv.read()
-
         assert len(cvv.environment) == 2
-
-        module_capsule_configured.wait_for_sync()
 
         # Verify repodata's checksum type is sha256, not sha1 on capsule
         repo_url = module_capsule_configured.get_published_repo_url(
@@ -182,12 +214,12 @@ class TestCapsuleContentManagement:
 
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
+        timestamp = datetime.utcnow()
         cvv.promote(data={'environment_ids': function_lce.id})
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
-
         assert len(cvv.environment) == 2
-
-        module_capsule_configured.wait_for_sync()
 
         # Verify repodata's checksum type has updated to sha1 on capsule
         repomd = get_repomd(repo_url)
@@ -257,11 +289,12 @@ class TestCapsuleContentManagement:
         assert len(cv.version) == 1
 
         cvv = cv.version[-1].read()
+        timestamp = datetime.utcnow()
         cvv.promote(data={'environment_ids': function_lce.id})
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
-
-        module_capsule_configured.wait_for_sync()
 
         # Upload more content to the repository
         with open(DataFile.SRPM_TO_UPLOAD, 'rb') as handle:
@@ -276,11 +309,12 @@ class TestCapsuleContentManagement:
 
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
+        timestamp = datetime.utcnow()
         cvv.promote(data={'environment_ids': function_lce.id})
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
-
-        module_capsule_configured.wait_for_sync()
 
         # Check the content is synced on the Capsule side properly
         sat_repo_url = target_sat.get_published_repo_url(
@@ -357,18 +391,24 @@ class TestCapsuleContentManagement:
         assert len(cv.version) == 1
 
         cvv = cv.version[-1].read()
-        # Promote content view to lifecycle environment
+        # prior to trigger (promoting), assert no active sync tasks
+        active_tasks = module_capsule_configured.nailgun_capsule.content_get_sync(
+            synchronous=True, timeout=600
+        )['active_sync_tasks']
+        assert len(active_tasks) == 0
+        # Promote content view to lifecycle environment,
+        # invoking capsule sync task(s)
+        timestamp = datetime.utcnow()
         cvv.promote(data={'environment_ids': function_lce.id})
-        cvv = cvv.read()
 
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
+        cvv = cvv.read()
         assert len(cvv.environment) == 2
 
         # Content of the published content view in
         # lifecycle environment should equal content of the
         # repository
         assert repo.content_counts['rpm'] == cvv.package_count
-
-        module_capsule_configured.wait_for_sync()
 
         # Assert that the content published on the capsule is exactly the
         # same as in repository on satellite
@@ -404,14 +444,14 @@ class TestCapsuleContentManagement:
         cv = cv.read()
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
-        # Promote new content view version to lifecycle environment
+        # Promote new content view version to lifecycle environment,
+        # capsule sync task(s) invoked and succeed
+        timestamp = datetime.utcnow()
         cvv.promote(data={'environment_ids': function_lce.id})
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
-
         assert len(cvv.environment) == 2
-
-        module_capsule_configured.wait_for_sync()
-
         # Assert that the value of repomd revision of repository in
         # lifecycle environment on the capsule has not changed
         new_lce_revision_capsule = get_repomd_revision(caps_repo_url)
@@ -427,20 +467,21 @@ class TestCapsuleContentManagement:
         cv = cv.read()
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
-        cvv.promote(data={'environment_ids': function_lce.id})
-        cvv = cvv.read()
 
+        timestamp = datetime.utcnow()
+        cvv.promote(data={'environment_ids': function_lce.id})
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
+        cvv = cvv.read()
         assert len(cvv.environment) == 2
 
         # Assert that packages count in the repository is updated
-        assert repo.content_counts['rpm'] == (constants.FAKE_1_YUM_REPOS_COUNT + 1)
+        assert repo.content_counts['rpm'] == (FAKE_1_YUM_REPOS_COUNT + 1)
 
         # Assert that the content of the published content view in
         # lifecycle environment is exactly the same as content of the
         # repository
         assert repo.content_counts['rpm'] == cvv.package_count
-
-        module_capsule_configured.wait_for_sync()
 
         # Assert that the content published on the capsule is exactly the
         # same as in the repository
@@ -451,7 +492,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients')
     def test_positive_iso_library_sync(
-        self, module_capsule_configured, module_entitlement_manifest_org, module_target_sat
+        self, module_capsule_configured, module_sca_manifest_org, module_target_sat
     ):
         """Ensure RH repo with ISOs after publishing to Library is synchronized
         to capsule automatically
@@ -467,18 +508,18 @@ class TestCapsuleContentManagement:
         # Enable & sync RH repository with ISOs
         rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_entitlement_manifest_org.id,
-            product=constants.PRDS['rhsc'],
-            repo=constants.REPOS['rhsc7_iso']['name'],
-            reposet=constants.REPOSET['rhsc7_iso'],
+            org_id=module_sca_manifest_org.id,
+            product=PRDS['rhsc'],
+            repo=REPOS['rhsc7_iso']['name'],
+            reposet=REPOSET['rhsc7_iso'],
             releasever=None,
         )
         rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
         call_entity_method_with_timeout(rh_repo.sync, timeout=2500)
         # Find "Library" lifecycle env for specific organization
         lce = module_target_sat.api.LifecycleEnvironment(
-            organization=module_entitlement_manifest_org
-        ).search(query={'search': f'name={constants.ENVIRONMENT}'})[0]
+            organization=module_sca_manifest_org
+        ).search(query={'search': f'name={ENVIRONMENT}'})[0]
 
         # Associate the lifecycle environment with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
@@ -491,23 +532,23 @@ class TestCapsuleContentManagement:
 
         # Create a content view with the repository
         cv = module_target_sat.api.ContentView(
-            organization=module_entitlement_manifest_org, repository=[rh_repo]
+            organization=module_sca_manifest_org, repository=[rh_repo]
         ).create()
         # Publish new version of the content view
+        timestamp = datetime.utcnow()
         cv.publish()
-        cv = cv.read()
 
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
+        cv = cv.read()
         assert len(cv.version) == 1
 
         # Verify ISOs are present on satellite
         sat_isos = get_repo_files_by_url(rh_repo.full_path, extension='iso')
         assert len(sat_isos) == 4
 
-        module_capsule_configured.wait_for_sync()
-
         # Verify all the ISOs are present on capsule
         caps_path = (
-            f'{module_capsule_configured.url}/pulp/content/{module_entitlement_manifest_org.label}'
+            f'{module_capsule_configured.url}/pulp/content/{module_sca_manifest_org.label}'
             f'/{lce.label}/{cv.label}/content/dist/rhel/server/7/7Server/x86_64/sat-capsule/6.4/'
             'iso/'
         )
@@ -540,8 +581,8 @@ class TestCapsuleContentManagement:
                the original package from the upstream repo
         """
         repo_url = settings.repos.yum_3.url
-        packages_count = constants.FAKE_3_YUM_REPOS_COUNT
-        package = constants.FAKE_3_YUM_REPO_RPMS[0]
+        packages_count = FAKE_3_YUM_REPOS_COUNT
+        package = FAKE_3_YUM_REPO_RPMS[0]
         repo = target_sat.api.Repository(
             download_policy='on_demand',
             mirroring_policy='mirror_complete',
@@ -573,12 +614,12 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
+        timestamp = datetime.utcnow()
         cvv.promote(data={'environment_ids': function_lce.id})
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
-
         assert len(cvv.environment) == 2
-
-        module_capsule_configured.wait_for_sync()
 
         # Verify packages on Capsule match the source
         caps_repo_url = module_capsule_configured.get_published_repo_url(
@@ -624,7 +665,7 @@ class TestCapsuleContentManagement:
             filesystem contains valid links to packages
         """
         repo_url = settings.repos.yum_1.url
-        packages_count = constants.FAKE_1_YUM_REPOS_COUNT
+        packages_count = FAKE_1_YUM_REPOS_COUNT
         repo = target_sat.api.Repository(
             download_policy='on_demand',
             mirroring_policy='mirror_complete',
@@ -655,12 +696,12 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
+        timestamp = datetime.utcnow()
         cvv.promote(data={'environment_ids': function_lce.id})
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
-
         assert len(cvv.environment) == 2
-
-        module_capsule_configured.wait_for_sync()
 
         # Update download policy to 'immediate'
         repo.download_policy = 'immediate'
@@ -683,12 +724,12 @@ class TestCapsuleContentManagement:
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
+        timestamp = datetime.utcnow()
         cvv.promote(data={'environment_ids': function_lce.id})
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
-
         assert len(cvv.environment) == 2
-
-        module_capsule_configured.wait_for_sync()
 
         # Verify the count of RPMs published on Capsule
         caps_repo_url = module_capsule_configured.get_published_repo_url(
@@ -730,7 +771,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.skip_if_not_set('capsule', 'clients')
     @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos'])
     def test_positive_sync_kickstart_repo(
-        self, target_sat, module_capsule_configured, function_entitlement_manifest_org, distro
+        self, target_sat, module_capsule_configured, function_sca_manifest_org, distro
     ):
         """Sync kickstart repository to the capsule.
 
@@ -751,16 +792,14 @@ class TestCapsuleContentManagement:
         """
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=function_entitlement_manifest_org.id,
-            product=constants.REPOS['kickstart'][distro]['product'],
-            reposet=constants.REPOS['kickstart'][distro]['reposet'],
-            repo=constants.REPOS['kickstart'][distro]['name'],
-            releasever=constants.REPOS['kickstart'][distro]['version'],
+            org_id=function_sca_manifest_org.id,
+            product=REPOS['kickstart'][distro]['product'],
+            reposet=REPOS['kickstart'][distro]['reposet'],
+            repo=REPOS['kickstart'][distro]['name'],
+            releasever=REPOS['kickstart'][distro]['version'],
         )
         repo = target_sat.api.Repository(id=repo_id).read()
-        lce = target_sat.api.LifecycleEnvironment(
-            organization=function_entitlement_manifest_org
-        ).create()
+        lce = target_sat.api.LifecycleEnvironment(organization=function_sca_manifest_org).create()
         # Associate the lifecycle environment with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': lce.id}
@@ -775,7 +814,7 @@ class TestCapsuleContentManagement:
 
         # Create a content view with the repository
         cv = target_sat.api.ContentView(
-            organization=function_entitlement_manifest_org, repository=[repo]
+            organization=function_sca_manifest_org, repository=[repo]
         ).create()
         # Sync repository
         repo.sync(timeout='10m')
@@ -788,26 +827,26 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
+        timestamp = datetime.utcnow()
         cvv.promote(data={'environment_ids': lce.id})
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
-
         assert len(cvv.environment) == 2
-
-        module_capsule_configured.wait_for_sync()
 
         # Check for kickstart content on SAT and CAPS
         tail = (
-            f'rhel/server/7/{constants.REPOS["kickstart"][distro]["version"]}/x86_64/kickstart'
+            f'rhel/server/7/{REPOS["kickstart"][distro]["version"]}/x86_64/kickstart'
             if distro == 'rhel7'
-            else f'{distro.split("_")[0]}/{constants.REPOS["kickstart"][distro]["version"]}/x86_64/baseos/kickstart'  # noqa:E501
+            else f'{distro.split("_")[0]}/{REPOS["kickstart"][distro]["version"]}/x86_64/baseos/kickstart'  # noqa:E501
         )
         url_base = (
-            f'pulp/content/{function_entitlement_manifest_org.label}/{lce.label}/{cv.label}/'
+            f'pulp/content/{function_sca_manifest_org.label}/{lce.label}/{cv.label}/'
             f'content/dist/{tail}'
         )
 
         # Check kickstart specific files
-        for file in constants.KICKSTART_CONTENT:
+        for file in KICKSTART_CONTENT:
             sat_file = target_sat.md5_by_url(f'{target_sat.url}/{url_base}/{file}')
             caps_file = target_sat.md5_by_url(f'{module_capsule_configured.url}/{url_base}/{file}')
             assert sat_file == caps_file
@@ -887,11 +926,12 @@ class TestCapsuleContentManagement:
 
         # Promote the latest CV version into capsule's LCE
         cvv = cv.version[-1].read()
+        timestamp = datetime.utcnow()
         cvv.promote(data={'environment_ids': function_lce.id})
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
-
-        module_capsule_configured.wait_for_sync()
 
         # Pull the images from capsule to the content host
         repo_paths = [
@@ -902,7 +942,7 @@ class TestCapsuleContentManagement:
             for repo in repos
         ]
 
-        for con_client in constants.CONTAINER_CLIENTS:
+        for con_client in CONTAINER_CLIENTS:
             result = container_contenthost.execute(
                 f'{con_client} login -u {settings.server.admin_username}'
                 f' -p {settings.server.admin_password} {module_capsule_configured.hostname}'
@@ -1005,10 +1045,12 @@ class TestCapsuleContentManagement:
         assert function_lce_library.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Sync the repo
+        timestamp = datetime.utcnow()
         repo.sync(timeout=600)
         repo = repo.read()
         assert repo.content_counts['ansible_collection'] == 2
-        module_capsule_configured.wait_for_sync()
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
 
         repo_path = repo.full_path.replace(target_sat.hostname, module_capsule_configured.hostname)
         coll_path = './collections'
@@ -1063,7 +1105,7 @@ class TestCapsuleContentManagement:
         repo = target_sat.api.Repository(
             content_type='file',
             product=function_product,
-            url=constants.FAKE_FILE_LARGE_URL,
+            url=FAKE_FILE_LARGE_URL,
         ).create()
         repo.sync()
 
@@ -1087,11 +1129,12 @@ class TestCapsuleContentManagement:
 
         # Promote the latest CV version into capsule's LCE
         cvv = cv.version[-1].read()
+        timestamp = datetime.utcnow()
         cvv.promote(data={'environment_ids': function_lce.id})
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
-
-        module_capsule_configured.wait_for_sync()
 
         # Run one more sync, check for status (BZ#1985122)
         sync_status = module_capsule_configured.nailgun_capsule.content_sync()
@@ -1114,8 +1157,8 @@ class TestCapsuleContentManagement:
         )
         sat_files = get_repo_files_by_url(sat_repo_url, extension='iso')
         caps_files = get_repo_files_by_url(caps_repo_url, extension='iso')
-        assert len(sat_files) == len(caps_files) == constants.FAKE_FILE_LARGE_COUNT + 1
-        assert constants.FAKE_FILE_NEW_NAME in caps_files
+        assert len(sat_files) == len(caps_files) == FAKE_FILE_LARGE_COUNT + 1
+        assert FAKE_FILE_NEW_NAME in caps_files
         assert sat_files == caps_files
 
         for file in sat_files:
@@ -1126,7 +1169,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_CV_to_multiple_LCEs(
-        self, target_sat, module_capsule_configured, module_manifest_org
+        self, target_sat, module_capsule_configured, module_sca_manifest_org
     ):
         """Synchronize a CV to multiple LCEs at the same time.
         All sync tasks should succeed.
@@ -1151,19 +1194,19 @@ class TestCapsuleContentManagement:
         # Sync a repository to the Satellite.
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_manifest_org.id,
-            product=constants.PRDS['rhel'],
-            repo=constants.REPOS['rhel7_extra']['name'],
-            reposet=constants.REPOSET['rhel7_extra'],
+            org_id=module_sca_manifest_org.id,
+            product=PRDS['rhel'],
+            repo=REPOS['rhel7_extra']['name'],
+            reposet=REPOSET['rhel7_extra'],
             releasever=None,
         )
         repo = target_sat.api.Repository(id=repo_id).read()
         repo.sync()
 
         # Create two LCEs, assign them to the Capsule.
-        lce1 = target_sat.api.LifecycleEnvironment(organization=module_manifest_org).create()
+        lce1 = target_sat.api.LifecycleEnvironment(organization=module_sca_manifest_org).create()
         lce2 = target_sat.api.LifecycleEnvironment(
-            organization=module_manifest_org, prior=lce1
+            organization=module_sca_manifest_org, prior=lce1
         ).create()
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': [lce1.id, lce2.id]}
@@ -1175,7 +1218,7 @@ class TestCapsuleContentManagement:
 
         # Create a Content View, add the repository and publish it.
         cv = target_sat.api.ContentView(
-            organization=module_manifest_org, repository=[repo]
+            organization=module_sca_manifest_org, repository=[repo]
         ).create()
         cv.publish()
         cv = cv.read()
@@ -1183,15 +1226,19 @@ class TestCapsuleContentManagement:
 
         # Promote the CV to both Capsule's LCEs without waiting for Capsule sync task completion.
         cvv = cv.version[-1].read()
+        assert len(cvv.environment) == 1
+        timestamp = datetime.utcnow()
         cvv.promote(data={'environment_ids': lce1.id})
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
+        timestamp = datetime.utcnow()
         cvv.promote(data={'environment_ids': lce2.id})
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 3
-
-        # Check all sync tasks finished without errors.
-        module_capsule_configured.wait_for_sync()
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
@@ -1235,7 +1282,8 @@ class TestCapsuleContentManagement:
         cvv = cv.version[-1].read()
         timestamp = datetime.utcnow()
         cvv.promote(data={'environment_ids': function_lce.id})
-        module_capsule_configured.wait_for_sync()
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
 
         # Delete all capsule sync tasks so that we fall back for audits.
         task_result = target_sat.execute(
@@ -1265,7 +1313,7 @@ class TestCapsuleContentManagement:
         target_sat,
         pytestconfig,
         capsule_configured,
-        function_entitlement_manifest_org,
+        function_sca_manifest_org,
         function_lce_library,
     ):
         """Synchronize RPM content to the capsule, disassociate the capsule form the content
@@ -1293,15 +1341,15 @@ class TestCapsuleContentManagement:
         :BZ: 22043089, 2211962
 
         """
-        if not pytestconfig.option.n_minus:
+        if pytestconfig.option.n_minus:
             pytest.skip('Test cannot be run on n-minus setups session-scoped capsule')
         # Enable RHST repo and sync it to the Library LCE.
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=function_entitlement_manifest_org.id,
-            product=constants.REPOS['rhst8']['product'],
-            repo=constants.REPOS['rhst8']['name'],
-            reposet=constants.REPOSET['rhst8'],
+            org_id=function_sca_manifest_org.id,
+            product=REPOS['rhst8']['product'],
+            repo=REPOS['rhst8']['name'],
+            reposet=REPOSET['rhst8'],
         )
         repo = target_sat.api.Repository(id=repo_id).read()
         repo.sync()
@@ -1334,13 +1382,20 @@ class TestCapsuleContentManagement:
         sync_status = capsule_configured.nailgun_capsule.content_sync()
         assert sync_status['result'] == 'success', 'Capsule sync task failed.'
 
+        # datetime string (local time) to search for proper task.
+        timestamp = (datetime.now().replace(microsecond=0) - timedelta(seconds=1)).strftime(
+            '%B %d, %Y at %I:%M:%S %p'
+        )
         # Run orphan cleanup for the capsule.
         target_sat.execute(
             'foreman-rake katello:delete_orphaned_content RAILS_ENV=production '
             f'SMART_PROXY_ID={capsule_configured.nailgun_capsule.id}'
         )
         target_sat.wait_for_tasks(
-            search_query=('label = Actions::Katello::OrphanCleanup::RemoveOrphans'),
+            search_query=(
+                'label = Actions::Katello::OrphanCleanup::RemoveOrphans'
+                f' and started_at >= "{timestamp}"'
+            ),
             search_rate=5,
             max_tries=10,
         )
@@ -1391,7 +1446,7 @@ class TestCapsuleContentManagement:
                 content_type='docker',
                 docker_upstream_name=ups_name,
                 product=function_product,
-                url=constants.RH_CONTAINER_REGISTRY_HUB,
+                url=RH_CONTAINER_REGISTRY_HUB,
                 upstream_username=settings.subscription.rhn_username,
                 upstream_password=settings.subscription.rhn_password,
             ).create()
@@ -1414,11 +1469,12 @@ class TestCapsuleContentManagement:
 
         # Promote the latest CV version into capsule's LCE
         cvv = cv.version[-1].read()
+        timestamp = datetime.utcnow()
         cvv.promote(data={'environment_ids': function_lce.id})
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
-
-        module_capsule_configured.wait_for_sync()
 
     @pytest.mark.parametrize(
         'repos_collection',
@@ -1595,3 +1651,67 @@ class TestCapsuleContentManagement:
         assert (
             counts is None or len(counts['content_view_versions']) == 0
         ), f"No content counts expected, but got:\n{counts['content_view_versions']}."
+
+    def test_positive_read_with_non_admin_user(
+        self,
+        target_sat,
+        module_capsule_configured,
+        default_org,
+        default_non_admin_user,
+    ):
+        """Try to list and read Capsules with a non-admin user with and without permissions.
+
+        :id: f3ee19fa-9b91-4b49-b00a-8debee903ce6
+
+        :setup:
+            1. Satellite with registered external Capsule.
+            2. Non-admin user without any roles/permissions.
+
+        :steps:
+            1. Using the non-admin user try to list all or particular Capsule.
+            2. Add Viewer role to the user and try again.
+
+        :expectedresults:
+            1. Read should fail without Viewer role.
+            2. Read should succeed when Viewer role added.
+
+        :BZ: 2096930
+
+        :customerscenario: true
+        """
+        # Using the non-admin user try to list all or particular Capsule
+        user = default_non_admin_user
+        sc = ServerConfig(
+            auth=(user.login, user.password),
+            url=target_sat.url,
+            verify=settings.server.verify_ca,
+        )
+
+        with pytest.raises(HTTPError) as error:
+            target_sat.api.Capsule(server_config=sc).search()
+        assert error.value.response.status_code == 403
+        assert 'Access denied' in error.value.response.text
+
+        with pytest.raises(HTTPError) as error:
+            target_sat.api.Capsule(
+                server_config=sc, id=module_capsule_configured.nailgun_capsule.id
+            ).read()
+        assert error.value.response.status_code == 403
+        assert 'Access denied' in error.value.response.text
+
+        # Add Viewer role to the user and try again.
+        v_role = target_sat.api.Role().search(query={'search': 'name="Viewer"'})
+        assert len(v_role) == 1, 'Expected just one Viewer to be found.'
+        user.role = [v_role[0]]
+        user.update(['role'])
+
+        res = target_sat.api.Capsule(server_config=sc).search()
+        assert len(res) >= 2, 'Expected at least one internal and one or more external Capsule(s).'
+        assert {target_sat.hostname, module_capsule_configured.hostname}.issubset(
+            [caps.name for caps in res]
+        ), 'Internal and/or external Capsule was not listed.'
+
+        res = target_sat.api.Capsule(
+            server_config=sc, id=module_capsule_configured.nailgun_capsule.id
+        ).read()
+        assert res.name == module_capsule_configured.hostname, 'External Capsule not found.'
