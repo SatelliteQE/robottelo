@@ -576,12 +576,12 @@ class TestCannedRole:
             target_sat, role_taxos=role_taxonomies, user_taxos=filter_taxonomies
         )
         domain = self.create_domain(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         sc = self.user_config(user, target_sat)
         # Getting the domain from user
         with pytest.raises(HTTPError):
-            target_sat.api.Domain(sc, id=domain.id).read()
+            target_sat.api.Domain(server_config=sc, id=domain.id).read()
 
     @pytest.mark.tier3
     def test_negative_access_entities_from_user(
@@ -608,12 +608,12 @@ class TestCannedRole:
             target_sat, role_taxos=role_taxonomies, user_taxos=filter_taxonomies
         )
         domain = self.create_domain(
-            orgs=[filter_taxonomies['org'].id], locs=[filter_taxonomies['loc'].id]
+            target_sat, orgs=[filter_taxonomies['org'].id], locs=[filter_taxonomies['loc'].id]
         )
         sc = self.user_config(user, target_sat)
         # Getting the domain from user
         with pytest.raises(HTTPError):
-            target_sat.api.Domain(sc, id=domain.id).read()
+            target_sat.api.Domain(server_config=sc, id=domain.id).read()
 
     @pytest.mark.tier2
     def test_positive_override_cloned_role_filter(self, role_taxonomies, target_sat):
@@ -1000,13 +1000,13 @@ class TestCannedRole:
                 auth=(login, password), url=target_sat.url, verify=settings.server.verify_ca
             )
             try:
-                target_sat.api.Domain(sc).search(
+                target_sat.api.Domain(server_config=sc).search(
                     query={
                         'organization-id': role_taxonomies['org'].id,
                         'location-id': role_taxonomies['loc'].id,
                     }
                 )
-                target_sat.api.Subnet(sc).search(
+                target_sat.api.Subnet(server_config=sc).search(
                     query={
                         'organization-id': role_taxonomies['org'].id,
                         'location-id': role_taxonomies['loc'].id,
@@ -1014,8 +1014,8 @@ class TestCannedRole:
                 )
             except HTTPError as err:
                 pytest.fail(str(err))
-            assert domain.id in [dom.id for dom in target_sat.api.Domain(sc).search()]
-            assert subnet.id in [sub.id for sub in target_sat.api.Subnet(sc).search()]
+            assert domain.id in [dom.id for dom in target_sat.api.Domain(server_config=sc).search()]
+            assert subnet.id in [sub.id for sub in target_sat.api.Subnet(server_config=sc).search()]
 
     @pytest.mark.tier3
     def test_positive_user_group_users_access_contradict_as_org_admins(self):
@@ -1074,11 +1074,13 @@ class TestCannedRole:
             name=ug_name, role=[org_admin.id], user=[user_one.id, user_two.id]
         ).create()
         assert user_group.name == ug_name
-        dom = self.create_domain(orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id])
+        dom = self.create_domain(
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+        )
         for user in [user_one, user_two]:
             sc = self.user_config(user, target_sat)
             with pytest.raises(HTTPError):
-                target_sat.api.Domain(sc, id=dom.id).read()
+                target_sat.api.Domain(server_config=sc, id=dom.id).read()
 
     @pytest.mark.tier2
     def test_negative_assign_taxonomies_by_org_admin(
@@ -1128,7 +1130,7 @@ class TestCannedRole:
             auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
         )
         # Getting the domain from user1
-        dom = target_sat.api.Domain(sc, id=dom.id).read()
+        dom = target_sat.api.Domain(server_config=sc, id=dom.id).read()
         dom.organization = [filter_taxonomies['org']]
         with pytest.raises(HTTPError):
             dom.update(['organization'])
@@ -1296,7 +1298,7 @@ class TestCannedRole:
         role_name = gen_string('alpha')
         with pytest.raises(HTTPError):
             target_sat.api.Role(
-                sc,
+                server_config=sc,
                 name=role_name,
                 organization=[role_taxonomies['org']],
                 location=[role_taxonomies['loc']],
@@ -1323,7 +1325,7 @@ class TestCannedRole:
         )
         test_role = target_sat.api.Role().create()
         sc = self.user_config(user, target_sat)
-        test_role = target_sat.api.Role(sc, id=test_role.id).read()
+        test_role = target_sat.api.Role(server_config=sc, id=test_role.id).read()
         test_role.organization = [role_taxonomies['org']]
         test_role.location = [role_taxonomies['loc']]
         with pytest.raises(HTTPError):
@@ -1362,7 +1364,7 @@ class TestCannedRole:
             auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
         )
         with pytest.raises(HTTPError):
-            target_sat.api.User(sc, id=1).read()
+            target_sat.api.User(server_config=sc, id=1).read()
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
@@ -1410,7 +1412,7 @@ class TestCannedRole:
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
         user = target_sat.api.User(
-            sc_user,
+            server_config=sc_user,
             login=user_login,
             password=user_pass,
             role=[org_admin.id],
@@ -1447,10 +1449,10 @@ class TestCannedRole:
         user = self.create_org_admin_user(
             target_sat, role_taxos=role_taxonomies, user_taxos=role_taxonomies
         )
-        test_user = self.create_simple_user(filter_taxos=role_taxonomies)
+        test_user = self.create_simple_user(target_sat, filter_taxos=role_taxonomies)
         sc = self.user_config(user, target_sat)
         try:
-            target_sat.api.User(sc, id=test_user.id).read()
+            target_sat.api.User(server_config=sc, id=test_user.id).read()
         except HTTPError as err:
             pytest.fail(str(err))
 
@@ -1491,7 +1493,9 @@ class TestCannedRole:
             auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
         )
         name = gen_string('alphanumeric')
-        location = target_sat.api.Location(sc, name=name, parent=role_taxonomies['loc'].id).create()
+        location = target_sat.api.Location(
+            server_config=sc, name=name, parent=role_taxonomies['loc'].id
+        ).create()
         assert location.name == name
 
     @pytest.mark.tier2
@@ -1519,10 +1523,10 @@ class TestCannedRole:
         user = self.create_org_admin_user(
             target_sat, role_taxos=role_taxonomies, user_taxos=role_taxonomies
         )
-        test_user = self.create_simple_user(filter_taxos=filter_taxonomies)
+        test_user = self.create_simple_user(target_sat, filter_taxos=filter_taxonomies)
         sc = self.user_config(user, target_sat)
         with pytest.raises(HTTPError):
-            target_sat.api.User(sc, id=test_user.id).read()
+            target_sat.api.User(server_config=sc, id=test_user.id).read()
 
     @pytest.mark.tier1
     def test_negative_create_taxonomies_by_org_admin(self, role_taxonomies, target_sat):
@@ -1558,11 +1562,11 @@ class TestCannedRole:
             auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
         )
         with pytest.raises(HTTPError):
-            target_sat.api.Organization(sc, name=gen_string('alpha')).create()
+            target_sat.api.Organization(server_config=sc, name=gen_string('alpha')).create()
         if not is_open("BZ:1825698"):
             try:
                 loc_name = gen_string('alpha')
-                loc = target_sat.api.Location(sc, name=loc_name).create()
+                loc = target_sat.api.Location(server_config=sc, name=loc_name).create()
             except HTTPError as err:
                 pytest.fail(str(err))
             assert loc_name == loc.name
@@ -1615,7 +1619,7 @@ class TestCannedRole:
                 target_sat.api.Errata,
                 target_sat.api.OperatingSystem,
             ]:
-                entity(sc).search()
+                entity(server_config=sc).search()
         except HTTPError as err:
             pytest.fail(str(err))
 
@@ -1646,7 +1650,7 @@ class TestCannedRole:
         )
         # Creating Domain resource in same taxonomies as Org Admin role to access later
         domain = self.create_domain(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         sc = ServerConfig(
             auth=(create_ldap['ldap_user_name'], create_ldap['ldap_user_passwd']),
@@ -1654,7 +1658,7 @@ class TestCannedRole:
             verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
-            target_sat.api.Architecture(sc).search()
+            target_sat.api.Architecture(server_config=sc).search()
         user = target_sat.api.User().search(
             query={'search': f"login={create_ldap['ldap_user_name']}"}
         )[0]
@@ -1662,7 +1666,7 @@ class TestCannedRole:
         user.update(['role'])
         # Trying to access the domain resource created in org admin role
         with pytest.raises(HTTPError):
-            target_sat.api.Domain(sc, id=domain.id).read()
+            target_sat.api.Domain(server_config=sc, id=domain.id).read()
 
     @pytest.mark.tier3
     def test_negative_access_entities_from_ldap_user(
@@ -1690,14 +1694,14 @@ class TestCannedRole:
             target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         # Creating Domain resource in different taxonomies to access later
-        domain = self.create_domain(orgs=[module_org.id], locs=[module_location.id])
+        domain = self.create_domain(target_sat, orgs=[module_org.id], locs=[module_location.id])
         sc = ServerConfig(
             auth=(create_ldap['ldap_user_name'], create_ldap['ldap_user_passwd']),
             url=create_ldap['sat_url'],
             verify=settings.server.verify_ca,
         )
         with pytest.raises(HTTPError):
-            target_sat.api.Architecture(sc).search()
+            target_sat.api.Architecture(server_config=sc).search()
         user = target_sat.api.User().search(
             query={'search': f"login={create_ldap['ldap_user_name']}"}
         )[0]
@@ -1705,7 +1709,7 @@ class TestCannedRole:
         user.update(['role'])
         # Trying to access the Domain resource
         with pytest.raises(HTTPError):
-            target_sat.api.Domain(sc, id=domain.id).read()
+            target_sat.api.Domain(server_config=sc, id=domain.id).read()
 
     @pytest.mark.tier3
     def test_positive_assign_org_admin_to_ldap_user_group(
@@ -1739,6 +1743,7 @@ class TestCannedRole:
         )
         # Creating Domain resource in same taxonomies as Org Admin role to access later
         domain = self.create_domain(
+            target_sat,
             orgs=[create_ldap['authsource'].organization[0].id],
             locs=[create_ldap['authsource'].location[0].id],
         )
@@ -1766,7 +1771,7 @@ class TestCannedRole:
                 verify=settings.server.verify_ca,
             )
             # Accessing the Domain resource
-            target_sat.api.Domain(sc, id=domain.id).read()
+            target_sat.api.Domain(server_config=sc, id=domain.id).read()
 
     @pytest.mark.tier3
     def test_negative_assign_org_admin_to_ldap_user_group(
@@ -1798,7 +1803,7 @@ class TestCannedRole:
         )
         # Creating Domain resource in same taxonomies as Org Admin role to access later
         domain = self.create_domain(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
+            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
         users = [
             target_sat.api.User(
@@ -1825,7 +1830,7 @@ class TestCannedRole:
             )
             # Trying to access the Domain resource
             with pytest.raises(HTTPError):
-                target_sat.api.Domain(sc, id=domain.id).read()
+                target_sat.api.Domain(server_config=sc, id=domain.id).read()
 
 
 class TestRoleSearchFilter:
