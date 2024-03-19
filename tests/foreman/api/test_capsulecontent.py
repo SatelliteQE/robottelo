@@ -1752,11 +1752,16 @@ class TestCapsuleContentManagement:
         assert 'success' in task['result'], 'Reclaim task did not succeed'
 
         # Check the apidoc references the correct endpoint
-        reclaim_doc = next(
-            method
-            for method in target_sat.apidoc['docs']['resources']['capsule_content']['methods']
-            if '/apidoc/v2/capsule_content/reclaim_space' in method['doc_url']
-        )
+        try:
+            reclaim_doc = next(
+                method
+                for method in target_sat.apidoc['docs']['resources']['capsule_content']['methods']
+                if '/apidoc/v2/capsule_content/reclaim_space' in method['doc_url']
+            )
+        except StopIteration:
+            raise AssertionError(
+                'Could not find the reclaim_space apidoc at the expected path.'
+            ) from None
         assert len(reclaim_doc['apis']) == 1
         assert reclaim_doc['apis'][0]['http_method'] == 'POST', 'POST method was expected.'
         assert (

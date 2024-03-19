@@ -1826,7 +1826,7 @@ class Satellite(Capsule, SatelliteMixins):
                 username=settings.server.admin_username,
                 password=settings.server.admin_password,
                 api_version=2,
-                verify_ssl=False,
+                verify_ssl=settings.server.verify_ca,
             ).apidoc
         return self._apidoc
 
