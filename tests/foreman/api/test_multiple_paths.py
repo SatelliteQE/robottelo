@@ -130,7 +130,7 @@ class TestEntity:
         logger.info('test_get_status_code arg: %s', entity_cls)
         response = client.get(entity_cls().path(), auth=get_credentials(), verify=False)
         response.raise_for_status()
-        assert http.client.OK == response.status_code
+        assert response.status_code == http.client.OK
         assert 'application/json' in response.headers['content-type']
 
     @pytest.mark.tier1
@@ -151,7 +151,7 @@ class TestEntity:
         """
         logger.info('test_get_unauthorized arg: %s', entity_cls)
         response = client.get(entity_cls().path(), auth=(), verify=False)
-        assert http.client.UNAUTHORIZED == response.status_code
+        assert response.status_code == http.client.UNAUTHORIZED
 
     @pytest.mark.tier3
     @pytest.mark.parametrize(
@@ -173,7 +173,7 @@ class TestEntity:
         :BZ: 1118015
         """
         response = entity_cls().create_raw()
-        assert http.client.CREATED == response.status_code
+        assert response.status_code == http.client.CREATED
         assert 'application/json' in response.headers['content-type']
 
     @pytest.mark.tier1
@@ -195,7 +195,7 @@ class TestEntity:
         """
         server_cfg = user_nailgun_config()
         return_code = entity_cls(server_cfg).create_raw(create_missing=False).status_code
-        assert http.client.UNAUTHORIZED == return_code
+        assert return_code == http.client.UNAUTHORIZED
 
 
 class TestEntityId:
@@ -217,7 +217,7 @@ class TestEntityId:
         """
         entity = entity_cls(id=entity_cls().create_json()['id'])
         response = entity.read_raw()
-        assert http.client.OK == response.status_code
+        assert response.status_code == http.client.OK
         assert 'application/json' in response.headers['content-type']
 
     @pytest.mark.tier1
@@ -248,7 +248,7 @@ class TestEntityId:
             auth=get_credentials(),
             verify=False,
         )
-        assert http.client.OK == response.status_code
+        assert response.status_code == http.client.OK
         assert 'application/json' in response.headers['content-type']
 
     @pytest.mark.tier1
@@ -325,7 +325,7 @@ class TestDoubleCheck:
         payload = _get_readable_attributes(new_entity)
         entity_attrs = entity_cls(id=entity['id']).read_json()
         for key, value in payload.items():
-            assert key in entity_attrs.keys()
+            assert key in entity_attrs
             assert value == entity_attrs[key]
 
     @pytest.mark.tier1
@@ -349,7 +349,7 @@ class TestDoubleCheck:
         payload = _get_readable_attributes(entity)
         entity_attrs = entity_cls(id=entity_id).read_json()
         for key, value in payload.items():
-            assert key in entity_attrs.keys()
+            assert key in entity_attrs
             assert value == entity_attrs[key]
 
     @pytest.mark.tier1
@@ -369,7 +369,7 @@ class TestDoubleCheck:
         # Create an entity, delete it and get it.
         entity = entity_cls(id=entity_cls().create_json()['id'])
         entity.delete()
-        assert http.client.NOT_FOUND == entity.read_raw().status_code
+        assert entity.read_raw().status_code == http.client.NOT_FOUND
 
 
 class TestEntityRead:

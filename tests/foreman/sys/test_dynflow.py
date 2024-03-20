@@ -2,11 +2,11 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: Dynflow
+:CaseComponent: TasksPlugin
 
 :Team: Endeavour
 
-:Requirement: Dynflow
+:Requirement: TasksPlugin
 
 :CaseImportance: High
 

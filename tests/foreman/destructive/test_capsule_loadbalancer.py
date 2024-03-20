@@ -190,6 +190,7 @@ def test_loadbalancer_install_package(
         registration.
 
         """
+
     # Register content host
     result = rhel7_contenthost.register(
         org=module_org,
@@ -218,6 +219,9 @@ def test_loadbalancer_install_package(
         if loadbalancer_setup['setup_capsules']['capsule_1'].hostname in result.stdout
         else loadbalancer_setup['setup_capsules']['capsule_2']
     )
+    request.addfinalizer(
+        lambda: registered_to_capsule.power_control(state=VmState.RUNNING, ensure=True)
+    )
 
     # Remove the packages from the client
     result = rhel7_contenthost.execute('yum remove -y tree')
@@ -229,10 +233,6 @@ def test_loadbalancer_install_package(
     # Try package installation again
     result = rhel7_contenthost.execute('yum install -y tree')
     assert result.status == 0
-
-    @request.addfinalizer
-    def _finalize():
-        registered_to_capsule.power_control(state=VmState.RUNNING, ensure=True)
 
 
 @pytest.mark.rhel_ver_match('[^6]')
@@ -272,7 +272,7 @@ def test_client_register_through_lb(
         loadbalancer_setup['setup_haproxy']['haproxy'].hostname
         in rhel_contenthost.subscription_config['server']['hostname']
     )
-    assert CLIENT_PORT == rhel_contenthost.subscription_config['server']['port']
+    assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
 
     # Host registration by Second Capsule through Loadbalancer
     result = rhel_contenthost.register(
@@ -287,7 +287,7 @@ def test_client_register_through_lb(
         loadbalancer_setup['setup_haproxy']['haproxy'].hostname
         in rhel_contenthost.subscription_config['server']['hostname']
     )
-    assert CLIENT_PORT == rhel_contenthost.subscription_config['server']['port']
+    assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
 
     hosts = loadbalancer_setup['module_target_sat'].cli.Host.list(
         {'organization-id': loadbalancer_setup['module_org'].id}

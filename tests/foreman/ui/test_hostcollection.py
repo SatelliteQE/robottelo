@@ -95,10 +95,9 @@ def vm_host_collection(module_target_sat, module_org_with_parameter, vm_content_
         module_target_sat.api.Host().search(query={'search': f'name={host.hostname}'})[0].id
         for host in vm_content_hosts
     ]
-    host_collection = module_target_sat.api.HostCollection(
+    return module_target_sat.api.HostCollection(
         host=host_ids, organization=module_org_with_parameter
     ).create()
-    return host_collection
 
 
 @pytest.fixture
@@ -109,10 +108,9 @@ def vm_host_collection_module_stream(
         module_target_sat.api.Host().search(query={'search': f'name={host.hostname}'})[0].id
         for host in vm_content_hosts_module_stream
     ]
-    host_collection = module_target_sat.api.HostCollection(
+    return module_target_sat.api.HostCollection(
         host=host_ids, organization=module_org_with_parameter
     ).create()
-    return host_collection
 
 
 def _run_remote_command_on_content_hosts(command, vm_clients):
@@ -138,7 +136,7 @@ def _is_package_installed(
             if result.status == 0 and expect_installed:
                 installed += 1
                 break
-            elif result.status != 0 and not expect_installed:
+            if result.status != 0 and not expect_installed:
                 installed -= 1
                 break
             if ind < retries - 1:
@@ -148,8 +146,7 @@ def _is_package_installed(
 
     if expect_installed:
         return installed == len(vm_clients)
-    else:
-        return bool(installed)
+    return bool(installed)
 
 
 def _install_package_with_assertion(vm_clients, package_name):

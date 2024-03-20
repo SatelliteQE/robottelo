@@ -113,9 +113,9 @@ def test_positive_create_with_name_description(
         location=[module_location],
         url=LIBVIRT_URL,
     ).create()
+    request.addfinalizer(compresource.delete)
     assert compresource.name == name
     assert compresource.description == name
-    request.addfinalizer(compresource.delete)
 
 
 @pytest.mark.tier2
@@ -134,9 +134,9 @@ def test_positive_create_with_orgs_and_locs(request, module_target_sat):
     compresource = module_target_sat.api.LibvirtComputeResource(
         location=locs, organization=orgs, url=LIBVIRT_URL
     ).create()
+    request.addfinalizer(compresource.delete)
     assert {org.name for org in orgs} == {org.read().name for org in compresource.organization}
     assert {loc.name for loc in locs} == {loc.read().name for loc in compresource.location}
-    request.addfinalizer(compresource.delete)
 
 
 @pytest.mark.tier2
@@ -175,8 +175,8 @@ def test_negative_create_with_same_name(request, module_target_sat, module_org, 
     cr = module_target_sat.api.LibvirtComputeResource(
         location=[module_location], name=name, organization=[module_org], url=LIBVIRT_URL
     ).create()
-    assert cr.name == name
     request.addfinalizer(cr.delete)
+    assert cr.name == name
     with pytest.raises(HTTPError):
         module_target_sat.api.LibvirtComputeResource(
             name=name,
@@ -245,18 +245,15 @@ def test_negative_update_same_name(request, module_target_sat, module_org, modul
     compresource = module_target_sat.api.LibvirtComputeResource(
         location=[module_location], name=name, organization=[module_org], url=LIBVIRT_URL
     ).create()
+    request.addfinalizer(compresource.delete)
     new_compresource = module_target_sat.api.LibvirtComputeResource(
         location=[module_location], organization=[module_org], url=LIBVIRT_URL
     ).create()
+    request.addfinalizer(new_compresource.delete)
     new_compresource.name = name
     with pytest.raises(HTTPError):
         new_compresource.update(['name'])
     assert new_compresource.read().name != name
-
-    @request.addfinalizer
-    def _finalize():
-        compresource.delete()
-        new_compresource.delete()
 
 
 @pytest.mark.tier2

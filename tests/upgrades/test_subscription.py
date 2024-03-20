@@ -70,7 +70,7 @@ class TestManifestScenarioRefresh:
         history = target_sat.api.Subscription(organization=org).manifest_history(
             data={'organization_id': org.id}
         )
-        assert "Subscriptions deleted by foreman_admin" == history[0]['statusMessage']
+        assert history[0]['statusMessage'] == "Subscriptions deleted by foreman_admin"
 
 
 class TestSubscriptionAutoAttach:
@@ -173,5 +173,5 @@ class TestSubscriptionAutoAttach:
         sub.delete_manifest(data={'organization_id': org.id})
         assert len(sub.search()) == 0
         manifester = Manifester(manifest_category=settings.manifest.entitlement)
-        manifester.allocation_uuid = pre_upgrade_data.allocation_uuid
         request.addfinalizer(manifester.delete_subscription_allocation)
+        manifester.allocation_uuid = pre_upgrade_data.allocation_uuid
