@@ -1089,6 +1089,12 @@ PERMISSIONS = {
         'destroy_locations',
         'assign_locations',
     ],
+    'LookupValue': [
+        'edit_lookup_values',
+        'create_lookup_values',
+        'destroy_lookup_values',
+        'view_lookup_values',
+    ],
     'MailNotification': ['view_mail_notifications', 'edit_user_mail_notifications'],
     'Medium': ['view_media', 'create_media', 'edit_media', 'destroy_media'],
     'Model': ['view_models', 'create_models', 'edit_models', 'destroy_models'],
@@ -1120,7 +1126,7 @@ PERMISSIONS = {
         'lock_ptables',
     ],
     'Realm': ['view_realms', 'create_realms', 'edit_realms', 'destroy_realms'],
-    'RemoteExecutionFeature': ['edit_remote_execution_features'],
+    'RemoteExecutionFeature': ['view_remote_execution_features', 'edit_remote_execution_features'],
     'ReportTemplate': [
         'edit_report_templates',
         'destroy_report_templates',
