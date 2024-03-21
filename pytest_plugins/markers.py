@@ -25,6 +25,8 @@ def pytest_configure(config):
         "include_capsule: For satellite-maintain tests to run on Satellite and Capsule both",
         "capsule_only: For satellite-maintain tests to run only on Capsules",
         "manifester: Tests that require manifester",
+        "cap_host: Tests that create a capsule host",
+        "sat_host: Tests that create a satellite host",
     ]
     markers.extend(module_markers())
     for marker in markers:

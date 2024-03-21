@@ -32,6 +32,10 @@ def pytest_collection_modifyitems(session, items, config):
     for item in items:
         if any("manifest" in f for f in getattr(item, "fixturenames", ())):
             item.add_marker("manifester")
+        if any("satellite_host" in f for f in getattr(item, "fixturenames", ())):
+            item.add_marker("sat_host")
+        if any("capsule_host" in f for f in getattr(item, "fixturenames", ())):
+            item.add_marker("cap_host")
         # 1. Deselect tests marked with @pytest.mark.deselect
         # WONTFIX BZs makes test to be dynamically marked as deselect.
         deselect = item.get_closest_marker('deselect')
