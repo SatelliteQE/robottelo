@@ -1,7 +1,7 @@
 name: Remove the PRT label, for the new commit
 
 on:
-  pull_request:
+  pull_request_target:
     types: ["synchronize"]
 
 jobs:
