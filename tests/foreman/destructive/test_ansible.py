@@ -13,7 +13,7 @@
 """
 import pytest
 
-pytestmark = pytest.mark.destructive
+pytestmark = [pytest.mark.destructive, pytest.mark.upgrade]
 
 
 def test_positive_persistent_ansible_cfg_change(target_sat):
