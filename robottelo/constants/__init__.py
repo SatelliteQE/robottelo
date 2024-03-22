@@ -2149,7 +2149,6 @@ DNF_RECOMMENDATION = (
     'option is not present in the /etc/dnf/dnf.conf'
 )
 
-
 # Data File Paths
 class DataFile(Box):
     """The boxed Data directory class with its attributes pointing to the Data directory files"""
