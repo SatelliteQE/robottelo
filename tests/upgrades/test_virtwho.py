@@ -37,7 +37,7 @@ def form_data(target_sat):
         'satellite_url': target_sat.hostname,
         'hypervisor_username': esx.hypervisor_username,
         'hypervisor_password': esx.hypervisor_password,
-        'name': 'preupgrade_virt_who',
+        'name': f'preupgrade_virt_who_{gen_string("alpha")}',
     }
 
 
@@ -120,6 +120,7 @@ class TestScenarioPositiveVirtWho:
                 'org_id': org.id,
                 'org_name': org.name,
                 'org_label': org.label,
+                'name': vhd.name,
             }
         )
 
@@ -146,15 +147,16 @@ class TestScenarioPositiveVirtWho:
         org_id = pre_upgrade_data.get('org_id')
         org_name = pre_upgrade_data.get('org_name')
         org_label = pre_upgrade_data.get('org_label')
+        name = pre_upgrade_data.get('name')
 
         # Post upgrade, Verify virt-who exists and has same status.
         vhd = target_sat.api.VirtWhoConfig(organization_id=org_id).search(
-            query={'search': f'name={form_data["name"]}'}
+            query={'search': f'name={name}'}
         )[0]
         if not is_open('BZ:1802395'):
             assert vhd.status == 'ok'
         # Verify virt-who status via CLI as we cannot check it via API now
-        vhd_cli = target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
+        vhd_cli = target_sat.cli.VirtWhoConfig.exists(search=('name', name))
         assert (
             target_sat.cli.VirtWhoConfig.info({'id': vhd_cli['id']})['general-information'][
                 'status'
@@ -185,7 +187,7 @@ class TestScenarioPositiveVirtWho:
         )
         virt_who_instance = (
             target_sat.api.VirtWhoConfig(organization_id=org_id)
-            .search(query={'search': f'name={form_data["name"]}'})[0]
+            .search(query={'search': f'name={name}'})[0]
             .status
         )
         assert virt_who_instance == 'ok'
