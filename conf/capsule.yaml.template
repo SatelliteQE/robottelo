@@ -17,3 +17,4 @@ CAPSULE:
     OS: deploy-rhel  # workflow to deploy OS that is ready to run the product
   # Dictionary of arguments which should be passed along to the deploy workflow
   DEPLOY_ARGUMENTS:
+  #  deploy_network_type: '@jinja {{"ipv6" if this.server.is_ipv6 else "ipv4"}}'
