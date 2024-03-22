@@ -25,6 +25,6 @@ OSTREE_REPO = 'https://fixtures.pulpproject.org/ostree/small/'
 FAKE_0_YUM_REPO_STRING_BASED_VERSIONS = (
     'https://fixtures.pulpproject.org/rpm-string-version-updateinfo/'
 )
-
+FAKE_ZST_REPO = 'https://fixtures.pulpproject.org/rpm-zstd-metadata'
 ANSIBLE_GALAXY = 'https://galaxy.ansible.com/'
 ANSIBLE_HUB = 'https://cloud.redhat.com/api/automation-hub/'
