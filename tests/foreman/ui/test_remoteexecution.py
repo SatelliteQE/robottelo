@@ -161,7 +161,6 @@ def test_positive_run_job_template_multiple_hosts_by_ip(
 
     host_names = []
     for vm in rex_contenthosts:
-        # for vm in rex_contenthost:
         host_names.append(vm.hostname)
         vm.configure_rex(satellite=target_sat, org=module_org)
     with target_sat.ui_session() as session:
