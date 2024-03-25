@@ -165,7 +165,6 @@ def test_positive_run_job_template_multiple_hosts_by_ip(
         vm.configure_rex(satellite=target_sat, org=module_org)
     with target_sat.ui_session() as session:
         session.organization.select(module_org.name)
-        # session.location.select('Default Location')
         for host in host_names:
             assert session.host.search(host)[0]['Name'] == host
         session.host.reset_search()
