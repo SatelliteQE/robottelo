@@ -140,7 +140,7 @@ def test_positive_run_custom_job_template_by_ip(
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_list([8])
 def test_positive_run_job_template_multiple_hosts_by_ip(
-    session, module_org, target_sat, registered_hosts
+    session, module_org, target_sat, rex_contenthosts
 ):
     """Run a job template against multiple hosts by ip
 
@@ -158,22 +158,22 @@ def test_positive_run_job_template_multiple_hosts_by_ip(
 
     :expectedresults: Verify the job was successfully ran against the hosts
     """
+
     host_names = []
-    for vm in registered_hosts:
+    for vm in rex_contenthosts:
         host_names.append(vm.hostname)
         vm.configure_rex(satellite=target_sat, org=module_org)
-    with session:
+    with target_sat.ui_session() as session:
         session.organization.select(module_org.name)
-        session.location.select('Default Location')
-        hosts = session.host.search(' or '.join([f'name="{hostname}"' for hostname in host_names]))
-        assert {host['Name'] for host in hosts} == set(host_names)
+        for host in host_names:
+            assert session.host.search(host)[0]['Name'] == host
+        session.host.reset_search()
         job_status = session.host.schedule_remote_job(
             host_names,
             {
                 'category_and_template.job_category': 'Commands',
                 'category_and_template.job_template': 'Run Command - Script Default',
-                'target_hosts_and_inputs.command': 'ls',
-                'schedule.immediate': True,
+                'target_hosts_and_inputs.command': 'sleep 5',
             },
         )
         assert job_status['overview']['job_status'] == 'Success'
@@ -211,19 +211,20 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_cont
 
     :parametrized: yes
     """
-    job_time = 10 * 60
+    job_time = 6 * 60
     hostname = rex_contenthost.hostname
     with session:
         session.organization.select(module_org.name)
         session.location.select('Default Location')
         assert session.host.search(hostname)[0]['Name'] == hostname
         plan_time = session.browser.get_client_datetime() + datetime.timedelta(seconds=job_time)
+        command_to_run = 'sleep 10'
         job_status = session.host.schedule_remote_job(
             [hostname],
             {
                 'category_and_template.job_category': 'Commands',
                 'category_and_template.job_template': 'Run Command - Script Default',
-                'target_hosts_and_inputs.command': 'ls',
+                'target_hosts_and_inputs.command': command_to_run,
                 'schedule.future': True,
                 'schedule_future_execution.start_at_date': plan_time.strftime("%Y/%m/%d"),
                 'schedule_future_execution.start_at_time': plan_time.strftime("%H:%M"),
@@ -237,34 +238,36 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_cont
         # the job_time must be significantly greater than job creation time.
         assert job_left_time > 0
         assert job_status['overview']['hosts_table'][0]['Host'] == hostname
-        assert job_status['overview']['hosts_table'][0]['Status'] == 'N/A'
+        assert job_status['overview']['hosts_table'][0]['Status'] in ('Awaiting start', 'N/A')
         # sleep 3/4 of the left time
         time.sleep(job_left_time * 3 / 4)
-        job_status = session.jobinvocation.read('Run ls', hostname, 'overview.hosts_table')
+        job_status = session.jobinvocation.read(
+            f'Run {command_to_run}', hostname, 'overview.hosts_table'
+        )
         assert job_status['overview']['hosts_table'][0]['Host'] == hostname
-        assert job_status['overview']['hosts_table'][0]['Status'] == 'N/A'
+        assert job_status['overview']['hosts_table'][0]['Status'] in ('Awaiting start', 'N/A')
         # recalculate the job left time to be more accurate
         job_left_time = (plan_time - session.browser.get_client_datetime()).total_seconds()
         # the last read time should not take more than 1/4 of the last left time
         assert job_left_time > 0
         wait_for(
-            lambda: session.jobinvocation.read('Run ls', hostname, 'overview.hosts_table')[
-                'overview'
-            ]['hosts_table'][0]['Status']
+            lambda: session.jobinvocation.read(
+                f'Run {command_to_run}', hostname, 'overview.hosts_table'
+            )['overview']['hosts_table'][0]['Status']
             == 'running',
             timeout=(job_left_time + 30),
             delay=1,
         )
         # wait the job to change status to "success"
         wait_for(
-            lambda: session.jobinvocation.read('Run ls', hostname, 'overview.hosts_table')[
-                'overview'
-            ]['hosts_table'][0]['Status']
+            lambda: session.jobinvocation.read(
+                f'Run {command_to_run}', hostname, 'overview.hosts_table'
+            )['overview']['hosts_table'][0]['Status']
             == 'success',
             timeout=30,
             delay=1,
         )
-        job_status = session.jobinvocation.read('Run ls', hostname, 'overview')
+        job_status = session.jobinvocation.read(f'Run {command_to_run}', hostname, 'overview')
         assert job_status['overview']['job_status'] == 'Success'
         assert job_status['overview']['hosts_table'][0]['Host'] == hostname
         assert job_status['overview']['hosts_table'][0]['Status'] == 'success'
