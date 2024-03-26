@@ -877,7 +877,7 @@ def test_positive_delete_rhel_repo(session, module_entitlement_manifest_org, tar
 
 
 @pytest.mark.tier2
-def test_positive_recommended_repos(session, module_entitlement_manifest_org):
+def test_positive_recommended_repos(session, module_sca_manifest_org):
     """list recommended repositories using
      On/Off 'Recommended Repositories' toggle.
 
@@ -886,23 +886,28 @@ def test_positive_recommended_repos(session, module_entitlement_manifest_org):
     :expectedresults:
 
            1. Shows repositories as per On/Off 'Recommended Repositories'.
-           2. Check last Satellite version Capsule/Tools repos do not exist.
+           2. Check that client repositories are in 'Recommended Repositories'.
+           3. Check that the Utils/Capsule/Maintenance repos for previous versions do not exist.
 
     :BZ: 1776108
     """
     with session:
-        session.organization.select(module_entitlement_manifest_org.name)
+        session.organization.select(module_sca_manifest_org.name)
         rrepos_on = session.redhatrepository.read(recommended_repo='on')
-        assert REPOSET['rhel7'] in [repo['name'] for repo in rrepos_on]
+        all_recommended_repos = [repo['name'] for repo in rrepos_on]
+        assert REPOSET['rhel7'] in all_recommended_repos
+        assert REPOSET['rhsclient7'] in all_recommended_repos
+        assert REPOSET['rhsclient8'] in all_recommended_repos
+        assert REPOSET['rhsclient9'] in all_recommended_repos
         v = get_sat_version()
         sat_version = f'{v.major}.{v.minor}'
-        cap_tool_repos = [
+        cap_utils_main_repos = [
             repo['name']
             for repo in rrepos_on
-            if 'Tools' in repo['name'] or 'Capsule' in repo['name']
+            if 'Utils' in repo['name'] or 'Capsule' in repo['name'] or 'Maintenance' in repo['name']
         ]
-        cap_tools_repos = [repo for repo in cap_tool_repos if repo.split()[4] != sat_version]
-        assert not cap_tools_repos, 'Tools/Capsule repos do not match with Satellite version'
+        rec_repos = [repo for repo in cap_utils_main_repos if repo.split()[4] != sat_version]
+        assert not rec_repos, 'Utils/Capsule/Maintenance repos do not match with Satellite version'
         rrepos_off = session.redhatrepository.read(recommended_repo='off')
         assert len(rrepos_off) > len(rrepos_on)
 
