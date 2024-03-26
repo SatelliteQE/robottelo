@@ -15,7 +15,6 @@ from datetime import datetime, timedelta
 import time
 
 from fauxfactory import gen_choice
-from nailgun import entities
 import pytest
 
 from robottelo.constants import SYNC_INTERVAL
@@ -162,15 +161,15 @@ def test_positive_search_scoped(session, request, target_sat):
     """
     name = gen_string('alpha')
     start_date = datetime.utcnow() + timedelta(days=10)
-    org = entities.Organization().create()
-    sync_plan = entities.SyncPlan(
+    org = target_sat.api.Organization().create()
+    sync_plan = target_sat.api.SyncPlan(
         name=name,
         interval=SYNC_INTERVAL['day'],
         organization=org,
         enabled=True,
         sync_date=start_date,
     ).create()
-    sync_plan = entities.SyncPlan(organization=org.id, id=sync_plan.id).read()
+    sync_plan = target_sat.api.SyncPlan(organization=org.id, id=sync_plan.id).read()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     with session:
         session.organization.select(org.name)
@@ -191,8 +190,8 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(session, modu
     :expectedresults: Product is synchronized successfully.
     """
     plan_name = gen_string('alpha')
-    product = entities.Product(organization=module_org).create()
-    repo = entities.Repository(product=product).create()
+    product = target_sat.api.Product(organization=module_org).create()
+    repo = target_sat.api.Repository(product=product).create()
     with session:
         # workaround: force session.browser to point to browser object on next line
         session.contenthost.read_all('current_user')
@@ -257,8 +256,8 @@ def test_positive_synchronize_custom_product_custom_cron_past_sync_date(
     :expectedresults: Product is synchronized successfully.
     """
     plan_name = gen_string('alpha')
-    product = entities.Product(organization=module_org).create()
-    repo = entities.Repository(product=product).create()
+    product = target_sat.api.Product(organization=module_org).create()
+    repo = target_sat.api.Repository(product=product).create()
     with session:
         # workaround: force session.browser to point to browser object on next line
         session.contenthost.read_all('current_user')
