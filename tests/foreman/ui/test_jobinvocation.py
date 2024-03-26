@@ -97,7 +97,9 @@ def test_rex_through_host_details(session, target_sat, rex_contenthost, module_o
         assert task_status['result'] == 'success'
         recent_jobs = session.host_new.get_details(hostname, "overview.recent_jobs")
         assert recent_jobs['overview']['recent_jobs']['finished']['table'][0]['column0'] == "Run ls"
-        assert recent_jobs['overview']['recent_jobs']['finished']['table'][0]['column2'] == "succeeded"
+        assert (
+            recent_jobs['overview']['recent_jobs']['finished']['table'][0]['column2'] == "succeeded"
+        )
 
 
 @pytest.mark.tier4
