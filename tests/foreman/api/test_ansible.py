@@ -339,7 +339,7 @@ def test_positive_ansible_roles_inherited_from_hostgroup(
         4. Update host to be in parent/nested hostgroup and verify roles assigned
 
     :expectedresults:
-        1. Hosts in parent/nested hostgroups must have direct and indirected roles correctly assigned.
+        1. Hosts in parent/nested hostgroups must have direct and indirect roles correctly assigned.
 
     :BZ: 2187967
 
