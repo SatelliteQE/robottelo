@@ -12,13 +12,12 @@
 
 """
 from fauxfactory import gen_string, gen_utf8
-from nailgun import entities
 import pytest
 
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_delete_with_user(session, module_org, module_location):
+def test_positive_delete_with_user(session, module_org, module_location, module_target_sat):
     """Delete a Usergroup that contains a user
 
     :id: 2bda3db5-f54f-412f-831f-8e005631f271
@@ -28,7 +27,7 @@ def test_positive_delete_with_user(session, module_org, module_location):
     user_name = gen_string('alpha')
     group_name = gen_utf8(smp=False)
     # Create a new user
-    entities.User(
+    module_target_sat.api.User(
         login=user_name,
         password=gen_string('alpha'),
         organization=[module_org],
@@ -45,7 +44,7 @@ def test_positive_delete_with_user(session, module_org, module_location):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_location):
+def test_positive_end_to_end(session, module_org, module_location, module_target_sat):
     """Perform end to end testing for usergroup component
 
     :id: c1c7c383-b118-4caf-a5ef-4e75fdbbacdc
@@ -56,10 +55,10 @@ def test_positive_end_to_end(session, module_org, module_location):
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
-    user = entities.User(
+    user = module_target_sat.api.User(
         password=gen_string('alpha'), organization=[module_org], location=[module_location]
     ).create()
-    user_group = entities.UserGroup().create()
+    user_group = module_target_sat.api.UserGroup().create()
     with session:
         # Create new user group with assigned entities
         session.usergroup.create(
