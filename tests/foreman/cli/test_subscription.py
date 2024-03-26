@@ -250,7 +250,7 @@ def test_positive_candlepin_events_processed_by_STOMP():
 
 @pytest.mark.tier2
 def test_positive_auto_attach_disabled_golden_ticket(
-    module_org, golden_ticket_host_setup, rhel7_contenthost_class, target_sat
+    module_org, module_location, golden_ticket_host_setup, rhel7_contenthost_class, target_sat
 ):
     """Verify that Auto-Attach is disabled or "Not Applicable"
     when a host organization is in Simple Content Access mode (Golden Ticket)
@@ -268,8 +268,9 @@ def test_positive_auto_attach_disabled_golden_ticket(
 
     :CaseImportance: Medium
     """
-    rhel7_contenthost_class.install_katello_ca(target_sat)
-    rhel7_contenthost_class.register_contenthost(module_org.label, golden_ticket_host_setup['name'])
+    rhel7_contenthost_class.register(
+        module_org, module_location, golden_ticket_host_setup['name'], target_sat
+    )
     assert rhel7_contenthost_class.subscribed
     host = target_sat.cli.Host.list({'search': rhel7_contenthost_class.hostname})
     host_id = host[0]['id']

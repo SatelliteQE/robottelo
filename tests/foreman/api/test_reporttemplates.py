@@ -598,8 +598,13 @@ def test_positive_generate_entitlements_report(setup_content, target_sat):
     """
     with Broker(nick='rhel7', host_class=ContentHost) as vm:
         ak, org = setup_content
-        vm.install_katello_ca(target_sat)
-        vm.register_contenthost(org.label, ak.name)
+        command = target_sat.api.RegistrationCommand(
+            organization=org,
+            activation_keys=[ak.name],
+            insecure=True,
+        ).create()
+        result = vm.execute(command)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
         assert vm.subscribed
         rt = (
             target_sat.api.ReportTemplate()
@@ -637,8 +642,13 @@ def test_positive_schedule_entitlements_report(setup_content, target_sat):
     """
     with Broker(nick='rhel7', host_class=ContentHost) as vm:
         ak, org = setup_content
-        vm.install_katello_ca(target_sat)
-        vm.register_contenthost(org.label, ak.name)
+        command = target_sat.api.RegistrationCommand(
+            organization=org,
+            activation_keys=[ak.name],
+            insecure=True,
+        ).create()
+        result = vm.execute(command)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
         assert vm.subscribed
         rt = (
             target_sat.api.ReportTemplate()
@@ -685,8 +695,13 @@ def test_positive_generate_job_report(setup_content, target_sat, rhel7_contentho
     :customerscenario: true
     """
     ak, org = setup_content
-    rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(org.label, ak.name)
+    command = target_sat.api.RegistrationCommand(
+        organization=org,
+        activation_keys=[ak.name],
+        insecure=True,
+    ).create()
+    result = rhel7_contenthost.execute(command)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
     rhel7_contenthost.add_rex_key(target_sat)
     assert rhel7_contenthost.subscribed
     # Run a Job on the Host

@@ -94,7 +94,9 @@ def test_positive_create_variable_with_overrides(target_sat):
 @pytest.mark.pit_server
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('[^6]')
-def test_positive_config_report_ansible(session, target_sat, module_org, rhel_contenthost):
+def test_positive_config_report_ansible(
+    session, target_sat, module_org, rhel_contenthost, module_ak_with_cv
+):
     """Test Config Report generation with Ansible Jobs.
 
     :id: 118e25e5-409e-44ba-b908-217da9722576
@@ -117,8 +119,13 @@ def test_positive_config_report_ansible(session, target_sat, module_org, rhel_co
     if rhel_contenthost.os_version.major <= 7:
         rhel_contenthost.create_custom_repos(rhel7=settings.repos.rhel7_os)
         assert rhel_contenthost.execute('yum install -y insights-client').status == 0
-    rhel_contenthost.install_katello_ca(target_sat)
-    rhel_contenthost.register_contenthost(module_org.label, force=True)
+    command = target_sat.api.RegistrationCommand(
+        organization=module_org,
+        activation_keys=[module_ak_with_cv.name],
+        insecure=True,
+        force=True,
+    ).create()
+    result = rhel_contenthost.execute(command)
     assert rhel_contenthost.subscribed
     rhel_contenthost.add_rex_key(satellite=target_sat)
     id = target_sat.nailgun_smart_proxy.id
@@ -155,7 +162,9 @@ def test_positive_config_report_ansible(session, target_sat, module_org, rhel_co
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('9')
-def test_positive_ansible_custom_role(target_sat, session, module_org, rhel_contenthost, request):
+def test_positive_ansible_custom_role(
+    target_sat, session, module_org, rhel_contenthost, request, module_ak_with_cv
+):
     """
     Test Config report generation with Custom Ansible Role
 
@@ -202,8 +211,13 @@ def test_positive_ansible_custom_role(target_sat, session, module_org, rhel_cont
         yaml.dump(data, f, sort_keys=False, default_flow_style=False)
     target_sat.execute('mkdir /etc/ansible/roles/custom_role')
     target_sat.put(playbook, '/etc/ansible/roles/custom_role/playbook.yaml')
-    rhel_contenthost.install_katello_ca(target_sat)
-    rhel_contenthost.register_contenthost(module_org.label, force=True)
+    command = target_sat.api.RegistrationCommand(
+        organization=module_org,
+        activation_keys=[module_ak_with_cv.name],
+        insecure=True,
+        force=True,
+    ).create()
+    result = rhel_contenthost.execute(command)
     assert rhel_contenthost.subscribed
     rhel_contenthost.add_rex_key(satellite=target_sat)
     proxy_id = target_sat.nailgun_smart_proxy.id

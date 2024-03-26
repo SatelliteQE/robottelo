@@ -229,8 +229,13 @@ def test_positive_subscription_status_disabled(
 
     :CaseImportance: Medium
     """
-    rhel_contenthost.install_katello_ca(target_sat)
-    rhel_contenthost.register_contenthost(module_sca_manifest_org.label, module_ak.name)
+    command = target_sat.api.RegistrationCommand(
+        organization=module_sca_manifest_org,
+        activation_keys=[module_ak.name],
+        insecure=True,
+    ).create()
+    result = rhel_contenthost.execute(command)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert rhel_contenthost.subscribed
     host_content = target_sat.api.Host(id=rhel_contenthost.nailgun_host.id).read_raw().content
     assert 'Simple Content Access' in str(host_content)
@@ -256,8 +261,13 @@ def test_sca_end_to_end(
 
     :CaseImportance: Critical
     """
-    rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(module_sca_manifest_org.label, module_ak.name)
+    command = target_sat.api.RegistrationCommand(
+        organization=module_sca_manifest_org,
+        activation_keys=[module_ak.name],
+        insecure=True,
+    ).create()
+    result = rhel7_contenthost.execute(command)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert rhel7_contenthost.subscribed
     # Check to see if Organization is in SCA Mode
     assert (
@@ -335,8 +345,13 @@ def test_positive_candlepin_events_processed_by_stomp(
         environment=target_sat.api.LifecycleEnvironment(id=function_org.library.id),
         auto_attach=True,
     ).create()
-    rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(function_org.name, ak.name)
+    command = target_sat.api.RegistrationCommand(
+        organization=function_org,
+        activation_keys=[ak.name],
+        insecure=True,
+    ).create()
+    result = rhel7_contenthost.execute(command)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
     host = target_sat.api.Host().search(query={'search': f'name={rhel7_contenthost.hostname}'})
     host_id = host[0].id
     host_content = target_sat.api.Host(id=host_id).read_json()
@@ -392,10 +407,13 @@ def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel7_conte
     ).create()
     # registering the content host with no content enabled/synced in the org
     # should create a client SCA cert with no content
-    rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(
-        org=module_sca_manifest_org.label, activation_key=ak.name
-    )
+    command = target_sat.api.RegistrationCommand(
+        organization=module_sca_manifest_org,
+        activation_keys=[ak.name],
+        insecure=True,
+    ).create()
+    result = rhel7_contenthost.execute(command)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert rhel7_contenthost.subscribed
     rhel7_contenthost.unregister()
     # syncing content with the content host unregistered should invalidate
