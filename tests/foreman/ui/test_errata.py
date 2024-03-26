@@ -233,8 +233,8 @@ def registered_contenthost(
     Using SCA and global registration.
 
     :note: rhel_contenthost will be parameterized by rhel6 to 9, also -fips for all distros.
-           to use specific rhel version parameterized contenthost, use pytest.mark.rhel_ver_match()
-           for marking contenthost version(s) for tests using this fixture.
+           to use specific rhel version parameterized contenthost;
+           use pytest.mark.rhel_ver_match() to mark contenthost version(s) for tests using this fixture.
 
     :repos: pass as a parameterized request
         list of upstream URLs for custom repositories.
@@ -245,7 +245,6 @@ def registered_contenthost(
                 indirect=True,
             )
     """
-    # read indirect parameterization request, could be None
     try:
         repos = getattr(request, 'param', repos).copy()
     except AttributeError:
@@ -726,14 +725,24 @@ def test_host_content_errata_tab_pagination(
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_list(session, function_org_with_parameter, lce, target_sat):
+def test_positive_list(
+    module_sca_manifest_org,
+    function_org,
+    function_lce,
+    target_sat,
+    module_lce,
+    module_cv,
+    module_ak,
+    session,
+):
     """View all errata in an Org
 
     :id: 71c7a054-a644-4c1e-b304-6bc34ea143f4
 
-    :Setup: Errata synced on satellite server.
-
-    :steps: Create two Orgs each having a product synced which contains errata.
+    :steps:
+        1. Setup two separate organization fixtures, function and module scope.
+        2. Create and sync separate repositories for each org.
+        3. Go to UI > Content Types > Errata page.
 
     :expectedresults: Check that the errata belonging to one Org is not showing in the other.
 
@@ -741,23 +750,51 @@ def test_positive_list(session, function_org_with_parameter, lce, target_sat):
 
     :customerscenario: true
     """
-    org = function_org_with_parameter
-    rc = target_sat.cli_factory.RepositoryCollection(
-        repositories=[target_sat.cli_factory.YumRepository(settings.repos.yum_3.url)]
+    _org_module = module_sca_manifest_org
+    _org_function = function_org
+    module_cv = module_cv.read()  # for module sca org
+    # create and sync repository, for module org's errata
+    target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': CUSTOM_REPO_URL,
+            'organization-id': _org_module.id,
+            'lifecycle-environment-id': module_lce.id,
+            'activationkey-id': module_ak.id,
+            'content-view-id': module_cv.id,
+        },
     )
-    rc.setup_content(org.id, lce.id)
+    # create and sync repository, for function org's errata
+    target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': CUSTOM_REPO_3_URL,
+            'organization-id': _org_function.id,
+            'lifecycle-environment-id': function_lce.id,
+        },
+    )
+
     with session:
+        # View in module org
+        session.organization.select(org_name=_org_module.name)
         assert (
             session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False)[0]['Errata ID']
             == CUSTOM_REPO_ERRATA_ID
+        ), f'Could not find expected errata: {CUSTOM_REPO_ERRATA_ID}, in module org: {_org_module.name}.'
+
+        assert not session.errata.search(CUSTOM_REPO_3_ERRATA_ID, applicable=False), (
+            f'Found function org ({_org_function.name}) errata: {CUSTOM_REPO_3_ERRATA_ID},'
+            f' in module org ({_org_module.name}) as well.'
         )
-        assert not session.errata.search(settings.repos.yum_3.errata[5], applicable=False)
-        session.organization.select(org_name=org.name)
+        # View in function org
+        session.organization.select(org_name=_org_function.name)
         assert (
-            session.errata.search(settings.repos.yum_3.errata[5], applicable=False)[0]['Errata ID']
-            == settings.repos.yum_3.errata[5]
+            session.errata.search(CUSTOM_REPO_3_ERRATA_ID, applicable=False)[0]['Errata ID']
+            == CUSTOM_REPO_3_ERRATA_ID
+        ), f'Could not find expected errata: {CUSTOM_REPO_3_ERRATA_ID}, in function org: {_org_function.name}.'
+
+        assert not session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False), (
+            f'Found module org ({_org_module.name}) errata: {CUSTOM_REPO_ERRATA_ID},'
+            f' in function org ({_org_function.name}) as well.'
         )
-        assert not session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False)
 
 
 @pytest.mark.tier2
