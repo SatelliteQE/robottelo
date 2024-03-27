@@ -266,8 +266,9 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
     )
 
     content_host = target_sat.cli.Host.with_user(user['login'], user['password']).info(
-        {'id': content_host['id']}
+        {'id': content_host['id']}, output_format='json'
     )
+
     # check that content view matches what we passed
     assert content_host['content-information']['content-view']['name'] == content_view['name']
 
