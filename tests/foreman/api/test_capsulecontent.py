@@ -1715,3 +1715,55 @@ class TestCapsuleContentManagement:
             server_config=sc, id=module_capsule_configured.nailgun_capsule.id
         ).read()
         assert res.name == module_capsule_configured.hostname, 'External Capsule not found.'
+
+    def test_positive_reclaim_space(
+        self,
+        target_sat,
+        module_capsule_configured,
+    ):
+        """Verify the reclaim_space endpoint spawns the Reclaim space task
+        and apidoc references the endpoint correctly.
+
+        :id: eb16ed53-0489-4bb9-a0da-8d857a1c7d06
+
+        :setup:
+            1. A registered external Capsule.
+
+        :steps:
+            1. Trigger the reclaim space task via API, check it succeeds.
+            2. Check the apidoc references the correct endpoint.
+
+        :expectedresults:
+            1. Reclaim_space endpoint spawns the Reclaim space task and it succeeds.
+            2. Apidoc references the correct endpoint.
+
+        :CaseImportance: Medium
+
+        :BZ: 2218179
+
+        :customerscenario: true
+        """
+        # Trigger the reclaim space task via API, check it succeeds
+        task = module_capsule_configured.nailgun_capsule.content_reclaim_space()
+        assert task, 'No task was created for reclaim space.'
+        assert (
+            'Actions::Pulp3::CapsuleContent::ReclaimSpace' in task['label']
+        ), 'Unexpected task triggered'
+        assert 'success' in task['result'], 'Reclaim task did not succeed'
+
+        # Check the apidoc references the correct endpoint
+        try:
+            reclaim_doc = next(
+                method
+                for method in target_sat.apidoc['docs']['resources']['capsule_content']['methods']
+                if '/apidoc/v2/capsule_content/reclaim_space' in method['doc_url']
+            )
+        except StopIteration:
+            raise AssertionError(
+                'Could not find the reclaim_space apidoc at the expected path.'
+            ) from None
+        assert len(reclaim_doc['apis']) == 1
+        assert reclaim_doc['apis'][0]['http_method'] == 'POST', 'POST method was expected.'
+        assert (
+            reclaim_doc['apis'][0]['api_url'] == '/katello/api/capsules/:id/content/reclaim_space'
+        ), 'Documented path did not meet the expectation.'

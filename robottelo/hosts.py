@@ -14,6 +14,7 @@ import time
 from urllib.parse import urljoin, urlparse, urlunsplit
 import warnings
 
+import apypie
 from box import Box
 from broker import Broker
 from broker.hosts import Host
@@ -1762,6 +1763,7 @@ class Satellite(Capsule, SatelliteMixins):
         # create dummy classes for later population
         self._api = type('api', (), {'_configured': False})
         self._cli = type('cli', (), {'_configured': False})
+        self._apidoc = None
         self.record_property = None
 
     def _swap_nailgun(self, new_version):
@@ -1814,6 +1816,19 @@ class Satellite(Capsule, SatelliteMixins):
                 pass
         self._api._configured = True
         return self._api
+
+    @property
+    def apidoc(self):
+        """Provide Satellite's apidoc via apypie"""
+        if not self._apidoc:
+            self._apidoc = apypie.Api(
+                uri=self.url,
+                username=settings.server.admin_username,
+                password=settings.server.admin_password,
+                api_version=2,
+                verify_ssl=settings.server.verify_ca,
+            ).apidoc
+        return self._apidoc
 
     @property
     def cli(self):
