@@ -11,11 +11,23 @@
 :CaseAutomation: Automated
 
 """
+from box import Box
 from fauxfactory import gen_integer, gen_string, gen_url
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DOCKER_REPO_UPSTREAM_NAME, REPO_TYPE
+from robottelo.constants import DOCKER_REPO_UPSTREAM_NAME, REPO_TYPE, REPOS
+from robottelo.hosts import ProxyHostError
+
+
+@pytest.fixture
+def function_spec_char_user(target_sat, session_auth_proxy):
+    """Creates a user with special character password on the auth HTTP proxy"""
+    name = gen_string('alpha').lower()  # lower!
+    passwd = gen_string('punctuation').replace("'", '')
+    session_auth_proxy.add_user(name, passwd)
+    yield Box(name=name, passwd=passwd)
+    session_auth_proxy.remove_user(name)
 
 
 @pytest.mark.tier2
@@ -295,35 +307,87 @@ def test_check_http_proxy_value_repository_details(
 
 @pytest.mark.tier3
 @pytest.mark.run_in_one_thread
-@pytest.mark.stubbed
-def test_http_proxy_containing_special_characters():
+def test_http_proxy_containing_special_characters(
+    request,
+    target_sat,
+    session_auth_proxy,
+    function_spec_char_user,
+    module_sca_manifest_org,
+    default_location,
+):
     """Test Manifest refresh and redhat repository sync with http proxy special
         characters in password.
 
     :id: 16082c6a-9320-4a9a-bd6c-5687b099c940
 
-    :customerscenario: true
+    :setup:
+        1. Have an authenticated HTTP proxy.
+        2. At the Proxy side create a user with special characters in password
+           (via function_spec_user fixture), let's call him the spec-char user.
 
     :steps:
-        1. Navigate to Infrastructure > Http Proxies
-        2. Create HTTP Proxy with special characters in password.
-        3. Go To to Administer > Settings > content tab
-        4. Fill the details related to HTTP Proxy and click on "Test connection" button.
-        5. Update the "Default HTTP Proxy" with created above.
-        6. Refresh manifest.
-        7. Enable and sync any redhat repositories.
+        1. Check that no logs exist for the spec-char user at the proxy side yet.
+        2. Create a proxy via UI using the spec-char user.
+        3. Update settings to use the proxy for the content ops.
+        4. Refresh the manifest, check it went through the proxy.
+        5. Enable and sync some RH repository, check it went through the proxy.
+
+    :expectedresults:
+        1. HTTP proxy can be created via UI using the spec-char user.
+        2. Manifest refresh, repository enable and sync succeed and are performed
+           through the HTTP proxy.
 
     :BZ: 1844840
 
-    :expectedresults:
-        1. "Test connection" button workes as expected.
-        2. Manifest refresh, repository enable/disable and repository sync operation
-            finished successfully.
-
-    :CaseAutomation: NotAutomated
-
-    :CaseImportance: High
+    :customerscenario: true
     """
+    # Check that no logs exist for the spec-char user at the proxy side yet.
+    with pytest.raises(ProxyHostError):
+        session_auth_proxy.get_log(tail=100, grep=function_spec_char_user.name)
+
+    # Create a proxy via UI using the spec-char user.
+    proxy_name = gen_string('alpha')
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_sca_manifest_org.name)
+        session.http_proxy.create(
+            {
+                'http_proxy.name': proxy_name,
+                'http_proxy.url': settings.http_proxy.auth_proxy_url,
+                'http_proxy.username': function_spec_char_user.name,
+                'http_proxy.password': function_spec_char_user.passwd,
+                'locations.resources.assigned': [default_location.name],
+                'organizations.resources.assigned': [module_sca_manifest_org.name],
+            }
+        )
+        request.addfinalizer(
+            lambda: target_sat.api.HTTPProxy()
+            .search(query={'search': f'name={proxy_name}'})[0]
+            .delete()
+        )
+
+        # Update settings to use the proxy for the content ops.
+        session.settings.update(
+            'name = content_default_http_proxy',
+            f'{proxy_name} ({settings.http_proxy.auth_proxy_url})',
+        )
+
+        # Refresh the manifest, check it went through the proxy.
+        target_sat.cli.Subscription.refresh_manifest(
+            {'organization-id': module_sca_manifest_org.id}
+        )
+        assert session_auth_proxy.get_log(
+            tail=100, grep=f'CONNECT subscription.rhsm.redhat.com.*{function_spec_char_user.name}'
+        ), 'RHSM connection not found in proxy log'
+
+        # Enable and sync some RH repository, check it went through the proxy.
+        repo_id = target_sat.api_factory.enable_sync_redhat_repo(
+            REPOS['rhae2'], module_sca_manifest_org.id
+        )
+        repo = target_sat.api.Repository(id=repo_id).read()
+        assert session_auth_proxy.get_log(
+            tail=100, grep=f'CONNECT cdn.redhat.com.*{function_spec_char_user.name}'
+        ), 'CDN connection not found in proxy log'
+        assert repo.content_counts['rpm'] > 0, 'Where is my content?!'
 
 
 @pytest.mark.tier2
