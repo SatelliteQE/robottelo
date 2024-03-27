@@ -162,6 +162,16 @@ def rex_contenthost(request, module_org, target_sat, module_ak_with_cv):
 
 
 @pytest.fixture
+def rex_contenthosts(request, module_org, target_sat, module_ak_with_cv):
+    request.param['no_containers'] = True
+    with Broker(**host_conf(request), host_class=ContentHost, _count=2) as hosts:
+        for host in hosts:
+            repo = settings.repos['SATCLIENT_REPO'][f'RHEL{host.os_version.major}']
+            host.register(module_org, None, module_ak_with_cv.name, target_sat, repo=repo)
+        yield hosts
+
+
+@pytest.fixture
 def katello_host_tools_tracer_host(rex_contenthost, target_sat):
     """Install katello-host-tools-tracer, create custom
     repositories on the host"""
