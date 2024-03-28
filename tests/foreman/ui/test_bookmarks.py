@@ -16,11 +16,13 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import user_nailgun_config
-from robottelo.constants import BOOKMARK_ENTITIES
+from robottelo.constants import BOOKMARK_ENTITIES_SELECTION
 
 
 @pytest.fixture(
-    scope='module', params=BOOKMARK_ENTITIES, ids=(i['name'] for i in BOOKMARK_ENTITIES)
+    scope='module',
+    params=BOOKMARK_ENTITIES_SELECTION,
+    ids=(i['name'] for i in BOOKMARK_ENTITIES_SELECTION),
 )
 def ui_entity(module_org, module_location, request):
     """Collects the list of all applicable UI entities for testing and does all
