@@ -1,6 +1,13 @@
 import pytest
 
 from robottelo.config import settings
+from robottelo.hosts import ProxyHost
+
+
+@pytest.fixture(scope='session')
+def session_auth_proxy(session_target_sat):
+    """Instantiates authenticated HTTP proxy as a session-scoped fixture"""
+    return ProxyHost(settings.http_proxy.auth_proxy_url)
 
 
 @pytest.fixture
