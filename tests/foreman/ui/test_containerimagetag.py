@@ -11,7 +11,6 @@
 :CaseImportance: High
 
 """
-from nailgun import entities
 import pytest
 
 from robottelo.constants import (
@@ -25,18 +24,18 @@ from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope="module")
-def module_org():
-    return entities.Organization().create()
+def module_org(module_target_sat):
+    return module_target_sat.api.Organization().create()
 
 
 @pytest.fixture(scope="module")
-def module_product(module_org):
-    return entities.Product(organization=module_org).create()
+def module_product(module_org, module_target_sat):
+    return module_target_sat.api.Product(organization=module_org).create()
 
 
 @pytest.fixture(scope="module")
-def module_repository(module_product):
-    repo = entities.Repository(
+def module_repository(module_product, module_target_sat):
+    repo = module_target_sat.api.Repository(
         content_type=REPO_TYPE['docker'],
         docker_upstream_name=CONTAINER_UPSTREAM_NAME,
         product=module_product,
