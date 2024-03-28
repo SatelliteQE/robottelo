@@ -327,7 +327,9 @@ def test_session_expire_rhsso_idle_timeout(
         session.rhsso_login.login(
             {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.rhsso_password}
         )
-        sleep(60)
+        sleep(
+            150
+        )  # give the browser some time to actually logout, even though Satellite should terminate session after one minute
         with pytest.raises(NavigationTriesExceeded) as error:
             session.task.read_all(widget_names='current_user')['current_user']
         assert error.typename == 'NavigationTriesExceeded'
