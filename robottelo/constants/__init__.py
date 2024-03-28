@@ -970,13 +970,6 @@ PERMISSIONS = {
         'view_discovery_rules',
     ],
     'Domain': ['view_domains', 'create_domains', 'edit_domains', 'destroy_domains'],
-    #    'Environment': [
-    #        'view_environments',
-    #        'create_environments',
-    #        'edit_environments',
-    #        'destroy_environments',
-    #        'import_environments',
-    #    ],
     'ExternalUsergroup': [
         'view_external_usergroups',
         'create_external_usergroups',
@@ -1054,19 +1047,35 @@ PERMISSIONS = {
         'destroy_hostgroups',
         'play_roles_on_hostgroup',
     ],
-    #    'Puppetclass': [
-    #        'view_puppetclasses',
-    #        'create_puppetclasses',
-    #        'edit_puppetclasses',
-    #        'destroy_puppetclasses',
-    #        'import_puppetclasses',
-    #    ],
-    #    'PuppetclassLookupKey': [
-    #        'view_external_parameters',
-    #        'create_external_parameters',
-    #        'edit_external_parameters',
-    #        'destroy_external_parameters',
-    #    ],
+    'ForemanPuppet::ConfigGroup': [
+        'view_config_groups',
+        'create_config_groups',
+        'edit_config_groups',
+        'destroy_config_groups',
+    ],
+    'ForemanPuppet::Environment': [
+        'view_environments',
+        'create_environments',
+        'edit_environments',
+        'destroy_environments',
+        'import_environments',
+    ],
+    'ForemanPuppet::HostClass': [
+        'edit_classes',
+    ],
+    'ForemanPuppet::Puppetclass': [
+        'view_puppetclasses',
+        'create_puppetclasses',
+        'edit_puppetclasses',
+        'destroy_puppetclasses',
+        'import_puppetclasses',
+    ],
+    'ForemanPuppet::PuppetclassLookupKey': [
+        'view_external_parameters',
+        'create_external_parameters',
+        'edit_external_parameters',
+        'destroy_external_parameters',
+    ],
     'HttpProxy': [
         'view_http_proxies',
         'create_http_proxies',
@@ -1103,6 +1112,12 @@ PERMISSIONS = {
         'create_operatingsystems',
         'edit_operatingsystems',
         'destroy_operatingsystems',
+    ],
+    'OrcharhinoCore': [
+        'view_orcharhino_content_status',
+        'manage_orcharhino_subscription_key',
+        'view_orcharhino_subscription_key',
+        'use_orcharhino_core',
     ],
     'Parameter': ['view_params', 'create_params', 'edit_params', 'destroy_params'],
     'PersonalAccessToken': [
