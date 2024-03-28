@@ -225,7 +225,11 @@ VALIDATORS = dict(
         Validator(
             'oscap.content_path',
             must_exist=True,
-        )
+        ),
+        Validator(
+            'oscap.profile',
+            default='security7',
+        ),
     ],
     osp=[
         Validator(
