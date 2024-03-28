@@ -5,6 +5,7 @@ from robottelo.config import settings
 
 TARGET_FIXTURES = [
     'rhel_contenthost',
+    'module_rhel_contenthost',
     'content_hosts',
     'module_provisioning_rhel_content',
     'capsule_provisioning_rhel_content',
