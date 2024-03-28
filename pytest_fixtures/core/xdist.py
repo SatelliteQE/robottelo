@@ -23,6 +23,7 @@ def align_to_satellite(request, worker_id, satellite_factory):
         # clear any hostname that may have been previously set
         settings.set("server.hostname", None)
         on_demand_sat = None
+        http_proxy = None
 
         if worker_id in ['master', 'local']:
             worker_pos = 0
@@ -44,6 +45,7 @@ def align_to_satellite(request, worker_id, satellite_factory):
         # get current satellite information
         elif settings.server.xdist_behavior == 'on-demand':
             on_demand_sat = satellite_factory()
+            http_proxy = on_demand_sat.enable_ipv6_http_proxy()
             if on_demand_sat.hostname:
                 settings.set("server.hostname", on_demand_sat.hostname)
             # if no satellite was received, fallback to balance
@@ -58,4 +60,5 @@ def align_to_satellite(request, worker_id, satellite_factory):
         yield
         if on_demand_sat and settings.server.auto_checkin:
             on_demand_sat.teardown()
+            on_demand_sat.disable_ipv6_http_proxy(http_proxy)
             Broker(hosts=[on_demand_sat]).checkin()
