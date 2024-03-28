@@ -322,6 +322,97 @@ def test_add_and_remove_ansible_role_hostgroup(target_sat):
     assert len(hg_nested_roles) == 0
 
 
+@pytest.mark.e2e
+@pytest.mark.tier2
+@pytest.mark.upgrade
+def test_positive_ansible_roles_inherited_from_hostgroup(
+    request, target_sat, module_org, module_location
+):
+    """Verify ansible roles inheritance functionality for host with parent/nested hostgroup via API
+
+    :id: 7672cf86-fa31-11ed-855a-0fd307d2d66g
+
+    :steps:
+        1. Create a host, hostgroup and nested hostgroup
+        2. Sync a few ansible roles
+        3. Assign a few ansible roles to the host, hostgroup, nested hostgroup and verify it.
+        4. Update host to be in parent/nested hostgroup and verify roles assigned
+
+    :expectedresults:
+        1. Hosts in parent/nested hostgroups must have direct and indirect roles correctly assigned.
+
+    :BZ: 2187967
+
+    :customerscenario: true
+    """
+    ROLE_NAMES = [
+        'theforeman.foreman_scap_client',
+        'RedHatInsights.insights-client',
+        'redhat.satellite.compute_resources',
+    ]
+    proxy_id = target_sat.nailgun_smart_proxy.id
+    host = target_sat.api.Host(organization=module_org, location=module_location).create()
+    hg = target_sat.api.HostGroup(name=gen_string('alpha'), organization=[module_org]).create()
+    hg_nested = target_sat.api.HostGroup(
+        name=gen_string('alpha'), parent=hg, organization=[module_org]
+    ).create()
+
+    @request.addfinalizer
+    def _finalize():
+        host.delete()
+        hg_nested.delete()
+        hg.delete()
+
+    target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': ROLE_NAMES})
+    ROLES = [
+        target_sat.api.AnsibleRoles().search(query={'search': f'name={role}'})[0].id
+        for role in ROLE_NAMES
+    ]
+
+    # Assign roles to Host/Hostgroup/Nested Hostgroup and verify it
+    target_sat.api.Host(id=host.id).add_ansible_role(data={'ansible_role_id': ROLES[0]})
+    assert ROLE_NAMES[0] == target_sat.api.Host(id=host.id).list_ansible_roles()[0]['name']
+
+    target_sat.api.HostGroup(id=hg.id).add_ansible_role(data={'ansible_role_id': ROLES[1]})
+    assert ROLE_NAMES[1] == target_sat.api.HostGroup(id=hg.id).list_ansible_roles()[0]['name']
+
+    target_sat.api.HostGroup(id=hg_nested.id).add_ansible_role(data={'ansible_role_id': ROLES[2]})
+    listroles = target_sat.api.HostGroup(id=hg_nested.id).list_ansible_roles()
+    assert ROLE_NAMES[2] == listroles[0]['name']
+    assert listroles[0]['directly_assigned']
+    assert ROLE_NAMES[1] == listroles[1]['name']
+    assert not listroles[1]['directly_assigned']
+
+    # Update host to be in nested hostgroup and verify roles assigned
+    host.hostgroup = hg_nested
+    host = host.update(['hostgroup'])
+    listroles_host = target_sat.api.Host(id=host.id).list_ansible_roles()
+    assert ROLE_NAMES[0] == listroles_host[0]['name']
+    assert listroles_host[0]['directly_assigned']
+    assert ROLE_NAMES[1] == listroles_host[1]['name']
+    assert not listroles_host[1]['directly_assigned']
+    assert ROLE_NAMES[2] == listroles_host[2]['name']
+    assert not listroles_host[1]['directly_assigned']
+    # Verify nested hostgroup doesn't contains the roles assigned to host
+    listroles_nested_hg = target_sat.api.HostGroup(id=hg_nested.id).list_ansible_roles()
+    assert ROLE_NAMES[0] not in [role['name'] for role in listroles_nested_hg]
+    assert ROLE_NAMES[2] == listroles_nested_hg[0]['name']
+    assert ROLE_NAMES[1] == listroles_nested_hg[1]['name']
+
+    # Update host to be in parent hostgroup and verify roles assigned
+    host.hostgroup = hg
+    host = host.update(['hostgroup'])
+    listroles = target_sat.api.Host(id=host.id).list_ansible_roles()
+    assert ROLE_NAMES[0] == listroles[0]['name']
+    assert listroles[0]['directly_assigned']
+    assert ROLE_NAMES[1] == listroles[1]['name']
+    assert not listroles[1]['directly_assigned']
+    # Verify parent hostgroup doesn't contains the roles assigned to host
+    listroles_hg = target_sat.api.HostGroup(id=hg.id).list_ansible_roles()
+    assert ROLE_NAMES[0] not in [role['name'] for role in listroles_hg]
+    assert ROLE_NAMES[1] == listroles_hg[0]['name']
+
+
 @pytest.mark.rhel_ver_match('[78]')
 @pytest.mark.tier2
 def test_positive_read_facts_with_filter(
