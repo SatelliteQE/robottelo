@@ -1,4 +1,4 @@
-"""Test class for Remote Execution Management UI
+"""Test class for Job Invocation procedure
 
 :Requirement: Remoteexecution
 
@@ -14,17 +14,23 @@
 import datetime
 import time
 
+from inflection import camelize
 import pytest
 from wait_for import wait_for
 
-from robottelo.utils.datafactory import gen_string
+from robottelo.utils.datafactory import (
+    gen_string,
+)
 
 
-@pytest.mark.skip_if_open('BZ:2182353')
 @pytest.mark.rhel_ver_match('8')
-@pytest.mark.tier3
-def test_positive_run_default_job_template_by_ip(session, rex_contenthost, module_org):
-    """Run a job template against a single host by ip
+def test_positive_run_default_job_template(
+    session,
+    target_sat,
+    rex_contenthost,
+    module_org,
+):
+    """Run a job template on a host
 
     :id: a21eac46-1a22-472d-b4ce-66097159a868
 
@@ -32,38 +38,38 @@ def test_positive_run_default_job_template_by_ip(session, rex_contenthost, modul
 
     :steps:
 
-        1. Navigate to an individual host and click Run Job
-        2. Select the job and appropriate template
-        3. Run the job
+        1. Get contenthost with rex enabled
+        2. Navigate to an individual host and click Run Job
+        3. Select the job and appropriate template
+        4. Run the job
 
-    :expectedresults: Verify the job was successfully ran against the host
+    :expectedresults: Verify the job was successfully ran against the host, check also using the job widget on the main dashboard
 
     :parametrized: yes
 
-    :bz: 1898656
+    :bz: 1898656, 2182353
 
     :customerscenario: true
     """
+
     hostname = rex_contenthost.hostname
-    with session:
+
+    with target_sat.ui_session() as session:
         session.organization.select(module_org.name)
-        session.location.select('Default Location')
         assert session.host.search(hostname)[0]['Name'] == hostname
         command = 'ls'
-        job_status = session.host.schedule_remote_job(
-            [hostname],
+        session.jobinvocation.run(
             {
                 'category_and_template.job_category': 'Commands',
                 'category_and_template.job_template': 'Run Command - Script Default',
+                'target_hosts_and_inputs.targetting_type': 'Hosts',
+                'target_hosts_and_inputs.targets': hostname,
                 'target_hosts_and_inputs.command': command,
-                'advanced_fields.execution_order_randomized': True,
-                'schedule.immediate': True,
-            },
+            }
         )
-        assert job_status['overview']['job_status'] == 'Success'
-        assert job_status['overview']['execution_order'] == 'Execution order: randomized'
-        assert job_status['overview']['hosts_table'][0]['Host'] == hostname
-        assert job_status['overview']['hosts_table'][0]['Status'] == 'success'
+        session.jobinvocation.wait_job_invocation_state(entity_name='Run ls', host_name=hostname)
+        status = session.jobinvocation.read(entity_name='Run ls', host_name=hostname)
+        assert status['overview']['hosts_table'][0]['Status'] == 'success'
 
         # check status also on the job dashboard
         job_name = f'Run {command}'
@@ -73,16 +79,54 @@ def test_positive_run_default_job_template_by_ip(session, rex_contenthost, modul
         assert job_name in [job['Name'] for job in success_jobs]
 
 
-@pytest.mark.skip_if_open('BZ:2182353')
+@pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
-@pytest.mark.tier3
+def test_rex_through_host_details(session, target_sat, rex_contenthost, module_org):
+    """Run remote execution using the new host details page
+
+    :id: ee625595-4995-43b2-9e6d-633c9b33ff93
+
+    :steps:
+        1. Navigate to Overview tab
+        2. Schedule a job
+        3. Wait for the job to finish
+        4. Job is visible in Recent jobs card
+
+    :expectedresults: Remote execution succeeded and the job is visible on Recent jobs card on
+        Overview tab
+    """
+
+    hostname = rex_contenthost.hostname
+
+    job_args = {
+        'category_and_template.job_category': 'Commands',
+        'category_and_template.job_template': 'Run Command - Script Default',
+        'target_hosts_and_inputs.command': 'ls',
+    }
+    with target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.host_new.schedule_job(hostname, job_args)
+        task_result = target_sat.wait_for_tasks(
+            search_query=(f'Remote action: Run ls on {hostname}'),
+            search_rate=2,
+            max_tries=30,
+        )
+        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
+        assert task_status['result'] == 'success'
+        recent_jobs = session.host_new.get_details(hostname, "overview.recent_jobs")['overview']
+        assert recent_jobs['recent_jobs']['finished']['table'][0]['column0'] == "Run ls"
+        assert recent_jobs['recent_jobs']['finished']['table'][0]['column2'] == "succeeded"
+
+
+@pytest.mark.tier4
+@pytest.mark.rhel_ver_match('8')
 @pytest.mark.parametrize(
     'ui_user', [{'admin': True}, {'admin': False}], indirect=True, ids=['adminuser', 'nonadminuser']
 )
-def test_positive_run_custom_job_template_by_ip(
-    session, module_org, target_sat, default_location, ui_user, rex_contenthost
+def test_positive_run_custom_job_template(
+    session, module_org, default_location, target_sat, ui_user, rex_contenthost
 ):
-    """Run a job template on a host connected by ip
+    """Run a job template on a host
 
     :id: 3a59eb15-67c4-46e1-ba5f-203496ec0b0c
 
@@ -103,13 +147,14 @@ def test_positive_run_custom_job_template_by_ip(
 
     :customerscenario: true
     """
+
+    hostname = rex_contenthost.hostname
     ui_user.location.append(target_sat.api.Location(id=default_location.id))
     ui_user.update(['location'])
-    hostname = rex_contenthost.hostname
     job_template_name = gen_string('alpha')
-    with session:
+    with target_sat.ui_session() as session:
         session.organization.select(module_org.name)
-        session.location.select('Default Location')
+        assert session.host.search(hostname)[0]['Name'] == hostname
         session.jobtemplate.create(
             {
                 'template.name': job_template_name,
@@ -120,29 +165,29 @@ def test_positive_run_custom_job_template_by_ip(
             }
         )
         assert session.jobtemplate.search(job_template_name)[0]['Name'] == job_template_name
-        assert session.host.search(hostname)[0]['Name'] == hostname
-        job_status = session.host.schedule_remote_job(
-            [hostname],
+        session.jobinvocation.run(
             {
                 'category_and_template.job_category': 'Miscellaneous',
                 'category_and_template.job_template': job_template_name,
+                'target_hosts_and_inputs.targets': hostname,
                 'target_hosts_and_inputs.command': 'ls',
-                'schedule.immediate': True,
-            },
+            }
         )
-        assert job_status['overview']['job_status'] == 'Success'
-        assert job_status['overview']['hosts_table'][0]['Host'] == hostname
-        assert job_status['overview']['hosts_table'][0]['Status'] == 'success'
+        job_description = f'{camelize(job_template_name.lower())} with inputs command="ls"'
+        session.jobinvocation.wait_job_invocation_state(
+            entity_name=job_description, host_name=hostname
+        )
+        status = session.jobinvocation.read(entity_name=job_description, host_name=hostname)
+        assert status['overview']['hosts_table'][0]['Status'] == 'success'
 
 
-@pytest.mark.skip_if_open('BZ:2182353')
 @pytest.mark.upgrade
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_list([8])
-def test_positive_run_job_template_multiple_hosts_by_ip(
+def test_positive_run_job_template_multiple_hosts(
     session, module_org, target_sat, rex_contenthosts
 ):
-    """Run a job template against multiple hosts by ip
+    """Run a job template against multiple hosts
 
     :id: c4439ec0-bb80-47f6-bc31-fa7193bfbeeb
 
@@ -187,7 +232,6 @@ def test_positive_run_job_template_multiple_hosts_by_ip(
         )
 
 
-@pytest.mark.skip_if_open('BZ:2182353')
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.tier3
 def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_contenthost):
@@ -535,4 +579,56 @@ def test_positive_matcher_field_highlight(session):
     :CaseComponent: Ansible-ConfigurationManagement
 
     :Team: Rocket
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_positive_schedule_recurring_host_job(self):
+    """Using the new Host UI, schedule a recurring job on a Host
+
+    :id: 5052be04-28ab-4349-8bee-851ef76e4ffa
+
+    :caseComponent: Ansible-RemoteExecution
+
+    :Team: Rocket
+
+    :steps:
+        1. Register a RHEL host to Satellite.
+        2. Import all roles available by default.
+        3. Assign a role to host.
+        4. Navigate to the new UI for the given Host.
+        5. Select the Jobs subtab.
+        6. Click the Schedule Recurring Job button, and using the popup, schedule a
+            recurring Job.
+        7. Navigate to Job Invocations.
+
+    :expectedresults: The scheduled Job appears in the Job Invocation list at the appointed
+        time
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_positive_schedule_recurring_hostgroup_job(self):
+    """Using the new recurring job scheduler, schedule a recurring job on a Hostgroup
+
+    :id: c65db99b-11fe-4a32-89d0-0a4692b07efe
+
+    :caseComponent: Ansible-RemoteExecution
+
+    :Team: Rocket
+
+    :steps:
+        1. Register a RHEL host to Satellite.
+        2. Import all roles available by default.
+        3. Assign a role to host.
+        4. Navigate to the Host Group page.
+        5. Select the "Configure Ansible Job" action.
+        6. Click the Schedule Recurring Job button, and using the popup, schedule a
+            recurring Job.
+        7. Navigate to Job Invocations.
+
+    :expectedresults: The scheduled Job appears in the Job Invocation list at the appointed
+        time
     """
