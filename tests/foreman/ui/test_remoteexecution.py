@@ -482,27 +482,6 @@ def test_positive_ansible_variables_imported_with_roles(session):
 
 @pytest.mark.stubbed
 @pytest.mark.tier3
-def test_positive_roles_import_in_background(session):
-    """Verify that importing roles does not create a popup that blocks the UI
-
-    :id: 4f1c7b76-9c67-42b2-9a73-980ca1f05abc
-
-    :steps:
-
-        1. Import Ansible roles
-
-    :expectedresults: Verify that the UI is accessible while roles are importing
-
-    :CaseAutomation: NotAutomated
-
-    :CaseComponent: Ansible-ConfigurationManagement
-
-    :Team: Rocket
-    """
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_ansible_roles_ignore_list(session):
     """Verify that the ignore list setting prevents selected roles from being available for import
 
@@ -616,32 +595,6 @@ def test_positive_set_ansible_role_order_per_hostgroup(session):
         7. Run Ansible roles on the host group
 
     :expectedresults: The roles are run in the specified order
-
-    :CaseAutomation: NotAutomated
-
-    :CaseComponent: Ansible-ConfigurationManagement
-
-    :Team: Rocket
-    """
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier3
-def test_positive_matcher_field_highlight(session):
-    """Verify that Ansible variable matcher fields change color when modified
-
-    :id: 67b45cfe-31bb-41a8-b88e-27917c68f33e
-
-    :steps:
-
-        1. Navigate to Configure > Variables > $variablename
-        2. Select the "Override" checkbox in the "Default Behavior" section
-        3. Click "+Add Matcher" in the "Specify Matcher" section
-        4. Select an option from the "Attribute type" dropdown
-        5. Add text to the attribute type input field
-        6. Add text to the "Value" input field
-
-    :expectedresults: The background of each field turns yellow when a change is made
 
     :CaseAutomation: NotAutomated
 
