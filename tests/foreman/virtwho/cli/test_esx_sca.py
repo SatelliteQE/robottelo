@@ -565,7 +565,7 @@ class TestVirtWhoConfigforEsx:
         rhsm_username.append(get_configure_option('rhsm_username', config_file))
         vc_id.append(virtwho_config_cli['id'])
 
-        # verify the two service account belong to the different org are different
+        # verify the two service accounts belonging to different orgs are different
         assert rhsm_username[2] != rhsm_username[0]
 
         # Verify virt-who config with the same service account send hypervisors and guest mapping info in the same organization section, and service account exist in rhsm.log
