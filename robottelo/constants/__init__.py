@@ -263,6 +263,11 @@ OHSNAP_RHEL8_REPOS = (
     'rhel-8-for-x86_64-appstream-rpms',
 )
 
+OHSNAP_RHEL9_REPOS = (
+    'rhel-9-for-x86_64-baseos-rpms',
+    'rhel-9-for-x86_64-appstream-rpms',
+)
+
 # On importing manifests, Red Hat repositories are listed like this:
 # Product -> RepositorySet -> Repository
 # We need to first select the Product, then the reposet and then the repos
