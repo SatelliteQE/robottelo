@@ -16,7 +16,6 @@ from datetime import datetime, timedelta
 import random
 from time import sleep
 
-from broker import Broker
 from dateutil.relativedelta import FR, relativedelta
 from fauxfactory import gen_string
 import pytest
@@ -24,8 +23,7 @@ from wait_for import wait_for
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.constants import FAKE_4_CUSTOM_PACKAGE, PRDS, REPOS, REPOSET
-from robottelo.hosts import ContentHost
+from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
 from robottelo.utils import ohsnap
 from robottelo.utils.datafactory import filtered_datapoint, parametrized
 
@@ -42,24 +40,6 @@ def valid_feature_names():
         {'label': 'katello_group_remove', 'jt_name': 'Remove Group - Katello Script Default'},
         {'label': 'katello_errata_install', 'jt_name': 'Install Errata - Katello Script Default'},
     ]
-
-
-@pytest.fixture
-def fixture_sca_vmsetup(request, module_sca_manifest_org, target_sat):
-    """Create VM and register content host to Simple Content Access organization"""
-    if '_count' in request.param:
-        with Broker(
-            nick=request.param['nick'],
-            host_class=ContentHost,
-            _count=request.param['_count'],
-        ) as clients:
-            for client in clients:
-                client.configure_rex(satellite=target_sat, org=module_sca_manifest_org)
-            yield clients
-    else:
-        with Broker(nick=request.param['nick'], host_class=ContentHost) as client:
-            client.configure_rex(satellite=target_sat, org=module_sca_manifest_org)
-            yield client
 
 
 @pytest.fixture
@@ -230,10 +210,9 @@ class TestRemoteExecution:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([8])
     def test_positive_run_default_job_template_multiple_hosts(
-        self, registered_hosts, module_target_sat
+        self, rex_contenthosts, module_target_sat
     ):
         """Run default job template against multiple hosts
 
@@ -243,7 +222,7 @@ class TestRemoteExecution:
 
         :parametrized: yes
         """
-        clients = registered_hosts
+        clients = rex_contenthosts
         invocation_command = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
@@ -620,392 +599,6 @@ class TestRemoteExecution:
         )
         # check that the first task indeed failed which verifies the test was done correctly
         assert cli.JobInvocation.info({'id': invocation.id})['failed'] != '0'
-
-
-class TestAnsibleREX:
-    """Test class for remote execution via Ansible"""
-
-    @pytest.mark.tier3
-    @pytest.mark.upgrade
-    @pytest.mark.pit_client
-    @pytest.mark.pit_server
-    @pytest.mark.rhel_ver_list([7, 8, 9])
-    def test_positive_run_effective_user_job(self, rex_contenthost, target_sat):
-        """Tests Ansible REX job having effective user runs successfully
-
-        :id: a5fa20d8-c2bd-4bbf-a6dc-bf307b59dd8c
-
-        :steps:
-
-            0. Create a VM and register to SAT and prepare for REX (ssh key)
-
-            1. Run Ansible Command job for the host to create a user
-
-            2. Run Ansible Command job using effective user
-
-            3. Check the job result at the host is done under that user
-
-        :expectedresults: multiple asserts along the code
-
-        :CaseAutomation: Automated
-
-        :parametrized: yes
-        """
-        client = rex_contenthost
-        # create a user on client via remote job
-        username = gen_string('alpha')
-        filename = gen_string('alpha')
-        make_user_job = target_sat.cli_factory.job_invocation(
-            {
-                'job-template': 'Run Command - Ansible Default',
-                'inputs': f"command=useradd -m {username}",
-                'search-query': f"name ~ {client.hostname}",
-            }
-        )
-        assert_job_invocation_result(target_sat, make_user_job['id'], client.hostname)
-        # create a file as new user
-        invocation_command = target_sat.cli_factory.job_invocation(
-            {
-                'job-template': 'Run Command - Ansible Default',
-                'inputs': f"command=touch /home/{username}/{filename}",
-                'search-query': f"name ~ {client.hostname}",
-                'effective-user': f'{username}',
-            }
-        )
-        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
-        # check the file owner
-        result = client.execute(
-            f'''stat -c '%U' /home/{username}/{filename}''',
-        )
-        # assert the file is owned by the effective user
-        assert username == result.stdout.strip('\n'), "file ownership mismatch"
-
-    @pytest.mark.tier3
-    @pytest.mark.upgrade
-    @pytest.mark.rhel_ver_list([8])
-    def test_positive_run_reccuring_job(self, rex_contenthost, target_sat):
-        """Tests Ansible REX reccuring job runs successfully multiple times
-
-        :id: 49b0d31d-58f9-47f1-aa5d-561a1dcb0d66
-
-        :steps:
-
-            0. Create a VM and register to SAT and prepare for REX (ssh key)
-
-            1. Run recurring Ansible Command job for the host
-
-            2. Check the multiple job results at the host
-
-        :expectedresults: multiple asserts along the code
-
-        :CaseAutomation: Automated
-
-        :customerscenario: true
-
-        :bz: 2129432
-
-        :parametrized: yes
-        """
-        client = rex_contenthost
-        invocation_command = target_sat.cli_factory.job_invocation(
-            {
-                'job-template': 'Run Command - Ansible Default',
-                'inputs': 'command=ls',
-                'search-query': f"name ~ {client.hostname}",
-                'cron-line': '* * * * *',  # every minute
-                'max-iteration': 2,  # just two runs
-            }
-        )
-        result = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
-        sleep(150)
-        rec_logic = target_sat.cli.RecurringLogic.info({'id': result['recurring-logic-id']})
-        assert rec_logic['state'] == 'finished'
-        assert rec_logic['iteration'] == '2'
-        # 2129432
-        rec_logic_keys = rec_logic.keys()
-        assert 'action' in rec_logic_keys
-        assert 'last-occurrence' in rec_logic_keys
-        assert 'next-occurrence' in rec_logic_keys
-        assert 'state' in rec_logic_keys
-        assert 'purpose' in rec_logic_keys
-        assert 'iteration' in rec_logic_keys
-        assert 'iteration-limit' in rec_logic_keys
-
-    @pytest.mark.tier3
-    @pytest.mark.no_containers
-    def test_positive_run_concurrent_jobs(self, registered_hosts, target_sat):
-        """Tests Ansible REX concurent jobs without batch trigger
-
-        :id: ad0f108c-03f2-49c7-8732-b1056570567b
-
-        :steps:
-
-            0. Create 2 hosts, disable foreman_tasks_proxy_batch_trigger
-
-            1. Run Ansible Command job with concurrency-setting
-
-        :expectedresults: multiple asserts along the code
-
-        :CaseAutomation: Automated
-
-        :customerscenario: true
-
-        :BZ: 1817320
-
-        :parametrized: yes
-        """
-        param_name = 'foreman_tasks_proxy_batch_trigger'
-        target_sat.cli.GlobalParameter().set({'name': param_name, 'value': 'false'})
-        clients = registered_hosts
-        output_msgs = []
-        invocation_command = target_sat.cli_factory.job_invocation(
-            {
-                'job-template': 'Run Command - Ansible Default',
-                'inputs': 'command=ls',
-                'search-query': f'name ~ {clients[0].hostname} or name ~ {clients[1].hostname}',
-                'concurrency-level': 2,
-            }
-        )
-        for vm in clients:
-            output_msgs.append(
-                'host output from {}: {}'.format(
-                    vm.hostname,
-                    ' '.join(
-                        target_sat.cli.JobInvocation.get_output(
-                            {'id': invocation_command['id'], 'host': vm.hostname}
-                        )
-                    ),
-                )
-            )
-        result = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
-        assert result['success'] == '2', output_msgs
-        target_sat.cli.GlobalParameter().delete({'name': param_name})
-        assert len(target_sat.cli.GlobalParameter().list({'search': param_name})) == 0
-
-    @pytest.mark.tier3
-    @pytest.mark.no_containers
-    def test_positive_run_serial(self, registered_hosts, target_sat):
-        """Tests subtasks in a job run one by one when concurrency level set to 1
-
-        :id: 5ce39447-82d0-42df-81be-16ed3d67a2a4
-
-        :Setup:
-            0. Create 2 hosts
-
-        :steps:
-
-            0. Run a bash command job with concurrency level 1
-
-        :expectedresults: First subtask should run immediately, second one after the first one finishes
-
-        :CaseAutomation: Automated
-
-        :parametrized: yes
-        """
-        hosts = registered_hosts
-        output_msgs = []
-        template_file = f"/root/{gen_string('alpha')}.template"
-        target_sat.execute(
-            f"echo 'rm /root/test-<%= @host %>; echo $(date +%s) >> /root/test-<%= @host %>; sleep 120; echo $(date +%s) >> /root/test-<%= @host %>' > {template_file}"
-        )
-        template = target_sat.cli.JobTemplate.create(
-            {
-                'name': gen_string('alpha'),
-                'file': template_file,
-                'job-category': 'Commands',
-                'provider-type': 'script',
-            }
-        )
-        invocation = target_sat.cli_factory.job_invocation(
-            {
-                'job-template': template['name'],
-                'search-query': f'name ~ {hosts[0].hostname} or name ~ {hosts[1].hostname}',
-                'concurrency-level': 1,
-            }
-        )
-        for vm in hosts:
-            output_msgs.append(
-                'host output from {}: {}'.format(
-                    vm.hostname,
-                    ' '.join(
-                        target_sat.cli.JobInvocation.get_output(
-                            {'id': invocation['id'], 'host': vm.hostname}
-                        )
-                    ),
-                )
-            )
-        result = target_sat.cli.JobInvocation.info({'id': invocation['id']})
-        assert result['success'] == '2', output_msgs
-        # assert for time diffs
-        file1 = hosts[0].execute('cat /root/test-$(hostname)').stdout
-        file2 = hosts[1].execute('cat /root/test-$(hostname)').stdout
-        file1_start, file1_end = map(int, file1.rstrip().split('\n'))
-        file2_start, file2_end = map(int, file2.rstrip().split('\n'))
-        if file1_start > file2_start:
-            file1_start, file1_end, file2_start, file2_end = (
-                file2_start,
-                file2_end,
-                file1_start,
-                file1_end,
-            )
-        assert file1_end - file1_start >= 120
-        assert file2_end - file2_start >= 120
-        assert file2_start >= file1_end  # the jobs did NOT run concurrently
-
-    @pytest.mark.tier3
-    @pytest.mark.upgrade
-    @pytest.mark.e2e
-    @pytest.mark.no_containers
-    @pytest.mark.pit_server
-    @pytest.mark.rhel_ver_match('[^6].*')
-    @pytest.mark.skipif(
-        (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
-    )
-    def test_positive_run_packages_and_services_job(
-        self, rhel_contenthost, module_org, module_ak_with_cv, target_sat
-    ):
-        """Tests Ansible REX job can install packages and start services
-
-        :id: 47ed82fb-77ca-43d6-a52e-f62bae5d3a42
-
-        :steps:
-
-            0. Create a VM and register to SAT and prepare for REX (ssh key)
-
-            1. Run Ansible Package job for the host to install a package
-
-            2. Check the package is present at the host
-
-            3. Run Ansible Service job for the host to start a service
-
-            4. Check the service is started on the host
-
-        :expectedresults: multiple asserts along the code
-
-        :CaseAutomation: Automated
-
-        :bz: 1872688, 1811166
-
-        :CaseImportance: Critical
-
-        :customerscenario: true
-
-        :parametrized: yes
-        """
-        client = rhel_contenthost
-        packages = ['tapir']
-        client.register(
-            module_org,
-            None,
-            module_ak_with_cv.name,
-            target_sat,
-            repo=settings.repos.yum_3.url,
-        )
-        # install package
-        invocation_command = target_sat.cli_factory.job_invocation(
-            {
-                'job-template': 'Package Action - Ansible Default',
-                'inputs': 'state=latest, name={}'.format(*packages),
-                'search-query': f'name ~ {client.hostname}',
-            }
-        )
-        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
-        result = client.run(f'rpm -q {" ".join(packages)}')
-        assert result.status == 0
-
-        # stop a service
-        service = "rsyslog"
-        invocation_command = target_sat.cli_factory.job_invocation(
-            {
-                'job-template': 'Service Action - Ansible Default',
-                'inputs': f'state=stopped, name={service}',
-                'search-query': f"name ~ {client.hostname}",
-            }
-        )
-        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
-        result = client.execute(f'systemctl status {service}')
-        assert result.status == 3
-
-        # start it again
-        invocation_command = target_sat.cli_factory.job_invocation(
-            {
-                'job-template': 'Service Action - Ansible Default',
-                'inputs': f'state=started, name={service}',
-                'search-query': f'name ~ {client.hostname}',
-            }
-        )
-        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
-        result = client.execute(f'systemctl status {service}')
-        assert result.status == 0
-
-    @pytest.mark.tier3
-    @pytest.mark.parametrize(
-        'fixture_sca_vmsetup', [{'nick': 'rhel8'}], ids=['rhel8'], indirect=True
-    )
-    def test_positive_install_ansible_collection(
-        self, fixture_sca_vmsetup, module_sca_manifest_org, target_sat
-    ):
-        """Test whether Ansible collection can be installed via REX
-
-        :steps:
-            1. Upload a manifest.
-            2. Enable and sync Ansible repository.
-            3. Register content host to Satellite.
-            4. Enable Ansible repo on content host.
-            5. Install ansible package.
-            6. Run REX job to install Ansible collection on content host.
-
-        :id: ad25aee5-4ea3-4743-a301-1c6271856f79
-
-        :CaseComponent: Ansible-RemoteExecution
-
-        :Team: Rocket
-        """
-        # Configure repository to prepare for installing ansible on host
-        target_sat.cli.RepositorySet.enable(
-            {
-                'basearch': 'x86_64',
-                'name': REPOSET['rhae2.9_el8'],
-                'organization-id': module_sca_manifest_org.id,
-                'product': PRDS['rhae'],
-                'releasever': '8',
-            }
-        )
-        target_sat.cli.Repository.synchronize(
-            {
-                'name': REPOS['rhae2.9_el8']['name'],
-                'organization-id': module_sca_manifest_org.id,
-                'product': PRDS['rhae'],
-            }
-        )
-        client = fixture_sca_vmsetup
-        client.execute('subscription-manager refresh')
-        client.execute(f'subscription-manager repos --enable {REPOS["rhae2.9_el8"]["id"]}')
-        client.execute('dnf -y install ansible')
-        collection_job = target_sat.cli_factory.job_invocation(
-            {
-                'job-template': 'Ansible Collection - Install from Galaxy',
-                'inputs': 'ansible_collections_list="oasis_roles.system"',
-                'search-query': f'name ~ {client.hostname}',
-            }
-        )
-        result = target_sat.cli.JobInvocation.info({'id': collection_job['id']})
-        assert result['success'] == '1'
-        collection_path = client.execute('ls /etc/ansible/collections/ansible_collections').stdout
-        assert 'oasis_roles' in collection_path
-
-        # Extend test with custom collections_path advanced input field
-        collection_job = target_sat.cli_factory.job_invocation(
-            {
-                'job-template': 'Ansible Collection - Install from Galaxy',
-                'inputs': 'ansible_collections_list="oasis_roles.system", collections_path="~/"',
-                'search-query': f'name ~ {client.hostname}',
-            }
-        )
-        result = target_sat.cli.JobInvocation.info({'id': collection_job['id']})
-        assert result['success'] == '1'
-        collection_path = client.execute('ls ~/ansible_collections').stdout
-        assert 'oasis_roles' in collection_path
 
 
 class TestRexUsers:
