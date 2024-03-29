@@ -515,11 +515,11 @@ class TestVirtWhoConfigforEsx:
         :id: 2d0d3126-859f-4092-9196-a553bc1d3bd9
 
         :expectedresults:
-            1. virt-who config belong to a same org with the same rhsm_username
-            2. virt-who config belong to a different org with the different rhsm_username
-            3. hypervisors and guest mapping info send by group of org and service account exist in rhsm.log
-            4. verify delete virt-who config and remain only one virt-who config, service account virt_who_reporter_X exist
-            5. verify delete all virt-who config, service account virt_who_reporter_X has be deleted
+            1. virt-who config belongs to the same org with the same rhsm_username
+            2. virt-who config belongs to a different org with the different rhsm_username
+            3. rhsm.log contains the correct orgs where hypervisors-guest mapping is sent to
+            4. rhsm.log contains the correct account
+            5. After deleting all virt-who config belong to the same org, verify that the rhsm user belong to this org has been deleted
 
 
 
