@@ -548,7 +548,7 @@ class TestVirtWhoConfigforEsx:
         # verify the two service accounts belonging to the same org are the same
         assert rhsm_username[0] == rhsm_username[1]
 
-        # Create a different org virtwho_fake_XXXX and then create virt-who config, get the service account rhsm_username
+        # Create a different org virtwho_fake_XXXX and then create virt-who config in that org, get the service account rhsm_username
         ORG_DATA = {'name': f'virtwho_fake_{gen_string("alpha")}'}
         org = target_sat.api.Organization(name=ORG_DATA['name']).create()
         target_sat.api.Location(organization=[org]).create()
