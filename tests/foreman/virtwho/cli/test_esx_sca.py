@@ -580,8 +580,8 @@ class TestVirtWhoConfigforEsx:
         for item in service_account_message:
             assert check_message_in_rhsm_log(item)
 
-        # delete one of the virt-who config belong to module_sca_manifest_org, verify service account rhsm_username_1 exist
-        # delete all the virt-who config belong to module_sca_manifest_org, verify service account  rhsm_username_1 does not exist
+        # delete one of the virt-who configs belonging to module_sca_manifest_org, verify the other service account for that org still exists
+        # delete the other config in that org, verify the service account doesn't exist anymore
         vd_ids = [vc_id[0], vc_id[1]]
         messages = [
             f"Authenticating with RHSM username {rhsm_username[0]}",
