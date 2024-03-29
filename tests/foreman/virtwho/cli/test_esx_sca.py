@@ -568,7 +568,7 @@ class TestVirtWhoConfigforEsx:
         # verify the two service accounts belonging to different orgs are different
         assert rhsm_username[2] != rhsm_username[0]
 
-        # Verify virt-who config with the same service account send hypervisors and guest mapping info in the same organization section, and service account exist in rhsm.log
+        # Verify rhsm.log contains correct orgs to which hypervisor-guest mapping is sent to, and rhsm.log contains the correct user names.
         runcmd(get_configure_command(vc_id[0], module_sca_manifest_org.name))
         runcmd(get_configure_command(vc_id[1], module_sca_manifest_org.name))
         service_account_message = [
