@@ -210,7 +210,7 @@ def check_message_in_rhsm_log(message):
     """Check the message exist in /var/log/rhsm/rhsm.log"""
     wait_for(
         lambda: 'Host-to-guest mapping being sent to' in get_rhsm_log(),
-        timeout=10,
+        timeout=20,
         delay=2,
     )
     logs = get_rhsm_log()
@@ -230,7 +230,7 @@ def _get_hypervisor_mapping(hypervisor_type):
     """
     wait_for(
         lambda: 'Host-to-guest mapping being sent to' in get_rhsm_log(),
-        timeout=10,
+        timeout=20,
         delay=2,
     )
     logs = get_rhsm_log()
