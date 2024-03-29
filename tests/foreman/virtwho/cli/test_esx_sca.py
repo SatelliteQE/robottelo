@@ -588,7 +588,7 @@ class TestVirtWhoConfigforEsx:
         message = f"Authenticating with RHSM username {rhsm_username[0]}"
         assert check_message_in_rhsm_log(message)
 
-        # delete all the virt-who config belong to module_sca_manifest_org, verify service account  rhsm_username_1 does not exist
+        # delete the other config in that org, verify the service account doesn't exist anymore
         target_sat.cli.VirtWhoConfig.delete({'id': vc_id[1]})
         config_file = get_configure_file(vc_id[1])
         runcmd(f"rm -f {config_file}")
