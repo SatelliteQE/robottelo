@@ -545,7 +545,7 @@ class TestVirtWhoConfigforEsx:
             config_file = get_configure_file(virtwho_config_cli['id'])
             rhsm_username.append(get_configure_option('rhsm_username', config_file))
 
-        # verify the two service account belong to the same org are the same
+        # verify the two service accounts belonging to the same org are the same
         assert rhsm_username[0] == rhsm_username[1]
 
         # Create a different org virtwho_fake_XXXX and then create virt-who config, get the service account rhsm_username
