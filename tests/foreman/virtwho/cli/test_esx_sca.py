@@ -580,18 +580,20 @@ class TestVirtWhoConfigforEsx:
         for item in service_account_message:
             assert check_message_in_rhsm_log(item)
 
-        # delete one of the virt-who configs belonging to module_sca_manifest_org, verify the other service account for that org still exists
-        target_sat.cli.VirtWhoConfig.delete({'id': vc_id[0]})
-        config_file = get_configure_file(vc_id[0])
-        runcmd(f"rm -f {config_file}")
-        runcmd(get_configure_command(vc_id[1], module_sca_manifest_org.name))
-        message = f"Authenticating with RHSM username {rhsm_username[0]}"
-        assert check_message_in_rhsm_log(message)
-
-        # delete the other config in that org, verify the service account doesn't exist anymore
-        target_sat.cli.VirtWhoConfig.delete({'id': vc_id[1]})
-        config_file = get_configure_file(vc_id[1])
-        runcmd(f"rm -f {config_file}")
-        restart_virtwho_service()
-        message = f"Authenticating with RHSM username {rhsm_username[1]}"
-        assert not check_message_in_rhsm_log(message)
+        # delete one of the virt-who config belong to module_sca_manifest_org, verify service account rhsm_username_1 exist
+        # delete all the virt-who config belong to module_sca_manifest_org, verify service account  rhsm_username_1 does not exist
+        vd_ids = [vc_id[0], vc_id[1]]
+        messages = [
+            f"Authenticating with RHSM username {rhsm_username[0]}",
+            f"Authenticating with RHSM username {rhsm_username[1]}",
+        ]
+        for index, id in enumerate(vd_ids):
+            target_sat.cli.VirtWhoConfig.delete({'id': id})
+            config_file = get_configure_file(id)
+            runcmd(f"rm -f {config_file}")
+            if index == 0:
+                runcmd(get_configure_command(id, module_sca_manifest_org.name))
+                assert check_message_in_rhsm_log(messages[0])
+            elif index == 1:
+                restart_virtwho_service()
+                assert not check_message_in_rhsm_log(messages[1])
