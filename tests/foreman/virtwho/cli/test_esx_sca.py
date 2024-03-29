@@ -529,7 +529,7 @@ class TestVirtWhoConfigforEsx:
 
         :BZ: 2063218
         """
-        # create two virt-who config in the same organization, get the service account rhsm_username
+        # create two virt-who configs in the same organization, get the service account rhsm_username
         vc_id = []
         rhsm_username = []
         for _i in range(2):
