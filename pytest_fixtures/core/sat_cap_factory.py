@@ -251,6 +251,18 @@ def module_lb_capsule(retry_limit=3, delay=300, **broker_args):
 
 
 @pytest.fixture(scope='module')
+def module_capsule_configured_ansible(module_capsule_configured):
+    """Configure the capsule instance with Ansible feature enabled"""
+    result = module_capsule_configured.install(
+        cmd_args=[
+            'enable-foreman-proxy-plugin-ansible',
+        ]
+    )
+    assert result.status == 0, 'Installer failed to enable ansible plugin.'
+    return module_capsule_configured
+
+
+@pytest.fixture(scope='module')
 def module_capsule_configured_async_ssh(module_capsule_configured):
     """Configure the capsule instance with the satellite from settings.server.hostname,
     enable MQTT broker"""
