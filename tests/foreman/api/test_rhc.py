@@ -6,7 +6,7 @@
 
 :CaseComponent: RHCloud
 
-:Team: Platform
+:Team: Phoenix-subscriptions
 
 :CaseImportance: High
 """
