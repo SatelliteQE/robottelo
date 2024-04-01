@@ -2725,8 +2725,5 @@ def test_positive_create_host_with_lifecycle_environment_name(
         }
     )
     hosts = module_target_sat.cli.Host.list({'organization-id': module_org.id})
-    for i in hosts:
-        if new_host.name in i.values():
-            found_host = True
-            break
-    assert found_host is True, 'Assertion failed: host not found'
+    found_host = any(new_host.name in i.values() for i in hosts)
+    assert found_host, 'Assertion failed: host not found'
