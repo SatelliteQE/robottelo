@@ -145,7 +145,7 @@ class APIFactory:
         """Enable the RedHat repo, sync it and returns repo_id"""
         # Enable RH repo and fetch repository_id
         repo_id = self.enable_rhrepo_and_fetchid(
-            basearch=rh_repo['basearch'],
+            basearch=rh_repo.get('basearch', rh_repo.get('arch', DEFAULT_ARCHITECTURE)),
             org_id=org_id,
             product=rh_repo['product'],
             repo=rh_repo['name'],
