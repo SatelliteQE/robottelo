@@ -289,7 +289,6 @@ def enroll_configure_rhsso_external_auth(module_target_sat):
         module_target_sat.execute(
             f'yum -y --disableplugin=foreman-protector install '
             f'mod_auth_openidc keycloak-httpd-client-install {lxml} '
-            # 'libxml2-devel libxslt-devel gcc python3-devel ' # pip needs these to install lxml
         ).status
         == 0
     )
