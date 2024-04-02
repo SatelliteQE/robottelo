@@ -16,18 +16,21 @@ import pytest
 
 @pytest.fixture
 def param_name():
+    """Generate name string for common parameter and return to test cases"""
     """Generate name for common parameter"""
     return gen_string('alpha')
 
 
 @pytest.fixture
 def param_value():
+    """Generate value string for common parameter and return to test cases"""
     """Generate value for common parameter"""
     return gen_string('alpha')
 
 
 @pytest.fixture
 def cp(param_name, param_value, module_target_sat):
+    """Create common parameter object, yields it for test cases, delete object before teardown"""
     """Create common parameter"""
     cp = module_target_sat.api.CommonParameter(name=param_name, value=param_value).create()
 
@@ -38,6 +41,7 @@ def cp(param_name, param_value, module_target_sat):
 
 @pytest.fixture
 def host(param_name, param_value, module_org, module_location, module_target_sat, cp, hostgroup):
+    """Create host object, yeilds it for test cases, delete object before teardown"""
     """Create host"""
     host = module_target_sat.api.Host(organization=module_org, location=module_location).create()
 
@@ -48,6 +52,7 @@ def host(param_name, param_value, module_org, module_location, module_target_sat
 
 @pytest.fixture
 def hostgroup(param_name, param_value, module_org, module_target_sat):
+    """Create hostgroup object, yeilds it for test cases, delete object before teardown"""
     """Create hostgroup"""
     hg = module_target_sat.api.HostGroup(
         organization=[module_org],
