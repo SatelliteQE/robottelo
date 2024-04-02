@@ -336,9 +336,8 @@ def test_negative_update_parameter(new_name, target_sat):
         sub_param.update(['name'])
 
 
-@pytest.mark.stubbed
 @pytest.mark.tier2
-def test_positive_update_subnet_parameter_host_impact():
+def test_positive_update_subnet_parameter_host_impact(target_sat):
     """Update in parameter name and value from subnet component updates
     the parameter in host inheriting that subnet
 
@@ -353,12 +352,29 @@ def test_positive_update_subnet_parameter_host_impact():
     :expectedresults:
 
         1. The inherited subnet parameter in host should have
-            updated name and value
-        2. The inherited subnet parameter in host enc should have
-            updated name and value
+            updated name and value.
 
     :BZ: 1470014
     """
+    parameter = [{'name': gen_string('alpha'), 'value': gen_string('alpha')}]
+    org = target_sat.api.Organization().create()
+    loc = target_sat.api.Location(organization=[org]).create()
+    org_subnet = target_sat.api.Subnet(
+        location=[loc], organization=[org], subnet_parameters_attributes=parameter
+    ).create()
+    assert parameter[0]['name'] == org_subnet.subnet_parameters_attributes[0]['name']
+    assert parameter[0]['value'] == org_subnet.subnet_parameters_attributes[0]['value']
+    host = target_sat.api.Host(location=loc, organization=org, subnet=org_subnet).create()
+    parameter_new_value = [{'name': gen_string('alpha'), 'value': gen_string('alpha')}]
+    org_subnet.subnet_parameters_attributes = parameter_new_value
+    org_subnet.update(['subnet_parameters_attributes'])
+    assert (
+        host.subnet.read().subnet_parameters_attributes[0]['name'] == parameter_new_value[0]['name']
+    )
+    assert (
+        host.subnet.read().subnet_parameters_attributes[0]['value']
+        == parameter_new_value[0]['value']
+    )
 
 
 @pytest.mark.tier1
