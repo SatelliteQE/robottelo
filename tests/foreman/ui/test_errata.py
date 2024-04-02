@@ -1312,6 +1312,7 @@ def test_positive_show_count_on_host_pages(session, module_org, registered_conte
 def test_positive_show_count_on_content_host_details_page(
     session, module_org_with_parameter, erratatype_vm
 ):
+    # TODO
     """Errata count on Content host Details page
 
     :id: 388229da-2b0b-41aa-a457-9b5ecbf3df4b
