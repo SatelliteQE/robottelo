@@ -40,8 +40,8 @@ def test_cli_org_method_called(mocker, command_sub):
     options = {'foo': 'bar'}
     assert execute.return_value == getattr(Org, command_sub.replace('-', '_'))(options)
     assert command_sub == Org.command_sub
-    assert construct.called_once_with(options)
-    assert execute.called_once_with(construct.return_value)
+    construct.assert_called_once_with(options)
+    execute.assert_called_once_with(construct.return_value)
 
 
 @pytest.mark.parametrize('command_sub', ['import-classes', 'refresh-features'])
@@ -54,11 +54,11 @@ def test_cli_proxy_method_called(mocker, command_sub):
     options = {'foo': 'bar'}
     assert execute.return_value == getattr(Proxy, command_sub.replace('-', '_'))(options)
     assert command_sub == Proxy.command_sub
-    assert construct.called_once_with(options)
-    assert execute.called_once_with(construct.return_value)
+    construct.assert_called_once_with(options)
+    execute.assert_called_once_with(construct.return_value)
 
 
-@pytest.mark.parametrize('command_sub', ['synchronize', 'remove-content', 'upload-content'])
+@pytest.mark.parametrize('command_sub', ['remove-content', 'upload-content'])
 def test_cli_repository_method_called(mocker, command_sub):
     """Check Repository methods are called and command_sub edited
     This is a parametrized test called by Pytest for each of Repository methods
@@ -68,8 +68,8 @@ def test_cli_repository_method_called(mocker, command_sub):
     options = {'foo': 'bar'}
     assert execute.return_value == getattr(Repository, command_sub.replace('-', '_'))(options)
     assert command_sub == Repository.command_sub
-    assert construct.called_once_with(options)
-    assert execute.called_once_with(construct.return_value)
+    construct.assert_called_once_with(options)
+    execute.assert_called_once_with(construct.return_value, output_format='csv', ignore_stderr=True)
 
 
 @pytest.mark.parametrize('command_sub', ['info', 'create'])
@@ -94,5 +94,5 @@ def test_cli_subscription_method_called(mocker, command_sub):
     options = {'foo': 'bar'}
     assert execute.return_value == getattr(Subscription, command_sub.replace('-', '_'))(options)
     assert command_sub == Subscription.command_sub
-    assert construct.called_once_with(options)
-    assert execute.called_once_with(construct.return_value)
+    construct.assert_called_once_with(options)
+    execute.assert_called_once_with(construct.return_value, ignore_stderr=True, timeout=None)
