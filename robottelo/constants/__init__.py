@@ -2145,6 +2145,8 @@ DNF_RECOMMENDATION = (
     'option is not present in the /etc/dnf/dnf.conf'
 )
 
+EXPIRED_MANIFEST = 'expired-manifest.zip'
+
 # Data File Paths
 class DataFile(Box):
     """The boxed Data directory class with its attributes pointing to the Data directory files"""
@@ -2164,3 +2166,4 @@ class DataFile(Box):
     PARTITION_SCRIPT_DATA_FILE = DATA_DIR.joinpath(PARTITION_SCRIPT_DATA_FILE)
     OS_TEMPLATE_DATA_FILE = DATA_DIR.joinpath(OS_TEMPLATE_DATA_FILE)
     FAKE_3_YUM_REPO_RPMS_ANT = DATA_DIR.joinpath(FAKE_3_YUM_REPO_RPMS[0])
+    EXPIRED_MANIFEST_FILE = DATA_DIR.joinpath(EXPIRED_MANIFEST)
