@@ -12,10 +12,12 @@
 
 """
 from fauxfactory import gen_string
+from manifester import Manifester
 from nailgun import entities
 import pytest
 
-from robottelo.constants import PRDS, REPOS, REPOSET
+from robottelo.config import settings
+from robottelo.constants import EXPIRED_MANIFEST, PRDS, REPOS, REPOSET, DataFile
 from robottelo.exceptions import CLIReturnCodeError
 
 pytestmark = [pytest.mark.run_in_one_thread]
@@ -302,3 +304,44 @@ def test_positive_prepare_for_sca_only_hammer(function_org, target_sat):
         'Simple Content Access will be required for all organizations in the next release'
         in str(sca_results.stderr)
     )
+
+
+def test_negative_check_katello_reimport(target_sat, function_org):
+    """Verify katello:reimport trace should not fail with an TypeError
+
+    :id: b7508a1c-7798-4649-83a3-cf94c7409c96
+
+    :steps:
+        1. Import expired manifest & refresh
+        2. Delete expired manifest
+        3. Re-import new valid manifest & refresh
+
+    :expectedresults: There should not be an error after reimport manifest
+
+    :customerscenario: true
+
+    :BZ: 2225534, 2253621
+    """
+    remote_path = f'/tmp/{EXPIRED_MANIFEST}'
+    target_sat.put(DataFile.EXPIRED_MANIFEST_FILE, remote_path)
+    # Import expired manifest & refresh
+    target_sat.cli.Subscription.upload({'organization-id': function_org.id, 'file': remote_path})
+    with pytest.raises(CLIReturnCodeError):
+        target_sat.cli.Subscription.refresh_manifest({'organization-id': function_org.id})
+    exec_val = target_sat.execute(
+        'grep -i "Katello::HttpErrors::BadRequest: This Organization\'s subscription '
+        'manifest has expired. Please import a new manifest" /var/log/foreman/production.log'
+    )
+    assert exec_val.status
+    # Delete expired manifest
+    target_sat.cli.Subscription.delete_manifest({'organization-id': function_org.id})
+    # Re-import new manifest & refresh
+    manifester = Manifester(manifest_category=settings.manifest.golden_ticket)
+    manifest = manifester.get_manifest()
+    target_sat.upload_manifest(function_org.id, manifest.content)
+    ret_val = target_sat.cli.Subscription.refresh_manifest({'organization-id': function_org.id})
+    assert 'Candlepin job status: SUCCESS' in ret_val
+    # Additional check, katello:reimport trace should not fail with TypeError
+    trace_output = target_sat.execute("foreman-rake katello:reimport --trace")
+    assert 'TypeError: no implicit conversion of String into Integer' not in trace_output.stdout
+    assert trace_output.status == 0
