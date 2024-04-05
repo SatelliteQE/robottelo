@@ -485,14 +485,13 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **datafactory.parametrized(
-            [
-                {'content_type': content_type, 'download_policy': 'on_demand'}
-                for content_type in constants.REPO_TYPE
-                if content_type != 'yum'
-            ]
-        ),
+        [
+            {'content_type': content_type, 'download_policy': 'on_demand'}
+            for content_type in constants.REPO_TYPE
+            if content_type != 'yum'
+        ],
         indirect=True,
+        ids=lambda x: x['content_type'],
     )
     def test_negative_create_non_yum_with_download_policy(self, repo_options, target_sat):
         """Verify that non-YUM repositories cannot be created with
