@@ -23,7 +23,7 @@ pytest-ibutsu==2.2.4
 PyYAML==6.0.1
 requests==2.31.0
 tenacity==8.2.3
-testimony==2.3.0
+testimony==2.4.0
 wait-for==1.2.0
 wrapanapi==3.6.0
 
