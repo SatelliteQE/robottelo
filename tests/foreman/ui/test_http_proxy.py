@@ -208,7 +208,7 @@ def test_set_default_http_proxy(module_org, module_location, setting_update, tar
     :steps:
         1. Navigate to Infrastructure > Http Proxies
         2. Create a Http Proxy
-        3. GoTo to Administer > Settings > Content tab
+        3. Go to Administer > Settings > Content tab
         4. Update the "Default HTTP Proxy" with created above.
         5. Update "Default HTTP Proxy" to "no global default".
 
@@ -255,7 +255,7 @@ def test_check_http_proxy_value_repository_details(
 
     :steps:
         1. Create Http Proxy (Go to Infrastructure > Http Proxies > New Http Proxy)
-        2. GoTo to Administer > Settings > Content tab
+        2. Go to Administer > Settings > Content tab
         3. Update the "Default HTTP Proxy" with created above.
         4. Create repository, check the Global Default Http Proxy is used.
         5. Delete the Http Proxy.
