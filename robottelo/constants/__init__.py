@@ -1649,77 +1649,20 @@ ROLES_LOCKED = [
     'Viewer',
 ]
 
-BOOKMARK_ENTITIES = [
+BOOKMARK_ENTITIES_SELECTION = [
     {
         'name': 'ActivationKey',
         'controller': 'katello_activation_keys',
         'session_name': 'activationkey',
         'old_ui': True,
     },
-    {'name': 'Dashboard', 'controller': 'dashboard', 'session_name': 'dashboard'},
-    {'name': 'Audit', 'controller': 'audits', 'session_name': 'audit'},
-    {
-        'name': 'Report',
-        'controller': 'config_reports',
-        'setup': entities.Report,
-        'session_name': 'configreport',
-    },
-    {'name': 'Task', 'controller': 'foreman_tasks_tasks', 'session_name': 'task'},
-    # TODO Load manifest for the test_positive_end_to_end from the ui/test_bookmarks.py
-    # {'name': 'Subscriptions', 'controller': 'subscriptions','session_name': 'subscription' },
-    {
-        'name': 'Product',
-        'controller': 'katello_products',
-        'session_name': 'product',
-        'old_ui': True,
-    },
-    {'name': 'Repository', 'controller': 'katello_repositories', 'session_name': 'repository'},
-    {
-        'name': 'ContentCredential',
-        'controller': 'katello_content_credentials',
-        'session_name': 'contentcredential',
-        'old_ui': True,
-    },
-    {
-        'name': 'SyncPlan',
-        'controller': 'katello_sync_plans',
-        'session_name': 'syncplan',
-        'old_ui': True,
-    },
-    {'name': 'ContentView', 'controller': 'katello_content_views', 'session_name': 'contentview'},
     {'name': 'Errata', 'controller': 'katello_errata', 'session_name': 'errata', 'old_ui': True},
-    {'name': 'Package', 'controller': 'katello_erratum_packages', 'session_name': 'package'},
-    {
-        'name': 'ContainerImageTag',
-        'controller': 'katello_docker_tags',
-        'session_name': 'containerimagetag',
-        'old_ui': True,
-    },
     {'name': 'Host', 'controller': 'hosts', 'setup': entities.Host, 'session_name': 'host_new'},
-    {'name': 'ContentHost', 'controller': 'hosts', 'session_name': 'contenthost', 'old_ui': True},
     {
-        'name': 'HostCollection',
-        'controller': 'katello_host_collections',
-        'session_name': 'hostcollection',
-        'old_ui': True,
-    },
-    {'name': 'Architecture', 'controller': 'architectures', 'session_name': 'architecture'},
-    {
-        'name': 'HardwareModel',
-        'controller': 'models',
-        'setup': entities.Model,
-        'session_name': 'hardwaremodel',
-    },
-    {
-        'name': 'InstallationMedia',
-        'controller': 'media',
-        'session_name': 'media',
-        'setup': entities.Media,
-    },
-    {
-        'name': 'OperatingSystem',
-        'controller': 'operatingsystems',
-        'session_name': 'operatingsystem',
+        'name': 'UserGroup',
+        'controller': 'usergroups',
+        'setup': entities.UserGroup,
+        'session_name': 'usergroup',
     },
     {
         'name': 'PartitionTable',
@@ -1728,57 +1671,17 @@ BOOKMARK_ENTITIES = [
         'session_name': 'partitiontable',
     },
     {
+        'name': 'Product',
+        'controller': 'katello_products',
+        'session_name': 'product',
+        'old_ui': True,
+    },
+    {
         'name': 'ProvisioningTemplate',
         'controller': 'provisioning_templates',
         'session_name': 'provisioningtemplate',
     },
-    {
-        'name': 'HostGroup',
-        'controller': 'hostgroups',
-        'setup': entities.HostGroup,
-        'session_name': 'hostgroup',
-    },
-    {
-        'name': 'DiscoveryRule',
-        'controller': 'discovery_rules',
-        'setup': entities.DiscoveryRule,
-        'session_name': 'discoveryrule',
-    },
-    {
-        'name': 'GlobalParameter',
-        'controller': 'common_parameters',
-        'setup': entities.CommonParameter,
-        'skip_for_ui': True,
-    },
-    {'name': 'Role', 'controller': 'ansible_roles', 'setup': entities.Role, 'session_name': 'role'},
-    {'name': 'Variables', 'controller': 'ansible_variables', 'session_name': 'ansiblevariables'},
-    {'name': 'Capsules', 'controller': 'smart_proxies', 'session_name': 'capsule'},
-    {
-        'name': 'ComputeResource',
-        'controller': 'compute_resources',
-        'setup': entities.LibvirtComputeResource,
-        'session_name': 'computeresource',
-    },
-    {
-        'name': 'ComputeProfile',
-        'controller': 'compute_profiles',
-        'setup': entities.ComputeProfile,
-        'session_name': 'computeprofile',
-    },
-    {'name': 'Subnet', 'controller': 'subnets', 'setup': entities.Subnet, 'session_name': 'subnet'},
-    {'name': 'Domain', 'controller': 'domains', 'setup': entities.Domain, 'session_name': 'domain'},
-    {'name': 'Realm', 'controller': 'realms', 'setup': entities.Realm, 'session_name': 'realm'},
-    {'name': 'Location', 'controller': 'locations', 'session_name': 'location'},
-    {'name': 'Organization', 'controller': 'organizations', 'session_name': 'organization'},
-    {'name': 'User', 'controller': 'users', 'session_name': 'user'},
-    {
-        'name': 'UserGroup',
-        'controller': 'usergroups',
-        'setup': entities.UserGroup,
-        'session_name': 'usergroup',
-    },
-    {'name': 'Role', 'controller': 'roles', 'session_name': 'role'},
-    {'name': 'Settings', 'controller': 'settings', 'session_name': 'settings'},
+    {'name': 'Repository', 'controller': 'katello_repositories', 'session_name': 'repository'},
 ]
 
 STRING_TYPES = ['alpha', 'numeric', 'alphanumeric', 'latin1', 'utf8', 'cjk', 'html']
