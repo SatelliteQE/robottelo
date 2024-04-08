@@ -1,2 +1,4 @@
 OSCAP:
   CONTENT_PATH: /usr/share/xml/scap/ssg/content/ssg-rhel7-ds.xml
+  # see: robottelo/constants/__init__.py OSCAP_PROFILE
+  PROFILE: security7
