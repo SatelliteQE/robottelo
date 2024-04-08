@@ -44,10 +44,7 @@ def test_positive_install_sat_with_katello_certs(certs_data, sat_ready_rhel):
     )
     sat_ready_rhel.register_to_cdn()
     sat_ready_rhel.execute('dnf -y update')
-    result = sat_ready_rhel.execute(
-        'dnf -y module enable satellite:el8 && dnf -y install satellite'
-    )
-    assert result.status == 0
+    sat_ready_rhel.install_satellite_or_capsule_package()
     command = InstallerCommand(
         scenario='satellite',
         certs_server_cert=f'/root/{certs_data["cert_file_name"]}',

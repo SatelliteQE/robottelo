@@ -358,7 +358,7 @@ def installer_satellite(request):
         release=settings.server.version.release,
         snap=settings.server.version.snap,
     )
-    sat.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
+    sat.install_satellite_or_capsule_package()
     installed_version = sat.execute('rpm --query satellite').stdout
     assert sat_version in installed_version
     # Install Satellite
