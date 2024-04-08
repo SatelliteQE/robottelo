@@ -1434,9 +1434,7 @@ class TestRepositorySync:
         assert result.status == 1
 
     @pytest.mark.tier2
-    def test_positive_sync_repo_null_contents_changed(
-        self, module_entitlement_manifest_org, target_sat
-    ):
+    def test_positive_sync_repo_null_contents_changed(self, module_sca_manifest_org, target_sat):
         """test for null contents_changed parameter on actions::katello::repository::sync.
 
         :id: f3923940-e097-4da3-aba7-b14dbcda857b
@@ -1454,7 +1452,7 @@ class TestRepositorySync:
         """
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_entitlement_manifest_org.id,
+            org_id=module_sca_manifest_org.id,
             product=constants.PRDS['rhel'],
             repo=constants.REPOS['rhst7']['name'],
             reposet=constants.REPOSET['rhst7'],
