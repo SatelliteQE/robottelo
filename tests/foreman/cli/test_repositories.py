@@ -127,7 +127,7 @@ def test_positive_disable_rh_repo_with_basearch(module_target_sat, module_entitl
     assert 'Repository disabled' in disabled_repo[0]['message']
 
 
-def test_reclaim_space_command_no_exception(module_target_sat, module_entitlement_manifest_org):
+def test_reclaim_space_command_no_exception(module_target_sat, module_sca_manifest_org):
     """Hammer repository reclaim-space should not throw any improper exceptions
 
     :id: 74b669d8-ee6b-4fc6-864f-91410d7ea3c2
@@ -146,7 +146,7 @@ def test_reclaim_space_command_no_exception(module_target_sat, module_entitlemen
     """
     rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=DEFAULT_ARCHITECTURE,
-        org_id=module_entitlement_manifest_org.id,
+        org_id=module_sca_manifest_org.id,
         product=REPOS['kickstart']['rhel8_aps']['product'],
         repo=REPOS['kickstart']['rhel8_aps']['name'],
         reposet=REPOS['kickstart']['rhel8_aps']['reposet'],
@@ -156,7 +156,7 @@ def test_reclaim_space_command_no_exception(module_target_sat, module_entitlemen
     repo.sync(timeout=600)
     output = module_target_sat.cli.Repository.reclaim_space(
         {
-            'organization-id': module_entitlement_manifest_org.id,
+            'organization-id': module_sca_manifest_org.id,
             'id': rh_repo_id,
         }
     )
