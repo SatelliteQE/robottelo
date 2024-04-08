@@ -45,7 +45,7 @@ jobs:
 
       - name: Create the ${{ github.event.inputs.target_branch }} branch
         id: create-branch
-        uses: peterjgrainger/action-create-branch@v2.2.0
+        uses: peterjgrainger/action-create-branch@v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets._REPO_ADMIN_TOKEN }}
         with:
