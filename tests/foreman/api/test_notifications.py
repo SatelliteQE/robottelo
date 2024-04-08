@@ -333,3 +333,32 @@ def test_positive_notification_failed_repo_sync(failed_repo_sync_task, root_mail
                 body_text = mime_body.as_string()
                 assert product_name in body_text
                 assert f'/foreman_tasks/tasks/{task_id}' in body_text
+
+
+@pytest.mark.tier1
+def test_positive_notification_recipients(target_sat):
+    """Check that endpoint `/notification_recipients` works and returns correct data structure.
+
+    :id: 10e0fac2-f11f-11ee-ba60-000c2989e153
+
+    :steps:
+        1. Do a GET request to /notification_recipients endpoint.
+        2. Check the returned data structure for expected keys.
+
+    :BZ: 2249970
+
+    :customerscenario: true
+    """
+    notification_keys = [
+        'id',
+        'seen',
+        'level',
+        'text',
+        'created_at',
+        'group',
+        'actions',
+    ]
+
+    recipients = target_sat.api.NotificationRecipients().read()
+    for notification in recipients.notifications:
+        assert set(notification_keys) == set(notification.keys())
