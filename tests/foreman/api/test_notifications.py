@@ -44,6 +44,17 @@ def admin_user_with_localhost_email(target_sat):
 
 
 @pytest.fixture
+def admin_user_with_custom_settings(request, admin_user_with_localhost_email):
+    """Admin user with custom properties set via parametrization.
+    `request.param` should be a dict-like value.
+    """
+    for key, value in request.param.items():
+        setattr(admin_user_with_localhost_email, key, value)
+    admin_user_with_localhost_email.update(list(request.param.keys()))
+    return admin_user_with_localhost_email
+
+
+@pytest.fixture
 def sysadmin_user_with_subscription_reposync_fail(target_sat):
     """System admin user with `root@localhost` e-mail
     and subscription to `Repository sync failure` notification.
@@ -159,6 +170,25 @@ def wait_for_failed_repo_sync_mail(
     """Wait until the repo name that didn't sync is found in the Satellite's mbox file."""
     return wait_for_mail(
         sat_obj=target_sat, mailbox_file=clean_root_mailbox, contains_string=fake_yum_repo.name
+    )
+
+
+@pytest.fixture
+def wait_for_no_long_running_task_mail(target_sat, clean_root_mailbox, long_running_task):
+    """Wait and check that no long-running task ID is found in the Satellite's mbox file."""
+    timeout = 120
+    try:
+        wait_for_mail(
+            sat_obj=target_sat,
+            mailbox_file=clean_root_mailbox,
+            contains_string=long_running_task["task"]["id"],
+            timeout=timeout,
+        )
+    except AssertionError:
+        return True
+    raise AssertionError(
+        f'E-mail with long running task ID "{long_running_task["task"]["id"]}" '
+        f'should not have arrived to mailbox {clean_root_mailbox}!'
     )
 
 
@@ -362,3 +392,48 @@ def test_positive_notification_recipients(target_sat):
     recipients = target_sat.api.NotificationRecipients().read()
     for notification in recipients.notifications:
         assert set(notification_keys) == set(notification.keys())
+
+
+@pytest.mark.tier3
+@pytest.mark.parametrize(
+    'admin_user_with_custom_settings',
+    [
+        pytest.param({'disabled': True, 'mail_enabled': True}, id='account_disabled'),
+        pytest.param({'disabled': False, 'mail_enabled': False}, id='mail_disabled'),
+    ],
+    indirect=True,
+)
+@pytest.mark.usefixtures(
+    'reschedule_long_running_tasks_notification',
+    'wait_for_no_long_running_task_mail',
+)
+def test_negative_no_notification_for_long_running_tasks(
+    admin_user_with_custom_settings, long_running_task, root_mailbox_copy
+):
+    """Check that an e-mail notification for a long-running task
+    (i.e., running or paused for more than two days)
+    is NOT sent to users with disabled account or disabled e-mail.
+
+    :id: 03b41216-f39b-11ee-b9ea-000c2989e153
+
+    :setup:
+        1. Create an admin user with e-mail address set and:
+           a. account disabled & mail enabled
+           b. account enabled & mail disabled
+
+    :steps:
+        1. Create a long-running task.
+        3. For each user, wait and check that the notification e-mail has NOT been sent.
+
+    :BZ: 2245056
+
+    :customerscenario: true
+    """
+    assert admin_user_with_custom_settings
+    task_id = long_running_task['task']['id']
+    assert task_id
+
+    for email in root_mailbox_copy:
+        assert (
+            task_id not in email.as_string()
+        ), f'Unexpected notification e-mail with long-running task ID {task_id} found in user mailbox!'
