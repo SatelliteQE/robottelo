@@ -281,6 +281,7 @@ class TestContentView:
         )
 
     @pytest.mark.tier2
+<<<<<<< HEAD
     def test_ccv_promote_registry_name_change(
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -292,6 +293,9 @@ class TestContentView:
         self, module_target_sat, module_sca_manifest_org
 >>>>>>> 2d1d7cb31 (change to non-sca org)
     ):
+=======
+    def test_ccv_promote_registry_name_change(self, module_target_sat, module_sca_manifest_org):
+>>>>>>> d877d0cd5 (Fix formatting issues)
         """Testing CCV promotion scenarios where the registry_name has been changed to some
         specific value.
 
@@ -331,6 +335,7 @@ class TestContentView:
         )
         repo = module_target_sat.api.Repository(id=rh_repo_id).read()
         repo.sync(timeout=600)
+<<<<<<< HEAD
         cv = module_target_sat.api.ContentView(
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -342,6 +347,9 @@ class TestContentView:
             organization=module_sca_manifest_org
 >>>>>>> 2d1d7cb31 (change to non-sca org)
         ).create()
+=======
+        cv = module_target_sat.api.ContentView(organization=module_sca_manifest_org).create()
+>>>>>>> d877d0cd5 (Fix formatting issues)
         cv = module_target_sat.api.ContentView(id=cv.id, repository=[repo]).update(["repository"])
         cv.publish()
         cv = cv.read()
