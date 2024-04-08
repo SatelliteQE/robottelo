@@ -2,7 +2,7 @@
 from nailgun import entities
 import pytest
 
-from robottelo import constants
+from robottelo.config import settings
 
 
 @pytest.fixture(scope='session')
@@ -10,25 +10,26 @@ def default_os(
     default_architecture,
     default_partitiontable,
     default_pxetemplate,
-    request,
+    session_target_sat,
 ):
-    """Returns an Operating System entity read from searching Redhat family
+    """Returns an Operating System entity read from searching for supportability.content_host.default_os_name"""
+    search_string = f'name="{settings.supportability.content_hosts.default_os_name}"'
 
-    Indirect parametrization should pass an operating system version string like 'RHEL 7.9'
-    Default operating system will find the first RHEL6 or RHEL7 entity
-    """
-    os = getattr(request, 'param', None)
-    if os is None:
-        search_string = constants.DEFAULT_OS_SEARCH_QUERY
-    else:
-        version = os.split(' ')[1].split('.')
-        search_string = f'family="Redhat" AND major="{version[0]}" AND minor="{version[1]}"'
-    os = entities.OperatingSystem().search(query={'search': search_string})[0].read()
+    try:
+        os = (
+            session_target_sat.api.OperatingSystem()
+            .search(query={'search': search_string})[0]
+            .read()
+        )
+    except IndexError as e:
+        raise RuntimeError(f"Could not find operating system for '{search_string}'") from e
+
     os.architecture.append(default_architecture)
     os.ptable.append(default_partitiontable)
     os.provisioning_template.append(default_pxetemplate)
     os.update(['architecture', 'ptable', 'provisioning_template'])
-    return entities.OperatingSystem(id=os.id).read()
+
+    return session_target_sat.api.OperatingSystem(id=os.id).read()
 
 
 @pytest.fixture(scope='module')
@@ -38,8 +39,6 @@ def module_os():
 
 @pytest.fixture(scope='module')
 def os_path(default_os):
-    from robottelo.config import settings
-
     # Check what OS was found to use correct media
     if default_os.major == "6":
         os_distr_url = settings.repos.rhel6_os

@@ -4,7 +4,10 @@ from robottelo.constants import AZURERM_VALID_REGIONS, VALID_GCE_ZONES
 
 VALIDATORS = dict(
     supportability=[
-        Validator('supportability.content_hosts.rhel.versions', must_exist=True, is_type_of=list)
+        Validator('supportability.content_hosts.rhel.versions', must_exist=True, is_type_of=list),
+        Validator(
+            'supportability.content_hosts.default_os_name', must_exist=True, default='RedHat'
+        ),
     ],
     server=[
         Validator('server.hostname', default=''),
