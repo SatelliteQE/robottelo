@@ -283,10 +283,14 @@ class TestContentView:
     @pytest.mark.tier2
     def test_ccv_promote_registry_name_change(
 <<<<<<< HEAD
+<<<<<<< HEAD
         self, module_target_sat, module_sca_manifest_org
 =======
         self, module_target_sat, module_entitlement_manifest_org
 >>>>>>> 9c8e7f7a9 (CC Automation/Comp Eval coverage)
+=======
+        self, module_target_sat, module_sca_manifest_org
+>>>>>>> 2d1d7cb31 (change to non-sca org)
     ):
         """Testing CCV promotion scenarios where the registry_name has been changed to some
         specific value.
@@ -312,10 +316,14 @@ class TestContentView:
         rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
 <<<<<<< HEAD
+<<<<<<< HEAD
             org_id=module_sca_manifest_org.id,
 =======
             org_id=module_entitlement_manifest_org.id,
 >>>>>>> 9c8e7f7a9 (CC Automation/Comp Eval coverage)
+=======
+            org_id=module_sca_manifest_org.id,
+>>>>>>> 2d1d7cb31 (change to non-sca org)
             product=REPOS['kickstart']['rhel8_aps']['product'],
             repo=REPOS['kickstart']['rhel8_aps']['name'],
             reposet=REPOS['kickstart']['rhel8_aps']['reposet'],
@@ -325,20 +333,28 @@ class TestContentView:
         repo.sync(timeout=600)
         cv = module_target_sat.api.ContentView(
 <<<<<<< HEAD
+<<<<<<< HEAD
             organization=module_sca_manifest_org
 =======
             organization=module_entitlement_manifest_org
 >>>>>>> 9c8e7f7a9 (CC Automation/Comp Eval coverage)
+=======
+            organization=module_sca_manifest_org
+>>>>>>> 2d1d7cb31 (change to non-sca org)
         ).create()
         cv = module_target_sat.api.ContentView(id=cv.id, repository=[repo]).update(["repository"])
         cv.publish()
         cv = cv.read()
         composite_cv = module_target_sat.api.ContentView(
 <<<<<<< HEAD
+<<<<<<< HEAD
             organization=module_sca_manifest_org, composite=True
 =======
             organization=module_entitlement_manifest_org, composite=True
 >>>>>>> 9c8e7f7a9 (CC Automation/Comp Eval coverage)
+=======
+            organization=module_sca_manifest_org, composite=True
+>>>>>>> 2d1d7cb31 (change to non-sca org)
         ).create()
         composite_cv.component = [cv.version[0]]
         composite_cv = composite_cv.update(['component'])
@@ -347,6 +363,7 @@ class TestContentView:
         # Create LCEs with the specific registry value
         lce1 = module_target_sat.api.LifecycleEnvironment(
 <<<<<<< HEAD
+<<<<<<< HEAD
             organization=module_sca_manifest_org,
             registry_name_pattern='<%= repository.name %>',
         ).create()
@@ -359,6 +376,13 @@ class TestContentView:
         lce2 = module_target_sat.api.LifecycleEnvironment(
             organization=module_entitlement_manifest_org,
 >>>>>>> 9c8e7f7a9 (CC Automation/Comp Eval coverage)
+=======
+            organization=module_sca_manifest_org,
+            registry_name_pattern='<%= repository.name %>',
+        ).create()
+        lce2 = module_target_sat.api.LifecycleEnvironment(
+            organization=module_sca_manifest_org,
+>>>>>>> 2d1d7cb31 (change to non-sca org)
             registry_name_pattern='<%= lifecycle_environment.label %>/<%= repository.name %>',
         ).create()
         version = composite_cv.version[0].read()
