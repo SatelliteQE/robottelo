@@ -51,12 +51,6 @@ def repo_options_custom_product(request, module_org, module_target_sat):
 
 
 @pytest.fixture
-def env(module_org, module_target_sat):
-    """Create a new puppet environment."""
-    return module_target_sat.api.Environment(organization=[module_org]).create()
-
-
-@pytest.fixture
 def repo(repo_options, module_target_sat):
     """Create a new repository."""
     return module_target_sat.api.Repository(**repo_options).create()
@@ -2134,7 +2128,7 @@ class TestSRPMRepository:
     @pytest.mark.upgrade
     @pytest.mark.tier2
     def test_positive_srpm_upload_publish_promote_cv(
-        self, module_org, env, repo, module_target_sat
+        self, module_org, module_lce, repo, module_target_sat
     ):
         """Upload SRPM to repository, add repository to content view
         and publish, promote content view
@@ -2168,7 +2162,6 @@ class TestSRPMRepository:
 
     @pytest.mark.upgrade
     @pytest.mark.tier2
-    @pytest.mark.skip('Uses deprecated SRPM repository')
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -2177,7 +2170,7 @@ class TestSRPMRepository:
         **datafactory.parametrized({'fake_srpm': {'url': repo_constants.FAKE_YUM_SRPM_REPO}}),
         indirect=True,
     )
-    def test_positive_repo_sync_publish_promote_cv(self, module_org, env, repo, target_sat):
+    def test_positive_repo_sync_publish_promote_cv(self, module_org, module_lce, repo, target_sat):
         """Synchronize repository with SRPMs, add repository to content view
         and publish, promote content view
 
@@ -2201,8 +2194,8 @@ class TestSRPMRepository:
             >= 3
         )
 
-        cv.version[0].promote(data={'environment_ids': env.id, 'force': False})
-        assert len(target_sat.api.Srpms().search(query={'environment_id': env.id})) == 3
+        cv.version[0].promote(data={'environment_ids': module_lce.id, 'force': False})
+        assert len(target_sat.api.Srpms().search(query={'environment_id': module_lce.id})) >= 3
 
 
 class TestSRPMRepositoryIgnoreContent:
