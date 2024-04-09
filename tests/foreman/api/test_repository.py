@@ -1121,7 +1121,7 @@ class TestRepository:
         with pytest.raises(HTTPError):
             repo.read()
 
-    def test_positive_recreate_pulp_repositories(self, module_entitlement_manifest_org, target_sat):
+    def test_positive_recreate_pulp_repositories(self, module_sca_manifest_org, target_sat):
         """Verify that deleted Pulp Repositories can be recreated using the
         command 'foreman-rake katello:correct_repositories COMMIT=true'
 
@@ -1136,7 +1136,7 @@ class TestRepository:
         """
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_entitlement_manifest_org.id,
+            org_id=module_sca_manifest_org.id,
             product=constants.PRDS['rhel'],
             repo=constants.REPOS['rhst7']['name'],
             reposet=constants.REPOSET['rhst7'],
@@ -1475,9 +1475,7 @@ class TestRepositorySync:
             if isinstance(ver, int)
         ],
     )
-    def test_positive_sync_kickstart_check_os(
-        self, module_entitlement_manifest_org, distro, target_sat
-    ):
+    def test_positive_sync_kickstart_check_os(self, module_sca_manifest_org, distro, target_sat):
         """Sync rhel KS repo and assert that OS was created
 
         :id: f84bcf1b-717e-40e7-82ee-000eead45249
@@ -1492,10 +1490,10 @@ class TestRepositorySync:
             1. OS with corresponding version was created.
 
         """
-        distro = f'rhel{distro} + "_bos"' if distro > 7 else f'rhel{distro}'
+        distro = f'rhel{distro}_bos' if distro > 7 else f'rhel{distro}'
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_entitlement_manifest_org.id,
+            org_id=module_sca_manifest_org.id,
             product=constants.REPOS['kickstart'][distro]['product'],
             reposet=constants.REPOSET['kickstart'][distro],
             repo=constants.REPOS['kickstart'][distro]['name'],
