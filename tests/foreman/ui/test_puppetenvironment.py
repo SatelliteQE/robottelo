@@ -18,6 +18,7 @@ from robottelo.constants import DEFAULT_CV, ENVIRONMENT
 from robottelo.utils.datafactory import gen_string
 
 
+@pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.tier2
 def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_org, module_puppet_loc):

@@ -6,7 +6,7 @@
 
 :Team: Rocket
 
-:CaseImportance: High
+:CaseImportance: Critical
 
 :CaseAutomation: Automated
 
@@ -219,6 +219,7 @@ def precondition_check_upgrade_and_install_leapp_tool(custom_leapp_host):
         )
 
 
+@pytest.mark.e2e
 @pytest.mark.skip_if_open('SAT-24023')
 @pytest.mark.parametrize(
     'upgrade_path',
@@ -300,6 +301,7 @@ def test_leapp_upgrade_rhel(
     assert new_ver == upgrade_path['target_version']
 
 
+@pytest.mark.e2e
 @pytest.mark.skip_if_open('SAT-24023')
 @pytest.mark.parametrize(
     'upgrade_path',

@@ -48,7 +48,7 @@ def rhev_data():
 
 
 @pytest.mark.tier2
-def test_positive_end_to_end(session, rhev_data, module_org, module_location, module_target_sat):
+def test_positive_end_to_end(session, rhev_data, module_target_sat):
     """Perform end to end testing for compute resource RHEV.
 
     :id: 3c079675-e5d3-490e-9b7e-1c2950f9965d
@@ -361,8 +361,9 @@ def test_positive_update_organization(session, rhev_data, module_location, modul
         assert new_organization.name in resource_values['organizations']['resources']['assigned']
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
-def test_positive_image_end_to_end(session, rhev_data, module_location, target_sat):
+def test_positive_image_end_to_end(session, rhev_data, target_sat):
     """Perform end to end testing for compute resource RHV component image.
 
     :id: 62a5c52f-dd15-45e7-8200-c64bb335474f
