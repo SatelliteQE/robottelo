@@ -18,7 +18,12 @@ from requests.exceptions import HTTPError
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ARCHITECTURE, MIRRORING_POLICIES, REPOS
+from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
+    MIRRORING_POLICIES,
+    REPOS,
+)
+from robottelo.constants.repos import FAKE_ZST_REPO
 from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import parametrized
 
@@ -184,6 +189,39 @@ def test_positive_sync_kickstart_repo(module_sca_manifest_org, target_sat):
     rh_repo = rh_repo.read()
     assert rh_repo.content_counts['package_group'] > 0
     assert rh_repo.content_counts['rpm'] > 0
+
+
+def test_positive_sync_upstream_repo_with_zst_compression(
+    module_org, module_product, module_target_sat
+):
+    """Sync upstream repo having zst compression and verify it succeeds.
+
+    :id: 1eddff2a-b6b5-420b-a0e8-ba6a05c11ca4
+
+    :expectedresults: Repo sync is successful and no zst type compression errors are present in /var/log/messages.
+
+    :steps:
+
+        1. Sync upstream repository having zst type compression.
+        2. Assert that no errors related to compression type  are present in
+            /var/log/messages.
+        3. Assert that sync was executed properly.
+
+    :BZ: 2241934
+
+    :customerscenario: true
+    """
+    repo = module_target_sat.api.Repository(
+        product=module_product, content_type='yum', url=FAKE_ZST_REPO
+    ).create()
+    assert repo.read().content_counts['rpm'] == 0
+    sync = module_product.sync()
+    assert sync['result'] == 'success'
+    assert repo.read().content_counts['rpm'] > 0
+    result = module_target_sat.execute(
+        'grep pulp /var/log/messages | grep "Cannot detect compression type"'
+    )
+    assert result.status == 1
 
 
 @pytest.mark.tier1

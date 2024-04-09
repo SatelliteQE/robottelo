@@ -14,6 +14,7 @@ import time
 from urllib.parse import urljoin, urlparse, urlunsplit
 import warnings
 
+import apypie
 from box import Box
 from broker import Broker
 from broker.hosts import Host
@@ -167,6 +168,10 @@ class SatelliteHostError(Exception):
 
 
 class IPAHostError(Exception):
+    pass
+
+
+class ProxyHostError(Exception):
     pass
 
 
@@ -1762,6 +1767,7 @@ class Satellite(Capsule, SatelliteMixins):
         # create dummy classes for later population
         self._api = type('api', (), {'_configured': False})
         self._cli = type('cli', (), {'_configured': False})
+        self._apidoc = None
         self.record_property = None
 
     def _swap_nailgun(self, new_version):
@@ -1814,6 +1820,19 @@ class Satellite(Capsule, SatelliteMixins):
                 pass
         self._api._configured = True
         return self._api
+
+    @property
+    def apidoc(self):
+        """Provide Satellite's apidoc via apypie"""
+        if not self._apidoc:
+            self._apidoc = apypie.Api(
+                uri=self.url,
+                username=settings.server.admin_username,
+                password=settings.server.admin_password,
+                api_version=2,
+                verify_ssl=settings.server.verify_ca,
+            ).apidoc
+        return self._apidoc
 
     @property
     def cli(self):
@@ -2545,3 +2564,42 @@ class IPAHost(Host):
         )
         if result.status != 0:
             raise IPAHostError('Failed to remove the user from user group')
+
+
+class ProxyHost(Host):
+    """Class representing HTTP Proxy host"""
+
+    def __init__(self, url, **kwargs):
+        self._conf_dir = '/etc/squid/'
+        self._access_log = '/var/log/squid/access.log'
+        kwargs['hostname'] = urlparse(url).hostname
+        super().__init__(**kwargs)
+
+    def add_user(self, name, passwd):
+        """Adds new user to the HTTP Proxy"""
+        res = self.execute(f"htpasswd -b {self._conf_dir}passwd {name} '{passwd}'")
+        assert res.status == 0, f'User addition failed on the proxy side: {res.stderr}'
+        return res
+
+    def remove_user(self, name):
+        """Removes a user from HTTP Proxy"""
+        res = self.execute(f'htpasswd -D {self._conf_dir}passwd {name}')
+        assert res.status == 0, f'User deletion failed on the proxy side: {res.stderr}'
+        return res
+
+    def get_log(self, which=None, tail=None, grep=None):
+        """Returns log content from the HTTP Proxy instance
+
+        :param which: Which log file should be read. Defaults to access.log.
+        :param tail: Use when only the tail of a long log file is needed.
+        :param grep: Grep for some expression.
+        :return: Log content found or None
+        """
+        log_file = which or self._access_log
+        cmd = f'tail -n {tail} {log_file}' if tail else f'cat {log_file}'
+        if grep:
+            cmd = f'{cmd} | grep "{grep}"'
+        res = self.execute(cmd)
+        if res.status != 0:
+            raise ProxyHostError(f'Proxy log read failed: {res.stderr}')
+        return None if res.stdout == '' else res.stdout

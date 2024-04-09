@@ -102,16 +102,16 @@ class TestUserGroupMembership:
         user_group = target_sat.api.UserGroup().search(
             query={'search': f'name={pre_upgrade_data["user_group_name"]}'}
         )
+        request.addfinalizer(user_group[0].delete)
         auth_source = target_sat.api.AuthSourceLDAP().search(
             query={'search': f'name={pre_upgrade_data["auth_source_name"]}'}
         )[0]
         request.addfinalizer(auth_source.delete)
-        request.addfinalizer(user_group[0].delete)
         user = target_sat.api.User().search(query={'search': f'login={ad_data["ldap_user_name"]}'})[
             0
         ]
-        assert user.read().id == user_group[0].read().user[0].id
         request.addfinalizer(user.delete)
+        assert user.read().id == user_group[0].read().user[0].id
         role_list = target_sat.cli.Role.with_user(
             username=ad_data['ldap_user_name'], password=ad_data['ldap_user_passwd']
         ).list()

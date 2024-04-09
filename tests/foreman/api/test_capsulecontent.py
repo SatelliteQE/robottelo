@@ -18,8 +18,10 @@ import re
 from time import sleep
 
 from nailgun import client
+from nailgun.config import ServerConfig
 from nailgun.entity_mixins import call_entity_method_with_timeout
 import pytest
+from requests.exceptions import HTTPError
 
 from robottelo.config import settings
 from robottelo.constants import (
@@ -47,7 +49,23 @@ from robottelo.content_info import (
     get_repomd,
     get_repomd_revision,
 )
+from robottelo.utils.datafactory import gen_string
 from robottelo.utils.issue_handlers import is_open
+
+
+@pytest.fixture
+def default_non_admin_user(target_sat, default_org, default_location):
+    """Non-admin user with no roles assigned in the Default org/loc."""
+    password = gen_string('alphanumeric')
+    user = target_sat.api.User(
+        login=gen_string('alpha'),
+        password=password,
+        organization=[default_org],
+        location=[default_location],
+    ).create()
+    user.password = password
+    yield user
+    user.delete()
 
 
 @pytest.mark.run_in_one_thread
@@ -1633,3 +1651,119 @@ class TestCapsuleContentManagement:
         assert (
             counts is None or len(counts['content_view_versions']) == 0
         ), f"No content counts expected, but got:\n{counts['content_view_versions']}."
+
+    def test_positive_read_with_non_admin_user(
+        self,
+        target_sat,
+        module_capsule_configured,
+        default_org,
+        default_non_admin_user,
+    ):
+        """Try to list and read Capsules with a non-admin user with and without permissions.
+
+        :id: f3ee19fa-9b91-4b49-b00a-8debee903ce6
+
+        :setup:
+            1. Satellite with registered external Capsule.
+            2. Non-admin user without any roles/permissions.
+
+        :steps:
+            1. Using the non-admin user try to list all or particular Capsule.
+            2. Add Viewer role to the user and try again.
+
+        :expectedresults:
+            1. Read should fail without Viewer role.
+            2. Read should succeed when Viewer role added.
+
+        :BZ: 2096930
+
+        :customerscenario: true
+        """
+        # Using the non-admin user try to list all or particular Capsule
+        user = default_non_admin_user
+        sc = ServerConfig(
+            auth=(user.login, user.password),
+            url=target_sat.url,
+            verify=settings.server.verify_ca,
+        )
+
+        with pytest.raises(HTTPError) as error:
+            target_sat.api.Capsule(server_config=sc).search()
+        assert error.value.response.status_code == 403
+        assert 'Access denied' in error.value.response.text
+
+        with pytest.raises(HTTPError) as error:
+            target_sat.api.Capsule(
+                server_config=sc, id=module_capsule_configured.nailgun_capsule.id
+            ).read()
+        assert error.value.response.status_code == 403
+        assert 'Access denied' in error.value.response.text
+
+        # Add Viewer role to the user and try again.
+        v_role = target_sat.api.Role().search(query={'search': 'name="Viewer"'})
+        assert len(v_role) == 1, 'Expected just one Viewer to be found.'
+        user.role = [v_role[0]]
+        user.update(['role'])
+
+        res = target_sat.api.Capsule(server_config=sc).search()
+        assert len(res) >= 2, 'Expected at least one internal and one or more external Capsule(s).'
+        assert {target_sat.hostname, module_capsule_configured.hostname}.issubset(
+            [caps.name for caps in res]
+        ), 'Internal and/or external Capsule was not listed.'
+
+        res = target_sat.api.Capsule(
+            server_config=sc, id=module_capsule_configured.nailgun_capsule.id
+        ).read()
+        assert res.name == module_capsule_configured.hostname, 'External Capsule not found.'
+
+    def test_positive_reclaim_space(
+        self,
+        target_sat,
+        module_capsule_configured,
+    ):
+        """Verify the reclaim_space endpoint spawns the Reclaim space task
+        and apidoc references the endpoint correctly.
+
+        :id: eb16ed53-0489-4bb9-a0da-8d857a1c7d06
+
+        :setup:
+            1. A registered external Capsule.
+
+        :steps:
+            1. Trigger the reclaim space task via API, check it succeeds.
+            2. Check the apidoc references the correct endpoint.
+
+        :expectedresults:
+            1. Reclaim_space endpoint spawns the Reclaim space task and it succeeds.
+            2. Apidoc references the correct endpoint.
+
+        :CaseImportance: Medium
+
+        :BZ: 2218179
+
+        :customerscenario: true
+        """
+        # Trigger the reclaim space task via API, check it succeeds
+        task = module_capsule_configured.nailgun_capsule.content_reclaim_space()
+        assert task, 'No task was created for reclaim space.'
+        assert (
+            'Actions::Pulp3::CapsuleContent::ReclaimSpace' in task['label']
+        ), 'Unexpected task triggered'
+        assert 'success' in task['result'], 'Reclaim task did not succeed'
+
+        # Check the apidoc references the correct endpoint
+        try:
+            reclaim_doc = next(
+                method
+                for method in target_sat.apidoc['docs']['resources']['capsule_content']['methods']
+                if '/apidoc/v2/capsule_content/reclaim_space' in method['doc_url']
+            )
+        except StopIteration:
+            raise AssertionError(
+                'Could not find the reclaim_space apidoc at the expected path.'
+            ) from None
+        assert len(reclaim_doc['apis']) == 1
+        assert reclaim_doc['apis'][0]['http_method'] == 'POST', 'POST method was expected.'
+        assert (
+            reclaim_doc['apis'][0]['api_url'] == '/katello/api/capsules/:id/content/reclaim_space'
+        ), 'Documented path did not meet the expectation.'

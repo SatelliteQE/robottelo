@@ -12,6 +12,7 @@
 """
 from datetime import date, datetime, timedelta
 from operator import itemgetter
+import re
 
 from broker import Broker
 import pytest
@@ -688,16 +689,11 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
             'inclusion': 'false',
         }
     )
-
-    @request.addfinalizer
-    def cleanup():
-        cv_filter_cleanup(
-            target_sat,
-            cv_filter['filter-id'],
-            module_cv,
-            module_sca_manifest_org,
-            module_lce,
+    request.addfinalizer(
+        lambda: cv_filter_cleanup(
+            target_sat, cv_filter['filter-id'], module_cv, module_sca_manifest_org, module_lce
         )
+    )
 
     # Make rule to hide the RPM that creates the need for the installable erratum
     target_sat.cli_factory.content_view_filter_rule(
@@ -861,17 +857,11 @@ def test_host_errata_search_commands(
             'inclusion': 'false',
         }
     )
-
-    @request.addfinalizer
-    def cleanup():
-        cv_filter_cleanup(
-            target_sat,
-            cv_filter['filter-id'],
-            module_cv,
-            module_sca_manifest_org,
-            module_lce,
+    request.addfinalizer(
+        lambda: cv_filter_cleanup(
+            target_sat, cv_filter['filter-id'], module_cv, module_sca_manifest_org, module_lce
         )
-
+    )
     # Make rule to exclude the specified bugfix package
     target_sat.cli_factory.content_view_filter_rule(
         {
@@ -1545,3 +1535,44 @@ def test_errata_list_by_contentview_filter(module_sca_manifest_org, module_targe
         )
     )
     assert errata_count != errata_count_cvf
+
+
+@pytest.mark.rhel_ver_match('8')
+def test_positive_verify_errata_recalculate_tasks(target_sat, errata_host):
+    """Verify 'Actions::Katello::Applicability::Hosts::BulkGenerate' tasks proceed on 'worker-hosts-queue-1.service'
+
+    :id: d5f89df2-b8fb-4aec-839d-b548b0aadc0c
+
+    :setup: Register host which has applicable errata with satellite
+
+    :steps:
+        1. Run 'hammer host errata recalculate --host-id NUMBER' (will trigger inside errata_host fixture)
+        2. Check systemctl or journalctl or /var/log/messages for 'dynflow-sidekiq@worker-hosts-queue-1.service'
+
+    :expectedresults: worker-hosts-queue-1 should proceed with task and this can be cross verify using unique PID
+
+    :customerscenario: true
+
+    :BZ: 2249736
+    """
+    # Recalculate errata command has triggered inside errata_host fixture
+
+    # get PID of 'worker-hosts-queue-1' from /var/log/messages
+    message_log = target_sat.execute(
+        'grep "dynflow-sidekiq@worker-hosts-queue-1" /var/log/messages | tail -1'
+    )
+    assert message_log.status == 0
+    pattern_1 = r'\[(.*?)\]'  # pattern to capture PID of 'worker-hosts-queue-1'
+    match = re.search(pattern_1, message_log.stdout)
+    pid_log_message = match.group(1)
+
+    # get PID of 'worker-hosts-queue-1' from systemctl command output
+    systemctl_log = target_sat.execute(
+        'systemctl status dynflow-sidekiq@worker-hosts-queue-1.service | grep -i "Main PID:"'
+    )
+    assert systemctl_log.status == 0
+    pattern_2 = r'\: (.*?) \('  # pattern to capture PID of 'worker-hosts-queue-1'
+    match = re.search(pattern_2, systemctl_log.stdout)
+    pid_systemctl_cmd = match.group(1)
+
+    assert pid_log_message == pid_systemctl_cmd

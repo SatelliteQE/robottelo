@@ -261,10 +261,10 @@ def test_positive_create_inherit_lce_cv(
     ).create()
     host = module_target_sat.api.Host(hostgroup=hostgroup, organization=module_org).create()
     assert (
-        host.content_facet_attributes['lifecycle_environment_id']
+        host.content_facet_attributes['lifecycle_environment']['id']
         == hostgroup.lifecycle_environment.id
     )
-    assert host.content_facet_attributes['content_view_id'] == hostgroup.content_view.id
+    assert host.content_facet_attributes['content_view']['id'] == hostgroup.content_view.id
 
 
 @pytest.mark.tier2
@@ -625,16 +625,16 @@ def test_positive_create_and_update_with_content_view(
             'lifecycle_environment_id': module_lce_library.id,
         },
     ).create()
-    assert host.content_facet_attributes['content_view_id'] == module_default_org_view.id
-    assert host.content_facet_attributes['lifecycle_environment_id'] == module_lce_library.id
+    assert host.content_facet_attributes['content_view']['id'] == module_default_org_view.id
+    assert host.content_facet_attributes['lifecycle_environment']['id'] == module_lce_library.id
 
     host.content_facet_attributes = {
         'content_view_id': module_default_org_view.id,
         'lifecycle_environment_id': module_lce_library.id,
     }
     host = host.update(['content_facet_attributes'])
-    assert host.content_facet_attributes['content_view_id'] == module_default_org_view.id
-    assert host.content_facet_attributes['lifecycle_environment_id'] == module_lce_library.id
+    assert host.content_facet_attributes['content_view']['id'] == module_default_org_view.id
+    assert host.content_facet_attributes['lifecycle_environment']['id'] == module_lce_library.id
 
 
 @pytest.mark.tier1

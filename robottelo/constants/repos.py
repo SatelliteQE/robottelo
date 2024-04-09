@@ -12,7 +12,7 @@ CUSTOM_RPM_REPO = 'https://fixtures.pulpproject.org/rpm-signed/'
 CUSTOM_RPM_SHA = 'https://fixtures.pulpproject.org/rpm-with-sha/'
 CUSTOM_RPM_SHA_512 = 'https://fixtures.pulpproject.org/rpm-with-sha-512/'
 FAKE_5_YUM_REPO = 'https://rplevka.fedorapeople.org/fakerepo01/'
-FAKE_YUM_DRPM_REPO = 'https://fixtures.pulpproject.org/drpm-signed/'
+FAKE_YUM_MISSING_REPO = 'https://fixtures.pulpproject.org/missing-repo/'
 FAKE_YUM_SRPM_REPO = 'https://fixtures.pulpproject.org/srpm-signed/'
 FAKE_YUM_SRPM_DUPLICATE_REPO = 'https://fixtures.pulpproject.org/srpm-duplicate/'
 FAKE_YUM_MD5_REPO = 'https://fixtures.pulpproject.org/rpm-with-md5/'
@@ -25,6 +25,6 @@ OSTREE_REPO = 'https://fixtures.pulpproject.org/ostree/small/'
 FAKE_0_YUM_REPO_STRING_BASED_VERSIONS = (
     'https://fixtures.pulpproject.org/rpm-string-version-updateinfo/'
 )
-
+FAKE_ZST_REPO = 'https://fixtures.pulpproject.org/rpm-zstd-metadata'
 ANSIBLE_GALAXY = 'https://galaxy.ansible.com/'
 ANSIBLE_HUB = 'https://cloud.redhat.com/api/automation-hub/'

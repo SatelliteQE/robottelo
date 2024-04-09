@@ -45,6 +45,15 @@ def rhel_contenthost(request):
         yield host
 
 
+@pytest.fixture(scope='module')
+def module_rhel_contenthost(request):
+    """A module-level fixture that provides a content host object parametrized"""
+    # Request should be parametrized through pytest_fixtures.fixture_markers
+    # unpack params dict
+    with Broker(**host_conf(request), host_class=ContentHost) as host:
+        yield host
+
+
 @pytest.fixture(params=[{'rhel_version': '7'}])
 def rhel7_contenthost(request):
     """A function-level fixture that provides a rhel7 content host object"""
@@ -162,6 +171,16 @@ def rex_contenthost(request, module_org, target_sat, module_ak_with_cv):
 
 
 @pytest.fixture
+def rex_contenthosts(request, module_org, target_sat, module_ak_with_cv):
+    request.param['no_containers'] = True
+    with Broker(**host_conf(request), host_class=ContentHost, _count=2) as hosts:
+        for host in hosts:
+            repo = settings.repos['SATCLIENT_REPO'][f'RHEL{host.os_version.major}']
+            host.register(module_org, None, module_ak_with_cv.name, target_sat, repo=repo)
+        yield hosts
+
+
+@pytest.fixture
 def katello_host_tools_tracer_host(rex_contenthost, target_sat):
     """Install katello-host-tools-tracer, create custom
     repositories on the host"""
@@ -268,8 +287,10 @@ def sat_upgrade_chost():
 def custom_host(request):
     """A rhel content host that passes custom host config through request.param"""
     deploy_args = request.param
-    # if 'deploy_rhel_version' is not set, let's default to RHEL 8
-    deploy_args['deploy_rhel_version'] = deploy_args.get('deploy_rhel_version', '8')
+    # if 'deploy_rhel_version' is not set, let's default to what's in content_host.yaml
+    deploy_args['deploy_rhel_version'] = deploy_args.get(
+        'deploy_rhel_version', settings.content_host.default_rhel_version
+    )
     deploy_args['workflow'] = 'deploy-rhel'
     with Broker(**deploy_args, host_class=Satellite) as host:
         yield host

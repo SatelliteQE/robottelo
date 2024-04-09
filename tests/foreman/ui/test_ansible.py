@@ -178,6 +178,13 @@ def test_positive_ansible_custom_role(target_sat, session, module_org, rhel_cont
 
     :CaseComponent: Ansible-RemoteExecution
     """
+
+    @request.addfinalizer
+    def _finalize():
+        result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
+        assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
+        target_sat.execute('rm -rvf /etc/ansible/roles/custom_role')
+
     SELECTED_ROLE = 'custom_role'
     playbook = f'{robottelo_tmp_dir}/playbook.yml'
     data = {
@@ -231,12 +238,6 @@ def test_positive_ansible_custom_role(target_sat, session, module_org, rhel_cont
         session.configreport.delete(rhel_contenthost.hostname)
         assert len(session.configreport.read()['table']) == 0
 
-    @request.addfinalizer
-    def _finalize():
-        result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
-        assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
-        target_sat.execute('rm -rvf /etc/ansible/roles/custom_role')
-
 
 @pytest.mark.tier2
 def test_positive_host_role_information(target_sat, function_host):
@@ -272,6 +273,81 @@ def test_positive_host_role_information(target_sat, function_host):
         assert ansible_roles_table[0]["Name"] == SELECTED_ROLE
         all_assigned_roles_table = session.host_new.get_ansible_roles_modal(function_host.name)
         assert all_assigned_roles_table[0]["Name"] == SELECTED_ROLE
+
+
+@pytest.mark.rhel_ver_match('8')
+def test_positive_assign_ansible_role_variable_on_host(
+    target_sat, rhel_contenthost, module_activation_key, module_org, module_location, request
+):
+    """Verify ansible variable is added to the role and attached to the host.
+
+    :id: 7ec4fe19-5a08-4b10-bb4e-7327dd68699a
+
+    :BZ: 2170727
+
+    :customerscenario: true
+
+    :steps:
+
+        1. Create an Ansible variable with array type and set the default value.
+        2. Enable both 'Merge Overrides' and 'Merge Default'.
+        3. Add the variable to a role and attach the role to the host.
+        4. Verify that ansible role and variable is added to the host.
+
+    :expectedresults: The role and variable is successfully added to the host.
+    """
+
+    @request.addfinalizer
+    def _finalize():
+        result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
+        assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
+
+    key = gen_string('alpha')
+    SELECTED_ROLE = 'redhat.satellite.activation_keys'
+    proxy_id = target_sat.nailgun_smart_proxy.id
+    target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]})
+    command = target_sat.api.RegistrationCommand(
+        organization=module_org,
+        location=module_location,
+        activation_keys=[module_activation_key.name],
+    ).create()
+    result = rhel_contenthost.execute(command)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    target_host = rhel_contenthost.nailgun_host
+    default_value = '[\"test\"]'
+    parameter_type = 'array'
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+        session.ansiblevariables.create_with_overrides(
+            {
+                'key': key,
+                'ansible_role': SELECTED_ROLE,
+                'override': 'true',
+                'parameter_type': parameter_type,
+                'default_value': default_value,
+                'validator_type': None,
+                'attribute_order': 'domain \n fqdn \n hostgroup \n os',
+                'merge_default': 'true',
+                'merge_overrides': 'true',
+                'matcher_section.params': [
+                    {
+                        'attribute_type': {'matcher_key': 'os', 'matcher_value': 'fedora'},
+                        'value': '[\'13\']',
+                    }
+                ],
+            }
+        )
+        result = target_sat.cli.Host.ansible_roles_assign(
+            {'id': target_host.id, 'ansible-roles': SELECTED_ROLE}
+        )
+        assert 'Ansible roles were assigned' in result[0]['message']
+        values = session.host_new.get_details(rhel_contenthost.hostname, 'ansible')['ansible'][
+            'variables'
+        ]['table']
+        assert (key, SELECTED_ROLE, default_value, parameter_type) in [
+            (var['Name'], var['Ansible role'], var['Value'], var['Type']) for var in values
+        ]
 
 
 @pytest.mark.stubbed

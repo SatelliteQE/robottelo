@@ -456,10 +456,10 @@ def configure_hammer_no_negotiate(parametrized_enrolled_sat):
 def hammer_logout(parametrized_enrolled_sat):
     """Logout in Hammer."""
     result = parametrized_enrolled_sat.cli.Auth.logout()
-    assert result[0]['message'] == LOGGEDOUT
+    assert result.split("\n")[1] == LOGGEDOUT
     yield
     result = parametrized_enrolled_sat.cli.Auth.logout()
-    assert result[0]['message'] == LOGGEDOUT
+    assert result.split("\n")[1] == LOGGEDOUT
 
 
 @pytest.fixture

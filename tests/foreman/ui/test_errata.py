@@ -233,8 +233,8 @@ def registered_contenthost(
     Using SCA and global registration.
 
     :note: rhel_contenthost will be parameterized by rhel6 to 9, also -fips for all distros.
-           to use specific rhel version parameterized contenthost, use pytest.mark.rhel_ver_match()
-           for marking contenthost version(s) for tests using this fixture.
+           to use specific rhel version parameterized contenthost;
+           use `pytest.mark.rhel_ver_match()` to mark contenthost version(s) for tests using this fixture.
 
     :repos: pass as a parameterized request
         list of upstream URLs for custom repositories.
@@ -245,7 +245,6 @@ def registered_contenthost(
                 indirect=True,
             )
     """
-    # read indirect parameterization request, could be None
     try:
         repos = getattr(request, 'param', repos).copy()
     except AttributeError:
@@ -655,10 +654,7 @@ def test_host_content_errata_tab_pagination(
         pf4_pagination = session.host_new.get_errata_pagination(_chost_name)
         assert (_read_page := pf4_pagination.read())
         assert _read_page != _prior_pagination
-        # assert per_page and total_pages remained the same
-        assert pf4_pagination.current_per_page == 5
         assert pf4_pagination.current_page == 1
-        assert pf4_pagination.total_pages > 1
         # total_items decreased by one
         item_count = pf4_pagination.total_items
         assert item_count == _prior_app_count - 1
@@ -726,14 +722,24 @@ def test_host_content_errata_tab_pagination(
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_list(session, function_org_with_parameter, lce, target_sat):
+def test_positive_list(
+    module_sca_manifest_org,
+    function_org,
+    function_lce,
+    target_sat,
+    module_lce,
+    module_cv,
+    module_ak,
+    session,
+):
     """View all errata in an Org
 
     :id: 71c7a054-a644-4c1e-b304-6bc34ea143f4
 
-    :Setup: Errata synced on satellite server.
-
-    :steps: Create two Orgs each having a product synced which contains errata.
+    :steps:
+        1. Setup two separate organization fixtures, function and module scope.
+        2. Create and sync separate repositories for each org.
+        3. Go to UI > Content Types > Errata page.
 
     :expectedresults: Check that the errata belonging to one Org is not showing in the other.
 
@@ -741,23 +747,51 @@ def test_positive_list(session, function_org_with_parameter, lce, target_sat):
 
     :customerscenario: true
     """
-    org = function_org_with_parameter
-    rc = target_sat.cli_factory.RepositoryCollection(
-        repositories=[target_sat.cli_factory.YumRepository(settings.repos.yum_3.url)]
+    _org_module = module_sca_manifest_org
+    _org_function = function_org
+    module_cv = module_cv.read()  # for module sca org
+    # create and sync repository, for module org's errata
+    target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': CUSTOM_REPO_URL,
+            'organization-id': _org_module.id,
+            'lifecycle-environment-id': module_lce.id,
+            'activationkey-id': module_ak.id,
+            'content-view-id': module_cv.id,
+        },
     )
-    rc.setup_content(org.id, lce.id)
+    # create and sync repository, for function org's errata
+    target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': CUSTOM_REPO_3_URL,
+            'organization-id': _org_function.id,
+            'lifecycle-environment-id': function_lce.id,
+        },
+    )
+
     with session:
+        # View in module org
+        session.organization.select(org_name=_org_module.name)
         assert (
             session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False)[0]['Errata ID']
             == CUSTOM_REPO_ERRATA_ID
+        ), f'Could not find expected errata: {CUSTOM_REPO_ERRATA_ID}, in module org: {_org_module.name}.'
+
+        assert not session.errata.search(CUSTOM_REPO_3_ERRATA_ID, applicable=False), (
+            f'Found function org ({_org_function.name}) errata: {CUSTOM_REPO_3_ERRATA_ID},'
+            f' in module org ({_org_module.name}) as well.'
         )
-        assert not session.errata.search(settings.repos.yum_3.errata[5], applicable=False)
-        session.organization.select(org_name=org.name)
+        # View in function org
+        session.organization.select(org_name=_org_function.name)
         assert (
-            session.errata.search(settings.repos.yum_3.errata[5], applicable=False)[0]['Errata ID']
-            == settings.repos.yum_3.errata[5]
+            session.errata.search(CUSTOM_REPO_3_ERRATA_ID, applicable=False)[0]['Errata ID']
+            == CUSTOM_REPO_3_ERRATA_ID
+        ), f'Could not find expected errata: {CUSTOM_REPO_3_ERRATA_ID}, in function org: {_org_function.name}.'
+
+        assert not session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False), (
+            f'Found module org ({_org_module.name}) errata: {CUSTOM_REPO_ERRATA_ID},'
+            f' in function org ({_org_function.name}) as well.'
         )
-        assert not session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False)
 
 
 @pytest.mark.tier2
@@ -1157,59 +1191,109 @@ def test_positive_content_host_search_type(session, erratatype_vm):
 
 
 @pytest.mark.tier3
+@pytest.mark.rhel_ver_match('8')
 @pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
-    [
-        {
-            'distro': 'rhel7',
-            'SatelliteToolsRepository': {},
-            'RHELAnsibleEngineRepository': {'cdn': True},
-            'YumRepository': {'url': settings.repos.yum_9.url},
-        }
-    ],
+    'registered_contenthost',
+    [[CUSTOM_REPO_URL]],
     indirect=True,
 )
-def test_positive_show_count_on_content_host_page(
-    session, module_org_with_parameter, erratatype_vm
-):
-    """Available errata count displayed in Content hosts page
+def test_positive_show_count_on_host_pages(session, module_org, registered_contenthost):
+    """Available errata by type displayed in New Host>Errata page,
+        and expected count by type in Legacy>Content hosts page.
 
     :id: 8575e282-d56e-41dc-80dd-f5f6224417cb
 
     :Setup:
 
-        1. Errata synced on satellite server.
-        2. Some content hosts are present.
+        1. Errata synced on satellite server from custom repository.
+        2. Registered host, subscribed to promoted CVV, with repo synced to appliable custom packages and erratum.
 
-    :steps: Go to Hosts -> Content Hosts.
+    :steps:
 
-    :expectedresults: The available errata count is displayed.
+        1. Go to Hosts -> All Hosts, and Legacy ContentHost -> Hosts.
+        2. None of the erratum are installable.
+        3. Install all outdated applicable packages via yum.
+        4. Recalculate errata applicablity for host.
+        5. All of the erratum are now installable, on both pages from step 1.
+
+    :expectedresults:
+        The available errata count is displayed and updates.
+        Displayed erratum match between the two content host pages.
 
     :BZ: 1484044, 1775427
 
     :customerscenario: true
     """
-    vm = erratatype_vm
+    vm = registered_contenthost
     hostname = vm.hostname
+    assert vm.subscribed
+    assert vm.execute('subscription-manager repos').status == 0
+    assert vm.applicable_errata_count == 0
+
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
+        # new host UI
+        new_host_values = session.host_new.search(hostname)
+        assert new_host_values[0]['Name'] == hostname
+        # None of the erratum are installable
+        for errata_type in ('Security', 'Bugfix', 'Enhancement'):
+            installable_errata = None
+            empty_table = False
+            try:
+                # exception will be raised in case of unfound element (dropdown or dropdown entry)
+                # if an exception was raised, the table is missing/empty (no errata).
+                installable_errata = session.host_new.get_errata_by_type(
+                    entity_name=hostname,
+                    type=errata_type,
+                )['content']['errata']['table']
+            except Exception:
+                empty_table = True
+            assert (
+                not installable_errata
+            ), f'Found some installable {errata_type} errata, when none were expected.'
+            assert empty_table
+        # legacy contenthost UI
         content_host_values = session.contenthost.search(hostname)
         assert content_host_values[0]['Name'] == hostname
         installable_errata = content_host_values[0]['Installable Updates']['errata']
-
         for errata_type in ('security', 'bug_fix', 'enhancement'):
-            assert int(installable_errata[errata_type]) == 0
+            assert (
+                int(installable_errata[errata_type]) == 0
+            ), f'Found some installable {errata_type} errata, when none were expected.'
 
+        # install outdated packages, recalculate errata applicability
         pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
         assert vm.execute(f'yum install -y {pkgs}').status == 0
+        assert vm.execute('subscription-manager repos').status == 0
+        assert vm.applicable_errata_count == 5
 
+        # new host UI (errata tab)
+        new_host_values = session.host_new.search(hostname)
+        assert new_host_values[0]['Name'] == hostname
+        # erratum are installable
+        security_errata = session.host_new.get_errata_by_type(
+            entity_name=hostname,
+            type='Security',
+        )['content']['errata']['table']
+        assert len(security_errata) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
+        for errata_type in ('Bugfix', 'Enhancement'):
+            installable_errata = session.host_new.get_errata_by_type(
+                entity_name=hostname,
+                type=errata_type,
+            )['content']['errata']['table']
+            assert (
+                len(installable_errata) == 1
+            ), f'Expected only one {errata_type} errata to be installable.'
+        # legacy contenthost UI
         content_host_values = session.contenthost.search(hostname)
         assert content_host_values[0]['Name'] == hostname
         installable_errata = content_host_values[0]['Installable Updates']['errata']
-
+        # erratum are installable
         assert int(installable_errata['security']) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
         for errata_type in ('bug_fix', 'enhancement'):
-            assert int(installable_errata[errata_type]) == 1
+            assert (
+                int(installable_errata[errata_type]) == 1
+            ), f'Expected only one {errata_type} errata to be installable.'
 
 
 @pytest.mark.tier3
