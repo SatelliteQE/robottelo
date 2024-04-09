@@ -792,7 +792,12 @@ class CLIFactory:
         # Promote version1 to next env
         try:
             self._satellite.cli.ContentView.version_promote(
-                {'id': cvv['id'], 'organization-id': org_id, 'to-lifecycle-environment-id': env_id}
+                {
+                    'id': cvv['id'],
+                    'organization-id': org_id,
+                    'to-lifecycle-environment-id': env_id,
+                    'force': True,
+                }
             )
         except CLIReturnCodeError as err:
             raise CLIFactoryError(

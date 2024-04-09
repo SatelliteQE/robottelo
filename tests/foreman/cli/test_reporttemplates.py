@@ -746,6 +746,7 @@ def test_positive_generate_ansible_template(module_target_sat):
     assert host['name'] in [item.split(',')[1] for item in report_data.split('\n') if len(item) > 0]
 
 
+@pytest.mark.no_containers
 @pytest.mark.tier3
 def test_positive_generate_entitlements_report_multiple_formats(
     module_entitlement_manifest_org, local_ak, local_subscription, rhel7_contenthost, target_sat
