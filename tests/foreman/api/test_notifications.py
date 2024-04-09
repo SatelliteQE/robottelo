@@ -222,7 +222,7 @@ def long_running_task(target_sat):
 def fake_yum_repo(target_sat):
     """Create a fake YUM repo. Delete it afterwards."""
     repo = target_sat.api.Repository(
-        content_type='yum', url=repo_constants.FAKE_YUM_DRPM_REPO
+        content_type='yum', url=repo_constants.FAKE_YUM_MISSING_REPO
     ).create()
 
     yield repo
