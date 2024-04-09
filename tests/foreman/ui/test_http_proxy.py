@@ -38,8 +38,6 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
     :id: 0c7cdf3d-778f-427a-9a2f-42ad7c23aa15
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseImportance: High
     """
     http_proxy_name = gen_string('alpha', 15)
     updated_proxy_name = gen_string('alpha', 15)
@@ -65,8 +63,8 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
         assert http_proxy_values['http_proxy']['name'] == http_proxy_name
         assert http_proxy_values['http_proxy']['url'] == http_proxy_url
         assert http_proxy_values['http_proxy']['username'] == username
-        assert http_proxy_values['locations']['resources']['assigned'][0] == module_location.name
-        assert http_proxy_values['organizations']['resources']['assigned'][0] == module_org.name
+        assert module_location.name in http_proxy_values['locations']['resources']['assigned']
+        assert module_org.name in http_proxy_values['organizations']['resources']['assigned']
         # Update http_proxy with new name
         session.http_proxy.update(http_proxy_name, {'http_proxy.name': updated_proxy_name})
         assert session.http_proxy.search(updated_proxy_name)[0]['Name'] == updated_proxy_name
@@ -210,7 +208,7 @@ def test_set_default_http_proxy(module_org, module_location, setting_update, tar
     :steps:
         1. Navigate to Infrastructure > Http Proxies
         2. Create a Http Proxy
-        3. GoTo to Administer > Settings > content tab
+        3. Go to Administer > Settings > Content tab
         4. Update the "Default HTTP Proxy" with created above.
         5. Update "Default HTTP Proxy" to "no global default".
 
@@ -251,29 +249,30 @@ def test_set_default_http_proxy(module_org, module_location, setting_update, tar
 def test_check_http_proxy_value_repository_details(
     function_org, function_location, function_product, setting_update, target_sat
 ):
-    """Deleted Global Http Proxy is reflected in repository details page".
+    """Global Http Proxy is reflected in repository details page".
 
     :id: 3f64255a-ef6c-4acb-b99b-e5579133b564
 
     :steps:
         1. Create Http Proxy (Go to Infrastructure > Http Proxies > New Http Proxy)
-        2. GoTo to Administer > Settings > content tab
+        2. Go to Administer > Settings > Content tab
         3. Update the "Default HTTP Proxy" with created above.
-        4. Create repository with Global Default Http Proxy.
-        5. Delete the Http Proxy
+        4. Create repository, check the Global Default Http Proxy is used.
+        5. Delete the Http Proxy.
+        6. Check it no longer appears on the Settings and repository page.
 
     :BZ: 1820193
 
     :parametrized: yes
 
     :expectedresults:
-        1. After deletion of  "Default Http Proxy" its field on settings page should be
-            set to no global defult
-        2. "HTTP Proxy" field  in repository details page should be set to Global Default (None).
+        1. Repository is automatically created with relevant Global Default Http Proxy.
+        2. After Http Proxy deletion
+           - its field on Settings page should be set to Empty.
+           - "HTTP Proxy" field in repository details page should be set to Global Default (None).
 
     :CaseImportance: Medium
     """
-
     property_name = setting_update.name
     repo_name = gen_string('alpha')
     http_proxy_a = target_sat.api.HTTPProxy(
@@ -297,10 +296,15 @@ def test_check_http_proxy_value_repository_details(
                 'repo_content.upstream_url': settings.repos.yum_0.url,
             },
         )
+        repo_values = session.repository.read(function_product.name, repo_name)
+        assert (
+            repo_values['repo_content']['http_proxy_policy']
+            == f'Global Default ({http_proxy_a.name})'
+        )
+
         session.http_proxy.delete(http_proxy_a.name)
         result = session.settings.read(f'name = {property_name}')
         assert result['table'][0]['Value'] == "Empty"
-        session.repository.search(function_product.name, repo_name)[0]['Name']
         repo_values = session.repository.read(function_product.name, repo_name)
         assert repo_values['repo_content']['http_proxy_policy'] == 'Global Default (None)'
 
