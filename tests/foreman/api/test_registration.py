@@ -211,7 +211,7 @@ def test_positive_rex_interface_for_global_registration(
 
 
 @pytest.mark.tier1
-def test_negative_global_registration_without_ak(module_target_sat):
+def test_negative_global_registration_without_ak(target_sat):
     """Attempt to register a host without ActivationKey
 
     :id: e48a6260-97e0-4234-a69c-77bbbcde85de
@@ -219,7 +219,7 @@ def test_negative_global_registration_without_ak(module_target_sat):
     :expectedresults: Generate command is disabled without ActivationKey
     """
     with pytest.raises(HTTPError) as context:
-        module_target_sat.api.RegistrationCommand().create()
+        target_sat.api.RegistrationCommand().create()
     assert 'Missing activation key!' in context.value.response.text
 
 
