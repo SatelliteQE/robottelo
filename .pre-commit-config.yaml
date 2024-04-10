@@ -1,5 +1,8 @@
 # configuration for pre-commit git hooks
 
+ci:
+  autofix_prs: false  # disable autofixing PRs
+
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v4.4.0
