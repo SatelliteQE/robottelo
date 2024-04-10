@@ -1777,6 +1777,37 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
     assert 'Success!' in command_output.stdout
 
 
+def test_installer_capsule_with_enabled_ansible(module_capsule_configured_ansible):
+    """Enables Ansible feature on external Capsule and checks the callback is set correctly
+
+    :id: d60c475e-f4e7-11ee-af8a-98fa9b11ac24
+
+    :steps:
+        1. Have a Satellite with external Capsule integrated
+        2. Enable Ansible feature on external Capsule
+        3. Check the ansible callback plugin on external Capsule
+
+    :expectedresults:
+        Ansible callback plugin is overridden to "redhat.satellite.foreman"
+
+    :CaseImportance: High
+
+    :BZ: 2245081
+
+    :customerscenario: true
+    """
+    ansible_env = '/etc/foreman-proxy/ansible.env'
+    downstream_callback = 'redhat.satellite.foreman'
+    callback_whitelist = module_capsule_configured_ansible.execute(
+        f"awk -F= '/ANSIBLE_CALLBACK_WHITELIST/{{print$2}}' {ansible_env}"
+    )
+    assert callback_whitelist.stdout.strip('" \n') == downstream_callback
+    callbacks_enabled = module_capsule_configured_ansible.execute(
+        f"awk -F= '/ANSIBLE_CALLBACKS_ENABLED/{{print$2}}' {ansible_env}"
+    )
+    assert callbacks_enabled.stdout.strip('" \n') == downstream_callback
+
+
 @pytest.mark.tier1
 @pytest.mark.build_sanity
 @pytest.mark.first_sanity
