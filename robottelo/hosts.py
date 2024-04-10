@@ -1545,7 +1545,8 @@ class Capsule(ContentHost, CapsuleMixins):
         """General purpose installer"""
         if not installer_obj:
             command_opts = {'scenario': self.__class__.__name__.lower()}
-            command_opts.update(cmd_kwargs)
+            if cmd_kwargs:
+                command_opts.update(cmd_kwargs)
             installer_obj = InstallerCommand(*cmd_args, **command_opts)
         return self.execute(installer_obj.get_command(), timeout=0)
 
