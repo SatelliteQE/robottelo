@@ -18,10 +18,10 @@ def add_workaround(data, matches, usage, validation=(lambda *a, **k: True), **kw
 def should_deselect(issue, data=None):
     """Check if test should be deselected based on marked issue."""
     # Handlers can be extended to support different issue trackers.
-    res = re.split(':|-', issue)
     handlers = {'BZ': bugzilla.should_deselect_bz, 'SAT': jira.should_deselect_jira}
     supported_handlers = tuple(f"{handler}" for handler in handlers)
-    if str(res[0]).startswith(supported_handlers):
+    if str(issue).startswith(supported_handlers):
+        res = re.split(':|-', issue)
         handler_code = res[0]
         return handlers[handler_code.strip()](issue.strip(), data)
     return None
@@ -38,9 +38,9 @@ def is_open(issue, data=None):
         issue {str} -- A string containing handler + number e.g: BZ:123465
         data {dict} -- Issue data indexed by <handler>:<number> or None
     """
-    res = re.split(':|-', issue)
     # Handlers can be extended to support different issue trackers.
-    if str(res[0]).startswith(SUPPORTED_HANDLERS):
+    if str(issue).startswith(SUPPORTED_HANDLERS):
+        res = re.split(':|-', issue)
         handler_code = res[0]
     else:  # EAFP
         raise AttributeError(

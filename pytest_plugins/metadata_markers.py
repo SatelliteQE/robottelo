@@ -21,7 +21,7 @@ def parse_comma_separated_list(option_value):
             return True
         if option_value.lower() == 'false':
             return False
-        return option_value.split(',')
+        return [item.strip() for item in option_value.split(',')]
     return None
 
 
@@ -234,7 +234,7 @@ def pytest_collection_modifyitems(items, config):
         item.user_properties.append(("SnapVersion", snap_version))
 
         # exit early if no filters were passed
-        if importance or component or team or verifies_issues or blocked_by:
+        if importance or component or team:
             # Filter test collection based on CLI options for filtering
             # filters should be applied together
             # such that --component Repository --importance Critical --team rocket
@@ -267,6 +267,7 @@ def pytest_collection_modifyitems(items, config):
                 deselected.append(item)
                 continue
 
+        if verifies_issues or blocked_by:
             # Filter tests based on --verifies-issues and --blocked-by pytest options
             # and Verifies and BlockedBy testimony tokens.
             verifies_marker = item.get_closest_marker('verifies_issues', False)
@@ -275,8 +276,7 @@ def pytest_collection_modifyitems(items, config):
                 continue
             if not handle_blocked_by(item, blocked_by_marker, blocked_by):
                 continue
-
-            selected.append(item)
+        selected.append(item)
 
     # selected will be empty if no filter option was passed, defaulting to full items list
     items[:] = selected if deselected else items
