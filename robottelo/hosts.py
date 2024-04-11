@@ -1739,6 +1739,19 @@ class Capsule(ContentHost, CapsuleMixins):
         self._cli._configured = True
         return self._cli
 
+    def install_satellite_or_capsule_package(self):
+        """Install Satellite/Capsule package.
+        Note: Make sure required repos are enabled before using this.
+        """
+        if self.os_version.major == 8:
+            assert (
+                self.execute(
+                    f'dnf -y module enable {self.product_rpm_name}:el{self.os_version.major}'
+                ).status
+                == 0
+            )
+        assert self.execute(f'dnf -y install {self.product_rpm_name}').status == 0
+
 
 class Satellite(Capsule, SatelliteMixins):
     product_rpm_name = 'satellite'

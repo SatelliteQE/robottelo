@@ -1358,7 +1358,7 @@ def install_satellite(satellite, installer_args, enable_fapolicyd=False):
             satellite.execute('dnf -y install fapolicyd && systemctl enable --now fapolicyd').status
             == 0
         )
-    satellite.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
+    satellite.install_satellite_or_capsule_package()
     if enable_fapolicyd:
         assert satellite.execute('rpm -q foreman-fapolicyd').status == 0
         assert satellite.execute('rpm -q foreman-proxy-fapolicyd').status == 0
@@ -1441,9 +1441,7 @@ def test_capsule_installation(sat_non_default_install, cap_ready_rhel, setting_u
         ).status
         == 0
     )
-    cap_ready_rhel.execute(
-        'dnf -y module enable satellite-capsule:el8 && dnf -y install satellite-capsule'
-    )
+    cap_ready_rhel.install_satellite_or_capsule_package()
     assert cap_ready_rhel.execute('rpm -q foreman-proxy-fapolicyd').status == 0
     # Setup Capsule
     setup_capsule(sat_non_default_install, cap_ready_rhel, org)
