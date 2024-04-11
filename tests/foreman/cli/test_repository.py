@@ -1974,8 +1974,7 @@ class TestRepository:
 
         :CaseImportance: Critical
         """
-        rhel7_contenthost.install_katello_ca(target_sat)
-        rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_synced_repo['name'])
+        rhel7_contenthost.register(module_org, None, module_ak_with_synced_repo['name'], target_sat)
         assert rhel7_contenthost.subscribed
         rhel7_contenthost.run('yum repolist')
         access_log = target_sat.execute(
