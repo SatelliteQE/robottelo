@@ -431,18 +431,18 @@ def test_positive_remove_user(target_sat):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_fetch_product_content(
-    module_org, session_entitlement_manifest, module_target_sat
+    module_org, module_lce, module_sca_manifest, module_target_sat
 ):
     """Associate RH & custom product with AK and fetch AK's product content
 
     :id: 481a29fc-d8ae-423f-a980-911be9247187
 
-    :expectedresults: Both Red Hat and custom product subscriptions are
+    :expectedresults: Both Red Hat and custom product repositories are
         assigned as Activation Key's product content
 
     :CaseImportance: Critical
     """
-    module_target_sat.upload_manifest(module_org.id, session_entitlement_manifest.content)
+    module_target_sat.upload_manifest(module_org.id, module_sca_manifest.content)
     rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=module_org.id,
@@ -462,39 +462,10 @@ def test_positive_fetch_product_content(
     ).create()
     cv.publish()
     ak = module_target_sat.api.ActivationKey(content_view=cv, organization=module_org).create()
-    org_subscriptions = module_target_sat.api.Subscription(organization=module_org).search()
-    for subscription in org_subscriptions:
-        provided_products_ids = [prod.id for prod in subscription.read().provided_product]
-        if (
-            custom_repo.product.id in provided_products_ids
-            or rh_repo.product.id in provided_products_ids
-        ):
-            ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
-    ak_subscriptions = ak.product_content()['results']
+    ak_content = ak.product_content()['results']
     assert {custom_repo.product.id, rh_repo.product.id} == {
-        subscr['product']['id'] for subscr in ak_subscriptions
+        repos['product']['id'] for repos in ak_content
     }
-
-
-@pytest.mark.upgrade
-@pytest.mark.tier2
-@pytest.mark.stubbed
-def test_positive_add_future_subscription():
-    """Add a future-dated subscription to an activation key.
-
-    :id: ee5debc7-f901-45ab-b55c-04d1a208c3e6
-
-    :steps:
-
-        1. Import a manifest that contains a future-dated subscription
-        2. Add the subscription to the activation key
-
-    :expectedresults: The future-dated sub is successfully added to the key
-
-    :CaseAutomation: NotAutomated
-
-    :CaseImportance: Critical
-    """
 
 
 @pytest.mark.tier1
