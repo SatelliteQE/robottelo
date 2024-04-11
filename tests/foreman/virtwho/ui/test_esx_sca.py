@@ -243,7 +243,12 @@ class TestVirtwhoConfigforEsx:
 
     @pytest.mark.tier2
     def test_positive_last_checkin_status(
-        self, module_sca_manifest_org, virtwho_config_ui, form_data_ui, org_session
+        self,
+        module_sca_manifest_org,
+        virtwho_config_ui,
+        form_data_ui,
+        org_session,
+        default_location,
     ):
         """Verify the Last Checkin status on Content Hosts Page.
 
@@ -265,6 +270,7 @@ class TestVirtwhoConfigforEsx:
         )
         time_now = org_session.browser.get_client_datetime()
         assert org_session.virtwho_configure.search(name)[0]['Status'] == 'ok'
+        org_session.location.select(default_location.name)
         checkin_time = org_session.contenthost.search(hypervisor_name)[0]['Last Checkin']
         # 10 mins margin to check the Last Checkin time
         assert (
