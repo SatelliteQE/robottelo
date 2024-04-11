@@ -576,22 +576,22 @@ class CLIFactory:
                     ) from err
 
     def setup_org_for_a_custom_repo(self, options=None):
-        """Sets up Org for the given custom repo by:
+        """Sets up Org for the given custom repo(s) by:
 
         1. Checks if organization and lifecycle environment were given, otherwise
             creates new ones.
-        2. Creates a new product with the custom repo. Synchronizes the repo.
+        2. Creates a new product with the custom repo(s). Synchronizes the repo(s).
         3. Checks if content view was given, otherwise creates a new one and
-            - adds the RH repo
+            - adds the repo(s)
             - publishes
             - promotes to the lifecycle environment
         4. Checks if activation key was given, otherwise creates a new one and
             associates it with the content view.
-        5. Adds the custom repo subscription to the activation key
+        5. Adds the custom repo(s) subscription to the activation key
         6. Override custom product to true ( turned off by default in 6.14 )
 
         :return: A dictionary with the entity ids of Activation key, Content view,
-            Lifecycle Environment, Organization, Product and Repository
+            Lifecycle Environment, Organization, Product and Repository(-ies)
 
         """
         # Create new organization and lifecycle environment if needed
@@ -603,14 +603,26 @@ class CLIFactory:
             env_id = self.make_lifecycle_environment({'organization-id': org_id})['id']
         else:
             env_id = options['lifecycle-environment-id']
-        # Create custom product and repository
+        # Create custom product and repo(s)
         custom_product = self.make_product({'organization-id': org_id})
-        custom_repo = self.make_repository(
-            {'content-type': 'yum', 'product-id': custom_product['id'], 'url': options.get('url')}
-        )
-        # Synchronize custom repository
+        urls = options.get('url')
+        if isinstance(urls, str):
+            urls = [urls]
+        custom_repos = []
+        for url in urls:
+            custom_repos.append(
+                self.make_repository(
+                    {
+                        'content-type': 'yum',
+                        'product-id': custom_product['id'],
+                        'url': url,
+                    }
+                )
+            )
+        # Synchronize custom repo(s)
         try:
-            self._satellite.cli.Repository.synchronize({'id': custom_repo['id']})
+            for repo in custom_repos:
+                self._satellite.cli.Repository.synchronize({'id': repo['id']})
         except CLIReturnCodeError as err:
             raise CLIFactoryError(f'Failed to synchronize repository\n{err.msg}') from err
         # Create CV if needed and associate repo with it
@@ -619,9 +631,10 @@ class CLIFactory:
         else:
             cv_id = options['content-view-id']
         try:
-            self._satellite.cli.ContentView.add_repository(
-                {'id': cv_id, 'organization-id': org_id, 'repository-id': custom_repo['id']}
-            )
+            for repo in custom_repos:
+                self._satellite.cli.ContentView.add_repository(
+                    {'id': cv_id, 'organization-id': org_id, 'repository-id': repo['id']}
+                )
         except CLIReturnCodeError as err:
             raise CLIFactoryError(f'Failed to add repository to content view\n{err.msg}') from err
         # Publish a new version of CV
@@ -683,17 +696,20 @@ class CLIFactory:
                 }
             )
         # Override custom product to true ( turned off by default in 6.14 )
-        custom_repo = self._satellite.cli.Repository.info({'id': custom_repo['id']})
-        self._satellite.cli.ActivationKey.content_override(
-            {'id': activationkey_id, 'content-label': custom_repo['content-label'], 'value': 'true'}
-        )
+        for repo in custom_repos:
+            repo = self._satellite.cli.Repository.info({'id': repo['id']})
+            self._satellite.cli.ActivationKey.content_override(
+                {'id': activationkey_id, 'content-label': repo['content-label'], 'value': 'true'}
+            )
         return {
             'activationkey-id': activationkey_id,
             'content-view-id': cv_id,
             'lifecycle-environment-id': env_id,
             'organization-id': org_id,
             'product-id': custom_product['id'],
-            'repository-id': custom_repo['id'],
+            'repository-id': custom_repos[0]['id']
+            if len(custom_repos) == 1
+            else [repo['id'] for repo in custom_repos],
         }
 
     def _setup_org_for_a_rh_repo(self, options=None, force=False):

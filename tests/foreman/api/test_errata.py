@@ -1222,16 +1222,16 @@ def test_positive_get_diff_for_cv_envs(target_sat):
     content_view = target_sat.api.ContentView(organization=org).create()
     activation_key = target_sat.api.ActivationKey(environment=env, organization=org).create()
     # Published content-view-version with repos will be created
-    for repo_url in [settings.repos.yum_9.url, CUSTOM_REPO_URL]:
-        target_sat.cli_factory.setup_org_for_a_custom_repo(
-            {
-                'url': repo_url,
-                'organization-id': org.id,
-                'content-view-id': content_view.id,
-                'lifecycle-environment-id': env.id,
-                'activationkey-id': activation_key.id,
-            }
-        )
+    target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': [settings.repos.yum_9.url, CUSTOM_REPO_URL],
+            'organization-id': org.id,
+            'content-view-id': content_view.id,
+            'lifecycle-environment-id': env.id,
+            'activationkey-id': activation_key.id,
+        }
+    )
+
     new_env = target_sat.api.LifecycleEnvironment(organization=org, prior=env).create()
     # no need to publish a new version, just promote newest
     cv_publish_promote(
