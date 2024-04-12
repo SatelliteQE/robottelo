@@ -204,6 +204,7 @@ def test_positive_hammer_shell(target_sat):
     :BZ: 2053843
     """
     command = 'user list --organization-id 1 --fields login'
+
     # Verify hammer shell runs a command with interactive input
     with target_sat.session.shell() as sh:
         sh.send('hammer shell')
