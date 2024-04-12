@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 import pytest
 
 from robottelo.config import settings
@@ -8,6 +10,34 @@ from robottelo.hosts import ProxyHost
 def session_auth_proxy(session_target_sat):
     """Instantiates authenticated HTTP proxy as a session-scoped fixture"""
     return ProxyHost(settings.http_proxy.auth_proxy_url)
+
+
+@pytest.fixture
+def satellite_cut_off(target_sat):
+    """Cuts the Satellite off the DNS, leaving it with HTTP proxy only"""
+    # First create entries in /etc/hosts for HTTP proxies and Satellite itself
+    ips = []
+    for url in [
+        settings.http_proxy.un_auth_proxy_url,
+        settings.http_proxy.auth_proxy_url,
+        target_sat.url,
+    ]:
+        hostname = urlparse(url).hostname
+        adr = target_sat.execute(
+            f"nslookup {hostname} | awk '/^Address: / {{ print $2 }}'"
+        ).stdout.strip()
+        target_sat.execute(f'echo "{adr} {hostname}" >> /etc/hosts')
+        ips.append(adr)
+    # Cut off the nameservers
+    target_sat.execute('sed -i "s/nameserver/;nameserver/g" /etc/resolv.conf')
+
+    yield
+
+    # Restore the nameservers
+    target_sat.execute('sed -i "s/;nameserver/nameserver/g" /etc/resolv.conf')
+    # Remove the added entries from /etc/hosts
+    for adr in ips:
+        target_sat.execute(f'sed -i "/^{adr}/d" /etc/hosts')
 
 
 @pytest.fixture
