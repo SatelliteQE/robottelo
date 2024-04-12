@@ -14,6 +14,7 @@ import yaml
 
 from robottelo import constants
 from robottelo.config import robottelo_tmp_dir, settings
+from wait_for import wait_for
 
 
 class TestAnsibleCfgMgmt:
@@ -399,6 +400,53 @@ class TestAnsibleCfgMgmt:
 
         :CaseAutomation: NotAutomated
         """
+
+    @pytest.mark.tier2
+    def test_positive_assign_and_remove_ansible_role_to_host(self, target_sat, function_host):
+        """Add and remove the role(s) of a Host
+
+        :id: a61b4c05-1395-47c2-b6d9-fcff8b094e0e
+
+        :setup: Used pre-defined function_host (component/host) registerd with satellite.
+
+        :steps:
+            1. Import all roles available by default.
+            2. Assign a role to the host.
+            3. Navigate to the new UI for the given Host.
+            4. Select the 'Ansible' tab
+            5. Click the 'Edit Ansible roles' button.
+            6. Using the popup, remove the assigned role from the Host.
+
+        :expectedresults: The Role is successfully aaded and removed from the Host, and no longer shows
+            up on the UI
+        """
+        SELECTED_ROLE = 'RedHatInsights.insights-client'
+
+        location = function_host.location.read()
+        organization = function_host.organization.read()
+        proxy_id = target_sat.nailgun_smart_proxy.id
+        target_sat.api.AnsibleRoles().sync(
+            data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]}
+        )
+        with target_sat.ui_session() as session:
+            session.location.select(location.name)
+            session.organization.select(organization.name)
+            # add ansible role
+            session.host_new.add_single_ansible_role(function_host.name)
+            wait_for(lambda: session.browser.refresh(), timeout=5)
+            # verify ansible role assigned to new UI for the given Host
+            ansible_roles_table = session.host_new.get_ansible_roles(function_host.name)
+            assert ansible_roles_table[0]['Name'] == SELECTED_ROLE
+            # remove ansible role
+            session.host_new.remove_single_ansible_role(function_host.name)
+            # verify ansible role removed
+            result = session.host_new.get_details(
+                function_host.name, widget_names='ansible.roles.noRoleAssign'
+            )
+            assert (
+                result['ansible']['roles']['noRoleAssign']
+                == 'No roles assigned directly to the host'
+            )
 
 
 class TestAnsibleREX:
