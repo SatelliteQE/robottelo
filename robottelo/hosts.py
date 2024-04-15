@@ -1847,31 +1847,27 @@ class Satellite(Capsule, SatelliteMixins):
 
     @contextmanager
     def omit_credentials(self):
-        self.omitting_credentials = True
-        # if CLI is already created
-        if self._cli._configured:
-            for file in Path('robottelo/cli/').iterdir():
-                if file.suffix == '.py' and not file.name.startswith('_'):
-                    cli_module = importlib.import_module(f'robottelo.cli.{file.stem}')
-                    for name, obj in cli_module.__dict__.items():
-                        try:
-                            if Base in obj.mro():
-                                getattr(self._cli, name).omitting_credentials = True
-                        except AttributeError:
-                            # not everything has an mro method, we don't care about them
-                            pass
-        yield
-        self.omitting_credentials = False
-        for file in Path('robottelo/cli/').iterdir():
-            if file.suffix == '.py' and not file.name.startswith('_'):
-                cli_module = importlib.import_module(f'robottelo.cli.{file.stem}')
-                for name, obj in cli_module.__dict__.items():
-                    try:
+        change = not self.omitting_credentials  # if not already set to omit
+        if change:
+            self.omitting_credentials = True
+            # if CLI is already created
+            if self._cli._configured:
+                for name, obj in self._cli.__dict__.items():
+                    with contextlib.suppress(
+                        AttributeError
+                    ):  # not everything has an mro method, we don't care about them
                         if Base in obj.mro():
-                            getattr(self._cli, name).omitting_credentials = False
-                    except AttributeError:
-                        # not everything has an mro method, we don't care about them
-                        pass
+                            getattr(self._cli, name).omitting_credentials = True
+        yield
+        if change:
+            self.omitting_credentials = False
+            if self._cli._configured:
+                for name, obj in self._cli.__dict__.items():
+                    with contextlib.suppress(
+                        AttributeError
+                    ):  # not everything has an mro method, we don't care about them
+                        if Base in obj.mro():
+                            getattr(self._cli, name).omitting_credentials = True
 
     @contextmanager
     def ui_session(self, testname=None, user=None, password=None, url=None, login=True):
