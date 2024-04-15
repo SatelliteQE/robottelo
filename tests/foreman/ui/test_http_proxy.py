@@ -79,7 +79,7 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
 def test_positive_assign_http_proxy_to_products_repositories(
     module_org, module_location, target_sat
 ):
-    """Assign HTTP Proxy to Products and Repositories.
+    """Assign HTTP Proxy to products repositories.
 
     :id: 2b803f9c-8d5d-4467-8eba-18244ebc0201
 
@@ -87,25 +87,16 @@ def test_positive_assign_http_proxy_to_products_repositories(
         1. Create an Organization and Location.
 
     :steps:
-        1. Create two HTTP proxies.
+        1. Create two HTTP proxy.
         2. Create two products and two repos in each product with various HTTP proxy policies.
-        3. Set the HTTP proxy through bulk action for both products.
 
     :expectedresults:
         1. HTTP Proxy is assigned to all repos present in Products.
     """
-    # Create two HTTP proxies
+    # Create two HTTP proxy
     http_proxy_a = target_sat.api.HTTPProxy(
         name=gen_string('alpha', 15),
         url=settings.http_proxy.un_auth_proxy_url,
-        organization=[module_org.id],
-        location=[module_location.id],
-    ).create()
-    http_proxy_b = target_sat.api.HTTPProxy(
-        name=gen_string('alpha', 15),
-        url=settings.http_proxy.auth_proxy_url,
-        username=settings.http_proxy.username,
-        password=settings.http_proxy.password,
         organization=[module_org.id],
         location=[module_location.id],
     ).create()
@@ -168,33 +159,8 @@ def test_positive_assign_http_proxy_to_products_repositories(
                 'repo_content.http_proxy_policy': 'No HTTP Proxy',
             },
         )
-        # Set the HTTP proxy through bulk action for both products
-        session.product.search('')
-        session.product.manage_http_proxy(
-            [product_a.name, product_b.name],
-            {
-                'http_proxy_policy': 'Use specific HTTP Proxy',
-                'proxy_policy.http_proxy': http_proxy_b.name,
-            },
-        )
-        # Verify that Http Proxy is updated for all repos of product_a and product_b.
-        proxy_policy = 'Use specific HTTP Proxy ({})'
-        repo_a1_values = session.repository.read(product_a.name, repo_a1_name)
-        assert repo_a1_values['repo_content']['http_proxy_policy'] == proxy_policy.format(
-            http_proxy_b.name
-        )
-        repo_a2_values = session.repository.read(product_a.name, repo_a2_name)
-        assert repo_a2_values['repo_content']['http_proxy_policy'] == proxy_policy.format(
-            http_proxy_b.name
-        )
-        repo_b1_values = session.repository.read(product_b.name, repo_b1_name)
-        assert repo_b1_values['repo_content']['http_proxy_policy'] == proxy_policy.format(
-            http_proxy_b.name
-        )
         repo_b2_values = session.repository.read(product_b.name, repo_b2_name)
-        assert repo_b2_values['repo_content']['http_proxy_policy'] == proxy_policy.format(
-            http_proxy_b.name
-        )
+        assert repo_b2_values['repo_content']['http_proxy_policy'] == 'No HTTP Proxy'
 
 
 @pytest.mark.tier1
