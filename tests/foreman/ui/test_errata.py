@@ -12,6 +12,7 @@
 
 """
 from datetime import datetime
+import time
 
 from broker import Broker
 from dateutil.parser import parse
@@ -1081,112 +1082,98 @@ def test_positive_content_host_previous_env(
 
 
 @pytest.mark.tier3
+@pytest.mark.rhel_ver_match('8')
 @pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
-    [
-        {
-            'distro': 'rhel7',
-            'SatelliteToolsRepository': {},
-            'RHELAnsibleEngineRepository': {'cdn': True},
-            'YumRepository': {'url': CUSTOM_REPO_URL},
-        }
-    ],
+    'registered_contenthost',
+    [[CUSTOM_REPO_URL]],
     indirect=True,
 )
-def test_positive_content_host_library(session, module_org_with_parameter, vm):
-    """Check if the applicable errata are available from the content
-    host's Library
+def test_positive_check_errata(session, module_org_with_parameter, registered_contenthost):
+    """Check if the applicable errata is available from the host page
 
-    :id: 4e627410-b7b8-471b-b9b4-a18e77fdd3f8
+    :id: a0694930-4bf7-4a97-b275-2be7d5f1b311
 
-    :Setup:
+    :steps:
+        1. Go to All hosts
+        2. Select the host
+        3. Content Tab -> Errata Tab
+        4. Check the errata
 
-        1. Make sure multiple environments are present.
-        2. Content host's Library environment has additional errata.
-
-    :steps: Go to Content Hosts -> Select content host -> Errata Tab -> Select 'Library'.
-
-    :expectedresults: The errata from Library are displayed.
+    :expectedresults: The errata is displayed on the host page Content-Errata tab
 
     :parametrized: yes
     """
+
+    vm = registered_contenthost
     hostname = vm.hostname
     assert vm.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
-        content_host_erratum = session.contenthost.search_errata(
-            hostname, CUSTOM_REPO_ERRATA_ID, environment='Library Synced Content'
-        )
-        assert content_host_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
+        read_errata = session.host_new.get_details(hostname, 'Content.Errata')
+        assert read_errata['Content']['Errata']['table'][0]['Errata'] == CUSTOM_REPO_ERRATA_ID
 
 
-@pytest.mark.tier3
+@pytest.mark.rhel_ver_match('8')
 @pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
-    [
-        {
-            'distro': 'rhel7',
-            'SatelliteToolsRepository': {},
-            'RHELAnsibleEngineRepository': {'cdn': True},
-            'YumRepository': {'url': settings.repos.yum_9.url},
-        }
-    ],
+    'registered_contenthost',
+    [[CUSTOM_REPO_URL]],
     indirect=True,
 )
-def test_positive_content_host_search_type(session, erratatype_vm):
-    """Search for errata on a content host's errata tab by type.
+def test_positive_errata_search_type(session, registered_contenthost):
+    """Search for errata on a host's page content-errata tab by type.
 
-    :id: 59e5d6e5-2537-4387-a7d3-637cc4b52d0e
-
-    :Setup: Content Host with applicable errata
+    :id: f278f0e8-3b64-4dbf-a0c8-b9b289474a76
 
     :customerscenario: true
 
-    :steps: Search for errata on content host by type (e.g. 'type = security')
-     Step 1 Search for "type = security", assert expected amount and IDs found
-     Step 2 Search for "type = bugfix", assert expected amount and IDs found
-     Step 3 Search for "type = enhancement", assert expected amount and IDs found
+    :steps: Search for errata on the host Conetnt-Errata tab by type (e.g. 'type = Security')
+        1. Search for "type = Security", assert expected amount and IDs found
+        2. Search for "type = Bugfix", assert expected amount and IDs found
+        3. Search for "type = Enhancement", assert expected amount and IDs found
 
     :BZ: 1653293
     """
-
+    vm = registered_contenthost
     pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
-    assert erratatype_vm.execute(f'yum install -y {pkgs}').status == 0
+    assert vm.execute(f'yum install -y {pkgs}').status == 0
 
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
-        # Search for RHSA security errata
-        ch_erratum = session.contenthost.search_errata(
-            erratatype_vm.hostname, "type = security", environment='Library Synced Content'
-        )
+        # Search for RHSA Security errata
+        security_erratas = session.host_new.get_errata_by_type(
+            entity_name=vm.hostname,
+            type='Security',
+        )['content']['errata']['table']
 
         # Assert length matches known amount of RHSA errata
-        assert len(ch_erratum) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
+        assert len(security_erratas) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
 
         # Assert IDs are that of RHSA errata
-        errata_ids = sorted(erratum['Id'] for erratum in ch_erratum)
+        errata_ids = sorted(erratum['Errata'] for erratum in security_erratas)
         assert errata_ids == sorted(FAKE_9_YUM_SECURITY_ERRATUM)
-        # Search for RHBA buxfix errata
-        ch_erratum = session.contenthost.search_errata(
-            erratatype_vm.hostname, "type = bugfix", environment='Library Synced Content'
-        )
+        # Search for RHBA Buxfix errata
+        bugfix_erratas = session.host_new.get_errata_by_type(
+            entity_name=vm.hostname,
+            type='Bugfix',
+        )['content']['errata']['table']
 
         # Assert length matches known amount of RHBA errata
-        assert len(ch_erratum) == FAKE_10_YUM_BUGFIX_ERRATUM_COUNT
+        assert len(bugfix_erratas) == FAKE_10_YUM_BUGFIX_ERRATUM_COUNT
 
         # Assert IDs are that of RHBA errata
-        errata_ids = sorted(erratum['Id'] for erratum in ch_erratum)
+        errata_ids = sorted(erratum['Errata'] for erratum in bugfix_erratas)
         assert errata_ids == sorted(FAKE_10_YUM_BUGFIX_ERRATUM)
-        # Search for RHEA enhancement errata
-        ch_erratum = session.contenthost.search_errata(
-            erratatype_vm.hostname, "type = enhancement", environment='Library Synced Content'
-        )
+        # Search for RHEA Enhancement errata
+        enhancement_erratas = session.host_new.get_errata_by_type(
+            entity_name=vm.hostname,
+            type='Enhancement',
+        )['content']['errata']['table']
 
         # Assert length matches known amount of RHEA errata
-        assert len(ch_erratum) == FAKE_11_YUM_ENHANCEMENT_ERRATUM_COUNT
+        assert len(enhancement_erratas) == FAKE_11_YUM_ENHANCEMENT_ERRATUM_COUNT
 
         # Assert IDs are that of RHEA errata
-        errata_ids = sorted(erratum['Id'] for erratum in ch_erratum)
+        errata_ids = sorted(erratum['Errata'] for erratum in enhancement_erratas)
         assert errata_ids == sorted(FAKE_11_YUM_ENHANCEMENT_ERRATUM)
 
 
@@ -1297,54 +1284,50 @@ def test_positive_show_count_on_host_pages(session, module_org, registered_conte
 
 
 @pytest.mark.tier3
+@pytest.mark.rhel_ver_match('8')
 @pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
-    [
-        {
-            'distro': 'rhel7',
-            'SatelliteToolsRepository': {},
-            'RHELAnsibleEngineRepository': {'cdn': True},
-            'YumRepository': {'url': settings.repos.yum_9.url},
-        }
-    ],
+    'registered_contenthost',
+    [[CUSTOM_REPO_URL]],
     indirect=True,
 )
-def test_positive_show_count_on_content_host_details_page(
-    session, module_org_with_parameter, erratatype_vm
+def test_positive_check_errata_counts_by_type_on_host_details_page(
+    session,
+    module_org,
+    registered_contenthost,
 ):
-    """Errata count on Content host Details page
+    """Errata count on host page
 
-    :id: 388229da-2b0b-41aa-a457-9b5ecbf3df4b
+    :id: 89676641-2614-4abb-afed-5c37be396fad
 
     :Setup:
-
         1. Errata synced on satellite server.
         2. Some content hosts are present.
 
-    :steps: Go to Hosts -> Content Hosts -> Select Content Host -> Details page.
+    :steps:
+        1. Go to All hosts
+        2. Select the host
+        3. Content Tab -> Errata Tab
+        4. Check the counts of the errata types
 
-    :expectedresults: The errata section should be displayed with Security, Bug fix, Enhancement.
-
-    :BZ: 1484044
+    :expectedresults: There should be correct number of each errata type shown.
     """
-    vm = erratatype_vm
+
+    vm = registered_contenthost
     hostname = vm.hostname
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
-        content_host_values = session.contenthost.read(hostname, 'details')
-        for errata_type in ('security', 'bug_fix', 'enhancement'):
-            assert int(content_host_values['details'][errata_type]) == 0
+        read_errata = session.host_new.get_details(hostname, 'Content.Errata')
+        assert int(len(read_errata['Content']['Errata']['pagination'])) == 0
 
         pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
         assert vm.execute(f'yum install -y {pkgs}').status == 0
+        time.sleep(2)
+        session.browser.refresh()
+        errata_type_counts = session.host_new.get_errata_type_counts(entity_name=vm.hostname)
 
-        # navigate to content host main page by making a search, to refresh the details page
-        session.contenthost.search(hostname)
-        content_host_values = session.contenthost.read(hostname, 'details')
-        assert int(content_host_values['details']['security']) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
-
-        for errata_type in ('bug_fix', 'enhancement'):
-            assert int(content_host_values['details'][errata_type]) == 1
+        assert errata_type_counts['Security'] == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
+        assert errata_type_counts['Bugfix'] == 1
+        assert errata_type_counts['Enhancement'] == 1
 
 
 @pytest.mark.tier3
