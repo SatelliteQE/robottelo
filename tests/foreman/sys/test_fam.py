@@ -132,3 +132,10 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
     )
     assert 'PASSED' in result.stdout
     assert result.status == 0
+
+
+def test_prt(target_sat):
+    result = target_sat.execute('rpm -q foreman')
+    assert 'pr10126' in result.stdout
+    result = target_sat.execute('rpm -q rubygem-katello')
+    assert 'pr10960' in result.stdout
