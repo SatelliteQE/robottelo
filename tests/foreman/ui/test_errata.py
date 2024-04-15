@@ -1094,10 +1094,10 @@ def test_positive_check_errata(session, module_org_with_parameter, registered_co
     :id: a0694930-4bf7-4a97-b275-2be7d5f1b311
 
     :steps:
-     1. Go to All hosts
-     2. Select the host
-     3. Content Tab -> Errata Tab
-     4. Check the errata
+        1. Go to All hosts
+        2. Select the host
+        3. Content Tab -> Errata Tab
+        4. Check the errata
 
     :expectedresults: The errata is displayed on the host page Content-Errata tab
 
@@ -1127,9 +1127,9 @@ def test_positive_errata_search_type(session, registered_contenthost):
     :customerscenario: true
 
     :steps: Search for errata on the host Conetnt-Errata tab by type (e.g. 'type = Security')
-     1. Search for "type = Security", assert expected amount and IDs found
-     2. Search for "type = Bugfix", assert expected amount and IDs found
-     3. Search for "type = Enhancement", assert expected amount and IDs found
+        1. Search for "type = Security", assert expected amount and IDs found
+        2. Search for "type = Bugfix", assert expected amount and IDs found
+        3. Search for "type = Enhancement", assert expected amount and IDs found
 
     :BZ: 1653293
     """
@@ -1320,7 +1320,7 @@ def test_positive_check_errata_counts_by_type_on_host_details_page(
         assert int(len(read_errata['Content']['Errata']['pagination'])) == 0
 
         pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
-        assert vm.execute(f'yum install -y {pkgs}').status == 0 == 0
+        assert vm.execute(f'yum install -y {pkgs}').status == 0
         time.sleep(2)
         session.browser.refresh()
         errata_type_counts = session.host_new.get_errata_type_counts(entity_name=vm.hostname)
