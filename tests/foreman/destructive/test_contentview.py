@@ -11,6 +11,9 @@
 :CaseImportance: High
 
 """
+import random
+from time import sleep
+
 from nailgun.entity_mixins import TaskFailedError
 import pytest
 
@@ -21,15 +24,18 @@ pytestmark = pytest.mark.destructive
 
 @pytest.mark.tier4
 @pytest.mark.run_in_one_thread
-def test_positive_reboot_recover_cv_publish(target_sat, function_entitlement_manifest_org):
+def test_positive_reboot_recover_cv_publish(target_sat, function_sca_manifest_org):
     """Reboot the Satellite during publish and resume publishing
 
     :id: cceae727-81db-40a4-9c26-05ca6e93464e
 
+    :setup:
+        1. Enable and sync 3 bigger RH repos.
+
     :steps:
-        1. Create and publish a Content View
-        2. Reboot the Satellite while publish is running
-        3. Check Foreman Tasks
+        1. Create and publish a Content View with the setup repos.
+        2. Reboot the Satellite while publish is running.
+        3. Check Foreman Tasks.
 
     :expectedresults: Publish continues after reboot and finishes successfully
 
@@ -37,43 +43,36 @@ def test_positive_reboot_recover_cv_publish(target_sat, function_entitlement_man
 
     :CaseAutomation: Automated
     """
-    org = function_entitlement_manifest_org
-    rhel7_extra = target_sat.api_factory.enable_rhrepo_and_fetchid(
-        basearch='x86_64',
-        org_id=org.id,
-        product=constants.PRDS['rhel'],
-        repo=constants.REPOS['rhel7_extra']['name'],
-        reposet=constants.REPOSET['rhel7_extra'],
-        releasever=None,
+    org = function_sca_manifest_org
+    repos = []
+    for tag in ['rhel7_optional', 'rhel7_extra', 'rhel7_sup']:
+        id = target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch=constants.DEFAULT_ARCHITECTURE,
+            org_id=org.id,
+            product=constants.REPOS[tag]['product'],
+            repo=constants.REPOS[tag]['name'],
+            reposet=constants.REPOS[tag]['reposet'],
+            releasever=constants.REPOS[tag]['releasever'],
+        )
+        repo = target_sat.api.Repository(id=id).read()
+        repos.append(repo)
+        repo.sync(synchronous=False)
+    target_sat.wait_for_tasks(
+        search_query=(f'label = Actions::Katello::Repository::Sync and organization_id = {org.id}'),
+        poll_timeout=750,
+        search_rate=10,
+        max_tries=75,
     )
-    rhel7_optional = target_sat.api_factory.enable_rhrepo_and_fetchid(
-        basearch='x86_64',
-        org_id=org.id,
-        product=constants.PRDS['rhel'],
-        repo=constants.REPOS['rhel7_optional']['name'],
-        reposet=constants.REPOSET['rhel7_optional'],
-        releasever=constants.REPOS['rhel7_optional']['releasever'],
-    )
-    rhel7_sup = target_sat.api_factory.enable_rhrepo_and_fetchid(
-        basearch='x86_64',
-        org_id=org.id,
-        product=constants.PRDS['rhel'],
-        repo=constants.REPOS['rhel7_sup']['name'],
-        reposet=constants.REPOSET['rhel7_sup'],
-        releasever=constants.REPOS['rhel7_sup']['releasever'],
-    )
-    rhel7_extra = target_sat.api.Repository(id=rhel7_extra).read()
-    rhel7_optional = target_sat.api.Repository(id=rhel7_optional).read()
-    rhel7_sup = target_sat.api.Repository(id=rhel7_sup).read()
-    for repo in [rhel7_extra, rhel7_optional, rhel7_sup]:
-        repo.sync(timeout=1200)
+
     cv = target_sat.api.ContentView(
         organization=org,
         solve_dependencies=True,
-        repository=[rhel7_extra, rhel7_sup, rhel7_optional],
+        repository=repos,
     ).create()
     try:
         publish_task = cv.publish(synchronous=False)
+        sleep_time = random.randint(0, 60)  # publish takes ~70s in 6.15 and SatLab VM
+        sleep(sleep_time)
         target_sat.power_control(state='reboot', ensure=True)
         target_sat.wait_for_tasks(
             search_query=(f'id = {publish_task["id"]}'),
@@ -88,4 +87,6 @@ def test_positive_reboot_recover_cv_publish(target_sat, function_entitlement_man
             max_tries=60,
         )
     task_status = target_sat.api.ForemanTask(id=publish_task['id']).poll()
-    assert task_status['result'] == 'success'
+    assert (
+        task_status['result'] == 'success'
+    ), f'Publish after restart failed, sleep_time was {sleep_time}'
