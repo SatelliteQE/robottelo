@@ -180,9 +180,27 @@ def test_host_provisioning_with_external_puppetserver(
     # Host is not blank anymore
     provisioning_host.blank = False
 
+    provisioning_host.key_filename = None
     # Wait for the host to be rebooted and SSH daemon to be started.
     provisioning_host.wait_for_connection()
 
+    # For RHEL9 since root login is disabled
+    disable_ssh_cmd = (
+        'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
+    )
+    # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
+    template_id = (
+        sat.api.JobTemplate().search(query={'search': 'name="Run Command - Script Default"'})[0].id
+    )
+    job = sat.api.JobInvocation().run(
+        data={
+            'job_template_id': template_id,
+            'inputs': {'command': disable_ssh_cmd},
+            'search_query': f"name = {host.name}",
+            'targeting_type': 'static_query',
+        },
+    )
+    assert job['result'] == 'success', 'Job invocation failed'
     # Perform version check
     host_os = host.operatingsystem.read()
     expected_rhel_version = Version(f'{host_os.major}.{host_os.minor}')
