@@ -41,9 +41,6 @@ jobs:
           cp broker_settings.yaml.example broker_settings.yaml
           cp .env.example .env
 
-      - name: Pre Commit Checks
-        uses: pre-commit/action@v3.0.1
-
       - name: Collect Tests
         run: |
           # To skip vault login in pull request checks

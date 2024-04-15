@@ -46,7 +46,8 @@ def test_positive_update_capsule(request, pytestconfig, target_sat, module_capsu
 
     # refresh features
     features = capsule.refresh()
-    module_capsule_configured.run_installer_arg('enable-foreman-proxy-plugin-openscap')
+    result = module_capsule_configured.install(cmd_args=['enable-foreman-proxy-plugin-openscap'])
+    assert result.status == 0, 'Installer failed when enabling OpenSCAP plugin.'
     features_new = capsule.refresh()
     assert len(features_new["features"]) == len(features["features"]) + 1
     assert 'Openscap' in [feature["name"] for feature in features_new["features"]]
