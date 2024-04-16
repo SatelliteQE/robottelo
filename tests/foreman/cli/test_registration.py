@@ -203,9 +203,9 @@ def test_positive_force_register_twice(module_ak_with_cv, module_org, rhel_conte
     assert f'The system has been registered with ID: {reg_id_new}' in str(result.stdout)
     assert reg_id_new != reg_id_old
     assert (
-        target_sat.cli.Host.info({'name': rhel_contenthost.hostname})['subscription-information'][
-            'uuid'
-        ]
+        target_sat.cli.Host.info({'name': rhel_contenthost.hostname}, output_format='json')[
+            'subscription-information'
+        ]['uuid']
         == reg_id_new
     )
 
