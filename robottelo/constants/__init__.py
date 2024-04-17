@@ -416,6 +416,7 @@ REPOS = {
         'reposet': REPOSET['rhsclient8'],
         'product': PRDS['rhel8'],
         'distro': 'rhel8',
+        'releasever': None,
         'key': PRODUCT_KEY_SAT_CLIENT,
     },
     'rhsclient9': {
@@ -515,6 +516,7 @@ REPOS = {
         'reposet': REPOSET['rhst8'],
         'product': PRDS['rhel8'],
         'distro': 'rhel8',
+        'releasever': None,
         'key': 'rhst',
     },
     'kickstart': {
