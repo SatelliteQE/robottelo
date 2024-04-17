@@ -11,8 +11,7 @@
 :CaseImportance: High
 
 """
-from datetime import datetime
-import time
+from datetime import datetime, timedelta
 
 from broker import Broker
 from dateutil.parser import parse
@@ -210,10 +209,10 @@ def _publish_and_wait(sat, org, cv):
 
 
 @pytest.fixture
-def errata_host_ak(module_target_sat, module_org, module_lce):
-    """New activation key created in module_org and module_lce"""
+def errata_host_ak(module_target_sat, module_sca_manifest_org, module_lce):
+    """New activation key created in module SCA org and module lce"""
     ak = module_target_sat.api.ActivationKey(
-        organization=module_org,
+        organization=module_sca_manifest_org,
         environment=module_lce,
     ).create()
     return ak.read()
@@ -221,10 +220,10 @@ def errata_host_ak(module_target_sat, module_org, module_lce):
 
 @pytest.fixture
 def registered_contenthost(
+    module_sca_manifest_org,
     module_target_sat,
     rhel_contenthost,
     errata_host_ak,
-    module_org,
     module_lce,
     module_cv,
     request,
@@ -261,7 +260,7 @@ def registered_contenthost(
         custom_repo_info = module_target_sat.cli_factory.setup_org_for_a_custom_repo(
             {
                 'url': repo_url,
-                'organization-id': module_org.id,
+                'organization-id': module_sca_manifest_org.id,
                 'lifecycle-environment-id': module_lce.id,
                 'activationkey-id': errata_host_ak.id,
                 'content-view-id': module_cv.id,
@@ -271,17 +270,22 @@ def registered_contenthost(
         custom_repos.append(custom_repo_info['repository-id'])
 
     # Publish new version and promote with all content
-    cv_publish_promote(module_target_sat, module_org, module_cv, module_lce)
+    cv_publish_promote(module_target_sat, module_sca_manifest_org, module_cv, module_lce)
     result = rhel_contenthost.register(
         activation_keys=errata_host_ak.name,
         target=module_target_sat,
-        org=module_org,
+        org=module_sca_manifest_org,
         loc=None,
     )
     assert result.status == 0, f'Failed to register host:\n{result.stderr}'
-    assert rhel_contenthost.subscribed
+    assert rhel_contenthost.subscribed, (
+        f'Failed to subscribe host to content, host: {rhel_contenthost.hostname}'
+        f' Attempting to subscribe to content-view id: {module_cv.id}'
+        f' Using activation-key id: {errata_host_ak.id}'
+    )
 
     for custom_repo_id in custom_repos:
+        # custom repos setup and successfully sync
         custom_repo = module_target_sat.api.Repository(id=custom_repo_id).read()
         assert custom_repo
         result = custom_repo.sync()['humanized']
@@ -292,23 +296,30 @@ def registered_contenthost(
     yield rhel_contenthost
 
     @request.addfinalizer
-    # Cleanup for in between parameterized runs
+    # Cleanup for in-between parameterized sessions
     def cleanup():
-        nonlocal rhel_contenthost, module_cv, custom_repos, custom_products, errata_host_ak
+        nonlocal rhel_contenthost, module_cv, module_lce, custom_repos, custom_products, errata_host_ak, module_sca_manifest_org
         rhel_contenthost.unregister()
         errata_host_ak.delete()
+        # find any other aks and delete them
+        other_aks = module_target_sat.api.ActivationKey(
+            organization=module_sca_manifest_org,
+            environment=module_lce,
+        ).search()
+        for ak in other_aks:
+            ak.read().delete()
         # Remove CV from all lifecycle-environments
         module_target_sat.cli.ContentView.remove_from_environment(
             {
                 'id': module_cv.id,
-                'organization-id': module_org.id,
+                'organization-id': module_sca_manifest_org.id,
                 'lifecycle-environment-id': module_lce.id,
             }
         )
         module_target_sat.cli.ContentView.remove_from_environment(
             {
                 'id': module_cv.id,
-                'organization-id': module_org.id,
+                'organization-id': module_sca_manifest_org.id,
                 'lifecycle-environment': 'Library',
             }
         )
@@ -327,9 +338,6 @@ def registered_contenthost(
             module_target_sat.api.Repository(id=repo_id).delete()
         for product_id in custom_products:
             module_target_sat.api.Product(id=product_id).delete()
-        # Publish a new CV version with no content
-        module_cv = module_cv.read()
-        module_cv.publish()
 
 
 @pytest.mark.e2e
@@ -499,7 +507,6 @@ def test_host_content_errata_tab_pagination(
     module_target_sat,
     registered_contenthost,
     module_sca_manifest_org,
-    errata_host_ak,
     module_lce,
     module_cv,
 ):
@@ -725,12 +732,12 @@ def test_host_content_errata_tab_pagination(
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_list(
     module_sca_manifest_org,
+    errata_host_ak,
     function_org,
     function_lce,
     target_sat,
     module_lce,
     module_cv,
-    module_ak,
     session,
 ):
     """View all errata in an Org
@@ -757,7 +764,7 @@ def test_positive_list(
             'url': CUSTOM_REPO_URL,
             'organization-id': _org_module.id,
             'lifecycle-environment-id': module_lce.id,
-            'activationkey-id': module_ak.id,
+            'activationkey-id': errata_host_ak.id,
             'content-view-id': module_cv.id,
         },
     )
@@ -1113,20 +1120,21 @@ def test_positive_check_errata(session, module_org_with_parameter, registered_co
         assert read_errata['Content']['Errata']['table'][0]['Errata'] == CUSTOM_REPO_ERRATA_ID
 
 
+@pytest.mark.tier3
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.parametrize(
     'registered_contenthost',
     [[CUSTOM_REPO_URL]],
     indirect=True,
 )
-def test_positive_errata_search_type(session, registered_contenthost):
+def test_positive_errata_search_type(session, module_sca_manifest_org, registered_contenthost):
     """Search for errata on a host's page content-errata tab by type.
 
     :id: f278f0e8-3b64-4dbf-a0c8-b9b289474a76
 
     :customerscenario: true
 
-    :steps: Search for errata on the host Conetnt-Errata tab by type (e.g. 'type = Security')
+    :steps: Search for errata on the host Content-Errata tab by type (e.g. 'type = Security')
         1. Search for "type = Security", assert expected amount and IDs found
         2. Search for "type = Bugfix", assert expected amount and IDs found
         3. Search for "type = Enhancement", assert expected amount and IDs found
@@ -1292,7 +1300,8 @@ def test_positive_show_count_on_host_pages(session, module_org, registered_conte
 )
 def test_positive_check_errata_counts_by_type_on_host_details_page(
     session,
-    module_org,
+    module_target_sat,
+    module_sca_manifest_org,
     registered_contenthost,
 ):
     """Errata count on host page
@@ -1301,7 +1310,8 @@ def test_positive_check_errata_counts_by_type_on_host_details_page(
 
     :Setup:
         1. Errata synced on satellite server.
-        2. Some content hosts are present.
+        2. Some registered host with errata and packages is present.
+        3. Install list of outdated packages (FAKE_YUM_9), to the registered host.
 
     :steps:
         1. Go to All hosts
@@ -1309,22 +1319,44 @@ def test_positive_check_errata_counts_by_type_on_host_details_page(
         3. Content Tab -> Errata Tab
         4. Check the counts of the errata types
 
-    :expectedresults: There should be correct number of each errata type shown.
-    """
+    :expectedresults:
+        1. Packages install succeeds, errata applicability updates automatically.
+        2. Correct number of each errata type shown for host.
 
+    """
     vm = registered_contenthost
     hostname = vm.hostname
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
+        # from details: no errata to start
         read_errata = session.host_new.get_details(hostname, 'Content.Errata')
         assert int(len(read_errata['Content']['Errata']['pagination'])) == 0
 
         pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
+        install_timestamp = datetime.utcnow().replace(microsecond=0) - timedelta(seconds=1)
         assert vm.execute(f'yum install -y {pkgs}').status == 0
-        time.sleep(2)
-        session.browser.refresh()
-        errata_type_counts = session.host_new.get_errata_type_counts(entity_name=vm.hostname)
 
+        # applicability task(s) found and succeed
+        applicability_tasks = module_target_sat.wait_for_tasks(
+            search_query=(
+                f'Bulk generate applicability for host {hostname}'
+                f' and started_at >= "{install_timestamp}"'
+            ),
+            search_rate=2,
+            max_tries=60,
+        )
+        assert len(applicability_tasks) > 0, (
+            'No Errata applicability task(s) found after successful yum install.'
+            ' Expected at least one task invoked automatically,'
+            f' for registered host: {hostname}'
+        )
+        for task in applicability_tasks:
+            assert task.result == 'success'
+            assert module_target_sat.api.ForemanTask(id=task.id).poll()
+
+        # find newly applicable errata counts by type
+        session.browser.refresh()
+        errata_type_counts = session.host_new.get_errata_type_counts(entity_name=hostname)
         assert errata_type_counts['Security'] == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
         assert errata_type_counts['Bugfix'] == 1
         assert errata_type_counts['Enhancement'] == 1
