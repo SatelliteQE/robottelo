@@ -34,6 +34,8 @@ def test_positive_ping(target_sat, switch_user):
     :BZ: 2122176, 2115775
 
     :customerscenario: true
+
+    :BlockedBy: SAT-24621
     """
     result = target_sat.execute(f"su - {'postgres' if switch_user else 'root'} -c 'hammer ping'")
     assert result.stderr[1].decode() == ''

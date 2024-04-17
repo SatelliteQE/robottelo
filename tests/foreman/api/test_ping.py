@@ -24,6 +24,11 @@ def test_positive_ping(target_sat):
     :id: b8ecc7ba-8007-4067-bf99-21a82c833de7
 
     :expectedresults: Overall and individual services status should be 'ok'.
+
+    :Verifies: SAT-24621
+
+    :BlockedBy: SAT-24553
+
     """
     response = target_sat.api.Ping().search_json()
     assert response['status'] == 'ok'  # overall status
