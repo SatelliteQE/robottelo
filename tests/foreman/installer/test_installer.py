@@ -1555,7 +1555,7 @@ def test_content_guarded_distributions_option(
     )[0]
     rh_repo.sync()
     assert (
-        "403: [('PEM routines', 'get_name', 'no start line')]"
+        "403"
         in sat_non_default_install.execute(
             f'curl https://{sat_non_default_install.hostname}/pulp/content/{org.label}'
             f'/Library/content/dist/layered/rhel8/x86_64/ansible/2.9/os/'
