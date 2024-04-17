@@ -11,6 +11,9 @@
 :Team: Rocket
 
 """
+import re
+
+from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
@@ -165,6 +168,46 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost
     # host being already registered.
     assert result.status == 1
     assert 'This system is already registered' in str(result.stderr)
+
+
+@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.tier3
+def test_positive_force_register_twice(module_ak_with_cv, module_org, rhel_contenthost, target_sat):
+    """Register a host twice to Satellite, with force=true
+
+    :id: 7ccd4efd-54bb-4207-9acf-4c6243a32fab
+
+    :expectedresults: Host will be re-registered
+
+    :parametrized: yes
+
+    :BZ: 1361309
+
+    :customerscenario: true
+    """
+    reg_id_pattern = r"The system has been registered with ID: ([^\n]*)"
+    name = gen_string('alpha') + ".example.com"
+    rhel_contenthost.execute(f'hostnamectl set-hostname {name}')
+    result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
+    reg_id_old = re.search(reg_id_pattern, result.stdout).group(1)
+    assert result.status == 0
+    assert rhel_contenthost.subscribed
+    result = rhel_contenthost.register(
+        module_org, None, module_ak_with_cv.name, target_sat, force=True
+    )
+    assert result.status == 0
+    assert rhel_contenthost.subscribed
+    assert f'Unregistering from: {target_sat.hostname}' in str(result.stdout)
+    assert f'The registered system name is: {rhel_contenthost.hostname}' in str(result.stdout)
+    reg_id_new = re.search(reg_id_pattern, result.stdout).group(1)
+    assert f'The system has been registered with ID: {reg_id_new}' in str(result.stdout)
+    assert reg_id_new != reg_id_old
+    assert (
+        target_sat.cli.Host.info({'name': rhel_contenthost.hostname}, output_format='json')[
+            'subscription-information'
+        ]['uuid']
+        == reg_id_new
+    )
 
 
 @pytest.mark.tier1
