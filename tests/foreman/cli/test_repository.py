@@ -2020,7 +2020,7 @@ class TestRepository:
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content_type': 'yum', 'url': CUSTOM_RPM_SHA}]),
+        **parametrized([{'content-type': 'yum', 'url': CUSTOM_RPM_SHA}]),
         indirect=True,
     )
     def test_positive_sync_sha_repo(self, repo_options, module_target_sat):
@@ -2045,7 +2045,7 @@ class TestRepository:
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content_type': 'yum', 'url': CUSTOM_3RD_PARTY_REPO}]),
+        **parametrized([{'content-type': 'yum', 'url': CUSTOM_3RD_PARTY_REPO}]),
         indirect=True,
     )
     def test_positive_sync_third_party_repo(self, repo_options, module_target_sat):
