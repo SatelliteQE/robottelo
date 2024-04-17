@@ -1392,8 +1392,13 @@ def sat_non_default_install(module_sat_ready_rhels):
         f'foreman-initial-admin-password {settings.server.admin_password}',
         'foreman-rails-cache-store type:file',
         'foreman-proxy-content-pulpcore-hide-guarded-distributions false',
+        'enable-foreman-plugin-discovery',
+        'foreman-proxy-plugin-discovery-install-images true',
     ]
     install_satellite(module_sat_ready_rhels[1], installer_args, enable_fapolicyd=True)
+    module_sat_ready_rhels[1].execute(
+        'dnf -y --disableplugin=foreman-protector install foreman-discovery-image'
+    )
     return module_sat_ready_rhels[1]
 
 
@@ -1839,3 +1844,33 @@ def test_satellite_installation(installer_satellite):
     assert installer_satellite.execute('rpm -q foreman-redis').status == 0
     settings_file = installer_satellite.load_remote_yaml_file(FOREMAN_SETTINGS_YML)
     assert settings_file.rails_cache_store.type == 'redis'
+
+
+@pytest.mark.pit_server
+@pytest.mark.parametrize('package', ['nmap-ncat'])
+def test_weak_dependency(sat_non_default_install, package):
+    """Check if Satellite and its (sub)components do not require certain (potentially insecure) packages. On an existing Satellite the package has to be either not installed or can be safely removed.
+
+    :id: c7988920-2f8c-4646-bde9-8823a3ca96bb
+
+    :steps:
+        1. Use satellite with non-default setup (for 'nmap-ncat' enable foreman discovery plugin and install foreman-discovery-image)
+        2. Attempt to remove the package
+
+    :expectedresults:
+        1. The package can be either not installed or can be removed without removing any Satellite or Foreman packages
+
+    :BZ: 1964539
+
+    :customerscenario: true
+    """
+    result = sat_non_default_install.execute(f'dnf remove -y {package} --setopt tsflags=test')
+
+    # no satellite or foreman package to be removed
+    assert 'satellite' not in result.stdout.lower()
+    assert 'foreman' not in result.stdout.lower()
+    # package not installed (nothing to remove) or safely removable
+    assert (
+        'No packages marked for removal.' in result.stderr
+        or 'Transaction test succeeded.' in result.stdout
+    )
