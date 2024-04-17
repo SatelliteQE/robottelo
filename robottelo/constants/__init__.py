@@ -1725,10 +1725,15 @@ DEFAULT_SYSPURPOSE_ATTRIBUTES = {
     ),
 }
 
-
+# Bugzilla statuses used by Robottelo issue handler.
 OPEN_STATUSES = ("NEW", "ASSIGNED", "POST", "MODIFIED")
 CLOSED_STATUSES = ("ON_QA", "VERIFIED", "RELEASE_PENDING", "CLOSED")
 WONTFIX_RESOLUTIONS = ("WONTFIX", "CANTFIX", "DEFERRED")
+# Jira statuses used by Robottelo issue handler.
+JIRA_OPEN_STATUSES = ("New", "Backlog", "Refinement", "To Do", "In Progress")
+JIRA_ONQA_STATUS = "Review"
+JIRA_CLOSED_STATUSES = ("Release Pending", "Closed")
+JIRA_WONTFIX_RESOLUTIONS = "Obsolete"
 
 GROUP_MEMBERSHIP_MAPPER = {
     "config": {

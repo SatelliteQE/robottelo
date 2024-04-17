@@ -13,7 +13,7 @@ Issue handler should expose 3 functions.
 
 ### `is_open_<handler_code>(issue, data=None)`
 
-e.g: `is_open_bz, is_open_gh, is_open_jr` for Bugzilla, Github and Jira.
+e.g: `is_open_bz, is_open_gh, is_open_jira` for Bugzilla, Github and Jira.
 
 This function is dispatched from `robottelo.helpers.is_open` that is also used
 to check for status in the `pytest.mark.skip_if_open` marker.
@@ -78,10 +78,10 @@ Example of `collected_data`:
 ## Issue handlers implemented
 
 - `.bugzilla.py`: BZ:123456
+- `.jira.py`: SAT-22761
 
 ## Issue handlers to be implemented
 
 - `.github.py`: GH:satelliteqe/robottelo#123
 - `.gitlab.py`: GL:path/to/repo#123
-- `.jira.py`: JR:SATQE-4561
 - `.redmine.py`: RM:pulp.plan.io#5580
