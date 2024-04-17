@@ -89,8 +89,8 @@ def test_positive_clone_backup(
     # Enabling repositories
     for repo in getattr(constants, f"OHSNAP_RHEL{rhel_version}_REPOS"):
         sat_ready_rhel.enable_repo(repo, force=True)
-    # Enabling satellite module
-    sat_ready_rhel.install_satellite_or_capsule_package()
+    # Enabling satellite module for RHEL8
+    sat_ready_rhel.enable_satellite_or_capsule_module_for_rhel8()
     # Install satellite-clone
     assert sat_ready_rhel.execute('yum install satellite-clone -y').status == 0
     # Disabling CDN repos as we install from dogfdood
