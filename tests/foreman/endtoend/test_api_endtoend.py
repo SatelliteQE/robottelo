@@ -1050,7 +1050,7 @@ class TestEndToEnd:
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
-    def test_positive_end_to_end(self, function_entitlement_manifest, target_sat, rhel_contenthost):
+    def test_positive_end_to_end(self, function_sca_manifest, target_sat, rhel_contenthost):
         """Perform end to end smoke tests using RH and custom repos.
 
         1. Create a new user with admin permissions
@@ -1091,10 +1091,9 @@ class TestEndToEnd:
         # step 2.1: Create a new organization
         user_cfg = user_nailgun_config(login, password)
         org = target_sat.api.Organization(server_config=user_cfg).create()
-        org.sca_disable()
 
         # step 2.2: Upload manifest
-        target_sat.upload_manifest(org.id, function_entitlement_manifest.content)
+        target_sat.upload_manifest(org.id, function_sca_manifest.content)
 
         # step 2.3: Create a new lifecycle environment
         le1 = target_sat.api.LifecycleEnvironment(server_config=user_cfg, organization=org).create()
@@ -1152,12 +1151,7 @@ class TestEndToEnd:
             name=activation_key_name, environment=le1, organization=org, content_view=content_view
         ).create()
 
-        # step 2.13: Add the products to the activation key
-        for sub in target_sat.api.Subscription(organization=org).search():
-            if sub.name == constants.DEFAULT_SUBSCRIPTION_NAME:
-                activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': sub.id})
-                break
-        # step 2.13.1: Enable product content
+        # step 2.13: Enable product content
         activation_key.content_override(
             data={
                 'content_overrides': [
