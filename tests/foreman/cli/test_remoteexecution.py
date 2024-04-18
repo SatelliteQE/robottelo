@@ -24,6 +24,7 @@ from wait_for import wait_for
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
+from robottelo.exceptions import CLIFactoryError
 from robottelo.utils import ohsnap
 from robottelo.utils.datafactory import filtered_datapoint, parametrized
 
@@ -137,28 +138,36 @@ class TestRemoteExecution:
     @pytest.mark.pit_server
     @pytest.mark.rhel_ver_list([7, 8, 9])
     def test_positive_run_job_effective_user(self, rex_contenthost, module_target_sat):
-        """Run default job template as effective user on a host
+        """Run default job template as effective user on a host, test ssh user as well
 
         :id: 0cd75cab-f699-47e6-94d3-4477d2a94bb7
 
-        :BZ: 1451675, 1804685
+        :BZ: 1451675, 1804685, 2258968
 
         :expectedresults: Verify the job was successfully run under the
-            effective user identity on host
+            effective user identity on host, make sure the password is
+            used
 
         :parametrized: yes
+
+        :customerscenario: true
         """
         client = rex_contenthost
         # create a user on client via remote job
+        ssh_username = gen_string('alpha')
+        ssh_password = gen_string('alpha')
         username = gen_string('alpha')
+        password = gen_string('cjk')
         filename = gen_string('alpha')
         make_user_job = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
-                'inputs': f"command=useradd -m {username}",
+                'inputs': f"command=useradd {ssh_username} -G wheel; echo {ssh_username}:{ssh_password} | chpasswd; useradd {username} -G wheel; echo {username}:{password} | chpasswd",
                 'search-query': f"name ~ {client.hostname}",
+                'description-format': 'adding users',
             }
         )
+        client.execute('echo "Defaults targetpw" >> /etc/sudoers')
         assert_job_invocation_result(module_target_sat, make_user_job['id'], client.hostname)
         # create a file as new user
         invocation_command = module_target_sat.cli_factory.job_invocation(
@@ -166,7 +175,10 @@ class TestRemoteExecution:
                 'job-template': 'Run Command - Script Default',
                 'inputs': f"command=touch /home/{username}/{filename}",
                 'search-query': f"name ~ {client.hostname}",
+                'ssh-user': f'{ssh_username}',
+                'password': f'{ssh_password}',
                 'effective-user': f'{username}',
+                'effective-user-password': f'{password}',
             }
         )
         assert_job_invocation_result(module_target_sat, invocation_command['id'], client.hostname)
@@ -176,6 +188,24 @@ class TestRemoteExecution:
         )
         # assert the file is owned by the effective user
         assert username == result.stdout.strip('\n')
+        result = client.execute(
+            f'''stat -c '%G' /home/{username}/{filename}''',
+        )
+        # assert the file is in the effective user's group
+        assert username == result.stdout.strip('\n')
+        # negative check for unspecified password
+        filename = gen_string('alpha')
+        with pytest.raises(CLIFactoryError):
+            invocation_command = module_target_sat.cli_factory.job_invocation(
+                {
+                    'job-template': 'Run Command - Script Default',
+                    'inputs': f"command=touch /home/{username}/{filename}",
+                    'search-query': f"name ~ {client.hostname}",
+                    'ssh-user': f'{ssh_username}',
+                    'password': f'{ssh_password}',
+                    'effective-user': f'{username}',
+                }
+            )
 
     @pytest.mark.tier3
     @pytest.mark.e2e
