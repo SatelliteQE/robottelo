@@ -1739,8 +1739,8 @@ class Capsule(ContentHost, CapsuleMixins):
         self._cli._configured = True
         return self._cli
 
-    def install_satellite_or_capsule_package(self):
-        """Install Satellite/Capsule package.
+    def enable_satellite_or_capsule_module_for_rhel8(self):
+        """Enable Satellite/Capsule module for RHEL8.
         Note: Make sure required repos are enabled before using this.
         """
         if self.os_version.major == 8:
@@ -1750,6 +1750,12 @@ class Capsule(ContentHost, CapsuleMixins):
                 ).status
                 == 0
             )
+
+    def install_satellite_or_capsule_package(self):
+        """Install Satellite/Capsule package. Also handles module enablement for RHEL8.
+        Note: Make sure required repos are enabled before using this.
+        """
+        self.enable_satellite_or_capsule_module_for_rhel8()
         assert self.execute(f'dnf -y install {self.product_rpm_name}').status == 0
 
 
