@@ -23,9 +23,11 @@ from robottelo.constants import (
     ENVIRONMENT,
     FAKE_4_CUSTOM_PACKAGE,
     PRDS,
+    REAL_RHEL8_1_ERRATA_ID,
     REPOS,
     REPOSET,
 )
+from robottelo.logging import logger
 
 pytestmark = [pytest.mark.run_in_one_thread]
 
@@ -223,3 +225,110 @@ def test_positive_noapply_api(
     # Re-read the content view to get the latest versions
     module_cv = module_cv.read()
     assert len(module_cv.version) > len(cv_versions)
+
+
+@pytest.mark.tier3
+def test_positive_incremental_update_time(module_target_sat, module_sca_manifest_org):
+    """Incremental update should not take a long time.
+
+    :id: a9cdcc58-2d10-42cf-8e24-f7bec3b79d6b
+
+    :steps:
+        1. Setup larger rh repositories; rhel8 baseOS, rhst8, rhsc8.
+        2. Create content view and add repos, sync and wait.
+        3. Publish a content view version with all content.
+        4. Using hammer, perform incremental update with errata, on that new version.
+            - Log the duration of the incremental update
+        5. Publish the full content-view, with added incremental version.
+            - Log the duration of the content-view publish
+
+    :expectedresults:
+        1. Incremental update takes a short amount of time.
+        2. Incremental update takes less time than full content-view publish,
+            or the time taken for both was close (within 20%).
+
+    :BZ: 2117760, 1829266
+
+    :customerscenario: true
+
+    """
+    # create content view
+    cv = module_target_sat.cli_factory.make_content_view(
+        {'organization-id': module_sca_manifest_org.id}
+    )
+    repo_sync_timestamp = (
+        datetime.utcnow().replace(microsecond=0) - timedelta(seconds=1)
+    ).strftime('%Y-%m-%d %H:%M')
+    # setup rh repositories, add to cv, begin sync
+    for _repo in ['rhel8_bos', 'rhst8', 'rhsclient8']:
+        rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch=DEFAULT_ARCHITECTURE,
+            org_id=module_sca_manifest_org.id,
+            product=PRDS['rhel8'],
+            repo=REPOS[_repo]['name'],
+            reposet=REPOSET[_repo],
+            releasever=REPOS[_repo]['releasever'],
+        )
+        module_target_sat.cli.ContentView.add_repository(
+            {
+                'id': cv['id'],
+                'organization-id': module_sca_manifest_org.id,
+                'repository-id': rh_repo_id,
+            }
+        )
+        module_target_sat.api.Repository(id=rh_repo_id).sync(synchronous=False)
+
+    # wait for all repo sync tasks
+    sync_tasks = module_target_sat.wait_for_tasks(
+        search_query=(
+            'label = Actions::Katello::Repository::Sync'
+            f' and started_at >= "{repo_sync_timestamp}"'
+        ),
+        search_rate=10,
+        max_tries=200,
+    )
+    assert all(task.poll()['result'] == 'success' for task in sync_tasks)
+    # publish and fetch new CVV
+    module_target_sat.cli.ContentView.publish({'id': cv['id']})
+    content_view = module_target_sat.cli.ContentView.info({'id': cv['id']})
+    cvv = content_view['versions'][0]
+
+    # update incremental version via hammer, using one errata.
+    # expect: incr. "version-1.1" is created
+    update_start_time = datetime.utcnow()
+    result = module_target_sat.cli.ContentView.version_incremental_update(
+        {'content-view-version-id': cvv['id'], 'errata-ids': REAL_RHEL8_1_ERRATA_ID}
+    )
+    assert 'version-1.1' in str(result[0].keys())
+    update_duration = (datetime.utcnow() - update_start_time).total_seconds()
+    logger.info(
+        f'Update of incremental version-1.1, for CV id: {content_view["id"]},'
+        f' took {update_duration} seconds.'
+    )
+    # publish the full CV, containing the added version-1.1
+    publish_start_time = datetime.utcnow()
+    result = module_target_sat.cli.ContentView.publish({'id': cv['id']})
+    publish_duration = (datetime.utcnow() - publish_start_time).total_seconds()
+    logger.info(f'Publish for CV id: {content_view["id"]}, took {publish_duration} seconds.')
+    # Per BZs: expect update duration was quicker than publish duration,
+    # if instead, update took longer, check that they were close,
+    # that update did not take ~significantly more time.
+    if update_duration >= publish_duration:
+        # unexpected: perhaps both tasks were very quick, took a handful of seconds,
+        # assert the difference was not significant (within 20%).
+        assert (update_duration - publish_duration) / publish_duration <= 0.2, (
+            f'Incremental update took longer than publish of entire content-view id: {content_view["id"]}:'
+            f' Update took significantly more time, 20% or longer, than publish.'
+            f' update duration: {update_duration} s.\n publish duration: {publish_duration} s.'
+        )
+    # else: base expected condition: update duration was quicker than publish.
+
+    # some arbritrary timeouts, given amount of content in CV from repos.
+    assert update_duration <= 20, (
+        'Possible performance degradation in incremental update time.',
+        f' Took {update_duration} seconds, but expected to not exceed 20 seconds.',
+    )
+    assert publish_duration <= 30, (
+        'Possible performance degradation in content-view publish time, after performing incremental update.',
+        f' Took {publish_duration} seconds, but expected to not exceed 30 seconds.',
+    )
