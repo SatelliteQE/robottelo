@@ -10,11 +10,11 @@
 """
 from fauxfactory import gen_string
 import pytest
+from wait_for import wait_for
 import yaml
 
 from robottelo import constants
 from robottelo.config import robottelo_tmp_dir, settings
-from wait_for import wait_for
 
 
 class TestAnsibleCfgMgmt:
