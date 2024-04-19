@@ -189,6 +189,10 @@ VALIDATORS = dict(
             must_exist=True,
         ),
     ],
+    jira=[
+        Validator('jira.url', default='https://issues.redhat.com'),
+        Validator('jira.api_key', must_exist=True),
+    ],
     ldap=[
         Validator(
             'ldap.basedn',
