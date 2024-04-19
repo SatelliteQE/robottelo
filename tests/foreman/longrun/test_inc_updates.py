@@ -231,7 +231,7 @@ def test_positive_noapply_api(
 
 
 @pytest.mark.tier3
-def test_positive_incremental_update_time(module_target_sat, module_sca_manifest_org):
+def test_positive_incremental_update_time(target_sat, function_sca_manifest_org):
     """Incremental update should not take a long time.
 
     :id: a9cdcc58-2d10-42cf-8e24-f7bec3b79d6b
@@ -256,33 +256,31 @@ def test_positive_incremental_update_time(module_target_sat, module_sca_manifest
 
     """
     # create content view
-    cv = module_target_sat.cli_factory.make_content_view(
-        {'organization-id': module_sca_manifest_org.id}
-    )
+    cv = target_sat.cli_factory.make_content_view({'organization-id': function_sca_manifest_org.id})
     repo_sync_timestamp = (
         datetime.utcnow().replace(microsecond=0) - timedelta(seconds=1)
     ).strftime('%Y-%m-%d %H:%M')
     # setup rh repositories, add to cv, begin sync
     for _repo in ['rhel8_bos', 'rhst8', 'rhsclient8']:
-        rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+        rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
-            org_id=module_sca_manifest_org.id,
+            org_id=function_sca_manifest_org.id,
             product=PRDS['rhel8'],
             repo=REPOS[_repo]['name'],
             reposet=REPOSET[_repo],
             releasever=REPOS[_repo]['releasever'],
         )
-        module_target_sat.cli.ContentView.add_repository(
+        target_sat.cli.ContentView.add_repository(
             {
                 'id': cv['id'],
-                'organization-id': module_sca_manifest_org.id,
+                'organization-id': function_sca_manifest_org.id,
                 'repository-id': rh_repo_id,
             }
         )
-        module_target_sat.api.Repository(id=rh_repo_id).sync(synchronous=False)
+        target_sat.api.Repository(id=rh_repo_id).sync(synchronous=False)
 
     # wait for all repo sync tasks
-    sync_tasks = module_target_sat.wait_for_tasks(
+    sync_tasks = target_sat.wait_for_tasks(
         search_query=(
             'label = Actions::Katello::Repository::Sync'
             f' and started_at >= "{repo_sync_timestamp}"'
@@ -292,14 +290,14 @@ def test_positive_incremental_update_time(module_target_sat, module_sca_manifest
     )
     assert all(task.poll()['result'] == 'success' for task in sync_tasks)
     # publish and fetch new CVV
-    module_target_sat.cli.ContentView.publish({'id': cv['id']})
-    content_view = module_target_sat.cli.ContentView.info({'id': cv['id']})
+    target_sat.cli.ContentView.publish({'id': cv['id']})
+    content_view = target_sat.cli.ContentView.info({'id': cv['id']})
     cvv = content_view['versions'][0]
 
     # update incremental version via hammer, using one errata.
     # expect: incr. "version-1.1" is created
     update_start_time = datetime.utcnow()
-    result = module_target_sat.cli.ContentView.version_incremental_update(
+    result = target_sat.cli.ContentView.version_incremental_update(
         {'content-view-version-id': cvv['id'], 'errata-ids': REAL_RHEL8_1_ERRATA_ID}
     )
     assert 'version-1.1' in str(result[0].keys())
@@ -310,7 +308,7 @@ def test_positive_incremental_update_time(module_target_sat, module_sca_manifest
     )
     # publish the full CV, containing the added version-1.1
     publish_start_time = datetime.utcnow()
-    result = module_target_sat.cli.ContentView.publish({'id': cv['id']})
+    result = target_sat.cli.ContentView.publish({'id': cv['id']})
     publish_duration = (datetime.utcnow() - publish_start_time).total_seconds()
     logger.info(f'Publish for CV id: {content_view["id"]}, took {publish_duration} seconds.')
     # Per BZs: expect update duration was quicker than publish duration,
