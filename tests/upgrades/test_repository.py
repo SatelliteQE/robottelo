@@ -393,7 +393,7 @@ class TestSimpleContentAccessOnly:
         upgrade_entitlement_manifest,
     ):
         """Register host with an activation key that has one custom repository(overriden to enabled)
-        and one red rat repository enabled but no subscriptions attached. Assert that only
+        and one Red Hat repository enabled but no subscriptions attached. Assert that only
         the red hat repository is enabled on the host and that the host is in entitlement mode.
 
         :id: preupgrade-d6661342-a348-4dd5-9ddf-3fd630b1e286
@@ -455,8 +455,9 @@ class TestSimpleContentAccessOnly:
         activation_key.content_override(
             data={'content_overrides': [{'content_label': custom_content_label, 'value': '1'}]}
         )
-        rhel_contenthost.install_katello_ca(target_sat)
-        rhel_contenthost.register_contenthost(org=org.name, activation_key=activation_key.name)
+        rhel_contenthost.register(
+            org=org, loc=None, activation_key=activation_key.name, target=target_sat
+        )
         enabled = rhel_contenthost.execute("subscription-manager repos --list-enabled")
         assert rh_content_label in enabled.stdout
         assert custom_content_label not in enabled.stdout
