@@ -2,6 +2,8 @@
 from nailgun import entities
 import pytest
 
+from robottelo import constants
+
 
 @pytest.fixture(scope='session')
 def default_os(
@@ -17,7 +19,7 @@ def default_os(
     """
     os = getattr(request, 'param', None)
     if os is None:
-        search_string = 'name="RedHat" AND (major="6" OR major="7" OR major="8" OR major="9")'
+        search_string = constants.DEFAULT_OS_SEARCH_QUERY
     else:
         version = os.split(' ')[1].split('.')
         search_string = f'family="Redhat" AND major="{version[0]}" AND minor="{version[1]}"'
