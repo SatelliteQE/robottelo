@@ -32,7 +32,7 @@ class JobInvocation(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
-    def create(cls, options):
+    def create(cls, options, timeout=None):
         """Create a job"""
         cls.command_sub = 'create'
-        return cls.execute(cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv', timeout=timeout)
