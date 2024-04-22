@@ -5,7 +5,7 @@ redis==5.0.3
 pre-commit==3.7.0
 
 # For generating documentation.
-sphinx==7.2.6
+sphinx==7.3.7
 sphinx-autoapi==3.0.0
 
 # For 'manage' interactive shell

@@ -55,6 +55,7 @@ jobs:
         id: cscheck
         env:
           ROBOTTELO_BUGZILLA__API_KEY: ${{ secrets.BUGZILLA_KEY }}
+          ROBOTTELO_JIRA__API_KEY: ${{ secrets.JIRA_KEY }}
 
       - name: Customer scenario status
         run: |

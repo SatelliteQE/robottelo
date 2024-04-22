@@ -136,7 +136,7 @@ def install_satellite(satellite, installer_args, enable_fapolicyd=False):
             satellite.execute('dnf -y install fapolicyd && systemctl enable --now fapolicyd').status
             == 0
         )
-    satellite.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
+    satellite.install_satellite_or_capsule_package()
     if enable_fapolicyd:
         assert satellite.execute('rpm -q foreman-fapolicyd').status == 0
         assert satellite.execute('rpm -q foreman-proxy-fapolicyd').status == 0
@@ -170,8 +170,13 @@ def sat_non_default_install(module_sat_ready_rhels):
         f'foreman-initial-admin-password {settings.server.admin_password}',
         'foreman-rails-cache-store type:file',
         'foreman-proxy-content-pulpcore-hide-guarded-distributions false',
+        'enable-foreman-plugin-discovery',
+        'foreman-proxy-plugin-discovery-install-images true',
     ]
     install_satellite(module_sat_ready_rhels[1], installer_args, enable_fapolicyd=True)
+    module_sat_ready_rhels[1].execute(
+        'dnf -y --disableplugin=foreman-protector install foreman-discovery-image'
+    )
     return module_sat_ready_rhels[1]
 
 
@@ -219,9 +224,7 @@ def test_capsule_installation(sat_non_default_install, cap_ready_rhel, setting_u
         ).status
         == 0
     )
-    cap_ready_rhel.execute(
-        'dnf -y module enable satellite-capsule:el8 && dnf -y install satellite-capsule'
-    )
+    cap_ready_rhel.install_satellite_or_capsule_package()
     assert cap_ready_rhel.execute('rpm -q foreman-proxy-fapolicyd').status == 0
     # Setup Capsule
     setup_capsule(sat_non_default_install, cap_ready_rhel, org)
@@ -330,7 +333,7 @@ def test_content_guarded_distributions_option(
     )[0]
     rh_repo.sync()
     assert (
-        "403: [('PEM routines', 'get_name', 'no start line')]"
+        "403"
         in sat_non_default_install.execute(
             f'curl https://{sat_non_default_install.hostname}/pulp/content/{org.label}'
             f'/Library/content/dist/layered/rhel8/x86_64/ansible/2.9/os/'
@@ -548,6 +551,37 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
     assert 'Success!' in command_output.stdout
 
 
+def test_installer_capsule_with_enabled_ansible(module_capsule_configured_ansible):
+    """Enables Ansible feature on external Capsule and checks the callback is set correctly
+
+    :id: d60c475e-f4e7-11ee-af8a-98fa9b11ac24
+
+    :steps:
+        1. Have a Satellite with external Capsule integrated
+        2. Enable Ansible feature on external Capsule
+        3. Check the ansible callback plugin on external Capsule
+
+    :expectedresults:
+        Ansible callback plugin is overridden to "redhat.satellite.foreman"
+
+    :CaseImportance: High
+
+    :BZ: 2245081
+
+    :customerscenario: true
+    """
+    ansible_env = '/etc/foreman-proxy/ansible.env'
+    downstream_callback = 'redhat.satellite.foreman'
+    callback_whitelist = module_capsule_configured_ansible.execute(
+        f"awk -F= '/ANSIBLE_CALLBACK_WHITELIST/{{print$2}}' {ansible_env}"
+    )
+    assert callback_whitelist.stdout.strip('" \n') == downstream_callback
+    callbacks_enabled = module_capsule_configured_ansible.execute(
+        f"awk -F= '/ANSIBLE_CALLBACKS_ENABLED/{{print$2}}' {ansible_env}"
+    )
+    assert callbacks_enabled.stdout.strip('" \n') == downstream_callback
+
+
 @pytest.mark.tier1
 @pytest.mark.build_sanity
 @pytest.mark.first_sanity
@@ -579,3 +613,33 @@ def test_satellite_installation(installer_satellite):
     assert installer_satellite.execute('rpm -q foreman-redis').status == 0
     settings_file = installer_satellite.load_remote_yaml_file(FOREMAN_SETTINGS_YML)
     assert settings_file.rails_cache_store.type == 'redis'
+
+
+@pytest.mark.pit_server
+@pytest.mark.parametrize('package', ['nmap-ncat'])
+def test_weak_dependency(sat_non_default_install, package):
+    """Check if Satellite and its (sub)components do not require certain (potentially insecure) packages. On an existing Satellite the package has to be either not installed or can be safely removed.
+
+    :id: c7988920-2f8c-4646-bde9-8823a3ca96bb
+
+    :steps:
+        1. Use satellite with non-default setup (for 'nmap-ncat' enable foreman discovery plugin and install foreman-discovery-image)
+        2. Attempt to remove the package
+
+    :expectedresults:
+        1. The package can be either not installed or can be removed without removing any Satellite or Foreman packages
+
+    :BZ: 1964539
+
+    :customerscenario: true
+    """
+    result = sat_non_default_install.execute(f'dnf remove -y {package} --setopt tsflags=test')
+
+    # no satellite or foreman package to be removed
+    assert 'satellite' not in result.stdout.lower()
+    assert 'foreman' not in result.stdout.lower()
+    # package not installed (nothing to remove) or safely removable
+    assert (
+        'No packages marked for removal.' in result.stderr
+        or 'Transaction test succeeded.' in result.stdout
+    )

@@ -70,7 +70,7 @@ def test_positive_cli_find_admin_user(module_target_sat):
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel_contenthost):
+def test_positive_cli_end_to_end(function_sca_manifest, target_sat, rhel_contenthost):
     """Perform end to end smoke tests using RH and custom repos.
 
     1. Create a new user with admin permissions
@@ -110,12 +110,11 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
 
     # step 2.1: Create a new organization
     org = _create(user, target_sat.cli.Org, {'name': gen_alphanumeric()})
-    target_sat.cli.SimpleContentAccess.disable({'organization-id': org['id']})
 
     # step 2.2: Clone and upload manifest
-    target_sat.put(f'{function_entitlement_manifest.path}', f'{function_entitlement_manifest.name}')
+    target_sat.put(f'{function_sca_manifest.path}', f'{function_sca_manifest.name}')
     target_sat.cli.Subscription.upload(
-        {'file': f'{function_entitlement_manifest.name}', 'organization-id': org['id']}
+        {'file': f'{function_sca_manifest.name}', 'organization-id': org['id']}
     )
 
     # step 2.3: Create a new lifecycle environment
@@ -226,20 +225,9 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
     )
 
     # step 2.13: Add the products to the activation key
-    subscription_list = target_sat.cli.Subscription.with_user(user['login'], user['password']).list(
+    target_sat.cli.Subscription.with_user(user['login'], user['password']).list(
         {'organization-id': org['id']}, per_page=False
     )
-    for subscription in subscription_list:
-        if subscription['name'] == constants.DEFAULT_SUBSCRIPTION_NAME:
-            target_sat.cli.ActivationKey.with_user(
-                user['login'], user['password']
-            ).add_subscription(
-                {
-                    'id': activation_key['id'],
-                    'quantity': 1,
-                    'subscription-id': subscription['id'],
-                }
-            )
 
     # step 2.13.1: Enable product content
     target_sat.cli.ActivationKey.with_user(user['login'], user['password']).content_override(
@@ -266,14 +254,22 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
     )
 
     content_host = target_sat.cli.Host.with_user(user['login'], user['password']).info(
-        {'id': content_host['id']}
+        {'id': content_host['id']}, output_format='json'
     )
+
     # check that content view matches what we passed
-    assert content_host['content-information']['content-view']['name'] == content_view['name']
+    assert (
+        content_host['content-information']['content-view-environments']['1']['content-view'][
+            'name'
+        ]
+        == content_view['name']
+    )
 
     # check that lifecycle environment matches
     assert (
-        content_host['content-information']['lifecycle-environment']['name']
+        content_host['content-information']['content-view-environments']['1'][
+            'lifecycle-environment'
+        ]['name']
         == lifecycle_environment['name']
     )
 

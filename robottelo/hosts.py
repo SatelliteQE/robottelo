@@ -14,6 +14,7 @@ import time
 from urllib.parse import urljoin, urlparse, urlunsplit
 import warnings
 
+import apypie
 from box import Box
 from broker import Broker
 from broker.hosts import Host
@@ -167,6 +168,10 @@ class SatelliteHostError(Exception):
 
 
 class IPAHostError(Exception):
+    pass
+
+
+class ProxyHostError(Exception):
     pass
 
 
@@ -1592,7 +1597,8 @@ class Capsule(ContentHost, CapsuleMixins):
         """General purpose installer"""
         if not installer_obj:
             command_opts = {'scenario': self.__class__.__name__.lower()}
-            command_opts.update(cmd_kwargs)
+            if cmd_kwargs:
+                command_opts.update(cmd_kwargs)
             installer_obj = InstallerCommand(*cmd_args, **command_opts)
         return self.execute(installer_obj.get_command(), timeout=0)
 
@@ -1691,22 +1697,6 @@ class Capsule(ContentHost, CapsuleMixins):
         if result.status != 0:
             raise SatelliteHostError(f'Failed to enable pull provider: {result.stdout}')
 
-    def run_installer_arg(self, *args, timeout='20m'):
-        """Run an installer argument on capsule"""
-        installer_args = list(args)
-        installer_command = InstallerCommand(
-            installer_args=installer_args,
-        )
-        result = self.execute(
-            installer_command.get_command(),
-            timeout=timeout,
-        )
-        if result.status != 0:
-            raise SatelliteHostError(
-                f'Failed to execute with arguments: {installer_args} and,'
-                f' the stderr is {result.stderr}'
-            )
-
     def set_mqtt_resend_interval(self, value):
         """Set the time interval in seconds at which the notification should be
         re-sent to the mqtt host until the job is picked up or cancelled"""
@@ -1749,6 +1739,25 @@ class Capsule(ContentHost, CapsuleMixins):
         self._cli._configured = True
         return self._cli
 
+    def enable_satellite_or_capsule_module_for_rhel8(self):
+        """Enable Satellite/Capsule module for RHEL8.
+        Note: Make sure required repos are enabled before using this.
+        """
+        if self.os_version.major == 8:
+            assert (
+                self.execute(
+                    f'dnf -y module enable {self.product_rpm_name}:el{self.os_version.major}'
+                ).status
+                == 0
+            )
+
+    def install_satellite_or_capsule_package(self):
+        """Install Satellite/Capsule package. Also handles module enablement for RHEL8.
+        Note: Make sure required repos are enabled before using this.
+        """
+        self.enable_satellite_or_capsule_module_for_rhel8()
+        assert self.execute(f'dnf -y install {self.product_rpm_name}').status == 0
+
 
 class Satellite(Capsule, SatelliteMixins):
     product_rpm_name = 'satellite'
@@ -1762,6 +1771,7 @@ class Satellite(Capsule, SatelliteMixins):
         # create dummy classes for later population
         self._api = type('api', (), {'_configured': False})
         self._cli = type('cli', (), {'_configured': False})
+        self._apidoc = None
         self.record_property = None
 
     def _swap_nailgun(self, new_version):
@@ -1814,6 +1824,19 @@ class Satellite(Capsule, SatelliteMixins):
                 pass
         self._api._configured = True
         return self._api
+
+    @property
+    def apidoc(self):
+        """Provide Satellite's apidoc via apypie"""
+        if not self._apidoc:
+            self._apidoc = apypie.Api(
+                uri=self.url,
+                username=settings.server.admin_username,
+                password=settings.server.admin_password,
+                api_version=2,
+                verify_ssl=settings.server.verify_ca,
+            ).apidoc
+        return self._apidoc
 
     @property
     def cli(self):
@@ -2545,3 +2568,42 @@ class IPAHost(Host):
         )
         if result.status != 0:
             raise IPAHostError('Failed to remove the user from user group')
+
+
+class ProxyHost(Host):
+    """Class representing HTTP Proxy host"""
+
+    def __init__(self, url, **kwargs):
+        self._conf_dir = '/etc/squid/'
+        self._access_log = '/var/log/squid/access.log'
+        kwargs['hostname'] = urlparse(url).hostname
+        super().__init__(**kwargs)
+
+    def add_user(self, name, passwd):
+        """Adds new user to the HTTP Proxy"""
+        res = self.execute(f"htpasswd -b {self._conf_dir}passwd {name} '{passwd}'")
+        assert res.status == 0, f'User addition failed on the proxy side: {res.stderr}'
+        return res
+
+    def remove_user(self, name):
+        """Removes a user from HTTP Proxy"""
+        res = self.execute(f'htpasswd -D {self._conf_dir}passwd {name}')
+        assert res.status == 0, f'User deletion failed on the proxy side: {res.stderr}'
+        return res
+
+    def get_log(self, which=None, tail=None, grep=None):
+        """Returns log content from the HTTP Proxy instance
+
+        :param which: Which log file should be read. Defaults to access.log.
+        :param tail: Use when only the tail of a long log file is needed.
+        :param grep: Grep for some expression.
+        :return: Log content found or None
+        """
+        log_file = which or self._access_log
+        cmd = f'tail -n {tail} {log_file}' if tail else f'cat {log_file}'
+        if grep:
+            cmd = f'{cmd} | grep "{grep}"'
+        res = self.execute(cmd)
+        if res.status != 0:
+            raise ProxyHostError(f'Proxy log read failed: {res.stderr}')
+        return None if res.stdout == '' else res.stdout

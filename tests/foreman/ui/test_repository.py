@@ -831,7 +831,7 @@ def test_positive_delete_random_docker_repo(session, module_org, module_target_s
 
 
 @pytest.mark.tier2
-def test_positive_delete_rhel_repo(session, module_entitlement_manifest_org, target_sat):
+def test_positive_delete_rhel_repo(session, module_sca_manifest_org, target_sat):
     """Enable and sync a Red Hat Repository, and then delete it
 
     :id: e96f369d-3e58-4824-802e-0b7e99d6d207
@@ -847,7 +847,7 @@ def test_positive_delete_rhel_repo(session, module_entitlement_manifest_org, tar
     repository_name = sat_tools_repo.data['repository']
     product_name = sat_tools_repo.data['product']
     with session:
-        session.organization.select(module_entitlement_manifest_org.name)
+        session.organization.select(module_sca_manifest_org.name)
         session.redhatrepository.enable(
             sat_tools_repo.data['repository-set'],
             sat_tools_repo.data['arch'],

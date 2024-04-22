@@ -80,9 +80,10 @@ def _get_vmware_datastore_summary_string(data_store_name=settings.vmware.datasto
     return f'{data_store_name} (free: {free_space}, prov: {prov}, total: {capacity})'
 
 
+@pytest.mark.e2e
 @pytest.mark.tier1
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
-def test_positive_end_to_end(session, module_org, module_location, vmware, module_target_sat):
+def test_positive_cr_end_to_end(session, module_org, module_location, vmware, module_target_sat):
     """Perform end-to-end testing for compute resource VMware component.
 
     :id: 47fc9e77-5b22-46b4-a76c-3217434fde2f
