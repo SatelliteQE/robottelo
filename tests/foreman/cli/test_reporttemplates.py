@@ -749,7 +749,7 @@ def test_positive_generate_ansible_template(module_target_sat):
 @pytest.mark.no_containers
 @pytest.mark.tier3
 def test_positive_generate_entitlements_report_multiple_formats(
-    module_entitlement_manifest_org, local_ak, local_subscription, rhel7_contenthost, target_sat
+    module_sca_manifest_org, local_ak, local_subscription, rhel7_contenthost, target_sat
 ):
     """Generate an report using the Subscription - Entitlement Report template
     in html, yaml, and csv format.
@@ -773,11 +773,11 @@ def test_positive_generate_entitlements_report_multiple_formats(
     """
     client = rhel7_contenthost
     client.install_katello_ca(target_sat)
-    client.register_contenthost(module_entitlement_manifest_org.label, local_ak['name'])
+    client.register_contenthost(module_sca_manifest_org.label, local_ak['name'])
     assert client.subscribed
     result_html = target_sat.cli.ReportTemplate.generate(
         {
-            'organization': module_entitlement_manifest_org.name,
+            'organization': module_sca_manifest_org.name,
             'name': 'Subscription - Entitlement Report',
             'report-format': 'html',
             'inputs': 'Days from Now=no limit',
@@ -787,7 +787,7 @@ def test_positive_generate_entitlements_report_multiple_formats(
     assert local_subscription['name'] in result_html
     result_yaml = target_sat.cli.ReportTemplate.generate(
         {
-            'organization': module_entitlement_manifest_org.name,
+            'organization': module_sca_manifest_org.name,
             'name': 'Subscription - Entitlement Report',
             'report-format': 'yaml',
             'inputs': 'Days from Now=no limit',
@@ -800,7 +800,7 @@ def test_positive_generate_entitlements_report_multiple_formats(
             assert local_subscription['name'] in entry
     result_csv = target_sat.cli.ReportTemplate.generate(
         {
-            'organization': module_entitlement_manifest_org.name,
+            'organization': module_sca_manifest_org.name,
             'name': 'Subscription - Entitlement Report',
             'report-format': 'csv',
             'inputs': 'Days from Now=no limit',

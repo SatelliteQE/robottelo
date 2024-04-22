@@ -667,7 +667,7 @@ def test_positive_schedule_entitlements_report(setup_content, target_sat):
 
 @pytest.mark.no_containers
 @pytest.mark.tier3
-def test_positive_generate_job_report(setup_content, target_sat, content_hosts):
+def test_positive_generate_job_report(setup_content, module_target_sat, content_hosts):
     """Generate a report using the Job - Invocation Report template.
 
     :id: 946c39db-3061-43d7-b922-1be61f0c7d93
@@ -687,17 +687,17 @@ def test_positive_generate_job_report(setup_content, target_sat, content_hosts):
     """
     ak, org = setup_content
     for host in content_hosts:
-        host.install_katello_ca(target_sat)
+        host.install_katello_ca(module_target_sat)
         host.register_contenthost(org.label, ak.name)
-        host.add_rex_key(target_sat)
+        host.add_rex_key(module_target_sat)
         assert host.subscribed
         # Run a Job on the Host
     template_id = (
-        target_sat.api.JobTemplate()
+        module_target_sat.api.JobTemplate()
         .search(query={'search': 'name="Run Command - Script Default"'})[0]
         .id
     )
-    job = target_sat.api.JobInvocation().run(
+    job = module_target_sat.api.JobInvocation().run(
         synchronous=False,
         data={
             'job_template_id': template_id,
@@ -708,11 +708,11 @@ def test_positive_generate_job_report(setup_content, target_sat, content_hosts):
             'search_query': f'name ^ ({content_hosts[0].hostname} && {content_hosts[1].hostname}',
         },
     )
-    target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
-    result = target_sat.api.JobInvocation(id=job['id']).read()
+    module_target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
+    result = module_target_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 2
     rt = (
-        target_sat.api.ReportTemplate()
+        module_target_sat.api.ReportTemplate()
         .search(query={'search': 'name="Job - Invocation Report"'})[0]
         .read()
     )
@@ -726,7 +726,7 @@ def test_positive_generate_job_report(setup_content, target_sat, content_hosts):
     assert res[0]['Host'] == content_hosts[0].hostname
     assert res[1]['Host'] == content_hosts[1].hostname
     assert '/root' in res[0]['stdout']
-    assert res[1]['stdout']
+    assert '/root' in res[1]['stdout']
 
 
 @pytest.mark.tier2
