@@ -119,7 +119,7 @@ def session_puppet_enabled_proxy(session_puppet_enabled_sat):
 @pytest.fixture(scope='session')
 def session_puppet_default_os(session_puppet_enabled_sat):
     """Default OS on the puppet-enabled Satellite"""
-    search_string = 'name="RedHat" AND (major="6" OR major="7" OR major="8")'
+    search_string = 'name="RedHat" AND (major="6" OR major="7" OR major="8" OR major="9")'
     return (
         session_puppet_enabled_sat.api.OperatingSystem()
         .search(query={'search': search_string})[0]
