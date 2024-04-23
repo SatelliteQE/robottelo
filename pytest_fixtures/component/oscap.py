@@ -38,7 +38,7 @@ def scap_content(import_ansible_roles, module_target_sat):
     scap_profile_id = [
         profile['id']
         for profile in scap_info.scap_content_profiles
-        if OSCAP_PROFILE[f'dsrhel{module_target_sat.os_version.major}'] in profile['title']
+        if module_target_sat.OSCAP['dsrhel'] in profile['title']
     ][0]
     return {
         "title": title,
