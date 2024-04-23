@@ -1,5 +1,6 @@
 from fauxfactory import gen_string
 import pytest
+from wrapanapi import VMWareSystem
 
 from robottelo.config import settings
 
@@ -11,6 +12,17 @@ def vmware(request):
         'vmware8': settings.vmware.vcenter8,
     }
     return versions[getattr(request, 'param', 'vmware8')]
+
+
+@pytest.fixture
+def vmwareclient(vmware):
+    vmwareclient = VMWareSystem(
+        hostname=vmware.hostname,
+        username=settings.vmware.username,
+        password=settings.vmware.password,
+    )
+    yield vmwareclient
+    vmwareclient.disconnect()
 
 
 @pytest.fixture(scope='module')

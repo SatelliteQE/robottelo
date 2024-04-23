@@ -17,7 +17,7 @@ from random import choice
 from nailgun import entities
 import pytest
 from wait_for import TimedOutError, wait_for
-from wrapanapi.systems.virtualcenter import VMWareSystem, vim
+from wrapanapi.systems.virtualcenter import vim
 
 from robottelo.config import settings
 from robottelo.constants import (
@@ -57,20 +57,18 @@ def _get_normalized_size(size):
     return f'{size} {suffixes[suffix_index]}'
 
 
-def _get_vmware_datastore_summary_string(data_store_name=settings.vmware.datastore, vmware=None):
+@pytest.fixture
+def get_vmware_datastore_summary_string(vmware, vmwareclient):
     """Return the datastore string summary for data_store_name
 
     For "Local-Ironforge" datastore the string looks Like:
 
         "Local-Ironforge (free: 1.66 TB, prov: 2.29 TB, total: 2.72 TB)"
     """
-    system = VMWareSystem(
-        hostname=vmware.hostname,
-        username=settings.vmware.username,
-        password=settings.vmware.password,
-    )
     data_store_summary = [
-        h for h in system.get_obj_list(vim.Datastore) if h.host and h.name == data_store_name
+        h
+        for h in vmwareclient.get_obj_list(vim.Datastore)
+        if h.host and h.name == settings.vmware.datastore
     ][0].summary
     uncommitted = data_store_summary.uncommitted or 0
     capacity = _get_normalized_size(data_store_summary.capacity)
@@ -78,7 +76,7 @@ def _get_vmware_datastore_summary_string(data_store_name=settings.vmware.datasto
     prov = _get_normalized_size(
         data_store_summary.capacity + uncommitted - data_store_summary.freeSpace
     )
-    return f'{data_store_name} (free: {free_space}, prov: {prov}, total: {capacity})'
+    return f'{settings.vmware.datastore} (free: {free_space}, prov: {prov}, total: {capacity})'
 
 
 @pytest.mark.tier1
@@ -295,7 +293,9 @@ def test_positive_resource_vm_power_management(session, vmware):
 @pytest.mark.upgrade
 @pytest.mark.tier2
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
-def test_positive_vmware_custom_profile_end_to_end(session, vmware, request, target_sat):
+def test_positive_vmware_custom_profile_end_to_end(
+    session, vmware, request, target_sat, get_vmware_datastore_summary_string
+):
     """Perform end to end testing for VMware compute profile.
 
     :id: 24f7bb5f-2aaf-48cb-9a56-d2d0713dfe3d
@@ -330,13 +330,12 @@ def test_positive_vmware_custom_profile_end_to_end(session, vmware, request, tar
     cdrom_drive = True
     disk_size = '10 GB'
     network = 'VLAN 1001'  # hardcoding network here as this test won't be doing actual provisioning
-    data_store_summary_string = _get_vmware_datastore_summary_string(vmware=vmware)
     storage_data = {
         'storage': {
             'controller': VMWARE_CONSTANTS['scsicontroller'],
             'disks': [
                 {
-                    'data_store': data_store_summary_string,
+                    'data_store': get_vmware_datastore_summary_string,
                     'size': disk_size,
                     'thin_provision': True,
                 }
