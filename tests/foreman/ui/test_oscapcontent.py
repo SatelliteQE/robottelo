@@ -11,22 +11,11 @@
 :CaseImportance: High
 
 """
-import os
 
 import pytest
 
-from robottelo.config import robottelo_tmp_dir, settings
 from robottelo.constants import DataFile
 from robottelo.utils.datafactory import gen_string
-
-
-@pytest.fixture(scope='module')
-def oscap_content_path(module_target_sat):
-    _, file_name = os.path.split(settings.oscap.content_path)
-
-    local_file = robottelo_tmp_dir.joinpath(file_name)
-    module_target_sat.get(remote_path=settings.oscap.content_path, local_path=str(local_file))
-    return local_file
 
 
 @pytest.mark.skip_if_open("BZ:2167937")
