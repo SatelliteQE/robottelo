@@ -312,14 +312,6 @@ def enroll_configure_rhsso_external_auth(module_target_sat):
         ).status
         == 0
     )
-    if is_open('BZ:2113905'):
-        assert (
-            module_target_sat.execute(
-                r"sed -i -e '$aapache::default_mods:\n  - authn_core' "
-                "/etc/foreman-installer/custom-hiera.yaml"
-            ).status
-            == 0
-        )
     assert (
         module_target_sat.execute(
             f'satellite-installer --foreman-keycloak true '
