@@ -215,12 +215,12 @@ class TestTemplateSyncTestCase:
                 'repo': url,
                 'branch': git_branch,
                 'organization-id': module_org.id,
-                'filter': 'atomic',
+                'filter': 'provisioning',
                 'dirname': dirname,
             }
         ).split('\n')
         exported_count = ['Exported: true' in row.strip() for row in output].count(True)
-        path = f'{dirname}/provisioning_templates/provision'
+        path = f'{dirname}/provisioning_templates/snippet'
         auth = (git.username, git.password)
         api_url = f'http://{git.hostname}:{git.http_port}'
         api_url = f'{api_url}/api/v1/repos/{git.username}/{git_repository["name"]}/contents'
