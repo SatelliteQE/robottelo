@@ -5,7 +5,7 @@ from nailgun import entities
 import pytest
 
 from robottelo.config import robottelo_tmp_dir, settings
-from robottelo.constants import OSCAP_PROFILE, OSCAP_TAILORING_FILE, DataFile
+from robottelo.constants import OSCAP_TAILORING_FILE, DataFile
 
 
 @pytest.fixture(scope="session")
