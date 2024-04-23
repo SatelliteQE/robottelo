@@ -1894,7 +1894,6 @@ FAM_TEST_PLAYBOOKS = [
     "content_export_repository",
     "content_export_version",
     "content_rhel_role",
-    "content_upload_ostree",
     "content_upload",
     "content_view_filter_info",
     "content_view_filter_rule_info",
@@ -1955,9 +1954,9 @@ FAM_TEST_PLAYBOOKS = [
     "puppet_environment",
     "realm",
     "redhat_manifest",
+    "registration_command",
     "repositories_role",
     "repository_info",
-    "repository_ostree",
     "repository_set_info",
     "repository_set",
     "repository_sync",
@@ -1984,6 +1983,7 @@ FAM_TEST_PLAYBOOKS = [
     "usergroup",
     "user",
     "wait_for_task",
+    "webhook",
 ]
 
 FAM_ROOT_DIR = '/usr/share/ansible/collections/ansible_collections/redhat/satellite'
