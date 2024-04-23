@@ -1867,7 +1867,7 @@ class Satellite(Capsule, SatelliteMixins):
                         AttributeError
                     ):  # not everything has an mro method, we don't care about them
                         if Base in obj.mro():
-                            getattr(self._cli, name).omitting_credentials = True
+                            getattr(self._cli, name).omitting_credentials = False
 
     @contextmanager
     def ui_session(self, testname=None, user=None, password=None, url=None, login=True):
