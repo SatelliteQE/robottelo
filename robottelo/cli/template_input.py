@@ -26,7 +26,7 @@ class TemplateInput(Base):
     command_base = 'template-input'
 
     @classmethod
-    def create(cls, options=None):
+    def create(cls, options=None, timeout=None):
         """
         Creates a new record using the arguments passed via dictionary.
         """
@@ -36,7 +36,7 @@ class TemplateInput(Base):
         if options is None:
             options = {}
 
-        result = cls.execute(cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv', timeout=timeout)
 
         # Extract new object ID if it was successfully created
         if len(result) > 0 and 'id' in result[0]:
