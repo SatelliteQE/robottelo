@@ -478,10 +478,10 @@ class HostInterface(Base):
     command_base = 'host interface'
 
     @classmethod
-    def create(cls, options=None):
+    def create(cls, options=None, timeout=None):
         """Create new network interface for host"""
         cls.command_sub = 'create'
-        cls.execute(cls._construct_command(options), output_format='csv')
+        cls.execute(cls._construct_command(options), output_format='csv', timeout=timeout)
 
 
 class HostTraces(Base):
