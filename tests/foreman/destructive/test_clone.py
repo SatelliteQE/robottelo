@@ -15,13 +15,18 @@ import pytest
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.hosts import Satellite
+from robottelo.hosts import Satellite, get_sat_rhel_version
 
 SSH_PASS = settings.server.ssh_password
 pytestmark = pytest.mark.destructive
 
 
 @pytest.mark.e2e
+@pytest.mark.parametrize(
+    "sat_ready_rhel",
+    [8, 9] if get_sat_rhel_version().major < 9 else [9],
+    indirect=True,
+)
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
 @pytest.mark.parametrize('skip_pulp', [False, True], ids=['include_pulp', 'skip_pulp'])
 def test_positive_clone_backup(
