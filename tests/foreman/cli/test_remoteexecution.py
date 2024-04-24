@@ -1081,7 +1081,7 @@ class TestPullProviderRex:
     ):
         """Run custom template on host registered to mqtt, check effective user setting
 
-        :id: da9985aa-d319-418f-bc5e-7f4cb4fc4916
+        :id: 759ad51d-eea7-4d7b-b6ee-60af2b814464
 
         :expectedresults: Verify the job was successfully ran against the host registered to mqtt,
             effective user setting is honored.
