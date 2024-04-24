@@ -1482,9 +1482,6 @@ def test_positive_provision_baremetal_with_uefi_secureboot():
 def setup_custom_repo(target_sat, module_org, katello_host_tools_host, request):
     """Create custom repository content"""
 
-    sca_enabled = module_org.simple_content_access
-    module_org.sca_disable()
-
     # get package details
     details = {}
     if katello_host_tools_host.os_version.major == 6:
@@ -1512,28 +1509,13 @@ def setup_custom_repo(target_sat, module_org, katello_host_tools_host, request):
     ).create()
     custom_repo.sync()
 
-    subs = target_sat.api.Subscription(organization=module_org, name=prod.name).search()
-    assert len(subs), f'Subscription for sat client product: {prod.name} was not found.'
-    custom_sub = subs[0]
-
-    katello_host_tools_host.nailgun_host.bulk_add_subscriptions(
-        data={
-            "organization_id": module_org.id,
-            "included": {"ids": [katello_host_tools_host.nailgun_host.id]},
-            "subscriptions": [{"id": custom_sub.id, "quantity": 1}],
-        }
-    )
     # make sure repo is enabled
     katello_host_tools_host.enable_repo(
         f'{module_org.name}_{prod.name}_{custom_repo.name}', force=True
     )
     # refresh repository metadata
     katello_host_tools_host.subscription_manager_list_repos()
-    if sca_enabled:
-        yield details
-        module_org.sca_enable()
-    else:
-        return details
+    return details
 
 
 @pytest.fixture
@@ -2262,13 +2244,6 @@ def test_syspurpose_end_to_end(
         purpose_usage="test-usage",
         service_level="Self-Support",
     ).create()
-    target_sat.cli.ActivationKey.add_subscription(
-        {
-            'organization-id': module_org.id,
-            'id': activation_key.id,
-            'subscription-id': default_subscription.id,
-        }
-    )
     # Register a host using the activation key
     host_subscription_client.register_contenthost(
         module_org.name, activation_key=activation_key.name
@@ -2278,7 +2253,7 @@ def test_syspurpose_end_to_end(
     host_subscription_client.enable_repo(module_rhst_repo)
     host = target_sat.cli.Host.info({'name': host_subscription_client.hostname})
     # Assert system purpose values are set in the host as expected
-    assert host['subscription-information']['system-purpose']['purpose-addons'] == purpose_addons
+    assert host['subscription-information']['system-purpose']['purpose-addons'][0] == purpose_addons
     assert host['subscription-information']['system-purpose']['purpose-role'] == "test-role"
     assert host['subscription-information']['system-purpose']['purpose-usage'] == "test-usage"
     assert host['subscription-information']['system-purpose']['service-level'] == "Self-Support"
@@ -2294,20 +2269,11 @@ def test_syspurpose_end_to_end(
     )
     host = target_sat.cli.Host.info({'id': host['id']})
     # Assert system purpose values have been updated in the host as expected
-    assert host['subscription-information']['system-purpose']['purpose-addons'] == "test-addon3"
+    assert host['subscription-information']['system-purpose']['purpose-addons'][0] == "test-addon3"
     assert host['subscription-information']['system-purpose']['purpose-role'] == "test-role2"
     assert host['subscription-information']['system-purpose']['purpose-usage'] == "test-usage2"
     assert host['subscription-information']['system-purpose']['service-level'] == "Self-Support2"
-    host_subscriptions = target_sat.cli.ActivationKey.subscriptions(
-        {
-            'organization-id': module_org.id,
-            'id': activation_key.id,
-            'host-id': host['id'],
-        },
-        output_format='json',
-    )
-    assert len(host_subscriptions) > 0
-    assert host_subscriptions[0]['name'] == default_subscription.name
+
     # Unregister host
     target_sat.cli.Host.subscription_unregister({'host': host_subscription_client.hostname})
     with pytest.raises(CLIReturnCodeError):

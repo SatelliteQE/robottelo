@@ -157,6 +157,12 @@ class Host(Base):
         return facts
 
     @classmethod
+    def info(cls, options=None):
+        """Show host info"""
+        cls.command_sub = 'info'
+        return cls.execute(cls._construct_command(options), output_format='json')
+
+    @classmethod
     def package_install(cls, options):
         """Install packages remotely."""
         cls.command_sub = 'package install'
