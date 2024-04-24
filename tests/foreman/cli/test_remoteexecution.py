@@ -955,6 +955,110 @@ class TestPullProviderRex:
         result = module_target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
 
     @pytest.mark.tier3
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_match('[^6].*')
+    @pytest.mark.parametrize(
+        'setting_update',
+        ['remote_execution_global_proxy=False'],
+        ids=["no_global_proxy"],
+        indirect=True,
+    )
+    def test_positive_run_job_in_chosen_directory(
+        self,
+        module_org,
+        module_target_sat,
+        smart_proxy_location,
+        module_ak_with_cv,
+        module_capsule_configured_mqtt,
+        rhel_contenthost,
+        setting_update,
+    ):
+        """Run job on host registered to mqtt, check it honors run directory
+
+        :id: d4ae37db-d3b6-41b3-bd98-48c29389e4c5
+
+        :expectedresults: Verify the job was successfully ran against the host registered to mqtt, in the correct directory
+
+        :BZ: 2217079
+
+        :parametrized: yes
+        """
+        client_repo = ohsnap.dogfood_repository(
+            settings.ohsnap,
+            product='client',
+            repo='client',
+            release='client',
+            os_release=rhel_contenthost.os_version.major,
+        )
+        # Update module_capsule_configured_mqtt to include module_org/smart_proxy_location
+        module_target_sat.cli.Capsule.update(
+            {
+                'name': module_capsule_configured_mqtt.hostname,
+                'organization-ids': module_org.id,
+                'location-ids': smart_proxy_location.id,
+            }
+        )
+        # register host with pull provider rex
+        result = rhel_contenthost.register(
+            module_org,
+            smart_proxy_location,
+            module_ak_with_cv.name,
+            module_capsule_configured_mqtt,
+            setup_remote_execution_pull=True,
+            repo=client_repo.baseurl,
+            ignore_subman_errors=True,
+            force=True,
+        )
+
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        # check mqtt client is running
+        result = rhel_contenthost.execute('systemctl status yggdrasild')
+        assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
+
+        # create a new directory and set in in yggdrasil
+        path = f'/{gen_string("alpha")}'
+        config_path_dir = '/etc/systemd/system/yggdrasild.service.d/'
+        config_path = f'{config_path_dir}/override.conf'
+        assert (
+            rhel_contenthost.execute(
+                f'mkdir {path} && mount -t tmpfs tmpfs {path} && mkdir {config_path_dir} && echo -e "[Service]\nEnvironment=FOREMAN_YGG_WORKER_WORKDIR={path}" > {config_path} && systemctl daemon-reload && systemctl restart yggdrasild'
+            ).status
+            == 0
+        )
+
+        # run rex command in the created directory
+        invocation_command = module_target_sat.cli_factory.job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': 'command=printenv',
+                'search-query': f"name ~ {rhel_contenthost.hostname}",
+            }
+        )
+        assert_job_invocation_result(
+            module_target_sat, invocation_command['id'], rhel_contenthost.hostname
+        )
+        assert (
+            f'FOREMAN_YGG_WORKER_WORKDIR={path}'
+            in module_target_sat.cli.JobInvocation.get_output(
+                {'id': invocation_command['id'], 'host': rhel_contenthost.hostname}
+            )
+        )
+
+        # remount the directory as noexec
+        rhel_contenthost.execute(f'mount -o remount,noexec {path}')
+
+        # run rex command in the created directory again;
+        # it should fail; if it does not, it is probably not being run in that directory
+        with pytest.raises(CLIFactoryError):
+            invocation_command = module_target_sat.cli_factory.job_invocation(
+                {
+                    'job-template': 'Run Command - Script Default',
+                    'inputs': 'command=printenv',
+                    'search-query': f"name ~ {rhel_contenthost.hostname}",
+                }
+            )
+
+    @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.e2e
     @pytest.mark.no_containers
