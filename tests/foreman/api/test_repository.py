@@ -1524,7 +1524,7 @@ class TestRepositorySync:
             1. OS with corresponding version was created.
 
         """
-        distro = f'rhel{distro} + "_bos"' if distro > 7 else f'rhel{distro}'
+        distro = f'rhel{distro}_bos' if distro > 7 else f'rhel{distro}'
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_entitlement_manifest_org.id,
