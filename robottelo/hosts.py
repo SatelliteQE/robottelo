@@ -1851,9 +1851,27 @@ class Satellite(Capsule, SatelliteMixins):
 
     @contextmanager
     def omit_credentials(self):
-        self.omitting_credentials = True
+        change = not self.omitting_credentials  # if not already set to omit
+        if change:
+            self.omitting_credentials = True
+            # if CLI is already created
+            if self._cli._configured:
+                for name, obj in self._cli.__dict__.items():
+                    with contextlib.suppress(
+                        AttributeError
+                    ):  # not everything has an mro method, we don't care about them
+                        if Base in obj.mro():
+                            getattr(self._cli, name).omitting_credentials = True
         yield
-        self.omitting_credentials = False
+        if change:
+            self.omitting_credentials = False
+            if self._cli._configured:
+                for name, obj in self._cli.__dict__.items():
+                    with contextlib.suppress(
+                        AttributeError
+                    ):  # not everything has an mro method, we don't care about them
+                        if Base in obj.mro():
+                            getattr(self._cli, name).omitting_credentials = False
 
     @contextmanager
     def ui_session(self, testname=None, user=None, password=None, url=None, login=True):
