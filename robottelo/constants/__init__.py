@@ -714,7 +714,6 @@ CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/lib/pulp/imports/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
-CUSTOM_REPODATA_PATH = '/var/lib/pulp/published/yum/https/repos'
 CERT_PATH = "/etc/pki/ca-trust/source/anchors/"
 CERT_DATA = {
     'capsule_hostname': 'capsule.example.com',
@@ -859,6 +858,7 @@ CUSTOM_PUPPET_MODULE_REPOS = {
 }
 CUSTOM_PUPPET_MODULE_REPOS_VERSION = '-0.2.0.tar.gz'
 
+PULP_ARTIFACT_DIR = '/var/lib/pulp/media/artifact/'
 PULP_EXPORT_DIR = '/var/lib/pulp/exports/'
 PULP_IMPORT_DIR = '/var/lib/pulp/imports/'
 EXPORT_LIBRARY_NAME = 'Export-Library'
