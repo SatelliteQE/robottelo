@@ -11,6 +11,8 @@
 :CaseImportance: High
 
 """
+from datetime import datetime
+import random
 
 from datetime import datetime
 import random
@@ -22,6 +24,7 @@ from robottelo.config import settings
 from robottelo.constants import (
     CONTAINER_REGISTRY_HUB,
     CONTAINER_UPSTREAM_NAME,
+    PULP_ARTIFACT_DIR,
 )
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
 from robottelo.content_info import get_repo_files_urls_by_url
