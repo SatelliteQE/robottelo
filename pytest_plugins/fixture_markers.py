@@ -5,11 +5,13 @@ from robottelo.config import settings
 
 TARGET_FIXTURES = [
     'rhel_contenthost',
+    'module_rhel_contenthost',
     'content_hosts',
     'module_provisioning_rhel_content',
     'capsule_provisioning_rhel_content',
     'module_sync_kickstart_content',
     'rex_contenthost',
+    'rex_contenthosts',
 ]
 
 
@@ -17,7 +19,7 @@ def pytest_generate_tests(metafunc):
     content_host_fixture = ''.join([i for i in TARGET_FIXTURES if i in metafunc.fixturenames])
     if content_host_fixture in metafunc.fixturenames:
         function_marks = getattr(metafunc.function, 'pytestmark', [])
-        no_containers = any('no_containers' == mark.name for mark in function_marks)
+        no_containers = any(mark.name == 'no_containers' for mark in function_marks)
         # process eventual rhel_version_list markers
         matchers = [i.args for i in function_marks if i.name == 'rhel_ver_list']
         list_params = []
@@ -87,6 +89,7 @@ def pytest_collection_modifyitems(session, items, config):
         for param in params:
             if 'contenthost' in param:
                 return params[param].get('rhel_version')
+        return None
 
     content_host_fixture_names = [m[0] for m in getmembers(contenthosts, isfunction)]
     for item in items:

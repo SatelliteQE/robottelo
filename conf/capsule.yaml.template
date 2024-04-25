@@ -1,4 +1,6 @@
 CAPSULE:
+  # Capsule hostname for N-minus testing
+  HOSTNAME:
   VERSION:
     # The full release version (6.9.2)
     RELEASE:  # populate with capsule version

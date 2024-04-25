@@ -85,8 +85,7 @@ def export_import_cleanup_module(target_sat, module_org):
 @pytest.fixture
 def function_import_org(target_sat):
     """Creates an Organization for content import."""
-    org = target_sat.api.Organization().create()
-    return org
+    return target_sat.api.Organization().create()
 
 
 @pytest.fixture
@@ -152,14 +151,13 @@ def function_synced_rh_repo(request, target_sat, function_sca_manifest_org):
     # Update the download policy to 'immediate' and sync
     target_sat.cli.Repository.update({'download-policy': 'immediate', 'id': repo['id']})
     target_sat.cli.Repository.synchronize({'id': repo['id']}, timeout='2h')
-    repo = target_sat.cli.Repository.info(
+    return target_sat.cli.Repository.info(
         {
             'organization-id': function_sca_manifest_org.id,
             'name': repo_dict['name'],
             'product': repo_dict['product'],
         }
     )
-    return repo
 
 
 @pytest.fixture
@@ -1237,6 +1235,14 @@ class TestContentViewSync:
                 {'organization-id': function_import_org_with_manifest.id, 'path': import_path}
             )
         assert '1 subtask(s) failed' in error.value.message
+        target_sat.wait_for_tasks(
+            search_query=(
+                'Actions::Katello::ContentView::Remove and '
+                f'organization_id = {function_import_org_with_manifest.id}'
+            ),
+            max_tries=5,
+            poll_rate=10,
+        )
 
         # Verify no content is imported and the import CV can be deleted
         imported_cv = target_sat.cli.ContentView.info(
@@ -1579,6 +1585,7 @@ class TestContentViewSync:
         assert len(importing_cvv) == 1
 
     @pytest.mark.tier3
+    @pytest.mark.skip_if_open("BZ:2262379")
     def test_postive_export_import_ansible_collection_repo(
         self,
         target_sat,
@@ -1942,6 +1949,106 @@ class TestContentViewSync:
                 f'{repomd_refs - drive_files}'
             )
 
+    @pytest.mark.tier3
+    def test_postive_export_import_with_long_name(
+        self,
+        target_sat,
+        config_export_import_settings,
+        export_import_cleanup_module,
+        module_org,
+        function_import_org,
+    ):
+        """Export and import content entities (product, repository, CV) with a long name.
+
+        :id: 66d676ab-4e06-446b-b893-e236b26d37d9
+
+        :steps:
+            1. Create product and repository with a long name, sync it.
+            2. Export the repository, import it and verify the prod and repo names match the export.
+            3. Verify the imported content matches the export.
+            4. Create CV with a long name, add the repo and publish.
+            5. Export the CV, import it and verify its name matches the export.
+            6. Verify the imported content matches the export.
+
+        :expectedresults:
+            1. Exports and imports should succeed without any errors and names
+               and content of imported entities should match the export.
+
+        :BZ: 2124275, 2053329
+
+        :customerscenario: true
+        """
+        # Create product and repository with a long name, sync it.
+        product = target_sat.cli_factory.make_product(
+            {'name': gen_string('alpha', 128), 'organization-id': module_org.id}
+        )
+        repo = target_sat.cli_factory.make_repository(
+            {
+                'name': gen_string('alpha', 128),
+                'content-type': 'yum',
+                'download-policy': 'immediate',
+                'organization-id': module_org.id,
+                'product-id': product.id,
+            }
+        )
+        target_sat.cli.Repository.synchronize({'id': repo.id})
+        exported_packages = target_sat.cli.Package.list({'repository-id': repo.id})
+
+        # Export the repository, import it and verify the prod and repo names match the export.
+        export = target_sat.cli.ContentExport.completeRepository(
+            {'id': repo.id, 'organization-id': module_org.id}
+        )
+        import_path = target_sat.move_pulp_archive(module_org, export['message'])
+        target_sat.cli.ContentImport.repository(
+            {'organization-id': function_import_org.id, 'path': import_path}
+        )
+        import_repo = target_sat.cli.Repository.info(
+            {
+                'organization-id': function_import_org.id,
+                'name': repo.name,
+                'product': product.name,
+            }
+        )
+
+        # Verify the imported content matches the export.
+        imported_packages = target_sat.cli.Package.list({'repository-id': import_repo['id']})
+        assert imported_packages == exported_packages, 'Imported content does not match the export'
+
+        # Create CV with a long name, add the repo and publish.
+        exporting_cv = target_sat.cli_factory.make_content_view(
+            {'name': gen_string('alpha', 128), 'organization-id': module_org.id}
+        )
+        target_sat.cli.ContentView.add_repository(
+            {
+                'id': exporting_cv.id,
+                'organization-id': module_org.id,
+                'repository-id': repo.id,
+            }
+        )
+        target_sat.cli.ContentView.publish({'id': exporting_cv['id']})
+        exporting_cv = target_sat.cli.ContentView.info({'id': exporting_cv['id']})
+        assert len(exporting_cv['versions']) == 1
+        exporting_cvv_id = exporting_cv['versions'][0]['id']
+
+        # Export the CV, import it and verify its name matches the export.
+        export = target_sat.cli.ContentExport.completeVersion(
+            {'id': exporting_cvv_id, 'organization-id': module_org.id}
+        )
+        import_path = target_sat.move_pulp_archive(module_org, export['message'])
+        target_sat.cli.ContentImport.version(
+            {'organization-id': function_import_org.id, 'path': import_path}
+        )
+        importing_cv = target_sat.cli.ContentView.info(
+            {'name': exporting_cv['name'], 'organization-id': function_import_org.id}
+        )
+        assert len(importing_cv['versions']) == 1
+
+        # Verify the imported content matches the export.
+        imported_packages = target_sat.cli.Package.list(
+            {'content-view-version-id': importing_cv['versions'][0]['id']}
+        )
+        assert exported_packages == imported_packages
+
 
 class TestInterSatelliteSync:
     """Implements InterSatellite Sync tests in CLI"""
@@ -2265,6 +2372,7 @@ class TestInterSatelliteSync:
         meta_file = 'metadata.json'
         crt_file = 'source.crt'
         pub_dir = '/var/www/html/pub/repos'
+        request.addfinalizer(lambda: target_sat.execute(f'rm -rf {pub_dir}'))
 
         # Export the repository in syncable format and move it
         # to /var/www/html/pub/repos to mimic custom CDN.
@@ -2281,7 +2389,6 @@ class TestInterSatelliteSync:
         exp_dir = exp_dir[0].replace(meta_file, '')
 
         assert target_sat.execute(f'mv {exp_dir} {pub_dir}').status == 0
-        request.addfinalizer(lambda: target_sat.execute(f'rm -rf {pub_dir}'))
         target_sat.execute(f'semanage fcontext -a -t httpd_sys_content_t "{pub_dir}(/.*)?"')
         target_sat.execute(f'restorecon -R {pub_dir}')
 

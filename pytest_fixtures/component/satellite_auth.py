@@ -271,11 +271,12 @@ def auth_data(request, ad_data, ipa_data):
         ad_data['attr_login'] = LDAP_ATTR['login_ad']
         ad_data['auth_type'] = auth_type
         return ad_data
-    elif auth_type == 'ipa':
+    if auth_type == 'ipa':
         ipa_data['server_type'] = LDAP_SERVER_TYPE['UI']['ipa']
         ipa_data['attr_login'] = LDAP_ATTR['login']
         ipa_data['auth_type'] = auth_type
         return ipa_data
+    return None
 
 
 @pytest.fixture(scope='module')
@@ -334,7 +335,6 @@ def enable_external_auth_rhsso(
     default_sso_host.set_the_redirect_uri()
 
 
-@pytest.mark.external_auth
 @pytest.fixture(scope='module')
 def module_enroll_idm_and_configure_external_auth(module_target_sat):
     ipa_host = IPAHost(module_target_sat)
@@ -343,7 +343,6 @@ def module_enroll_idm_and_configure_external_auth(module_target_sat):
     ipa_host.disenroll_idm()
 
 
-@pytest.mark.external_auth
 @pytest.fixture
 def func_enroll_idm_and_configure_external_auth(target_sat):
     ipa_host = IPAHost(target_sat)
@@ -410,19 +409,16 @@ def rhsso_setting_setup_with_timeout(module_target_sat, rhsso_setting_setup):
     setting_entity.update({'value'})
 
 
-@pytest.mark.external_auth
 @pytest.fixture(scope='module')
 def module_enroll_ad_and_configure_external_auth(ad_data, module_target_sat):
     module_target_sat.enroll_ad_and_configure_external_auth(ad_data)
 
 
-@pytest.mark.external_auth
 @pytest.fixture
 def func_enroll_ad_and_configure_external_auth(ad_data, target_sat):
     target_sat.enroll_ad_and_configure_external_auth(ad_data)
 
 
-@pytest.mark.external_auth
 @pytest.fixture
 def configure_hammer_no_creds(parametrized_enrolled_sat):
     """Configures hammer to use sessions and negotiate auth."""
@@ -433,7 +429,6 @@ def configure_hammer_no_creds(parametrized_enrolled_sat):
     parametrized_enrolled_sat.execute(f'mv -f {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
 
 
-@pytest.mark.external_auth
 @pytest.fixture
 def configure_hammer_negotiate(parametrized_enrolled_sat, configure_hammer_no_creds):
     """Configures hammer to use sessions and negotiate auth."""
@@ -448,7 +443,6 @@ def configure_hammer_negotiate(parametrized_enrolled_sat, configure_hammer_no_cr
     parametrized_enrolled_sat.execute(f'mv -f {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
 
 
-@pytest.mark.external_auth
 @pytest.fixture
 def configure_hammer_no_negotiate(parametrized_enrolled_sat):
     """Configures hammer not to use automatic negotiation."""
@@ -458,15 +452,14 @@ def configure_hammer_no_negotiate(parametrized_enrolled_sat):
     parametrized_enrolled_sat.execute(f'mv -f {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
 
 
-@pytest.mark.external_auth
 @pytest.fixture
 def hammer_logout(parametrized_enrolled_sat):
     """Logout in Hammer."""
     result = parametrized_enrolled_sat.cli.Auth.logout()
-    assert result[0]['message'] == LOGGEDOUT
+    assert result.split("\n")[1] == LOGGEDOUT
     yield
     result = parametrized_enrolled_sat.cli.Auth.logout()
-    assert result[0]['message'] == LOGGEDOUT
+    assert result.split("\n")[1] == LOGGEDOUT
 
 
 @pytest.fixture

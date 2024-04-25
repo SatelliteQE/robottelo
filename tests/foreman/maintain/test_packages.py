@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: ForemanMaintain
+:CaseComponent: SatelliteMaintain
 
 :Team: Platform
 
@@ -160,6 +160,15 @@ def test_positive_fm_packages_install(request, sat_maintain):
 
     :expectedresults: Packages get install/update when lock/unlocked.
     """
+
+    @request.addfinalizer
+    def _finalize():
+        assert sat_maintain.execute('dnf remove -y zsh').status == 0
+        if sat_maintain.__class__.__name__ == 'Satellite':
+            result = sat_maintain.install(InstallerCommand('lock-package-versions'))
+            assert result.status == 0
+            assert 'Success!' in result.stdout
+
     # Test whether packages are locked or not
     result = sat_maintain.install(InstallerCommand('lock-package-versions'))
     assert result.status == 0
@@ -216,14 +225,6 @@ def test_positive_fm_packages_install(request, sat_maintain):
     assert result.status == 0
     assert 'Use foreman-maintain packages install/update <package>' not in result.stdout
 
-    @request.addfinalizer
-    def _finalize():
-        assert sat_maintain.execute('dnf remove -y zsh').status == 0
-        if sat_maintain.__class__.__name__ == 'Satellite':
-            result = sat_maintain.install(InstallerCommand('lock-package-versions'))
-            assert result.status == 0
-            assert 'Success!' in result.stdout
-
 
 @pytest.mark.include_capsule
 def test_positive_fm_packages_update(request, sat_maintain):
@@ -244,6 +245,12 @@ def test_positive_fm_packages_update(request, sat_maintain):
 
     :customerscenario: true
     """
+
+    @request.addfinalizer
+    def _finalize():
+        assert sat_maintain.execute('dnf remove -y walrus').status == 0
+        sat_maintain.execute('rm -rf /etc/yum.repos.d/custom_repo.repo')
+
     # Setup custom_repo and packages update
     sat_maintain.create_custom_repos(custom_repo=settings.repos.yum_0.url)
     disableplugin = '--disableplugin=foreman-protector'
@@ -263,8 +270,3 @@ def test_positive_fm_packages_update(request, sat_maintain):
     result = sat_maintain.execute('rpm -qa walrus')
     assert result.status == 0
     assert 'walrus-5.21-1' in result.stdout
-
-    @request.addfinalizer
-    def _finalize():
-        assert sat_maintain.execute('dnf remove -y walrus').status == 0
-        sat_maintain.execute('rm -rf /etc/yum.repos.d/custom_repo.repo')

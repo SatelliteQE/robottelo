@@ -26,8 +26,8 @@ def test_positive_parameter_precedence_impact(
 
     :steps:
         1. Create Global Parameter
-        2. Create host and verify global parameter is assigned
-        3. Create Host Group with parameter
+        2. Create Host Group with parameter
+        3. Create host and verify global parameter is assigned
         4. Assign hostgroup to host created above and verify hostgroup parameter is assigned.
         5. Add parameter on the host directly, and verify that this should take precedence
             over Host group and Global Parameter
@@ -39,27 +39,27 @@ def test_positive_parameter_precedence_impact(
     param_value = gen_string('alpha')
 
     cp = module_target_sat.api.CommonParameter(name=param_name, value=param_value).create()
-    host = module_target_sat.api.Host(organization=module_org, location=module_location).create()
-    result = [res for res in host.all_parameters if res['name'] == param_name]
-    assert result[0]['name'] == param_name
-    assert result[0]['associated_type'] == 'global'
+    request.addfinalizer(cp.delete)
 
     hg = module_target_sat.api.HostGroup(
         organization=[module_org],
         group_parameters_attributes=[{'name': param_name, 'value': param_value}],
     ).create()
+    request.addfinalizer(hg.delete)
+
+    host = module_target_sat.api.Host(organization=module_org, location=module_location).create()
+    request.addfinalizer(host.delete)
+    result = [res for res in host.all_parameters if res['name'] == param_name]
+    assert result[0]['name'] == param_name
+    assert result[0]['associated_type'] == 'global'
+
     host.hostgroup = hg
+
     host = host.update(['hostgroup'])
     result = [res for res in host.all_parameters if res['name'] == param_name]
     assert result[0]['name'] == param_name
     assert result[0]['associated_type'] != 'global'
     assert result[0]['associated_type'] == 'host group'
-
-    @request.addfinalizer
-    def _finalize():
-        host.delete()
-        hg.delete()
-        cp.delete()
 
     host.host_parameters_attributes = [{'name': param_name, 'value': param_value}]
     host = host.update(['host_parameters_attributes'])

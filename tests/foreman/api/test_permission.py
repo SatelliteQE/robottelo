@@ -38,28 +38,35 @@ class TestPermission:
         # workaround for setting class variables
         cls = type(self)
         cls.permissions = PERMISSIONS.copy()
-        if class_target_sat.is_upstream:
-            cls.permissions[None].extend(cls.permissions.pop('DiscoveryRule'))
-            cls.permissions[None].remove('app_root')
-            cls.permissions[None].remove('attachments')
-            cls.permissions[None].remove('configuration')
-            cls.permissions[None].remove('logs')
-            cls.permissions[None].remove('view_cases')
-            cls.permissions[None].remove('view_log_viewer')
 
-        result = class_target_sat.execute('rpm -qa | grep rubygem-foreman_openscap')
-        if result.status != 0:
+        rpm_packages = class_target_sat.execute('rpm -qa').stdout
+        if 'rubygem-foreman_rh_cloud' not in rpm_packages:
+            cls.permissions.pop('InsightsHit')
+            cls.permissions[None].remove('generate_foreman_rh_cloud')
+            cls.permissions[None].remove('view_foreman_rh_cloud')
+            cls.permissions[None].remove('dispatch_cloud_requests')
+            cls.permissions[None].remove('control_organization_insights')
+        if 'rubygem-foreman_bootdisk' not in rpm_packages:
+            cls.permissions[None].remove('download_bootdisk')
+        if 'rubygem-foreman_virt_who_configure' not in rpm_packages:
+            cls.permissions.pop('ForemanVirtWhoConfigure::Config')
+        if 'rubygem-foreman_openscap' not in rpm_packages:
             cls.permissions.pop('ForemanOpenscap::Policy')
             cls.permissions.pop('ForemanOpenscap::ScapContent')
             cls.permissions[None].remove('destroy_arf_reports')
             cls.permissions[None].remove('view_arf_reports')
             cls.permissions[None].remove('create_arf_reports')
-        result = class_target_sat.execute('rpm -qa | grep rubygem-foreman_remote_execution')
-        if result.status != 0:
+        if 'rubygem-foreman_remote_execution' not in rpm_packages:
             cls.permissions.pop('JobInvocation')
             cls.permissions.pop('JobTemplate')
             cls.permissions.pop('RemoteExecutionFeature')
             cls.permissions.pop('TemplateInvocation')
+        if 'rubygem-foreman_puppet' not in rpm_packages:
+            cls.permissions.pop('ForemanPuppet::ConfigGroup')
+            cls.permissions.pop('ForemanPuppet::Environment')
+            cls.permissions.pop('ForemanPuppet::HostClass')
+            cls.permissions.pop('ForemanPuppet::Puppetclass')
+            cls.permissions.pop('ForemanPuppet::PuppetclassLookupKey')
 
         #: e.g. ['Architecture', 'Audit', 'AuthSourceLdap', …]
         cls.permission_resource_types = list(cls.permissions.keys())
@@ -161,18 +168,20 @@ class TestPermission:
 
 # FIXME: This method is a hack. This information should somehow be tied
 # directly to the `Entity` classes.
-def _permission_name(entity, which_perm):
-    """Find a permission name.
+def _permission_names(entity, which_perm: str) -> list:
+    """Find permission names.
 
-    Attempt to locate a permission in :data:`robottelo.constants.PERMISSIONS`.
-    For example, return 'view_architectures' if ``entity`` is ``Architecture``
-    and ``which_perm`` is 'read'.
+    Attempt to locate permissions in :data:`robottelo.constants.PERMISSIONS`.
+
+    Examples:
+        _permission_names('Architecture', 'read') -> ['view_architectures']
+        _permission_names('Host', 'delete') -> ['destroy_discovered_hosts', 'destroy_hosts']
 
     :param entity: A ``nailgun.entity_mixins.Entity`` subclass.
     :param str which_perm: Either the word "create", "read", "update" or
         "delete".
-    :raise: ``LookupError`` if a relevant permission cannot be found, or if
-        multiple results are found.
+    :raise: ``LookupError`` if a relevant permission cannot be found
+    :returns: list of found permission names
     """
     pattern = {'create': '^create_', 'delete': '^destroy_', 'read': '^view_', 'update': '^edit_'}[
         which_perm
@@ -181,11 +190,11 @@ def _permission_name(entity, which_perm):
     permissions = PERMISSIONS.get(entity.__name__) or PERMISSIONS.get(f'Katello::{entity.__name__}')
     for permission in permissions:
         match = re.match(pattern, permission)
-        if match is not None:
+        if match:
             perm_names.append(permission)
-    if len(perm_names) != 1:
-        raise LookupError(f'Could not find the requested permission. Found: {perm_names}')
-    return perm_names[0]
+    if not perm_names:
+        raise LookupError(f'Could not find any "{which_perm}" permission for entity "{entity}"')
+    return perm_names
 
 
 # This class might better belong in module test_multiple_paths.
@@ -225,6 +234,15 @@ class TestUserRole:
         target_sat.api.Filter(permission=permissions, role=role).create()
         self.user.role += [role]
         self.user = self.user.update(['role'])
+
+    def give_user_permissions(self, perm_names, target_sat):
+        """Give ``self.user`` multiple permissions.
+        Otherwise, works the same as method ``self.give_user_permission``.
+
+        :param list perm_names: permission names
+        """
+        for perm_name in perm_names:
+            self.give_user_permission(perm_name, target_sat)
 
     def set_taxonomies(self, entity, organization=None, location=None):
         """Set organization and location for entity if it supports them.
@@ -273,7 +291,7 @@ class TestUserRole:
         """
         with pytest.raises(HTTPError):
             entity_cls(self.cfg).create()
-        self.give_user_permission(_permission_name(entity_cls, 'create'), target_sat)
+        self.give_user_permissions(_permission_names(entity_cls, 'create'), target_sat)
         new_entity = self.set_taxonomies(entity_cls(self.cfg), class_org, class_location)
         # Entities with both org and loc require
         # additional permissions to set them.
@@ -307,14 +325,16 @@ class TestUserRole:
         new_entity = new_entity.create()
         with pytest.raises(HTTPError):
             entity_cls(self.cfg, id=new_entity.id).read()
-        self.give_user_permission(_permission_name(entity_cls, 'read'), target_sat)
+        self.give_user_permissions(_permission_names(entity_cls, 'read'), target_sat)
         entity_cls(self.cfg, id=new_entity.id).read()
 
     @pytest.mark.upgrade
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'entity_cls',
-        **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),
+        **parametrized(
+            [entities.Architecture, entities.Domain, entities.ActivationKey, entities.Host]
+        ),
     )
     def test_positive_check_delete(self, entity_cls, class_org, class_location, target_sat):
         """Check whether the "destroy_*" role has an effect.
@@ -334,7 +354,7 @@ class TestUserRole:
         new_entity = new_entity.create()
         with pytest.raises(HTTPError):
             entity_cls(self.cfg, id=new_entity.id).delete()
-        self.give_user_permission(_permission_name(entity_cls, 'delete'), target_sat)
+        self.give_user_permissions(_permission_names(entity_cls, 'delete'), target_sat)
         entity_cls(self.cfg, id=new_entity.id).delete()
         with pytest.raises(HTTPError):
             new_entity.read()  # As admin user
@@ -371,7 +391,7 @@ class TestUserRole:
             update_entity = entity_cls(self.cfg, id=new_entity.id, name=name)
         with pytest.raises(HTTPError):
             update_entity.update(['name'])
-        self.give_user_permission(_permission_name(entity_cls, 'update'), target_sat)
+        self.give_user_permissions(_permission_names(entity_cls, 'update'), target_sat)
         # update() calls read() under the hood, which triggers
         # permission error
         if entity_cls is entities.ActivationKey:

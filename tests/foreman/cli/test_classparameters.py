@@ -86,8 +86,8 @@ class TestSmartClassParameters:
             location=module_puppet_loc.id,
             environment=module_puppet['env'].name,
         ).create()
-        host.add_puppetclass(data={'puppetclass_id': module_puppet['class']['id']})
         request.addfinalizer(host.delete)
+        host.add_puppetclass(data={'puppetclass_id': module_puppet['class']['id']})
         hostgroup = session_puppet_enabled_sat.cli_factory.hostgroup(
             {
                 'puppet-environment-id': module_puppet['env'].id,

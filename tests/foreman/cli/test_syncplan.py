@@ -580,7 +580,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
 @pytest.mark.tier4
 @pytest.mark.upgrade
 def test_positive_synchronize_rh_product_past_sync_date(
-    target_sat, function_entitlement_manifest_org, request
+    target_sat, function_sca_manifest_org, request
 ):
     """Create a sync plan with past datetime as a sync date, add a
     RH product and verify the product gets synchronized on the next sync
@@ -594,7 +594,7 @@ def test_positive_synchronize_rh_product_past_sync_date(
     """
     interval = 60 * 60  # 'hourly' sync interval in seconds
     delay = 2 * 60
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     target_sat.cli.RepositorySet.enable(
         {
             'name': REPOSET['rhva6'],
@@ -647,7 +647,7 @@ def test_positive_synchronize_rh_product_past_sync_date(
 @pytest.mark.tier4
 @pytest.mark.upgrade
 def test_positive_synchronize_rh_product_future_sync_date(
-    target_sat, function_entitlement_manifest_org, request
+    target_sat, function_sca_manifest_org, request
 ):
     """Create a sync plan with sync date in a future and sync one RH
     product with it automatically.
@@ -661,7 +661,7 @@ def test_positive_synchronize_rh_product_future_sync_date(
     cron_multiple = 5  # sync event is on every multiple of this value, starting from 00 mins
     delay = (cron_multiple) * 60  # delay for sync date in seconds
     guardtime = 180  # do not start test less than 2 mins before the next sync event
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     target_sat.cli.RepositorySet.enable(
         {
             'name': REPOSET['rhva6'],
@@ -705,7 +705,7 @@ def test_positive_synchronize_rh_product_future_sync_date(
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
         validate_task_status(target_sat, repo['id'], org.id, max_tries=1)
-    validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
+    validate_repo_content(target_sat, repo, ['errata', 'packages'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
         f"Waiting {(delay * 4 / 5)} seconds to check product {product['name']}"
@@ -714,7 +714,7 @@ def test_positive_synchronize_rh_product_future_sync_date(
     sleep(delay * 4 / 5)
     # Verify product was synced successfully
     validate_task_status(target_sat, repo['id'], org.id)
-    validate_repo_content(repo, ['errata', 'packages'])
+    validate_repo_content(target_sat, repo, ['errata', 'packages'])
 
 
 @pytest.mark.tier3

@@ -23,7 +23,7 @@ pytestmark = [pytest.mark.destructive]
 @pytest.mark.tier4
 @pytest.mark.skip_if_not_set('capsule')
 def test_positive_sync_without_deadlock(
-    target_sat, large_capsule_configured, function_entitlement_manifest_org
+    target_sat, large_capsule_configured, function_sca_manifest_org
 ):
     """Synchronize one bigger repo published in multiple CVs to a blank Capsule.
     Assert that the sync task succeeds and no deadlock happens.
@@ -54,7 +54,7 @@ def test_positive_sync_without_deadlock(
     # the lower rpms count. When the BZ is fixed, reconsider upscale to RHEL7 repo or similar.
     repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=constants.DEFAULT_ARCHITECTURE,
-        org_id=function_entitlement_manifest_org.id,
+        org_id=function_sca_manifest_org.id,
         product=constants.REPOS['rhscl7']['product'],
         repo=constants.REPOS['rhscl7']['name'],
         reposet=constants.REPOSET['rhscl7'],
@@ -63,7 +63,7 @@ def test_positive_sync_without_deadlock(
     repo = target_sat.api.Repository(id=repo_id).read()
     repo.sync(timeout='60m')
 
-    cv = target_sat.publish_content_view(function_entitlement_manifest_org, repo)
+    cv = target_sat.publish_content_view(function_sca_manifest_org, repo)
 
     for _ in range(4):
         copy_id = target_sat.api.ContentView(id=cv.id).copy(data={'name': gen_alpha()})['id']
@@ -75,9 +75,9 @@ def test_positive_sync_without_deadlock(
     proxy.update(['download_policy'])
 
     nailgun_capsule = large_capsule_configured.nailgun_capsule
-    lce = target_sat.api.LifecycleEnvironment(
-        organization=function_entitlement_manifest_org
-    ).search(query={'search': f'name={constants.ENVIRONMENT}'})[0]
+    lce = target_sat.api.LifecycleEnvironment(organization=function_sca_manifest_org).search(
+        query={'search': f'name={constants.ENVIRONMENT}'}
+    )[0]
     nailgun_capsule.content_add_lifecycle_environment(data={'environment_id': lce.id})
     result = nailgun_capsule.content_lifecycle_environments()
     assert len(result['results']) == 1
@@ -89,7 +89,7 @@ def test_positive_sync_without_deadlock(
 @pytest.mark.tier4
 @pytest.mark.skip_if_not_set('capsule')
 def test_positive_sync_without_deadlock_after_rpm_trim_changelog(
-    target_sat, capsule_configured, function_entitlement_manifest_org
+    target_sat, capsule_configured, function_sca_manifest_org
 ):
     """Promote a CV published with larger repos into multiple LCEs, assign LCEs to blank Capsule.
     Assert that the sync task succeeds and no deadlock happens.
@@ -115,7 +115,7 @@ def test_positive_sync_without_deadlock_after_rpm_trim_changelog(
 
     :BZ: 2170535, 2218661
     """
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     rh_repos = []
     tasks = []
     LCE_COUNT = 10

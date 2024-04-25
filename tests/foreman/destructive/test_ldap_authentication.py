@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: LDAP
+:CaseComponent: Authentication
 
 :Team: Endeavour
 
@@ -115,7 +115,6 @@ def rhsso_groups_teardown(module_target_sat, default_sso_host):
         default_sso_host.delete_rhsso_group(group_name)
 
 
-@pytest.mark.external_auth
 @pytest.fixture
 def configure_hammer_session(parametrized_enrolled_sat, enable=True):
     """Take backup of the hammer config file and enable use_sessions"""
@@ -199,9 +198,8 @@ def test_positive_create_with_https(
         assert ldap_source['ldap_server']['port'] == '636'
     with module_target_sat.ui_session(
         test_name, username, auth_data['ldap_user_passwd']
-    ) as ldapsession:
-        with pytest.raises(NavigationTriesExceeded):
-            ldapsession.user.search('')
+    ) as ldapsession, pytest.raises(NavigationTriesExceeded):
+        ldapsession.user.search('')
     assert module_target_sat.api.User().search(query={'search': f'login="{username}"'})
 
 

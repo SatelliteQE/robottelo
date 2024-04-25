@@ -40,7 +40,7 @@ jobs:
 
       - name: Wait for other status checks to Pass
         id: waitforstatuschecks
-        uses: lewagon/wait-on-check-action@v1.3.3
+        uses: lewagon/wait-on-check-action@v1.3.4
         with:
           ref: ${{ github.head_ref }}
           repo-token: ${{ secrets.CHERRYPICK_PAT }}
@@ -67,7 +67,7 @@ jobs:
 
       - id: automerge
         name: Auto merge of cherry-picked PRs.
-        uses: "pascalgn/automerge-action@v0.16.2"
+        uses: "pascalgn/automerge-action@v0.16.3"
         env:
           GITHUB_TOKEN: "${{ secrets.CHERRYPICK_PAT }}"
           MERGE_LABELS: "AutoMerge_Cherry_Picked, Auto_Cherry_Picked"

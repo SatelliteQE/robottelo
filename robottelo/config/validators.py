@@ -189,6 +189,10 @@ VALIDATORS = dict(
             must_exist=True,
         ),
     ],
+    jira=[
+        Validator('jira.url', default='https://issues.redhat.com'),
+        Validator('jira.api_key', must_exist=True),
+    ],
     ldap=[
         Validator(
             'ldap.basedn',
@@ -225,7 +229,12 @@ VALIDATORS = dict(
         Validator(
             'oscap.content_path',
             must_exist=True,
-        )
+        ),
+        Validator(
+            'oscap.profile',
+            default='security7',
+            must_exist=True,
+        ),
     ],
     osp=[
         Validator(

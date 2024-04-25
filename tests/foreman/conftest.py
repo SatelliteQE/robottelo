@@ -30,6 +30,10 @@ def pytest_collection_modifyitems(session, items, config):
     deselected_items = []
 
     for item in items:
+        if any("manifest" in f for f in getattr(item, "fixturenames", ())):
+            item.add_marker("manifester")
+        if any("ldap" in f for f in getattr(item, "fixturenames", ())):
+            item.add_marker("ldap")
         # 1. Deselect tests marked with @pytest.mark.deselect
         # WONTFIX BZs makes test to be dynamically marked as deselect.
         deselect = item.get_closest_marker('deselect')
@@ -66,7 +70,8 @@ def ui_session_record_property(request, record_property):
     test_file_path = request.node.fspath.strpath
     if any(directory in test_file_path for directory in test_directories):
         for fixture in request.node.fixturenames:
-            if request.fixturename != fixture:
-                if isinstance(request.getfixturevalue(fixture), Satellite):
-                    sat = request.getfixturevalue(fixture)
-                    sat.record_property = record_property
+            if request.fixturename != fixture and isinstance(
+                request.getfixturevalue(fixture), Satellite
+            ):
+                sat = request.getfixturevalue(fixture)
+                sat.record_property = record_property

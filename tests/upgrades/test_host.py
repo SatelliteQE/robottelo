@@ -72,7 +72,7 @@ class TestScenarioPositiveGCEHostComputeResource:
 
         Later in tests this host will be used to perform assertions
         """
-        host = sat_gce.api.Host(
+        return sat_gce.api.Host(
             architecture=sat_gce_default_architecture,
             compute_attributes=self.compute_attrs,
             domain=sat_gce_domain,
@@ -85,7 +85,6 @@ class TestScenarioPositiveGCEHostComputeResource:
             image=module_gce_finishimg,
             root_pass=gen_string('alphanumeric'),
         ).create()
-        return host
 
     def google_host(self, googleclient):
         """Returns the Google Client Host object to perform the assertions"""
@@ -162,6 +161,7 @@ class TestScenarioPositiveGCEHostComputeResource:
         pre_upgrade_host = sat_gce.api.Host().search(
             query={'search': f'name={pre_upgrade_data.provision_host_name}'}
         )[0]
+        request.addfinalizer(pre_upgrade_host.delete)
         org = sat_gce.api.Organization(id=pre_upgrade_host.organization.id).read()
         loc = sat_gce.api.Location(id=pre_upgrade_host.location.id).read()
         domain = sat_gce.api.Domain(id=pre_upgrade_host.domain.id).read()
@@ -186,7 +186,6 @@ class TestScenarioPositiveGCEHostComputeResource:
             image=image,
             root_pass=gen_string('alphanumeric'),
         ).create()
-        request.addfinalizer(pre_upgrade_host.delete)
         request.addfinalizer(host.delete)
         assert host.name == f"{self.hostname.lower()}.{domain.name}"
         assert host.build_status_label == 'Installed'

@@ -1,0 +1,5 @@
+JIRA:
+  # url default value is set to 'https://issues.redhat.com' even if not provided.
+  URL: https://issues.redhat.com
+  # Provide api_key to access Jira REST API
+  API_KEY: replace-with-jira-api-key

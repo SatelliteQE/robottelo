@@ -59,8 +59,44 @@ def ui_user(ui_user, smart_proxy_location, module_target_sat):
 
 
 @pytest.fixture
+def ui_admin_user(target_sat):
+    """Admin user."""
+    admin_user = target_sat.api.User().search(
+        query={'search': f'login={settings.server.admin_username}'}
+    )[0]
+    admin_user.password = settings.server.admin_password
+
+    return admin_user
+
+
+@pytest.fixture
+def ui_view_hosts_user(target_sat, current_sat_org, current_sat_location):
+    """User with View hosts role."""
+    role = target_sat.api.Role().search(query={'search': 'name="View hosts"'})[0]
+    password = gen_string('alphanumeric')
+    user = target_sat.api.User(
+        admin=False,
+        location=[current_sat_location],
+        organization=[current_sat_org],
+        role=[role],
+        password=password,
+    ).create()
+    user.password = password
+
+    yield user
+
+    user.delete()
+
+
+@pytest.fixture(params=['ui_admin_user', 'ui_view_hosts_user'])
+def ui_hosts_columns_user(request):
+    """Parametrized fixture returning defined users for the UI session."""
+    return request.getfixturevalue(request.param)
+
+
+@pytest.fixture
 def scap_policy(scap_content, target_sat):
-    scap_policy = target_sat.cli_factory.make_scap_policy(
+    return target_sat.cli_factory.make_scap_policy(
         {
             'name': gen_string('alpha'),
             'deploy-by': 'ansible',
@@ -70,7 +106,6 @@ def scap_policy(scap_content, target_sat):
             'weekday': OSCAP_WEEKDAY['friday'].lower(),
         }
     )
-    return scap_policy
 
 
 second_scap_policy = scap_policy
@@ -1058,44 +1093,9 @@ def test_positive_read_details_page_from_new_ui(session, host_ui_options):
 
 
 @pytest.mark.tier4
-@pytest.mark.rhel_ver_match('8')
-def test_rex_new_ui(session, target_sat, rex_contenthost):
-    """Run remote execution using the new host details page
-
-    :id: ee625595-4995-43b2-9e6d-633c9b33ff93
-
-    :steps:
-        1. Navigate to Overview tab
-        2. Schedule a job
-        3. Wait for the job to finish
-        4. Job is visible in Recent jobs card
-
-    :expectedresults: Remote execution succeeded and the job is visible on Recent jobs card on
-        Overview tab
-    """
-    hostname = rex_contenthost.hostname
-    job_args = {
-        'job_category': 'Commands',
-        'job_template': 'Run Command - Script Default',
-        'template_content.command': 'ls',
-    }
-    with session:
-        session.location.select(loc_name=DEFAULT_LOC)
-        session.host_new.schedule_job(hostname, job_args)
-        task_result = target_sat.wait_for_tasks(
-            search_query=(f'Remote action: Run ls on {hostname}'),
-            search_rate=2,
-            max_tries=30,
-        )
-        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
-        assert task_status['result'] == 'success'
-        recent_jobs = session.host_new.get_details(hostname, "overview.recent_jobs")['overview']
-        assert "Run ls" == recent_jobs['recent_jobs']['finished']['table'][0]['column0']
-        assert "succeeded" == recent_jobs['recent_jobs']['finished']['table'][0]['column2']
-
-
-@pytest.mark.tier4
-def test_positive_manage_table_columns(session, current_sat_org, current_sat_location):
+def test_positive_manage_table_columns(
+    target_sat, test_name, ui_hosts_columns_user, current_sat_org, current_sat_location
+):
     """Set custom columns of the hosts table.
 
     :id: e5e18982-cc43-11ed-8562-000c2989e153
@@ -1108,7 +1108,7 @@ def test_positive_manage_table_columns(session, current_sat_org, current_sat_loc
     :expectedresults: Check if the custom columns were set properly, i.e., are displayed
         or not displayed in the table.
 
-    :BZ: 1813274
+    :BZ: 1813274, 2212499
 
     :customerscenario: true
     """
@@ -1128,9 +1128,11 @@ def test_positive_manage_table_columns(session, current_sat_org, current_sat_loc
         'Boot time': True,
         'Recommendations': False,
     }
-    with session:
-        session.organization.select(org_name=current_sat_org)
-        session.location.select(loc_name=current_sat_location)
+    with target_sat.ui_session(
+        test_name, ui_hosts_columns_user.login, ui_hosts_columns_user.password
+    ) as session:
+        session.organization.select(org_name=current_sat_org.name)
+        session.location.select(loc_name=current_sat_location.name)
         session.host.manage_table_columns(columns)
         displayed_columns = session.host.get_displayed_table_headers()
         for column, is_displayed in columns.items():
@@ -1161,8 +1163,8 @@ def test_positive_host_details_read_templates(
     host = target_sat.api.Host().search(query={'search': f'name={target_sat.hostname}'})[0]
     api_templates = [template['name'] for template in host.list_provisioning_templates()]
     with session:
-        session.organization.select(org_name=current_sat_org)
-        session.location.select(loc_name=current_sat_location)
+        session.organization.select(org_name=current_sat_org.name)
+        session.location.select(loc_name=current_sat_location.name)
         host_detail = session.host_new.get_details(target_sat.hostname, widget_names='details')
         ui_templates = [
             row['column1'].strip()
@@ -1216,18 +1218,18 @@ def test_positive_update_delete_package(
         if not is_open('BZ:2132680'):
             product_name = module_repos_collection_with_setup.custom_product.name
             repos = session.host_new.get_repo_sets(client.hostname, product_name)
-            assert 'Enabled' == repos[0].status
+            assert repos[0].status == 'Enabled'
             session.host_new.override_repo_sets(
                 client.hostname, product_name, "Override to disabled"
             )
-            assert 'Disabled' == repos[0].status
+            assert repos[0].status == 'Disabled'
             session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
             result = client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
             assert result.status != 0
             session.host_new.override_repo_sets(
                 client.hostname, product_name, "Override to enabled"
             )
-            assert 'Enabled' == repos[0].status
+            assert repos[0].status == 'Enabled'
             # refresh repos on system
             client.run('subscription-manager repos')
         # install package
@@ -1284,7 +1286,7 @@ def test_positive_update_delete_package(
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
-        assert 'table' not in packages.keys()
+        assert 'table' not in packages
         result = client.run(f'rpm -q {FAKE_8_CUSTOM_PACKAGE}')
         assert result.status != 0
 
@@ -1361,7 +1363,7 @@ def test_positive_apply_erratum(
         assert task_status['result'] == 'success'
         # verify
         values = session.host_new.get_details(client.hostname, widget_names='content.errata')
-        assert 'table' not in values['content']['errata'].keys()
+        assert 'table' not in values['content']['errata']
         result = client.run(
             'yum update --assumeno --security | grep "No packages needed for security"'
         )

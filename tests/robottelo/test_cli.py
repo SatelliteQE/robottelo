@@ -146,9 +146,9 @@ class BaseCliTestCase(unittest.TestCase):
     def test_add_operating_system(self, construct, execute):
         """Check command_sub edited when executing add_operating_system"""
         options = {'foo': 'bar'}
-        assert 'add-operatingsystem' != Base.command_sub
+        assert Base.command_sub != 'add-operatingsystem'
         assert execute.return_value == Base.add_operating_system(options)
-        assert 'add-operatingsystem' == Base.command_sub
+        assert Base.command_sub == 'add-operatingsystem'
         construct.assert_called_once_with(options)
         execute.assert_called_once_with(construct.return_value)
 
@@ -158,7 +158,7 @@ class BaseCliTestCase(unittest.TestCase):
         """Check command create when result is empty"""
         execute.return_value = []
         assert execute.return_value == Base.create()
-        assert 'create' == Base.command_sub
+        assert Base.command_sub == 'create'
         construct.assert_called_once_with({})
         execute.assert_called_once_with(construct.return_value, output_format='csv', timeout=None)
 
@@ -169,7 +169,7 @@ class BaseCliTestCase(unittest.TestCase):
         """Check command create when result has dct but dct hasn't id key"""
         execute.return_value = [{'not_id': 'foo'}]
         assert execute.return_value == Base.create()
-        assert 'create' == Base.command_sub
+        assert Base.command_sub == 'create'
         construct.assert_called_once_with({})
         execute.assert_called_once_with(construct.return_value, output_format='csv', timeout=None)
         assert not info.called
@@ -184,7 +184,7 @@ class BaseCliTestCase(unittest.TestCase):
         execute.return_value = [{'id': 'foo', 'bar': 'bas'}]
         Base.command_requires_org = False
         assert execute.return_value == Base.create()
-        assert 'create' == Base.command_sub
+        assert Base.command_sub == 'create'
         construct.assert_called_once_with({})
         execute.assert_called_once_with(construct.return_value, output_format='csv', timeout=None)
         info.assert_called_once_with({'id': 'foo'})
@@ -199,7 +199,7 @@ class BaseCliTestCase(unittest.TestCase):
         execute.return_value = [{'id': 'foo', 'bar': 'bas'}]
         Base.command_requires_org = True
         assert execute.return_value == Base.create({'organization-id': 'org-id'})
-        assert 'create' == Base.command_sub
+        assert Base.command_sub == 'create'
         construct.assert_called_once_with({'organization-id': 'org-id'})
         execute.assert_called_once_with(construct.return_value, output_format='csv', timeout=None)
         info.assert_called_once_with({'id': 'foo', 'organization-id': 'org-id'})
@@ -214,7 +214,7 @@ class BaseCliTestCase(unittest.TestCase):
         Base.command_requires_org = True
         with pytest.raises(CLIError):
             Base.create()
-        assert 'create' == Base.command_sub
+        assert Base.command_sub == 'create'
         construct.assert_called_once_with({})
         execute.assert_called_once_with(construct.return_value, output_format='csv', timeout=None)
 
@@ -258,7 +258,7 @@ class BaseCliTestCase(unittest.TestCase):
         response = Base.execute('some_cmd', return_raw_response=True)
         ssh_cmd = 'LANG=en_US  hammer -v -u admin -p password  some_cmd'
         command.assert_called_once_with(
-            ssh_cmd.encode('utf-8'),
+            ssh_cmd,
             hostname=mock.ANY,
             output_format=None,
             timeout=None,
@@ -277,7 +277,7 @@ class BaseCliTestCase(unittest.TestCase):
         response = Base.execute('some_cmd', hostname=None, output_format='json')
         ssh_cmd = 'LANG=en_US time -p hammer -v -u admin -p password --output=json some_cmd'
         command.assert_called_once_with(
-            ssh_cmd.encode('utf-8'),
+            ssh_cmd,
             hostname=mock.ANY,
             output_format='json',
             timeout=None,
@@ -300,7 +300,7 @@ class BaseCliTestCase(unittest.TestCase):
         my_options = {'search': 'foo=bar'}
         response = Base.exists(my_options, search=['id', 1])
         lst_method.assert_called_once_with(my_options)
-        assert 1 == response
+        assert response == 1
 
     @mock.patch('robottelo.cli.base.Base.command_requires_org')
     def test_info_requires_organization_id(self, _):  # noqa: PT019 - not a fixture
@@ -366,7 +366,7 @@ class BaseCliTestCase(unittest.TestCase):
     def test_list_with_default_per_page(self, construct, execute):
         """Check list method set per_page as 1000 by default"""
         assert execute.return_value == Base.list(options={'organization-id': 1})
-        assert 'list' == Base.command_sub
+        assert Base.command_sub == 'list'
         construct.assert_called_once_with({'organization-id': 1, 'per-page': 10000})
         execute.assert_called_once_with(construct.return_value, output_format='csv')
 

@@ -116,7 +116,7 @@ def get_rhel_lifecycle_support(rhel_version):
     rhel_lifecycle_status = 'Unknown'
     if rhel_version not in rhels:
         return rhel_lifecycle_status
-    elif rhels.index(rhel_version) <= 1:
+    if rhels.index(rhel_version) <= 1:
         rhel_lifecycle_status = 'Full support'
     elif rhels.index(rhel_version) == 2:
         rhel_lifecycle_status = 'Approaching end of maintenance support'

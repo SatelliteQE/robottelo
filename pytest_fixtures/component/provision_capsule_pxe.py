@@ -35,7 +35,7 @@ def capsule_provisioning_sat(
     sat = module_target_sat
     provisioning_domain_name = f"{gen_string('alpha').lower()}.foo"
     broker_data_out = Broker().execute(
-        workflow='configure-install-sat-provisioning-rhv',
+        workflow=settings.provisioning.provisioning_sat_workflow,
         artifacts='last',
         target_vlan_id=settings.provisioning.vlan_id,
         target_host=module_capsule_configured.name,
@@ -209,7 +209,7 @@ def capsule_provisioning_rhel_content(
             releasever=constants.REPOS['kickstart'][name]['version'],
         )
         # do not sync content repos for discovery based provisioning.
-        if not capsule_provisioning_sat.provisioning_type == 'discovery':
+        if capsule_provisioning_sat.provisioning_type != 'discovery':
             rh_repo_id = sat.api_factory.enable_rhrepo_and_fetchid(
                 basearch=constants.DEFAULT_ARCHITECTURE,
                 org_id=module_sca_manifest_org.id,

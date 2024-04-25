@@ -14,6 +14,7 @@ import time
 from urllib.parse import urljoin, urlparse, urlunsplit
 import warnings
 
+import apypie
 from box import Box
 from broker import Broker
 from broker.hosts import Host
@@ -76,8 +77,7 @@ def lru_sat_ready_rhel(rhel_ver):
         'promtail_config_template_file': 'config_sat.j2',
         'workflow': settings.server.deploy_workflows.os,
     }
-    sat_ready_rhel = Broker(**deploy_args, host_class=Satellite).checkout()
-    return sat_ready_rhel
+    return Broker(**deploy_args, host_class=Satellite).checkout()
 
 
 def get_sat_version():
@@ -171,6 +171,10 @@ class IPAHostError(Exception):
     pass
 
 
+class ProxyHostError(Exception):
+    pass
+
+
 class ContentHost(Host, ContentHostMixins):
     run = Host.execute
     default_timeout = settings.server.ssh_client.command_timeout
@@ -245,8 +249,8 @@ class ContentHost(Host, ContentHostMixins):
                 logger.error(f'Failed to get nailgun host for {self.hostname}: {err}')
                 host = None
             return host
-        else:
-            logger.warning(f'Host {self.hostname} not registered to {self.satellite.hostname}')
+        logger.warning(f'Host {self.hostname} not registered to {self.satellite.hostname}')
+        return None
 
     @property
     def subscribed(self):
@@ -515,6 +519,7 @@ class ContentHost(Host, ContentHostMixins):
             downstream_repo = settings.repos.capsule_repo
         if force or settings.robottelo.cdn or not downstream_repo:
             return self.execute(f'subscription-manager repos --enable {repo}')
+        return None
 
     def subscription_manager_list_repos(self):
         return self.execute('subscription-manager repos --list')
@@ -1586,18 +1591,35 @@ class Capsule(ContentHost, CapsuleMixins):
         for line in result.stdout.splitlines():
             if error_msg in line:
                 return line.replace(error_msg, '').strip()
+        return None
 
     def install(self, installer_obj=None, cmd_args=None, cmd_kwargs=None):
         """General purpose installer"""
         if not installer_obj:
             command_opts = {'scenario': self.__class__.__name__.lower()}
-            command_opts.update(cmd_kwargs)
+            if cmd_kwargs:
+                command_opts.update(cmd_kwargs)
             installer_obj = InstallerCommand(*cmd_args, **command_opts)
         return self.execute(installer_obj.get_command(), timeout=0)
 
     def get_features(self):
         """Get capsule features"""
         return requests.get(f'https://{self.hostname}:9090/features', verify=False).text
+
+    def enable_capsule_downstream_repos(self):
+        """Enable CDN repos and capsule downstream repos on Capsule Host"""
+        # CDN Repos
+        self.register_to_cdn()
+        for repo in getattr(constants, f"OHSNAP_RHEL{self.os_version.major}_REPOS"):
+            result = self.enable_repo(repo, force=True)
+            if result.status:
+                raise CapsuleHostError(f'Repo enable at capsule host failed\n{result.stdout}')
+        # Downstream Capsule specific Repos
+        self.download_repofile(
+            product='capsule',
+            release=settings.capsule.version.release,
+            snap=settings.capsule.version.snap,
+        )
 
     def capsule_setup(self, sat_host=None, capsule_cert_opts=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
@@ -1675,19 +1697,6 @@ class Capsule(ContentHost, CapsuleMixins):
         if result.status != 0:
             raise SatelliteHostError(f'Failed to enable pull provider: {result.stdout}')
 
-    def run_installer_arg(self, *args, timeout='20m'):
-        """Run an installer argument on capsule"""
-        installer_args = list(args)
-        installer_command = InstallerCommand(
-            installer_args=installer_args,
-        )
-        result = self.execute(
-            installer_command.get_command(),
-            timeout=timeout,
-        )
-        if result.status != 0:
-            raise SatelliteHostError(f'Failed to execute with argument: {result.stderr}')
-
     def set_mqtt_resend_interval(self, value):
         """Set the time interval in seconds at which the notification should be
         re-sent to the mqtt host until the job is picked up or cancelled"""
@@ -1730,6 +1739,25 @@ class Capsule(ContentHost, CapsuleMixins):
         self._cli._configured = True
         return self._cli
 
+    def enable_satellite_or_capsule_module_for_rhel8(self):
+        """Enable Satellite/Capsule module for RHEL8.
+        Note: Make sure required repos are enabled before using this.
+        """
+        if self.os_version.major == 8:
+            assert (
+                self.execute(
+                    f'dnf -y module enable {self.product_rpm_name}:el{self.os_version.major}'
+                ).status
+                == 0
+            )
+
+    def install_satellite_or_capsule_package(self):
+        """Install Satellite/Capsule package. Also handles module enablement for RHEL8.
+        Note: Make sure required repos are enabled before using this.
+        """
+        self.enable_satellite_or_capsule_module_for_rhel8()
+        assert self.execute(f'dnf -y install {self.product_rpm_name}').status == 0
+
 
 class Satellite(Capsule, SatelliteMixins):
     product_rpm_name = 'satellite'
@@ -1743,6 +1771,7 @@ class Satellite(Capsule, SatelliteMixins):
         # create dummy classes for later population
         self._api = type('api', (), {'_configured': False})
         self._cli = type('cli', (), {'_configured': False})
+        self._apidoc = None
         self.record_property = None
 
     def _swap_nailgun(self, new_version):
@@ -1754,7 +1783,7 @@ class Satellite(Capsule, SatelliteMixins):
         pip_main(['uninstall', '-y', 'nailgun'])
         pip_main(['install', f'https://github.com/SatelliteQE/nailgun/archive/{new_version}.zip'])
         self._api = type('api', (), {'_configured': False})
-        to_clear = [k for k in sys.modules.keys() if 'nailgun' in k]
+        to_clear = [k for k in sys.modules if 'nailgun' in k]
         [sys.modules.pop(k) for k in to_clear]
 
     @property
@@ -1795,6 +1824,19 @@ class Satellite(Capsule, SatelliteMixins):
                 pass
         self._api._configured = True
         return self._api
+
+    @property
+    def apidoc(self):
+        """Provide Satellite's apidoc via apypie"""
+        if not self._apidoc:
+            self._apidoc = apypie.Api(
+                uri=self.url,
+                username=settings.server.admin_username,
+                password=settings.server.admin_password,
+                api_version=2,
+                verify_ssl=settings.server.verify_ca,
+            ).apidoc
+        return self._apidoc
 
     @property
     def cli(self):
@@ -1844,6 +1886,7 @@ class Satellite(Capsule, SatelliteMixins):
             for frame in inspect.stack():
                 if frame.function.startswith('test_'):
                     return frame.function
+            return None
 
         try:
             ui_session = Session(
@@ -2525,3 +2568,42 @@ class IPAHost(Host):
         )
         if result.status != 0:
             raise IPAHostError('Failed to remove the user from user group')
+
+
+class ProxyHost(Host):
+    """Class representing HTTP Proxy host"""
+
+    def __init__(self, url, **kwargs):
+        self._conf_dir = '/etc/squid/'
+        self._access_log = '/var/log/squid/access.log'
+        kwargs['hostname'] = urlparse(url).hostname
+        super().__init__(**kwargs)
+
+    def add_user(self, name, passwd):
+        """Adds new user to the HTTP Proxy"""
+        res = self.execute(f"htpasswd -b {self._conf_dir}passwd {name} '{passwd}'")
+        assert res.status == 0, f'User addition failed on the proxy side: {res.stderr}'
+        return res
+
+    def remove_user(self, name):
+        """Removes a user from HTTP Proxy"""
+        res = self.execute(f'htpasswd -D {self._conf_dir}passwd {name}')
+        assert res.status == 0, f'User deletion failed on the proxy side: {res.stderr}'
+        return res
+
+    def get_log(self, which=None, tail=None, grep=None):
+        """Returns log content from the HTTP Proxy instance
+
+        :param which: Which log file should be read. Defaults to access.log.
+        :param tail: Use when only the tail of a long log file is needed.
+        :param grep: Grep for some expression.
+        :return: Log content found or None
+        """
+        log_file = which or self._access_log
+        cmd = f'tail -n {tail} {log_file}' if tail else f'cat {log_file}'
+        if grep:
+            cmd = f'{cmd} | grep "{grep}"'
+        res = self.execute(cmd)
+        if res.status != 0:
+            raise ProxyHostError(f'Proxy log read failed: {res.stderr}')
+        return None if res.stdout == '' else res.stdout

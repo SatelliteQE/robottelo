@@ -87,6 +87,7 @@ class TestContentView:
         cv = target_sat.api.ContentView(organization=org.id).search(
             query={'search': f'name="{cv_name}"'}
         )[0]
+        request.addfinalizer(cv.delete)
         yum_repo = target_sat.api.Repository(organization=org.id).search(
             query={'search': f'name="{pre_test_name}_yum_repo"'}
         )[0]
@@ -95,7 +96,6 @@ class TestContentView:
             query={'search': f'name="{pre_test_name}_file_repo"'}
         )[0]
         request.addfinalizer(file_repo.delete)
-        request.addfinalizer(cv.delete)
         cv.repository = []
         cv.update(['repository'])
         assert len(cv.read_json()['repositories']) == 0

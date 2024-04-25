@@ -101,7 +101,6 @@ def invalid_update_data():
 
 
 @pytest.fixture(scope="module")
-@pytest.mark.skip_if_not_set('libvirt')
 def libvirt_url():
     return LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
 
@@ -365,7 +364,7 @@ def test_negative_update(libvirt_url, options, module_target_sat):
     # check attributes have not changed
     assert result['name'] == comp_res['name']
     options.pop('new-name', None)
-    for key in options.keys():
+    for key in options:
         assert comp_res[key] == result[key]
 
 

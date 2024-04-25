@@ -22,10 +22,9 @@ from requests.exceptions import HTTPError
 @pytest.fixture(scope='module')
 def module_perms(module_target_sat):
     """Search for provisioning template permissions. Set ``cls.ct_perms``."""
-    ct_perms = module_target_sat.api.Permission().search(
+    return module_target_sat.api.Permission().search(
         query={'search': 'resource_type="ProvisioningTemplate"'}
     )
-    return ct_perms
 
 
 @pytest.mark.tier1
