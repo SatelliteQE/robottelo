@@ -9,6 +9,7 @@ from wrapanapi.systems.google import GoogleCloudSystem
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
+    DEFAULT_OS_SEARCH_QUERY,
     DEFAULT_PTABLE,
     FOREMAN_PROVIDERS,
     GCE_RHEL_CLOUD_PROJECTS,
@@ -41,8 +42,7 @@ def sat_gce_domain(sat_gce, sat_gce_loc, sat_gce_org):
 @pytest.fixture(scope='module')
 def sat_gce_default_os(sat_gce):
     """Default OS on the Satellite"""
-    search_string = 'name="RedHat" AND (major="6" OR major="7" OR major="8" OR major="9")'
-    return sat_gce.api.OperatingSystem().search(query={'search': search_string})[0].read()
+    return sat_gce.api.OperatingSystem().search(query={'search': DEFAULT_OS_SEARCH_QUERY})[0].read()
 
 
 @pytest.fixture(scope='session')
@@ -101,15 +101,6 @@ def gce_latest_rhel_uuid(googleclient):
 @pytest.fixture(scope='session')
 def gce_custom_cloudinit_uuid(googleclient, gce_cert):
     return googleclient.get_template('customcinit', project=gce_cert['project_id']).uuid
-
-
-@pytest.fixture(scope='session')
-def session_default_os(session_target_sat):
-    """Default OS on the Satellite"""
-    search_string = 'name="RedHat" AND (major="6" OR major="7" OR major="8")'
-    return (
-        session_target_sat.api.OperatingSystem().search(query={'search': search_string})[0].read()
-    )
 
 
 @pytest.fixture(scope='module')

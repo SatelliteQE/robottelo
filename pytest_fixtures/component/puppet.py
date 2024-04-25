@@ -1,7 +1,7 @@
 # Puppet Environment fixtures
 import pytest
 
-from robottelo.constants import ENVIRONMENT
+from robottelo import constants
 
 
 @pytest.fixture(scope='session')
@@ -119,10 +119,9 @@ def session_puppet_enabled_proxy(session_puppet_enabled_sat):
 @pytest.fixture(scope='session')
 def session_puppet_default_os(session_puppet_enabled_sat):
     """Default OS on the puppet-enabled Satellite"""
-    search_string = 'name="RedHat" AND (major="6" OR major="7" OR major="8")'
     return (
         session_puppet_enabled_sat.api.OperatingSystem()
-        .search(query={'search': search_string})[0]
+        .search(query={'search': constants.DEFAULT_OS_SEARCH_QUERY})[0]
         .read()
     )
 
@@ -141,9 +140,11 @@ def module_puppet_lce_library(session_puppet_enabled_sat, module_puppet_org):
     """Returns the Library lifecycle environment from chosen organization"""
     return (
         session_puppet_enabled_sat.api.LifecycleEnvironment()
-        .search(query={'search': f'name={ENVIRONMENT} and organization_id={module_puppet_org.id}'})[
-            0
-        ]
+        .search(
+            query={
+                'search': f'name={constants.ENVIRONMENT} and organization_id={module_puppet_org.id}'
+            }
+        )[0]
         .read()
     )
 

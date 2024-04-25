@@ -11,6 +11,7 @@ from robottelo.constants import (
     AZURERM_RHEL7_FT_IMG_URN,
     AZURERM_RHEL7_UD_IMG_URN,
     DEFAULT_ARCHITECTURE,
+    DEFAULT_OS_SEARCH_QUERY,
 )
 
 
@@ -38,8 +39,9 @@ def sat_azure_domain(sat_azure, sat_azure_loc, sat_azure_org):
 @pytest.fixture(scope='module')
 def sat_azure_default_os(sat_azure):
     """Default OS on the Satellite"""
-    search_string = 'name="RedHat" AND (major="6" OR major="7" OR major="8" OR major="9")'
-    return sat_azure.api.OperatingSystem().search(query={'search': search_string})[0].read()
+    return (
+        sat_azure.api.OperatingSystem().search(query={'search': DEFAULT_OS_SEARCH_QUERY})[0].read()
+    )
 
 
 @pytest.fixture(scope='module')
