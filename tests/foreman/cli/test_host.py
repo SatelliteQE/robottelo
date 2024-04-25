@@ -232,7 +232,7 @@ def parse_cli_entity_list_help_message(help_message):
         name = name[:-1]  # remove colon from name
         if 'Usage' in name:
             continue
-        elif 'Options' in name:
+        if 'Options' in name:
             # used together with previous_line when line (message) is appended to previous line
             options = parse_two_columns(content, options_start_with_dash=True)
         elif 'field sets' in name:
@@ -1061,18 +1061,18 @@ def test_positive_parameter_crud(function_host, target_sat):
         {'host-id': function_host['id'], 'name': name, 'value': value}
     )
     host = target_sat.cli.Host.info({'id': function_host['id']})
-    assert name in host['parameters'].keys()
+    assert name in host['parameters']
     assert value == host['parameters'][name]
 
     new_value = valid_data_list()[name]
     target_sat.cli.Host.set_parameter({'host-id': host['id'], 'name': name, 'value': new_value})
     host = target_sat.cli.Host.info({'id': host['id']})
-    assert name in host['parameters'].keys()
+    assert name in host['parameters']
     assert new_value == host['parameters'][name]
 
     target_sat.cli.Host.delete_parameter({'host-id': host['id'], 'name': name})
     host = target_sat.cli.Host.info({'id': host['id']})
-    assert name not in host['parameters'].keys()
+    assert name not in host['parameters']
 
 
 # -------------------------- HOST PARAMETER SCENARIOS -------------------------
@@ -1098,7 +1098,7 @@ def test_negative_add_parameter(function_host, target_sat):
             }
         )
     host = target_sat.cli.Host.info({'id': function_host['id']})
-    assert name not in host['parameters'].keys()
+    assert name not in host['parameters']
 
 
 @pytest.mark.cli_host_parameter
@@ -2014,16 +2014,19 @@ def test_negative_without_attach(
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
 def test_negative_without_attach_with_lce(
-    target_sat, host_subscription_client, function_org, function_lce
+    target_sat,
+    host_subscription_client,
+    function_org,
+    function_lce,
 ):
     """Attempt to enable a repository of a subscription that was not
-    attached to a host
+    attached to a host.
     This test is not using the host_subscription entities except
     subscription_name and repository_id
 
     :id: fc469e70-a7cb-4fca-b0ea-3c9e3dfff849
 
-    :expectedresults: repository not enabled on host
+    :expectedresults: Repository enabled due to SCA. Why is this "negative"? To keep history, because pre-6.16, this would have failed.
 
     :parametrized: yes
     """
@@ -2035,8 +2038,8 @@ def test_negative_without_attach_with_lce(
     target_sat.cli_factory.setup_org_for_a_rh_repo(
         {
             'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhst7'],
-            'repository': REPOS['rhst7']['name'],
+            'repository-set': REPOSET['rhsclient7'],
+            'repository': REPOS['rhsclient7']['name'],
             'organization-id': function_org.id,
             'content-view-id': content_view.id,
             'lifecycle-environment-id': function_lce.id,
@@ -2045,27 +2048,18 @@ def test_negative_without_attach_with_lce(
         },
         force_use_cdn=True,
     )
-    host_lce = target_sat.api.LifecycleEnvironment(organization=function_org).create()
-    # refresh content view data
-    content_view.publish()
-    content_view.read().version[-1].promote(data={'environment_ids': host_lce.id, 'force': False})
 
     # register client
     host_subscription_client.register_contenthost(
         function_org.name,
-        lce=f'{host_lce.name}/{content_view.name}',
+        lce=f'{function_lce.name}/{content_view.name}',
         auto_attach=False,
     )
 
-    # get list of available subscriptions which are matched with default subscription
-    subscriptions = host_subscription_client.run(
-        f'subscription-manager list --available --matches "{DEFAULT_SUBSCRIPTION_NAME}" --pool-only'
-    )
-    pool_id = subscriptions.stdout.strip()
-    # attach to plain RHEL subsctiption
-    host_subscription_client.subscription_manager_attach_pool([pool_id])
     assert host_subscription_client.subscribed
-    host_subscription_client.enable_repo(REPOS['rhst7']['id'])
+    res = host_subscription_client.enable_repo(REPOS['rhsclient7']['id'])
+    assert res.status == 0
+    assert f"Repository '{REPOS['rhsclient7']['id']}' is enabled for this system." in res.stdout
 
 
 @pytest.mark.e2e

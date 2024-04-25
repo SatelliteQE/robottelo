@@ -1,40 +1,34 @@
 # Version updates managed by dependabot
 
+apypie==0.4.0
 betelgeuse==1.11.0
-# broker[docker]==0.4.1 - Temporarily disabled, see below
+broker[docker]==0.4.9
 cryptography==42.0.5
-deepdiff==6.7.1
-docker==7.0.0  # Temporary until Broker is back on PyPi
-dynaconf[vault]==3.2.4
-fauxfactory==3.1.0
+deepdiff==7.0.1
+dynaconf[vault]==3.2.5
+fauxfactory==3.1.1
 jinja2==3.1.3
 manifester==0.0.14
 navmazing==1.2.2
-paramiko==3.4.0  # Temporary until Broker is back on PyPi
 productmd==1.38
 pyotp==2.9.0
 python-box==7.1.1
-pytest==8.1.0
-pytest-order==1.2.0
+pytest==8.1.1
+pytest-order==1.2.1
 pytest-services==2.2.1
-pytest-mock==3.12.0
-pytest-reportportal==5.4.0
+pytest-mock==3.14.0
+pytest-reportportal==5.4.1
 pytest-xdist==3.5.0
 pytest-fixturecollection==0.1.2
 pytest-ibutsu==2.2.4
 PyYAML==6.0.1
 requests==2.31.0
 tenacity==8.2.3
-testimony==2.3.0
+testimony==2.4.0
 wait-for==1.2.0
 wrapanapi==3.6.0
 
 # Get airgun, nailgun and upgrade from master
-git+https://github.com/SatelliteQE/airgun.git@master#egg=airgun
-git+https://github.com/SatelliteQE/nailgun.git@master#egg=nailgun
-# Broker currently is unable to push to PyPi due to [1] and [2]
-# In the meantime, we install directly from the repo
-# [1] - https://github.com/ParallelSSH/ssh2-python/issues/193
-# [2] - https://github.com/pypi/warehouse/issues/7136
-git+https://github.com/SatelliteQE/broker.git@0.4.5#egg=broker
+airgun @ git+https://github.com/SatelliteQE/airgun.git@master#egg=airgun
+nailgun @ git+https://github.com/SatelliteQE/nailgun.git@master#egg=nailgun
 --editable .

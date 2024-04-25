@@ -91,8 +91,7 @@ def function_leapp_cv(module_target_sat, module_sca_manifest_org, leapp_repos, m
     function_leapp_cv.publish()
     cvv = function_leapp_cv.read().version[0]
     cvv.promote(data={'environment_ids': module_leapp_lce.id, 'force': True})
-    function_leapp_cv = function_leapp_cv.read()
-    return function_leapp_cv
+    return function_leapp_cv.read()
 
 
 @pytest.fixture
@@ -121,7 +120,7 @@ def leapp_repos(
     source = upgrade_path['source_version']
     target = upgrade_path['target_version']
     all_repos = []
-    for rh_repo_key in RHEL_REPOS.keys():
+    for rh_repo_key in RHEL_REPOS:
         release_version = RHEL_REPOS[rh_repo_key]['releasever']
         if release_version in str(source) or release_version in target:
             prod = 'rhel' if 'rhel7' in rh_repo_key else rh_repo_key.split('_')[0]

@@ -1,12 +1,12 @@
 """CLI tests for RH Cloud - Inventory, aka Insights Inventory Upload
 
-:Requirement: RH Cloud - Inventory
+:Requirement: RHCloud
 
 :CaseAutomation: Automated
 
-:CaseComponent: RHCloud-Inventory
+:CaseComponent: RHCloud
 
-:Team: Platform
+:Team: Phoenix-subscriptions
 
 :CaseImportance: High
 

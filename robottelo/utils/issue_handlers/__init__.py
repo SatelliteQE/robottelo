@@ -1,8 +1,10 @@
-# Methods related to issue handlers in general
-from robottelo.utils.issue_handlers import bugzilla
+import re
 
-handler_methods = {'BZ': bugzilla.is_open_bz}
-SUPPORTED_HANDLERS = tuple(f"{handler}:" for handler in handler_methods.keys())
+# Methods related to issue handlers in general
+from robottelo.utils.issue_handlers import bugzilla, jira
+
+handler_methods = {'BZ': bugzilla.is_open_bz, 'SAT': jira.is_open_jira}
+SUPPORTED_HANDLERS = tuple(f"{handler}" for handler in handler_methods)
 
 
 def add_workaround(data, matches, usage, validation=(lambda *a, **k: True), **kwargs):
@@ -16,11 +18,13 @@ def add_workaround(data, matches, usage, validation=(lambda *a, **k: True), **kw
 def should_deselect(issue, data=None):
     """Check if test should be deselected based on marked issue."""
     # Handlers can be extended to support different issue trackers.
-    handlers = {'BZ': bugzilla.should_deselect_bz}
-    supported_handlers = tuple(f"{handler}:" for handler in handlers.keys())
+    handlers = {'BZ': bugzilla.should_deselect_bz, 'SAT': jira.should_deselect_jira}
+    supported_handlers = tuple(f"{handler}" for handler in handlers)
     if str(issue).startswith(supported_handlers):
-        handler_code = str(issue).partition(":")[0]
+        res = re.split(':|-', issue)
+        handler_code = res[0]
         return handlers[handler_code.strip()](issue.strip(), data)
+    return None
 
 
 def is_open(issue, data=None):
@@ -28,7 +32,7 @@ def is_open(issue, data=None):
 
     Issue must be prefixed by its handler e.g:
 
-    Bugzilla: BZ:123456
+    Bugzilla: BZ:123456, Jira: SAT-12345
 
     Arguments:
         issue {str} -- A string containing handler + number e.g: BZ:123465
@@ -36,11 +40,12 @@ def is_open(issue, data=None):
     """
     # Handlers can be extended to support different issue trackers.
     if str(issue).startswith(SUPPORTED_HANDLERS):
-        handler_code = str(issue).partition(":")[0]
+        res = re.split(':|-', issue)
+        handler_code = res[0]
     else:  # EAFP
         raise AttributeError(
             "is_open argument must be a string starting with a handler code "
-            "e.g: 'BZ:123456'"
+            "e.g: 'BZ:123456' for Bugzilla and 'SAT-12345' for Jira."
             f"supported handlers are: {SUPPORTED_HANDLERS}"
         )
     return handler_methods[handler_code.strip()](issue.strip(), data)

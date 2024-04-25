@@ -14,6 +14,8 @@ import pytest
 
 from robottelo.config import settings
 
+pytestmark = pytest.mark.destructive
+
 
 @pytest.mark.tier3
 @pytest.mark.no_containers

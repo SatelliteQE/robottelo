@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: RHCloud-CloudConnector
+:CaseComponent: RHCloud
 
-:Team: Platform
+:Team: Phoenix-subscriptions
 
 :CaseImportance: High
 

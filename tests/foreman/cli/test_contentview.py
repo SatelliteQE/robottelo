@@ -233,7 +233,7 @@ class TestContentView:
             }
         )
         cvf = module_target_sat.cli.ContentView.filter.info({'id': cvf['filter-id']})
-        assert 'security' == cvf['rules'][0]['types']
+        assert cvf['rules'][0]['types'] == 'security'
 
     @pytest.mark.tier1
     def test_positive_delete_by_id(self, module_org, module_target_sat):
@@ -3798,7 +3798,7 @@ class TestContentView:
         password = gen_alphanumeric()
         no_rights_user = module_target_sat.cli_factory.user({'password': password})
         no_rights_user['password'] = password
-        org_id = module_target_sat.cli_factory.make_org(cached=True)['id']
+        org_id = module_target_sat.cli_factory.make_org()['id']
         for name in generate_strings_list(exclude_types=['cjk']):
             # test that user can't create
             with pytest.raises(CLIReturnCodeError):
@@ -4064,6 +4064,75 @@ class TestContentView:
             }
         )
         assert content_view['version'] == '1.0'
+
+    def test_positive_validate_force_promote_warning(self, target_sat, function_org):
+        """Test cv promote shows warning of 'force promotion' for out of sequence LCE
+
+        :id: 1bfb76be-ab40-48b4-b5a3-428a2a9ab99b
+
+        :steps:
+            1. Create an environment path ex- Library >> Test >> Preprod >> Prod
+            2. Create a CV and publish into the Library
+            3. Promote version 1.0 to Preprod, skip Test, this should fail with warning
+            4. Promote version 1.0 to Preprod using force, this should success
+            5. Try to promote version 1.0 from Preprod to Prod, this should success without warning
+
+        :expectedresults:
+            1. CV version 1.0 should be present on Prod LCE
+
+        :CaseImportance: High
+
+        :BZ: 2125728
+
+        :customerscenario: true
+        """
+        # Create an environment path ex- Library >> Test >> Preprod >> Prod
+        lce_test = target_sat.cli_factory.make_lifecycle_environment(
+            {'organization-id': function_org.id}
+        )
+        lce_preprod = target_sat.cli_factory.make_lifecycle_environment(
+            {'organization-id': function_org.id, 'prior': lce_test['name']}
+        )
+        lce_prod = target_sat.cli_factory.make_lifecycle_environment(
+            {'organization-id': function_org.id, 'prior': lce_preprod['name']}
+        )
+
+        # Create a CV and publish into the Library
+        cv = target_sat.cli_factory.make_content_view({'organization-id': function_org.id})
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+
+        # Promote version 1.0 to Preprod, skip Test, this should fail with warning
+        cv_version = target_sat.cli.ContentView.info({'id': cv['id']})['versions'][0]
+        with pytest.raises(CLIReturnCodeError) as error:
+            target_sat.cli.ContentView.version_promote(
+                {'id': cv_version['id'], 'to-lifecycle-environment-id': lce_preprod['id']}
+            )
+        assert (
+            'Cannot promote environment out of sequence. Use force to bypass restriction'
+            in error.value.stderr
+        )
+
+        # Promote version 1.0 to Preprod using force, this should success
+        target_sat.cli.ContentView.version_promote(
+            {
+                'id': cv_version['id'],
+                'to-lifecycle-environment-id': lce_preprod['id'],
+                'force': True,
+            }
+        )
+        promoted_lce = target_sat.cli.ContentView.info({'id': cv['id']})['lifecycle-environments'][
+            -1
+        ]
+        assert lce_preprod['id'] == promoted_lce['id']
+
+        # Try to promote version 1.0 from Preprod to Prod, this should success without warning
+        target_sat.cli.ContentView.version_promote(
+            {'id': cv_version['id'], 'to-lifecycle-environment-id': lce_prod['id']}
+        )
+        promoted_lce = target_sat.cli.ContentView.info({'id': cv['id']})['lifecycle-environments'][
+            -1
+        ]
+        assert lce_prod['id'] == promoted_lce['id']
 
 
 class TestContentViewFileRepo:

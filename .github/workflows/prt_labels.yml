@@ -1,0 +1,49 @@
+name: Remove the PRT label, for the new commit
+
+on:
+  pull_request_target:
+    types: ["synchronize"]
+
+jobs:
+    prt_labels_remover:
+      name: remove the PRT label when amendments or new commits added to PR
+      runs-on: ubuntu-latest
+      if: "(contains(github.event.pull_request.labels.*.name, 'PRT-Passed'))"
+      steps:
+        - name: Avoid the race condition as PRT result will be cleaned
+          run: |
+            echo "Avoiding the race condition if prt result will be cleaned" && sleep 60
+
+        - name: Fetch the PRT status
+          id: prt
+          uses: omkarkhatavkar/wait-for-status-checks@main
+          with:
+            ref: ${{ github.head_ref }}
+            context: 'Robottelo-Runner'
+            wait-interval: 2
+            count: 5
+
+        - name: remove the PRT Passed label, for new commit
+          if: always() && ${{steps.prt.outputs.result}} == 'not_found'
+          uses: actions/github-script@v7
+          with:
+            github-token: ${{ secrets.CHERRYPICK_PAT }}
+            script: |
+              const prNumber = '${{ github.event.number }}';
+              const issue = await github.rest.issues.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+              });
+              const labelsToRemove = ['PRT-Passed'];
+              const labelsToRemoveFiltered = labelsToRemove.filter(label => issue.data.labels.some(({ name }) => name === label));
+              if (labelsToRemoveFiltered.length > 0) {
+                await Promise.all(labelsToRemoveFiltered.map(async label => {
+                  await github.rest.issues.removeLabel({
+                    issue_number: prNumber,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: label
+                  });
+                }));
+              }

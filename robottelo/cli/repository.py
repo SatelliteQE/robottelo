@@ -31,12 +31,12 @@ class Repository(Base):
     command_requires_org = True
 
     @classmethod
-    def create(cls, options=None):
+    def create(cls, options=None, timeout=None):
         """Create a custom repository"""
         cls.command_requires_org = False
 
         try:
-            result = super().create(options)
+            result = super().create(options, timeout)
         finally:
             cls.command_requires_org = True
 

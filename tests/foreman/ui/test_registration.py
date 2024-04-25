@@ -14,13 +14,16 @@ from datetime import datetime
 import re
 
 from airgun.exceptions import DisabledWidgetError
-from airgun.session import Session
 from fauxfactory import gen_string
 import pytest
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE, FAKE_7_CUSTOM_PACKAGE, REPO_TYPE
+from robottelo.constants import (
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_7_CUSTOM_PACKAGE,
+    REPO_TYPE,
+)
 
 pytestmark = pytest.mark.tier1
 
@@ -64,9 +67,9 @@ def test_positive_verify_default_values_for_global_registration(
 @pytest.mark.tier2
 def test_positive_org_loc_change_for_registration(
     module_activation_key,
-    module_org,
+    module_sca_manifest_org,
     module_location,
-    target_sat,
+    module_target_sat,
 ):
     """Changing the organization and location to check if correct org and loc is updated on the global registration page as well as in the command
 
@@ -76,15 +79,20 @@ def test_positive_org_loc_change_for_registration(
 
     :CaseImportance: Medium
     """
-    new_org = target_sat.api.Organization().create()
-    new_loc = target_sat.api.Location().create()
-    target_sat.api.ActivationKey(organization=new_org).create()
-    with target_sat.ui_session() as session:
-        session.organization.select(org_name=module_org.name)
+    new_org = module_target_sat.api.Organization().create()
+    new_loc = module_target_sat.api.Location().create()
+    ak = module_target_sat.api.ActivationKey(organization=new_org).create()
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=module_sca_manifest_org.name)
         session.location.select(loc_name=module_location.name)
-        cmd = session.host.get_register_command()
+        cmd = session.host.get_register_command(
+            {
+                'general.activation_keys': module_activation_key.name,
+                'general.insecure': True,
+            }
+        )
         expected_pairs = [
-            f'organization_id={module_org.id}',
+            f'organization_id={module_sca_manifest_org.id}',
             f'location_id={module_location.id}',
         ]
         for pair in expected_pairs:
@@ -92,7 +100,12 @@ def test_positive_org_loc_change_for_registration(
         # changing the org and loc to check if correct org and loc is updated on the registration command
         session.organization.select(org_name=new_org.name)
         session.location.select(loc_name=new_loc.name)
-        cmd = session.host.get_register_command()
+        cmd = session.host.get_register_command(
+            {
+                'general.activation_keys': ak.name,
+                'general.insecure': True,
+            }
+        )
         expected_pairs = [
             f'organization_id={new_org.id}',
             f'location_id={new_loc.id}',
@@ -102,9 +115,7 @@ def test_positive_org_loc_change_for_registration(
 
 
 def test_negative_global_registration_without_ak(
-    module_target_sat,
-    module_org,
-    module_location,
+    module_target_sat, function_org, function_location
 ):
     """Attempt to register a host without ActivationKey
 
@@ -113,8 +124,8 @@ def test_negative_global_registration_without_ak(
     :expectedresults: Generate command is disabled without ActivationKey
     """
     with module_target_sat.ui_session() as session:
-        session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_location.name)
+        session.organization.select(org_name=function_org.name)
+        session.location.select(loc_name=function_location.name)
         with pytest.raises(DisabledWidgetError) as context:
             session.host.get_register_command()
         assert 'Generate registration command button is disabled' in str(context.value)
@@ -125,14 +136,13 @@ def test_negative_global_registration_without_ak(
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6]')
 def test_positive_global_registration_end_to_end(
-    session,
     module_activation_key,
     module_org,
     smart_proxy_location,
     default_os,
     default_smart_proxy,
     rhel_contenthost,
-    target_sat,
+    module_target_sat,
 ):
     """Host registration form produces a correct registration command and host is
     registered successfully with it, remote execution and insights are set up
@@ -150,25 +160,27 @@ def test_positive_global_registration_end_to_end(
     """
     # make sure global parameters for rex and insights are set to true
     insights_cp = (
-        target_sat.api.CommonParameter()
+        module_target_sat.api.CommonParameter()
         .search(query={'search': 'name=host_registration_insights'})[0]
         .read()
     )
     rex_cp = (
-        target_sat.api.CommonParameter()
+        module_target_sat.api.CommonParameter()
         .search(query={'search': 'name=host_registration_remote_execution'})[0]
         .read()
     )
 
     if not insights_cp.value:
-        target_sat.api.CommonParameter(id=insights_cp.id, value=1).update(['value'])
+        module_target_sat.api.CommonParameter(id=insights_cp.id, value=1).update(['value'])
     if not rex_cp.value:
-        target_sat.api.CommonParameter(id=rex_cp.id, value=1).update(['value'])
+        module_target_sat.api.CommonParameter(id=rex_cp.id, value=1).update(['value'])
 
     # rex interface
     iface = 'eth0'
     # fill in the global registration form
-    with session:
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=smart_proxy_location.name)
         cmd = session.host.get_register_command(
             {
                 'general.operating_system': default_os.title,
@@ -219,7 +231,7 @@ def test_positive_global_registration_end_to_end(
     assert result.status == 0
     assert datetime.now(tzinfo).strftime('%Y-%m-%d') in result.stdout
     # Set "Connect to host using IP address"
-    target_sat.api.Parameter(
+    module_target_sat.api.Parameter(
         host=rhel_contenthost.hostname,
         name='remote_execution_connect_by_ip',
         parameter_type='boolean',
@@ -227,7 +239,7 @@ def test_positive_global_registration_end_to_end(
     ).create()
     # run insights-client via REX
     command = "insights-client --status"
-    invocation_command = target_sat.cli_factory.job_invocation(
+    invocation_command = module_target_sat.cli_factory.job_invocation(
         {
             'job-template': 'Run Command - Script Default',
             'inputs': f'command={command}',
@@ -236,24 +248,24 @@ def test_positive_global_registration_end_to_end(
     )
     # results provide all info but job invocation might not be finished yet
     result = (
-        target_sat.api.JobInvocation()
+        module_target_sat.api.JobInvocation()
         .search(
             query={'search': f'id={invocation_command["id"]} and host={rhel_contenthost.hostname}'}
         )[0]
         .read()
     )
     # make sure that task is finished
-    task_result = target_sat.wait_for_tasks(
+    task_result = module_target_sat.wait_for_tasks(
         search_query=(f'id = {result.task.id}'), search_rate=2, max_tries=60
     )
     assert task_result[0].result == 'success'
     host = (
-        target_sat.api.Host()
+        module_target_sat.api.Host()
         .search(query={'search': f'name={rhel_contenthost.hostname}'})[0]
         .read()
     )
     for interface in host.interface:
-        interface_result = target_sat.api.Interface(host=host.id).search(
+        interface_result = module_target_sat.api.Interface(host=host.id).search(
             query={'search': f'{interface.id}'}
         )[0]
         # more interfaces can be inside the host
@@ -263,11 +275,8 @@ def test_positive_global_registration_end_to_end(
 
 @pytest.mark.tier2
 def test_global_registration_form_populate(
-    module_org,
-    session,
-    module_ak_with_cv,
-    module_lce,
-    module_promoted_cv,
+    function_sca_manifest_org,
+    function_activation_key,
     default_architecture,
     default_os,
     target_sat,
@@ -298,21 +307,26 @@ def test_global_registration_form_populate(
     group_params = {'name': 'host_packages', 'value': constants.FAKE_0_CUSTOM_PACKAGE}
     parent_hg = target_sat.api.HostGroup(
         name=hg_name,
-        organization=[module_org],
-        lifecycle_environment=module_lce,
+        organization=[function_sca_manifest_org],
+        lifecycle_environment=function_sca_manifest_org.library.id,
         architecture=default_architecture,
         operatingsystem=default_os,
-        content_view=module_promoted_cv,
+        content_view=function_sca_manifest_org.default_content_view.id,
         group_parameters_attributes=[group_params],
     ).create()
     target_sat.api.HostGroup(name=hg_nested_name, parent=parent_hg).create()
     new_org = target_sat.api.Organization().create()
-    new_ak = target_sat.api.ActivationKey(organization=new_org).create()
-    with session:
+    new_ak = target_sat.api.ActivationKey(
+        content_view=new_org.default_content_view,
+        environment=target_sat.api.LifecycleEnvironment(id=new_org.library.id),
+        organization=new_org,
+    ).create()
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=function_sca_manifest_org.name)
         session.hostgroup.update(
             f'{hg_name}/{hg_nested_name}',
             {
-                'activation_keys.activation_keys': module_ak_with_cv.name,
+                'activation_keys.activation_keys': function_activation_key.name,
             },
         )
         cmd = session.host.get_register_command(
@@ -324,15 +338,15 @@ def test_global_registration_form_populate(
             full_read=True,
         )
         assert hg_nested_name in cmd['general']['host_group']
-        assert module_ak_with_cv.name in cmd['general']['activation_key_helper']
+        assert function_activation_key.name in cmd['general']['activation_key_helper']
         assert constants.FAKE_0_CUSTOM_PACKAGE in cmd['advanced']['install_packages_helper']
 
         session.organization.select(org_name=new_org.name)
+        session.browser.refresh()
         cmd = session.host.get_register_command(
             {
-                'general.organization': new_org.name,
-                'general.operating_system': default_os.title,
                 'general.insecure': True,
+                'advanced.force': True,
             },
             full_read=True,
         )
@@ -341,10 +355,10 @@ def test_global_registration_form_populate(
 
 
 @pytest.mark.tier2
-@pytest.mark.usefixtures('enable_capsule_for_registration')
+@pytest.mark.rhel_ver_match('8')
 @pytest.mark.no_containers
 def test_global_registration_with_gpg_repo_and_default_package(
-    session, module_activation_key, default_os, default_smart_proxy, rhel8_contenthost
+    module_activation_key, rhel_contenthost, target_sat, module_org
 ):
     """Host registration form produces a correct registration command and host is
     registered successfully with gpg repo enabled and have default package
@@ -365,15 +379,14 @@ def test_global_registration_with_gpg_repo_and_default_package(
 
     :parametrized: yes
     """
-    client = rhel8_contenthost
+    client = rhel_contenthost
     repo_name = 'foreman_register'
     repo_url = settings.repos.gr_yum_repo.url
     repo_gpg_url = settings.repos.gr_yum_repo.gpg_url
-    with session:
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
         cmd = session.host.get_register_command(
             {
-                'general.operating_system': default_os.title,
-                'general.capsule': default_smart_proxy.name,
                 'general.activation_keys': module_activation_key.name,
                 'general.insecure': True,
                 'advanced.force': True,
@@ -406,9 +419,9 @@ def test_global_registration_with_gpg_repo_and_default_package(
 
 
 @pytest.mark.tier3
-@pytest.mark.usefixtures('enable_capsule_for_registration')
+@pytest.mark.rhel_ver_match('9')
 def test_global_re_registration_host_with_force_ignore_error_options(
-    session, module_activation_key, default_os, default_smart_proxy, rhel7_contenthost
+    module_activation_key, rhel_contenthost, module_target_sat, module_org
 ):
     """If the ignore_error and force checkbox is checked then registered host can
     get re-registered without any error.
@@ -426,12 +439,11 @@ def test_global_re_registration_host_with_force_ignore_error_options(
 
     :parametrized: yes
     """
-    client = rhel7_contenthost
-    with session:
+    client = rhel_contenthost
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
         cmd = session.host.get_register_command(
             {
-                'general.operating_system': default_os.title,
-                'general.capsule': default_smart_proxy.name,
                 'general.activation_keys': module_activation_key.name,
                 'general.insecure': True,
                 'advanced.force': True,
@@ -448,9 +460,9 @@ def test_global_re_registration_host_with_force_ignore_error_options(
 
 
 @pytest.mark.tier2
-@pytest.mark.usefixtures('enable_capsule_for_registration')
+@pytest.mark.rhel_ver_match('8')
 def test_global_registration_token_restriction(
-    session, module_activation_key, rhel8_contenthost, default_os, default_smart_proxy, target_sat
+    module_activation_key, rhel_contenthost, module_target_sat, module_org
 ):
     """Global registration token should be only used for registration call, it
     should be restricted for any other api calls.
@@ -466,12 +478,11 @@ def test_global_registration_token_restriction(
 
     :parametrized: yes
     """
-    client = rhel8_contenthost
-    with session:
+    client = rhel_contenthost
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
         cmd = session.host.get_register_command(
             {
-                'general.operating_system': default_os.title,
-                'general.capsule': default_smart_proxy.name,
                 'general.activation_keys': module_activation_key.name,
                 'general.insecure': True,
             }
@@ -481,20 +492,21 @@ def test_global_registration_token_restriction(
     auth_header = re.search(pattern, cmd).group()
 
     # build curl
-    curl_users = f'curl -X GET -k -H {auth_header} -i {target_sat.url}/api/users/'
-    curl_hosts = f'curl -X GET -k -H {auth_header} -i {target_sat.url}/api/hosts/'
+    curl_users = f'curl -X GET -k -H {auth_header} -i {module_target_sat.url}/api/users/'
+    curl_hosts = f'curl -X GET -k -H {auth_header} -i {module_target_sat.url}/api/hosts/'
     for curl_cmd in (curl_users, curl_hosts):
         result = client.execute(curl_cmd)
         assert result.status == 0
         assert 'Unable to authenticate user' in result.stdout
 
 
+@pytest.mark.rhel_ver_match('8')
 def test_positive_host_registration_with_non_admin_user(
     test_name,
     module_sca_manifest_org,
     module_location,
-    target_sat,
-    rhel8_contenthost,
+    module_target_sat,
+    rhel_contenthost,
     module_activation_key,
 ):
     """Register hosts from a non-admin user with only register_hosts, edit_hosts
@@ -506,14 +518,14 @@ def test_positive_host_registration_with_non_admin_user(
     """
     user_password = gen_string('alpha')
     org = module_sca_manifest_org
-    role = target_sat.api.Role(organization=[org]).create()
+    role = module_target_sat.api.Role(organization=[org]).create()
 
     user_permissions = {
         'Organization': ['view_organizations'],
         'Host': ['view_hosts'],
     }
-    target_sat.api_factory.create_role_permissions(role, user_permissions)
-    user = target_sat.api.User(
+    module_target_sat.api_factory.create_role_permissions(role, user_permissions)
+    user = module_target_sat.api.User(
         role=[role],
         admin=False,
         password=user_password,
@@ -522,10 +534,12 @@ def test_positive_host_registration_with_non_admin_user(
         default_organization=org,
         default_location=module_location,
     ).create()
-    role = target_sat.cli.Role.info({'name': 'Register hosts'})
-    target_sat.cli.User.add_role({'id': user.id, 'role-id': role['id']})
+    role = module_target_sat.cli.Role.info({'name': 'Register hosts'})
+    module_target_sat.cli.User.add_role({'id': user.id, 'role-id': role['id']})
 
-    with Session(test_name, user=user.login, password=user_password) as session:
+    with module_target_sat.ui_session(
+        test_name, user=user.login, password=user_password
+    ) as session:
 
         cmd = session.host_new.get_register_command(
             {
@@ -534,17 +548,19 @@ def test_positive_host_registration_with_non_admin_user(
             }
         )
 
-        result = rhel8_contenthost.execute(cmd)
+        result = rhel_contenthost.execute(cmd)
         assert result.status == 0, f'Failed to register host: {result.stderr}'
 
         # Verify server.hostname and server.port from subscription-manager config
-        assert target_sat.hostname == rhel8_contenthost.subscription_config['server']['hostname']
-        assert constants.CLIENT_PORT == rhel8_contenthost.subscription_config['server']['port']
+        assert (
+            module_target_sat.hostname == rhel_contenthost.subscription_config['server']['hostname']
+        )
+        assert rhel_contenthost.subscription_config['server']['port'] == constants.CLIENT_PORT
 
 
 @pytest.mark.tier2
 def test_positive_global_registration_form(
-    session, module_activation_key, module_org, smart_proxy_location, default_os, target_sat
+    module_activation_key, module_org, smart_proxy_location, default_os, target_sat
 ):
     """Host registration form produces a correct curl command for various inputs
 
@@ -572,7 +588,9 @@ def test_positive_global_registration_form(
         organization=[module_org], location=[smart_proxy_location]
     ).create()
     iface = 'eth0'
-    with session:
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=smart_proxy_location.name)
         cmd = session.host.get_register_command(
             {
                 'advanced.setup_insights': 'Yes (override)' if insights_value else 'No (override)',
@@ -603,10 +621,10 @@ def test_positive_global_registration_form(
 
 
 @pytest.mark.tier2
+@pytest.mark.rhel_ver_match('8')
 def test_global_registration_with_capsule_host(
-    session,
     capsule_configured,
-    rhel8_contenthost,
+    rhel_contenthost,
     module_org,
     module_location,
     module_product,
@@ -633,7 +651,7 @@ def test_global_registration_with_capsule_host(
 
     :CaseAutomation: Automated
     """
-    client = rhel8_contenthost
+    client = rhel_contenthost
     repo = target_sat.api.Repository(
         url=settings.repos.yum_1.url,
         content_type=REPO_TYPE['yum'],
@@ -677,7 +695,7 @@ def test_global_registration_with_capsule_host(
     # Wait till capsule sync finishes
     for task in sync_status['active_sync_tasks']:
         target_sat.api.ForemanTask(id=task['id']).poll()
-    with session:
+    with target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=module_location.name)
         cmd = session.host.get_register_command(
@@ -697,3 +715,59 @@ def test_global_registration_with_capsule_host(
     assert result.status == 0
     assert module_lce_library.name in result.stdout
     assert module_org.name in result.stdout
+
+
+@pytest.mark.tier2
+@pytest.mark.rhel_ver_match('[^6].*')
+def test_subscription_manager_install_from_repository(
+    module_activation_key, module_os, rhel_contenthost, target_sat, module_org
+):
+    """Host registration form produces a correct registration command and
+    subscription-manager can be installed from a custom repository before
+    registration is completed.
+
+    :id: b7a44f32-90b2-4fd6-b65b-5a3d2a5c5deb
+
+    :customerscenario: true
+
+    :expectedresults: Host is successfully registered, repo is enabled
+        on advanced tab and subscription-manager is installed.
+
+    :steps:
+        1. Create activation-key
+        2. Open the global registration form, add repo and activation key
+        3. Add 'subscription-manager' to install packages field
+        4. Check subscription-manager was installed from repo_name
+
+    :parametrized: yes
+
+    :BZ: 1923320
+    """
+    client = rhel_contenthost
+    repo_name = 'foreman_register'
+    rhel_ver = rhel_contenthost.os_version.major
+    repo_url = settings.repos.get(f'rhel{rhel_ver}_os')
+    if isinstance(repo_url, dict):
+        repo_url = repo_url['baseos']
+    # Ensure subs-man is installed from repo_name by removing existing package.
+    result = client.execute('rpm --erase --nodeps subscription-manager')
+    assert result.status == 0
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        cmd = session.host.get_register_command(
+            {
+                'general.operating_system': module_os.title,
+                'general.activation_keys': module_activation_key.name,
+                'general.insecure': True,
+                'advanced.force': True,
+                'advanced.install_packages': 'subscription-manager',
+                'advanced.repository': repo_url,
+            }
+        )
+
+    # run curl
+    result = client.execute(cmd)
+    assert result.status == 0
+    result = client.execute('yum repolist')
+    assert repo_name in result.stdout
+    assert result.status == 0

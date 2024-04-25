@@ -27,6 +27,8 @@ select = [
     "I", # isort
     # "Q",  # flake8-quotes
     "PT",  # flake8-pytest
+    "RET",  # flake8-return
+    "SIM",  # flake8-simplify
     "UP",  # pyupgrade
     "W",  # pycodestyle
 ]

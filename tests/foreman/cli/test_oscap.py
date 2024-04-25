@@ -67,8 +67,7 @@ class TestOpenScap:
         :CaseImportance: Medium
         """
         scap_contents = [content['title'] for content in module_target_sat.cli.Scapcontent.list()]
-        for title in OSCAP_DEFAULT_CONTENT.values():
-            assert title in scap_contents
+        assert f'Red Hat rhel{module_target_sat.os_version.major} default content' in scap_contents
 
     @pytest.mark.tier1
     def test_negative_list_default_content_with_viewer_role(
@@ -295,7 +294,9 @@ class TestOpenScap:
     @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
     @pytest.mark.tier1
     def test_negative_create_scap_content_with_invalid_originalfile_name(
-        self, name, module_target_sat
+        self,
+        name,
+        module_target_sat,
     ):
         """Create scap-content with invalid original file name
 
@@ -354,7 +355,10 @@ class TestOpenScap:
             module_target_sat.cli_factory.scapcontent({'title': title})
 
     @pytest.mark.tier1
-    def test_positive_update_scap_content_with_newtitle(self, module_target_sat):
+    def test_positive_update_scap_content_with_newtitle(
+        self,
+        module_target_sat,
+    ):
         """Update scap content title
 
         :id: 2c32e94a-237d-40b9-8a3b-fca2ef26fe79
@@ -920,7 +924,8 @@ class TestOpenScap:
         )
         assert scap_policy['scap-content-id'] == scap_content["scap_id"]
         scap_id, scap_profile_id = self.fetch_scap_and_profile_id(
-            OSCAP_DEFAULT_CONTENT['rhel_firefox'], module_target_sat
+            OSCAP_DEFAULT_CONTENT[f'rhel{module_target_sat.os_version.major}_content'],
+            module_target_sat,
         )
         module_target_sat.cli.Scappolicy.update(
             {'name': name, 'scap-content-id': scap_id, 'scap-content-profile-id': scap_profile_id}

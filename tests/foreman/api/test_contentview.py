@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+from datetime import datetime, timedelta
 import random
 
 from fauxfactory import gen_integer, gen_string, gen_utf8
@@ -96,8 +97,7 @@ def apply_package_filter(content_view, repo, package, target_sat, inclusion=True
     assert cv_filter.id == cv_filter_rule.content_view_filter.id
     content_view.publish()
     content_view = content_view.read()
-    content_view_version_info = content_view.version[0].read()
-    return content_view_version_info
+    return content_view.version[0].read()
 
 
 class TestContentView:
@@ -532,6 +532,54 @@ class TestContentViewPublishPromote:
         assert composite_cv.component[0].id == content_view.version[0].id
         # composite CV → CV version → CV == CV
         assert composite_cv.component[0].read().content_view.id == content_view.id
+
+    @pytest.mark.tier2
+    def test_negative_publish_during_repo_sync(self, content_view, module_target_sat):
+        """Attempt to publish a new version of the content-view,
+        while an associated repository is being synced.
+
+        :id: c272fff7-a679-4844-a261-80830cdd5694
+
+        :BZ: 1957144
+
+        :steps:
+            1. Add repository to content-view
+            2. Perform asynchronous repository sync
+            3. Attempt to publish a version of the content-view, while repo sync ongoing.
+
+        :expectedresults:
+            1. User cannot publish during repository sync.
+            2. HTTP exception raised, assert publish task failed for expected reason,
+                repo sync task_id found in humanized error, content-view versions unchanged.
+        """
+        # add repository to content-view
+        content_view.repository = [self.yum_repo]
+        content_view.update(['repository'])
+        content_view = content_view.read()
+        existing_versions = content_view.version
+        timestamp = (datetime.utcnow() - timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M')
+
+        # perform async repository sync, while still in progress-
+        # attempt to publish a new version of the content view.
+        repo_task_id = self.yum_repo.sync(synchronous=False)['id']
+        with pytest.raises(HTTPError) as InternalServerError:
+            content_view.publish()
+        assert str(content_view.id) in str(InternalServerError)
+
+        # search for failed publish task
+        task_action = 'Actions::Katello::ContentView::Publish'
+        task_search = module_target_sat.api.ForemanTask().search(
+            query={'search': f'{task_action} and started_at >= "{timestamp}"'}
+        )
+        assert len(task_search) == 1
+        task_id = task_search[0].id
+        # task failed for expected reason
+        task = module_target_sat.api.ForemanTask(id=task_id).poll(must_succeed=False)
+        assert task['result'] == 'error'
+        assert len(task['humanized']['errors']) == 1
+        assert repo_task_id in task['humanized']['errors'][0]
+        # no new versions of content view, any existing remained the same
+        assert content_view.read().version == existing_versions
 
     @pytest.mark.tier2
     def test_negative_add_components_to_composite(

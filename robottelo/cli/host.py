@@ -215,9 +215,7 @@ class Host(Base):
 
         cls.command_sub = 'reboot'
 
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def reports(cls, options=None):
@@ -268,9 +266,7 @@ class Host(Base):
 
         cls.command_sub = 'start'
 
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def status(cls, options=None):
@@ -290,9 +286,7 @@ class Host(Base):
 
         cls.command_sub = 'status'
 
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def stop(cls, options=None):
@@ -313,9 +307,7 @@ class Host(Base):
 
         cls.command_sub = 'stop'
 
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def subscription_register(cls, options=None):
@@ -486,10 +478,10 @@ class HostInterface(Base):
     command_base = 'host interface'
 
     @classmethod
-    def create(cls, options=None):
+    def create(cls, options=None, timeout=None):
         """Create new network interface for host"""
         cls.command_sub = 'create'
-        cls.execute(cls._construct_command(options), output_format='csv')
+        cls.execute(cls._construct_command(options), output_format='csv', timeout=timeout)
 
 
 class HostTraces(Base):

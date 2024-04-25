@@ -193,7 +193,7 @@ def test_positive_task_status(session, target_sat):
 )
 def test_positive_user_access_with_host_filter(
     test_name,
-    function_entitlement_manifest_org,
+    function_sca_manifest_org,
     module_location,
     rhel_contenthost,
     target_sat,
@@ -221,7 +221,7 @@ def test_positive_user_access_with_host_filter(
     """
     user_login = gen_string('alpha')
     user_password = gen_string('alphanumeric')
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     lce = target_sat.api.LifecycleEnvironment(organization=org).create()
     # create a role with necessary permissions
     role = target_sat.api.Role().create()
