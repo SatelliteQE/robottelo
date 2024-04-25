@@ -475,20 +475,21 @@ def hypervisor_fake_json_create(hypervisors, guests):
     :param hypervisors: how many hypervisors will be created
     :param guests: how many guests will be created
     """
-    hypervisors_list = []
-    for _ in range(hypervisors):
-        guest_list = []
-        for _ in range(guests):
-            guest_list.append(
+    hypervisors_list = [
+        {
+            'guests': [
                 {
                     "guestId": str(uuid.uuid4()),
                     "state": 1,
                     "attributes": {"active": 1, "virtWhoType": "esx"},
                 }
-            )
-        name = str(uuid.uuid4())
-        hypervisor = {"guests": guest_list, "name": name, "uuid": name}
-        hypervisors_list.append(hypervisor)
+                for _ in range(guests)
+            ],
+            'name': str(uuid.uuid4()),
+            'uuid': str(uuid.uuid4()),
+        }
+        for _ in range(hypervisors)
+    ]
     return {"hypervisors": hypervisors_list}
 
 
