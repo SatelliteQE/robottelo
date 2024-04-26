@@ -591,6 +591,6 @@ def vw_fake_conf_create(
 
 
 def vw_run_option(option):
-    runcmd("systemctl stop virt-who")
-    runcmd("pkill -9 virt-who")
-    runcmd(f"virt-who -{option}")
+    runcmd('systemctl stop virt-who')
+    runcmd('pkill -9 virt-who')
+    runcmd(f'virt-who -{option}')
