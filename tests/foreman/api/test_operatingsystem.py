@@ -2,7 +2,7 @@
 
 :Requirement: Provisioning
 
-:CaseAutomation: NotAutomated
+:CaseAutomation: Automated
 
 :CaseComponent: Provisioning
 
