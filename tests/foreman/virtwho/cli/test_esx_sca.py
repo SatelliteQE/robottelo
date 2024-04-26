@@ -529,7 +529,7 @@ class TestVirtWhoConfigforEsx:
         # create two virt-who configs in the same organization, get the service account rhsm_username
         vc_id = []
         rhsm_username = []
-        for _i in range(2):
+        for _ in range(2):
             form_data_cli['name'] = gen_string('alpha')
             virtwho_config_cli = target_sat.cli.VirtWhoConfig.create(form_data_cli)[
                 'general-information'
