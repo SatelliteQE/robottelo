@@ -56,9 +56,7 @@ def create_object(cli_object, options, values=None, credentials=None, timeout=No
     except CLIReturnCodeError as err:
         # If the object is not created, raise exception, stop the show.
         raise CLIFactoryError(
-            'Failed to create {} with data:\n{}\n{}'.format(
-                cli_object.__name__, pprint.pformat(options, indent=2), err.msg
-            )
+            f'Failed to create {cli_object.__name__} with data:\n{pprint.pformat(options, indent=2)}\n{err.msg}'
         ) from err
     # Sometimes we get a list with a dictionary and not a dictionary.
     if isinstance(result, list) and len(result) > 0:
@@ -999,9 +997,7 @@ class CLIFactory:
             missing_permissions = set(permission_names).difference(set(available_permission_names))
             if missing_permissions:
                 raise CLIFactoryError(
-                    'Permissions "{}" are not available in Resource "{}"'.format(
-                        list(missing_permissions), resource_type
-                    )
+                    f'Permissions "{list(missing_permissions)}" are not available in Resource "{resource_type}"'
                 )
             # Create the current resource type role permissions
             options = {'role-id': role_id}

@@ -240,9 +240,7 @@ def lock_function(
 
             with file_lock(lock_file_path, remove=False, timeout=timeout) as handler:
                 logger.info(
-                    'process id: {} lock function using file path: {}'.format(
-                        process_id, lock_file_path
-                    )
+                    f'process id: {process_id} lock function using file path: {lock_file_path}'
                 )
                 # write the process id that locked this function
                 _write_content(handler, process_id)
@@ -303,9 +301,7 @@ def locking_function(
 
     with file_lock(lock_file_path, remove=False, timeout=timeout) as handler:
         logger.info(
-            'process id: {} - lock function name:{}  - using file path: {}'.format(
-                process_id, function_name, lock_file_path
-            )
+            f'process id: {process_id} - lock function name:{function_name}  - using file path: {lock_file_path}'
         )
         # write the process id that locked this function
         _write_content(handler, process_id)
