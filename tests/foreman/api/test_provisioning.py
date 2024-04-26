@@ -2,7 +2,7 @@
 
 :Requirement: Provisioning
 
-:CaseAutomation: NotAutomated
+:CaseAutomation: Automated
 
 :CaseComponent: Provisioning
 
@@ -733,4 +733,6 @@ def test_rhel_provisioning_using_realm():
         3. Host installs right version of RHEL
         4. Satellite is able to run REX job on the host
         5. Host is registered to Satellite and subscription status is 'Success'
+
+    :CaseAutomation: NotAutomated
     """

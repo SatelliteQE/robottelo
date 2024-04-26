@@ -313,7 +313,7 @@ class TestDiscoveredHost:
         :expectedresults: All discovered hosts should be auto-provisioned
             successfully
 
-        :CaseAutomation: NotAutomated
+        :CaseAutomation: Automated
 
         :CaseImportance: High
         """
