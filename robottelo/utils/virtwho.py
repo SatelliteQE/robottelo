@@ -581,7 +581,7 @@ def vw_fake_conf_create(
     :param fake_conf_file: Name of the fake_conf_file
     :param json_file: Name of the json_file
     :param is_hypervisor: Default ir True
-    :ruturn: 
+    :ruturn:
     """
     conf_name = fake_conf_file.split("/")[-1].split(".")[0]
     file = f'{fake_conf_file}\n'
@@ -602,14 +602,8 @@ def vw_fake_conf_create(
 
 def vw_run_option(option):
     """virt who run by option
-    :param option: 
-    -d, --debug           Enable debugging output
-    -o, --one-shot        Send the list of guest IDs and exit immediately
-    -i INTERVAL, --interval INTERVAL
-    -p, --print
-    -c CONFIGS, --config CONFIGS
-    --version             Display the version information
-    :ruturn: 
+    :param option:  -d, --debug  -o, --one-shot  -i INTERVAL, --interval INTERVAL -p, --print -c CONFIGS, --config CONFIGS --version
+    :ruturn:
     """
     runcmd('systemctl stop virt-who')
     runcmd('pkill -9 virt-who')
