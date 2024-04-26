@@ -214,7 +214,7 @@ def check_message_in_rhsm_log(message):
         delay=2,
     )
     logs = get_rhsm_log()
-    return any(message in line for line in logs.split("\n"))
+    return any(message in line for line in logs.split('\n'))
 
 
 def _get_hypervisor_mapping(hypervisor_type):
