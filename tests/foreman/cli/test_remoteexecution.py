@@ -605,12 +605,17 @@ class TestRexUsers:
     """Tests related to remote execution users"""
 
     @pytest.fixture(scope='class')
-    def class_rexmanager_user(self, module_org, class_target_sat):
+    def class_rexmanager_user(self, module_org, default_location, class_target_sat):
         """Creates a user with Remote Execution Manager role"""
         password = gen_string('alpha')
         rexmanager = gen_string('alpha')
         class_target_sat.cli_factory.user(
-            {'login': rexmanager, 'password': password, 'organization-ids': module_org.id}
+            {
+                'login': rexmanager,
+                'password': password,
+                'organization-ids': module_org.id,
+                'location-ids': default_location.id,
+            }
         )
         class_target_sat.cli.User.add_role(
             {'login': rexmanager, 'role': 'Remote Execution Manager'}
@@ -618,12 +623,17 @@ class TestRexUsers:
         return (rexmanager, password)
 
     @pytest.fixture(scope='class')
-    def class_rexinfra_user(self, module_org, class_target_sat):
+    def class_rexinfra_user(self, module_org, default_location, class_target_sat):
         """Creates a user with all Remote Execution related permissions"""
         password = gen_string('alpha')
         rexinfra = gen_string('alpha')
         class_target_sat.cli_factory.user(
-            {'login': rexinfra, 'password': password, 'organization-ids': module_org.id}
+            {
+                'login': rexinfra,
+                'password': password,
+                'organization-ids': module_org.id,
+                'location-ids': default_location.id,
+            }
         )
         role = class_target_sat.cli_factory.make_role({'organization-ids': module_org.id})
         invocation_permissions = [
