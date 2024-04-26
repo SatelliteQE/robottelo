@@ -581,7 +581,7 @@ def vw_fake_conf_create(
     :param fake_conf_file: Name of the fake_conf_file
     :param json_file: Name of the json_file
     :param is_hypervisor: Default ir True
-    :ruturn:
+    :return:
     """
     conf_name = fake_conf_file.split("/")[-1].split(".")[0]
     file = f'{fake_conf_file}\n'
