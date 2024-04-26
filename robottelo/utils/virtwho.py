@@ -573,6 +573,16 @@ def vw_fake_conf_create(
     json_file,
     is_hypervisor=True,
 ):
+    """Create fake config file
+    :param owner: Name of the Owner
+    :param rhsm_hostname: Name of the rhsm_hostname
+    :param rhsm_username: Name of the rhsm_username
+    :param rhsm_encrypted_password: Value of the rhsm_encrypted_password
+    :param fake_conf_file: Name of the fake_conf_file
+    :param json_file: Name of the json_file
+    :param is_hypervisor: Default ir True
+    :ruturn: 
+    """
     conf_name = fake_conf_file.split("/")[-1].split(".")[0]
     file = f'{fake_conf_file}\n'
     title = f'[{conf_name}]\n'
@@ -591,6 +601,16 @@ def vw_fake_conf_create(
 
 
 def vw_run_option(option):
+    """virt who run by option
+    :param option: 
+    -d, --debug           Enable debugging output
+    -o, --one-shot        Send the list of guest IDs and exit immediately
+    -i INTERVAL, --interval INTERVAL
+    -p, --print
+    -c CONFIGS, --config CONFIGS
+    --version             Display the version information
+    :ruturn: 
+    """
     runcmd('systemctl stop virt-who')
     runcmd('pkill -9 virt-who')
     runcmd(f'virt-who -{option}')
