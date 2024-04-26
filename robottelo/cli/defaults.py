@@ -15,6 +15,7 @@ Subcommands::
     list                          List all the default parameters
     providers                     List all the providers
 """
+
 from robottelo.cli.base import Base
 
 

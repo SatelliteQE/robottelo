@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from random import choice, uniform
 
 import pytest

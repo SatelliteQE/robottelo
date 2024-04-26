@@ -11,6 +11,7 @@
 :CaseImportance: Medium
 
 """
+
 import re
 
 from fauxfactory import gen_string
@@ -242,7 +243,7 @@ def test_positive_logging_from_pulp3(module_org, target_sat):
     target_sat.cli.Repository.synchronize({'id': repo['id']})
     # Get the id of repository sync from task
     task_out = target_sat.execute(
-        "hammer task list | grep -F \'Synchronize repository {\"text\"=>\"repository\'"
+        "hammer task list | grep -F 'Synchronize repository {\"text\"=>\"repository'"
     ).stdout.splitlines()[0][:8]
     prod_log_out = target_sat.execute(f'grep  {task_out} {source_log}').stdout.splitlines()[0]
     # Get correlation id of pulp from production logs

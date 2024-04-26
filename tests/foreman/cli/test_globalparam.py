@@ -11,6 +11,7 @@
 :CaseImportance: Critical
 
 """
+
 from functools import partial
 
 from fauxfactory import gen_string

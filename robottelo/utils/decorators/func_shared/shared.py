@@ -84,6 +84,7 @@ Usage::
 
             return dict(org=cls.org, repo=cls.repo}
 """
+
 import datetime
 import functools
 import hashlib
@@ -213,7 +214,6 @@ class _SharedFunction:
         inject=False,
         injected_kw='_inject',
     ):
-
         if storage_handler is None:
             storage_handler = _get_default_storage_handler()
 
@@ -258,7 +258,6 @@ class _SharedFunction:
         return kwargs
 
     def _call_function(self):
-
         retries = self._max_retries
         if not retries:
             retries = 1
@@ -465,11 +464,7 @@ def _get_function_name_key(function_name, scope=None, scope_kwargs=None, scope_c
     scope_name = _get_scope_name(
         scope=scope, scope_kwargs=scope_kwargs, scope_context=scope_context
     )
-    if scope_name:
-        function_name_key = '.'.join([scope_name, function_name])
-    else:
-        function_name_key = function_name
-    return function_name_key
+    return '.'.join([scope_name, function_name]) if scope_name else function_name
 
 
 def shared(
