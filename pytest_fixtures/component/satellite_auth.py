@@ -18,7 +18,6 @@ from robottelo.constants import (
 from robottelo.hosts import IPAHost, SSOHost
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.installer import InstallerCommand
-from robottelo.utils.issue_handlers import is_open
 
 LOGGEDOUT = 'Logged out.'
 
@@ -284,11 +283,10 @@ def enroll_configure_rhsso_external_auth(module_target_sat):
     """Enroll the Satellite6 Server to an RHSSO Server."""
     module_target_sat.register_to_cdn()
     # keycloak-httpd-client-install needs lxml but it's not an rpm dependency + is not documented
-    lxml = 'python3-lxml' if is_open('BZ:2271398') else ''
     assert (
         module_target_sat.execute(
-            f'yum -y --disableplugin=foreman-protector install '
-            f'mod_auth_openidc keycloak-httpd-client-install {lxml} '
+            'yum -y --disableplugin=foreman-protector install '
+            'mod_auth_openidc keycloak-httpd-client-install python3-lxml '
         ).status
         == 0
     )
