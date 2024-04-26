@@ -271,9 +271,7 @@ class _SharedFunction:
             traceback_text = None
             try:
                 logger.info(
-                    'calling shared function: {} - retry index: {}'.format(
-                        self._function_key, retry_index
-                    )
+                    f'calling shared function: {self._function_key} - retry index: {retry_index}'
                 )
                 result = self._function(*self._function_args, **self._function_kwargs)
                 break
@@ -334,9 +332,7 @@ class _SharedFunction:
                 creation_datetime = datetime.datetime.utcnow().strftime(_DATETIME_FORMAT)
                 if exp:
                     error = str(exp) or 'error occurred'
-                    error_class_name = '{}.{}'.format(
-                        exp.__class__.__module__, exp.__class__.__name__
-                    )
+                    error_class_name = f'{exp.__class__.__module__}.{exp.__class__.__name__}'
                     value = dict(
                         state=_STATE_FAILED,
                         id=self.transaction,
