@@ -520,9 +520,6 @@ class TestVirtWhoConfigforEsx:
             3. rhsm.log contains the correct orgs where hypervisors-guest mapping is sent to
             4. rhsm.log contains the correct account
             5. After deleting all virt-who config belong to the same org, verify that the rhsm user belong to this org has been deleted
-
-
-
         :customerscenario: true
 
         :CaseImportance: Medium
