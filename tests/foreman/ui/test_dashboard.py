@@ -159,9 +159,7 @@ def test_positive_task_status(session):
         tasks = session.task.read_all()
         total_items = session.task.total_items()
         assert total_items == int(tasks['StoppedChart']['table'][1]['Total'])
-        task_name = "Synchronize repository '{}'; product '{}'; organization '{}'".format(
-            repo.name, product.name, org.name
-        )
+        task_name = f"Synchronize repository '{repo.name}'; product '{product.name}'; organization '{org.name}'"
         assert tasks['table'][0]['Action'] == task_name
         assert tasks['table'][0]['State'] == 'stopped'
         assert tasks['table'][0]['Result'] == 'warning'

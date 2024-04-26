@@ -896,11 +896,7 @@ class ContentHost(Host, ContentHostMixins):
         # ensure ssh directory exists
         self.execute(f'mkdir -p {ssh_path}')
         # append the key if doesn't exists
-        self.execute(
-            "grep -q '{key}' {dest} || echo '{key}' >> {dest}".format(
-                key=key_content, dest=auth_file
-            )
-        )
+        self.execute(f"grep -q '{key_content}' {auth_file} || echo '{key_content}' >> {auth_file}")
         # set proper permissions
         self.execute(f'chmod 700 {ssh_path}')
         self.execute(f'chmod 600 {auth_file}')
