@@ -65,8 +65,9 @@ POWER_OPERATIONS = {
 
 @lru_cache
 def lru_sat_ready_rhel(rhel_ver):
+    """Deploy bare RHEL system ready for Satellite installation."""
     rhel_version = rhel_ver or settings.server.version.rhel_version
-    deploy_args = {
+    deploy_args = settings.server.deploy_arguments | {
         'deploy_rhel_version': rhel_version,
         'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
         'deploy_flavor': settings.flavors.default,
@@ -471,6 +472,9 @@ class ContentHost(Host, ContentHostMixins):
         if force or settings.robottelo.cdn or not downstream_repo:
             return self.execute(f'subscription-manager repos --enable {repo}')
         return None
+
+    def disable_repo(self, repo):
+        return self.execute(f'subscription-manager repos --disable {repo}')
 
     def subscription_manager_list_repos(self):
         return self.execute('subscription-manager repos --list')
