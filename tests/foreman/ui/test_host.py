@@ -1944,3 +1944,29 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
             rhel_contenthost_post_values['lifecycle_environment']['name']
             == rhel_contenthost_post_values['lifecycle_environment']['name']
         )
+
+
+@pytest.mark.tier3
+@pytest.mark.rhel_ver_match('8')
+def test_positive_page_redirect_after_update(target_sat, current_sat_location):
+    """Check that page redirects correctly after editing a host without making any changes.
+
+    :id: 29c3397e-0010-11ef-bca4-000c2989e153
+
+    :steps:
+        1. Go to All Hosts page.
+        2. Edit a host. Using the Sat. host is sufficient, no other host needs to be created or registered,
+            because we need just a host with FQDN.
+        3. Submit the host edit dialog without making any changes.
+
+    :expectedresults: The page should be redirected to the host details page.
+
+    :BZ: 2166303
+    """
+    client = target_sat
+    with target_sat.ui_session() as session:
+        session.location.select(loc_name=current_sat_location.name)
+        session.host_new.update(client.hostname, {})
+
+        assert 'page-not-found' not in session.browser.url
+        assert client.hostname in session.browser.url
