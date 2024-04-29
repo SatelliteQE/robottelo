@@ -12,16 +12,18 @@
 
 """
 
+from manifester import Manifester
 import pytest
 import requests
 import yaml
 
 from robottelo import ssh
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
-from robottelo.hosts import setup_capsule
+from robottelo.constants import DEFAULT_ARCHITECTURE, FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
+from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
+from robottelo.utils.ohsnap import dogfood_repository
 
 SATELLITE_SERVICES = [
     'dynflow-sidekiq@orchestrator',
@@ -195,10 +197,10 @@ def test_capsule_installation(sat_non_default_install, cap_ready_rhel, setting_u
     :id: 64fa85b6-96e6-4fea-bea4-a30539d59e65
 
     :steps:
-        1. Get a fapolicyd enabled Satellite
-        2. Configure capsule repos
-        3. Install and enable fapolicyd
-        4. Enable capsule module
+        1. Use Satellite with fapolicyd enabled (non-default)
+        2. Configure RHEL and Capsule repos on Satellite
+        3. Register Capsule machine to consume Satellite content
+        4. Install and enable fapolicyd
         5. Install and setup capsule
 
     :expectedresults:
@@ -212,25 +214,155 @@ def test_capsule_installation(sat_non_default_install, cap_ready_rhel, setting_u
 
     :customerscenario: true
     """
-    # Get Capsule repofile, and enable and download satellite-capsule
+    # Create testing organization
     org = sat_non_default_install.api.Organization().create()
-    cap_ready_rhel.register_to_cdn()
-    cap_ready_rhel.download_repofile(
-        product='capsule',
-        release=settings.server.version.release,
-        snap=settings.server.version.snap,
+
+    # Unregister capsule in case it's registered to CDN
+    cap_ready_rhel.unregister()
+
+    # Add a manifest to the Satellite
+    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
+        sat_non_default_install.upload_manifest(org.id, manifest.content)
+    # Create capsule certs and activation key
+    file, _, cmd_args = sat_non_default_install.capsule_certs_generate(cap_ready_rhel)
+    sat_non_default_install.session.remote_copy(file, cap_ready_rhel)
+    ak = sat_non_default_install.api.ActivationKey(
+        organization=org, environment=org.library
+    ).create()
+
+    # List of sync tasks - all repos will be synced asynchronously
+    sync_tasks = []
+
+    # Enable and sync RHEL BaseOS and AppStream repos
+    if settings.robottelo.rhel_source == "internal":
+        # Configure internal sources as custom repositories
+        product_rhel = sat_non_default_install.api.Product(organization=org.id).create()
+        for repourl in settings.repos.get(f'rhel{cap_ready_rhel.os_version.major}_os').values():
+            repo = sat_non_default_install.api.Repository(
+                organization=org.id, product=product_rhel, content_type='yum', url=repourl
+            ).create()
+            # custom repos need to be explicitly enabled
+            ak.content_override(
+                data={
+                    'content_overrides': [
+                        {
+                            'content_label': '_'.join([org.label, product_rhel.label, repo.label]),
+                            'value': '1',
+                        }
+                    ]
+                }
+            )
+    else:
+        # use AppStream and BaseOS from CDN
+        for rh_repo_key in [
+            f'rhel{cap_ready_rhel.os_version.major}_bos',
+            f'rhel{cap_ready_rhel.os_version.major}_aps',
+        ]:
+            sat_non_default_install.api_factory.enable_rhrepo_and_fetchid(
+                basearch=DEFAULT_ARCHITECTURE,
+                org_id=org.id,
+                product=PRDS[f'rhel{cap_ready_rhel.os_version.major}'],
+                repo=REPOS[rh_repo_key]['name'],
+                reposet=REPOSET[rh_repo_key],
+                releasever=REPOS[rh_repo_key]['releasever'],
+            )
+        product_rhel = sat_non_default_install.api.Product(
+            name=PRDS[f'rhel{cap_ready_rhel.os_version.major}'], organization=org.id
+        ).search()[0]
+    sync_tasks.append(
+        sat_non_default_install.api.Product(id=product_rhel.id).sync(synchronous=False)
     )
-    # Enable fapolicyd
+
+    # Enable and sync Capsule repos
+    if settings.capsule.version.source == "ga":
+        # enable Capsule repos from CDN
+        for repo in cap_ready_rhel.CAPSULE_CDN_REPOS.values():
+            reposet = sat_non_default_install.api.RepositorySet(organization=org.id).search(
+                query={'search': repo}
+            )[0]
+            reposet.enable()
+            # repos need to be explicitly enabled in AK
+            ak.content_override(
+                data={
+                    'content_overrides': [
+                        {
+                            'content_label': reposet.label,
+                            'value': '1',
+                        }
+                    ]
+                }
+            )
+            sync_tasks.append(
+                sat_non_default_install.api.Product(id=reposet.product.id).sync(synchronous=False)
+            )
+    else:
+        # configure internal source as custom repos
+        product_capsule = sat_non_default_install.api.Product(organization=org.id).create()
+        for repo_variant in ['capsule', 'maintenance']:
+            dogfood_repo = dogfood_repository(
+                ohsnap=settings.ohsnap,
+                repo=repo_variant,
+                product="capsule",
+                release=settings.capsule.version.release,
+                os_release=cap_ready_rhel.os_version.major,
+                snap=settings.capsule.version.snap,
+            )
+            repo = sat_non_default_install.api.Repository(
+                organization=org.id,
+                product=product_capsule,
+                content_type='yum',
+                url=dogfood_repo.baseurl,
+            ).create()
+            # custom repos need to be explicitly enabled
+            ak.content_override(
+                data={
+                    'content_overrides': [
+                        {
+                            'content_label': '_'.join(
+                                [org.label, product_capsule.label, repo.label]
+                            ),
+                            'value': '1',
+                        }
+                    ]
+                }
+            )
+        sync_tasks.append(
+            sat_non_default_install.api.Product(id=product_capsule.id).sync(synchronous=False)
+        )
+
+    # Wait for asynchronous sync tasks
+    logger.info(f'Waiting for {len(sync_tasks)} sync tasks')
+    for task in sync_tasks:
+        logger.info(f'Waiting for task {task['id']}')
+        sat_non_default_install.wait_for_tasks(
+            search_query=(f'id = {task["id"]}'),
+            poll_timeout=1800,
+        )
+        logger.info(f'Finished waiting for task {task['id']}')
+
+    logger.info(
+        f'Register RHEL host with Capsule [{cap_ready_rhel.hostname}] to Satellite [{sat_non_default_install.hostname}]'
+    )
+    cap_ready_rhel.register(org, None, ak.name, sat_non_default_install)
+    logger.info('Registration finished')
+
+    # Install (enable) fapolicyd
+    logger.info('Install and enable fapolicyd')
     assert (
         cap_ready_rhel.execute(
             'dnf -y install fapolicyd && systemctl enable --now fapolicyd'
         ).status
         == 0
     )
+    logger.info('Install satellite-capsule')
+    # Install Capsule package
     cap_ready_rhel.install_satellite_or_capsule_package()
     assert cap_ready_rhel.execute('rpm -q foreman-proxy-fapolicyd').status == 0
+
     # Setup Capsule
-    setup_capsule(sat_non_default_install, cap_ready_rhel, org)
+    logger.info('Setup capsule using satellite-installer')
+    cap_ready_rhel.install(cmd_args)
+
     assert sat_non_default_install.api.Capsule().search(
         query={'search': f'name={cap_ready_rhel.hostname}'}
     )[0]
