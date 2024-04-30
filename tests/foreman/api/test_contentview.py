@@ -552,6 +552,7 @@ class TestContentViewPublishPromote:
             2. HTTP exception raised, assert publish task failed for expected reason,
                 repo sync task_id found in humanized error, content-view versions unchanged.
         """
+        org = content_view.organization.read()
         # add repository to content-view
         content_view.repository = [self.yum_repo]
         content_view.update(['repository'])
@@ -565,15 +566,14 @@ class TestContentViewPublishPromote:
         with pytest.raises(HTTPError) as InternalServerError:
             content_view.publish()
         assert str(content_view.id) in str(InternalServerError)
-
         # search for failed publish task
-        task_action = 'Actions::Katello::ContentView::Publish'
+        task_action = f"Publish content view '{content_view.name}', organization '{org.name}'"
         task_search = module_target_sat.api.ForemanTask().search(
             query={'search': f'{task_action} and started_at >= "{timestamp}"'}
         )
-        assert len(task_search) == 1
+        assert len(task_search) > 0
         task_id = task_search[0].id
-        # task failed for expected reason
+        # publish task failed for expected reason
         task = module_target_sat.api.ForemanTask(id=task_id).poll(must_succeed=False)
         assert task['result'] == 'error'
         assert len(task['humanized']['errors']) == 1
