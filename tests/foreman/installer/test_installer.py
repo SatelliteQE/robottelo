@@ -180,9 +180,7 @@ def sat_non_default_install(module_sat_ready_rhels):
     install_satellite(module_sat_ready_rhels[1], installer_args, enable_fapolicyd=True)
     sat = module_sat_ready_rhels[1]
     http_proxy = sat.enable_ipv6_http_proxy()
-    sat.execute(
-        'dnf -y --disableplugin=foreman-protector install foreman-discovery-image'
-    )
+    sat.execute('dnf -y --disableplugin=foreman-protector install foreman-discovery-image')
     yield sat
     sat.disable_ipv6_http_proxy(http_proxy)
 
