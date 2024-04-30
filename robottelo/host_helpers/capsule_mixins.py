@@ -155,13 +155,25 @@ class CapsuleInfo:
             return f'{self.url}/pulp/content/{org}/{lce}/{cv}/custom/{prod}/{repo}/'
         return f'{self.url}/pulp/content/{org}/Library/custom/{prod}/{repo}/'
 
+    def get_artifacts(self, since=None, tz='UTC'):
+        """Get paths of pulp artifact.
+
+        :param str since: Creation time of artifact we are looking for.
+        :param str tz: Time zone for `since` param.
+        :return: A list of artifacts paths.
+        """
+        query = f'find {PULP_ARTIFACT_DIR} -type f'
+        if since:
+            query = f'{query} -newermt "{since} {tz}"'
+        return self.execute(query).stdout.splitlines()
+
     def get_artifact_info(self, checksum=None, path=None):
         """Returns information about pulp artifact if found on FS,
         throws FileNotFoundError otherwise.
 
         :param checksum: Checksum of the artifact to look for.
         :param path: Path to the artifact.
-        :return: A Box with artifact path and info.
+        :return: A Box with artifact path, size, latest sum and info.
         """
         if not (checksum or path):
             raise ValueError('Either checksum or path must be specified')

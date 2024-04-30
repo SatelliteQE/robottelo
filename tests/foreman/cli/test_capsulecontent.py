@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from datetime import datetime
 import random
 
@@ -21,7 +22,6 @@ from robottelo.config import settings
 from robottelo.constants import (
     CONTAINER_REGISTRY_HUB,
     CONTAINER_UPSTREAM_NAME,
-    PULP_ARTIFACT_DIR,
 )
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
 from robottelo.content_info import get_repo_files_urls_by_url
@@ -73,6 +73,24 @@ def module_synced_content(
     module_capsule_configured.wait_for_sync(start_time=sync_time)
 
     return Box(prod=module_product, repos=repos, cv=cv, lce=module_lce, sync_time=sync_time)
+
+
+@pytest.fixture(scope="module")
+def module_capsule_setting(module_target_sat, module_capsule_configured):
+    """Set appropriate capsule setting for artifact testing,
+    immediate download policy and on request sync."""
+    setting_entity = module_target_sat.api.Setting().search(
+        query={'search': 'name=foreman_proxy_content_auto_sync'}
+    )[0]
+    original_autosync = setting_entity.value
+    original_policy = module_capsule_configured.nailgun_capsule.download_policy
+    setting_entity.value = False
+    setting_entity.update({'value'})
+    module_capsule_configured.update_download_policy('immediate')
+    yield
+    setting_entity.value = original_autosync
+    setting_entity.update({'value'})
+    module_capsule_configured.update_download_policy(original_policy)
 
 
 @pytest.fixture(scope='module')
@@ -293,109 +311,8 @@ def test_positive_update_counts(target_sat, module_capsule_configured):
 @pytest.mark.parametrize(
     'module_synced_content',
     [
-        [
-            {'content_type': 'yum', 'url': settings.repos.yum_0.url},
-            {'content_type': 'file', 'url': CUSTOM_FILE_REPO},
-        ]
-    ],
-    indirect=True,
-    ids=['content'],
-)
-@pytest.mark.parametrize('content_type', ['yum', 'file'])
-@pytest.mark.parametrize('damage_type', ['destroy', 'corrupt'])
-def test_positive_repair_yum_file_artifacts(
-    module_target_sat,
-    module_capsule_configured,
-    module_capsule_artifact_cleanup,
-    module_org,
-    module_synced_content,
-    damage_type,
-    repair_type,
-    content_type,
-):
-    """Test the verify-checksum task repairs particular RPM and FILE artifacts correctly
-    at the Capsule side using one of its methods when they were removed or corrupted before.
-
-    :id: f818f537-94b0-4d14-adf1-643ead828ade
-
-    :parametrized: yes
-
-    :setup:
-        1. Have a Satellite with registered external Capsule.
-        2. Clean up all previously synced artifacts from the Capsule.
-        3. Create yum and file type repository, publish it in a CVV and promote to an LCE.
-        4. Assign the Capsule with the LCE and sync it.
-
-    :steps:
-        1. Pick one of the published files.
-        2. Cause desired type of damage to his artifact and verify the effect.
-        3. Trigger desired variant of repair (verify_checksum) task.
-        4. Check if the artifact is back in shape.
-
-    :expectedresults:
-        1. Artifact is stored correctly based on the checksum.
-        2. All variants of verify_checksum task are able to repair all types of damage.
-
-    :BZ: 2127537
-
-    :customerscenario: true
-
-    """
-    repo = next(repo for repo in module_synced_content.repos if repo.content_type == content_type)
-
-    # Pick one of the published files.
-    caps_repo_url = module_capsule_configured.get_published_repo_url(
-        org=module_org.label,
-        lce=None if repair_type == 'repo' else module_synced_content.lce.label,
-        cv=None if repair_type == 'repo' else module_synced_content.cv.label,
-        prod=module_synced_content.prod.label,
-        repo=repo.label,
-    )
-    cap_files_urls = get_repo_files_urls_by_url(
-        caps_repo_url, extension='rpm' if content_type == 'yum' else 'iso'
-    )
-
-    file_url = random.choice(cap_files_urls)
-    file_sum = module_target_sat.checksum_by_url(file_url, sum_type='sha256sum')
-    file_ai = module_capsule_configured.get_artifact_info(checksum=file_sum)
-
-    # Cause desired type of damage to his artifact and verify the effect.
-    if damage_type == 'destroy':
-        module_capsule_configured.execute(f'rm -f {file_ai.path}')
-        with pytest.raises(FileNotFoundError):
-            module_capsule_configured.get_artifact_info(checksum=file_sum)
-        with pytest.raises(AssertionError):
-            module_target_sat.checksum_by_url(file_url)
-    elif damage_type == 'corrupt':
-        res = module_capsule_configured.execute(
-            f'truncate -s {random.randint(1, file_ai.size)} {file_ai.path}'
-        )
-        assert res.status == 0, f'Artifact truncation failed: {res.stderr}'
-        assert (
-            module_capsule_configured.get_artifact_info(checksum=file_sum) != file_ai
-        ), 'Artifact corruption failed'
-    else:
-        raise ValueError(f'Unsupported damage type: {damage_type}')
-
-    # Trigger desired variant of repair (verify_checksum) task.
-    opts = {'id': module_capsule_configured.nailgun_capsule.id}
-    if repair_type == 'repo':
-        opts.update({'repository-id': repo.id})
-    elif repair_type == 'cv':
-        opts.update({'content-view-id': module_synced_content.cv.id})
-    elif repair_type == 'lce':
-        opts.update({'lifecycle-environment-id': module_synced_content.lce.id})
-    module_target_sat.cli.Capsule.content_verify_checksum(opts)
-
-    # Check if the artifact is back in shape.
-    fixed_ai = module_capsule_configured.get_artifact_info(checksum=file_sum)
-    assert fixed_ai == file_ai, f'Artifact restoration failed: {fixed_ai} != {file_ai}'
-
-
-@pytest.mark.parametrize('repair_type', ['repo', 'cv', 'lce'])
-@pytest.mark.parametrize(
-    'module_synced_content',
-    [
+        {'content_type': 'yum', 'url': settings.repos.yum_0.url},
+        {'content_type': 'file', 'url': CUSTOM_FILE_REPO},
         {
             'content_type': 'docker',
             'docker_upstream_name': CONTAINER_UPSTREAM_NAME,
@@ -410,56 +327,83 @@ def test_positive_repair_yum_file_artifacts(
         },
     ],
     indirect=True,
-    ids=['docker', 'AC'],
+    ids=['yum', 'file', 'docker', 'AC'],
 )
 @pytest.mark.parametrize('damage_type', ['destroy', 'corrupt'])
-def test_positive_repair_docker_AC_artifacts(
-    module_target_sat, module_capsule_configured, module_synced_content, damage_type, repair_type
+def test_positive_repair_artifacts(
+    module_target_sat,
+    module_capsule_configured,
+    module_capsule_setting,
+    module_capsule_artifact_cleanup,
+    module_synced_content,
+    module_org,
+    damage_type,
+    repair_type,
 ):
-    """Test the verify-checksum task repairs particular docker and ansible-collection artifacts
-    correctly at the Capsule side using one of its methods when they were removed or corrupted
-    before.
+    """Test the verify-checksum task repairs artifacts of each supported content type correctly
+    at the Capsule side using each of its options when they were removed or corrupted before.
 
-    :id: b0e1a163-bf30-48bf-8d27-68c689ee0896
+    :id: cdc2c4c7-72e1-451a-8bde-7f4340a5b73a
 
     :parametrized: yes
 
     :setup:
         1. Have a Satellite with registered external Capsule.
-        2. Create docker and ansible-collection type repository, publish it in a CVV and promote
+        2. Clean up all previously synced artifacts from the Capsule to ensure new artifacts are
+           created on Capsule sync with expected creation time. (the fixtures order matters)
+        3. Per parameter, create repository of each content type, publish it in a CV and promote
            to an LCE.
-        3. Assign the Capsule with the LCE and sync it.
+        4. Assign the Capsule with the LCE and sync it.
 
     :steps:
-        1. Get all artifacts synced recently by the `module_synced_content` fixture.
-        2. Pick one artifact and cause desired type of damage and verify the effect.
-        3. Trigger desired variant of repair (verify_checksum) task.
+        1. Based on the repository content type
+           - find and pick one artifact for particular published file, or
+           - pick one artifact synced recently by the `module_synced_content` fixture.
+        2. Cause desired type of damage to the artifact and verify the effect.
+        3. Trigger desired variant of the repair (verify_checksum) task.
         4. Check if the artifact is back in shape.
 
     :expectedresults:
-        1. Artifact is stored correctly based on the checksum.
-        2. All variants of verify_checksum task are able to repair all types of damage.
+        1. Artifact is stored correctly based on the checksum. (yum and file)
+        2. All variants of verify_checksum task are able to repair all types of damage for all
+           supported content types.
 
     :BZ: 2127537
 
     :customerscenario: true
 
     """
-    # Get all artifacts synced recently by the `module_synced_content` fixture.
-    artifacts = module_capsule_configured.execute(
-        f'find {PULP_ARTIFACT_DIR} -type f -newermt "{module_synced_content.sync_time} UTC"'
-    ).stdout.splitlines()
-    assert len(artifacts) > 0, 'No NEW artifacts found'
+    # Based on the repository content type
+    if module_synced_content.repos[0].content_type in ['yum', 'file']:
+        # Find and pick one artifact for particular published file.
+        caps_repo_url = module_capsule_configured.get_published_repo_url(
+            org=module_org.label,
+            lce=None if repair_type == 'repo' else module_synced_content.lce.label,
+            cv=None if repair_type == 'repo' else module_synced_content.cv.label,
+            prod=module_synced_content.prod.label,
+            repo=module_synced_content.repos[0].label,
+        )
+        cap_files_urls = get_repo_files_urls_by_url(
+            caps_repo_url,
+            extension='rpm' if module_synced_content.repos[0].content_type == 'yum' else 'iso',
+        )
+        url = random.choice(cap_files_urls)
+        sum = module_target_sat.checksum_by_url(url, sum_type='sha256sum')
+        ai = module_capsule_configured.get_artifact_info(checksum=sum)
+    else:
+        # Pick one artifact synced recently by the `module_synced_content` fixture.
+        artifacts = module_capsule_configured.get_artifacts(since=module_synced_content.sync_time)
+        assert len(artifacts) > 0, 'No NEW artifacts found'
+        ai = module_capsule_configured.get_artifact_info(path=random.choice(artifacts))
 
-    # Pick one artifact and cause desired type of damage and verify the effect.
-    ai = module_capsule_configured.get_artifact_info(path=random.choice(artifacts))
+    # Cause desired type of damage to the artifact and verify the effect.
     if damage_type == 'destroy':
         module_capsule_configured.execute(f'rm -f {ai.path}')
         with pytest.raises(FileNotFoundError):
             module_capsule_configured.get_artifact_info(path=ai.path)
     elif damage_type == 'corrupt':
         res = module_capsule_configured.execute(
-            f'truncate -s {random.randint(1, ai.size)} {ai.path}'
+            f'truncate -s {random.randrange(1, ai.size)} {ai.path}'
         )
         assert res.status == 0, f'Artifact truncation failed: {res.stderr}'
         assert (
@@ -481,3 +425,8 @@ def test_positive_repair_docker_AC_artifacts(
     # Check if the artifact is back in shape.
     fixed_ai = module_capsule_configured.get_artifact_info(path=ai.path)
     assert fixed_ai == ai, f'Artifact restoration failed: {fixed_ai} != {ai}'
+
+    if module_synced_content.repos[0].content_type in ['yum', 'file']:
+        assert (
+            module_target_sat.checksum_by_url(url, sum_type='sha256sum') == ai.sum
+        ), 'Published file is unaccessible or corrupted'
