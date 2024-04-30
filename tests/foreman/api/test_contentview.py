@@ -305,7 +305,7 @@ class TestContentView:
 
             1) Sync a RH Repo
             2) Create a CV, add the repo and publish it
-            3) Create a CCV and add the CV to it, then publish it
+            3) Create a CCV and add the CV version to it, then publish it
             4) Create LCEs with the specific value for registry_name
             5) Promote the CCV to both LCEs
 
@@ -394,8 +394,8 @@ class TestContentView:
             registry_name_pattern='<%= lifecycle_environment.label %>/<%= repository.name %>',
         ).create()
         version = composite_cv.version[0].read()
-        assert version.promote(data={'environment_ids': lce1.id})
-        assert version.promote(data={'environment_ids': lce2.id})
+        assert 'success' in version.promote(data={'environment_ids': lce1.id})['result']  
+        assert 'success' in version.promote(data={'environment_ids': lce2.id})['result']
 
 
 class TestContentViewCreate:
