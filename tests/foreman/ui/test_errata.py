@@ -1088,7 +1088,7 @@ def test_positive_content_host_previous_env(
         assert content_host_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
 
 
-@pytest.mark.tier3
+@pytest.mark.tier2
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.parametrize(
     'registered_contenthost',
@@ -1098,7 +1098,7 @@ def test_positive_content_host_previous_env(
 def test_positive_check_errata(session, module_org_with_parameter, registered_contenthost):
     """Check if the applicable errata is available from the host page
 
-    :id: a0694930-4bf7-4a97-b275-2be7d5f1b311
+    :id: 81f3c5bf-5317-40d6-ab3a-2b1a2c5fcbdd
 
     :steps:
         1. Go to All hosts
@@ -1118,6 +1118,72 @@ def test_positive_check_errata(session, module_org_with_parameter, registered_co
         session.location.select(loc_name=DEFAULT_LOC)
         read_errata = session.host_new.get_details(hostname, 'Content.Errata')
         assert read_errata['Content']['Errata']['table'][0]['Errata'] == CUSTOM_REPO_ERRATA_ID
+
+
+@pytest.mark.tier3
+@pytest.mark.rhel_ver_match('[8, 9]')
+def test_positive_host_content_library(
+    registered_contenthost,
+    function_lce,
+    module_lce,
+    session,
+):
+    """Check if the applicable errata are available from the content host's Library.
+        View errata table from within All Hosts, and legacy Contenthosts pages.
+
+    :id: a0694930-4bf7-4a97-b275-2be7d5f1b311
+
+    :Setup:
+        1. Multiple environments are present, we will use 'Library'.
+        2. A registered host's Library environment has some additional errata.
+
+    :steps:
+        1. Install the outdated package to registered host, making an errata applicable.
+        2. Go to new All Hosts -> Select the host -> Content -> Errata Tab.
+        3. Go to Legacy Content Hosts -> Select the host -> Errata Tab -> 'Library' env.
+        4. Search for the errata by id. Then, check the entire table without filtering.
+
+    :expectedresults: The expected errata id present in Library is displayed.
+        Only a single errata is present, the tables match between the two pages.
+
+    :parametrized: yes
+    """
+    client = registered_contenthost
+    hostname = client.hostname
+
+    assert client.applicable_errata_count == 0
+    assert client.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    assert client.applicable_errata_count == 1
+    assert client.applicable_package_count == 1
+
+    with session:
+        session.location.select(loc_name=DEFAULT_LOC)
+        # check new host > host > content > errata tab:
+        host_tab_search = session.host_new.get_errata_table(
+            entity_name=hostname,
+            search=f'errata_id="{CUSTOM_REPO_ERRATA_ID}"',
+        )
+        # found desired errata_id by search
+        assert len(host_tab_search) == 1
+        assert host_tab_search[0]['Errata'] == CUSTOM_REPO_ERRATA_ID
+        # no filters passed, checking all errata present
+        host_tab_erratum = session.host_new.get_errata_table(hostname)
+        # only the expected errata_id is found
+        assert len(host_tab_erratum) == 1
+        assert host_tab_erratum[0]['Errata'] == CUSTOM_REPO_ERRATA_ID
+        # check legacy chost > chost > errata tab -- search:
+        single_chost_search = session.contenthost.search_errata(
+            hostname, CUSTOM_REPO_ERRATA_ID, environment='Library Synced Content'
+        )
+        # found desired errata_id by search
+        assert len(single_chost_search) == 1
+        assert single_chost_search[0]['Id'] == CUSTOM_REPO_ERRATA_ID
+        # display all entries in chost table, only the expected one is present
+        all_chost_erratum = session.contenthost.search_errata(
+            hostname, errata_id=' ', environment='Library Synced Content'
+        )
+        assert len(all_chost_erratum) == 1
+        assert all_chost_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
 
 
 @pytest.mark.tier3
