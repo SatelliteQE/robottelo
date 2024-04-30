@@ -246,26 +246,30 @@ def test_positive_create_inherit_lce_cv(
     module_default_org_view, module_lce_library, module_org, module_target_sat
 ):
     """Create a host with hostgroup specified. Make sure host inherited
-    hostgroup's lifecycle environment and content-view
+    hostgroup's lifecycle environment and content-view.
+    Make sure this also works with a nested hostgroup.
 
     :id: 229cbdbc-838b-456c-bc6f-4ac895badfbc
 
     :expectedresults: Host's lifecycle environment and content view match
         the ones specified in hostgroup
 
-    :BZ: 1391656
+    :BZ: 1391656, 2266432
     """
-    hostgroup = module_target_sat.api.HostGroup(
+    parent_hg = module_target_sat.api.HostGroup(
         content_view=module_default_org_view,
         lifecycle_environment=module_lce_library,
         organization=[module_org],
     ).create()
-    host = module_target_sat.api.Host(hostgroup=hostgroup, organization=module_org).create()
-    assert (
-        host.content_facet_attributes['lifecycle_environment']['id']
-        == hostgroup.lifecycle_environment.id
-    )
-    assert host.content_facet_attributes['content_view']['id'] == hostgroup.content_view.id
+    nested_hg = module_target_sat.api.HostGroup(parent=parent_hg).create()
+
+    for hg in [parent_hg, nested_hg]:
+        host = module_target_sat.api.Host(hostgroup=hg, organization=module_org).create()
+        assert (
+            host.content_facet_attributes['lifecycle_environment']['id']
+            == hg.lifecycle_environment.id
+        )
+        assert host.content_facet_attributes['content_view']['id'] == hg.content_view.id
 
 
 @pytest.mark.tier2
