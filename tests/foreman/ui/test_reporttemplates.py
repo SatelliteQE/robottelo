@@ -63,9 +63,7 @@ def setup_content(module_sca_manifest_org, module_target_sat):
         content_view=cv, organization=org, environment=lce, auto_attach=True
     ).create()
     all_content = ak.product_content(data={'content_access_mode_all': '1'})['results']
-    content_label = content_label = [
-        repo['label'] for repo in all_content if repo['name'] == custom_repo.name
-    ][0]
+    content_label = [repo['label'] for repo in all_content if repo['name'] == custom_repo.name][0]
     ak.content_override(
         data={'content_overrides': [{'content_label': content_label, 'value': '1'}]}
     )
@@ -246,9 +244,8 @@ def test_positive_generate_registered_hosts_report(
     :CaseImportance: High
     """
     client = rhel7_contenthost
-    client.install_katello_ca(target_sat)
     org, ak, _, _ = setup_content
-    client.register_contenthost(org.label, ak.name)
+    client.register(org, None, ak.name, target_sat)
     assert client.subscribed
     with session:
         session.location.select('Default Location')
