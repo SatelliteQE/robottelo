@@ -183,7 +183,7 @@ class TestAnsibleCfgMgmt:
         result = rhel_contenthost.execute(command)
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         target_host = rhel_contenthost.nailgun_host
-        default_value = '["test"]'
+        default_value = '[\"test\"]'  # fmt: skip
         parameter_type = 'array'
         with target_sat.ui_session() as session:
             session.organization.select(org_name=module_org.name)

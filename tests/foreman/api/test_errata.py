@@ -123,7 +123,7 @@ def _validate_errata_counts(host, errata_type, expected_value, timeout=120):
         sleep(5)
     else:
         pytest.fail(
-            'Host {} contains {} {} errata, but expected to contain ' '{} of them'.format(
+            'Host {} contains {} {} errata, but expected to contain {} of them'.format(
                 host.name,
                 host.content_facet_attributes['errata_counts'][errata_type],
                 errata_type,
@@ -149,7 +149,7 @@ def _fetch_available_errata(host, expected_amount=None, timeout=120):
         errata = host.errata()
     else:
         pytest.fail(
-            'Host {} contains {} available errata, but expected to ' 'contain {} of them'.format(
+            'Host {} contains {} available errata, but expected to contain {} of them'.format(
                 host.name,
                 len(errata['results']),
                 expected_amount if not None else 'No expected_amount provided',
