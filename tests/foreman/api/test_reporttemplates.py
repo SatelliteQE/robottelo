@@ -687,8 +687,7 @@ def test_positive_generate_job_report(setup_content, module_target_sat, content_
     """
     ak, org = setup_content
     for host in content_hosts:
-        host.install_katello_ca(module_target_sat)
-        host.register_contenthost(org.label, ak.name)
+        host.register(org, None, ak.name, module_target_sat)
         host.add_rex_key(module_target_sat)
         assert host.subscribed
         # Run a Job on the Host
