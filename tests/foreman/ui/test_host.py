@@ -1096,8 +1096,8 @@ def test_positive_manage_table_columns(session, current_sat_org, current_sat_loc
         'Recommendations': False,
     }
     with session:
-        session.organization.select(org_name=current_sat_org)
-        session.location.select(loc_name=current_sat_location)
+        session.organization.select(org_name=current_sat_org.name)
+        session.location.select(loc_name=current_sat_location.name)
         session.host.manage_table_columns(columns)
         displayed_columns = session.host.get_displayed_table_headers()
         for column, is_displayed in columns.items():
@@ -1128,8 +1128,8 @@ def test_positive_host_details_read_templates(
     host = target_sat.api.Host().search(query={'search': f'name={target_sat.hostname}'})[0]
     api_templates = [template['name'] for template in host.list_provisioning_templates()]
     with session:
-        session.organization.select(org_name=current_sat_org)
-        session.location.select(loc_name=current_sat_location)
+        session.organization.select(org_name=current_sat_org.name)
+        session.location.select(loc_name=current_sat_location.name)
         host_detail = session.host_new.get_details(target_sat.hostname, widget_names='details')
         ui_templates = [
             row['column1'].strip()
@@ -1714,3 +1714,29 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
         )
         tracer = session.host_new.get_tracer(tracer_install_host.hostname)
         assert tracer['title'] == "No applications to restart"
+
+
+@pytest.mark.tier3
+@pytest.mark.rhel_ver_match('8')
+def test_positive_page_redirect_after_update(target_sat, current_sat_location):
+    """Check that page redirects correctly after editing a host without making any changes.
+
+    :id: 29c3397e-0010-11ef-bca4-000c2989e153
+
+    :steps:
+        1. Go to All Hosts page.
+        2. Edit a host. Using the Sat. host is sufficient, no other host needs to be created or registered,
+            because we need just a host with FQDN.
+        3. Submit the host edit dialog without making any changes.
+
+    :expectedresults: The page should be redirected to the host details page.
+
+    :BZ: 2166303
+    """
+    client = target_sat
+    with target_sat.ui_session() as session:
+        session.location.select(loc_name=current_sat_location.name)
+        session.host_new.update(client.hostname, {})
+
+        assert 'page-not-found' not in session.browser.url
+        assert client.hostname in session.browser.url
