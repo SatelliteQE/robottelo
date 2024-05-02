@@ -21,6 +21,7 @@ Subcommands::
     schedule                      Schedule generating of a report
     update                        Update a report template
 """
+
 from os import chmod
 from tempfile import mkstemp
 

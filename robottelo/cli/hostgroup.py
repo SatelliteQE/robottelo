@@ -22,6 +22,7 @@ Subcommands::
     set-parameter                 Create or update parameter for a hostgroup
     update                        Update a host group
 """
+
 from robottelo.cli.base import Base
 
 

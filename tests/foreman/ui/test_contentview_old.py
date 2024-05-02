@@ -14,6 +14,7 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 :CaseImportance: High
 
 """
+
 import datetime
 from random import randint
 

@@ -24,11 +24,7 @@ def org_module(request, default_org, module_sca_manifest_org):
 
 @pytest.fixture
 def org_session(request, session, session_sca):
-    if 'sca' in request.module.__name__.split('.')[-1]:
-        org_session = session_sca
-    else:
-        org_session = session
-    return org_session
+    return session_sca if 'sca' in request.module.__name__.split('.')[-1] else session
 
 
 @pytest.fixture

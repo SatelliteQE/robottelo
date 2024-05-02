@@ -10,6 +10,7 @@
 
 :Team: Rocket
 """
+
 from datetime import datetime
 import re
 
@@ -540,7 +541,6 @@ def test_positive_host_registration_with_non_admin_user(
     with module_target_sat.ui_session(
         test_name, user=user.login, password=user_password
     ) as session:
-
         cmd = session.host_new.get_register_command(
             {
                 'general.insecure': True,

@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from box import Box
 from fauxfactory import gen_alpha
 import pytest
