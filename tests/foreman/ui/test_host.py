@@ -35,6 +35,7 @@ from robottelo.constants import (
     OSCAP_WEEKDAY,
     PERMISSIONS,
     REPO_TYPE,
+    ROLES,
 )
 from robottelo.constants.repos import CUSTOM_FILE_REPO
 from robottelo.utils.datafactory import gen_string
@@ -1971,3 +1972,64 @@ def test_positive_page_redirect_after_update(target_sat, current_sat_location):
 
         assert 'page-not-found' not in session.browser.url
         assert client.hostname in session.browser.url
+
+
+@pytest.mark.tier3
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('8')
+def test_host_status_honors_taxonomies(
+    module_target_sat, test_name, rhel_contenthost, setup_content, default_location, default_org
+):
+    """Check that host status counts in Monitor -> Host Statuses show only hosts that the user has permisisons to
+
+    :id: 2c4e6df7-c17e-4074-b691-4d8e2efda062
+    :steps:
+        1. In a non-default organization, create a user
+        2. As that user, check that host count is 0 in Monitor -> Host Statuses
+        3. Add a host to the non-default org
+        4. As that user, check that host count is 1 in Monitor -> Host Statuses
+
+    :expectedresults: First, the user can't see any host, then they can see one host
+    """
+    ak, org, _ = setup_content
+    # default_org != org (== module_org)
+    default_org_ak_name = gen_string('alpha')
+    module_target_sat.cli.ActivationKey.create(
+        {
+            'name': default_org_ak_name,
+            'organization-id': default_org.id,
+            'lifecycle-environment': 'Library',
+        }
+    )['name']
+    # register the host to default_org
+    assert (
+        rhel_contenthost.register(
+            default_org, default_location, default_org_ak_name, module_target_sat
+        ).status
+        == 0
+    )
+    host_id = module_target_sat.cli.Host.info({'name': rhel_contenthost.hostname})['id']
+    password = gen_string('alpha')
+    login = gen_string('alpha')
+    # the user is in org
+    module_target_sat.cli.User.create(
+        {
+            'organization-id': org.id,
+            'location-id': default_location.id,
+            'auth-source': 'Internal',
+            'password': password,
+            'mail': 'root@localhost',
+            'login': login,
+            'roles': ROLES,
+        }
+    )
+    with module_target_sat.ui_session(test_name, user=login, password=password) as session:
+        statuses = session.host.host_statuses()
+    assert all(int(status['count'].split(': ')[1]) == 0 for status in statuses)
+    # register the host to org
+    assert rhel_contenthost.unregister().status == 0
+    module_target_sat.cli.Host.delete({'id': host_id})
+    assert rhel_contenthost.register(org, default_location, ak.name, module_target_sat).status == 0
+    with module_target_sat.ui_session(test_name, user=login, password=password) as session:
+        statuses = session.host.host_statuses()
+    assert len([status for status in statuses if int(status['count'].split(': ')[1]) != 0]) == 1
