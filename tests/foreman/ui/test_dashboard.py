@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from airgun.session import Session
 from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
@@ -54,14 +55,14 @@ def test_positive_host_configuration_status(session):
         'Hosts with no reports',
     ]
     search_strings_list = [
-        'last_report > \"30 minutes ago\" and (status.applied > 0 or'
+        'last_report > "30 minutes ago" and (status.applied > 0 or'
         ' status.restarted > 0) and (status.failed = 0)',
-        'last_report > \"30 minutes ago\" and (status.failed > 0 or'
+        'last_report > "30 minutes ago" and (status.failed > 0 or'
         ' status.failed_restarts > 0) and status.enabled = true',
-        'last_report > \"30 minutes ago\" and status.enabled = true and'
+        'last_report > "30 minutes ago" and status.enabled = true and'
         ' status.applied = 0 and status.failed = 0 and status.pending = 0',
-        'last_report > \"30 minutes ago\" and status.pending > 0 and status.enabled = true',
-        'last_report < \"30 minutes ago\" and status.enabled = true',
+        'last_report > "30 minutes ago" and status.pending > 0 and status.enabled = true',
+        'last_report < "30 minutes ago" and status.enabled = true',
         'status.enabled = false',
         'not has last_report and status.enabled = true',
     ]

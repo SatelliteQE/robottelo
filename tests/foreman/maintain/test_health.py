@@ -11,6 +11,7 @@
 :CaseImportance: Critical
 
 """
+
 import time
 
 from fauxfactory import gen_string
@@ -576,7 +577,7 @@ def test_positive_health_check_postgresql_checkpoint_segments(sat_maintain):
     assert result.status == 1
     assert 'FAIL' in result.stdout
     # Add checkpoint_segments
-    sat_maintain.execute(fr'sed -i "$ a\  checkpoint_segments: 32" {custom_hiera}')
+    sat_maintain.execute(rf'sed -i "$ a\  checkpoint_segments: 32" {custom_hiera}')
     # Run check-postgresql-checkpoint-segments check.
     result = sat_maintain.cli.Health.check(
         options={'label': 'check-postgresql-checkpoint-segments'}
@@ -588,7 +589,7 @@ def test_positive_health_check_postgresql_checkpoint_segments(sat_maintain):
     assert 'FAIL' in result.stdout
     # Remove config_entries section
     sat_maintain.execute(
-        fr'sed -i "/postgresql::server::config_entries\|checkpoint_segments: 32/d" {custom_hiera}'
+        rf'sed -i "/postgresql::server::config_entries\|checkpoint_segments: 32/d" {custom_hiera}'
     )
     # Run check-postgresql-checkpoint-segments check.
     result = sat_maintain.cli.Health.check(

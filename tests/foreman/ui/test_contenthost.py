@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from datetime import datetime, timedelta
 import re
 from urllib.parse import urlparse
@@ -1702,7 +1703,7 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template,
             f'os = {module_host_template.operatingsystem.name}'
         )
         # Assert dump of fake hosts found includes the higest numbered host created for this test
-        match = re.search(fr'test-{host_num:0>2}', str(all_fake_hosts_found))
+        match = re.search(rf'test-{host_num:0>2}', str(all_fake_hosts_found))
         assert match, 'Highest numbered host not found.'
         # Get all the pagination values
         pagination_values = session.contenthost.read_all('Pagination')['Pagination']
@@ -1740,8 +1741,8 @@ def test_search_for_virt_who_hypervisors(session, default_location):
         hypervisor_display_name = f'virt-who-{hypervisor_name}-{org.id}'
         # Search with hypervisor=True gives the correct result.
         assert (
-            session.contenthost.search('hypervisor = true')[0]['Name']
-        ) == hypervisor_display_name
+            (session.contenthost.search('hypervisor = true')[0]['Name']) == hypervisor_display_name
+        )
         # Search with hypervisor=false gives the correct result.
         content_hosts = [host['Name'] for host in session.contenthost.search('hypervisor = false')]
         assert hypervisor_display_name not in content_hosts

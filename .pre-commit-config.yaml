@@ -4,29 +4,26 @@ ci:
   autofix_prs: false  # disable autofixing PRs
 
 repos:
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.4.0
-  hooks:
-  - id: trailing-whitespace
-    exclude: tests/foreman/data/
-  - id: check-yaml
-  - id: debug-statements
-- repo: https://github.com/psf/black
-  rev: 22.10.0
-  hooks:
-  - id: black
-- repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.3.0
-  hooks:
-    - id: ruff
-      args: [--fix, --exit-non-zero-on-fix]
-- repo: local
-  hooks:
-    - id: fix-uuids
-      name: Robottelo Custom Fix UUIDs script
-      description: This hook runs the scripts/fix_uuids.sh script
-      language: script
-      entry: scripts/fix_uuids.sh
-      verbose: true
-      types: [text]
-      require_serial: true
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+    - id: trailing-whitespace
+      exclude: tests/foreman/data/
+    - id: check-yaml
+    - id: debug-statements
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.1
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+  - repo: local
+    hooks:
+      - id: fix-uuids
+        name: Robottelo Custom Fix UUIDs script
+        description: This hook runs the scripts/fix_uuids.sh script
+        language: script
+        entry: scripts/fix_uuids.sh
+        verbose: true
+        types: [text]
+        require_serial: true

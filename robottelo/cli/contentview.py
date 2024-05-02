@@ -33,6 +33,7 @@ Options::
 
     -h, --help                    print help
 """
+
 from robottelo.cli import hammer
 from robottelo.cli.base import Base, CLIError
 

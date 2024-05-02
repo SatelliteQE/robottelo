@@ -15,6 +15,7 @@ Subcommands::
     list                          List all LDAP authentication sources
     update                        Update an LDAP authentication source
 """
+
 from robottelo.cli.base import Base
 
 

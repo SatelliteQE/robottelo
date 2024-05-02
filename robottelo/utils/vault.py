@@ -1,4 +1,5 @@
 """Hashicorp Vault Utils where vault CLI is wrapped to perform vault operations"""
+
 import json
 import os
 import re

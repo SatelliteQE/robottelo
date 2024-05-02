@@ -399,9 +399,12 @@ def test_positive_delete_external_roles(
         session.usergroup.update(
             ldap_usergroup_name, {'roles.resources.unassigned': [foreman_role.name]}
         )
-    with Session(
-        test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
-    ) as ldapsession, pytest.raises(NavigationTriesExceeded):
+    with (
+        Session(
+            test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
+        ) as ldapsession,
+        pytest.raises(NavigationTriesExceeded),
+    ):
         ldapsession.location.create({'name': gen_string('alpha')})
 
 
@@ -746,9 +749,12 @@ def test_positive_login_user_basic_roles(
     role = entities.Role().create()
     permissions = {'Architecture': PERMISSIONS['Architecture']}
     target_sat.api_factory.create_role_permissions(role, permissions)
-    with Session(
-        test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
-    ) as ldapsession, pytest.raises(NavigationTriesExceeded):
+    with (
+        Session(
+            test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
+        ) as ldapsession,
+        pytest.raises(NavigationTriesExceeded),
+    ):
         ldapsession.usergroup.search('')
     with session:
         session.user.update(ldap_data['ldap_user_name'], {'roles.resources.assigned': [role.name]})
@@ -780,9 +786,10 @@ def test_positive_login_user_password_otp(
     otp_pass = (
         f"{default_ipa_host.ldap_user_passwd}{generate_otp(default_ipa_host.time_based_secret)}"
     )
-    with Session(
-        test_name, default_ipa_host.ipa_otp_username, otp_pass
-    ) as ldapsession, pytest.raises(NavigationTriesExceeded):
+    with (
+        Session(test_name, default_ipa_host.ipa_otp_username, otp_pass) as ldapsession,
+        pytest.raises(NavigationTriesExceeded),
+    ):
         ldapsession.user.search('')
     users = entities.User().search(query={'search': f'login="{default_ipa_host.ipa_otp_username}"'})
     assert users[0].login == default_ipa_host.ipa_otp_username
@@ -1188,11 +1195,12 @@ def test_userlist_with_external_admin(
         assert idm_user in ldapsession.task.read_all()['current_user']
 
     # verify the users count with local admin and remote/external admin
-    with Session(
-        user=idm_admin, password=settings.server.ssh_password
-    ) as remote_admin_session, Session(
-        user=settings.server.admin_username, password=settings.server.admin_password
-    ) as local_admin_session:
+    with (
+        Session(user=idm_admin, password=settings.server.ssh_password) as remote_admin_session,
+        Session(
+            user=settings.server.admin_username, password=settings.server.admin_password
+        ) as local_admin_session,
+    ):
         assert local_admin_session.user.search(idm_user)[0]['Username'] == idm_user
         assert remote_admin_session.user.search(idm_user)[0]['Username'] == idm_user
 

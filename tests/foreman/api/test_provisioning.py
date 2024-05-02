@@ -11,6 +11,7 @@
 :CaseImportance: Critical
 
 """
+
 from fauxfactory import gen_string
 from packaging.version import Version
 import pytest

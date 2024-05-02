@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import math
 
 from airgun.session import Session

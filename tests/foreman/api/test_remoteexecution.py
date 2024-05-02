@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import pytest
 
 from robottelo.hosts import get_sat_version

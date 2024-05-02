@@ -7,6 +7,7 @@ this script and generate an image all in one go, use the ``graph-entities``
 command provided by the make file in the parent directory.
 
 """
+
 import inspect
 
 from nailgun import entities, entity_mixins

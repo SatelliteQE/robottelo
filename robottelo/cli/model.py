@@ -16,6 +16,7 @@ Subcommands::
     list                          List all models.
     update                        Update a model.
 """
+
 from robottelo.cli.base import Base
 
 

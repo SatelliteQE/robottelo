@@ -14,6 +14,7 @@ Subcommands::
     list                          List all common parameters.
     set                           Set a global parameter.
 """
+
 from robottelo.cli.base import Base
 
 
