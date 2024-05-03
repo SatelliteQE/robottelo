@@ -1319,3 +1319,65 @@ class TestDockerActivationKey:
         )
         activation_key = module_target_sat.cli.ActivationKey.info({'id': activation_key['id']})
         assert activation_key['content-view'] != comp_content_view['name']
+
+
+class TestPodman:
+    """Tests specific to using podman push/pull on Satellite
+
+    :CaseComponent: Podman
+
+    :team: Phoenix-content
+    """
+
+    @pytest.fixture(scope='class')
+    def enable_podman(module_product, module_target_sat):
+        """Enable base_os and appstream repos on the sat through cdn registration and install podman.
+        Also includes a change to the katello.yaml file, and a restart of foreman"""
+        module_target_sat.register_to_cdn()
+        if module_target_sat.os_version.major > 7:
+            module_target_sat.enable_repo(module_target_sat.REPOS['rhel_bos']['id'])
+            module_target_sat.enable_repo(module_target_sat.REPOS['rhel_aps']['id'])
+        else:
+            module_target_sat.enable_repo(module_target_sat.REPOS['rhscl']['id'])
+            module_target_sat.enable_repo(module_target_sat.REPOS['rhel']['id'])
+        result = module_target_sat.execute(
+            'dnf install -y --disableplugin=foreman-protector podman'
+        )
+        assert result.status == 0
+        result = module_target_sat.execute(
+            r"sed -i '/:katello:/a\ \ :container_image_registry:\n    :allow_push: true\n' /etc/foreman/plugins/katello.yaml"
+        )
+        assert result.status == 0
+        result = module_target_sat.execute('foreman-maintain service restart --only foreman')
+        assert result.status == 0
+
+    @pytest.mark.tier2
+    def test_podman_push(self, module_target_sat, module_product, enable_podman):
+        """Push a small and large container image to Pulp
+
+        :id: 488adc49-899e-4739-8bca-0cd255da63ae
+
+        :steps:
+            1. Using the enable_podman fixture, enable both base_os and appstream repos and install
+            podman on satellite.
+            2. Using podman, pull a small and large image from the fedoraproject registry
+            3. Push both images to pulp
+
+        :expectedresults: A docker repository is created for both images, with a valid version id.
+
+        :CaseImportance: High
+        """
+        result = module_target_sat.execute('podman pull registry.fedoraproject.org/arianna')
+        assert result.status == 0
+        result = module_target_sat.execute('podman pull registry.fedoraproject.org/fedora')
+        assert result.status == 0
+        small_image_id = module_target_sat.execute('podman images arianna -q')
+        assert small_image_id
+        large_image_id = module_target_sat.execute('podman images fedora -q')
+        assert small_image_id
+        podman_cmd = f'podman push --creds admin:changeme {small_image_id.stdout.strip()} {module_target_sat.hostname}/arianna'
+        result = module_target_sat.execute(podman_cmd)
+        module_target_sat.execute(
+            f'podman push --creds admin:changeme {large_image_id.stdout.strip()} {module_target_sat.hostname}/arianna'
+        )
+        module_target_sat.execute('pulp container repository -t push list')
