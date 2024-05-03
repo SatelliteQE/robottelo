@@ -19,6 +19,7 @@ Subcommands::
     update                        Update a repository
     upload-content                Upload content into the repository
 """
+
 from robottelo.cli.base import Base
 
 

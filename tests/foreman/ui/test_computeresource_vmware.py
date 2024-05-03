@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from math import floor, log10
 from random import choice
 

@@ -1,4 +1,5 @@
 """Unit tests for :mod:`robottelo.utils.decorators`."""
+
 from unittest import mock
 
 import pytest

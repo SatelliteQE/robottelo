@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
 from nailgun import entities
 import pytest
@@ -36,8 +37,8 @@ def test_positive_end_to_end(session, module_location, module_org):
         session.computeprofile.create({'name': name})
 
         assert entities.ComputeProfile().search(query={'search': f'name={name}'}), (
-            'Compute profile {} expected to exist, but is not included in the search '
-            'results'.format(name)
+            f'Compute profile {name} expected to exist, but is not included in the search '
+            'results'
         )
         compute_resource_list = session.computeprofile.list_resources(name)
         assert f'{compute_resource.name} (Libvirt)' in [
@@ -45,11 +46,11 @@ def test_positive_end_to_end(session, module_location, module_org):
         ]
         session.computeprofile.rename(name, {'name': new_name})
         assert entities.ComputeProfile().search(query={'search': f'name={new_name}'}), (
-            'Compute profile {} expected to exist, but is not included in the search '
-            'results'.format(new_name)
+            f'Compute profile {new_name} expected to exist, but is not included in the search '
+            'results'
         )
         session.computeprofile.delete(new_name)
         assert not entities.ComputeProfile().search(query={'search': f'name={new_name}'}), (
-            'Compute profile {} expected to be deleted, but is included in the search '
-            'results'.format(new_name)
+            f'Compute profile {new_name} expected to be deleted, but is included in the search '
+            'results'
         )
