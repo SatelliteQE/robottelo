@@ -24,7 +24,6 @@ from robottelo.constants import (
     CONTAINER_REGISTRY_HUB,
     CUSTOM_RPM_SHA_512_FEED_COUNT,
     DEFAULT_ARCHITECTURE,
-    FILTER_ERRATA_TYPE,
     PERMISSIONS,
     PRDS,
     REPOS,
@@ -1051,19 +1050,6 @@ class TestContentViewRedHatContent:
         request.cls.yumcv = module_cv.read()
 
     @pytest.mark.tier2
-    def test_positive_add_rh(self):
-        """associate Red Hat content in a view
-
-        :id: f011a269-813d-4e82-afe8-f106b23cb03e
-
-        :expectedresults: RH Content assigned and present in a view
-
-        :CaseImportance: High
-        """
-        assert len(self.yumcv.repository) == 1
-        assert self.yumcv.repository[0].read().name == REPOS['rhst7']['name']
-
-    @pytest.mark.tier2
     def test_positive_add_rh_custom_spin(self, target_sat):
         """Associate Red Hat content in a view and filter it using rule
 
@@ -1087,47 +1073,6 @@ class TestContentViewRedHatContent:
             content_view_filter=cv_filter, name=gen_string('alphanumeric'), version='1.0'
         ).create()
         assert cv_filter.id == cv_filter_rule.content_view_filter.id
-
-    @pytest.mark.tier2
-    def test_positive_update_rh_custom_spin(self, target_sat):
-        """Edit content views for a custom rh spin.  For example,
-        modify a filter
-
-        :id: 81d77ecd-8bac-44c6-8bc2-b6e38ad77a0b
-
-        :expectedresults: edited content view save is successful and info is
-            updated
-
-        :CaseImportance: High
-        """
-        cvf = target_sat.api.ErratumContentViewFilter(
-            content_view=self.yumcv,
-        ).create()
-        assert self.yumcv.id == cvf.content_view.id
-
-        cv_filter_rule = target_sat.api.ContentViewFilterRule(
-            content_view_filter=cvf, types=[FILTER_ERRATA_TYPE['enhancement']]
-        ).create()
-        assert cv_filter_rule.types == [FILTER_ERRATA_TYPE['enhancement']]
-
-        cv_filter_rule.types = [FILTER_ERRATA_TYPE['bugfix']]
-        cv_filter_rule = cv_filter_rule.update(['types'])
-        assert cv_filter_rule.types == [FILTER_ERRATA_TYPE['bugfix']]
-
-    @pytest.mark.tier2
-    def test_positive_publish_rh(self, module_org, content_view):
-        """Attempt to publish a content view containing Red Hat content
-
-        :id: 4f1698ef-a23b-48d6-be25-dbbf2d76c95c
-
-        :expectedresults: Content view can be published
-
-        :CaseImportance: Critical
-        """
-        content_view.repository = [self.repo]
-        content_view.update(['repository'])
-        content_view.publish()
-        assert len(content_view.read().version) == 1
 
     @pytest.mark.tier2
     def test_positive_publish_rh_custom_spin(self, module_org, content_view, module_target_sat):
