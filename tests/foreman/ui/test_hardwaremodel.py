@@ -9,6 +9,7 @@
 :Team: Endeavour
 
 """
+
 from fauxfactory import gen_string
 import pytest
 

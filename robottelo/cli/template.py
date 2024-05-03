@@ -20,6 +20,7 @@ Subcommands::
     remove-operatingsystem        Disassociate an operating system
     update                        Update a provisioning template
 """
+
 from robottelo.cli.base import Base
 
 
