@@ -89,6 +89,9 @@ def test_version_table_read(session, function_sca_manifest_org, target_sat):
         )
         assert package_name in response[0]['Name']
         assert response[0]['Epoch']
+        assert response[0]['Name'] == 'aajohan-comfortaa-fonts-3.001-2.el8.noarch'
+        assert response[0]['Version'] == '3.001'
+        assert response[0]['Release'] == '2.el8'
 
 
 @pytest.mark.tier2
