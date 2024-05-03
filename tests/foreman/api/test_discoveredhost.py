@@ -9,6 +9,7 @@
 :CaseAutomation: Automated
 
 """
+
 import re
 
 from fauxfactory import gen_choice, gen_ipaddr, gen_mac, gen_string

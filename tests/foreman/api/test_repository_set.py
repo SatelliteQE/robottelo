@@ -14,6 +14,7 @@ https://theforeman.org/plugins/katello/3.16/api/apidoc/v2/repository_sets.html
 :CaseImportance: High
 
 """
+
 import pytest
 
 from robottelo.constants import PRDS, REPOSET

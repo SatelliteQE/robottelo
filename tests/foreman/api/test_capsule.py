@@ -11,6 +11,7 @@
 :CaseImportance: Critical
 
 """
+
 from fauxfactory import gen_string, gen_url
 import pytest
 from requests import HTTPError

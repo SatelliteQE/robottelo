@@ -11,6 +11,7 @@
 :Team: Platform
 
 """
+
 import pytest
 
 from robottelo.constants import FAM_MODULE_PATH, FOREMAN_ANSIBLE_MODULES, RH_SAT_ROLES

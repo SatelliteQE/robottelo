@@ -307,7 +307,7 @@ class SystemInfo:
     ):
         """Checks the existence of certain files in a pulp dir"""
         extension_query = ' -o '.join([f'-name "{file}"' for file in file_names])
-        result = self.execute(fr'find {dir_path}{org.name} -type f \( {extension_query} \)')
+        result = self.execute(rf'find {dir_path}{org.name} -type f \( {extension_query} \)')
         return result.stdout
 
 

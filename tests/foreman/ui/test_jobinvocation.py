@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from inflection import camelize
 import pytest
 

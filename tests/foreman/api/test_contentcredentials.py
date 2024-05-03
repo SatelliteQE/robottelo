@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from copy import copy
 
 from fauxfactory import gen_string

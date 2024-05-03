@@ -11,6 +11,7 @@
 :Team: Rocket
 
 """
+
 import uuid
 
 from fauxfactory import gen_ipaddr, gen_mac

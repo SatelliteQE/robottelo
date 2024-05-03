@@ -69,9 +69,9 @@ class ManifestCloner:
                     consumer_data['uuid'] = str(uuid.uuid1())
                     if org_environment_access:
                         consumer_data['contentAccessMode'] = 'org_environment'
-                        consumer_data['owner'][
-                            'contentAccessModeList'
-                        ] = 'entitlement,org_environment'
+                        consumer_data['owner']['contentAccessModeList'] = (
+                            'entitlement,org_environment'
+                        )
                     new_consumer_export_zip.writestr(name, json.dumps(consumer_data))
                 else:
                     new_consumer_export_zip.writestr(name, consumer_export_zip.read(name))

@@ -1,4 +1,5 @@
 """A series of commands to help with robottelo configuration"""
+
 from pathlib import Path
 
 import click
