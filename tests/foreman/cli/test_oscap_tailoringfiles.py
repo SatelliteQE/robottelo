@@ -11,6 +11,7 @@
 :CaseAutomation: Automated
 
 """
+
 from fauxfactory import gen_string
 import pytest
 
@@ -185,7 +186,6 @@ class TestTailoringFiles:
     @pytest.mark.skip_if_open("BZ:1857572")
     @pytest.mark.tier2
     def test_positive_download_tailoring_file(self, tailoring_file_path, target_sat):
-
         """Download the tailoring file from satellite
 
         :id: 75d8c810-19a7-4285-bc3a-a1fb1a0e9088

@@ -14,6 +14,7 @@ Subcommands::
     progress                      Show the progress of the task
     resume                        Resume all tasks paused in error state
 """
+
 from robottelo.cli.base import Base
 
 

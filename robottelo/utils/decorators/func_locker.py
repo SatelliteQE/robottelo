@@ -39,6 +39,7 @@ Usage::
             with locking_function(self.test_to_lock):
                 # do some operations that conflict with test_to_lock
 """
+
 from contextlib import contextmanager
 import functools
 import inspect
@@ -223,7 +224,6 @@ def lock_function(
     class_name = '.'.join(class_names)
 
     def main_wrapper(func):
-
         func.__class_name__ = class_name
         func.__function_locked__ = True
 

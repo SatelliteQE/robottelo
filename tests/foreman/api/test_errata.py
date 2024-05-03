@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 # For ease of use hc refers to host-collection throughout this document
 from time import sleep, time
 
@@ -121,8 +122,7 @@ def _validate_errata_counts(host, errata_type, expected_value, timeout=120):
         sleep(5)
     else:
         pytest.fail(
-            'Host {} contains {} {} errata, but expected to contain '
-            '{} of them'.format(
+            'Host {} contains {} {} errata, but expected to contain {} of them'.format(
                 host.name,
                 host.content_facet_attributes['errata_counts'][errata_type],
                 errata_type,
@@ -141,8 +141,7 @@ def _fetch_available_errata(host, expected_amount=None, timeout=120):
         errata = host.errata()
     else:
         pytest.fail(
-            'Host {} contains {} available errata, but expected to '
-            'contain {} of them'.format(
+            'Host {} contains {} available errata, but expected to contain {} of them'.format(
                 host.name,
                 len(errata['results']),
                 expected_amount if not None else 'No expected_amount provided',
@@ -395,7 +394,7 @@ def package_applicability_changed_as_expected(
         output = host.execute(f'rpm -q {package_basename}').stdout
         current_package = output[:-1]
         assert package_basename in current_package
-        if current_package == package_filename:
+        if current_package == package_filename:  # noqa: SIM108
             # we have already checked if applicable package count changed,
             # in case the same version as prior was installed and present.
             prior_package = None  # package must not have been present before this modification
@@ -459,13 +458,16 @@ def _publish_and_wait(sat, org, cv):
     task_id = sat.api.ContentView(id=cv.id).publish({'id': cv.id, 'organization': org})['id']
     assert task_id, f'No task was invoked to publish the Content-View: {cv.id}.'
     # Should take < 1 minute, check in 5s intervals
-    sat.wait_for_tasks(
-        search_query=(f'label = Actions::Katello::ContentView::Publish and id = {task_id}'),
-        search_rate=5,
-        max_tries=12,
-    ), (
-        f'Failed to publish the Content-View: {cv.id}, in time.'
-        f'Task: {task_id} failed, or timed out (60s).'
+    (
+        sat.wait_for_tasks(
+            search_query=(f'label = Actions::Katello::ContentView::Publish and id = {task_id}'),
+            search_rate=5,
+            max_tries=12,
+        ),
+        (
+            f'Failed to publish the Content-View: {cv.id}, in time.'
+            f'Task: {task_id} failed, or timed out (60s).'
+        ),
     )
 
 
@@ -587,13 +589,16 @@ def test_positive_install_in_hc(
             'organization_id': module_sca_manifest_org.id,
         },
     )['id']
-    target_sat.wait_for_tasks(
-        search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
-        search_rate=15,
-        max_tries=10,
-    ), (
-        f'Could not install erratum: {CUSTOM_REPO_ERRATA_ID}, to Host-Collection.'
-        f' Task: {task_id} failed, or timed out.'
+    (
+        target_sat.wait_for_tasks(
+            search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
+            search_rate=15,
+            max_tries=10,
+        ),
+        (
+            f'Could not install erratum: {CUSTOM_REPO_ERRATA_ID}, to Host-Collection.'
+            f' Task: {task_id} failed, or timed out.'
+        ),
     )
     for client in content_hosts:
         # No applicable errata after install on all clients
@@ -892,8 +897,8 @@ def test_positive_install_multiple_in_host(
         f' but installed {len(updated_packages)}.'
     )
     # Check sets of installed package filename(s) strings, matches expected
-    assert set(updated_packages) == set(
-        security_packages_to_install
+    assert (
+        set(updated_packages) == set(security_packages_to_install)
     ), 'Expected package version filename(s) and installed package version filenam(s) are not the same.'
 
 

@@ -13,6 +13,7 @@ Subcommands::
     info                          Show a module-stream
     list                          List module-streams
 """
+
 from robottelo.cli.base import Base
 
 
