@@ -16,6 +16,7 @@ Subcommands::
     list                          List sync plans
     update
 """
+
 from robottelo.cli.base import Base
 from robottelo.exceptions import CLIError
 
@@ -26,11 +27,11 @@ class SyncPlan(Base):
     command_base = 'sync-plan'
 
     @classmethod
-    def create(cls, options=None):
+    def create(cls, options=None, timeout=None):
         """Create a SyncPlan"""
         cls.command_sub = 'create'
 
         if options.get('interval') == 'custom cron' and options.get('cron-expression') is None:
             raise CLIError('Missing "cron-expression" option for "custom cron" interval.')
 
-        return super().create(options)
+        return super().create(options, timeout)

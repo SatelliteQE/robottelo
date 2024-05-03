@@ -11,11 +11,10 @@
 :CaseImportance: High
 
 """
+
 import re
 
 import pytest
-
-from robottelo.utils.issue_handlers import is_open
 
 pytestmark = pytest.mark.destructive
 
@@ -214,42 +213,31 @@ def test_positive_validate_capsule_certificate(capsule_certs_teardown):
     :CaseAutomation: Automated
     """
     file_setup, target_sat = capsule_certs_teardown
-    DNS_Check = False
+
     # extract the cert from the tar file
     result = target_sat.execute(
         f'tar -xf {file_setup["tmp_dir"]}/capsule_certs.tar '
         f'--directory {file_setup["tmp_dir"]}/ '
     )
     assert result.status == 0, 'Extraction to working directory failed.'
-    # Extract raw data from RPM to a file
-    target_sat.execute(
-        'rpm2cpio {0}/ssl-build/{1}/'
-        '{1}-qpid-router-server*.rpm'
-        '>> {0}/ssl-build/{1}/cert-raw-data'.format(
-            file_setup['tmp_dir'], file_setup['capsule_hostname']
-        )
-    )
+
     # Extract the cert data from file cert-raw-data and write to cert-data
     target_sat.execute(
-        'openssl x509 -noout -text -in {0}/ssl-build/{1}/cert-raw-data'
+        'openssl x509 -noout -text -in {0}/ssl-build/{1}/{1}-apache.crt'
         '>> {0}/ssl-build/{1}/cert-data'.format(
             file_setup['tmp_dir'], file_setup['capsule_hostname']
         )
     )
+
     # use same location on remote and local for cert_file
     target_sat.get(file_setup['caps_cert_file'])
+
     # search the file for the line with DNS
     with open(file_setup['caps_cert_file']) as file:
         for line in file:
             if re.search(r'\bDNS:', line):
                 match = re.search(r'{}'.format(file_setup['capsule_hostname']), line)
                 assert match, 'No proxy name found.'
-                if is_open('BZ:1747581'):
-                    DNS_Check = True
-                else:
-                    match = re.search(r'\[]', line)
-                    assert not match, 'Incorrect parsing of alternative proxy name.'
-                    DNS_Check = True
+                match = re.search(r'\[]', line)
+                assert not match, 'Incorrect parsing of alternative proxy name.'
                 break
-            # if no match for "DNS:" found, then raise error.
-    assert DNS_Check, 'Cannot find Subject Alternative Name'

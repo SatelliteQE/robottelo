@@ -39,6 +39,7 @@ Usage::
             with locking_function(self.test_to_lock):
                 # do some operations that conflict with test_to_lock
 """
+
 from contextlib import contextmanager
 import functools
 import inspect
@@ -223,7 +224,6 @@ def lock_function(
     class_name = '.'.join(class_names)
 
     def main_wrapper(func):
-
         func.__class_name__ = class_name
         func.__function_locked__ = True
 
@@ -240,9 +240,7 @@ def lock_function(
 
             with file_lock(lock_file_path, remove=False, timeout=timeout) as handler:
                 logger.info(
-                    'process id: {} lock function using file path: {}'.format(
-                        process_id, lock_file_path
-                    )
+                    f'process id: {process_id} lock function using file path: {lock_file_path}'
                 )
                 # write the process id that locked this function
                 _write_content(handler, process_id)
@@ -303,9 +301,7 @@ def locking_function(
 
     with file_lock(lock_file_path, remove=False, timeout=timeout) as handler:
         logger.info(
-            'process id: {} - lock function name:{}  - using file path: {}'.format(
-                process_id, function_name, lock_file_path
-            )
+            f'process id: {process_id} - lock function name:{function_name}  - using file path: {lock_file_path}'
         )
         # write the process id that locked this function
         _write_content(handler, process_id)

@@ -14,6 +14,7 @@ http://<satellite-host>/apidoc/v2/organizations.html
 :CaseImportance: High
 
 """
+
 import http
 import json
 from random import randint
@@ -132,7 +133,7 @@ class TestOrganization:
             target_sat.api.Organization(name=name).create()
 
     @pytest.mark.tier1
-    def test_negative_check_org_endpoint(self, module_entitlement_manifest_org):
+    def test_negative_check_org_endpoint(self, module_sca_manifest_org):
         """Check manifest cert is not exposed in api endpoint
 
         :id: 24130e54-cd7a-41de-ac78-6e89aebabe30
@@ -145,7 +146,7 @@ class TestOrganization:
 
         :CaseImportance: High
         """
-        orgstring = json.dumps(module_entitlement_manifest_org.read_json())
+        orgstring = json.dumps(module_sca_manifest_org.read_json())
         assert 'BEGIN CERTIFICATE' not in orgstring
         assert 'BEGIN RSA PRIVATE KEY' not in orgstring
 

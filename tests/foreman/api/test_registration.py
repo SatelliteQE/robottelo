@@ -11,6 +11,7 @@
 :Team: Rocket
 
 """
+
 import uuid
 
 from fauxfactory import gen_ipaddr, gen_mac, gen_string
@@ -227,7 +228,7 @@ def test_negative_capsule_without_registration_enabled(
     module_target_sat,
     module_capsule_configured,
     module_ak_with_cv,
-    module_entitlement_manifest_org,
+    module_sca_manifest_org,
     module_location,
 ):
     """Verify registration with Capsule, when registration isn't configured in installer
@@ -241,7 +242,7 @@ def test_negative_capsule_without_registration_enabled(
 
     :expectedresults: Registration fails with HTTP error code 422 and an error message.
     """
-    org = module_entitlement_manifest_org
+    org = module_sca_manifest_org
 
     nc = module_capsule_configured.nailgun_smart_proxy
     module_target_sat.api.SmartProxy(id=nc.id, organization=[org]).update(['organization'])

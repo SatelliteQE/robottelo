@@ -15,6 +15,8 @@ http://www.katello.org/docs/api/apidoc/content_view_filters.html
 :CaseImportance: High
 
 """
+
+import http
 from random import randint
 
 from fauxfactory import gen_integer, gen_string

@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import os
 from time import sleep
 
@@ -196,9 +197,12 @@ def test_positive_create_with_https(
         assert ldap_source['ldap_server']['name'] == ldap_auth_name
         assert ldap_source['ldap_server']['host'] == auth_data['ldap_hostname']
         assert ldap_source['ldap_server']['port'] == '636'
-    with module_target_sat.ui_session(
-        test_name, username, auth_data['ldap_user_passwd']
-    ) as ldapsession, pytest.raises(NavigationTriesExceeded):
+    with (
+        module_target_sat.ui_session(
+            test_name, username, auth_data['ldap_user_passwd']
+        ) as ldapsession,
+        pytest.raises(NavigationTriesExceeded),
+    ):
         ldapsession.user.search('')
     assert module_target_sat.api.User().search(query={'search': f'login="{username}"'})
 
@@ -327,7 +331,9 @@ def test_session_expire_rhsso_idle_timeout(
         session.rhsso_login.login(
             {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.rhsso_password}
         )
-        sleep(60)
+        sleep(
+            150
+        )  # give the browser some time to actually logout, even though Satellite should terminate session after one minute
         with pytest.raises(NavigationTriesExceeded) as error:
             session.task.read_all(widget_names='current_user')['current_user']
         assert error.typename == 'NavigationTriesExceeded'

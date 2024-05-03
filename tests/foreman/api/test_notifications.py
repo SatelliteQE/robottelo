@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from mailbox import mbox
 from re import findall
 from tempfile import mkstemp
@@ -41,6 +42,17 @@ def admin_user_with_localhost_email(target_sat):
     yield user
 
     user.delete()
+
+
+@pytest.fixture
+def admin_user_with_custom_settings(request, admin_user_with_localhost_email):
+    """Admin user with custom properties set via parametrization.
+    `request.param` should be a dict-like value.
+    """
+    for key, value in request.param.items():
+        setattr(admin_user_with_localhost_email, key, value)
+    admin_user_with_localhost_email.update(list(request.param.keys()))
+    return admin_user_with_localhost_email
 
 
 @pytest.fixture
@@ -163,6 +175,25 @@ def wait_for_failed_repo_sync_mail(
 
 
 @pytest.fixture
+def wait_for_no_long_running_task_mail(target_sat, clean_root_mailbox, long_running_task):
+    """Wait and check that no long-running task ID is found in the Satellite's mbox file."""
+    timeout = 120
+    try:
+        wait_for_mail(
+            sat_obj=target_sat,
+            mailbox_file=clean_root_mailbox,
+            contains_string=long_running_task["task"]["id"],
+            timeout=timeout,
+        )
+    except AssertionError:
+        return True
+    raise AssertionError(
+        f'E-mail with long running task ID "{long_running_task["task"]["id"]}" '
+        f'should not have arrived to mailbox {clean_root_mailbox}!'
+    )
+
+
+@pytest.fixture
 def root_mailbox_copy(target_sat, clean_root_mailbox):
     """Parsed local system copy of the Satellite's root user mailbox.
 
@@ -201,7 +232,7 @@ def long_running_task(target_sat):
             'password': settings.server.ssh_password,
         },
     )
-    sql_date_2_days_ago = "now() - INTERVAL \'2 days\'"
+    sql_date_2_days_ago = "now() - INTERVAL '2 days'"
     result = target_sat.execute(
         "su - postgres -c \"psql foreman postgres <<EOF\n"
         "UPDATE foreman_tasks_tasks "
@@ -209,7 +240,7 @@ def long_running_task(target_sat):
         f" started_at = {sql_date_2_days_ago}, "
         f" state_updated_at = {sql_date_2_days_ago} "
         f"WHERE id=\'{job['task']['id']}\';\nEOF\n\" "
-    )
+    )  # fmt: skip  # skip formatting to avoid breaking the SQL query
     assert 'UPDATE 1' in result.stdout, f'Failed to age task {job["task"]["id"]}: {result.stderr}'
 
     yield job
@@ -222,7 +253,7 @@ def long_running_task(target_sat):
 def fake_yum_repo(target_sat):
     """Create a fake YUM repo. Delete it afterwards."""
     repo = target_sat.api.Repository(
-        content_type='yum', url=repo_constants.FAKE_YUM_DRPM_REPO
+        content_type='yum', url=repo_constants.FAKE_YUM_MISSING_REPO
     ).create()
 
     yield repo
@@ -362,3 +393,48 @@ def test_positive_notification_recipients(target_sat):
     recipients = target_sat.api.NotificationRecipients().read()
     for notification in recipients.notifications:
         assert set(notification_keys) == set(notification.keys())
+
+
+@pytest.mark.tier3
+@pytest.mark.parametrize(
+    'admin_user_with_custom_settings',
+    [
+        pytest.param({'disabled': True, 'mail_enabled': True}, id='account_disabled'),
+        pytest.param({'disabled': False, 'mail_enabled': False}, id='mail_disabled'),
+    ],
+    indirect=True,
+)
+@pytest.mark.usefixtures(
+    'reschedule_long_running_tasks_notification',
+    'wait_for_no_long_running_task_mail',
+)
+def test_negative_no_notification_for_long_running_tasks(
+    admin_user_with_custom_settings, long_running_task, root_mailbox_copy
+):
+    """Check that an e-mail notification for a long-running task
+    (i.e., running or paused for more than two days)
+    is NOT sent to users with disabled account or disabled e-mail.
+
+    :id: 03b41216-f39b-11ee-b9ea-000c2989e153
+
+    :setup:
+        1. Create an admin user with e-mail address set and:
+           a. account disabled & mail enabled
+           b. account enabled & mail disabled
+
+    :steps:
+        1. Create a long-running task.
+        3. For each user, wait and check that the notification e-mail has NOT been sent.
+
+    :BZ: 2245056
+
+    :customerscenario: true
+    """
+    assert admin_user_with_custom_settings
+    task_id = long_running_task['task']['id']
+    assert task_id
+
+    for email in root_mailbox_copy:
+        assert (
+            task_id not in email.as_string()
+        ), f'Unexpected notification e-mail with long-running task ID {task_id} found in user mailbox!'

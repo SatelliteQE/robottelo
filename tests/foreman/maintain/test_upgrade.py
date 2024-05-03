@@ -11,6 +11,7 @@
 :CaseImportance: Critical
 
 """
+
 import pytest
 
 from robottelo.config import settings
@@ -132,10 +133,16 @@ def test_negative_pre_upgrade_tuning_profile_check(request, custom_host):
     last_y_stream = last_y_stream_version(
         SATELLITE_VERSION if sat_version == 'stream' else sat_version
     )
-    custom_host.download_repofile(product='satellite', release=last_y_stream)
-    custom_host.execute(
-        f'dnf -y module enable satellite:el{rhel_major} && dnf -y install satellite'
+    # Updated test to do a z-stream upgrade, as Satellite on RHEL9 is supported from 6.16 onwards.
+    # Remove this condition once 6.16 is GA
+    target_version = (
+        '6.16.z' if (SATELLITE_VERSION == '6.16' and rhel_major == 9) else SATELLITE_VERSION
     )
+    if target_version == '6.16.z':
+        custom_host.download_repofile(product='satellite', release=sat_version)
+    else:
+        custom_host.download_repofile(product='satellite', release=last_y_stream)
+    custom_host.install_satellite_or_capsule_package()
     # Install with development tuning profile to get around installer checks
     custom_host.execute(
         'satellite-installer --scenario satellite --tuning development',
@@ -155,10 +162,10 @@ def test_negative_pre_upgrade_tuning_profile_check(request, custom_host):
     custom_host.execute('satellite-maintain upgrade list-versions')
     # Check that we can upgrade to the new Y stream version
     result = custom_host.execute('satellite-maintain upgrade list-versions')
-    assert SATELLITE_VERSION in result.stdout
+    assert target_version in result.stdout
     # Check that the upgrade check fails due to system requirements
     result = custom_host.execute(
-        f'satellite-maintain upgrade check --target-version {SATELLITE_VERSION}', timeout='5m'
+        f'satellite-maintain upgrade check --target-version {target_version}', timeout='5m'
     )
     assert (
         f'ERROR: The installer is configured to use the {profile} tuning '

@@ -96,8 +96,9 @@ def simple_recursive_locking_function():
     """try to trigger the same lock from the same process, an exception
     should be expected
     """
-    with func_locker.locking_function(simple_locked_function), func_locker.locking_function(
-        simple_locked_function
+    with (
+        func_locker.locking_function(simple_locked_function),
+        func_locker.locking_function(simple_locked_function),
     ):
         pass
     return 'I should not be reached'
@@ -125,9 +126,10 @@ def simple_function_to_lock():
 def simple_with_locking_function(index=None):
     global counter_file
     time.sleep(0.05)
-    with func_locker.locking_function(simple_locked_function), open(
-        _get_function_lock_path('simple_locked_function')
-    ) as rf:
+    with (
+        func_locker.locking_function(simple_locked_function),
+        open(_get_function_lock_path('simple_locked_function')) as rf,
+    ):
         content = rf.read()
 
     if index is not None:
@@ -234,9 +236,10 @@ class TestFuncLocker:
             content = ''
         assert str(os.getpid()) != content
 
-        with func_locker.locking_function(SimpleClass.simple_function_to_lock), open(
-            file_path
-        ) as rf:
+        with (
+            func_locker.locking_function(SimpleClass.simple_function_to_lock),
+            open(file_path) as rf,
+        ):
             content = rf.read()
 
         assert str(os.getpid()) == content
@@ -249,9 +252,10 @@ class TestFuncLocker:
             content = ''
         assert str(os.getpid()) != content
 
-        with func_locker.locking_function(SimpleClass.simple_function_to_lock_cls), open(
-            file_path
-        ) as rf:
+        with (
+            func_locker.locking_function(SimpleClass.simple_function_to_lock_cls),
+            open(file_path) as rf,
+        ):
             content = rf.read()
 
         assert str(os.getpid()) == content
@@ -296,9 +300,10 @@ class TestFuncLocker:
         else:
             content = ''
         assert str(os.getpid()) != content
-        with func_locker.locking_function(SimpleClass.SubClass.simple_function_to_lock_cls), open(
-            file_path
-        ) as rf:
+        with (
+            func_locker.locking_function(SimpleClass.SubClass.simple_function_to_lock_cls),
+            open(file_path) as rf,
+        ):
             content = rf.read()
 
         assert str(os.getpid()) == content
@@ -410,7 +415,8 @@ class TestFuncLocker:
         assert os.path.exists(lock_file_path)
 
     def test_negative_with_locking_not_locked(self):
-        with pytest.raises(
-            func_locker.FunctionLockerError, match=r'.*Cannot ensure locking.*'
-        ), func_locker.locking_function(simple_function_not_locked):
+        with (
+            pytest.raises(func_locker.FunctionLockerError, match=r'.*Cannot ensure locking.*'),
+            func_locker.locking_function(simple_function_not_locked),
+        ):
             pass

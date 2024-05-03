@@ -3,6 +3,7 @@ This module is a more object oriented replacement for robottelo.cli.factory
 It is not meant to be used directly, but as part of a robottelo.hosts.Satellite instance
 example: my_satellite.cli_factory.make_org()
 """
+
 import datetime
 from functools import lru_cache, partial
 import inspect
@@ -33,7 +34,7 @@ from robottelo.host_helpers.repository_mixins import initiate_repo_helpers
 from robottelo.utils.manifest import clone
 
 
-def create_object(cli_object, options, values=None, credentials=None):
+def create_object(cli_object, options, values=None, credentials=None, timeout=None):
     """
     Creates <object> with dictionary of arguments.
 
@@ -52,13 +53,11 @@ def create_object(cli_object, options, values=None, credentials=None):
     if credentials:
         cli_object = cli_object.with_user(*credentials)
     try:
-        result = cli_object.create(options)
+        result = cli_object.create(options, timeout)
     except CLIReturnCodeError as err:
         # If the object is not created, raise exception, stop the show.
         raise CLIFactoryError(
-            'Failed to create {} with data:\n{}\n{}'.format(
-                cli_object.__name__, pprint.pformat(options, indent=2), err.msg
-            )
+            f'Failed to create {cli_object.__name__} with data:\n{pprint.pformat(options, indent=2)}\n{err.msg}'
         ) from err
     # Sometimes we get a list with a dictionary and not a dictionary.
     if isinstance(result, list) and len(result) > 0:
@@ -999,9 +998,7 @@ class CLIFactory:
             missing_permissions = set(permission_names).difference(set(available_permission_names))
             if missing_permissions:
                 raise CLIFactoryError(
-                    'Permissions "{}" are not available in Resource "{}"'.format(
-                        list(missing_permissions), resource_type
-                    )
+                    f'Permissions "{list(missing_permissions)}" are not available in Resource "{resource_type}"'
                 )
             # Create the current resource type role permissions
             options = {'role-id': role_id}

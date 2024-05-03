@@ -9,11 +9,11 @@ Parameters:
 Subcommands:
     online                        Keep services online during backup
     offline                       Shut down services to preserve consistent backup
-    snapshot                      Use snapshots of the databases to create backup
 
 Options:
     -h, --help                    print help
 """
+
 from robottelo.cli.base import Base
 
 
@@ -24,7 +24,7 @@ class Backup(Base):
 
     @classmethod
     def run_backup(cls, backup_dir='/tmp/', backup_type='online', options=None, timeout=None):
-        """Build satellite-maintain backup online/offline/snapshot"""
+        """Build satellite-maintain backup online/offline"""
         cls.command_sub = backup_type
         cls.command_end = backup_dir
         options = options or {}

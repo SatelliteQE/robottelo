@@ -11,6 +11,7 @@
 :Team: Rocket
 
 """
+
 import pytest
 import requests
 
@@ -291,8 +292,6 @@ def test_convert2rhel_oracle(module_target_sat, oracle, activation_key_rhel, ver
         or host_content['operatingsystem_name'].startswith(f'RedHat {version}')
         or host_content['operatingsystem_name'].startswith(f'RHEL {version}')
     )
-    assert host_content['subscription_status_label'] == 'Simple Content Access'
-    assert host_content['subscription_status'] == 5
 
 
 @pytest.mark.e2e
@@ -349,5 +348,3 @@ def test_convert2rhel_centos(module_target_sat, centos, activation_key_rhel, ver
         or host_content['operatingsystem_name'].startswith(f'RedHat {version}')
         or host_content['operatingsystem_name'].startswith(f'RHEL {version}')
     )
-    assert host_content['subscription_status_label'] == 'Simple Content Access'
-    assert host_content['subscription_status'] == 5

@@ -11,6 +11,8 @@
 :CaseImportance: High
 
 """
+
+from datetime import datetime, timedelta
 import random
 
 from fauxfactory import gen_integer, gen_string, gen_utf8
@@ -21,6 +23,8 @@ from robottelo.config import settings, user_nailgun_config
 from robottelo.constants import (
     CONTAINER_REGISTRY_HUB,
     CUSTOM_RPM_SHA_512_FEED_COUNT,
+    DEFAULT_ARCHITECTURE,
+    FILTER_ERRATA_TYPE,
     PERMISSIONS,
     PRDS,
     REPOS,
@@ -250,6 +254,63 @@ class TestContentView:
             content_view_version.errata_counts['total'] == CUSTOM_RPM_SHA_512_FEED_COUNT['errata']
         )
 
+    @pytest.mark.tier2
+    def test_ccv_promote_registry_name_change(self, module_target_sat, module_sca_manifest_org):
+        """Testing CCV promotion scenarios where the registry_name has been changed to some
+        specific value.
+
+        :id: 41641d4a-d144-4833-869a-284624df2410
+
+        :steps:
+
+            1) Sync a RH Repo
+            2) Create a CV, add the repo and publish it
+            3) Create a CCV and add the CV version to it, then publish it
+            4) Create LCEs with the specific value for registry_name
+            5) Promote the CCV to both LCEs
+
+        :expectedresults: CCV can be promoted to both LCEs without issue.
+
+        :CaseImportance: High
+
+        :customerscenario: true
+
+        :BZ: 2153523
+        """
+        rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch=DEFAULT_ARCHITECTURE,
+            org_id=module_sca_manifest_org.id,
+            product=REPOS['kickstart']['rhel8_aps']['product'],
+            repo=REPOS['kickstart']['rhel8_aps']['name'],
+            reposet=REPOS['kickstart']['rhel8_aps']['reposet'],
+            releasever=REPOS['kickstart']['rhel8_aps']['version'],
+        )
+        repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+        repo.sync(timeout=600)
+        cv = module_target_sat.api.ContentView(organization=module_sca_manifest_org).create()
+        cv = module_target_sat.api.ContentView(id=cv.id, repository=[repo]).update(["repository"])
+        cv.publish()
+        cv = cv.read()
+        composite_cv = module_target_sat.api.ContentView(
+            organization=module_sca_manifest_org, composite=True
+        ).create()
+        composite_cv.component = [cv.version[0]]
+        composite_cv = composite_cv.update(['component'])
+        composite_cv.publish()
+        composite_cv = composite_cv.read()
+        # Create LCEs with the specific registry value
+        lce1 = module_target_sat.api.LifecycleEnvironment(
+            organization=module_sca_manifest_org,
+            registry_name_pattern='<%= repository.name %>',
+        ).create()
+        lce2 = module_target_sat.api.LifecycleEnvironment(
+            organization=module_sca_manifest_org,
+            registry_name_pattern='<%= lifecycle_environment.label %>/<%= repository.name %>',
+        ).create()
+        version = composite_cv.version[0].read()
+        assert 'success' in version.promote(data={'environment_ids': lce1.id})['result']
+        assert 'success' in version.promote(data={'environment_ids': lce2.id})['result']
+
 
 class TestContentViewCreate:
     """Create tests for content views."""
@@ -458,6 +519,54 @@ class TestContentViewPublishPromote:
         cvv_attrs = content_view.version[0].read_json()
         assert len(cvv_attrs['environments']) == REPEAT + 1
         assert cvv_attrs['package_count'] > 0
+
+    @pytest.mark.tier2
+    def test_negative_publish_during_repo_sync(self, content_view, module_target_sat):
+        """Attempt to publish a new version of the content-view,
+        while an associated repository is being synced.
+
+        :id: c272fff7-a679-4844-a261-80830cdd5694
+
+        :BZ: 1957144
+
+        :steps:
+            1. Add repository to content-view
+            2. Perform asynchronous repository sync
+            3. Attempt to publish a version of the content-view, while repo sync ongoing.
+
+        :expectedresults:
+            1. User cannot publish during repository sync.
+            2. HTTP exception raised, assert publish task failed for expected reason,
+                repo sync task_id found in humanized error, content-view versions unchanged.
+        """
+        org = content_view.organization.read()
+        # add repository to content-view
+        content_view.repository = [self.yum_repo]
+        content_view.update(['repository'])
+        content_view = content_view.read()
+        existing_versions = content_view.version
+        timestamp = (datetime.utcnow() - timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M')
+
+        # perform async repository sync, while still in progress-
+        # attempt to publish a new version of the content view.
+        repo_task_id = self.yum_repo.sync(synchronous=False)['id']
+        with pytest.raises(HTTPError) as InternalServerError:
+            content_view.publish()
+        assert str(content_view.id) in str(InternalServerError)
+        # search for failed publish task
+        task_action = f"Publish content view '{content_view.name}', organization '{org.name}'"
+        task_search = module_target_sat.api.ForemanTask().search(
+            query={'search': f'{task_action} and started_at >= "{timestamp}"'}
+        )
+        assert len(task_search) > 0
+        task_id = task_search[0].id
+        # publish task failed for expected reason
+        task = module_target_sat.api.ForemanTask(id=task_id).poll(must_succeed=False)
+        assert task['result'] == 'error'
+        assert len(task['humanized']['errors']) == 1
+        assert repo_task_id in task['humanized']['errors'][0]
+        # no new versions of content view, any existing remained the same
+        assert content_view.read().version == existing_versions
 
     @pytest.mark.upgrade
     @pytest.mark.tier2

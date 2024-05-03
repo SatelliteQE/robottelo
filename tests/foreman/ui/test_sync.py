@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
 import pytest
 
@@ -40,7 +41,7 @@ def module_custom_product(module_org, module_target_sat):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_sync_rh_repos(session, target_sat, module_entitlement_manifest_org):
+def test_positive_sync_rh_repos(session, target_sat, module_sca_manifest_org):
     """Create Content RedHat Sync with two repos.
 
     :id: e30f6509-0b65-4bcc-a522-b4f3089d3911
@@ -57,7 +58,7 @@ def test_positive_sync_rh_repos(session, target_sat, module_entitlement_manifest
         for distro, repo in zip(distros, repos, strict=True)
     ]
     for repo_collection in repo_collections:
-        repo_collection.setup(module_entitlement_manifest_org.id, synchronize=False)
+        repo_collection.setup(module_sca_manifest_org.id, synchronize=False)
     repo_paths = [
         (
             repo.repo_data['product'],
@@ -68,7 +69,7 @@ def test_positive_sync_rh_repos(session, target_sat, module_entitlement_manifest
         for repo in repos
     ]
     with session:
-        session.organization.select(org_name=module_entitlement_manifest_org.name)
+        session.organization.select(org_name=module_sca_manifest_org.name)
         results = session.sync_status.synchronize(repo_paths)
         assert len(results) == len(repo_paths)
         assert all([result == 'Syncing Complete.' for result in results])

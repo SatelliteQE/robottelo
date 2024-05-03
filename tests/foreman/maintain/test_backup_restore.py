@@ -12,6 +12,7 @@
 
 
 """
+
 import re
 
 from fauxfactory import gen_string
@@ -136,7 +137,7 @@ def test_positive_backup_split_pulp_tar(
     assert 'FAIL' not in result.stdout
 
     # Check for expected files
-    backup_dir = re.findall(fr'{subdir}\/{instance}-backup-.*-[0-5][0-9]', result.stdout)[0]
+    backup_dir = re.findall(rf'{subdir}\/{instance}-backup-.*-[0-5][0-9]', result.stdout)[0]
     files = sat_maintain.execute(f'ls -a {backup_dir}').stdout.split('\n')
     files = [i for i in files if not re.compile(r'^\.*$').search(i)]
 
@@ -180,7 +181,7 @@ def test_positive_backup_capsule_features(
     assert 'FAIL' not in result.stdout
 
     # Check for expected files
-    backup_dir = re.findall(fr'{subdir}\/{instance}-backup-.*-[0-5][0-9]', result.stdout)[0]
+    backup_dir = re.findall(rf'{subdir}\/{instance}-backup-.*-[0-5][0-9]', result.stdout)[0]
     files = sat_maintain.execute(f'ls -a {backup_dir}').stdout.split('\n')
     files = [i for i in files if not re.compile(r'^\.*$').search(i)]
 
@@ -215,7 +216,7 @@ def test_positive_backup_all(sat_maintain, setup_backup_tests, module_synced_rep
     assert result.status == 0
     assert 'FAIL' not in result.stdout
 
-    init_backup_dir = re.findall(fr'{subdir}\/{instance}-backup-.*-[0-5][0-9]', result.stdout)[0]
+    init_backup_dir = re.findall(rf'{subdir}\/{instance}-backup-.*-[0-5][0-9]', result.stdout)[0]
 
     result = sat_maintain.cli.Backup.run_backup(
         backup_dir=subdir,
@@ -262,7 +263,7 @@ def test_positive_backup_offline_logical(sat_maintain, setup_backup_tests, modul
     assert 'FAIL' not in result.stdout
 
     # Check for expected files
-    backup_dir = re.findall(fr'{subdir}\/{instance}-backup-.*-[0-5][0-9]', result.stdout)[0]
+    backup_dir = re.findall(rf'{subdir}\/{instance}-backup-.*-[0-5][0-9]', result.stdout)[0]
     files = sat_maintain.execute(f'ls -a {backup_dir}').stdout.split('\n')
     files = [i for i in files if not re.compile(r'^\.*$').search(i)]
 
@@ -324,39 +325,6 @@ def test_negative_backup_incremental_nodir(sat_maintain, setup_backup_tests, bac
     )
     assert result.status != 0
     assert NOPREV_MSG in str(result.stderr)
-
-
-@pytest.mark.include_capsule
-def test_negative_backup_maintenance_mode(sat_maintain, setup_backup_tests):
-    """Try to take a backup which would fail and verify maintenance-mode isn't running/ON
-
-    :id: dd53c19c-4ebf-11ed-a3d2-932dbdabb055
-
-    :parametrized: yes
-
-    :steps:
-        1. try to create a snapshot backup which would fail
-
-    :expectedresults:
-        1. Verify maintenance-mode isn't running if backup fails
-
-    :BZ: 1908478, 1962842
-
-    :customerscenario: true
-    """
-    subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
-    result = sat_maintain.cli.Backup.run_backup(
-        backup_dir=subdir,
-        backup_type='snapshot',
-        options={'assumeyes': True, 'plaintext': True},
-    )
-    assert result.status != 0
-    assert "Backup didn't finish. Incomplete backup was removed." in result.stdout
-
-    result = sat_maintain.cli.MaintenanceMode.status()
-    assert result.status == 0
-    assert 'Status of maintenance-mode: Off' in result.stdout
-    assert 'Nftables table: absent' in result.stdout
 
 
 @pytest.mark.include_capsule
@@ -435,7 +403,7 @@ def test_positive_puppet_backup_restore(
     assert 'FAIL' not in result.stdout
 
     # Check for expected files
-    backup_dir = re.findall(fr'{subdir}\/{instance}-backup-.*-[0-5][0-9]', result.stdout)[0]
+    backup_dir = re.findall(rf'{subdir}\/{instance}-backup-.*-[0-5][0-9]', result.stdout)[0]
     files = sat_maintain.execute(f'ls -a {backup_dir}').stdout.split('\n')
     files = [i for i in files if not re.compile(r'^\.*$').search(i)]
 
@@ -521,7 +489,7 @@ def test_positive_backup_restore(
     assert 'FAIL' not in result.stdout
 
     # Check for expected files
-    backup_dir = re.findall(fr'{subdir}\/{instance}-backup-.*-[0-5][0-9]', result.stdout)[0]
+    backup_dir = re.findall(rf'{subdir}\/{instance}-backup-.*-[0-5][0-9]', result.stdout)[0]
     files = sat_maintain.execute(f'ls -a {backup_dir}').stdout.split('\n')
     files = [i for i in files if not re.compile(r'^\.*$').search(i)]
 
@@ -605,7 +573,7 @@ def test_positive_backup_restore_incremental(
     assert result.status == 0
     assert 'FAIL' not in result.stdout
 
-    init_backup_dir = re.findall(fr'{subdir}\/satellite-backup-.*-[0-5][0-9]', result.stdout)[0]
+    init_backup_dir = re.findall(rf'{subdir}\/satellite-backup-.*-[0-5][0-9]', result.stdout)[0]
 
     # create additional content
     secondary_repo = sat_maintain.api.Repository(
@@ -624,7 +592,7 @@ def test_positive_backup_restore_incremental(
     assert 'FAIL' not in result.stdout
 
     # check for expected files
-    inc_backup_dir = re.findall(fr'{subdir}\/satellite-backup-.*-[0-5][0-9]', result.stdout)[0]
+    inc_backup_dir = re.findall(rf'{subdir}\/satellite-backup-.*-[0-5][0-9]', result.stdout)[0]
     files = sat_maintain.execute(f'ls -a {inc_backup_dir}').stdout.split('\n')
     files = [i for i in files if not re.compile(r'^\.*$').search(i)]
 

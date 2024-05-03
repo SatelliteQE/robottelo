@@ -2,7 +2,7 @@
 
 :Requirement: Provisioning
 
-:CaseAutomation: NotAutomated
+:CaseAutomation: Automated
 
 :CaseComponent: Provisioning
 
@@ -11,6 +11,7 @@
 :CaseImportance: Critical
 
 """
+
 from http.client import NOT_FOUND
 import random
 

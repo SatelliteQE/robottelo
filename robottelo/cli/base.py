@@ -1,4 +1,5 @@
 """Generic base class for cli hammer commands."""
+
 import re
 
 from wait_for import wait_for
@@ -200,7 +201,7 @@ class Base:
             command,
         )
         response = ssh.command(
-            cmd.encode('utf-8'),
+            cmd,
             hostname=hostname or cls.hostname or settings.server.hostname,
             output_format=output_format,
             timeout=timeout,

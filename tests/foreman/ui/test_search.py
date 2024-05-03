@@ -10,6 +10,7 @@
 
 :CaseImportance: Medium
 """
+
 from collections import namedtuple
 
 from fauxfactory import gen_string

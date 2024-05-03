@@ -1,4 +1,5 @@
 """Data Factory for all entities"""
+
 from functools import wraps
 import random
 import string

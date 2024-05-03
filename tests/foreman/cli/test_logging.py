@@ -11,10 +11,10 @@
 :CaseImportance: Medium
 
 """
+
 import re
 
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -130,7 +130,7 @@ def test_positive_logging_from_foreman_proxy(target_sat):
 
 
 @pytest.mark.tier4
-def test_positive_logging_from_candlepin(module_org, module_entitlement_manifest, target_sat):
+def test_positive_logging_from_candlepin(module_org, module_sca_manifest, target_sat):
     """Check logging after manifest upload.
 
     :id: 8c06e501-52d7-4baf-903e-7de9caffb066
@@ -148,7 +148,7 @@ def test_positive_logging_from_candlepin(module_org, module_entitlement_manifest
     # get the number of lines in the source log before the test
     line_count_start = target_sat.execute(f'wc -l < {source_log}').stdout.strip('\n')
     # command for this test
-    with module_entitlement_manifest as manifest:
+    with module_sca_manifest as manifest:
         target_sat.upload_manifest(module_org.id, manifest, interface='CLI')
     # get the number of lines in the source log after the test
     line_count_end = target_sat.execute(f'wc -l < {source_log}').stdout.strip('\n')
@@ -185,12 +185,12 @@ def test_positive_logging_from_dynflow(module_org, target_sat):
     POST_line_found = False
     source_log = '/var/log/foreman/production.log'
     test_logfile = '/var/tmp/logfile_dynflow'
-    product = entities.Product(organization=module_org).create()
+    product = target_sat.api.Product(organization=module_org).create()
     repo_name = gen_string('alpha')
     # get the number of lines in the source log before the test
     line_count_start = target_sat.execute(f'wc -l < {source_log}').stdout.strip('\n')
     # command for this test
-    new_repo = entities.Repository(name=repo_name, product=product).create()
+    new_repo = target_sat.api.Repository(name=repo_name, product=product).create()
     logger.info(f'Created Repo {new_repo.name} for dynflow log test')
     # get the number of lines in the source log after the test
     line_count_end = target_sat.execute(f'wc -l < {source_log}').stdout.strip('\n')
@@ -243,7 +243,7 @@ def test_positive_logging_from_pulp3(module_org, target_sat):
     target_sat.cli.Repository.synchronize({'id': repo['id']})
     # Get the id of repository sync from task
     task_out = target_sat.execute(
-        "hammer task list | grep -F \'Synchronize repository {\"text\"=>\"repository\'"
+        "hammer task list | grep -F 'Synchronize repository {\"text\"=>\"repository'"
     ).stdout.splitlines()[0][:8]
     prod_log_out = target_sat.execute(f'grep  {task_out} {source_log}').stdout.splitlines()[0]
     # Get correlation id of pulp from production logs

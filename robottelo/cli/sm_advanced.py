@@ -23,13 +23,6 @@ Subcommands:
     backup-online-safety-confirmation Data consistency warning
     backup-prepare-directory      Prepare backup Directory
     backup-pulp                   Backup Pulp data
-    backup-snapshot-clean-mount   Remove the snapshot mount points
-    backup-snapshot-logical-volume-confirmation Check if backup is on different LV then the source
-    backup-snapshot-mount-candlepin-db Create and mount snapshot of Candlepin DB
-    backup-snapshot-mount-foreman-db Create and mount snapshot of Foreman DB
-    backup-snapshot-mount-pulp    Create and mount snapshot of Pulp data
-    backup-snapshot-mount-pulpcore-db Create and mount snapshot of Pulpcore DB
-    backup-snapshot-prepare-mount Prepare mount point for the snapshot
     content-migration-reset       Reset the Pulp 2 to Pulp 3 migration data (pre-switchover)
     content-migration-stats       Retrieve Pulp 2 to Pulp 3 migration statistics
     content-prepare               Prepare content for Pulp 3
@@ -88,6 +81,7 @@ Subcommands:
 Options:
     -h, --help                    print help
 """
+
 from robottelo.cli.base import Base
 
 
