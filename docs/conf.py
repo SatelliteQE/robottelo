@@ -4,6 +4,7 @@ The full set of configuration options is listed on the Sphinx website:
 http://sphinx-doc.org/config.html
 
 """
+
 import builtins
 import os
 import sys

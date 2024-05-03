@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from random import randint
 
 from fauxfactory import gen_string
@@ -53,7 +54,7 @@ class TestPartitionTable:
                     strict=True,
                 )
             )
-        )
+        ),
     )
     def test_positive_crud_with_name(self, name, new_name, module_target_sat):
         """Create, read, update and delete Partition Tables with different names

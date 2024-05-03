@@ -15,6 +15,7 @@ http://<satellite-host>/apidoc/v2/users.html
 :CaseImportance: High
 
 """
+
 import json
 import re
 

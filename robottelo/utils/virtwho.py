@@ -1,4 +1,5 @@
 """Utility module to handle the virtwho configure UI/CLI/API testing"""
+
 import json
 import re
 import uuid

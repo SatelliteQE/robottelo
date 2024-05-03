@@ -14,6 +14,7 @@ Subcommands::
     host                          Download host image
     subnet                        Download subnet generic image
 """
+
 from robottelo.cli.base import Base
 
 

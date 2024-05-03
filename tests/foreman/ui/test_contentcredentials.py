@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from nailgun import entities
 import pytest
 

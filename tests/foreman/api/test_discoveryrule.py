@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_choice, gen_integer, gen_string
 import pytest
 from requests.exceptions import HTTPError
@@ -104,7 +105,6 @@ def test_negative_create_with_invalid_host_limit_and_priority(module_target_sat)
     :expectedresults: Validation error should be raised
     """
     with pytest.raises(HTTPError):
-
         module_target_sat.api.DiscoveryRule(max_count=gen_string('alpha')).create()
     with pytest.raises(HTTPError):
         module_target_sat.api.DiscoveryRule(priority=gen_string('alpha')).create()

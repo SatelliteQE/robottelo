@@ -16,6 +16,7 @@ Subcommands::
      list                          List Policies
      update                        Update a Policy
 """
+
 from robottelo.cli.base import Base
 
 

@@ -11,6 +11,7 @@
 :CaseImportance: Critical
 
 """
+
 from fauxfactory import gen_alphanumeric, gen_string
 import pytest
 

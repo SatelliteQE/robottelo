@@ -15,6 +15,7 @@ http://theforeman.org/api/apidoc/v2/environments.html
 :CaseImportance: Critical
 
 """
+
 from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError

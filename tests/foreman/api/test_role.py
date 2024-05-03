@@ -15,6 +15,7 @@ http://theforeman.org/api/apidoc/v2/roles.html
 :CaseImportance: High
 
 """
+
 from nailgun.config import ServerConfig
 import pytest
 from requests.exceptions import HTTPError

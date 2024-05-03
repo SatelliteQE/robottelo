@@ -9,6 +9,7 @@
 :Team: Rocket
 
 """
+
 from fauxfactory import gen_ipaddr, gen_string
 from nailgun import entities
 import pytest

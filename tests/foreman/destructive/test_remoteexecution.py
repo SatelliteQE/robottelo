@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
 from nailgun import client
 from nailgun.entity_mixins import TaskFailedError

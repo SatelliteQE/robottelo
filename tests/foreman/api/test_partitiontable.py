@@ -15,6 +15,7 @@ http://theforeman.org/api/apidoc/v2/ptables.html
 :CaseImportance: High
 
 """
+
 import random
 
 from fauxfactory import gen_integer, gen_string
