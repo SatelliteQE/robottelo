@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from functools import partial
 from random import choice
 

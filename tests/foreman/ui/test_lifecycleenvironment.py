@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from navmazing import NavigationTriesExceeded
 import pytest
 

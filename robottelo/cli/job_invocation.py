@@ -15,6 +15,7 @@ Subcommands:
  rerun                         Rerun the job
 
 """
+
 from robottelo.cli.base import Base
 
 

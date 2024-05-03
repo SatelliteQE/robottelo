@@ -18,6 +18,7 @@ Subcommands::
     remove_operatingsystem        Disassociate a resource
     update                        Update an architecture.
 """
+
 from robottelo.cli.base import Base
 
 

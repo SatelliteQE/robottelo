@@ -18,6 +18,7 @@ Subcommands::
     upload                        Upload a subscription manifest
 
 """
+
 from robottelo.cli.base import Base
 
 

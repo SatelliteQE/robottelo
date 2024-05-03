@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from datetime import datetime, timedelta
 
 from broker import Broker
@@ -163,10 +164,7 @@ def cv_publish_promote(sat, org, cv, lce=None, needs_publish=True):
     # Take a single instance of lce, or list of instances
     lce_ids = 'Library'
     if lce is not None:
-        if not isinstance(lce, list):
-            lce_ids = [lce.id]
-        else:
-            lce_ids = sorted(_lce.id for _lce in lce)
+        lce_ids = [lce.id] if not isinstance(lce, list) else sorted(_lce.id for _lce in lce)
 
     if needs_publish is True:
         _publish_and_wait(sat, org, cv)
@@ -198,13 +196,16 @@ def _publish_and_wait(sat, org, cv):
     task_id = sat.api.ContentView(id=cv.id).publish({'id': cv.id, 'organization': org})['id']
     assert task_id, f'No task was invoked to publish the Content-View: {cv.id}.'
     # Should take < 1 minute, check in 5s intervals
-    sat.wait_for_tasks(
-        search_query=(f'label = Actions::Katello::ContentView::Publish and id = {task_id}'),
-        search_rate=5,
-        max_tries=12,
-    ), (
-        f'Failed to publish the Content-View: {cv.id}, in time.'
-        f'Task: {task_id} failed, or timed out (60s).'
+    (
+        sat.wait_for_tasks(
+            search_query=(f'label = Actions::Katello::ContentView::Publish and id = {task_id}'),
+            search_rate=5,
+            max_tries=12,
+        ),
+        (
+            f'Failed to publish the Content-View: {cv.id}, in time.'
+            f'Task: {task_id} failed, or timed out (60s).'
+        ),
     )
 
 
@@ -298,7 +299,14 @@ def registered_contenthost(
     @request.addfinalizer
     # Cleanup for in-between parameterized sessions
     def cleanup():
-        nonlocal rhel_contenthost, module_cv, module_lce, custom_repos, custom_products, errata_host_ak, module_sca_manifest_org
+        nonlocal \
+            rhel_contenthost, \
+            module_cv, \
+            module_lce, \
+            custom_repos, \
+            custom_products, \
+            errata_host_ak, \
+            module_sca_manifest_org
         rhel_contenthost.unregister()
         errata_host_ak.delete()
         # find any other aks and delete them
