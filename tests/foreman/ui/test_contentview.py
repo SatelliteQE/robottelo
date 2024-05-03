@@ -53,7 +53,7 @@ def test_version_table_read(session, function_sca_manifest_org, target_sat):
 
     :expectedresults: The package is present, has the appropriate name, and has the epoch tab present
 
-    :CaseLevel: System
+    :CaseImportance: Critical
 
     :BZ: 1911545
 
