@@ -24,7 +24,6 @@ from robottelo.constants import (
     CONTAINER_REGISTRY_HUB,
     CUSTOM_RPM_SHA_512_FEED_COUNT,
     DEFAULT_ARCHITECTURE,
-    FILTER_ERRATA_TYPE,
     PERMISSIONS,
     PRDS,
     REPOS,
@@ -930,6 +929,31 @@ class TestContentViewRedHatContent:
         module_cv.repository = [self.repo]
         module_cv.update(['repository'])
         request.cls.yumcv = module_cv.read()
+
+    @pytest.mark.tier2
+    def test_positive_add_rh_custom_spin(self, target_sat):
+        """Associate Red Hat content in a view and filter it using rule
+
+        :id: 30c3103d-9503-4501-8117-1f2d25353215
+
+        :expectedresults: Filtered RH content is available and can be seen in a
+            view
+
+        :CaseImportance: High
+        """
+        # content_view ← cv_filter
+        cv_filter = target_sat.api.RPMContentViewFilter(
+            content_view=self.yumcv,
+            inclusion='true',
+            name=gen_string('alphanumeric'),
+        ).create()
+        assert self.yumcv.id == cv_filter.content_view.id
+
+        # content_view ← cv_filter ← cv_filter_rule
+        cv_filter_rule = target_sat.api.ContentViewFilterRule(
+            content_view_filter=cv_filter, name=gen_string('alphanumeric'), version='1.0'
+        ).create()
+        assert cv_filter.id == cv_filter_rule.content_view_filter.id
 
     @pytest.mark.tier2
     def test_positive_publish_rh_custom_spin(self, module_org, content_view, module_target_sat):
