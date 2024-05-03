@@ -13,6 +13,7 @@ Subcommands::
  info                          Show an erratum
  list                          List errata
 """
+
 from robottelo.cli.base import Base
 
 

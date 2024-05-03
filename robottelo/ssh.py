@@ -1,4 +1,5 @@
 """Utility module to handle the shared ssh connection."""
+
 from robottelo.cli import hammer
 
 

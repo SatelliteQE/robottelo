@@ -14,6 +14,7 @@ Subcommands::
     list                          List ostree_branches
 
 """
+
 from robottelo.cli.base import Base
 
 
