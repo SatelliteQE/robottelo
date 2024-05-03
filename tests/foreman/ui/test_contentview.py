@@ -15,7 +15,7 @@
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.constants import DEFAULT_ARCHITECTURE, PRDS, REPOS, REPOSET
+from robottelo.constants import DEFAULT_ARCHITECTURE, REPOS
 
 
 @pytest.mark.tier2
@@ -62,17 +62,17 @@ def test_version_table_read(session, function_sca_manifest_org, target_sat):
     target_sat.cli.RepositorySet.enable(
         {
             'basearch': DEFAULT_ARCHITECTURE,
-            'name': REPOSET['rhel8_bos'],
+            'name': REPOS['rhel8_bos']['reposet'],
             'organization-id': function_sca_manifest_org.id,
-            'product': PRDS['rhel8'],
+            'product': REPOS['rhel8_bos']['product'],
             'releasever': REPOS['rhel8_bos']['releasever'],
         }
     )
     rhel8_bos_info = target_sat.cli.RepositorySet.info(
         {
-            'name': REPOSET['rhel8_bos'],
+            'name': REPOS['rhel8_bos']['reposet'],
             'organization-id': function_sca_manifest_org.id,
-            'product': PRDS['rhel8'],
+            'product': REPOS['rhel8_bos']['product'],
         }
     )
     rh_repo_id = rhel8_bos_info['enabled-repositories'][0]['id']
