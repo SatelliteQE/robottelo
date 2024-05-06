@@ -353,12 +353,14 @@ def registered_contenthost(
 @pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.no_containers
 def test_end_to_end(
-    session,
-    module_org,
-    module_lce,
-    module_cv,
+    module_sca_manifest_org,
     module_target_sat,
-    registered_contenthost,
+    rhel_contenthost,
+    module_product,
+    module_lce,
+    module_ak,
+    module_cv,
+    session,
 ):
     """Create all entities required for errata, set up applicable host,
     read errata details and apply it to host.
@@ -386,6 +388,8 @@ def test_end_to_end(
         'reboot_suggested': 'No',
         'topic': '',
         'description': 'Sea_Erratum',
+        'issued': '2012-01-27',
+        'last_updated_on': '2012-01-27',
         'solution': '',
     }
     ERRATA_PACKAGES = {
@@ -396,86 +400,135 @@ def test_end_to_end(
         ],
         'module_stream_packages': [],
     }
-    _UTC_format = '%Y-%m-%d %H:%M:%S UTC'
-    # Capture newest product and repository with the desired content
-    product_list = module_target_sat.api.Product(organization=module_org).search()
-    assert len(product_list) > 0
-    product_list.sort(key=lambda product: product.id)
-    _product = product_list[-1].read()
-    assert len(_product.repository) == 1
-    _repository = _product.repository[0].read()
-    # Remove custom package if present, install outdated version
-    registered_contenthost.execute(f'yum remove -y {FAKE_1_CUSTOM_PACKAGE_NAME}')
-    result = registered_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
-    assert result.status == 0, f'Failed to install package {FAKE_1_CUSTOM_PACKAGE}.'
-    # recalculate and assert applicable errata after installing outdated pkg
-    assert registered_contenthost.execute('subscription-manager repos').status == 0
-    applicable_errata = registered_contenthost.applicable_errata_count
+    # create custom repo, sync, add to content view
+    custom_repo = module_target_sat.api.Repository(
+        url=CUSTOM_REPO_URL, product=module_product
+    ).create()
+    custom_repo.sync()
+    module_cv.repository = [custom_repo]
+    module_cv.update(['repository'])
+    module_cv = module_cv.read()
+
+    # associate needed entities, prepare content view, register the host client:
+    # we will also enable the custom repo we added to module_cv
+    setup_result = module_target_sat.api_factory.register_host_and_needed_setup(
+        organization=module_sca_manifest_org,
+        client=rhel_contenthost,
+        activation_key=module_ak,
+        environment=module_lce,
+        content_view=module_cv,
+        enable_repos=True,
+    )
+    # above method encountered no errors, received a registered client
+    assert setup_result['result'] != 'error', f'{setup_result["message"]}'
+    assert (client := setup_result['client'])
+    assert client.subscribed
+    # nothing applicable to start
+    result = client.execute('subscription-manager repos')
+    assert (
+        result.status == 0
+    ), f'Failure invoking subscription-manager, for client: {client.hostname}.\n{result.stdout}'
+    assert (
+        0 == client.applicable_errata_count == client.applicable_package_count
+    ), f'Expected no applicable erratum or packages to start, on host: {client.hostname}'
+    # install outdated package version, making an errata applicable
+    result = client.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
+    assert (
+        result.status == 0
+    ), f'Failed to install package {FAKE_1_CUSTOM_PACKAGE}.\n{result.stdout}'
+    # recalculate and assert app errata, after installing outdated pkg
+    assert client.execute('subscription-manager repos').status == 0
+    applicable_errata = client.applicable_errata_count
     assert (
         applicable_errata == 1
     ), f'Expected 1 applicable errata: {CUSTOM_REPO_ERRATA_ID}, after setup. Got {applicable_errata}'
-
     with session:
-        datetime_utc_start = datetime.utcnow()
+        datetime_utc_start = datetime.utcnow().replace(microsecond=0)
         # Check selection box function for BZ#1688636
         session.location.select(loc_name=DEFAULT_LOC)
-        session.organization.select(org_name=module_org.name)
         results = session.errata.search_content_hosts(
             entity_name=CUSTOM_REPO_ERRATA_ID,
-            value=registered_contenthost.hostname,
+            value=client.hostname,
             environment=module_lce.name,
         )
         assert len(results) == 1
-        assert results[0]['Name'] == registered_contenthost.hostname
+        assert results[0]['Name'] == client.hostname
         errata = session.errata.read(CUSTOM_REPO_ERRATA_ID)
-        assert errata['repositories']['table'][-1]['Name'] == _repository.name
-        assert errata['repositories']['table'][-1]['Product'] == _product.name
+        assert errata['repositories']['table'], (
+            f'There are no repositories listed for errata ({CUSTOM_REPO_ERRATA_ID}),',
+            f' expected to find at least one repository, name: {custom_repo.name}.',
+        )
+        # repo/product entry in table match expected
+        # find the first table entry with the custom repository's name
+        errata_repo = next(
+            (
+                repo
+                for repo in errata['repositories']['table']
+                if 'Name' in repo and repo['Name'] == custom_repo.name
+            ),
+            None,
+        )
+        # assert custom repo found and product name
+        assert (
+            errata_repo
+        ), f'Could not find the errata repository in UI by name: {custom_repo.name}.'
+        assert errata_repo['Name'] == custom_repo.name
+        assert (
+            errata_repo['Product'] == module_product.name
+        ), 'The product name for the errata repository in UI does not match.'
         # Check all tabs of Errata Details page
         assert (
             not ERRATA_DETAILS.items() - errata['details'].items()
         ), 'Errata details do not match expected values.'
-        assert parse(errata['details']['issued']) == parse('2012-01-27 12:00:00 AM')
-        assert parse(errata['details']['last_updated_on']) == parse('2012-01-27 12:00:00 AM')
+        assert parse(errata['details']['issued']) == parse(
+            ERRATA_DETAILS['issued']
+        ), 'Errata issued date in UI does not match.'
+        assert parse(errata['details']['last_updated_on']) == parse(
+            ERRATA_DETAILS['last_updated_on']
+        ), 'Errata last updated date in UI does not match.'
         assert set(errata['packages']['independent_packages']) == set(
             ERRATA_PACKAGES['independent_packages']
-        )
+        ), 'Set of errata packages in UI does not match.'
         assert (
             errata['packages']['module_stream_packages']
             == ERRATA_PACKAGES['module_stream_packages']
-        )
-
+        ), 'Errata module streams in UI does not match.'
         # Apply Errata, find REX install task
         session.host_new.apply_erratas(
-            entity_name=registered_contenthost.hostname,
+            entity_name=client.hostname,
             search=f"errata_id == {CUSTOM_REPO_ERRATA_ID}",
         )
+        install_query = (
+            f'"Install errata errata_id == {CUSTOM_REPO_ERRATA_ID} on {client.hostname}"'
+            f' and started_at >= {datetime_utc_start - timedelta(seconds=1)}'
+        )
         results = module_target_sat.wait_for_tasks(
-            search_query=(
-                f'"Install errata errata_id == {CUSTOM_REPO_ERRATA_ID}'
-                f' on {registered_contenthost.hostname}"'
-            ),
+            search_query=install_query,
             search_rate=2,
             max_tries=60,
         )
-        # poll most recent errata install (newest id#)
-        results.sort(key=lambda res: res.id)
-        task_status = module_target_sat.api.ForemanTask(id=results[-1].id).poll()
+        # should only be one task from this host after timestamp
+        assert (
+            len(results) == 1
+        ), f'Expected just one errata install task, but found {len(results)}.\nsearch_query: {install_query}'
+        task_status = module_target_sat.api.ForemanTask(id=results[0].id).poll()
         assert (
             task_status['result'] == 'success'
         ), f'Errata Installation task failed:\n{task_status}'
         assert (
-            registered_contenthost.applicable_errata_count == 0
-        ), 'Unexpected applicable errata found after install.'
+            client.applicable_errata_count == 0
+        ), f'Unexpected applicable errata found after install of {CUSTOM_REPO_ERRATA_ID}.'
         # UTC timing for install task and session
+        _UTC_format = '%Y-%m-%d %H:%M:%S UTC'
         install_start = datetime.strptime(task_status['started_at'], _UTC_format)
         install_end = datetime.strptime(task_status['ended_at'], _UTC_format)
+        # install task duration did not exceed 1 minute,
+        #   duration since start of session did not exceed 10 minutes.
         assert (install_end - install_start).total_seconds() <= 60
         assert (install_end - datetime_utc_start).total_seconds() <= 600
         # Find bulk generate applicability task
         results = module_target_sat.wait_for_tasks(
-            search_query=(
-                f'Bulk generate applicability for host {registered_contenthost.hostname}'
-            ),
+            search_query=(f'Bulk generate applicability for host {client.hostname}'),
             search_rate=2,
             max_tries=60,
         )
@@ -494,14 +547,12 @@ def test_end_to_end(
         assert session.errata.read(CUSTOM_REPO_ERRATA_ID)
         results = session.errata.search_content_hosts(
             entity_name=CUSTOM_REPO_ERRATA_ID,
-            value=registered_contenthost.hostname,
+            value=client.hostname,
             environment=module_lce.name,
         )
         assert len(results) == 0
         # Check package version was updated on contenthost
-        _package_version = registered_contenthost.execute(
-            f'rpm -q {FAKE_1_CUSTOM_PACKAGE_NAME}'
-        ).stdout
+        _package_version = client.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE_NAME}').stdout
         assert FAKE_2_CUSTOM_PACKAGE in _package_version
 
 
