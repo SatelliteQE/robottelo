@@ -17,6 +17,7 @@ Subcommands::
     update                        Update a subnet
 
 """
+
 from robottelo.cli.base import Base
 
 

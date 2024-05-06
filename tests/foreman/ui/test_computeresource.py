@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import pytest
 from wait_for import wait_for
 
@@ -288,7 +289,6 @@ def test_positive_VM_import(session, module_org, module_location, rhev_data, mod
 
     name = gen_string('alpha')
     with session:
-
         session.computeresource.create(
             {
                 'name': name,

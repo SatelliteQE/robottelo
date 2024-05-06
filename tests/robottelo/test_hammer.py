@@ -1,4 +1,5 @@
 """Tests for Robottelo's hammer helpers"""
+
 from robottelo.cli import hammer
 
 

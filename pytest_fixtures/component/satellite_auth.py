@@ -18,7 +18,6 @@ from robottelo.constants import (
 from robottelo.hosts import IPAHost, SSOHost
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.installer import InstallerCommand
-from robottelo.utils.issue_handlers import is_open
 
 LOGGEDOUT = 'Logged out.'
 
@@ -282,42 +281,45 @@ def auth_data(request, ad_data, ipa_data):
 @pytest.fixture(scope='module')
 def enroll_configure_rhsso_external_auth(module_target_sat):
     """Enroll the Satellite6 Server to an RHSSO Server."""
-    module_target_sat.execute(
-        'yum -y --disableplugin=foreman-protector install '
-        'mod_auth_openidc keycloak-httpd-client-install'
+    module_target_sat.register_to_cdn()
+    # keycloak-httpd-client-install needs lxml but it's not an rpm dependency + is not documented
+    assert (
+        module_target_sat.execute(
+            'yum -y --disableplugin=foreman-protector install '
+            'mod_auth_openidc keycloak-httpd-client-install python3-lxml '
+        ).status
+        == 0
     )
     # if target directory not given it is installing in /usr/local/lib64
-    module_target_sat.execute('python3 -m pip install lxml -t /usr/lib64/python3.6/site-packages')
-    module_target_sat.execute(
-        f'openssl s_client -connect {settings.rhsso.host_name} -showcerts </dev/null 2>/dev/null| '
-        f'sed "/BEGIN CERTIFICATE/,/END CERTIFICATE/!d" > {CERT_PATH}/rh-sso.crt'
+    assert (
+        module_target_sat.execute(
+            f'openssl s_client -connect {settings.rhsso.host_name}:443 -showcerts </dev/null 2>/dev/null| '
+            f'sed "/BEGIN CERTIFICATE/,/END CERTIFICATE/!d" > {CERT_PATH}/rh-sso.crt'
+        ).status
+        == 0
     )
-    module_target_sat.execute(
-        f'sshpass -p "{settings.rhsso.rhsso_password}" scp -o "StrictHostKeyChecking no" '
-        f'root@{settings.rhsso.host_name}:/root/ca_certs/*.crt {CERT_PATH}'
-    )
-    module_target_sat.execute('update-ca-trust')
-    module_target_sat.execute(
-        f'echo {settings.rhsso.rhsso_password} | keycloak-httpd-client-install \
+    assert (
+        module_target_sat.execute(
+            f'echo {settings.rhsso.rhsso_password} | keycloak-httpd-client-install \
                 --app-name foreman-openidc \
                 --keycloak-server-url {settings.rhsso.host_url} \
                 --keycloak-admin-username "admin" \
                 --keycloak-realm "{settings.rhsso.realm}" \
                 --keycloak-admin-realm master \
                 --keycloak-auth-role root-admin -t openidc -l /users/extlogin --force'
+        ).status
+        == 0
     )
-    if is_open('BZ:2113905'):
+    assert (
         module_target_sat.execute(
-            r"sed -i -e '$aapache::default_mods:\n  - authn_core' "
-            "/etc/foreman-installer/custom-hiera.yaml"
-        )
-    module_target_sat.execute(
-        f'satellite-installer --foreman-keycloak true '
-        f"--foreman-keycloak-app-name 'foreman-openidc' "
-        f"--foreman-keycloak-realm '{settings.rhsso.realm}' ",
-        timeout=1000000,
+            f'satellite-installer --foreman-keycloak true '
+            f"--foreman-keycloak-app-name 'foreman-openidc' "
+            f"--foreman-keycloak-realm '{settings.rhsso.realm}' ",
+            timeout=1000000,
+        ).status
+        == 0
     )
-    module_target_sat.execute('systemctl restart httpd')
+    assert module_target_sat.execute('systemctl restart httpd').status == 0
 
 
 @pytest.fixture(scope='module')

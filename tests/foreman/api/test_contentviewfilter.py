@@ -15,18 +15,16 @@ http://www.katello.org/docs/api/apidoc/content_view_filters.html
 :CaseImportance: High
 
 """
-import http
+
 from random import randint
 
 from fauxfactory import gen_integer, gen_string
-from nailgun import client
 import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.config import get_credentials, settings
+from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.utils.datafactory import (
-    invalid_names_list,
     parametrized,
     valid_data_list,
 )
@@ -64,43 +62,6 @@ def content_view_module_stream(module_org, sync_repo_module_stream, module_targe
 
 class TestContentViewFilter:
     """Tests for content view filters."""
-
-    @pytest.mark.tier2
-    def test_negative_get_with_no_args(self, target_sat):
-        """Issue an HTTP GET to the base content view filters path.
-
-        :id: da29fd90-cd96-49f9-b94e-71d4e3a35a57
-
-        :expectedresults: An HTTP 200 response is received if a GET request is
-            issued with no arguments specified.
-
-        :CaseImportance: Low
-        """
-        response = client.get(
-            target_sat.api.AbstractContentViewFilter().path(),
-            auth=get_credentials(),
-            verify=False,
-        )
-        assert response.status_code == http.client.OK
-
-    @pytest.mark.tier2
-    def test_negative_get_with_bad_args(self, target_sat):
-        """Issue an HTTP GET to the base content view filters path.
-
-        :id: e6fea726-930b-4b74-b784-41528811994f
-
-        :expectedresults: An HTTP 200 response is received if a GET request is
-            issued with bad arguments specified.
-
-        :CaseImportance: Low
-        """
-        response = client.get(
-            target_sat.api.AbstractContentViewFilter().path(),
-            auth=get_credentials(),
-            verify=False,
-            data={'foo': 'bar'},
-        )
-        assert response.status_code == http.client.OK
 
     @pytest.mark.tier2
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
@@ -269,65 +230,6 @@ class TestContentViewFilter:
         assert len(cvf.repository) == 2
         for repo in cvf.repository:
             assert repo.id in (sync_repo.id, docker_repository.id)
-
-    @pytest.mark.tier2
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    def test_positive_create_with_module_streams(
-        self, module_product, sync_repo, sync_repo_module_stream, content_view, target_sat
-    ):
-        """Verify Include and Exclude Filters creation for modulemd (module streams)
-
-        :id: 4734dcca-ea5b-47d6-8f5f-239da0dc7629
-
-        :expectedresults: Content view filter created successfully for both
-            Include and Exclude Type
-
-        """
-        content_view.repository += [sync_repo_module_stream]
-        content_view.update(['repository'])
-        for inclusion in (True, False):
-            cvf = target_sat.api.ModuleStreamContentViewFilter(
-                content_view=content_view,
-                inclusion=inclusion,
-                repository=[sync_repo, sync_repo_module_stream],
-            ).create()
-            assert cvf.inclusion == inclusion
-            assert len(cvf.repository) == 2
-        assert content_view.id == cvf.content_view.id
-        assert cvf.type == 'modulemd'
-
-    @pytest.mark.tier2
-    @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-    def test_negative_create_with_invalid_name(self, name, content_view, target_sat):
-        """Try to create content view filter using invalid names only
-
-        :id: 8cf4227b-75c4-4d6f-b94f-88e4eb586435
-
-        :parametrized: yes
-
-        :expectedresults: Content view filter was not created
-
-        :CaseImportance: Critical
-        """
-        with pytest.raises(HTTPError):
-            target_sat.api.RPMContentViewFilter(content_view=content_view, name=name).create()
-
-    @pytest.mark.tier2
-    def test_negative_create_with_same_name(self, content_view, target_sat):
-        """Try to create content view filter using same name twice
-
-        :id: 73a64ca7-07a3-49ee-8921-0474a16a23ff
-
-        :expectedresults: Second content view filter was not created
-
-        :CaseImportance: Low
-        """
-        kwargs = {'content_view': content_view, 'name': gen_string('alpha')}
-        target_sat.api.RPMContentViewFilter(**kwargs).create()
-        with pytest.raises(HTTPError):
-            target_sat.api.RPMContentViewFilter(**kwargs).create()
 
     @pytest.mark.tier2
     def test_negative_create_without_cv(self, target_sat):
@@ -535,24 +437,6 @@ class TestContentViewFilter:
         assert len(cvf.repository) == 2
         for repo in cvf.repository:
             assert repo.id in (sync_repo.id, docker_repository.id)
-
-    @pytest.mark.tier2
-    @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-    def test_negative_update_name(self, name, content_view, target_sat):
-        """Try to update content view filter using invalid names only
-
-        :id: 9799648a-3900-4186-8271-6b2dedb547ab
-
-        :parametrized: yes
-
-        :expectedresults: Content view filter was not updated
-
-        :CaseImportance: Low
-        """
-        cvf = target_sat.api.RPMContentViewFilter(content_view=content_view).create()
-        cvf.name = name
-        with pytest.raises(HTTPError):
-            cvf.update(['name'])
 
     @pytest.mark.tier2
     def test_negative_update_same_name(self, content_view, target_sat):

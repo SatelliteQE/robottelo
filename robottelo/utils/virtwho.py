@@ -1,4 +1,5 @@
 """Utility module to handle the virtwho configure UI/CLI/API testing"""
+
 import json
 import re
 import uuid
@@ -99,18 +100,14 @@ def register_system(system, activation_key=None, org='Default_Organization', env
     runcmd('subscription-manager clean', system)
     runcmd('rpm -qa | grep katello-ca-consumer | xargs rpm -e |sort', system)
     runcmd(
-        'rpm -ihv http://{}/pub/katello-ca-consumer-latest.noarch.rpm'.format(
-            settings.server.hostname
-        ),
+        f'rpm -ihv http://{settings.server.hostname}/pub/katello-ca-consumer-latest.noarch.rpm',
         system,
     )
     cmd = f'subscription-manager register --org={org} --environment={env} '
     if activation_key is not None:
         cmd += f'--activationkey={activation_key}'
     else:
-        cmd += '--username={} --password={}'.format(
-            settings.server.admin_username, settings.server.admin_password
-        )
+        cmd += f'--username={settings.server.admin_username} --password={settings.server.admin_password}'
     ret, stdout = runcmd(cmd, system)
     if ret == 0 or "system has been registered" in stdout:
         return True
@@ -170,9 +167,7 @@ def get_configure_command(config_id, org=DEFAULT_ORG):
     :param str org: the satellite organization name.
     """
     username, password = Base._get_username_password()
-    return "hammer -u {} -p {} virt-who-config deploy --id {} --organization '{}' ".format(
-        username, password, config_id, org
-    )
+    return f"hammer -u {username} -p {password} virt-who-config deploy --id {config_id} --organization '{org}' "
 
 
 def get_configure_file(config_id):

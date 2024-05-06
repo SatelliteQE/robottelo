@@ -11,9 +11,12 @@
 :Team: Rocket
 
 """
-import re
 
-from fauxfactory import gen_string
+import json
+import re
+from tempfile import mkstemp
+
+from fauxfactory import gen_mac, gen_string
 import pytest
 
 from robottelo.config import settings
@@ -224,3 +227,54 @@ def test_negative_global_registration_without_ak(module_target_sat):
         'Failed to generate registration command:\n  Missing activation key!'
         in context.value.message
     )
+
+
+@pytest.mark.rhel_ver_match('8')
+def test_positive_custom_facts_for_host_registration(
+    module_sca_manifest_org,
+    module_location,
+    module_target_sat,
+    rhel_contenthost,
+    module_activation_key,
+):
+    """Attempt to register a host and check all the interfaces are created from the custom facts
+
+    :id: db73c146-4557-4bf4-a8e2-950ecba31620
+
+    :steps:
+        1. Register the host.
+        2. Check the host is registered and all the interfaces are created successfully.
+
+    :expectedresults: Host registered successfully with all interfaces created from the custom facts.
+
+    :BZ: 2250397
+
+    :customerscenario: true
+    """
+    interfaces = [
+        {'name': gen_string('alphanumeric')},
+        {'name': 'enp98s0f0', 'mac': gen_mac(multicast=False)},
+        {'name': 'Datos', 'vlan_id': gen_string('numeric', 4)},
+        {'name': 'bondBk', 'vlan_id': gen_string('numeric', 4)},
+    ]
+    facts = {
+        f'net.interface.{interfaces[0]["name"]}.mac_address': gen_mac(),
+        f'net.interface.{interfaces[1]["name"]}.mac_address': interfaces[1]["mac"],
+        f'net.interface.{interfaces[2]["name"]}.{interfaces[2]["vlan_id"]}.mac_address': gen_mac(),
+        f'net.interface.{interfaces[3]["name"]}.{interfaces[3]["vlan_id"]}.mac_address': gen_mac(),
+    }
+    _, facts_file = mkstemp(suffix='.facts')
+    with open(facts_file, 'w') as f:
+        json.dump(facts, f, indent=4)
+    rhel_contenthost.put(facts_file, '/etc/rhsm/facts/')
+    result = rhel_contenthost.register(
+        module_sca_manifest_org, module_location, [module_activation_key.name], module_target_sat
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    host_info = module_target_sat.cli.Host.info(
+        {'name': rhel_contenthost.hostname}, output_format='json'
+    )
+    assert len(host_info['network-interfaces']) == len(interfaces) + 1  # facts + default interface
+    for interface in interfaces:
+        for interface_name in interface.values():
+            assert interface_name in str(host_info['network-interfaces'])

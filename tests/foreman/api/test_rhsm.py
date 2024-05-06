@@ -15,6 +15,7 @@ No API doc exists for the subscription manager path(s). However, bugzilla bug
 :CaseImportance: High
 
 """
+
 import http
 
 from nailgun import client

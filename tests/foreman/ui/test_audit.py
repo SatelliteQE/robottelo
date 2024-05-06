@@ -9,6 +9,7 @@
 :Team: Endeavour
 
 """
+
 from fauxfactory import gen_string
 import pytest
 
@@ -181,6 +182,6 @@ def test_positive_add_event(session, module_org, module_target_sat):
         assert values['resource_type'] == 'KATELLO/CONTENT VIEW ENVIRONMENT'
         assert values['resource_name'] == f'{ENVIRONMENT}/{cv.name} / {cv.name}'
         assert len(values['action_summary']) == 1
-        assert values['action_summary'][0]['column0'] == 'Added {}/{} to {}'.format(
-            ENVIRONMENT, cv.name, cv.name
+        assert (
+            values['action_summary'][0]['column0'] == f'Added {ENVIRONMENT}/{cv.name} to {cv.name}'
         )

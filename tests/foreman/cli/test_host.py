@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from random import choice
 import re
 
@@ -1552,6 +1553,7 @@ def yum_security_plugin(katello_host_tools_host):
 
 @pytest.mark.e2e
 @pytest.mark.cli_katello_host_tools
+@pytest.mark.rhel_ver_match('[^6].*')
 @pytest.mark.tier3
 def test_positive_report_package_installed_removed(
     katello_host_tools_host, setup_custom_repo, target_sat
@@ -1597,6 +1599,7 @@ def test_positive_report_package_installed_removed(
 
 
 @pytest.mark.cli_katello_host_tools
+@pytest.mark.rhel_ver_match('[^6].*')
 @pytest.mark.tier3
 def test_positive_package_applicability(katello_host_tools_host, setup_custom_repo, target_sat):
     """Ensure packages applicability is functioning properly
@@ -1658,6 +1661,7 @@ def test_positive_package_applicability(katello_host_tools_host, setup_custom_re
 
 @pytest.mark.e2e
 @pytest.mark.cli_katello_host_tools
+@pytest.mark.rhel_ver_match('[^6].*')
 @pytest.mark.pit_client
 @pytest.mark.pit_server
 @pytest.mark.tier3
@@ -1727,6 +1731,7 @@ def test_positive_erratum_applicability(
 
 
 @pytest.mark.cli_katello_host_tools
+@pytest.mark.rhel_ver_match('[^6].*')
 @pytest.mark.tier3
 def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_repo, target_sat):
     """Apply security erratum to a host

@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from datetime import datetime, timedelta
 from random import randint, shuffle
 
@@ -583,8 +584,9 @@ def test_positive_upstream_with_credentials(session, module_prod):
         )
         assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
         repo_values = session.repository.read(module_prod.name, repo_name)
-        assert repo_values['repo_content']['upstream_authorization'] == '{} / {}'.format(
-            upstream_username, hidden_password
+        assert (
+            repo_values['repo_content']['upstream_authorization']
+            == f'{upstream_username} / {hidden_password}'
         )
         session.repository.update(
             module_prod.name,
@@ -596,8 +598,9 @@ def test_positive_upstream_with_credentials(session, module_prod):
             },
         )
         repo_values = session.repository.read(module_prod.name, repo_name)
-        assert repo_values['repo_content']['upstream_authorization'] == '{} / {}'.format(
-            new_upstream_username, hidden_password
+        assert (
+            repo_values['repo_content']['upstream_authorization']
+            == f'{new_upstream_username} / {hidden_password}'
         )
         session.repository.update(
             module_prod.name, repo_name, {'repo_content.upstream_authorization': {}}

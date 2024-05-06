@@ -1,4 +1,5 @@
 """Utility module to communicate with Ohsnap API"""
+
 from box import Box
 from packaging.version import Version
 import requests

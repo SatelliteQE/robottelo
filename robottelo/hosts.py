@@ -63,7 +63,7 @@ from robottelo.utils.installer import InstallerCommand
 POWER_OPERATIONS = {
     VmState.RUNNING: 'running',
     VmState.STOPPED: 'stopped',
-    'reboot': 'reboot'
+    'reboot': 'reboot',
     # TODO paused, suspended, shelved?
 }
 
@@ -438,7 +438,10 @@ class ContentHost(Host, ContentHostMixins):
         if ensure and state in [VmState.RUNNING, 'reboot']:
             try:
                 wait_for(
-                    self.connect, fail_condition=lambda res: res is not None, handle_exception=True
+                    self.connect,
+                    fail_condition=lambda res: res is not None,
+                    timeout=300,
+                    handle_exception=True,
                 )
             # really broad diaper here, but connection exceptions could be a ton of types
             except TimedOutError as toe:
@@ -837,10 +840,7 @@ class ContentHost(Host, ContentHostMixins):
             registration.
         """
 
-        if username and password:
-            userpass = f' --username {username} --password {password}'
-        else:
-            userpass = ''
+        userpass = f' --username {username} --password {password}' if username and password else ''
         # Setup the base command
         cmd = 'subscription-manager register'
         if org:
@@ -932,11 +932,7 @@ class ContentHost(Host, ContentHostMixins):
         # ensure ssh directory exists
         self.execute(f'mkdir -p {ssh_path}')
         # append the key if doesn't exists
-        self.execute(
-            "grep -q '{key}' {dest} || echo '{key}' >> {dest}".format(
-                key=key_content, dest=auth_file
-            )
-        )
+        self.execute(f"grep -q '{key_content}' {auth_file} || echo '{key_content}' >> {auth_file}")
         # set proper permissions
         self.execute(f'chmod 700 {ssh_path}')
         self.execute(f'chmod 600 {auth_file}')
@@ -1870,9 +1866,27 @@ class Satellite(Capsule, SatelliteMixins):
 
     @contextmanager
     def omit_credentials(self):
-        self.omitting_credentials = True
+        change = not self.omitting_credentials  # if not already set to omit
+        if change:
+            self.omitting_credentials = True
+            # if CLI is already created
+            if self._cli._configured:
+                for name, obj in self._cli.__dict__.items():
+                    with contextlib.suppress(
+                        AttributeError
+                    ):  # not everything has an mro method, we don't care about them
+                        if Base in obj.mro():
+                            getattr(self._cli, name).omitting_credentials = True
         yield
-        self.omitting_credentials = False
+        if change:
+            self.omitting_credentials = False
+            if self._cli._configured:
+                for name, obj in self._cli.__dict__.items():
+                    with contextlib.suppress(
+                        AttributeError
+                    ):  # not everything has an mro method, we don't care about them
+                        if Base in obj.mro():
+                            getattr(self._cli, name).omitting_credentials = False
 
     @contextmanager
     def ui_session(self, testname=None, user=None, password=None, url=None, login=True):

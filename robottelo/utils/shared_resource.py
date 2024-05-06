@@ -21,6 +21,7 @@ Example:
     ...     yield target_sat  # give the upgraded satellite to the test
     ...     # Do post-upgrade cleanup steps if any
 """
+
 import json
 from pathlib import Path
 import time

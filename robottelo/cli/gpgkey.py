@@ -16,6 +16,7 @@ Subcommands::
     list                          List GPG Keys
     update                        Update a GPG Key
 """
+
 from robottelo.cli.base import Base
 
 
