@@ -56,9 +56,9 @@ def dev_lce(module_entitlement_manifest_org):
 
 
 @pytest.fixture(scope='module')
-def qe_lce(module_sca_manifest_org, dev_lce):
+def qe_lce(module_entitlement_manifest_org, dev_lce):
     return entities.LifecycleEnvironment(
-        name='QE', prior=dev_lce, organization=module_sca_manifest_org
+        name='QE', prior=dev_lce, organization=module_entitlement_manifest_org
     ).create()
 
 
@@ -229,7 +229,7 @@ def test_positive_noapply_api(
 
 
 @pytest.mark.tier3
-def test_positive_incremental_update_time(module_target_sat, module_sca_manifest_org):
+def test_positive_incremental_update_time(module_target_sat, module_entitlement_manifest_org):
     """Incremental update should not take a long time.
 
     :id: a9cdcc58-2d10-42cf-8e24-f7bec3b79d6b
@@ -255,7 +255,7 @@ def test_positive_incremental_update_time(module_target_sat, module_sca_manifest
     """
     # create content view
     cv = module_target_sat.cli_factory.make_content_view(
-        {'organization-id': module_sca_manifest_org.id}
+        {'organization-id': module_entitlement_manifest_org.id}
     )
     repo_sync_timestamp = (
         datetime.utcnow().replace(microsecond=0) - timedelta(seconds=1)
@@ -264,7 +264,7 @@ def test_positive_incremental_update_time(module_target_sat, module_sca_manifest
     for _repo in ['rhel8_bos', 'rhst8', 'rhsclient8']:
         rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
-            org_id=module_sca_manifest_org.id,
+            org_id=module_entitlement_manifest_org.id,
             product=PRDS['rhel8'],
             repo=REPOS[_repo]['name'],
             reposet=REPOSET[_repo],
@@ -273,7 +273,7 @@ def test_positive_incremental_update_time(module_target_sat, module_sca_manifest
         module_target_sat.cli.ContentView.add_repository(
             {
                 'id': cv['id'],
-                'organization-id': module_sca_manifest_org.id,
+                'organization-id': module_entitlement_manifest_org.id,
                 'repository-id': rh_repo_id,
             }
         )
