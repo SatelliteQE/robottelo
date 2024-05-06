@@ -505,7 +505,7 @@ class TestSimpleContentAccessOnly:
         rh_content_label = pre_upgrade_data.get('rh_content_label')
         custom_content_label = pre_upgrade_data.get('custom_content_label')
         rhel_client = ContentHost.get_host_by_hostname(client_hostname)
-        enabled = rhel_client.execute("subscription-manager repos --list-enabled")
+        enabled = rhel_client.execute('subscription-manager repos --list-enabled')
         assert rh_content_label in enabled.stdout
         assert custom_content_label in enabled.stdout
         sca_access = target_sat.execute(
