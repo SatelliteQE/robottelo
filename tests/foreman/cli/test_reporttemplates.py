@@ -193,6 +193,12 @@ def test_positive_end_to_end_crud_and_list(target_sat):
     rt_list = target_sat.cli.ReportTemplate.list()
     assert name not in [rt['name'] for rt in rt_list]
 
+    # clone
+    clone_name = gen_alpha()
+    target_sat.cli.ReportTemplate.clone({'id': report_template['id'], 'new-name': clone_name})
+    clone_list = target_sat.cli.ReportTemplate.list()
+    assert clone_name in [rt['name'] for rt in clone_list]
+
     # delete tmp
     target_sat.cli.ReportTemplate.delete({'name': tmp_report_template['name']})
     with pytest.raises(CLIReturnCodeError):
@@ -679,7 +685,7 @@ def test_positive_generate_with_name_and_org(module_target_sat):
     result = module_target_sat.cli.ReportTemplate.generate(
         {'name': 'Host - Statuses', 'organization': DEFAULT_ORG}
     )
-
+    assert 'RHEL lifecycle' in result
     assert host['name'] in [item.split(',')[0] for item in result.split('\n')]
 
 
