@@ -394,7 +394,7 @@ class TestSimpleContentAccessOnly:
     ):
         """Register host with an activation key that has one custom repository(overriden to enabled)
         and one Red Hat repository enabled but no subscriptions attached. Assert that only
-        the red hat repository is enabled on the host and that the host is in entitlement mode.
+        the Red Hat repository is enabled on the host and that the host is in entitlement mode.
 
         :id: preupgrade-d6661342-a348-4dd5-9ddf-3fd630b1e286
 
@@ -402,7 +402,7 @@ class TestSimpleContentAccessOnly:
             1. Before satellite upgrade
             2. Create new organization and location
             3. Upload a manifest in it
-            4. Create a ak with repos and no subscriptions added in it
+            4. Create a ak with repos and no subscriptions added to it
             5. Create a content host
             6. Register the content host
             7. Confirm content host only has red hat repo enabled
@@ -458,7 +458,7 @@ class TestSimpleContentAccessOnly:
         rhel_contenthost.register(
             org=org, loc=None, activation_key=activation_key.name, target=target_sat
         )
-        enabled = rhel_contenthost.execute("subscription-manager repos --list-enabled")
+        enabled = rhel_contenthost.execute('subscription-manager repos --list-enabled')
         assert rh_content_label in enabled.stdout
         assert custom_content_label not in enabled.stdout
         sca_access = target_sat.execute(
