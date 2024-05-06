@@ -28,42 +28,6 @@ def last_y_stream_version(release):
     return f"{release.split('.')[0]}.{y_minus}"
 
 
-@pytest.mark.e2e
-@pytest.mark.include_capsule
-def test_positive_satellite_maintain_upgrade_list(sat_maintain):
-    """List versions this system is upgradable to
-
-    :id: 12efec41-4f09-4199-a20c-a4525e773b78
-
-    :parametrized: yes
-
-    :steps:
-        1. Run satellite-maintain upgrade list-versions
-
-    :expectedresults: Versions system is upgradable to are listed.
-    """
-    xy_version = '.'.join(sat_maintain.version.split('.')[:2])
-    previous_xy_version = '.'.join(
-        [xy_version.split('.')[0], str(int(xy_version.split('.')[1]) - 1)]
-    )
-    if sat_maintain.version.startswith(xy_version):
-        versions = [f'{xy_version}.z']
-    elif sat_maintain.version.startswith(previous_xy_version):
-        versions = [f'{previous_xy_version}.z', xy_version]
-    else:
-        versions = ['Unsupported Satellite/Capsule version']
-
-    # Reboot if needed
-    if sat_maintain.execute('needs-restarting -r').status == 1:
-        sat_maintain.power_control(state='reboot')
-
-    result = sat_maintain.cli.Upgrade.list_versions()
-    assert result.status == 0
-    assert 'FAIL' not in result.stdout
-    for ver in versions:
-        assert ver in result.stdout
-
-
 @pytest.mark.include_capsule
 def test_positive_repositories_validate(sat_maintain):
     """Test repositories-validate pre-upgrade check is
@@ -162,8 +126,8 @@ def test_positive_self_update_maintain_package(sat_maintain):
     :parametrized: yes
 
     :steps:
-        1. Run satellite-maintain upgrade list-versions/check/run command.
-        2. Run satellite-maintain upgrade list-versions/check/run command
+        1. Run satellite-maintain update check command.
+        2. Run satellite-maintain update check command
             with disable-self-upgrade option.
 
     :expectedresults:
@@ -172,10 +136,17 @@ def test_positive_self_update_maintain_package(sat_maintain):
 
     :BZ: 1649329
     """
-    result = sat_maintain.cli.Upgrade.list_versions()
+    result = sat_maintain.cli.Update.check(
+        options={'whitelist': 'repositories-validate, non-rh-packages'}
+    )
     assert result.status == 0
     assert 'Checking for new version of satellite-maintain...' in result.stdout
-    result = sat_maintain.cli.Upgrade.list_versions(options={'disable-self-upgrade': True})
+    result = sat_maintain.cli.Update.check(
+        options={
+            'whitelist': 'repositories-validate, non-rh-packages',
+            'disable-self-update': True,
+        }
+    )
     assert result.status == 0
     assert 'Checking for new version of satellite-maintain...' not in result.stdout
 
@@ -216,8 +187,8 @@ def test_positive_check_presence_satellite_or_satellite_capsule(sat_maintain):
     :parametrized: yes
 
     :steps:
-        1. Run satellite-maintain upgrade list-versions/check/run command.
-        2. Run satellite-maintain upgrade list-versions/check/run command,
+        1. Run satellite-maintain upgrade check/run command.
+        2. Run satellite-maintain upgrade check/run command,
             after removing satellite and satellite-capsule packages.
 
     :expectedresults:
