@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string, gen_utf8
 import pytest
 

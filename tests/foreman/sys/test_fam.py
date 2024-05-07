@@ -11,6 +11,7 @@
 :Team: Platform
 
 """
+
 from broker import Broker
 import pytest
 
@@ -45,6 +46,19 @@ def setup_fam(module_target_sat, module_sca_manifest):
     # Execute AAP WF for FAM setup
     Broker().execute(workflow='fam-test-setup', source_vm=module_target_sat.name)
 
+    # Setup provisioning resources and copy config files to the Satellite
+    module_target_sat.configure_libvirt_cr()
+    module_target_sat.put(
+        settings.fam.server.to_yaml(),
+        f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/server.yml',
+        temp_file=True,
+    )
+    module_target_sat.put(
+        settings.fam.compute_profile.to_yaml(),
+        f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/compute_profile.yml',
+        temp_file=True,
+    )
+
     # Edit Makefile to not try to rebuild the collection when tests run
     module_target_sat.execute(f"sed -i '/^live/ s/$(MANIFEST)//' {FAM_ROOT_DIR}/Makefile")
 
@@ -53,26 +67,9 @@ def setup_fam(module_target_sat, module_sca_manifest):
     module_target_sat.execute(
         f'mv {module_sca_manifest.name} {FAM_ROOT_DIR}/tests/test_playbooks/data'
     )
-
-    # Edit config file
     config_file = f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/server.yml'
     module_target_sat.execute(
-        f'cp {FAM_ROOT_DIR}/tests/test_playbooks/vars/server.yml.example {config_file}'
-    )
-    module_target_sat.execute(
-        f'sed -i "s/foreman.example.com/{module_target_sat.hostname}/g" {config_file}'
-    )
-    module_target_sat.execute(
-        f'sed -i "s/rhsm_pool_id:.*/rhsm_pool_id: {settings.subscription.rhn_poolid}/g" {config_file}'
-    )
-    module_target_sat.execute(
-        f'''sed -i 's/rhsm_username:.*/rhsm_username: "{settings.subscription.rhn_username}"/g' {config_file}'''
-    )
-    module_target_sat.execute(
         f'''sed -i 's|subscription_manifest_path:.*|subscription_manifest_path: "data/{module_sca_manifest.name}"|g' {config_file}'''
-    )
-    module_target_sat.execute(
-        f'''sed -i 's/rhsm_password:.*/rhsm_password: "{settings.subscription.rhn_password}"/g' {config_file}'''
     )
 
 

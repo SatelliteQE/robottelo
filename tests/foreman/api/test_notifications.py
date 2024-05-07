@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from mailbox import mbox
 from re import findall
 from tempfile import mkstemp
@@ -231,7 +232,7 @@ def long_running_task(target_sat):
             'password': settings.server.ssh_password,
         },
     )
-    sql_date_2_days_ago = "now() - INTERVAL \'2 days\'"
+    sql_date_2_days_ago = "now() - INTERVAL \'2 days\'"  # fmt: skip
     result = target_sat.execute(
         "su - postgres -c \"psql foreman postgres <<EOF\n"
         "UPDATE foreman_tasks_tasks "
@@ -239,7 +240,7 @@ def long_running_task(target_sat):
         f" started_at = {sql_date_2_days_ago}, "
         f" state_updated_at = {sql_date_2_days_ago} "
         f"WHERE id=\'{job['task']['id']}\';\nEOF\n\" "
-    )
+    )  # fmt: skip  # skip formatting to avoid breaking the SQL query
     assert 'UPDATE 1' in result.stdout, f'Failed to age task {job["task"]["id"]}: {result.stderr}'
 
     yield job

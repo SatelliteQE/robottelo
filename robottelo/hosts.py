@@ -63,7 +63,7 @@ from robottelo.utils.installer import InstallerCommand
 POWER_OPERATIONS = {
     VmState.RUNNING: 'running',
     VmState.STOPPED: 'stopped',
-    'reboot': 'reboot'
+    'reboot': 'reboot',
     # TODO paused, suspended, shelved?
 }
 
@@ -840,10 +840,7 @@ class ContentHost(Host, ContentHostMixins):
             registration.
         """
 
-        if username and password:
-            userpass = f' --username {username} --password {password}'
-        else:
-            userpass = ''
+        userpass = f' --username {username} --password {password}' if username and password else ''
         # Setup the base command
         cmd = 'subscription-manager register'
         if org:
@@ -886,12 +883,17 @@ class ContentHost(Host, ContentHostMixins):
         """Get a remote file from the broker virtual machine."""
         self.session.sftp_read(source=remote_path, destination=local_path)
 
-    def put(self, local_path, remote_path=None):
+    def put(self, local_path, remote_path=None, temp_file=False):
         """Put a local file to the broker virtual machine.
         If local_path is a manifest object, write its contents to a temporary file
         then continue with the upload.
         """
-        if 'utils.manifest' in str(local_path):
+        if temp_file:
+            with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
+                content_file.write(str.encode(local_path))
+                content_file.flush()
+                self.session.sftp_write(source=content_file.name, destination=remote_path)
+        elif 'utils.manifest' in str(local_path):
             with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
                 content_file.write(local_path.content.read())
                 content_file.flush()

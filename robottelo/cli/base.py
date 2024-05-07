@@ -1,4 +1,5 @@
 """Generic base class for cli hammer commands."""
+
 import re
 
 from wait_for import wait_for

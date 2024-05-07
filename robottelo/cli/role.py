@@ -17,6 +17,7 @@ Subcommands::
     list                          List all roles.
     update                        Update an role.
 """
+
 from robottelo.cli.base import Base
 
 

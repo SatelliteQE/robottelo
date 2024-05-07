@@ -2,6 +2,7 @@
 It is not meant to be used directly, but as part of a robottelo.hosts.Satellite instance
 example: my_satellite.api_factory.api_method()
 """
+
 from contextlib import contextmanager
 from datetime import datetime
 import time
