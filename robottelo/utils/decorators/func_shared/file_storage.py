@@ -45,7 +45,6 @@ class FileStorageHandler(BaseStorageHandler):
     """Key value file storage handler."""
 
     def __init__(self, root_dir=None, create=True, lock_timeout=LOCK_TIMEOUT):
-
         if root_dir is None:
             root_dir = _get_root_dir()
 

@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
 import pytest
 
@@ -148,7 +149,7 @@ class TestScenarioPositiveVirtWho:
 
         # Verify the virt-who config-file exists.
         config_file = get_configure_file(vhd.id)
-        get_configure_option('hypervisor_id', config_file),
+        get_configure_option('hypervisor_id', config_file)
 
         # Verify Report is sent to satellite.
         command = get_configure_command(vhd.id, org=org_name)

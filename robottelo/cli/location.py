@@ -36,6 +36,7 @@ Subcommands::
     remove-user                   Disassociate an user
     update                        Update a location
 """
+
 from robottelo.cli.base import Base
 
 

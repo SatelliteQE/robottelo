@@ -13,6 +13,7 @@ Subcommands::
     info                          Show a package
     list                          List packages
 """
+
 from robottelo.cli.base import Base
 
 

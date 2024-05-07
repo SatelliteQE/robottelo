@@ -14,6 +14,7 @@ http://<sat6>/apidoc/v2/products.html
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError

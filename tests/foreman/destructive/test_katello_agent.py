@@ -16,6 +16,7 @@
 
 :Upstream: No
 """
+
 import pytest
 
 from robottelo import constants

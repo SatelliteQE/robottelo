@@ -16,6 +16,7 @@ Subcommands::
     list                          List content credentials
     update                        Update a content credential
 """
+
 from robottelo.cli.base import Base
 
 

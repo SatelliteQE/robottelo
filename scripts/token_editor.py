@@ -4,6 +4,7 @@
 Reads Python test modules under test/foreman and edit docstring tokens' prefix
 from ``OLD_TOKEN_PREFIX`` to ``NEW_TOKEN_PREFIX``.
 """
+
 import glob
 import os
 import re
@@ -30,6 +31,6 @@ test_modules = glob.glob(os.path.join(ROOT_PATH, 'tests', 'foreman', '*', 'test_
 for test_module in test_modules:
     with open(test_module) as handler:
         content = handler.read()
-    content = TOKEN_RE.sub(fr'{NEW_TOKEN_PREFIX}\1:', content)
+    content = TOKEN_RE.sub(rf'{NEW_TOKEN_PREFIX}\1:', content)
     with open(test_module, 'w') as handler:
         handler.write(content)

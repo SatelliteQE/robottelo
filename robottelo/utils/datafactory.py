@@ -1,4 +1,5 @@
 """Data Factory for all entities"""
+
 from functools import wraps
 import random
 import string
@@ -389,7 +390,7 @@ def valid_names_list():
         f"νέος χρήστης-{gen_string('utf8', 2)}",
         f"foo@!#$^&*( ) {gen_string('utf8')}",
         f"<blink>{gen_string('utf8')}</blink>",
-        f"bar+{{}}|\"?hi {gen_string('utf8')}",
+        f"bar+{{}}|?hi {gen_string('utf8')}",
         f" {gen_string('utf8')}",
         f"{gen_string('utf8')} ",
     ]

@@ -1,4 +1,5 @@
 """Defines various constants"""
+
 from pathlib import Path
 
 from box import Box
@@ -1565,6 +1566,7 @@ OSCAP_DEFAULT_CONTENT = {
     'rhel6_content': 'Red Hat rhel6 default content',
     'rhel7_content': 'Red Hat rhel7 default content',
     'rhel8_content': 'Red Hat rhel8 default content',
+    'rhel9_content': 'Red Hat rhel9 default content',
     'rhel_firefox': 'Red Hat firefox default content',
 }
 
@@ -1572,7 +1574,8 @@ OSCAP_PROFILE = {
     'c2s_rhel6': 'C2S for Red Hat Enterprise Linux 6',
     'dsrhel6': 'DISA STIG for Red Hat Enterprise Linux 6',
     'dsrhel7': 'DISA STIG for Red Hat Enterprise Linux 7',
-    'dsrhel8': '[DRAFT] DISA STIG for Red Hat Enterprise Linux 8',
+    'dsrhel8': 'DISA STIG for Red Hat Enterprise Linux 8',
+    'dsrhel9': 'DISA STIG for Red Hat Enterprise Linux 9',
     'esp': 'Example Server Profile',
     'rhccp': 'Red Hat Corporate Profile for Certified Cloud Providers (RH CCP)',
     'firefox': 'Mozilla Firefox STIG',
@@ -1872,7 +1875,6 @@ FAM_TEST_PLAYBOOKS = [
     "content_export_repository",
     "content_export_version",
     "content_rhel_role",
-    "content_upload_ostree",
     "content_upload",
     "content_view_filter_info",
     "content_view_filter_rule_info",
@@ -1933,9 +1935,9 @@ FAM_TEST_PLAYBOOKS = [
     "puppet_environment",
     "realm",
     "redhat_manifest",
+    "registration_command",
     "repositories_role",
     "repository_info",
-    "repository_ostree",
     "repository_set_info",
     "repository_set",
     "repository_sync",
@@ -1962,6 +1964,7 @@ FAM_TEST_PLAYBOOKS = [
     "usergroup",
     "user",
     "wait_for_task",
+    "webhook",
 ]
 
 FAM_ROOT_DIR = '/usr/share/ansible/collections/ansible_collections/redhat/satellite'
@@ -2057,6 +2060,7 @@ DNF_RECOMMENDATION = (
 )
 
 EXPIRED_MANIFEST = 'expired-manifest.zip'
+
 
 # Data File Paths
 class DataFile(Box):
