@@ -2714,6 +2714,8 @@ def test_positive_create_host_with_lifecycle_environment_name(
 
     :expectedresults: Host is created with no errors
 
+    :customerscenario: true
+
     :CaseImportance: Medium
     """
     found_host = False
