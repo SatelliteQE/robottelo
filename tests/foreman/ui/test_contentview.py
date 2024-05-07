@@ -15,7 +15,7 @@
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.constants import DEFAULT_ARCHITECTURE, REPOS
+from robottelo.constants import REPOS
 
 
 @pytest.mark.tier2
@@ -59,39 +59,24 @@ def test_version_table_read(session, function_sca_manifest_org, target_sat):
 
     :customerscenario: true
     """
-    target_sat.cli.RepositorySet.enable(
-        {
-            'basearch': DEFAULT_ARCHITECTURE,
-            'name': REPOS['rhel8_bos']['reposet'],
-            'organization-id': function_sca_manifest_org.id,
-            'product': REPOS['rhel8_bos']['product'],
-            'releasever': REPOS['rhel8_bos']['releasever'],
-        }
+    rh_repo_id = target_sat.api_factory.enable_sync_redhat_repo(
+        REPOS['rhae2.9_el8'], function_sca_manifest_org.id
     )
-    rhel8_bos_info = target_sat.cli.RepositorySet.info(
-        {
-            'name': REPOS['rhel8_bos']['reposet'],
-            'organization-id': function_sca_manifest_org.id,
-            'product': REPOS['rhel8_bos']['product'],
-        }
-    )
-    rh_repo_id = rhel8_bos_info['enabled-repositories'][0]['id']
     rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
-    rh_repo.sync()
+    packages = target_sat.api.Repository(id=rh_repo_id).packages()
     cv = target_sat.api.ContentView(organization=function_sca_manifest_org).create()
     cv = target_sat.api.ContentView(id=cv.id, repository=[rh_repo]).update(["repository"])
     cv.publish()
     with target_sat.ui_session() as session:
-        package_name = 'aajohan'
         session.organization.select(org_name=function_sca_manifest_org.name)
         response = session.contentview_new.read_version_table(
-            cv.name, 'Version 1.0', 'rpmPackages', search_param=package_name
+            cv.name, 'Version 1.0', 'rpmPackages', search_param=packages['results'][0]['nvra']
         )
-        assert package_name in response[0]['Name']
-        assert response[0]['Epoch']
-        assert response[0]['Name'] == 'aajohan-comfortaa-fonts-3.001-2.el8.noarch'
-        assert response[0]['Version'] == '3.001'
-        assert response[0]['Release'] == '2.el8'
+        assert response[0]['Epoch'] == packages['results'][0]['epoch']
+        assert response[0]['Name'] == packages['results'][0]['nvra']
+        assert response[0]['Version'] == packages['results'][0]['version']
+        assert response[0]['Release'] == packages['results'][0]['release']
+        assert response[0]['Arch'] == packages['results'][0]['arch']
 
 
 @pytest.mark.tier2
