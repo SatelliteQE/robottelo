@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 # For ease of use hc refers to host-collection throughout this document
 from time import sleep
 
@@ -125,8 +126,7 @@ def _validate_errata_counts(module_org, host, errata_type, expected_value, timeo
         sleep(5)
     else:
         pytest.fail(
-            'Host {} contains {} {} errata, but expected to contain '
-            '{} of them'.format(
+            'Host {} contains {} {} errata, but expected to contain {} of them'.format(
                 host.name,
                 host.content_facet_attributes['errata_counts'][errata_type],
                 errata_type,
@@ -145,8 +145,9 @@ def _fetch_available_errata(module_org, host, expected_amount, timeout=120):
         errata = host.errata()
     else:
         pytest.fail(
-            'Host {} contains {} available errata, but expected to '
-            'contain {} of them'.format(host.name, len(errata['results']), expected_amount)
+            'Host {} contains {} available errata, but expected to contain {} of them'.format(
+                host.name, len(errata['results']), expected_amount
+            )
         )
 
 

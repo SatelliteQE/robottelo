@@ -18,6 +18,7 @@ Subcommands::
     refresh-features              Refresh smart proxy features
     update                        Update a smart proxy.
 """
+
 from robottelo.cli.base import Base
 
 
