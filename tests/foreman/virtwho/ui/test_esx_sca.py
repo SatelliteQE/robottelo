@@ -9,6 +9,7 @@
 :team: Phoenix-subscriptions
 
 """
+
 from datetime import datetime
 
 from airgun.session import Session
@@ -243,7 +244,12 @@ class TestVirtwhoConfigforEsx:
 
     @pytest.mark.tier2
     def test_positive_last_checkin_status(
-        self, module_sca_manifest_org, virtwho_config_ui, form_data_ui, org_session
+        self,
+        module_sca_manifest_org,
+        virtwho_config_ui,
+        form_data_ui,
+        org_session,
+        default_location,
     ):
         """Verify the Last Checkin status on Content Hosts Page.
 
@@ -265,6 +271,7 @@ class TestVirtwhoConfigforEsx:
         )
         time_now = org_session.browser.get_client_datetime()
         assert org_session.virtwho_configure.search(name)[0]['Status'] == 'ok'
+        org_session.location.select(default_location.name)
         checkin_time = org_session.contenthost.search(hypervisor_name)[0]['Last Checkin']
         # 10 mins margin to check the Last Checkin time
         assert (
@@ -306,9 +313,7 @@ class TestVirtwhoConfigforEsx:
         option = "env"
         config_id = get_configure_id(name)
         config_file = get_configure_file(config_id)
-        env_error = (
-            f"option {{\'{option}\'}} is not exist or not be enabled in {{\'{config_file}\'}}"
-        )
+        env_error = f"option {{'{option}'}} is not exist or not be enabled in {{'{config_file}'}}"
         with pytest.raises(Exception) as exc_info:  # noqa: PT011 - TODO determine better exception
             get_configure_option({option}, {config_file})
         assert str(exc_info.value) == env_error

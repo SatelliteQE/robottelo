@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import copy
 import csv
 import os
@@ -1044,43 +1045,6 @@ def test_positive_read_details_page_from_new_ui(session, host_ui_options):
 
 
 @pytest.mark.tier4
-@pytest.mark.rhel_ver_match('8')
-def test_rex_new_ui(session, target_sat, rex_contenthost):
-    """Run remote execution using the new host details page
-
-    :id: ee625595-4995-43b2-9e6d-633c9b33ff93
-
-    :steps:
-        1. Navigate to Overview tab
-        2. Schedule a job
-        3. Wait for the job to finish
-        4. Job is visible in Recent jobs card
-
-    :expectedresults: Remote execution succeeded and the job is visible on Recent jobs card on
-        Overview tab
-    """
-    hostname = rex_contenthost.hostname
-    job_args = {
-        'job_category': 'Commands',
-        'job_template': 'Run Command - Script Default',
-        'template_content.command': 'ls',
-    }
-    with session:
-        session.location.select(loc_name=DEFAULT_LOC)
-        session.host_new.schedule_job(hostname, job_args)
-        task_result = target_sat.wait_for_tasks(
-            search_query=(f'Remote action: Run ls on {hostname}'),
-            search_rate=2,
-            max_tries=30,
-        )
-        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
-        assert task_status['result'] == 'success'
-        recent_jobs = session.host_new.get_details(hostname, "overview.recent_jobs")['overview']
-        assert recent_jobs['recent_jobs']['finished']['table'][0]['column0'] == "Run ls"
-        assert recent_jobs['recent_jobs']['finished']['table'][0]['column2'] == "succeeded"
-
-
-@pytest.mark.tier4
 def test_positive_manage_table_columns(session, current_sat_org, current_sat_location):
     """Set custom columns of the hosts table.
 
@@ -1115,8 +1079,8 @@ def test_positive_manage_table_columns(session, current_sat_org, current_sat_loc
         'Recommendations': False,
     }
     with session:
-        session.organization.select(org_name=current_sat_org)
-        session.location.select(loc_name=current_sat_location)
+        session.organization.select(org_name=current_sat_org.name)
+        session.location.select(loc_name=current_sat_location.name)
         session.host.manage_table_columns(columns)
         displayed_columns = session.host.get_displayed_table_headers()
         for column, is_displayed in columns.items():
@@ -1147,8 +1111,8 @@ def test_positive_host_details_read_templates(
     host = target_sat.api.Host().search(query={'search': f'name={target_sat.hostname}'})[0]
     api_templates = [template['name'] for template in host.list_provisioning_templates()]
     with session:
-        session.organization.select(org_name=current_sat_org)
-        session.location.select(loc_name=current_sat_location)
+        session.organization.select(org_name=current_sat_org.name)
+        session.location.select(loc_name=current_sat_location.name)
         host_detail = session.host_new.get_details(target_sat.hostname, widget_names='details')
         ui_templates = [
             row['column1'].strip()
@@ -1928,3 +1892,29 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
             rhel_contenthost_post_values['lifecycle_environment']['name']
             == rhel_contenthost_post_values['lifecycle_environment']['name']
         )
+
+
+@pytest.mark.tier3
+@pytest.mark.rhel_ver_match('8')
+def test_positive_page_redirect_after_update(target_sat, current_sat_location):
+    """Check that page redirects correctly after editing a host without making any changes.
+
+    :id: 29c3397e-0010-11ef-bca4-000c2989e153
+
+    :steps:
+        1. Go to All Hosts page.
+        2. Edit a host. Using the Sat. host is sufficient, no other host needs to be created or registered,
+            because we need just a host with FQDN.
+        3. Submit the host edit dialog without making any changes.
+
+    :expectedresults: The page should be redirected to the host details page.
+
+    :BZ: 2166303
+    """
+    client = target_sat
+    with target_sat.ui_session() as session:
+        session.location.select(loc_name=current_sat_location.name)
+        session.host_new.update(client.hostname, {})
+
+        assert 'page-not-found' not in session.browser.url
+        assert client.hostname in session.browser.url

@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from random import choice
 from string import punctuation
 
@@ -41,7 +42,6 @@ from robottelo.constants.repos import (
     CUSTOM_FILE_REPO,
     CUSTOM_RPM_SHA,
     FAKE_5_YUM_REPO,
-    FAKE_YUM_DRPM_REPO,
     FAKE_YUM_MD5_REPO,
     FAKE_YUM_SRPM_REPO,
 )
@@ -2010,8 +2010,7 @@ class TestRepository:
 
         :CaseImportance: Critical
         """
-        rhel7_contenthost.install_katello_ca(target_sat)
-        rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_synced_repo['name'])
+        rhel7_contenthost.register(module_org, None, module_ak_with_synced_repo['name'], target_sat)
         assert rhel7_contenthost.subscribed
         rhel7_contenthost.run('yum repolist')
         access_log = target_sat.execute(
@@ -2022,7 +2021,7 @@ class TestRepository:
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content_type': 'yum', 'url': CUSTOM_RPM_SHA}]),
+        **parametrized([{'content-type': 'yum', 'url': CUSTOM_RPM_SHA}]),
         indirect=True,
     )
     def test_positive_sync_sha_repo(self, repo_options, module_target_sat):
@@ -2047,7 +2046,7 @@ class TestRepository:
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content_type': 'yum', 'url': CUSTOM_3RD_PARTY_REPO}]),
+        **parametrized([{'content-type': 'yum', 'url': CUSTOM_3RD_PARTY_REPO}]),
         indirect=True,
     )
     def test_positive_sync_third_party_repo(self, repo_options, module_target_sat):
@@ -2530,93 +2529,6 @@ class TestMD5Repository:
         cv = target_sat.cli.ContentView.info({'id': cv['id']})
         assert synced_repo['id'] in [repo['id'] for repo in cv['yum-repositories']]
         assert lce['id'] in [lc['id'] for lc in cv['lifecycle-environments']]
-
-
-@pytest.mark.skip_if_open("BZ:1682951")
-class TestDRPMRepository:
-    """Tests specific to using repositories containing delta RPMs."""
-
-    @pytest.mark.tier2
-    @pytest.mark.skip("Uses deprecated DRPM repository")
-    @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'url': FAKE_YUM_DRPM_REPO}]), indirect=True
-    )
-    def test_positive_sync(self, repo, module_org, module_product, target_sat):
-        """Synchronize repository with DRPMs
-
-        :id: a645966c-750b-40ef-a264-dc3bb632b9fd
-
-        :parametrized: yes
-
-        :expectedresults: drpms can be listed in repository
-        """
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        result = target_sat.execute(
-            f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/Library"
-            f"/custom/{module_product.label}/{repo['label']}/drpms/ | grep .drpm"
-        )
-        assert result.status == 0
-        assert result.stdout
-
-    @pytest.mark.tier2
-    @pytest.mark.skip("Uses deprecated DRPM repository")
-    @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'url': FAKE_YUM_DRPM_REPO}]), indirect=True
-    )
-    def test_positive_sync_publish_cv(self, repo, module_org, module_product, target_sat):
-        """Synchronize repository with DRPMs, add repository to content view
-        and publish content view
-
-        :id: 014bfc80-4622-422e-a0ec-755b1d9f845e
-
-        :parametrized: yes
-
-        :expectedresults: drpms can be listed in content view
-        """
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
-        target_sat.cli.ContentView.add_repository({'id': cv['id'], 'repository-id': repo['id']})
-        target_sat.cli.ContentView.publish({'id': cv['id']})
-        result = target_sat.execute(
-            f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/content_views/"
-            f"{cv['label']}/1.0/custom/{module_product.label}/{repo['label']}/drpms/ | grep .drpm"
-        )
-        assert result.status == 0
-        assert result.stdout
-
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    @pytest.mark.skip("Uses deprecated DRPM repository")
-    @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'url': FAKE_YUM_DRPM_REPO}]), indirect=True
-    )
-    def test_positive_sync_publish_promote_cv(self, repo, module_org, module_product, target_sat):
-        """Synchronize repository with DRPMs, add repository to content view,
-        publish and promote content view to lifecycle environment
-
-        :id: a01cb12b-d388-4902-8532-714f4e28ec56
-
-        :parametrized: yes
-
-        :expectedresults: drpms can be listed in content view in proper
-            lifecycle environment
-        """
-        lce = target_sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
-        target_sat.cli.ContentView.add_repository({'id': cv['id'], 'repository-id': repo['id']})
-        target_sat.cli.ContentView.publish({'id': cv['id']})
-        content_view = target_sat.cli.ContentView.info({'id': cv['id']})
-        cvv = content_view['versions'][0]
-        target_sat.cli.ContentView.version_promote(
-            {'id': cvv['id'], 'to-lifecycle-environment-id': lce['id']}
-        )
-        result = target_sat.execute(
-            f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/{lce['label']}"
-            f"/{cv['label']}/custom/{module_product.label}/{repo['label']}/drpms/ | grep .drpm"
-        )
-        assert result.status == 0
-        assert result.stdout
 
 
 class TestFileRepository:

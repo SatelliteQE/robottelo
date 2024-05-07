@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_mac, gen_string
 import pytest
 
@@ -20,6 +21,7 @@ from robottelo.constants import HTTPS_MEDIUM_URL
 
 @pytest.mark.parametrize('module_sync_kickstart_content', [7, 8, 9], indirect=True)
 def test_positive_bootdisk_download_https(
+    request,
     module_location,
     module_sync_kickstart_content,
     module_provisioning_capsule,
@@ -79,8 +81,12 @@ def test_positive_bootdisk_download_https(
             'lifecycle-environment-id': module_lce_library.id,
         }
     )
+
+    @request.addfinalizer
+    def _finalize():
+        module_target_sat.api.Host(id=host.id).delete()
+        module_target_sat.api.Media(id=media['id']).delete()
+
     # Check if full-host bootdisk can be downloaded.
     bootdisk = module_target_sat.cli.Bootdisk.host({'host-id': host['id'], 'full': 'true'})
     assert 'Successfully downloaded host disk image' in bootdisk['message']
-    module_target_sat.api.Host(id=host.id).delete()
-    module_target_sat.api.Media(id=media['id']).delete()

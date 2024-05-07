@@ -11,9 +11,10 @@
 :CaseImportance: High
 
 """
+
 import pytest
 
-from robottelo.constants import BOOKMARK_ENTITIES
+from robottelo.constants import BOOKMARK_ENTITIES_SELECTION
 
 
 class TestPublicDisableBookmark:
@@ -45,7 +46,7 @@ class TestPublicDisableBookmark:
         :CaseImportance: Critical
         """
 
-        for entity in BOOKMARK_ENTITIES:
+        for entity in BOOKMARK_ENTITIES_SELECTION:
             book_mark_name = entity["name"] + request.node.name
             bm = target_sat.api.Bookmark(
                 controller=entity['controller'],
@@ -77,7 +78,7 @@ class TestPublicDisableBookmark:
         :CaseImportance: Critical
         """
         pre_test_name = dependent_scenario_name
-        for entity in BOOKMARK_ENTITIES:
+        for entity in BOOKMARK_ENTITIES_SELECTION:
             book_mark_name = entity["name"] + pre_test_name
             bm = target_sat.api.Bookmark().search(query={'search': f'name="{book_mark_name}"'})[0]
             assert bm.controller == entity['controller']
@@ -115,7 +116,7 @@ class TestPublicEnableBookmark:
         :customerscenario: true
         """
 
-        for entity in BOOKMARK_ENTITIES:
+        for entity in BOOKMARK_ENTITIES_SELECTION:
             book_mark_name = entity["name"] + request.node.name
             bm = target_sat.api.Bookmark(
                 controller=entity['controller'],
@@ -145,7 +146,7 @@ class TestPublicEnableBookmark:
         :CaseImportance: Critical
         """
         pre_test_name = dependent_scenario_name
-        for entity in BOOKMARK_ENTITIES:
+        for entity in BOOKMARK_ENTITIES_SELECTION:
             book_mark_name = entity["name"] + pre_test_name
             bm = target_sat.api.Bookmark().search(query={'search': f'name="{book_mark_name}"'})[0]
             assert bm.controller == entity['controller']

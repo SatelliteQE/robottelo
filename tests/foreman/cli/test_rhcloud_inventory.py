@@ -6,11 +6,12 @@
 
 :CaseComponent: RHCloud
 
-:Team: Platform
+:Team: Phoenix-subscriptions
 
 :CaseImportance: High
 
 """
+
 from datetime import datetime
 import time
 

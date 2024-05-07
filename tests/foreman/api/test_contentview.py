@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import random
 
 from fauxfactory import gen_integer, gen_string, gen_utf8
@@ -21,6 +22,7 @@ from robottelo.config import settings, user_nailgun_config
 from robottelo.constants import (
     CONTAINER_REGISTRY_HUB,
     CUSTOM_RPM_SHA_512_FEED_COUNT,
+    DEFAULT_ARCHITECTURE,
     FILTER_ERRATA_TYPE,
     PERMISSIONS,
     PRDS,
@@ -277,6 +279,63 @@ class TestContentView:
         assert (
             content_view_version.errata_counts['total'] == CUSTOM_RPM_SHA_512_FEED_COUNT['errata']
         )
+
+    @pytest.mark.tier2
+    def test_ccv_promote_registry_name_change(self, module_target_sat, module_sca_manifest_org):
+        """Testing CCV promotion scenarios where the registry_name has been changed to some
+        specific value.
+
+        :id: 41641d4a-d144-4833-869a-284624df2410
+
+        :steps:
+
+            1) Sync a RH Repo
+            2) Create a CV, add the repo and publish it
+            3) Create a CCV and add the CV version to it, then publish it
+            4) Create LCEs with the specific value for registry_name
+            5) Promote the CCV to both LCEs
+
+        :expectedresults: CCV can be promoted to both LCEs without issue.
+
+        :CaseImportance: High
+
+        :customerscenario: true
+
+        :BZ: 2153523
+        """
+        rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch=DEFAULT_ARCHITECTURE,
+            org_id=module_sca_manifest_org.id,
+            product=REPOS['kickstart']['rhel8_aps']['product'],
+            repo=REPOS['kickstart']['rhel8_aps']['name'],
+            reposet=REPOS['kickstart']['rhel8_aps']['reposet'],
+            releasever=REPOS['kickstart']['rhel8_aps']['version'],
+        )
+        repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+        repo.sync(timeout=600)
+        cv = module_target_sat.api.ContentView(organization=module_sca_manifest_org).create()
+        cv = module_target_sat.api.ContentView(id=cv.id, repository=[repo]).update(["repository"])
+        cv.publish()
+        cv = cv.read()
+        composite_cv = module_target_sat.api.ContentView(
+            organization=module_sca_manifest_org, composite=True
+        ).create()
+        composite_cv.component = [cv.version[0]]
+        composite_cv = composite_cv.update(['component'])
+        composite_cv.publish()
+        composite_cv = composite_cv.read()
+        # Create LCEs with the specific registry value
+        lce1 = module_target_sat.api.LifecycleEnvironment(
+            organization=module_sca_manifest_org,
+            registry_name_pattern='<%= repository.name %>',
+        ).create()
+        lce2 = module_target_sat.api.LifecycleEnvironment(
+            organization=module_sca_manifest_org,
+            registry_name_pattern='<%= lifecycle_environment.label %>/<%= repository.name %>',
+        ).create()
+        version = composite_cv.version[0].read()
+        assert 'success' in version.promote(data={'environment_ids': lce1.id})['result']
+        assert 'success' in version.promote(data={'environment_ids': lce2.id})['result']
 
 
 class TestContentViewCreate:

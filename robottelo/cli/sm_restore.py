@@ -12,6 +12,7 @@ Options:
     -i, --incremental             Restore an incremental backup
     -h, --help                    print help
 """
+
 from robottelo.cli.base import Base
 
 

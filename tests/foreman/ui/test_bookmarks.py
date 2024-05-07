@@ -11,16 +11,19 @@
 :CaseImportance: High
 
 """
-from airgun.exceptions import NoSuchElementException
+
+from airgun.exceptions import DisabledWidgetError, NoSuchElementException
 from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import user_nailgun_config
-from robottelo.constants import BOOKMARK_ENTITIES
+from robottelo.constants import BOOKMARK_ENTITIES_SELECTION
 
 
 @pytest.fixture(
-    scope='module', params=BOOKMARK_ENTITIES, ids=(i['name'] for i in BOOKMARK_ENTITIES)
+    scope='module',
+    params=BOOKMARK_ENTITIES_SELECTION,
+    ids=(i['name'] for i in BOOKMARK_ENTITIES_SELECTION),
 )
 def ui_entity(module_org, module_location, request):
     """Collects the list of all applicable UI entities for testing and does all
@@ -256,8 +259,14 @@ def test_negative_create_with_duplicate_name(session, ui_entity, module_target_s
         existing_bookmark = session.bookmark.search(bookmark.name)[0]
         assert existing_bookmark['Name'] == bookmark.name
         ui_lib = getattr(session, ui_entity['name'].lower())
-        # this fails but does not raise UI error, BZ#1992652 closed wontfix
-        ui_lib.create_bookmark({'name': bookmark.name, 'query': query, 'public': True})
+        # this fails but does not raise UI error in old style dialog, BZ#1992652 closed
+        # wontfix, but new style dialog raises error, both situations occur
+        old_ui = ui_entity.get('old_ui')
+        if old_ui:
+            ui_lib.create_bookmark({'name': bookmark.name, 'query': query, 'public': True})
+        else:
+            with pytest.raises((DisabledWidgetError, NoSuchElementException)):
+                ui_lib.create_bookmark({'name': bookmark.name, 'query': query, 'public': True})
         # assert there are no duplicate bookmarks
         new_search = session.bookmark.search(bookmark.name)
         assert len(new_search) == 1

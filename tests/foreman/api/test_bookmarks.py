@@ -11,17 +11,18 @@
 :CaseImportance: High
 
 """
+
 import random
 
 from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.constants import BOOKMARK_ENTITIES
+from robottelo.constants import BOOKMARK_ENTITIES_SELECTION
 from robottelo.utils.datafactory import invalid_values_list, valid_data_list
 
 # List of unique bookmark controller values, preserving order
-CONTROLLERS = list(dict.fromkeys(entity['controller'] for entity in BOOKMARK_ENTITIES))
+CONTROLLERS = list(dict.fromkeys(entity['controller'] for entity in BOOKMARK_ENTITIES_SELECTION))
 
 
 @pytest.mark.tier1

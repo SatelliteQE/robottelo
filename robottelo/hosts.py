@@ -61,7 +61,7 @@ from robottelo.utils.installer import InstallerCommand
 POWER_OPERATIONS = {
     VmState.RUNNING: 'running',
     VmState.STOPPED: 'stopped',
-    'reboot': 'reboot'
+    'reboot': 'reboot',
     # TODO paused, suspended, shelved?
 }
 
@@ -166,6 +166,10 @@ class SatelliteHostError(Exception):
 
 
 class IPAHostError(Exception):
+    pass
+
+
+class ProxyHostError(Exception):
     pass
 
 
@@ -432,7 +436,10 @@ class ContentHost(Host, ContentHostMixins):
         if ensure and state in [VmState.RUNNING, 'reboot']:
             try:
                 wait_for(
-                    self.connect, fail_condition=lambda res: res is not None, handle_exception=True
+                    self.connect,
+                    fail_condition=lambda res: res is not None,
+                    timeout=300,
+                    handle_exception=True,
                 )
             # really broad diaper here, but connection exceptions could be a ton of types
             except TimedOutError as toe:
@@ -842,10 +849,7 @@ class ContentHost(Host, ContentHostMixins):
             registration.
         """
 
-        if username and password:
-            userpass = f' --username {username} --password {password}'
-        else:
-            userpass = ''
+        userpass = f' --username {username} --password {password}' if username and password else ''
         # Setup the base command
         cmd = 'subscription-manager register'
         if org:
@@ -888,12 +892,17 @@ class ContentHost(Host, ContentHostMixins):
         """Get a remote file from the broker virtual machine."""
         self.session.sftp_read(source=remote_path, destination=local_path)
 
-    def put(self, local_path, remote_path=None):
+    def put(self, local_path, remote_path=None, temp_file=False):
         """Put a local file to the broker virtual machine.
         If local_path is a manifest object, write its contents to a temporary file
         then continue with the upload.
         """
-        if 'utils.manifest' in str(local_path):
+        if temp_file:
+            with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
+                content_file.write(str.encode(local_path))
+                content_file.flush()
+                self.session.sftp_write(source=content_file.name, destination=remote_path)
+        elif 'utils.manifest' in str(local_path):
             with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
                 content_file.write(local_path.content.read())
                 content_file.flush()
@@ -937,11 +946,7 @@ class ContentHost(Host, ContentHostMixins):
         # ensure ssh directory exists
         self.execute(f'mkdir -p {ssh_path}')
         # append the key if doesn't exists
-        self.execute(
-            "grep -q '{key}' {dest} || echo '{key}' >> {dest}".format(
-                key=key_content, dest=auth_file
-            )
-        )
+        self.execute(f"grep -q '{key_content}' {auth_file} || echo '{key_content}' >> {auth_file}")
         # set proper permissions
         self.execute(f'chmod 700 {ssh_path}')
         self.execute(f'chmod 600 {auth_file}')
@@ -1607,7 +1612,8 @@ class Capsule(ContentHost, CapsuleMixins):
         """General purpose installer"""
         if not installer_obj:
             command_opts = {'scenario': self.__class__.__name__.lower()}
-            command_opts.update(cmd_kwargs)
+            if cmd_kwargs:
+                command_opts.update(cmd_kwargs)
             installer_obj = InstallerCommand(*cmd_args, **command_opts)
         return self.execute(installer_obj.get_command(), timeout=0)
 
@@ -1705,22 +1711,6 @@ class Capsule(ContentHost, CapsuleMixins):
         )
         if result.status != 0:
             raise SatelliteHostError(f'Failed to enable pull provider: {result.stdout}')
-
-    def run_installer_arg(self, *args, timeout='20m'):
-        """Run an installer argument on capsule"""
-        installer_args = list(args)
-        installer_command = InstallerCommand(
-            installer_args=installer_args,
-        )
-        result = self.execute(
-            installer_command.get_command(),
-            timeout=timeout,
-        )
-        if result.status != 0:
-            raise SatelliteHostError(
-                f'Failed to execute with arguments: {installer_args} and,'
-                f' the stderr is {result.stderr}'
-            )
 
     def set_mqtt_resend_interval(self, value):
         """Set the time interval in seconds at which the notification should be
@@ -2558,3 +2548,42 @@ class IPAHost(Host):
         )
         if result.status != 0:
             raise IPAHostError('Failed to remove the user from user group')
+
+
+class ProxyHost(Host):
+    """Class representing HTTP Proxy host"""
+
+    def __init__(self, url, **kwargs):
+        self._conf_dir = '/etc/squid/'
+        self._access_log = '/var/log/squid/access.log'
+        kwargs['hostname'] = urlparse(url).hostname
+        super().__init__(**kwargs)
+
+    def add_user(self, name, passwd):
+        """Adds new user to the HTTP Proxy"""
+        res = self.execute(f"htpasswd -b {self._conf_dir}passwd {name} '{passwd}'")
+        assert res.status == 0, f'User addition failed on the proxy side: {res.stderr}'
+        return res
+
+    def remove_user(self, name):
+        """Removes a user from HTTP Proxy"""
+        res = self.execute(f'htpasswd -D {self._conf_dir}passwd {name}')
+        assert res.status == 0, f'User deletion failed on the proxy side: {res.stderr}'
+        return res
+
+    def get_log(self, which=None, tail=None, grep=None):
+        """Returns log content from the HTTP Proxy instance
+
+        :param which: Which log file should be read. Defaults to access.log.
+        :param tail: Use when only the tail of a long log file is needed.
+        :param grep: Grep for some expression.
+        :return: Log content found or None
+        """
+        log_file = which or self._access_log
+        cmd = f'tail -n {tail} {log_file}' if tail else f'cat {log_file}'
+        if grep:
+            cmd = f'{cmd} | grep "{grep}"'
+        res = self.execute(cmd)
+        if res.status != 0:
+            raise ProxyHostError(f'Proxy log read failed: {res.stderr}')
+        return None if res.stdout == '' else res.stdout

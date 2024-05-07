@@ -1,4 +1,5 @@
 """Plugin enables pytest to notify and update the requirements"""
+
 from .req_updater import ReqUpdater
 
 updater = ReqUpdater()

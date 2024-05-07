@@ -9,6 +9,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_mac, gen_string
 import pytest
 import requests

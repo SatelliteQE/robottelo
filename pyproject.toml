@@ -1,22 +1,14 @@
-[tool.black]
-line-length = 100
-skip-string-normalization = true
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.git
-  | \.hg
-  | \.mypy_cache
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
-
 [tool.ruff]
 target-version = "py311"
+# Allow lines to be as long as 100.
+line-length = 100
+exclude = [".git", ".hg", ".mypy_cache", ".venv", "_build", "buck-out", "build", "dist"]
+
+[tool.ruff.format]
+# Preserve quotes
+quote-style = "preserve"  # TODO: change to "single" when flake8-quotes is enabled
+
+[tool.ruff.lint]
 fixable = ["ALL"]
 
 select = [
@@ -40,21 +32,21 @@ ignore = [
     "PT005", # pytest no underscrore prefix for return fixtures
 ]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 force-sort-within-sections = true
 known-first-party = [
     "robottelo",
 ]
 combine-as-imports = true
 
-[tool.ruff.flake8-pytest-style]
+[tool.ruff.lint.flake8-pytest-style]
 fixture-parentheses = false
 mark-parentheses = false
 
-[tool.ruff.flake8-quotes]
+[tool.ruff.lint.flake8-quotes]
 inline-quotes = "single"
 
-[tool.ruff.mccabe]
+[tool.ruff.lint.mccabe]
 max-complexity = 20
 
 [tool.pytest.ini_options]

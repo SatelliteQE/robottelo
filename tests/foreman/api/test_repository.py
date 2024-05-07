@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import re
 from string import punctuation
 import tempfile
@@ -48,12 +49,6 @@ def repo_options_custom_product(request, module_org, module_target_sat):
     options['organization'] = module_org
     options['product'] = module_target_sat.api.Product(organization=module_org).create()
     return options
-
-
-@pytest.fixture
-def env(module_org, module_target_sat):
-    """Create a new puppet environment."""
-    return module_target_sat.api.Environment(organization=[module_org]).create()
 
 
 @pytest.fixture
@@ -485,14 +480,13 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **datafactory.parametrized(
-            [
-                {'content_type': content_type, 'download_policy': 'on_demand'}
-                for content_type in constants.REPO_TYPE
-                if content_type != 'yum'
-            ]
-        ),
+        [
+            {'content_type': content_type, 'download_policy': 'on_demand'}
+            for content_type in constants.REPO_TYPE
+            if content_type != 'yum'
+        ],
         indirect=True,
+        ids=lambda x: x['content_type'],
     )
     def test_negative_create_non_yum_with_download_policy(self, repo_options, target_sat):
         """Verify that non-YUM repositories cannot be created with
@@ -1531,7 +1525,7 @@ class TestRepositorySync:
             1. OS with corresponding version was created.
 
         """
-        distro = f'rhel{distro} + "_bos"' if distro > 7 else f'rhel{distro}'
+        distro = f'rhel{distro}_bos' if distro > 7 else f'rhel{distro}'
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_entitlement_manifest_org.id,
@@ -1806,7 +1800,7 @@ class TestDockerRepository:
         :BZ: 1475121, 1580510
 
         """
-        msg = "404, message=\'Not Found\'"
+        msg = "404, message='Not Found'"
         with pytest.raises(TaskFailedError, match=msg):
             repo.sync()
 
@@ -2135,7 +2129,7 @@ class TestSRPMRepository:
     @pytest.mark.upgrade
     @pytest.mark.tier2
     def test_positive_srpm_upload_publish_promote_cv(
-        self, module_org, env, repo, module_target_sat
+        self, module_org, module_lce, repo, module_target_sat
     ):
         """Upload SRPM to repository, add repository to content view
         and publish, promote content view
@@ -2169,7 +2163,6 @@ class TestSRPMRepository:
 
     @pytest.mark.upgrade
     @pytest.mark.tier2
-    @pytest.mark.skip('Uses deprecated SRPM repository')
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -2178,7 +2171,7 @@ class TestSRPMRepository:
         **datafactory.parametrized({'fake_srpm': {'url': repo_constants.FAKE_YUM_SRPM_REPO}}),
         indirect=True,
     )
-    def test_positive_repo_sync_publish_promote_cv(self, module_org, env, repo, target_sat):
+    def test_positive_repo_sync_publish_promote_cv(self, module_org, module_lce, repo, target_sat):
         """Synchronize repository with SRPMs, add repository to content view
         and publish, promote content view
 
@@ -2202,8 +2195,8 @@ class TestSRPMRepository:
             >= 3
         )
 
-        cv.version[0].promote(data={'environment_ids': env.id, 'force': False})
-        assert len(target_sat.api.Srpms().search(query={'environment_id': env.id})) == 3
+        cv.version[0].promote(data={'environment_ids': module_lce.id, 'force': False})
+        assert len(target_sat.api.Srpms().search(query={'environment_id': module_lce.id})) >= 3
 
 
 class TestSRPMRepositoryIgnoreContent:

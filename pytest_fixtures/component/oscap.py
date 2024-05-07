@@ -5,7 +5,7 @@ from nailgun import entities
 import pytest
 
 from robottelo.config import robottelo_tmp_dir, settings
-from robottelo.constants import OSCAP_PROFILE, OSCAP_TAILORING_FILE, DataFile
+from robottelo.constants import OSCAP_TAILORING_FILE, DataFile
 
 
 @pytest.fixture(scope="session")
@@ -35,11 +35,10 @@ def scap_content(import_ansible_roles, module_target_sat):
     )
     scap_id = scap_info['id']
     scap_info = entities.ScapContents(id=scap_id).read()
-
     scap_profile_id = [
         profile['id']
         for profile in scap_info.scap_content_profiles
-        if OSCAP_PROFILE['security7'] in profile['title']
+        if module_target_sat.OSCAP['dsrhel'] in profile['title']
     ][0]
     return {
         "title": title,

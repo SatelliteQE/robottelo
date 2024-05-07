@@ -6,11 +6,12 @@
 
 :CaseComponent: RHCloud
 
-:Team: Platform
+:Team: Phoenix-subscriptions
 
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_alphanumeric, gen_string
 import pytest
 

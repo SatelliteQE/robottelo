@@ -1,4 +1,5 @@
 """Defines various constants"""
+
 from pathlib import Path
 
 from box import Box
@@ -306,9 +307,9 @@ REPOSET = {
     'kickstart': {
         'rhel6': 'Red Hat Enterprise Linux 6 Server (Kickstart)',
         'rhel7': 'Red Hat Enterprise Linux 7 Server (Kickstart)',
-        'rhel8': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)',
+        'rhel8_bos': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)',
         'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (Kickstart)',
-        'rhel9': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS (Kickstart)',
+        'rhel9_bos': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS (Kickstart)',
         'rhel9_aps': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream (Kickstart)',
     },
     'rhel8_bos': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)',
@@ -411,6 +412,7 @@ REPOS = {
         'reposet': REPOSET['rhsclient8'],
         'product': PRDS['rhel8'],
         'distro': 'rhel8',
+        'releasever': None,
         'key': PRODUCT_KEY_SAT_CLIENT,
     },
     'rhsclient9': {
@@ -510,6 +512,7 @@ REPOS = {
         'reposet': REPOSET['rhst8'],
         'product': PRDS['rhel8'],
         'distro': 'rhel8',
+        'releasever': None,
         'key': 'rhst',
     },
     'kickstart': {
@@ -533,7 +536,7 @@ REPOS = {
             'id': 'rhel-8-for-x86_64-baseos-kickstart',
             'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.9',
             'version': '8.9',
-            'reposet': REPOSET['kickstart']['rhel8'],
+            'reposet': REPOSET['kickstart']['rhel8_bos'],
             'product': PRDS['rhel8'],
             'distro': 'rhel8',
         },
@@ -549,7 +552,7 @@ REPOS = {
             'id': 'rhel-9-for-x86_64-baseos-kickstart',
             'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.3',
             'version': '9.3',
-            'reposet': REPOSET['kickstart']['rhel9'],
+            'reposet': REPOSET['kickstart']['rhel9_bos'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
@@ -752,6 +755,9 @@ REAL_RHEL7_0_1_PACKAGE = 'python-pulp-common-2.21.0.2-1.el7sat.noarch '
 REAL_RHEL7_0_1_PACKAGE_FILENAME = 'python-pulp-common-2.21.0.2-1.el7sat.noarch.rpm'
 REAL_RHEL7_0_2_PACKAGE_NAME = 'python2-psutil'  # for RHBA-2021:1314
 REAL_RHEL7_0_2_PACKAGE_FILENAME = 'python2-psutil-5.7.2-2.el7sat.x86_64.rpm'
+REAL_RHEL8_1_PACKAGE_NAME = 'puppet-agent'  # for RHSA-2022:4867
+REAL_RHEL8_1_PACKAGE_FILENAME = 'puppet-agent-6.19.1-1.el8sat.x86_64'
+REAL_RHEL8_2_PACKAGE_FILENAME = 'puppet-agent-6.26.0-1.el8sat.x86_64'
 FAKE_0_CUSTOM_PACKAGE_GROUP_NAME = 'birds'
 FAKE_3_YUM_OUTDATED_PACKAGES = [
     'acme-package-1.0.1-1.noarch',
@@ -806,6 +812,7 @@ FAKE_1_ERRATA_ID = 'RHEA-2012:0002'  # for FAKE_1_CUSTOM_PACKAGE
 FAKE_2_ERRATA_ID = 'RHSA-2012:0055'  # for FAKE_1_CUSTOM_PACKAGE
 REAL_RHEL7_0_ERRATA_ID = 'RHBA-2020:3615'  # for REAL_RHEL7_0_0_PACKAGE
 REAL_RHEL7_1_ERRATA_ID = 'RHBA-2017:0395'  # tcsh bug fix update
+REAL_RHEL8_1_ERRATA_ID = 'RHSA-2022:4867'  # for REAL_RHEL8_1_PACKAGE
 FAKE_1_YUM_REPOS_COUNT = 32
 FAKE_3_YUM_REPOS_COUNT = 78
 FAKE_9_YUM_SECURITY_ERRATUM = [
@@ -1559,6 +1566,7 @@ OSCAP_DEFAULT_CONTENT = {
     'rhel6_content': 'Red Hat rhel6 default content',
     'rhel7_content': 'Red Hat rhel7 default content',
     'rhel8_content': 'Red Hat rhel8 default content',
+    'rhel9_content': 'Red Hat rhel9 default content',
     'rhel_firefox': 'Red Hat firefox default content',
 }
 
@@ -1566,7 +1574,8 @@ OSCAP_PROFILE = {
     'c2s_rhel6': 'C2S for Red Hat Enterprise Linux 6',
     'dsrhel6': 'DISA STIG for Red Hat Enterprise Linux 6',
     'dsrhel7': 'DISA STIG for Red Hat Enterprise Linux 7',
-    'dsrhel8': '[DRAFT] DISA STIG for Red Hat Enterprise Linux 8',
+    'dsrhel8': 'DISA STIG for Red Hat Enterprise Linux 8',
+    'dsrhel9': 'DISA STIG for Red Hat Enterprise Linux 9',
     'esp': 'Example Server Profile',
     'rhccp': 'Red Hat Corporate Profile for Certified Cloud Providers (RH CCP)',
     'firefox': 'Mozilla Firefox STIG',
@@ -1646,63 +1655,20 @@ ROLES_LOCKED = [
     'Viewer',
 ]
 
-BOOKMARK_ENTITIES = [
+BOOKMARK_ENTITIES_SELECTION = [
     {
         'name': 'ActivationKey',
         'controller': 'katello_activation_keys',
         'session_name': 'activationkey',
+        'old_ui': True,
     },
-    {'name': 'Dashboard', 'controller': 'dashboard', 'session_name': 'dashboard'},
-    {'name': 'Audit', 'controller': 'audits', 'session_name': 'audit'},
-    {
-        'name': 'Report',
-        'controller': 'config_reports',
-        'setup': entities.Report,
-        'session_name': 'configreport',
-    },
-    {'name': 'Task', 'controller': 'foreman_tasks_tasks', 'session_name': 'task'},
-    # TODO Load manifest for the test_positive_end_to_end from the ui/test_bookmarks.py
-    # {'name': 'Subscriptions', 'controller': 'subscriptions','session_name': 'subscription' },
-    {'name': 'Product', 'controller': 'katello_products', 'session_name': 'product'},
-    {'name': 'Repository', 'controller': 'katello_repositories', 'session_name': 'repository'},
-    {
-        'name': 'ContentCredential',
-        'controller': 'katello_content_credentials',
-        'session_name': 'contentcredential',
-    },
-    {'name': 'SyncPlan', 'controller': 'katello_sync_plans', 'session_name': 'syncplan'},
-    {'name': 'ContentView', 'controller': 'katello_content_views', 'session_name': 'contentview'},
-    {'name': 'Errata', 'controller': 'katello_errata', 'session_name': 'errata'},
-    {'name': 'Package', 'controller': 'katello_erratum_packages', 'session_name': 'package'},
-    {
-        'name': 'ContainerImageTag',
-        'controller': 'katello_docker_tags',
-        'session_name': 'containerimagetag',
-    },
+    {'name': 'Errata', 'controller': 'katello_errata', 'session_name': 'errata', 'old_ui': True},
     {'name': 'Host', 'controller': 'hosts', 'setup': entities.Host, 'session_name': 'host_new'},
-    {'name': 'ContentHost', 'controller': 'hosts', 'session_name': 'contenthost'},
     {
-        'name': 'HostCollection',
-        'controller': 'katello_host_collections',
-        'session_name': 'hostcollection',
-    },
-    {'name': 'Architecture', 'controller': 'architectures', 'session_name': 'architecture'},
-    {
-        'name': 'HardwareModel',
-        'controller': 'models',
-        'setup': entities.Model,
-        'session_name': 'hardwaremodel',
-    },
-    {
-        'name': 'InstallationMedia',
-        'controller': 'media',
-        'session_name': 'media',
-        'setup': entities.Media,
-    },
-    {
-        'name': 'OperatingSystem',
-        'controller': 'operatingsystems',
-        'session_name': 'operatingsystem',
+        'name': 'UserGroup',
+        'controller': 'usergroups',
+        'setup': entities.UserGroup,
+        'session_name': 'usergroup',
     },
     {
         'name': 'PartitionTable',
@@ -1711,64 +1677,23 @@ BOOKMARK_ENTITIES = [
         'session_name': 'partitiontable',
     },
     {
+        'name': 'Product',
+        'controller': 'katello_products',
+        'session_name': 'product',
+        'old_ui': True,
+    },
+    {
         'name': 'ProvisioningTemplate',
         'controller': 'provisioning_templates',
         'session_name': 'provisioningtemplate',
     },
-    {
-        'name': 'HostGroup',
-        'controller': 'hostgroups',
-        'setup': entities.HostGroup,
-        'session_name': 'hostgroup',
-    },
-    {
-        'name': 'DiscoveryRule',
-        'controller': 'discovery_rules',
-        'setup': entities.DiscoveryRule,
-        'session_name': 'discoveryrule',
-    },
-    {
-        'name': 'GlobalParameter',
-        'controller': 'common_parameters',
-        'setup': entities.CommonParameter,
-        'skip_for_ui': True,
-    },
-    {'name': 'Role', 'controller': 'ansible_roles', 'setup': entities.Role, 'session_name': 'role'},
-    {'name': 'Variables', 'controller': 'ansible_variables', 'session_name': 'ansiblevariables'},
-    {'name': 'Capsules', 'controller': 'smart_proxies', 'session_name': 'capsule'},
-    {
-        'name': 'ComputeResource',
-        'controller': 'compute_resources',
-        'setup': entities.LibvirtComputeResource,
-        'session_name': 'computeresource',
-    },
-    {
-        'name': 'ComputeProfile',
-        'controller': 'compute_profiles',
-        'setup': entities.ComputeProfile,
-        'session_name': 'computeprofile',
-    },
-    {'name': 'Subnet', 'controller': 'subnets', 'setup': entities.Subnet, 'session_name': 'subnet'},
-    {'name': 'Domain', 'controller': 'domains', 'setup': entities.Domain, 'session_name': 'domain'},
-    {'name': 'Realm', 'controller': 'realms', 'setup': entities.Realm, 'session_name': 'realm'},
-    {'name': 'Location', 'controller': 'locations', 'session_name': 'location'},
-    {'name': 'Organization', 'controller': 'organizations', 'session_name': 'organization'},
-    {'name': 'User', 'controller': 'users', 'session_name': 'user'},
-    {
-        'name': 'UserGroup',
-        'controller': 'usergroups',
-        'setup': entities.UserGroup,
-        'session_name': 'usergroup',
-    },
-    {'name': 'Role', 'controller': 'roles', 'session_name': 'role'},
-    {'name': 'Settings', 'controller': 'settings', 'session_name': 'settings'},
+    {'name': 'Repository', 'controller': 'katello_repositories', 'session_name': 'repository'},
 ]
 
 STRING_TYPES = ['alpha', 'numeric', 'alphanumeric', 'latin1', 'utf8', 'cjk', 'html']
 
 VMWARE_CONSTANTS = {
     'folder': 'vm',
-    'guest_os': 'Red Hat Enterprise Linux 8 (64 bit)',
     'scsicontroller': 'LSI Logic Parallel',
     'virtualhw_version': 'Default',
     'pool': 'Resources',
@@ -1809,10 +1734,15 @@ DEFAULT_SYSPURPOSE_ATTRIBUTES = {
     ),
 }
 
-
+# Bugzilla statuses used by Robottelo issue handler.
 OPEN_STATUSES = ("NEW", "ASSIGNED", "POST", "MODIFIED")
 CLOSED_STATUSES = ("ON_QA", "VERIFIED", "RELEASE_PENDING", "CLOSED")
 WONTFIX_RESOLUTIONS = ("WONTFIX", "CANTFIX", "DEFERRED")
+# Jira statuses used by Robottelo issue handler.
+JIRA_OPEN_STATUSES = ("New", "Backlog", "Refinement", "To Do", "In Progress")
+JIRA_ONQA_STATUS = "Review"
+JIRA_CLOSED_STATUSES = ("Release Pending", "Closed")
+JIRA_WONTFIX_RESOLUTIONS = "Obsolete"
 
 GROUP_MEMBERSHIP_MAPPER = {
     "config": {
@@ -1944,7 +1874,6 @@ FAM_TEST_PLAYBOOKS = [
     "content_export_repository",
     "content_export_version",
     "content_rhel_role",
-    "content_upload_ostree",
     "content_upload",
     "content_view_filter_info",
     "content_view_filter_rule_info",
@@ -2005,9 +1934,9 @@ FAM_TEST_PLAYBOOKS = [
     "puppet_environment",
     "realm",
     "redhat_manifest",
+    "registration_command",
     "repositories_role",
     "repository_info",
-    "repository_ostree",
     "repository_set_info",
     "repository_set",
     "repository_sync",
@@ -2034,6 +1963,7 @@ FAM_TEST_PLAYBOOKS = [
     "usergroup",
     "user",
     "wait_for_task",
+    "webhook",
 ]
 
 FAM_ROOT_DIR = '/usr/share/ansible/collections/ansible_collections/redhat/satellite'
@@ -2128,6 +2058,8 @@ DNF_RECOMMENDATION = (
     'option is not present in the /etc/dnf/dnf.conf'
 )
 
+EXPIRED_MANIFEST = 'expired-manifest.zip'
+
 
 # Data File Paths
 class DataFile(Box):
@@ -2148,3 +2080,4 @@ class DataFile(Box):
     PARTITION_SCRIPT_DATA_FILE = DATA_DIR.joinpath(PARTITION_SCRIPT_DATA_FILE)
     OS_TEMPLATE_DATA_FILE = DATA_DIR.joinpath(OS_TEMPLATE_DATA_FILE)
     FAKE_3_YUM_REPO_RPMS_ANT = DATA_DIR.joinpath(FAKE_3_YUM_REPO_RPMS[0])
+    EXPIRED_MANIFEST_FILE = DATA_DIR.joinpath(EXPIRED_MANIFEST)

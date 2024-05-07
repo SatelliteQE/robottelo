@@ -1,4 +1,5 @@
 """Fixtures specific to or relating to pytest's xdist plugin"""
+
 import random
 
 from broker import Broker
@@ -24,16 +25,21 @@ def align_to_satellite(request, worker_id, satellite_factory):
         settings.set("server.hostname", None)
         on_demand_sat = None
 
-        if worker_id in ['master', 'local']:
-            worker_pos = 0
-        else:
-            worker_pos = int(worker_id.replace('gw', ''))
+        worker_pos = 0 if worker_id in ["master", "local"] else int(worker_id.replace("gw", ""))
 
         # attempt to add potential satellites from the broker inventory file
         if settings.server.inventory_filter:
+            logger.info(
+                f'{worker_id=}: Attempting to add Satellite hosts using inventory filter: '
+                f'{settings.server.inventory_filter}'
+            )
             hosts = Satellite.get_hosts_from_inventory(filter=settings.server.inventory_filter)
             settings.server.hostnames += [host.hostname for host in hosts]
 
+        logger.debug(
+            f'{worker_id=}: {settings.server.xdist_behavior=}, '
+            f'{settings.server.hostnames=}, {settings.server.auto_checkin=}'
+        )
         # attempt to align a worker to a satellite
         if settings.server.xdist_behavior == 'run-on-one' and settings.server.hostnames:
             settings.set("server.hostname", settings.server.hostnames[0])
@@ -48,14 +54,19 @@ def align_to_satellite(request, worker_id, satellite_factory):
                 settings.set("server.hostname", on_demand_sat.hostname)
             # if no satellite was received, fallback to balance
             if not settings.server.hostname:
+                logger.info(
+                    f'{worker_id=}: No Satellite hostnames were available, '
+                    'falling back to balance behavior'
+                )
                 settings.set("server.hostname", random.choice(settings.server.hostnames))
         if settings.server.hostname:
-            logger.info(
-                f'xdist worker {worker_id} was assigned hostname {settings.server.hostname}'
-            )
+            logger.info(f'{worker_id=}: Worker was assigned hostname {settings.server.hostname}')
             configure_airgun()
             configure_nailgun()
         yield
         if on_demand_sat and settings.server.auto_checkin:
+            logger.info(
+                f'{worker_id=}: Checking in on-demand Satellite ' f'{on_demand_sat.hostname}'
+            )
             on_demand_sat.teardown()
             Broker(hosts=[on_demand_sat]).checkin()

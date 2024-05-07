@@ -16,10 +16,12 @@
 
 :Upstream: No
 """
+
 import pytest
 
 from robottelo import constants
 from robottelo.config import settings
+from robottelo.utils import ohsnap
 
 pytestmark = [
     pytest.mark.run_in_one_thread,
@@ -167,14 +169,16 @@ def test_positive_upgrade_warning(sat_with_katello_agent):
         'which will automatically uninstall katello-agent.'
     )
 
-    upstream_rpms = sat.get_repo_files_by_url(constants.FOREMAN_NIGHTLY_URL)
-    fm_rpm = [rpm for rpm in upstream_rpms if 'foreman_maintain' in rpm]
-    assert fm_rpm, 'No upstream foreman-maintain package found'
+    maintain_repo = ohsnap.dogfood_repository(
+        settings.ohsnap,
+        product='satellite',
+        repo='maintenance',
+        release=target_ver,
+        os_release=settings.server.version.rhel_version,
+    )
+    sat.create_custom_repos(next_maintain=maintain_repo.baseurl)
 
-    for rpm in fm_rpm:
-        res = sat.execute(f'yum -y install {constants.FOREMAN_NIGHTLY_URL}{rpm}')
-        assert res.status == 0, f'{rpm} installation failed'
-
+    sat.cli.Upgrade.list_versions()  # f-m self-update
     res = sat.cli.Upgrade.list_versions()
     assert res.status == 0, 'Upgrade list-versions command failed'
     assert target_ver in res.stdout, 'Target version or Scenario not found'

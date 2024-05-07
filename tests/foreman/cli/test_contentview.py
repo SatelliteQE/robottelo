@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import random
 
 from fauxfactory import gen_alphanumeric, gen_string
@@ -3798,7 +3799,7 @@ class TestContentView:
         password = gen_alphanumeric()
         no_rights_user = module_target_sat.cli_factory.user({'password': password})
         no_rights_user['password'] = password
-        org_id = module_target_sat.cli_factory.make_org(cached=True)['id']
+        org_id = module_target_sat.cli_factory.make_org()['id']
         for name in generate_strings_list(exclude_types=['cjk']):
             # test that user can't create
             with pytest.raises(CLIReturnCodeError):

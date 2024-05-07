@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from mailbox import mbox
 from re import findall
 from tempfile import mkstemp
@@ -21,7 +22,6 @@ from wait_for import TimedOutError, wait_for
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture
@@ -45,6 +45,17 @@ def admin_user_with_localhost_email(target_sat):
 
 
 @pytest.fixture
+def admin_user_with_custom_settings(request, admin_user_with_localhost_email):
+    """Admin user with custom properties set via parametrization.
+    `request.param` should be a dict-like value.
+    """
+    for key, value in request.param.items():
+        setattr(admin_user_with_localhost_email, key, value)
+    admin_user_with_localhost_email.update(list(request.param.keys()))
+    return admin_user_with_localhost_email
+
+
+@pytest.fixture
 def reschedule_long_running_tasks_notification(target_sat):
     """Reschedule long-running tasks checker from midnight (default) to every minute.
     Reset it back after the test.
@@ -54,8 +65,8 @@ def reschedule_long_running_tasks_notification(target_sat):
 
     assert (
         target_sat.execute(
-            f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{every_minute_cron_schedule}' "
-            "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker"
+            "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker "
+            f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{every_minute_cron_schedule}'"
         ).status
         == 0
     )
@@ -64,14 +75,14 @@ def reschedule_long_running_tasks_notification(target_sat):
 
     assert (
         target_sat.execute(
-            f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{default_cron_schedule}' "
-            "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker"
+            "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker "
+            f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{default_cron_schedule}'"
         ).status
         == 0
     )
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def start_postfix_service(target_sat):
     """Start postfix service (disabled by default)."""
     assert target_sat.execute('systemctl start postfix').status == 0
@@ -92,33 +103,61 @@ def clean_root_mailbox(target_sat):
     target_sat.execute(f'mv -f {root_mailbox_backup} {root_mailbox}')
 
 
-@pytest.fixture
-def wait_for_long_running_task_mail(target_sat, clean_root_mailbox, long_running_task):
-    """Wait until the long-running task ID is found in the Satellite's mbox file."""
-    timeout = 300
+def wait_for_mail(sat_obj, mailbox_file, contains_string, timeout=300, delay=5):
+    """
+    Wait until the desired string is found in the Satellite's mbox file.
+    """
     try:
         wait_for(
-            func=target_sat.execute,
-            func_args=[f'grep --quiet {long_running_task["task"]["id"]} {clean_root_mailbox}'],
-            fail_condition=lambda res: res.status == 0,
+            func=sat_obj.execute,
+            func_args=[f"grep --quiet '{contains_string}' {mailbox_file}"],
+            fail_condition=lambda res: res.status != 0,
             timeout=timeout,
-            delay=5,
+            delay=delay,
         )
     except TimedOutError as err:
         raise AssertionError(
-            f'No notification e-mail with long-running task ID {long_running_task["task"]["id"]} '
-            f'has arrived to {clean_root_mailbox} after {timeout} seconds.'
+            f'No e-mail with text "{contains_string}" has arrived to mailbox {mailbox_file} '
+            f'after {timeout} seconds.'
         ) from err
     return True
 
 
 @pytest.fixture
-def root_mailbox_copy(target_sat, clean_root_mailbox, wait_for_long_running_task_mail):
+def wait_for_long_running_task_mail(target_sat, clean_root_mailbox, long_running_task):
+    """Wait until the long-running task ID is found in the Satellite's mbox file."""
+    return wait_for_mail(
+        sat_obj=target_sat,
+        mailbox_file=clean_root_mailbox,
+        contains_string=long_running_task["task"]["id"],
+    )
+
+
+@pytest.fixture
+def wait_for_no_long_running_task_mail(target_sat, clean_root_mailbox, long_running_task):
+    """Wait and check that no long-running task ID is found in the Satellite's mbox file."""
+    timeout = 120
+    try:
+        wait_for_mail(
+            sat_obj=target_sat,
+            mailbox_file=clean_root_mailbox,
+            contains_string=long_running_task["task"]["id"],
+            timeout=timeout,
+        )
+    except AssertionError:
+        return True
+    raise AssertionError(
+        f'E-mail with long running task ID "{long_running_task["task"]["id"]}" '
+        f'should not have arrived to mailbox {clean_root_mailbox}!'
+    )
+
+
+@pytest.fixture
+def root_mailbox_copy(target_sat, clean_root_mailbox):
     """Parsed local system copy of the Satellite's root user mailbox.
 
     :returns: :class:`mailbox.mbox` instance
     """
-    assert wait_for_long_running_task_mail
     result = target_sat.execute(f'cat {clean_root_mailbox}')
     assert result.status == 0, f'Could not read mailbox {clean_root_mailbox} on Satellite host.'
     mbox_content = result.stdout
@@ -152,7 +191,7 @@ def long_running_task(target_sat):
             'password': settings.server.ssh_password,
         },
     )
-    sql_date_2_days_ago = "now() - INTERVAL \'2 days\'"
+    sql_date_2_days_ago = "now() - INTERVAL \'2 days\'"  # fmt: skip
     result = target_sat.execute(
         "su - postgres -c \"psql foreman postgres <<EOF\n"
         "UPDATE foreman_tasks_tasks "
@@ -160,7 +199,7 @@ def long_running_task(target_sat):
         f" started_at = {sql_date_2_days_ago}, "
         f" state_updated_at = {sql_date_2_days_ago} "
         f"WHERE id=\'{job['task']['id']}\';\nEOF\n\" "
-    )
+    )  # fmt: skip  # skip formatting to avoid breaking the SQL query
     assert 'UPDATE 1' in result.stdout, f'Failed to age task {job["task"]["id"]}: {result.stderr}'
 
     yield job
@@ -173,7 +212,7 @@ def long_running_task(target_sat):
 @pytest.mark.usefixtures(
     'admin_user_with_localhost_email',
     'reschedule_long_running_tasks_notification',
-    'start_postfix_service',
+    'wait_for_long_running_task_mail',
 )
 def test_positive_notification_for_long_running_tasks(long_running_task, root_mailbox_copy):
     """Check that a long-running task (i.e., running or paused for more than two days)
@@ -218,5 +257,78 @@ def test_positive_notification_for_long_running_tasks(long_running_task, root_ma
                     '/foreman_tasks/tasks?search=state+%5E+%28running%2C+paused'
                     '%29+AND+state_updated_at' in body_text
                 ), 'Link for long-running tasks is missing in the e-mail body.'
-                if not is_open('BZ:2223996'):
-                    assert findall(r'_\("[\w\s]*"\)', body_text), 'Untranslated strings found.'
+                assert not findall(r'_\("[\w\s]*"\)', body_text), 'Untranslated strings found.'
+
+
+@pytest.mark.tier1
+def test_positive_notification_recipients(target_sat):
+    """Check that endpoint `/notification_recipients` works and returns correct data structure.
+
+    :id: 10e0fac2-f11f-11ee-ba60-000c2989e153
+
+    :steps:
+        1. Do a GET request to /notification_recipients endpoint.
+        2. Check the returned data structure for expected keys.
+
+    :BZ: 2249970
+
+    :customerscenario: true
+    """
+    notification_keys = [
+        'id',
+        'seen',
+        'level',
+        'text',
+        'created_at',
+        'group',
+        'actions',
+    ]
+
+    recipients = target_sat.api.NotificationRecipients().read()
+    for notification in recipients.notifications:
+        assert set(notification_keys) == set(notification.keys())
+
+
+@pytest.mark.tier3
+@pytest.mark.parametrize(
+    'admin_user_with_custom_settings',
+    [
+        pytest.param({'disabled': True, 'mail_enabled': True}, id='account_disabled'),
+        pytest.param({'disabled': False, 'mail_enabled': False}, id='mail_disabled'),
+    ],
+    indirect=True,
+)
+@pytest.mark.usefixtures(
+    'reschedule_long_running_tasks_notification',
+    'wait_for_no_long_running_task_mail',
+)
+def test_negative_no_notification_for_long_running_tasks(
+    admin_user_with_custom_settings, long_running_task, root_mailbox_copy
+):
+    """Check that an e-mail notification for a long-running task
+    (i.e., running or paused for more than two days)
+    is NOT sent to users with disabled account or disabled e-mail.
+
+    :id: 03b41216-f39b-11ee-b9ea-000c2989e153
+
+    :setup:
+        1. Create an admin user with e-mail address set and:
+           a. account disabled & mail enabled
+           b. account enabled & mail disabled
+
+    :steps:
+        1. Create a long-running task.
+        3. For each user, wait and check that the notification e-mail has NOT been sent.
+
+    :BZ: 2245056
+
+    :customerscenario: true
+    """
+    assert admin_user_with_custom_settings
+    task_id = long_running_task['task']['id']
+    assert task_id
+
+    for email in root_mailbox_copy:
+        assert (
+            task_id not in email.as_string()
+        ), f'Unexpected notification e-mail with long-running task ID {task_id} found in user mailbox!'

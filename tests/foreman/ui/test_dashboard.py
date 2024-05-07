@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from nailgun.entity_mixins import TaskFailedError
 import pytest
 
@@ -52,14 +53,14 @@ def test_positive_host_configuration_status(session, target_sat):
         'Hosts with no reports',
     ]
     search_strings_list = [
-        'last_report > \"30 minutes ago\" and (status.applied > 0 or'
+        'last_report > "30 minutes ago" and (status.applied > 0 or'
         ' status.restarted > 0) and (status.failed = 0)',
-        'last_report > \"30 minutes ago\" and (status.failed > 0 or'
+        'last_report > "30 minutes ago" and (status.failed > 0 or'
         ' status.failed_restarts > 0) and status.enabled = true',
-        'last_report > \"30 minutes ago\" and status.enabled = true and'
+        'last_report > "30 minutes ago" and status.enabled = true and'
         ' status.applied = 0 and status.failed = 0 and status.pending = 0',
-        'last_report > \"30 minutes ago\" and status.pending > 0 and status.enabled = true',
-        'last_report < \"30 minutes ago\" and status.enabled = true',
+        'last_report > "30 minutes ago" and status.pending > 0 and status.enabled = true',
+        'last_report < "30 minutes ago" and status.enabled = true',
         'status.enabled = false',
         'not has last_report and status.enabled = true',
     ]
@@ -159,9 +160,7 @@ def test_positive_task_status(session, target_sat):
         tasks = session.task.read_all()
         total_items = session.task.total_items()
         assert total_items == int(tasks['StoppedChart']['table'][1]['Total'])
-        task_name = "Synchronize repository '{}'; product '{}'; organization '{}'".format(
-            repo.name, product.name, org.name
-        )
+        task_name = f"Synchronize repository '{repo.name}'; product '{product.name}'; organization '{org.name}'"
         assert tasks['table'][0]['Action'] == task_name
         assert tasks['table'][0]['State'] == 'stopped'
         assert tasks['table'][0]['Result'] == 'warning'

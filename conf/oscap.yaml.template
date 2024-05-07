@@ -1,2 +1,6 @@
 OSCAP:
-  CONTENT_PATH: /usr/share/xml/scap/ssg/content/ssg-rhel7-ds.xml
+  RHEL_MAJOR_VERSION: "@jinja {{this.server.version.rhel_version | int }}"
+  CONTENT_PATH: '@format /usr/share/xml/scap/ssg/content/ssg-rhel{this.oscap.rhel_major_version}-ds.xml'
+  # see: robottelo/constants/__init__.py OSCAP_PROFILE
+  PROFILE: '@format security{this.oscap.rhel_major_version}'
+  CONTENT_DIR: /usr/share/xml/scap/ssg/content

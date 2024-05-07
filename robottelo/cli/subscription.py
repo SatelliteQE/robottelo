@@ -18,6 +18,7 @@ Subcommands::
     upload                        Upload a subscription manifest
 
 """
+
 from robottelo.cli.base import Base
 
 
@@ -47,7 +48,7 @@ class Subscription(Base):
         return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)
 
     @classmethod
-    def manifest_history(cls, options=None):
+    def manifest_history(cls, options=None, timeout=None):
         """Provided history for subscription manifest"""
         cls.command_sub = 'manifest-history'
-        return cls.execute(cls._construct_command(options))
+        return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)
