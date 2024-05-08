@@ -2704,7 +2704,10 @@ def test_positive_create_and_update_with_content_source(
 @pytest.mark.cli_host_create
 @pytest.mark.tier2
 def test_positive_create_host_with_lifecycle_environment_name(
-    module_lce, module_org, module_promoted_cv, module_target_sat
+    module_lce,
+    module_org,
+    module_promoted_cv,
+    module_target_sat,
 ):
     """Attempt to create a host with lifecycle-environment name specified
 
