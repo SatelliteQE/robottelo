@@ -21,11 +21,13 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
+    EXPIRED_MANIFEST,
     PRDS,
     REPOS,
     REPOSET,
     VDC_SUBSCRIPTION_NAME,
     VIRT_WHO_HYPERVISOR_TYPES,
+    DataFile,
 )
 from robottelo.utils.manifest import clone
 
@@ -554,4 +556,78 @@ def test_positive_prepare_for_sca_only_subscription(target_sat, function_entitle
         assert (
             'This organization is not using Simple Content Access. Entitlement-based subscription '
             'management is deprecated and will be removed in Satellite 6.16.' in sca_alert
+        )
+
+
+@pytest.mark.parametrize('setting_update', ['expire_soon_days'], indirect=True)
+def test_positive_check_manifest_validity_notification(
+    target_sat, setting_update, default_org, function_org
+):
+    """Check notification when manifest is going to expire.
+
+    :id: 29ab0e80-25eb-44f0-9294-3a26922c33c5
+
+    :setup:
+        1. create new organization, let's say "Expire manifest org"
+
+    :steps:
+        1. Upload expired manifest in newly created org
+        2. go to Content > Subscriptions page, click on 'Manage Manifest' button.
+        3. Search for message string 'Manifest expired', or 'Your manifest expired'
+        4. delete expired manifest from this org (cleanup part)
+        5. Upload non-expired manifest in default org
+        6. go to Content > Subscription page, click on 'Manage Manifest' button.
+        7. Search for message string 'Manifest expiring soon', or 'Your manifest will expire'
+        8. delete expired manifest from default org (cleanup part)
+
+    :expectedresults:
+        1. 'Manifest expired' message appear on screen
+
+    :BZ: 2075163
+
+    :customerscenario: true
+    """
+    property_name = setting_update.name
+    property_value = 366  # value should be greate than 365 to get expected output message
+    remote_path = f'/tmp/{EXPIRED_MANIFEST}'
+    target_sat.put(DataFile.EXPIRED_MANIFEST_FILE, remote_path)
+    # upload expired manifest
+    target_sat.cli.Subscription.upload({'organization-id': function_org.id, 'file': remote_path})
+
+    # Create new manifest
+    _, temporary_local_manifest_path = mkstemp(prefix='manifest-', suffix='.zip')
+    with clone() as manifest, open(temporary_local_manifest_path, 'wb') as file_handler:
+        file_handler.write(manifest.content.read())
+
+    with target_sat.ui_session() as session:
+        # Message - Manifest expired
+        session.organization.select(function_org.name)
+        expired_manifest = session.subscription.read_expire_manifest_message()
+        assert 'Manifest expired' in expired_manifest[0], 'Manifest expire alert not found'
+        assert ('Your manifest expired' and 'import a new manifest') in expired_manifest[1]
+        # Cleanup - delete expired manifest
+        session.subscription.delete_manifest(
+            ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound']
+        )
+
+        # Message - Manifest expiring soon
+        session.organization.select(default_org.name)
+        # Upload non-expire manifest
+        session.subscription.add_manifest(
+            temporary_local_manifest_path,
+            ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound'],
+        )
+        expiring_soon = session.subscription.read_expire_manifest_message()
+        if expiring_soon[0] is None:
+            # if 'Manifest expiring soon' message not found
+            # then update the 'Expire soon days' value from settings > Content
+            session.settings.update(f'name = {property_name}', property_value)
+            # Now re-try to read expire manifest message
+            expiring_soon = session.subscription.read_expire_manifest_message()
+        assert 'Manifest expiring soon' in expiring_soon[0], 'Manifest expire alert not found'
+        assert ('Your manifest will expire' and 'import a new manifest') in expiring_soon[1]
+
+        # Cleanup - delete non-expired manifest from default org
+        session.subscription.delete_manifest(
+            ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound']
         )
