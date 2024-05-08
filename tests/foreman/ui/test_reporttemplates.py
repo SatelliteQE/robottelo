@@ -513,7 +513,7 @@ def test_positive_gen_entitlements_reports_multiple_formats(
         query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
     ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
-    client.register_contenthost(org.label, ak.name)
+    client.register_contenthost(org.label, None, ak.name, target_sat)
     assert client.subscribed
     with session:
         session.location.select('Default Location')
