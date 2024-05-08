@@ -207,8 +207,7 @@ class APIFactory:
             max_age = now - from_when + 1
             search_query = (
                 '( label = Actions::Katello::Host::GenerateApplicability OR label = '
-                'Actions::Katello::Host::UploadPackageProfile ) AND started_at > "%s seconds ago"'
-                % max_age
+                f'Actions::Katello::Host::UploadPackageProfile ) AND started_at > "{max_age} seconds ago"'
             )
             tasks = self._satellite.api.ForemanTask().search(query={'search': search_query})
             tasks_finished = 0
