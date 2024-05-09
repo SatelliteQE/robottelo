@@ -384,7 +384,7 @@ def test_negative_create_report_without_name(module_target_sat):
 
 
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
+@pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.no_containers
 def test_positive_applied_errata(
     function_org, function_location, function_lce, rhel_contenthost, target_sat
@@ -460,7 +460,7 @@ def test_positive_applied_errata(
 
 
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
+@pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.no_containers
 def test_positive_applied_errata_by_search(
     function_org, function_location, function_lce, rhel_contenthost, target_sat
