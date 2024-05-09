@@ -696,7 +696,7 @@ class CLIFactory:
             'repository-id': custom_repo['id'],
         }
 
-    def _setup_org_for_a_rh_repo(self, options=None):
+    def _setup_org_for_a_rh_repo(self, options=None, force=False):
         """Sets up Org for the given Red Hat repository by:
 
         1. Checks if organization and lifecycle environment were given, otherwise
@@ -790,19 +790,33 @@ class CLIFactory:
         except CLIReturnCodeError as err:
             raise CLIFactoryError(f'Failed to fetch content view info\n{err.msg}') from err
         # Promote version1 to next env
-        try:
-            self._satellite.cli.ContentView.version_promote(
-                {
-                    'id': cvv['id'],
-                    'organization-id': org_id,
-                    'to-lifecycle-environment-id': env_id,
-                    'force': True,
-                }
-            )
-        except CLIReturnCodeError as err:
-            raise CLIFactoryError(
-                f'Failed to promote version to next environment\n{err.msg}'
-            ) from err
+        if force:
+            try:
+                self._satellite.cli.ContentView.version_promote(
+                    {
+                        'id': cvv['id'],
+                        'organization-id': org_id,
+                        'to-lifecycle-environment-id': env_id,
+                    }
+                )
+            except CLIReturnCodeError as err:
+                raise CLIFactoryError(
+                    f'Failed to promote version to next environment\n{err.msg}'
+                ) from err
+        else:
+            try:
+                self._satellite.cli.ContentView.version_promote(
+                    {
+                        'id': cvv['id'],
+                        'organization-id': org_id,
+                        'to-lifecycle-environment-id': env_id,
+                        'force': True,
+                    }
+                )
+            except CLIReturnCodeError as err:
+                raise CLIFactoryError(
+                    f'Failed to promote version to next environment\n{err.msg}'
+                ) from err
         # Create activation key if needed and associate content view with it
         if options.get('activationkey-id') is None:
             activationkey_id = self.make_activation_key(
