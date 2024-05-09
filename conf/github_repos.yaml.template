@@ -1,0 +1,21 @@
+# Upstream GitHub repos and test collection rules
+# This configuration maps file paths in upstream PRs to test components
+GITHUB_REPOS:
+  TOKEN:
+  # Optional: Base marker that all tests must have (e.g., 'upstream_pr_test')
+  # If set, only tests with this marker will be considered for component filtering
+  BASE_MARKER:
+  REPOS:
+    FOREMAN:
+      ORG: theforeman
+      REPO: foreman
+      RULES:
+        # Format: PATH patterns are regex patterns matched against full filenames
+        # - PATH: app/(controllers|models)/hosts
+        #   COMPONENT: Hosts
+    KATELLO:
+      ORG: Katello  # case-sensitive
+      REPO: katello
+      RULES:
+        # - PATH: app/(controllers|modules)/katello/
+        #   COMPONENT: ContentManagement
