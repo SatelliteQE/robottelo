@@ -925,8 +925,8 @@ def test_positive_generate_hostpkgcompare(
             'content-view-id': local_content_view['id'],
             'lifecycle-environment-id': local_environment['id'],
             'activationkey-id': local_ak['id'],
-            'force': True,
-        }
+        },
+        force=True,
     )
     target_sat.cli_factory.setup_org_for_a_custom_repo(
         {

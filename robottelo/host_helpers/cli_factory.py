@@ -790,33 +790,19 @@ class CLIFactory:
         except CLIReturnCodeError as err:
             raise CLIFactoryError(f'Failed to fetch content view info\n{err.msg}') from err
         # Promote version1 to next env
-        if force:
-            try:
-                self._satellite.cli.ContentView.version_promote(
-                    {
-                        'id': cvv['id'],
-                        'organization-id': org_id,
-                        'to-lifecycle-environment-id': env_id,
-                    }
-                )
-            except CLIReturnCodeError as err:
-                raise CLIFactoryError(
-                    f'Failed to promote version to next environment\n{err.msg}'
-                ) from err
-        else:
-            try:
-                self._satellite.cli.ContentView.version_promote(
-                    {
-                        'id': cvv['id'],
-                        'organization-id': org_id,
-                        'to-lifecycle-environment-id': env_id,
-                        'force': True,
-                    }
-                )
-            except CLIReturnCodeError as err:
-                raise CLIFactoryError(
-                    f'Failed to promote version to next environment\n{err.msg}'
-                ) from err
+        try:
+            self._satellite.cli.ContentView.version_promote(
+                {
+                    'id': cvv['id'],
+                    'organization-id': org_id,
+                    'to-lifecycle-environment-id': env_id,
+                    'force': force,
+                }
+            )
+        except CLIReturnCodeError as err:
+            raise CLIFactoryError(
+                f'Failed to promote version to next environment\n{err.msg}'
+            ) from err
         # Create activation key if needed and associate content view with it
         if options.get('activationkey-id') is None:
             activationkey_id = self.make_activation_key(
@@ -864,7 +850,11 @@ class CLIFactory:
         }
 
     def setup_org_for_a_rh_repo(
-        self, options=None, force_manifest_upload=False, force_use_cdn=False
+        self,
+        options=None,
+        force_manifest_upload=False,
+        force_use_cdn=False,
+        force=False,
     ):
         """Wrapper above ``_setup_org_for_a_rh_repo`` to use custom downstream repo
         instead of CDN's 'Satellite Capsule', 'Satellite Tools'  and base OS repos if
@@ -893,7 +883,7 @@ class CLIFactory:
         elif 'Satellite Capsule' in options.get('repository'):
             custom_repo_url = settings.repos.capsule_repo
         if force_use_cdn or settings.robottelo.cdn or not custom_repo_url:
-            return self._setup_org_for_a_rh_repo(options)
+            return self._setup_org_for_a_rh_repo(options, force)
         options['url'] = custom_repo_url
         result = self.setup_org_for_a_custom_repo(options)
         if force_manifest_upload:
