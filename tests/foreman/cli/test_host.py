@@ -360,13 +360,13 @@ def test_positive_crud_interface_by_id(target_sat, default_location, default_org
 
     mac = gen_mac(multicast=False)
     host = target_sat.cli_factory.make_fake_host({'domain-id': domain.id})
-    number_of_interfaces = len(target_sat.cliHostInterface.list({'host-id': host['id']}))
+    number_of_interfaces = len(target_sat.cli.HostInterface.list({'host-id': host['id']}))
 
-    target_sat.cliHostInterface.create(
+    target_sat.cli.HostInterface.create(
         {'host-id': host['id'], 'domain-id': domain.id, 'mac': mac, 'type': 'interface'}
     )
     host = target_sat.cli.Host.info({'id': host['id']})
-    host_interface = target_sat.cliHostInterface.info(
+    host_interface = target_sat.cli.HostInterface.info(
         {
             'host-id': host['id'],
             'id': [ni for ni in host['network-interfaces'] if ni['mac-address'] == mac][0]['id'],
@@ -375,14 +375,14 @@ def test_positive_crud_interface_by_id(target_sat, default_location, default_org
     assert host_interface['domain'] == domain.name
     assert host_interface['mac-address'] == mac
     assert (
-        len(target_sat.cliHostInterface.list({'host-id': host['id']})) == number_of_interfaces + 1
+        len(target_sat.cli.HostInterface.list({'host-id': host['id']})) == number_of_interfaces + 1
     )
 
     new_domain = target_sat.api.Domain(
         location=[default_location], organization=[default_org]
     ).create()
     new_mac = gen_mac(multicast=False)
-    target_sat.cliHostInterface.update(
+    target_sat.cli.HostInterface.update(
         {
             'host-id': host['id'],
             'id': host_interface['id'],
@@ -390,7 +390,7 @@ def test_positive_crud_interface_by_id(target_sat, default_location, default_org
             'mac': new_mac,
         }
     )
-    host_interface = target_sat.cliHostInterface.info(
+    host_interface = target_sat.cli.HostInterface.info(
         {
             'host-id': host['id'],
             'id': [ni for ni in host['network-interfaces'] if ni['mac-address'] == mac][0]['id'],
@@ -399,10 +399,10 @@ def test_positive_crud_interface_by_id(target_sat, default_location, default_org
     assert host_interface['domain'] == new_domain.name
     assert host_interface['mac-address'] == new_mac
 
-    target_sat.cliHostInterface.delete({'host-id': host['id'], 'id': host_interface['id']})
-    assert len(target_sat.cliHostInterface.list({'host-id': host['id']})) == number_of_interfaces
+    target_sat.cli.HostInterface.delete({'host-id': host['id'], 'id': host_interface['id']})
+    assert len(target_sat.cli.HostInterface.list({'host-id': host['id']})) == number_of_interfaces
     with pytest.raises(CLIReturnCodeError):
-        target_sat.cliHostInterface.info({'host-id': host['id'], 'id': host_interface['id']})
+        target_sat.cli.HostInterface.info({'host-id': host['id'], 'id': host_interface['id']})
 
 
 @pytest.mark.cli_host_create
