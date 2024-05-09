@@ -196,6 +196,15 @@ VALIDATORS = dict(
             must_exist=True,
         ),
     ],
+    github_repos=[
+        Validator('github_repos.base_marker', default=None),
+        Validator('github_repos.foreman.org', default='theforeman', is_type_of=str),
+        Validator('github_repos.foreman.repo', default='foreman', is_type_of=str),
+        Validator('github_repos.foreman.rules', default=[], is_type_of=list),
+        Validator('github_repos.katello.org', default='Katello', is_type_of=str),
+        Validator('github_repos.katello.repo', default='katello', is_type_of=str),
+        Validator('github_repos.katello.rules', default=[], is_type_of=list),
+    ],
     http_proxy=[
         Validator(
             'http_proxy.un_auth_proxy_url',
