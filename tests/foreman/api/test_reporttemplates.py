@@ -519,7 +519,6 @@ def test_positive_applied_errata_by_search(
     target_sat.wait_for_tasks(
         search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
         search_rate=15,
-        max_tries=10,
     )
     rt = (
         target_sat.api.ReportTemplate()
