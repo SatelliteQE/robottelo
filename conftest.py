@@ -23,6 +23,7 @@ pytest_plugins = [
     'pytest_plugins.sanity_plugin',
     'pytest_plugins.video_cleanup',
     'pytest_plugins.capsule_n-minus',
+    'pytest_plugins.upstream_pr',
     # Fixtures
     'pytest_fixtures.core.broker',
     'pytest_fixtures.core.sat_cap_factory',

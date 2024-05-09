@@ -1,0 +1,16 @@
+GITHUB_REPOS:
+  BASE_MARKER:
+  FOREMAN:
+    ORG: theforeman
+    REPO: foreman
+    RULES:
+     - PATH:
+       MARKER:
+       MARKER_ARG:
+  KATELLO:
+    ORG: Katello
+    REPO: katello
+    RULES:
+      - PATH:
+        MARKER:
+        MARKER_ARG:
