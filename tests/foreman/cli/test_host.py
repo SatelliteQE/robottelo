@@ -2709,3 +2709,36 @@ def test_positive_create_and_update_with_content_source(
     target_sat.cli.Capsule.content_synchronize({'name': module_capsule_configured.hostname})
     assert rhel_contenthost.execute(f'dnf -y install {package}').status == 0
     assert rhel_contenthost.execute(f'rpm -q {package}').status == 0
+
+
+@pytest.mark.cli_host_create
+@pytest.mark.tier2
+def test_positive_create_host_with_lifecycle_environment_name(
+    module_lce,
+    module_org,
+    module_promoted_cv,
+    module_target_sat,
+):
+    """Attempt to create a host with lifecycle-environment name specified
+
+    :id: 7445ad21-538f-4357-8bd1-9676d2478633
+
+    :BZ: 2106256
+
+    :expectedresults: Host is created with no errors
+
+    :customerscenario: true
+
+    :CaseImportance: Medium
+    """
+    found_host = False
+    new_host = module_target_sat.cli_factory.make_fake_host(
+        {
+            'content-view-id': module_promoted_cv.id,
+            'lifecycle-environment': module_lce.name,
+            'organization-id': module_org.id,
+        }
+    )
+    hosts = module_target_sat.cli.Host.list({'organization-id': module_org.id})
+    found_host = any(new_host.name in i.values() for i in hosts)
+    assert found_host, 'Assertion failed: host not found'
