@@ -696,7 +696,7 @@ class CLIFactory:
             'repository-id': custom_repo['id'],
         }
 
-    def _setup_org_for_a_rh_repo(self, options=None):
+    def _setup_org_for_a_rh_repo(self, options=None, force=False):
         """Sets up Org for the given Red Hat repository by:
 
         1. Checks if organization and lifecycle environment were given, otherwise
@@ -792,7 +792,12 @@ class CLIFactory:
         # Promote version1 to next env
         try:
             self._satellite.cli.ContentView.version_promote(
-                {'id': cvv['id'], 'organization-id': org_id, 'to-lifecycle-environment-id': env_id}
+                {
+                    'id': cvv['id'],
+                    'organization-id': org_id,
+                    'to-lifecycle-environment-id': env_id,
+                    'force': force,
+                }
             )
         except CLIReturnCodeError as err:
             raise CLIFactoryError(
@@ -845,7 +850,11 @@ class CLIFactory:
         }
 
     def setup_org_for_a_rh_repo(
-        self, options=None, force_manifest_upload=False, force_use_cdn=False
+        self,
+        options=None,
+        force_manifest_upload=False,
+        force_use_cdn=False,
+        force=False,
     ):
         """Wrapper above ``_setup_org_for_a_rh_repo`` to use custom downstream repo
         instead of CDN's 'Satellite Capsule', 'Satellite Tools'  and base OS repos if
@@ -874,7 +883,7 @@ class CLIFactory:
         elif 'Satellite Capsule' in options.get('repository'):
             custom_repo_url = settings.repos.capsule_repo
         if force_use_cdn or settings.robottelo.cdn or not custom_repo_url:
-            return self._setup_org_for_a_rh_repo(options)
+            return self._setup_org_for_a_rh_repo(options, force)
         options['url'] = custom_repo_url
         result = self.setup_org_for_a_custom_repo(options)
         if force_manifest_upload:
