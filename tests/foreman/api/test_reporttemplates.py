@@ -819,7 +819,7 @@ def test_positive_generate_job_report(setup_content, module_target_sat, content_
 
 @pytest.mark.tier2
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
+@pytest.mark.rhel_ver_match('[^6]')
 def test_positive_installable_errata(
     target_sat, function_org, function_lce, function_location, rhel_contenthost
 ):
@@ -933,7 +933,7 @@ def test_positive_installable_errata(
 
 
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
+@pytest.mark.rhel_ver_match('[^6]')
 def test_positive_installed_products(
     target_sat,
     rhel_contenthost,
