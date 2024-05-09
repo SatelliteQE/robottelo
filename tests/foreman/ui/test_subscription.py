@@ -588,7 +588,7 @@ def test_positive_check_manifest_validity_notification(
     :customerscenario: true
     """
     property_name = setting_update.name
-    property_value = 366  # value should be greate than 365 to get expected output message
+    property_value = 366  # value should be greater than 365 to get expected output message
     remote_path = f'/tmp/{EXPIRED_MANIFEST}'
     target_sat.put(DataFile.EXPIRED_MANIFEST_FILE, remote_path)
     # upload expired manifest
