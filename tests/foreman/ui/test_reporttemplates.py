@@ -34,7 +34,7 @@ from robottelo.utils.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')
-def setup_content(module_sca_manifest_org, module_target_sat):
+def module_setup_content(module_sca_manifest_org, module_target_sat):
     org = module_sca_manifest_org
     rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
@@ -229,10 +229,11 @@ def test_positive_end_to_end(session, module_org, module_location):
         assert not session.reporttemplate.search(new_name)
 
 
+@pytest.mark.rhel_ver_list([7, 8, 9])
 @pytest.mark.upgrade
 @pytest.mark.tier2
 def test_positive_generate_registered_hosts_report(
-    session, target_sat, setup_content, rhel7_contenthost
+    session, target_sat, module_setup_content, rhel_contenthost
 ):
     """Use provided Host - Registered Content Hosts report for testing
 
@@ -243,8 +244,8 @@ def test_positive_generate_registered_hosts_report(
 
     :CaseImportance: High
     """
-    client = rhel7_contenthost
-    org, ak, _, _ = setup_content
+    client = rhel_contenthost
+    org, ak, _, _ = module_setup_content
     client.register(org, None, ak.name, target_sat)
     assert client.subscribed
     with session:
@@ -271,7 +272,7 @@ def test_positive_generate_registered_hosts_report(
 @pytest.mark.upgrade
 @pytest.mark.tier2
 def test_positive_generate_subscriptions_report_json(
-    session, module_org, setup_content, module_target_sat
+    session, module_org, module_setup_content, module_target_sat
 ):
     """Use provided Subscriptions report, generate JSON
 
@@ -481,7 +482,7 @@ def test_negative_nonauthor_of_report_cant_download_it(session):
 @pytest.mark.tier3
 @pytest.mark.no_containers
 def test_positive_gen_entitlements_reports_multiple_formats(
-    session, setup_content, rhel7_contenthost, target_sat
+    session, module_setup_content, rhel7_contenthost, target_sat
 ):
     """Generate reports using the Subscription - Entitlement Report template
         in html, yaml, json, and csv format.
@@ -507,13 +508,13 @@ def test_positive_gen_entitlements_reports_multiple_formats(
     """
     client = rhel7_contenthost
     client.install_katello_ca(target_sat)
-    org, ak, _, _ = setup_content
+    org, ak, _, _ = module_setup_content
     org.sca_disable()
     subscription = target_sat.api.Subscription(organization=org).search(
         query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
     ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
-    client.register_contenthost(org.label, None, ak.name, target_sat)
+    client.register(org.label, None, ak.name, target_sat)
     assert client.subscribed
     with session:
         session.location.select('Default Location')
@@ -561,7 +562,7 @@ def test_positive_gen_entitlements_reports_multiple_formats(
 @pytest.mark.rhel_ver_list([7, 8, 9])
 @pytest.mark.tier3
 def test_positive_generate_all_installed_packages_report(
-    session, setup_content, rhel_contenthost, target_sat
+    session, module_setup_content, rhel_contenthost, target_sat
 ):
     """Generate an report using the 'Host - All Installed Packages' Report template
 
@@ -582,7 +583,7 @@ def test_positive_generate_all_installed_packages_report(
 
     :customerscenario: true
     """
-    org, ak, cv, lce = setup_content
+    org, ak, cv, lce = module_setup_content
     target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_6.url,
