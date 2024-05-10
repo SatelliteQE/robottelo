@@ -153,6 +153,7 @@ def test_positive_end_to_end_crud_and_list(target_sat):
             list   - at least two report templates
             info   - some report template
             update - some report template that is not locked
+            clone - some report template
             delete - some report template that is not locked
 
     :steps:
@@ -161,11 +162,12 @@ def test_positive_end_to_end_crud_and_list(target_sat):
         2. hammer report-template list ...
         3. hammer report-template info ...
         4. hammer report-template update ... # change some value
-        5. hammer report-template delete ...
+        5. hammer report-template clone ...
+        6. hammer report-template delete ...
 
     :expectedresults: Report is created, report templates are listed,
                       data about report template is showed,
-                      report template is updated, and deleted.
+                      report template is updated, report template is cloned, and deleted.
 
     :CaseImportance: Critical
     """
