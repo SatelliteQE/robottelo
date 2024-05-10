@@ -64,7 +64,10 @@ class Vault:
                 logger.error(f"Error! {self.HELP_TEXT}")
                 sys.exit(1)
             if vcommand.stderr:
-                if 'Error revoking token' in verror:
+                if 'no such host' in verror:
+                    logger.error("The Vault host is not reachable, check network availability.")
+                    sys.exit()
+                elif 'Error revoking token' in verror:
                     logger.info("Token is alredy revoked!")
                 elif 'Error looking up token' in verror:
                     logger.info("Vault is not logged in!")
