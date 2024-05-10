@@ -484,12 +484,6 @@ def test_positive_applied_errata_by_search(
     ).create()
     cv = target_sat.api.ContentView(organization=function_org).create()
     ERRATUM_ID = str(settings.repos.yum_6.errata[2])
-    errata_name = (
-        target_sat.api.Errata()
-        .search(query={'search': f'errata_id="{ERRATUM_ID}"'})[0]
-        .read()
-        .description
-    )
     target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_9.url,
@@ -498,6 +492,12 @@ def test_positive_applied_errata_by_search(
             'lifecycle-environment-id': function_lce.id,
             'activationkey-id': activation_key.id,
         }
+    )
+    errata_name = (
+        target_sat.api.Errata()
+        .search(query={'search': f'errata_id="{ERRATUM_ID}"'})[0]
+        .read()
+        .description
     )
     result = rhel_contenthost.register(
         function_org, function_location, activation_key.name, target_sat
