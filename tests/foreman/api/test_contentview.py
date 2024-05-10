@@ -12,7 +12,6 @@
 
 """
 
-from datetime import datetime, timedelta
 import random
 
 from fauxfactory import gen_integer, gen_string, gen_utf8
