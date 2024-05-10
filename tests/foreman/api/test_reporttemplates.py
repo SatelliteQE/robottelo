@@ -463,7 +463,7 @@ def test_positive_applied_errata(
 @pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.no_containers
 def test_positive_applied_errata_by_search(
-    function_org, function_location, function_lce, rhel_contenthost, target_sat
+    function_org, function_lce, rhel_contenthost, target_sat
 ):
     """Generate an Applied Errata report
 
@@ -499,9 +499,7 @@ def test_positive_applied_errata_by_search(
         .read()
         .description
     )
-    result = rhel_contenthost.register(
-        function_org, function_location, activation_key.name, target_sat
-    )
+    result = rhel_contenthost.register(function_org, None, activation_key.name, target_sat)
     assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
     assert rhel_contenthost.subscribed
     rhel_contenthost.execute(r'subscription-manager repos --enable \*')
