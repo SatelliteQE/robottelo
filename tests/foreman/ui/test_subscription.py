@@ -621,12 +621,7 @@ def test_positive_check_manifest_validity_notification(
         if expiring_soon[0] is None:
             # if 'Manifest expiring soon' message not found
             # then update the 'Expire soon days' value from settings > Content
-            ### unable to search "name = 'expire_soon_days'" in web UI of Settings page ###
-            # session.settings.update(f'name = {property_name}', property_value)
-            ### in discussion with developer on the above issue, till then use CLI method ###
-            target_sat.cli.Settings.set({'name': f'{property_name}', 'value': f'{property_value}'})
-            session.browser.refresh()
-            time.sleep(5)
+            session.settings.update(f'name = "{property_name}"', property_value)
             # Now re-try to read expire manifest message
             expiring_soon = session.subscription.read_expire_manifest_message()
         assert 'Manifest expiring soon' in expiring_soon[0], 'Manifest expire alert not found'
