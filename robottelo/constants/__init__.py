@@ -5,17 +5,6 @@ from pathlib import Path
 from box import Box
 from nailgun import entities
 
-
-# String Color codes
-class Colored(Box):
-    YELLOW = '\033[1;33m'
-    REDLIGHT = '\033[3;31m'
-    REDDARK = '\033[1;31m'
-    GREEN = '\033[1;32m'
-    WHITELIGHT = '\033[1;30m'
-    RESET = '\033[0m'
-
-
 # This should be updated after each version branch
 SATELLITE_VERSION = "6.16"
 SATELLITE_OS_VERSION = "8"
@@ -555,16 +544,16 @@ REPOS = {
         },
         'rhel9_bos': {
             'id': 'rhel-9-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.3',
-            'version': '9.3',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.4',
+            'version': '9.4',
             'reposet': REPOSET['kickstart']['rhel9_bos'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
         'rhel9_aps': {
             'id': 'rhel-9-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.3',
-            'version': '9.3',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.4',
+            'version': '9.4',
             'reposet': REPOSET['kickstart']['rhel9_aps'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',

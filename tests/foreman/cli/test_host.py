@@ -360,13 +360,13 @@ def test_positive_crud_interface_by_id(target_sat, default_location, default_org
 
     mac = gen_mac(multicast=False)
     host = target_sat.cli_factory.make_fake_host({'domain-id': domain.id})
-    number_of_interfaces = len(target_sat.cliHostInterface.list({'host-id': host['id']}))
+    number_of_interfaces = len(target_sat.cli.HostInterface.list({'host-id': host['id']}))
 
-    target_sat.cliHostInterface.create(
+    target_sat.cli.HostInterface.create(
         {'host-id': host['id'], 'domain-id': domain.id, 'mac': mac, 'type': 'interface'}
     )
     host = target_sat.cli.Host.info({'id': host['id']})
-    host_interface = target_sat.cliHostInterface.info(
+    host_interface = target_sat.cli.HostInterface.info(
         {
             'host-id': host['id'],
             'id': [ni for ni in host['network-interfaces'] if ni['mac-address'] == mac][0]['id'],
@@ -375,14 +375,14 @@ def test_positive_crud_interface_by_id(target_sat, default_location, default_org
     assert host_interface['domain'] == domain.name
     assert host_interface['mac-address'] == mac
     assert (
-        len(target_sat.cliHostInterface.list({'host-id': host['id']})) == number_of_interfaces + 1
+        len(target_sat.cli.HostInterface.list({'host-id': host['id']})) == number_of_interfaces + 1
     )
 
     new_domain = target_sat.api.Domain(
         location=[default_location], organization=[default_org]
     ).create()
     new_mac = gen_mac(multicast=False)
-    target_sat.cliHostInterface.update(
+    target_sat.cli.HostInterface.update(
         {
             'host-id': host['id'],
             'id': host_interface['id'],
@@ -390,7 +390,7 @@ def test_positive_crud_interface_by_id(target_sat, default_location, default_org
             'mac': new_mac,
         }
     )
-    host_interface = target_sat.cliHostInterface.info(
+    host_interface = target_sat.cli.HostInterface.info(
         {
             'host-id': host['id'],
             'id': [ni for ni in host['network-interfaces'] if ni['mac-address'] == mac][0]['id'],
@@ -399,10 +399,10 @@ def test_positive_crud_interface_by_id(target_sat, default_location, default_org
     assert host_interface['domain'] == new_domain.name
     assert host_interface['mac-address'] == new_mac
 
-    target_sat.cliHostInterface.delete({'host-id': host['id'], 'id': host_interface['id']})
-    assert len(target_sat.cliHostInterface.list({'host-id': host['id']})) == number_of_interfaces
+    target_sat.cli.HostInterface.delete({'host-id': host['id'], 'id': host_interface['id']})
+    assert len(target_sat.cli.HostInterface.list({'host-id': host['id']})) == number_of_interfaces
     with pytest.raises(CLIReturnCodeError):
-        target_sat.cliHostInterface.info({'host-id': host['id'], 'id': host_interface['id']})
+        target_sat.cli.HostInterface.info({'host-id': host['id'], 'id': host_interface['id']})
 
 
 @pytest.mark.cli_host_create
@@ -2699,3 +2699,36 @@ def test_positive_create_and_update_with_content_source(
     target_sat.cli.Capsule.content_synchronize({'name': module_capsule_configured.hostname})
     assert rhel_contenthost.execute(f'dnf -y install {package}').status == 0
     assert rhel_contenthost.execute(f'rpm -q {package}').status == 0
+
+
+@pytest.mark.cli_host_create
+@pytest.mark.tier2
+def test_positive_create_host_with_lifecycle_environment_name(
+    module_lce,
+    module_org,
+    module_promoted_cv,
+    module_target_sat,
+):
+    """Attempt to create a host with lifecycle-environment name specified
+
+    :id: 7445ad21-538f-4357-8bd1-9676d2478633
+
+    :BZ: 2106256
+
+    :expectedresults: Host is created with no errors
+
+    :customerscenario: true
+
+    :CaseImportance: Medium
+    """
+    found_host = False
+    new_host = module_target_sat.cli_factory.make_fake_host(
+        {
+            'content-view-id': module_promoted_cv.id,
+            'lifecycle-environment': module_lce.name,
+            'organization-id': module_org.id,
+        }
+    )
+    hosts = module_target_sat.cli.Host.list({'organization-id': module_org.id})
+    found_host = any(new_host.name in i.values() for i in hosts)
+    assert found_host, 'Assertion failed: host not found'
