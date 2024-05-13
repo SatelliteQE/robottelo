@@ -51,7 +51,7 @@ def test_host_registration_end_to_end(
     """
     org = module_sca_manifest_org
     result = rhel_contenthost.register(
-        org, module_location, [module_activation_key.name], module_target_sat
+        org, module_location, module_activation_key.name, module_target_sat
     )
 
     rc = 1 if rhel_contenthost.os_version.major == 6 else 0
@@ -72,7 +72,7 @@ def test_host_registration_end_to_end(
     result = rhel_contenthost.register(
         org,
         module_location,
-        [module_activation_key.name],
+        module_activation_key.name,
         module_capsule_configured,
         force=True,
     )
@@ -268,7 +268,7 @@ def test_positive_custom_facts_for_host_registration(
         json.dump(facts, f, indent=4)
     rhel_contenthost.put(facts_file, '/etc/rhsm/facts/')
     result = rhel_contenthost.register(
-        module_sca_manifest_org, module_location, [module_activation_key.name], module_target_sat
+        module_sca_manifest_org, module_location, module_activation_key.name, module_target_sat
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     host_info = module_target_sat.cli.Host.info(

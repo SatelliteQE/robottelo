@@ -153,18 +153,18 @@ def centos(
     c2r_sub = module_target_sat.api.Subscription(
         organization=module_entitlement_manifest_org.id, name=repo.product.name
     ).search()[0]
-    act_key = create_activation_key(
+    ak = create_activation_key(
         module_target_sat, module_entitlement_manifest_org, module_lce, cv, c2r_sub.id
     )
 
     # Register CentOS host with Satellite
-    command = module_target_sat.api.RegistrationCommand(
+    result = centos_host.api_register(
+        module_target_sat,
         organization=module_entitlement_manifest_org,
-        activation_keys=[act_key.name],
+        activation_keys=[ak.name],
         location=smart_proxy_location,
-        insecure=True,
-    ).create()
-    assert centos_host.execute(command).status == 0
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     if centos_host.execute('needs-restarting -r').status == 1:
         centos_host.power_control(state='reboot')
@@ -222,21 +222,21 @@ def oracle(
     c2r_sub = module_target_sat.api.Subscription(
         organization=module_entitlement_manifest_org, name=repo.product.name
     ).search()[0]
-    act_key = create_activation_key(
+    ak = create_activation_key(
         module_target_sat, module_entitlement_manifest_org, module_lce, cv, c2r_sub.id
     )
     # UBI repo required for subscription-manager packages on Oracle
     ubi_url = settings.repos.convert2rhel.ubi7 if major == '7' else settings.repos.convert2rhel.ubi8
 
     # Register Oracle host with Satellite
-    command = module_target_sat.api.RegistrationCommand(
+    result = oracle_host.api_register(
+        module_target_sat,
         organization=module_entitlement_manifest_org,
-        activation_keys=[act_key.name],
+        activation_keys=[ak.name],
         location=smart_proxy_location,
-        insecure=True,
         repo=ubi_url,
-    ).create()
-    assert oracle_host.execute(command).status == 0
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     yield oracle_host
     # close ssh session before teardown, because of reboot in conversion it may cause problems

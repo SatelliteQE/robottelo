@@ -17,12 +17,27 @@ def module_published_cv(module_org, module_target_sat):
     return content_view.read()
 
 
+@pytest.fixture
+def function_published_cv(function_org, target_sat):
+    content_view = target_sat.api.ContentView(organization=function_org).create()
+    content_view.publish()
+    return content_view.read()
+
+
 @pytest.fixture(scope="module")
 def module_promoted_cv(module_lce, module_published_cv, module_target_sat):
     """Promote published content view"""
     content_view_version = module_published_cv.version[0]
     content_view_version.promote(data={'environment_ids': module_lce.id})
     return module_published_cv
+
+
+@pytest.fixture
+def function_promoted_cv(function_lce, function_published_cv, target_sat):
+    """Promote published content view"""
+    content_view_version = function_published_cv.version[0]
+    content_view_version.promote(data={'environment_ids': function_lce.id})
+    return function_published_cv
 
 
 @pytest.fixture(scope='module')
