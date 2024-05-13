@@ -561,24 +561,24 @@ def test_positive_prepare_for_sca_only_subscription(target_sat, function_entitle
 
 @pytest.mark.parametrize('setting_update', ['expire_soon_days'], indirect=True)
 def test_positive_check_manifest_validity_notification(
-    target_sat, setting_update, default_org, function_org
+    target_sat, setting_update, function_org, default_org
 ):
     """Check notification when manifest is going to expire.
 
     :id: 29ab0e80-25eb-44f0-9294-3a26922c33c5
 
     :setup:
-        1. create new organization, let's say "Expire manifest org"
+        1. create new organization
 
     :steps:
         1. Upload expired manifest in newly created org
         2. go to Content > Subscriptions page, click on 'Manage Manifest' button.
         3. Search for message string 'Manifest expired', or 'Your manifest expired'
         4. delete expired manifest from this org (cleanup part)
-        5. Upload non-expired manifest in default org
+        5. Upload non-expired manifest
         6. go to Content > Subscription page, click on 'Manage Manifest' button.
         7. Search for message string 'Manifest expiring soon', or 'Your manifest will expire'
-        8. delete expired manifest from default org (cleanup part)
+        8. delete expired manifest from this org (cleanup part)
 
     :expectedresults:
         1. 'Manifest expired' message appear on screen
@@ -602,9 +602,10 @@ def test_positive_check_manifest_validity_notification(
     with target_sat.ui_session() as session:
         # Message - Manifest expired
         session.organization.select(function_org.name)
-        expired_manifest = session.subscription.read_expire_manifest_message()
-        assert 'Manifest expired' in expired_manifest[0], 'Manifest expire alert not found'
-        assert ('Your manifest expired' and 'import a new manifest') in expired_manifest[1]
+        # read expire manifest message
+        expired_manifest = session.subscription.read_subscription_manifest_header_message_and_date()
+        assert 'Manifest expired' in expired_manifest['header'], 'Manifest expire alert not found'
+        assert ('Your manifest expired' and 'import a new manifest') in expired_manifest['message']
         # Cleanup - delete expired manifest
         session.subscription.delete_manifest(
             ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound']
@@ -617,17 +618,23 @@ def test_positive_check_manifest_validity_notification(
             temporary_local_manifest_path,
             ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound'],
         )
-        expiring_soon = session.subscription.read_expire_manifest_message()
-        if expiring_soon[0] is None:
-            # if 'Manifest expiring soon' message not found
-            # then update the 'Expire soon days' value from settings > Content
-            session.settings.update(f'name = "{property_name}"', property_value)
-            # Now re-try to read expire manifest message
-            expiring_soon = session.subscription.read_expire_manifest_message()
-        assert 'Manifest expiring soon' in expiring_soon[0], 'Manifest expire alert not found'
-        assert ('Your manifest will expire' and 'import a new manifest') in expiring_soon[1]
+        original_expire_date = (
+            session.subscription.read_subscription_manifest_expiration_date_only()
+        )
+        # Initially 'Manifest expiring soon' message not found
+        # then update the 'Expire soon days' value from settings > Content
+        session.settings.update(f'name = "{property_name}"', property_value)
+        # read expire manifest message
+        expiring_soon = session.subscription.read_subscription_manifest_header_message_and_date()
+        assert (
+            'Manifest expiring soon' in expiring_soon['header']
+        ), 'Manifest expire alert not found'
+        assert ('Your manifest will expire' and 'import a new manifest') in expiring_soon['message']
 
-        # Cleanup - delete non-expired manifest from default org
+        session.subscription.refresh_manifest()
+        updated_expire_date = session.subscription.read_subscription_manifest_expiration_date_only()
+        assert original_expire_date != updated_expire_date
+        # Cleanup - delete non-expired manifest
         session.subscription.delete_manifest(
             ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound']
         )
