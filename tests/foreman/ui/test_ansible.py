@@ -175,13 +175,14 @@ class TestAnsibleCfgMgmt:
         target_sat.api.AnsibleRoles().sync(
             data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]}
         )
-        command = target_sat.api.RegistrationCommand(
+        result = rhel_contenthost.api_register(
+            target_sat,
             organization=module_org,
-            location=module_location,
             activation_keys=[module_activation_key.name],
-        ).create()
-        result = rhel_contenthost.execute(command)
+            location=module_location,
+        )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
+
         target_host = rhel_contenthost.nailgun_host
         default_value = '[\"test\"]'  # fmt: skip
         parameter_type = 'array'
