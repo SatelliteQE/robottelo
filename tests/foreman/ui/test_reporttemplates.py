@@ -599,8 +599,8 @@ def test_positive_generate_all_installed_packages_report(
         }
     )
     client = rhel_contenthost
-    client.install_katello_ca(target_sat)
-    client.register_contenthost(org.label, ak.name)
+    result = client.register(org, None, ak.name, target_sat)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert client.subscribed
     client.execute(f'yum -y install {FAKE_0_CUSTOM_PACKAGE_NAME} {FAKE_1_CUSTOM_PACKAGE}')
     with session:
