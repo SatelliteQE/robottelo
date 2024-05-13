@@ -807,6 +807,17 @@ class ContentHost(Host, ContentHostMixins):
         cmd = target.satellite.cli.HostRegistration.generate_command(options)
         return self.execute(cmd.strip('\n'))
 
+    def api_register(self, target, **kwargs):
+        """Register a content host using global registration through API.
+
+        :param target: Satellite or Capsule object to register to.
+        :param kwargs: Additional keyword arguments to pass to the API call.
+        :return: The result of the API call.
+        """
+        kwargs['insecure'] = kwargs.get('insecure', True)
+        command = target.satellite.api.RegistrationCommand(**kwargs).create()
+        return self.execute(command.strip('\n'))
+
     def register_contenthost(
         self,
         org='Default_Organization',
