@@ -911,14 +911,12 @@ class TestContentViewRedHatContent:
     """Tests for publishing and promoting content views."""
 
     @pytest.fixture(scope='class', autouse=True)
-    def initiate_testclass(
-        self, request, module_cv, module_entitlement_manifest_org, class_target_sat
-    ):
+    def initiate_testclass(self, request, module_cv, module_sca_manifest_org, class_target_sat):
         """Set up organization, product and repositories for tests."""
 
         repo_id = class_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_entitlement_manifest_org.id,
+            org_id=module_sca_manifest_org.id,
             product=PRDS['rhel'],
             repo=REPOS['rhst7']['name'],
             reposet=REPOSET['rhst7'],
@@ -1322,12 +1320,12 @@ class TestContentViewRedHatOstreeContent:
     """Tests for publishing and promoting cv with RH ostree contents."""
 
     @pytest.fixture(scope='class', autouse=True)
-    def initiate_testclass(self, request, module_entitlement_manifest_org, class_target_sat):
+    def initiate_testclass(self, request, module_sca_manifest_org, class_target_sat):
         """Set up organization, product and repositories for tests."""
 
         repo_id = class_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=None,
-            org_id=module_entitlement_manifest_org.id,
+            org_id=module_sca_manifest_org.id,
             product=PRDS['rhah'],
             repo=REPOS['rhaht']['name'],
             reposet=REPOSET['rhaht'],
