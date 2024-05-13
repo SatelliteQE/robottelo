@@ -25,7 +25,7 @@ synced_repos = pytest.StashKey[dict]
 
 RHEL7_VER = '7.9'
 RHEL8_VER = '8.9'
-RHEL9_VER = '9.3'
+RHEL9_VER = '9.4'
 
 RHEL_REPOS = {
     'rhel7_server': {
