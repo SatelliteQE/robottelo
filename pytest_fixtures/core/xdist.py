@@ -19,8 +19,9 @@ def align_to_satellite(request, worker_id, satellite_factory):
         if settings.server.hostname:
             sanity_sat = Satellite(settings.server.hostname)
             sanity_sat.unregister()
-            broker_sat = Satellite.get_host_by_hostname(sanity_sat.hostname)
-            Broker(hosts=[broker_sat]).checkin()
+            if settings.server.auto_checkin:
+                broker_sat = Satellite.get_host_by_hostname(sanity_sat.hostname)
+                Broker(hosts=[broker_sat]).checkin()
     else:
         # clear any hostname that may have been previously set
         settings.set("server.hostname", None)

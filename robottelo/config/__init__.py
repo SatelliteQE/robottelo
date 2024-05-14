@@ -10,7 +10,6 @@ from nailgun.config import ServerConfig
 
 from robottelo.config.validators import VALIDATORS
 from robottelo.logging import logger, robottelo_root_dir
-from robottelo.utils.url import ipv6_hostname_translation
 
 if not os.getenv('ROBOTTELO_DIR'):
     # dynaconf robottelo file uses ROBOTELLO_DIR for screenshots
@@ -44,8 +43,6 @@ def get_settings():
             logger.warning(
                 f'Dynaconf validation failed, continuing for the sake of unit tests\n{err}'
             )
-
-        ipv6_hostname_translation(settings)
 
         return settings
 

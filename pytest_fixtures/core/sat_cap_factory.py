@@ -365,9 +365,8 @@ def installer_satellite(request):
     else:
         sat = lru_sat_ready_rhel(getattr(request, 'param', None))
     sat.setup_firewall()
-    http_proxy = sat.enable_ipv6_http_proxy()
     # # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
-    sat.register_to_cdn()
+    sat.register_to_cdn(enable_proxy=True)
     sat.download_repofile(
         product='satellite',
         release=settings.server.version.release,
@@ -386,6 +385,7 @@ def installer_satellite(request):
         ).get_command(),
         timeout='30m',
     )
+    sat.enable_ipv6_http_proxy()
     if 'sanity' in request.config.option.markexpr:
         configure_nailgun()
         configure_airgun()
@@ -393,7 +393,4 @@ def installer_satellite(request):
     if 'sanity' not in request.config.option.markexpr:
         sat = Satellite.get_host_by_hostname(sat.hostname)
         sat.unregister()
-        sat.disable_ipv6_http_proxy(http_proxy)
         Broker(hosts=[sat]).checkin()
-    else:
-        sat.disable_ipv6_http_proxy(http_proxy)

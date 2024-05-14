@@ -824,6 +824,7 @@ class ContentHost(Host, ContentHostMixins):
         auto_attach=False,
         serverurl=None,
         baseurl=None,
+        enable_proxy=False,
     ):
         """Registers content host on foreman server either by specifying
         organization name and activation key name or by specifying organization
@@ -880,6 +881,12 @@ class ContentHost(Host, ContentHostMixins):
             cmd += f' --serverurl {serverurl}'
         if baseurl:
             cmd += f' --baseurl {baseurl}'
+
+        # Enabling proxy for Ipv6
+        if enable_proxy and all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
+            url = urlparse(settings.server.http_proxy_ipv6_url)
+            self.enable_server_proxy(url.hostname, url.port)
+
         return self.execute(cmd)
 
     def unregister(self):
@@ -925,6 +932,12 @@ class ContentHost(Host, ContentHostMixins):
         result = self.execute(f'chmod 600 {destination_key_path}')
         if result.status != 0:
             raise CLIFactoryError(f'Failed to chmod ssh key file:\n{result.stderr}')
+
+    def enable_server_proxy(self, hostname, port=None):
+        cmd = f"subscription-manager config --server.proxy_hostname={hostname}"
+        if port:
+            cmd += f' --server.proxy_port={port}'
+        self.execute(cmd)
 
     def add_authorized_key(self, pub_key):
         """Inject a public key into the authorized keys file
@@ -1470,7 +1483,7 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError('There was an error installing katello-host-tools-tracer')
         self.execute('katello-tracer-upload')
 
-    def register_to_cdn(self, pool_ids=None):
+    def register_to_cdn(self, pool_ids=None, enable_proxy=False):
         """Subscribe satellite to CDN"""
         if pool_ids is None:
             pool_ids = [settings.subscription.rhn_poolid]
@@ -1480,6 +1493,7 @@ class ContentHost(Host, ContentHostMixins):
             lce=None,
             username=settings.subscription.rhn_username,
             password=settings.subscription.rhn_password,
+            enable_proxy=enable_proxy,
         )
         if cmd_result.status != 0:
             raise ContentHostError(
@@ -1637,9 +1651,7 @@ class Capsule(ContentHost, CapsuleMixins):
     def enable_ipv6_http_proxy(self):
         if all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
             url = urlparse(settings.server.http_proxy_ipv6_url)
-            self.execute(
-                f'subscription-manager config --server.proxy_hostname={url.hostname} --server.proxy_port={url.port}'
-            )
+            self.enable_server_proxy(url.hostname, url.port)
 
     def disable_ipv6_http_proxy(self):
         if settings.server.is_ipv6:
@@ -1768,6 +1780,10 @@ class Capsule(ContentHost, CapsuleMixins):
         Note: Make sure required repos are enabled before using this.
         """
         if self.os_version.major == 8:
+            if settings.server.is_ipv6:
+                self.execute(
+                    f"echo -e 'proxy={settings.server.http_proxy_ipv6_url}' >> /etc/dnf/dnf.conf"
+                )
             assert (
                 self.execute(
                     f'dnf -y module enable {self.product_rpm_name}:el{self.os_version.major}'
@@ -1811,7 +1827,7 @@ class Satellite(Capsule, SatelliteMixins):
         [sys.modules.pop(k) for k in to_clear]
 
     def enable_ipv6_http_proxy(self):
-        # Execute procedures for enabling IPv6 HTTP Proxy
+        """Execute procedures for enabling IPv6 HTTP Proxy"""
         if all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
             proxy_name = 'Robottelo IPv6 Automation Proxy'
             if not self.cli.HttpProxy.exists(search=('name', proxy_name)):
@@ -1845,9 +1861,7 @@ class Satellite(Capsule, SatelliteMixins):
         return None
 
     def disable_ipv6_http_proxy(self, http_proxy):
-        """
-        Execute procedures for disabling IPv6 HTTP Proxy
-        """
+        """Execute procedures for disabling IPv6 HTTP Proxy"""
         if http_proxy:
             http_proxy.delete()
             self.cli.Settings.set(

@@ -13,10 +13,7 @@ def _default_sat(align_to_satellite):
     """Returns a Satellite object for settings.server.hostname"""
     if settings.server.hostname:
         try:
-            sat = Satellite.get_host_by_hostname(settings.server.hostname)
-            http_proxy = sat.enable_ipv6_http_proxy()
-            yield sat
-            sat.disable_ipv6_http_proxy(http_proxy)
+            return Satellite.get_host_by_hostname(settings.server.hostname)
         except ContentHostError:
             return Satellite()
     return None
@@ -37,7 +34,9 @@ def _target_sat_imp(request, _default_sat, satellite_factory):
         settings.set('server.hostname', installer_sat.hostname)
         yield installer_sat
     else:
+        _default_sat.enable_ipv6_http_proxy()
         yield _default_sat
+        _default_sat.disable_ipv6_http_proxy()
 
 
 @pytest.fixture

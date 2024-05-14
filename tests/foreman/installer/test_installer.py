@@ -162,7 +162,7 @@ def sat_default_install(module_sat_ready_rhels):
     install_satellite(module_sat_ready_rhels[0], installer_args)
     sat = module_sat_ready_rhels[0]
     http_proxy = sat.enable_ipv6_http_proxy()
-    yield
+    yield sat
     sat.disable_ipv6_http_proxy(http_proxy)
 
 
