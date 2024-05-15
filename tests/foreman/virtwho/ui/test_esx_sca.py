@@ -40,7 +40,7 @@ class TestVirtwhoConfigforEsx:
     @pytest.mark.upgrade
     @pytest.mark.parametrize('deploy_type_ui', ['id', 'script'], indirect=True)
     def test_positive_deploy_configure_by_id_script(
-        self, module_sca_manifest_org, org_session, form_data_ui, deploy_type_ui
+        self, module_sca_manifest_org, org_session, form_data_ui, deploy_type_ui, default_location
     ):
         """Verify configure created and deployed with id.
 
@@ -50,12 +50,24 @@ class TestVirtwhoConfigforEsx:
             1. Config can be created and deployed by command or script
             2. No error msg in /var/log/rhsm/rhsm.log
             3. Report is sent to satellite
-            4. Virtual sku can be generated and attached
+            4. Subscription Status set to 'Simple Content Access', and generate mapping in Legacy UI
             5. Config can be deleted
 
         :CaseImportance: High
         """
+        hypervisor_name, guest_name = deploy_type_ui
+        # Check virt-wh oconfig status
         assert org_session.virtwho_configure.search(form_data_ui['name'])[0]['Status'] == 'ok'
+        # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in Legacy UI
+        org_session.location.select(default_location.name)
+        hypervisor_display_name = org_session.contenthost.search(hypervisor_name)[0]['Name']
+        hypervisorhost = org_session.contenthost.read_legacy_ui(hypervisor_display_name)
+        assert hypervisorhost['details']['subscription_status'] == 'Simple Content Access'
+        assert hypervisorhost['details']['virtual_guest'] == '1 Content Host'
+        # Check virtual guest subscription status and hypervisor host and virtual guest mapping in Legacy UI
+        virtualguest = org_session.contenthost.read_legacy_ui(guest_name)
+        assert virtualguest['details']['subscription_status'] == 'Simple Content Access'
+        assert virtualguest['details']['virtual_guest'] == '1 Content Host'
 
     @pytest.mark.tier2
     def test_positive_debug_option(
