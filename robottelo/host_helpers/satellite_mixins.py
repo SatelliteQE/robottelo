@@ -288,10 +288,10 @@ class SystemInfo:
             post_ncat_procs = self.execute('pgrep ncat').stdout.splitlines()
             ncat_pid = set(post_ncat_procs).difference(set(pre_ncat_procs))
             if not len(ncat_pid):
-                stderr = channel.get_exit_status()[1]
-                logger.debug(f'Tunnel failed: {stderr}')
+                err = channel.get_exit_signal()
+                logger.debug(f'Tunnel failed: {err}')
                 # Something failed, so raise an exception.
-                raise CapsuleTunnelError(f'Starting ncat failed: {stderr}')
+                raise CapsuleTunnelError(f'Starting ncat failed: {err}')
             forward_url = f'https://{self.hostname}:{newport}'
             logger.debug(f'Yielding capsule forward port url: {forward_url}')
             try:
@@ -308,7 +308,7 @@ class SystemInfo:
     ):
         """Checks the existence of certain files in a pulp dir"""
         extension_query = ' -o '.join([f'-name "{file}"' for file in file_names])
-        result = self.execute(fr'find {dir_path}{org.name} -type f \( {extension_query} \)')
+        result = self.execute(rf'find {dir_path}{org.name} -type f \( {extension_query} \)')
         return result.stdout
 
 

@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import random
 
 from navmazing import NavigationTriesExceeded

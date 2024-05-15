@@ -20,6 +20,7 @@ Subcommands::
     remove-user-group             Disassociate an user group
     update                        Update a user group
 """
+
 from robottelo.cli.base import Base
 
 
@@ -148,10 +149,10 @@ class UserGroupExternal(Base):
         return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
-    def create(cls, options=None):
+    def create(cls, options=None, timeout=None):
         """Create external user group"""
         cls.command_sub = 'create'
-        result = cls.execute(cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv', timeout=timeout)
         # External user group can only be fetched by specifying both id and
         # user group id it is linked to
         if len(result) > 0 and 'id' in result[0]:

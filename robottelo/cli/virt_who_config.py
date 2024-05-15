@@ -19,6 +19,7 @@ Subcommands::
     list                          List of virt-who configurations
     update                        Update a virt-who configuration
 """
+
 from robottelo.cli.base import Base
 
 

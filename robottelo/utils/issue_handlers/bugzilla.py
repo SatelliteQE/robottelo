@@ -137,7 +137,7 @@ def collect_data_bz(collected_data, cached_data):  # pragma: no cover
 
 
 def collect_dupes(bz, collected_data, cached_data=None):  # pragma: no cover
-    """Recursivelly find for duplicates"""
+    """Recursively find for duplicates"""
     cached_data = cached_data or {}
     if bz.get('resolution') == 'DUPLICATE':
         # Collect duplicates
@@ -180,15 +180,15 @@ CACHED_RESPONSES = defaultdict(dict)
 
 
 @retry(
-    stop=stop_after_attempt(4),  # Retry 3 times before raising
-    wait=wait_fixed(20),  # Wait seconds between retries
+    stop=stop_after_attempt(4),
+    wait=wait_fixed(20),
 )
 def get_data_bz(bz_numbers, cached_data=None):  # pragma: no cover
     """Get a list of marked BZ data and query Bugzilla REST API.
 
     Arguments:
         bz_numbers {list of str} -- ['123456', ...]
-        cached_data
+        cached_data {dict} -- Cached data previous loaded from API
 
     Returns:
         [list of dicts] -- [{'id':..., 'status':..., 'resolution': ...}]

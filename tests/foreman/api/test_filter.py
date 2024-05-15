@@ -15,6 +15,7 @@ http://theforeman.org/api/apidoc/v2/filters.html
 :CaseImportance: High
 
 """
+
 import pytest
 from requests.exceptions import HTTPError
 

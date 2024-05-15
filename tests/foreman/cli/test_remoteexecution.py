@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from calendar import monthrange
 from datetime import datetime, timedelta
 import random
@@ -24,6 +25,7 @@ from wait_for import wait_for
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
+from robottelo.exceptions import CLIFactoryError
 from robottelo.utils import ohsnap
 from robottelo.utils.datafactory import filtered_datapoint, parametrized
 
@@ -137,28 +139,36 @@ class TestRemoteExecution:
     @pytest.mark.pit_server
     @pytest.mark.rhel_ver_list([7, 8, 9])
     def test_positive_run_job_effective_user(self, rex_contenthost, module_target_sat):
-        """Run default job template as effective user on a host
+        """Run default job template as effective user on a host, test ssh user as well
 
         :id: 0cd75cab-f699-47e6-94d3-4477d2a94bb7
 
-        :BZ: 1451675, 1804685
+        :BZ: 1451675, 1804685, 2258968
 
         :expectedresults: Verify the job was successfully run under the
-            effective user identity on host
+            effective user identity on host, make sure the password is
+            used
 
         :parametrized: yes
+
+        :customerscenario: true
         """
         client = rex_contenthost
         # create a user on client via remote job
+        ssh_username = gen_string('alpha')
+        ssh_password = gen_string('alpha')
         username = gen_string('alpha')
+        password = gen_string('cjk')
         filename = gen_string('alpha')
         make_user_job = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
-                'inputs': f"command=useradd -m {username}",
+                'inputs': f"command=useradd {ssh_username} -G wheel; echo {ssh_username}:{ssh_password} | chpasswd; useradd {username} -G wheel; echo {username}:{password} | chpasswd",
                 'search-query': f"name ~ {client.hostname}",
+                'description-format': 'adding users',
             }
         )
+        client.execute('echo "Defaults targetpw" >> /etc/sudoers')
         assert_job_invocation_result(module_target_sat, make_user_job['id'], client.hostname)
         # create a file as new user
         invocation_command = module_target_sat.cli_factory.job_invocation(
@@ -166,7 +176,10 @@ class TestRemoteExecution:
                 'job-template': 'Run Command - Script Default',
                 'inputs': f"command=touch /home/{username}/{filename}",
                 'search-query': f"name ~ {client.hostname}",
+                'ssh-user': f'{ssh_username}',
+                'password': f'{ssh_password}',
                 'effective-user': f'{username}',
+                'effective-user-password': f'{password}',
             }
         )
         assert_job_invocation_result(module_target_sat, invocation_command['id'], client.hostname)
@@ -176,6 +189,24 @@ class TestRemoteExecution:
         )
         # assert the file is owned by the effective user
         assert username == result.stdout.strip('\n')
+        result = client.execute(
+            f'''stat -c '%G' /home/{username}/{filename}''',
+        )
+        # assert the file is in the effective user's group
+        assert username == result.stdout.strip('\n')
+        # negative check for unspecified password
+        filename = gen_string('alpha')
+        with pytest.raises(CLIFactoryError):
+            invocation_command = module_target_sat.cli_factory.job_invocation(
+                {
+                    'job-template': 'Run Command - Script Default',
+                    'inputs': f"command=touch /home/{username}/{filename}",
+                    'search-query': f"name ~ {client.hostname}",
+                    'ssh-user': f'{ssh_username}',
+                    'password': f'{ssh_password}',
+                    'effective-user': f'{username}',
+                }
+            )
 
     @pytest.mark.tier3
     @pytest.mark.e2e
@@ -605,12 +636,17 @@ class TestRexUsers:
     """Tests related to remote execution users"""
 
     @pytest.fixture(scope='class')
-    def class_rexmanager_user(self, module_org, class_target_sat):
+    def class_rexmanager_user(self, module_org, default_location, class_target_sat):
         """Creates a user with Remote Execution Manager role"""
         password = gen_string('alpha')
         rexmanager = gen_string('alpha')
         class_target_sat.cli_factory.user(
-            {'login': rexmanager, 'password': password, 'organization-ids': module_org.id}
+            {
+                'login': rexmanager,
+                'password': password,
+                'organization-ids': module_org.id,
+                'location-ids': default_location.id,
+            }
         )
         class_target_sat.cli.User.add_role(
             {'login': rexmanager, 'role': 'Remote Execution Manager'}
@@ -618,12 +654,17 @@ class TestRexUsers:
         return (rexmanager, password)
 
     @pytest.fixture(scope='class')
-    def class_rexinfra_user(self, module_org, class_target_sat):
+    def class_rexinfra_user(self, module_org, default_location, class_target_sat):
         """Creates a user with all Remote Execution related permissions"""
         password = gen_string('alpha')
         rexinfra = gen_string('alpha')
         class_target_sat.cli_factory.user(
-            {'login': rexinfra, 'password': password, 'organization-ids': module_org.id}
+            {
+                'login': rexinfra,
+                'password': password,
+                'organization-ids': module_org.id,
+                'location-ids': default_location.id,
+            }
         )
         role = class_target_sat.cli_factory.make_role({'organization-ids': module_org.id})
         invocation_permissions = [
@@ -923,6 +964,110 @@ class TestPullProviderRex:
             module_target_sat, invocation_command['id'], rhel_contenthost.hostname
         )
         result = module_target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
+
+    @pytest.mark.tier3
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_match('[^6].*')
+    @pytest.mark.parametrize(
+        'setting_update',
+        ['remote_execution_global_proxy=False'],
+        ids=["no_global_proxy"],
+        indirect=True,
+    )
+    def test_positive_run_job_in_chosen_directory(
+        self,
+        module_org,
+        module_target_sat,
+        smart_proxy_location,
+        module_ak_with_cv,
+        module_capsule_configured_mqtt,
+        rhel_contenthost,
+        setting_update,
+    ):
+        """Run job on host registered to mqtt, check it honors run directory
+
+        :id: d4ae37db-d3b6-41b3-bd98-48c29389e4c5
+
+        :expectedresults: Verify the job was successfully ran against the host registered to mqtt, in the correct directory
+
+        :BZ: 2217079
+
+        :parametrized: yes
+        """
+        client_repo = ohsnap.dogfood_repository(
+            settings.ohsnap,
+            product='client',
+            repo='client',
+            release='client',
+            os_release=rhel_contenthost.os_version.major,
+        )
+        # Update module_capsule_configured_mqtt to include module_org/smart_proxy_location
+        module_target_sat.cli.Capsule.update(
+            {
+                'name': module_capsule_configured_mqtt.hostname,
+                'organization-ids': module_org.id,
+                'location-ids': smart_proxy_location.id,
+            }
+        )
+        # register host with pull provider rex
+        result = rhel_contenthost.register(
+            module_org,
+            smart_proxy_location,
+            module_ak_with_cv.name,
+            module_capsule_configured_mqtt,
+            setup_remote_execution_pull=True,
+            repo=client_repo.baseurl,
+            ignore_subman_errors=True,
+            force=True,
+        )
+
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        # check mqtt client is running
+        result = rhel_contenthost.execute('systemctl status yggdrasild')
+        assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
+
+        # create a new directory and set in in yggdrasil
+        path = f'/{gen_string("alpha")}'
+        config_path_dir = '/etc/systemd/system/yggdrasild.service.d/'
+        config_path = f'{config_path_dir}/override.conf'
+        assert (
+            rhel_contenthost.execute(
+                f'mkdir {path} && mount -t tmpfs tmpfs {path} && mkdir {config_path_dir} && echo -e "[Service]\nEnvironment=FOREMAN_YGG_WORKER_WORKDIR={path}" > {config_path} && systemctl daemon-reload && systemctl restart yggdrasild'
+            ).status
+            == 0
+        )
+
+        # run rex command in the created directory
+        invocation_command = module_target_sat.cli_factory.job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': 'command=printenv',
+                'search-query': f"name ~ {rhel_contenthost.hostname}",
+            }
+        )
+        assert_job_invocation_result(
+            module_target_sat, invocation_command['id'], rhel_contenthost.hostname
+        )
+        assert (
+            f'FOREMAN_YGG_WORKER_WORKDIR={path}'
+            in module_target_sat.cli.JobInvocation.get_output(
+                {'id': invocation_command['id'], 'host': rhel_contenthost.hostname}
+            )
+        )
+
+        # remount the directory as noexec
+        rhel_contenthost.execute(f'mount -o remount,noexec {path}')
+
+        # run rex command in the created directory again;
+        # it should fail; if it does not, it is probably not being run in that directory
+        with pytest.raises(CLIFactoryError):
+            invocation_command = module_target_sat.cli_factory.job_invocation(
+                {
+                    'job-template': 'Run Command - Script Default',
+                    'inputs': 'command=printenv',
+                    'search-query': f"name ~ {rhel_contenthost.hostname}",
+                }
+            )
 
     @pytest.mark.tier3
     @pytest.mark.upgrade

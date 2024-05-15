@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from random import choice
 from string import punctuation
 
@@ -2006,8 +2007,7 @@ class TestRepository:
 
         :CaseImportance: Critical
         """
-        rhel7_contenthost.install_katello_ca(target_sat)
-        rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_synced_repo['name'])
+        rhel7_contenthost.register(module_org, None, module_ak_with_synced_repo['name'], target_sat)
         assert rhel7_contenthost.subscribed
         rhel7_contenthost.run('yum repolist')
         access_log = target_sat.execute(
@@ -2018,7 +2018,7 @@ class TestRepository:
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content_type': 'yum', 'url': CUSTOM_RPM_SHA}]),
+        **parametrized([{'content-type': 'yum', 'url': CUSTOM_RPM_SHA}]),
         indirect=True,
     )
     def test_positive_sync_sha_repo(self, repo_options, module_target_sat):
@@ -2043,7 +2043,7 @@ class TestRepository:
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content_type': 'yum', 'url': CUSTOM_3RD_PARTY_REPO}]),
+        **parametrized([{'content-type': 'yum', 'url': CUSTOM_3RD_PARTY_REPO}]),
         indirect=True,
     )
     def test_positive_sync_third_party_repo(self, repo_options, module_target_sat):

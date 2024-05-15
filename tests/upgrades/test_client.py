@@ -14,6 +14,7 @@ sat6-upgrade requires env.satellite_hostname to be set, this is required for the
 :CaseImportance: High
 
 """
+
 import pytest
 
 from robottelo.config import settings

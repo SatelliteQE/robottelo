@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from airgun.exceptions import DisabledWidgetError, NoSuchElementException
 from fauxfactory import gen_string
 import pytest

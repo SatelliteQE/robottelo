@@ -15,6 +15,7 @@ http://<satellite-host>/apidoc/v2/permissions.html
 :CaseImportance: High
 
 """
+
 from itertools import chain
 import json
 import re
@@ -38,28 +39,35 @@ class TestPermission:
         # workaround for setting class variables
         cls = type(self)
         cls.permissions = PERMISSIONS.copy()
-        if class_target_sat.is_upstream:
-            cls.permissions[None].extend(cls.permissions.pop('DiscoveryRule'))
-            cls.permissions[None].remove('app_root')
-            cls.permissions[None].remove('attachments')
-            cls.permissions[None].remove('configuration')
-            cls.permissions[None].remove('logs')
-            cls.permissions[None].remove('view_cases')
-            cls.permissions[None].remove('view_log_viewer')
 
-        result = class_target_sat.execute('rpm -qa | grep rubygem-foreman_openscap')
-        if result.status != 0:
+        rpm_packages = class_target_sat.execute('rpm -qa').stdout
+        if 'rubygem-foreman_rh_cloud' not in rpm_packages:
+            cls.permissions.pop('InsightsHit')
+            cls.permissions[None].remove('generate_foreman_rh_cloud')
+            cls.permissions[None].remove('view_foreman_rh_cloud')
+            cls.permissions[None].remove('dispatch_cloud_requests')
+            cls.permissions[None].remove('control_organization_insights')
+        if 'rubygem-foreman_bootdisk' not in rpm_packages:
+            cls.permissions[None].remove('download_bootdisk')
+        if 'rubygem-foreman_virt_who_configure' not in rpm_packages:
+            cls.permissions.pop('ForemanVirtWhoConfigure::Config')
+        if 'rubygem-foreman_openscap' not in rpm_packages:
             cls.permissions.pop('ForemanOpenscap::Policy')
             cls.permissions.pop('ForemanOpenscap::ScapContent')
             cls.permissions[None].remove('destroy_arf_reports')
             cls.permissions[None].remove('view_arf_reports')
             cls.permissions[None].remove('create_arf_reports')
-        result = class_target_sat.execute('rpm -qa | grep rubygem-foreman_remote_execution')
-        if result.status != 0:
+        if 'rubygem-foreman_remote_execution' not in rpm_packages:
             cls.permissions.pop('JobInvocation')
             cls.permissions.pop('JobTemplate')
             cls.permissions.pop('RemoteExecutionFeature')
             cls.permissions.pop('TemplateInvocation')
+        if 'rubygem-foreman_puppet' not in rpm_packages:
+            cls.permissions.pop('ForemanPuppet::ConfigGroup')
+            cls.permissions.pop('ForemanPuppet::Environment')
+            cls.permissions.pop('ForemanPuppet::HostClass')
+            cls.permissions.pop('ForemanPuppet::Puppetclass')
+            cls.permissions.pop('ForemanPuppet::PuppetclassLookupKey')
 
         #: e.g. ['Architecture', 'Audit', 'AuthSourceLdap', …]
         cls.permission_resource_types = list(cls.permissions.keys())

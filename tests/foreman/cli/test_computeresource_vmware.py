@@ -10,10 +10,10 @@
 :CaseAutomation: Automated
 
 """
+
 from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
-from wrapanapi import VMWareSystem
 
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
@@ -93,6 +93,7 @@ def test_positive_provision_end_to_end(
     module_vmware_hostgroup,
     provision_method,
     vmware,
+    vmwareclient,
 ):
     """Provision a host on vmware compute resource with
     the help of hostgroup.
@@ -139,12 +140,7 @@ def test_positive_provision_end_to_end(
     hostname = f'{hostname}.{module_provisioning_sat.domain.name}'
     assert hostname == host['name']
     # check if vm is created on vmware
-    vmware = VMWareSystem(
-        hostname=vmware.hostname,
-        username=settings.vmware.username,
-        password=settings.vmware.password,
-    )
-    assert vmware.does_vm_exist(hostname) is True
+    assert vmwareclient.does_vm_exist(hostname) is True
     wait_for(
         lambda: sat.cli.Host.info({'name': hostname})['status']['build-status']
         != 'Pending installation',

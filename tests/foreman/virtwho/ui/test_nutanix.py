@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
 import pytest
 
@@ -227,7 +228,7 @@ class TestVirtwhoConfigforNutanix:
         assert str(exc_info.value) == env_error
         # check message exist in log file /var/log/rhsm/rhsm.log
         message = 'Value for "ahv_internal_debug" not set, using default: False'
-        assert check_message_in_rhsm_log(message) == message
+        assert check_message_in_rhsm_log(message)
 
         # Update ahv_internal_debug option to true
         org_session.virtwho_configure.edit(name, {'ahv_internal_debug': True})
@@ -245,4 +246,4 @@ class TestVirtwhoConfigforNutanix:
         assert get_configure_option("ahv_internal_debug", config_file) == 'true'
         # check message does not exist in log file /var/log/rhsm/rhsm.log
         message = 'Value for "ahv_internal_debug" not set, using default: False'
-        assert str(check_message_in_rhsm_log(message)) == 'False'
+        assert not check_message_in_rhsm_log(message)

@@ -28,6 +28,7 @@ Subcommands::
 :CaseImportance: High
 
 """
+
 import random
 
 from fauxfactory import gen_string, gen_url
@@ -161,7 +162,7 @@ def test_positive_list(libvirt_url, module_target_sat):
     )
     assert comp_res['name']
     result_list = module_target_sat.cli.ComputeResource.list(
-        {'search': 'name=%s' % comp_res['name']}
+        {'search': 'name={}'.format(comp_res['name'])}
     )
     assert len(result_list) > 0
     result = module_target_sat.cli.ComputeResource.exists(search=('name', comp_res['name']))

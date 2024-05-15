@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import json
 import random
 
@@ -28,11 +29,12 @@ from robottelo.constants import (
 )
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skip_if_not_set('http_proxy', 'gce')
 def test_positive_default_end_to_end_with_custom_profile(
-    session, sat_gce_org, sat_gce_loc, gce_cert, sat_gce
+    sat_gce_org, sat_gce_loc, gce_cert, sat_gce
 ):
     """Create GCE compute resource with default properties and apply it's basic functionality.
 
@@ -139,12 +141,12 @@ def test_positive_default_end_to_end_with_custom_profile(
         assert not session.computeresource.search(new_cr_name)
 
 
+@pytest.mark.e2e
 @pytest.mark.tier4
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('gce')
 @pytest.mark.parametrize('sat_gce', ['sat', 'puppet_sat'], indirect=True)
 def test_positive_gce_provision_end_to_end(
-    session,
     request,
     sat_gce,
     sat_gce_org,
@@ -224,13 +226,13 @@ def test_positive_gce_provision_end_to_end(
             assert gceapi_vm.is_stopping or gceapi_vm.is_stopped
 
 
+@pytest.mark.e2e
 @pytest.mark.tier4
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('gce')
 @pytest.mark.parametrize('sat_gce', ['sat', 'puppet_sat'], indirect=True)
 def test_positive_gce_cloudinit_provision_end_to_end(
-    session,
     request,
     sat_gce,
     sat_gce_org,

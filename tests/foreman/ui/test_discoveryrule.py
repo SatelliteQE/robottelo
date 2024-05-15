@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_integer, gen_ipaddr, gen_string
 import pytest
 
@@ -62,6 +63,7 @@ def gen_int32(min_value=1):
     return gen_integer(min_value=min_value, max_value=max_value)
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 def test_positive_crud_with_non_admin_user(
     module_location, manager_user, module_org, module_target_sat
@@ -231,6 +233,7 @@ def test_positive_list_host_based_on_rule_search_query(
         assert values['properties']['properties_table']['IP Address'] == ip_address
 
 
+@pytest.mark.e2e
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, module_location, module_target_sat):

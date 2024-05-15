@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import os
 from time import sleep
 
@@ -129,7 +130,7 @@ def configure_hammer_session(parametrized_enrolled_sat, enable=True):
 
 def generate_otp(secret):
     """Return the time_based_otp"""
-    time_otp = pyotp.TOTP(secret)
+    time_otp = pyotp.TOTP(secret, digest='SHA1', digits=6, interval=120)
     return time_otp.now()
 
 
@@ -196,9 +197,12 @@ def test_positive_create_with_https(
         assert ldap_source['ldap_server']['name'] == ldap_auth_name
         assert ldap_source['ldap_server']['host'] == auth_data['ldap_hostname']
         assert ldap_source['ldap_server']['port'] == '636'
-    with module_target_sat.ui_session(
-        test_name, username, auth_data['ldap_user_passwd']
-    ) as ldapsession, pytest.raises(NavigationTriesExceeded):
+    with (
+        module_target_sat.ui_session(
+            test_name, username, auth_data['ldap_user_passwd']
+        ) as ldapsession,
+        pytest.raises(NavigationTriesExceeded),
+    ):
         ldapsession.user.search('')
     assert module_target_sat.api.User().search(query={'search': f'login="{username}"'})
 
@@ -327,7 +331,9 @@ def test_session_expire_rhsso_idle_timeout(
         session.rhsso_login.login(
             {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.rhsso_password}
         )
-        sleep(60)
+        sleep(
+            150
+        )  # give the browser some time to actually logout, even though Satellite should terminate session after one minute
         with pytest.raises(NavigationTriesExceeded) as error:
             session.task.read_all(widget_names='current_user')['current_user']
         assert error.typename == 'NavigationTriesExceeded'
@@ -563,7 +569,9 @@ def test_user_permissions_rhsso_user_multiple_group(
         assert login_details['username'] in current_user
 
 
-def test_totp_user_login(ad_data, module_target_sat):
+def test_totp_user_login(
+    enable_external_auth_rhsso, rhsso_setting_setup, ad_data, module_target_sat
+):
     """Verify the TOTP authentication of LDAP user interlinked with RH-SSO
 
     :id: cf8dfa00-4f48-11eb-b7d5-d46d6dd3b5b2

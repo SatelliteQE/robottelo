@@ -15,6 +15,7 @@ http://www.katello.org/docs/api/apidoc/lifecycle_environments.html
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError

@@ -2,6 +2,7 @@
 It is not meant to be used directly, but as part of a robottelo.hosts.Satellite instance
 example: my_satellite.api_factory.api_method()
 """
+
 from contextlib import contextmanager
 from datetime import datetime
 import time
@@ -15,6 +16,7 @@ from requests import HTTPError
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
+    DEFAULT_OS_SEARCH_QUERY,
     DEFAULT_PTABLE,
     DEFAULT_PXE_TEMPLATE,
     DEFAULT_TEMPLATE,
@@ -336,7 +338,7 @@ class APIFactory:
         if os is None:
             os = (
                 self._satellite.api.OperatingSystem()
-                .search(query={'search': 'name="RedHat" AND (major="6" OR major="7")'})[0]
+                .search(query={'search': DEFAULT_OS_SEARCH_QUERY})[0]
                 .read()
             )
         else:

@@ -13,16 +13,16 @@ Subcommands:
 Options:
  -h, --help                    Print help
 """
+
 from robottelo.cli.base import Base, CLIError
 from robottelo.constants import WEBHOOK_EVENTS, WEBHOOK_METHODS
 
 
 class Webhook(Base):
-
     command_base = 'webhook'
 
     @classmethod
-    def create(cls, options=None):
+    def create(cls, options=None, timeout=None):
         """Create a webhook"""
         cls.command_sub = 'create'
 
@@ -41,4 +41,4 @@ class Webhook(Base):
                 'See See "hammer webhook create --help" for the list of supported  methods'
             )
 
-        return super().create(options)
+        return super().create(options, timeout)

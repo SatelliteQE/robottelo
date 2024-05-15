@@ -7,9 +7,10 @@
 :CaseImportance: High
 
 """
+
 from random import choice, randint, shuffle
 
-from fauxfactory import gen_string, gen_url
+from fauxfactory import gen_url
 import pytest
 from requests.exceptions import HTTPError
 
@@ -306,48 +307,6 @@ class TestDockerContentView:
     """
 
     @pytest.mark.tier2
-    def test_positive_add_docker_repo(self, repo, content_view):
-        """Add one Docker-type repository to a non-composite content view
-
-        :id: a065822f-bb41-4fc9-bf5c-65814ca11b2d
-
-        :expectedresults: A repository is created with a Docker repository and
-            the product is added to a non-composite content view
-        """
-        # Associate docker repo with the content view
-        content_view.repository = [repo]
-        content_view = content_view.update(['repository'])
-        assert repo.id in [repo_.id for repo_ in content_view.repository]
-
-    @pytest.mark.tier2
-    def test_positive_add_docker_repos(self, module_target_sat, module_product, content_view):
-        """Add multiple Docker-type repositories to a
-        non-composite content view.
-
-        :id: 08eed081-2003-4475-95ac-553a56b83997
-
-        :expectedresults: Repositories are created with Docker upstream repos
-            and the product is added to a non-composite content view.
-        """
-        repos = [
-            _create_repository(module_target_sat, module_product, name=gen_string('alpha'))
-            for _ in range(randint(2, 5))
-        ]
-        repo_ids = {r.id for r in repos}
-        assert repo_ids.issubset({r.id for r in module_product.read().repository})
-
-        content_view.repository = repos
-        content_view = content_view.update(['repository'])
-
-        assert len(repos) == len(content_view.repository)
-
-        for repo in content_view.repository:
-            r = repo.read()
-            assert r.id in repo_ids
-            assert r.content_type == 'docker'
-            assert r.docker_upstream_name == CONTAINER_UPSTREAM_NAME
-
-    @pytest.mark.tier2
     def test_positive_add_synced_docker_repo(self, module_org, module_product, module_target_sat):
         """Create and sync a Docker-type repository
 
@@ -368,43 +327,6 @@ class TestDockerContentView:
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
         assert repo.id in [repo_.id for repo_ in content_view.repository]
-
-    @pytest.mark.tier2
-    def test_positive_add_docker_repo_to_ccv(self, module_org, module_target_sat):
-        """Add one Docker-type repository to a composite content view
-
-        :id: fe278275-2bb2-4d68-8624-f0cfd63ecb57
-
-        :expectedresults: A repository is created with a Docker repository and
-            the product is added to a content view which is then added to a
-            composite content view.
-        """
-        repo = _create_repository(
-            module_target_sat, module_target_sat.api.Product(organization=module_org).create()
-        )
-
-        # Create content view and associate docker repo
-        content_view = module_target_sat.api.ContentView(
-            composite=False, organization=module_org
-        ).create()
-        content_view.repository = [repo]
-        content_view = content_view.update(['repository'])
-        assert repo.id in [repo_.id for repo_ in content_view.repository]
-
-        # Publish it and grab its version ID (there should only be one version)
-        content_view.publish()
-        content_view = content_view.read()
-        assert len(content_view.version) == 1
-
-        # Create composite content view and associate content view to it
-        comp_content_view = module_target_sat.api.ContentView(
-            composite=True, organization=module_org
-        ).create()
-        comp_content_view.component = content_view.version
-        comp_content_view = comp_content_view.update(['component'])
-        assert content_view.version[0].id in [
-            component.id for component in comp_content_view.component
-        ]
 
     @pytest.mark.tier2
     def test_positive_add_docker_repos_to_ccv(self, module_org, module_target_sat):
@@ -442,38 +364,6 @@ class TestDockerContentView:
             comp_content_view.component.append(cv_version)
             comp_content_view = comp_content_view.update(['component'])
             assert cv_version.id in [component.id for component in comp_content_view.component]
-
-    @pytest.mark.tier2
-    def test_positive_publish_with_docker_repo(self, module_org, module_target_sat):
-        """Add Docker-type repository to content view and publish it once.
-
-        :id: 86a73e96-ead6-41fb-8095-154a0b83e344
-
-        :expectedresults: One repository is created with a Docker upstream
-            repository and the product is added to a content view which is then
-            published only once.
-        """
-        repo = _create_repository(
-            module_target_sat, module_target_sat.api.Product(organization=module_org).create()
-        )
-
-        content_view = module_target_sat.api.ContentView(
-            composite=False, organization=module_org
-        ).create()
-        content_view.repository = [repo]
-        content_view = content_view.update(['repository'])
-        assert repo.id in [repo_.id for repo_ in content_view.repository]
-
-        # Not published yet?
-        content_view = content_view.read()
-        assert content_view.last_published is None
-        assert float(content_view.next_version) == 1.0
-
-        # Publish it and check that it was indeed published.
-        content_view.publish()
-        content_view = content_view.read()
-        assert content_view.last_published is not None
-        assert float(content_view.next_version) > 1.0
 
     @pytest.mark.tier2
     def test_positive_publish_with_docker_repo_composite(self, module_org, module_target_sat):
@@ -527,109 +417,6 @@ class TestDockerContentView:
         assert float(comp_content_view.next_version) > 1.0
 
     @pytest.mark.tier2
-    def test_positive_publish_multiple_with_docker_repo(self, module_org, module_target_sat):
-        """Add Docker-type repository to content view and publish it
-        multiple times.
-
-        :id: e2caad64-e9f4-422d-a1ab-f64c286d82ff
-
-        :expectedresults: One repository is created with a Docker upstream
-            repository and the product is added to a content view which is then
-            published multiple times.
-        """
-        repo = _create_repository(
-            module_target_sat, module_target_sat.api.Product(organization=module_org).create()
-        )
-        content_view = module_target_sat.api.ContentView(
-            composite=False, organization=module_org
-        ).create()
-        content_view.repository = [repo]
-        content_view = content_view.update(['repository'])
-        assert [repo.id] == [repo_.id for repo_ in content_view.repository]
-        assert content_view.read().last_published is None
-
-        publish_amount = randint(2, 5)
-        for _ in range(publish_amount):
-            content_view.publish()
-        content_view = content_view.read()
-        assert content_view.last_published is not None
-        assert len(content_view.version) == publish_amount
-
-    @pytest.mark.tier2
-    def test_positive_publish_multiple_with_docker_repo_composite(
-        self, module_org, module_target_sat
-    ):
-        """Add Docker-type repository to content view and publish it
-        multiple times.
-
-        :id: 77a5957a-7415-41c3-be68-fa706fee7c98
-
-        :expectedresults: One repository is created with a Docker upstream
-            repository and the product is added to a content view which is then
-            added to a composite content view which is then published multiple
-            times.
-        """
-        repo = _create_repository(
-            module_target_sat, module_target_sat.api.Product(organization=module_org).create()
-        )
-        content_view = module_target_sat.api.ContentView(
-            composite=False, organization=module_org
-        ).create()
-        content_view.repository = [repo]
-        content_view = content_view.update(['repository'])
-        assert [repo.id] == [repo_.id for repo_ in content_view.repository]
-        assert content_view.read().last_published is None
-
-        content_view.publish()
-        content_view = content_view.read()
-        assert content_view.last_published is not None
-
-        comp_content_view = module_target_sat.api.ContentView(
-            composite=True, organization=module_org
-        ).create()
-        comp_content_view.component = [content_view.version[0]]
-        comp_content_view = comp_content_view.update(['component'])
-        assert [content_view.version[0].id] == [comp.id for comp in comp_content_view.component]
-        assert comp_content_view.last_published is None
-
-        publish_amount = randint(2, 5)
-        for _ in range(publish_amount):
-            comp_content_view.publish()
-        comp_content_view = comp_content_view.read()
-        assert comp_content_view.last_published is not None
-        assert len(comp_content_view.version) == publish_amount
-
-    @pytest.mark.tier2
-    def test_positive_promote_with_docker_repo(self, module_org, module_target_sat):
-        """Add Docker-type repository to content view and publish it.
-        Then promote it to the next available lifecycle-environment.
-
-        :id: 5ab7d7f1-fb13-4b83-b228-a6293be36195
-
-        :expectedresults: Docker-type repository is promoted to content view
-            found in the specific lifecycle-environment.
-        """
-        lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
-        repo = _create_repository(
-            module_target_sat, module_target_sat.api.Product(organization=module_org).create()
-        )
-
-        content_view = module_target_sat.api.ContentView(
-            composite=False, organization=module_org
-        ).create()
-        content_view.repository = [repo]
-        content_view = content_view.update(['repository'])
-        assert [repo.id] == [repo_.id for repo_ in content_view.repository]
-
-        content_view.publish()
-        content_view = content_view.read()
-        cvv = content_view.version[0].read()
-        assert len(cvv.environment) == 1
-
-        cvv.promote(data={'environment_ids': lce.id, 'force': False})
-        assert len(cvv.read().environment) == 2
-
-    @pytest.mark.tier2
     def test_positive_promote_multiple_with_docker_repo(self, module_org, module_target_sat):
         """Add Docker-type repository to content view and publish it.
         Then promote it to multiple available lifecycle-environments.
@@ -658,45 +445,6 @@ class TestDockerContentView:
             lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
             cvv.promote(data={'environment_ids': lce.id, 'force': False})
             assert len(cvv.read().environment) == i + 1
-
-    @pytest.mark.tier2
-    def test_positive_promote_with_docker_repo_composite(self, module_org, module_target_sat):
-        """Add Docker-type repository to content view and publish it.
-        Then add that content view to composite one. Publish and promote that
-        composite content view to the next available lifecycle-environment.
-
-        :id: e903c7b2-7722-4a9e-bb69-99bbd3c23946
-
-        :expectedresults: Docker-type repository is promoted to content view
-            found in the specific lifecycle-environment.
-        """
-        lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
-        repo = _create_repository(
-            module_target_sat, module_target_sat.api.Product(organization=module_org).create()
-        )
-        content_view = module_target_sat.api.ContentView(
-            composite=False, organization=module_org
-        ).create()
-        content_view.repository = [repo]
-        content_view = content_view.update(['repository'])
-        assert [repo.id] == [repo_.id for repo_ in content_view.repository]
-
-        content_view.publish()
-        cvv = content_view.read().version[0].read()
-
-        comp_content_view = module_target_sat.api.ContentView(
-            composite=True, organization=module_org
-        ).create()
-        comp_content_view.component = [cvv]
-        comp_content_view = comp_content_view.update(['component'])
-        assert cvv.id == comp_content_view.component[0].id
-
-        comp_content_view.publish()
-        comp_cvv = comp_content_view.read().version[0]
-        assert len(comp_cvv.read().environment) == 1
-
-        comp_cvv.promote(data={'environment_ids': lce.id, 'force': False})
-        assert len(comp_cvv.read().environment) == 2
 
     @pytest.mark.upgrade
     @pytest.mark.tier2
@@ -740,216 +488,6 @@ class TestDockerContentView:
             lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
             comp_cvv.promote(data={'environment_ids': lce.id, 'force': False})
             assert len(comp_cvv.read().environment) == i + 1
-
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    def test_positive_name_pattern_change(self, module_org, module_target_sat):
-        """Promote content view with Docker repository to lifecycle environment.
-        Change registry name pattern for that environment. Verify that repository
-        name on product changed according to new pattern.
-
-        :id: cc78d82d-027b-4cb7-92c5-dcccf9b592ea
-
-        :expectedresults: Container repository name is changed
-            according to new pattern.
-        """
-        pattern_prefix = gen_string('alpha', 5)
-        docker_upstream_name = 'hello-world'
-        new_pattern = (
-            f'{pattern_prefix}-<%= organization.label %>/<%= repository.docker_upstream_name %>'
-        )
-
-        repo = _create_repository(
-            module_target_sat,
-            module_target_sat.api.Product(organization=module_org).create(),
-            upstream_name=docker_upstream_name,
-        )
-        repo.sync(timeout=600)
-        content_view = module_target_sat.api.ContentView(
-            composite=False, organization=module_org
-        ).create()
-        content_view.repository = [repo]
-        content_view = content_view.update(['repository'])
-        content_view.publish()
-        cvv = content_view.read().version[0]
-        lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
-        cvv.promote(data={'environment_ids': lce.id, 'force': False})
-        lce.registry_name_pattern = new_pattern
-        lce = lce.update(['registry_name_pattern'])
-        repos = module_target_sat.api.Repository(organization=module_org).search(
-            query={'environment_id': lce.id}
-        )
-
-        expected_pattern = f'{pattern_prefix}-{module_org.label}/{docker_upstream_name}'.lower()
-        assert lce.registry_name_pattern == new_pattern
-        assert repos[0].container_repository_name == expected_pattern
-
-    @pytest.mark.tier2
-    def test_positive_product_name_change_after_promotion(self, module_org, module_target_sat):
-        """Promote content view with Docker repository to lifecycle environment.
-        Change product name. Verify that repository name on product changed
-        according to new pattern.
-
-        :id: 4ff21344-9ee6-4e17-9a88-0230e7cdd586
-
-        :expectedresults: Container repository name is changed
-            according to new pattern.
-        """
-        old_prod_name = gen_string('alpha', 5)
-        new_prod_name = gen_string('alpha', 5)
-        docker_upstream_name = 'hello-world'
-        new_pattern = "<%= organization.label %>/<%= product.name %>"
-
-        prod = module_target_sat.api.Product(organization=module_org, name=old_prod_name).create()
-        repo = _create_repository(module_target_sat, prod, upstream_name=docker_upstream_name)
-        repo.sync(timeout=600)
-        content_view = module_target_sat.api.ContentView(
-            composite=False, organization=module_org
-        ).create()
-        content_view.repository = [repo]
-        content_view = content_view.update(['repository'])
-        content_view.publish()
-        cvv = content_view.read().version[0]
-        lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
-        lce.registry_name_pattern = new_pattern
-        lce = lce.update(['registry_name_pattern'])
-        cvv.promote(data={'environment_ids': lce.id, 'force': False})
-        prod.name = new_prod_name
-        prod.update(['name'])
-        repos = module_target_sat.api.Repository(organization=module_org).search(
-            query={'environment_id': lce.id}
-        )
-
-        expected_pattern = f"{module_org.label}/{old_prod_name}".lower()
-        assert repos[0].container_repository_name == expected_pattern
-
-        content_view.publish()
-        cvv = content_view.read().version[-1]
-        cvv.promote(data={'environment_ids': lce.id, 'force': False})
-        repos = module_target_sat.api.Repository(organization=module_org).search(
-            query={'environment_id': lce.id}
-        )
-
-        expected_pattern = f"{module_org.label}/{new_prod_name}".lower()
-        assert repos[0].container_repository_name == expected_pattern
-
-    @pytest.mark.tier2
-    def test_positive_repo_name_change_after_promotion(self, module_org, module_target_sat):
-        """Promote content view with Docker repository to lifecycle environment.
-        Change repository name. Verify that Docker repository name on product
-        changed according to new pattern.
-
-        :id: 304ae909-dc67-4a7e-80e1-96b45354e5a6
-
-        :expectedresults: Container repository name is changed
-            according to new pattern.
-        """
-        old_repo_name = gen_string('alpha', 5)
-        new_repo_name = gen_string('alpha', 5)
-        docker_upstream_name = 'hello-world'
-        new_pattern = "<%= organization.label %>/<%= repository.name %>"
-
-        repo = _create_repository(
-            module_target_sat,
-            module_target_sat.api.Product(organization=module_org).create(),
-            name=old_repo_name,
-            upstream_name=docker_upstream_name,
-        )
-        repo.sync(timeout=600)
-        content_view = module_target_sat.api.ContentView(
-            composite=False, organization=module_org
-        ).create()
-        content_view.repository = [repo]
-        content_view = content_view.update(['repository'])
-        content_view.publish()
-        cvv = content_view.read().version[0]
-        lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
-        lce.registry_name_pattern = new_pattern
-        lce = lce.update(['registry_name_pattern'])
-        cvv.promote(data={'environment_ids': lce.id, 'force': False})
-        repo.name = new_repo_name
-        repo.update(['name'])
-        repos = module_target_sat.api.Repository(organization=module_org).search(
-            query={'environment_id': lce.id}
-        )
-
-        expected_pattern = f"{module_org.label}/{old_repo_name}".lower()
-        assert repos[0].container_repository_name == expected_pattern
-
-        content_view.publish()
-        cvv = content_view.read().version[-1]
-        cvv.promote(data={'environment_ids': lce.id, 'force': False})
-        repos = module_target_sat.api.Repository(organization=module_org).search(
-            query={'environment_id': lce.id}
-        )
-
-        expected_pattern = f"{module_org.label}/{new_repo_name}".lower()
-        assert repos[0].container_repository_name == expected_pattern
-
-    @pytest.mark.tier2
-    def test_negative_set_non_unique_name_pattern_and_promote(self, module_org, module_target_sat):
-        """Set registry name pattern to one that does not guarantee uniqueness.
-        Try to promote content view with multiple Docker repositories to
-        lifecycle environment. Verify that content has not been promoted.
-
-        :id: baae1ec2-35e8-4122-8fac-135c987139d3
-
-        :expectedresults: Content view is not promoted
-        """
-        docker_upstream_names = ['hello-world', 'alpine']
-        new_pattern = "<%= organization.label %>"
-
-        lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
-        lce.registry_name_pattern = new_pattern
-        lce = lce.update(['registry_name_pattern'])
-        prod = module_target_sat.api.Product(organization=module_org).create()
-        repos = []
-        for docker_name in docker_upstream_names:
-            repo = _create_repository(module_target_sat, prod, upstream_name=docker_name)
-            repo.sync(timeout=600)
-            repos.append(repo)
-        content_view = module_target_sat.api.ContentView(
-            composite=False, organization=module_org
-        ).create()
-        content_view.repository = repos
-        content_view = content_view.update(['repository'])
-        content_view.publish()
-        cvv = content_view.read().version[0]
-        with pytest.raises(HTTPError):
-            cvv.promote(data={'environment_ids': lce.id, 'force': False})
-
-    @pytest.mark.tier2
-    def test_negative_promote_and_set_non_unique_name_pattern(self, module_org, module_target_sat):
-        """Promote content view with multiple Docker repositories to
-        lifecycle environment. Set registry name pattern to one that
-        does not guarantee uniqueness. Verify that pattern has not been
-        changed.
-
-        :id: 945b3301-c523-4026-9753-df3577888319
-
-        :expectedresults: Registry name pattern is not changed
-        """
-        docker_upstream_names = ['hello-world', 'alpine']
-        new_pattern = "<%= organization.label %>"
-
-        prod = module_target_sat.api.Product(organization=module_org).create()
-        repos = []
-        for docker_name in docker_upstream_names:
-            repo = _create_repository(module_target_sat, prod, upstream_name=docker_name)
-            repo.sync(timeout=600)
-            repos.append(repo)
-        content_view = module_target_sat.api.ContentView(
-            composite=False, organization=module_org
-        ).create()
-        content_view.repository = repos
-        content_view = content_view.update(['repository'])
-        content_view.publish()
-        cvv = content_view.read().version[0]
-        lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
-        cvv.promote(data={'environment_ids': lce.id, 'force': False})
-        lce.registry_name_pattern = new_pattern
-        with pytest.raises(HTTPError):
-            lce.update(['registry_name_pattern'])
 
 
 class TestDockerActivationKey:

@@ -35,7 +35,7 @@ def capsule_provisioning_sat(
     sat = module_target_sat
     provisioning_domain_name = f"{gen_string('alpha').lower()}.foo"
     broker_data_out = Broker().execute(
-        workflow='configure-install-sat-provisioning-rhv',
+        workflow=settings.provisioning.provisioning_sat_workflow,
         artifacts='last',
         target_vlan_id=settings.provisioning.vlan_id,
         target_host=module_capsule_configured.name,

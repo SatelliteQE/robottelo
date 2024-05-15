@@ -1,6 +1,8 @@
 Team:
     required: true
 BZ: {}
+BlockedBy: {}
+Verifies: {}
 CaseAutomation:
     casesensitive: true
     choices:

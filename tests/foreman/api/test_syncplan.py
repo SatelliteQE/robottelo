@@ -15,6 +15,7 @@ API reference for sync plans can be found on your Satellite:
 :CaseImportance: High
 
 """
+
 from datetime import datetime, timedelta
 from time import sleep
 
@@ -783,7 +784,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier4
 def test_positive_synchronize_rh_product_past_sync_date(
-    request, function_entitlement_manifest_org, target_sat
+    request, function_sca_manifest_org, target_sat
 ):
     """Create a sync plan with past datetime as a sync date, add a
     RH product and verify the product gets synchronized on the next sync
@@ -799,7 +800,7 @@ def test_positive_synchronize_rh_product_past_sync_date(
     """
     interval = 60 * 60  # 'hourly' sync interval in seconds
     delay = 2 * 60
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
@@ -851,7 +852,7 @@ def test_positive_synchronize_rh_product_past_sync_date(
 @pytest.mark.tier4
 @pytest.mark.upgrade
 def test_positive_synchronize_rh_product_future_sync_date(
-    request, function_entitlement_manifest_org, target_sat
+    request, function_sca_manifest_org, target_sat
 ):
     """Create a sync plan with sync date in a future and sync one RH
     product with it automatically.
@@ -861,7 +862,7 @@ def test_positive_synchronize_rh_product_future_sync_date(
     :expectedresults: Product is synchronized successfully.
     """
     delay = 2 * 60  # delay for sync date in seconds
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,

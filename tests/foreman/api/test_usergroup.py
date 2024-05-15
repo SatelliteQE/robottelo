@@ -14,6 +14,7 @@ https://theforeman.org/api/2.0/apidoc/v2/usergroups.html
 :CaseImportance: High
 
 """
+
 from random import randint
 
 from fauxfactory import gen_string

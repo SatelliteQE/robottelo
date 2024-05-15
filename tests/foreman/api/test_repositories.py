@@ -11,6 +11,7 @@
 :CaseImportance: Critical
 
 """
+
 from manifester import Manifester
 from nailgun.entity_mixins import call_entity_method_with_timeout
 import pytest

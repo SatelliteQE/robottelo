@@ -152,7 +152,7 @@ def module_provisioning_sat(
     provisioning_domain_name = f"{gen_string('alpha').lower()}.foo"
 
     broker_data_out = Broker().execute(
-        workflow='configure-install-sat-provisioning-rhv',
+        workflow=settings.provisioning.provisioning_sat_workflow,
         artifacts='last',
         target_vlan_id=settings.provisioning.vlan_id,
         target_host=sat.name,
@@ -223,7 +223,7 @@ def provisioning_host(module_ssh_key_file, pxe_loader):
         ""  # TODO: Make this an optional fixture parameter (update vm_firmware when adding this)
     )
     with Broker(
-        workflow="deploy-configure-pxe-provisioning-host-rhv",
+        workflow=settings.provisioning.provisioning_host_workflow,
         host_class=ContentHost,
         target_vlan_id=vlan_id,
         target_vm_firmware=pxe_loader.vm_firmware,
@@ -245,7 +245,7 @@ def provision_multiple_hosts(module_ssh_key_file, pxe_loader, request):
         ""  # TODO: Make this an optional fixture parameter (update vm_firmware when adding this)
     )
     with Broker(
-        workflow="deploy-configure-pxe-provisioning-host-rhv",
+        workflow=settings.provisioning.provisioning_host_workflow,
         host_class=ContentHost,
         _count=getattr(request, 'param', 2),
         target_vlan_id=vlan_id,

@@ -1,19 +1,9 @@
 """Defines various constants"""
+
 from pathlib import Path
 
 from box import Box
 from nailgun import entities
-
-
-# String Color codes
-class Colored(Box):
-    YELLOW = '\033[1;33m'
-    REDLIGHT = '\033[3;31m'
-    REDDARK = '\033[1;31m'
-    GREEN = '\033[1;32m'
-    WHITELIGHT = '\033[1;30m'
-    RESET = '\033[0m'
-
 
 # This should be updated after each version branch
 SATELLITE_VERSION = "6.16"
@@ -311,9 +301,9 @@ REPOSET = {
     'kickstart': {
         'rhel6': 'Red Hat Enterprise Linux 6 Server (Kickstart)',
         'rhel7': 'Red Hat Enterprise Linux 7 Server (Kickstart)',
-        'rhel8': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)',
+        'rhel8_bos': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)',
         'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (Kickstart)',
-        'rhel9': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS (Kickstart)',
+        'rhel9_bos': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS (Kickstart)',
         'rhel9_aps': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream (Kickstart)',
     },
     'rhel8_bos': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)',
@@ -416,6 +406,7 @@ REPOS = {
         'reposet': REPOSET['rhsclient8'],
         'product': PRDS['rhel8'],
         'distro': 'rhel8',
+        'releasever': None,
         'key': PRODUCT_KEY_SAT_CLIENT,
     },
     'rhsclient9': {
@@ -515,6 +506,7 @@ REPOS = {
         'reposet': REPOSET['rhst8'],
         'product': PRDS['rhel8'],
         'distro': 'rhel8',
+        'releasever': None,
         'key': 'rhst',
     },
     'kickstart': {
@@ -538,7 +530,7 @@ REPOS = {
             'id': 'rhel-8-for-x86_64-baseos-kickstart',
             'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.9',
             'version': '8.9',
-            'reposet': REPOSET['kickstart']['rhel8'],
+            'reposet': REPOSET['kickstart']['rhel8_bos'],
             'product': PRDS['rhel8'],
             'distro': 'rhel8',
         },
@@ -552,16 +544,16 @@ REPOS = {
         },
         'rhel9_bos': {
             'id': 'rhel-9-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.3',
-            'version': '9.3',
-            'reposet': REPOSET['kickstart']['rhel9'],
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.4',
+            'version': '9.4',
+            'reposet': REPOSET['kickstart']['rhel9_bos'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
         'rhel9_aps': {
             'id': 'rhel-9-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.3',
-            'version': '9.3',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.4',
+            'version': '9.4',
             'reposet': REPOSET['kickstart']['rhel9_aps'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
@@ -678,6 +670,7 @@ DEFAULT_SUBSCRIPTION_NAME = 'Red Hat Enterprise Linux Server, Premium (Physical 
 DEFAULT_ARCHITECTURE = 'x86_64'
 DEFAULT_RELEASE_VERSION = '6Server'
 DEFAULT_ROLE = 'Default role'
+DEFAULT_OS_SEARCH_QUERY = 'name="RedHat" AND (major="6" OR major="7" OR major="8" OR major="9")'
 
 VDC_SUBSCRIPTION_NAME = 'Red Hat Enterprise Linux for Virtual Datacenters, Premium'
 
@@ -975,13 +968,6 @@ PERMISSIONS = {
         'view_discovery_rules',
     ],
     'Domain': ['view_domains', 'create_domains', 'edit_domains', 'destroy_domains'],
-    #    'Environment': [
-    #        'view_environments',
-    #        'create_environments',
-    #        'edit_environments',
-    #        'destroy_environments',
-    #        'import_environments',
-    #    ],
     'ExternalUsergroup': [
         'view_external_usergroups',
         'create_external_usergroups',
@@ -1059,19 +1045,35 @@ PERMISSIONS = {
         'destroy_hostgroups',
         'play_roles_on_hostgroup',
     ],
-    #    'Puppetclass': [
-    #        'view_puppetclasses',
-    #        'create_puppetclasses',
-    #        'edit_puppetclasses',
-    #        'destroy_puppetclasses',
-    #        'import_puppetclasses',
-    #    ],
-    #    'PuppetclassLookupKey': [
-    #        'view_external_parameters',
-    #        'create_external_parameters',
-    #        'edit_external_parameters',
-    #        'destroy_external_parameters',
-    #    ],
+    'ForemanPuppet::ConfigGroup': [
+        'view_config_groups',
+        'create_config_groups',
+        'edit_config_groups',
+        'destroy_config_groups',
+    ],
+    'ForemanPuppet::Environment': [
+        'view_environments',
+        'create_environments',
+        'edit_environments',
+        'destroy_environments',
+        'import_environments',
+    ],
+    'ForemanPuppet::HostClass': [
+        'edit_classes',
+    ],
+    'ForemanPuppet::Puppetclass': [
+        'view_puppetclasses',
+        'create_puppetclasses',
+        'edit_puppetclasses',
+        'destroy_puppetclasses',
+        'import_puppetclasses',
+    ],
+    'ForemanPuppet::PuppetclassLookupKey': [
+        'view_external_parameters',
+        'create_external_parameters',
+        'edit_external_parameters',
+        'destroy_external_parameters',
+    ],
     'HttpProxy': [
         'view_http_proxies',
         'create_http_proxies',
@@ -1574,6 +1576,7 @@ OSCAP_DEFAULT_CONTENT = {
     'rhel6_content': 'Red Hat rhel6 default content',
     'rhel7_content': 'Red Hat rhel7 default content',
     'rhel8_content': 'Red Hat rhel8 default content',
+    'rhel9_content': 'Red Hat rhel9 default content',
     'rhel_firefox': 'Red Hat firefox default content',
 }
 
@@ -1581,7 +1584,8 @@ OSCAP_PROFILE = {
     'c2s_rhel6': 'C2S for Red Hat Enterprise Linux 6',
     'dsrhel6': 'DISA STIG for Red Hat Enterprise Linux 6',
     'dsrhel7': 'DISA STIG for Red Hat Enterprise Linux 7',
-    'dsrhel8': '[DRAFT] DISA STIG for Red Hat Enterprise Linux 8',
+    'dsrhel8': 'DISA STIG for Red Hat Enterprise Linux 8',
+    'dsrhel9': 'DISA STIG for Red Hat Enterprise Linux 9',
     'esp': 'Example Server Profile',
     'rhccp': 'Red Hat Corporate Profile for Certified Cloud Providers (RH CCP)',
     'firefox': 'Mozilla Firefox STIG',
@@ -1593,6 +1597,7 @@ OSCAP_PROFILE = {
     'cbrhel6': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 6',
     'cbrhel7': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 7',
     'cbrhel8': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 8',
+    'cbrhel9': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 9',
     'ppgpo': 'Protection Profile for General Purpose Operating Systems',
     'acscee': 'Australian Cyber Security Centre (ACSC) Essential Eight',
     'ospp7': 'OSPP - Protection Profile for General Purpose Operating Systems v4.2.1',
@@ -1738,10 +1743,15 @@ DEFAULT_SYSPURPOSE_ATTRIBUTES = {
     ),
 }
 
-
+# Bugzilla statuses used by Robottelo issue handler.
 OPEN_STATUSES = ("NEW", "ASSIGNED", "POST", "MODIFIED")
 CLOSED_STATUSES = ("ON_QA", "VERIFIED", "RELEASE_PENDING", "CLOSED")
 WONTFIX_RESOLUTIONS = ("WONTFIX", "CANTFIX", "DEFERRED")
+# Jira statuses used by Robottelo issue handler.
+JIRA_OPEN_STATUSES = ("New", "Backlog", "Refinement", "To Do", "In Progress")
+JIRA_ONQA_STATUS = "Review"
+JIRA_CLOSED_STATUSES = ("Release Pending", "Closed")
+JIRA_WONTFIX_RESOLUTIONS = "Obsolete"
 
 GROUP_MEMBERSHIP_MAPPER = {
     "config": {
@@ -1873,7 +1883,6 @@ FAM_TEST_PLAYBOOKS = [
     "content_export_repository",
     "content_export_version",
     "content_rhel_role",
-    "content_upload_ostree",
     "content_upload",
     "content_view_filter_info",
     "content_view_filter_rule_info",
@@ -1934,9 +1943,9 @@ FAM_TEST_PLAYBOOKS = [
     "puppet_environment",
     "realm",
     "redhat_manifest",
+    "registration_command",
     "repositories_role",
     "repository_info",
-    "repository_ostree",
     "repository_set_info",
     "repository_set",
     "repository_sync",
@@ -1963,6 +1972,7 @@ FAM_TEST_PLAYBOOKS = [
     "usergroup",
     "user",
     "wait_for_task",
+    "webhook",
 ]
 
 FAM_ROOT_DIR = '/usr/share/ansible/collections/ansible_collections/redhat/satellite'
@@ -2058,6 +2068,7 @@ DNF_RECOMMENDATION = (
 )
 
 EXPIRED_MANIFEST = 'expired-manifest.zip'
+
 
 # Data File Paths
 class DataFile(Box):

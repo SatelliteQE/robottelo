@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
 import pytest
 
@@ -343,8 +344,9 @@ class TestAzureRMFinishTemplateProvisioning:
         Provisions the host on AzureRM using Finish template
         Later in tests this host will be used to perform assertions
         """
-        with sat_azure.hammer_api_timeout(), sat_azure.skip_yum_update_during_provisioning(
-            template='Kickstart default finish'
+        with (
+            sat_azure.hammer_api_timeout(),
+            sat_azure.skip_yum_update_during_provisioning(template='Kickstart default finish'),
         ):
             host = sat_azure.cli.Host.create(
                 {
@@ -472,8 +474,9 @@ class TestAzureRMUserDataProvisioning:
         Provisions the host on AzureRM using UserData template
         Later in tests this host will be used to perform assertions
         """
-        with sat_azure.hammer_api_timeout(), sat_azure.skip_yum_update_during_provisioning(
-            template='Kickstart default user data'
+        with (
+            sat_azure.hammer_api_timeout(),
+            sat_azure.skip_yum_update_during_provisioning(template='Kickstart default user data'),
         ):
             host = sat_azure.cli.Host.create(
                 {

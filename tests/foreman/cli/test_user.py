@@ -17,6 +17,7 @@ When testing email validation [1] and [2] should be taken into consideration.
 :CaseImportance: High
 
 """
+
 import datetime
 import random
 from time import sleep

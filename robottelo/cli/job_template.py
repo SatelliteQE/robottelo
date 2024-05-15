@@ -16,6 +16,7 @@ Subcommands:
      list           List job templates
      update         Update a job template
 """
+
 from robottelo.cli.base import Base
 
 

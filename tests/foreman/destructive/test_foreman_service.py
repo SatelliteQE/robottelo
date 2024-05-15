@@ -7,6 +7,7 @@
 :CaseImportance: Medium
 
 """
+
 import pytest
 
 from robottelo.constants import DEFAULT_ORG

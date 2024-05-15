@@ -18,6 +18,7 @@ Subcommands::
     set_parameter                 Create or update parameter for a domain.
     update                        Update a domain.
 """
+
 from robottelo.cli.base import Base
 
 

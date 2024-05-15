@@ -8,7 +8,7 @@ jobs:
     prt_labels_remover:
       name: remove the PRT label when amendments or new commits added to PR
       runs-on: ubuntu-latest
-      if: "(contains(github.event.pull_request.labels.*.name, 'PRT-Passed') || contains(github.event.pull_request.labels.*.name, 'PRT-Failed'))"
+      if: "(contains(github.event.pull_request.labels.*.name, 'PRT-Passed'))"
       steps:
         - name: Avoid the race condition as PRT result will be cleaned
           run: |
@@ -23,7 +23,7 @@ jobs:
             wait-interval: 2
             count: 5
 
-        - name: remove the PRT Passed/Failed label, for new commit
+        - name: remove the PRT Passed label, for new commit
           if: always() && ${{steps.prt.outputs.result}} == 'not_found'
           uses: actions/github-script@v7
           with:
@@ -35,7 +35,7 @@ jobs:
                 repo: context.repo.repo,
                 issue_number: prNumber,
               });
-              const labelsToRemove = ['PRT-Failed', 'PRT-Passed'];
+              const labelsToRemove = ['PRT-Passed'];
               const labelsToRemoveFiltered = labelsToRemove.filter(label => issue.data.labels.some(({ name }) => name === label));
               if (labelsToRemoveFiltered.length > 0) {
                 await Promise.all(labelsToRemoveFiltered.map(async label => {

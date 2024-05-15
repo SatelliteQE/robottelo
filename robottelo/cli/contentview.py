@@ -33,6 +33,7 @@ Options::
 
     -h, --help                    print help
 """
+
 from robottelo.cli import hammer
 from robottelo.cli.base import Base, CLIError
 
@@ -43,7 +44,7 @@ class ContentViewFilterRule(Base):
     command_base = 'content-view filter rule'
 
     @classmethod
-    def create(cls, options=None):
+    def create(cls, options=None, timeout=None):
         """Create a content-view filter rule"""
         if (
             not options
@@ -55,7 +56,7 @@ class ContentViewFilterRule(Base):
                 ' "content-view-filter" or "content-view-filter-id".'
             )
         cls.command_sub = 'create'
-        result = cls.execute(cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv', timeout=timeout)
 
         # Extract new CV filter rule ID if it was successfully created
         if len(result) > 0 and 'id' in result[0]:

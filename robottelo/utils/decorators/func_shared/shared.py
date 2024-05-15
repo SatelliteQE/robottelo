@@ -84,6 +84,7 @@ Usage::
 
             return dict(org=cls.org, repo=cls.repo}
 """
+
 import datetime
 import functools
 import hashlib
@@ -213,7 +214,6 @@ class _SharedFunction:
         inject=False,
         injected_kw='_inject',
     ):
-
         if storage_handler is None:
             storage_handler = _get_default_storage_handler()
 
@@ -258,7 +258,6 @@ class _SharedFunction:
         return kwargs
 
     def _call_function(self):
-
         retries = self._max_retries
         if not retries:
             retries = 1
@@ -271,9 +270,7 @@ class _SharedFunction:
             traceback_text = None
             try:
                 logger.info(
-                    'calling shared function: {} - retry index: {}'.format(
-                        self._function_key, retry_index
-                    )
+                    f'calling shared function: {self._function_key} - retry index: {retry_index}'
                 )
                 result = self._function(*self._function_args, **self._function_kwargs)
                 break
@@ -334,9 +331,7 @@ class _SharedFunction:
                 creation_datetime = datetime.datetime.utcnow().strftime(_DATETIME_FORMAT)
                 if exp:
                     error = str(exp) or 'error occurred'
-                    error_class_name = '{}.{}'.format(
-                        exp.__class__.__module__, exp.__class__.__name__
-                    )
+                    error_class_name = f'{exp.__class__.__module__}.{exp.__class__.__name__}'
                     value = dict(
                         state=_STATE_FAILED,
                         id=self.transaction,
@@ -469,11 +464,7 @@ def _get_function_name_key(function_name, scope=None, scope_kwargs=None, scope_c
     scope_name = _get_scope_name(
         scope=scope, scope_kwargs=scope_kwargs, scope_context=scope_context
     )
-    if scope_name:
-        function_name_key = '.'.join([scope_name, function_name])
-    else:
-        function_name_key = function_name
-    return function_name_key
+    return '.'.join([scope_name, function_name]) if scope_name else function_name
 
 
 def shared(

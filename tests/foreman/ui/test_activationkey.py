@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import random
 
 from broker import Broker
@@ -819,7 +820,7 @@ def test_positive_add_docker_repo_ccv(session, module_org, module_target_sat):
 
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
-def test_positive_add_host(session, module_org, rhel6_contenthost, target_sat):
+def test_positive_add_host(session, module_org, rhel_contenthost, target_sat):
     """Test that hosts can be associated to Activation Keys
 
     :id: 886e9ea5-d917-40e0-a3b1-41254c4bf5bf
@@ -839,21 +840,20 @@ def test_positive_add_host(session, module_org, rhel6_contenthost, target_sat):
         ).search()[0],
         organization=module_org,
     ).create()
-
-    rhel6_contenthost.install_katello_ca(target_sat)
-    rhel6_contenthost.register_contenthost(module_org.label, ak.name)
-    assert rhel6_contenthost.subscribed
+    result = rhel_contenthost.register(module_org, None, ak.name, target_sat)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    assert rhel_contenthost.subscribed
     with session:
         session.location.select(constants.DEFAULT_LOC)
         session.organization.select(module_org.name)
         ak = session.activationkey.read(ak.name, widget_names='content_hosts')
         assert len(ak['content_hosts']['table']) == 1
-        assert ak['content_hosts']['table'][0]['Name'] == rhel6_contenthost.hostname
+        assert ak['content_hosts']['table'][0]['Name'] == rhel_contenthost.hostname
 
 
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
-def test_positive_delete_with_system(session, rhel6_contenthost, target_sat):
+def test_positive_delete_with_system(session, rhel_contenthost, target_sat):
     """Delete an Activation key which has registered systems
 
     :id: 86cd070e-cf46-4bb1-b555-e7cb42e4dc9f
@@ -884,9 +884,9 @@ def test_positive_delete_with_system(session, rhel6_contenthost, target_sat):
         )
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.add_subscription(name, product_name)
-        rhel6_contenthost.install_katello_ca(target_sat)
-        rhel6_contenthost.register_contenthost(org.label, name)
-        assert rhel6_contenthost.subscribed
+        result = rhel_contenthost.register(org, None, name, target_sat)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        assert rhel_contenthost.subscribed
         session.activationkey.delete(name)
         assert session.activationkey.search(name)[0]['Name'] != name
 
@@ -917,11 +917,10 @@ def test_negative_usage_limit(session, module_org, target_sat):
         assert ak['details']['hosts_limit'] == hosts_limit
     with Broker(nick='rhel6', host_class=ContentHost, _count=2) as hosts:
         vm1, vm2 = hosts
-        vm1.install_katello_ca(target_sat)
-        vm1.register_contenthost(module_org.label, name)
+        result = vm1.register(module_org, None, name, target_sat)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
         assert vm1.subscribed
-        vm2.install_katello_ca(target_sat)
-        result = vm2.register_contenthost(module_org.label, name)
+        result = vm2.register(module_org, None, name, target_sat)
         assert not vm2.subscribed
         assert len(result.stderr)
         assert f'Max Hosts ({hosts_limit}) reached for activation key' in str(result.stderr)
@@ -931,7 +930,7 @@ def test_negative_usage_limit(session, module_org, target_sat):
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_add_multiple_aks_to_system(session, module_org, rhel6_contenthost, target_sat):
+def test_positive_add_multiple_aks_to_system(session, module_org, rhel_contenthost, target_sat):
     """Check if multiple Activation keys can be attached to a system
 
     :id: 4d6b6b69-9d63-4180-af2e-a5d908f8adb7
@@ -975,14 +974,14 @@ def test_positive_add_multiple_aks_to_system(session, module_org, rhel6_contenth
             ]
             assert product_name in subscriptions
         # Create VM
-        rhel6_contenthost.install_katello_ca(target_sat)
-        rhel6_contenthost.register_contenthost(module_org.label, ','.join([key_1_name, key_2_name]))
-        assert rhel6_contenthost.subscribed
+        result = rhel_contenthost.register(module_org, None, [key_1_name, key_2_name], target_sat)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        assert rhel_contenthost.subscribed
         # Assert the content-host association with activation keys
         for key_name in [key_1_name, key_2_name]:
             ak = session.activationkey.read(key_name, widget_names='content_hosts')
             assert len(ak['content_hosts']['table']) == 1
-            assert ak['content_hosts']['table'][0]['Name'] == rhel6_contenthost.hostname
+            assert ak['content_hosts']['table'][0]['Name'] == rhel_contenthost.hostname
 
 
 @pytest.mark.skip_if_not_set('clients')
@@ -1014,11 +1013,12 @@ def test_positive_host_associations(session, target_sat):
     ).create()
     with Broker(nick='rhel7', host_class=ContentHost, _count=2) as hosts:
         vm1, vm2 = hosts
-        vm1.install_katello_ca(target_sat)
-        vm1.register_contenthost(org.label, ak1.name)
+        result = vm1.register(org, None, ak1.name, target_sat)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
         assert vm1.subscribed
-        vm2.install_katello_ca(target_sat)
-        vm2.register_contenthost(org.label, ak2.name)
+
+        result = vm2.register(org, None, ak2.name, target_sat)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
         assert vm2.subscribed
         with session:
             session.organization.select(org.name)
@@ -1084,8 +1084,8 @@ def test_positive_service_level_subscription_with_custom_product(
     activation_key.service_level = 'Premium'
     activation_key = activation_key.update(['service_level'])
 
-    rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(org.label, activation_key=activation_key.name)
+    result = rhel7_contenthost.register(org, None, activation_key.name, target_sat)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert rhel7_contenthost.subscribed
     result = rhel7_contenthost.run('subscription-manager list --consumed')
     assert result.status == 0
@@ -1141,10 +1141,11 @@ def test_positive_delete_manifest(session, function_entitlement_manifest_org, ta
         assert not ak['subscriptions']['resources']['assigned']
 
 
+@pytest.mark.rhel_ver_list([6])
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_ak_with_custom_product_on_rhel6(session, rhel6_contenthost, target_sat):
+def test_positive_ak_with_custom_product_on_rhel6(rhel_contenthost, target_sat):
     """Registering a rhel6 host using an ak with custom repos should not fail
 
     :id: 4efed0b5-99af-4933-bea7-92a33984ce10
@@ -1166,15 +1167,16 @@ def test_positive_ak_with_custom_product_on_rhel6(session, rhel6_contenthost, ta
         {'url': settings.repos.yum_1.url, 'organization-id': org.id}
     )
     ak = target_sat.api.ActivationKey(id=entities_ids['activationkey-id']).read()
-    rhel6_contenthost.install_katello_ca(target_sat)
-    result = rhel6_contenthost.register_contenthost(org.label, activation_key=ak.name)
+
+    result = rhel_contenthost.register(org, None, ak.name, target_sat)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert 'The system has been registered with ID' in result.stdout
     with target_sat.ui_session() as session:
         session.location.select(constants.DEFAULT_LOC)
         session.organization.select(org.name)
         ak = session.activationkey.read(ak.name, widget_names='content_hosts')
         assert len(ak['content_hosts']['table']) == 1
-        assert ak['content_hosts']['table'][0]['Name'] == rhel6_contenthost.hostname
+        assert ak['content_hosts']['table'][0]['Name'] == rhel_contenthost.hostname
 
 
 def test_positive_prepare_for_sca_only_ak(target_sat, function_entitlement_manifest_org):

@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from broker import Broker
 from fauxfactory import gen_string
 import pytest
@@ -317,9 +318,8 @@ def test_positive_register_host_ak_with_host_collection(module_org, module_ak_wi
     )
 
     with Broker(nick='rhel7', host_class=ContentHost) as client:
-        client.install_katello_ca(target_sat)
         # register the client host with the current activation key
-        client.register_contenthost(module_org.name, activation_key=module_ak_with_cv.name)
+        client.register(module_org, None, module_ak_with_cv.name, target_sat)
         assert client.subscribed
         # note: when registering the host, it should be automatically added to the host-collection
         client_host = target_sat.cli.Host.info({'name': client.hostname})

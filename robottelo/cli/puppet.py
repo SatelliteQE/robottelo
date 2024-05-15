@@ -14,6 +14,7 @@ Subcommands::
     list                          List all puppetclasses.
     sc-params                     List all smart class parameters
 """
+
 from robottelo.cli.base import Base
 
 

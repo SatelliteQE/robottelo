@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from random import choice
 
 from fauxfactory import gen_string
@@ -117,13 +118,13 @@ def test_positive_end_to_end(session, module_target_sat, module_org, module_loca
         assert not session.computeresource.search(new_cr_name)
 
 
+@pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier4
 @pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 def test_positive_provision_end_to_end(
     request,
-    session,
     setting_update,
     module_sca_manifest_org,
     module_location,
@@ -154,7 +155,9 @@ def test_positive_provision_end_to_end(
         location=[module_location],
         organization=[module_sca_manifest_org],
     ).create()
-    with session:
+    with sat.ui_session() as session:
+        session.organization.select(module_sca_manifest_org.name)
+        session.location.select(module_location.name)
         session.host.create(
             {
                 'host.name': hostname,

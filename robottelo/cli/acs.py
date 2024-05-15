@@ -21,6 +21,7 @@ Subcommands::
     update          Update an alternate content source.
 
 """
+
 from robottelo.cli.base import Base
 
 

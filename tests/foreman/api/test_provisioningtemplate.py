@@ -14,6 +14,7 @@ http://theforeman.org/api/apidoc/v2/provisioning_templates.html
 :CaseImportance: High
 
 """
+
 from random import choice
 
 from fauxfactory import gen_choice, gen_integer, gen_mac, gen_string
@@ -629,7 +630,7 @@ class TestProvisioningTemplate:
         assert f'chown -R {rex_user}: ~{rex_user}' in rex_snippet
         assert f'chown -R {rex_user}: ~{rex_user}/.ssh' in rex_snippet
         assert (
-            f'echo "{rex_user} ALL = (root) NOPASSWD : ALL\nDefaults:{rex_user} !requiretty" > /etc/sudoers.d/{rex_user}'
+            f'echo "{rex_user} ALL = (root) NOPASSWD : ALL" > /etc/sudoers.d/{rex_user}\necho "Defaults:{rex_user} !requiretty" >> /etc/sudoers.d/{rex_user}'
             in rex_snippet
         )
         assert ssh_key in rex_snippet

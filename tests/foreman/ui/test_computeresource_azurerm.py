@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
 import pytest
 
@@ -73,10 +74,10 @@ def module_azure_hg(
     ).create()
 
 
+@pytest.mark.e2e
 @pytest.mark.tier4
 @pytest.mark.parametrize('sat_azure', ['sat'], indirect=True)
 def test_positive_end_to_end_azurerm_ft_host_provision(
-    session,
     sat_azure,
     azurermclient,
     module_azurerm_custom_finishimg,
@@ -150,13 +151,13 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
             raise error
 
 
+@pytest.mark.e2e
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
     'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
 )
 def test_positive_azurerm_host_provision_ud(
-    session,
     sat_azure,
     azurermclient,
     module_azurerm_cloudimg,

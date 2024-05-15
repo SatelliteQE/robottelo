@@ -11,7 +11,8 @@
 :CaseImportance: High
 
 """
-from datetime import datetime
+
+from datetime import datetime, timedelta
 
 from broker import Broker
 from dateutil.parser import parse
@@ -163,10 +164,7 @@ def cv_publish_promote(sat, org, cv, lce=None, needs_publish=True):
     # Take a single instance of lce, or list of instances
     lce_ids = 'Library'
     if lce is not None:
-        if not isinstance(lce, list):
-            lce_ids = [lce.id]
-        else:
-            lce_ids = sorted(_lce.id for _lce in lce)
+        lce_ids = [lce.id] if not isinstance(lce, list) else sorted(_lce.id for _lce in lce)
 
     if needs_publish is True:
         _publish_and_wait(sat, org, cv)
@@ -198,21 +196,24 @@ def _publish_and_wait(sat, org, cv):
     task_id = sat.api.ContentView(id=cv.id).publish({'id': cv.id, 'organization': org})['id']
     assert task_id, f'No task was invoked to publish the Content-View: {cv.id}.'
     # Should take < 1 minute, check in 5s intervals
-    sat.wait_for_tasks(
-        search_query=(f'label = Actions::Katello::ContentView::Publish and id = {task_id}'),
-        search_rate=5,
-        max_tries=12,
-    ), (
-        f'Failed to publish the Content-View: {cv.id}, in time.'
-        f'Task: {task_id} failed, or timed out (60s).'
+    (
+        sat.wait_for_tasks(
+            search_query=(f'label = Actions::Katello::ContentView::Publish and id = {task_id}'),
+            search_rate=5,
+            max_tries=12,
+        ),
+        (
+            f'Failed to publish the Content-View: {cv.id}, in time.'
+            f'Task: {task_id} failed, or timed out (60s).'
+        ),
     )
 
 
 @pytest.fixture
-def errata_host_ak(module_target_sat, module_org, module_lce):
-    """New activation key created in module_org and module_lce"""
+def errata_host_ak(module_target_sat, module_sca_manifest_org, module_lce):
+    """New activation key created in module SCA org and module lce"""
     ak = module_target_sat.api.ActivationKey(
-        organization=module_org,
+        organization=module_sca_manifest_org,
         environment=module_lce,
     ).create()
     return ak.read()
@@ -220,10 +221,10 @@ def errata_host_ak(module_target_sat, module_org, module_lce):
 
 @pytest.fixture
 def registered_contenthost(
+    module_sca_manifest_org,
     module_target_sat,
     rhel_contenthost,
     errata_host_ak,
-    module_org,
     module_lce,
     module_cv,
     request,
@@ -260,7 +261,7 @@ def registered_contenthost(
         custom_repo_info = module_target_sat.cli_factory.setup_org_for_a_custom_repo(
             {
                 'url': repo_url,
-                'organization-id': module_org.id,
+                'organization-id': module_sca_manifest_org.id,
                 'lifecycle-environment-id': module_lce.id,
                 'activationkey-id': errata_host_ak.id,
                 'content-view-id': module_cv.id,
@@ -270,17 +271,22 @@ def registered_contenthost(
         custom_repos.append(custom_repo_info['repository-id'])
 
     # Publish new version and promote with all content
-    cv_publish_promote(module_target_sat, module_org, module_cv, module_lce)
+    cv_publish_promote(module_target_sat, module_sca_manifest_org, module_cv, module_lce)
     result = rhel_contenthost.register(
         activation_keys=errata_host_ak.name,
         target=module_target_sat,
-        org=module_org,
+        org=module_sca_manifest_org,
         loc=None,
     )
     assert result.status == 0, f'Failed to register host:\n{result.stderr}'
-    assert rhel_contenthost.subscribed
+    assert rhel_contenthost.subscribed, (
+        f'Failed to subscribe host to content, host: {rhel_contenthost.hostname}'
+        f' Attempting to subscribe to content-view id: {module_cv.id}'
+        f' Using activation-key id: {errata_host_ak.id}'
+    )
 
     for custom_repo_id in custom_repos:
+        # custom repos setup and successfully sync
         custom_repo = module_target_sat.api.Repository(id=custom_repo_id).read()
         assert custom_repo
         result = custom_repo.sync()['humanized']
@@ -291,23 +297,37 @@ def registered_contenthost(
     yield rhel_contenthost
 
     @request.addfinalizer
-    # Cleanup for in between parameterized runs
+    # Cleanup for in-between parameterized sessions
     def cleanup():
-        nonlocal rhel_contenthost, module_cv, custom_repos, custom_products, errata_host_ak
+        nonlocal \
+            rhel_contenthost, \
+            module_cv, \
+            module_lce, \
+            custom_repos, \
+            custom_products, \
+            errata_host_ak, \
+            module_sca_manifest_org
         rhel_contenthost.unregister()
         errata_host_ak.delete()
+        # find any other aks and delete them
+        other_aks = module_target_sat.api.ActivationKey(
+            organization=module_sca_manifest_org,
+            environment=module_lce,
+        ).search()
+        for ak in other_aks:
+            ak.read().delete()
         # Remove CV from all lifecycle-environments
         module_target_sat.cli.ContentView.remove_from_environment(
             {
                 'id': module_cv.id,
-                'organization-id': module_org.id,
+                'organization-id': module_sca_manifest_org.id,
                 'lifecycle-environment-id': module_lce.id,
             }
         )
         module_target_sat.cli.ContentView.remove_from_environment(
             {
                 'id': module_cv.id,
-                'organization-id': module_org.id,
+                'organization-id': module_sca_manifest_org.id,
                 'lifecycle-environment': 'Library',
             }
         )
@@ -326,9 +346,6 @@ def registered_contenthost(
             module_target_sat.api.Repository(id=repo_id).delete()
         for product_id in custom_products:
             module_target_sat.api.Product(id=product_id).delete()
-        # Publish a new CV version with no content
-        module_cv = module_cv.read()
-        module_cv.publish()
 
 
 @pytest.mark.e2e
@@ -498,7 +515,6 @@ def test_host_content_errata_tab_pagination(
     module_target_sat,
     registered_contenthost,
     module_sca_manifest_org,
-    errata_host_ak,
     module_lce,
     module_cv,
 ):
@@ -724,12 +740,12 @@ def test_host_content_errata_tab_pagination(
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_list(
     module_sca_manifest_org,
+    errata_host_ak,
     function_org,
     function_lce,
     target_sat,
     module_lce,
     module_cv,
-    module_ak,
     session,
 ):
     """View all errata in an Org
@@ -756,7 +772,7 @@ def test_positive_list(
             'url': CUSTOM_REPO_URL,
             'organization-id': _org_module.id,
             'lifecycle-environment-id': module_lce.id,
-            'activationkey-id': module_ak.id,
+            'activationkey-id': errata_host_ak.id,
             'content-view-id': module_cv.id,
         },
     )
@@ -1080,113 +1096,166 @@ def test_positive_content_host_previous_env(
         assert content_host_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
 
 
-@pytest.mark.tier3
+@pytest.mark.tier2
+@pytest.mark.rhel_ver_match('8')
 @pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
-    [
-        {
-            'distro': 'rhel7',
-            'SatelliteToolsRepository': {},
-            'RHELAnsibleEngineRepository': {'cdn': True},
-            'YumRepository': {'url': CUSTOM_REPO_URL},
-        }
-    ],
+    'registered_contenthost',
+    [[CUSTOM_REPO_URL]],
     indirect=True,
 )
-def test_positive_content_host_library(session, module_org_with_parameter, vm):
-    """Check if the applicable errata are available from the content
-    host's Library
+def test_positive_check_errata(session, module_org_with_parameter, registered_contenthost):
+    """Check if the applicable errata is available from the host page
 
-    :id: 4e627410-b7b8-471b-b9b4-a18e77fdd3f8
+    :id: 81f3c5bf-5317-40d6-ab3a-2b1a2c5fcbdd
 
-    :Setup:
+    :steps:
+        1. Go to All hosts
+        2. Select the host
+        3. Content Tab -> Errata Tab
+        4. Check the errata
 
-        1. Make sure multiple environments are present.
-        2. Content host's Library environment has additional errata.
-
-    :steps: Go to Content Hosts -> Select content host -> Errata Tab -> Select 'Library'.
-
-    :expectedresults: The errata from Library are displayed.
+    :expectedresults: The errata is displayed on the host page Content-Errata tab
 
     :parametrized: yes
     """
+
+    vm = registered_contenthost
     hostname = vm.hostname
     assert vm.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
-        content_host_erratum = session.contenthost.search_errata(
-            hostname, CUSTOM_REPO_ERRATA_ID, environment='Library Synced Content'
-        )
-        assert content_host_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
+        read_errata = session.host_new.get_details(hostname, 'Content.Errata')
+        assert read_errata['Content']['Errata']['table'][0]['Errata'] == CUSTOM_REPO_ERRATA_ID
 
 
 @pytest.mark.tier3
-@pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
-    [
-        {
-            'distro': 'rhel7',
-            'SatelliteToolsRepository': {},
-            'RHELAnsibleEngineRepository': {'cdn': True},
-            'YumRepository': {'url': settings.repos.yum_9.url},
-        }
-    ],
-    indirect=True,
-)
-def test_positive_content_host_search_type(session, erratatype_vm):
-    """Search for errata on a content host's errata tab by type.
+@pytest.mark.rhel_ver_match('[8, 9]')
+def test_positive_host_content_library(
+    registered_contenthost,
+    function_lce,
+    module_lce,
+    session,
+):
+    """Check if the applicable errata are available from the content host's Library.
+        View errata table from within All Hosts, and legacy Contenthosts pages.
 
-    :id: 59e5d6e5-2537-4387-a7d3-637cc4b52d0e
+    :id: a0694930-4bf7-4a97-b275-2be7d5f1b311
 
-    :Setup: Content Host with applicable errata
+    :Setup:
+        1. Multiple environments are present, we will use 'Library'.
+        2. A registered host's Library environment has some additional errata.
 
-    :customerscenario: true
+    :steps:
+        1. Install the outdated package to registered host, making an errata applicable.
+        2. Go to new All Hosts -> Select the host -> Content -> Errata Tab.
+        3. Go to Legacy Content Hosts -> Select the host -> Errata Tab -> 'Library' env.
+        4. Search for the errata by id. Then, check the entire table without filtering.
 
-    :steps: Search for errata on content host by type (e.g. 'type = security')
-     Step 1 Search for "type = security", assert expected amount and IDs found
-     Step 2 Search for "type = bugfix", assert expected amount and IDs found
-     Step 3 Search for "type = enhancement", assert expected amount and IDs found
+    :expectedresults: The expected errata id present in Library is displayed.
+        Only a single errata is present, the tables match between the two pages.
 
-    :BZ: 1653293
+    :parametrized: yes
     """
+    client = registered_contenthost
+    hostname = client.hostname
 
-    pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
-    assert erratatype_vm.execute(f'yum install -y {pkgs}').status == 0
+    assert client.applicable_errata_count == 0
+    assert client.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    assert client.applicable_errata_count == 1
+    assert client.applicable_package_count == 1
 
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
-        # Search for RHSA security errata
-        ch_erratum = session.contenthost.search_errata(
-            erratatype_vm.hostname, "type = security", environment='Library Synced Content'
+        # check new host > host > content > errata tab:
+        host_tab_search = session.host_new.get_errata_table(
+            entity_name=hostname,
+            search=f'errata_id="{CUSTOM_REPO_ERRATA_ID}"',
         )
+        # found desired errata_id by search
+        assert len(host_tab_search) == 1
+        assert host_tab_search[0]['Errata'] == CUSTOM_REPO_ERRATA_ID
+        # no filters passed, checking all errata present
+        host_tab_erratum = session.host_new.get_errata_table(hostname)
+        # only the expected errata_id is found
+        assert len(host_tab_erratum) == 1
+        assert host_tab_erratum[0]['Errata'] == CUSTOM_REPO_ERRATA_ID
+        # check legacy chost > chost > errata tab -- search:
+        single_chost_search = session.contenthost.search_errata(
+            hostname, CUSTOM_REPO_ERRATA_ID, environment='Library Synced Content'
+        )
+        # found desired errata_id by search
+        assert len(single_chost_search) == 1
+        assert single_chost_search[0]['Id'] == CUSTOM_REPO_ERRATA_ID
+        # display all entries in chost table, only the expected one is present
+        all_chost_erratum = session.contenthost.search_errata(
+            hostname, errata_id=' ', environment='Library Synced Content'
+        )
+        assert len(all_chost_erratum) == 1
+        assert all_chost_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
+
+
+@pytest.mark.tier3
+@pytest.mark.rhel_ver_match('8')
+@pytest.mark.parametrize(
+    'registered_contenthost',
+    [[CUSTOM_REPO_URL]],
+    indirect=True,
+)
+def test_positive_errata_search_type(session, module_sca_manifest_org, registered_contenthost):
+    """Search for errata on a host's page content-errata tab by type.
+
+    :id: f278f0e8-3b64-4dbf-a0c8-b9b289474a76
+
+    :customerscenario: true
+
+    :steps: Search for errata on the host Content-Errata tab by type (e.g. 'type = Security')
+        1. Search for "type = Security", assert expected amount and IDs found
+        2. Search for "type = Bugfix", assert expected amount and IDs found
+        3. Search for "type = Enhancement", assert expected amount and IDs found
+
+    :BZ: 1653293
+    """
+    vm = registered_contenthost
+    pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
+    assert vm.execute(f'yum install -y {pkgs}').status == 0
+
+    with session:
+        session.location.select(loc_name=DEFAULT_LOC)
+        # Search for RHSA Security errata
+        security_erratas = session.host_new.get_errata_by_type(
+            entity_name=vm.hostname,
+            type='Security',
+        )['content']['errata']['table']
 
         # Assert length matches known amount of RHSA errata
-        assert len(ch_erratum) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
+        assert len(security_erratas) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
 
         # Assert IDs are that of RHSA errata
-        errata_ids = sorted(erratum['Id'] for erratum in ch_erratum)
+        errata_ids = sorted(erratum['Errata'] for erratum in security_erratas)
         assert errata_ids == sorted(FAKE_9_YUM_SECURITY_ERRATUM)
-        # Search for RHBA buxfix errata
-        ch_erratum = session.contenthost.search_errata(
-            erratatype_vm.hostname, "type = bugfix", environment='Library Synced Content'
-        )
+        # Search for RHBA Buxfix errata
+        bugfix_erratas = session.host_new.get_errata_by_type(
+            entity_name=vm.hostname,
+            type='Bugfix',
+        )['content']['errata']['table']
 
         # Assert length matches known amount of RHBA errata
-        assert len(ch_erratum) == FAKE_10_YUM_BUGFIX_ERRATUM_COUNT
+        assert len(bugfix_erratas) == FAKE_10_YUM_BUGFIX_ERRATUM_COUNT
 
         # Assert IDs are that of RHBA errata
-        errata_ids = sorted(erratum['Id'] for erratum in ch_erratum)
+        errata_ids = sorted(erratum['Errata'] for erratum in bugfix_erratas)
         assert errata_ids == sorted(FAKE_10_YUM_BUGFIX_ERRATUM)
-        # Search for RHEA enhancement errata
-        ch_erratum = session.contenthost.search_errata(
-            erratatype_vm.hostname, "type = enhancement", environment='Library Synced Content'
-        )
+        # Search for RHEA Enhancement errata
+        enhancement_erratas = session.host_new.get_errata_by_type(
+            entity_name=vm.hostname,
+            type='Enhancement',
+        )['content']['errata']['table']
 
         # Assert length matches known amount of RHEA errata
-        assert len(ch_erratum) == FAKE_11_YUM_ENHANCEMENT_ERRATUM_COUNT
+        assert len(enhancement_erratas) == FAKE_11_YUM_ENHANCEMENT_ERRATUM_COUNT
 
         # Assert IDs are that of RHEA errata
-        errata_ids = sorted(erratum['Id'] for erratum in ch_erratum)
+        errata_ids = sorted(erratum['Errata'] for erratum in enhancement_erratas)
         assert errata_ids == sorted(FAKE_11_YUM_ENHANCEMENT_ERRATUM)
 
 
@@ -1297,54 +1366,74 @@ def test_positive_show_count_on_host_pages(session, module_org, registered_conte
 
 
 @pytest.mark.tier3
+@pytest.mark.rhel_ver_match('8')
 @pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
-    [
-        {
-            'distro': 'rhel7',
-            'SatelliteToolsRepository': {},
-            'RHELAnsibleEngineRepository': {'cdn': True},
-            'YumRepository': {'url': settings.repos.yum_9.url},
-        }
-    ],
+    'registered_contenthost',
+    [[CUSTOM_REPO_URL]],
     indirect=True,
 )
-def test_positive_show_count_on_content_host_details_page(
-    session, module_org_with_parameter, erratatype_vm
+def test_positive_check_errata_counts_by_type_on_host_details_page(
+    session,
+    module_target_sat,
+    module_sca_manifest_org,
+    registered_contenthost,
 ):
-    """Errata count on Content host Details page
+    """Errata count on host page
 
-    :id: 388229da-2b0b-41aa-a457-9b5ecbf3df4b
+    :id: 89676641-2614-4abb-afed-5c37be396fad
 
     :Setup:
-
         1. Errata synced on satellite server.
-        2. Some content hosts are present.
+        2. Some registered host with errata and packages is present.
+        3. Install list of outdated packages (FAKE_YUM_9), to the registered host.
 
-    :steps: Go to Hosts -> Content Hosts -> Select Content Host -> Details page.
+    :steps:
+        1. Go to All hosts
+        2. Select the host
+        3. Content Tab -> Errata Tab
+        4. Check the counts of the errata types
 
-    :expectedresults: The errata section should be displayed with Security, Bug fix, Enhancement.
+    :expectedresults:
+        1. Packages install succeeds, errata applicability updates automatically.
+        2. Correct number of each errata type shown for host.
 
-    :BZ: 1484044
     """
-    vm = erratatype_vm
+    vm = registered_contenthost
     hostname = vm.hostname
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
-        content_host_values = session.contenthost.read(hostname, 'details')
-        for errata_type in ('security', 'bug_fix', 'enhancement'):
-            assert int(content_host_values['details'][errata_type]) == 0
+        # from details: no errata to start
+        read_errata = session.host_new.get_details(hostname, 'Content.Errata')
+        assert int(len(read_errata['Content']['Errata']['pagination'])) == 0
 
         pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
+        install_timestamp = datetime.utcnow().replace(microsecond=0) - timedelta(seconds=1)
         assert vm.execute(f'yum install -y {pkgs}').status == 0
 
-        # navigate to content host main page by making a search, to refresh the details page
-        session.contenthost.search(hostname)
-        content_host_values = session.contenthost.read(hostname, 'details')
-        assert int(content_host_values['details']['security']) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
+        # applicability task(s) found and succeed
+        applicability_tasks = module_target_sat.wait_for_tasks(
+            search_query=(
+                f'Bulk generate applicability for host {hostname}'
+                f' and started_at >= "{install_timestamp}"'
+            ),
+            search_rate=2,
+            max_tries=60,
+        )
+        assert len(applicability_tasks) > 0, (
+            'No Errata applicability task(s) found after successful yum install.'
+            ' Expected at least one task invoked automatically,'
+            f' for registered host: {hostname}'
+        )
+        for task in applicability_tasks:
+            assert task.result == 'success'
+            assert module_target_sat.api.ForemanTask(id=task.id).poll()
 
-        for errata_type in ('bug_fix', 'enhancement'):
-            assert int(content_host_values['details'][errata_type]) == 1
+        # find newly applicable errata counts by type
+        session.browser.refresh()
+        errata_type_counts = session.host_new.get_errata_type_counts(entity_name=hostname)
+        assert errata_type_counts['Security'] == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
+        assert errata_type_counts['Bugfix'] == 1
+        assert errata_type_counts['Enhancement'] == 1
 
 
 @pytest.mark.tier3

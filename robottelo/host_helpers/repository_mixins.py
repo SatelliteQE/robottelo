@@ -2,6 +2,7 @@
 All the Repository classes in this module are supposed to use from sat_object.cli_factory object.
 The direct import of the repo classes in this module is prohibited !!!!!
 """
+
 import inspect
 import sys
 
@@ -509,7 +510,6 @@ class RepositoryCollection:
     satellite = None
 
     def __init__(self, distro=None, repositories=None):
-
         self._items = []
 
         if distro is not None and distro not in constants.DISTROS_SUPPORTED:
