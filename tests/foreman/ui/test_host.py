@@ -18,6 +18,7 @@ import os
 import re
 
 from airgun.exceptions import DisabledWidgetError, NoSuchElementException
+from box import Box
 import pytest
 from wait_for import wait_for
 import yaml
@@ -445,6 +446,67 @@ def test_positive_export(session, target_sat, function_org, function_location):
             for row in csv.DictReader(csvfile):
                 actual_fields.append((row['Name'], row['Operatingsystem']))
         assert set(actual_fields) == expected_fields
+
+
+@pytest.mark.skipif(
+    (settings.ui.webdriver != 'chrome'), reason='Currently only chrome is supported'
+)
+@pytest.mark.tier3
+def test_positive_export_selected_columns(target_sat, current_sat_location):
+    """Select certain columns in the hosts table and check that they are exported in the CSV file.
+
+    :id: 2b65c1d6-0b94-11ef-a4b7-000c2989e153
+
+    :steps:
+        1. Select different columns to be displayed in the hosts table.
+        2. Export the hosts into CSV file.
+
+    :expectedresults: All columns selected in the UI table should be exported in the CSV file.
+
+    :BZ: 2167146
+
+    :customerscenario: true
+    """
+    columns = (
+        Box(ui='Power', csv='Power Status', displayed=True),
+        Box(ui='Recommendations', csv='Insights Recommendations Count', displayed=True),
+        Box(ui='Name', csv='Name', displayed=True),
+        Box(ui='IPv4', csv='Ip', displayed=True),
+        Box(ui='IPv6', csv='Ip6', displayed=True),
+        Box(ui='MAC', csv='Mac', displayed=True),
+        Box(ui='OS', csv='Operatingsystem', displayed=True),
+        Box(ui='Owner', csv='Owner', displayed=True),
+        Box(ui='Host group', csv='Hostgroup', displayed=True),
+        Box(ui='Boot time', csv='Reported Data - Boot Time', displayed=True),
+        Box(ui='Last report', csv='Last Report', displayed=True),
+        Box(ui='Comment', csv='Comment', displayed=True),
+        Box(ui='Model', csv='Compute Resource Or Model', displayed=True),
+        Box(ui='Sockets', csv='Reported Data - Sockets', displayed=True),
+        Box(ui='Cores', csv='Reported Data - Cores', displayed=True),
+        Box(ui='RAM', csv='Reported Data - Ram', displayed=True),
+        Box(ui='Virtual', csv='Virtual', displayed=True),
+        Box(ui='Disks space', csv='Reported Data - Disks Total', displayed=True),
+        Box(ui='Kernel version', csv='Reported Data - Kernel Version', displayed=True),
+        Box(ui='BIOS vendor', csv='Reported Data - Bios Vendor', displayed=True),
+        Box(ui='BIOS release date', csv='Reported Data - Bios Release Date', displayed=True),
+        Box(ui='BIOS version', csv='Reported Data - Bios Version', displayed=True),
+        Box(ui='RHEL Lifecycle status', csv='Rhel Lifecycle Status', displayed=True),
+        Box(ui='Installable updates', csv='Installable ...', displayed=False),
+        Box(ui='Lifecycle environment', csv='Lifecycle Environment', displayed=True),
+        Box(ui='Content view', csv='Content View', displayed=True),
+        Box(ui='Registered', csv='Registered', displayed=True),
+        Box(ui='Last checkin', csv='Last Checkin', displayed=True),
+    )
+
+    with target_sat.ui_session() as session:
+        session.location.select(loc_name=current_sat_location.name)
+        session.host.manage_table_columns({column.ui: column.displayed for column in columns})
+        file_path = session.host.export()
+        with open(file_path, newline='') as fh:
+            csvfile = csv.DictReader(fh)
+            assert set(csvfile.fieldnames) == set(
+                [column.csv for column in columns if column.displayed]
+            )
 
 
 @pytest.mark.tier4
