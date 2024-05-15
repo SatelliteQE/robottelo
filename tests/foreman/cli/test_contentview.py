@@ -354,6 +354,82 @@ class TestContentView:
         assert len(new_cv['versions']) == 0
 
     @pytest.mark.tier2
+    def test_negative_publish_during_repo_sync(
+        self,
+        module_cv,
+        module_org,
+        module_product,
+        module_target_sat,
+    ):
+        """Attempt to publish a new version of the content-view,
+        while an associated repository is being synced.
+
+        :id: 94b53947-9b1d-414d-8319-f9a24e9170a6
+
+        :BZ: 1957144
+
+        :setup:
+            1. A prior created org, content-view.
+            2. A newly created repository, with decent amount of content.
+
+        :steps:
+            1. Add the repository to the content-view.
+            2. Perform asynchronous repository sync.
+            3. Attempt to publish a version of the content-view, while repo sync ongoing.
+
+        :expectedresults:
+            1. User cannot publish during repository sync.
+            2. CLIReturnCodeError raised, publish task failed for expected reason,
+                repo sync task_id found in humanized error, content-view versions unchanged.
+        """
+        custom_repo = module_target_sat.cli_factory.make_repository(
+            {
+                'content-type': 'yum',
+                'product-id': module_product.id,
+                'url': settings.repos.rhel8_os.appstream,
+            }
+        )
+        # Associate repo to CV
+        module_target_sat.cli.ContentView.add_repository(
+            {
+                'id': module_cv.id,
+                'organization-id': module_org.id,
+                'repository-id': custom_repo['id'],
+            }
+        )
+        # read updated CV info
+        cv_info = module_target_sat.cli.ContentView.info({'id': module_cv.id})
+        existing_versions = cv_info['versions']
+        # perform async repository sync
+        repo_task = module_target_sat.cli.Repository.synchronize(
+            {
+                'id': custom_repo['id'],
+                'async': True,
+            }
+        )
+        repo_task_id = repo_task.split()[-1].rstrip('.')
+        # attempt to publish a new version of the content view
+        with pytest.raises(CLIReturnCodeError) as err:
+            module_target_sat.cli.ContentView.publish({'id': module_cv.id})
+        assert 'Could not publish' in err.value.stderr
+        assert repo_task_id in err.value.stderr
+        # content-view-versions are unchanged
+        cv_info = module_target_sat.cli.ContentView.info({'id': module_cv.id})
+        assert cv_info['versions'] == existing_versions
+        # search for failed publish task
+        task_search = f'action ~ Publish content_view and action ~ {module_cv.name}'
+        cv_tasks = module_target_sat.cli.Task.list_tasks({'search': task_search})
+        assert len(cv_tasks) > 0
+        publish_task = cv_tasks[0]
+        assert module_cv.name in publish_task['action']
+        assert module_org.name in publish_task['action']
+        # failed for expected reason
+        assert publish_task['result'] == 'error'
+        humanized = publish_task['task-errors']
+        assert 'Pending tasks detected' in humanized
+        assert repo_task_id in humanized
+
+    @pytest.mark.tier2
     def test_negative_delete_version_by_id(self, module_org, module_target_sat):
         """Create content view and publish it. Try to delete content
         view version while content view is still associated with lifecycle
