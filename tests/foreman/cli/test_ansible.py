@@ -15,6 +15,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
+from robottelo.exceptions import CLIFactoryError
 
 
 def assert_job_invocation_result(
@@ -333,6 +334,37 @@ class TestAnsibleREX:
         assert result['success'] == '2', output_msgs
         target_sat.cli.GlobalParameter().delete({'name': param_name})
         assert len(target_sat.cli.GlobalParameter().list({'search': param_name})) == 0
+
+    @pytest.mark.parametrize(
+        'value', [0, -2, 2.5, 'a'], ids=['zero', 'negative', 'decimal', 'string']
+    )
+    @pytest.mark.rhel_ver_list([8])
+    def test_negative_invalid_concurrency_level(self, rex_contenthost, target_sat, value):
+        """Tests you can not invoke job with invalid concurrency level
+
+        :id: 15b55f91-759a-4b77-8ba2-330a5ca7ca0b
+
+        :steps:
+            1. Run a REX job with invalid concurrency-setting
+
+        :expectedresults: should refuse gracefully
+
+        :BZ: 2250732
+
+        :parametrized: yes
+        """
+        with pytest.raises(CLIFactoryError) as error:
+            target_sat.cli_factory.job_invocation(
+                {
+                    'job-template': 'Run Command - Ansible Default',
+                    'inputs': 'command=ls',
+                    'search-query': f'name ~ {rex_contenthost.hostname}',
+                    'concurrency-level': f'{value}',
+                }
+            )
+        assert 'Concurrency level: must be greater than 0' in str(
+            error.value
+        ) or 'Numeric value is required' in str(error.value)
 
     @pytest.mark.rhel_ver_list([8])
     def test_positive_run_serial(self, rex_contenthosts, target_sat):
