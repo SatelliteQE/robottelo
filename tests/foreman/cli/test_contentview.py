@@ -3304,6 +3304,46 @@ class TestContentView:
         )
         assert content_view['version'] == '1.0'
 
+    @pytest.mark.tier2
+    def test_show_all_repo_ids(self, module_org, module_product, module_target_sat):
+        """Hammer content-view list shows all repo ids
+
+        :id: 56d716f1-85cf-47d7-a8e6-29788374d318
+
+        :steps:
+            1. Add a large number of repositories to a CV
+            2. Publish the CV
+            3. Run hammer content-view list
+
+        :expectedresults: All IDs for the repo are listed, and not truncated
+
+        :BZ: 2141421
+
+        :customerscenario: true
+        """
+        # Create 30 repositories
+        repolist = []
+        id_list = []
+        for _ in range(30):
+            repo = module_target_sat.api.Repository(
+                product=module_product,
+                checksum_type='sha256',
+                mirroring_policy='additive',
+                download_policy='immediate',
+            ).create()
+            repolist.append(repo)
+            id_list.append(str(repo.id))
+        # Sync and publish all repos
+        cv = module_target_sat.api.ContentView(
+            organization=module_org, repository=repolist
+        ).create()
+        for repo in repolist:
+            repo.sync()
+        cv.publish()
+        # Run content-view list --name cv.name
+        list_info = module_target_sat.cli.ContentView.list({'name': cv.name})
+        assert set(list_info[0]['repository-ids'].split(', ')) == set(id_list)
+
     def test_positive_validate_force_promote_warning(self, target_sat, function_org):
         """Test cv promote shows warning of 'force promotion' for out of sequence LCE
 
