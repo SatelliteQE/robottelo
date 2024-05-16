@@ -798,6 +798,17 @@ class ContentHost(Host, ContentHostMixins):
         cmd = target.satellite.cli.HostRegistration.generate_command(options)
         return self.execute(cmd.strip('\n'))
 
+    def api_register(self, target, **kwargs):
+        """Register a content host using global registration through API.
+
+        :param target: Satellite or Capsule object to register to.
+        :param kwargs: Additional keyword arguments to pass to the API call.
+        :return: The result of the API call.
+        """
+        kwargs['insecure'] = kwargs.get('insecure', True)
+        command = target.satellite.api.RegistrationCommand(**kwargs).create()
+        return self.execute(command.strip('\n'))
+
     def register_contenthost(
         self,
         org='Default_Organization',
@@ -883,12 +894,17 @@ class ContentHost(Host, ContentHostMixins):
         """Get a remote file from the broker virtual machine."""
         self.session.sftp_read(source=remote_path, destination=local_path)
 
-    def put(self, local_path, remote_path=None):
+    def put(self, local_path, remote_path=None, temp_file=False):
         """Put a local file to the broker virtual machine.
         If local_path is a manifest object, write its contents to a temporary file
         then continue with the upload.
         """
-        if 'utils.manifest' in str(local_path):
+        if temp_file:
+            with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
+                content_file.write(str.encode(local_path))
+                content_file.flush()
+                self.session.sftp_write(source=content_file.name, destination=remote_path)
+        elif 'utils.manifest' in str(local_path):
             with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
                 content_file.write(local_path.content.read())
                 content_file.flush()

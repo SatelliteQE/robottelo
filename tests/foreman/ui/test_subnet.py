@@ -27,6 +27,7 @@ def module_dom(module_target_sat, module_org, module_location):
     d.delete()
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, module_target_sat, module_dom):

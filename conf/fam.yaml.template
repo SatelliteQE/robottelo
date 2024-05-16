@@ -1,0 +1,101 @@
+FAM:
+  SERVER:
+    # Parameter for all tests
+    foreman_username: admin
+    foreman_password: "changeme"
+    foreman_server_url: "https://foreman.example.com"
+    foreman_validate_certs: false
+
+    foreman_proxy: "foreman.example.com"
+
+    # Parameter for snapshot test
+    snapshot_host_name: "test_host"
+
+    # Parameter for job invocation  test
+    foreman_host: "foreman.example.com"
+
+    # Parameter for subscription_manifest test
+    subscription_manifest_path: "data/manifest_foreman-ansible-modules.zip"
+
+    # Parameter for redhat_manifest test
+    manifest_name: "katello.example.com"
+    rhsm_username: "john-smith"
+    rhsm_password: "changeme"
+    rhsm_pool_id: 8a85f99a7db4827d017dc512fcad00b0
+    rhsm_validate_certs: false
+
+    # Parameter for scc_product test
+    scc_account_name_for_scc_product: testaccount
+    scc_account_login_for_scc_product: testuser
+    scc_account_password_for_scc_product: testpass
+
+    # Parameter for external_usergroup testing
+    auth_source_ldap_host: ldap.example.com
+    auth_source_ldap_account: ansible
+    auth_source_ldap_account_password: pass
+    auth_source_ldap_base_dn: dc=example,dc=com
+    auth_source_ldap_attr_login: uid
+    auth_source_ldap_groups_base: cn=groups,cn=accounts,dc=example,dc=com
+    external_usergroup_name: "admins"
+
+  COMPUTE_PROFILE:
+    libvirt:
+      compute_resource:
+        name: libvirt-cr01
+        organizations:
+          - Test Organization
+        locations:
+          - Test Location
+        params:
+          url: qemu+ssh://libvirtuser@localhost/system
+        compute_profile:
+          name: app-small
+          attrs:
+            cpus: 1
+            memory: 2147483648
+            nics_attributes:
+              0:
+                type: bridge
+                bridge: ""
+                model: virtio
+            volumes_attributes:
+              0:
+                pool_name: default
+                capacity: 10G
+                allocation: 0G
+                format_type: raw
+    ovirt:
+      compute_resource:
+        name: ovirt-cr01
+        organizations:
+          - Test Organization
+        locations:
+          - Test Location
+        params:
+          url: "https://ovirt.example.com/ovirt-engine/api"
+          user: compute-user@internal
+          password: ovirtcompute123
+          use_v4: true
+          datacenter: c1479626-99a2-44eb-8401-14b5630f417f
+          ovirt_quota: 502a76bb-a3fe-42f1-aed6-2a7c892a6786
+        compute_profile:
+          name: app-small
+          attrs:
+            cluster: Devel-Infra
+            cores: 2
+            sockets: 1
+            memory: 1073741824
+            ha: 0
+            interfaces_attributes:
+              0:
+                name: ""
+                network: ovirtmgmt
+                interface: virtio
+            volumes_attributes:
+              0:
+                size_gb: '16'
+                storage_domain: 'Local-IBM'
+                preallocate: '1'
+                wipe_after_delete: '0'
+                interface: 'virtio_scsi'
+                bootable: 'true'

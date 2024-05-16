@@ -36,10 +36,10 @@ from robottelo.utils.datafactory import (
 
 
 @pytest.fixture(scope='module')
-def module_rhel_content(module_entitlement_manifest_org, module_target_sat):
+def module_rhel_content(module_sca_manifest_org, module_target_sat):
     """Returns RH repo after syncing it"""
     product = entities.Product(
-        name=constants.PRDS['rhel'], organization=module_entitlement_manifest_org
+        name=constants.PRDS['rhel'], organization=module_sca_manifest_org
     ).search()[0]
     reposet = entities.RepositorySet(name=constants.REPOSET['rhva6'], product=product).search()[0]
     data = {'basearch': 'x86_64', 'releasever': '6Server', 'product_id': product.id}
@@ -48,14 +48,14 @@ def module_rhel_content(module_entitlement_manifest_org, module_target_sat):
     repo = module_target_sat.cli.Repository.info(
         {
             'name': constants.REPOS['rhva6']['name'],
-            'organization-id': module_entitlement_manifest_org.id,
+            'organization-id': module_sca_manifest_org.id,
             'product': product.name,
         }
     )
     module_target_sat.cli.Repository.synchronize(
         {
             'name': constants.REPOS['rhva6']['name'],
-            'organization-id': module_entitlement_manifest_org.id,
+            'organization-id': module_sca_manifest_org.id,
             'product': product.name,
         }
     )
@@ -352,6 +352,82 @@ class TestContentView:
         module_target_sat.cli.ContentView.version_delete({'id': version1_id})
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
         assert len(new_cv['versions']) == 0
+
+    @pytest.mark.tier2
+    def test_negative_publish_during_repo_sync(
+        self,
+        module_cv,
+        module_org,
+        module_product,
+        module_target_sat,
+    ):
+        """Attempt to publish a new version of the content-view,
+        while an associated repository is being synced.
+
+        :id: 94b53947-9b1d-414d-8319-f9a24e9170a6
+
+        :BZ: 1957144
+
+        :setup:
+            1. A prior created org, content-view.
+            2. A newly created repository, with decent amount of content.
+
+        :steps:
+            1. Add the repository to the content-view.
+            2. Perform asynchronous repository sync.
+            3. Attempt to publish a version of the content-view, while repo sync ongoing.
+
+        :expectedresults:
+            1. User cannot publish during repository sync.
+            2. CLIReturnCodeError raised, publish task failed for expected reason,
+                repo sync task_id found in humanized error, content-view versions unchanged.
+        """
+        custom_repo = module_target_sat.cli_factory.make_repository(
+            {
+                'content-type': 'yum',
+                'product-id': module_product.id,
+                'url': settings.repos.rhel8_os.appstream,
+            }
+        )
+        # Associate repo to CV
+        module_target_sat.cli.ContentView.add_repository(
+            {
+                'id': module_cv.id,
+                'organization-id': module_org.id,
+                'repository-id': custom_repo['id'],
+            }
+        )
+        # read updated CV info
+        cv_info = module_target_sat.cli.ContentView.info({'id': module_cv.id})
+        existing_versions = cv_info['versions']
+        # perform async repository sync
+        repo_task = module_target_sat.cli.Repository.synchronize(
+            {
+                'id': custom_repo['id'],
+                'async': True,
+            }
+        )
+        repo_task_id = repo_task.split()[-1].rstrip('.')
+        # attempt to publish a new version of the content view
+        with pytest.raises(CLIReturnCodeError) as err:
+            module_target_sat.cli.ContentView.publish({'id': module_cv.id})
+        assert 'Could not publish' in err.value.stderr
+        assert repo_task_id in err.value.stderr
+        # content-view-versions are unchanged
+        cv_info = module_target_sat.cli.ContentView.info({'id': module_cv.id})
+        assert cv_info['versions'] == existing_versions
+        # search for failed publish task
+        task_search = f'action ~ Publish content_view and action ~ {module_cv.name}'
+        cv_tasks = module_target_sat.cli.Task.list_tasks({'search': task_search})
+        assert len(cv_tasks) > 0
+        publish_task = cv_tasks[0]
+        assert module_cv.name in publish_task['action']
+        assert module_org.name in publish_task['action']
+        # failed for expected reason
+        assert publish_task['result'] == 'error'
+        humanized = publish_task['task-errors']
+        assert 'Pending tasks detected' in humanized
+        assert repo_task_id in humanized
 
     @pytest.mark.tier2
     def test_negative_delete_version_by_id(self, module_org, module_target_sat):
@@ -837,7 +913,7 @@ class TestContentView:
     @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_add_rh_repo_by_id_and_create_filter(
-        self, module_entitlement_manifest_org, module_rhel_content, module_target_sat
+        self, module_sca_manifest_org, module_rhel_content, module_target_sat
     ):
         """Associate Red Hat content to a content view and create filter
 
@@ -856,13 +932,13 @@ class TestContentView:
         """
         # Create CV
         new_cv = module_target_sat.cli_factory.make_content_view(
-            {'organization-id': module_entitlement_manifest_org.id}
+            {'organization-id': module_sca_manifest_org.id}
         )
         # Associate repo to CV
         module_target_sat.cli.ContentView.add_repository(
             {
                 'id': new_cv['id'],
-                'organization-id': module_entitlement_manifest_org.id,
+                'organization-id': module_sca_manifest_org.id,
                 'repository-id': module_rhel_content['id'],
             }
         )
@@ -997,7 +1073,7 @@ class TestContentView:
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier2
     def test_positive_promote_rh_content(
-        self, module_entitlement_manifest_org, module_rhel_content, module_target_sat
+        self, module_sca_manifest_org, module_rhel_content, module_target_sat
     ):
         """attempt to promote a content view containing RH content
 
@@ -1012,7 +1088,7 @@ class TestContentView:
         """
         # Create CV
         new_cv = module_target_sat.cli_factory.make_content_view(
-            {'organization-id': module_entitlement_manifest_org.id}
+            {'organization-id': module_sca_manifest_org.id}
         )
         # Associate repo to CV
         module_target_sat.cli.ContentView.add_repository(
@@ -1022,7 +1098,7 @@ class TestContentView:
         module_target_sat.cli.ContentView.publish({'id': new_cv['id']})
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
         env1 = module_target_sat.cli_factory.make_lifecycle_environment(
-            {'organization-id': module_entitlement_manifest_org.id}
+            {'organization-id': module_sca_manifest_org.id}
         )
         # Promote the Published version of CV to the next env
         module_target_sat.cli.ContentView.version_promote(
@@ -1035,7 +1111,7 @@ class TestContentView:
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier3
     def test_positive_promote_rh_and_custom_content(
-        self, module_entitlement_manifest_org, module_rhel_content, module_target_sat
+        self, module_sca_manifest_org, module_rhel_content, module_target_sat
     ):
         """attempt to promote a content view containing RH content and
         custom content using filters
@@ -1054,7 +1130,7 @@ class TestContentView:
             {
                 'content-type': 'yum',
                 'product-id': module_target_sat.cli_factory.make_product(
-                    {'organization-id': module_entitlement_manifest_org.id}
+                    {'organization-id': module_sca_manifest_org.id}
                 )['id'],
             }
         )
@@ -1062,7 +1138,7 @@ class TestContentView:
         module_target_sat.cli.Repository.synchronize({'id': new_repo['id']})
         # Create CV
         new_cv = module_target_sat.cli_factory.make_content_view(
-            {'organization-id': module_entitlement_manifest_org.id}
+            {'organization-id': module_sca_manifest_org.id}
         )
         # Associate repos with CV
         module_target_sat.cli.ContentView.add_repository(
@@ -1085,7 +1161,7 @@ class TestContentView:
         module_target_sat.cli.ContentView.publish({'id': new_cv['id']})
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
         env1 = module_target_sat.cli_factory.make_lifecycle_environment(
-            {'organization-id': module_entitlement_manifest_org.id}
+            {'organization-id': module_sca_manifest_org.id}
         )
         # Promote the Published version of CV to the next env
         module_target_sat.cli.ContentView.version_promote(
@@ -1272,7 +1348,7 @@ class TestContentView:
     @pytest.mark.pit_server
     @pytest.mark.tier3
     def test_positive_publish_rh_and_custom_content(
-        self, module_entitlement_manifest_org, module_rhel_content, module_target_sat
+        self, module_sca_manifest_org, module_rhel_content, module_target_sat
     ):
         """attempt to publish  a content view containing a RH and custom
         repos and has filters
@@ -1291,7 +1367,7 @@ class TestContentView:
             {
                 'content-type': 'yum',
                 'product-id': module_target_sat.cli_factory.make_product(
-                    {'organization-id': module_entitlement_manifest_org.id}
+                    {'organization-id': module_sca_manifest_org.id}
                 )['id'],
             }
         )
@@ -1299,7 +1375,7 @@ class TestContentView:
         module_target_sat.cli.Repository.synchronize({'id': new_repo['id']})
         # Create CV
         new_cv = module_target_sat.cli_factory.make_content_view(
-            {'organization-id': module_entitlement_manifest_org.id}
+            {'organization-id': module_sca_manifest_org.id}
         )
         # Associate repos with CV
         module_target_sat.cli.ContentView.add_repository(
@@ -1499,7 +1575,7 @@ class TestContentView:
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier2
     def test_positive_republish_after_rh_content_removed(
-        self, module_entitlement_manifest_org, module_rhel_content, module_target_sat
+        self, module_sca_manifest_org, module_rhel_content, module_target_sat
     ):
         """Attempt to re-publish content view after all RH associated content
         was removed from that CV
@@ -1518,13 +1594,13 @@ class TestContentView:
         :CaseImportance: Medium
         """
         new_cv = module_target_sat.cli_factory.make_content_view(
-            {'organization-id': module_entitlement_manifest_org.id}
+            {'organization-id': module_sca_manifest_org.id}
         )
         # Associate repo to CV
         module_target_sat.cli.ContentView.add_repository(
             {
                 'id': new_cv['id'],
-                'organization-id': module_entitlement_manifest_org.id,
+                'organization-id': module_sca_manifest_org.id,
                 'repository-id': module_rhel_content['id'],
             }
         )
@@ -1668,7 +1744,7 @@ class TestContentView:
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier3
     def test_positive_subscribe_chost_by_id_using_rh_content(
-        self, module_entitlement_manifest_org, module_rhel_content, module_target_sat
+        self, module_sca_manifest_org, module_rhel_content, module_target_sat
     ):
         """Attempt to subscribe content host to content view that has
         Red Hat repository assigned to it
@@ -1681,15 +1757,15 @@ class TestContentView:
         :CaseImportance: Medium
         """
         env = module_target_sat.cli_factory.make_lifecycle_environment(
-            {'organization-id': module_entitlement_manifest_org.id}
+            {'organization-id': module_sca_manifest_org.id}
         )
         content_view = module_target_sat.cli_factory.make_content_view(
-            {'organization-id': module_entitlement_manifest_org.id}
+            {'organization-id': module_sca_manifest_org.id}
         )
         module_target_sat.cli.ContentView.add_repository(
             {
                 'id': content_view['id'],
-                'organization-id': module_entitlement_manifest_org.id,
+                'organization-id': module_sca_manifest_org.id,
                 'repository-id': module_rhel_content['id'],
             }
         )
@@ -1708,7 +1784,7 @@ class TestContentView:
                 'content-view-id': content_view['id'],
                 'lifecycle-environment-id': env['id'],
                 'name': gen_alphanumeric(),
-                'organization-id': module_entitlement_manifest_org.id,
+                'organization-id': module_sca_manifest_org.id,
             }
         )
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
@@ -1718,7 +1794,7 @@ class TestContentView:
     @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_subscribe_chost_by_id_using_rh_content_and_filters(
-        self, module_entitlement_manifest_org, module_rhel_content, module_target_sat
+        self, module_sca_manifest_org, module_rhel_content, module_target_sat
     ):
         """Attempt to subscribe content host to filtered content view
         that has Red Hat repository assigned to it
@@ -1733,15 +1809,15 @@ class TestContentView:
         :CaseImportance: Low
         """
         env = module_target_sat.cli_factory.make_lifecycle_environment(
-            {'organization-id': module_entitlement_manifest_org.id}
+            {'organization-id': module_sca_manifest_org.id}
         )
         content_view = module_target_sat.cli_factory.make_content_view(
-            {'organization-id': module_entitlement_manifest_org.id}
+            {'organization-id': module_sca_manifest_org.id}
         )
         module_target_sat.cli.ContentView.add_repository(
             {
                 'id': content_view['id'],
-                'organization-id': module_entitlement_manifest_org.id,
+                'organization-id': module_sca_manifest_org.id,
                 'repository-id': module_rhel_content['id'],
             }
         )
@@ -1781,7 +1857,7 @@ class TestContentView:
                 'content-view-id': content_view['id'],
                 'lifecycle-environment-id': env['id'],
                 'name': gen_alphanumeric(),
-                'organization-id': module_entitlement_manifest_org.id,
+                'organization-id': module_sca_manifest_org.id,
             }
         )
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})

@@ -599,8 +599,12 @@ def test_positive_generate_entitlements_report(setup_content, target_sat):
     """
     with Broker(nick='rhel7', host_class=ContentHost) as vm:
         ak, org = setup_content
-        vm.install_katello_ca(target_sat)
-        vm.register_contenthost(org.label, ak.name)
+        result = vm.api_register(
+            target_sat,
+            organization=org,
+            activation_keys=[ak.name],
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
         assert vm.subscribed
         rt = (
             target_sat.api.ReportTemplate()
@@ -638,8 +642,12 @@ def test_positive_schedule_entitlements_report(setup_content, target_sat):
     """
     with Broker(nick='rhel7', host_class=ContentHost) as vm:
         ak, org = setup_content
-        vm.install_katello_ca(target_sat)
-        vm.register_contenthost(org.label, ak.name)
+        result = vm.api_register(
+            target_sat,
+            organization=org,
+            activation_keys=[ak.name],
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
         assert vm.subscribed
         rt = (
             target_sat.api.ReportTemplate()
@@ -667,7 +675,7 @@ def test_positive_schedule_entitlements_report(setup_content, target_sat):
 
 @pytest.mark.no_containers
 @pytest.mark.tier3
-def test_positive_generate_job_report(setup_content, target_sat, rhel7_contenthost):
+def test_positive_generate_job_report(setup_content, module_target_sat, content_hosts):
     """Generate a report using the Job - Invocation Report template.
 
     :id: 946c39db-3061-43d7-b922-1be61f0c7d93
@@ -686,17 +694,17 @@ def test_positive_generate_job_report(setup_content, target_sat, rhel7_contentho
     :customerscenario: true
     """
     ak, org = setup_content
-    rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(org.label, ak.name)
-    rhel7_contenthost.add_rex_key(target_sat)
-    assert rhel7_contenthost.subscribed
-    # Run a Job on the Host
+    for host in content_hosts:
+        host.register(org, None, ak.name, module_target_sat)
+        host.add_rex_key(module_target_sat)
+        assert host.subscribed
+        # Run a Job on the Host
     template_id = (
-        target_sat.api.JobTemplate()
+        module_target_sat.api.JobTemplate()
         .search(query={'search': 'name="Run Command - Script Default"'})[0]
         .id
     )
-    job = target_sat.api.JobInvocation().run(
+    job = module_target_sat.api.JobInvocation().run(
         synchronous=False,
         data={
             'job_template_id': template_id,
@@ -704,14 +712,14 @@ def test_positive_generate_job_report(setup_content, target_sat, rhel7_contentho
                 'command': 'pwd',
             },
             'targeting_type': 'static_query',
-            'search_query': f'name = {rhel7_contenthost.hostname}',
+            'search_query': f'name ^ ({content_hosts[0].hostname} && {content_hosts[1].hostname}',
         },
     )
-    target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
-    result = target_sat.api.JobInvocation(id=job['id']).read()
-    assert result.succeeded == 1
+    module_target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
+    result = module_target_sat.api.JobInvocation(id=job['id']).read()
+    assert result.succeeded == 2
     rt = (
-        target_sat.api.ReportTemplate()
+        module_target_sat.api.ReportTemplate()
         .search(query={'search': 'name="Job - Invocation Report"'})[0]
         .read()
     )
@@ -722,8 +730,10 @@ def test_positive_generate_job_report(setup_content, target_sat, rhel7_contentho
             'input_values': {"job_id": job["id"]},
         }
     )
-    assert res[0]['Host'] == rhel7_contenthost.hostname
+    assert res[0]['Host'] == content_hosts[0].hostname
+    assert res[1]['Host'] == content_hosts[1].hostname
     assert '/root' in res[0]['stdout']
+    assert '/root' in res[1]['stdout']
 
 
 @pytest.mark.tier2

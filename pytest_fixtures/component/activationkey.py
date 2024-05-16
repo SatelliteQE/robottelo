@@ -42,6 +42,15 @@ def module_ak_with_cv(module_lce, module_org, module_promoted_cv, module_target_
     ).create()
 
 
+@pytest.fixture
+def function_ak_with_cv(function_lce, function_org, function_promoted_cv, target_sat):
+    return target_sat.api.ActivationKey(
+        content_view=function_promoted_cv,
+        environment=function_lce,
+        organization=function_org,
+    ).create()
+
+
 @pytest.fixture(scope='module')
 def module_ak_with_cv_repo(module_lce, module_org, module_cv_repo, module_target_sat):
     return module_target_sat.api.ActivationKey(

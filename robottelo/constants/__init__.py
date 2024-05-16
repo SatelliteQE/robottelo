@@ -5,17 +5,6 @@ from pathlib import Path
 from box import Box
 from nailgun import entities
 
-
-# String Color codes
-class Colored(Box):
-    YELLOW = '\033[1;33m'
-    REDLIGHT = '\033[3;31m'
-    REDDARK = '\033[1;31m'
-    GREEN = '\033[1;32m'
-    WHITELIGHT = '\033[1;30m'
-    RESET = '\033[0m'
-
-
 # This should be updated after each version branch
 SATELLITE_VERSION = "6.16"
 SATELLITE_OS_VERSION = "8"
@@ -555,16 +544,16 @@ REPOS = {
         },
         'rhel9_bos': {
             'id': 'rhel-9-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.3',
-            'version': '9.3',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.4',
+            'version': '9.4',
             'reposet': REPOSET['kickstart']['rhel9_bos'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
         'rhel9_aps': {
             'id': 'rhel-9-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.3',
-            'version': '9.3',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.4',
+            'version': '9.4',
             'reposet': REPOSET['kickstart']['rhel9_aps'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
@@ -1894,7 +1883,6 @@ FAM_TEST_PLAYBOOKS = [
     "content_export_repository",
     "content_export_version",
     "content_rhel_role",
-    "content_upload_ostree",
     "content_upload",
     "content_view_filter_info",
     "content_view_filter_rule_info",
@@ -1955,9 +1943,9 @@ FAM_TEST_PLAYBOOKS = [
     "puppet_environment",
     "realm",
     "redhat_manifest",
+    "registration_command",
     "repositories_role",
     "repository_info",
-    "repository_ostree",
     "repository_set_info",
     "repository_set",
     "repository_sync",
@@ -1984,6 +1972,7 @@ FAM_TEST_PLAYBOOKS = [
     "usergroup",
     "user",
     "wait_for_task",
+    "webhook",
 ]
 
 FAM_ROOT_DIR = '/usr/share/ansible/collections/ansible_collections/redhat/satellite'
