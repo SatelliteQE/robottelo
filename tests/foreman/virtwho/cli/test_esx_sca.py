@@ -9,6 +9,7 @@
 :Team: Phoenix
 
 """
+
 import json
 from pathlib import Path
 import re
@@ -682,4 +683,3 @@ class TestVirtWhoConfigforEsx:
         for item in task:
             assert "Job blocked by the following existing jobs" not in item['task-errors']
             assert "success" in item['result']
-                                          
