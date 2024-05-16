@@ -3342,7 +3342,7 @@ class TestContentView:
         cv.publish()
         # Run content-view list --name cv.name
         list_info = module_target_sat.cli.ContentView.list({'name': cv.name})
-        assert set(list_info[0]['repository-ids']) == set(id_list)
+        assert set(list_info[0]['repository-ids'].split(', ')) == set(id_list)
 
     def test_positive_validate_force_promote_warning(self, target_sat, function_org):
         """Test cv promote shows warning of 'force promotion' for out of sequence LCE
