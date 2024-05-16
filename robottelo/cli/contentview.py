@@ -209,3 +209,9 @@ class ContentView(Base):
         """List components attached to the content view"""
         cls.command_sub = 'component list'
         return cls.execute(cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def list(cls, options=None):
+        """List information about content views"""
+        cls.command_sub = 'list'
+        return cls.execute(cls._construct_command(options), output_format='csv')
