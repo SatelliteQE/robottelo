@@ -462,79 +462,76 @@ class APIFactory:
         environment,
         content_view,
         enable_repos=False,
-        unregister=False,
         rex_key=False,
         force=False,
+        loc=None,
     ):
-        """
-        * Helper will setup desired entities to host content. Then, register the
+        """Helper will setup desired entities to host content. Then, register the
         host client to the entities, using associated activation-key.
 
-        * Attempt to make needed associations between detached entities.
+        Attempt to make needed associations between detached entities.
+        Add desired repos to the content-view prior to calling this helper.
 
-        * Add desired repos to the content-view prior to calling this helper.
         Or, add them to content-view after calling, then publish/promote.
+        The host will be registered to location: None (visible to all locations).
 
-        * The host will be registered to location: None (visible to all locations).
+        param client : instance, required
+            An instance of RHEL content host to register.
+        param enable_repos : bool, optional
+            Enable all available repos on the client after registration? Default is False.
+            Be sure to enable any repo(s) for the client after calling this method.
+        param rex_key : bool, optional
+            Add a Remote Execution Key to the client for satellite? Default is False.
+        param force : bool, optional
+            Force registration of the client to bypass? Default is False.
+            A reused fixture content host will fail if already registered.
+        param loc : instance, optional
+            Pass a location to limit host visibility. Default is None,
+            making the client available to all locations.
 
-        param satellite: sat instance where needed entities exist.
-        param client: instance of a rhel contenthost to register.
+        Required arguments below, can be any of the following type:
+        int: pass id of the entity to be read
+        str: pass name of the entity to be searched
+        entity: pass an entity instance
 
-        param unregister (bool): unregister the host at the start, in case it is already registered
-            default: False, a reused fixture contenthost may fail if registered prior,
-                unregister before calling, or ensure it is a new host.
+        param organization : int, str, or entity
+            Pass an Organization instance, name, or id to use.
+        param activation_key : int, str, or entity
+            Pass an Activation-Key instance, name, or id.
+        param environment : int, str, or entity
+            Pass a Lifecycle-Environment instance, name, or id.
+            Example: can pass string name 'Library'.
+        param content_view : int, str, or entity
+            Pass a Content-View instance, name, or id.
+            Example: can pass string name 'Default Organization View'.
 
-        param enable_repos (bool): enable all available repos on the client, after registration?
-            default: False, be sure to enable any repo(s) for client, after calling this method.
-
-        param rex_key (bool): add a Remote Execution Key to client for satellite?
-            default: False
-        param force (bool): force registration of the client to bypass?
-            default: False, a reused fixture contenthost will fail if already registered.
-
-        type: Below arguments can be any of the following:
-            * (int): pass id of entity to be read
-            * (str): pass name of entity to be searched
-            * (entity): pass an entity instance
-        param organization: pass an Organization instance, name, or id to use.
-
-        param activation_key: pass an Activation-Key instance, name, or id.
-
-        param environment: pass a Lifecycle-Environment instance, name, or id.
-            for example: can pass string name 'Library'.
-
-        param content_view: pass a Content-View instance, name, or id.
-            for example: can pass string name 'Default Organization View'.
-
-        Notes:
-            1. Will fail if passed entities do not exist in the same organization and satellite.
-            2. Use param `enable_repos`, to try enabling any repositories on client,
-                that were added to content-view prior. But if there are no
-                repositories added/made available, this will fail.
-            3. The Default Organization View cannot be published, promoted, edited, or deleted.
-                but you can register the client to it.
+        Note: The Default Organization View cannot be published, promoted, edited etc,
+            but you can register the client to it. Use the 'Library' environment.
 
         Steps:
-            1. get needed entities from arguments, id, name, or instance. Read all as instance.
-            2. publish the content-view if no versions exist, or needs_publish.
-            3. promote the newest content-view-version if not in environment already. Skip for 'Library'.
-            4. assign environment and content-view to the activation-key, if not associated.
-            5. Register the host, using the activation-key associated with content.
-            6. Add a rex_key to the client if desired, enable all available repositories if desired.
+            1. Get needed entities from arguments (id, name, or instance). Read all as instance.
+            2. Publish the content-view if no versions exist or needs_publish.
+            3. Promote the newest content-view-version if not in the environment already. Skip for 'Library'.
+            4. Assign environment and content-view to the activation-key if not associated.
+            5. If desired, enable all repositories from content-view for activation-key.
+            6. Register the host with options, using the activation-key associated with the content.
+            7. Check host was registered, identity matches passed entities.
 
-        return: if Succeeded: dict containing the updated entities:
-            {
-                'result', 'client', 'organization', 'activation_key',
-                'environment', 'content_view',
-            }
+        Return: dictionary containing the following entries
+            if succeeded:
+                result: 'success'
+                client: registered host client
+                organization: entities['Organization']
+                activation_key: entities['ActivationKey']
+                environment: entities['LifecycleEnvironment']
+                content_view: entities['ContentView']
 
-        return: if Failed: dict containing the result and reason
-            {
-                'result': 'error'
-                'client': None, unless registration was successful
-                'message': Details of failure encountered
-            }
+            if failed:
+                result: 'error'
+                client: None, unless registration was successful
+                message: Details of the failure encountered
         """
+
         method_error = {
             'result': 'error',
             'client': None,
@@ -551,17 +548,6 @@ class APIFactory:
                 'Argument "client" must be instance, with attribute "hostname".'
             )
             return method_error
-        if not force and client.subscribed:
-            if unregister:
-                client.unregister()
-            else:
-                method_error['message'] = (
-                    'Passed client is already registered.'
-                    ' Unregister the host prior to calling this method.'
-                    ' Or, pass unregister=True, to unregister within this method first,'
-                    ' Or, pass force=True, to bypass during registration.'
-                )
-                return method_error
         # for entity arguments matched to above params:
         # fetch entity instance on satellite,
         # from given id or name, else read passed argument as an instance.
@@ -573,18 +559,15 @@ class APIFactory:
                 param = getattr(self._satellite.api, entity)(id=value).read()
             # passed str, search for entity by name
             elif isinstance(value, str):
-                # search for org name itself, will be just scoped to satellite
+                search_query = f'name="{value}"'
                 if entity == 'Organization':
-                    search_query = f'name="{value}"'
+                    # search for org name itself, will be just scoped to satellite
                     # equivalent: _satellite_.api.{KEY}().search(...name={VALUE})
                     result = getattr(self._satellite.api, entity)().search(
                         query={'search': search_query}
                     )
-                # search of non-org entity by name, will be scoped to organization
                 else:
-                    search_query = (
-                        f"name='{value}' and organization_id={entities['Organization'].id}"
-                    )
+                    # search of non-org entity by name, will be scoped to organization
                     result = getattr(self._satellite.api, entity)(
                         organization=entities['Organization']
                     ).search(query={'search': search_query})
@@ -652,42 +635,64 @@ class APIFactory:
             entities['ActivationKey'].content_view = entities['ContentView']
             entities['ActivationKey'].update(['content_view'])
 
-        # register with now setup entities, using ak
         entities = {k: v.read() for k, v in entities.items()}
+        if enable_repos:
+            repositories = entities['ContentView'].repository
+            if len(repositories) < 1:
+                method_error['message'] = (
+                    f' Cannot enable repositories for clients activation-key: {entities["ActivationKey"].name}'
+                    f' There are no repositories added to the content-view: {entities["ContentView"].name}.'
+                )
+                return method_error
+            for repo in repositories:
+                # fetch content-label for any repo in cv
+                repo_content_label = self._satellite.cli.Repository.info(
+                    {
+                        'name': repo.read().name,
+                        'organization-id': entities['Organization'].id,
+                        'product': repo.read().product.read().name,
+                    }
+                )['content-label']
+                # override the repository to enabled for ak
+                self._satellite.cli.ActivationKey.content_override(
+                    {
+                        'content-label': repo_content_label,
+                        'id': entities['ActivationKey'].id,
+                        'organization-id': entities['Organization'].id,
+                        'value': int(True),
+                    }
+                )
+
+        # register with now setup entities, using ak
         result = client.register(
             activation_keys=entities['ActivationKey'].name,
             target=self._satellite,
             org=entities['Organization'],
-            loc=None,
+            setup_remote_execution_pull=rex_key,
             force=force,
+            loc=loc,
         )
         if result.status != 0:
             method_error['message'] = (
                 f'Failed to register the host: {client.hostname}.\n{result.stderr}'
             )
             return method_error
-        if not client.subscribed:
+
+        # check identity of now registered client, matches expected entities
+        if not all(
+            [
+                client.subscribed,
+                client.identity['registered_to'] == self._satellite.hostname,
+                client.identity['org_name'] == entities['Organization'].name,
+                client.identity['environment_name']
+                == (f'{entities["LifecycleEnvironment"].name}/{entities["ContentView"].name}'),
+            ]
+        ):
             method_error['client'] = client
             method_error['message'] = (
-                f'Failed to subscribe the host: {client.hostname},'
-                f' to content-view: {entities["ContentView"].name}'
+                f'Registered client identity field(s) do not match expected:\n{client.identity}'
             )
             return method_error
-        if rex_key:
-            client.add_rex_key(self._satellite)
-
-        # enable all repositories available to client, using subscription manager,
-        # ie: any repos added to content-view prior to calling this method.
-        # note: this will fail if no repos are available to client from CV/AK
-        if enable_repos:
-            output = client.execute(r'subscription-manager repos --enable \*')
-            if output.status != 0:
-                method_error['client'] = client
-                method_error['message'] = (
-                    'Failed to enable all available repositories using subscription-manager.'
-                    f' For client: {client.hostname}.\n{output.stdout}'
-                )
-                return method_error
 
         entities = {k: v.read() for k, v in entities.items()}
         return (  # dict containing registered host client, and updated entities
