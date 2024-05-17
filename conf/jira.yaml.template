@@ -3,3 +3,6 @@ JIRA:
   URL: https://issues.redhat.com
   # Provide api_key to access Jira REST API
   API_KEY: replace-with-jira-api-key
+  COMMENT_TYPE: comment_type
+  COMMENT_VISIBILITY: private_or_public
+  ENABLE_COMMENT: false

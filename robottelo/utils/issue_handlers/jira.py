@@ -272,3 +272,41 @@ def get_default_jira(number):  # pragma: no cover
         "resolution": "",
         "error": "missing jira api_key",
     }
+
+
+def add_comment_on_jira(
+    jira_number,
+    comment,
+    comment_type=settings.jira.comment_type,
+    comment_visibility=settings.jira.comment_visibility,
+):
+    """Adds a new comment to a Jira issue.
+
+    Arguments:
+        jira_numbers {str} -- Jira issue number, ex. SAT-12232
+        comment {str}  -- Comment to add on the issue.
+        comment_type {str}  -- Type of comment to add.
+        comment_visibility {str}  -- Comment visibility.
+
+    Returns:
+        [list of dicts] -- [{'id':..., 'status':..., 'resolution': ...}]
+    """
+    if not settings.jira.enable_comment:
+        logger.warning(
+            'Jira comments are currently disabled for this run. '
+            'To enable it, please set "enable_comment" to "true" in "config/jira.yaml"'
+        )
+    logger.debug(f"Adding a new comment on {jira_number} Jira issue.")
+    response = requests.post(
+        f"{settings.jira.url}/rest/api/latest/issue/{jira_number}/comment",
+        json={
+            "body": comment,
+            "visibility": {
+                "type": comment_type,
+                "value": comment_visibility,
+            },
+        },
+        headers={"Authorization": f"Bearer {settings.jira.api_key}"},
+    )
+    response.raise_for_status()
+    return response.json()
