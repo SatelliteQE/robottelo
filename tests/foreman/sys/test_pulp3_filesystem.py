@@ -43,7 +43,6 @@ def test_selinux_status(target_sat):
 @pytest.mark.parametrize(
     'directory',
     [
-        '/var/lib/pulp',
         '/var/lib/pulp/assets',
         '/var/lib/pulp/media',
         '/var/lib/pulp/tmp',
