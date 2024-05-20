@@ -561,7 +561,7 @@ def test_positive_prepare_for_sca_only_subscription(target_sat, function_entitle
 
 @pytest.mark.parametrize('setting_update', ['expire_soon_days'], indirect=True)
 def test_positive_check_manifest_validity_notification(
-    target_sat, setting_update, function_org, function_sca_manifest
+    target_sat, setting_update, function_org, function_sca_manifest, default_org
 ):
     """Check notification when manifest is going to expire.
 
@@ -607,7 +607,8 @@ def test_positive_check_manifest_validity_notification(
 
         # Message - Manifest expiring soon
         # Upload non-expire manifest
-        target_sat.upload_manifest(function_org.id, function_sca_manifest.content)
+        session.organization.select(default_org.name)
+        target_sat.upload_manifest(default_org.id, function_sca_manifest.content)
         original_expire_date = (
             session.subscription.read_subscription_manifest_expiration_date_only()
         )
@@ -616,6 +617,7 @@ def test_positive_check_manifest_validity_notification(
         # value should be greater than 365 to get expected output message
         setting_update.value = 366
         setting_update = setting_update.update({'value'})
+        session.browser.refresh()
         # read expire manifest message
         expiring_soon = session.subscription.read_subscription_manifest_header_message_and_date()
         assert (
