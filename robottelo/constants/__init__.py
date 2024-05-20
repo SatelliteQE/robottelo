@@ -1717,6 +1717,14 @@ SATELLITE_MAINTAIN_YML = "/etc/foreman-maintain/foreman_maintain.yml"
 FOREMAN_SETTINGS_YML = '/etc/foreman/settings.yaml'
 
 FOREMAN_TEMPLATE_IMPORT_URL = 'https://github.com/SatelliteQE/foreman_templates.git'
+FOREMAN_TEMPLATES_IMPORT_COUNT = {
+    'PUPPET_ENABLED': 18,
+    'PUPPET_DISABLED': 17,
+}
+FOREMAN_TEMPLATES_NOT_IMPORTED_COUNT = {
+    'PUPPET_ENABLED': 8,
+    'PUPPET_DISABLED': 9,
+}
 FOREMAN_TEMPLATE_IMPORT_API_URL = 'http://api.github.com/repos/SatelliteQE/foreman_templates'
 
 FOREMAN_TEMPLATE_TEST_TEMPLATE = (
