@@ -3655,3 +3655,88 @@ class TestContentViewFileRepo:
         assert result[2]
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         assert '1.1' in [cvv_['version'] for cvv_ in content_view['versions']]
+
+    def test_promote_ccv_to_lce_with_nondefault_pattern(
+        self, module_target_sat, module_org, module_product
+    ):
+        """Promote Composite Content View to a Lifecycle environment
+        with non-default registry pattern.
+
+        :id: 1bef5060-1114-45ac-ba26-5d516a438ab3
+
+        :setup:
+            1. Create custom docker repository, sync it.
+            2. Create lifecycle environments with non-default registry pattern.
+
+        :steps:
+            1. Create CV, add the docker repository and publish it.
+            2. Create CCV, add the CV from 1 and publish it.
+            3. Promote the CCV from 2 to the LCEs with non-default registry pattern.
+
+        :expectedresults:
+            1. The promote tasks should succeed without any errors.
+            2. CCV is present in both LCEs.
+
+        :BZ: 2153523
+
+        :customerscenario: true
+        """
+        # Create custom docker repository, sync it.
+        repo = module_target_sat.cli_factory.make_repository(
+            {
+                'content-type': 'docker',
+                'docker-upstream-name': constants.CONTAINER_UPSTREAM_NAME,
+                'name': gen_string('alpha', 20),
+                'product-id': module_product.id,
+                'url': constants.CONTAINER_REGISTRY_HUB,
+            }
+        )
+        module_target_sat.cli.Repository.synchronize({'id': repo['id']})
+
+        # Create lifecycle environments with non-default registry pattern.
+        lce1 = module_target_sat.cli_factory.make_lifecycle_environment(
+            {'organization-id': module_org.id, 'registry-name-pattern': '<%= repository.name %>'}
+        )
+        lce2 = module_target_sat.cli_factory.make_lifecycle_environment(
+            {
+                'organization-id': module_org.id,
+                'prior': lce1['name'],
+                'registry-name-pattern': '<%= lifecycle_environment.label %>/<%= repository.name %>',
+            }
+        )
+
+        # Create CV, add the docker repository and publish it.
+        cv = module_target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
+        module_target_sat.cli.ContentView.add_repository(
+            {
+                'id': cv['id'],
+                'organization-id': module_org.id,
+                'repository-id': repo['id'],
+            }
+        )
+        module_target_sat.cli.ContentView.publish({'id': cv['id']})
+        cv = module_target_sat.cli.ContentView.info({'id': cv['id']})
+        assert len(cv['versions']) == 1, f'Expected one published version, got {cv["versions"]}'
+
+        # Create CCV, add the CV from 1 and publish it.
+        ccv = module_target_sat.cli_factory.make_content_view(
+            {
+                'composite': True,
+                'organization-id': module_org.id,
+                'component-ids': cv['versions'][0]['id'],
+            }
+        )
+        module_target_sat.cli.ContentView.publish({'id': ccv['id']})
+        ccv = module_target_sat.cli.ContentView.info({'id': ccv['id']})
+        assert len(ccv['versions']) == 1, f'Expected one published version, got {ccv["versions"]}'
+
+        # Promote the CCV from 2 to the LCEs with non-default registry pattern.
+        for lce in [lce1, lce2]:
+            module_target_sat.cli.ContentView.version_promote(
+                {'id': ccv['versions'][0]['id'], 'to-lifecycle-environment-id': lce['id']}
+            )
+        envs = module_target_sat.cli.ContentView.info({'id': ccv['id']})['lifecycle-environments']
+        assert len(envs) == 3, f'Expected 3 LCEs (Library+2) but got: {envs}'
+        assert {lce1['id'], lce2['id']}.issubset(
+            [lce['id'] for lce in envs]
+        ), 'Expected LCEs not found in CCV envs'
