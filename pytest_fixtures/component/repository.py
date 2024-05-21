@@ -132,7 +132,7 @@ def _simplify_repos(request, repos):
     ]
     Then the fixtures loop over it to create multiple repositories.
 
-    :returns: The tuple of distro of repositories(if given) and simplified repos
+    :return: The tuple of distro of repositories(if given) and simplified repos
     """
     _repos = []
     repo_distro = None

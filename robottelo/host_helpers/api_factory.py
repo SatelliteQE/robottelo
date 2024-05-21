@@ -169,7 +169,7 @@ class APIFactory:
             True
 
         :param name: A field name.
-        :returns: A set including both ``name`` and variations on ``name``.
+        :return: A set including both ``name`` and variations on ``name``.
 
         """
         return {f'{name}_name', f'{name}_id'}

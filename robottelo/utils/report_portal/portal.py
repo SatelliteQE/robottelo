@@ -44,14 +44,14 @@ class ReportPortal:
     @property
     def api_url(self):
         """Super url of report portal
-        :returns: Base url for API request
+        :return: Base url for API request
         """
         return f'{self.rp_url}/api/v1/{self.rp_project}'
 
     @property
     def headers(self):
         """The headers for Report Portal Requests.
-        :returns: header for API request
+        :return: header for API request
         """
         return {'Authorization': f'Bearer {self.rp_api_key}'}
 
