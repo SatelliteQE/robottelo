@@ -1,8 +1,7 @@
 # Compute Profile Fixtures
-from nailgun import entities
 import pytest
 
 
 @pytest.fixture(scope='module')
-def module_compute_profile():
-    return entities.ComputeProfile().create()
+def module_compute_profile(module_target_sat):
+    return module_target_sat.api.ComputeProfile().create()
