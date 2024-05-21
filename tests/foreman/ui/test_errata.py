@@ -82,19 +82,19 @@ def _set_setting_value(setting_entity, value):
 
 @pytest.fixture(scope='module')
 def module_manifest():
-    with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
+    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
         yield manifest
 
 
 @pytest.fixture
 def function_manifest():
-    with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
+    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
         yield manifest
 
 
 @pytest.fixture(scope='module')
 def module_org_with_parameter(module_target_sat, module_manifest):
-    org = module_target_sat.api.Organization(simple_content_access=True).create()
+    org = module_target_sat.api.Organization(simple_content_access=False).create()
     # org.sca_disable()
     module_target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
@@ -108,7 +108,7 @@ def module_org_with_parameter(module_target_sat, module_manifest):
 
 @pytest.fixture
 def function_org_with_parameter(target_sat, function_manifest):
-    org = target_sat.api.Organization(simple_content_access=True).create()
+    org = target_sat.api.Organization(simple_content_access=False).create()
     target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
         parameter_type='boolean',
