@@ -156,7 +156,7 @@ def wait_for_no_long_running_task_mail(target_sat, clean_root_mailbox, long_runn
 def root_mailbox_copy(target_sat, clean_root_mailbox):
     """Parsed local system copy of the Satellite's root user mailbox.
 
-    :returns: :class:`mailbox.mbox` instance
+    :return: :class:`mailbox.mbox` instance
     """
     result = target_sat.execute(f'cat {clean_root_mailbox}')
     assert result.status == 0, f'Could not read mailbox {clean_root_mailbox} on Satellite host.'
