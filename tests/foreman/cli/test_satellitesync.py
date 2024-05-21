@@ -209,6 +209,18 @@ def function_synced_AC_repo(target_sat, function_org, function_product):
     return repo
 
 
+@pytest.fixture
+def function_restrictive_umask(target_sat):
+    original_mask = target_sat.execute('umask').stdout.strip()[-3:]
+    new_mask = '077'
+    target_sat.execute(f'sed -i "s/umask {original_mask}/umask {new_mask}/g" /etc/bashrc')
+    assert (
+        new_mask in target_sat.execute('umask').stdout
+    ), f'Failed to set umask from {original_mask} to {new_mask}'
+    yield
+    target_sat.execute(f'sed -i "s/umask {new_mask}/umask {original_mask}/g" /etc/bashrc')
+
+
 @pytest.mark.run_in_one_thread
 class TestRepositoryExport:
     """Tests for exporting a repository via CLI"""
@@ -1411,6 +1423,77 @@ class TestContentViewSync:
         imported_files = target_sat.cli.File.list({'content-view-version-id': importing_cvv['id']})
         assert exported_packages == imported_packages, 'Imported RPMs do not match the export'
         assert exported_files == imported_files, 'Imported Files do not match the export'
+
+    @pytest.mark.tier3
+    def test_postive_export_cv_syncable_with_permissions(
+        self,
+        request,
+        export_import_cleanup_function,
+        target_sat,
+        function_restrictive_umask,
+        function_org,
+        function_synced_custom_repo,
+        function_synced_file_repo,
+    ):
+        """Export CV with mixed content in syncable format with restrictive umask
+        and check the exported files permissions stay sufficient for import.
+
+        :id: f0d83ca5-2213-4649-a248-3de4f131df68
+
+        :setup:
+            1. Synced repositories of syncable-supported content types: yum, file
+            2. Restrictive umask (0077) is set for non-login shell.
+
+        :steps:
+            1. Create CV, add all setup repos and publish.
+            2. Export CV version contents in syncable format.
+            3. Check the permissions of exported files.
+
+        :expectedresults:
+            1. Exported files have sufficient permissions for import.
+
+        :BZ: 2233162
+
+        :customerscenario: true
+        """
+        # Create CV, add all setup repos and publish
+        cv = target_sat.cli_factory.make_content_view({'organization-id': function_org.id})
+        repos = [
+            function_synced_custom_repo,
+            function_synced_file_repo,
+        ]
+        for repo in repos:
+            target_sat.cli.ContentView.add_repository(
+                {
+                    'id': cv['id'],
+                    'organization-id': function_org.id,
+                    'repository-id': repo['id'],
+                }
+            )
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        exporting_cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        exporting_cvv = target_sat.cli.ContentView.version_info(
+            {'id': exporting_cv['versions'][0]['id']}
+        )
+
+        # Export CV version contents in syncable format
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
+        target_sat.cli.ContentExport.completeVersion(
+            {'id': exporting_cvv['id'], 'organization-id': function_org.id, 'format': 'syncable'}
+        )
+
+        # Check the permissions of exported files
+        paths = target_sat.validate_pulp_filepath(
+            function_org, PULP_EXPORT_DIR, file_names='*'
+        ).split()
+        assert len(paths) > 0, 'Nothing found at export path'
+        assert all(
+            [
+                '644' in target_sat.execute(f'stat -c %a {path}').stdout
+                for path in paths
+                if 'metadata.json' not in path
+            ]
+        ), 'Unexpected permission for one or more exported files'
 
     @pytest.mark.tier3
     def test_postive_export_import_cv_with_file_content(
