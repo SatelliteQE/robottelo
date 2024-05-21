@@ -548,7 +548,7 @@ class RepositoryCollection:
         Add repository to collection
 
         :param BaseRepository item: Item to add
-        :returns: None
+        :return: None
         """
         if self._repos_info:
             raise RepositoryAlreadyCreated('Repositories already created can not add more')
@@ -565,7 +565,7 @@ class RepositoryCollection:
         Add multiple repositories to collection
 
         :param List[BaseRepository] items: Items to add
-        :returns: None
+        :return: None
         """
         for item in items:
             self.add_item(item)

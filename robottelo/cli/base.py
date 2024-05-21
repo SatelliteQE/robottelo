@@ -35,7 +35,7 @@ class Base:
         :param response: a result object, returned by :mod:`robottelo.utils.ssh.command`.
         :param ignore_stderr: indicates whether to throw a warning in logs if
             ``stderr`` is not empty.
-        :returns: contents of ``stdout``.
+        :return: contents of ``stdout``.
         :raises robottelo.exceptions.CLIReturnCodeError: If return code is
             different from zero.
         """
