@@ -43,6 +43,7 @@ from robottelo.constants import (
     REAL_0_RH_PACKAGE,
     REAL_4_ERRATA_CVES,
     REAL_4_ERRATA_ID,
+    REAL_RHEL8_1_ERRATA_ID,
     REPOS,
     REPOSET,
 )
@@ -81,19 +82,19 @@ def _set_setting_value(setting_entity, value):
 
 @pytest.fixture(scope='module')
 def module_manifest():
-    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
+    with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
         yield manifest
 
 
 @pytest.fixture
 def function_manifest():
-    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
+    with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
         yield manifest
 
 
 @pytest.fixture(scope='module')
 def module_org_with_parameter(module_target_sat, module_manifest):
-    org = module_target_sat.api.Organization(simple_content_access=False).create()
+    org = module_target_sat.api.Organization(simple_content_access=True).create()
     # org.sca_disable()
     module_target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
@@ -107,7 +108,7 @@ def module_org_with_parameter(module_target_sat, module_manifest):
 
 @pytest.fixture
 def function_org_with_parameter(target_sat, function_manifest):
-    org = target_sat.api.Organization(simple_content_access=False).create()
+    org = target_sat.api.Organization(simple_content_access=True).create()
     target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
         parameter_type='boolean',
@@ -811,19 +812,8 @@ def test_positive_list(
 
 
 @pytest.mark.tier2
-@pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
-    [
-        {
-            'distro': 'rhel6',
-            'VirtualizationAgentsRepository': {'cdn': True},
-            'YumRepository': {'url': CUSTOM_REPO_URL},
-        }
-    ],
-    indirect=True,
-)
 def test_positive_list_permission(
-    test_name, module_org_with_parameter, module_repos_collection_with_setup, module_target_sat
+    test_name, function_sca_manifest_org, function_product, module_target_sat
 ):
     """Show errata only if the User has permissions to view them
 
@@ -840,30 +830,47 @@ def test_positive_list_permission(
     :expectedresults: Check that the new user is able to see errata for one
         product only.
     """
-    module_org = module_org_with_parameter
+    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+        basearch=DEFAULT_ARCHITECTURE,
+        org_id=function_sca_manifest_org.id,
+        product=PRDS['rhel8'],
+        repo=REPOS['rhst8']['name'],
+        reposet=REPOSET['rhst8'],
+        releasever='None',
+    )
+    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+    rh_repo.sync()
+    custom_repo = module_target_sat.api.Repository(
+        url=CUSTOM_REPO_URL, product=function_product
+    ).create()
+    custom_repo.sync()
+    # create role with access only to 'RHEL8' RedHat product
     role = module_target_sat.api.Role().create()
     module_target_sat.api.Filter(
-        organization=[module_org],
+        organization=[function_sca_manifest_org],
         permission=module_target_sat.api.Permission().search(
             query={'search': 'resource_type="Katello::Product"'}
         ),
         role=role,
-        search='name = "{}"'.format(PRDS['rhel']),
+        search='name = "{}"'.format(PRDS['rhel8']),
     ).create()
+    # generate login credentials for new role
     user_password = gen_string('alphanumeric')
     user = module_target_sat.api.User(
-        default_organization=module_org,
-        organization=[module_org],
+        default_organization=function_sca_manifest_org,
+        organization=[function_sca_manifest_org],
         role=[role],
         password=user_password,
     ).create()
     with module_target_sat.ui_session(
         test_name, user=user.login, password=user_password
     ) as session:
+        # can view RHEL8 product's repo content (RHEL8 errata_id)
         assert (
-            session.errata.search(RHVA_ERRATA_ID, applicable=False)[0]['Errata ID']
-            == RHVA_ERRATA_ID
+            session.errata.search(REAL_RHEL8_1_ERRATA_ID, applicable=False)[0]['Errata ID']
+            == REAL_RHEL8_1_ERRATA_ID
         )
+        # cannot view function product's repo content (fake custom errata_id)
         assert not session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False)
 
 
