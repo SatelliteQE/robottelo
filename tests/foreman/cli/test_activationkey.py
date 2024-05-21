@@ -11,12 +11,6 @@
 :CaseImportance: High
 
 """
-<<<<<<< HEAD
-
-from random import choice
-import re
-=======
->>>>>>> 9676a29d5 (Updating AK to SCA Only)
 
 from broker import Broker
 from fauxfactory import gen_alphanumeric, gen_string
