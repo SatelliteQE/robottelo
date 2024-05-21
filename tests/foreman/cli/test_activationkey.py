@@ -725,7 +725,7 @@ def test_positive_add_redhat_product(function_sca_manifest_org, target_sat):
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_custom_product(module_org, module_target_sat):
+def test_positive_add_custom_product(module_org, function_target_sat):
     """Test that custom product can be associated to Activation Keys
 
     :id: 96ace967-e165-4069-8ff7-f54c4c822de0
@@ -735,11 +735,11 @@ def test_positive_add_custom_product(module_org, module_target_sat):
 
     :BZ: 1426386
     """
-    result = module_target_sat.cli_factory.setup_org_for_a_custom_repo(
+    result = function_target_sat.cli_factory.setup_org_for_a_custom_repo(
         {'url': settings.repos.yum_0.url, 'organization-id': module_org.id}
     )
-    repo = module_target_sat.cli.Repository.info({'id': result['repository-id']})
-    content = module_target_sat.cli.ActivationKey.product_content(
+    repo = function_target_sat.cli.Repository.info({'id': result['repository-id']})
+    content = function_target_sat.cli.ActivationKey.product_content(
         {'id': result['activationkey-id'], 'organization-id': module_org.id}
     )
     assert content[0]['name'] == repo['name']
@@ -1223,7 +1223,7 @@ def test_negative_copy_with_same_name(module_org, module_target_sat):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_copy_activationkey_and_check_content(module_sca_manifest_org, module_target_sat):
+def test_positive_copy_activationkey_and_check_content(function_sca_manifest_org, module_target_sat):
     """Copy Activation key and verify contents
 
     :id: f4ee8096-4120-4d06-8c9a-57ac1eaa8f68
@@ -1237,7 +1237,7 @@ def test_positive_copy_activationkey_and_check_content(module_sca_manifest_org, 
     :expectedresults: Activation key is successfully copied
     """
     # Begin test setup
-    org = module_sca_manifest_org
+    org = function_sca_manifest_org
     result = module_target_sat.cli_factory.setup_org_for_a_rh_repo(
         {
             'product': PRDS['rhel'],
@@ -1399,7 +1399,7 @@ def test_positive_remove_user(module_org, module_target_sat):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-def test_positive_view_content_by_non_admin_user(module_sca_manifest_org, module_target_sat):
+def test_positive_view_content_by_non_admin_user(function_sca_manifest_org, module_target_sat):
     """Attempt to read activation key content by non admin user
 
     :id: af75b640-97be-431b-8ac0-a6367f8f1996
@@ -1430,7 +1430,7 @@ def test_positive_view_content_by_non_admin_user(module_sca_manifest_org, module
 
     :BZ: 1406076
     """
-    org = module_sca_manifest_org
+    org = function_sca_manifest_org
     user_name = gen_alphanumeric()
     user_password = gen_alphanumeric()
     hc_names_like = (
