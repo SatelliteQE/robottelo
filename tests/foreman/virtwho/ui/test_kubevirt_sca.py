@@ -52,7 +52,7 @@ class TestVirtwhoConfigforKubevirt:
         # Check virtual guest subscription status and hypervisor host and virtual guest mapping in Legacy UI
         virtualguest = org_session.contenthost.read_legacy_ui(guest_name)
         assert virtualguest['details']['subscription_status'] == 'Simple Content Access'
-        assert virtualguest['details']['virtual_guest'] == '1 Content Host'
+        assert virtualguest['details']['virtual_host'] == hypervisor_display_name
 
     @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
