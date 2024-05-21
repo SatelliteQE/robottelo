@@ -141,7 +141,7 @@ class ContentInfo:
         :type interface: str
         :type timeout: int
 
-        :returns: the manifest upload result
+        :return: the manifest upload result
 
         """
         if not isinstance(manifest, bytes | io.BytesIO) and (
@@ -175,7 +175,7 @@ class ContentInfo:
         given organization.
 
         :param str org_id: The unique identifier of the organization to check for SCA mode.
-        :returns: A boolean value indicating whether SCA mode is enabled or not.
+        :return: A boolean value indicating whether SCA mode is enabled or not.
         :rtype: bool
         """
         return self.api.Organization(id=org_id).read().simple_content_access
@@ -186,7 +186,7 @@ class ContentInfo:
         :param str org: The name of the organization to which the content view belongs
         :param list or str repo_list:  A list of repositories or a single repository
 
-        :returns: A dictionary containing the details of the published content view.
+        :return: A dictionary containing the details of the published content view.
         """
         repo = repo_list if isinstance(repo_list, list) else [repo_list]
         content_view = self.api.ContentView(organization=org, repository=repo).create()
