@@ -137,7 +137,7 @@ def test_positive_artifact_repair(
         with pytest.raises(FileNotFoundError):
             module_target_sat.get_artifact_info(path=ai.path)
     elif damage_type == 'corrupt':
-        res = module_target_sat.execute(f'truncate -s {random.randint(1, ai.size)} {ai.path}')
+        res = module_target_sat.execute(f'truncate -s {random.randrange(1, ai.size)} {ai.path}')
         assert res.status == 0, f'Artifact truncation failed: {res.stderr}'
         assert module_target_sat.get_artifact_info(path=ai.path) != ai, 'Artifact corruption failed'
     else:
@@ -145,17 +145,12 @@ def test_positive_artifact_repair(
 
     # Trigger desired variant of repair (verify_checksum) task.
     if repair_type == 'repo':
-        res = module_target_sat.api.Repository(id=module_synced_content.repo.id).verify_checksum()
-        assert 'success' in res['result'], f'Repair task did not succees: {res}'
+        module_target_sat.cli.Repository.verify_checksum({'id': module_synced_content.repo.id})
     elif repair_type == 'cv':
         cvv_id = module_synced_content.cv.version[0].id
-        res = module_target_sat.api.ContentViewVersion(id=cvv_id).verify_checksum()
-        assert 'success' in res['result'], f'Repair task did not succees: {res}'
+        module_target_sat.cli.ContentView.version_verify_checksum({'id': cvv_id})
     elif repair_type == 'product':
-        res = module_target_sat.api.ProductBulkAction().verify_checksum(
-            data={'ids': [module_synced_content.prod.id]}
-        )
-        assert 'success' in res['result'], f'Repair task did not succees: {res}'
+        module_target_sat.cli.Product.verify_checksum({'ids': module_synced_content.prod.id})
     else:
         raise ValueError(f'Unsupported repair type: {repair_type}')
 
