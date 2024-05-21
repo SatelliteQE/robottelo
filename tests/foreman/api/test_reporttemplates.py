@@ -486,7 +486,7 @@ def test_positive_applied_errata_by_search(
     ERRATUM_ID = str(settings.repos.yum_6.errata[2])
     target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
-            'url': settings.repos.yum_9.url,
+            'url': settings.repos.yum_6.url,
             'organization-id': function_org.id,
             'content-view-id': cv.id,
             'lifecycle-environment-id': function_lce.id,
