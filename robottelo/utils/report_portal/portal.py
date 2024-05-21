@@ -43,16 +43,12 @@ class ReportPortal:
 
     @property
     def api_url(self):
-        """Super url of report portal
-        :returns: Base url for API request
-        """
+        """Super url of report portal API."""
         return f'{self.rp_url}/api/v1/{self.rp_project}'
 
     @property
     def headers(self):
-        """The headers for Report Portal Requests.
-        :returns: header for API request
-        """
+        """The headers for Report Portal Requests."""
         return {'Authorization': f'Bearer {self.rp_api_key}'}
 
     def get_launches(

@@ -45,7 +45,7 @@ def fetch_scap_and_profile_id(sat, scap_name, scap_profile):
     :param scap_name: Scap title
     :param scap_profile: Scap profile you want to select
 
-    :returns: scap_id and scap_profile_id
+    :return: scap_id and scap_profile_id
     """
 
     default_content = sat.cli.Scapcontent.info({'title': scap_name}, output_format='json')
