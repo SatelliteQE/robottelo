@@ -176,7 +176,7 @@ class TestUser:
         assert location['name'] == user['default-location']
 
     @pytest.mark.tier1
-    def test_positive_create_with_defaut_org(self, module_target_sat):
+    def test_positive_create_with_default_org(self, module_target_sat):
         """Check if user with default organization can be created
 
         :id: cc692b6f-2519-429b-8ecb-c4bb51ed3544

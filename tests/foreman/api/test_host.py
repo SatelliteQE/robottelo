@@ -144,7 +144,7 @@ def test_positive_update_owner_type(
     host.owner = owners[owner_type]
     host = host.update(['owner_type', 'owner'])
     assert host.owner_type == owner_type
-    assert host.owner.read() == owners[owner_type]
+    assert module_target_sat.api.User(id=host.owner.id).read() == owners[owner_type]
 
 
 @pytest.mark.tier1
@@ -468,13 +468,13 @@ def test_positive_create_and_update_with_user(
     host = module_target_sat.api.Host(
         owner=module_user, owner_type='User', organization=module_org, location=module_location
     ).create()
-    assert host.owner.read() == module_user
+    assert module_target_sat.api.User(id=host.owner.id).read() == module_user
     new_user = module_target_sat.api.User(
         organization=[module_org], location=[module_location]
     ).create()
     host.owner = new_user
     host = host.update(['owner'])
-    assert host.owner.read() == new_user
+    assert module_target_sat.api.User(id=host.owner.id).read() == new_user
 
 
 @pytest.mark.tier2
