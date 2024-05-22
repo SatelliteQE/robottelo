@@ -35,7 +35,7 @@ class TestOpenScap:
 
         :param scap_name: Scap title
 
-        :returns: scap_id and scap_profile_id
+        :return: scap_id and scap_profile_id
         """
         default_content = sat.cli.Scapcontent.info({'title': scap_name}, output_format='json')
         scap_id = default_content['id']

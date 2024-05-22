@@ -309,7 +309,7 @@ class ContentHost(Host, ContentHostMixins):
     def os_version(self):
         """Get host's OS version information
 
-        :returns: A ``packaging.version.Version`` instance
+        :return: A ``packaging.version.Version`` instance
         """
         return Version(self._os_release['VERSION_ID'])
 
@@ -439,7 +439,7 @@ class ContentHost(Host, ContentHostMixins):
             provided file will be saved in /tmp/ directory.
         :param str file_name: New name of the Downloaded file else its given from file_url
 
-        :returns: Returns list containing complete file path and name of downloaded file.
+        :return: Returns list containing complete file path and name of downloaded file.
         """
         file_name = PurePath(file_name or file_url).name
         local_path = PurePath(local_path or '/tmp') / file_name
@@ -1459,7 +1459,7 @@ class ContentHost(Host, ContentHostMixins):
         """Check the provisioned host status by pinging the ip of host
 
         :param host: IP address or hostname of the provisioned host
-        :returns: None
+        :return: None
         :raises: : `HostPingFailed` if the host is not pingable
         """
         result = self.execute(
