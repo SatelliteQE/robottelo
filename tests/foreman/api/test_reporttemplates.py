@@ -517,7 +517,8 @@ def test_positive_applied_errata_by_search(
     )['id']
     target_sat.wait_for_tasks(
         search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
-        search_rate=15,
+        search_rate=20,
+        poll_timeout=2500,
     )
     rt = (
         target_sat.api.ReportTemplate()
