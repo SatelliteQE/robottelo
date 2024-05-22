@@ -1729,7 +1729,7 @@ class TestRepository:
                 'content-type': 'srpm',
             }
         )
-        assert f"Successfully uploaded file '{SRPM_TO_UPLOAD}'" in result[0]['message']
+        assert f'Successfully uploaded file {SRPM_TO_UPLOAD}' in result[0]['message']
         assert (
             int(target_sat.cli.Repository.info({'id': repo['id']})['content-counts']['srpms']) == 1
         )
@@ -2566,7 +2566,7 @@ class TestFileRepository:
                 'product-id': repo['product']['id'],
             }
         )
-        assert f"Successfully uploaded file '{RPM_TO_UPLOAD}'" in result[0]['message']
+        assert f'Successfully uploaded file {RPM_TO_UPLOAD}' in result[0]['message']
         repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['content-counts']['files'] == '1'
         filesearch = entities.File().search(
@@ -2611,7 +2611,7 @@ class TestFileRepository:
                 'product-id': repo['product']['id'],
             }
         )
-        assert f"Successfully uploaded file '{RPM_TO_UPLOAD}'" in result[0]['message']
+        assert f'Successfully uploaded file {RPM_TO_UPLOAD}' in result[0]['message']
         repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert int(repo['content-counts']['files']) > 0
         files = target_sat.cli.File.list({'repository-id': repo['id']})
@@ -2776,7 +2776,7 @@ class TestFileRepository:
                 'product-id': repo['product']['id'],
             }
         )
-        assert f"Successfully uploaded file '{text_file_name}'" in result[0]['message']
+        assert f"Successfully uploaded file {text_file_name}" in result[0]['message']
         repo = target_sat.cli.Repository.info({'id': repo['id']})
         # Assert there is only one file
         assert repo['content-counts']['files'] == '1'
@@ -2794,7 +2794,7 @@ class TestFileRepository:
                 'product-id': repo['product']['id'],
             }
         )
-        assert f"Successfully uploaded file '{text_file_name}'" in result[0]['message']
+        assert f"Successfully uploaded file {text_file_name}" in result[0]['message']
         repo = target_sat.cli.Repository.info({'id': repo['id']})
         # Assert there is still only one file
         assert repo['content-counts']['files'] == '1'
