@@ -135,6 +135,51 @@ class TestRemoteExecution:
         assert 'Internal Server Error' not in out
 
     @pytest.mark.tier3
+    @pytest.mark.rhel_ver_list([8])
+    def test_positive_timeout_to_kill(self, module_org, rex_contenthost, module_target_sat):
+        """Use timeout to kill setting to cancel the job
+
+        :id: 580f886b-ac24-4afa-9aca-e9afc5cfdc9c
+
+        :expectedresults: Verify the job was killed after specified times
+
+        :parametrized: yes
+
+        :Verifies: SAT-25243
+        """
+        client = rex_contenthost
+        command = r'for run in {1..160}; do sleep 1; done'
+        template_id = (
+            module_target_sat.api.JobTemplate()
+            .search(query={'search': 'name="Run Command - Script Default"'})[0]
+            .id
+        )
+        invocation_command = module_target_sat.api.JobInvocation().run(
+            synchronous=False,
+            data={
+                'job_template_id': template_id,
+                'organization': module_org.name,
+                'inputs': {
+                    'command': command,
+                },
+                'search_query': f'name = {client.hostname}',
+                'targeting_type': 'static_query',
+                'execution_timeout_interval': '5',
+            },
+        )
+        sleep(10)
+        result = module_target_sat.api.JobInvocation(id=invocation_command['id']).read()
+        assert result.failed == 1
+        out = module_target_sat.cli.JobInvocation.get_output(
+            {
+                'id': invocation_command['id'],
+                'host': client.hostname,
+                'organization-id': module_org.id,
+            }
+        )
+        assert 'Timeout for execution passed, trying to stop the job' in out
+
+    @pytest.mark.tier3
     @pytest.mark.pit_client
     @pytest.mark.pit_server
     @pytest.mark.rhel_ver_list([7, 8, 9])
