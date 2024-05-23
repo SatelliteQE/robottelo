@@ -206,6 +206,12 @@ def test_negative_time_to_pickup(
 @pytest.mark.tier3
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list('8')
+@pytest.mark.parametrize(
+    'setting_update',
+    ['remote_execution_global_proxy=False'],
+    ids=["no_global_proxy"],
+    indirect=True,
+)
 def test_positive_check_longrunning_job(
     module_org,
     module_target_sat,
@@ -213,6 +219,7 @@ def test_positive_check_longrunning_job(
     module_ak_with_cv,
     module_capsule_configured_mqtt,
     rhel_contenthost,
+    setting_update,
 ):
     """Time to pickup setting doesn't disrupt longrunning jobs
 
@@ -223,10 +230,35 @@ def test_positive_check_longrunning_job(
 
     :CaseImportance: Medium
 
-    :bz: 2118651
+    :bz: 2118651, 2158738
 
     :parametrized: yes
     """
+
+    client_repo = ohsnap.dogfood_repository(
+        settings.ohsnap,
+        product='client',
+        repo='client',
+        release='client',
+        os_release=rhel_contenthost.os_version.major,
+    )
+    # Update module_capsule_configured_mqtt to include module_org/smart_proxy_location
+    module_target_sat.cli.Capsule.update(
+        {
+            'name': module_capsule_configured_mqtt.hostname,
+            'organization-ids': module_org.id,
+            'location-ids': smart_proxy_location.id,
+        }
+    )
+    # register host with pull provider rex
+    result = rhel_contenthost.register(
+        module_org,
+        smart_proxy_location,
+        module_ak_with_cv.name,
+        module_capsule_configured_mqtt,
+        setup_remote_execution_pull=True,
+        repo=client_repo.baseurl,
+    )
     template_id = (
         module_target_sat.api.JobTemplate()
         .search(query={'search': 'name="Run Command - Script Default"'})[0]
