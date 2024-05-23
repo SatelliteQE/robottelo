@@ -14,7 +14,6 @@
 
 import re
 
-from broker import Broker
 from fauxfactory import gen_string
 import pytest
 from requests import HTTPError
@@ -23,7 +22,6 @@ from wait_for import wait_for
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
-    DEFAULT_SUBSCRIPTION_NAME,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
@@ -31,14 +29,13 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
-from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import parametrized, valid_data_list
 from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
-def setup_content(module_entitlement_manifest_org, module_target_sat):
-    org = module_entitlement_manifest_org
+def setup_content(module_sca_manifest_org, module_target_sat):
+    org = module_sca_manifest_org
     rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
@@ -64,10 +61,11 @@ def setup_content(module_entitlement_manifest_org, module_target_sat):
     ak = module_target_sat.api.ActivationKey(
         content_view=cv, max_hosts=100, organization=org, environment=lce, auto_attach=True
     ).create()
-    subscription = module_target_sat.api.Subscription(organization=org).search(
-        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
-    )[0]
-    ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
+    all_content = ak.product_content(data={'content_access_mode_all': '1'})['results']
+    content_label = [repo['label'] for repo in all_content if repo['name'] == custom_repo.name][0]
+    ak.content_override(
+        data={'content_overrides': [{'content_label': content_label, 'value': '1'}]}
+    )
     return ak, org
 
 
@@ -660,100 +658,6 @@ def test_negative_nonauthor_of_report_cant_download_it():
     """
 
 
-@pytest.mark.tier3
-def test_positive_generate_entitlements_report(setup_content, target_sat):
-    """Generate a report using the Subscription - Entitlement Report template.
-
-    :id: 722e8802-367b-4399-bcaa-949daab26632
-
-    :setup: Installed Satellite with Organization, Activation key,
-            Content View, Content Host, and Subscriptions.
-
-    :steps:
-
-        1. Get
-        /api/report_templates/130-Subscription - Entitlement Report/generate/id/report_format
-
-    :expectedresults: Report is generated showing all necessary information for entitlements.
-
-    :CaseImportance: High
-    """
-    with Broker(nick='rhel7', host_class=ContentHost) as vm:
-        ak, org = setup_content
-        result = vm.api_register(
-            target_sat,
-            organization=org,
-            activation_keys=[ak.name],
-        )
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
-        assert vm.subscribed
-        rt = (
-            target_sat.api.ReportTemplate()
-            .search(query={'search': 'name="Subscription - Entitlement Report"'})[0]
-            .read()
-        )
-        res = rt.generate(
-            data={
-                "organization_id": org.id,
-                "report_format": "json",
-                "input_values": {"Days from Now": "no limit"},
-            }
-        )
-        assert res[0]['Host Name'] == vm.hostname
-        assert res[0]['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
-
-
-@pytest.mark.tier3
-def test_positive_schedule_entitlements_report(setup_content, target_sat):
-    """Schedule a report using the Subscription - Entitlement Report template.
-
-    :id: 5152c518-b0da-4c27-8268-2be78289249f
-
-    :setup: Installed Satellite with Organization, Activation key,
-            Content View, Content Host, and Subscriptions.
-
-    :steps:
-
-        1. POST /api/report_templates/130-Subscription - Entitlement Report/schedule_report/
-
-    :expectedresults: Report is scheduled and contains all necessary
-                      information for entitlements.
-
-    :CaseImportance: High
-    """
-    with Broker(nick='rhel7', host_class=ContentHost) as vm:
-        ak, org = setup_content
-        result = vm.api_register(
-            target_sat,
-            organization=org,
-            activation_keys=[ak.name],
-        )
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
-        assert vm.subscribed
-        rt = (
-            target_sat.api.ReportTemplate()
-            .search(query={'search': 'name="Subscription - Entitlement Report"'})[0]
-            .read()
-        )
-        scheduled_csv = rt.schedule_report(
-            data={
-                'id': f'{rt.id}-Subscription - Entitlement Report',
-                'organization_id': org.id,
-                'report_format': 'csv',
-                "input_values": {"Days from Now": "no limit"},
-            }
-        )
-        data_csv, _ = wait_for(
-            rt.report_data,
-            func_kwargs={'data': {'id': rt.id, 'job_id': scheduled_csv['job_id']}},
-            fail_condition=None,
-            timeout=300,
-            delay=10,
-        )
-        assert vm.hostname in data_csv
-        assert DEFAULT_SUBSCRIPTION_NAME in data_csv
-
-
 @pytest.mark.no_containers
 @pytest.mark.tier3
 def test_positive_generate_job_report(setup_content, module_target_sat, content_hosts):
@@ -811,8 +715,11 @@ def test_positive_generate_job_report(setup_content, module_target_sat, content_
             'input_values': {"job_id": job["id"]},
         }
     )
-    assert res[0]['Host'] == content_hosts[0].hostname
-    assert res[1]['Host'] == content_hosts[1].hostname
+    assert (
+        res[0]['Host'] == content_hosts[0].hostname and res[1]['Host'] == content_hosts[1].hostname
+    ) or (
+        res[0]['Host'] == content_hosts[1].hostname and res[1]['Host'] == content_hosts[0].hostname
+    )
     assert '/root' in res[0]['stdout']
     assert '/root' in res[1]['stdout']
 
