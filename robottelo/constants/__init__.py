@@ -153,7 +153,7 @@ AZURERM_VALID_REGIONS = [
     'Norway East',
 ]
 AZURERM_RHEL7_FT_IMG_URN = 'marketplace://RedHat:RHEL:7-RAW:latest'
-AZURERM_RHEL7_UD_IMG_URN = 'marketplace://RedHat:RHEL:7-RAW-CI:7.6.2019072418'
+AZURERM_RHEL7_UD_IMG_URN = 'marketplace://RedHat:rhel-byos:rhel-raw-ci76:7.6.20190814'
 AZURERM_RHEL7_FT_BYOS_IMG_URN = 'marketplace://RedHat:rhel-byos:rhel-lvm78:7.8.20200410'
 AZURERM_RHEL7_FT_CUSTOM_IMG_URN = 'custom://imageVM1-RHEL7-image-20220617150105'
 AZURERM_RHEL7_FT_GALLERY_IMG_URN = 'gallery://RHEL77img'
