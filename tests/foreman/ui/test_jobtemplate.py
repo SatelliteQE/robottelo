@@ -199,6 +199,8 @@ def test_positive_end_to_end(session, module_org, module_location, target_sat):
         assert target_sat.hostname in template_values['template']['template_editor']['editor']
         session.jobtemplate.clone(template_new_name, {'template.name': template_clone_name})
         assert session.jobtemplate.search(template_clone_name)[0]['Name'] == template_clone_name
+        dumped_content = target_sat.cli.JobTemplate.dump({'name': template_clone_name})
+        assert len(dumped_content) > 0
         for name in (template_new_name, template_clone_name):
             session.jobtemplate.delete(name)
             assert not session.jobtemplate.search(name)
