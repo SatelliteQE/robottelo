@@ -441,7 +441,7 @@ def test_positive_export_selected_columns(target_sat, current_sat_location):
         Box(ui='BIOS vendor', csv='Reported Data - Bios Vendor', displayed=True),
         Box(ui='BIOS release date', csv='Reported Data - Bios Release Date', displayed=True),
         Box(ui='BIOS version', csv='Reported Data - Bios Version', displayed=True),
-        Box(ui='RHEL Lifecycle status', csv='Rhel Lifecycle Status', displayed=True),
+        Box(ui='Subscription status', csv='Subscription Global Status', displayed=True),
         Box(ui='Installable updates', csv='Installable ...', displayed=False),
         Box(ui='Lifecycle environment', csv='Lifecycle Environment', displayed=True),
         Box(ui='Content view', csv='Content View', displayed=True),
