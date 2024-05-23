@@ -290,6 +290,38 @@ def test_positive_update_sync_date(module_org, request, target_sat):
     ), 'Sync date was not updated'
 
 
+@pytest.mark.tier1
+@pytest.mark.upgrade
+def test_positive_create_sync_date_custom_timezone(module_org, request, target_sat):
+    """Check if syncplan sync date accepts supplied timezone
+
+    :id: 9b5f421d-b925-4ea6-9000-e69ed5e35640
+
+    :expectedresults: Sync plan is created with correct start date
+
+    :BZ: 2015344
+
+    :customerscenario: true
+
+    :CaseImportance: High
+    """
+    future_date = datetime.now() + timedelta(days=5)
+    format = '%Y-%m-%d %H:%M:%S CEST'
+    sync_plan_name = gen_string('alphanumeric')
+    new_sync_plan = target_sat.cli_factory.sync_plan(
+        {
+            'name': sync_plan_name,
+            'sync-date': future_date.strftime(format),
+            'organization-id': module_org.id,
+        }
+    )
+    sync_plan = target_sat.api.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
+    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
+    expected_date = future_date + timedelta(hours=4)
+    # Assert that sync date was converted to UTC correctly
+    assert new_sync_plan['start-date'] == expected_date.strftime("%Y/%m/%d %H:%M:%S")
+
+
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 @pytest.mark.tier1
 @pytest.mark.upgrade
