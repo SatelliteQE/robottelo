@@ -1919,17 +1919,15 @@ class Satellite(Capsule, SatelliteMixins):
             return None
 
         try:
-            ui_session = Session(
+            with Session(
                 session_name=testname or get_caller(),
                 user=user or settings.server.admin_username,
                 password=password or settings.server.admin_password,
                 url=url,
                 hostname=self.hostname,
                 login=login,
-            )
-            yield ui_session
-        except Exception:
-            raise
+            ) as ui_session:
+                yield ui_session
         finally:
             if self.record_property is not None and settings.ui.record_video:
                 video_url = settings.ui.grid_url.replace(
