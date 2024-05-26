@@ -1811,10 +1811,15 @@ class Satellite(Capsule, SatelliteMixins):
 
         def inject_config(cls, server_config):
             """inject a nailgun server config into the init of nailgun entity classes"""
-            import functools
 
             class DecClass(cls):
-                __init__ = functools.partialmethod(cls.__init__, server_config=server_config)
+                def __init__(self, **kwargs):
+                    """Initialize entity class with the injected server config as the default.
+                    If a different server_config is explicitly passed in, then it will be used.
+                    """
+                    super().__init__(
+                        **{**kwargs, "server_config": kwargs.get("server_config", server_config)}
+                    )
 
             return DecClass
 
