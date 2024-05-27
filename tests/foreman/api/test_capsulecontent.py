@@ -821,7 +821,7 @@ class TestCapsuleContentManagement:
         self,
         target_sat,
         module_capsule_configured,
-        container_contenthost,
+        module_container_contenthost,
         function_org,
         function_product,
         function_lce,
@@ -897,29 +897,29 @@ class TestCapsuleContentManagement:
         ]
 
         for con_client in constants.CONTAINER_CLIENTS:
-            result = container_contenthost.execute(
+            result = module_container_contenthost.execute(
                 f'{con_client} login -u {settings.server.admin_username}'
                 f' -p {settings.server.admin_password} {module_capsule_configured.hostname}'
             )
             assert result.status == 0
 
             for path in repo_paths:
-                result = container_contenthost.execute(
+                result = module_container_contenthost.execute(
                     f'{con_client} search {module_capsule_configured.hostname}/{path}'
                 )
                 assert result.status == 0
 
-                result = container_contenthost.execute(
+                result = module_container_contenthost.execute(
                     f'{con_client} pull {module_capsule_configured.hostname}/{path}'
                 )
                 assert result.status == 0
 
-                result = container_contenthost.execute(
+                result = module_container_contenthost.execute(
                     f'{con_client} rmi {module_capsule_configured.hostname}/{path}'
                 )
                 assert result.status == 0
 
-            result = container_contenthost.execute(
+            result = module_container_contenthost.execute(
                 f'{con_client} logout {module_capsule_configured.hostname}'
             )
             assert result.status == 0
