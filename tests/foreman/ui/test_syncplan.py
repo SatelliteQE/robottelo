@@ -196,9 +196,8 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(session, modu
         # workaround: force session.browser to point to browser object on next line
         session.contenthost.read_all('current_user')
         start_date = session.browser.get_client_datetime()
-        next_sync = 5 * 60
         # forming cron expression sync repo after 5 min
-        expected_next_run_time = start_date + timedelta(seconds=next_sync)
+        expected_next_run_time = start_date + timedelta(minutes=5)
         cron_expression = f'{expected_next_run_time.minute} {expected_next_run_time.hour} {expected_next_run_time.day} {expected_next_run_time.month} *'
         session.syncplan.create(
             {
@@ -262,9 +261,8 @@ def test_positive_synchronize_custom_product_custom_cron_past_sync_date(
         # workaround: force session.browser to point to browser object on next line
         session.contenthost.read_all('current_user')
         start_date = session.browser.get_client_datetime()
-        next_sync = 5 * 60
         # forming cron expression sync repo after 5 min
-        expected_next_run_time = start_date + timedelta(seconds=next_sync)
+        expected_next_run_time = start_date + timedelta(minutes=5)
         cron_expression = f'{expected_next_run_time.minute} {expected_next_run_time.hour} {expected_next_run_time.day} {expected_next_run_time.month} *'
         session.syncplan.create(
             {
