@@ -116,13 +116,15 @@ class ContentInfo:
 
         return match.group(0)
 
-    def md5_by_url(self, url):
-        """Returns md5 checksum of a file, accessible via URL. Useful when you want
+    def checksum_by_url(self, url, sum_type='md5sum'):
+        """Returns desired checksum of a file, accessible via URL. Useful when you want
         to calculate checksum but don't want to deal with storing a file and
         removing it afterwards.
 
         :param str url: URL of a file.
-        :return str: string containing md5 checksum.
+        :param str sum_type: Checksum type like md5sum, sha256sum, sha512sum, etc.
+            Defaults to md5sum.
+        :return str: string containing the checksum.
         :raises: AssertionError: If non-zero return code received (file couldn't be
             reached or calculation was not successful).
         """
@@ -131,8 +133,8 @@ class ContentInfo:
         if result.status != 0:
             raise AssertionError(f'Failed to get `{filename}` from `{url}`.')
         return self.execute(
-            f'wget -qO - {url} | tee {filename} | md5sum | awk \'{{print $1}}\''
-        ).stdout
+            f'wget -qO - {url} | tee {filename} | {sum_type} | awk \'{{print $1}}\''
+        ).stdout.strip()
 
     def upload_manifest(self, org_id, manifest=None, interface='API', timeout=None):
         """Upload a manifest using the requested interface.
