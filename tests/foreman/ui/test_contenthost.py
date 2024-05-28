@@ -815,7 +815,7 @@ def test_positive_check_ignore_facts_os_setting(
         # Change necessary setting to true
         set_ignore_facts_for_os(module_target_sat, True)
         # Add cleanup function to roll back setting to default value
-        request.addfinalizer(set_ignore_facts_for_os)
+        request.addfinalizer(lambda: set_ignore_facts_for_os(module_target_sat, False))
         # Read all facts for corresponding host
         facts = host.get_facts(data={'per_page': 10000})['results'][vm.hostname]
         # Modify OS facts to another values and upload them to the server
