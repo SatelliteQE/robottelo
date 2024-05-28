@@ -803,7 +803,7 @@ class TestContentView:
         assert 'Failed to create ContentView with data:' in str(context)
 
     @pytest.mark.tier3
-    def test_positive_update_composite_with_component_ids(module_org, module_target_sat):
+    def test_positive_update_composite_with_component_ids(self, module_org, module_target_sat):
         """Update a composite content view with a component_ids option
 
         :id: e6106ff6-c526-40f2-bdc0-ae291f7b267e
