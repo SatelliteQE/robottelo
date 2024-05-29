@@ -14,7 +14,6 @@
 
 from datetime import datetime, timedelta
 
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -33,10 +32,10 @@ pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.fixture(scope='module')
-def module_lce_library(module_sca_manifest_org):
+def module_lce_library(module_target_sat, module_sca_manifest_org):
     """Returns the Library lifecycle environment from chosen organization"""
     return (
-        entities.LifecycleEnvironment()
+        module_target_sat.api.LifecycleEnvironment()
         .search(
             query={
                 'search': f'name={ENVIRONMENT} and ' f'organization_id={module_sca_manifest_org.id}'
@@ -47,13 +46,15 @@ def module_lce_library(module_sca_manifest_org):
 
 
 @pytest.fixture(scope='module')
-def dev_lce(module_sca_manifest_org):
-    return entities.LifecycleEnvironment(name='DEV', organization=module_sca_manifest_org).create()
+def dev_lce(module_target_sat, module_sca_manifest_org):
+    return module_target_sat.api.LifecycleEnvironment(
+        name='DEV', organization=module_sca_manifest_org
+    ).create()
 
 
 @pytest.fixture(scope='module')
-def qe_lce(module_sca_manifest_org, dev_lce):
-    return entities.LifecycleEnvironment(
+def qe_lce(module_target_sat, module_sca_manifest_org, dev_lce):
+    return module_target_sat.api.LifecycleEnvironment(
         name='QE', prior=dev_lce, organization=module_sca_manifest_org
     ).create()
 
@@ -86,9 +87,9 @@ def custom_repo(module_sca_manifest_org, module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def module_cv(module_sca_manifest_org, sat_client_repo, custom_repo):
+def module_cv(module_target_sat, module_sca_manifest_org, sat_client_repo, custom_repo):
     """Publish both repos into module CV"""
-    module_cv = entities.ContentView(
+    module_cv = module_target_sat.api.ContentView(
         organization=module_sca_manifest_org,
         repository=[sat_client_repo.id, custom_repo.id],
     ).create()
@@ -101,7 +102,7 @@ def module_ak(
     module_sca_manifest_org, module_cv, custom_repo, module_lce_library, module_target_sat
 ):
     """Create a module AK in Library LCE"""
-    ak = entities.ActivationKey(
+    ak = module_target_sat.api.ActivationKey(
         content_view=module_cv,
         environment=module_lce_library,
         organization=module_sca_manifest_org,
@@ -158,7 +159,7 @@ def host(
     )
     # Add filter of type include but do not include anything.
     # this will hide all RPMs from selected erratum before publishing.
-    entities.RPMContentViewFilter(
+    module_target_sat.api.RPMContentViewFilter(
         content_view=module_cv, inclusion=True, name='Include Nothing'
     ).create()
     module_cv.publish()
@@ -166,9 +167,9 @@ def host(
     return rhel7_contenthost_module
 
 
-def get_applicable_errata(repo):
+def get_applicable_errata(satellite, repo):
     """Retrieves applicable errata for the given repo"""
-    return entities.Errata(repository=repo).search(query={'errata_restrict_applicable': True})
+    return satellite.api.Errata(repository=repo).search(query={'errata_restrict_applicable': True})
 
 
 @pytest.mark.tier4
@@ -195,7 +196,7 @@ def test_positive_noapply_api(
     cvv.promote(data={'environment_ids': dev_lce.id})
 
     # Get the applicable errata
-    errata_list = get_applicable_errata(custom_repo)
+    errata_list = get_applicable_errata(module_target_sat, custom_repo)
     assert len(errata_list) > 0
 
     # Apply incremental update using the first applicable errata
