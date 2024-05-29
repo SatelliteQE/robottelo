@@ -13,7 +13,6 @@
 import base64
 
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 import requests
 
@@ -80,7 +79,7 @@ class TestTemplateSyncTestCase:
         target_sat.cli.TemplateSync.imports(
             {'repo': dir_path, 'prefix': prefix, 'organization-ids': module_org.id, 'lock': 'true'}
         )
-        ptemplate = entities.ProvisioningTemplate().search(
+        ptemplate = target_sat.api.ProvisioningTemplate().search(
             query={'per_page': 10, 'search': f'name~{prefix}', 'organization_id': module_org.id}
         )
         if ptemplate:
