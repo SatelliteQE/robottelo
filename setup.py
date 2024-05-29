@@ -6,7 +6,7 @@ with open('README.rst') as f:
 
 setup(
     name='robottelo',
-    version='0.1.0',
+    version='6.16.z',
     description='Robottelo is a test suite which exercises The Foreman.',
     long_description=README,
     author='Satellite QE Team',
