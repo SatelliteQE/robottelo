@@ -26,6 +26,7 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     """Register jira_comments markers to avoid warnings."""
     config.addinivalue_line('markers', 'jira_comments: Add test result comment on Jira issue.')
+    pytest.jira_comments = config.getoption('jira_comments')
 
 
 def update_issue_to_tests_map(item, marker, test_result):
@@ -44,9 +45,9 @@ def update_issue_to_tests_map(item, marker, test_result):
 def pytest_runtest_makereport(item, call):
     """Create jira issue to test result mapping. Used for commenting result on Jira."""
     outcome = yield
-    verifies_marker = item.get_closest_marker('verifies_issues', False)
-    blocked_by_marker = item.get_closest_marker('blocked_by', False)
-    enable_jira_comments = item.config.getoption('jira_comments', False)
+    verifies_marker = item.get_closest_marker('verifies_issues')
+    blocked_by_marker = item.get_closest_marker('blocked_by')
+    enable_jira_comments = item.config.getoption('jira_comments')
     if (
         settings.jira.enable_comment
         and enable_jira_comments

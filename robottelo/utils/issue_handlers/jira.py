@@ -6,7 +6,6 @@ import pytest
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed
 
-from conftest import option
 from robottelo.config import settings
 from robottelo.constants import (
     JIRA_CLOSED_STATUSES,
@@ -293,23 +292,31 @@ def add_comment_on_jira(
         [list of dicts] -- [{'id':..., 'status':..., 'resolution': ...}]
     """
     # Raise a warning if any of the following option is not set. Note: It's a xor condition.
-    if settings.jira.enable_comment != option.jira_comments:
+    if settings.jira.enable_comment != pytest.jira_comments:
         logger.warning(
             'Jira comments are currently disabled for this run. '
-            'To enable it, please set "enable_comment" to "true" in "config/jira.yaml"'
+            'To enable it, please set "enable_comment" to "true" in "config/jira.yaml '
+            'and provide --jira-comment pytest option."'
         )
         return None
-    logger.debug(f"Adding a new comment on {issue_id} Jira issue.")
-    response = requests.post(
-        f"{settings.jira.url}/rest/api/latest/issue/{issue_id}/comment",
-        json={
-            "body": comment,
-            "visibility": {
-                "type": comment_type,
-                "value": comment_visibility,
+    data = try_from_cache(issue_id)
+    if data["status"] in settings.jira.issue_status:
+        logger.debug(f"Adding a new comment on {issue_id} Jira issue.")
+        response = requests.post(
+            f"{settings.jira.url}/rest/api/latest/issue/{issue_id}/comment",
+            json={
+                "body": comment,
+                "visibility": {
+                    "type": comment_type,
+                    "value": comment_visibility,
+                },
             },
-        },
-        headers={"Authorization": f"Bearer {settings.jira.api_key}"},
+            headers={"Authorization": f"Bearer {settings.jira.api_key}"},
+        )
+        response.raise_for_status()
+        return response.json()
+    logger.warning(
+        f"Jira comments are currently disabled for this issue because it's in {data['status']} state. "
+        f"Please update issue_status in jira.conf to overide this behaviour."
     )
-    response.raise_for_status()
-    return response.json()
+    return None

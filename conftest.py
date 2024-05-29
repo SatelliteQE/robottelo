@@ -2,8 +2,6 @@
 
 import pytest
 
-option = None
-
 pytest_plugins = [
     # Plugins
     'pytest_plugins.auto_vault',
@@ -88,10 +86,3 @@ def pytest_runtest_makereport(item, call):
     # be "setup", "call", "teardown"
 
     setattr(item, "report_" + report.when, report)
-
-
-@pytest.hookimpl(trylast=True)
-def pytest_configure(config):
-    """Make cmdline arguments available."""
-    global option
-    option = config.option

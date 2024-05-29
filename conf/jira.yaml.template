@@ -6,3 +6,5 @@ JIRA:
   COMMENT_TYPE: group
   COMMENT_VISIBILITY: "Red Hat Employee"
   ENABLE_COMMENT: false
+  # Comment only if jira is in one of the following state
+  ISSUE_STATUS: ["Review", "Release Pending"]
