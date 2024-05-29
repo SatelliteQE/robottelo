@@ -15,9 +15,6 @@
 from datetime import datetime
 import random
 
-from datetime import datetime
-import random
-
 from box import Box
 import pytest
 
