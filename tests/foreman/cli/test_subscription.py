@@ -14,7 +14,6 @@
 
 from fauxfactory import gen_string
 from manifester import Manifester
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -186,13 +185,13 @@ def test_positive_delete_manifest_as_another_user(target_sat, function_entitleme
 
     :CaseImportance: Medium
     """
-    org = entities.Organization().create()
+    org = target_sat.api.Organization().create()
     user1_password = gen_string('alphanumeric')
-    user1 = entities.User(
+    user1 = target_sat.api.User(
         admin=True, password=user1_password, organization=[org], default_organization=org
     ).create()
     user2_password = gen_string('alphanumeric')
-    user2 = entities.User(
+    user2 = target_sat.api.User(
         admin=True, password=user2_password, organization=[org], default_organization=org
     ).create()
     # use the first admin to upload a manifest

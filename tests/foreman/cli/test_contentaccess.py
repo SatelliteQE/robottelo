@@ -12,7 +12,6 @@
 
 import time
 
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -88,9 +87,11 @@ def vm(
     rhel7_contenthost_module.register(
         module_sca_manifest_org, None, rh_repo_setup_ak.name, module_target_sat
     )
-    host = entities.Host().search(query={'search': f'name={rhel7_contenthost_module.hostname}'})
+    host = module_target_sat.api.Host().search(
+        query={'search': f'name={rhel7_contenthost_module.hostname}'}
+    )
     host_id = host[0].id
-    host_content = entities.Host(id=host_id).read_json()
+    host_content = module_target_sat.api.Host(id=host_id).read_json()
     assert host_content["subscription_status"] == 5
     rhel7_contenthost_module.install_katello_host_tools()
     return rhel7_contenthost_module
