@@ -406,7 +406,6 @@ def test_positive_check_installer_hammer_ping(target_sat):
             assert 'ok' in line
 
 
-@pytest.mark.stream
 @pytest.mark.upgrade
 @pytest.mark.tier3
 @pytest.mark.build_sanity
