@@ -40,6 +40,7 @@ def module_ec2_settings():
     )
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.skip_if_not_set('http_proxy')
 @pytest.mark.skip_if_open("BZ:2032530")
