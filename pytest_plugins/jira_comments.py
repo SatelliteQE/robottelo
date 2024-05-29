@@ -1,3 +1,4 @@
+from collections import defaultdict
 import os
 
 import pytest
@@ -24,17 +25,16 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     """Register jira_comments markers to avoid warnings."""
-    for marker in [
-        'jira_comments: Add test result comment on Jira issue.',
-    ]:
-        config.addinivalue_line('markers', marker)
+    config.addinivalue_line('markers', 'jira_comments: Add test result comment on Jira issue.')
 
 
 def update_issue_to_tests_map(item, marker, test_result):
+    """If the test has Verifies or BlockedBy doc field,
+    an issue to tests mapping will be added/updated in config.issue_to_tests_map
+    for each test run with outcome of the test.
+    """
     if marker:
         for issue in marker.args[0]:
-            if issue not in item.config.issue_to_tests_map:
-                item.config.issue_to_tests_map[issue] = []
             item.config.issue_to_tests_map[issue].append(
                 {'nodeid': item.nodeid, 'outcome': test_result}
             )
@@ -64,7 +64,7 @@ def pytest_runtest_makereport(item, call):
                 else 'failed'
             )
             if not hasattr(item.config, 'issue_to_tests_map'):
-                item.config.issue_to_tests_map = {}
+                item.config.issue_to_tests_map = defaultdict(list)
             # Update issue_to_tests_map for Verifies testimony marker
             update_issue_to_tests_map(item, verifies_marker, test_result)
             # Update issue_to_tests_map for BlockedBy testimony marker
@@ -78,12 +78,12 @@ def pytest_sessionfinish(session, exitstatus):
         build_url = os.environ.get('BUILD_URL')
         for issue in session.config.issue_to_tests_map:
             comment_body = (
-                f'This is an automated comment from user/job: {build_url if build_url else user} for a Robottelo test run.\n'
+                f'This is an automated comment from job/user: {build_url if build_url else user} for a Robottelo test run.\n'
                 f'Satellite/Capsule: {settings.server.version.release} Snap: {settings.server.version.snap} \n'
                 f'Result for tests linked with issue: {issue} \n'
             )
             for item in session.config.issue_to_tests_map[issue]:
-                comment_body = comment_body + f'{item["nodeid"]} : {item["outcome"]} \n'
+                comment_body += f'{item["nodeid"]} : {item["outcome"]} \n'
             try:
                 add_comment_on_jira(issue, comment_body)
             except Exception as e:
