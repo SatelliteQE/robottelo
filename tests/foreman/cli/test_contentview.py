@@ -15,7 +15,6 @@
 import random
 
 from fauxfactory import gen_alphanumeric, gen_string
-from nailgun import entities
 import pytest
 from wrapanapi.entities.vm import VmState
 
@@ -38,10 +37,12 @@ from robottelo.utils.datafactory import (
 @pytest.fixture(scope='module')
 def module_rhel_content(module_entitlement_manifest_org, module_target_sat):
     """Returns RH repo after syncing it"""
-    product = entities.Product(
+    product = module_target_sat.api.Product(
         name=constants.PRDS['rhel'], organization=module_entitlement_manifest_org
     ).search()[0]
-    reposet = entities.RepositorySet(name=constants.REPOSET['rhva6'], product=product).search()[0]
+    reposet = module_target_sat.api.RepositorySet(
+        name=constants.REPOSET['rhva6'], product=product
+    ).search()[0]
     data = {'basearch': 'x86_64', 'releasever': '6Server', 'product_id': product.id}
     reposet.enable(data=data)
 
@@ -903,10 +904,12 @@ class TestContentView:
             repo_name=repo_name,
             repo_url=settings.repos.module_stream_1.url,
         )
-        repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[
-            0
-        ]
-        content_view = entities.ContentView(organization=module_org.id, repository=[repo]).create()
+        repo = target_sat.api.Repository(name=repo_name).search(
+            query={'organization_id': module_org.id}
+        )[0]
+        content_view = target_sat.api.ContentView(
+            organization=module_org.id, repository=[repo]
+        ).create()
         walrus_stream = target_sat.cli.ModuleStream.list({'search': "name=walrus, stream=5.21"})[0]
         content_view = target_sat.cli.ContentView.info({'id': content_view.id})
         assert content_view['yum-repositories'][0]['name'] == repo.name

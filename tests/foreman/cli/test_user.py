@@ -23,7 +23,6 @@ import random
 from time import sleep
 
 from fauxfactory import gen_alphanumeric, gen_string
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -336,9 +335,9 @@ class TestSshKeyInUser:
     ssh_key = gen_ssh_keypairs()[1]
 
     @pytest.fixture(scope='module')
-    def module_user(self):
+    def module_user(self, module_target_sat):
         """Create an user"""
-        return entities.User().create()
+        return module_target_sat.api.User().create()
 
     @pytest.mark.tier1
     def test_positive_CRD_ssh_key(self, module_user, module_target_sat):
