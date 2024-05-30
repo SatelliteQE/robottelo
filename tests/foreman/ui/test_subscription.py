@@ -205,10 +205,14 @@ def test_positive_access_with_non_admin_user_with_manifest(
         default_organization=org,
     ).create()
     with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
-        assert (
-            session.subscription.search(f'name = "{DEFAULT_SUBSCRIPTION_NAME}"')[0]['Name']
-            == DEFAULT_SUBSCRIPTION_NAME
-        )
+        all_subscriptions = session.subscription.read_subscriptions()
+        assert len(all_subscriptions) > 0
+        for subscription in all_subscriptions:
+            if subscription['Name'] == DEFAULT_SUBSCRIPTION_NAME:
+                assert True
+                break
+        else:
+            pytest.fail("Default subsciption not found")
 
 
 @pytest.mark.tier2
