@@ -173,6 +173,12 @@ class ContentView(Base):
         return cls.execute(cls._construct_command(options), ignore_stderr=True)
 
     @classmethod
+    def version_verify_checksum(cls, options):
+        """Verify checksum of repository contents in the content view version."""
+        cls.command_sub = 'version verify-checksum'
+        return cls.execute(cls._construct_command(options), ignore_stderr=True)
+
+    @classmethod
     def remove_from_environment(cls, options=None):
         """Remove content-view from an environment"""
         cls.command_sub = 'remove-from-environment'
