@@ -935,13 +935,13 @@ class TestContentView:
     def test_positive_add_custom_repo_by(
         self, module_org, module_product, module_target_sat, add_by_name
     ):
-        """Associate custom content to a content view with name
+        """Associate custom content to a content view with repository name and/or id.
 
         :id: 62431e11-bec6-4444-abb0-e3758ba25fd8
 
         :parametrized: yes
 
-        :expectedresults: whether repos are added to cv.
+        :expectedresults: Repositories can be added to the CV using their name and/or id.
 
         :CaseImportance: Critical
         """
