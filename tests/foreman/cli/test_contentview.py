@@ -934,16 +934,19 @@ class TestContentView:
         assert filter_info['rules'][0]['id'] == content_view_filter_rule['rule-id']
 
     @pytest.mark.tier1
-    def test_positive_add_custom_repo_by_name(self, module_org, module_product, module_target_sat):
-        """Associate custom content to a content view with name
+    @pytest.mark.parametrize('add_by_name', [True, False], ids=['name', 'id'])
+    def test_positive_add_custom_repo_by(
+        self, module_org, module_product, module_target_sat, add_by_name
+    ):
+        """Associate custom content to a content view with repository name and/or id.
 
         :id: 62431e11-bec6-4444-abb0-e3758ba25fd8
 
-        :expectedresults: whether repos are added to cv.
+        :parametrized: yes
+
+        :expectedresults: Repositories can be added to the CV using their name and/or id.
 
         :CaseImportance: Critical
-
-        :BZ: 1343006
         """
         new_repo = module_target_sat.cli_factory.make_repository(
             {'content-type': 'yum', 'product-id': module_product.id}
@@ -952,17 +955,19 @@ class TestContentView:
         module_target_sat.cli.Repository.synchronize({'id': new_repo['id']})
         # Create CV
         new_cv = module_target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
-        # Associate repo to CV with names.
-        module_target_sat.cli.ContentView.add_repository(
-            {
-                'name': new_cv['name'],
-                'organization': module_org.name,
-                'product': module_product.name,
-                'repository': new_repo['name'],
-            }
+        # Associate repo to CV
+        opts = {
+            'name': new_cv['name'],
+            'organization': module_org.name,
+            'product': module_product.name,
+        }
+        opts.update(
+            {'repository': new_repo['name']} if add_by_name else {'repository-id': new_repo['id']}
         )
+        module_target_sat.cli.ContentView.add_repository(opts)
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
         assert new_cv['yum-repositories'][0]['name'] == new_repo['name']
+        assert new_cv['yum-repositories'][0]['id'] == new_repo['id']
 
     @pytest.mark.tier2
     def test_negative_add_same_yum_repo_twice(self, module_org, module_product, module_target_sat):
@@ -2250,38 +2255,6 @@ class TestContentView:
             'lifecycle-environments'
         ]
 
-    @pytest.mark.stubbed
-    def test_positive_restart_dynflow_promote(self):
-        """attempt to restart a failed content view promotion
-
-        :id: 2be23f85-3f62-4319-87ea-41f28cf401dc
-
-        :steps:
-            1. (Somehow) cause a CV promotion to fail.  Not exactly sure how
-               yet.
-            2. Via Dynflow, restart promotion
-
-        :expectedresults: Promotion is restarted.
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    def test_positive_restart_dynflow_publish(self):
-        """attempt to restart a failed content view publish
-
-        :id: 24468014-46b2-403e-8ed6-2daeda5a0163
-
-        :steps:
-            1. (Somehow) cause a CV publish  to fail.  Not exactly sure how
-               yet.
-            2. Via Dynflow, restart publish
-
-        :expectedresults: Publish is restarted.
-
-        :CaseAutomation: NotAutomated
-        """
-
     @pytest.mark.tier2
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
@@ -2449,132 +2422,6 @@ class TestContentView:
         }
         assert {lce_dev['name']} == content_view_version_lce_names
 
-    @pytest.mark.tier2
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    def test_positive_remove_cv_version_from_env(self, module_org, module_target_sat):
-        """Remove promoted content view version from environment
-
-        :id: 577757ac-b184-4ece-9310-182dd5ceb718
-
-        :steps:
-
-            1. Create a content view
-            2. Add a yum repo and a docker repo to the content view
-            3. Publish the content view
-            4. Promote the content view version to multiple environments
-               Library -> DEV -> QE -> STAGE -> PROD
-            5. remove the content view version from PROD environment
-            6. Assert: content view version exists only in Library, DEV, QE,
-               STAGE and not in PROD
-            7. Promote again from STAGE -> PROD
-
-        :expectedresults: Content view version exist in Library, DEV, QE,
-            STAGE, PROD
-
-        :CaseImportance: High
-        """
-        lce_dev = module_target_sat.cli_factory.make_lifecycle_environment(
-            {'organization-id': module_org.id}
-        )
-        lce_qe = module_target_sat.cli_factory.make_lifecycle_environment(
-            {'organization-id': module_org.id, 'prior': lce_dev['name']}
-        )
-        lce_stage = module_target_sat.cli_factory.make_lifecycle_environment(
-            {'organization-id': module_org.id, 'prior': lce_qe['name']}
-        )
-        lce_prod = module_target_sat.cli_factory.make_lifecycle_environment(
-            {'organization-id': module_org.id, 'prior': lce_stage['name']}
-        )
-        custom_yum_product = module_target_sat.cli_factory.make_product(
-            {'organization-id': module_org.id}
-        )
-        custom_yum_repo = module_target_sat.cli_factory.make_repository(
-            {
-                'content-type': 'yum',
-                'product-id': custom_yum_product['id'],
-                'url': settings.repos.yum_1.url,
-            }
-        )
-        module_target_sat.cli.Repository.synchronize({'id': custom_yum_repo['id']})
-        docker_product = module_target_sat.cli_factory.make_product(
-            {'organization-id': module_org.id}
-        )
-        docker_repository = module_target_sat.cli_factory.make_repository(
-            {
-                'content-type': 'docker',
-                'docker-upstream-name': constants.CONTAINER_UPSTREAM_NAME,
-                'name': gen_string('alpha', 20),
-                'product-id': docker_product['id'],
-                'url': constants.CONTAINER_REGISTRY_HUB,
-            }
-        )
-        module_target_sat.cli.Repository.synchronize({'id': docker_repository['id']})
-        content_view = module_target_sat.cli_factory.make_content_view(
-            {'organization-id': module_org.id}
-        )
-        for repo in [custom_yum_repo, docker_repository]:
-            module_target_sat.cli.ContentView.add_repository(
-                {
-                    'id': content_view['id'],
-                    'organization-id': module_org.id,
-                    'repository-id': repo['id'],
-                }
-            )
-        module_target_sat.cli.ContentView.publish({'id': content_view['id']})
-        content_view_versions = module_target_sat.cli.ContentView.info({'id': content_view['id']})[
-            'versions'
-        ]
-        assert len(content_view_versions) > 0
-        content_view_version = content_view_versions[-1]
-        for lce in [lce_dev, lce_qe, lce_stage, lce_prod]:
-            module_target_sat.cli.ContentView.version_promote(
-                {'id': content_view_version['id'], 'to-lifecycle-environment-id': lce['id']}
-            )
-        # ensure that the published content version is in Library, DEV, QE,
-        # STAGE and PROD environments
-        assert {
-            constants.ENVIRONMENT,
-            lce_dev['name'],
-            lce_qe['name'],
-            lce_stage['name'],
-            lce_prod['name'],
-        } == _get_content_view_version_lce_names_set(
-            content_view['id'], content_view_version['id'], sat=module_target_sat
-        )
-        # remove content view version from PROD lifecycle environment
-        module_target_sat.cli.ContentView.remove_from_environment(
-            {
-                'id': content_view['id'],
-                'organization-id': module_org.id,
-                'lifecycle-environment': lce_prod['name'],
-            }
-        )
-        # ensure content view version is not in PROD and only in Library, DEV,
-        # QE and STAGE environments
-        assert {
-            constants.ENVIRONMENT,
-            lce_dev['name'],
-            lce_qe['name'],
-            lce_stage['name'],
-        } == _get_content_view_version_lce_names_set(
-            content_view['id'], content_view_version['id'], sat=module_target_sat
-        )
-        # promote content view version to PROD environment again
-        module_target_sat.cli.ContentView.version_promote(
-            {'id': content_view_version['id'], 'to-lifecycle-environment-id': lce_prod['id']}
-        )
-        assert {
-            constants.ENVIRONMENT,
-            lce_dev['name'],
-            lce_qe['name'],
-            lce_stage['name'],
-            lce_prod['name'],
-        } == _get_content_view_version_lce_names_set(
-            content_view['id'], content_view_version['id'], sat=module_target_sat
-        )
-
     @pytest.mark.tier3
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
@@ -2585,15 +2432,17 @@ class TestContentView:
         :id: 997cfd7d-9029-47e2-a41e-84f4370b5ce5
 
         :steps:
-
             1. Create a content view
             2. Add a yum repo and a docker to the content view
             3. Publish the content view
             4. Promote the content view version to multiple environments
                Library -> DEV -> QE -> STAGE -> PROD
             5. Remove content view version from QE, STAGE and PROD
+            6. Assert the CVV exists only in Library and DEV
+            7. Promote again from DEV -> QE -> STAGE
+            8. Assert the CVV exists in Library, DEV, QE and STAGE
 
-        :expectedresults: Content view version exists only in Library, DEV
+        :expectedresults: Content view version exists in the right LCEs for each step.
 
         :CaseImportance: High
         """
@@ -2665,8 +2514,7 @@ class TestContentView:
         } == _get_content_view_version_lce_names_set(
             content_view['id'], content_view_version['id'], sat=module_target_sat
         )
-        # remove content view version from QE, STAGE, PROD lifecycle
-        # environments
+        # remove content view version from QE, STAGE, PROD lifecycle environments
         for lce in [lce_qe, lce_stage, lce_prod]:
             module_target_sat.cli.ContentView.remove_from_environment(
                 {
@@ -2675,9 +2523,22 @@ class TestContentView:
                     'lifecycle-environment': lce['name'],
                 }
             )
-        # ensure content view version is not in PROD and only in Library, DEV,
-        # QE and STAGE environments
+        # ensure content view version is not in QE, STAGE, PROD and only in Library and DEV envs
         assert {constants.ENVIRONMENT, lce_dev['name']} == _get_content_view_version_lce_names_set(
+            content_view['id'], content_view_version['id'], sat=module_target_sat
+        )
+        # Promote again from DEV -> QE -> STAGE
+        for lce in [lce_qe, lce_stage]:
+            module_target_sat.cli.ContentView.version_promote(
+                {'id': content_view_version['id'], 'to-lifecycle-environment-id': lce['id']}
+            )
+        # ensure content view version is not in PROD and only in Library, DEV, QE and STAGE envs
+        assert {
+            constants.ENVIRONMENT,
+            lce_dev['name'],
+            lce_qe['name'],
+            lce_stage['name'],
+        } == _get_content_view_version_lce_names_set(
             content_view['id'], content_view_version['id'], sat=module_target_sat
         )
 
@@ -3448,32 +3309,6 @@ class TestContentViewFileRepo:
             {'id': cv['id'], 'repository-id': repo['id']}
         )
         assert cv['file-repositories'][0]['id'] != repo['id']
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    @pytest.mark.upgrade
-    def test_positive_arbitrary_file_sync_over_capsule(self):
-        """Check a File Repository with Arbitrary File can be added to a
-        Content View is synced throughout capsules
-
-        :id: ffa59550-464c-40dc-9bd2-444331f73708
-
-        :Setup:
-            1. Create a File Repository (FR)
-            2. Upload an arbitrary file to it
-            3. Create a Content View (CV)
-            4. Add the FR to the CV
-            5. Create a Capsule
-            6. Connect the Capsule with Satellite/Foreman host
-
-        :steps:
-            1. Start synchronization
-
-        :expectedresults: Check CV with FR is synced over Capsule
-
-        :CaseAutomation: NotAutomated
-
-        """
 
     @pytest.mark.tier3
     def test_positive_arbitrary_file_repo_promotion(
