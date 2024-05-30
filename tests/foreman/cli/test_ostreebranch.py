@@ -14,7 +14,6 @@
 
 import random
 
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -29,9 +28,9 @@ pytestmark = [
 
 
 @pytest.fixture(scope='module')
-def ostree_user_credentials():
+def ostree_user_credentials(module_target_sat):
     password = 'password'
-    user = entities.User(admin=True, password=password).create()
+    user = module_target_sat.api.User(admin=True, password=password).create()
     return user.login, password
 
 
