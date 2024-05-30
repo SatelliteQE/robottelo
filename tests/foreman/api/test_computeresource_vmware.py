@@ -24,7 +24,7 @@ from robottelo.config import settings
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.parametrize('provision_method', ['build', 'bootdisk'])
-@pytest.mark.rhel_ver_match('[9]')
+@pytest.mark.rhel_ver_match('[8]')
 def test_positive_provision_end_to_end(
     request,
     setting_update,
@@ -56,6 +56,10 @@ def test_positive_provision_end_to_end(
 
     :CaseImportance: Critical
 
+    :Verifies: SAT-23417
+
+    :customerscenario: true
+
     :BZ: 2186114
     """
     sat = module_provisioning_sat.sat
@@ -70,7 +74,8 @@ def test_positive_provision_end_to_end(
         compute_attributes={
             'path': '/Datacenters/SatQE-Datacenter/vm/',
             'cpus': 2,
-            'memoy_mb': 6000,
+            'memory_mb': 6000,
+            'firmware': 'bios' if pxe_loader.vm_firmware == 'bios' else 'efi',
             'cluster': f'{settings.vmware.cluster}',
             'start': '1',
             'guest_id': 'rhel8_64Guest',
