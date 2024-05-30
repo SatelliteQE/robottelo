@@ -768,8 +768,6 @@ class TestContentViewFilter:
 
         :expectedresults: Content view filter is not updated
 
-        :BZ: 1328943
-
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
