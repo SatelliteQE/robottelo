@@ -14,7 +14,6 @@
 
 from datetime import datetime, timedelta
 
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -34,10 +33,10 @@ pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.fixture(scope='module')
-def module_lce_library(module_entitlement_manifest_org):
+def module_lce_library(module_target_sat, module_entitlement_manifest_org):
     """Returns the Library lifecycle environment from chosen organization"""
     return (
-        entities.LifecycleEnvironment()
+        module_target_sat.api.LifecycleEnvironment()
         .search(
             query={
                 'search': f'name={ENVIRONMENT} and '
@@ -49,15 +48,15 @@ def module_lce_library(module_entitlement_manifest_org):
 
 
 @pytest.fixture(scope='module')
-def dev_lce(module_entitlement_manifest_org):
-    return entities.LifecycleEnvironment(
+def dev_lce(module_target_sat, module_entitlement_manifest_org):
+    return module_target_sat.api.LifecycleEnvironment(
         name='DEV', organization=module_entitlement_manifest_org
     ).create()
 
 
 @pytest.fixture(scope='module')
-def qe_lce(module_entitlement_manifest_org, dev_lce):
-    return entities.LifecycleEnvironment(
+def qe_lce(module_target_sat, module_entitlement_manifest_org, dev_lce):
+    return module_target_sat.api.LifecycleEnvironment(
         name='QE', prior=dev_lce, organization=module_entitlement_manifest_org
     ).create()
 
@@ -73,26 +72,30 @@ def rhel7_sat6tools_repo(module_entitlement_manifest_org, module_target_sat):
         reposet=REPOSET['rhst7'],
         releasever=None,
     )
-    rhel7_sat6tools_repo = entities.Repository(id=rhel7_sat6tools_repo_id).read()
+    rhel7_sat6tools_repo = module_target_sat.api.Repository(id=rhel7_sat6tools_repo_id).read()
     assert rhel7_sat6tools_repo.sync()['result'] == 'success'
     return rhel7_sat6tools_repo
 
 
 @pytest.fixture(scope='module')
-def custom_repo(module_entitlement_manifest_org):
+def custom_repo(module_target_sat, module_entitlement_manifest_org):
     """Enable custom errata repository"""
-    custom_repo = entities.Repository(
+    custom_repo = module_target_sat.api.Repository(
         url=settings.repos.yum_9.url,
-        product=entities.Product(organization=module_entitlement_manifest_org).create(),
+        product=module_target_sat.api.Product(
+            organization=module_entitlement_manifest_org
+        ).create(),
     ).create()
     assert custom_repo.sync()['result'] == 'success'
     return custom_repo
 
 
 @pytest.fixture(scope='module')
-def module_cv(module_entitlement_manifest_org, rhel7_sat6tools_repo, custom_repo):
+def module_cv(
+    module_target_sat, module_entitlement_manifest_org, rhel7_sat6tools_repo, custom_repo
+):
     """Publish both repos into module CV"""
-    module_cv = entities.ContentView(
+    module_cv = module_target_sat.api.ContentView(
         organization=module_entitlement_manifest_org,
         repository=[rhel7_sat6tools_repo.id, custom_repo.id],
     ).create()
@@ -101,15 +104,17 @@ def module_cv(module_entitlement_manifest_org, rhel7_sat6tools_repo, custom_repo
 
 
 @pytest.fixture(scope='module')
-def module_ak(module_entitlement_manifest_org, module_cv, custom_repo, module_lce_library):
+def module_ak(
+    module_target_sat, module_entitlement_manifest_org, module_cv, custom_repo, module_lce_library
+):
     """Create a module AK in Library LCE"""
-    ak = entities.ActivationKey(
+    ak = module_target_sat.api.ActivationKey(
         content_view=module_cv,
         environment=module_lce_library,
         organization=module_entitlement_manifest_org,
     ).create()
     # Fetch available subscriptions
-    subs = entities.Subscription(organization=module_entitlement_manifest_org).search()
+    subs = module_target_sat.api.Subscription(organization=module_entitlement_manifest_org).search()
     assert len(subs) > 0
     # Add default subscription to activation key
     sub_found = False
@@ -124,9 +129,9 @@ def module_ak(module_entitlement_manifest_org, module_cv, custom_repo, module_lc
     )
     # Add custom subscription to activation key
     prod = custom_repo.product.read()
-    custom_sub = entities.Subscription(organization=module_entitlement_manifest_org).search(
-        query={'search': f'name={prod.name}'}
-    )
+    custom_sub = module_target_sat.api.Subscription(
+        organization=module_entitlement_manifest_org
+    ).search(query={'search': f'name={prod.name}'})
     ak.add_subscriptions(data={'subscription_id': custom_sub[0].id})
     return ak
 
@@ -166,7 +171,7 @@ def host(
     )
     # Add filter of type include but do not include anything.
     # this will hide all RPMs from selected erratum before publishing.
-    entities.RPMContentViewFilter(
+    module_target_sat.api.RPMContentViewFilter(
         content_view=module_cv, inclusion=True, name='Include Nothing'
     ).create()
     module_cv.publish()
@@ -174,15 +179,10 @@ def host(
     return rhel7_contenthost_module
 
 
-def get_applicable_errata(repo):
-    """Retrieves applicable errata for the given repo"""
-    return entities.Errata(repository=repo).search(query={'errata_restrict_applicable': True})
-
-
 @pytest.mark.tier4
 @pytest.mark.upgrade
 def test_positive_noapply_api(
-    module_entitlement_manifest_org, module_cv, custom_repo, host, dev_lce
+    module_target_sat, module_entitlement_manifest_org, module_cv, custom_repo, host, dev_lce
 ):
     """Check if api incremental update can be done without
     actually applying it
@@ -207,12 +207,14 @@ def test_positive_noapply_api(
     # Get the content view versions and use the recent one. API always
     # returns the versions in ascending order (last in the list is most recent)
     cv_versions = module_cv.version
-    # Get the applicable errata
-    errata_list = get_applicable_errata(custom_repo)
+    # Get the applicable errata for the given repo
+    errata_list = module_target_sat.api.Errata(repository=custom_repo).search(
+        query={'errata_restrict_applicable': True}
+    )
     assert len(errata_list) > 0
 
     # Apply incremental update using the first applicable errata
-    entities.ContentViewVersion().incremental_update(
+    module_target_sat.api.ContentViewVersion().incremental_update(
         data={
             'content_view_version_environments': [
                 {
