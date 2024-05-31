@@ -15,6 +15,8 @@
 from fauxfactory import gen_string
 import pytest
 
+from robottelo.config import settings
+
 pytestmark = [pytest.mark.destructive, pytest.mark.upgrade]
 
 
@@ -45,7 +47,8 @@ def test_positive_persistent_ansible_cfg_change(target_sat):
     assert param in target_sat.execute(f'cat {ansible_cfg}').stdout.splitlines()
 
 
-def test_positive_import_all_roles(target_sat):
+@pytest.mark.parametrize('auth_type', ['admin', 'non-admin'])
+def test_positive_import_all_roles(request, target_sat, function_org, auth_type):
     """Import all Ansible roles available by default.
 
     :id: 53fe3857-a08f-493d-93c7-3fed331ed391
@@ -63,7 +66,23 @@ def test_positive_import_all_roles(target_sat):
 
     :expectedresults: All roles are imported successfully. One role is deleted successfully.
     """
-    with target_sat.ui_session() as session:
+    username = settings.server.admin_username
+    password = settings.server.admin_password
+    if auth_type == 'non-admin':
+        ansible_manager_role = target_sat.api.Role().search(
+            query={'search': 'name="Ansible Roles Manager"'}
+        )
+        user = target_sat.api.User(
+            role=ansible_manager_role,
+            admin=True,
+            login=gen_string('alphanumeric'),
+            password=password,
+            organization=[function_org],
+        ).create()
+        request.addfinalizer(user.delete)
+        username = user.login
+    with target_sat.ui_session(user=username, password=password) as session:
+        session.organization.select(function_org.name)
         assert session.ansibleroles.import_all_roles() == session.ansibleroles.imported_roles_count
         assert int(session.ansiblevariables.read_total_variables()) > 0
         # The choice of role to be deleted is arbitrary; any of the roles present on Satellite
