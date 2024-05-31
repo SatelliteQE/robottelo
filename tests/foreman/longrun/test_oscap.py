@@ -14,7 +14,6 @@
 
 from broker import Broker
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -69,15 +68,19 @@ def default_proxy(module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def lifecycle_env(module_org):
+def lifecycle_env(module_target_sat, module_org):
     """Create lifecycle environment"""
-    return entities.LifecycleEnvironment(organization=module_org, name=gen_string('alpha')).create()
+    return module_target_sat.api.LifecycleEnvironment(
+        organization=module_org, name=gen_string('alpha')
+    ).create()
 
 
 @pytest.fixture(scope='module')
-def content_view(module_org):
+def content_view(module_target_sat, module_org):
     """Create content view"""
-    return entities.ContentView(organization=module_org, name=gen_string('alpha')).create()
+    return module_target_sat.api.ContentView(
+        organization=module_org, name=gen_string('alpha')
+    ).create()
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -90,7 +93,7 @@ def activation_key(module_target_sat, module_org, lifecycle_env, content_view):
     ]
 
     for repo in repo_values:
-        activation_key = entities.ActivationKey(
+        activation_key = module_target_sat.api.ActivationKey(
             name=repo.get('akname'), environment=lifecycle_env, organization=module_org
         ).create()
         # Setup org for a custom repo for RHEL6, RHEL7 and RHEL8.
