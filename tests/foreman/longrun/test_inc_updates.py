@@ -167,11 +167,6 @@ def host(
     return rhel7_contenthost_module
 
 
-def get_applicable_errata(satellite, repo):
-    """Retrieves applicable errata for the given repo"""
-    return satellite.api.Errata(repository=repo).search(query={'errata_restrict_applicable': True})
-
-
 @pytest.mark.tier4
 @pytest.mark.upgrade
 def test_positive_noapply_api(
@@ -195,8 +190,11 @@ def test_positive_noapply_api(
     cvv = versions[-1].read()
     cvv.promote(data={'environment_ids': dev_lce.id})
 
-    # Get the applicable errata
-    errata_list = get_applicable_errata(module_target_sat, custom_repo)
+    # Get the applicable errata for the given repo
+    errata_list = module_target_sat.api.Errata(repository=custom_repo).search(
+        query={'errata_restrict_applicable': True}
+    )
+
     assert len(errata_list) > 0
 
     # Apply incremental update using the first applicable errata
