@@ -375,6 +375,111 @@ class TestScenarioLargeRepoSyncCheck:
         assert res['result'] == 'success'
 
 
+class TestScenarioContainerRepoSync:
+    """Scenario to verify that container repositories with labels, annotations and othe flages
+     synced before upgrade are indexed properly after upgrade including labels (as of 6.16).
+
+    Test Steps:
+
+        1. Before Satellite upgrade.
+        2. Synchronize container repositories that contains some labels and other flags.
+        3. Upgrade Satellite.
+        4. Check the labels and other flags were indexed properly in Katello DB via API.
+    """
+
+    @pytest.mark.pre_upgrade
+    def test_pre_container_repo_sync(
+        self,
+        target_sat,
+        module_org,
+        module_product,
+        save_test_data,
+    ):
+        """This is a pre-upgrade test to sync container repositories
+        with some labels, annotations and bootable and flatpak flags.
+
+        :id: 55b82217-7fd0-4b98-bd38-2a08a36f77db
+
+        :steps:
+            1. Create bootable container repository with some labels and flags.
+            2. Sync the repository and assert sync succeeds.
+            3. Create flatpak container repository with some labels and flags.
+            4. Sync the repository and assert sync succeeds.
+
+        :expectedresults: Container repositories are synced and ready for upgrade.
+        """
+        # Create and sync bootable container repository with some labels and flags.
+        bootable_repo = target_sat.api.Repository(
+            content_type='docker',
+            docker_upstream_name='pulp/bootc-labeled',
+            product=module_product,
+            url='https://ghcr.io',
+        ).create()
+        bootable_repo.sync()
+        bootable_repo = bootable_repo.read()
+        assert bootable_repo.content_counts['docker_manifest'] > 0
+
+        # Create and sync flatpak container repository with some labels and flags.
+        flatpak_repo = target_sat.api.Repository(
+            content_type='docker',
+            docker_upstream_name='pulp/oci-net.fishsoup.hello',
+            product=module_product,
+            url='https://ghcr.io',
+        ).create()
+        flatpak_repo.sync()
+        flatpak_repo = flatpak_repo.read()
+        assert flatpak_repo.content_counts['docker_manifest'] > 0
+
+        save_test_data({'boot_repo_id': bootable_repo.id, 'flatpak_repo_id': flatpak_repo.id})
+
+    @pytest.mark.post_upgrade(depend_on=test_pre_container_repo_sync)
+    def test_post_container_repo_sync(self, target_sat, pre_upgrade_data):
+        """This is a post-upgrade test to verify the container labels
+        were indexed properly in the post-upgrade task.
+
+        :id: 1e8f2f4a-6232-4671-9d6f-2ada1b70bc59
+
+        :steps:
+            1. Verify the manifests count matches the repository content counts
+               and ensure all manifests in each repo contain the expected keys.
+            2. Verify the vaules meet the expectations specific for each repo.
+
+        :expectedresults: Container labels were indexed properly.
+        """
+        # Verify the manifests count matches the repository content counts
+        # and ensure all manifests in each repo contain the expected keys.
+        expected_keys = {'annotations', 'labels', 'is_bootable', 'is_flatpak'}
+        for repo_id in pre_upgrade_data.values():
+            dms = target_sat.api.Repository(id=repo_id).docker_manifests()['results']
+            assert (
+                len(dms)
+                == target_sat.api.Repository(id=repo_id).read().content_counts['docker_manifest']
+            ), 'Manifests count does not match the repository content counts'
+            assert all(
+                [expected_keys.issubset(m.keys()) for m in dms]
+            ), 'Some expected key is missing in the repository manifests'
+
+        # Verify the vaules meet the expectations specific for the bootable repo.
+        dms = target_sat.api.Repository(id=pre_upgrade_data.boot_repo_id).docker_manifests()[
+            'results'
+        ]
+        assert len(dms) == 1, 'Expected 1 manifest in the repo'
+        assert dms[0]['is_bootable'], 'Expected is_bootable flag set to True'
+        assert not dms[0]['is_flatpak'], 'Expected is_flatpak flag set to False'
+        assert len(dms[0]['labels']) == 2, 'Expected 2 labels for this manifest'
+        assert len(dms[0]['annotations']) == 2, 'Expected 2 annotations for this manifest'
+
+        # Verify the vaules meet the expectations specific for the flatpak repo.
+        dms = target_sat.api.Repository(id=pre_upgrade_data.flatpak_repo_id).docker_manifests()[
+            'results'
+        ]
+        assert len(dms) == 2, 'Expected 2 manifests in the repo'
+        assert all([not m['is_bootable'] for m in dms]), 'Expected is_bootable flags set to False'
+        assert all([m['is_flatpak'] for m in dms]), 'Expected is_flatpak flags set to True'
+        assert all([len(m['labels']) == 10 for m in dms]), 'Expected 10 labels in the manifests'
+        assert all([len(m['annotations']) == 0 for m in dms]), 'No annotations expected'
+
+
 class TestSimpleContentAccessOnly:
     """
     The scenario to test simple content access mode before and after an upgrade to a
