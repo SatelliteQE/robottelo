@@ -882,11 +882,6 @@ class ContentHost(Host, ContentHostMixins):
         if baseurl:
             cmd += f' --baseurl {baseurl}'
 
-        # Enabling proxy for Ipv6
-        if enable_proxy and all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
-            url = urlparse(settings.server.http_proxy_ipv6_url)
-            self.enable_server_proxy(url.hostname, url.port)
-
         return self.execute(cmd)
 
     def unregister(self):
@@ -933,7 +928,8 @@ class ContentHost(Host, ContentHostMixins):
         if result.status != 0:
             raise CLIFactoryError(f'Failed to chmod ssh key file:\n{result.stderr}')
 
-    def enable_server_proxy(self, hostname, port=None):
+    def enable_rhsm_proxy(self, hostname, port=None):
+        """Configures proxy for subscription manager"""
         cmd = f"subscription-manager config --server.proxy_hostname={hostname}"
         if port:
             cmd += f' --server.proxy_port={port}'
@@ -1649,11 +1645,13 @@ class Capsule(ContentHost, CapsuleMixins):
         )
 
     def enable_ipv6_http_proxy(self):
+        """Execute procedures for enabling IPv6 HTTP Proxy on Capsule using SM"""
         if all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
             url = urlparse(settings.server.http_proxy_ipv6_url)
-            self.enable_server_proxy(url.hostname, url.port)
+            self.enable_rhsm_proxy(url.hostname, url.port)
 
     def disable_ipv6_http_proxy(self):
+        """Executes procedures for disabling IPv6 HTTP Proxy on Capsule"""
         if settings.server.is_ipv6:
             self.execute('subscription-manager remove server.proxy_hostname server.proxy_port')
 
@@ -1828,37 +1826,35 @@ class Satellite(Capsule, SatelliteMixins):
 
     def enable_ipv6_http_proxy(self):
         """Execute procedures for enabling IPv6 HTTP Proxy"""
-        if all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
-            proxy_name = 'Robottelo IPv6 Automation Proxy'
-            if not self.cli.HttpProxy.exists(search=('name', proxy_name)):
-                http_proxy = self.api.HTTPProxy(
-                    name=proxy_name, url=settings.server.http_proxy_ipv6_url
-                ).create()
-            else:
-                logger.info(
-                    'The IPv6 HTTP Proxy is already enabled. Skipping the IPv6 HTTP Proxy setup.'
-                )
-                http_proxy = self.api.HTTPProxy().search(query={'search': f'name={proxy_name}'})
-                if http_proxy:
-                    http_proxy = http_proxy[0]
-            # Setting HTTP Proxy as default in the settings
-            self.cli.Settings.set(
-                {
-                    'name': 'content_default_http_proxy',
-                    'value': proxy_name,
-                }
+        if not all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
+            logger.warning(
+                'The IPv6 HTTP Proxy setting is not enabled. Skipping the IPv6 HTTP Proxy setup.'
             )
-            self.cli.Settings.set(
-                {
-                    'name': 'http_proxy',
-                    'value': settings.server.http_proxy_ipv6_url,
-                }
+            return None
+        proxy_name = 'Robottelo IPv6 Automation Proxy'
+        if not self.cli.HttpProxy.exists(search=('name', proxy_name)):
+            http_proxy = self.api.HTTPProxy(
+                name=proxy_name, url=settings.server.http_proxy_ipv6_url
+            ).create()
+        else:
+            logger.info(
+                'The IPv6 HTTP Proxy is already enabled. Skipping the IPv6 HTTP Proxy setup.'
             )
-            return http_proxy
-        logger.warning(
-            'The IPv6 HTTP Proxy setting is not enabled. Skipping the IPv6 HTTP Proxy setup.'
+            http_proxy = self.api.HTTPProxy().search(query={'search': f'name={proxy_name}'})[0]
+        # Setting HTTP Proxy as default in the settings
+        self.cli.Settings.set(
+            {
+                'name': 'content_default_http_proxy',
+                'value': proxy_name,
+            }
         )
-        return None
+        self.cli.Settings.set(
+            {
+                'name': 'http_proxy',
+                'value': settings.server.http_proxy_ipv6_url,
+            }
+        )
+        return http_proxy
 
     def disable_ipv6_http_proxy(self, http_proxy):
         """Execute procedures for disabling IPv6 HTTP Proxy"""
@@ -2404,6 +2400,23 @@ class Satellite(Capsule, SatelliteMixins):
             handle_exception=True,
         )
         return inventory_sync
+
+    def register_contenthost(
+        self,
+        org='Default_Organization',
+        lce='Library',
+        username=settings.server.admin_username,
+        password=settings.server.admin_password,
+        enable_proxy=False,
+    ):
+        """Satellite Registration to CDN"""
+        # Enabling proxy for Ipv6
+        if enable_proxy and all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
+            url = urlparse(settings.server.http_proxy_ipv6_url)
+            self.enable_rhsm_proxy(url.hostname, url.port)
+        return super().register_contenthost(
+            org=org, lce=lce, username=username, password=password, enable_proxy=enable_proxy
+        )
 
 
 class SSOHost(Host):

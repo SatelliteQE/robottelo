@@ -12,11 +12,8 @@ def is_url(url):
 
 
 def is_ipv4_url(text):
-    # Did not find the better way to filter only URLs so skipping it simple
-    # and open for reviewers suggestions
-    if isinstance(text, str) and '-ipv4' in text:
-        return True
-    return False
+    """Verify if the URL is IPv4 url"""
+    return isinstance(text, str) and 'ipv4' in text and 'redhat.com' in text
 
 
 def ipv6_translator(settings_list, setting_major, settings, data):
