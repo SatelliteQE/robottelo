@@ -15,7 +15,12 @@ from wait_for import wait_for
 import yaml
 
 from robottelo import constants
-from robottelo.config import robottelo_tmp_dir, settings
+from robottelo.config import (
+    admin_nailgun_config,
+    robottelo_tmp_dir,
+    settings,
+    user_nailgun_config,
+)
 
 
 class TestAnsibleCfgMgmt:
@@ -522,8 +527,15 @@ class TestAnsibleREX:
 
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('9')
+    @pytest.mark.parametrize('auth_type', ['admin', 'non-admin'])
     def test_positive_ansible_custom_role(
-        self, target_sat, module_org, module_ak_with_cv, rhel_contenthost, request
+        self,
+        auth_type,
+        target_sat,
+        module_org,
+        module_ak_with_cv,
+        rhel_contenthost,
+        request,
     ):
         """
         Test Config report generation with Custom Ansible Role
@@ -545,14 +557,29 @@ class TestAnsibleREX:
 
         :customerscenario: true
         """
+        user_cfg = admin_nailgun_config()
+        password = settings.server.admin_password
+        if auth_type == 'non-admin':
+            ansible_manager_role = target_sat.api.Role().search(
+                query={'search': 'name="Ansible Roles Manager"'}
+            )
+            username = gen_string('alphanumeric')
+            target_sat.api.User(
+                role=ansible_manager_role,
+                admin=True,
+                login=username,
+                password=password,
+                organization=[module_org],
+            ).create()
+            user_cfg = user_nailgun_config(username, password)
 
         @request.addfinalizer
         def _finalize():
             result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
             assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
-            target_sat.execute('rm -rvf /etc/ansible/roles/custom_role')
+            target_sat.execute(f'rm -rvf /etc/ansible/roles/{SELECTED_ROLE}')
 
-        SELECTED_ROLE = 'custom_role'
+        SELECTED_ROLE = gen_string('alphanumeric')
         playbook = f'{robottelo_tmp_dir}/playbook.yml'
         data = {
             'name': 'Copy ssh keys',
@@ -565,30 +592,37 @@ class TestAnsibleREX:
             },
             'with_items': ['id_rsa_foreman_proxy.pub', 'id_rsa_foreman_proxy'],
         }
+
         with open(playbook, 'w') as f:
             yaml.dump(data, f, sort_keys=False, default_flow_style=False)
-        target_sat.execute('mkdir /etc/ansible/roles/custom_role')
-        target_sat.put(playbook, '/etc/ansible/roles/custom_role/playbook.yaml')
+        target_sat.execute(f'mkdir /etc/ansible/roles/{SELECTED_ROLE}')
+        target_sat.put(playbook, f'/etc/ansible/roles/{SELECTED_ROLE}/playbook.yaml')
 
         result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         proxy_id = target_sat.nailgun_smart_proxy.id
         target_host = rhel_contenthost.nailgun_host
-        target_sat.api.AnsibleRoles().sync(
+        target_sat.api.AnsibleRoles(server_config=user_cfg).sync(
             data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]}
         )
-        target_sat.cli.Host.ansible_roles_assign(
-            {'id': target_host.id, 'ansible-roles': SELECTED_ROLE}
+        ROLE_ID = [
+            target_sat.api.AnsibleRoles().search(query={'search': f'name={SELECTED_ROLE}'})[0].id
+        ]
+        # Assign first 2 roles to HG and verify it
+        target_sat.api.Host(server_config=user_cfg, id=target_host.id).assign_ansible_roles(
+            data={'ansible_role_ids': ROLE_ID}
         )
-        host_roles = target_host.list_ansible_roles()
+        host_roles = target_sat.api.Host(
+            server_config=user_cfg, id=target_host.id
+        ).list_ansible_roles()
         assert host_roles[0]['name'] == SELECTED_ROLE
 
         template_id = (
-            target_sat.api.JobTemplate()
+            target_sat.api.JobTemplate(server_config=user_cfg)
             .search(query={'search': 'name="Ansible Roles - Ansible Default"'})[0]
             .id
         )
-        job = target_sat.api.JobInvocation().run(
+        job = target_sat.api.JobInvocation(server_config=user_cfg).run(
             synchronous=False,
             data={
                 'job_template_id': template_id,
@@ -599,9 +633,10 @@ class TestAnsibleREX:
         target_sat.wait_for_tasks(
             f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1000
         )
-        result = target_sat.api.JobInvocation(id=job['id']).read()
+        result = target_sat.api.JobInvocation(server_config=user_cfg, id=job['id']).read()
         assert result.succeeded == 1
-        with target_sat.ui_session() as session:
+
+        with target_sat.ui_session(user=user_cfg.auth[0], password=password) as session:
             session.organization.select(module_org.name)
             session.location.select(constants.DEFAULT_LOC)
             assert session.host.search(target_host.name)[0]['Name'] == rhel_contenthost.hostname
