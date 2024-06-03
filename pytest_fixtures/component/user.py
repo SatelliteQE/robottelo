@@ -1,12 +1,9 @@
-from nailgun import entities
 import pytest
 
 
 @pytest.fixture
-def user_not_exists(request):
+def user_not_exists(request, target_sat):
     """Remove a user if it exists. Return whether changes have been applied."""
-    users = entities.User().search(query={'search': f'login={request.param}'})
-    if users:
+    if users := target_sat.api.User().search(query={'search': f'login={request.param}'}):
         users[0].delete()
-        return True
-    return False
+    return bool(users)
