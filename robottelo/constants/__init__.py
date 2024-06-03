@@ -1922,6 +1922,7 @@ WEBHOOK_METHODS = [
     "DELETE",
     "PATCH",
 ]
+LIFECYCLE_METADATA_FILE = '/usr/share/satellite/lifecycle-metadata.yml'
 
 OPENSSH_RECOMMENDATION = 'Decreased security: OpenSSH config permissions'
 DNF_RECOMMENDATION = (
