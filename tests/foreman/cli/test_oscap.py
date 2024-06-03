@@ -582,6 +582,8 @@ class TestOpenScap:
 
         :expectedresults: The policy is created and associated successfully.
 
+        :Verifies: SAT-19492
+
         :CaseImportance: Medium
         """
         hostgroup = module_target_sat.cli_factory.hostgroup()
