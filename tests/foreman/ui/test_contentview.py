@@ -19,6 +19,8 @@ from widgetastic_patternfly4.dropdown import DropdownItemDisabled
 from robottelo.constants import REPOS
 from robottelo.exceptions import CLIReturnCodeError
 
+from robottelo.constants import REPOS
+
 
 @pytest.mark.tier2
 def test_positive_create_cv(session, target_sat):
@@ -38,6 +40,47 @@ def test_positive_create_cv(session, target_sat):
     with target_sat.ui_session() as session:
         session.contentview_new.create(dict(name=cv))
         assert session.contentview_new.search(cv)[0]['Name'] == cv
+
+
+@pytest.mark.tier2
+def test_version_table_read(session, function_sca_manifest_org, target_sat):
+    """Able to read CV version package details, which includes the Epoch tab
+
+    :id: fe2a87c7-f148-40f2-b11a-c209a4807016
+
+    :steps:
+        1. Enable and Sync RHEL8 Base OS Repo
+        2. Add repo to a CV
+        3. Publish the CV
+        4. Navigate to the published Version's page
+        5. Filter packages to only an arbitrary package
+
+    :expectedresults: The package is present, has the appropriate name, and has the epoch tab present
+
+    :CaseImportance: Critical
+
+    :BZ: 1911545
+
+    :customerscenario: true
+    """
+    rh_repo_id = target_sat.api_factory.enable_sync_redhat_repo(
+        REPOS['rhae2.9_el8'], function_sca_manifest_org.id
+    )
+    rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
+    packages = target_sat.api.Repository(id=rh_repo_id).packages()
+    cv = target_sat.api.ContentView(organization=function_sca_manifest_org).create()
+    cv = target_sat.api.ContentView(id=cv.id, repository=[rh_repo]).update(["repository"])
+    cv.publish()
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=function_sca_manifest_org.name)
+        response = session.contentview_new.read_version_table(
+            cv.name, 'Version 1.0', 'rpmPackages', search_param=packages['results'][0]['nvra']
+        )
+        assert response[0]['Epoch'] == packages['results'][0]['epoch']
+        assert response[0]['Name'] == packages['results'][0]['nvra']
+        assert response[0]['Version'] == packages['results'][0]['version']
+        assert response[0]['Release'] == packages['results'][0]['release']
+        assert response[0]['Arch'] == packages['results'][0]['arch']
 
 
 @pytest.mark.tier2
