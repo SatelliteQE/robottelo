@@ -43,6 +43,7 @@ VALIDATORS = dict(
         Validator('subscription.rhn_username', must_exist=True),
         Validator('subscription.rhn_password', must_exist=True),
         Validator('subscription.rhn_poolid', must_exist=True),
+        Validator('subscription.lifecycle_api_url', must_exist=True),
     ],
     ansible_hub=[
         Validator('ansible_hub.url', must_exist=True),
