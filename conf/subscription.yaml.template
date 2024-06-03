@@ -5,3 +5,5 @@ SUBSCRIPTION:
   RHN_PASSWORD:
   # subscription pool id
   RHN_POOLID:
+  # lifecycle API url
+  LIFECYCLE_API_URL:
