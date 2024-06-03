@@ -3,3 +3,8 @@ JIRA:
   URL: https://issues.redhat.com
   # Provide api_key to access Jira REST API
   API_KEY: replace-with-jira-api-key
+  COMMENT_TYPE: group
+  COMMENT_VISIBILITY: "Red Hat Employee"
+  ENABLE_COMMENT: false
+  # Comment only if jira is in one of the following state
+  ISSUE_STATUS: ["Review", "Release Pending"]
