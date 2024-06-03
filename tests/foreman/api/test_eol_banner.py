@@ -28,6 +28,8 @@ def test_positive_check_eol_date(target_sat):
 
     :id: 1c2f0d19-a357-4461-9ace-edb468f9ca5c
 
+    :BlockedBy: SAT-25522
+
     :expectedresults: EOL date from satellite-lifecycle package is accurate
     """
     current_version = '.'.join(target_sat.version.split('.')[0:2])
