@@ -26,7 +26,12 @@ from requests.exceptions import HTTPError
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.constants import DataFile, repos as repo_constants
+from robottelo.constants import (
+    CONTAINER_MANIFEST_LABELS,
+    LABELLED_REPOS,
+    DataFile,
+    repos as repo_constants,
+)
 from robottelo.content_info import get_repo_files_by_url
 from robottelo.logging import logger
 from robottelo.utils import datafactory
@@ -1836,6 +1841,70 @@ class TestDockerRepository:
         repo = repo.read()
         assert repo.include_tags == repo_options['include_tags']
         assert repo.content_counts['docker_tag'] == 1
+
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
+    @pytest.mark.parametrize(
+        'repo_options',
+        **datafactory.parametrized(
+            [
+                {
+                    'content_type': 'docker',
+                    'docker_upstream_name': repo['upstream_name'],
+                    'name': gen_string('alpha'),
+                    'url': constants.PULP_CONTAINER_REGISTRY_HUB,
+                }
+                for repo in LABELLED_REPOS
+            ]
+        ),
+        indirect=True,
+    )
+    def test_positive_synchronize_docker_repo_with_manifest_labels(
+        self, target_sat, repo_options, repo
+    ):
+        """Verify the container manifest labels were indexed properly during the repo sync.
+
+        :id: c865d350-fd19-43fb-b9fd-5ef86cbe3e09
+
+        :parametrized: yes
+
+        :steps:
+            1. Sync container-type repositories with some labels, annotations
+               and bootable and flatpak flags.
+            2. Verify all manifests in each repo contain the expected keys.
+            3. Verify the manifests count matches the repository content counts and the expectation.
+            4. Verify the values meet the expectations specific for each repo.
+
+        :expectedresults: Container labels were indexed properly.
+        """
+        repo.sync()
+        repo = repo.read()
+        dms = target_sat.api.Repository(id=repo.id).docker_manifests()['results']
+        assert all(
+            [CONTAINER_MANIFEST_LABELS.issubset(m.keys()) for m in dms]
+        ), 'Some expected key is missing in the repository manifests'
+        expected_values = next(
+            (i for i in LABELLED_REPOS if i['upstream_name'] == repo.docker_upstream_name), None
+        )
+        assert expected_values, f'{repo.docker_upstream_name} not found in {LABELLED_REPOS}'
+        assert (
+            len(dms) == repo.content_counts['docker_manifest']
+        ), 'Manifests count does not match the repository content counts'
+        assert (
+            len(dms) == expected_values['manifests_count']
+        ), 'Manifests count does not meet the expectation'
+        assert all(
+            [m['is_bootable'] == expected_values['bootable'] for m in dms]
+        ), 'Unexpected is_bootable flag'
+        assert all(
+            [m['is_flatpak'] == expected_values['flatpak'] for m in dms]
+        ), 'Unexpected is_flatpak flag'
+        assert all(
+            [len(m['labels']) == expected_values['labels_count'] for m in dms]
+        ), 'Unexpected lables count'
+        assert all(
+            [len(m['annotations']) == expected_values['annotations_count'] for m in dms]
+        ), 'Unexpected annotations count'
 
     @pytest.mark.skip(
         reason="Tests behavior that is no longer present in the same way, needs refactor"
