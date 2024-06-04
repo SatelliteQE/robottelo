@@ -87,6 +87,7 @@ def pytest_sessionfinish(session, exitstatus):
         user = os.environ.get('USER')
         build_url = os.environ.get('BUILD_URL')
         for issue in session.config.issue_to_tests_map:
+            all_tests_passed = True
             comment_body = (
                 f'This is an automated comment from job/user: {build_url if build_url else user} for a Robottelo test run.\n'
                 f'Satellite/Capsule: {settings.server.version.release} Snap: {settings.server.version.snap} \n'
@@ -94,8 +95,15 @@ def pytest_sessionfinish(session, exitstatus):
             )
             for item in session.config.issue_to_tests_map[issue]:
                 comment_body += f'{item["nodeid"]} : {item["outcome"]} \n'
+                if item["outcome"] == 'failed':
+                    all_tests_passed = False
             try:
-                add_comment_on_jira(issue, comment_body)
+                labels = (
+                    [{'add': 'tests_passed'}, {'remove': 'tests_failed'}]
+                    if all_tests_passed
+                    else [{'add': 'tests_failed'}, {'remove': 'tests_passed'}]
+                )
+                add_comment_on_jira(issue, comment_body, labels=labels)
             except Exception as e:
                 # Handle any errors in adding comments to Jira
                 logger.warning(f'Failed to add comment to Jira issue {issue}: {e}')

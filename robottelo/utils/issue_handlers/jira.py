@@ -279,12 +279,14 @@ def add_comment_on_jira(
     comment,
     comment_type=settings.jira.comment_type,
     comment_visibility=settings.jira.comment_visibility,
+    labels=None,
 ):
     """Adds a new comment to a Jira issue.
 
     Arguments:
         issue_id {str} -- Jira issue number, ex. SAT-12232
         comment {str}  -- Comment to add on the issue.
+        lables {list} - Add/Remove Jira labels, ex. [{'add':'tests_passed'},{'remove':'tests_failed'}]
         comment_type {str}  -- Type of comment to add.
         comment_visibility {str}  -- Comment visibility.
 
@@ -301,7 +303,15 @@ def add_comment_on_jira(
         return None
     data = try_from_cache(issue_id)
     if data["status"] in settings.jira.issue_status:
-        logger.debug(f"Adding a new comment on {issue_id} Jira issue.")
+        if labels:
+            logger.debug(f"Updating labels for {issue_id} issue. \n labels: \n {labels}")
+            response = requests.put(
+                f"{settings.jira.url}/rest/api/latest/issue/{issue_id}/",
+                json={"update": {"labels": labels}},
+                headers={"Authorization": f"Bearer {settings.jira.api_key}"},
+            )
+            response.raise_for_status()
+        logger.debug(f"Adding a new comment on {issue_id} Jira issue. \n comment: \n {comment}")
         response = requests.post(
             f"{settings.jira.url}/rest/api/latest/issue/{issue_id}/comment",
             json={
