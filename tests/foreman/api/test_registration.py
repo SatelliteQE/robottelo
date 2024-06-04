@@ -69,7 +69,8 @@ def test_host_registration_end_to_end(
     module_target_sat.api.SmartProxy(id=nc.id, location=[module_location]).update(['location'])
 
     result = rhel_contenthost.api_register(
-        nc,
+        module_target_sat,
+        smart_proxy=nc,
         organization=org,
         activation_keys=[module_activation_key.name],
         location=module_location,
