@@ -834,8 +834,8 @@ def test_positive_list_permission(
         basearch=DEFAULT_ARCHITECTURE,
         org_id=function_sca_manifest_org.id,
         product=PRDS['rhel8'],
-        repo=REPOS['rhst8']['name'],
-        reposet=REPOSET['rhst8'],
+        repo=REPOS['rhsclient8']['name'],
+        reposet=REPOSET['rhsclient8'],
         releasever='None',
     )
     rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
@@ -852,7 +852,7 @@ def test_positive_list_permission(
             query={'search': 'resource_type="Katello::Product"'}
         ),
         role=role,
-        search='name = "{}"'.format(PRDS['rhel8']),
+        search=f'name = "{PRDS['rhel8']}"',
     ).create()
     # generate login credentials for new role
     user_password = gen_string('alphanumeric')
