@@ -2077,6 +2077,7 @@ DNF_RECOMMENDATION = (
 )
 
 EXPIRED_MANIFEST = 'expired-manifest.zip'
+EXPIRED_MANIFEST_DATE = 'Fri Dec 03 2021'
 
 
 # Data File Paths

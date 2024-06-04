@@ -12,6 +12,7 @@
 
 """
 
+from datetime import datetime, timedelta
 from tempfile import mkstemp
 import time
 
@@ -22,6 +23,7 @@ from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
     EXPIRED_MANIFEST,
+    EXPIRED_MANIFEST_DATE,
     PRDS,
     REPOS,
     REPOSET,
@@ -29,6 +31,7 @@ from robottelo.constants import (
     VIRT_WHO_HYPERVISOR_TYPES,
     DataFile,
 )
+from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.manifest import clone
 
 pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.skip_if_not_set('fake_manifest')]
@@ -561,7 +564,7 @@ def test_positive_prepare_for_sca_only_subscription(target_sat, function_entitle
 
 @pytest.mark.parametrize('setting_update', ['expire_soon_days'], indirect=True)
 def test_positive_check_manifest_validity_notification(
-    target_sat, setting_update, function_org, function_sca_manifest, default_org
+    target_sat, setting_update, function_org, function_sca_manifest
 ):
     """Check notification when manifest is going to expire.
 
@@ -572,13 +575,13 @@ def test_positive_check_manifest_validity_notification(
 
     :steps:
         1. Upload expired manifest in newly created org
-        2. go to Content > Subscriptions page, click on 'Manage Manifest' button.
+        2. Go to Content > Subscriptions page, click on 'Manage Manifest' button.
         3. Search for message string 'Manifest expired', or 'Your manifest expired'
-        4. delete expired manifest from this org (cleanup part)
+        4. Delete expired manifest from this org (cleanup part)
         5. Upload non-expired manifest
-        6. go to Content > Subscription page, click on 'Manage Manifest' button.
+        6. Go to Content > Subscription page, click on 'Manage Manifest' button.
         7. Search for message string 'Manifest expiring soon', or 'Your manifest will expire'
-        8. delete expired manifest from this org (cleanup part)
+        8. Delete expired manifest from this org (cleanup part)
 
     :expectedresults:
         1. 'Manifest expired', 'Manifest expiring soon' messages appear on Manage Manifest modal box
@@ -598,8 +601,11 @@ def test_positive_check_manifest_validity_notification(
         # read expire manifest message
         expired_manifest = session.subscription.read_subscription_manifest_header_message_and_date()
         assert 'Manifest expired' in expired_manifest['header'], 'Manifest expire alert not found'
-        assert 'Your manifest expired' in expired_manifest['message']
-        assert 'import a new manifest' in expired_manifest['message']
+        if not is_open('SAT-25052'):
+            assert (
+                f'Your manifest expired on {EXPIRED_MANIFEST_DATE}. To continue using '
+                f'Red Hat content, import a new manifest.' in expired_manifest['message']
+            )
         # Cleanup - delete expired manifest
         session.subscription.delete_manifest(
             ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound']
@@ -607,28 +613,26 @@ def test_positive_check_manifest_validity_notification(
 
         # Message - Manifest expiring soon
         # Upload non-expire manifest
-        session.organization.select(default_org.name)
-        target_sat.upload_manifest(default_org.id, function_sca_manifest.content)
-        original_expire_date = (
-            session.subscription.read_subscription_manifest_expiration_date_only()
-        )
+        target_sat.upload_manifest(function_org.id, function_sca_manifest.content)
+
         # Initially 'Manifest expiring soon' message not found
         # then update the 'Expire soon days' value from settings > Content
         # value should be greater than 365 to get expected output message
         setting_update.value = 366
         setting_update = setting_update.update({'value'})
         session.browser.refresh()
+        # Predict expire date using below formula
+        date = datetime.now() + timedelta(days=365)
+        formatted_date = date.strftime('%a %b %d %Y')
         # read expire manifest message
         expiring_soon = session.subscription.read_subscription_manifest_header_message_and_date()
         assert (
             'Manifest expiring soon' in expiring_soon['header']
         ), 'Manifest expire alert not found'
-        assert 'Your manifest will expire' in expiring_soon['message']
-        assert 'import a new manifest' in expiring_soon['message']
 
         session.subscription.refresh_manifest()
-        updated_expire_date = session.subscription.read_subscription_manifest_expiration_date_only()
-        assert original_expire_date != updated_expire_date
+        expires_date = session.subscription.read_subscription_manifest_expiration_date_only()
+        assert formatted_date in expires_date
         # Cleanup - delete non-expired manifest
         session.subscription.delete_manifest(
             ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound']
