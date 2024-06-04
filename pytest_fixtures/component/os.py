@@ -1,5 +1,4 @@
 # Operating System Fixtures
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -33,8 +32,8 @@ def default_os(
 
 
 @pytest.fixture(scope='module')
-def module_os():
-    return entities.OperatingSystem().create()
+def module_os(module_target_sat):
+    return module_target_sat.api.OperatingSystem().create()
 
 
 @pytest.fixture(scope='module')

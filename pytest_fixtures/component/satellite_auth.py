@@ -2,7 +2,6 @@ import copy
 import socket
 
 from box import Box
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -36,11 +35,11 @@ def default_ipa_host(module_target_sat):
 
 
 @pytest.fixture
-def ldap_cleanup():
+def ldap_cleanup(target_sat):
     """this is an extra step taken to clean any existing ldap source"""
-    ldap_auth_sources = entities.AuthSourceLDAP().search()
+    ldap_auth_sources = target_sat.api.AuthSourceLDAP().search()
     for ldap_auth in ldap_auth_sources:
-        users = entities.User(auth_source=ldap_auth).search()
+        users = target_sat.api.User(auth_source=ldap_auth).search()
         for user in users:
             user.delete()
         ldap_auth.delete()
@@ -105,9 +104,9 @@ def open_ldap_data():
 
 
 @pytest.fixture
-def auth_source(ldap_cleanup, module_org, module_location, ad_data):
+def auth_source(ldap_cleanup, module_target_sat, module_org, module_location, ad_data):
     ad_data = ad_data()
-    return entities.AuthSourceLDAP(
+    return module_target_sat.api.AuthSourceLDAP(
         onthefly_register=True,
         account=ad_data['ldap_user_name'],
         account_password=ad_data['ldap_user_passwd'],
@@ -128,8 +127,8 @@ def auth_source(ldap_cleanup, module_org, module_location, ad_data):
 
 
 @pytest.fixture
-def auth_source_ipa(ldap_cleanup, default_ipa_host, module_org, module_location):
-    return entities.AuthSourceLDAP(
+def auth_source_ipa(ldap_cleanup, default_ipa_host, module_target_sat, module_org, module_location):
+    return module_target_sat.api.AuthSourceLDAP(
         onthefly_register=True,
         account=default_ipa_host.ldap_user_cn,
         account_password=default_ipa_host.ldap_user_passwd,
@@ -150,8 +149,14 @@ def auth_source_ipa(ldap_cleanup, default_ipa_host, module_org, module_location)
 
 
 @pytest.fixture
-def auth_source_open_ldap(ldap_cleanup, module_org, module_location, open_ldap_data):
-    return entities.AuthSourceLDAP(
+def auth_source_open_ldap(
+    ldap_cleanup,
+    module_target_sat,
+    module_org,
+    module_location,
+    open_ldap_data,
+):
+    return module_target_sat.api.AuthSourceLDAP(
         onthefly_register=True,
         account=open_ldap_data['ldap_user_cn'],
         account_password=open_ldap_data['ldap_user_passwd'],
