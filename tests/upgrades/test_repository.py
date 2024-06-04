@@ -390,7 +390,6 @@ class TestSimpleContentAccessOnly:
         save_test_data,
         rhel_contenthost,
         upgrade_entitlement_manifest_org,
-        upgrade_entitlement_manifest,
     ):
         """Register host with an activation key that has one custom repository(overriden to enabled)
         and one Red Hat repository enabled but no subscriptions attached. Assert that only
@@ -413,7 +412,6 @@ class TestSimpleContentAccessOnly:
             enabled on host.
 
         """
-        _, manifester = upgrade_entitlement_manifest
         org = upgrade_entitlement_manifest_org
         rhel_contenthost._skip_context_checkin = True
         lce = target_sat.api.LifecycleEnvironment(organization=org).create()
