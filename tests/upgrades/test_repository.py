@@ -456,7 +456,7 @@ class TestSimpleContentAccessOnly:
             data={'content_overrides': [{'content_label': custom_content_label, 'value': '1'}]}
         )
         rhel_contenthost.register(
-            org=org, loc=None, activation_key=activation_key.name, target=target_sat
+            org=org, loc=None, activation_keys=activation_key.name, target=target_sat
         )
         enabled = rhel_contenthost.execute('subscription-manager repos --list-enabled')
         assert rh_content_label in enabled.stdout
