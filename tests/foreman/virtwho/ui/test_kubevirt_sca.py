@@ -36,12 +36,13 @@ class TestVirtwhoConfigforKubevirt:
             2. No error msg in /var/log/rhsm/rhsm.log
             3. Report is sent to satellite
             4. Subscription Status set to 'Simple Content Access', and generate mapping in Legacy UI
-            5. Config can be deleted
+            5. Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in UI
+            6. Config can be deleted
 
         :CaseImportance: High
         """
         hypervisor_name, guest_name = deploy_type_ui
-        # Check virt-wh oconfig status
+        # Check virt-who config status
         assert org_session.virtwho_configure.search(form_data_ui['name'])[0]['Status'] == 'ok'
         # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in Legacy UI
         org_session.location.select(default_location.name)
@@ -53,6 +54,41 @@ class TestVirtwhoConfigforKubevirt:
         virtualguest = org_session.contenthost.read_legacy_ui(guest_name)
         assert virtualguest['details']['subscription_status'] == 'Simple Content Access'
         assert virtualguest['details']['virtual_host'] == hypervisor_display_name
+
+        # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in UI
+        hypervisorhost_new_overview = org_session.host_new.get_details(
+            hypervisor_display_name, 'overview'
+        )
+        assert hypervisorhost_new_overview['overview']['host_status']['status_success'] == '2'
+        # hypervisor host Check details
+        hypervisorhost_new_detais = org_session.host_new.get_details(
+            hypervisor_display_name, 'details'
+        )
+        assert (
+            hypervisorhost_new_detais['details']['system_properties']['sys_properties'][
+                'virtual_host'
+            ]
+            == hypervisor_display_name
+        )
+        assert (
+            hypervisorhost_new_detais['details']['system_properties']['sys_properties']['name']
+            == guest_name
+        )
+        # Check guest overview
+        guest_new_overview = org_session.host_new.get_details(guest_name, 'overview')
+        assert guest_new_overview['overview']['host_status']['status_success'] == '2'
+        # Check guest details
+        virtualguest_new_detais = org_session.host_new.get_details(guest_name, 'details')
+        assert (
+            virtualguest_new_detais['details']['system_properties']['sys_properties'][
+                'virtual_host'
+            ]
+            == hypervisor_display_name
+        )
+        assert (
+            virtualguest_new_detais['details']['system_properties']['sys_properties']['name']
+            == guest_name
+        )
 
     @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
