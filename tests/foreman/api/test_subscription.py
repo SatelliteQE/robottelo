@@ -285,7 +285,10 @@ def test_sca_end_to_end(
     content_view.publish()
     assert len(content_view.repository) == 2
     host = rhel7_contenthost.nailgun_host
-    host.content_facet_attributes = {'content_view_id': content_view.id}
+    host.content_facet_attributes = {
+        'content_view_id': content_view.id,
+        'lifecycle_environment_id': module_ak.environment.id,
+    }
     host.update(['content_facet_attributes'])
     rhel7_contenthost.run('subscription-manager repos --enable *')
     repos = rhel7_contenthost.run('subscription-manager refresh && yum repolist')

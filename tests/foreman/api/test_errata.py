@@ -623,6 +623,7 @@ def test_positive_install_in_hc(
 @pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.no_containers
 @pytest.mark.e2e
+@pytest.mark.pit_client
 def test_positive_install_multiple_in_host(
     target_sat, rhel_contenthost, module_org, activation_key, module_lce
 ):
@@ -1341,7 +1342,6 @@ def errata_host_lce(module_sca_manifest_org, target_sat):
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-@pytest.mark.pit_client
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('8')
 def test_errata_installation_with_swidtags(
