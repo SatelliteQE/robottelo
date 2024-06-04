@@ -715,11 +715,7 @@ def test_positive_generate_job_report(setup_content, module_target_sat, content_
             'input_values': {"job_id": job["id"]},
         }
     )
-    assert (
-        res[0]['Host'] == content_hosts[0].hostname and res[1]['Host'] == content_hosts[1].hostname
-    ) or (
-        res[0]['Host'] == content_hosts[1].hostname and res[1]['Host'] == content_hosts[0].hostname
-    )
+    assert {i['Host'] for i in res} == {i.hostname for i in content_hosts}
     assert '/root' in res[0]['stdout']
     assert '/root' in res[1]['stdout']
 
