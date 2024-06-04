@@ -115,7 +115,7 @@ def handle_verification_issues(item, verifies_marker, verifies_issues):
             verifies_args = verifies_marker.args[0]
             if all(issue not in verifies_issues for issue in verifies_args):
                 log_and_deselect(item, '--verifies-issues')
-            return False
+                return False
     return True
 
 
