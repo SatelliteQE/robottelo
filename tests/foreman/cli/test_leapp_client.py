@@ -6,7 +6,7 @@
 
 :Team: Rocket
 
-:CaseImportance: High
+:CaseImportance: Critical
 
 :CaseAutomation: Automated
 
@@ -202,6 +202,7 @@ def precondition_check_upgrade_and_install_leapp_tool(custom_leapp_host):
         custom_leapp_host.power_control(state='reboot', ensure=True)
 
 
+@pytest.mark.e2e
 @pytest.mark.parametrize(
     'upgrade_path',
     [
