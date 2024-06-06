@@ -17,7 +17,7 @@ ROBOTTELO:
   # UNDR version is used for some URL composition
   SATELLITE_VERSION: "6.15"
   # The Base OS RHEL Version(x.y) where the satellite would be installed
-  RHEL_VERSION: "7.9"
+  RHEL_VERSION: "8.10"
   # Dynaconf and Dynaconf hooks related options
   SETTINGS:
     GET_FRESH: true
