@@ -62,6 +62,7 @@ jobs:
         run: |
           # To skip vault login in pull request checks
           export VAULT_SECRET_ID_FOR_DYNACONF=somesecret
+          export ROBOTTELO_SERVER__HOSTNAME=""
           pytest -sv tests/robottelo/
 
       - name: Make Docs
