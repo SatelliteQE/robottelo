@@ -103,7 +103,7 @@ def common_sat_install_assertions(satellite):
     assert len(result.stdout) == 0
     # no errors in /var/log/foreman/production.log
     result = satellite.execute(r'grep --context=100 -E "\[E\|" /var/log/foreman/production.log')
-    if not is_open('BZ:2247484'):
+    if not is_open('SAT-21086'):
         assert len(result.stdout) == 0
     # no errors/failures in /var/log/foreman-installer/satellite.log
     result = satellite.execute(
