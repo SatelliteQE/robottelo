@@ -90,6 +90,15 @@ def get_url():
     return urlunsplit((scheme, hostname, '', '', ''))
 
 
+def admin_nailgun_config():
+    """Return a NailGun configuration file constructed from default admin user credentials.
+
+    :return: ``nailgun.config.ServerConfig`` object, populated from admin user credentials.
+
+    """
+    return ServerConfig(get_url(), get_credentials(), verify=settings.server.verify_ca)
+
+
 def user_nailgun_config(username=None, password=None):
     """Return a NailGun configuration file constructed from default values.
 

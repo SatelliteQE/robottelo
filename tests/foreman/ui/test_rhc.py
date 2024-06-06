@@ -78,7 +78,7 @@ def fixture_setup_rhc_satellite(
         rhcloud_manifest = manifester.get_manifest()
         module_target_sat.upload_manifest(module_rhc_org.id, rhcloud_manifest.content)
     yield
-    if request.node.rep_call.passed:
+    if request.node.report_call.passed:
         # Enable and sync required repos
         repo1_id = module_target_sat.api_factory.enable_sync_redhat_repo(
             constants.REPOS['rhel8_aps'], module_rhc_org.id

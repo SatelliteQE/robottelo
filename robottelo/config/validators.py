@@ -43,6 +43,7 @@ VALIDATORS = dict(
         Validator('subscription.rhn_username', must_exist=True),
         Validator('subscription.rhn_password', must_exist=True),
         Validator('subscription.rhn_poolid', must_exist=True),
+        Validator('subscription.lifecycle_api_url', must_exist=True),
     ],
     ansible_hub=[
         Validator('ansible_hub.url', must_exist=True),
@@ -178,7 +179,6 @@ VALIDATORS = dict(
             'ipa.hostname',
             'ipa.username',
             'ipa.password',
-            'ipa.idm_password',
             'ipa.basedn',
             'ipa.grpbasedn',
             'ipa.user',
@@ -186,7 +186,6 @@ VALIDATORS = dict(
             'ipa.disabled_ipa_user',
             'ipa.group_users',
             'ipa.groups',
-            'ipa.idm_server_ip',
             'ipa.keytab_url',
             'ipa.time_based_secret',
             must_exist=True,
@@ -195,6 +194,10 @@ VALIDATORS = dict(
     jira=[
         Validator('jira.url', default='https://issues.redhat.com'),
         Validator('jira.api_key', must_exist=True),
+        Validator('jira.comment_type', default="group"),
+        Validator('jira.comment_visibility', default="Red Hat Employee"),
+        Validator('jira.enable_comment', default=False),
+        Validator('jira.issue_status', default=["Review", "Release Pending"]),
     ],
     ldap=[
         Validator(
@@ -343,47 +346,19 @@ VALIDATORS = dict(
         Validator('upgrade.rhev_capsule_ak', must_exist=False)
         | Validator('upgrade.capsule_ak', must_exist=False),
     ],
-    vlan_networking=[
-        Validator(
-            'vlan_networking.subnet',
-            'vlan_networking.netmask',
-            'vlan_networking.gateway',
-            must_exist=True,
-        ),
-        Validator('vlan_networking.dhcp_ipam', is_in=('Internal DB', 'DHCP')),
-        # one, and only one, of ('bridge', 'network') must be defined
-        (
-            Validator('vlan_networking.bridge', must_exist=True)
-            & Validator('vlan_networking.network', must_exist=False)
-        )
-        | (
-            Validator('vlan_networking.bridge', must_exist=False)
-            & Validator('vlan_networking.network', must_exist=True)
-        ),
-        # both dhcp_from and dhcp_to are defined, or neither is
-        Validator(
-            'vlan_networking.dhcp_from',
-            'vlan_networking.dhcp_to',
-            must_exist=True,
-        )
-        | Validator(
-            'vlan_networking.dhcp_from',
-            'vlan_networking.dhcp_to',
-            must_exist=False,
-        ),
-    ],
     vmware=[
         Validator(
-            'vmware.vcenter',
+            'vmware.vcenter7.hostname',
+            'vmware.vcenter7.hypervisor',
+            'vmware.vcenter7.mac_address',
+            'vmware.vcenter8.hostname',
+            'vmware.vcenter8.hypervisor',
+            'vmware.vcenter8.mac_address',
             'vmware.username',
             'vmware.password',
             'vmware.datacenter',
             'vmware.vm_name',
             'vmware.image_os',
-            'vmware.image_arch',
-            'vmware.image_username',
-            'vmware.image_password',
-            'vmware.image_name',
             must_exist=True,
         ),
     ],

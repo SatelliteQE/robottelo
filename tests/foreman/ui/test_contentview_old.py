@@ -52,6 +52,8 @@ from robottelo.utils.datafactory import gen_string
 
 VERSION = 'Version 1.0'
 
+pytestmark = [pytest.mark.stubbed]
+
 
 @pytest.fixture(scope='module')
 def module_org(module_target_sat):
@@ -627,52 +629,17 @@ def test_positive_promote_multiple_with_docker_repo(
 
 
 @pytest.mark.tier2
-def test_positive_promote_with_docker_repo_composite(
-    session, module_target_sat, module_org, module_prod
-):
-    """Add docker repository to composite content view and publish it.
-    Then promote it to the next available lifecycle-environment.
-
-    :id: 1c7817c7-60b5-4383-bc6f-2878c2b27fa5
-
-    :expectedresults: Docker repository is promoted to content view
-        found in the specific lifecycle-environment.
-
-    :CaseImportance: High
-    """
-    lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
-    repo = module_target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
-    ).create()
-    content_view = module_target_sat.api.ContentView(
-        composite=False, organization=module_org, repository=[repo]
-    ).create()
-    content_view.publish()
-    content_view = content_view.read()
-    composite_cv = module_target_sat.api.ContentView(
-        component=[content_view.version[-1]], composite=True, organization=module_org
-    ).create()
-    composite_cv.publish()
-    with session:
-        result = session.contentview.promote(composite_cv.name, VERSION, lce.name)
-        assert f'Promoted to {lce.name}' in result['Status']
-        assert lce.name in result['Environments']
-
-
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_promote_multiple_with_docker_repo_composite(
     session, module_target_sat, module_org, module_prod
 ):
-    """Add docker repository to composite content view and publish it
-    Then promote it to the multiple available lifecycle environments.
+    """Add docker repository to composite content view and publish it.
+    Then promote it to multiple available lifecycle environments.
 
     :id: b735b1fa-3d60-4fc0-92d2-4af0ab003097
 
-    :expectedresults: Docker repository is promoted to content view
-        found in the specific lifecycle-environments.
-
-    :CaseImportance: Low
+    :expectedresults: Docker repository published in a content view
+        is promoted to multiple lifecycle-environments.
     """
     repo = module_target_sat.api.Repository(
         url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']

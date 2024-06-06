@@ -45,6 +45,27 @@ def create_gpg_key_file(content=None):
     return None
 
 
+def wait_for_repo_metadata_tasks(sat, org_name, repo_name='', product_name=''):
+    """Search and wait for any repository metadata generate task(s).
+
+    param sat (satellite): is required.
+    param org_name (str): is required, rest are optional.
+        Scope by use of repo/product name, if desired.
+
+    return: the matching completed task(s)
+    """
+    task_query = (
+        f'Metadata generate repository "{repo_name}";'
+        f' product "{product_name}";'
+        f' organization "{org_name}"'
+    )
+    return sat.wait_for_tasks(
+        search_query=task_query,
+        search_rate=15,
+        max_tries=10,
+    )
+
+
 search_key = 'name'
 
 
@@ -403,6 +424,13 @@ def test_positive_add_product_with_repo(target_sat, module_org):
     target_sat.cli.Product.update(
         {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
     )
+    # wait for repo metadata task(s) before final read/assertions
+    wait_for_repo_metadata_tasks(
+        sat=target_sat,
+        org_name=module_org.name,
+        repo_name=repo['name'],
+        product_name=product['name'],
+    )
     product = target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
     repo = target_sat.cli.Repository.info({'id': repo['id']})
     assert product['gpg']['gpg-key-id'] == gpg_key['id']
@@ -428,6 +456,11 @@ def test_positive_add_product_with_repos(target_sat, module_org):
     gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
     target_sat.cli.Product.update(
         {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
+    )
+    wait_for_repo_metadata_tasks(
+        sat=target_sat,
+        org_name=module_org.name,
+        product_name=product['name'],
     )
     product = target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
     assert product['gpg']['gpg-key-id'] == gpg_key['id']
@@ -455,6 +488,12 @@ def test_positive_add_repo_from_product_with_repo(target_sat, module_org):
     target_sat.cli.Repository.update(
         {'gpg-key-id': gpg_key['id'], 'id': repo['id'], 'organization-id': module_org.id}
     )
+    wait_for_repo_metadata_tasks(
+        sat=target_sat,
+        org_name=module_org.name,
+        repo_name=repo['name'],
+        product_name=product['name'],
+    )
     product = target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
     repo = target_sat.cli.Repository.info({'id': repo['id']})
     assert repo['gpg-key']['id'] == gpg_key['id']
@@ -481,6 +520,11 @@ def test_positive_add_repo_from_product_with_repos(target_sat, module_org):
     gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
     target_sat.cli.Repository.update(
         {'gpg-key-id': gpg_key['id'], 'id': repos[0]['id'], 'organization-id': module_org.id}
+    )
+    wait_for_repo_metadata_tasks(
+        sat=target_sat,
+        org_name=module_org.name,
+        product_name=product['name'],
     )
     product = target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
     assert product['gpg'].get('gpg-key-id') != gpg_key['id']
@@ -566,6 +610,13 @@ def test_positive_update_key_for_product_with_repo(target_sat, module_org):
         {'id': gpg_key['id'], 'organization-id': module_org.id}
     )
     assert gpg_key['name'] == new_name
+    # wait for repo metadata task(s) before final read/assertions
+    wait_for_repo_metadata_tasks(
+        sat=target_sat,
+        org_name=module_org.name,
+        repo_name=repo['name'],
+        product_name=product['name'],
+    )
     # Verify changes are reflected in the product
     product = target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
     assert product['gpg']['gpg-key'] == new_name
@@ -601,6 +652,12 @@ def test_positive_update_key_for_product_with_repos(target_sat, module_org):
     product = target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
     assert product['gpg']['gpg-key'] == gpg_key['name']
     for repo in repos:
+        # one metadata task per repo associated w/ GPG
+        wait_for_repo_metadata_tasks(
+            sat=target_sat,
+            org_name=module_org.name,
+            product_name=product['name'],
+        )
         repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['gpg-key'].get('name') == gpg_key['name']
     # Update the gpg key
@@ -616,6 +673,11 @@ def test_positive_update_key_for_product_with_repos(target_sat, module_org):
     # Verify changes are reflected in the product
     product = target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
     assert product['gpg']['gpg-key'] == new_name
+    wait_for_repo_metadata_tasks(
+        sat=target_sat,
+        org_name=module_org.name,
+        product_name=product['name'],
+    )
     # Verify changes are reflected in the repositories
     for repo in repos:
         repo = target_sat.cli.Repository.info({'id': repo['id']})
@@ -652,6 +714,12 @@ def test_positive_update_key_for_repo_from_product_with_repo(target_sat, module_
         {'id': gpg_key['id'], 'organization-id': module_org.id}
     )
     assert gpg_key['name'] == new_name
+    wait_for_repo_metadata_tasks(
+        sat=target_sat,
+        org_name=module_org.name,
+        repo_name=repo['name'],
+        product_name=product['name'],
+    )
     # Verify changes are reflected in the repositories
     repo = target_sat.cli.Repository.info({'id': repo['id']})
     assert repo['gpg-key'].get('name') == new_name
@@ -697,6 +765,12 @@ def test_positive_update_key_for_repo_from_product_with_repos(target_sat, module
         {'id': gpg_key['id'], 'organization-id': module_org.id}
     )
     assert gpg_key['name'] == new_name
+    wait_for_repo_metadata_tasks(
+        sat=target_sat,
+        org_name=module_org.name,
+        repo_name=repos[0]['name'],
+        product_name=product['name'],
+    )
     # Verify changes are reflected in the associated repository
     repos[0] = target_sat.cli.Repository.info({'id': repos[0]['id']})
     assert repos[0]['gpg-key'].get('name') == new_name

@@ -12,18 +12,15 @@
 
 """
 
-import csv
 import json
 import os
 from pathlib import Path, PurePath
 
 from lxml import etree
 import pytest
-import yaml
 
 from robottelo.config import robottelo_tmp_dir, settings
 from robottelo.constants import (
-    DEFAULT_SUBSCRIPTION_NAME,
     FAKE_0_CUSTOM_PACKAGE_NAME,
     FAKE_1_CUSTOM_PACKAGE,
     PRDS,
@@ -366,7 +363,7 @@ def test_positive_autocomplete(session):
 
 @pytest.mark.tier2
 def test_positive_schedule_generation_and_get_mail(
-    session, module_entitlement_manifest_org, module_location, target_sat
+    session, module_sca_manifest_org, module_location, target_sat
 ):
     """Schedule generating a report. Request the result be sent via e-mail.
 
@@ -421,9 +418,7 @@ def test_positive_schedule_generation_and_get_mail(
     target_sat.get(remote_path=str(gzip_path), local_path=str(local_gzip_file))
     assert os.system(f'gunzip {local_gzip_file}') == 0
     data = json.loads(local_file.read_text())
-    subscription_search = target_sat.api.Subscription(
-        organization=module_entitlement_manifest_org
-    ).search()
+    subscription_search = target_sat.api.Subscription(organization=module_sca_manifest_org).search()
     assert len(data) >= len(subscription_search) > 0
     keys_expected = [
         'Account number',
@@ -477,86 +472,6 @@ def test_negative_nonauthor_of_report_cant_download_it(session):
 
     :CaseImportance: High
     """
-
-
-@pytest.mark.tier3
-@pytest.mark.no_containers
-def test_positive_gen_entitlements_reports_multiple_formats(
-    session, module_setup_content, rhel7_contenthost, target_sat
-):
-    """Generate reports using the Subscription - Entitlement Report template
-        in html, yaml, json, and csv format.
-
-    :id: b268663d-c213-4e59-8f81-61bec0838b1e
-
-
-    :setup: Installed Satellite with Organization, Activation key,
-            Content View, Content Host, and Subscriptions.
-
-    :steps:
-        1. Monitor -> Report Templates
-        2. Subscription - Entitlement Report -> Generate
-        3. Click the dropdown to select output format
-        4. Submit
-
-    :expectedresults: Reports are generated containing all the expected information
-                      regarding Entitlements for each output format.
-
-    :parametrized: yes
-
-    :CaseImportance: High
-    """
-    client = rhel7_contenthost
-    client.install_katello_ca(target_sat)
-    org, ak, _, _ = module_setup_content
-    org.sca_disable()
-    subscription = target_sat.api.Subscription(organization=org).search(
-        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
-    )[0]
-    ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
-    client.register(org.label, None, ak.name, target_sat)
-    assert client.subscribed
-    with session:
-        session.location.select('Default Location')
-        result_json = session.reporttemplate.generate(
-            'Subscription - Entitlement Report', values={'output_format': 'JSON'}
-        )
-        with open(result_json) as json_file:
-            data_json = json.load(json_file)
-        assert any(entitlement['Host Name'] == client.hostname for entitlement in data_json)
-        assert any(
-            entitlement['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
-            for entitlement in data_json
-        )
-        result_yaml = session.reporttemplate.generate(
-            'Subscription - Entitlement Report', values={'output_format': 'YAML'}
-        )
-        with open(result_yaml) as yaml_file:
-            data_yaml = yaml.load(yaml_file, Loader=yaml.FullLoader)
-        assert any(entitlement['Host Name'] == client.hostname for entitlement in data_yaml)
-        assert any(
-            entitlement['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
-            for entitlement in data_yaml
-        )
-        result_csv = session.reporttemplate.generate(
-            'Subscription - Entitlement Report', values={'output_format': 'CSV'}
-        )
-        with open(result_csv) as csv_file:
-            data_csv = csv.DictReader(csv_file)
-            items = list(data_csv)
-        assert any(entitlement['Host Name'] == client.hostname for entitlement in items)
-        assert any(
-            entitlement['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME for entitlement in items
-        )
-        result_html = session.reporttemplate.generate(
-            'Subscription - Entitlement Report', values={'output_format': 'HTML'}
-        )
-        with open(result_html) as html_file:
-            parser = etree.HTMLParser()
-            tree = etree.parse(html_file, parser)
-            tree_result = etree.tostring(tree.getroot(), pretty_print=True, method='html').decode()
-        assert client.hostname in tree_result
-        assert DEFAULT_SUBSCRIPTION_NAME in tree_result
 
 
 @pytest.mark.rhel_ver_list([7, 8, 9])

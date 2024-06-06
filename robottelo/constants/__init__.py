@@ -6,9 +6,9 @@ from box import Box
 from nailgun import entities
 
 # This should be updated after each version branch
-SATELLITE_VERSION = "6.16"
+SATELLITE_VERSION = "6.17"
 SATELLITE_OS_VERSION = "8"
-SAT_NON_GA_VERSIONS = ['6.15', '6.16']
+SAT_NON_GA_VERSIONS = ['6.16', '6.17']
 
 # Default system ports
 HTTPS_PORT = '443'
@@ -2068,6 +2068,7 @@ WEBHOOK_METHODS = [
     "DELETE",
     "PATCH",
 ]
+LIFECYCLE_METADATA_FILE = '/usr/share/satellite/lifecycle-metadata.yml'
 
 OPENSSH_RECOMMENDATION = 'Decreased security: OpenSSH config permissions'
 DNF_RECOMMENDATION = (

@@ -92,7 +92,7 @@ def vm(
     )
     host_id = host[0].id
     host_content = module_target_sat.api.Host(id=host_id).read_json()
-    assert host_content["subscription_status"] == 5
+    assert host_content['subscription_facet_attributes']['uuid']
     rhel7_contenthost_module.install_katello_host_tools()
     return rhel7_contenthost_module
 

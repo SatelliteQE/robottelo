@@ -41,6 +41,7 @@
 /tests/foreman/api/test_subscription.py @SatelliteQE/phoenix
 /tests/foreman/api/test_syncplan.py @SatelliteQE/phoenix
 /tests/foreman/cli/test_activationkey.py @SatelliteQE/phoenix
+/tests/foreman/cli/test_artifacts.py @SatelliteQE/phoenix
 /tests/foreman/cli/test_capsulecontent.py @SatelliteQE/phoenix
 /tests/foreman/cli/test_contentaccess.py @SatelliteQE/phoenix
 /tests/foreman/cli/test_contentcredentials.py @SatelliteQE/phoenix

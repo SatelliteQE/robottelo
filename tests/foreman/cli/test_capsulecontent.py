@@ -306,7 +306,6 @@ def test_positive_update_counts(target_sat, module_capsule_configured):
     )
 
 
-@pytest.mark.stream
 @pytest.mark.parametrize('repair_type', ['repo', 'cv', 'lce'])
 @pytest.mark.parametrize(
     'module_synced_content',
