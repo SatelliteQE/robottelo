@@ -10,7 +10,7 @@ VALIDATORS = dict(
         ),
     ],
     server=[
-        Validator('server.hostname', default=''),
+        Validator('server.hostname', is_type_of=str),
         Validator('server.hostnames', must_exist=True, is_type_of=list),
         Validator('server.version.release', must_exist=True),
         Validator('server.version.source', must_exist=True),
