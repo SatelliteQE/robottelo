@@ -458,6 +458,82 @@ def test_positive_applied_errata(
 @pytest.mark.tier2
 @pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.no_containers
+def test_positive_applied_errata_report_with_invalid_errata(
+    function_org, function_location, function_lce, rhel_contenthost, target_sat
+):
+    """Generate an Applied Errata report after an invalid errata has been applied
+
+    :id: cf64f193-870d-4053-ae4b-28148424b2e2
+
+    :setup: A Host with some invalid applied errata.
+
+    :steps:
+
+        1. Apply invalid errata
+        2. Generate an Applied Errata report
+
+    :expectedresults: A report is generated without failures
+
+    :CaseImportance: High
+
+    :BZ: 2176368
+    """
+    activation_key = target_sat.api.ActivationKey(
+        environment=function_lce, organization=function_org
+    ).create()
+    cv = target_sat.api.ContentView(organization=function_org).create()
+    target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': settings.repos.yum_6.url,
+            'organization-id': function_org.id,
+            'content-view-id': cv.id,
+            'lifecycle-environment-id': function_lce.id,
+            'activationkey-id': activation_key.id,
+        }
+    )
+    result = rhel_contenthost.register(
+        function_org, function_location, activation_key.name, target_sat
+    )
+    assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
+    assert rhel_contenthost.subscribed
+    rhel_contenthost.execute(r'subscription-manager repos --enable \*')
+    assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    assert rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    task_id = target_sat.api.JobInvocation().run(
+        data={
+            'feature': 'katello_errata_install',
+            'inputs': {'errata': 'invalid-errata'},
+            'targeting_type': 'static_query',
+            'search_query': f'name = {rhel_contenthost.hostname}',
+            'organization_id': function_org.id,
+        },
+    )['id']
+    target_sat.wait_for_tasks(
+        search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
+        search_rate=15,
+        max_tries=10,
+    )
+    rt = (
+        target_sat.api.ReportTemplate()
+        .search(query={'search': 'name="Host - Applied Errata"'})[0]
+        .read()
+    )
+    rt.generate(
+        data={
+            'organization_id': function_org.id,
+            'report_format': 'json',
+            'input_values': {
+                'Filter Errata Type': 'all',
+                'Include Last Reboot': 'no',
+                'Status': 'all',
+            },
+        }
+    )
+
+
+@pytest.mark.tier2
+@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.no_containers
 def test_positive_applied_errata_by_search(
     function_org, function_lce, rhel_contenthost, target_sat
 ):
