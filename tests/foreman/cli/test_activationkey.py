@@ -29,7 +29,6 @@ from robottelo.utils.datafactory import (
     parametrized,
     valid_data_list,
 )
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
@@ -1139,8 +1138,7 @@ def test_create_ak_with_syspurpose_set(module_entitlement_manifest_org, module_t
     assert new_ak['system-purpose']['purpose-addons'] == "test-addon1, test-addon2"
     assert new_ak['system-purpose']['purpose-role'] == "test-role"
     assert new_ak['system-purpose']['purpose-usage'] == "test-usage"
-    if not is_open('BZ:1789028'):
-        assert new_ak['system-purpose']['service-level'] == "Self-Support"
+    assert new_ak['system-purpose']['service-level'] == "Self-Support"
     # Check that system purpose values can be deleted.
     module_target_sat.cli.ActivationKey.update(
         {

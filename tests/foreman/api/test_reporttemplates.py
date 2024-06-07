@@ -30,7 +30,6 @@ from robottelo.constants import (
     REPOSET,
 )
 from robottelo.utils.datafactory import parametrized, valid_data_list
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
@@ -291,14 +290,13 @@ def test_positive_lock_clone_nodelete_unlock_report(target_sat):
     assert template_clone_name == cloned_rt.name
     assert template1 == cloned_rt.template
     # 4. Try to delete template
-    if not is_open('BZ:1680458'):
-        with pytest.raises(HTTPError):
-            rt.delete()
-        # In BZ1680458, exception is thrown but template is deleted anyway
-        assert (
-            len(target_sat.api.ReportTemplate().search(query={'search': f'name="{template_name}"'}))
-            != 0
-        )
+    with pytest.raises(HTTPError):
+        rt.delete()
+    # In BZ1680458, exception is thrown but template is deleted anyway
+    assert (
+        len(target_sat.api.ReportTemplate().search(query={'search': f'name="{template_name}"'}))
+        != 0
+    )
     # 5. Try to edit template
     with pytest.raises(HTTPError):
         target_sat.api.ReportTemplate(id=rt.id, template=template2).update(["template"])
