@@ -50,7 +50,6 @@ from robottelo.content_info import (
     get_repomd_revision,
 )
 from robottelo.utils.datafactory import gen_string
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture
@@ -971,26 +970,25 @@ class TestCapsuleContentManagement:
             assert result.status == 0
 
         # Inspect the images with skopeo (BZ#2148813)
-        if not is_open('BZ:2148813'):
-            result = module_capsule_configured.execute('yum -y install skopeo')
+        result = module_capsule_configured.execute('yum -y install skopeo')
+        assert result.status == 0
+
+        target_sat.api.LifecycleEnvironment(
+            id=function_lce.id, registry_unauthenticated_pull='true'
+        ).update(['registry_unauthenticated_pull'])
+
+        sleep(20)
+
+        skopeo_cmd = 'skopeo --debug inspect docker://'
+        for path in repo_paths:
+            result = module_capsule_configured.execute(
+                f'{skopeo_cmd}{target_sat.hostname}/{path}:latest'
+            )
             assert result.status == 0
-
-            target_sat.api.LifecycleEnvironment(
-                id=function_lce.id, registry_unauthenticated_pull='true'
-            ).update(['registry_unauthenticated_pull'])
-
-            sleep(20)
-
-            skopeo_cmd = 'skopeo --debug inspect docker://'
-            for path in repo_paths:
-                result = module_capsule_configured.execute(
-                    f'{skopeo_cmd}{target_sat.hostname}/{path}:latest'
-                )
-                assert result.status == 0
-                result = module_capsule_configured.execute(
-                    f'{skopeo_cmd}{module_capsule_configured.hostname}/{path}:latest'
-                )
-                assert result.status == 0
+            result = module_capsule_configured.execute(
+                f'{skopeo_cmd}{module_capsule_configured.hostname}/{path}:latest'
+            )
+            assert result.status == 0
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')

@@ -21,7 +21,6 @@ from robottelo.constants import (
     ENVIRONMENT,
     REPO_TYPE,
 )
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope="module")
@@ -60,11 +59,9 @@ def test_positive_search(session, module_org, module_product, module_repository)
     with session:
         session.organization.select(org_name=module_org.name)
         search = session.containerimagetag.search('latest')
-        if not is_open('BZ:2242515'):
-            assert module_product.name in [i['Product Name'] for i in search]
+        assert module_product.name in [i['Product Name'] for i in search]
         values = session.containerimagetag.read('latest')
-        if not is_open('BZ:2242515'):
-            assert module_product.name == values['details']['product']
+        assert module_product.name == values['details']['product']
         assert values['lce']['table'][0]['Environment'] == ENVIRONMENT
         repo_line = next(
             (item for item in values['repos']['table'] if item['Name'] == module_repository.name),
