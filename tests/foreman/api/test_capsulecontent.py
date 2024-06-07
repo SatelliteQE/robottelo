@@ -1665,7 +1665,7 @@ class TestCapsuleContentManagement:
             counts is None or len(counts['content_view_versions']) == 0
         ), f"No content counts expected, but got:\n{counts['content_view_versions']}."
 
-    # @pytest.mark.skip_if_open('SAT-25542')
+    @pytest.mark.skip_if_open('SAT-25542')
     @pytest.mark.parametrize('module_autosync_setting', [True], indirect=True)
     @pytest.mark.parametrize(
         'setting_update', ['automatic_content_count_updates=False'], indirect=True
