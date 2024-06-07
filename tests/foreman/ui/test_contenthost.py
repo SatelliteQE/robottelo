@@ -35,7 +35,6 @@ from robottelo.constants import (
     VIRT_WHO_HYPERVISOR_TYPES,
 )
 from robottelo.exceptions import CLIFactoryError
-from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.virtwho import create_fake_hypervisor_content
 
 if not setting_is_set('clients') or not setting_is_set('fake_manifest'):
@@ -166,17 +165,14 @@ def test_positive_end_to_end(session, default_location, module_repos_collection_
             for repo_index in range(len(module_repos_collection_with_manifest.repos_info))
         }
         assert actual_repos == expected_repos
-        # Check start date for BZ#1920860 (but handle BZ#2112320 offset-by-one bug)
+        # Check start date for BZ#1920860
         custom_product_name = module_repos_collection_with_manifest.custom_product['name']
         custom_sub = next(
             item
             for item in chost['subscriptions']['resources']['assigned']
             if item["Repository Name"] == custom_product_name
         )
-        if is_open('BZ:2112320'):
-            assert startdate in custom_sub['Expires']
-        else:
-            assert startdate in custom_sub['Starts']
+        assert startdate in custom_sub['Starts']
         # Update description
         new_description = gen_string('alpha')
         session.contenthost.update(vm.hostname, {'details.description': new_description})
