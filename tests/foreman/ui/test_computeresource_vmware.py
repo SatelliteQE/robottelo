@@ -400,7 +400,7 @@ def test_positive_vmware_custom_profile_end_to_end(
             assert provider_content['cluster'] == settings.vmware.cluster
             assert provider_content['annotation_notes'] == annotation_notes
             assert provider_content['virtual_hw_version'] == virtual_hw_version
-            if not is_open('BZ:2266672'):
+            if not is_open('SAT-23630'):
                 assert values['provider_content']['firmware'] == firmware
             assert provider_content['resource_pool'] == resource_pool
             assert provider_content['folder'] == folder
