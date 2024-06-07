@@ -127,7 +127,7 @@ class TestAnsibleCfgMgmt:
 
         # gather ansible facts by running ansible roles on the host
         host.play_ansible_roles()
-        if is_open('BZ:2216471'):
+        if is_open('SAT-18656'):
             wait_for(
                 lambda: len(rex_contenthost.nailgun_host.get_facts()) > 0,
                 timeout=30,
