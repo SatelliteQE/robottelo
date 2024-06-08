@@ -42,10 +42,11 @@ def test_host_registration_end_to_end(
 
     :steps:
         1. Register host with global registration template to Satellite and Capsule
+        2. Check the host is registered and verify host owner name
 
-    :expectedresults: Host registered successfully
+    :expectedresults: Host registered successfully with valid owner name
 
-    :BZ: 2156926
+    :BZ: 2156926, 2252768
 
     :customerscenario: true
     """
@@ -56,6 +57,14 @@ def test_host_registration_end_to_end(
 
     rc = 1 if rhel_contenthost.os_version.major == 6 else 0
     assert result.status == rc, f'Failed to register host: {result.stderr}'
+
+    owner_name = module_target_sat.cli.Host.info(
+        options={'name': rhel_contenthost.hostname, 'fields': 'Additional info/owner'}
+    )
+    # Verify host owner name set correctly
+    assert 'Admin User' in owner_name['additional-info']['owner']['name'], (
+        f'Host owner name is incorrect: ' f'{owner_name["additional-info"]["owner"]["name"]}'
+    )
 
     # Verify server.hostname and server.port from subscription-manager config
     assert module_target_sat.hostname == rhel_contenthost.subscription_config['server']['hostname']
@@ -78,6 +87,14 @@ def test_host_registration_end_to_end(
     )
     rc = 1 if rhel_contenthost.os_version.major == 6 else 0
     assert result.status == rc, f'Failed to register host: {result.stderr}'
+
+    owner_name = module_target_sat.cli.Host.info(
+        options={'name': rhel_contenthost.hostname, 'fields': 'Additional info/owner'}
+    )
+    # Verify capsule host owner name set correctly
+    assert 'Admin User' in owner_name['additional-info']['owner']['name'], (
+        f'Host owner name is incorrect: ' f'{owner_name["additional-info"]["owner"]["name"]}'
+    )
 
     # Verify server.hostname and server.port from subscription-manager config
     assert (
@@ -278,38 +295,3 @@ def test_positive_custom_facts_for_host_registration(
     for interface in interfaces:
         for interface_name in interface.values():
             assert interface_name in str(host_info['network-interfaces'])
-
-
-@pytest.mark.tier1
-def test_positive_set_host_owner_correctly(
-    rhel8_contenthost,
-    module_target_sat,
-    module_sca_manifest_org,
-    module_location,
-    module_activation_key,
-):
-    """Ensures the host owner name is assigned correctly during the registration process.
-
-    :id: fa3f4e1c-e72b-4a9c-8bd6-bf47a35e9f8a
-
-    :steps:
-        1. Register the host.
-        2. Check the host is registered and verify owner name
-
-    :expectedresults: The host owner's name has been assigned correctly after registration.
-
-    :BZ: 2252768
-
-    :customerscenario: true
-    """
-    result = rhel8_contenthost.register(
-        module_sca_manifest_org, module_location, module_activation_key.name, module_target_sat
-    )
-    assert result.status == 0
-    output = module_target_sat.execute(
-        f'hammer host info --name {rhel8_contenthost.hostname} | grep -i owner'
-    ).stdout
-    output_in_list = output.strip().split(' Owner')
-    owner_name = output_in_list[0].split(':')
-    if owner_name[0] == 'Owner':
-        assert owner_name[1].strip() == 'Admin User', f'Owner is not set as {owner_name[1].strip()}'
