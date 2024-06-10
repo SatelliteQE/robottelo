@@ -1203,6 +1203,37 @@ def test_positive_manage_table_columns(
             assert (column in displayed_columns) is is_displayed
 
 
+@pytest.mark.tier2
+def test_all_hosts_manage_columns(target_sat, function_org, new_host_ui):
+    """Verify that the manage columns widget changes the columns appropriately
+
+    :id: 5e13267a-68d2-451a-ae00-6502dd5db7f4
+
+    :expectedresults: Through the widget you can change the columns on the All Hosts page
+
+    :CaseComponent:Hosts-Content
+
+    :Team: Phoenix-subscriptions
+    """
+    columns = {
+        'Host group': True,
+        'Last report': True,
+        'Comment': True,
+        'IPv4': True,
+        'MAC': True,
+        'Sockets': True,
+        'Cores': True,
+        'RAM': True,
+        'Boot time': True,
+    }
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        session.all_hosts.manage_table_columns(columns)
+        displayed_columns = session.all_hosts.get_displayed_table_headers()
+        for column, is_displayed in columns.items():
+            assert (column in displayed_columns) is is_displayed
+
+
 @pytest.mark.tier4
 def test_positive_host_details_read_templates(
     session, target_sat, current_sat_org, current_sat_location
