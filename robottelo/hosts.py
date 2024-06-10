@@ -2410,7 +2410,7 @@ class Satellite(Capsule, SatelliteMixins):
         enable_proxy=False,
     ):
         """Satellite Registration to CDN"""
-        # Enabling proxy for Ipv6
+        # Enabling proxy for IPv6
         if enable_proxy and all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
             url = urlparse(settings.server.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)

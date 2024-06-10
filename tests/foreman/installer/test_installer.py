@@ -161,9 +161,8 @@ def sat_default_install(module_sat_ready_rhels):
     ]
     install_satellite(module_sat_ready_rhels[0], installer_args)
     sat = module_sat_ready_rhels[0]
-    http_proxy = sat.enable_ipv6_http_proxy()
-    yield sat
-    sat.disable_ipv6_http_proxy(http_proxy)
+    sat.enable_ipv6_http_proxy()
+    return sat
 
 
 @pytest.fixture(scope='module')
@@ -179,10 +178,9 @@ def sat_non_default_install(module_sat_ready_rhels):
     ]
     install_satellite(module_sat_ready_rhels[1], installer_args, enable_fapolicyd=True)
     sat = module_sat_ready_rhels[1]
-    http_proxy = sat.enable_ipv6_http_proxy()
+    sat.enable_ipv6_http_proxy()
     sat.execute('dnf -y --disableplugin=foreman-protector install foreman-discovery-image')
-    yield sat
-    sat.disable_ipv6_http_proxy(http_proxy)
+    return sat
 
 
 @pytest.mark.e2e
