@@ -597,8 +597,12 @@ def test_positive_generate_entitlements_report(setup_content, target_sat):
     """
     with Broker(nick='rhel7', host_class=ContentHost) as vm:
         ak, org = setup_content
-        vm.install_katello_ca(target_sat)
-        vm.register_contenthost(org.label, ak.name)
+        result = vm.api_register(
+            target_sat,
+            organization=org,
+            activation_keys=[ak.name],
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
         assert vm.subscribed
         rt = (
             target_sat.api.ReportTemplate()
@@ -636,8 +640,12 @@ def test_positive_schedule_entitlements_report(setup_content, target_sat):
     """
     with Broker(nick='rhel7', host_class=ContentHost) as vm:
         ak, org = setup_content
-        vm.install_katello_ca(target_sat)
-        vm.register_contenthost(org.label, ak.name)
+        result = vm.api_register(
+            target_sat,
+            organization=org,
+            activation_keys=[ak.name],
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
         assert vm.subscribed
         rt = (
             target_sat.api.ReportTemplate()

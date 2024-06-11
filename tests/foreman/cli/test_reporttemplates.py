@@ -834,8 +834,13 @@ def test_positive_schedule_entitlements_report(
     :parametrized: yes
     """
     client = rhel7_contenthost
-    client.install_katello_ca(target_sat)
-    client.register_contenthost(module_entitlement_manifest_org.label, local_ak['name'])
+    result = client.register(
+        module_entitlement_manifest_org,
+        None,
+        local_ak.name,
+        target_sat,
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert client.subscribed
     scheduled_csv = target_sat.cli.ReportTemplate.schedule(
         {
@@ -942,9 +947,13 @@ def test_positive_generate_hostpkgcompare(
     with Broker(nick='rhel7', host_class=ContentHost, _count=2) as hosts:
         for client in hosts:
             # Create RHEL hosts via broker and register content host
-            client.install_katello_ca(target_sat)
-            # Register content host, install katello-agent
-            client.register_contenthost(module_entitlement_manifest_org.label, local_ak['name'])
+            result = client.register(
+                module_entitlement_manifest_org,
+                None,
+                local_ak.name,
+                target_sat,
+            )
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
             assert client.subscribed
             clients.append(client)
             client.enable_repo(REPOS['rhst7']['id'])
@@ -1068,8 +1077,13 @@ def test_positive_generate_installed_packages_report(
         }
     )
     client = rhel_contenthost
-    client.install_katello_ca(target_sat)
-    client.register_contenthost(module_entitlement_manifest_org.label, local_ak['name'])
+    result = client.register(
+        module_entitlement_manifest_org,
+        None,
+        local_ak.name,
+        target_sat,
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert client.subscribed
     client.execute(f'yum -y install {FAKE_0_CUSTOM_PACKAGE_NAME} {FAKE_1_CUSTOM_PACKAGE}')
     result_html = target_sat.cli.ReportTemplate.generate(
