@@ -571,16 +571,24 @@ class TestOpenScap:
 
             1. Oscap should be enabled.
             2. Oscap-cli hammer plugin installed.
-            3. More than 1 hostgroups
+            3. More than 1 policies assigned to hostgroups
 
         :steps:
 
             1. Login to hammer shell.
             2. Execute "policy" command with "create" as sub-command.
             3. Pass valid parameters.
-            4. Associate multiple hostgroups with policy
+            4. Associate multiple policies with hostgroup
+            5. Delete hostgroup
 
         :expectedresults: The policy is created and associated successfully.
+            Policies can be listed after hostgroup removal.
+
+        :bz: 1728157
+
+        :Verifies: SAT-19502
+
+        :customerscenario: true
 
         :Verifies: SAT-19492
 
@@ -600,6 +608,37 @@ class TestOpenScap:
             }
         )
         assert scap_policy['hostgroups'][0] == hostgroup['name']
+        name2 = gen_string('alphanumeric')
+        scap_policy2 = module_target_sat.cli_factory.make_scap_policy(
+            {
+                'name': name2,
+                'deploy-by': 'ansible',
+                'scap-content-id': scap_content["scap_id"],
+                'scap-content-profile-id': scap_content["scap_profile_id"],
+                'period': OSCAP_PERIOD['weekly'].lower(),
+                'weekday': OSCAP_WEEKDAY['friday'].lower(),
+                'hostgroups': hostgroup['name'],
+            }
+        )
+        assert scap_policy2['hostgroups'][0] == hostgroup['name']
+        module_target_sat.cli.HostGroup.delete({'id': hostgroup['id']})
+        # removal of hostgroup shouldn't affect policies
+        try:
+            result = module_target_sat.cli.Scappolicy.list()
+        except CLIReturnCodeError:
+            pytest.fail("failed to list policies")
+        assert name in [policy['name'] for policy in result]
+        # check for orphaned entries
+        db_out = module_target_sat.execute(
+            'sudo -u postgres psql -d foreman -c "select * from foreman_openscap_assets"'
+        )
+        assert db_out.status == 0
+        assert "(0 rows)" in db_out.stdout
+        db_out = module_target_sat.execute(
+            'sudo -u postgres psql -d foreman -c "select * from foreman_openscap_asset_policies"'
+        )
+        assert db_out.status == 0
+        assert "(0 rows)" in db_out.stdout
 
     @pytest.mark.tier2
     def test_positive_associate_scap_policy_with_hostgroup_via_ansible(
