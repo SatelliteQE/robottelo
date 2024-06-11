@@ -2057,14 +2057,9 @@ class TestContentView:
         )
         # assert that this is the same content view
         assert content_view['name'] == user_content_view['name']
+        ak = target_sat.api.ActivationKey(content_view=user_content_view, organization=org).create()
         # create a client host and register it with the created user
-        rhel7_contenthost.install_katello_ca(target_sat)
-        rhel7_contenthost.register_contenthost(
-            org['label'],
-            lce=f'{env["name"]}/{content_view["name"]}',
-            username=user_name,
-            password=user_password,
-        )
+        rhel7_contenthost.register(org, loc, ak.name, target_sat)
         assert rhel7_contenthost.subscribed
         # check that the client host exist in the system
         org_hosts = target_sat.cli.Host.list({'organization-id': org['id']})
@@ -2211,14 +2206,9 @@ class TestContentView:
         )
         # assert that this is the same content view
         assert content_view['name'] == user_content_view['name']
+        ak = target_sat.api.ActivationKey(content_view=user_content_view, organization=org).create()
         # create a client host and register it with the created user
-        rhel7_contenthost.install_katello_ca(target_sat)
-        rhel7_contenthost.register_contenthost(
-            org['label'],
-            lce='/'.join([env['name'], content_view['name']]),
-            username=user_name,
-            password=user_password,
-        )
+        rhel7_contenthost.register(org, loc, ak.name, target_sat)
         assert rhel7_contenthost.subscribed
         # check that the client host exist in the system
         org_hosts = target_sat.cli.Host.list({'organization-id': org['id']})

@@ -1206,9 +1206,11 @@ class TestEndToEnd:
         # step 2.18: Provision a client
         # TODO this isn't provisioning through satellite as intended
         # Note it wasn't well before the change that added this todo
-        rhel_contenthost.install_katello_ca(target_sat)
         # Register client with foreman server using act keys
-        rhel_contenthost.register_contenthost(org.label, activation_key_name)
+        loc = target_sat.api.Location().search(query={'search': f'name="{constants.DEFAULT_LOC}"'})[
+            0
+        ]
+        rhel_contenthost.register(org, loc, activation_key.name, target_sat)
         assert rhel_contenthost.subscribed
         # Install rpm on client
         package_name = 'katello-agent'

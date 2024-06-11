@@ -20,7 +20,6 @@ from broker import Broker
 from broker.hosts import Host
 from dynaconf.vendor.box.exceptions import BoxKeyError
 from fauxfactory import gen_alpha, gen_string
-from manifester import Manifester
 from nailgun import entities
 from packaging.version import Version
 import requests
@@ -41,12 +40,9 @@ from robottelo.constants import (
     CUSTOM_PUPPET_MODULE_REPOS,
     CUSTOM_PUPPET_MODULE_REPOS_PATH,
     CUSTOM_PUPPET_MODULE_REPOS_VERSION,
-    DEFAULT_ARCHITECTURE,
+    DEFAULT_LOC,
     HAMMER_CONFIG,
     KEY_CLOAK_CLI,
-    PRDS,
-    REPOS,
-    REPOSET,
     RHSSO_NEW_GROUP,
     RHSSO_NEW_USER,
     RHSSO_RESET_PASSWORD,
@@ -107,53 +103,6 @@ def get_sat_rhel_version():
         elif hasattr(settings.robottelo, 'rhel_version'):
             rhel_version = settings.robottelo.rhel_version
     return Version(rhel_version)
-
-
-def setup_capsule(satellite, capsule, org, registration_args=None, installation_args=None):
-    """Given satellite and capsule instances, run the commands needed to set up the capsule
-
-    Note: This does not perform content setup actions on the Satellite
-
-    :param satellite: An instance of this module's Satellite class
-    :param capsule: An instance of this module's Capsule class
-    :param org: An instance of the org to use on the Satellite
-    :param registration_args: A dictionary mapping argument: value pairs for registration
-    :param installation_args: A dictionary mapping argument: value pairs for installation
-    :return: An ssh2-python result object for the installation command.
-
-    """
-    # Unregister capsule incase it's registered to CDN
-    capsule.unregister()
-
-    # Add a manifest to the Satellite
-    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
-        satellite.upload_manifest(org.id, manifest.content)
-
-    # Enable RHEL 8 BaseOS and AppStream repos and sync
-    for rh_repo_key in ['rhel8_bos', 'rhel8_aps']:
-        satellite.api_factory.enable_rhrepo_and_fetchid(
-            basearch=DEFAULT_ARCHITECTURE,
-            org_id=org.id,
-            product=PRDS['rhel8'],
-            repo=REPOS[rh_repo_key]['name'],
-            reposet=REPOSET[rh_repo_key],
-            releasever=REPOS[rh_repo_key]['releasever'],
-        )
-    product = satellite.api.Product(name=PRDS['rhel8'], organization=org.id).search()[0]
-    product.sync(timeout=1800, synchronous=True)
-
-    if not registration_args:
-        registration_args = {}
-    file, _, cmd_args = satellite.capsule_certs_generate(capsule)
-    if installation_args:
-        cmd_args.update(installation_args)
-    satellite.execute(
-        f'sshpass -p "{capsule.password}" scp -o "StrictHostKeyChecking no" '
-        f'{file} root@{capsule.hostname}:{file}'
-    )
-    capsule.install_katello_ca(satellite)
-    capsule.register_contenthost(org=org.label, **registration_args)
-    return capsule.install(cmd_args)
 
 
 class ContentHostError(Exception):
@@ -674,27 +623,6 @@ class ContentHost(Host, ContentHostMixins):
         self.execute('subscription-manager clean')
         self._satellite = None
 
-    def install_capsule_katello_ca(self, capsule=None):
-        """Downloads and installs katello-ca rpm on the broker virtual machine.
-
-        :param: str capsule: Capsule hostname
-        :raises robottelo.hosts.ContentHostError: If katello-ca wasn't
-            installed.
-        """
-        warnings.warn(
-            message=(
-                'The install_capsule_katello_ca method is deprecated, '
-                'use the register method instead.'
-            ),
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
-        url = urlunsplit(('http', capsule, 'pub/', '', ''))
-        ca_url = urljoin(url, 'katello-ca-consumer-latest.noarch.rpm')
-        result = self.execute(f'rpm -Uvh {ca_url}')
-        if result.status != 0:
-            raise ContentHostError('Failed to install the katello-ca rpm')
-
     def install_cockpit(self):
         """Installs cockpit on the broker virtual machine.
 
@@ -1095,8 +1023,20 @@ class ContentHost(Host, ContentHostMixins):
         :param bool register: Whether to register to the Satellite. Keyexchange done regardless
         """
         if register:
-            self.install_katello_ca(satellite)
-            self.register_contenthost(org.label, lce='Library')
+            ak = satellite.api.ActivationKey(
+                content_view=org.default_content_view.id,
+                environment=org.library.id,
+                organization=org,
+            ).create()
+            loc = satellite.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0]
+            self.register(
+                org,
+                loc,
+                ak.name,
+                satellite,
+                setup_remote_execution=True,
+                setup_remote_execution_pull=True,
+            )
             assert self.subscribed
         self.add_rex_key(satellite=satellite)
         if register and subnet_id is not None:
@@ -1132,10 +1072,14 @@ class ContentHost(Host, ContentHostMixins):
         :return: None
         """
         if register:
-            # Install Satellite CA rpm
-            self.install_katello_ca(satellite)
-
-            self.register_contenthost(org, activation_key)
+            if not activation_key:
+                activation_key = satellite.api.ActivationKey(
+                    content_view=org.default_content_view.id,
+                    environment=org.library.id,
+                    organization=org,
+                ).create()
+            loc = satellite.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0]
+            self.register(org, loc, activation_key.name, satellite)
 
         # Red Hat Insights requires RHEL 6/7/8 repo and it is not
         # possible to sync the repo during the tests, Adding repo file.
@@ -1230,8 +1174,11 @@ class ContentHost(Host, ContentHostMixins):
         repo_labels = repo_labels or []
         if location_title:
             self.set_facts({'locations.facts': {'foreman_location': str(location_title)}})
-        self.install_katello_ca(satellite)
-        result = self.register_contenthost(org_label, activation_key=activation_key, lce=lce)
+            loc = satellite.api.Location().search(query={'search': f'name="{location_title}"'})[0]
+        else:
+            loc = satellite.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0]
+        org = satellite.api.Organization().search(query={'search': f'name="{org_label}"'})[0]
+        result = self.register(org, loc, activation_key, satellite)
         if not self.subscribed:
             logger.info(result.stdout)
             raise CLIFactoryError('Virtual machine failed subscription')
@@ -2222,13 +2169,13 @@ class Satellite(Capsule, SatelliteMixins):
             assert task_status['result'] == 'success'
 
         # register contenthost
-        rhel_contenthost.install_katello_ca(self)
-        register = rhel_contenthost.register_contenthost(
-            org=module_org.label,
-            lce='Library',
-            name=f'{gen_string("alpha")}-{rhel_contenthost.hostname}',
-            force=True,
-        )
+        ak = self.api.ActivationKey(
+            content_view=module_org.default_content_view.id,
+            environment=module_org.library.id,
+            organization=module_org,
+        ).create()
+        loc = self.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0]
+        register = rhel_contenthost.register(module_org, loc, ak.name, self)
         assert register.status == 0, (
             f'Failed to register the host: {rhel_contenthost.hostname}:'
             f'rc: {register.status}: {register.stderr}'

@@ -149,8 +149,10 @@ class TestScenarioCustomRepoCheck:
                 query={'search': f'name={product.name}'}
             )[0]
             ak.add_subscriptions(data={'subscription_id': subscription.id})
-        sat_upgrade_chost.install_katello_ca(target_sat)
-        sat_upgrade_chost.register_contenthost(org.label, ak.name)
+        loc = target_sat.api.Location().search(query={'search': f'name="{constants.DEFAULT_LOC}"'})[
+            0
+        ]
+        sat_upgrade_chost.register(org, loc, ak.name, target_sat)
         sat_upgrade_chost.execute('subscription-manager repos --enable=*;yum clean all')
         result = sat_upgrade_chost.execute(f'yum install -y {FAKE_0_CUSTOM_PACKAGE_NAME}')
         assert result.status == 0

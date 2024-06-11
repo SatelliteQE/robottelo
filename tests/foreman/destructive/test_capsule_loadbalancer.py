@@ -17,7 +17,7 @@ from wrapanapi import VmState
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.constants import CLIENT_PORT, DataFile
+from robottelo.constants import CLIENT_PORT, DEFAULT_LOC, DataFile
 from robottelo.utils.installer import InstallerCommand
 
 pytestmark = [pytest.mark.no_containers, pytest.mark.destructive]
@@ -121,8 +121,8 @@ def setup_haproxy(
     haproxy_ak = content_for_client['client_ak']
     haproxy.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
     haproxy.execute('firewall-cmd --runtime-to-permanent')
-    haproxy.install_katello_ca(module_target_sat)
-    haproxy.register_contenthost(module_org.label, haproxy_ak.name)
+    loc = module_target_sat.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0]
+    haproxy.register(module_org, loc, haproxy_ak.name, module_target_sat)
     result = haproxy.execute('yum install haproxy policycoreutils-python-utils -y')
     assert result.status == 0
     haproxy.execute('rm -f /etc/haproxy/haproxy.cfg')
@@ -229,8 +229,6 @@ def test_loadbalancer_install_package(
         {'organization-id': loadbalancer_setup['module_org'].id}
     )
     assert rhel_contenthost.hostname in [host['name'] for host in hosts]
-
-    result = rhel_contenthost.execute('rpm -qa | grep katello-ca-consumer')
 
     # Find which capsule the host is registered to since it's RoundRobin
     # The following also asserts the above result

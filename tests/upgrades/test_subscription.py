@@ -132,8 +132,10 @@ class TestSubscriptionAutoAttach:
             auto_attach=False,
         ).create()
         activation_key.add_subscriptions(data={'subscription_id': subscription[0].id})
-        rhel_contenthost.install_katello_ca(target_sat)
-        rhel_contenthost.register_contenthost(org=org.name, activation_key=activation_key.name)
+        loc = target_sat.api.Location().search(query={'search': f'name="{constants.DEFAULT_LOC}"'})[
+            0
+        ]
+        rhel_contenthost.register(org, loc, activation_key.name, target_sat)
         assert rhel_contenthost.subscribed
         save_test_data(
             {
