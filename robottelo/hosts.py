@@ -2524,7 +2524,7 @@ class IPAHost(Host):
                 _, password = line.split(': ', 2)
                 break
         self.execute(f'ipa service-add HTTP/{self.satellite.hostname}')
-        _, domain = self.hostname.split('.', 1)
+        domain = self.execute('ipa realmdomains-show | awk \'{print $2}\'').stdout.strip()
         result = self.satellite.execute(
             f"ipa-client-install --password '{password}' "
             f'--domain {domain} '
