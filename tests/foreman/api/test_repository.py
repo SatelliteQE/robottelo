@@ -1850,11 +1850,11 @@ class TestDockerRepository:
             [
                 {
                     'content_type': 'docker',
-                    'docker_upstream_name': repo['upstream_name'],
+                    'docker_upstream_name': item['upstream_name'],
                     'name': gen_string('alpha'),
                     'url': constants.PULP_CONTAINER_REGISTRY_HUB,
                 }
-                for repo in LABELLED_REPOS
+                for item in LABELLED_REPOS
             ]
         ),
         indirect=True,

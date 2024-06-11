@@ -412,17 +412,17 @@ class TestScenarioContainerRepoSync:
         :expectedresults: Container repositories are synced and ready for upgrade.
         """
         repos = dict()
-        for model in LABELLED_REPOS:
+        for item in LABELLED_REPOS:
             repo = target_sat.api.Repository(
                 content_type='docker',
-                docker_upstream_name=model['upstream_name'],
+                docker_upstream_name=item['upstream_name'],
                 product=module_product,
                 url=PULP_CONTAINER_REGISTRY_HUB,
             ).create()
             repo.sync()
             repo = repo.read()
             assert repo.content_counts['docker_manifest'] > 0
-            repos[model['upstream_name']] = repo.id
+            repos[item['upstream_name']] = repo.id
         save_test_data(repos)
 
     @pytest.mark.post_upgrade(depend_on=test_pre_container_repo_sync)
