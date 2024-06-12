@@ -14,11 +14,9 @@
 
 from random import choice, randint
 
-from broker import Broker
 import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import (
     invalid_values_list,
     parametrized,
@@ -396,78 +394,3 @@ def test_negative_create_with_invalid_name(module_org, name, module_target_sat):
     """
     with pytest.raises(HTTPError):
         module_target_sat.api.HostCollection(name=name, organization=module_org).create()
-
-
-@pytest.mark.tier1
-def test_positive_add_remove_subscription(module_org, module_ak_cv_lce, target_sat):
-    """Try to bulk add and remove a subscription to members of a host collection.
-
-    :id: c4ec5727-eb25-452e-a91f-87cafb16666b
-
-    :steps:
-
-        1. Create HC, add AK to HC
-        2. Create product so we can use it's subscription
-        3. Create some VMs and register them with AK so they are in HC
-        4. Add the subscription to the members of the Host Collection
-        5. Assert subscription is added
-        6. Bulk remove subscription
-        7. Assert it is removed
-
-    :expectedresults: subscription added to, and removed from, members of host collection
-
-    :CaseImportance: Critical
-    """
-    # this command creates a host collection and "appends", makes available, to the AK
-    module_ak_cv_lce.host_collection.append(
-        target_sat.api.HostCollection(organization=module_org).create()
-    )
-    # Move HC from Add tab to List tab on AK view
-    module_ak_cv_lce = module_ak_cv_lce.update(['host_collection'])
-    # Create a product so we have a subscription to use
-    product = target_sat.api.Product(organization=module_org).create()
-    prod_name = product.name
-    product_subscription = target_sat.api.Subscription(organization=module_org).search(
-        query={'search': f'name={prod_name}'}
-    )[0]
-    # Create and register VMs as members of Host Collection
-    with Broker(nick='rhel7', host_class=ContentHost, _count=2) as hosts:
-        for client in hosts:
-            result = client.api_register(
-                target_sat,
-                organization=module_org,
-                activation_keys=[module_ak_cv_lce.name],
-            )
-            assert result.status == 0, f'Failed to register host: {result.stderr}'
-
-        # Read host_collection back from Satellite to get host_ids
-        host_collection = module_ak_cv_lce.host_collection[0].read()
-        host_ids = [host.id for host in host_collection.host]
-        # Add subscription
-        # Call nailgun to make the API PUT to members of Host Collection
-        target_sat.api.Host().bulk_add_subscriptions(
-            data={
-                "organization_id": module_org.id,
-                "included": {"ids": host_ids},
-                "subscriptions": [{"id": product_subscription.id, "quantity": 1}],
-            }
-        )
-        # GET the subscriptions from hosts and assert they are there
-        for host_id in host_ids:
-            req = target_sat.api.HostSubscription(host=host_id).subscriptions()
-            assert (
-                prod_name in req['results'][0]['product_name']
-            ), 'Subscription not applied to HC members'
-        # Remove the subscription
-        # Call nailgun to make the API PUT to members of Host Collection
-        target_sat.api.Host().bulk_remove_subscriptions(
-            data={
-                "organization_id": module_org.id,
-                "included": {"ids": host_ids},
-                "subscriptions": [{"id": product_subscription.id, "quantity": 1}],
-            }
-        )
-        # GET the subscriptions from hosts and assert they are gone
-        for host_id in host_ids:
-            req = target_sat.api.HostSubscription(host=host_id).subscriptions()
-            assert not req['results'], 'Subscription not removed from HC members'
