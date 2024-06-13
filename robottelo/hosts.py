@@ -73,6 +73,7 @@ def lru_sat_ready_rhel(rhel_ver):
     rhel_version = rhel_ver or settings.server.version.rhel_version
     deploy_args = {
         'deploy_rhel_version': rhel_version,
+        'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
         'deploy_flavor': settings.flavors.default,
         'promtail_config_template_file': 'config_sat.j2',
         'workflow': settings.server.deploy_workflows.os,
@@ -823,6 +824,7 @@ class ContentHost(Host, ContentHostMixins):
         auto_attach=False,
         serverurl=None,
         baseurl=None,
+        enable_proxy=False,
     ):
         """Registers content host on foreman server either by specifying
         organization name and activation key name or by specifying organization
@@ -879,6 +881,7 @@ class ContentHost(Host, ContentHostMixins):
             cmd += f' --serverurl {serverurl}'
         if baseurl:
             cmd += f' --baseurl {baseurl}'
+
         return self.execute(cmd)
 
     def unregister(self):
@@ -924,6 +927,13 @@ class ContentHost(Host, ContentHostMixins):
         result = self.execute(f'chmod 600 {destination_key_path}')
         if result.status != 0:
             raise CLIFactoryError(f'Failed to chmod ssh key file:\n{result.stderr}')
+
+    def enable_rhsm_proxy(self, hostname, port=None):
+        """Configures proxy for subscription manager"""
+        cmd = f"subscription-manager config --server.proxy_hostname={hostname}"
+        if port:
+            cmd += f' --server.proxy_port={port}'
+        self.execute(cmd)
 
     def add_authorized_key(self, pub_key):
         """Inject a public key into the authorized keys file
@@ -1469,7 +1479,7 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError('There was an error installing katello-host-tools-tracer')
         self.execute('katello-tracer-upload')
 
-    def register_to_cdn(self, pool_ids=None):
+    def register_to_cdn(self, pool_ids=None, enable_proxy=False):
         """Subscribe satellite to CDN"""
         if pool_ids is None:
             pool_ids = [settings.subscription.rhn_poolid]
@@ -1479,6 +1489,7 @@ class ContentHost(Host, ContentHostMixins):
             lce=None,
             username=settings.subscription.rhn_username,
             password=settings.subscription.rhn_password,
+            enable_proxy=enable_proxy,
         )
         if cmd_result.status != 0:
             raise ContentHostError(
@@ -1633,6 +1644,17 @@ class Capsule(ContentHost, CapsuleMixins):
             snap=settings.capsule.version.snap,
         )
 
+    def enable_ipv6_http_proxy(self):
+        """Execute procedures for enabling IPv6 HTTP Proxy on Capsule using SM"""
+        if all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
+            url = urlparse(settings.server.http_proxy_ipv6_url)
+            self.enable_rhsm_proxy(url.hostname, url.port)
+
+    def disable_ipv6_http_proxy(self):
+        """Executes procedures for disabling IPv6 HTTP Proxy on Capsule"""
+        if settings.server.is_ipv6:
+            self.execute('subscription-manager remove server.proxy_hostname server.proxy_port')
+
     def capsule_setup(self, sat_host=None, capsule_cert_opts=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
         self._satellite = sat_host or Satellite()
@@ -1756,6 +1778,10 @@ class Capsule(ContentHost, CapsuleMixins):
         Note: Make sure required repos are enabled before using this.
         """
         if self.os_version.major == 8:
+            if settings.server.is_ipv6:
+                self.execute(
+                    f"echo -e 'proxy={settings.server.http_proxy_ipv6_url}' >> /etc/dnf/dnf.conf"
+                )
             assert (
                 self.execute(
                     f'dnf -y module enable {self.product_rpm_name}:el{self.os_version.major}'
@@ -1797,6 +1823,55 @@ class Satellite(Capsule, SatelliteMixins):
         self._api = type('api', (), {'_configured': False})
         to_clear = [k for k in sys.modules if 'nailgun' in k]
         [sys.modules.pop(k) for k in to_clear]
+
+    def enable_ipv6_http_proxy(self):
+        """Execute procedures for enabling IPv6 HTTP Proxy"""
+        if not all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
+            logger.warning(
+                'The IPv6 HTTP Proxy setting is not enabled. Skipping the IPv6 HTTP Proxy setup.'
+            )
+            return None
+        proxy_name = 'Robottelo IPv6 Automation Proxy'
+        if not self.cli.HttpProxy.exists(search=('name', proxy_name)):
+            http_proxy = self.api.HTTPProxy(
+                name=proxy_name, url=settings.server.http_proxy_ipv6_url
+            ).create()
+        else:
+            logger.info(
+                'The IPv6 HTTP Proxy is already enabled. Skipping the IPv6 HTTP Proxy setup.'
+            )
+            http_proxy = self.api.HTTPProxy().search(query={'search': f'name={proxy_name}'})[0]
+        # Setting HTTP Proxy as default in the settings
+        self.cli.Settings.set(
+            {
+                'name': 'content_default_http_proxy',
+                'value': proxy_name,
+            }
+        )
+        self.cli.Settings.set(
+            {
+                'name': 'http_proxy',
+                'value': settings.server.http_proxy_ipv6_url,
+            }
+        )
+        return http_proxy
+
+    def disable_ipv6_http_proxy(self, http_proxy):
+        """Execute procedures for disabling IPv6 HTTP Proxy"""
+        if http_proxy:
+            http_proxy.delete()
+            self.cli.Settings.set(
+                {
+                    'name': 'content_default_http_proxy',
+                    'value': '',
+                }
+            )
+            self.cli.Settings.set(
+                {
+                    'name': 'http_proxy',
+                    'value': '',
+                }
+            )
 
     @property
     def api(self):
@@ -2325,6 +2400,23 @@ class Satellite(Capsule, SatelliteMixins):
             handle_exception=True,
         )
         return inventory_sync
+
+    def register_contenthost(
+        self,
+        org='Default_Organization',
+        lce='Library',
+        username=settings.server.admin_username,
+        password=settings.server.admin_password,
+        enable_proxy=False,
+    ):
+        """Satellite Registration to CDN"""
+        # Enabling proxy for IPv6
+        if enable_proxy and all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
+            url = urlparse(settings.server.http_proxy_ipv6_url)
+            self.enable_rhsm_proxy(url.hostname, url.port)
+        return super().register_contenthost(
+            org=org, lce=lce, username=username, password=password, enable_proxy=enable_proxy
+        )
 
 
 class SSOHost(Host):
