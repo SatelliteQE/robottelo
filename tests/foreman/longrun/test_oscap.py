@@ -15,6 +15,7 @@
 from broker import Broker
 from fauxfactory import gen_string
 import pytest
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import (
@@ -25,6 +26,7 @@ from robottelo.constants import (
 )
 from robottelo.exceptions import ProxyError
 from robottelo.hosts import ContentHost
+from robottelo.logging import logger
 
 rhel6_content = OSCAP_DEFAULT_CONTENT['rhel6_content']
 rhel7_content = OSCAP_DEFAULT_CONTENT['rhel7_content']
@@ -112,6 +114,7 @@ def activation_key(module_target_sat, module_org, lifecycle_env, content_view):
 def update_scap_content(module_org, module_target_sat):
     """Update default scap contents"""
     for content in rhel8_content, rhel7_content, rhel6_content:
+        logger.debug('Updating scap content "%s"', content)
         content = module_target_sat.cli.Scapcontent.info({'title': content}, output_format='json')
         organization_ids = [content_org['id'] for content_org in content.get('organizations', [])]
         organization_ids.append(module_org.id)
@@ -228,6 +231,127 @@ def test_positive_oscap_run_via_ansible(
         # Satellite6.
         result = target_sat.cli.Arfreport.list({'search': f'host={vm.hostname.lower()}'})
         assert result is not None
+
+
+@pytest.fixture
+def scap_prerequisites(module_org, default_proxy, target_sat):
+    # TODO: add support for RHEL9 (it doesn't have scap content in Sat by default) and parametrize distro
+    distro = 'rhel8'
+    profile = OSCAP_PROFILE['ospp8']
+    content = OSCAP_DEFAULT_CONTENT[f'{distro}_content']
+    hgrp_name = gen_string('alpha')
+    policy_name = gen_string('alpha')
+    # Create hostgroup
+    target_sat.cli_factory.hostgroup(
+        {
+            'content-source-id': default_proxy,
+            'name': hgrp_name,
+            'organizations': module_org.name,
+        }
+    )
+    # Create oscap policy
+    scap_id, scap_profile_id = fetch_scap_and_profile_id(target_sat, content, profile)
+    target_sat.cli.Ansible.roles_import({'proxy-id': default_proxy})
+    target_sat.cli.Ansible.variables_import({'proxy-id': default_proxy})
+    role_id = target_sat.cli.Ansible.roles_list({'search': 'foreman_scap_client'})[0].get('id')
+    target_sat.cli_factory.make_scap_policy(
+        {
+            'scap-content-id': scap_id,
+            'hostgroups': hgrp_name,
+            'deploy-by': 'ansible',
+            'name': policy_name,
+            'period': OSCAP_PERIOD['weekly'].lower(),
+            'scap-content-profile-id': scap_profile_id,
+            'weekday': OSCAP_WEEKDAY['friday'].lower(),
+            'organizations': module_org.name,
+        }
+    )
+    return hgrp_name, role_id, distro
+
+
+@pytest.mark.e2e
+@pytest.mark.tier4
+def test_positive_oscap_remediation(
+    module_org, default_proxy, content_view, lifecycle_env, target_sat, scap_prerequisites
+):
+    """Run an OSCAP scan and remediate through WebUI
+
+    :id: 55b919ef-432f-4186-b22a-01bb8ce39b3f
+
+    :setup: scap content, scap policy, host group associated with the policy
+
+    :steps:
+
+        1. Create a valid scap content
+        2. Import Ansible role theforeman.foreman_scap_client
+        3. Import Ansible Variables needed for the role
+        4. Create a scap policy with ansible as deploy option
+        5. Associate the policy with a hostgroup
+        6. Provision a host using the hostgroup
+        7. Configure REX and associate the Ansible role to created host
+        8. Play roles for the host
+        9. In WebUI, take a look at the ARF report and remediate one of the failures
+
+    :expectedresults: REX job should be success and ARF report should be sent to satellite
+
+    :customerscenario: true
+
+    :CaseImportance: High
+    """
+    hgrp_name, role_id, distro = scap_prerequisites
+    rhel_repo = settings.repos.rhel8_os
+    with Broker(nick=distro, host_class=ContentHost, deploy_flavor=settings.flavors.default) as vm:
+        result = vm.register(module_org, None, ak_name[distro], target_sat)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        vm.create_custom_repos(**rhel_repo)
+        target_sat.cli.Host.update(
+            {
+                'name': vm.hostname.lower(),
+                'lifecycle-environment': lifecycle_env.name,
+                'content-view': content_view.name,
+                'hostgroup': hgrp_name,
+                'openscap-proxy-id': default_proxy,
+                'organization': module_org.name,
+                'ansible-role-ids': role_id,
+            }
+        )
+        job_id = target_sat.cli.Host.ansible_roles_play({'name': vm.hostname.lower()})[0].get('id')
+        target_sat.wait_for_tasks(
+            f'resource_type = JobInvocation and resource_id = {job_id} and action ~ "hosts job"'
+        )
+        result = target_sat.cli.JobInvocation.info({'id': job_id})['success']
+        assert result == '1'
+        # Run the actual oscap scan on the vm/clients and
+        # upload report to Internal Capsule.
+        vm.execute_foreman_scap_client()
+        arf_id = target_sat.cli.Arfreport.list({'search': f'host={vm.hostname.lower()}'})[0]['id']
+
+        # Remediate
+        with target_sat.ui_session() as session:
+            assert (
+                vm.execute("rpm -q aide").status != 0
+            ), 'This test expects package "aide" NOT to be installed but it is. If this fails, it\'s probably a matter of wrong assumption of this test, not a product bug.'
+            title = 'xccdf_org.ssgproject.content_rule_package_aide_installed'
+            session.organization.select(module_org.name)
+            results = session.oscapreport.details(f'id={arf_id}', widget_names=['table'], limit=10)[
+                'table'
+            ]
+            results_failed = [result for result in results if result['Result'] == 'fail']
+            if title not in [result['Resource'] for result in results_failed]:
+                results = session.oscapreport.details(f'id={arf_id}', widget_names=['table'])[
+                    'table'
+                ]
+                results_failed = [result for result in results if result['Result'] == 'fail']
+            assert (
+                title in [result['Resource'] for result in results_failed]
+            ), 'This test expects the report to contain failure of "aide" package presence check. If this fails, it\'s probably a matter of wrong assumption of this test, not a product bug.'
+            session.oscapreport.remediate(f'id={arf_id}', title)
+            wait_for(
+                lambda: vm.execute("rpm -q aide").status == 0,
+                timeout=120,
+                delay=10,
+            )
+            assert vm.execute("rpm -q aide").status == 0
 
 
 @pytest.mark.tier4
