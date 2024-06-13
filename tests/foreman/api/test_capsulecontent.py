@@ -69,7 +69,7 @@ def default_non_admin_user(target_sat, default_org, default_location):
     user.delete()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope='module')
 def module_autosync_setting(request, module_target_sat, module_capsule_configured):
     """Set capsule autosync setting"""
     setting_entity = module_target_sat.api.Setting().search(
@@ -1665,7 +1665,6 @@ class TestCapsuleContentManagement:
             counts is None or len(counts['content_view_versions']) == 0
         ), f"No content counts expected, but got:\n{counts['content_view_versions']}."
 
-    @pytest.mark.skip_if_open('SAT-25542')
     @pytest.mark.parametrize('module_autosync_setting', [True], indirect=True)
     @pytest.mark.parametrize(
         'setting_update', ['automatic_content_count_updates=False'], indirect=True
@@ -1700,6 +1699,8 @@ class TestCapsuleContentManagement:
             1. Capsule content counts update task respects the setting.
 
         :CaseImportance: Medium
+
+        :BlockedBy: SAT-25503
 
         :BZ: 2284027
 
