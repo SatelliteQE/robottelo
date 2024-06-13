@@ -24,7 +24,9 @@ def module_stash(request):
 @pytest.fixture(scope='module')
 def sat_maintain(request, module_target_sat, module_capsule_configured):
     if settings.remotedb.server:
-        yield Satellite(settings.remotedb.server)
+        sat = Satellite(settings.remotedb.server)
+        sat.enable_ipv6_http_proxy()
+        yield sat
     else:
         module_target_sat.register_to_cdn(pool_ids=settings.subscription.fm_rhn_poolid.split())
         hosts = {'satellite': module_target_sat, 'capsule': module_capsule_configured}
