@@ -901,11 +901,11 @@ def test_positive_update_aks_to_chost(module_org, module_location, rhel_contenth
         )
         for _ in range(2)
     ]
-    for i in len(new_aks):
+    for ak in new_aks:
         rhel_contenthost.register(
             org=module_org,
             loc=module_location,
-            activation_keys=new_aks[i]['name'],
+            activation_keys=ak['name'],
             target=target_sat,
         )
         assert rhel_contenthost.subscribed
