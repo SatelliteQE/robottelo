@@ -874,14 +874,13 @@ def test_positive_delete_subscription(function_entitlement_manifest_org, module_
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_update_aks_to_chost(module_org, module_location, rhel7_contenthost, target_sat):
-    """Check if multiple Activation keys can be attached to a
-    Content host
+@pytest.mark.rhel_ver_match('[^6]')
+def test_positive_update_aks_to_chost(module_org, module_location, rhel_contenthost, target_sat):
+    """Check if multiple Activation keys can be attached to a Content host
 
     :id: 24fddd9c-03ae-41a7-8649-72296cbbafdf
 
-    :expectedresults: Multiple Activation keys are attached to a Content
-        host
+    :expectedresults: Multiple Activation keys are attached to a Content host
 
     :parametrized: yes
     """
@@ -902,14 +901,14 @@ def test_positive_update_aks_to_chost(module_org, module_location, rhel7_content
         )
         for _ in range(2)
     ]
-    for i in range(2):
-        rhel7_contenthost.register(
+    for i in len(new_aks):
+        rhel_contenthost.register(
             org=module_org,
             loc=module_location,
             activation_keys=new_aks[i]['name'],
             target=target_sat,
         )
-        assert rhel7_contenthost.subscribed
+        assert rhel_contenthost.subscribed
 
 
 @pytest.mark.skip_if_not_set('clients')
