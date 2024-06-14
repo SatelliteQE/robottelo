@@ -177,17 +177,15 @@ def test_positive_erratum_installable(vm, module_target_sat):
 
 
 @pytest.mark.tier2
-def test_negative_rct_not_shows_golden_ticket_enabled(
+def test_negative_rct_not_shows_sca_enabled(
     target_sat, function_org, function_entitlement_manifest
 ):
-    """Assert restricted manifest has no Golden Ticket enabled .
+    """Assert restricted (entitlement) manifest does not show SCA enabled.
 
     :id: 754c1be7-468e-4795-bcf9-258a38f3418b
 
     :steps:
-
         1. Run `rct cat-manifest /tmp/restricted_manifest.zip`.
-
 
     :expectedresults:
         1. Assert `Content Access Mode: Simple Content Access` is not present.
@@ -205,13 +203,12 @@ def test_negative_rct_not_shows_golden_ticket_enabled(
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_rct_shows_golden_ticket_enabled(module_sca_manifest, target_sat):
-    """Assert unrestricted manifest has Golden Ticket enabled .
+def test_positive_rct_shows_sca_enabled(module_sca_manifest, target_sat):
+    """Assert unrestricted (SCA) manifest shows SCA enabled.
 
     :id: 0c6e2f88-1a86-4417-9248-d7bd20584197
 
     :steps:
-
         1. Run `rct cat-manifest /tmp/unrestricted_manifest.zip`.
 
     :expectedresults:
