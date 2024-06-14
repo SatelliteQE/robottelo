@@ -18,6 +18,8 @@ from robottelo.utils.virtwho import (
     get_configure_file,
     get_configure_id,
     get_configure_option,
+    hypervisor_guest_mapping_check_legacy_ui,
+    hypervisor_guest_mapping_newcontent_ui,
 )
 
 
@@ -41,18 +43,16 @@ class TestVirtwhoConfigforLibvirt:
         :CaseImportance: High
         """
         hypervisor_name, guest_name = deploy_type_ui
-        # Check virt-wh oconfig status
+        # Check virt-who config status
         assert org_session.virtwho_configure.search(form_data_ui['name'])[0]['Status'] == 'ok'
+
         # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in Legacy UI
-        org_session.location.select(default_location.name)
-        hypervisor_display_name = org_session.contenthost.search(hypervisor_name)[0]['Name']
-        hypervisorhost = org_session.contenthost.read_legacy_ui(hypervisor_display_name)
-        assert hypervisorhost['details']['subscription_status'] == 'Simple Content Access'
-        assert hypervisorhost['details']['virtual_guest'] == '1 Content Host'
-        # Check virtual guest subscription status and hypervisor host and virtual guest mapping in Legacy UI
-        virtualguest = org_session.contenthost.read_legacy_ui(guest_name)
-        assert virtualguest['details']['subscription_status'] == 'Simple Content Access'
-        assert virtualguest['details']['virtual_host'] == hypervisor_display_name
+        hypervisor_guest_mapping_check_legacy_ui(
+            org_session, form_data_ui, default_location, hypervisor_name, guest_name
+        )
+
+        # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in UI
+        hypervisor_guest_mapping_newcontent_ui(org_session, hypervisor_name, guest_name)
 
     @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
