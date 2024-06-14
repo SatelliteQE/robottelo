@@ -1382,7 +1382,9 @@ def sat_default_install(module_sat_ready_rhels):
         f'foreman-initial-admin-password {settings.server.admin_password}',
     ]
     install_satellite(module_sat_ready_rhels[0], installer_args)
-    return module_sat_ready_rhels[0]
+    sat = module_sat_ready_rhels[0]
+    sat.enable_ipv6_http_proxy()
+    return sat
 
 
 @pytest.fixture(scope='module')
@@ -1397,10 +1399,10 @@ def sat_non_default_install(module_sat_ready_rhels):
         'foreman-proxy-plugin-discovery-install-images true',
     ]
     install_satellite(module_sat_ready_rhels[1], installer_args, enable_fapolicyd=True)
-    module_sat_ready_rhels[1].execute(
-        'dnf -y --disableplugin=foreman-protector install foreman-discovery-image'
-    )
-    return module_sat_ready_rhels[1]
+    sat = module_sat_ready_rhels[1]
+    sat.enable_ipv6_http_proxy()
+    sat.execute('dnf -y --disableplugin=foreman-protector install foreman-discovery-image')
+    return sat
 
 
 @pytest.mark.e2e
