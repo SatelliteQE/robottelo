@@ -188,7 +188,7 @@ class TestCapsuleContentManagement:
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
-        # Verify repodata's checksum type is sha256, not sha1 on capsule
+        # Verify repodata's checksum type is sha256, not sha512 on capsule
         repo_url = module_capsule_configured.get_published_repo_url(
             org=function_org.label,
             prod=function_product.label,
@@ -198,11 +198,11 @@ class TestCapsuleContentManagement:
         )
         repomd = get_repomd(repo_url)
         checksum_types = re.findall(r'(?<=checksum type=").*?(?=")', repomd)
-        assert "sha1" not in checksum_types
+        assert "sha512" not in checksum_types
         assert "sha256" in checksum_types
 
-        # Update repo's checksum type to sha1
-        repo.checksum_type = 'sha1'
+        # Update repo's checksum type to sha512
+        repo.checksum_type = 'sha512'
         repo = repo.update(['checksum_type'])
 
         # Sync, publish, and promote repo
@@ -221,10 +221,10 @@ class TestCapsuleContentManagement:
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
-        # Verify repodata's checksum type has updated to sha1 on capsule
+        # Verify repodata's checksum type has updated to sha512 on capsule
         repomd = get_repomd(repo_url)
         checksum_types = re.findall(r'(?<=checksum type=").*?(?=")', repomd)
-        assert "sha1" in checksum_types
+        assert "sha512" in checksum_types
         assert "sha256" not in checksum_types
 
     @pytest.mark.skip_if_open("BZ:2025494")
