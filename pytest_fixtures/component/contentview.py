@@ -68,3 +68,15 @@ def module_cv_repo(module_org, module_repository, module_lce, module_target_sat)
     content_view = content_view.read()
     content_view.version[0].promote(data={'environment_ids': module_lce.id, 'force': False})
     return content_view
+
+
+@pytest.fixture(scope='session')
+def session_multicv_sat(session_satellite_host):
+    """Satellite with multi-CV enabled"""
+    session_satellite_host.enable_multicv_setting()
+    multicv_setting = session_satellite_host.api.Setting().search(
+        query={'search': f'name={"allow_multiple_content_views"}'}
+    )[0]
+    multicv_setting.value = 'True'
+    multicv_setting.update({'value'})
+    return session_satellite_host
