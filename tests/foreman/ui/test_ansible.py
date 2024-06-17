@@ -28,40 +28,11 @@ class TestAnsibleCfgMgmt:
     :CaseComponent: Ansible-ConfigurationManagement
     """
 
-    @pytest.mark.tier2
-    def test_positive_create_and_delete_variable(self, target_sat):
-        """Create an Ansible variable with the minimum required values, then delete the variable.
-
-        :id: 7006d7c7-788a-4447-a564-d6b03ec06aaf
-
-        :steps:
-            1. Import Ansible roles if none have been imported yet.
-            2. Create an Ansible variable with only a name and an assigned Ansible role.
-            3. Verify that the Ansible variable has been created.
-            4. Delete the Ansible variable.
-            5. Verify that the Ansible Variable has been deleted.
-
-        :expectedresults: The variable is successfully created and deleted.
-        """
-        key = gen_string('alpha')
-        SELECTED_ROLE = 'redhat.satellite.activation_keys'
-        proxy_id = target_sat.nailgun_smart_proxy.id
-        target_sat.api.AnsibleRoles().sync(
-            data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]}
-        )
-        with target_sat.ui_session() as session:
-            session.ansiblevariables.create(
-                {
-                    'key': key,
-                    'ansible_role': SELECTED_ROLE,
-                }
-            )
-            assert session.ansiblevariables.search(key)[0]['Name'] == key
-            session.ansiblevariables.delete(key)
-            assert not session.ansiblevariables.search(key)
-
     @pytest.mark.tier3
-    def test_positive_create_variable_with_overrides(self, target_sat):
+    @pytest.mark.parametrize('auth_type', ['admin', 'non-admin'])
+    def test_positive_create_delete_variable_with_overrides(
+        self, request, function_org, target_sat, auth_type
+    ):
         """Create an Ansible variable with all values populated.
 
         :id: 90acea37-4c2f-42e5-92a6-0c88148f4fb6
@@ -75,19 +46,37 @@ class TestAnsibleCfgMgmt:
 
         :expectedresults: The variable is successfully created.
         """
+        user_cfg = admin_nailgun_config()
+        password = settings.server.admin_password
         key = gen_string('alpha')
+        param_type = 'integer'
+        if auth_type == 'non-admin':
+            ansible_manager_role = target_sat.api.Role().search(
+                query={'search': 'name="Ansible Roles Manager"'}
+            )
+            user = target_sat.api.User(
+                role=ansible_manager_role,
+                admin=False,
+                login=gen_string('alphanumeric'),
+                password=password,
+                organization=[function_org],
+            ).create()
+            request.addfinalizer(user.delete)
+            user_cfg = user_nailgun_config(user.login, password)
+
         SELECTED_ROLE = 'redhat.satellite.activation_keys'
         proxy_id = target_sat.nailgun_smart_proxy.id
-        target_sat.api.AnsibleRoles().sync(
+        target_sat.api.AnsibleRoles(server_config=user_cfg).sync(
             data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]}
         )
-        with target_sat.ui_session() as session:
+        with target_sat.ui_session(user=user_cfg.auth[0], password=password) as session:
+            session.organization.select(function_org.name)
             session.ansiblevariables.create_with_overrides(
                 {
                     'key': key,
-                    'description': 'this is a description',
+                    'description': gen_string(str_type='alpha'),
                     'ansible_role': SELECTED_ROLE,
-                    'parameter_type': 'integer',
+                    'parameter_type': param_type,
                     'default_value': '11',
                     'validator_type': 'list',
                     'validator_rule': '11, 12, 13',
@@ -100,7 +89,12 @@ class TestAnsibleCfgMgmt:
                     ],
                 }
             )
-            assert session.ansiblevariables.search(key)[0]['Name'] == key
+            result = session.ansiblevariables.search(key)[0]
+            assert result['Name'] == key
+            assert result['Role'] == SELECTED_ROLE
+            assert result['Type'] == param_type
+            assert result['Imported?'] == ''
+
             session.ansiblevariables.delete(key)
             assert not session.ansiblevariables.search(key)
 
