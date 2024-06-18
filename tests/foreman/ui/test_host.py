@@ -1214,7 +1214,7 @@ def test_all_hosts_manage_columns(target_sat, function_org, new_host_ui):
     :CaseComponent: Hosts-Content
 
     :Team: Phoenix-subscriptions
-    
+
     :Verifies: SAT-19064
     """
     columns = {
