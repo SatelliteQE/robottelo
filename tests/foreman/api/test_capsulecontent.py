@@ -155,10 +155,12 @@ class TestCapsuleContentManagement:
 
         :CaseImportance: Critical
         """
+        original_checksum = 'sha256'
+        new_checksum = 'sha512'
         # Create repository with sha256 checksum type
         repo = target_sat.api.Repository(
             product=function_product,
-            checksum_type='sha256',
+            checksum_type=original_checksum,
             mirroring_policy='additive',
             download_policy='immediate',
         ).create()
@@ -198,11 +200,11 @@ class TestCapsuleContentManagement:
         )
         repomd = get_repomd(repo_url)
         checksum_types = re.findall(r'(?<=checksum type=").*?(?=")', repomd)
-        assert "sha512" not in checksum_types
-        assert "sha256" in checksum_types
+        assert new_checksum not in checksum_types
+        assert original_checksum in checksum_types
 
         # Update repo's checksum type to sha512
-        repo.checksum_type = 'sha512'
+        repo.checksum_type = new_checksum
         repo = repo.update(['checksum_type'])
 
         # Sync, publish, and promote repo
@@ -224,8 +226,8 @@ class TestCapsuleContentManagement:
         # Verify repodata's checksum type has updated to sha512 on capsule
         repomd = get_repomd(repo_url)
         checksum_types = re.findall(r'(?<=checksum type=").*?(?=")', repomd)
-        assert "sha512" in checksum_types
-        assert "sha256" not in checksum_types
+        assert new_checksum in checksum_types
+        assert original_checksum not in checksum_types
 
     @pytest.mark.skip_if_open("BZ:2025494")
     @pytest.mark.e2e
