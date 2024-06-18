@@ -155,10 +155,12 @@ class TestCapsuleContentManagement:
 
         :CaseImportance: Critical
         """
+        original_checksum = 'sha256'
+        new_checksum = 'sha512'
         # Create repository with sha256 checksum type
         repo = target_sat.api.Repository(
             product=function_product,
-            checksum_type='sha256',
+            checksum_type=original_checksum,
             mirroring_policy='additive',
             download_policy='immediate',
         ).create()
@@ -188,7 +190,7 @@ class TestCapsuleContentManagement:
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
-        # Verify repodata's checksum type is sha256, not sha1 on capsule
+        # Verify repodata's checksum type is sha256, not sha512 on capsule
         repo_url = module_capsule_configured.get_published_repo_url(
             org=function_org.label,
             prod=function_product.label,
@@ -198,11 +200,11 @@ class TestCapsuleContentManagement:
         )
         repomd = get_repomd(repo_url)
         checksum_types = re.findall(r'(?<=checksum type=").*?(?=")', repomd)
-        assert "sha1" not in checksum_types
-        assert "sha256" in checksum_types
+        assert new_checksum not in checksum_types
+        assert original_checksum in checksum_types
 
-        # Update repo's checksum type to sha1
-        repo.checksum_type = 'sha1'
+        # Update repo's checksum type to sha512
+        repo.checksum_type = new_checksum
         repo = repo.update(['checksum_type'])
 
         # Sync, publish, and promote repo
@@ -221,11 +223,11 @@ class TestCapsuleContentManagement:
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
-        # Verify repodata's checksum type has updated to sha1 on capsule
+        # Verify repodata's checksum type has updated to sha512 on capsule
         repomd = get_repomd(repo_url)
         checksum_types = re.findall(r'(?<=checksum type=").*?(?=")', repomd)
-        assert "sha1" in checksum_types
-        assert "sha256" not in checksum_types
+        assert new_checksum in checksum_types
+        assert original_checksum not in checksum_types
 
     @pytest.mark.skip_if_open("BZ:2025494")
     @pytest.mark.e2e
