@@ -818,7 +818,6 @@ def test_positive_add_docker_repo_ccv(session, module_org, module_target_sat):
         assert ak['details']['lce'][lce.name][lce.name]
 
 
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 def test_positive_add_host(session, module_org, rhel_contenthost, target_sat):
     """Test that hosts can be associated to Activation Keys
@@ -851,7 +850,6 @@ def test_positive_add_host(session, module_org, rhel_contenthost, target_sat):
         assert ak['content_hosts']['table'][0]['Name'] == rhel_contenthost.hostname
 
 
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 def test_positive_delete_with_system(session, rhel_contenthost, target_sat):
     """Delete an Activation key which has registered systems
@@ -891,7 +889,6 @@ def test_positive_delete_with_system(session, rhel_contenthost, target_sat):
         assert session.activationkey.search(name)[0]['Name'] != name
 
 
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 def test_negative_usage_limit(session, module_org, target_sat):
     """Test that Usage limit actually limits usage
@@ -926,7 +923,6 @@ def test_negative_usage_limit(session, module_org, target_sat):
         assert f'Max Hosts ({hosts_limit}) reached for activation key' in str(result.stderr)
 
 
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
@@ -984,7 +980,6 @@ def test_positive_add_multiple_aks_to_system(session, module_org, rhel_contentho
             assert ak['content_hosts']['table'][0]['Name'] == rhel_contenthost.hostname
 
 
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
@@ -1031,7 +1026,6 @@ def test_positive_host_associations(session, target_sat):
             assert ak2['content_hosts']['table'][0]['Name'] == vm2.hostname
 
 
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_service_level_subscription_with_custom_product(
@@ -1142,7 +1136,6 @@ def test_positive_delete_manifest(session, function_entitlement_manifest_org, ta
 
 
 @pytest.mark.rhel_ver_list([6])
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_ak_with_custom_product_on_rhel6(rhel_contenthost, target_sat):
