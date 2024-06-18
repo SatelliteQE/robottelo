@@ -127,7 +127,7 @@ def test_file_cv_display(session, target_sat, module_org, module_product):
     :BZ: 2026701
 
     :customerscenario: true
-    
+
     :Verifies: SAT-17081
     """
     repo_name = gen_string('alpha')
