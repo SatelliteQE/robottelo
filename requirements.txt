@@ -12,7 +12,7 @@ manifester==0.2.4
 navmazing==1.2.2
 productmd==1.38
 pyotp==2.9.0
-python-box==7.1.1
+python-box==7.2.0
 pytest==8.2.2
 pytest-order==1.2.1
 pytest-services==2.2.1
