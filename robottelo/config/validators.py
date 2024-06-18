@@ -36,7 +36,12 @@ VALIDATORS = dict(
         Validator('server.ssh_password', default=None),
         Validator('server.verify_ca', default=False),
         Validator('server.is_ipv6', is_type_of=bool, default=False),
-        Validator('server.http_proxy_ipv6_url', is_type_of=str, default=None),
+        # validate http_proxy_ipv6_url only if is_ipv6 is True
+        Validator(
+            'server.http_proxy_ipv6_url',
+            is_type_of=str,
+            when=Validator('server.is_ipv6', eq=True),
+        ),
     ],
     content_host=[
         Validator('content_host.default_rhel_version', must_exist=True),
@@ -80,16 +85,6 @@ VALIDATORS = dict(
         Validator('capsule.deploy_workflows.os', must_exist=True),
         Validator('capsule.deploy_arguments', must_exist=True, is_type_of=dict, default={}),
     ],
-    certs=[
-        Validator(
-            'certs.cert_file',
-            'certs.key_file',
-            'certs.req_file',
-            'certs.ca_bundle_file',
-            must_exist=True,
-        )
-    ],
-    clients=[Validator('clients.provisioning_server')],
     libvirt=[
         Validator('libvirt.libvirt_hostname', must_exist=True),
         Validator('libvirt.libvirt_image_dir', default='/var/lib/libvirt/images'),
@@ -110,17 +105,6 @@ VALIDATORS = dict(
             'container_repo.registries.quay.repos_to_sync',
             must_exist=True,
         ),
-    ],
-    discovery=[Validator('discovery.discovery_iso', must_exist=True)],
-    distro=[
-        Validator(
-            'distro.image_el7',
-            'distro.image_el6',
-            'distro.image_el8',
-            'distro.image_sles11',
-            'distro.image_sles12',
-            must_exist=True,
-        )
     ],
     docker=[
         Validator(
@@ -329,6 +313,9 @@ VALIDATORS = dict(
         Validator('remotedb.pulp.db_name', default='pulpcore'),
         Validator('remotedb.ssl', default=True),
         Validator('remotedb.port', default=5432),
+    ],
+    robottelo=[
+        Validator('robottelo.settings.ignore_validation_errors', is_type_of=bool, default=False),
     ],
     shared_function=[
         Validator('shared_function.storage', is_in=('file', 'redis'), default='file'),
