@@ -40,10 +40,10 @@ def get_settings():
         try:
             settings.validators.validate()
         except ValidationError as err:
-            logger.warning(
-                f'Dynaconf validation failed, continuing for the sake of unit tests\n{err}'
-            )
-
+            if settings.robottelo.settings.get('ignore_validation_errors'):
+                logger.warning(f'Dynaconf validation failed with\n{err}')
+            else:
+                raise err
         return settings
 
 
