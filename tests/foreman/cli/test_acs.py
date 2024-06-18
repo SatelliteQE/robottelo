@@ -255,3 +255,50 @@ def test_negative_check_simplified_validations(
     )
     assert f'Upstream username {VAL_MUST_BLANK}' in context.value.message
     assert f'Upstream password {VAL_MUST_BLANK}' in context.value.message
+
+
+def test_bulk_actions(module_target_sat, module_yum_repo):
+    """Perform bulk actions with an ACS through CLI.
+
+    :id: cf798893-cbc3-40c8-aa8a-03a6dedb0828
+
+    :CaseImportance: Medium
+
+    :BZ: 2159967
+
+    :steps:
+        1. Create several ACSes.
+        2. Bulk refresh them all by ID
+        3. Bulk refresh them all by refresh-all
+        3. Bulk destroy some of them.
+        4. Cleanup the rest.
+
+    :expectedresults:
+        1. All ACSes can be refreshed via bulk action.
+        2. Only the proper ACSes are deleted on bulk destroy.
+    """
+    acs_ids = []
+    for _ in range(3):
+        # Create
+        acs = module_target_sat.cli.ACS.create(
+            {
+                'name': gen_alphanumeric(),
+                'alternate-content-source-type': 'simplified',
+                'content-type': 'yum',
+                'smart-proxy-ids': module_target_sat.nailgun_capsule.id,
+                'product-ids': [module_yum_repo.product.id],
+            }
+        )
+        acs_ids.append(acs['id'])
+    res = module_target_sat.cli.ACSBulk.refresh({'ids': acs_ids})
+    assert res.strip() == 'Successfully refreshed specified alternate content sources'
+    res = module_target_sat.cli.ACSBulk.refresh_all()
+    assert res.strip() == 'Successfully refreshed all alternate content sources'
+    res = module_target_sat.cli.ACSBulk.destroy({'ids': acs_ids[1:]})
+    assert res.strip() == 'Sucessfully destroyed specified alternate content sources'
+
+    list = [item['id'] for item in module_target_sat.cli.ACS.list()]
+    # assert the first stayed and rest was deleted
+    assert acs_ids[0] in list
+    assert acs_ids[1:] not in list
+    module_target_sat.cli.ACS.delete({'id': acs_ids[0]})
