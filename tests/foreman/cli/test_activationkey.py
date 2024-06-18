@@ -590,7 +590,6 @@ def test_negative_update_usage_limit(module_org, module_target_sat):
     assert 'Validation failed: Max hosts must be less than 2147483648' in raise_ctx.value.message
 
 
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_usage_limit(module_org, module_location, target_sat):
@@ -871,7 +870,6 @@ def test_positive_delete_subscription(function_entitlement_manifest_org, module_
     assert subscription_result[-1]['name'] not in ak_subs_info
 
 
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_update_aks_to_chost(module_org, module_location, rhel7_contenthost, target_sat):
@@ -912,7 +910,6 @@ def test_positive_update_aks_to_chost(module_org, module_location, rhel7_content
         assert rhel7_contenthost.subscribed
 
 
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.stubbed
 @pytest.mark.tier3
 def test_positive_update_aks_to_chost_in_one_command(module_org):
@@ -1601,7 +1598,6 @@ def test_positive_view_subscriptions_by_non_admin_user(
     assert subscriptions[0]['id'] == subscription_id
 
 
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 def test_positive_subscription_quantity_attached(function_org, rhel7_contenthost, target_sat):
     """Check the Quantity and Attached fields of 'hammer activation-key subscriptions'
@@ -1659,7 +1655,6 @@ def test_positive_subscription_quantity_attached(function_org, rhel7_contenthost
         assert regex.match(ak_sub['attached'])
 
 
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 def test_positive_ak_with_custom_product_on_rhel6(
     module_org, module_location, rhel6_contenthost, target_sat
