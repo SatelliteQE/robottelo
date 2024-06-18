@@ -37,7 +37,7 @@ def form_data(target_sat):
         'satellite_url': target_sat.hostname,
         'hypervisor_username': esx.hypervisor_username,
         'hypervisor_password': esx.hypervisor_password,
-        'name': 'preupgrade_virt_who',
+        'name': f'preupgrade_virt_who_{gen_string("alpha")}',
     }
 
 
@@ -118,6 +118,9 @@ class TestScenarioPositiveVirtWho:
                 'hypervisor_name': hypervisor_name,
                 'guest_name': guest_name,
                 'org_id': org.id,
+                'org_name': org.name,
+                'org_label': org.label,
+                'name': vhd.name,
             }
         )
 
@@ -131,23 +134,28 @@ class TestScenarioPositiveVirtWho:
             1. Post upgrade, Verify virt-who exists and has same status.
             2. Verify the connection of the guest on Content host.
             3. Verify the virt-who config-file exists.
-            4. Update virt-who config with new name.
-            5. Delete virt-who config.
+            4. Verify Report is sent to satellite.
+            5. Update virt-who config with new name.
+            6. Delete virt-who config.
 
         :expectedresults:
             1. virt-who config is intact post upgrade.
             2. the config and guest connection have the same status.
-            3. virt-who config should update and delete successfully.
+            3. Report is sent to satellite.
+            4. virt-who config should update and delete successfully.
         """
         org_id = pre_upgrade_data.get('org_id')
+        org_name = pre_upgrade_data.get('org_name')
+        org_label = pre_upgrade_data.get('org_label')
+        name = pre_upgrade_data.get('name')
 
         # Post upgrade, Verify virt-who exists and has same status.
         vhd = target_sat.api.VirtWhoConfig(organization_id=org_id).search(
-            query={'search': f'name={form_data["name"]}'}
+            query={'search': f'name={name}'}
         )[0]
         assert vhd.status == 'ok'
         # Verify virt-who status via CLI as we cannot check it via API now
-        vhd_cli = target_sat.cli.VirtWhoConfig.exists(search=('name', form_data['name']))
+        vhd_cli = target_sat.cli.VirtWhoConfig.exists(search=('name', name))
         assert (
             target_sat.cli.VirtWhoConfig.info({'id': vhd_cli['id']})['general-information'][
                 'status'
@@ -170,6 +178,18 @@ class TestScenarioPositiveVirtWho:
         # Verify the virt-who config-file exists.
         config_file = get_configure_file(vhd.id)
         get_configure_option('hypervisor_id', config_file)
+
+        # Verify Report is sent to satellite.
+        command = get_configure_command(vhd.id, org=org_name)
+        deploy_configure_by_command(
+            command, form_data['hypervisor_type'], debug=True, org=org_label
+        )
+        virt_who_instance = (
+            target_sat.api.VirtWhoConfig(organization_id=org_id)
+            .search(query={'search': f'name={name}'})[0]
+            .status
+        )
+        assert virt_who_instance == 'ok'
 
         # Update virt-who config
         modify_name = gen_string('alpha')
