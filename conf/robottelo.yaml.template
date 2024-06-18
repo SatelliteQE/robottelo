@@ -21,3 +21,4 @@ ROBOTTELO:
   # Dynaconf and Dynaconf hooks related options
   SETTINGS:
     GET_FRESH: true
+    IGNORE_VALIDATION_ERRORS: false
