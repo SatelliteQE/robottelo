@@ -117,16 +117,18 @@ def test_file_cv_display(session, target_sat, module_org, module_product):
     :id: 41719f2f-2170-4b26-b65f-2063a1eac7fb
 
     :steps:
-        1. Create a File Repo, and publish content to it
-        2. Add it to a CV, and publish that CV
-        3. Create a seperate CV, and publish it as well.
+        1. Create a file repo, and upload content into it
+        2. Add file repo to a CV, and publish it
+        3. Create another CV, and publish it
         4. Navigate to the Content -> File section of the UI
 
-    :expectedresults: The CV containing the file repo is displayed, and no other CVs.
+    :expectedresults: Only the Content View with the file repo is displayed.
 
     :BZ: 2026701
 
     :customerscenario: true
+    
+    :Verifies: SAT-17081
     """
     repo_name = gen_string('alpha')
     file_repo = target_sat.api.Repository(
@@ -136,7 +138,7 @@ def test_file_cv_display(session, target_sat, module_org, module_product):
         file_repo.upload_content(files={'content': handle})
     assert file_repo.read().content_counts['file'] == 1
     cv = target_sat.api.ContentView(organization=module_org).create()
-    cv = target_sat.api.ContentView(id=cv.id, repository=[file_repo]).update(["repository"])
+    cv = target_sat.api.ContentView(id=cv.id, repository=[file_repo]).update(['repository'])
     cv.publish()
     cv2 = target_sat.api.ContentView(organization=module_org).create()
     cv2.publish()
