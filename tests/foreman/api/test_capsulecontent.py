@@ -39,7 +39,7 @@ class TestCapsuleContentManagement:
     """
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_uploaded_content_library_sync(
         self,
         module_capsule_configured,
@@ -100,7 +100,7 @@ class TestCapsuleContentManagement:
         assert caps_files[0] == constants.RPM_TO_UPLOAD
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_checksum_sync(
         self, module_capsule_configured, function_org, function_product, function_lce, target_sat
     ):
@@ -298,7 +298,7 @@ class TestCapsuleContentManagement:
         assert len(caps_files) == 2
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_capsule_sync(
         self,
         target_sat,
@@ -443,7 +443,7 @@ class TestCapsuleContentManagement:
         assert sat_files == caps_files
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_iso_library_sync(
         self, module_capsule_configured, module_entitlement_manifest_org, module_target_sat
     ):
@@ -510,7 +510,7 @@ class TestCapsuleContentManagement:
         assert set(sat_isos) == set(caps_isos)
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_on_demand_sync(
         self,
         target_sat,
@@ -595,7 +595,7 @@ class TestCapsuleContentManagement:
         assert package_md5 == published_package_md5
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_update_with_immediate_sync(
         self,
         target_sat,
@@ -697,7 +697,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.skip_if_open("BZ:2122780")
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_capsule_pub_url_accessible(self, module_capsule_configured):
         """Ensure capsule pub url is accessible
 
@@ -720,7 +720,7 @@ class TestCapsuleContentManagement:
             assert b'katello-server-ca.crt' in response.content
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients')
+    @pytest.mark.skip_if_not_set('capsule')
     @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos'])
     def test_positive_sync_kickstart_repo(
         self, target_sat, module_capsule_configured, function_entitlement_manifest_org, distro
@@ -815,7 +815,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.tier4
     @pytest.mark.e2e
-    @pytest.mark.skip_if_not_set('capsule', 'clients')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_container_repo_end_to_end(
         self,
         target_sat,
