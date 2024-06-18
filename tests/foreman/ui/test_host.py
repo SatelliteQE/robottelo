@@ -1211,9 +1211,11 @@ def test_all_hosts_manage_columns(target_sat, function_org, new_host_ui):
 
     :expectedresults: Through the widget you can change the columns on the All Hosts page
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent: Hosts-Content
 
     :Team: Phoenix-subscriptions
+    
+    :Verifies: SAT-19064
     """
     columns = {
         'Host group': True,
