@@ -266,6 +266,8 @@ def test_bulk_actions(module_target_sat, module_yum_repo):
 
     :BZ: 2159967
 
+    :Verifies: SAT-18199
+
     :steps:
         1. Create several ACSes.
         2. Bulk refresh them all by ID
