@@ -203,7 +203,7 @@ def test_negative_rct_not_shows_sca_enabled(
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_rct_shows_sca_enabled(module_sca_manifest, target_sat):
+def test_positive_rct_shows_sca_enabled(module_sca_manifest, module_target_sat):
     """Assert unrestricted (SCA) manifest shows SCA enabled.
 
     :id: 0c6e2f88-1a86-4417-9248-d7bd20584197
@@ -217,8 +217,8 @@ def test_positive_rct_shows_sca_enabled(module_sca_manifest, target_sat):
     :CaseImportance: Medium
     """
     with module_sca_manifest as manifest:
-        target_sat.put(f'{manifest.path}', f'{manifest.name}')
-    result = target_sat.execute(f'rct cat-manifest {module_sca_manifest.name}')
+        module_target_sat.put(f'{manifest.path}', f'{manifest.name}')
+    result = module_target_sat.execute(f'rct cat-manifest {module_sca_manifest.name}')
     assert result.status == 0
     assert 'Content Access Mode: Simple Content Access' in result.stdout
 
