@@ -5,19 +5,23 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.logging import logger
+from robottelo.utils import parse_comma_separated_list
 from robottelo.utils.issue_handlers.jira import add_comment_on_jira
 
 
 def pytest_addoption(parser):
     """Add --jira-comments option to report test results on the Jira issue."""
     help_comment = (
-        'Report/Comment test results on Jira issues. '
-        'Test results marked with "Verifies" or "BlockedBy" doc fields will be commented on the corresponding Jira issues. '
+        'Report/Comment test results on Jira issues.\n'
+        'Results for tests marked with "Verifies" or "BlockedBy" doc fields will be commented on the corresponding Jira issues. '
+        'This behaviour can be overriden by providing a comma separated list of jira issue ids.\n'
         'Note: To prevent accidental use, users must set ENABLE_COMMENT to true in the jira.yaml configuration file.'
     )
     parser.addoption(
         '--jira-comments',
-        action='store_true',
+        type=parse_comma_separated_list,
+        nargs='?',
+        const=True,
         default=False,
         help=help_comment,
     )
@@ -29,16 +33,15 @@ def pytest_configure(config):
     pytest.jira_comments = config.getoption('jira_comments')
 
 
-def update_issue_to_tests_map(item, marker, test_result):
+def update_issue_to_tests_map(item, issues, test_result):
     """If the test has Verifies or BlockedBy doc field,
     an issue to tests mapping will be added/updated in config.issue_to_tests_map
     for each test run with outcome of the test.
     """
-    if marker:
-        for issue in marker.args[0]:
-            item.config.issue_to_tests_map[issue].append(
-                {'nodeid': item.nodeid, 'outcome': test_result}
-            )
+    for issue in issues:
+        item.config.issue_to_tests_map[issue].append(
+            {'nodeid': item.nodeid, 'outcome': test_result}
+        )
 
 
 @pytest.hookimpl(trylast=True, hookwrapper=True)
@@ -48,10 +51,16 @@ def pytest_runtest_makereport(item, call):
     verifies_marker = item.get_closest_marker('verifies_issues')
     blocked_by_marker = item.get_closest_marker('blocked_by')
     enable_jira_comments = item.config.getoption('jira_comments')
+    verifies_issues = verifies_marker.args[0] if verifies_marker else []
+    blocked_by_issues = blocked_by_marker.args[0] if blocked_by_marker else []
+    # Override jira issues to report/comment on.
+    if isinstance(enable_jira_comments, list):
+        verifies_issues = enable_jira_comments
+        blocked_by_issues = []
     if (
         settings.jira.enable_comment
         and enable_jira_comments
-        and (verifies_marker or blocked_by_marker)
+        and (verifies_issues or blocked_by_issues)
     ):
         report = outcome.get_result()
         if report.when == 'teardown':
@@ -67,9 +76,9 @@ def pytest_runtest_makereport(item, call):
             if not hasattr(item.config, 'issue_to_tests_map'):
                 item.config.issue_to_tests_map = defaultdict(list)
             # Update issue_to_tests_map for Verifies testimony marker
-            update_issue_to_tests_map(item, verifies_marker, test_result)
+            update_issue_to_tests_map(item, verifies_issues, test_result)
             # Update issue_to_tests_map for BlockedBy testimony marker
-            update_issue_to_tests_map(item, blocked_by_marker, test_result)
+            update_issue_to_tests_map(item, blocked_by_issues, test_result)
 
 
 def pytest_sessionfinish(session, exitstatus):
