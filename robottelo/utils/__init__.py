@@ -55,3 +55,14 @@ def slugify_component(string, keep_hyphens=True):
     if not keep_hyphens:
         string = string.replace('-', '_')
     return re.sub("[^-_a-zA-Z0-9]", "", string.lower())
+
+
+def parse_comma_separated_list(option_value):
+    """Mainly used for parsing pytest option values."""
+    if isinstance(option_value, str):
+        if option_value.lower() == 'true':
+            return True
+        if option_value.lower() == 'false':
+            return False
+        return [item.strip() for item in option_value.split(',')]
+    return None
