@@ -163,8 +163,8 @@ def pytest_collection_modifyitems(items, config):
 
     # split the option string and handle no option, single option, multiple
     # config.getoption(default) doesn't work like you think it does, hence or ''
-    importance = [i for i in (config.getoption('importance') or '').split(',') if i != '']
-    component = [c for c in (config.getoption('component') or '').split(',') if c != '']
+    importance = [i.lower() for i in (config.getoption('importance') or '').split(',') if i != '']
+    component = [c.lower() for c in (config.getoption('component') or '').split(',') if c != '']
     team = [a.lower() for a in (config.getoption('team') or '').split(',') if a != '']
     verifies_issues = config.getoption('verifies_issues')
     blocked_by = config.getoption('blocked_by')
@@ -192,10 +192,10 @@ def pytest_collection_modifyitems(items, config):
             # only add the mark if it hasn't already been applied at a lower scope
             doc_component = component_regex.findall(docstring)
             if doc_component and 'component' not in item_mark_names:
-                item.add_marker(pytest.mark.component(doc_component[0]))
+                item.add_marker(pytest.mark.component(doc_component[0].lower()))
             doc_importance = importance_regex.findall(docstring)
             if doc_importance and 'importance' not in item_mark_names:
-                item.add_marker(pytest.mark.importance(doc_importance[0]))
+                item.add_marker(pytest.mark.importance(doc_importance[0].lower()))
             doc_team = team_regex.findall(docstring)
             if doc_team and 'team' not in item_mark_names:
                 item.add_marker(pytest.mark.team(doc_team[0].lower()))
