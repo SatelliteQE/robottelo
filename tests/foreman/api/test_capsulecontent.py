@@ -68,6 +68,20 @@ def default_non_admin_user(target_sat, default_org, default_location):
     user.delete()
 
 
+@pytest.fixture(scope='module')
+def module_autosync_setting(request, module_target_sat, module_capsule_configured):
+    """Set capsule autosync setting"""
+    setting_entity = module_target_sat.api.Setting().search(
+        query={'search': 'name=foreman_proxy_content_auto_sync'}
+    )[0]
+    original_autosync = setting_entity.value
+    setting_entity.value = request.param
+    setting_entity.update({'value'})
+    yield
+    setting_entity.value = original_autosync
+    setting_entity.update({'value'})
+
+
 @pytest.mark.run_in_one_thread
 class TestCapsuleContentManagement:
     """Content Management related tests, which exercise katello with pulp
@@ -1650,6 +1664,113 @@ class TestCapsuleContentManagement:
         assert (
             counts is None or len(counts['content_view_versions']) == 0
         ), f"No content counts expected, but got:\n{counts['content_view_versions']}."
+
+    @pytest.mark.parametrize('module_autosync_setting', [True], indirect=True)
+    @pytest.mark.parametrize(
+        'setting_update', ['automatic_content_count_updates=False'], indirect=True
+    )
+    def test_automatic_content_counts_update_toggle(
+        self,
+        target_sat,
+        module_capsule_configured,
+        module_autosync_setting,
+        setting_update,
+        function_org,
+        function_product,
+        function_lce,
+    ):
+        """Verify the automatic content counts update can be turned off and on again.
+
+        :id: aa8d50e3-c04c-4e0f-a1c2-544767331973
+
+        :setup:
+            1. Satellite with registered external Capsule.
+            2. foreman_proxy_content_auto_sync setting is turned on.
+            3. automatic_content_count_updates setting is turned off.
+
+        :steps:
+            1. Sync some content to the Capsule, capsule is synced automatically.
+            2. Verify no content counts update task was spawned after capsule sync completed.
+            3. Invoke manual capsule sync and verify no update task was spawned again.
+            4. Turn the automatic_content_count_updates on, invoke manual capsule sync again
+               and verify the update task was spawned this time.
+
+        :expectedresults:
+            1. Capsule content counts update task respects the setting.
+
+        :CaseImportance: Medium
+
+        :BlockedBy: SAT-25503
+
+        :BZ: 2284027
+
+        :customerscenario: true
+        """
+        # Sync some content to the Capsule, capsule is synced automatically.
+        repo = target_sat.api.Repository(
+            product=function_product, url=settings.repos.yum_1.url
+        ).create()
+        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': function_lce.id}
+        )
+        capsule_lces = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        assert len(capsule_lces['results'])
+        assert function_lce.id in [lce['id'] for lce in capsule_lces['results']]
+
+        cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
+        repo.sync()
+        cv.publish()
+        cv = cv.read()
+
+        cvv = cv.version[-1].read()
+        timestamp = datetime.utcnow()
+        cvv.promote(data={'environment_ids': function_lce.id})
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
+
+        # Verify no content counts update task was spawned after capsule sync completed.
+        with pytest.raises(AssertionError) as err:
+            target_sat.wait_for_tasks(
+                search_query=(
+                    'label = Actions::Katello::CapsuleContent::UpdateContentCounts'
+                    f' and started_at >= "{timestamp}"'
+                ),
+                search_rate=5,
+                max_tries=12,
+            )
+        assert 'No task was found' in str(err)
+
+        # Invoke manual capsule sync and verify no update task again.
+        sync_status = module_capsule_configured.nailgun_capsule.content_sync()
+        assert sync_status['result'] == 'success'
+
+        with pytest.raises(AssertionError) as err:
+            target_sat.wait_for_tasks(
+                search_query=(
+                    'label = Actions::Katello::CapsuleContent::UpdateContentCounts'
+                    f' and started_at >= "{timestamp}"'
+                ),
+                search_rate=5,
+                max_tries=12,
+            )
+        assert 'No task was found' in str(err)
+
+        # Turn the automatic_content_count_updates on, invoke manual capsule sync again
+        # and verify the update task was spawned this time.
+        setting_update.value = True
+        setting_update = setting_update.update({'value'})
+
+        sync_status = module_capsule_configured.nailgun_capsule.content_sync()
+        assert sync_status['result'] == 'success'
+
+        target_sat.wait_for_tasks(
+            search_query=(
+                'label = Actions::Katello::CapsuleContent::UpdateContentCounts'
+                f' and started_at >= "{timestamp}"'
+            ),
+            search_rate=5,
+            max_tries=12,
+        )
 
     def test_positive_read_with_non_admin_user(
         self,
