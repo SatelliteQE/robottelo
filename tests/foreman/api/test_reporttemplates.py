@@ -474,9 +474,9 @@ def test_positive_applied_errata_report_with_invalid_errata(
 
     :expectedresults: A report is generated without failures
 
-    :CaseImportance: High
-
     :BZ: 2176368
+
+    :customerscenario: true
     """
     activation_key = target_sat.api.ActivationKey(
         environment=function_lce, organization=function_org
