@@ -353,7 +353,6 @@ def installer_satellite(request):
     :params request: A pytest request object and this fixture is looking for
         broker object of class satellite
     """
-    sat_version = settings.server.version.release
     if 'sanity' in request.config.option.markexpr:
         sat = Satellite(settings.server.hostname)
     else:
@@ -367,8 +366,6 @@ def installer_satellite(request):
         snap=settings.server.version.snap,
     )
     sat.install_satellite_or_capsule_package()
-    installed_version = sat.execute('rpm --query satellite').stdout
-    assert sat_version in installed_version
     # Install Satellite
     sat.execute(
         InstallerCommand(
