@@ -33,7 +33,7 @@ def module_manifest():
 @pytest.fixture(scope='module')
 def module_org_with_parameter(module_target_sat, module_manifest):
     # adding remote_execution_connect_by_ip=Yes at org level
-    org = module_target_sat.api.Organization(simple_content_access=True).create()
+    org = module_target_sat.api.Organization().create()
     module_target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
         parameter_type='boolean',
