@@ -168,8 +168,6 @@ def test_positive_end_to_end(
     :parametrized: yes
 
     :CaseImportance: Critical
-
-    :BlockedBy: SAT-25817
     """
     # Read rhel distro param, determine what rhel lifecycle status should be
     _distro = module_repos_collection_with_manifest.distro
@@ -1407,50 +1405,6 @@ def test_unset_syspurpose_attributes_cli(session, default_location, vm_module_st
     'module_repos_collection_with_manifest',
     [
         {
-<<<<<<< HEAD
-            'distro': 'rhel8',
-            'YumRepository': [
-                {'url': settings.repos.rhel8_os.baseos},
-                {'url': settings.repos.rhel8_os.appstream},
-                {'url': settings.repos.satutils_repo},
-                {'url': settings.repos.module_stream_1.url},
-            ],
-        }
-    ],
-    indirect=True,
-)
-def test_syspurpose_matched(session, default_location, vm_module_streams):
-    """
-    Test that syspurpose status is set as 'Matched' if auto-attach
-    is performed on the content host, and correct subscriptions are
-    available on the Satellite
-
-    :id: 6b1ca2f9-5bf2-414f-971e-6bb5add69789
-
-    :expectedresults: Syspurpose status is Matched
-
-    :parametrized: yes
-
-    :CaseImportance: High
-    """
-    run_remote_command_on_content_host('syspurpose set-sla Premium', vm_module_streams)
-    run_remote_command_on_content_host('subscription-manager attach --auto', vm_module_streams)
-    with session:
-        session.location.select(default_location.name)
-        details = session.contenthost.read(vm_module_streams.hostname, widget_names='details')[
-            'details'
-        ]
-        assert details['system_purpose_status'] == 'Matched'
-
-
-@pytest.mark.skip_if_not_set('fake_manifest')
-@pytest.mark.tier3
-@pytest.mark.parametrize(
-    'module_repos_collection_with_manifest',
-    [
-        {
-=======
->>>>>>> 03b71b723 (Updating Host tests to be sca only)
             'distro': 'rhel7',
             'RHELAnsibleEngineRepository': {'cdn': True},
             'SatelliteToolsRepository': {},
@@ -1489,51 +1443,6 @@ def test_syspurpose_bulk_action(session, default_location, vm):
             assert val in result.stdout
 
 
-<<<<<<< HEAD
-@pytest.mark.skip_if_not_set('fake_manifest')
-@pytest.mark.tier3
-@pytest.mark.parametrize(
-    'module_repos_collection_with_manifest',
-    [
-        {
-            'distro': 'rhel8',
-            'YumRepository': [
-                {'url': settings.repos.rhel8_os.baseos},
-                {'url': settings.repos.rhel8_os.appstream},
-                {'url': settings.repos.satutils_repo},
-                {'url': settings.repos.module_stream_1.url},
-            ],
-        }
-    ],
-    indirect=True,
-)
-def test_syspurpose_mismatched(session, default_location, vm_module_streams):
-    """
-    Test that syspurpose status is 'Mismatched' if a syspurpose attribute
-    is changed to a different value than the one contained in the currently
-    attached subscription.
-
-    :id: de71cfd7-eeb8-4a4c-b448-8c5aa5af7f06
-
-    :expectedresults: Syspurpose status is 'Mismatched'
-
-    :parametrized: yes
-
-    :CaseImportance: High
-    """
-    run_remote_command_on_content_host('syspurpose set-sla Premium', vm_module_streams)
-    run_remote_command_on_content_host('subscription-manager attach --auto', vm_module_streams)
-    run_remote_command_on_content_host('syspurpose set-sla Standard', vm_module_streams)
-    with session:
-        session.location.select(default_location.name)
-        details = session.contenthost.read(vm_module_streams.hostname, widget_names='details')[
-            'details'
-        ]
-        assert details['system_purpose_status'] == 'Mismatched'
-
-
-=======
->>>>>>> 03b71b723 (Updating Host tests to be sca only)
 @pytest.mark.tier3
 def test_pagination_multiple_hosts_multiple_pages(session, module_host_template, target_sat):
     """Create hosts to fill more than one page, sort on OS, check pagination.
