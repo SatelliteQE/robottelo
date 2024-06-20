@@ -168,6 +168,8 @@ def test_positive_end_to_end(
     :parametrized: yes
 
     :CaseImportance: Critical
+
+    :BlockedBy: SAT-25817
     """
     # Read rhel distro param, determine what rhel lifecycle status should be
     _distro = module_repos_collection_with_manifest.distro
