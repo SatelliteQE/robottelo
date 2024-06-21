@@ -226,6 +226,7 @@ def test_positive_sync_upstream_repo_with_zst_compression(
 
 
 @pytest.mark.tier1
+@pytest.mark.manifester
 def test_negative_upload_expired_manifest(module_org, target_sat):
     """Upload an expired manifest and attempt to refresh it
 
