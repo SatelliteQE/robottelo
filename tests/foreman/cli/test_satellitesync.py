@@ -211,14 +211,12 @@ def function_synced_AC_repo(target_sat, function_org, function_product):
 
 @pytest.fixture
 def function_restrictive_umask(target_sat):
-    original_mask = target_sat.execute('umask').stdout.strip()[-3:]
     new_mask = '077'
-    target_sat.execute(f'sed -i "s/umask {original_mask}/umask {new_mask}/g" /etc/bashrc')
-    assert (
-        new_mask in target_sat.execute('umask').stdout
-    ), f'Failed to set umask from {original_mask} to {new_mask}'
+    mask_override = f'umask {new_mask} # {gen_string("alpha")}'
+    target_sat.execute(f'echo "{mask_override}" >> /etc/bashrc')
+    assert new_mask in target_sat.execute('umask').stdout, f'Failed to set new umask to {new_mask}'
     yield
-    target_sat.execute(f'sed -i "s/umask {new_mask}/umask {original_mask}/g" /etc/bashrc')
+    target_sat.execute(f'sed -i "/{mask_override}/d" /etc/bashrc')
 
 
 @pytest.mark.run_in_one_thread
