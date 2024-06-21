@@ -581,12 +581,14 @@ def test_positive_check_manifest_validity_notification(
         5. Upload non-expired manifest
         6. Go to Content > Subscription page, click on 'Manage Manifest' button.
         7. Search for message string 'Manifest expiring soon', or 'Your manifest will expire'
-        8. Delete expired manifest from this org (cleanup part)
+        8. Delete non-expired manifest from this org (cleanup part)
 
     :expectedresults:
         1. 'Manifest expired', 'Manifest expiring soon' messages appear on Manage Manifest modal box
 
     :BZ: 2075163
+
+    :Verifies: SAT-11630
 
     :customerscenario: true
     """
@@ -629,7 +631,7 @@ def test_positive_check_manifest_validity_notification(
         assert (
             'Manifest expiring soon' in expiring_soon['header']
         ), 'Manifest expire alert not found'
-
+        assert formatted_date in expiring_soon['date']
         session.subscription.refresh_manifest()
         expires_date = session.subscription.read_subscription_manifest_expiration_date_only()
         assert formatted_date in expires_date
