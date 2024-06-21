@@ -2685,8 +2685,7 @@ def test_positive_create_host_with_lifecycle_environment_name(
     assert found_host, 'Assertion failed: host not found'
 
 
-@pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('^6')
 @pytest.mark.parametrize(
     'setting_update', ['validate_host_lce_content_source_coherence'], indirect=False
 )
@@ -2702,23 +2701,26 @@ def test_positive_host_registration_with_capsule(
 
     :id: 17dbec62-eed4-4a51-9927-80919457a124
 
-    :BZ: SAT-22048
+    :Verifies: SAT-22048
 
     :setup:
         1. Create AK which is associated with the organization
         2. Configure capsule with satellite
+
     :steps:
         1. Register client with capsule when settings "validate_host_lce_content_source_coherence" is set to Yes
         2. Check output for "HTTP error code 422: Validation failed: Content view environment content facets is invalid"
         3. Re-register client with settings "validate_host_lce_content_source_coherence" is set to No
-        4. Check output there should not any error like "Validation failed" or "HTTP error code 422"
+        4. Check output there should not be any error like "Validation failed" or "HTTP error code 422"
 
     :expectedresults: Host registration success with error when settings set to Yes and Host registration success when
      settings set to No
 
     :customerscenario: true
 
-    :CaseImportance: Medium
+    :parametrized: yes
+
+    :CaseImportance: High
     """
     # set a new proxy
     target_sat.cli.Capsule.update(
@@ -2729,25 +2731,31 @@ def test_positive_host_registration_with_capsule(
         {'name': 'validate_host_lce_content_source_coherence', 'value': 'true'}
     )
     result = rhel_contenthost.register(
-        function_sca_manifest_org, None, function_activation_key.name, capsule_configured
+        function_sca_manifest_org,
+        None,
+        function_activation_key.name,
+        capsule_configured,
+        force=True,
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # Check output for "HTTP error code 422: Validation failed: Content view environment content facets is invalid"
     assert 'Validation failed' in result.stderr, f'Error is: {result.stderr}'
     assert 'HTTP error code 422' in result.stderr, f'Error is: {result.stderr}'
-    rhel_contenthost.unregister()
 
     # Re-register client with settings "validate_host_lce_content_source_coherence" is set to No
     target_sat.cli.Settings.set(
         {'name': 'validate_host_lce_content_source_coherence', 'value': 'false'}
     )
     result = rhel_contenthost.register(
-        function_sca_manifest_org, None, function_activation_key.name, capsule_configured
+        function_sca_manifest_org,
+        None,
+        function_activation_key.name,
+        capsule_configured,
+        force=True,
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # Check output there should not any error like "Validation failed" or "HTTP error code 422"
     assert 'Validation failed' not in result.stderr, f'Error is: {result.stderr}'
     assert 'HTTP error code 422' not in result.stderr, f'Error is: {result.stderr}'
-    rhel_contenthost.unregister()
