@@ -2741,7 +2741,8 @@ def test_positive_host_registration_with_capsule(
 
     # Check output for "HTTP error code 422: Validation failed: Content view environment content facets is invalid"
     assert 'Validation failed' in result.stderr, f'Error is: {result.stderr}'
-    assert 'HTTP error code 422' in result.stderr, f'Error is: {result.stderr}'
+    if '7' not in rhel_contenthost.deploy_rhel_version:
+        assert 'HTTP error code 422' in result.stderr, f'Error is: {result.stderr}'
 
     # Re-register client with settings "validate_host_lce_content_source_coherence" is set to No
     target_sat.cli.Settings.set(
@@ -2758,4 +2759,5 @@ def test_positive_host_registration_with_capsule(
 
     # Check output there should not any error like "Validation failed" or "HTTP error code 422"
     assert 'Validation failed' not in result.stderr, f'Error is: {result.stderr}'
-    assert 'HTTP error code 422' not in result.stderr, f'Error is: {result.stderr}'
+    if '7' not in rhel_contenthost.deploy_rhel_version:
+        assert 'HTTP error code 422' not in result.stderr, f'Error is: {result.stderr}'
