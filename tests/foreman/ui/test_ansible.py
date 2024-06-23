@@ -12,6 +12,7 @@
 from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
+from wrapanapi.systems.virtualcenter import vim
 import yaml
 
 from robottelo import constants
@@ -21,6 +22,14 @@ from robottelo.config import (
     settings,
     user_nailgun_config,
 )
+from robottelo.constants import (
+    COMPUTE_PROFILE_SMALL,
+    DEFAULT_CV,
+    ENVIRONMENT,
+    FOREMAN_PROVIDERS,
+    VMWARE_CONSTANTS,
+)
+from tests.foreman.ui.test_computeresource_vmware import _get_normalized_size
 
 
 class TestAnsibleCfgMgmt:
@@ -715,3 +724,122 @@ class TestAnsibleREX:
 
         :expectedresults: Scheduled Job appears in the Job Invocation list at the appointed time
         """
+
+    @pytest.mark.e2e
+    @pytest.mark.on_premises_provisioning
+    @pytest.mark.parametrize('vmware', ['vmware8'], indirect=True)
+    @pytest.mark.parametrize('pxe_loader', ['bios'], indirect=True)
+    @pytest.mark.parametrize('provision_method', ['bootdisk'])
+    @pytest.mark.rhel_ver_match('[8]')
+    @pytest.mark.tier3
+    def test_provision_host_with_hostgroup_role(
+        self,
+        module_sca_manifest_org,
+        module_location,
+        pxe_loader,
+        module_vmware_cr,
+        module_vmware_hostgroup,
+        provision_method,
+        vmware,
+        vmwareclient,
+        target_sat,
+        module_provisioning_rhel_content,
+        module_host_template,
+    ):
+        """Assign Ansible Role to a Hostgroup and verify after provision a Host, job is schedule
+        for ansible role
+
+        :id: 500f32e8-c1db-4ef9-ae20-0dbb5bccf2ea
+
+        :steps:
+            1. Import role(s) available by default.
+            2. Assign role(s) to Hostgroup.
+            3. Provision a Host with Hostgroup.
+            4. In Host -> Overview -> Select the "Recent Job" action.
+            5. Click the Schedule Job button.
+            6. Verify that the Ansible roles has been Scheduled.
+
+        :expectedresults: The role is successfully scheduled with provisioned host.
+
+        :BZ: 2025523
+
+        :customerscenario: true
+        """
+        SELECTED_ROLE = 'theforeman.foreman_scap_client'
+        host_name = gen_string('alpha').lower()
+        guest_os_names = 'Red Hat Enterprise Linux 8 (64 bit)'
+        data_store_summary = [
+            h
+            for h in vmwareclient.get_obj_list(vim.Datastore)
+            if h.host and h.name == settings.vmware.datastore
+        ][0].summary
+        uncommitted = data_store_summary.uncommitted or 0
+        capacity = _get_normalized_size(data_store_summary.capacity)
+        free_space = _get_normalized_size(data_store_summary.freeSpace)
+        prov = _get_normalized_size(
+            data_store_summary.capacity + uncommitted - data_store_summary.freeSpace
+        )
+        storage_data = {
+            'storage': {
+                'disks': [
+                    {
+                        'data_store': f'{settings.vmware.datastore} (free: {free_space}, prov: {prov}, total: {capacity})'
+                    }
+                ]
+            }
+        }
+        network_data = {
+            'network_interfaces': {
+                'nic_type': VMWARE_CONSTANTS['network_interface_name'],
+                'network': f'VLAN {settings.provisioning.vlan_id}',
+            }
+        }
+        with target_sat.ui_session() as session:
+            session.ansibleroles.import_all_roles()
+            session.location.select(module_location.name)
+            session.organization.select(module_sca_manifest_org.name)
+            assert (
+                session.ansibleroles.import_all_roles() == session.ansibleroles.imported_roles_count
+            )
+            session.hostgroup.assign_role_to_hostgroup(
+                module_vmware_hostgroup.name, {'ansible_roles.resources': SELECTED_ROLE}
+            )
+            assert SELECTED_ROLE in session.hostgroup.read_role(host_name, SELECTED_ROLE)
+            session.computeresource.update_computeprofile(
+                entity_name=module_vmware_cr.name,
+                compute_profile=COMPUTE_PROFILE_SMALL,
+                values={
+                    'provider_content.memory': '6000',
+                    'provider_content.cluster': settings.vmware.cluster,
+                    'provider_content.guest_os': guest_os_names,
+                    'provider_content.storage': [value for value in storage_data.values()],
+                    'provider_content.network_interfaces': [
+                        value for value in network_data.values()
+                    ],
+                },
+            )
+            session.host.create(
+                {
+                    'host.name': host_name,
+                    'host.hostgroup': module_vmware_hostgroup.name,
+                    'host.inherit_deploy_option': False,
+                    'host.deploy': module_vmware_cr.name + f' ({FOREMAN_PROVIDERS["vmware"]})',
+                    'host.inherit_compute_profile_option': False,
+                    'host.compute_profile': COMPUTE_PROFILE_SMALL,
+                    'host.content_source': target_sat.hostname,
+                    'host.lce': ENVIRONMENT,
+                    'host.content_view': DEFAULT_CV,
+                }
+            )
+            wait_for(
+                lambda: session.host_new.get_host_statuses(host_name)['Build']['Status']
+                != 'Pending installation',
+                timeout=1800,
+                delay=30,
+                fail_func=session.browser.refresh,
+                silent_failure=True,
+                handle_exception=True,
+            )
+            values = session.host_new.get_host_statuses(host_name)
+            assert values['Build']['Status'] == 'Installed'
+            assert values['Execution']['Status'] == 'Last execution succeeded'
