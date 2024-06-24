@@ -618,6 +618,7 @@ def test_positive_check_manifest_validity_notification(
         target_sat.upload_manifest(function_org.id, function_sca_manifest.content)
 
         # Initially 'Manifest expiring soon' message not found
+        assert not session.subscription.is_subscription_manifest_header_message_display()
         # then update the 'Expire soon days' value from settings > Content
         # value should be greater than 365 to get expected output message
         setting_update.value = 366
