@@ -54,6 +54,12 @@ class Ansible(Base):
         return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
+    def variables_delete(cls, options=None):
+        """Delete ansible variables"""
+        cls.command_sub = 'variables delete'
+        return cls.execute(cls._construct_command(options), output_format='csv')
+
+    @classmethod
     def variables_info(cls, options=None):
         """Information about ansible variables"""
         cls.command_sub = 'variables info'
