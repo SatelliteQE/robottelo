@@ -245,7 +245,7 @@ class SystemInfo:
             f"ss -tnaH sport ge {port_pool[0]} sport le {port_pool[-1]}"
             " | awk '{n=split($4, p, \":\"); print p[n]}' | sort -u"
         )
-        if ss_cmd.stderr[1]:
+        if ss_cmd.stderr:
             raise CapsuleTunnelError(
                 f'Failed to create ssh tunnel: Error getting port status: {ss_cmd.stderr}'
             )
