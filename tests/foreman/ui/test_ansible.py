@@ -9,7 +9,7 @@
 :CaseImportance: Critical
 """
 
-from fauxfactory import gen_string
+from fauxfactory import gen_email, gen_string
 import pytest
 from wait_for import wait_for
 import yaml
@@ -454,6 +454,63 @@ class TestAnsibleCfgMgmt:
                 result['ansible']['roles']['noRoleAssign']
                 == 'No roles assigned directly to the host'
             )
+
+    @pytest.mark.tier3
+    def test_positive_non_admin_access(self, target_sat, test_name, module_location, module_org):
+        """Verify non-admin user can access the ansible page on WebUI
+
+        :id: 82d30664-1b74-457c-92e2-31a5ba89e826
+
+        :BZ: 2158508
+
+        :steps:
+            1. Create user with non-admin (in my case ldap based)
+            2. Create usergroup with administrator role (in my case ldap based)
+            3. Log in as an user and try to access WebUI -> Hosts -> select host -> Ansible
+
+        :expectedresults: See Ansible page as user should be administrator due to usergroup
+        """
+        name = gen_string('alpha')
+        hst_grp = gen_string('alpha')
+        password = gen_string('alpha')
+        email = gen_email()
+        login_text_data = gen_string('alpha', 270)
+        user_group = target_sat.api.UserGroup().create()
+        with target_sat.ui_session() as session:
+            session.location.select(module_location.name)
+            session.organization.select(module_org.name)
+            session.user.create(
+                {
+                    'user.login': name,
+                    'user.auth': 'INTERNAL',
+                    'user.password': password,
+                    'user.confirm': password,
+                    'user.mail': email,
+                    'roles.admin': False,
+                }
+            )
+            session.usergroup.create(
+                {
+                    'usergroup.name': hst_grp,
+                    'usergroup.users': {'assigned': [name]},
+                    'usergroup.usergroups': {'assigned': [user_group.name]},
+                    'roles.admin': True,
+                    'roles.resources': {'assigned': ['Ansible Roles Manager']},
+                }
+            )
+            result = session.login.logout()
+            assert result["login_text"] == login_text_data
+            with target_sat.ui_session(test_name, name, password) as newsession:
+                newsession.location.select(module_location.name)
+                newsession.organization.select(module_org.name)
+                values = newsession.host_new.get_details(target_sat.hostname)
+                assert (
+                    values['ansible']['roles']['noRoleAssign']
+                    == 'No roles assigned directly to the host'
+                )
+            with target_sat.ui_session('deletehostsession') as deletehostsession:
+                deletehostsession.user.delete(name)
+                assert not deletehostsession.user.search(name)
 
 
 class TestAnsibleREX:
