@@ -165,15 +165,16 @@ class TestAnsibleCfgMgmt:
 
         @request.addfinalizer
         def _finalize():
-            result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
-            assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
+            result = target_sat.cli.Ansible.variables_delete({'name': key})
+            assert f'Ansible variable [{key}] was deleted.' in result[0]['message']
+            for role in SELECTED_ROLE:
+                result = target_sat.cli.Ansible.roles_delete({'name': role})
+                assert f'Ansible role [{role}] was deleted.' in result[0]['message']
 
         key = gen_string('alpha')
-        SELECTED_ROLE = 'redhat.satellite.activation_keys'
+        SELECTED_ROLE = ['redhat.satellite.activation_keys', 'RedHatInsights.insights-client']
         proxy_id = target_sat.nailgun_smart_proxy.id
-        target_sat.api.AnsibleRoles().sync(
-            data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]}
-        )
+        target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': SELECTED_ROLE})
         result = rhel_contenthost.api_register(
             target_sat,
             organization=module_org,
@@ -191,7 +192,7 @@ class TestAnsibleCfgMgmt:
             session.ansiblevariables.create_with_overrides(
                 {
                     'key': key,
-                    'ansible_role': SELECTED_ROLE,
+                    'ansible_role': SELECTED_ROLE[0],
                     'override': 'true',
                     'parameter_type': parameter_type,
                     'default_value': default_value,
@@ -208,14 +209,19 @@ class TestAnsibleCfgMgmt:
                 }
             )
             result = target_sat.cli.Host.ansible_roles_assign(
-                {'id': target_host.id, 'ansible-roles': SELECTED_ROLE}
+                {'id': target_host.id, 'ansible-roles': ','.join(SELECTED_ROLE)}
             )
             assert 'Ansible roles were assigned' in result[0]['message']
-            values = session.host_new.get_details(rhel_contenthost.hostname, 'ansible')['ansible'][
-                'variables'
-            ]['table']
-            assert (key, SELECTED_ROLE, default_value, parameter_type) in [
-                (var['Name'], var['Ansible role'], var['Value'], var['Type']) for var in values
+
+            values = session.host_new.get_details(rhel_contenthost.hostname, 'ansible')['ansible']
+            roles_table = values['roles']['table']
+            variable_table = values['variables']['table']
+            for role in SELECTED_ROLE:
+                var_count = str(len([v for v in variable_table if v['Ansible role'] == role]))
+                assert (role, var_count) in [(r['Name'], r['Variables']) for r in roles_table]
+
+            assert (key, SELECTED_ROLE[0], parameter_type, default_value) in [
+                (v['Name'], v['Ansible role'], v['Type'], v['Value']) for v in variable_table
             ]
 
     @pytest.mark.stubbed
