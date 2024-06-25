@@ -455,6 +455,66 @@ class TestAnsibleCfgMgmt:
                 == 'No roles assigned directly to the host'
             )
 
+    @pytest.mark.tier2
+    def test_positive_assign_and_remove_ansible_role_to_hostgroup(
+        self,
+        target_sat,
+        module_org,
+        module_location,
+    ):
+        """Add and remove functionality for ansible roles in hostgroup
+
+        :id: 5d94a484-92c1-4387-ab92-0649e4c4f907
+
+        :steps:
+            1. Import all roles available by default.
+            2. Assign ansible role while creating the hostgroup
+            3. Assign ansible role after creating the hostgroup
+            4. Remove previously added ansible roles from the hostgroup
+
+        :expectedresults: The Ansible Role is successfully added and removed from the hostgroup
+        """
+        SELECTED_ROLE = [
+            'RedHatInsights.insights-client',
+            'redhat.satellite.hostgroups',
+            'redhat.satellite.compute_profiles',
+        ]
+        name = gen_string('alpha').lower()
+        with target_sat.ui_session() as session:
+            synced_all_role = session.ansibleroles.import_all_roles()
+            total_imported_roles = session.ansibleroles.imported_roles_count
+            # verify all roles are synced
+            assert synced_all_role == total_imported_roles
+
+            session.location.select(module_location.name)
+            session.organization.select(module_org.name)
+            # Assign Ansible role(s) while creating the hostgroup.
+            session.hostgroup.create(
+                {
+                    'host_group.name': name,
+                    'ansible_roles.resources': SELECTED_ROLE[:2],
+                }
+            )
+            # verify ansible role(s) assigned properly while creating a host group.
+            assert session.hostgroup.read_role(name, SELECTED_ROLE) == SELECTED_ROLE[:2]
+
+            session.hostgroup.assign_role_to_hostgroup(
+                name, {'ansible_roles.resources': SELECTED_ROLE[2]}
+            )
+            # verify ansible role(s) assigned properly after creating the hostgroup.
+            assert SELECTED_ROLE[2] in session.hostgroup.read_role(name, SELECTED_ROLE)
+
+            session.hostgroup.remove_hostgroup_role(
+                name, {'ansible_roles.resources': SELECTED_ROLE[0]}
+            )
+            # verify ansible role(s) removed properly from the host group.
+            assert SELECTED_ROLE[0] not in session.hostgroup.read_role(name, SELECTED_ROLE)
+            assert SELECTED_ROLE[1:] == session.hostgroup.read_role(name, SELECTED_ROLE)
+
+            # Delete host group
+            session.hostgroup.delete(name)
+            assert not target_sat.api.HostGroup().search(query={'search': f'name={name}'})
+
 
 class TestAnsibleREX:
     """Test class for remote execution via Ansible
