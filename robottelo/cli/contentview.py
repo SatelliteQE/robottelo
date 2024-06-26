@@ -20,6 +20,7 @@ Subcommands::
     info                          Show a content view
     list                          List content views
     publish                       Publish a content view
+    purge                         Delete old versions of a content view
     remove                        Remove versions and/or environments from a
                                   content view and reassign systems and keys
     remove-from-environment       Remove a content view from an environment
@@ -111,6 +112,12 @@ class ContentView(Base):
     def publish(cls, options, timeout=1500000):
         """Publishes a new version of content-view."""
         cls.command_sub = 'publish'
+        return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)
+
+    @classmethod
+    def purge(cls, options, timeout=1500000):
+        """Purges old versions of content-view. Defaults to keeping 3"""
+        cls.command_sub = 'purge'
         return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)
 
     @classmethod

@@ -3208,6 +3208,42 @@ class TestContentView:
         list_info = module_target_sat.cli.ContentView.list({'name': cv.name})
         assert set(list_info[0]['repository-ids'].split(', ')) == set(id_list)
 
+    @pytest.mark.tier2
+    def test_cv_version_purge(self, module_org, module_target_sat):
+        """Hammer content-view purge correctly purges CV Versions, instead
+        of just up to the per page value
+
+        :id: c2db24cd-946a-4cb6-828d-0e0f38b8ef00
+
+        :steps:
+            1. Create a CV
+            2. Publish the CV 50 times
+            3. Run hammer content-view purge --id <cv.id>
+
+        :expectedresults: Hammer should purge all but 3 old versions, not just up to the
+        per page value
+
+        :Verifies: SAT-15185
+
+        :customerscenario: true
+        """
+        content_view = module_target_sat.cli_factory.make_content_view(
+            {'organization-id': module_org.id}
+        )
+        for _ in range(50):
+            module_target_sat.cli.ContentView.publish({'id': content_view['id']})
+        cvv = module_target_sat.cli.ContentView.version_list(
+            {'content-view-id': content_view['id']}
+        )
+        assert len(cvv) == 50
+        response = module_target_sat.cli.ContentView.purge({'id': content_view['id']})
+        assert response
+        # Check that the correct number of Versions were purged.
+        cvv = module_target_sat.cli.ContentView.version_list(
+            {'content-view-id': content_view['id']}
+        )
+        assert len(cvv) == 4
+
     def test_positive_validate_force_promote_warning(self, target_sat, function_org):
         """Test cv promote shows warning of 'force promotion' for out of sequence LCE
 
