@@ -1029,26 +1029,6 @@ def test_positive_delete_products(module_org, target_sat):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_delete_synced_product(module_org, module_target_sat):
-    """Create a sync plan with one synced product and delete it.
-
-    :id: 195d8fec-1fa0-42ab-84a5-32dd81a285ca
-
-    :expectedresults: A sync plan is created with one synced product and
-        sync plan can be deleted.
-    """
-    sync_plan = module_target_sat.api.SyncPlan(organization=module_org).create()
-    product = module_target_sat.api.Product(organization=module_org).create()
-    module_target_sat.api.Repository(product=product).create()
-    sync_plan.add_products(data={'product_ids': [product.id]})
-    product.sync()
-    sync_plan.delete()
-    with pytest.raises(HTTPError):
-        sync_plan.read()
-
-
-@pytest.mark.tier2
-@pytest.mark.upgrade
 def test_positive_delete_synced_product_custom_cron(module_org, module_target_sat):
     """Create a sync plan with custom cron with one synced
     product and delete it.
