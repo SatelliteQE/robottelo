@@ -117,7 +117,8 @@ def test_positive_run_bulk_actions(module_target_sat, module_yum_repo):
         1. Create several ACSes.
         2. Bulk refresh them all.
         3. Add 1 more ACS, then use bulk refresh all.
-        3. Bulk destroy some of them.
+        4. Bulk destroy some of them.
+        5. Cleanup the rest.
         4. Cleanup the rest.
 
     :expectedresults:
