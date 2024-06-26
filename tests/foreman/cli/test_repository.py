@@ -148,23 +148,31 @@ class TestRepository:
         assert repo.get('upstream-repository-name') == repo_options['docker-upstream-name']
 
     @pytest.mark.tier1
+    @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'name': name} for name in valid_data_list().values()]),
         indirect=True,
     )
-    def test_positive_create_with_name(self, repo_options, repo):
-        """Check if repository can be created with random names
+    def test_positive_create_delete_with_name(self, repo_options, repo, module_target_sat):
+        """Check if repository can be created with random names and deleted by the name.
 
         :id: 604dea2c-d512-4a27-bfc1-24c9655b6ea9
 
         :parametrized: yes
 
-        :expectedresults: Repository is created and has random name
+        :expectedresults:
+            1. Repository is created and has random name.
+            2. Repository can be deleted using that name.
 
         :CaseImportance: Critical
         """
-        assert repo.get('name') == repo_options['name']
+        assert repo['name'] == repo_options['name']
+        module_target_sat.cli.Repository.delete(
+            {'name': repo['name'], 'product-id': repo_options['product-id']}
+        )
+        with pytest.raises(CLIReturnCodeError):
+            module_target_sat.cli.Repository.info({'id': repo['id']})
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
@@ -1324,30 +1332,6 @@ class TestRepository:
         """
         with pytest.raises(CLIFactoryError):
             module_target_sat.cli_factory.make_repository(repo_options)
-
-    @pytest.mark.tier1
-    @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'name': name} for name in valid_data_list().values()]),
-        indirect=True,
-    )
-    def test_positive_delete_by_name(self, repo_options, repo, module_target_sat):
-        """Check if repository can be created and deleted
-
-        :id: 463980a4-dbcf-4178-83a6-1863cf59909a
-
-        :parametrized: yes
-
-        :expectedresults: Repository is created and then deleted
-
-        :CaseImportance: Critical
-        """
-        module_target_sat.cli.Repository.delete(
-            {'name': repo['name'], 'product-id': repo_options['product-id']}
-        )
-        with pytest.raises(CLIReturnCodeError):
-            module_target_sat.cli.Repository.info({'id': repo['id']})
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
