@@ -37,6 +37,10 @@ class TestAnsibleCfgMgmt:
 
         :id: 90acea37-4c2f-42e5-92a6-0c88148f4fb6
 
+        :customerscenario: true
+
+        :Verifies: SAT-19619
+
         :steps:
             1. Import Ansible roles if none have been imported yet.
             2. Create an Anible variable, populating all fields on the creation form.
