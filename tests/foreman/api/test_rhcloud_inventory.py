@@ -289,3 +289,44 @@ def test_include_parameter_tags_setting(
                 if tag['key'] == 'host_collection':
                     assert tag['value'] == f'"{host_col_name}"'
                     break
+
+
+@pytest.mark.tier2
+def test_rhcloud_generate_all_reports_job(
+    rhcloud_manifest_org,
+    rhcloud_registered_hosts,
+    module_target_sat,
+):
+    """Verify that triggering the GenerateAllReports job in Satellite succeeds with no errors
+
+    :id: 0e76e207-d89f-4b28-9e9d-e6784151bccc
+
+    :steps:
+
+        1. Prepare machine and upload its data to Insights
+        2. Sync inventory status using RH Cloud plugin api
+        3. Trigger the GenerateAllReports job manually
+        4. Assert job succeeds
+
+    :expectedresults:
+        1. Manually triggering the GenerateAllReports job succeeds with no errors.
+
+    :Verifies: SAT-25055
+
+    :CaseAutomation: Automated
+    """
+    org = rhcloud_manifest_org
+    virtual_host, baremetal_host = rhcloud_registered_hosts
+    # Generate report
+    module_target_sat.generate_inventory_report(org)
+    # Sync inventory status
+    inventory_sync = module_target_sat.sync_inventory_status(org)
+    task_output = module_target_sat.api.ForemanTask().search(
+        query={'search': f'id = {inventory_sync["task"]["id"]}'}
+    )
+    assert task_output[0].output['host_statuses']['sync'] == 2
+    result = module_target_sat.execute(
+        'echo "ForemanTasks.sync_task(::ForemanInventoryUpload::Async::GenerateAllReportsJob)" | foreman-rake console'
+    )
+    assert 'success' in result.stdout
+    assert result.status == 1
