@@ -14,7 +14,10 @@ from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
 
+from robottelo.config import settings
+from robottelo.hosts import ContentHost
 from robottelo.utils import ssh
+from robottelo.utils.issue_handlers import is_open
 
 pytestmark = [pytest.mark.run_in_one_thread]
 
@@ -47,12 +50,10 @@ def _is_host_reachable(host, retries=12, iteration_sleep=5, expect_reachable=Tru
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.on_premises_provisioning
-@pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.rhel_ver_match('9')
 def test_positive_provision_pxe_host(
     request,
-    session,
     module_location,
     module_org,
     module_provisioning_rhel_content,
@@ -66,14 +67,13 @@ def test_positive_provision_pxe_host(
     :id: 34c1e9ea-f210-4a1e-aead-421eb962643b
 
     :Setup:
-
         1. Host should already be discovered
         2. Hostgroup should already be created with all required entities.
 
     :expectedresults: Host should be provisioned and entry from
         discovered host should be auto removed.
 
-    :BZ: 1728306, 1731112
+    :BZ: 1728306, 1731112, 2258024
 
     :CaseImportance: High
     """
@@ -98,15 +98,149 @@ def test_positive_provision_pxe_host(
     # Teardown
     request.addfinalizer(lambda: sat.provisioning_cleanup(host_name))
 
-    with session:
+    with sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
         session.discoveredhosts.provision(
             discovered_host_name,
             provisioning_hostgroup.name,
             module_org.name,
             module_location.name,
         )
-        values = session.host.get_details(host_name)
-        assert values['properties']['properties_table']['Status'] == 'OK'
+        # Wait for provisioning to complete and report status back to Satellite
+        pending_status = 'N/A' if is_open('SAT-22452') else 'Pending installation'
+        wait_for(
+            lambda: session.host_new.get_host_statuses(host_name)['Build']['Status']
+            != pending_status,
+            timeout=1800,
+            delay=30,
+            fail_func=session.browser.refresh,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        session.browser.refresh()
+        values = session.host_new.get_host_statuses(host_name)
+        assert values['Build']['Status'] == 'Installed'
+
+        # Verify entry from discovered host is auto removed
+        assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
+
+
+@pytest.mark.tier3
+@pytest.mark.upgrade
+@pytest.mark.on_premises_provisioning
+@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
+@pytest.mark.rhel_ver_match('8')
+def test_positive_custom_provision_pxe_host(
+    request,
+    module_location,
+    module_org,
+    module_provisioning_rhel_content,
+    module_discovery_sat,
+    provisioning_host,
+    provisioning_hostgroup,
+    pxe_loader,
+):
+    """Provision a PXE-based discoveredhost with Customize Host button in WebUI
+
+    :id: 34c1e9ea-f210-4a1e-aead-421eb962643c
+
+    :Setup:
+        1. Host should already be discovered
+        2. Hostgroup should already be created with all required entities.
+
+    :expectedresults: Host should be provisioned and entry from
+        discovered host should be auto removed.
+
+    :BZ: 2238952, 2268544, 2258024, 2025523
+
+    :customerscenario: true
+
+    :CaseImportance: High
+    """
+    sat = module_discovery_sat.sat
+    provisioning_host.power_control(ensure=False)
+    mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
+    wait_for(
+        lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
+        timeout=1500,
+        delay=20,
+    )
+    discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
+    discovered_host.hostgroup = provisioning_hostgroup
+    discovered_host.location = provisioning_hostgroup.location[0]
+    discovered_host.organization = provisioning_hostgroup.organization[0]
+    discovered_host.build = True
+
+    discovered_host_name = discovered_host.name
+    domain_name = provisioning_hostgroup.domain.read().name
+    host_name = f'{discovered_host_name}.{domain_name}'
+
+    # Teardown
+    request.addfinalizer(lambda: sat.provisioning_cleanup(host_name))
+
+    # Change root_passwd in HostGroup, and for customization change it back during provisioning
+    root_pwd = gen_string('alpha')
+    provisioning_hostgroup.root_pass = root_pwd
+    provisioning_hostgroup.update(['root_pass'])
+    new_root_pwd = settings.server.ssh_password
+
+    @request.addfinalizer
+    def _finalize():
+        provisioning_hostgroup.root_pass = new_root_pwd
+        provisioning_hostgroup.update(['root_pass'])
+
+    # Sync and assign Ansible role to HostGroup to validate BZ:2025523
+    SELECTED_ROLE = 'theforeman.foreman_scap_client'
+    proxy_id = sat.nailgun_smart_proxy.id
+    sat.cli.Ansible.roles_sync({'role-names': f'{SELECTED_ROLE}', 'proxy-id': proxy_id})
+    result = sat.cli.HostGroup.ansible_roles_add(
+        {'name': provisioning_hostgroup.name, 'ansible-role': SELECTED_ROLE}
+    )
+    assert 'Ansible role has been associated.' in result[0]['message']
+
+    with sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+        session.discoveredhosts.provision(
+            discovered_host_name,
+            provisioning_hostgroup.name,
+            module_org.name,
+            module_location.name,
+            quick=False,
+            host_values={'operating_system.root_password': new_root_pwd},
+        )
+        # Wait for provisioning to complete and report status back to Satellite
+        pending_status = 'N/A' if is_open('SAT-22452') else 'Pending installation'
+        wait_for(
+            lambda: session.host_new.get_host_statuses(host_name)['Build']['Status']
+            != pending_status,
+            timeout=1800,
+            delay=30,
+            fail_func=session.browser.refresh,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        session.browser.refresh()
+        values = session.host_new.get_host_statuses(host_name)
+        assert values['Build']['Status'] == 'Installed'
+
+        # Wait for Ansible roles execution to start automatically after provisioning
+        wait_for(
+            lambda: session.host_new.get_host_statuses(host_name)['Execution']['Status'] != 'N/A',
+            timeout=1200,
+            delay=30,
+            fail_func=session.browser.refresh,
+        )
+        session.browser.refresh()
+        values = session.host_new.get_host_statuses(host_name)
+        assert values['Execution']['Status'] == 'Last execution succeeded'
+
+        # Verify if assigned role is executed on the host, and correct host passwd is set
+        host = ContentHost(discovered_host.ip)
+        assert host.execute('yum list installed rubygem-foreman_scap_client').status == 0
+
+        # Verify entry from discovered host is auto removed
         assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
 
 

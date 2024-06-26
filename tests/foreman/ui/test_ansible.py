@@ -165,15 +165,16 @@ class TestAnsibleCfgMgmt:
 
         @request.addfinalizer
         def _finalize():
-            result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
-            assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
+            result = target_sat.cli.Ansible.variables_delete({'name': key})
+            assert f'Ansible variable [{key}] was deleted.' in result[0]['message']
+            for role in SELECTED_ROLE:
+                result = target_sat.cli.Ansible.roles_delete({'name': role})
+                assert f'Ansible role [{role}] was deleted.' in result[0]['message']
 
         key = gen_string('alpha')
-        SELECTED_ROLE = 'redhat.satellite.activation_keys'
+        SELECTED_ROLE = ['redhat.satellite.activation_keys', 'RedHatInsights.insights-client']
         proxy_id = target_sat.nailgun_smart_proxy.id
-        target_sat.api.AnsibleRoles().sync(
-            data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]}
-        )
+        target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': SELECTED_ROLE})
         result = rhel_contenthost.api_register(
             target_sat,
             organization=module_org,
@@ -191,7 +192,7 @@ class TestAnsibleCfgMgmt:
             session.ansiblevariables.create_with_overrides(
                 {
                     'key': key,
-                    'ansible_role': SELECTED_ROLE,
+                    'ansible_role': SELECTED_ROLE[0],
                     'override': 'true',
                     'parameter_type': parameter_type,
                     'default_value': default_value,
@@ -208,14 +209,19 @@ class TestAnsibleCfgMgmt:
                 }
             )
             result = target_sat.cli.Host.ansible_roles_assign(
-                {'id': target_host.id, 'ansible-roles': SELECTED_ROLE}
+                {'id': target_host.id, 'ansible-roles': ','.join(SELECTED_ROLE)}
             )
             assert 'Ansible roles were assigned' in result[0]['message']
-            values = session.host_new.get_details(rhel_contenthost.hostname, 'ansible')['ansible'][
-                'variables'
-            ]['table']
-            assert (key, SELECTED_ROLE, default_value, parameter_type) in [
-                (var['Name'], var['Ansible role'], var['Value'], var['Type']) for var in values
+
+            values = session.host_new.get_details(rhel_contenthost.hostname, 'ansible')['ansible']
+            roles_table = values['roles']['table']
+            variable_table = values['variables']['table']
+            for role in SELECTED_ROLE:
+                var_count = str(len([v for v in variable_table if v['Ansible role'] == role]))
+                assert (role, var_count) in [(r['Name'], r['Variables']) for r in roles_table]
+
+            assert (key, SELECTED_ROLE[0], parameter_type, default_value) in [
+                (v['Name'], v['Ansible role'], v['Type'], v['Value']) for v in variable_table
             ]
 
     @pytest.mark.stubbed
@@ -448,6 +454,66 @@ class TestAnsibleCfgMgmt:
                 result['ansible']['roles']['noRoleAssign']
                 == 'No roles assigned directly to the host'
             )
+
+    @pytest.mark.tier2
+    def test_positive_assign_and_remove_ansible_role_to_hostgroup(
+        self,
+        target_sat,
+        module_org,
+        module_location,
+    ):
+        """Add and remove functionality for ansible roles in hostgroup
+
+        :id: 5d94a484-92c1-4387-ab92-0649e4c4f907
+
+        :steps:
+            1. Import all roles available by default.
+            2. Assign ansible role while creating the hostgroup
+            3. Assign ansible role after creating the hostgroup
+            4. Remove previously added ansible roles from the hostgroup
+
+        :expectedresults: The Ansible Role is successfully added and removed from the hostgroup
+        """
+        SELECTED_ROLE = [
+            'RedHatInsights.insights-client',
+            'redhat.satellite.hostgroups',
+            'redhat.satellite.compute_profiles',
+        ]
+        name = gen_string('alpha').lower()
+        with target_sat.ui_session() as session:
+            synced_all_role = session.ansibleroles.import_all_roles()
+            total_imported_roles = session.ansibleroles.imported_roles_count
+            # verify all roles are synced
+            assert synced_all_role == total_imported_roles
+
+            session.location.select(module_location.name)
+            session.organization.select(module_org.name)
+            # Assign Ansible role(s) while creating the hostgroup.
+            session.hostgroup.create(
+                {
+                    'host_group.name': name,
+                    'ansible_roles.resources': SELECTED_ROLE[:2],
+                }
+            )
+            # verify ansible role(s) assigned properly while creating a host group.
+            assert session.hostgroup.read_role(name, SELECTED_ROLE) == SELECTED_ROLE[:2]
+
+            session.hostgroup.assign_role_to_hostgroup(
+                name, {'ansible_roles.resources': SELECTED_ROLE[2]}
+            )
+            # verify ansible role(s) assigned properly after creating the hostgroup.
+            assert SELECTED_ROLE[2] in session.hostgroup.read_role(name, SELECTED_ROLE)
+
+            session.hostgroup.remove_hostgroup_role(
+                name, {'ansible_roles.resources': SELECTED_ROLE[0]}
+            )
+            # verify ansible role(s) removed properly from the host group.
+            assert SELECTED_ROLE[0] not in session.hostgroup.read_role(name, SELECTED_ROLE)
+            assert SELECTED_ROLE[1:] == session.hostgroup.read_role(name, SELECTED_ROLE)
+
+            # Delete host group
+            session.hostgroup.delete(name)
+            assert not target_sat.api.HostGroup().search(query={'search': f'name={name}'})
 
 
 class TestAnsibleREX:

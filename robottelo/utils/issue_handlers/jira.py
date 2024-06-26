@@ -292,7 +292,7 @@ def add_comment_on_jira(
         [list of dicts] -- [{'id':..., 'status':..., 'resolution': ...}]
     """
     # Raise a warning if any of the following option is not set. Note: It's a xor condition.
-    if settings.jira.enable_comment != pytest.jira_comments:
+    if settings.jira.enable_comment != bool(pytest.jira_comments):
         logger.warning(
             'Jira comments are currently disabled for this run. '
             'To enable it, please set "enable_comment" to "true" in "config/jira.yaml '
