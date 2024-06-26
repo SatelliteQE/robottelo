@@ -31,10 +31,7 @@ from robottelo.constants import (
     FAKE_1_ERRATA_ID,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_2_CUSTOM_PACKAGE_NAME,
-    VDC_SUBSCRIPTION_NAME,
-    VIRT_WHO_HYPERVISOR_TYPES,
 )
-from robottelo.exceptions import CLIFactoryError
 from robottelo.utils.virtwho import create_fake_hypervisor_content
 
 if not setting_is_set('fake_manifest'):
@@ -171,6 +168,8 @@ def test_positive_end_to_end(
     :parametrized: yes
 
     :CaseImportance: Critical
+
+    :BlockedBy: SAT-25817
     """
     # Read rhel distro param, determine what rhel lifecycle status should be
     _distro = module_repos_collection_with_manifest.distro
@@ -181,7 +180,6 @@ def test_positive_end_to_end(
 
     result = vm.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
-    startdate = datetime.utcnow().strftime('%m/%d/%Y')
 
     with session:
         session.location.select(default_location.name)
@@ -191,7 +189,7 @@ def test_positive_end_to_end(
         assert found_chost, f'Search for contenthost by name: "{vm.hostname}", returned no results.'
         assert found_chost[0]['Name'] == vm.hostname
         chost = session.contenthost.read(
-            vm.hostname, widget_names=['details', 'provisioning_details', 'subscriptions']
+            vm.hostname, widget_names=['details', 'provisioning_details']
         )
         session.contenthost.update(vm.hostname, {'repository_sets.limit_to_lce': True})
         ch_reposet = session.contenthost.read(vm.hostname, widget_names=['repository_sets'])
@@ -208,7 +206,7 @@ def test_positive_end_to_end(
         assert chost['details']['registered_by'] == f'Activation Key {ak_name}'
         assert chost['provisioning_details']['name'] == vm.hostname
         assert module_repos_collection_with_manifest.custom_product['name'] in {
-            repo['Repository Name'] for repo in chost['subscriptions']['resources']['assigned']
+            repo['Product Name'] for repo in chost['repository_sets']['table']
         }
         actual_repos = {repo['Repository Name'] for repo in chost['repository_sets']['table']}
         expected_repos = {
@@ -219,14 +217,6 @@ def test_positive_end_to_end(
             for repo_index in range(len(module_repos_collection_with_manifest.repos_info))
         }
         assert actual_repos == expected_repos
-        # Check start date for BZ#1920860
-        custom_product_name = module_repos_collection_with_manifest.custom_product['name']
-        custom_sub = next(
-            item
-            for item in chost['subscriptions']['resources']['assigned']
-            if item["Repository Name"] == custom_product_name
-        )
-        assert startdate in custom_sub['Starts']
         # Ensure host status and details show correct RHEL lifecycle status
         host_status = session.host.host_status(vm.hostname)
         host_rhel_lcs = session.contenthost.read(vm.hostname, widget_names=['permission_denied'])
@@ -341,112 +331,6 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm, target_s
         assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
         # Delete content host
         session.contenthost.delete(vm.hostname)
-
-
-@pytest.mark.tier3
-@pytest.mark.parametrize(
-    'module_repos_collection_with_manifest',
-    [
-        {
-            'distro': 'rhel7',
-            'RHELAnsibleEngineRepository': {'cdn': True},
-            'SatelliteToolsRepository': {},
-            'YumRepository': [
-                {'url': settings.repos.yum_1.url},
-                {'url': settings.repos.yum_6.url},
-            ],
-        },
-    ],
-    indirect=True,
-)
-@pytest.mark.no_containers
-def test_positive_search_by_subscription_status(session, default_location, vm):
-    """Register host into the system and search for it afterwards by
-    subscription status
-
-    :id: b4d24ee7-51b9-43e4-b0c9-7866b6340ce1
-
-    :expectedresults: Validate that host can be found for valid
-        subscription status and that host is not present in the list for
-        invalid status
-
-    :BZ: 1406855, 1498827, 1495271
-
-    :parametrized: yes
-    """
-    with session:
-        session.location.select(default_location.name)
-        assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
-        result = session.contenthost.search('subscription_status = valid')
-        assert vm.hostname in {host['Name'] for host in result}
-        result = session.contenthost.search('subscription_status != valid')
-        assert vm.hostname not in {host['Name'] for host in result}
-        # check dashboard
-        session.dashboard.action({'HostSubscription': {'type': 'Invalid'}})
-        values = session.contenthost.read_all()
-        assert values['searchbox'] == 'subscription_status = invalid'
-        assert len(values['table']) == 0
-        session.dashboard.action({'HostSubscription': {'type': 'Valid'}})
-        values = session.contenthost.read_all()
-        assert values['searchbox'] == 'subscription_status = valid'
-        assert len(values['table']) == 1
-        assert values['table'][0]['Name'] == vm.hostname
-
-
-@pytest.mark.tier3
-@pytest.mark.parametrize(
-    'module_repos_collection_with_manifest',
-    [
-        {
-            'distro': 'rhel7',
-            'RHELAnsibleEngineRepository': {'cdn': True},
-            'SatelliteToolsRepository': {},
-            'YumRepository': [
-                {'url': settings.repos.yum_1.url},
-                {'url': settings.repos.yum_6.url},
-            ],
-        },
-    ],
-    indirect=True,
-)
-@pytest.mark.no_containers
-def test_positive_toggle_subscription_status(session, default_location, vm):
-    """Register host into the system, assert subscription status valid,
-    toggle status off and on again using CLI and assert status is updated in web UI.
-
-    :id: b9343e6f-9354-46ef-873f-b63851d29043
-
-    :expectedresults: Subscription status changed on the CLI is reflected in the web UI.
-
-    :customerscenario: true
-
-    :BZ: 1836868
-
-    :parametrized: yes
-
-    :CaseImportance: Medium
-    """
-    with session:
-        session.location.select(default_location.name)
-        assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
-        subscriptions = session.contenthost.read(vm.hostname, widget_names='subscriptions')[
-            'subscriptions'
-        ]
-        assert subscriptions['auto_attach'].lower() == 'yes'
-        # Toggle auto-attach status to No using CLI
-        vm.run('subscription-manager auto-attach --disable && subscription-manager refresh')
-        session.browser.refresh()
-        subscriptions = session.contenthost.read(vm.hostname, widget_names='subscriptions')[
-            'subscriptions'
-        ]
-        assert subscriptions['auto_attach'].lower() == 'no'
-        # Toggle auto-attach status to Yes using CLI
-        vm.run('subscription-manager auto-attach --enable && subscription-manager refresh')
-        session.browser.refresh()
-        subscriptions = session.contenthost.read(vm.hostname, widget_names='subscriptions')[
-            'subscriptions'
-        ]
-        assert subscriptions['auto_attach'].lower() == 'yes'
 
 
 @pytest.mark.tier3
@@ -891,87 +775,6 @@ def test_positive_check_ignore_facts_os_setting(
         assert updated_os == expected_os
         # Check that new OS was created
         assert session.operatingsystem.search(expected_os)[0]['Title'] == expected_os
-
-
-# The content host has been moved to broker, but the test still depends on libvirt compute resource
-@pytest.mark.libvirt_discovery
-@pytest.mark.tier3
-@pytest.mark.upgrade
-def test_positive_virt_who_hypervisor_subscription_status(
-    session, default_location, rhel7_contenthost, target_sat
-):
-    """Check that virt-who hypervisor shows the right subscription status
-    without and with attached subscription.
-
-    :id: 8b2cc5d6-ac85-463f-a973-f4818c55fb37
-
-    :customerscenario: true
-
-    :expectedresults:
-        1. With subscription not attached, Subscription status is
-           "Unsubscribed hypervisor" and represented by a yellow icon in
-           content hosts list.
-        2. With attached subscription, Subscription status is
-           "Fully entitled" and represented by a green icon in content
-           hosts list.
-
-    :BZ: 1336924, 1860928
-
-    :parametrized: yes
-    """
-    org = target_sat.api.Organization().create()
-    lce = target_sat.api.LifecycleEnvironment(organization=org).create()
-    # TODO move this to either hack around virt-who service or use an env-* compute resource
-    provisioning_server = settings.libvirt.libvirt_hostname
-    # Create a new virt-who config
-    virt_who_config = target_sat.cli_factory.virt_who_config(
-        {
-            'organization-id': org.id,
-            'hypervisor-type': VIRT_WHO_HYPERVISOR_TYPES['libvirt'],
-            'hypervisor-server': f'qemu+ssh://{provisioning_server}/system',
-            'hypervisor-username': 'root',
-        }
-    )
-    # use broker virtual machine to host virt-who service
-    # configure virtual machine and setup virt-who service
-    # do not supply subscription to attach to virt_who hypervisor
-    virt_who_data = rhel7_contenthost.virt_who_hypervisor_config(
-        target_sat,
-        virt_who_config['general-information']['id'],
-        org_id=org.id,
-        lce_id=lce.id,
-        hypervisor_hostname=provisioning_server,
-        configure_ssh=True,
-    )
-    virt_who_hypervisor_host = virt_who_data['virt_who_hypervisor_host']
-    with session:
-        session.location.select(default_location.name)
-        assert (
-            session.contenthost.search(virt_who_hypervisor_host.name)[0]['Subscription Status']
-            == 'yellow'
-        )
-        chost = session.contenthost.read(virt_who_hypervisor_host.name, widget_names='details')
-        assert chost['details']['subscription_status'] == 'Unsubscribed hypervisor'
-        session.contenthost.add_subscription(virt_who_hypervisor_host.name, VDC_SUBSCRIPTION_NAME)
-        assert (
-            session.contenthost.search(virt_who_hypervisor_host.name)[0]['Subscription Status']
-            == 'green'
-        )
-        chost = session.contenthost.read(virt_who_hypervisor_host.name, widget_names='details')
-        assert chost['details']['subscription_status'] == 'Fully entitled'
-        # for BZ#1860928
-        checkin_time1 = session.contenthost.search(provisioning_server)[0]['Last Checkin']
-        result = rhel7_contenthost.run('service virt-who stop')
-        if result.status != 0:
-            raise CLIFactoryError(f'Failed to stop the virt-who service:\n{result.stderr[1]}')
-        result = rhel7_contenthost.run('virt-who --one-shot')
-        if result.status != 0:
-            raise CLIFactoryError(f'Failed when executing virt-who --one-shot:\n{result.stderr[1]}')
-        result = rhel7_contenthost.run('service virt-who start')
-        if result.status != 0:
-            raise CLIFactoryError(f'Failed to start the virt-who service:\n{result.stderr[1]}')
-        checkin_time2 = session.contenthost.search(provisioning_server)[0]['Last Checkin']
-        assert checkin_time2 > checkin_time1
 
 
 @pytest.mark.upgrade
@@ -1604,47 +1407,6 @@ def test_unset_syspurpose_attributes_cli(session, default_location, vm_module_st
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': 'rhel8',
-            'YumRepository': [
-                {'url': settings.repos.rhel8_os.baseos},
-                {'url': settings.repos.rhel8_os.appstream},
-                {'url': settings.repos.satutils_repo},
-                {'url': settings.repos.module_stream_1.url},
-            ],
-        }
-    ],
-    indirect=True,
-)
-def test_syspurpose_matched(session, default_location, vm_module_streams):
-    """
-    Test that syspurpose status is set as 'Matched' if auto-attach
-    is performed on the content host, and correct subscriptions are
-    available on the Satellite
-
-    :id: 6b1ca2f9-5bf2-414f-971e-6bb5add69789
-
-    :expectedresults: Syspurpose status is Matched
-
-    :parametrized: yes
-
-    :CaseImportance: High
-    """
-    run_remote_command_on_content_host('syspurpose set-sla Premium', vm_module_streams)
-    run_remote_command_on_content_host('subscription-manager attach --auto', vm_module_streams)
-    with session:
-        session.location.select(default_location.name)
-        details = session.contenthost.read(vm_module_streams.hostname, widget_names='details')[
-            'details'
-        ]
-        assert details['system_purpose_status'] == 'Matched'
-
-
-@pytest.mark.skip_if_not_set('fake_manifest')
-@pytest.mark.tier3
-@pytest.mark.parametrize(
-    'module_repos_collection_with_manifest',
-    [
-        {
             'distro': 'rhel7',
             'RHELAnsibleEngineRepository': {'cdn': True},
             'SatelliteToolsRepository': {},
@@ -1681,48 +1443,6 @@ def test_syspurpose_bulk_action(session, default_location, vm):
             assert details[key] == val
             result = run_remote_command_on_content_host('syspurpose show', vm)
             assert val in result.stdout
-
-
-@pytest.mark.skip_if_not_set('fake_manifest')
-@pytest.mark.tier3
-@pytest.mark.parametrize(
-    'module_repos_collection_with_manifest',
-    [
-        {
-            'distro': 'rhel8',
-            'YumRepository': [
-                {'url': settings.repos.rhel8_os.baseos},
-                {'url': settings.repos.rhel8_os.appstream},
-                {'url': settings.repos.satutils_repo},
-                {'url': settings.repos.module_stream_1.url},
-            ],
-        }
-    ],
-    indirect=True,
-)
-def test_syspurpose_mismatched(session, default_location, vm_module_streams):
-    """
-    Test that syspurpose status is 'Mismatched' if a syspurpose attribute
-    is changed to a different value than the one contained in the currently
-    attached subscription.
-
-    :id: de71cfd7-eeb8-4a4c-b448-8c5aa5af7f06
-
-    :expectedresults: Syspurpose status is 'Mismatched'
-
-    :parametrized: yes
-
-    :CaseImportance: High
-    """
-    run_remote_command_on_content_host('syspurpose set-sla Premium', vm_module_streams)
-    run_remote_command_on_content_host('subscription-manager attach --auto', vm_module_streams)
-    run_remote_command_on_content_host('syspurpose set-sla Standard', vm_module_streams)
-    with session:
-        session.location.select(default_location.name)
-        details = session.contenthost.read(vm_module_streams.hostname, widget_names='details')[
-            'details'
-        ]
-        assert details['system_purpose_status'] == 'Mismatched'
 
 
 @pytest.mark.tier3
@@ -1813,45 +1533,3 @@ def test_search_for_virt_who_hypervisors(session, default_location, module_targe
         # Search with hypervisor=false gives the correct result.
         content_hosts = [host['Name'] for host in session.contenthost.search('hypervisor = false')]
         assert hypervisor_display_name not in content_hosts
-
-
-@pytest.mark.rhel_ver_match('[^6]')
-def test_positive_prepare_for_sca_only_content_host(
-    session,
-    function_entitlement_manifest_org,
-    default_location,
-    rhel_contenthost,
-    target_sat,
-):
-    """Verify that the Content Host page notifies users that Entitlement-based subscription
-        management is deprecated and will be removed in Satellite 6.16
-
-    :id: 1a725675-2cf5-4f84-a755-c25f19ef5fd1
-
-    :expectedresults: The Content Host page notifies users that Entitlement-based subscription
-        management is deprecated and will be removed in Satellite 6.16
-    """
-    lce = target_sat.api.LifecycleEnvironment(
-        organization=function_entitlement_manifest_org
-    ).create()
-    cv = target_sat.api.ContentView(
-        organization=function_entitlement_manifest_org, environment=[lce]
-    ).create()
-    cv.publish()
-    cvv = cv.read().version[0].read()
-    cvv.promote(data={'environment_ids': lce.id, 'force': False})
-    ak = target_sat.api.ActivationKey(
-        organization=function_entitlement_manifest_org, content_view=cv, environment=lce
-    ).create()
-    rhel_contenthost.register(
-        function_entitlement_manifest_org, default_location, ak.name, target_sat
-    )
-    with session:
-        session.organization.select(function_entitlement_manifest_org.name)
-        session.location.select(default_location.name)
-        host_details = session.contenthost.read(rhel_contenthost.hostname, widget_names='details')
-        assert (
-            'This organization is not using Simple Content Access. Entitlement-based subscription '
-            'management is deprecated and will be removed in Satellite 6.16.'
-            in host_details['details']['sca_alert']
-        )
