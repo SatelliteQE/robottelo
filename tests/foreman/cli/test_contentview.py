@@ -13,6 +13,7 @@
 """
 
 import random
+import time
 
 from fauxfactory import gen_alphanumeric, gen_string
 import pytest
@@ -3125,6 +3126,87 @@ class TestContentView:
         assert FAKE_2_CUSTOM_PACKAGE not in [line.strip() for line in result]
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         assert '1.1' in [cvv_['version'] for cvv_ in content_view['versions']]
+
+    @pytest.mark.tier2
+    def test_ccv_inc_update_autopublish(self, module_org, module_product, module_target_sat):
+        """A CCV containing a CV that has an incremental update applied should auto-publish
+
+        :Verifies: SATQE-17141
+
+        :id: b36e3fd1-7dfe-4c71-aaed-deafb10f577e
+
+        :customerscenario: true
+
+        :expectedresults: CCV is auto-published when composite CV recieves an inc update
+
+        :CaseImportance: Medium
+
+        """
+        repo = module_target_sat.cli_factory.make_repository(
+            {
+                'product-id': module_product.id,
+                'content-type': 'yum',
+                'url': settings.repos.yum_1.url,
+            }
+        )
+        module_target_sat.cli.Repository.synchronize({'id': repo['id']})
+        content_view = module_target_sat.cli_factory.make_content_view(
+            {'organization-id': module_org.id, 'repository-ids': repo['id']}
+        )
+        module_target_sat.cli.ContentView.add_repository(
+            {
+                'id': content_view['id'],
+                'organization-id': module_org.id,
+                'repository-id': repo['id'],
+            }
+        )
+        cvf = module_target_sat.cli_factory.make_content_view_filter(
+            {
+                'content-view-id': content_view['id'],
+                'inclusion': 'true',
+                'name': gen_string('alpha'),
+                'type': 'rpm',
+            },
+        )
+        module_target_sat.cli_factory.content_view_filter_rule(
+            {
+                'content-view-filter-id': cvf['filter-id'],
+                'name': FAKE_2_CUSTOM_PACKAGE_NAME,
+                'version': 5.21,
+            }
+        )
+        module_target_sat.cli.ContentView.publish({'id': content_view['id']})
+        content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
+        assert len(content_view['versions']) == 1
+        cv_version = content_view['versions'][0]
+        composite_view = module_target_sat.cli_factory.make_content_view(
+            {'composite': True, 'auto-publish': 'true', 'organization-id': module_org.id}
+        )
+        module_target_sat.cli.ContentView.component_add(
+            {
+                'composite-content-view-id': composite_view['id'],
+                'component-content-view-id': content_view['id'],
+                'latest': True,
+            }
+        )
+        # Check if Composive CV has been published before and after incremental update
+        composite_view = module_target_sat.cli.ContentView.info({'id': composite_view['id']})
+        assert len(composite_view['versions']) == 0
+        module_target_sat.cli.ContentView.version_incremental_update(
+            {
+                'content-view-version-id': cv_version['id'],
+                'errata-ids': settings.repos.yum_1.errata[1],
+            }
+        )
+        # Gives time for the incremental update to finish, and propagate a publish of the composive cv
+        time.sleep(2)
+        composite_view = module_target_sat.cli.ContentView.info({'id': composite_view['id']})
+        assert len(composite_view['versions']) == 1
+        # Also check that the description of the version contains Auto Publish
+        cvv = module_target_sat.cli.ContentView.version_list(
+            {'content-view-id': composite_view['id']}
+        )
+        assert 'Auto Publish' in cvv[0]['description']
 
     @pytest.mark.tier2
     def test_version_info_by_lce(self, module_org, module_target_sat):
