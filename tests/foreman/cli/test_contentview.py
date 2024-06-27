@@ -13,7 +13,6 @@
 """
 
 import random
-import time
 
 from fauxfactory import gen_alphanumeric, gen_string
 import pytest
@@ -3198,8 +3197,14 @@ class TestContentView:
                 'errata-ids': settings.repos.yum_1.errata[1],
             }
         )
-        # Gives time for the incremental update to finish, and propagate a publish of the composive cv
-        time.sleep(2)
+        task_status = module_target_sat.wait_for_tasks(
+            search_query=(
+                f'Actions::Katello::ContentView::Publish and organization_id = {module_org.id}'
+            ),
+            max_tries=50,
+            search_rate=5,
+        )
+        assert task_status[0].result == 'success'
         composite_view = module_target_sat.cli.ContentView.info({'id': composite_view['id']})
         assert len(composite_view['versions']) == 1
         # Also check that the description of the version contains Auto Publish
