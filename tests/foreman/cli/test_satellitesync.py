@@ -906,7 +906,7 @@ class TestContentViewSync:
         function_import_org_with_manifest,
         function_synced_rh_repo,
     ):
-        """Export CV version with RedHat contents in directory and import them.
+        """Export CV version with RedHat contents in directory and import them. Check it out.
 
         :id: f6bd7fa9-396e-44ac-92a3-ab87ce1a7ef5
 
