@@ -2684,12 +2684,11 @@ def test_positive_create_host_with_lifecycle_environment_name(
     found_host = any(new_host.name in i.values() for i in hosts)
     assert found_host, 'Assertion failed: host not found'
 
-
 @pytest.mark.rhel_ver_match('^6')
 @pytest.mark.parametrize(
     'setting_update', ['validate_host_lce_content_source_coherence'], indirect=False
 )
-def test_positive_host_registration_with_capsule(
+def test_host_registration_with_capsule_using_content_coherence(
     target_sat,
     setting_update,
     function_sca_manifest_org,
@@ -2741,7 +2740,7 @@ def test_positive_host_registration_with_capsule(
 
     # Check output for "HTTP error code 422: Validation failed: Content view environment content facets is invalid"
     assert 'Validation failed' in result.stderr, f'Error is: {result.stderr}'
-    if '7' not in rhel_contenthost.deploy_rhel_version:
+    if not rhel_contenthost.os_version.major == 7:
         assert 'HTTP error code 422' in result.stderr, f'Error is: {result.stderr}'
 
     # Re-register client with settings "validate_host_lce_content_source_coherence" is set to No
@@ -2759,5 +2758,5 @@ def test_positive_host_registration_with_capsule(
 
     # Check output there should not any error like "Validation failed" or "HTTP error code 422"
     assert 'Validation failed' not in result.stderr, f'Error is: {result.stderr}'
-    if '7' not in rhel_contenthost.deploy_rhel_version:
+    if not rhel_contenthost.os_version.major == 7:
         assert 'HTTP error code 422' not in result.stderr, f'Error is: {result.stderr}'
