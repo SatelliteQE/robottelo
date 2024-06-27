@@ -272,8 +272,8 @@ def test_bulk_actions(module_target_sat, module_yum_repo):
         1. Create several ACSes.
         2. Bulk refresh them all by ID
         3. Bulk refresh them all by refresh-all
-        3. Bulk destroy some of them.
-        4. Cleanup the rest.
+        4. Bulk destroy some of them.
+        5. Cleanup the rest.
 
     :expectedresults:
         1. All ACSes can be refreshed via bulk action.
