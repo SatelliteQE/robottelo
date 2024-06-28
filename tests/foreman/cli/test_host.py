@@ -2772,8 +2772,7 @@ def test_positive_create_host_with_lifecycle_environment_name(
     assert found_host, 'Assertion failed: host not found'
 
 
-@pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('9')
+@pytest.mark.rhel_ver_match('^6')
 @pytest.mark.parametrize(
     'setting_update', ['validate_host_lce_content_source_coherence'], indirect=False
 )
