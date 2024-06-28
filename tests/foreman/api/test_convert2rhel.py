@@ -249,6 +249,8 @@ def test_convert2rhel_oracle_with_pre_conversion_template_check(
         and subscription status
 
     :parametrized: yes
+
+    Verifies: SAT-24654
     """
     major = version.split('.')[0]
     assert oracle.execute('yum -y update').status == 0
@@ -317,6 +319,10 @@ def test_convert2rhel_oracle_with_pre_conversion_template_check(
         or host_content['operatingsystem_name'].startswith(f'RHEL {version}')
     )
 
+    # Vefify convert2rhel facts are generated, and verify fact conversions.success is true
+    assert oracle.execute('test -f /etc/rhsm/facts/convert2rhel.facts').status == 0
+    assert host_content['facts']['conversions::success'] == 'true'
+
 
 @pytest.mark.e2e
 @pytest.mark.parametrize('version', ['centos7', 'centos8'], indirect=True)
@@ -336,6 +342,8 @@ def test_convert2rhel_centos_with_pre_conversion_template_check(
         and subscription status
 
     :parametrized: yes
+
+    Verifies: SAT-24654
     """
     host_content = module_target_sat.api.Host(id=centos.hostname).read_json()
     major = version.split('.')[0]
@@ -397,3 +405,7 @@ def test_convert2rhel_centos_with_pre_conversion_template_check(
         or host_content['operatingsystem_name'].startswith(f'RedHat {version}')
         or host_content['operatingsystem_name'].startswith(f'RHEL {version}')
     )
+
+    # Vefify convert2rhel facts are generated, and verify fact conversions.success is true
+    assert centos.execute('test -f /etc/rhsm/facts/convert2rhel.facts').status == 0
+    assert host_content['facts']['conversions::success'] == 'true'
