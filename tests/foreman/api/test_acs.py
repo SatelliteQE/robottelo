@@ -116,8 +116,9 @@ def test_positive_run_bulk_actions(module_target_sat, module_yum_repo):
     :steps:
         1. Create several ACSes.
         2. Bulk refresh them all.
-        3. Bulk destroy some of them.
-        4. Cleanup the rest.
+        3. Add 1 more ACS, then use bulk refresh all.
+        4. Bulk destroy some of them.
+        5. Cleanup the rest.
 
     :expectedresults:
         1. All ACSes can be refreshed via bulk action.
@@ -135,6 +136,24 @@ def test_positive_run_bulk_actions(module_target_sat, module_yum_repo):
         acs_ids.append(acs.id)
 
     res = module_target_sat.api.AlternateContentSource().bulk_refresh(data={'ids': acs_ids})
+    assert res['result'] == 'success'
+    assert all(
+        [
+            module_target_sat.api.AlternateContentSource(id=id).read().last_refresh['result']
+            == 'success'
+            for id in acs_ids
+        ]
+    )
+    # Add another ACS and then bulk refresh all
+    acs = module_target_sat.api.AlternateContentSource(
+        name=gen_string('alpha'),
+        alternate_content_source_type='simplified',
+        content_type='yum',
+        smart_proxy_ids=[module_target_sat.nailgun_capsule.id],
+        product_ids=[module_yum_repo.product.id],
+    ).create()
+    acs_ids.append(acs.id)
+    res = module_target_sat.api.AlternateContentSource().bulk_refresh_all()
     assert res['result'] == 'success'
     assert all(
         [
