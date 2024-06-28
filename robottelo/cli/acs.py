@@ -9,6 +9,7 @@ Parameters::
     [ARG] ...       Subcommand arguments
 
 Subcommands::
+
     bulk            Modify alternate content sources in bulk
     create          Create an alternate content source to download content from during repository
                     syncing. Note: alternate content sources are global and affect ALL sync actions
