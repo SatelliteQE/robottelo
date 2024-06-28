@@ -135,6 +135,42 @@ class TestRemoteExecution:
         assert 'Internal Server Error' not in out
 
     @pytest.mark.tier3
+    @pytest.mark.rhel_ver_list([8])
+    def test_positive_timeout_to_kill(self, module_org, rex_contenthost, module_target_sat):
+        """Use timeout to kill setting to cancel the job
+
+        :id: 580f886b-ac24-4afa-9aca-e9afc5cfdc9c
+
+        :expectedresults: Verify the job was killed after specified times
+
+        :parametrized: yes
+
+        :Verifies: SAT-25243
+        """
+        client = rex_contenthost
+        command = 'sleep 160'
+        invocation_command = module_target_sat.cli_factory.job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': f'command={command}',
+                'search-query': f"name ~ {client.hostname}",
+                'execution-timeout-interval': '5',
+            }
+        )
+        sleep(10)
+        assert_job_invocation_status(
+            module_target_sat, invocation_command['id'], client.hostname, 'failed'
+        )
+        out = module_target_sat.cli.JobInvocation.get_output(
+            {
+                'id': invocation_command['id'],
+                'host': client.hostname,
+                'organization-id': module_org.id,
+            }
+        )
+        assert 'Timeout for execution passed, trying to stop the job' in out
+
+    @pytest.mark.tier3
     @pytest.mark.pit_client
     @pytest.mark.pit_server
     @pytest.mark.rhel_ver_list([7, 8, 9])
