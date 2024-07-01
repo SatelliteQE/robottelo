@@ -115,7 +115,7 @@ class ContentView(Base):
         return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)
 
     @classmethod
-    def purge(cls, options, timeout=1500000):
+    def purge(cls, options, timeout='25m'):
         """Purges old versions of content-view. Defaults to keeping 3"""
         cls.command_sub = 'purge'
         return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)

@@ -3230,14 +3230,20 @@ class TestContentView:
         content_view = module_target_sat.cli_factory.make_content_view(
             {'organization-id': module_org.id}
         )
-        for _ in range(50):
+        cv_count = 50
+        for _ in range(cv_count):
             module_target_sat.cli.ContentView.publish({'id': content_view['id']})
         cvv = module_target_sat.cli.ContentView.version_list(
             {'content-view-id': content_view['id']}
         )
-        assert len(cvv) == 50
+        assert len(cvv) == cv_count
         response = module_target_sat.cli.ContentView.purge({'id': content_view['id']})
-        assert response
+        assert all(
+            [
+                f"Version '{v+1}.0' of content view '{content_view.name}' deleted." in response
+                for v in range(cv_count - 4)
+            ]
+        )
         # Check that the correct number of Versions were purged.
         cvv = module_target_sat.cli.ContentView.version_list(
             {'content-view-id': content_view['id']}
