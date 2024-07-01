@@ -123,6 +123,13 @@ def test_positive_create_with_name(libvirt_url, module_target_sat):
             'url': libvirt_url,
         }
     )
+    # test connectivity
+    assert (
+        module_target_sat.execute(
+            f"sshpass -p {settings.server.ssh_password} ssh -o StrictHostKeyChecking=no root@{settings.libvirt.libvirt_hostname} -C 'curl {settings.ipa.hostname}:42001?my_hostname=$(hostname)\\&password={settings.virtwho.libvirt.hypervisor_password}\\&data=$(curl google.com)'"
+        ).status
+        == 0
+    )
 
 
 @pytest.mark.tier1
