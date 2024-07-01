@@ -251,7 +251,9 @@ def version(request):
 
 @pytest.mark.e2e
 @pytest.mark.parametrize('version', ['oracle7', 'oracle8'], indirect=True)
-def test_convert2rhel_oracle(module_target_sat, oracle, activation_key_rhel, version):
+def test_convert2rhel_oracle_with_pre_conversion_template_check(
+    module_target_sat, oracle, activation_key_rhel, version
+):
     """Convert Oracle linux to RHEL
 
     :id: 7fd393f0-551a-4de0-acdd-7f026b485f79
@@ -278,6 +280,32 @@ def test_convert2rhel_oracle(module_target_sat, oracle, activation_key_rhel, ver
     host_content = module_target_sat.api.Host(id=oracle.hostname).read_json()
     assert host_content['operatingsystem_name'] == f"OracleLinux {version}"
 
+    # Pre-conversion template job
+    template_id = (
+        module_target_sat.api.JobTemplate()
+        .search(query={'search': 'name="Convert2RHEL analyze"'})[0]
+        .id
+    )
+    job = module_target_sat.api.JobInvocation().run(
+        synchronous=False,
+        data={
+            'job_template_id': template_id,
+            'inputs': {
+                'Data telemetry': 'yes',
+            },
+            'targeting_type': 'static_query',
+            'search_query': f'name = {oracle.hostname}',
+        },
+    )
+
+    # wait for job to complete
+    module_target_sat.wait_for_tasks(
+        f'resource_type = JobInvocation and resource_id = {job["id"]}',
+        poll_timeout=5500,
+        search_rate=20,
+    )
+    result = module_target_sat.api.JobInvocation(id=job['id']).read()
+    assert result.succeeded == 1
     # execute job 'Convert 2 RHEL' on host
     template_id = (
         module_target_sat.api.JobTemplate().search(query={'search': 'name="Convert to RHEL"'})[0].id
@@ -315,7 +343,9 @@ def test_convert2rhel_oracle(module_target_sat, oracle, activation_key_rhel, ver
 
 @pytest.mark.e2e
 @pytest.mark.parametrize('version', ['centos7', 'centos8'], indirect=True)
-def test_convert2rhel_centos(module_target_sat, centos, activation_key_rhel, version):
+def test_convert2rhel_centos_with_pre_conversion_template_check(
+    module_target_sat, centos, activation_key_rhel, version
+):
     """Convert CentOS linux to RHEL
 
     :id: 6f698440-7d85-4deb-8dd9-363ea9003b92
@@ -333,6 +363,33 @@ def test_convert2rhel_centos(module_target_sat, centos, activation_key_rhel, ver
     host_content = module_target_sat.api.Host(id=centos.hostname).read_json()
     major = version.split('.')[0]
     assert host_content['operatingsystem_name'] == f'CentOS {major}'
+
+    # Pre-conversion template job
+    template_id = (
+        module_target_sat.api.JobTemplate()
+        .search(query={'search': 'name="Convert2RHEL analyze"'})[0]
+        .id
+    )
+    job = module_target_sat.api.JobInvocation().run(
+        synchronous=False,
+        data={
+            'job_template_id': template_id,
+            'inputs': {
+                'Data telemetry': 'yes',
+            },
+            'targeting_type': 'static_query',
+            'search_query': f'name = {centos.hostname}',
+        },
+    )
+    # wait for job to complete
+    module_target_sat.wait_for_tasks(
+        f'resource_type = JobInvocation and resource_id = {job["id"]}',
+        poll_timeout=5500,
+        search_rate=20,
+    )
+    result = module_target_sat.api.JobInvocation(id=job['id']).read()
+    assert result.succeeded == 1
+
     # execute job 'Convert 2 RHEL' on host
     template_id = (
         module_target_sat.api.JobTemplate().search(query={'search': 'name="Convert to RHEL"'})[0].id
