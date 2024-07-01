@@ -10,7 +10,7 @@ VALIDATORS = dict(
         ),
     ],
     server=[
-        Validator('server.hostname', default=''),
+        Validator('server.hostname', is_type_of=str),
         Validator('server.hostnames', must_exist=True, is_type_of=list),
         Validator('server.version.release', must_exist=True),
         Validator('server.version.source', must_exist=True),
@@ -35,6 +35,13 @@ VALIDATORS = dict(
         Validator('server.ssh_username', default='root'),
         Validator('server.ssh_password', default=None),
         Validator('server.verify_ca', default=False),
+        Validator('server.is_ipv6', is_type_of=bool, default=False),
+        # validate http_proxy_ipv6_url only if is_ipv6 is True
+        Validator(
+            'server.http_proxy_ipv6_url',
+            is_type_of=str,
+            when=Validator('server.is_ipv6', eq=True),
+        ),
     ],
     content_host=[
         Validator('content_host.default_rhel_version', must_exist=True),
@@ -78,16 +85,6 @@ VALIDATORS = dict(
         Validator('capsule.deploy_workflows.os', must_exist=True),
         Validator('capsule.deploy_arguments', must_exist=True, is_type_of=dict, default={}),
     ],
-    certs=[
-        Validator(
-            'certs.cert_file',
-            'certs.key_file',
-            'certs.req_file',
-            'certs.ca_bundle_file',
-            must_exist=True,
-        )
-    ],
-    clients=[Validator('clients.provisioning_server')],
     libvirt=[
         Validator('libvirt.libvirt_hostname', must_exist=True),
         Validator('libvirt.libvirt_image_dir', default='/var/lib/libvirt/images'),
@@ -108,17 +105,6 @@ VALIDATORS = dict(
             'container_repo.registries.quay.repos_to_sync',
             must_exist=True,
         ),
-    ],
-    discovery=[Validator('discovery.discovery_iso', must_exist=True)],
-    distro=[
-        Validator(
-            'distro.image_el7',
-            'distro.image_el6',
-            'distro.image_el8',
-            'distro.image_sles11',
-            'distro.image_sles12',
-            must_exist=True,
-        )
     ],
     docker=[
         Validator(
@@ -179,7 +165,6 @@ VALIDATORS = dict(
             'ipa.hostname',
             'ipa.username',
             'ipa.password',
-            'ipa.idm_password',
             'ipa.basedn',
             'ipa.grpbasedn',
             'ipa.user',
@@ -187,7 +172,6 @@ VALIDATORS = dict(
             'ipa.disabled_ipa_user',
             'ipa.group_users',
             'ipa.groups',
-            'ipa.idm_server_ip',
             'ipa.keytab_url',
             'ipa.time_based_secret',
             must_exist=True,
@@ -330,6 +314,9 @@ VALIDATORS = dict(
         Validator('remotedb.ssl', default=True),
         Validator('remotedb.port', default=5432),
     ],
+    robottelo=[
+        Validator('robottelo.settings.ignore_validation_errors', is_type_of=bool, default=False),
+    ],
     shared_function=[
         Validator('shared_function.storage', is_in=('file', 'redis'), default='file'),
         Validator('shared_function.share_timeout', lte=86400, default=86400),
@@ -348,47 +335,19 @@ VALIDATORS = dict(
         Validator('upgrade.rhev_capsule_ak', must_exist=False)
         | Validator('upgrade.capsule_ak', must_exist=False),
     ],
-    vlan_networking=[
-        Validator(
-            'vlan_networking.subnet',
-            'vlan_networking.netmask',
-            'vlan_networking.gateway',
-            must_exist=True,
-        ),
-        Validator('vlan_networking.dhcp_ipam', is_in=('Internal DB', 'DHCP')),
-        # one, and only one, of ('bridge', 'network') must be defined
-        (
-            Validator('vlan_networking.bridge', must_exist=True)
-            & Validator('vlan_networking.network', must_exist=False)
-        )
-        | (
-            Validator('vlan_networking.bridge', must_exist=False)
-            & Validator('vlan_networking.network', must_exist=True)
-        ),
-        # both dhcp_from and dhcp_to are defined, or neither is
-        Validator(
-            'vlan_networking.dhcp_from',
-            'vlan_networking.dhcp_to',
-            must_exist=True,
-        )
-        | Validator(
-            'vlan_networking.dhcp_from',
-            'vlan_networking.dhcp_to',
-            must_exist=False,
-        ),
-    ],
     vmware=[
         Validator(
-            'vmware.vcenter',
+            'vmware.vcenter7.hostname',
+            'vmware.vcenter7.hypervisor',
+            'vmware.vcenter7.mac_address',
+            'vmware.vcenter8.hostname',
+            'vmware.vcenter8.hypervisor',
+            'vmware.vcenter8.mac_address',
             'vmware.username',
             'vmware.password',
             'vmware.datacenter',
             'vmware.vm_name',
             'vmware.image_os',
-            'vmware.image_arch',
-            'vmware.image_username',
-            'vmware.image_password',
-            'vmware.image_name',
             must_exist=True,
         ),
     ],

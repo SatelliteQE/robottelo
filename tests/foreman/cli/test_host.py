@@ -287,6 +287,54 @@ def test_positive_search_all_field_sets(module_target_sat):
         assert field in list(output_field_sets[host_idx].keys())
 
 
+@pytest.mark.rhel_ver_match('8')
+@pytest.mark.cli_host_subscription
+@pytest.mark.tier3
+def test_positive_host_list_with_cv_and_lce(
+    target_sat,
+    rhel_contenthost,
+    function_ak_with_cv,
+    function_promoted_cv,
+    function_org,
+    function_lce,
+):
+    """The output from hammer host list correctly includes both Content View and
+    Lifecycle Environment fields. Specifying these fields explicitly in the command
+    also yields the correct output.
+
+    :id: 3ece2a52-0b91-453e-a4ea-c0376d79fd2d
+
+    :steps:
+        1. Register a Host
+        2. Run the hammer host list command
+        3. Verify information is correct and that both CV and LCE are in the output
+        4. Run the hammer list command with CV and LCE fields specified
+        5. Verify information is correct and that both CV and LCE are in the output
+
+    :expectedresults: Both cases should return CV and LCE in the output
+
+    :Verifies: SAT-23576, SAT-22677
+
+    :customerscenario: true
+    """
+    # register client
+    result = rhel_contenthost.register(function_org, None, function_ak_with_cv.name, target_sat)
+    assert result.status == 0
+    assert rhel_contenthost.subscribed
+    # list host command without specifying cv or lce
+    host_list = target_sat.cli.Host.list(output_format='json')
+    host = next(i for i in host_list if i['name'] == rhel_contenthost.hostname)
+    assert host['content-view'] == function_promoted_cv.name
+    assert host['lifecycle-environment'] == function_lce.name
+    # list host command with specifying cv and lce
+    host_list_fields = target_sat.cli.Host.list(
+        options={'fields': ['Name', 'Content view', 'Lifecycle environment']}, output_format='json'
+    )
+    host = next(i for i in host_list_fields if i['name'] == rhel_contenthost.hostname)
+    assert host['content-view'] == function_promoted_cv.name
+    assert host['lifecycle-environment'] == function_lce.name
+
+
 # -------------------------- CREATE SCENARIOS -------------------------
 @pytest.mark.e2e
 @pytest.mark.cli_host_create
@@ -2683,3 +2731,81 @@ def test_positive_create_host_with_lifecycle_environment_name(
     hosts = module_target_sat.cli.Host.list({'organization-id': module_org.id})
     found_host = any(new_host.name in i.values() for i in hosts)
     assert found_host, 'Assertion failed: host not found'
+
+
+@pytest.mark.rhel_ver_match('^6')
+@pytest.mark.parametrize(
+    'setting_update', ['validate_host_lce_content_source_coherence'], indirect=False
+)
+def test_host_registration_with_capsule_using_content_coherence(
+    module_target_sat,
+    setting_update,
+    module_sca_manifest_org,
+    module_activation_key,
+    rhel_contenthost,
+    module_capsule_configured,
+):
+    """Register client with capsule when settings "validate_host_lce_content_source_coherence" is set to Yes/No
+
+    :id: 17dbec62-eed4-4a51-9927-80919457a124
+
+    :Verifies: SAT-22048
+
+    :setup:
+        1. Create AK which is associated with the organization
+        2. Configure capsule with satellite
+
+    :steps:
+        1. Register client with capsule when settings "validate_host_lce_content_source_coherence" is set to Yes
+        2. Check output for "HTTP error code 422: Validation failed: Content view environment content facets is invalid"
+        3. Re-register client with settings "validate_host_lce_content_source_coherence" is set to No
+        4. Check output there should not be any error like "Validation failed" or "HTTP error code 422"
+
+    :expectedresults: Host registration success with error when settings set to Yes and Host registration success when
+     settings set to No
+
+    :customerscenario: true
+
+    :parametrized: yes
+
+    :CaseImportance: High
+    """
+    # set a new proxy
+    module_target_sat.cli.Capsule.update(
+        {'name': module_capsule_configured.hostname, 'organization-ids': module_sca_manifest_org.id}
+    )
+    # Register client with capsule when settings "validate_host_lce_content_source_coherence" is set to Yes
+    module_target_sat.cli.Settings.set(
+        {'name': 'validate_host_lce_content_source_coherence', 'value': 'true'}
+    )
+    result = rhel_contenthost.register(
+        module_sca_manifest_org,
+        None,
+        module_activation_key.name,
+        module_capsule_configured,
+        force=True,
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+    # Check output for "HTTP error code 422: Validation failed: Content view environment content facets is invalid"
+    assert 'Validation failed' in result.stderr, f'Error is: {result.stderr}'
+    if rhel_contenthost.os_version.major != 7:
+        assert 'HTTP error code 422' in result.stderr, f'Error is: {result.stderr}'
+
+    # Re-register client with settings "validate_host_lce_content_source_coherence" is set to No
+    module_target_sat.cli.Settings.set(
+        {'name': 'validate_host_lce_content_source_coherence', 'value': 'false'}
+    )
+    result = rhel_contenthost.register(
+        module_sca_manifest_org,
+        None,
+        module_activation_key.name,
+        module_capsule_configured,
+        force=True,
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+    # Check output there should not any error like "Validation failed" or "HTTP error code 422"
+    assert 'Validation failed' not in result.stderr, f'Error is: {result.stderr}'
+    if rhel_contenthost.os_version.major != 7:
+        assert 'HTTP error code 422' not in result.stderr, f'Error is: {result.stderr}'

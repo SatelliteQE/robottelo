@@ -103,7 +103,7 @@ def common_sat_install_assertions(satellite):
     assert len(result.stdout) == 0
     # no errors in /var/log/foreman/production.log
     result = satellite.execute(r'grep --context=100 -E "\[E\|" /var/log/foreman/production.log')
-    if not is_open('BZ:2247484'):
+    if not is_open('SAT-21086'):
         assert len(result.stdout) == 0
     # no errors/failures in /var/log/foreman-installer/satellite.log
     result = satellite.execute(
@@ -160,7 +160,9 @@ def sat_default_install(module_sat_ready_rhels):
         f'foreman-initial-admin-password {settings.server.admin_password}',
     ]
     install_satellite(module_sat_ready_rhels[0], installer_args)
-    return module_sat_ready_rhels[0]
+    sat = module_sat_ready_rhels[0]
+    sat.enable_ipv6_http_proxy()
+    return sat
 
 
 @pytest.fixture(scope='module')
@@ -175,10 +177,10 @@ def sat_non_default_install(module_sat_ready_rhels):
         'foreman-proxy-plugin-discovery-install-images true',
     ]
     install_satellite(module_sat_ready_rhels[1], installer_args, enable_fapolicyd=True)
-    module_sat_ready_rhels[1].execute(
-        'dnf -y --disableplugin=foreman-protector install foreman-discovery-image'
-    )
-    return module_sat_ready_rhels[1]
+    sat = module_sat_ready_rhels[1]
+    sat.enable_ipv6_http_proxy()
+    sat.execute('dnf -y --disableplugin=foreman-protector install foreman-discovery-image')
+    return sat
 
 
 @pytest.mark.e2e
@@ -406,7 +408,6 @@ def test_positive_check_installer_hammer_ping(target_sat):
             assert 'ok' in line
 
 
-@pytest.mark.stream
 @pytest.mark.upgrade
 @pytest.mark.tier3
 @pytest.mark.build_sanity

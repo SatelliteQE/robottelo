@@ -211,14 +211,12 @@ def function_synced_AC_repo(target_sat, function_org, function_product):
 
 @pytest.fixture
 def function_restrictive_umask(target_sat):
-    original_mask = target_sat.execute('umask').stdout.strip()[-3:]
     new_mask = '077'
-    target_sat.execute(f'sed -i "s/umask {original_mask}/umask {new_mask}/g" /etc/bashrc')
-    assert (
-        new_mask in target_sat.execute('umask').stdout
-    ), f'Failed to set umask from {original_mask} to {new_mask}'
+    mask_override = f'umask {new_mask} # {gen_string("alpha")}'
+    target_sat.execute(f'echo "{mask_override}" >> /etc/bashrc')
+    assert new_mask in target_sat.execute('umask').stdout, f'Failed to set new umask to {new_mask}'
     yield
-    target_sat.execute(f'sed -i "s/umask {new_mask}/umask {original_mask}/g" /etc/bashrc')
+    target_sat.execute(f'sed -i "/{mask_override}/d" /etc/bashrc')
 
 
 @pytest.mark.run_in_one_thread
@@ -1669,7 +1667,6 @@ class TestContentViewSync:
         assert len(importing_cvv) == 1
 
     @pytest.mark.tier3
-    @pytest.mark.skip_if_open("BZ:2262379")
     def test_postive_export_import_ansible_collection_repo(
         self,
         target_sat,
@@ -1690,6 +1687,10 @@ class TestContentViewSync:
 
         :expectedresults:
             1. Imported library should have the ansible collection present in the imported product.
+
+        :BlockedBy: SAT-23051
+
+        :Verifies: SAT-23051
         """
         # setup ansible_collection product and repo
         export_product = target_sat.cli_factory.make_product({'organization-id': function_org.id})

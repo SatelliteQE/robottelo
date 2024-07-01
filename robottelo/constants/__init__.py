@@ -6,9 +6,9 @@ from box import Box
 from nailgun import entities
 
 # This should be updated after each version branch
-SATELLITE_VERSION = "6.16"
+SATELLITE_VERSION = "6.17"
 SATELLITE_OS_VERSION = "8"
-SAT_NON_GA_VERSIONS = ['6.15', '6.16']
+SAT_NON_GA_VERSIONS = ['6.16', '6.17']
 
 # Default system ports
 HTTPS_PORT = '443'
@@ -528,16 +528,16 @@ REPOS = {
         },
         'rhel8_bos': {
             'id': 'rhel-8-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.9',
-            'version': '8.9',
+            'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.10',
+            'version': '8.10',
             'reposet': REPOSET['kickstart']['rhel8_bos'],
             'product': PRDS['rhel8'],
             'distro': 'rhel8',
         },
         'rhel8_aps': {
             'id': 'rhel-8-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.9',
-            'version': '8.9',
+            'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.10',
+            'version': '8.10',
             'reposet': REPOSET['kickstart']['rhel8_aps'],
             'product': PRDS['rhel8'],
             'distro': 'rhel8',
@@ -807,6 +807,8 @@ FAKE_2_ERRATA_ID = 'RHSA-2012:0055'  # for FAKE_1_CUSTOM_PACKAGE
 REAL_RHEL7_0_ERRATA_ID = 'RHBA-2020:3615'  # for REAL_RHEL7_0_0_PACKAGE
 REAL_RHEL7_1_ERRATA_ID = 'RHBA-2017:0395'  # tcsh bug fix update
 REAL_RHEL8_1_ERRATA_ID = 'RHSA-2022:4867'  # for REAL_RHEL8_1_PACKAGE
+REAL_RHEL8_ERRATA_CVES = ['CVE-2021-27023', 'CVE-2021-27025']
+REAL_RHSCLIENT_ERRATA = 'RHSA-2023:5982'  # for RH Satellite Client 8
 FAKE_1_YUM_REPOS_COUNT = 32
 FAKE_3_YUM_REPOS_COUNT = 78
 FAKE_9_YUM_SECURITY_ERRATUM = [
@@ -2077,6 +2079,7 @@ DNF_RECOMMENDATION = (
 )
 
 EXPIRED_MANIFEST = 'expired-manifest.zip'
+EXPIRED_MANIFEST_DATE = 'Fri Dec 03 2021'
 
 
 # Data File Paths

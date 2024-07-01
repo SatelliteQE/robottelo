@@ -52,6 +52,8 @@ from robottelo.utils.datafactory import gen_string
 
 VERSION = 'Version 1.0'
 
+pytestmark = [pytest.mark.stubbed]
+
 
 @pytest.fixture(scope='module')
 def module_org(module_target_sat):

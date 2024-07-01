@@ -7,22 +7,13 @@ import pytest
 from robottelo.config import settings
 from robottelo.hosts import get_sat_rhel_version
 from robottelo.logging import collection_logger as logger
+from robottelo.utils import parse_comma_separated_list
 from robottelo.utils.issue_handlers.jira import are_any_jira_open
 
 FMT_XUNIT_TIME = '%Y-%m-%dT%H:%M:%S'
 IMPORTANCE_LEVELS = []
 selected = []
 deselected = []
-
-
-def parse_comma_separated_list(option_value):
-    if isinstance(option_value, str):
-        if option_value.lower() == 'true':
-            return True
-        if option_value.lower() == 'false':
-            return False
-        return [item.strip() for item in option_value.split(',')]
-    return None
 
 
 def pytest_addoption(parser):
@@ -115,7 +106,7 @@ def handle_verification_issues(item, verifies_marker, verifies_issues):
             verifies_args = verifies_marker.args[0]
             if all(issue not in verifies_issues for issue in verifies_args):
                 log_and_deselect(item, '--verifies-issues')
-            return False
+                return False
     return True
 
 

@@ -26,14 +26,14 @@ from robottelo.utils.datafactory import gen_string
 
 @pytest.fixture(scope='module')
 def module_manifest():
-    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
+    with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
         yield manifest
 
 
 @pytest.fixture(scope='module')
 def module_org_with_parameter(module_target_sat, module_manifest):
     # adding remote_execution_connect_by_ip=Yes at org level
-    org = module_target_sat.api.Organization(simple_content_access=False).create()
+    org = module_target_sat.api.Organization().create()
     module_target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
         parameter_type='boolean',
@@ -61,7 +61,7 @@ def module_repos_collection(module_org_with_parameter, module_lce, module_target
             module_target_sat.cli_factory.YumRepository(url=settings.repos.yum_6.url),
         ],
     )
-    repos_collection.setup_content(module_org_with_parameter.id, module_lce.id)
+    repos_collection.setup_content(module_org_with_parameter.id, module_lce.id, override=True)
     return repos_collection
 
 

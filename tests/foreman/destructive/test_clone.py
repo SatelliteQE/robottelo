@@ -51,6 +51,8 @@ def test_positive_clone_backup(
 
     :BZ: 2142514, 2013776
 
+    :Verifies: SAT-10789
+
     :customerscenario: true
     """
     rhel_version = sat_ready_rhel._v_major

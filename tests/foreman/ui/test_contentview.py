@@ -19,7 +19,7 @@ from widgetastic_patternfly4.dropdown import DropdownItemDisabled
 from robottelo.constants import REPOS
 from robottelo.exceptions import CLIReturnCodeError
 
-from robottelo.constants import REPOS
+from robottelo.constants import FAKE_FILE_NEW_NAME, REPOS, DataFile
 
 
 @pytest.mark.tier2
@@ -113,7 +113,6 @@ def test_no_blank_page_on_language_switch(session, target_sat, module_org):
         session.user.update(user.login, {'user.language': 'Français'})
         assert session.contentview_new.read_french_lang_cv()
 
-
 def test_republish_metadata(session, function_sca_manifest_org, target_sat):
     """Verify that you can't republish metadata from the UI, and you can from the CLI
     :id: 96ef4fe5-dec4-4919-aa4d-b8806d90b654
@@ -160,3 +159,42 @@ def test_republish_metadata(session, function_sca_manifest_org, target_sat):
         target_sat.cli.ContentView.version_republish_repositories(
             {'id': version.id, 'force': 'true'}
         )
+
+@pytest.mark.tier2
+def test_file_cv_display(session, target_sat, module_org, module_product):
+    """Content-> Files displays only the Content Views associated with that file
+
+    :id: 41719f2f-2170-4b26-b65f-2063a1eac7fb
+
+    :steps:
+        1. Create a file repo, and upload content into it
+        2. Add file repo to a CV, and publish it
+        3. Create another CV, and publish it
+        4. Navigate to the Content -> File section of the UI
+
+    :expectedresults: Only the Content View with the file repo is displayed.
+
+    :BZ: 2026701
+
+    :customerscenario: true
+
+    :Verifies: SAT-17081
+    """
+    repo_name = gen_string('alpha')
+    file_repo = target_sat.api.Repository(
+        product=module_product, name=f'{repo_name}_file_repo', content_type='file'
+    ).create()
+    with open(DataFile.FAKE_FILE_NEW_NAME, 'rb') as handle:
+        file_repo.upload_content(files={'content': handle})
+    assert file_repo.read().content_counts['file'] == 1
+    cv = target_sat.api.ContentView(organization=module_org).create()
+    cv = target_sat.api.ContentView(id=cv.id, repository=[file_repo]).update(['repository'])
+    cv.publish()
+    cv2 = target_sat.api.ContentView(organization=module_org).create()
+    cv2.publish()
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        file_values = session.file.read_cv_table(FAKE_FILE_NEW_NAME)
+        assert len(file_values) == 1
+        assert file_values[0]['Name'] == cv.name
+

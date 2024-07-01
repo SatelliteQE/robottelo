@@ -92,7 +92,7 @@ def vm(
     )
     host_id = host[0].id
     host_content = module_target_sat.api.Host(id=host_id).read_json()
-    assert host_content["subscription_status"] == 5
+    assert host_content['subscription_facet_attributes']['uuid']
     rhel7_contenthost_module.install_katello_host_tools()
     return rhel7_contenthost_module
 
@@ -177,17 +177,15 @@ def test_positive_erratum_installable(vm, module_target_sat):
 
 
 @pytest.mark.tier2
-def test_negative_rct_not_shows_golden_ticket_enabled(
+def test_negative_rct_not_shows_sca_enabled(
     target_sat, function_org, function_entitlement_manifest
 ):
-    """Assert restricted manifest has no Golden Ticket enabled .
+    """Assert restricted (entitlement) manifest does not show SCA enabled.
 
     :id: 754c1be7-468e-4795-bcf9-258a38f3418b
 
     :steps:
-
         1. Run `rct cat-manifest /tmp/restricted_manifest.zip`.
-
 
     :expectedresults:
         1. Assert `Content Access Mode: Simple Content Access` is not present.
@@ -205,13 +203,12 @@ def test_negative_rct_not_shows_golden_ticket_enabled(
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_rct_shows_golden_ticket_enabled(module_sca_manifest, target_sat):
-    """Assert unrestricted manifest has Golden Ticket enabled .
+def test_positive_rct_shows_sca_enabled(module_sca_manifest, module_target_sat):
+    """Assert unrestricted (SCA) manifest shows SCA enabled.
 
     :id: 0c6e2f88-1a86-4417-9248-d7bd20584197
 
     :steps:
-
         1. Run `rct cat-manifest /tmp/unrestricted_manifest.zip`.
 
     :expectedresults:
@@ -220,8 +217,8 @@ def test_positive_rct_shows_golden_ticket_enabled(module_sca_manifest, target_sa
     :CaseImportance: Medium
     """
     with module_sca_manifest as manifest:
-        target_sat.put(f'{manifest.path}', f'{manifest.name}')
-    result = target_sat.execute(f'rct cat-manifest {module_sca_manifest.name}')
+        module_target_sat.put(f'{manifest.path}', f'{manifest.name}')
+    result = module_target_sat.execute(f'rct cat-manifest {module_sca_manifest.name}')
     assert result.status == 0
     assert 'Content Access Mode: Simple Content Access' in result.stdout
 

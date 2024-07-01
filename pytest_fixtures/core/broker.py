@@ -24,6 +24,7 @@ def _target_sat_imp(request, _default_sat, satellite_factory):
     """This is the actual working part of the following target_sat fixtures"""
     if request.node.get_closest_marker(name='destructive'):
         new_sat = satellite_factory()
+        new_sat.enable_ipv6_http_proxy()
         yield new_sat
         new_sat.teardown()
         Broker(hosts=[new_sat]).checkin()
@@ -32,6 +33,8 @@ def _target_sat_imp(request, _default_sat, satellite_factory):
         settings.set('server.hostname', installer_sat.hostname)
         yield installer_sat
     else:
+        if _default_sat:
+            _default_sat.enable_ipv6_http_proxy()
         yield _default_sat
 
 

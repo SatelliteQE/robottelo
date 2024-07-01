@@ -29,7 +29,6 @@ from robottelo.utils.datafactory import (
     parametrized,
     valid_data_list,
 )
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
@@ -591,7 +590,6 @@ def test_negative_update_usage_limit(module_org, module_target_sat):
     assert 'Validation failed: Max hosts must be less than 2147483648' in raise_ctx.value.message
 
 
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_usage_limit(module_org, module_location, target_sat):
@@ -872,29 +870,31 @@ def test_positive_delete_subscription(function_entitlement_manifest_org, module_
     assert subscription_result[-1]['name'] not in ak_subs_info
 
 
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_update_aks_to_chost(module_org, module_location, rhel7_contenthost, target_sat):
-    """Check if multiple Activation keys can be attached to a
-    Content host
+@pytest.mark.rhel_ver_match('[^6]')
+def test_positive_update_aks_to_chost(
+    module_org, module_location, rhel_contenthost, module_target_sat
+):
+    """Check if multiple Activation keys can be attached to a Content host
 
     :id: 24fddd9c-03ae-41a7-8649-72296cbbafdf
 
-    :expectedresults: Multiple Activation keys are attached to a Content
-        host
+    :expectedresults: Multiple Activation keys are attached to a Content host
 
     :parametrized: yes
     """
-    env = target_sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
-    new_cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
-    target_sat.cli.ContentView.publish({'id': new_cv['id']})
-    cvv = target_sat.cli.ContentView.info({'id': new_cv['id']})['versions'][0]
-    target_sat.cli.ContentView.version_promote(
+    env = module_target_sat.cli_factory.make_lifecycle_environment(
+        {'organization-id': module_org.id}
+    )
+    new_cv = module_target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
+    module_target_sat.cli.ContentView.publish({'id': new_cv['id']})
+    cvv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})['versions'][0]
+    module_target_sat.cli.ContentView.version_promote(
         {'id': cvv['id'], 'to-lifecycle-environment-id': env['id']}
     )
     new_aks = [
-        target_sat.cli_factory.make_activation_key(
+        module_target_sat.cli_factory.make_activation_key(
             {
                 'lifecycle-environment-id': env['id'],
                 'content-view': new_cv['name'],
@@ -903,17 +903,16 @@ def test_positive_update_aks_to_chost(module_org, module_location, rhel7_content
         )
         for _ in range(2)
     ]
-    for i in range(2):
-        rhel7_contenthost.register(
+    for ak in new_aks:
+        rhel_contenthost.register(
             org=module_org,
             loc=module_location,
-            activation_keys=new_aks[i]['name'],
-            target=target_sat,
+            activation_keys=ak['name'],
+            target=module_target_sat,
         )
-        assert rhel7_contenthost.subscribed
+        assert rhel_contenthost.subscribed
 
 
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.stubbed
 @pytest.mark.tier3
 def test_positive_update_aks_to_chost_in_one_command(module_org):
@@ -1139,8 +1138,7 @@ def test_create_ak_with_syspurpose_set(module_entitlement_manifest_org, module_t
     assert new_ak['system-purpose']['purpose-addons'] == "test-addon1, test-addon2"
     assert new_ak['system-purpose']['purpose-role'] == "test-role"
     assert new_ak['system-purpose']['purpose-usage'] == "test-usage"
-    if not is_open('BZ:1789028'):
-        assert new_ak['system-purpose']['service-level'] == "Self-Support"
+    assert new_ak['system-purpose']['service-level'] == "Self-Support"
     # Check that system purpose values can be deleted.
     module_target_sat.cli.ActivationKey.update(
         {
@@ -1603,7 +1601,6 @@ def test_positive_view_subscriptions_by_non_admin_user(
     assert subscriptions[0]['id'] == subscription_id
 
 
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 def test_positive_subscription_quantity_attached(function_org, rhel7_contenthost, target_sat):
     """Check the Quantity and Attached fields of 'hammer activation-key subscriptions'
@@ -1661,7 +1658,6 @@ def test_positive_subscription_quantity_attached(function_org, rhel7_contenthost
         assert regex.match(ak_sub['attached'])
 
 
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 def test_positive_ak_with_custom_product_on_rhel6(
     module_org, module_location, rhel6_contenthost, target_sat

@@ -230,7 +230,7 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(session, modu
             f' and organization_id = {module_org.id}'
             f' and resource_id = {repo.id}'
             ' and resource_type = Katello::Repository',
-            search_rate=10,
+            search_rate=15,
             max_tries=20,
         )
         validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
@@ -295,7 +295,7 @@ def test_positive_synchronize_custom_product_custom_cron_past_sync_date(
             f' and organization_id = {module_org.id}'
             f' and resource_id = {repo.id}'
             ' and resource_type = Katello::Repository',
-            search_rate=10,
+            search_rate=15,
             max_tries=20,
         )
         validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
