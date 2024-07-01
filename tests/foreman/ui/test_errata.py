@@ -172,7 +172,7 @@ def registered_contenthost(
 
     :environment: Defaults to module_lce.
         To use Library environment for activation key / content-view:
-        pass the string 'library' (not case sensative) in the list of params.
+        pass the string 'Library' (not case sensative) in the list of params.
 
     :repos: pass as a parametrized request
         list of upstream URLs for custom repositories.
@@ -1090,9 +1090,9 @@ def test_positive_content_host_previous_env(
     session,
     module_cv,
     module_lce,
-    module_org,
     module_target_sat,
     registered_contenthost,
+    module_sca_manifest_org,
 ):
     """Check if the applicable errata are available from the content
     host's previous environment
@@ -1102,11 +1102,14 @@ def test_positive_content_host_previous_env(
     :Setup:
         1. Make sure multiple environments are present.
         2. Content host's previous environments have additional errata.
+        3. Promote the Host's content view to a new lifecycle environment.
+        4. Set the Host to use the new environment, and original content view.
 
     :steps: Go to Content Hosts -> Select content host -> Errata Tab ->
-        Select Previous environments.
+        Select Previous environments (Environments Dropdown).
 
-    :expectedresults: The errata from previous environments are displayed.
+    :expectedresults: The previous environment name, and content view name are correct.
+        The errata dropdown from previous environments are displayed.
 
     :parametrized: yes
     """
@@ -1114,15 +1117,21 @@ def test_positive_content_host_previous_env(
     hostname = vm.hostname
     assert vm.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     # Promote the latest content view version to a new lifecycle environment
-    content_view = module_cv.read()
     new_lce = module_target_sat.api.LifecycleEnvironment(
-        organization=module_org,
-        prior=module_lce,
+        organization=module_sca_manifest_org,
+        prior=module_lce.read(),
     ).create()
-    content_view = content_view.read()
+    content_view = module_cv.read()
     content_view.version.sort(key=lambda version: version.id)
     content_view_version = content_view.version[-1].read()
-    content_view_version.promote(data={'environment_ids': new_lce.id})
+    content_view_version.promote(data={'environment_ids': [new_lce.id]})
+    # set host to use {new_lce / module_cv}, prior should be {module_lce / module_cv}
+    vm = module_target_sat.api.Host().search(query={'search': f'name={hostname}'})[0].read()
+    vm.content_facet_attributes = {
+        'lifecycle_environment_id': new_lce.id,
+        'content_view_id': content_view.id,
+    }
+    vm.update(['content_facet_attributes'])
 
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
