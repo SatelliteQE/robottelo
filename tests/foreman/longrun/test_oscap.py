@@ -329,7 +329,7 @@ def test_positive_oscap_remediation(
         # Remediate
         with target_sat.ui_session() as session:
             assert (
-                vm.execute("rpm -q aide").status != 0
+                vm.execute('rpm -q aide').status != 0
             ), 'This test expects package "aide" NOT to be installed but it is. If this fails, it\'s probably a matter of wrong assumption of this test, not a product bug.'
             title = 'xccdf_org.ssgproject.content_rule_package_aide_installed'
             session.organization.select(module_org.name)
