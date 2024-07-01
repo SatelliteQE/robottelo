@@ -20,7 +20,6 @@ from broker import Broker
 from broker.hosts import Host
 from dynaconf.vendor.box.exceptions import BoxKeyError
 from fauxfactory import gen_alpha, gen_string
-from manifester import Manifester
 from nailgun import entities
 from packaging.version import Version
 import requests
@@ -41,12 +40,8 @@ from robottelo.constants import (
     CUSTOM_PUPPET_MODULE_REPOS,
     CUSTOM_PUPPET_MODULE_REPOS_PATH,
     CUSTOM_PUPPET_MODULE_REPOS_VERSION,
-    DEFAULT_ARCHITECTURE,
     HAMMER_CONFIG,
     KEY_CLOAK_CLI,
-    PRDS,
-    REPOS,
-    REPOSET,
     RHSSO_NEW_GROUP,
     RHSSO_NEW_USER,
     RHSSO_RESET_PASSWORD,
@@ -70,8 +65,9 @@ POWER_OPERATIONS = {
 
 @lru_cache
 def lru_sat_ready_rhel(rhel_ver):
+    """Deploy bare RHEL system ready for Satellite installation."""
     rhel_version = rhel_ver or settings.server.version.rhel_version
-    deploy_args = {
+    deploy_args = settings.server.deploy_arguments | {
         'deploy_rhel_version': rhel_version,
         'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
         'deploy_flavor': settings.flavors.default,
@@ -107,53 +103,6 @@ def get_sat_rhel_version():
         elif hasattr(settings.robottelo, 'rhel_version'):
             rhel_version = settings.robottelo.rhel_version
     return Version(rhel_version)
-
-
-def setup_capsule(satellite, capsule, org, registration_args=None, installation_args=None):
-    """Given satellite and capsule instances, run the commands needed to set up the capsule
-
-    Note: This does not perform content setup actions on the Satellite
-
-    :param satellite: An instance of this module's Satellite class
-    :param capsule: An instance of this module's Capsule class
-    :param org: An instance of the org to use on the Satellite
-    :param registration_args: A dictionary mapping argument: value pairs for registration
-    :param installation_args: A dictionary mapping argument: value pairs for installation
-    :return: An ssh2-python result object for the installation command.
-
-    """
-    # Unregister capsule incase it's registered to CDN
-    capsule.unregister()
-
-    # Add a manifest to the Satellite
-    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
-        satellite.upload_manifest(org.id, manifest.content)
-
-    # Enable RHEL 8 BaseOS and AppStream repos and sync
-    for rh_repo_key in ['rhel8_bos', 'rhel8_aps']:
-        satellite.api_factory.enable_rhrepo_and_fetchid(
-            basearch=DEFAULT_ARCHITECTURE,
-            org_id=org.id,
-            product=PRDS['rhel8'],
-            repo=REPOS[rh_repo_key]['name'],
-            reposet=REPOSET[rh_repo_key],
-            releasever=REPOS[rh_repo_key]['releasever'],
-        )
-    product = satellite.api.Product(name=PRDS['rhel8'], organization=org.id).search()[0]
-    product.sync(timeout=1800, synchronous=True)
-
-    if not registration_args:
-        registration_args = {}
-    file, _, cmd_args = satellite.capsule_certs_generate(capsule)
-    if installation_args:
-        cmd_args.update(installation_args)
-    satellite.execute(
-        f'sshpass -p "{capsule.password}" scp -o "StrictHostKeyChecking no" '
-        f'{file} root@{capsule.hostname}:{file}'
-    )
-    capsule.install_katello_ca(satellite)
-    capsule.register_contenthost(org=org.label, **registration_args)
-    return capsule.install(cmd_args)
 
 
 class ContentHostError(Exception):
@@ -524,6 +473,9 @@ class ContentHost(Host, ContentHostMixins):
         if force or settings.robottelo.cdn or not downstream_repo:
             return self.execute(f'subscription-manager repos --enable {repo}')
         return None
+
+    def disable_repo(self, repo):
+        return self.execute(f'subscription-manager repos --disable {repo}')
 
     def subscription_manager_list_repos(self):
         return self.execute('subscription-manager repos --list')
