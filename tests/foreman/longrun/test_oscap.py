@@ -277,9 +277,9 @@ def test_positive_oscap_remediation(
     """Run an OSCAP scan and remediate through WebUI
 
     :id: 55b919ef-432f-4186-b22a-01bb8ce39b3f
-    
+
     :Verifies: SAT-23240
-    
+
     :setup: scap content, scap policy, host group associated with the policy
 
     :steps:
