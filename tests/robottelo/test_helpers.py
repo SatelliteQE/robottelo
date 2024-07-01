@@ -1,4 +1,5 @@
 """Tests for module ``robottelo.helpers``."""
+
 import pytest
 
 from robottelo.utils import slugify_component, validate_ssh_pub_key

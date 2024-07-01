@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
 from nailgun import entities
 import pytest
@@ -113,7 +114,7 @@ class TestADAuthSource:
                 'attr-firstname': LDAP_ATTR['firstname'],
                 'attr-lastname': LDAP_ATTR['surname'],
                 'attr-mail': LDAP_ATTR['mail'],
-                'account': fr"{ad_data['workgroup']}\{ad_data['ldap_user_name']}",
+                'account': rf"{ad_data['workgroup']}\{ad_data['ldap_user_name']}",
                 'account-password': ad_data['ldap_user_passwd'],
                 'base-dn': ad_data['base_dn'],
             }

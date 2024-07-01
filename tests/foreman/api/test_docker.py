@@ -7,6 +7,7 @@
 :CaseImportance: High
 
 """
+
 from random import choice, randint, shuffle
 
 from fauxfactory import gen_string, gen_url

@@ -19,7 +19,6 @@ def pytest_addoption(parser):
 
 
 def pytest_collection_modifyitems(items, config):
-
     if not config.getoption('n_minus', False):
         return
 

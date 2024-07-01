@@ -3,7 +3,6 @@ import subprocess
 
 
 class ReqUpdater:
-
     # Installed package name as key and its counterpart in requirements file as value
     package_deviates = {
         'Betelgeuse': 'betelgeuse',

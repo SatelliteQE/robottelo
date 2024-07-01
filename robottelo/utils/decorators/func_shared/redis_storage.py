@@ -23,7 +23,6 @@ class RedisStorageHandler(BaseStorageHandler):
         password=REDIS_PASSWORD,
         lock_timeout=LOCK_TIMEOUT,
     ):
-
         self._lock_timeout = lock_timeout
         self._client = redis.StrictRedis(host=host, port=port, db=db, password=password)
 

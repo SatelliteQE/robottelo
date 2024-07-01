@@ -11,6 +11,7 @@
 :CaseImportance: Critical
 
 """
+
 from random import choice
 
 from fauxfactory import gen_alphanumeric, gen_string

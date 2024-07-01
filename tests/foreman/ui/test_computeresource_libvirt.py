@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from random import choice
 
 from fauxfactory import gen_string

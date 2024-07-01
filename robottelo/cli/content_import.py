@@ -16,6 +16,7 @@ Subcommands::
     version                       Imports a content archive to a content view version
 
 """
+
 from robottelo.cli.base import Base
 
 

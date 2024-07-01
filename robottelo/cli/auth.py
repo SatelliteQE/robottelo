@@ -11,6 +11,7 @@ Subcommands::
     logout                        Wipe your credentials
     status                        Information about current connections
 """
+
 from robottelo.cli.base import Base
 
 

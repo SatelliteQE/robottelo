@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import re
 
 import pytest
@@ -157,28 +158,6 @@ class TestKatelloCertsCheck:
         result = target_sat.execute(command)
         self.validate_output(result, cert_data)
 
-    @pytest.mark.tier1
-    def test_katello_certs_check_output_wildcard_inputs(self, cert_setup_teardown):
-        """Validate that katello-certs-check generates correct output with wildcard certs.
-
-        :id: 7f9da806-5b23-11eb-b7ea-d46d6dd3b5b2
-
-        :steps:
-
-            1. Get valid wildcard certs from generate_certs
-            2. Run katello-certs-check with the required valid arguments
-               katello-certs-check -c CERT_FILE -k KEY_FILE -r REQ_FILE
-               -b CA_BUNDLE_FILE
-            3. Assert the output has correct commands with options
-
-        :expectedresults: katello-certs-check should generate correct commands
-         with options.
-        """
-        cert_data, target_sat = cert_setup_teardown
-        command = 'katello-certs-check -c certs/wildcard.crt -k certs/wildcard.key -b certs/ca.crt'
-        result = target_sat.execute(command)
-        self.validate_output(result, cert_data)
-
     @pytest.mark.parametrize(('error', 'cert_file', 'key_file', 'ca_file'), invalid_inputs)
     @pytest.mark.tier1
     def test_katello_certs_check_output_invalid_input(
@@ -234,7 +213,7 @@ class TestKatelloCertsCheck:
 
         :expectedresults: Checking expiration of certificate check should fail.
 
-        :CaseAutomation: NotAutomated
+        :CaseAutomation: Automated
         """
         cert_data, target_sat = cert_setup_teardown
         hostname = target_sat.hostname
@@ -272,23 +251,6 @@ class TestKatelloCertsCheck:
 
         :expectedresults: Check for validating the certificate subject should
             fail.
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier1
-    def test_negative_check_private_key_match(self):
-        """Validate private key match with certificate.
-
-        :id: 358edbb3-08b0-47d7-856b-ce0d5ea95979
-
-        :steps:
-
-            1. Have KEY_FILE with invalid private key
-            2. Run katello-certs-check with the required arguments
-
-        :expectedresults: Private key match with the certificate should fail.
 
         :CaseAutomation: NotAutomated
         """

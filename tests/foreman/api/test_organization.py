@@ -14,6 +14,7 @@ http://<satellite-host>/apidoc/v2/organizations.html
 :CaseImportance: High
 
 """
+
 import http
 import json
 from random import randint

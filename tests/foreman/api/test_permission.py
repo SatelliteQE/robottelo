@@ -15,6 +15,7 @@ http://<satellite-host>/apidoc/v2/permissions.html
 :CaseImportance: High
 
 """
+
 from itertools import chain
 import json
 import re

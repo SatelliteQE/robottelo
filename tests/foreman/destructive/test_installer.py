@@ -11,6 +11,7 @@
 :CaseImportance: Critical
 
 """
+
 import random
 
 from fauxfactory import gen_domain, gen_string

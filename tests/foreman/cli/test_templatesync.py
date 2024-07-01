@@ -9,6 +9,7 @@
 :Team: Endeavour
 
 """
+
 import base64
 
 from fauxfactory import gen_string

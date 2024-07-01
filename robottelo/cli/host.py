@@ -39,6 +39,7 @@ Subcommands::
      update                        Update a host
 
 """
+
 from robottelo.cli.base import Base
 
 

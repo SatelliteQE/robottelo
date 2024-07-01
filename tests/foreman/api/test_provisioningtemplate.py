@@ -14,6 +14,7 @@ http://theforeman.org/api/apidoc/v2/provisioning_templates.html
 :CaseImportance: High
 
 """
+
 from random import choice
 
 from fauxfactory import gen_choice, gen_integer, gen_mac, gen_string

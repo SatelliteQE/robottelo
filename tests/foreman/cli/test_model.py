@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
 import pytest
 
@@ -37,7 +38,7 @@ class TestModel:
         ('name', 'new_name'),
         **parametrized(
             list(zip(valid_data_list().values(), valid_data_list().values(), strict=True))
-        )
+        ),
     )
     def test_positive_crud_with_name(self, name, new_name, module_target_sat):
         """Successfully creates, updates and deletes a Model.

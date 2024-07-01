@@ -11,6 +11,7 @@
 :CaseImportance: Critical
 
 """
+
 import pytest
 
 from robottelo.config import settings

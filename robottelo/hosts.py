@@ -63,7 +63,7 @@ from robottelo.utils.installer import InstallerCommand
 POWER_OPERATIONS = {
     VmState.RUNNING: 'running',
     VmState.STOPPED: 'stopped',
-    'reboot': 'reboot'
+    'reboot': 'reboot',
     # TODO paused, suspended, shelved?
 }
 
@@ -438,7 +438,10 @@ class ContentHost(Host, ContentHostMixins):
         if ensure and state in [VmState.RUNNING, 'reboot']:
             try:
                 wait_for(
-                    self.connect, fail_condition=lambda res: res is not None, handle_exception=True
+                    self.connect,
+                    fail_condition=lambda res: res is not None,
+                    timeout=300,
+                    handle_exception=True,
                 )
             # really broad diaper here, but connection exceptions could be a ton of types
             except TimedOutError as toe:
@@ -837,10 +840,7 @@ class ContentHost(Host, ContentHostMixins):
             registration.
         """
 
-        if username and password:
-            userpass = f' --username {username} --password {password}'
-        else:
-            userpass = ''
+        userpass = f' --username {username} --password {password}' if username and password else ''
         # Setup the base command
         cmd = 'subscription-manager register'
         if org:

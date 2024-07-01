@@ -1,4 +1,5 @@
 """A collection of mixins for robottelo.hosts classes"""
+
 from functools import cached_property
 import json
 from tempfile import NamedTemporaryFile

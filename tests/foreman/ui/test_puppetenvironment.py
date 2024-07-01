@@ -11,6 +11,7 @@
 :CaseImportance: Low
 
 """
+
 import pytest
 
 from robottelo.constants import DEFAULT_CV, ENVIRONMENT

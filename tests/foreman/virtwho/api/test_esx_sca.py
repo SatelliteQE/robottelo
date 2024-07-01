@@ -9,6 +9,7 @@
 :Team: Phoenix
 
 """
+
 import pytest
 
 from robottelo.config import settings
@@ -407,9 +408,7 @@ class TestVirtWhoConfigforEsx:
         # Check the option "env=" should be removed from etc/virt-who.d/virt-who.conf
         option = "env"
         config_file = get_configure_file(virtwho_config_api.id)
-        env_error = (
-            f"option {{\'{option}\'}} is not exist or not be enabled in {{\'{config_file}\'}}"
-        )
+        env_error = f"option {{'{option}'}} is not exist or not be enabled in {{'{config_file}'}}"
         with pytest.raises(Exception) as exc_info:  # noqa: PT011 - TODO determine better exception
             get_configure_option({option}, {config_file})
         assert str(exc_info.value) == env_error

@@ -17,6 +17,7 @@ Subcommands::
  list                          List all filters
  update                        Update a filter
 """
+
 from robottelo.cli.base import Base
 
 

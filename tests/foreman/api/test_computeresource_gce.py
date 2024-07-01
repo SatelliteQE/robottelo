@@ -14,6 +14,7 @@ http://www.katello.org/docs/api/apidoc/compute_resources.html
 :CaseImportance: High
 
 """
+
 import random
 
 from fauxfactory import gen_string

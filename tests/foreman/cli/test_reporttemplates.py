@@ -10,6 +10,7 @@
 :CaseImportance: High
 
 """
+
 from broker import Broker
 from fauxfactory import gen_alpha
 import pytest

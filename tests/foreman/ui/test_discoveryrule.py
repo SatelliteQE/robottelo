@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_integer, gen_ipaddr, gen_string
 import pytest
 

@@ -15,6 +15,7 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
 from nailgun.config import ServerConfig
 from nailgun.entity_mixins import TaskFailedError

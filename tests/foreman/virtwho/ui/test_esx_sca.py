@@ -9,6 +9,7 @@
 :team: Phoenix-subscriptions
 
 """
+
 from datetime import datetime
 
 from airgun.session import Session
@@ -312,9 +313,7 @@ class TestVirtwhoConfigforEsx:
         option = "env"
         config_id = get_configure_id(name)
         config_file = get_configure_file(config_id)
-        env_error = (
-            f"option {{\'{option}\'}} is not exist or not be enabled in {{\'{config_file}\'}}"
-        )
+        env_error = f"option {{'{option}'}} is not exist or not be enabled in {{'{config_file}'}}"
         with pytest.raises(Exception) as exc_info:  # noqa: PT011 - TODO determine better exception
             get_configure_option({option}, {config_file})
         assert str(exc_info.value) == env_error

@@ -25,10 +25,7 @@ def align_to_satellite(request, worker_id, satellite_factory):
         settings.set("server.hostname", None)
         on_demand_sat = None
 
-        if worker_id in ['master', 'local']:
-            worker_pos = 0
-        else:
-            worker_pos = int(worker_id.replace('gw', ''))
+        worker_pos = 0 if worker_id in ["master", "local"] else int(worker_id.replace("gw", ""))
 
         # attempt to add potential satellites from the broker inventory file
         if settings.server.inventory_filter:

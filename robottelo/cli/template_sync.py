@@ -39,6 +39,7 @@ Options::
     prefix                        The string all imported templates should begin with.
     repo                          Override the default repo from settings.
 """
+
 from robottelo.cli.base import Base
 
 

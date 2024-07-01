@@ -9,6 +9,7 @@
 :team: Phoenix-subscriptions
 
 """
+
 import pytest
 
 from robottelo.utils.virtwho import (

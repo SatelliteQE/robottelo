@@ -9,6 +9,7 @@
 :Team: Phoenix-subscriptions
 
 """
+
 from fauxfactory import gen_string
 import pytest
 

@@ -40,6 +40,7 @@ Subcommands::
                                     organization.
     update                        Update an organization
 """
+
 from robottelo.cli.base import Base
 
 

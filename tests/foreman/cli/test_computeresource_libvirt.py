@@ -28,6 +28,7 @@ Subcommands::
 :CaseImportance: High
 
 """
+
 import random
 
 from fauxfactory import gen_string, gen_url

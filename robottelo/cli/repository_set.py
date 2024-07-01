@@ -19,6 +19,7 @@ Subcommands::
     info                          Show a repository
     list                          List of repositories
 """
+
 from robottelo.cli.base import Base
 
 

@@ -3,6 +3,7 @@ This module is a more object oriented replacement for robottelo.cli.factory
 It is not meant to be used directly, but as part of a robottelo.hosts.Satellite instance
 example: my_satellite.cli_factory.make_org()
 """
+
 import datetime
 from functools import lru_cache, partial
 import inspect

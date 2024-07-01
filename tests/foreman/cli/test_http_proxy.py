@@ -11,6 +11,7 @@
 :CaseAutomation: Automated
 
 """
+
 from fauxfactory import gen_integer, gen_string, gen_url
 import pytest
 

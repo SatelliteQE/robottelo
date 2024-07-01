@@ -2,7 +2,7 @@
 
 :Requirement: UpgradedSatellite
 
-:CaseAutomation: NotAutomated
+:CaseAutomation: Automated
 
 :CaseComponent: UsersRoles
 
@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import pytest
 
 
@@ -31,6 +32,8 @@ class TestOverriddenFilter:
         1. The Filter should be have set override flag postupgrade
         2. The locations and organizations of filter should be unchanged
             postupgrade
+
+    :CaseAutomation: NotAutomated
     """
 
     @pytest.mark.pre_upgrade
@@ -82,6 +85,8 @@ class TestBuiltInRolesLocked:
 
         1. Builtin roles of satellite should be locked and non-editable
         2. Built in roles of satellite should be allowed to clone
+
+    :CaseAutomation: NotAutomated
     """
 
     @pytest.mark.post_upgrade
@@ -117,6 +122,8 @@ class TestNewOrganizationAdminRole:
             non-editable
         4. Organization Admin role of satellite should be allowed to clone
         5. Taxonomies should be assigned to cloned org admin role
+
+    :CaseAutomation: NotAutomated
     """
 
     @pytest.mark.post_upgrade
@@ -164,7 +171,6 @@ class TestRoleAddPermission:
         :steps: New permission is added to existing 'Default role'
 
         :expectedresults: Permission is added to existing 'Default role'.
-
         """
         default_role = target_sat.api.Role().search(query={'search': 'name="Default role"'})[0]
         subnet_filter = target_sat.api.Filter(
@@ -219,7 +225,6 @@ class TestRoleAddPermissionWithFilter:
 
         :expectedresults: Permission with filter is added to existing
             'Default role'
-
         """
         default_role = target_sat.api.Role().search(query={'search': 'name="Default role"'})[0]
         domain_filter = target_sat.api.Filter(

@@ -16,6 +16,7 @@ Subcommands::
      list                          List SCAP contents
      update                        Update an SCAP content
 """
+
 from robottelo.cli.base import Base
 
 

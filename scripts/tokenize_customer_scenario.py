@@ -13,6 +13,7 @@ But in this script we are doing programatically and interactivelly in Python
 On robottelo root dir run:
 $ python scripts/tokenize_customer_scenario.py
 """
+
 import codemod
 from codemod import Query, regex_suggestor, run_interactive
 from codemod.helpers import path_filter

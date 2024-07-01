@@ -15,6 +15,7 @@ API reference for sync plans can be found on your Satellite:
 :CaseImportance: High
 
 """
+
 from datetime import datetime, timedelta
 from time import sleep
 

@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from manifester import Manifester
 import pytest
 

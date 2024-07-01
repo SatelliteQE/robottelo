@@ -11,6 +11,7 @@
 :Team: Rocket
 
 """
+
 import pytest
 
 from robottelo.config import settings

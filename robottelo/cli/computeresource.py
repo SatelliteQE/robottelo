@@ -17,6 +17,7 @@ Subcommands::
     list                          List all compute resources.
     update                        Update a compute resource.
 """
+
 from robottelo.cli.base import Base
 
 

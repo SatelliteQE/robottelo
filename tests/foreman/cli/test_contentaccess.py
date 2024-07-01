@@ -9,6 +9,7 @@
 :team: Phoenix-subscriptions
 
 """
+
 import time
 
 from nailgun import entities
