@@ -354,8 +354,10 @@ API_PATHS = {
         '/api/usergroups/:usergroup_id/external_usergroups/:id',
         '/api/usergroups/:usergroup_id/external_usergroups/:id/refresh',
     ),
-    'fact_values': ('/api/fact_values',),
-    'host_facts': ('/api/hosts/:host_id/facts',),
+    'fact_values': (
+        '/api/fact_values',
+        '/api/hosts/:host_id/facts',
+    ),
     'file_units': ('/katello/api/files', '/katello/api/files/compare', '/katello/api/files/:id'),
     'filters': (
         '/api/filters',
