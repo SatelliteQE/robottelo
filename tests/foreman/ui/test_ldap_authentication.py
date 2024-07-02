@@ -713,7 +713,7 @@ def test_positive_create_user_in_ldap_mode(session, ldap_auth_source, ldap_tear_
         assert user_values['user']['auth'] == auth_source_name
 
 
-@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
 def test_positive_login_user_no_roles(test_name, ldap_tear_down, ldap_auth_source, target_sat):
     """Login with LDAP Auth for user with no roles/rights
