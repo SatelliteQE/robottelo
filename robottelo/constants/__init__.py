@@ -1920,8 +1920,6 @@ FAM_TEST_PLAYBOOKS = [
     "http_proxy",
     "image",
     "installation_medium",
-    "inventory_plugin_ansible",
-    "inventory_plugin",
     "job_invocation",
     "job_template",
     "katello_hostgroup",
