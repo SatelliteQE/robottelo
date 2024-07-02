@@ -17,9 +17,12 @@ import pytest
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import (
+    CONTAINER_MANIFEST_LABELS,
     DEFAULT_ARCHITECTURE,
     FAKE_0_CUSTOM_PACKAGE_NAME,
     FAKE_4_CUSTOM_PACKAGE_NAME,
+    LABELLED_REPOS,
+    PULP_CONTAINER_REGISTRY_HUB,
     REPOS,
 )
 from robottelo.hosts import ContentHost
@@ -373,6 +376,97 @@ class TestScenarioLargeRepoSyncCheck:
         repo = target_sat.api.Repository(id=rh_repo_id).read()
         res = repo.sync(timeout=4000)
         assert res['result'] == 'success'
+
+
+class TestScenarioContainerRepoSync:
+    """Scenario to verify that container repositories with labels, annotations and other flags
+     synced before upgrade are indexed properly after upgrade including labels (as of 6.16).
+
+    Test Steps:
+
+        1. Before Satellite upgrade.
+        2. Synchronize container repositories that contains some labels and other flags.
+        3. Upgrade Satellite.
+        4. Check the labels and other flags were indexed properly in Katello DB via API.
+    """
+
+    @pytest.mark.pre_upgrade
+    def test_pre_container_repo_sync(
+        self,
+        target_sat,
+        module_org,
+        module_product,
+        save_test_data,
+    ):
+        """This is a pre-upgrade test to sync container repositories
+        with some labels, annotations and bootable and flatpak flags.
+
+        :id: 55b82217-7fd0-4b98-bd38-2a08a36f77db
+
+        :steps:
+            1. Create bootable container repository with some labels and flags.
+            2. Sync the repository and assert sync succeeds.
+            3. Create flatpak container repository with some labels and flags.
+            4. Sync the repository and assert sync succeeds.
+
+        :expectedresults: Container repositories are synced and ready for upgrade.
+        """
+        repos = dict()
+        for item in LABELLED_REPOS:
+            repo = target_sat.api.Repository(
+                content_type='docker',
+                docker_upstream_name=item['upstream_name'],
+                product=module_product,
+                url=PULP_CONTAINER_REGISTRY_HUB,
+            ).create()
+            repo.sync()
+            repo = repo.read()
+            assert repo.content_counts['docker_manifest'] > 0
+            repos[item['upstream_name']] = repo.id
+        save_test_data(repos)
+
+    @pytest.mark.post_upgrade(depend_on=test_pre_container_repo_sync)
+    def test_post_container_repo_sync(self, target_sat, pre_upgrade_data):
+        """This is a post-upgrade test to verify the container labels
+        were indexed properly in the post-upgrade task.
+
+        :id: 1e8f2f4a-6232-4671-9d6f-2ada1b70bc59
+
+        :steps:
+            1. Verify all manifests in each repo contain the expected keys.
+            2. Verify the manifests count matches the repository content counts and the expectation.
+            3. Verify the values meet the expectations specific for each repo.
+
+        :expectedresults: Container labels were indexed properly.
+        """
+        for repo_id in pre_upgrade_data.values():
+            repo = target_sat.api.Repository(id=repo_id).read()
+            dms = target_sat.api.Repository(id=repo_id).docker_manifests()['results']
+            assert all(
+                [CONTAINER_MANIFEST_LABELS.issubset(m.keys()) for m in dms]
+            ), 'Some expected key is missing in the repository manifests'
+            expected_values = next(
+                (i for i in LABELLED_REPOS if i['upstream_name'] == repo.docker_upstream_name), None
+            )
+            assert expected_values, f'{repo.docker_upstream_name} not found in {LABELLED_REPOS}'
+            assert (
+                len(dms) == repo.content_counts['docker_manifest']
+            ), 'Manifests count does not match the repository content counts'
+            assert (
+                len(dms) == expected_values['manifests_count']
+            ), 'Manifests count does not meet the expectation'
+            assert all(
+                [m['is_bootable'] == expected_values['bootable'] for m in dms]
+            ), 'Unexpected is_bootable flag'
+            assert all(
+                [m['is_flatpak'] == expected_values['flatpak'] for m in dms]
+            ), 'Unexpected is_flatpak flag'
+            assert all(
+                [len(m['labels']) == expected_values['labels_count'] for m in dms]
+            ), 'Unexpected lables count'
+            assert all(
+                [len(m['annotations']) == expected_values['annotations_count'] for m in dms]
+            ), 'Unexpected annotations count'
 
 
 class TestSimpleContentAccessOnly:
