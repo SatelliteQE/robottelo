@@ -23,6 +23,7 @@ pytest_plugins = [
     'pytest_plugins.sanity_plugin',
     'pytest_plugins.video_cleanup',
     'pytest_plugins.jira_comments',
+    'pytest_plugins.select_random_tests',
     'pytest_plugins.capsule_n-minus',
     # Fixtures
     'pytest_fixtures.core.broker',
