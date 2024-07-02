@@ -152,8 +152,10 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
             query={'search': f'name={product.name}'}
         )[0]
         ak.add_subscriptions(data={'subscription_id': subscription.id})
-        rhel_contenthost.install_katello_ca(target_sat)
-        rhel_contenthost.register_contenthost(org=function_org.name, activation_key=ak.name)
+        loc = target_sat.api.Location().search(query={'search': f'name="{constants.DEFAULT_LOC}"'})[
+            0
+        ]
+        rhel_contenthost.register(function_org, loc, ak.name, target_sat)
         rhel_contenthost.add_rex_key(satellite=target_sat)
         rhel_contenthost.install_katello_host_tools()
         rhel_contenthost.execute('subscription-manager refresh')
