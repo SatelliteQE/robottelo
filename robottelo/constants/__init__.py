@@ -706,9 +706,28 @@ FILTER_ERRATA_DATE = {'updated': "updated", 'issued': "issued"}
 REPORT_TEMPLATE_FILE = 'report_template.txt'
 CONTAINER_REGISTRY_HUB = 'https://mirror.gcr.io'
 RH_CONTAINER_REGISTRY_HUB = 'https://registry.redhat.io/'
+PULP_CONTAINER_REGISTRY_HUB = 'https://ghcr.io'
 CONTAINER_UPSTREAM_NAME = 'library/busybox'
 DOCKER_REPO_UPSTREAM_NAME = 'openshift3/logging-elasticsearch'
 CONTAINER_RH_REGISTRY_UPSTREAM_NAME = 'openshift3/ose-metrics-hawkular-openshift-agent'
+BOOTABLE_REPO = {
+    'upstream_name': 'pulp/bootc-labeled',
+    'manifests_count': 1,
+    'bootable': True,
+    'flatpak': False,
+    'labels_count': 2,
+    'annotations_count': 2,
+}
+FLATPAK_REPO = {
+    'upstream_name': 'pulp/oci-net.fishsoup.hello',
+    'manifests_count': 2,
+    'bootable': False,
+    'flatpak': True,
+    'labels_count': 10,
+    'annotations_count': 0,
+}
+LABELLED_REPOS = [BOOTABLE_REPO, FLATPAK_REPO]
+CONTAINER_MANIFEST_LABELS = {'annotations', 'labels', 'is_bootable', 'is_flatpak'}
 CONTAINER_CLIENTS = ['docker', 'podman']
 CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/lib/pulp/imports/myrepo/test.txt'
