@@ -882,6 +882,7 @@ PULP_ARTIFACT_DIR = '/var/lib/pulp/media/artifact/'
 PULP_EXPORT_DIR = '/var/lib/pulp/exports/'
 PULP_IMPORT_DIR = '/var/lib/pulp/imports/'
 EXPORT_LIBRARY_NAME = 'Export-Library'
+SUPPORTED_REPO_CHECKSUMS = ['sha256', 'sha384', 'sha512']
 
 PUPPET_COMMON_INSTALLER_OPTS = {
     'foreman-proxy-puppetca': 'true',

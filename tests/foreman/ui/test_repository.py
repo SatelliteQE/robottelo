@@ -13,7 +13,7 @@
 """
 
 from datetime import datetime, timedelta
-from random import randint, shuffle
+from random import choice, randint, shuffle
 
 from navmazing import NavigationTriesExceeded
 import pytest
@@ -28,6 +28,7 @@ from robottelo.constants import (
     REPO_TYPE,
     REPOS,
     REPOSET,
+    SUPPORTED_REPO_CHECKSUMS,
     DataFile,
 )
 from robottelo.constants.repos import (
@@ -414,15 +415,15 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod, m
     :CaseImportance: High
     """
     repo_name = gen_string('alpha')
-    checksum_type = 'sha256'
+    checksum_type = choice(SUPPORTED_REPO_CHECKSUMS)
     new_repo_name = gen_string('alphanumeric')
-    new_checksum_type = 'sha1'
+    new_checksum_type = choice([cs for cs in SUPPORTED_REPO_CHECKSUMS if cs != checksum_type])
     gpg_key = module_target_sat.api.GPGKey(
-        content=DataFile.VALID_GPG_KEY_FILE.read_bytes(),
+        content=DataFile.VALID_GPG_KEY_FILE.read_text(),
         organization=module_org,
     ).create()
     new_gpg_key = module_target_sat.api.GPGKey(
-        content=DataFile.VALID_GPG_KEY_BETA_FILE.read_bytes(),
+        content=DataFile.VALID_GPG_KEY_BETA_FILE.read_text(),
         organization=module_org,
     ).create()
     with session:

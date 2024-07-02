@@ -33,6 +33,7 @@ from robottelo.constants import (
     REPO_TYPE,
     RPM_TO_UPLOAD,
     SRPM_TO_UPLOAD,
+    SUPPORTED_REPO_CHECKSUMS,
     DataFile,
 )
 from robottelo.constants.repos import (
@@ -449,7 +450,7 @@ class TestRepository:
                     'content-type': 'yum',
                     'download-policy': 'immediate',
                 }
-                for checksum_type in ('sha1', 'sha256')
+                for checksum_type in SUPPORTED_REPO_CHECKSUMS
             ]
         ),
         indirect=True,
@@ -1282,7 +1283,7 @@ class TestRepository:
         **parametrized([{'content-type': 'yum', 'download-policy': 'immediate'}]),
         indirect=True,
     )
-    @pytest.mark.parametrize('checksum_type', ['sha1', 'sha256'])
+    @pytest.mark.parametrize('checksum_type', SUPPORTED_REPO_CHECKSUMS)
     def test_positive_update_checksum_type(
         self, repo_options, repo, checksum_type, module_target_sat
     ):
@@ -1312,7 +1313,7 @@ class TestRepository:
                     'checksum-type': checksum_type,
                     'download-policy': 'on_demand',
                 }
-                for checksum_type in ('sha1', 'sha256')
+                for checksum_type in SUPPORTED_REPO_CHECKSUMS
             ]
         ),
         indirect=True,
@@ -2097,7 +2098,7 @@ class TestRepository:
 #                     'publish-via-http': 'false',
 #                     'url': FEDORA_OSTREE_REPO,
 #                 }
-#                 for checksum_type in ('sha1', 'sha256')
+#                 for checksum_type in SUPPORTED_REPO_CHECKSUMS
 #             ]
 #         ),
 #         indirect=True,

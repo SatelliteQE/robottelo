@@ -12,6 +12,7 @@
 
 """
 
+import random
 import re
 from string import punctuation
 import tempfile
@@ -29,6 +30,7 @@ from robottelo.config import settings
 from robottelo.constants import (
     CONTAINER_MANIFEST_LABELS,
     LABELLED_REPOS,
+    SUPPORTED_REPO_CHECKSUMS,
     DataFile,
     repos as repo_constants,
 )
@@ -265,7 +267,7 @@ class TestRepository:
         **datafactory.parametrized(
             {
                 checksum_type: {'checksum_type': checksum_type, 'download_policy': 'immediate'}
-                for checksum_type in ('sha1', 'sha256')
+                for checksum_type in SUPPORTED_REPO_CHECKSUMS
             }
         ),
         indirect=True,
@@ -536,9 +538,9 @@ class TestRepository:
         'repo_options',
         [
             {'checksum_type': checksum_type, 'download_policy': 'on_demand'}
-            for checksum_type in ('sha1', 'sha256')
+            for checksum_type in SUPPORTED_REPO_CHECKSUMS
         ],
-        ids=['sha1', 'sha256'],
+        ids=SUPPORTED_REPO_CHECKSUMS,
         indirect=True,
     )
     def test_negative_create_checksum_with_on_demand_policy(self, repo_options, target_sat):
@@ -561,25 +563,26 @@ class TestRepository:
         **datafactory.parametrized(
             {
                 checksum_type: {'checksum_type': checksum_type, 'download_policy': 'immediate'}
-                for checksum_type in ('sha1', 'sha256')
+                for checksum_type in SUPPORTED_REPO_CHECKSUMS
             }
         ),
         indirect=True,
     )
-    def test_negative_update_checksum_with_on_demand_policy(self, repo):
+    def test_positive_update_checksum_with_on_demand_policy(self, repo):
         """Attempt to update the download policy to on_demand on a repository with checksum type.
 
         :id: 5bfaef4f-de66-42a0-8419-b86d00ffde6f
 
         :parametrized: yes
 
-        :expectedresults: A repository is not updated and error is raised.
+        :expectedresults: The download policy is updated and checksum type is reset.
 
         :CaseImportance: Critical
         """
         repo.download_policy = 'on_demand'
-        with pytest.raises(HTTPError):
-            repo.update(['download_policy'])
+        repo = repo.update(['download_policy'])
+        assert repo.download_policy == 'on_demand', 'Download policy was not updated'
+        assert not repo.checksum_type, 'Checksum type was not reset to Default'
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('name', **datafactory.parametrized(datafactory.valid_data_list()))
@@ -604,7 +607,7 @@ class TestRepository:
         **datafactory.parametrized(
             {
                 checksum_type: {'checksum_type': checksum_type, 'download_policy': 'immediate'}
-                for checksum_type in ('sha1', 'sha256')
+                for checksum_type in SUPPORTED_REPO_CHECKSUMS
             }
         ),
         indirect=True,
@@ -620,7 +623,9 @@ class TestRepository:
 
         :CaseImportance: Critical
         """
-        updated_checksum = 'sha256' if repo_options['checksum_type'] == 'sha1' else 'sha1'
+        updated_checksum = random.choice(
+            [cs for cs in SUPPORTED_REPO_CHECKSUMS if cs != repo_options['checksum_type']]
+        )
         repo.checksum_type = updated_checksum
         repo = repo.update(['checksum_type'])
         assert repo.checksum_type == updated_checksum
