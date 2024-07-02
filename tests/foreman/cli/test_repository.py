@@ -106,7 +106,15 @@ def repo_options(request, module_org, module_product):
 @pytest.fixture
 def repo(repo_options, target_sat):
     """create a new repository."""
-    return target_sat.cli_factory.make_repository(repo_options)
+    repo = target_sat.cli_factory.make_repository(repo_options)
+    target_sat.wait_for_tasks(
+        search_query='Actions::Katello::Repository::MetadataGenerate'
+        f' and resource_id = {repo["id"]}'
+        ' and resource_type = Katello::Repository',
+        max_tries=6,
+        search_rate=10,
+    )
+    return repo
 
 
 @pytest.fixture
