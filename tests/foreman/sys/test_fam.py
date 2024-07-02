@@ -42,7 +42,19 @@ def sync_roles(target_sat):
 
 
 @pytest.fixture(scope='module')
-def setup_fam(module_target_sat, module_sca_manifest):
+def install_import_ansible_role(module_target_sat):
+    """Installs and imports the thulium_drake.motd role used in the luna_hostgroup test playbook"""
+    module_target_sat.execute(
+        'ansible-galaxy role install thulium_drake.motd -p /usr/share/ansible/roles'
+    )
+    proxy_id = module_target_sat.nailgun_smart_proxy.id
+    module_target_sat.api.AnsibleRoles().sync(
+        data={'proxy_id': proxy_id, 'role_names': 'thulium_drake.motd'}
+    )
+
+
+@pytest.fixture(scope='module')
+def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_role):
     # Execute AAP WF for FAM setup
     Broker().execute(workflow='fam-test-setup', source_vm=module_target_sat.name)
 
