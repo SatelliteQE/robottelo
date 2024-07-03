@@ -95,6 +95,8 @@ def test_no_blank_page_on_language_switch(session, target_sat, module_org):
 
     :BZ: 2163538
 
+    :CaseImportance: High
+
     :customerscenario: true
     """
     user_password = gen_string('alpha')
@@ -113,6 +115,7 @@ def test_no_blank_page_on_language_switch(session, target_sat, module_org):
 
 def test_republish_metadata(session, function_sca_manifest_org, target_sat):
     """Verify that you can't republish metadata from the UI, and you can from the CLI
+
     :id: 96ef4fe5-dec4-4919-aa4d-b8806d90b654
 
     :steps:
@@ -123,6 +126,7 @@ def test_republish_metadata(session, function_sca_manifest_org, target_sat):
         5. Verify that you can't click the "republish metadata" option from the UI
         6. Verify that you can't republish metadata from the cli without the force option
         7. Verify that you can republish metadata from the CLI using the --force option
+
     :expectedresults: You can't republish RH Repo metadata from the UI, and can from the CLI with --force
 
     :CaseImportance: Critical
