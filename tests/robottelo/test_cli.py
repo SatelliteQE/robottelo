@@ -291,7 +291,7 @@ class BaseCliTestCase(unittest.TestCase):
         lst_method.return_value = []
         response = Base.exists(search=['id', 1])
         lst_method.assert_called_once_with({'search': 'id=\\"1\\"'})
-        assert [] == response
+        assert response == []
 
     @mock.patch('robottelo.cli.base.Base.list')
     def test_exists_with_option_and_no_empty_return(self, lst_method):
