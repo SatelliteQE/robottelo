@@ -285,11 +285,7 @@ class _SharedFunction:
 
     def _has_result_expired(self, creation_datetime):
         expire_datetime = creation_datetime + datetime.timedelta(seconds=self._share_timeout)
-
-        if datetime.datetime.utcnow() >= expire_datetime:
-            return True
-
-        return False
+        return datetime.datetime.utcnow() >= expire_datetime
 
     def __call__(self):
         # this lock prevent any other process to run the function,
