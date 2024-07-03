@@ -3307,8 +3307,7 @@ class TestContentView:
             2. Publish the CV 50 times
             3. Run hammer content-view purge --id <cv.id>
 
-        :expectedresults: Hammer should purge all but 3 old versions, not just up to the
-        per page value
+        :expectedresults: Hammer should purge all but 3 old versions, not just up to the per page value
 
         :Verifies: SAT-15185
 
