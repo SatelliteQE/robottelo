@@ -569,9 +569,7 @@ class RepositoryCollection:
 
     @property
     def need_subscription(self):
-        if self.rh_repos:
-            return True
-        return False
+        return bool(self.rh_repos)
 
     @property
     def organization(self):
