@@ -13,6 +13,8 @@
 import pytest
 from wait_for import wait_for
 
+from robottelo.utils.issue_handlers import is_open
+
 pytestmark = [pytest.mark.run_in_one_thread]
 
 
@@ -412,3 +414,35 @@ def test_positive_list_facts():
 
     :CaseImportance: High
     """
+
+
+@pytest.mark.tier1
+def test_positive_verify_updated_fdi_image(target_sat):
+    """Verify foreman-discovery-image is built on latest up-to-date RHEL
+
+    :id: 2ab2ad88-4470-4d4c-8e0b-5892ad8d688e
+
+    :steps:
+        1. Register Satellite to CDN and install foreman-discovery-image
+
+    :expectedresults: Installed foreman-discovery-image is built on latest up-to-date RHEL
+
+    Verifies: SAT-24197, SAT-25275
+
+    :BZ: 2271598
+
+    :customerscenario: true
+
+    :CaseImportance: Critical
+    """
+    discovery_ks_path = '/usr/share/foreman-discovery-image/foreman-discovery-image.ks'
+    target_sat.register_to_cdn()
+    target_sat.execute('yum -y --disableplugin=foreman-protector install foreman-discovery-image')
+
+    if target_sat.os_version.major == 9:
+        version = '8.9' if is_open('SAT-25275') else str(target_sat.os_version)
+    elif target_sat.os_version.major == 8:
+        version = '8.9' if is_open('SAT-24197') else str(target_sat.os_version)
+
+    result = target_sat.execute(f'grep "url=" {discovery_ks_path}')
+    assert version in result.stdout
