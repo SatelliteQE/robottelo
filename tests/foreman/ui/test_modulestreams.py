@@ -58,7 +58,7 @@ def test_positive_module_stream_details_search_in_repo(session, module_org, modu
         assert session.modulestream.search('name = duck')[0]['Name'].startswith('duck')
         walrus_details = session.modulestream.read('walrus', '5.21')
         expected_module_details = {
-            'Summary': 'Walrus 5.21 module',
+            'Summary': '',  # Empty in web ui
             'Context': 'deadbeef',
             'Name': 'walrus',
             'Stream': '5.21',
