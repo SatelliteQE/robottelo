@@ -30,13 +30,13 @@ def align_to_satellite(request, worker_id, satellite_factory):
         worker_pos = 0 if worker_id in ["master", "local"] else int(worker_id.replace("gw", ""))
 
         # attempt to add potential satellites from the broker inventory file
-        if settings.server.inventory_filter:
-            logger.info(
-                f'{worker_id=}: Attempting to add Satellite hosts using inventory filter: '
-                f'{settings.server.inventory_filter}'
-            )
-            hosts = Satellite.get_hosts_from_inventory(filter=settings.server.inventory_filter)
-            settings.server.hostnames += [host.hostname for host in hosts]
+        # if settings.server.inventory_filter:
+        #     logger.info(
+        #         f'{worker_id=}: Attempting to add Satellite hosts using inventory filter: '
+        #         f'{settings.server.inventory_filter}'
+        #     )
+        #     hosts = Satellite.get_hosts_from_inventory(filter=settings.server.inventory_filter)
+        #     settings.server.hostnames += [host.hostname for host in hosts]
 
         logger.debug(
             f'{worker_id=}: {settings.server.xdist_behavior=}, '
