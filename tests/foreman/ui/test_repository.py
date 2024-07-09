@@ -299,12 +299,21 @@ def test_positive_discover_repo_via_new_product(session, module_org):
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_sync_custom_repo_yum(session, module_org, module_target_sat):
-    """Create Custom yum repos and sync it via the repos page.
+def test_positive_sync_yum_repo_and_verify_content_checksum(session, module_org, module_target_sat):
+    """Create Custom yum repos, sync it via the repos page and verify content checksum succeeds when
+    executing from the products page
 
-    :id: afa218f4-e97a-4240-a82a-e69538d837a1
+    :id: 44a66ea2-aa77-4fcc-8c14-ee82df36ff92
 
-    :expectedresults: Sync procedure for specific yum repository is successful
+    :customerscenario: true
+
+    :BZ: 1951626
+
+    :steps:
+        1. Create Product, create yum repo, enable and sync repository
+        2. Go to Products -> Select Action -> Verify Content Checksum
+
+    :expectedresults: Sync procedure for yum repository and verify Content Checksum task successful
     """
     product = module_target_sat.api.Product(organization=module_org).create()
     repo = module_target_sat.api.Repository(url=settings.repos.yum_1.url, product=product).create()
@@ -312,10 +321,13 @@ def test_positive_sync_custom_repo_yum(session, module_org, module_target_sat):
         result = session.repository.synchronize(product.name, repo.name)
         assert result['result'] == 'success'
         sync_values = session.dashboard.read('SyncOverview')['syncs']
-        assert len(sync_values) == 1
-        assert sync_values[0]['Product'] == product.name
-        assert sync_values[0]['Status'] == 'Syncing Complete.'
-        assert 'ago' in sync_values[0]['Finished']
+        assert len(sync_values) >= 1
+        for sync_val in sync_values:
+            if 'less than a minute ago' in sync_val['Finished']:
+                assert sync_val['Product'] == product.name
+                assert sync_val['Status'] == 'Syncing Complete.'
+        result = session.product.verify_content_checksum([product.name])
+        assert result['task']['result'] == 'success'
 
 
 @pytest.mark.tier2
@@ -1141,40 +1153,6 @@ def test_positive_select_org_in_any_context():
     :CaseImportance: High
     """
     pass
-
-
-@pytest.mark.tier2
-@pytest.mark.upgrade
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_sync_repo_and_verify_checksum(session, module_org, module_target_sat):
-    """Tests that Verify Content Checksum succeeds when executing from the products page
-
-    :id: 577be1f8-7510-49d2-8b33-600db60bd960
-
-    :customerscenario: true
-
-    :BZ: 1951626
-
-    :steps:
-        1. Enable and sync repository
-        2. Go to Products -> Select Action -> Verify Content Checksum
-
-    :expectedresults: Verify Content Checksum task succeeds
-    """
-    repo_name = gen_string('alpha')
-    product = module_target_sat.api.Product(organization=module_org).create()
-    with session:
-        session.repository.create(
-            product.name,
-            {
-                'name': repo_name,
-                'repo_type': REPO_TYPE['yum'],
-                'repo_content.upstream_url': settings.repos.yum_1.url,
-            },
-        )
-        session.repository.synchronize(product.name, repo_name)
-        results = session.product.verify_content_checksum([product.name])
-        assert results['task']['result'] == 'success'
 
 
 @pytest.mark.tier2
