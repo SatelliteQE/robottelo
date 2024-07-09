@@ -33,6 +33,7 @@ from robottelo.constants import (
     REPO_TYPE,
     RPM_TO_UPLOAD,
     SRPM_TO_UPLOAD,
+    SUPPORTED_REPO_CHECKSUMS,
     DataFile,
 )
 from robottelo.constants.repos import (
@@ -105,7 +106,15 @@ def repo_options(request, module_org, module_product):
 @pytest.fixture
 def repo(repo_options, target_sat):
     """create a new repository."""
-    return target_sat.cli_factory.make_repository(repo_options)
+    repo = target_sat.cli_factory.make_repository(repo_options)
+    target_sat.wait_for_tasks(
+        search_query='Actions::Katello::Repository::MetadataGenerate'
+        f' and resource_id = {repo["id"]}'
+        ' and resource_type = Katello::Repository',
+        max_tries=6,
+        search_rate=10,
+    )
+    return repo
 
 
 @pytest.fixture
@@ -449,7 +458,7 @@ class TestRepository:
                     'content-type': 'yum',
                     'download-policy': 'immediate',
                 }
-                for checksum_type in ('sha1', 'sha256')
+                for checksum_type in SUPPORTED_REPO_CHECKSUMS
             ]
         ),
         indirect=True,
@@ -1282,7 +1291,7 @@ class TestRepository:
         **parametrized([{'content-type': 'yum', 'download-policy': 'immediate'}]),
         indirect=True,
     )
-    @pytest.mark.parametrize('checksum_type', ['sha1', 'sha256'])
+    @pytest.mark.parametrize('checksum_type', SUPPORTED_REPO_CHECKSUMS)
     def test_positive_update_checksum_type(
         self, repo_options, repo, checksum_type, module_target_sat
     ):
@@ -1312,7 +1321,7 @@ class TestRepository:
                     'checksum-type': checksum_type,
                     'download-policy': 'on_demand',
                 }
-                for checksum_type in ('sha1', 'sha256')
+                for checksum_type in SUPPORTED_REPO_CHECKSUMS
             ]
         ),
         indirect=True,
@@ -2097,7 +2106,7 @@ class TestRepository:
 #                     'publish-via-http': 'false',
 #                     'url': FEDORA_OSTREE_REPO,
 #                 }
-#                 for checksum_type in ('sha1', 'sha256')
+#                 for checksum_type in SUPPORTED_REPO_CHECKSUMS
 #             ]
 #         ),
 #         indirect=True,
