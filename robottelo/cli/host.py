@@ -157,10 +157,14 @@ class Host(Base):
         return facts
 
     @classmethod
-    def info(cls, options=None):
+    def info(cls, options=None, output_format='json', return_raw_response=None):
         """Show host info"""
         cls.command_sub = 'info'
-        return cls.execute(cls._construct_command(options), output_format='json')
+        return cls.execute(
+            cls._construct_command(options),
+            output_format=output_format,
+            return_raw_response=return_raw_response,
+        )
 
     @classmethod
     def package_install(cls, options):
