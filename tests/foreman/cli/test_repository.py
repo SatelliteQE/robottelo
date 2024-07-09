@@ -54,6 +54,7 @@ from robottelo.utils.datafactory import (
     valid_docker_repository_names,
     valid_http_credentials,
 )
+from robottelo.utils.issue_handlers import is_open
 from tests.foreman.api.test_contentview import content_view
 
 YUM_REPOS = (
@@ -83,9 +84,7 @@ def _validated_image_tags_count(repo, sat):
     immediately after synchronization), which was CLOSED WONTFIX
     """
     wait_for(
-        lambda: int(
-            _get_image_tags_count(repo=repo, sat=sat)['content-counts']['container-image-tags']
-        )
+        lambda: int(_get_image_tags_count(repo=repo, sat=sat)['content-counts']['container-tags'])
         > 0,
         timeout=30,
         delay=2,
@@ -910,13 +909,17 @@ class TestRepository:
         tags = 'latest'
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo, sat=target_sat)
-        assert not repo['container-image-tags-filter']
-        assert int(repo['content-counts']['container-image-tags']) >= 2
+        if not is_open('SAT-26322'):
+            assert not repo['included-container-image-tags']
+        tags_count = int(repo['content-counts']['container-tags'])
+        assert tags_count >= 2, 'insufficient tags count in the repo'
         target_sat.cli.Repository.update({'id': repo['id'], 'include-tags': tags})
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo, sat=target_sat)
-        assert tags in repo['container-image-tags-filter']
-        assert int(repo['content-counts']['container-image-tags']) >= 2
+        # assert tags in repo['container-image-tags-filter']
+        assert (
+            int(repo['content-counts']['container-tags']) == tags_count
+        ), 'unexpected change of tags count'
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
@@ -948,13 +951,18 @@ class TestRepository:
         tags = 'latest'
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo, sat=target_sat)
-        assert not repo['container-image-tags-filter']
-        assert int(repo['content-counts']['container-image-tags']) >= 2
+        if not is_open('SAT-26322'):
+            assert not repo['included-container-image-tags']
+        tags_count = int(repo['content-counts']['container-tags'])
+        assert tags_count >= 2, 'insufficient tags count in the repo'
         target_sat.cli.Repository.update({'id': repo['id'], 'include-tags': tags})
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo, sat=target_sat)
-        assert tags in repo['container-image-tags-filter']
-        assert int(repo['content-counts']['container-image-tags']) <= 2
+        if not is_open('SAT-26322'):
+            assert tags in repo['included-container-image-tags']
+        assert (
+            int(repo['content-counts']['container-tags']) == len(tags.split(',')) < tags_count
+        ), 'unexpected change of tags count'
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
@@ -985,9 +993,10 @@ class TestRepository:
         """
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo, sat=target_sat)
-        for tag in repo_options['include-tags'].split(','):
-            assert tag in repo['container-image-tags-filter']
-        assert int(repo['content-counts']['container-image-tags']) == 1
+        if not is_open('SAT-26322'):
+            for tag in repo_options['include-tags'].split(','):
+                assert tag in repo['included-container-image-tags']
+        assert int(repo['content-counts']['container-tags']) == 1
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
@@ -1018,9 +1027,10 @@ class TestRepository:
         """
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = target_sat.cli.Repository.info({'id': repo['id']})
-        for tag in repo_options['include-tags'].split(','):
-            assert tag in repo['container-image-tags-filter']
-        assert int(repo['content-counts']['container-image-tags']) == 0
+        if not is_open('SAT-26322'):
+            for tag in repo_options['include-tags'].split(','):
+                assert tag in repo['included-container-image-tags']
+        assert int(repo['content-counts']['container-tags']) == 0
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
