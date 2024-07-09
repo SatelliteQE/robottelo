@@ -2038,7 +2038,6 @@ WEBHOOK_EVENTS = [
     "actions.remote_execution.run_host_job_ansible_enable_web_console_succeeded",
     "actions.remote_execution.run_host_job_ansible_run_capsule_upgrade_succeeded",
     "actions.remote_execution.run_host_job_ansible_run_host_succeeded",
-    "actions.remote_execution.run_host_job_ansible_run_insights_plan_succeeded",
     "actions.remote_execution.run_host_job_ansible_run_playbook_succeeded",
     "actions.remote_execution.run_host_job_foreman_openscap_run_oval_scans_succeeded",
     "actions.remote_execution.run_host_job_foreman_openscap_run_scans_succeeded",
