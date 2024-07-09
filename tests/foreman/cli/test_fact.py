@@ -132,3 +132,63 @@ def test_positive_facts_end_to_end(
         assert (
             actual_value == expected_value
         ), f'Assertion failed: {fact} (expected: {expected_value}, actual: {actual_value})'
+
+
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_positive_custom_facts_and_clean_orphaned_facts(
+    module_target_sat, module_org, module_location, module_activation_key, rhel_contenthost
+):
+    """Create custom facts, verify they are updated on Satellite and cleanup the orphaned facts successfully without
+    any foreign key violation.
+
+    :id: ae0b5574-cc8b-4f0c-ba7b-c6f480c08e06
+
+    :BZ: 2004158
+
+    :customerscenario: true
+
+    :steps:
+        1. Create few custom facts
+        2. Verify on Satellite
+        3. Run "foreman-rake facts:clean" to clean orphaned facts.
+
+    :expectedresults: Custom facts are created, uploaded successfully and orphaned facts are cleaned up without
+     any foreign key violation.
+    """
+    result = rhel_contenthost.register(
+        target=module_target_sat,
+        org=module_org,
+        loc=module_location,
+        activation_keys=[module_activation_key.name],
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    host = rhel_contenthost.nailgun_host
+    custom_facts = {
+        "operatingsystem": "RedHat",
+        "operatingsystemrelease": f'{settings.content_host.default_rhel_version}',
+        "custom_fact": "new_custom_fact",
+    }
+    rhel_contenthost.execute('subscription-manager facts --update')
+    host.upload_facts(data={'name': rhel_contenthost.hostname, 'facts': custom_facts})
+    facts = module_target_sat.cli.Fact().list(
+        options={'search': f'host={rhel_contenthost.hostname}'}, output_format='json'
+    )
+
+    facts_dict = {fact['fact']: fact['value'] for fact in facts}
+    expected_values = {
+        'operatingsystem': custom_facts['operatingsystem'],
+        'operatingsystemrelease': custom_facts['operatingsystemrelease'],
+        'custom_fact': custom_facts['custom_fact'],
+        'network::fqdn': rhel_contenthost.hostname,
+    }
+    for fact, expected_value in expected_values.items():
+        actual_value = facts_dict.get(fact)
+        assert (
+            actual_value == expected_value
+        ), f'Assertion failed: {fact} (expected: {expected_value}, actual: {actual_value})'
+
+    # Cleanup orphaned facts
+    result = module_target_sat.execute('foreman-rake facts:clean')
+    assert "Finished, cleaned" in result.stdout
+    assert result.status == 0
+
