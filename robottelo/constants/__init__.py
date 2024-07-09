@@ -1007,18 +1007,6 @@ PERMISSIONS = {
         'view_arf_reports',
         'destroy_arf_reports',
     ],
-    'ForemanOpenscap::OvalContent': [
-        'create_oval_contents',
-        'destroy_oval_contents',
-        'edit_oval_contents',
-        'view_oval_contents',
-    ],
-    'ForemanOpenscap::OvalPolicy': [
-        'create_oval_policies',
-        'destroy_oval_policies',
-        'edit_oval_policies',
-        'view_oval_policies',
-    ],
     'ForemanOpenscap::Policy': [
         'assign_policies',
         'create_policies',
@@ -2040,7 +2028,6 @@ WEBHOOK_EVENTS = [
     "actions.remote_execution.run_host_job_ansible_run_host_succeeded",
     "actions.remote_execution.run_host_job_ansible_run_insights_plan_succeeded",
     "actions.remote_execution.run_host_job_ansible_run_playbook_succeeded",
-    "actions.remote_execution.run_host_job_foreman_openscap_run_oval_scans_succeeded",
     "actions.remote_execution.run_host_job_foreman_openscap_run_scans_succeeded",
     "actions.remote_execution.run_host_job_katello_errata_install_succeeded",
     "actions.remote_execution.run_host_job_katello_group_install_succeeded",
