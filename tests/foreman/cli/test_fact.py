@@ -135,8 +135,8 @@ def test_positive_custom_facts_and_clean_orphaned_facts(
         2. Verify on Satellite
         3. Run "foreman-rake facts:clean" to clean orphaned facts.
 
-    :expectedresults: Custom facts are created, uploaded successfully and orphaned facts are cleaned up and without
-     any foreign key violation .
+    :expectedresults: Custom facts are created, uploaded successfully and orphaned facts are cleaned up without
+     any foreign key violation.
     """
     result = rhel_contenthost.register(
         target=module_target_sat,
