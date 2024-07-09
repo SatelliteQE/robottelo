@@ -121,16 +121,22 @@ def test_positive_update_client_facts_verify_imported_values(
 def test_positive_custom_facts_and_clean_orphaned_facts(
     module_target_sat, module_org, module_location, module_activation_key, rhel_contenthost
 ):
-    """Create custom facts, verify they are updated on Satellite and cleanup the orphaned facts.
+    """Create custom facts, verify they are updated on Satellite and cleanup the orphaned facts successfully without
+    any foreign key violation.
 
     :id: ae0b5574-cc8b-4f0c-ba7b-c6f480c08e06
+
+    :BZ: 2004158
+
+    :customerscenario: true
 
     :steps:
         1. Create few custom facts
         2. Verify on Satellite
         3. Run "foreman-rake facts:clean" to clean orphaned facts.
 
-    :expectedresults: Custom facts are created, uploaded successfully and orphaned facts are cleaned up.
+    :expectedresults: Custom facts are created, uploaded successfully and orphaned facts are cleaned up and without
+     any foreign key violation .
     """
     result = rhel_contenthost.register(
         target=module_target_sat,
