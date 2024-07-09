@@ -1646,7 +1646,7 @@ class Capsule(ContentHost, CapsuleMixins):
 
     def enable_ipv6_http_proxy(self):
         """Execute procedures for enabling IPv6 HTTP Proxy on Capsule using SM"""
-        if all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
+        if settings.server.is_ipv6:
             url = urlparse(settings.server.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)
 
@@ -1826,7 +1826,7 @@ class Satellite(Capsule, SatelliteMixins):
 
     def enable_ipv6_http_proxy(self):
         """Execute procedures for enabling IPv6 HTTP Proxy"""
-        if not all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
+        if not settings.server.is_ipv6:
             logger.warning(
                 'The IPv6 HTTP Proxy setting is not enabled. Skipping the IPv6 HTTP Proxy setup.'
             )
@@ -2411,7 +2411,7 @@ class Satellite(Capsule, SatelliteMixins):
     ):
         """Satellite Registration to CDN"""
         # Enabling proxy for IPv6
-        if enable_proxy and all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
+        if enable_proxy and settings.server.is_ipv6:
             url = urlparse(settings.server.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)
         return super().register_contenthost(
