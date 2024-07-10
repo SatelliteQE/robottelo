@@ -417,7 +417,9 @@ def test_positive_crud_interface_by_id(target_sat, default_location, default_org
     host_interface = target_sat.cli.HostInterface.info(
         {
             'host-id': host['id'],
-            'id': [ni for ni in host['network-interfaces'] if ni['mac-address'] == mac][0]['id'],
+            'id': [ni for ni in host['network-interfaces'].values() if ni['mac-address'] == mac][0][
+                'id'
+            ],
         }
     )
     assert host_interface['domain'] == domain.name
@@ -441,7 +443,9 @@ def test_positive_crud_interface_by_id(target_sat, default_location, default_org
     host_interface = target_sat.cli.HostInterface.info(
         {
             'host-id': host['id'],
-            'id': [ni for ni in host['network-interfaces'] if ni['mac-address'] == mac][0]['id'],
+            'id': [ni for ni in host['network-interfaces'].values() if ni['mac-address'] == mac][0][
+                'id'
+            ],
         }
     )
     assert host_interface['domain'] == new_domain.name
