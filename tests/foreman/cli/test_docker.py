@@ -211,10 +211,10 @@ class TestDockerRepository:
 
         :CaseImportance: Critical
         """
-        assert int(repo['content-counts']['container-image-manifests']) == 0
+        assert int(repo['content-counts']['container-manifests']) == 0
         module_target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = module_target_sat.cli.Repository.info({'id': repo['id']})
-        assert int(repo['content-counts']['container-image-manifests']) > 0
+        assert int(repo['content-counts']['container-manifests']) > 0
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('new_name', **parametrized(valid_docker_repository_names()))
