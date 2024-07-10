@@ -415,6 +415,7 @@ REPOS = {
         'reposet': REPOSET['rhsclient9'],
         'product': PRDS['rhel9'],
         'distro': 'rhel9',
+        'releasever': '9',
         'key': PRODUCT_KEY_SAT_CLIENT,
     },
     'rhst7': {
