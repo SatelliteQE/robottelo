@@ -102,7 +102,6 @@ def test_positive_end_to_end(session, target_sat):
         assert not session.location.search(location_name)
 
 
-@pytest.mark.skip_if_open("BZ:1321543")
 @pytest.mark.tier2
 def test_positive_update_with_all_users(session, target_sat):
     """Create location and do not add user to it. Check and uncheck
@@ -117,6 +116,8 @@ def test_positive_update_with_all_users(session, target_sat):
         was enabled and then disabled afterwards
 
     :BZ: 1321543, 1479736, 1479736
+
+    :BlockedBy: SAT-25386
     """
     user = target_sat.api.User().create()
     loc = target_sat.api.Location().create()
