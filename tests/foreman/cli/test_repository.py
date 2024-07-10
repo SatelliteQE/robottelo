@@ -2363,52 +2363,23 @@ class TestAnsibleCollectionRepository:
                 'ansible-collection-auth-token': settings.ansible_hub.token,
                 'ansible-collection-auth-url': settings.ansible_hub.sso_url,
                 'ansible-collection-requirements': '{collections: \
-                                                         [redhat.satellite_operations ]}',
+                                                            [redhat.satellite_operations ]}',
             },
         ],
         ids=['ansible_galaxy', 'ansible_hub'],
         indirect=True,
     )
-    def test_positive_sync_ansible_collection(self, repo, module_target_sat):
-        """Sync ansible collection repository from Ansible Galaxy and Hub
+    def test_positive_sync_and_export_ansible_collection(self, repo, module_org, target_sat):
+        """Sync ansible collection repository from Ansible Galaxy and Hub, and
+        export ansible collection between organizations
 
-        :id: 4b6a819b-8c3d-4a74-bd97-ee3f34cf5d92
+        :id: e10355ad-eae6-4328-acce-67e52e447e56
 
-        :expectedresults: All content synced successfully
+        :expectedresults: All content synced, exported and imported successfully
 
         :CaseImportance: High
 
         :parametrized: yes
-
-        """
-        module_target_sat.cli.Repository.synchronize({'id': repo['id']})
-        repo = module_target_sat.cli.Repository.info({'id': repo['id']})
-        assert repo['sync']['status'] == 'Success'
-
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options',
-        [
-            {
-                'content-type': 'ansible_collection',
-                'url': ANSIBLE_GALAXY,
-                'ansible-collection-requirements': '{collections: [ \
-                            { name: theforeman.foreman, version: "2.1.0" }, \
-                            { name: theforeman.operations, version: "0.1.0"} ]}',
-            }
-        ],
-        ids=['ansible_galaxy'],
-        indirect=True,
-    )
-    def test_positive_export_ansible_collection(self, repo, module_org, target_sat):
-        """Export ansible collection between organizations
-
-        :id: 4858227e-1669-476d-8da3-4e6bfb6b7e2a
-
-        :expectedresults: All content exported and imported successfully
-
-        :CaseImportance: High
 
         """
         import_org = target_sat.cli_factory.make_org()
