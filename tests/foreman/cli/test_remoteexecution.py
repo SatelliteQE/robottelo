@@ -24,6 +24,7 @@ from wait_for import wait_for
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
+from robottelo.exceptions import CLIFactoryError
 from robottelo.utils import ohsnap
 from robottelo.utils.datafactory import filtered_datapoint, parametrized
 
