@@ -1109,18 +1109,17 @@ def test_positive_parameter_crud(function_host, target_sat):
         {'host-id': function_host['id'], 'name': name, 'value': value}
     )
     host = target_sat.cli.Host.info({'id': function_host['id']})
-    assert name in host['parameters']
-    assert value == host['parameters'][name]
+    assert (name, value) in [(param['name'], param['value']) for param in host['parameters']]
 
     new_value = valid_data_list()[name]
     target_sat.cli.Host.set_parameter({'host-id': host['id'], 'name': name, 'value': new_value})
     host = target_sat.cli.Host.info({'id': host['id']})
-    assert name in host['parameters']
-    assert new_value == host['parameters'][name]
+
+    assert (name, new_value) in [(param['name'], param['value']) for param in host['parameters']]
 
     target_sat.cli.Host.delete_parameter({'host-id': host['id'], 'name': name})
     host = target_sat.cli.Host.info({'id': host['id']})
-    assert name not in host['parameters']
+    assert name not in [param['name'] for param in host['parameters']]
 
 
 # -------------------------- HOST PARAMETER SCENARIOS -------------------------
