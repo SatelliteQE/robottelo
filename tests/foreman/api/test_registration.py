@@ -12,6 +12,7 @@
 
 """
 
+import re
 import uuid
 
 from fauxfactory import gen_ipaddr, gen_mac, gen_string
@@ -445,3 +446,66 @@ def test_positive_katello_ca_crt_refresh(
     # check if the certificate file is refreshed
     ca_file_after_refresh = len(str(rhel_contenthost.execute(f'cat {katello_ca_crt_path}')))
     assert ca_cert_file == ca_file_after_refresh
+
+
+@pytest.mark.rhel_ver_match('[^7]')
+def test_positive_register_host_with_capsule_cname(
+    module_sca_manifest_org,
+    module_location,
+    module_target_sat,
+    rhel_contenthost,
+    module_activation_key,
+    module_capsule_configured,
+):
+    """Verify host registration works with proxy and proxy_cname
+
+    :id: 86b5c329-7784-43f4-bb67-67ce5a24ce17
+
+    :steps:
+        1. Get a configure capsule registered with Satellite.
+        2. Verify Host registers to Capsule successfully.
+        3. Update cname in Host /etc/hosts file with "<capsule ip> <capsule hostname> <capusle cname>
+        4. Generate registration command and modify command to use capsule cname instead of capsule fqdn.
+
+    :expectedresults: Host registers successfully with capsule cname.
+
+    :BZ: 2158959
+
+    :customerscenario: true
+
+    :parametrized: yes
+    """
+    capsule_cname = "capsule.example.com"
+    org = module_sca_manifest_org
+    # Update module_capsule_configured to include organization and location
+    nc = module_capsule_configured.nailgun_smart_proxy
+    module_target_sat.api.SmartProxy(id=nc.id, organization=[org]).update(['organization'])
+    module_target_sat.api.SmartProxy(id=nc.id, location=[module_location]).update(['location'])
+
+    result = rhel_contenthost.api_register(
+        module_target_sat,
+        smart_proxy=nc,
+        organization=org,
+        activation_keys=[module_activation_key.name],
+        location=module_location,
+        force=True,
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    rhel_contenthost.execute(
+        f'echo "{module_capsule_configured.ip} {module_capsule_configured.hostname} {capsule_cname}'
+        f'" >> /etc/hosts'
+    )
+
+    # Generate registration command and replace capsule hostname with capsule cname in registration command
+    command = module_target_sat.api.RegistrationCommand(
+        smart_proxy=nc,
+        organization=org,
+        activation_keys=[module_activation_key.name],
+        location=module_location,
+        insecure=True,
+        force=True,
+    ).create()
+    result = rhel_contenthost.execute(
+        re.sub(r"https://ip.*?redhat\.com", f'https://{capsule_cname}', command)
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
