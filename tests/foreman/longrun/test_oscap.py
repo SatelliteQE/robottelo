@@ -140,8 +140,8 @@ def update_scap_content(org, sat, content_title):
     """Update default scap contents"""
     logger.debug(f'Updating scap content "{content_title}"')
     content = sat.cli.Scapcontent.info({'title': content_title}, output_format='json')
-    organization_ids = [content_org['id'] for content_org in content.get('organizations', [])]
-    organization_ids.append(org.id)
+    organization_ids = [str(content_org['id']) for content_org in content.get('organizations', [])]
+    organization_ids.append(str(org.id))
     # any duplication causes validation error during update
     organization_ids_set = set(organization_ids)
     logger.debug(f'Assigning orgs {organization_ids} to scap content "{content_title}"')
@@ -172,6 +172,25 @@ def get_existing_content(target_sat):
     existing_content = target_sat.cli.Scapcontent.list()
     logger.debug(f'Listing existing content on Satellite: {existing_content}')
     return [content['title'] for content in existing_content]
+
+
+def find_content_to_update(target_sat, module_org, distro, contenthost):
+    """find out what content to update based on existing content"""
+    selected_content = OSCAP_DEFAULT_CONTENT[f'{distro}_content']
+    existing_content_names = get_existing_content(target_sat)
+    # the content name depends on upload style (default vs file upload)
+    if (selected_content not in existing_content_names) and (
+        f'{distro} content' not in existing_content_names
+    ):
+        upload_scap_content_for_host(target_sat, contenthost, module_org)
+
+    # re-list after content upload
+    existing_content_names = get_existing_content(target_sat)
+    # find out content name for client version
+    assert (selected_content in existing_content_names) or (
+        f'{distro} content' in existing_content_names
+    ), f'scap content not found for {distro}, existing content: {existing_content_names}'
+    return selected_content if (selected_content in existing_content_names) else f'{distro} content'
 
 
 @pytest.mark.e2e
@@ -229,30 +248,12 @@ def test_positive_oscap_run_via_ansible(
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     rhel_repo = rhel_repos[distro]
     profile = profiles[distro]
-    if distro not in ('rhel7'):
-        contenthost.create_custom_repos(**rhel_repo)
-    else:
+    if distro == 'rhel7':
         contenthost.create_custom_repos(**{distro: rhel_repo})
+    else:
+        contenthost.create_custom_repos(**rhel_repo)
 
-    # list existing content on Sat
-    existing_content_names = get_existing_content(target_sat)
-    # the content name depends on upload style (default vs file upload)
-    if (OSCAP_DEFAULT_CONTENT[f'{distro}_content'] not in existing_content_names) and (
-        f'{distro} content' not in existing_content_names
-    ):
-        upload_scap_content_for_host(target_sat, contenthost, module_org)
-
-    # re-list after content upload
-    existing_content_names = get_existing_content(target_sat)
-    # find out content name for client version
-    assert (OSCAP_DEFAULT_CONTENT[f'{distro}_content'] in existing_content_names) or (
-        f'{distro} content' in existing_content_names
-    ), f'scap content not found for {distro}, existing content: {existing_content_names}'
-    content = (
-        OSCAP_DEFAULT_CONTENT[f'{distro}_content']
-        if (OSCAP_DEFAULT_CONTENT[f'{distro}_content'] in existing_content_names)
-        else f'{distro} content'
-    )
+    content = find_content_to_update(target_sat, module_org, distro, contenthost)
     update_scap_content(module_org, target_sat, content)
 
     # Creating a hostgroup
@@ -310,7 +311,7 @@ def test_positive_oscap_run_via_ansible(
         )
         result = f'host output: {output}'
         raise AssertionError(result) from err
-    result = contenthost.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
+    result = contenthost.run('grep profile /etc/foreman_scap_client/config.yaml')
     assert result.status == 0
     contenthost.execute_foreman_scap_client()
     result = target_sat.cli.Arfreport.list({'search': f'host={contenthost.hostname.lower()}'})
@@ -486,10 +487,10 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     rhel_repo = rhel_repos[distro]
     profile = profiles[distro]
-    if distro not in ('rhel7'):
-        contenthost.create_custom_repos(**rhel_repo)
-    else:
+    if distro == 'rhel7':
         contenthost.create_custom_repos(**{distro: rhel_repo})
+    else:
+        contenthost.create_custom_repos(**rhel_repo)
 
     # Harden the client with DISA STIG security policy
     contenthost.run('yum install -y scap-security-guide')
@@ -498,26 +499,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
         '--fetch-remote-resources --results-arf results.xml '
         f'/usr/share/xml/scap/ssg/content/ssg-{distro}-ds.xml',
     )
-
-    # list existing content on Sat
-    existing_content_names = get_existing_content(target_sat)
-    # the content name depends on upload style (default vs file upload)
-    if (OSCAP_DEFAULT_CONTENT[f'{distro}_content'] not in existing_content_names) and (
-        f'{distro} content' not in existing_content_names
-    ):
-        upload_scap_content_for_host(target_sat, contenthost, module_org)
-
-    # re-list after content upload
-    existing_content_names = get_existing_content(target_sat)
-    # find out content name for client version
-    assert (OSCAP_DEFAULT_CONTENT[f'{distro}_content'] in existing_content_names) or (
-        f'{distro} content' in existing_content_names
-    ), f'scap content not found for {distro}, existing content: {existing_content_names}'
-    content = (
-        OSCAP_DEFAULT_CONTENT[f'{distro}_content']
-        if (OSCAP_DEFAULT_CONTENT[f'{distro}_content'] in existing_content_names)
-        else f'{distro} content'
-    )
+    content = find_content_to_update(target_sat, module_org, distro, contenthost)
     update_scap_content(module_org, target_sat, content)
 
     # Creating a hostgroup
@@ -574,7 +556,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
         )
         result = f'host output: {output}'
         raise AssertionError(result) from err
-    result = contenthost.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
+    result = contenthost.run('grep profile /etc/foreman_scap_client/config.yaml')
     assert result.status == 0
     contenthost.execute_foreman_scap_client()
     result = target_sat.cli.Arfreport.list({'search': f'host={contenthost.hostname.lower()}'})
@@ -724,29 +706,9 @@ def test_positive_oscap_run_via_local_files(
     SELECTED_ROLE = 'theforeman.foreman_scap_client'
     file_name = 'security-data-oval-com.redhat.rhsa-RHEL8.xml.bz2'
     download_url = 'https://www.redhat.com/security/data/oval/v2/RHEL8/rhel-8.oval.xml.bz2'
-    profile = OSCAP_PROFILE['ospp8']
+    profile = profiles[distro]
 
-    # list existing content on Sat
-    existing_content_names = get_existing_content(module_target_sat)
-    # the content name depends on upload style (default vs file upload)
-    if (OSCAP_DEFAULT_CONTENT[f'{distro}_content'] not in existing_content_names) and (
-        f'{distro} content' not in existing_content_names
-    ):
-        upload_scap_content_for_host(module_target_sat, contenthost, module_org)
-
-    # re-list after content upload
-    existing_content_names = get_existing_content(module_target_sat)
-    # find out content name for client version
-    assert (OSCAP_DEFAULT_CONTENT[f'{distro}_content'] in existing_content_names) or (
-        f'{distro} content' in existing_content_names
-    ), f'scap content not found for {distro}, existing content: {existing_content_names}'
-    content = (
-        OSCAP_DEFAULT_CONTENT[f'{distro}_content']
-        if (OSCAP_DEFAULT_CONTENT[f'{distro}_content'] in existing_content_names)
-        else f'{distro} content'
-    )
-
-    content = OSCAP_DEFAULT_CONTENT[f'{distro}_content']
+    content = find_content_to_update(module_target_sat, module_org, distro, contenthost)
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')
 
@@ -771,7 +733,6 @@ def test_positive_oscap_run_via_local_files(
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     rhel_repo = rhel_repos[distro]
-    profile = profiles[distro]
     contenthost.create_custom_repos(**rhel_repo)
 
     proxy_id = module_target_sat.nailgun_smart_proxy.id
@@ -831,7 +792,7 @@ def test_positive_oscap_run_via_local_files(
         poll_timeout=1000,
     )
     assert module_target_sat.api.JobInvocation(id=job['id']).read().succeeded == 1
-    assert contenthost.run('cat /etc/foreman_scap_client/config.yaml | grep profile').status == 0
+    assert contenthost.run('grep profile /etc/foreman_scap_client/config.yaml').status == 0
     # TODO: instead of running it on the client itself we should invoke a job from satellite
     result = contenthost.execute_foreman_scap_client()
     assert f"WARNING: Using local file '/root/{file_name}'" in result
