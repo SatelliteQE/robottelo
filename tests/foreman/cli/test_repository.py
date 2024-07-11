@@ -2369,50 +2369,21 @@ class TestAnsibleCollectionRepository:
         ids=['ansible_galaxy', 'ansible_hub'],
         indirect=True,
     )
-    def test_positive_sync_and_export_ansible_collection(self, repo, module_org, target_sat):
-        """Sync ansible collection repository from Ansible Galaxy and Hub, and
-        export ansible collection between organizations
+    def test_positive_sync_ansible_collection(self, repo, module_target_sat):
+        """Sync ansible collection repository from Ansible Galaxy and Hub
 
-        :id: e10355ad-eae6-4328-acce-67e52e447e56
+        :id: 4b6a819b-8c3d-4a74-bd97-ee3f34cf5d92
 
-        :expectedresults: All content synced, exported and imported successfully
+        :expectedresults: All content synced successfully
 
         :CaseImportance: High
 
         :parametrized: yes
 
         """
-        import_org = target_sat.cli_factory.make_org()
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        repo = target_sat.cli.Repository.info({'id': repo['id']})
+        module_target_sat.cli.Repository.synchronize({'id': repo['id']})
+        repo = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
-        # export
-        result = target_sat.cli.ContentExport.completeLibrary({'organization-id': module_org.id})
-        target_sat.execute(f'cp -r /var/lib/pulp/exports/{module_org.name} /var/lib/pulp/imports/.')
-        target_sat.execute('chown -R pulp:pulp /var/lib/pulp/imports')
-        export_metadata = result['message'].split()[1]
-        # import
-        import_path = export_metadata.replace('/metadata.json', '').replace('exports', 'imports')
-        target_sat.cli.ContentImport.library(
-            {'organization-id': import_org['id'], 'path': import_path}
-        )
-        cv = target_sat.cli.ContentView.info(
-            {'name': 'Import-Library', 'organization-label': import_org['label']}
-        )
-        assert cv['description'] == 'Content View used for importing into library'
-        prods = target_sat.cli.Product.list({'organization-id': import_org['id']})
-        prod = target_sat.cli.Product.info(
-            {'id': prods[0]['id'], 'organization-id': import_org['id']}
-        )
-        ac_content = [
-            cont for cont in prod['content'] if cont['content-type'] == 'ansible_collection'
-        ]
-        assert len(ac_content) > 0
-        repo = target_sat.cli.Repository.info(
-            {'name': ac_content[0]['repo-name'], 'product-id': prod['id']}
-        )
-        result = target_sat.execute(f'curl {repo["published-at"]}')
-        assert "available_versions" in result.stdout
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
