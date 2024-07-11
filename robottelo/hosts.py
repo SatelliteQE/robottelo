@@ -2418,6 +2418,22 @@ class Satellite(Capsule, SatelliteMixins):
             org=org, lce=lce, username=username, password=password, enable_proxy=enable_proxy
         )
 
+    def run_orphan_cleanup(self, smart_proxy_id=None):
+        """Run orphan cleanup task for all or given smart proxy."""
+        timestamp = datetime.utcnow().replace(microsecond=0)
+        rake_command = 'foreman-rake katello:delete_orphaned_content RAILS_ENV=production'
+        if smart_proxy_id:
+            rake_command = f'{rake_command} SMART_PROXY_ID={smart_proxy_id}'
+        self.execute(rake_command)
+        self.wait_for_tasks(
+            search_query=(
+                'label = Actions::Katello::OrphanCleanup::RemoveOrphans'
+                f' and started_at >= "{timestamp}"'
+            ),
+            search_rate=5,
+            max_tries=10,
+        )
+
 
 class SSOHost(Host):
     """Class for RHSSO functions and setup"""
