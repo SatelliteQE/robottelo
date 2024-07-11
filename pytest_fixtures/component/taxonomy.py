@@ -247,6 +247,15 @@ def function_sca_manifest():
         yield manifest
 
 
+@pytest.fixture
+def function_secondary_sca_manifest():
+    """Yields a manifest in Simple Content Access mode with subscriptions determined by the
+    `manifest_category.golden_ticket` setting in conf/manifest.yaml.
+    A different one than is used in `function_sca_manifest_org`."""
+    with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
+        yield manifest
+
+
 @pytest.fixture(scope='module')
 def smart_proxy_location(module_org, module_target_sat, default_smart_proxy):
     location = module_target_sat.api.Location(organization=[module_org]).create()
