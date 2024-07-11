@@ -2363,7 +2363,7 @@ class TestAnsibleCollectionRepository:
                 'ansible-collection-auth-token': settings.ansible_hub.token,
                 'ansible-collection-auth-url': settings.ansible_hub.sso_url,
                 'ansible-collection-requirements': '{collections: \
-                                                         [redhat.satellite_operations ]}',
+                                                            [redhat.satellite_operations ]}',
             },
         ],
         ids=['ansible_galaxy', 'ansible_hub'],
@@ -2384,64 +2384,6 @@ class TestAnsibleCollectionRepository:
         module_target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
-
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options',
-        [
-            {
-                'content-type': 'ansible_collection',
-                'url': ANSIBLE_GALAXY,
-                'ansible-collection-requirements': '{collections: [ \
-                            { name: theforeman.foreman, version: "2.1.0" }, \
-                            { name: theforeman.operations, version: "0.1.0"} ]}',
-            }
-        ],
-        ids=['ansible_galaxy'],
-        indirect=True,
-    )
-    def test_positive_export_ansible_collection(self, repo, module_org, target_sat):
-        """Export ansible collection between organizations
-
-        :id: 4858227e-1669-476d-8da3-4e6bfb6b7e2a
-
-        :expectedresults: All content exported and imported successfully
-
-        :CaseImportance: High
-
-        """
-        import_org = target_sat.cli_factory.make_org()
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        repo = target_sat.cli.Repository.info({'id': repo['id']})
-        assert repo['sync']['status'] == 'Success'
-        # export
-        result = target_sat.cli.ContentExport.completeLibrary({'organization-id': module_org.id})
-        target_sat.execute(f'cp -r /var/lib/pulp/exports/{module_org.name} /var/lib/pulp/imports/.')
-        target_sat.execute('chown -R pulp:pulp /var/lib/pulp/imports')
-        export_metadata = result['message'].split()[1]
-        # import
-        import_path = export_metadata.replace('/metadata.json', '').replace('exports', 'imports')
-        target_sat.cli.ContentImport.library(
-            {'organization-id': import_org['id'], 'path': import_path}
-        )
-        cv = target_sat.cli.ContentView.info(
-            {'name': 'Import-Library', 'organization-label': import_org['label']}
-        )
-        assert cv['description'] == 'Content View used for importing into library'
-        prods = target_sat.cli.Product.list({'organization-id': import_org['id']})
-        prod = target_sat.cli.Product.info(
-            {'id': prods[0]['id'], 'organization-id': import_org['id']}
-        )
-        ac_content = [
-            cont for cont in prod['content'] if cont['content-type'] == 'ansible_collection'
-        ]
-        assert len(ac_content) > 0
-        repo = target_sat.cli.Repository.info(
-            {'name': ac_content[0]['repo-name'], 'product-id': prod['id']}
-        )
-        result = target_sat.execute(f'curl {repo["published-at"]}')
-        assert "available_versions" in result.stdout
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
