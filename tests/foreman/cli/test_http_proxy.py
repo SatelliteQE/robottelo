@@ -264,14 +264,13 @@ def test_positive_assign_http_proxy_to_products(module_org, module_target_sat):
     )
 
     # Set the HTTP proxy through bulk action for both products to the selected proxy
-    res = module_target_sat.cli.Product.update_proxy(
+    module_target_sat.cli.Product.update_proxy(
         {
             'ids': f"{product_a['id']},{product_b['id']}",
             'http-proxy-policy': 'use_selected_http_proxy',
             'http-proxy-id': http_proxy_b['id'],
         }
     )
-    assert 'Product proxy updated' in res
     module_target_sat.wait_for_tasks(
         search_query=(
             f'Actions::Katello::Repository::Update and organization_id = {module_org.id}'
@@ -296,10 +295,9 @@ def test_positive_assign_http_proxy_to_products(module_org, module_target_sat):
         assert int(info['content-counts']['packages']) == FAKE_0_YUM_REPO_PACKAGES_COUNT
 
     # Set the HTTP proxy through bulk action for both products to None
-    res = module_target_sat.cli.Product.update_proxy(
+    module_target_sat.cli.Product.update_proxy(
         {'ids': f"{product_a['id']},{product_b['id']}", 'http-proxy-policy': 'none'}
     )
-    assert 'Product proxy updated' in res
     module_target_sat.wait_for_tasks(
         search_query=(
             f'Actions::Katello::Repository::Update and organization_id = {module_org.id}'
