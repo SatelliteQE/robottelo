@@ -54,9 +54,19 @@ def install_import_ansible_role(module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_role):
+def setup_fam(
+    module_target_sat, module_sca_manifest, install_import_ansible_role, module_capsule_configured
+):
     # Execute AAP WF for FAM setup
     Broker().execute(workflow='fam-test-setup', source_vm=module_target_sat.name)
+
+    # Edit settings so FAM playbooks use the capsule we setup and then
+    # delete it from the Satellite so that the tests can use it.
+    settings.fam.server.foreman_proxy = module_capsule_configured.hostname
+    capsule = module_target_sat.api.SmartProxy().search(
+        query={'search': f'name = {module_capsule_configured.hostname}'}
+    )[0]
+    capsule.delete()
 
     # Setup provisioning resources and copy config files to the Satellite
     module_target_sat.configure_libvirt_cr()
@@ -135,6 +145,11 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
 
     :expectedresults: All modules and roles run successfully
     """
+    # These modules currently require lots of setup that we don't have
+    # so let's skip them till we find a better solution
+    if ansible_module in ['host_power', 'realm']:
+        pytest.skip()
+
     # Execute test_playbook
     result = module_target_sat.execute(
         f'export NO_COLOR=True && . ~/localenv/bin/activate && cd {FAM_ROOT_DIR} && make livetest_{ansible_module}'
