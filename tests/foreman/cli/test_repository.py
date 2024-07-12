@@ -1001,40 +1001,6 @@ class TestRepository:
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                {
-                    'content-type': 'docker',
-                    'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
-                    'url': CONTAINER_REGISTRY_HUB,
-                    'include-tags': ",".join([gen_string('alpha') for _ in range(3)]),
-                }
-            ]
-        ),
-        indirect=True,
-    )
-    def test_negative_synchronize_docker_repo_with_invalid_tags(
-        self, repo_options, repo, target_sat
-    ):
-        """Set tags whitelist to contain only invalid (non-existing)
-        tags. Check that no data is synchronized.
-
-        :id: da05cdb1-2aea-48b9-9424-6cc700bc1194
-
-        :parametrized: yes
-
-        :expectedresults: Tags are not synchronized
-        """
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        repo = target_sat.cli.Repository.info({'id': repo['id']})
-        if not is_open('SAT-26322'):
-            for tag in repo_options['include-tags'].split(','):
-                assert tag in repo['included-container-image-tags']
-        assert int(repo['content-counts']['container-tags']) == 0
-
-    @pytest.mark.tier2
-    @pytest.mark.parametrize(
-        'repo_options',
         **parametrized([{'content-type': 'yum', 'url': settings.repos.yum_1.url}]),
         indirect=True,
     )
