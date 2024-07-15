@@ -32,7 +32,6 @@ FAM:
     # Parameter for external_usergroup testing
     auth_source_ldap_host: ldap.example.com
     auth_source_ldap_account: ansible
-    auth_source_ldap_account_password: pass
     auth_source_ldap_base_dn: dc=example,dc=com
     auth_source_ldap_attr_login: uid
     auth_source_ldap_groups_base: cn=groups,cn=accounts,dc=example,dc=com
