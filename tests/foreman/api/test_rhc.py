@@ -32,6 +32,8 @@ def fixture_enable_rhc_repos(target_sat):
 
 
 @pytest.mark.e2e
+@pytest.mark.pit_server
+@pytest.mark.pit_client
 @pytest.mark.tier3
 @pytest.mark.destructive
 def test_positive_configure_cloud_connector(target_sat, default_org, fixture_enable_rhc_repos):
