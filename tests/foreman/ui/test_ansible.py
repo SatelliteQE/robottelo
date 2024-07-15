@@ -519,6 +519,55 @@ class TestAnsibleCfgMgmt:
             session.hostgroup.delete(name)
             assert not target_sat.api.HostGroup().search(query={'search': f'name={name}'})
 
+    @pytest.mark.tier3
+    def test_positive_non_admin_hostgroup_permission(
+        self, request, function_org, function_location, target_sat
+    ):
+        """Verify Hostgroup page is accessible to non-admin user.
+
+        :id: 3b8ce895-9d4c-491d-a5eb-d292748134a5
+
+        :customerscenario: true
+
+        :BZ: 2236418
+
+        :steps:
+            1. Create a user with non-admin permissions and assign "Ansible Roles Manager", "Ansible Tower Inventory Reader"
+            and "Content Importer" to the user.
+            2. Create a hostgroup and add in same organization and location as user.
+            3. Login to Satellite WebUI with user credentials and navigate to Configure -> Hostgroups
+
+        :expectedresults: The hostgroup created should be visible to non-admin user.
+        """
+        password = settings.server.admin_password
+
+        ansible_manager_role = (
+            target_sat.api.Role().search(query={'search': 'name="Ansible Roles Manager"'})[0].id
+        )
+        tower_inventory_manager_role = (
+            target_sat.api.Role()
+            .search(query={'search': 'name="Ansible Tower Inventory Reader"'})[0]
+            .id
+        )
+        SELECTED_ROLE = [ansible_manager_role, tower_inventory_manager_role]
+        user = target_sat.api.User(
+            role=SELECTED_ROLE,
+            admin=False,
+            login=gen_string('alphanumeric'),
+            password=password,
+            organization=[function_org],
+            location=[function_location],
+        ).create()
+        request.addfinalizer(user.delete)
+        user_cfg = user_nailgun_config(user.login, password)
+
+        hg_name = target_sat.api.HostGroup(
+            organization=[function_org],
+            location=[function_location],
+        ).create()
+        with target_sat.ui_session(user=user_cfg.auth[0], password=password) as session:
+            assert session.hostgroup.search(hg_name.name)[0]['Name'] == hg_name.name
+
 
 class TestAnsibleREX:
     """Test class for remote execution via Ansible
