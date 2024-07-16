@@ -125,6 +125,7 @@ def test_negative_global_registration_without_ak(
 
 @pytest.mark.e2e
 @pytest.mark.no_containers
+@pytest.mark.pit_client
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6]')
 def test_positive_global_registration_end_to_end(
@@ -341,7 +342,9 @@ def test_global_registration_form_populate(
 
 
 @pytest.mark.tier2
+@pytest.mark.pit_client
 @pytest.mark.usefixtures('enable_capsule_for_registration')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.no_containers
 def test_global_registration_with_gpg_repo_and_default_package(
     session, module_activation_key, default_os, default_smart_proxy, rhel8_contenthost
