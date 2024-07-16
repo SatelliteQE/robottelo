@@ -28,6 +28,7 @@ pytestmark = pytest.mark.tier1
 
 
 @pytest.mark.e2e
+@pytest.mark.pit_client
 @pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.no_containers
 def test_host_registration_end_to_end(
@@ -87,6 +88,7 @@ def test_host_registration_end_to_end(
 
 
 @pytest.mark.tier3
+@pytest.mark.pit_client
 @pytest.mark.rhel_ver_match('[^6]')
 def test_positive_allow_reregistration_when_dmi_uuid_changed(
     module_sca_manifest_org,

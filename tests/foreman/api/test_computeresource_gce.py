@@ -226,6 +226,7 @@ class TestGCEHostProvisioningTestCase:
 
     @pytest.mark.e2e
     @pytest.mark.tier1
+    @pytest.mark.pit_server
     @pytest.mark.build_sanity
     @pytest.mark.parametrize('sat_gce', ['sat', 'puppet_sat'], indirect=True)
     def test_positive_gce_host_provisioned(self, class_host, google_host):
