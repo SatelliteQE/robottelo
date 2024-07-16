@@ -1032,17 +1032,12 @@ def test_positive_service_level_subscription_with_custom_product(
         1. Create a product with custom repository synchronized
         2. Create and Publish a content view with the created repository
         3. Create an activation key and assign the created content view
-        4. Add a RedHat subscription to activation key (The product
-           subscription should be added automatically)
         5. Set the activation service_level to Premium
         6. Register a host to activation key
-        7. List consumed subscriptions on host
-        8. List the subscription in Content Host UI
+        8. Assert product is listed under repository sets on the content host
 
     :expectedresults:
-        1. The product subscription is listed in consumed subscriptions on host
-        2. The product subscription is listed in the contenthost subscriptions
-           UI
+        1. The product is listed under repository sets on the content host
 
     :BZ: 1394357
 

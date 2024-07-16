@@ -1439,8 +1439,8 @@ def test_positive_view_content_by_non_admin_user(function_sca_manifest_org, modu
     )
     result = module_target_sat.cli_factory.setup_org_for_a_rh_repo(
         {
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhst7'],
+            'product': REPOS['rhst7']['product'],
+            'repository-set': REPOS['rhst7']['reposet'],
             'repository': REPOS['rhst7']['name'],
             'organization-id': org.id,
         },
