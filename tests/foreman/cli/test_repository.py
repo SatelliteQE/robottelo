@@ -2837,7 +2837,8 @@ def test_positive_syncable_yum_format_repo_import(target_sat, module_org):
     assert repodata['sync']['status'] == 'Success'
 
 
-@pytest.mark.rhel_ver_list([9])
+@pytest.mark.pit_client
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_install_uploaded_rpm_on_host(
     target_sat, rhel_contenthost, function_org, function_lce
 ):
