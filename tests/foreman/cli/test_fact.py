@@ -66,6 +66,7 @@ def test_negative_list_by_name(module_target_sat):
 
 
 @pytest.mark.no_containers
+@pytest.mark.pit_client
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_update_client_facts_verify_imported_values(
     module_target_sat, rhel_contenthost, module_org, module_location, module_activation_key
