@@ -326,6 +326,7 @@ class TestAnsibleREX:
     """
 
     @pytest.mark.e2e
+    @pytest.mark.pit_client
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('[^6].*')
     def test_positive_ansible_job_on_host(
