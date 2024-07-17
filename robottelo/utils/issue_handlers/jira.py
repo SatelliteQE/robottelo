@@ -208,6 +208,7 @@ def get_data_jira(issue_ids, cached_data=None):  # pragma: no cover
         "key",
         "summary",
         "status",
+        "labels",
         "resolution",
         "fixVersions",
     ]
@@ -234,6 +235,7 @@ def get_data_jira(issue_ids, cached_data=None):  # pragma: no cover
             'key': issue['key'],
             'summary': issue['fields']['summary'],
             'status': issue['fields']['status']['name'],
+            'labels': issue['fields']['labels'],
             'resolution': issue['fields']['resolution']['name']
             if issue['fields']['resolution']
             else '',
@@ -301,32 +303,25 @@ def add_comment_on_jira(
             'and provide --jira-comment pytest option."'
         )
         return None
-    data = try_from_cache(issue_id)
-    if data["status"] in settings.jira.issue_status:
-        if labels:
-            logger.debug(f"Updating labels for {issue_id} issue. \n labels: \n {labels}")
-            response = requests.put(
-                f"{settings.jira.url}/rest/api/latest/issue/{issue_id}/",
-                json={"update": {"labels": labels}},
-                headers={"Authorization": f"Bearer {settings.jira.api_key}"},
-            )
-            response.raise_for_status()
-        logger.debug(f"Adding a new comment on {issue_id} Jira issue. \n comment: \n {comment}")
-        response = requests.post(
-            f"{settings.jira.url}/rest/api/latest/issue/{issue_id}/comment",
-            json={
-                "body": comment,
-                "visibility": {
-                    "type": comment_type,
-                    "value": comment_visibility,
-                },
-            },
+    if labels:
+        logger.debug(f"Updating labels for {issue_id} issue. \n labels: \n {labels}")
+        response = requests.put(
+            f"{settings.jira.url}/rest/api/latest/issue/{issue_id}/",
+            json={"update": {"labels": labels}},
             headers={"Authorization": f"Bearer {settings.jira.api_key}"},
         )
         response.raise_for_status()
-        return response.json()
-    logger.warning(
-        f"Jira comments are currently disabled for this issue because it's in {data['status']} state. "
-        f"Please update issue_status in jira.conf to overide this behaviour."
+    logger.debug(f"Adding a new comment on {issue_id} Jira issue. \n comment: \n {comment}")
+    response = requests.post(
+        f"{settings.jira.url}/rest/api/latest/issue/{issue_id}/comment",
+        json={
+            "body": comment,
+            "visibility": {
+                "type": comment_type,
+                "value": comment_visibility,
+            },
+        },
+        headers={"Authorization": f"Bearer {settings.jira.api_key}"},
     )
-    return None
+    response.raise_for_status()
+    return response.json()

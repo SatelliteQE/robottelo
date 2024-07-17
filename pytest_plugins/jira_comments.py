@@ -4,9 +4,10 @@ import os
 import pytest
 
 from robottelo.config import settings
+from robottelo.constants import JIRA_TESTS_FAILED_LABEL, JIRA_TESTS_PASSED_LABEL
 from robottelo.logging import logger
 from robottelo.utils import parse_comma_separated_list
-from robottelo.utils.issue_handlers.jira import add_comment_on_jira
+from robottelo.utils.issue_handlers.jira import add_comment_on_jira, get_single_jira
 
 
 def pytest_addoption(parser):
@@ -95,15 +96,29 @@ def pytest_sessionfinish(session, exitstatus):
             )
             for item in session.config.issue_to_tests_map[issue]:
                 comment_body += f'{item["nodeid"]} : {item["outcome"]} \n'
-                if item["outcome"] == 'failed':
+                if item['outcome'] == 'failed':
                     all_tests_passed = False
             try:
                 labels = (
-                    [{'add': 'tests_passed'}, {'remove': 'tests_failed'}]
+                    [{'add': JIRA_TESTS_PASSED_LABEL}, {'remove': JIRA_TESTS_FAILED_LABEL}]
                     if all_tests_passed
-                    else [{'add': 'tests_failed'}, {'remove': 'tests_passed'}]
+                    else [{'add': JIRA_TESTS_FAILED_LABEL}, {'remove': JIRA_TESTS_PASSED_LABEL}]
                 )
-                add_comment_on_jira(issue, comment_body, labels=labels)
+                data = get_single_jira(issue)
+                # Initially set a Pass/Fail label based on the test result
+                # If the state changes add a comment
+                # If the state is already failing, and test is failing, still add a comment
+                # If the state is already passing, and the test passes, don’t add a comment
+                if (data['status'] in settings.jira.issue_status) and (
+                    not all_tests_passed or JIRA_TESTS_PASSED_LABEL not in data['labels']
+                ):
+                    add_comment_on_jira(issue, comment_body, labels=labels)
+                else:
+                    logger.warning(
+                        f'Jira comments are currently disabled for {issue} issue. '
+                        f'It could be because jira is in {data["status"]} state or that there are no failing tests. \n'
+                        'Please update issue_status in jira.conf to override this behaviour.'
+                    )
             except Exception as e:
                 # Handle any errors in adding comments to Jira
                 logger.warning(f'Failed to add comment to Jira issue {issue}: {e}')
