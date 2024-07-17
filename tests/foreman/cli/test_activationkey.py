@@ -725,7 +725,7 @@ def test_positive_add_redhat_product(function_sca_manifest_org, target_sat):
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_custom_product(module_org, function_target_sat):
+def test_positive_add_custom_product(module_org, target_sat):
     """Test that custom product can be associated to Activation Keys
 
     :id: 96ace967-e165-4069-8ff7-f54c4c822de0
@@ -735,11 +735,11 @@ def test_positive_add_custom_product(module_org, function_target_sat):
 
     :BZ: 1426386
     """
-    result = function_target_sat.cli_factory.setup_org_for_a_custom_repo(
+    result = target_sat.cli_factory.setup_org_for_a_custom_repo(
         {'url': settings.repos.yum_0.url, 'organization-id': module_org.id}
     )
-    repo = function_target_sat.cli.Repository.info({'id': result['repository-id']})
-    content = function_target_sat.cli.ActivationKey.product_content(
+    repo = target_sat.cli.Repository.info({'id': result['repository-id']})
+    content = target_sat.cli.ActivationKey.product_content(
         {'id': result['activationkey-id'], 'organization-id': module_org.id}
     )
     assert content[0]['name'] == repo['name']
