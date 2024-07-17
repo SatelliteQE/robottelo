@@ -204,14 +204,6 @@ def module_capsule_configured(request, module_capsule_host, module_target_sat):
     return module_capsule_host
 
 
-@pytest.fixture(scope='session')
-def session_capsule_configured(request, session_capsule_host, session_target_sat):
-    """Configure the capsule instance with the satellite from settings.server.hostname"""
-    if not request.config.option.n_minus:
-        session_capsule_host.capsule_setup(sat_host=session_target_sat)
-    return session_capsule_host
-
-
 @pytest.fixture(scope='module')
 def module_capsule_configured_mqtt(request, module_capsule_configured):
     """Configure the capsule instance with the satellite from settings.server.hostname,
