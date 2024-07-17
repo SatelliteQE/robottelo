@@ -1509,7 +1509,7 @@ def test_positive_ak_with_custom_product_on_rhel6(
     :steps:
         1. Create a custom repo
         2. Create ak and add custom repo to ak
-        4. Register a rhel6 chost with the ak
+        3. Register a rhel6 chost with the ak
 
     :expectedresults: Host is registered successfully
 
