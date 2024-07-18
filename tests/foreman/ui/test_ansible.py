@@ -519,6 +519,43 @@ class TestAnsibleCfgMgmt:
             session.hostgroup.delete(name)
             assert not target_sat.api.HostGroup().search(query={'search': f'name={name}'})
 
+    @pytest.mark.tier3
+    def test_positive_non_admin_user_access_with_usergroup(
+        self, request, target_sat, test_name, module_org, module_location
+    ):
+        """Verify non-admin user can access the ansible page on WebUI
+
+        :id: 82d30664-1b74-457c-92e2-31a5ba89e826
+
+        :BZ: 2158508
+
+        :steps:
+            1. Create user with non-admin
+            2. Create usergroup with administrator role
+            3. Log in as a user and try to access WebUI -> Hosts -> select host -> Ansible
+
+        :expectedresults: See Ansible page as user should be administrator due to usergroup
+
+        :customerscenario: true
+        """
+        SELECTED_ROLE = 'RedHatInsights.insights-client'
+        password = gen_string('alpha')
+        user = target_sat.api.User(
+            login=gen_string('alpha'), password=password, admin=False
+        ).create()
+        request.addfinalizer(user.delete)
+        user_gp = target_sat.api.UserGroup(
+            name=gen_string('alpha'), user=[user], admin=True
+        ).create()
+        assert user.login in [u.read().login for u in user_gp.user]
+        with target_sat.ui_session(test_name, user.login, password) as session:
+            id = target_sat.nailgun_smart_proxy.id
+            target_sat.api.AnsibleRoles().sync(data={'proxy_id': id, 'role_names': [SELECTED_ROLE]})
+            session.host_new.add_single_ansible_role(target_sat.hostname)
+            wait_for(lambda: session.browser.refresh(), timeout=5)
+            ansible_roles_table = session.host_new.get_ansible_roles(target_sat.hostname)
+            assert ansible_roles_table[0]['Name'] == SELECTED_ROLE
+
 
 class TestAnsibleREX:
     """Test class for remote execution via Ansible
