@@ -318,7 +318,6 @@ def test_rhel_ipxe_provisioning(
     assert provisioning_host.subscribed, 'Host is not subscribed'
 
 
-@pytest.mark.skip_if_open("BZ:2242925")
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.parametrize('pxe_loader', ['http_uefi'], indirect=True)
@@ -354,7 +353,9 @@ def test_rhel_httpboot_provisioning(
 
     :parametrized: yes
 
-    :BZ: 2242925
+    :BlockedBy: SAT-20684
+
+    :Verifies: SAT-20684
     """
     sat = module_provisioning_sat.sat
     # update grub2-efi package
