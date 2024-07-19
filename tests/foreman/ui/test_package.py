@@ -54,15 +54,15 @@ def module_yum_repo2(module_product, module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def module_rh_repo(module_entitlement_manifest_org, module_target_sat):
-    rhst = module_target_sat.cli_factory.SatelliteToolsRepository(cdn=True)
+def module_rh_repo(module_sca_manifest_org, module_target_sat):
+    rhsc = module_target_sat.cli_factory.SatelliteCapsuleRepository(cdn=True)
     repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
-        basearch=rhst.data['arch'],
-        org_id=module_entitlement_manifest_org.id,
-        product=rhst.data['product'],
-        repo=rhst.data['repository'],
-        reposet=rhst.data['repository-set'],
-        releasever=rhst.data['releasever'],
+        basearch=rhsc.data['arch'],
+        org_id=module_sca_manifest_org.id,
+        product=rhsc.data['product'],
+        repo=rhsc.data['repository'],
+        reposet=rhsc.data['repository-set'],
+        releasever=rhsc.data['releasever'],
     )
     module_target_sat.api.Repository(id=repo_id).sync()
     return module_target_sat.api.Repository(id=repo_id).read()
@@ -189,7 +189,7 @@ def test_positive_check_custom_package_details(session, module_org, module_yum_r
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_rh_repo_search_and_check_file_list(session, module_org, module_rh_repo):
-    """Synchronize one of RH repos (for example Satellite Tools). Search
+    """Synchronize one of RH repos (for example Satellite Capsule). Search
     for packages inside of it and open one of the packages and check list of
     files inside of it.
 
@@ -201,20 +201,21 @@ def test_positive_rh_repo_search_and_check_file_list(session, module_org, module
     with session:
         session.organization.select(org_name=module_org.name)
         assert session.package.search(
-            'name = {}'.format('puppet-agent'), repository=module_rh_repo.name
-        )[0]['RPM'].startswith('puppet-agent')
+            'name = {}'.format('foreman-proxy'), repository=module_rh_repo.name
+        )[0]['RPM'].startswith('foreman-proxy')
         assert session.package.search(
-            'name = {}'.format('katello-host-tools'), repository=module_rh_repo.name
-        )[0]['RPM'].startswith('katello-host-tools')
-        package_details = session.package.read('tracer-common', repository=module_rh_repo.name)
+            'name = {}'.format('satellite-capsule'), repository=module_rh_repo.name
+        )[0]['RPM'].startswith('satellite-capsule')
+        package_details = session.package.read(
+            'satellite-installer', repository=module_rh_repo.name
+        )
         assert {
-            '/etc/bash_completion.d/tracer',
-            '/usr/share/locale/cs/LC_MESSAGES/tracer.mo',
-            '/usr/share/tracer',
-            '/usr/share/tracer/__init__.py',
-            '/usr/share/tracer/__init__.pyc',
-            '/usr/share/tracer/__init__.pyo',
-            '/usr/share/tracer/applications.xml',
-            '/usr/share/tracer/README.md',
-            '/usr/share/tracer/rules.xml',
+            '/etc/foreman-installer/scenarios.d/capsule-answers.yaml',
+            '/etc/foreman-installer/scenarios.d/capsule.migrations',
+            '/etc/foreman-installer/scenarios.d/capsule.yaml',
+            '/etc/foreman-installer/scenarios.d/satellite-answers.yaml',
+            '/etc/foreman-installer/scenarios.d/satellite.migrations',
+            '/usr/share/satellite-installer/bin',
+            '/usr/share/satellite-installer/bin/capsule-installer',
+            '/usr/share/satellite-installer/bin/katello-installer',
         }.issubset(set(package_details['files']['package_files']))
