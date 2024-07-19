@@ -2324,6 +2324,58 @@ def test_syspurpose_end_to_end(
         )
 
 
+@pytest.mark.rhel_ver_match('[^7]')
+def test_negative_multi_cv_registration(
+    module_org,
+    module_activation_key,
+    module_lce,
+    module_lce_library,
+    module_published_cv,
+    module_promoted_cv,
+    target_sat,
+    rhel_contenthost,
+):
+    """Attempt to register a host to multiple content view environments.
+
+    :id: 52be9b92-55aa-44b7-8157-1998a8effb40
+
+    :steps:
+        1. Register a host with global reg, just to get the sub-man config and certs right
+        2. Unregister the host
+        3. Verify that allow_multiple_content_views setting is not exposed
+        4. Attempt to register the host with subscription-manager, passing multiple environments
+        5. Confirm that registration fails
+
+    :expectedresults: allow_multiple_content_views setting is not exposed, and defaults to false.
+        So registration fails because multiple environments are not allowed.
+
+    :CaseImportance: Critical
+
+    :parametrized: yes
+    """
+
+    # Register with global reg, just to get the sub-man config and certs right
+    result = rhel_contenthost.register(module_org, None, module_activation_key.name, target_sat)
+    assert result.status == 0
+    assert rhel_contenthost.subscribed
+
+    # Unregister the host
+    unregister_result = rhel_contenthost.unregister()
+    assert unregister_result.status == 0
+
+    # Verify that allow_multiple_content_views setting is not exposed
+    with pytest.raises(CLIReturnCodeError):
+        target_sat.cli.Settings.info({'name': 'allow_multiple_content_views'})
+
+    env_names = f"{module_lce_library.name}/{module_published_cv.name},{module_lce.name}/{module_promoted_cv.name}"
+
+    # Register the host with subscription-manager, passing multiple environments
+    res = rhel_contenthost.register_contenthost(module_org.label, lce=None, environments=env_names)
+    assert (
+        res.status == 70
+    ), f'Expecting error "Registering to multiple environments is not enabled"; instead got: {res.stderr}'
+
+
 # -------------------------- HOST ERRATA SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.tier1
 def test_positive_errata_list_of_sat_server(target_sat):
