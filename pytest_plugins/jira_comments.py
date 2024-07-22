@@ -82,12 +82,21 @@ def pytest_runtest_makereport(item, call):
             update_issue_to_tests_map(item, blocked_by_issues, test_result)
 
 
+def escape_special_characters(text):
+    special_chars = '[]'
+    for char in special_chars:
+        text = text.replace(char, f'\\{char}')
+    return text
+
+
 def pytest_sessionfinish(session, exitstatus):
     """Add test result comment to related Jira issues."""
     if hasattr(session.config, 'issue_to_tests_map'):
         user = os.environ.get('USER')
         build_url = os.environ.get('BUILD_URL')
         for issue in session.config.issue_to_tests_map:
+            # Sort test result based on the outcome.
+            session.config.issue_to_tests_map[issue].sort(key=lambda x: x['outcome'])
             all_tests_passed = True
             comment_body = (
                 f'This is an automated comment from job/user: {build_url if build_url else user} for a Robottelo test run.\n'
@@ -95,9 +104,15 @@ def pytest_sessionfinish(session, exitstatus):
                 f'Result for tests linked with issue: {issue} \n'
             )
             for item in session.config.issue_to_tests_map[issue]:
-                comment_body += f'{item["nodeid"]} : {item["outcome"]} \n'
+                color_code = '{color:green}'
                 if item['outcome'] == 'failed':
                     all_tests_passed = False
+                    color_code = '{color:red}'
+                # Color code test outcome
+                color_coded_result = f'{color_code}{item["outcome"]}{{color}}'
+                # Escape special characters in the node_id.
+                escaped_node_id = escape_special_characters(item['nodeid'])
+                comment_body += f'{escaped_node_id} : {color_coded_result} \n'
             try:
                 labels = (
                     [{'add': JIRA_TESTS_PASSED_LABEL}, {'remove': JIRA_TESTS_FAILED_LABEL}]
