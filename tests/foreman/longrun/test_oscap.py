@@ -101,20 +101,11 @@ def activation_key(module_target_sat, module_org, lifecycle_env):
     """Create activation keys"""
     repo_values = [
         {
-            'repo': settings.repos.satclient_repo.rhel9,
-            'akname': ak_name['rhel9'],
-            'cvname': cv_name['rhel9'],
-        },
-        {
-            'repo': settings.repos.satclient_repo.rhel8,
-            'akname': ak_name['rhel8'],
-            'cvname': cv_name['rhel8'],
-        },
-        {
-            'repo': settings.repos.satclient_repo.rhel7,
-            'akname': ak_name['rhel7'],
-            'cvname': cv_name['rhel7'],
-        },
+            'repo': getattr(settings.repos.satclient_repo, rhel),
+            'akname': ak_name[rhel],
+            'cvname': cv_name[rhel],
+        }
+        for rhel in ('rhel9', 'rhel8', 'rhel7')
     ]
 
     for repo in repo_values:
@@ -193,131 +184,6 @@ def find_content_to_update(target_sat, module_org, distro, contenthost):
     return selected_content if (selected_content in existing_content_names) else f'{distro} content'
 
 
-@pytest.mark.e2e
-@pytest.mark.upgrade
-@pytest.mark.tier4
-@pytest.mark.rhel_ver_match('[^6].*')
-def test_positive_oscap_run_via_ansible(
-    module_org,
-    default_proxy,
-    lifecycle_env,
-    target_sat,
-    rex_contenthost,
-):
-    """End-to-End Oscap run via ansible
-
-    :id: c7ea56eb-6cf1-4e79-8d6a-fb872d1bb804
-
-    :parametrized: yes
-
-    :setup: scap content, scap policy, host group
-
-    :steps:
-
-        1. Create a valid scap content
-        2. Import Ansible role theforeman.foreman_scap_client
-        3. Import Ansible Variables needed for the role
-        4. Create a scap policy with ansible as deploy option
-        5. Associate the policy with a hostgroup
-        6. Provision a host using the hostgroup
-        7. Configure REX and associate the Ansible role to created host
-        8. Play roles for the host
-
-    :expectedresults: REX job should be success and ARF report should be sent to satellite
-
-    :BZ: 1716307, 1992229
-
-    :Verifies: SAT-19389
-
-    :customerscenario: true
-
-    :CaseImportance: Critical
-    """
-    contenthost = rex_contenthost
-    os_version = contenthost.os_version.major
-    distro = f'rhel{os_version}'
-    result = contenthost.register(
-        module_org,
-        None,
-        ak_name[distro],
-        target_sat,
-        ignore_subman_errors=True,
-        force=True,
-        insecure=True,
-    )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
-    rhel_repo = rhel_repos[distro]
-    profile = profiles[distro]
-    if distro == 'rhel7':
-        contenthost.create_custom_repos(**{distro: rhel_repo})
-    else:
-        contenthost.create_custom_repos(**rhel_repo)
-
-    content = find_content_to_update(target_sat, module_org, distro, contenthost)
-    update_scap_content(module_org, target_sat, content)
-
-    # Creating a hostgroup
-    hgrp_name = gen_string('alpha')
-    policy_name = gen_string('alpha')
-    target_sat.cli_factory.hostgroup(
-        {
-            'content-source-id': default_proxy,
-            'name': hgrp_name,
-            'organizations': module_org.name,
-        }
-    )
-
-    # Creates oscap_policy.
-    scap_id, scap_profile_id = fetch_scap_and_profile_id(target_sat, content, profile)
-    target_sat.cli.Ansible.roles_import({'proxy-id': default_proxy})
-    target_sat.cli.Ansible.variables_import({'proxy-id': default_proxy})
-    role_id = target_sat.cli.Ansible.roles_list({'search': 'foreman_scap_client'})[0].get('id')
-    target_sat.cli_factory.make_scap_policy(
-        {
-            'scap-content-id': scap_id,
-            'hostgroups': hgrp_name,
-            'deploy-by': 'ansible',
-            'name': policy_name,
-            'period': OSCAP_PERIOD['weekly'].lower(),
-            'scap-content-profile-id': scap_profile_id,
-            'weekday': OSCAP_WEEKDAY['friday'].lower(),
-            'organizations': module_org.name,
-        }
-    )
-
-    target_sat.cli.Host.update(
-        {
-            'name': contenthost.hostname.lower(),
-            'lifecycle-environment': lifecycle_env.name,
-            'content-view': cv_name[distro],
-            'hostgroup': hgrp_name,
-            'openscap-proxy-id': default_proxy,
-            'organization': module_org.name,
-            'ansible-role-ids': role_id,
-        }
-    )
-    job_id = target_sat.cli.Host.ansible_roles_play({'name': contenthost.hostname.lower()})[0].get(
-        'id'
-    )
-    target_sat.wait_for_tasks(
-        f'resource_type = JobInvocation and resource_id = {job_id} and action ~ "hosts job"'
-    )
-    try:
-        result = target_sat.cli.JobInvocation.info({'id': job_id})['success']
-        assert result == '1'
-    except AssertionError as err:
-        output = ' '.join(
-            target_sat.cli.JobInvocation.get_output({'id': job_id, 'host': contenthost.hostname})
-        )
-        result = f'host output: {output}'
-        raise AssertionError(result) from err
-    result = contenthost.run('grep profile /etc/foreman_scap_client/config.yaml')
-    assert result.status == 0
-    contenthost.execute_foreman_scap_client()
-    result = target_sat.cli.Arfreport.list({'search': f'host={contenthost.hostname.lower()}'})
-    assert result is not None
-
-
 @pytest.fixture
 def scap_prerequisites(module_org, default_proxy, target_sat):
     # TODO: add support for RHEL9 (it doesn't have scap content in Sat by default) and parametrize distro
@@ -352,6 +218,128 @@ def scap_prerequisites(module_org, default_proxy, target_sat):
         }
     )
     return hgrp_name, role_id, distro
+
+
+@pytest.mark.e2e
+@pytest.mark.upgrade
+@pytest.mark.tier4
+@pytest.mark.rhel_ver_match('[^6].*')
+def test_positive_oscap_run_via_ansible(
+    module_org,
+    default_proxy,
+    lifecycle_env,
+    target_sat,
+    rex_contenthost,
+):
+    """End-to-End Oscap run via ansible
+
+    :id: c7ea56eb-6cf1-4e79-8d6a-fb872d1bb804
+
+    :parametrized: yes
+
+    :setup: scap content, scap policy, host group
+
+    :steps:
+
+        1. Create a valid scap content
+        2. Import Ansible role theforeman.foreman_scap_client
+        3. Import Ansible Variables needed for the role
+        4. Create a scap policy with ansible as deploy option
+        5. Associate the policy with a hostgroup
+        6. Provision a host using the hostgroup
+        7. Configure REX and associate the Ansible role to created host
+        8. Play roles for the host
+
+    :expectedresults: REX job should be success and ARF report should be sent to satellite
+
+    :BZ: 1716307, 1992229
+
+    :Verifies: SAT-19389, SAT-24988
+
+    :customerscenario: true
+
+    :CaseImportance: Critical
+    """
+    contenthost = rex_contenthost
+    os_version = contenthost.os_version.major
+    distro = f'rhel{os_version}'
+
+    target_sat.cli.Ansible.roles_import({'proxy-id': default_proxy})
+    target_sat.cli.Ansible.variables_import({'proxy-id': default_proxy})
+    role_id = target_sat.cli.Ansible.roles_list({'search': 'foreman_scap_client'})[0].get('id')
+
+    # Creating a hostgroup
+    hgrp_name = gen_string('alpha')
+    policy_name = gen_string('alpha')
+    hostgroup = target_sat.cli_factory.hostgroup(
+        {
+            'content-source-id': default_proxy,
+            'name': hgrp_name,
+            'organization': module_org.name,
+            'lifecycle-environment': lifecycle_env.name,
+            'content-view': cv_name[distro],
+            'ansible-role-ids': role_id,
+            'openscap-proxy-id': default_proxy,
+        }
+    )
+
+    result = contenthost.register(
+        module_org,
+        None,
+        ak_name[distro],
+        target_sat,
+        ignore_subman_errors=True,
+        force=True,
+        insecure=True,
+        hostgroup=hostgroup,
+    )
+
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    rhel_repo = rhel_repos[distro]
+    profile = profiles[distro]
+    if distro == 'rhel7':
+        contenthost.create_custom_repos(**{distro: rhel_repo})
+    else:
+        contenthost.create_custom_repos(**rhel_repo)
+
+    content = find_content_to_update(target_sat, module_org, distro, contenthost)
+    update_scap_content(module_org, target_sat, content)
+
+    # Creates oscap_policy.
+    scap_id, scap_profile_id = fetch_scap_and_profile_id(target_sat, content, profile)
+    target_sat.cli_factory.make_scap_policy(
+        {
+            'scap-content-id': scap_id,
+            'hostgroups': hgrp_name,
+            'deploy-by': 'ansible',
+            'name': policy_name,
+            'period': OSCAP_PERIOD['weekly'].lower(),
+            'scap-content-profile-id': scap_profile_id,
+            'weekday': OSCAP_WEEKDAY['friday'].lower(),
+            'organizations': module_org.name,
+        }
+    )
+
+    job_id = target_sat.cli.Host.ansible_roles_play({'name': contenthost.hostname.lower()})[0].get(
+        'id'
+    )
+    target_sat.wait_for_tasks(
+        f'resource_type = JobInvocation and resource_id = {job_id} and action ~ "hosts job"'
+    )
+    try:
+        result = target_sat.cli.JobInvocation.info({'id': job_id})['success']
+        assert result == '1'
+    except AssertionError as err:
+        output = ' '.join(
+            target_sat.cli.JobInvocation.get_output({'id': job_id, 'host': contenthost.hostname})
+        )
+        result = f'host output: {output}'
+        raise AssertionError(result) from err
+    result = contenthost.run('grep profile /etc/foreman_scap_client/config.yaml')
+    assert result.status == 0
+    contenthost.execute_foreman_scap_client()
+    result = target_sat.cli.Arfreport.list({'search': f'host={contenthost.hostname.lower()}'})
+    assert result is not None
 
 
 @pytest.mark.e2e
@@ -458,37 +446,58 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
 
     :steps:
 
-        1. Create a valid scap content
-        2. Import Ansible role theforeman.foreman_scap_client
-        3. Import Ansible Variables needed for the role
-        4. Create a scap policy with ansible as deploy option
-        5. Associate the policy with a hostgroup
-        6. Provision a host using the hostgroup
-        7. Harden the host by remediating it with DISA STIG security policy
-        8. Configure REX and associate the Ansible role to created host
-        9. Play roles for the host
+        1. Import Ansible role theforeman.foreman_scap_client
+        2. Import Ansible Variables needed for the role
+        3. Create a hostgroup
+        4. Provision a host using the hostgroup
+        5. Harden the host by remediating it with DISA STIG security policy
+        6. Create a valid scap content
+        7. Create a scap policy associated with the hostgroup and ansible as deploy option
+        8. Play roles for the host
 
     :expectedresults: REX job should be success and ARF report should be sent to satellite
+
+    :BlockedBy: SAT-19505
 
     :BZ: 1814988
     """
     contenthost = rex_contenthost
     os_version = contenthost.os_version.major
     distro = f'rhel{os_version}'
+
+    # Ensure Ansible role
+    target_sat.cli.Ansible.roles_import({'proxy-id': default_proxy})
+    target_sat.cli.Ansible.variables_import({'proxy-id': default_proxy})
+    role_id = target_sat.cli.Ansible.roles_list({'search': 'foreman_scap_client'})[0].get('id')
+
+    # Create a hostgroup
+    hostgroup = target_sat.cli_factory.hostgroup(
+        {
+            'content-source-id': default_proxy,
+            'name': gen_string('alpha'),
+            'organization': module_org.name,
+            'lifecycle-environment': lifecycle_env.name,
+            'content-view': cv_name[distro],
+            'openscap-proxy-id': default_proxy,
+            'ansible-role-ids': role_id,
+        }
+    )
+
+    # Create a host
     result = contenthost.register(
-        module_org,
-        None,
-        ak_name[distro],
-        target_sat,
+        org=module_org,
+        loc=None,
+        activation_keys=ak_name[distro],
+        target=target_sat,
         ignore_subman_errors=True,
         force=True,
         insecure=True,
+        hostgroup=hostgroup,
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     rhel_repo = rhel_repos[distro]
-    profile = profiles[distro]
     if distro == 'rhel7':
-        contenthost.create_custom_repos(**{distro: rhel_repo})
+        contenthost.create_custom_repos(distro=rhel_repo)
     else:
         contenthost.create_custom_repos(**rhel_repo)
 
@@ -499,48 +508,27 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
         '--fetch-remote-resources --results-arf results.xml '
         f'/usr/share/xml/scap/ssg/content/ssg-{distro}-ds.xml',
     )
+
+    # Create SCAP content
     content = find_content_to_update(target_sat, module_org, distro, contenthost)
     update_scap_content(module_org, target_sat, content)
 
-    # Creating a hostgroup
-    hgrp_name = gen_string('alpha')
-    policy_name = gen_string('alpha')
-    target_sat.cli_factory.hostgroup(
-        {
-            'content-source-id': default_proxy,
-            'name': hgrp_name,
-            'organizations': module_org.name,
-        }
-    )
-
-    # Creates oscap_policy.
-    scap_id, scap_profile_id = fetch_scap_and_profile_id(target_sat, content, profile)
-    target_sat.cli.Ansible.roles_import({'proxy-id': default_proxy})
-    target_sat.cli.Ansible.variables_import({'proxy-id': default_proxy})
-    role_id = target_sat.cli.Ansible.roles_list({'search': 'foreman_scap_client'})[0].get('id')
+    # Create oscap_policy.
+    scap_id, scap_profile_id = fetch_scap_and_profile_id(target_sat, content, profiles[distro])
     target_sat.cli_factory.make_scap_policy(
         {
             'scap-content-id': scap_id,
-            'hostgroups': hgrp_name,
+            'hostgroups': hostgroup.name,
             'deploy-by': 'ansible',
-            'name': policy_name,
+            'name': gen_string('alpha'),
             'period': OSCAP_PERIOD['weekly'].lower(),
             'scap-content-profile-id': scap_profile_id,
             'weekday': OSCAP_WEEKDAY['friday'].lower(),
             'organizations': module_org.name,
         }
     )
-    target_sat.cli.Host.update(
-        {
-            'name': contenthost.hostname.lower(),
-            'lifecycle-environment': lifecycle_env.name,
-            'content-view': cv_name[distro],
-            'hostgroup': hgrp_name,
-            'openscap-proxy-id': default_proxy,
-            'organization': module_org.name,
-            'ansible-role-ids': role_id,
-        }
-    )
+
+    # Apply policy
     job_id = target_sat.cli.Host.ansible_roles_play({'name': contenthost.hostname.lower()})[0].get(
         'id'
     )
@@ -712,11 +700,29 @@ def test_positive_oscap_run_via_local_files(
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')
 
+    proxy_id = module_target_sat.nailgun_smart_proxy.id
+    target_host = contenthost.nailgun_host
+    module_target_sat.api.AnsibleRoles().sync(
+        data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]}
+    )
+    role_id = (
+        module_target_sat.api.AnsibleRoles().search(query={'search': f'name={SELECTED_ROLE}'})[0].id
+    )
+    module_target_sat.api.Host(id=target_host.id).add_ansible_role(
+        data={'ansible_role_id': role_id}
+    )
+    host_roles = target_host.list_ansible_roles()
+    assert host_roles[0]['name'] == SELECTED_ROLE
+
     module_target_sat.cli_factory.hostgroup(
         {
             'content-source-id': default_proxy,
             'name': hgrp_name,
-            'organizations': module_org.name,
+            'organization': module_org.name,
+            'lifecycle-environment': lifecycle_env.name,
+            'content-view': cv_name[distro],
+            'ansible-role-ids': role_id,
+            'openscap-proxy-id': default_proxy,
         }
     )
     # Creates oscap_policy.
@@ -735,19 +741,6 @@ def test_positive_oscap_run_via_local_files(
     rhel_repo = rhel_repos[distro]
     contenthost.create_custom_repos(**rhel_repo)
 
-    proxy_id = module_target_sat.nailgun_smart_proxy.id
-    target_host = contenthost.nailgun_host
-    module_target_sat.api.AnsibleRoles().sync(
-        data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]}
-    )
-    role_id = (
-        module_target_sat.api.AnsibleRoles().search(query={'search': f'name={SELECTED_ROLE}'})[0].id
-    )
-    module_target_sat.api.Host(id=target_host.id).add_ansible_role(
-        data={'ansible_role_id': role_id}
-    )
-    host_roles = target_host.list_ansible_roles()
-    assert host_roles[0]['name'] == SELECTED_ROLE
     module_target_sat.cli_factory.make_scap_policy(
         {
             'scap-content-id': scap_id,
@@ -763,16 +756,6 @@ def test_positive_oscap_run_via_local_files(
     # The file here needs to be present on the client in order
     # to perform the scan from the local-files.
     contenthost.execute(f'curl -o {file_name} {download_url}')
-    module_target_sat.cli.Host.update(
-        {
-            'name': contenthost.hostname,
-            'lifecycle-environment': lifecycle_env.name,
-            'content-view': cv_name[distro],
-            'hostgroup': hgrp_name,
-            'openscap-proxy-id': default_proxy,
-            'organization': module_org.name,
-        }
-    )
 
     template_id = (
         module_target_sat.api.JobTemplate()
