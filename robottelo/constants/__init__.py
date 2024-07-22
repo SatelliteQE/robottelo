@@ -1728,6 +1728,8 @@ OPEN_STATUSES = ("NEW", "ASSIGNED", "POST", "MODIFIED")
 CLOSED_STATUSES = ("ON_QA", "VERIFIED", "RELEASE_PENDING", "CLOSED")
 WONTFIX_RESOLUTIONS = ("WONTFIX", "CANTFIX", "DEFERRED")
 # Jira statuses used by Robottelo issue handler.
+JIRA_TESTS_PASSED_LABEL = "tests-passed"
+JIRA_TESTS_FAILED_LABEL = "tests-failed"
 JIRA_OPEN_STATUSES = ("New", "Backlog", "Refinement", "To Do", "In Progress")
 JIRA_ONQA_STATUS = "Review"
 JIRA_CLOSED_STATUSES = ("Release Pending", "Closed")
