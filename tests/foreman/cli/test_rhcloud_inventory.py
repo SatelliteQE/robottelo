@@ -95,8 +95,6 @@ def test_positive_inventory_generate_upload_cli(
 
 
 @pytest.mark.e2e
-@pytest.mark.pit_server
-@pytest.mark.pit_client
 @pytest.mark.tier3
 def test_positive_inventory_recommendation_sync(
     rhcloud_manifest_org,
@@ -139,8 +137,6 @@ def test_positive_inventory_recommendation_sync(
 
 
 @pytest.mark.e2e
-@pytest.mark.pit_server
-@pytest.mark.pit_client
 @pytest.mark.tier3
 def test_positive_sync_inventory_status(
     rhcloud_manifest_org,
