@@ -114,12 +114,14 @@ def module_vmware_image(
 @pytest.fixture
 def provisioning_vmware_host(pxe_loader, vmwareclient):
     """Fixture to check out blank VM on VMware"""
-    vm_boot_firmware = 'efi' if pxe_loader.vm_firmware == 'uefi' else 'bios'
+    vm_boot_firmware = 'efi' if pxe_loader.vm_firmware.startswith('uefi') else 'bios'
+    vm_secure_boot = 'true' if pxe_loader.vm_firmware == 'uefi_secureboot' else 'false'
     provisioning_host = Broker(
         workflow='deploy-blank-vm-vcenter',
         artifacts='last',
         vm_network=settings.provisioning.vlan_id,
         vm_boot_firmware=vm_boot_firmware,
+        vm_secure_boot=vm_secure_boot,
     ).execute()
     yield provisioning_host
     # delete the host
