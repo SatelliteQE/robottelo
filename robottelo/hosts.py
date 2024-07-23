@@ -815,6 +815,7 @@ class ContentHost(Host, ContentHostMixins):
         org='Default_Organization',
         activation_key=None,
         lce='Library',
+        environments=None,
         consumerid=None,
         force=True,
         releasever=None,
@@ -863,6 +864,8 @@ class ContentHost(Host, ContentHostMixins):
             cmd += f' --activationkey {activation_key}'
         elif lce:
             cmd += f' --environment {lce}{userpass}'
+        elif environments:
+            cmd += f' --environments {environments}{userpass}'
         elif consumerid:
             cmd += f' --consumerid {consumerid}{userpass}'
         else:

@@ -435,6 +435,7 @@ class TestAnsibleREX:
     @pytest.mark.e2e
     @pytest.mark.no_containers
     @pytest.mark.pit_server
+    @pytest.mark.pit_client
     @pytest.mark.rhel_ver_match('[^6].*')
     @pytest.mark.skipif(
         (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
