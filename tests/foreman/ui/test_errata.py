@@ -92,7 +92,7 @@ def errata_status_installable(module_target_sat):
     _set_setting_value(errata_status_installable, original_value)
 
 
-def cv_publish_promote(sat, org, cv, needs_publish=True, lce=None):
+def cv_publish_promote(sat, org, cv, lce=None, needs_publish=True):
     """Publish & promote Content View Version with all content visible in org.
 
     :param lce: if None, default to 'Library',
@@ -1580,6 +1580,7 @@ def test_positive_filtered_errata_status_installable_param(
         expected_values = {
             'Status': 'OK',
             'Errata': 'All errata applied',
+            'Subscription': 'Fully entitled',
         }
         host_details_values = session.host.get_details(client.hostname)
         actual_values = {
