@@ -6,7 +6,7 @@ pre-commit==3.7.1
 
 # For generating documentation.
 sphinx==7.4.7
-sphinx-autoapi==3.1.2
+sphinx-autoapi==3.2.1
 
 # For 'manage' interactive shell
 manage==0.1.15
