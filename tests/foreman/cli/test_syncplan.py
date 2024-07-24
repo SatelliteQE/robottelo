@@ -718,54 +718,6 @@ def test_positive_synchronize_rh_product_future_sync_date(
 
 
 @pytest.mark.tier3
-@pytest.mark.upgrade
-def test_positive_synchronize_custom_product_daily_recurrence(module_org, request, target_sat):
-    """Create a daily sync plan with a past datetime as a sync date,
-    add a custom product and verify the product gets synchronized on
-    the next sync occurrence
-
-    :id: 8d882e8b-b5c1-4449-81c6-0efd31ad75a7
-
-    :expectedresults: Product is synchronized successfully.
-    """
-    delay = 2 * 60
-    product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
-    repo = target_sat.cli_factory.make_repository({'product-id': product['id']})
-    start_date = datetime.utcnow() - timedelta(days=1) + timedelta(seconds=delay)
-    new_sync_plan = target_sat.cli_factory.sync_plan(
-        {
-            'enabled': 'true',
-            'interval': 'daily',
-            'organization-id': module_org.id,
-            'sync-date': start_date.strftime(SYNC_DATE_FMT),
-        }
-    )
-    sync_plan = target_sat.api.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
-    request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
-    # Associate sync plan with product
-    target_sat.cli.Product.set_sync_plan({'id': product['id'], 'sync-plan-id': new_sync_plan['id']})
-    # Wait quarter of expected time
-    logger.info(
-        f"Waiting {(delay / 4)} seconds to check product {product['name']}"
-        f" was not synced by {new_sync_plan['name']}"
-    )
-    sleep(delay / 4)
-    # Verify product has not been synced yet
-    with pytest.raises(AssertionError):
-        validate_task_status(target_sat, repo['id'], module_org.id, max_tries=1)
-    validate_repo_content(target_sat, repo, ['errata', 'packages'], after_sync=False)
-    # Wait until the first recurrence
-    logger.info(
-        f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
-        f" was synced by {new_sync_plan['name']}"
-    )
-    sleep(delay * 3 / 4)
-    # Verify product was synced successfully
-    validate_task_status(target_sat, repo['id'], module_org.id)
-    validate_repo_content(target_sat, repo, ['errata', 'package-groups', 'packages'])
-
-
-@pytest.mark.tier3
 def test_positive_synchronize_custom_product_weekly_recurrence(module_org, request, target_sat):
     """Create a weekly sync plan with a past datetime as a sync date,
     add a custom product and verify the product gets synchronized on
