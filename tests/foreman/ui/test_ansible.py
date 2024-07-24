@@ -22,10 +22,6 @@ from robottelo.config import (
     user_nailgun_config,
 )
 
-from robottelo.constants import (
-    DEFAULT_ARCHITECTURE,
-    REPOS,
-)
 
 class TestAnsibleCfgMgmt:
     """Test class for Configuration Management with Ansible
@@ -562,48 +558,70 @@ class TestAnsibleCfgMgmt:
 
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list('8')
-    def test_positive_ansible_config_report_changes_notice_and_failed_tasks_errors(self, rhel_contenthost, module_target_sat, module_org, module_location,
-                                                                                   module_ak_with_synced_repo):
+    def test_positive_ansible_config_report_changes_notice_and_failed_tasks_errors(
+        self,
+        rhel_contenthost,
+        module_target_sat,
+        module_org,
+        module_location,
+        module_activation_key,
+    ):
         """Check that Ansible tasks that make changes on a host show as notice in the config report and
         failed Ansible tasks show as errors in the config report
 
-        :id: 8c90f179-8b70-4932-a477-75dc3566c437
+        :id: 286048f8-0f4f-4a3c-b5c7-fe9c7af8a780
 
         :steps:
             1. Import Ansible Roles
             2. Assign Ansible roles to a host
             3. Run Ansible Roles on a host
 
-        :expectedresults: Verify that any tasks that make changes on the host are listed as notice in the config reportCaseLevel,
-        Verify that any task failures are listed as errors in the config reportCaseLevel
+        :expectedresults: Verify that any tasks that make changes on the host are listed as notice in the config reportCaseLevel and
+            Verify that any task failures are listed as errors in the config reportCaseLevel
         """
+        module_target_sat.cli.Capsule.update(
+            {
+                'name': module_target_sat.hostname,
+                'location-ids': module_location.id,
+            }
+        )
         SELECTED_ROLE = 'theforeman.foreman_scap_client'
         rhel_contenthost.create_custom_repos(rhel8_baseos=settings.repos.rhel8_os.baseos)
-        assert rhel_contenthost.execute('yum install -y insights-client').status == 0
         rhel_contenthost.create_custom_repos(rhel8_appstream=settings.repos.rhel8_os.appstream)
         assert rhel_contenthost.execute('yum install -y insights-client').status == 0
-        result = rhel_contenthost.register(module_org, module_location, module_ak_with_synced_repo.name, module_target_sat)
+        result = rhel_contenthost.register(
+            module_org, module_location, module_activation_key.name, module_target_sat
+        )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
-        
         with module_target_sat.ui_session() as session:
             # check err log for config report after ansible job scheduled
             id = module_target_sat.nailgun_smart_proxy.id
-            module_target_sat.api.AnsibleRoles().sync(data={'proxy_id': id, 'role_names': SELECTED_ROLE})
-            assert SELECTED_ROLE == session.ansibleroles.search('theforeman.foreman_scap_client')[0]['▲ Name']
+            module_target_sat.api.AnsibleRoles().sync(
+                data={'proxy_id': id, 'role_names': SELECTED_ROLE}
+            )
             session.location.select(module_location.name)
             session.organization.select(module_org.name)
             session.host_new.add_single_ansible_role(rhel_contenthost.hostname)
             ansible_roles_table = session.host_new.get_ansible_roles(rhel_contenthost.hostname)
             assert ansible_roles_table[0]['Name'] == SELECTED_ROLE
-            session.host_new.run_job(rhel_contenthost.hostname, 'Run Ansible roles')
-            result = session.configreport.search(rhel_contenthost.hostname)
+            session.host_new.schedule_job(
+                rhel_contenthost.hostname,
+                {'category_and_template.job_category': 'Ansible Playbook'},
+            )
+            session.jobinvocation.wait_job_invocation_state(
+                'Run ansible roles', rhel_contenthost.hostname, 'failed'
+            )
+            err_log = session.configreport.search(rhel_contenthost.hostname)
             ROLE = SELECTED_ROLE.split('.')[1]
-            assert f'err Install the {ROLE} package' in result['permission_denied']
-            assert 'Execution error: Failed to install some of the specified packages' in result['permission_denied']
+            assert f'err Install the {ROLE} package' in err_log['permission_denied']
+            assert (
+                'Execution error: Failed to install some of the specified packages'
+                in err_log[0]['permission_denied']
+            )
             result = rhel_contenthost.execute('subscription-manager clean')
             assert result.status == 0
 
-            # check positive log for config report after ansible job scheduled
+            # check notice log for config report after ansible job scheduled
             custom_product = module_target_sat.api.Product(organization=module_org).create()
             client_repo = module_target_sat.api.Repository(
                 organization=module_org,
@@ -612,14 +630,31 @@ class TestAnsibleCfgMgmt:
                 url=settings.repos.SATCLIENT_REPO['rhel8'],
             ).create()
             sync_info = client_repo.sync(synchronous=True)
-            assert (f"Synchronize repository '{client_repo.name}'; product '{custom_product.name}'; "
-                    f"organization '{custom_product.organization.read().name}'") in sync_info['action']
-            session.activationkey.enable_repository(module_ak_with_synced_repo.name, client_repo.name, 'Override to Enabled')
-            result = rhel_contenthost.register(module_org, module_location, module_ak_with_synced_repo.name, module_target_sat)
+            assert (
+                f"Synchronize repository '{client_repo.name}'; product '{custom_product.name}'; "
+                f"organization '{custom_product.organization.read().name}'"
+            ) in sync_info['action']
+            session.activationkey.enable_repository(module_activation_key.name, client_repo.name)
+            result = rhel_contenthost.register(
+                module_org,
+                module_location,
+                module_activation_key.name,
+                module_target_sat,
+                force=True,
+            )
             assert result.status == 0, f'Failed to register host: {result.stderr}'
-            session.host_new.run_job(rhel_contenthost.hostname, 'Run Ansible roles')
-            result = session.configreport.search(rhel_contenthost.hostname)
-            assert f'notice Install the {ROLE} package Installed: rubygem-foreman_scap_client-0.6.0-1.el8sat.noarch' in result['permission_denied']
+            session.host_new.schedule_job(
+                rhel_contenthost.hostname,
+                {'category_and_template.job_category': 'Ansible Playbook'},
+            )
+            session.jobinvocation.wait_job_invocation_state(
+                'Run ansible roles', rhel_contenthost.hostname
+            )
+            notice_log = session.configreport.search(rhel_contenthost.hostname)
+            assert (
+                f'notice Install the {ROLE} package Installed: rubygem-foreman_scap_client-0.6.0-1.el8sat.noarch'
+                in notice_log['permission_denied']
+            )
 
 
 class TestAnsibleREX:
