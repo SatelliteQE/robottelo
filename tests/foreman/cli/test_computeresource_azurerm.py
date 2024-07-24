@@ -410,9 +410,12 @@ class TestAzureRMFinishTemplateProvisioning:
 
         assert class_host_ft['name'] == self.fullhostname
         assert class_host_ft['status']['build-status'] == "Installed"
-        assert class_host_ft['compute-resource'] == module_azurerm_cr.name
-        assert class_host_ft['operating-system']['image'] == module_azurerm_custom_finishimg.name
-        assert class_host_ft['network-interfaces'][0]['ipv4-address'] == azureclient_host.ip
+        assert class_host_ft['compute-resource']['name'] == module_azurerm_cr.name
+        assert (
+            class_host_ft['operating-system']['image']['name']
+            == module_azurerm_custom_finishimg.name
+        )
+        assert class_host_ft['network-interfaces']['1']['ipv4-address'] == azureclient_host.ip
 
         # Azure cloud
         assert self.hostname.lower() == azureclient_host.name
@@ -537,10 +540,10 @@ class TestAzureRMUserDataProvisioning:
         """
         assert class_host_ud['name'] == self.fullhostname
         assert class_host_ud['status']['build-status'] == "Pending installation"
-        assert class_host_ud['network-interfaces'][0]['ipv4-address'] == azureclient_host.ip
-        assert class_host_ud['compute-resource'] == module_azurerm_cr.name
-        assert class_host_ud['operating-system']['image'] == module_azurerm_cloudimg.name
-        assert class_host_ud['host-group'] == azurerm_hostgroup.name
+        assert class_host_ud['network-interfaces']['1']['ipv4-address'] == azureclient_host.ip
+        assert class_host_ud['compute-resource']['name'] == module_azurerm_cr.name
+        assert class_host_ud['operating-system']['image']['name'] == module_azurerm_cloudimg.name
+        assert class_host_ud['host-group']['name'] == azurerm_hostgroup.name
 
         # Azure cloud
         assert self.hostname.lower() == azureclient_host.name
