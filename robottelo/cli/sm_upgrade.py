@@ -7,7 +7,6 @@ Parameters:
     [ARG] ...                     subcommand arguments
 
 Subcommands:
-    list-versions                 List versions this system is upgradable to
     check                         Run pre-upgrade checks before upgrading to specified version
     run                           Run full upgrade to a specified version
 
@@ -22,13 +21,6 @@ class Upgrade(Base):
     """Manipulates Satellite-maintain's health command"""
 
     command_base = 'upgrade'
-
-    @classmethod
-    def list_versions(cls, options=None, env_var=None):
-        """Build satellite-maintain upgrade list-versions"""
-        cls.command_sub = 'list-versions'
-        options = options or {}
-        return cls.sm_execute(cls._construct_command(options), env_var=env_var)
 
     @classmethod
     def check(cls, options=None, env_var=None):

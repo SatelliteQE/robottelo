@@ -14,7 +14,6 @@
 
 import re
 
-from broker import Broker
 from fauxfactory import gen_string
 import pytest
 from requests import HTTPError
@@ -23,7 +22,6 @@ from wait_for import wait_for
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
-    DEFAULT_SUBSCRIPTION_NAME,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
@@ -31,14 +29,12 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
-from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import parametrized, valid_data_list
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
-def setup_content(module_entitlement_manifest_org, module_target_sat):
-    org = module_entitlement_manifest_org
+def setup_content(module_sca_manifest_org, module_target_sat):
+    org = module_sca_manifest_org
     rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
@@ -64,10 +60,11 @@ def setup_content(module_entitlement_manifest_org, module_target_sat):
     ak = module_target_sat.api.ActivationKey(
         content_view=cv, max_hosts=100, organization=org, environment=lce, auto_attach=True
     ).create()
-    subscription = module_target_sat.api.Subscription(organization=org).search(
-        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
-    )[0]
-    ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
+    all_content = ak.product_content(data={'content_access_mode_all': '1'})['results']
+    content_label = [repo['label'] for repo in all_content if repo['name'] == custom_repo.name][0]
+    ak.content_override(
+        data={'content_overrides': [{'content_label': content_label, 'value': '1'}]}
+    )
     return ak, org
 
 
@@ -151,7 +148,6 @@ def test_positive_generate_report_nofilter(target_sat):
         'Execution',
         'Insights',
         'Inventory',
-        'OVAL scan',
         'RHEL lifecycle',
         'Role',
         'Service level',
@@ -199,7 +195,6 @@ def test_positive_generate_report_filter(target_sat):
         'Execution',
         'Insights',
         'Inventory',
-        'OVAL scan',
         'RHEL lifecycle',
         'Role',
         'Service level',
@@ -293,14 +288,13 @@ def test_positive_lock_clone_nodelete_unlock_report(target_sat):
     assert template_clone_name == cloned_rt.name
     assert template1 == cloned_rt.template
     # 4. Try to delete template
-    if not is_open('BZ:1680458'):
-        with pytest.raises(HTTPError):
-            rt.delete()
-        # In BZ1680458, exception is thrown but template is deleted anyway
-        assert (
-            len(target_sat.api.ReportTemplate().search(query={'search': f'name="{template_name}"'}))
-            != 0
-        )
+    with pytest.raises(HTTPError):
+        rt.delete()
+    # In BZ1680458, exception is thrown but template is deleted anyway
+    assert (
+        len(target_sat.api.ReportTemplate().search(query={'search': f'name="{template_name}"'}))
+        != 0
+    )
     # 5. Try to edit template
     with pytest.raises(HTTPError):
         target_sat.api.ReportTemplate(id=rt.id, template=template2).update(["template"])
@@ -384,7 +378,7 @@ def test_negative_create_report_without_name(module_target_sat):
 
 
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
+@pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.no_containers
 def test_positive_applied_errata(
     function_org, function_location, function_lce, rhel_contenthost, target_sat
@@ -438,6 +432,163 @@ def test_positive_applied_errata(
         search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
         search_rate=15,
         max_tries=10,
+    )
+    rt = (
+        target_sat.api.ReportTemplate()
+        .search(query={'search': 'name="Host - Applied Errata"'})[0]
+        .read()
+    )
+    res = rt.generate(
+        data={
+            'organization_id': function_org.id,
+            'report_format': 'json',
+            'input_values': {
+                'Filter Errata Type': 'all',
+                'Include Last Reboot': 'no',
+                'Status': 'all',
+            },
+        }
+    )
+    assert res[0]['erratum_id'] == ERRATUM_ID
+    assert res[0]['issued']
+
+
+@pytest.mark.tier2
+@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.no_containers
+def test_positive_applied_errata_report_with_invalid_errata(
+    function_org, function_location, function_lce, rhel_contenthost, target_sat
+):
+    """Generate an Applied Errata report after an invalid errata has been applied
+
+    :id: cf64f193-870d-4053-ae4b-28148424b2e2
+
+    :setup: A Host with some invalid applied errata.
+
+    :steps:
+
+        1. Apply invalid errata
+        2. Generate an Applied Errata report
+
+    :expectedresults: A report is generated without failures
+
+    :BZ: 2176368
+
+    :customerscenario: true
+    """
+    activation_key = target_sat.api.ActivationKey(
+        environment=function_lce, organization=function_org
+    ).create()
+    cv = target_sat.api.ContentView(organization=function_org).create()
+    target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': settings.repos.yum_6.url,
+            'organization-id': function_org.id,
+            'content-view-id': cv.id,
+            'lifecycle-environment-id': function_lce.id,
+            'activationkey-id': activation_key.id,
+        }
+    )
+    result = rhel_contenthost.register(
+        function_org, function_location, activation_key.name, target_sat
+    )
+    assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
+    assert rhel_contenthost.subscribed
+    rhel_contenthost.execute(r'subscription-manager repos --enable \*')
+    assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    assert rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    task_id = target_sat.api.JobInvocation().run(
+        data={
+            'feature': 'katello_errata_install',
+            'inputs': {'errata': 'invalid-errata'},
+            'targeting_type': 'static_query',
+            'search_query': f'name = {rhel_contenthost.hostname}',
+            'organization_id': function_org.id,
+        },
+    )['id']
+    target_sat.wait_for_tasks(
+        search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
+        search_rate=15,
+        max_tries=10,
+    )
+    rt = (
+        target_sat.api.ReportTemplate()
+        .search(query={'search': 'name="Host - Applied Errata"'})[0]
+        .read()
+    )
+    rt.generate(
+        data={
+            'organization_id': function_org.id,
+            'report_format': 'json',
+            'input_values': {
+                'Filter Errata Type': 'all',
+                'Include Last Reboot': 'no',
+                'Status': 'all',
+            },
+        }
+    )
+
+
+@pytest.mark.tier2
+@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.no_containers
+def test_positive_applied_errata_by_search(
+    function_org, function_lce, rhel_contenthost, target_sat
+):
+    """Generate an Applied Errata report
+
+    :id: 0f7d2772-47a4-4215-b555-dd8ee675372f
+
+    :setup: A Host with some applied errata.
+
+    :steps:
+
+        1. Generate an Applied Errata report
+
+    :expectedresults: A report is generated with all applied errata listed
+
+    :CaseImportance: Medium
+    """
+    activation_key = target_sat.api.ActivationKey(
+        environment=function_lce, organization=function_org
+    ).create()
+    cv = target_sat.api.ContentView(organization=function_org).create()
+    ERRATUM_ID = str(settings.repos.yum_6.errata[2])
+    target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': settings.repos.yum_6.url,
+            'organization-id': function_org.id,
+            'content-view-id': cv.id,
+            'lifecycle-environment-id': function_lce.id,
+            'activationkey-id': activation_key.id,
+        }
+    )
+    errata_name = (
+        target_sat.api.Errata()
+        .search(query={'search': f'errata_id="{ERRATUM_ID}"'})[0]
+        .read()
+        .description
+    )
+    result = rhel_contenthost.register(function_org, None, activation_key.name, target_sat)
+    assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
+    assert rhel_contenthost.subscribed
+    rhel_contenthost.execute(r'subscription-manager repos --enable \*')
+    assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    assert rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    rhel_contenthost.execute('subscription-manager repos')
+    task_id = target_sat.api.JobInvocation().run(
+        data={
+            'feature': 'katello_errata_install_by_search',
+            'inputs': {'Errata search query': errata_name},
+            'targeting_type': 'static_query',
+            'search_query': f'name = {rhel_contenthost.hostname}',
+            'organization_id': function_org.id,
+        },
+    )['id']
+    target_sat.wait_for_tasks(
+        search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
+        search_rate=20,
+        poll_timeout=2500,
     )
     rt = (
         target_sat.api.ReportTemplate()
@@ -579,95 +730,9 @@ def test_negative_nonauthor_of_report_cant_download_it():
     """
 
 
-@pytest.mark.tier3
-def test_positive_generate_entitlements_report(setup_content, target_sat):
-    """Generate a report using the Subscription - Entitlement Report template.
-
-    :id: 722e8802-367b-4399-bcaa-949daab26632
-
-    :setup: Installed Satellite with Organization, Activation key,
-            Content View, Content Host, and Subscriptions.
-
-    :steps:
-
-        1. Get
-        /api/report_templates/130-Subscription - Entitlement Report/generate/id/report_format
-
-    :expectedresults: Report is generated showing all necessary information for entitlements.
-
-    :CaseImportance: High
-    """
-    with Broker(nick='rhel7', host_class=ContentHost) as vm:
-        ak, org = setup_content
-        vm.install_katello_ca(target_sat)
-        vm.register_contenthost(org.label, ak.name)
-        assert vm.subscribed
-        rt = (
-            target_sat.api.ReportTemplate()
-            .search(query={'search': 'name="Subscription - Entitlement Report"'})[0]
-            .read()
-        )
-        res = rt.generate(
-            data={
-                "organization_id": org.id,
-                "report_format": "json",
-                "input_values": {"Days from Now": "no limit"},
-            }
-        )
-        assert res[0]['Host Name'] == vm.hostname
-        assert res[0]['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
-
-
-@pytest.mark.tier3
-def test_positive_schedule_entitlements_report(setup_content, target_sat):
-    """Schedule a report using the Subscription - Entitlement Report template.
-
-    :id: 5152c518-b0da-4c27-8268-2be78289249f
-
-    :setup: Installed Satellite with Organization, Activation key,
-            Content View, Content Host, and Subscriptions.
-
-    :steps:
-
-        1. POST /api/report_templates/130-Subscription - Entitlement Report/schedule_report/
-
-    :expectedresults: Report is scheduled and contains all necessary
-                      information for entitlements.
-
-    :CaseImportance: High
-    """
-    with Broker(nick='rhel7', host_class=ContentHost) as vm:
-        ak, org = setup_content
-        vm.install_katello_ca(target_sat)
-        vm.register_contenthost(org.label, ak.name)
-        assert vm.subscribed
-        rt = (
-            target_sat.api.ReportTemplate()
-            .search(query={'search': 'name="Subscription - Entitlement Report"'})[0]
-            .read()
-        )
-        scheduled_csv = rt.schedule_report(
-            data={
-                'id': f'{rt.id}-Subscription - Entitlement Report',
-                'organization_id': org.id,
-                'report_format': 'csv',
-                "input_values": {"Days from Now": "no limit"},
-            }
-        )
-        data_csv, _ = wait_for(
-            rt.report_data,
-            func_kwargs={'data': {'id': rt.id, 'job_id': scheduled_csv['job_id']}},
-            fail_condition=None,
-            timeout=300,
-            delay=10,
-        )
-        assert vm.hostname in data_csv
-        assert DEFAULT_SUBSCRIPTION_NAME in data_csv
-
-
 @pytest.mark.no_containers
 @pytest.mark.tier3
-def test_positive_generate_job_report(setup_content, target_sat, rhel7_contenthost):
+def test_positive_generate_job_report(setup_content, module_target_sat, content_hosts):
     """Generate a report using the Job - Invocation Report template.
 
     :id: 946c39db-3061-43d7-b922-1be61f0c7d93
@@ -686,17 +751,17 @@ def test_positive_generate_job_report(setup_content, target_sat, rhel7_contentho
     :customerscenario: true
     """
     ak, org = setup_content
-    rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(org.label, ak.name)
-    rhel7_contenthost.add_rex_key(target_sat)
-    assert rhel7_contenthost.subscribed
-    # Run a Job on the Host
+    for host in content_hosts:
+        host.register(org, None, ak.name, module_target_sat)
+        host.add_rex_key(module_target_sat)
+        assert host.subscribed
+        # Run a Job on the Host
     template_id = (
-        target_sat.api.JobTemplate()
+        module_target_sat.api.JobTemplate()
         .search(query={'search': 'name="Run Command - Script Default"'})[0]
         .id
     )
-    job = target_sat.api.JobInvocation().run(
+    job = module_target_sat.api.JobInvocation().run(
         synchronous=False,
         data={
             'job_template_id': template_id,
@@ -704,14 +769,14 @@ def test_positive_generate_job_report(setup_content, target_sat, rhel7_contentho
                 'command': 'pwd',
             },
             'targeting_type': 'static_query',
-            'search_query': f'name = {rhel7_contenthost.hostname}',
+            'search_query': f'name ^ ({content_hosts[0].hostname} && {content_hosts[1].hostname}',
         },
     )
-    target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
-    result = target_sat.api.JobInvocation(id=job['id']).read()
-    assert result.succeeded == 1
+    module_target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
+    result = module_target_sat.api.JobInvocation(id=job['id']).read()
+    assert result.succeeded == 2
     rt = (
-        target_sat.api.ReportTemplate()
+        module_target_sat.api.ReportTemplate()
         .search(query={'search': 'name="Job - Invocation Report"'})[0]
         .read()
     )
@@ -722,13 +787,14 @@ def test_positive_generate_job_report(setup_content, target_sat, rhel7_contentho
             'input_values': {"job_id": job["id"]},
         }
     )
-    assert res[0]['Host'] == rhel7_contenthost.hostname
+    assert {i['Host'] for i in res} == {i.hostname for i in content_hosts}
     assert '/root' in res[0]['stdout']
+    assert '/root' in res[1]['stdout']
 
 
 @pytest.mark.tier2
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
+@pytest.mark.rhel_ver_match('[^6]')
 def test_positive_installable_errata(
     target_sat, function_org, function_lce, function_location, rhel_contenthost
 ):
@@ -842,7 +908,7 @@ def test_positive_installable_errata(
 
 
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
+@pytest.mark.rhel_ver_match('[^6]')
 def test_positive_installed_products(
     target_sat,
     rhel_contenthost,

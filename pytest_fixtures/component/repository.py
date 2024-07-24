@@ -1,6 +1,5 @@
 # Repository Fixtures
 from fauxfactory import gen_string
-from nailgun import entities
 from nailgun.entity_mixins import call_entity_method_with_timeout
 import pytest
 
@@ -24,8 +23,8 @@ def module_repo(module_repo_options, module_target_sat):
 
 
 @pytest.fixture
-def function_product(function_org):
-    return entities.Product(organization=function_org).create()
+def function_product(target_sat, function_org):
+    return target_sat.api.Product(organization=function_org).create()
 
 
 @pytest.fixture(scope='module')
@@ -58,38 +57,38 @@ def module_rhst_repo(module_target_sat, module_org_with_manifest, module_promote
 
 
 @pytest.fixture
-def repo_setup():
+def repo_setup(target_sat):
     """
     This fixture is used to create an organization, product, repository, and lifecycle environment
     and once the test case gets completed then it performs the teardown of that.
     """
     repo_name = gen_string('alpha')
-    org = entities.Organization().create()
-    product = entities.Product(organization=org).create()
-    repo = entities.Repository(name=repo_name, product=product).create()
-    lce = entities.LifecycleEnvironment(organization=org).create()
+    org = target_sat.api.Organization().create()
+    product = target_sat.api.Product(organization=org).create()
+    repo = target_sat.api.Repository(name=repo_name, product=product).create()
+    lce = target_sat.api.LifecycleEnvironment(organization=org).create()
     return {'org': org, 'product': product, 'repo': repo, 'lce': lce}
 
 
 @pytest.fixture(scope='module')
-def setup_content(module_org):
+def setup_content(module_target_sat, module_org):
     """This fixture is used to setup an activation key with a custom product attached. Used for
     registering a host
     """
     org = module_org
-    custom_repo = entities.Repository(
-        product=entities.Product(organization=org).create(),
+    custom_repo = module_target_sat.api.Repository(
+        product=module_target_sat.api.Product(organization=org).create(),
     ).create()
     custom_repo.sync()
-    lce = entities.LifecycleEnvironment(organization=org).create()
-    cv = entities.ContentView(
+    lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
+    cv = module_target_sat.api.ContentView(
         organization=org,
         repository=[custom_repo.id],
     ).create()
     cv.publish()
     cvv = cv.read().version[0].read()
     cvv.promote(data={'environment_ids': lce.id, 'force': False})
-    ak = entities.ActivationKey(
+    ak = module_target_sat.api.ActivationKey(
         content_view=cv, max_hosts=100, organization=org, environment=lce, auto_attach=True
     ).create()
     return ak, org, custom_repo
@@ -132,7 +131,7 @@ def _simplify_repos(request, repos):
     ]
     Then the fixtures loop over it to create multiple repositories.
 
-    :returns: The tuple of distro of repositories(if given) and simplified repos
+    :return: The tuple of distro of repositories(if given) and simplified repos
     """
     _repos = []
     repo_distro = None

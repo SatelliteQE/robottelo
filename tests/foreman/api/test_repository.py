@@ -12,6 +12,7 @@
 
 """
 
+import random
 import re
 from string import punctuation
 import tempfile
@@ -26,7 +27,13 @@ from requests.exceptions import HTTPError
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.constants import DataFile, repos as repo_constants
+from robottelo.constants import (
+    CONTAINER_MANIFEST_LABELS,
+    LABELLED_REPOS,
+    SUPPORTED_REPO_CHECKSUMS,
+    DataFile,
+    repos as repo_constants,
+)
 from robottelo.content_info import get_repo_files_by_url
 from robottelo.logging import logger
 from robottelo.utils import datafactory
@@ -52,9 +59,17 @@ def repo_options_custom_product(request, module_org, module_target_sat):
 
 
 @pytest.fixture
-def repo(repo_options, module_target_sat):
+def repo(repo_options, target_sat):
     """Create a new repository."""
-    return module_target_sat.api.Repository(**repo_options).create()
+    repo = target_sat.api.Repository(**repo_options).create()
+    target_sat.wait_for_tasks(
+        search_query='Actions::Katello::Repository::MetadataGenerate'
+        f' and resource_id = {repo.id}'
+        ' and resource_type = Katello::Repository',
+        max_tries=6,
+        search_rate=10,
+    )
+    return repo
 
 
 class TestRepository:
@@ -260,7 +275,7 @@ class TestRepository:
         **datafactory.parametrized(
             {
                 checksum_type: {'checksum_type': checksum_type, 'download_policy': 'immediate'}
-                for checksum_type in ('sha1', 'sha256')
+                for checksum_type in SUPPORTED_REPO_CHECKSUMS
             }
         ),
         indirect=True,
@@ -531,9 +546,9 @@ class TestRepository:
         'repo_options',
         [
             {'checksum_type': checksum_type, 'download_policy': 'on_demand'}
-            for checksum_type in ('sha1', 'sha256')
+            for checksum_type in SUPPORTED_REPO_CHECKSUMS
         ],
-        ids=['sha1', 'sha256'],
+        ids=SUPPORTED_REPO_CHECKSUMS,
         indirect=True,
     )
     def test_negative_create_checksum_with_on_demand_policy(self, repo_options, target_sat):
@@ -556,25 +571,26 @@ class TestRepository:
         **datafactory.parametrized(
             {
                 checksum_type: {'checksum_type': checksum_type, 'download_policy': 'immediate'}
-                for checksum_type in ('sha1', 'sha256')
+                for checksum_type in SUPPORTED_REPO_CHECKSUMS
             }
         ),
         indirect=True,
     )
-    def test_negative_update_checksum_with_on_demand_policy(self, repo):
+    def test_positive_update_checksum_with_on_demand_policy(self, repo):
         """Attempt to update the download policy to on_demand on a repository with checksum type.
 
         :id: 5bfaef4f-de66-42a0-8419-b86d00ffde6f
 
         :parametrized: yes
 
-        :expectedresults: A repository is not updated and error is raised.
+        :expectedresults: The download policy is updated and checksum type is reset.
 
         :CaseImportance: Critical
         """
         repo.download_policy = 'on_demand'
-        with pytest.raises(HTTPError):
-            repo.update(['download_policy'])
+        repo = repo.update(['download_policy'])
+        assert repo.download_policy == 'on_demand', 'Download policy was not updated'
+        assert not repo.checksum_type, 'Checksum type was not reset to Default'
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('name', **datafactory.parametrized(datafactory.valid_data_list()))
@@ -599,7 +615,7 @@ class TestRepository:
         **datafactory.parametrized(
             {
                 checksum_type: {'checksum_type': checksum_type, 'download_policy': 'immediate'}
-                for checksum_type in ('sha1', 'sha256')
+                for checksum_type in SUPPORTED_REPO_CHECKSUMS
             }
         ),
         indirect=True,
@@ -615,7 +631,9 @@ class TestRepository:
 
         :CaseImportance: Critical
         """
-        updated_checksum = 'sha256' if repo_options['checksum_type'] == 'sha1' else 'sha1'
+        updated_checksum = random.choice(
+            [cs for cs in SUPPORTED_REPO_CHECKSUMS if cs != repo_options['checksum_type']]
+        )
         repo.checksum_type = updated_checksum
         repo = repo.update(['checksum_type'])
         assert repo.checksum_type == updated_checksum
@@ -1250,12 +1268,12 @@ class TestRepository:
         repo = repo.update(['mirroring_policy', 'ignorable_content'])
         repo.sync()
         with pytest.raises(AssertionError):
-            target_sat.md5_by_url(f'{repo.full_path}.treeinfo')
+            target_sat.checksum_by_url(f'{repo.full_path}.treeinfo')
 
         repo.ignorable_content = []
         repo = repo.update(['ignorable_content'])
         repo.sync()
-        assert target_sat.md5_by_url(
+        assert target_sat.checksum_by_url(
             f'{repo.full_path}.treeinfo'
         ), 'The treeinfo file is missing in the KS repo but it should be there.'
 
@@ -1836,6 +1854,70 @@ class TestDockerRepository:
         repo = repo.read()
         assert repo.include_tags == repo_options['include_tags']
         assert repo.content_counts['docker_tag'] == 1
+
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
+    @pytest.mark.parametrize(
+        'repo_options',
+        **datafactory.parametrized(
+            [
+                {
+                    'content_type': 'docker',
+                    'docker_upstream_name': item['upstream_name'],
+                    'name': gen_string('alpha'),
+                    'url': constants.PULP_CONTAINER_REGISTRY_HUB,
+                }
+                for item in LABELLED_REPOS
+            ]
+        ),
+        indirect=True,
+    )
+    def test_positive_synchronize_docker_repo_with_manifest_labels(
+        self, target_sat, repo_options, repo
+    ):
+        """Verify the container manifest labels were indexed properly during the repo sync.
+
+        :id: c865d350-fd19-43fb-b9fd-5ef86cbe3e09
+
+        :parametrized: yes
+
+        :steps:
+            1. Sync container-type repositories with some labels, annotations
+               and bootable and flatpak flags.
+            2. Verify all manifests in each repo contain the expected keys.
+            3. Verify the manifests count matches the repository content counts and the expectation.
+            4. Verify the values meet the expectations specific for each repo.
+
+        :expectedresults: Container labels were indexed properly.
+        """
+        repo.sync()
+        repo = repo.read()
+        dms = target_sat.api.Repository(id=repo.id).docker_manifests()['results']
+        assert all(
+            [CONTAINER_MANIFEST_LABELS.issubset(m.keys()) for m in dms]
+        ), 'Some expected key is missing in the repository manifests'
+        expected_values = next(
+            (i for i in LABELLED_REPOS if i['upstream_name'] == repo.docker_upstream_name), None
+        )
+        assert expected_values, f'{repo.docker_upstream_name} not found in {LABELLED_REPOS}'
+        assert (
+            len(dms) == repo.content_counts['docker_manifest']
+        ), 'Manifests count does not match the repository content counts'
+        assert (
+            len(dms) == expected_values['manifests_count']
+        ), 'Manifests count does not meet the expectation'
+        assert all(
+            [m['is_bootable'] == expected_values['bootable'] for m in dms]
+        ), 'Unexpected is_bootable flag'
+        assert all(
+            [m['is_flatpak'] == expected_values['flatpak'] for m in dms]
+        ), 'Unexpected is_flatpak flag'
+        assert all(
+            [len(m['labels']) == expected_values['labels_count'] for m in dms]
+        ), 'Unexpected lables count'
+        assert all(
+            [len(m['annotations']) == expected_values['annotations_count'] for m in dms]
+        ), 'Unexpected annotations count'
 
     @pytest.mark.skip(
         reason="Tests behavior that is no longer present in the same way, needs refactor"

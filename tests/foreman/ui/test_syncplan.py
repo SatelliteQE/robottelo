@@ -13,7 +13,6 @@
 """
 
 from datetime import datetime, timedelta
-import time
 
 from fauxfactory import gen_choice
 import pytest
@@ -197,10 +196,9 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(session, modu
         # workaround: force session.browser to point to browser object on next line
         session.contenthost.read_all('current_user')
         start_date = session.browser.get_client_datetime()
-        next_sync = 3 * 60
-        # forming cron expression sync repo after 3 min
-        expected_next_run_time = start_date + timedelta(seconds=next_sync)
-        cron_expression = f'{expected_next_run_time.minute} * * * *'
+        # forming cron expression sync repo after 5 min
+        expected_next_run_time = start_date + timedelta(minutes=5)
+        cron_expression = f'{expected_next_run_time.minute} {expected_next_run_time.hour} {expected_next_run_time.day} {expected_next_run_time.month} *'
         session.syncplan.create(
             {
                 'name': plan_name,
@@ -227,13 +225,13 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(session, modu
         assert 'No task was found using query' in str(context.value)
         validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
         # Waiting part of delay that is left and check that product was synced
-        time.sleep(next_sync)
         target_sat.wait_for_tasks(
             search_query='Actions::Katello::Repository::Sync'
             f' and organization_id = {module_org.id}'
             f' and resource_id = {repo.id}'
             ' and resource_type = Katello::Repository',
-            search_rate=10,
+            search_rate=15,
+            max_tries=20,
         )
         validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
         repo_values = session.repository.read(product.name, repo.name)
@@ -263,10 +261,9 @@ def test_positive_synchronize_custom_product_custom_cron_past_sync_date(
         # workaround: force session.browser to point to browser object on next line
         session.contenthost.read_all('current_user')
         start_date = session.browser.get_client_datetime()
-        next_sync = 3 * 60
-        # forming cron expression sync repo after 3 min
-        expected_next_run_time = start_date + timedelta(seconds=next_sync)
-        cron_expression = f'{expected_next_run_time.minute} * * * *'
+        # forming cron expression sync repo after 5 min
+        expected_next_run_time = start_date + timedelta(minutes=5)
+        cron_expression = f'{expected_next_run_time.minute} {expected_next_run_time.hour} {expected_next_run_time.day} {expected_next_run_time.month} *'
         session.syncplan.create(
             {
                 'name': plan_name,
@@ -293,13 +290,13 @@ def test_positive_synchronize_custom_product_custom_cron_past_sync_date(
         assert 'No task was found using query' in str(context.value)
         validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
         # Waiting part of delay that is left and check that product was synced
-        time.sleep(next_sync)
         target_sat.wait_for_tasks(
             search_query='Actions::Katello::Repository::Sync'
             f' and organization_id = {module_org.id}'
             f' and resource_id = {repo.id}'
             ' and resource_type = Katello::Repository',
-            search_rate=10,
+            search_rate=15,
+            max_tries=20,
         )
         validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
         repo_values = session.repository.read(product.name, repo.name)

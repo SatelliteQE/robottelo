@@ -230,8 +230,12 @@ def test_positive_subscription_status_disabled(
 
     :CaseImportance: Medium
     """
-    rhel_contenthost.install_katello_ca(target_sat)
-    rhel_contenthost.register_contenthost(module_sca_manifest_org.label, module_ak.name)
+    result = rhel_contenthost.api_register(
+        target_sat,
+        organization=module_sca_manifest_org,
+        activation_keys=[module_ak.name],
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert rhel_contenthost.subscribed
     host_content = target_sat.api.Host(id=rhel_contenthost.nailgun_host.id).read_raw().content
     assert 'Simple Content Access' in str(host_content)
@@ -241,8 +245,9 @@ def test_positive_subscription_status_disabled(
 @pytest.mark.e2e
 @pytest.mark.pit_client
 @pytest.mark.pit_server
+@pytest.mark.rhel_ver_match('7')
 def test_sca_end_to_end(
-    module_ak, rhel7_contenthost, module_sca_manifest_org, rh_repo, custom_repo, target_sat
+    module_ak, rhel_contenthost, module_sca_manifest_org, rh_repo, custom_repo, target_sat
 ):
     """Perform end to end testing for Simple Content Access Mode
 
@@ -257,9 +262,13 @@ def test_sca_end_to_end(
 
     :CaseImportance: Critical
     """
-    rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(module_sca_manifest_org.label, module_ak.name)
-    assert rhel7_contenthost.subscribed
+    result = rhel_contenthost.api_register(
+        target_sat,
+        organization=module_sca_manifest_org,
+        activation_keys=[module_ak.name],
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    assert rhel_contenthost.subscribed
     # Check to see if Organization is in SCA Mode
     assert (
         target_sat.api.Organization(id=module_sca_manifest_org.id).read().simple_content_access
@@ -274,7 +283,7 @@ def test_sca_end_to_end(
     assert 'Simple Content Access' in ak_context.value.response.text
     # Verify that you cannot attach a subscription to an Host in SCA Mode
     with pytest.raises(HTTPError) as host_context:
-        target_sat.api.HostSubscription(host=rhel7_contenthost.nailgun_host.id).add_subscriptions(
+        target_sat.api.HostSubscription(host=rhel_contenthost.nailgun_host.id).add_subscriptions(
             data={'subscriptions': [{'id': subscription.id, 'quantity': 1}]}
         )
     assert 'Simple Content Access' in host_context.value.response.text
@@ -284,21 +293,25 @@ def test_sca_end_to_end(
     content_view.update(['repository'])
     content_view.publish()
     assert len(content_view.repository) == 2
-    host = rhel7_contenthost.nailgun_host
-    host.content_facet_attributes = {'content_view_id': content_view.id}
+    host = rhel_contenthost.nailgun_host
+    host.content_facet_attributes = {
+        'content_view_id': content_view.id,
+        'lifecycle_environment_id': module_ak.environment.id,
+    }
     host.update(['content_facet_attributes'])
-    rhel7_contenthost.run('subscription-manager repos --enable *')
-    repos = rhel7_contenthost.run('subscription-manager refresh && yum repolist')
+    rhel_contenthost.run('subscription-manager repos --enable *')
+    repos = rhel_contenthost.run('subscription-manager refresh && yum repolist')
     assert content_view.repository[1].name in repos.stdout
     assert 'Red Hat Satellite Tools' in repos.stdout
     # install package and verify it succeeds or is already installed
-    package = rhel7_contenthost.run('yum install -y python-pulp-manifest')
+    package = rhel_contenthost.run('yum install -y python-pulp-manifest')
     assert 'Complete!' in package.stdout or 'already installed' in package.stdout
 
 
+@pytest.mark.rhel_ver_match('7')
 @pytest.mark.tier2
 def test_positive_candlepin_events_processed_by_stomp(
-    rhel7_contenthost, function_entitlement_manifest, function_org, target_sat
+    rhel_contenthost, function_entitlement_manifest, function_org, target_sat
 ):
     """Verify that Candlepin events are being read and processed by
         attaching subscriptions, validating host subscriptions status,
@@ -336,9 +349,13 @@ def test_positive_candlepin_events_processed_by_stomp(
         environment=target_sat.api.LifecycleEnvironment(id=function_org.library.id),
         auto_attach=True,
     ).create()
-    rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(function_org.name, ak.name)
-    host = target_sat.api.Host().search(query={'search': f'name={rhel7_contenthost.hostname}'})
+    result = rhel_contenthost.api_register(
+        target_sat,
+        organization=function_org,
+        activation_keys=[ak.name],
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    host = target_sat.api.Host().search(query={'search': f'name={rhel_contenthost.hostname}'})
     host_id = host[0].id
     host_content = target_sat.api.Host(id=host_id).read_json()
     assert host_content['subscription_status'] == 2
@@ -357,7 +374,8 @@ def test_positive_candlepin_events_processed_by_stomp(
     assert '0 Failed' in response['message']
 
 
-def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel7_contenthost, target_sat):
+@pytest.mark.rhel_ver_match('7')
+def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel_contenthost, target_sat):
     """Verify that a content host with an expired SCA cert can
         re-register successfully
 
@@ -393,12 +411,14 @@ def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel7_conte
     ).create()
     # registering the content host with no content enabled/synced in the org
     # should create a client SCA cert with no content
-    rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(
-        org=module_sca_manifest_org.label, activation_key=ak.name
+    result = rhel_contenthost.api_register(
+        target_sat,
+        organization=module_sca_manifest_org,
+        activation_keys=[ak.name],
     )
-    assert rhel7_contenthost.subscribed
-    rhel7_contenthost.unregister()
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    assert rhel_contenthost.subscribed
+    rhel_contenthost.unregister()
     # syncing content with the content host unregistered should invalidate
     # the previous client SCA cert
     rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
@@ -411,10 +431,16 @@ def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel7_conte
     )
     rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
     rh_repo.sync()
-    # re-registering the host should test whether Candlepin gracefully handles
+    # re-registering the host (using force=True) should test whether Candlepin gracefully handles
     # registration of a host with an expired SCA cert
-    rhel7_contenthost.register_contenthost(module_sca_manifest_org.label, ak.name)
-    assert rhel7_contenthost.subscribed
+    result = rhel_contenthost.api_register(
+        target_sat,
+        organization=module_sca_manifest_org,
+        activation_keys=[ak.name],
+        force=True,
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    assert rhel_contenthost.subscribed
 
 
 @pytest.mark.stubbed

@@ -1,6 +1,5 @@
 # Provisioning Template Fixtures
 from box import Box
-from nailgun import entities
 from packaging.version import Version
 import pytest
 
@@ -9,45 +8,49 @@ from robottelo.constants import DEFAULT_PTABLE, DEFAULT_PXE_TEMPLATE, DEFAULT_TE
 
 
 @pytest.fixture(scope='module')
-def module_provisioningtemplate_default(module_org, module_location):
-    provisioning_template = entities.ProvisioningTemplate().search(
+def module_provisioningtemplate_default(module_target_sat, module_org, module_location):
+    provisioning_template = module_target_sat.api.ProvisioningTemplate().search(
         query={'search': f'name="{DEFAULT_TEMPLATE}"'}
     )
     provisioning_template = provisioning_template[0].read()
     provisioning_template.organization.append(module_org)
     provisioning_template.location.append(module_location)
     provisioning_template.update(['organization', 'location'])
-    return entities.ProvisioningTemplate(id=provisioning_template.id).read()
+    return module_target_sat.api.ProvisioningTemplate(id=provisioning_template.id).read()
 
 
 @pytest.fixture(scope='module')
-def module_provisioningtemplate_pxe(module_org, module_location):
-    pxe_template = entities.ProvisioningTemplate().search(
+def module_provisioningtemplate_pxe(module_target_sat, module_org, module_location):
+    pxe_template = module_target_sat.api.ProvisioningTemplate().search(
         query={'search': f'name="{DEFAULT_PXE_TEMPLATE}"'}
     )
     pxe_template = pxe_template[0].read()
     pxe_template.organization.append(module_org)
     pxe_template.location.append(module_location)
     pxe_template.update(['organization', 'location'])
-    return entities.ProvisioningTemplate(id=pxe_template.id).read()
+    return module_target_sat.api.ProvisioningTemplate(id=pxe_template.id).read()
 
 
 @pytest.fixture(scope='session')
-def default_partitiontable():
-    ptables = entities.PartitionTable().search(query={'search': f'name="{DEFAULT_PTABLE}"'})
+def default_partitiontable(session_target_sat):
+    ptables = session_target_sat.api.PartitionTable().search(
+        query={'search': f'name="{DEFAULT_PTABLE}"'}
+    )
     if ptables:
         return ptables[0].read()
     return None
 
 
 @pytest.fixture(scope='module')
-def module_env():
-    return entities.Environment().create()
+def module_env(module_target_sat):
+    return module_target_sat.api.Environment().create()
 
 
 @pytest.fixture(scope='session')
-def default_pxetemplate():
-    pxe_template = entities.ProvisioningTemplate().search(query={'search': DEFAULT_PXE_TEMPLATE})
+def default_pxetemplate(session_target_sat):
+    pxe_template = session_target_sat.api.ProvisioningTemplate().search(
+        query={'search': DEFAULT_PXE_TEMPLATE}
+    )
     return pxe_template[0].read()
 
 

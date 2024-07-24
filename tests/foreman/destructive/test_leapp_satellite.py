@@ -18,8 +18,8 @@ from robottelo.hosts import get_sat_rhel_version, get_sat_version
 
 @pytest.mark.e2e
 @pytest.mark.skipif(
-    get_sat_version().minor != 11 and get_sat_rhel_version().major > 7,
-    reason='Run only on sat6.11el7',
+    get_sat_version().minor != 16 or get_sat_rhel_version().major != 8,
+    reason='Run only on Satellite 6.16 el8',
 )
 def test_positive_leapp(target_sat):
     """Upgrade satellite's RHEL version using leapp
@@ -27,8 +27,8 @@ def test_positive_leapp(target_sat):
     :id: 761d4503-0b8c-494d-add5-b870fe1b90b9
 
     :steps:
-        1. Get satellite on rhel7
-        2. Run job template that upgrades satellite to rhel8
+        1. Get satellite on source rhel version
+        2. Run job template that upgrades satellite to target rhel version
         3. Check results
 
     :expectedresult:

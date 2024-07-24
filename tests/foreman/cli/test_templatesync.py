@@ -13,7 +13,6 @@
 import base64
 
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 import requests
 
@@ -80,7 +79,7 @@ class TestTemplateSyncTestCase:
         target_sat.cli.TemplateSync.imports(
             {'repo': dir_path, 'prefix': prefix, 'organization-ids': module_org.id, 'lock': 'true'}
         )
-        ptemplate = entities.ProvisioningTemplate().search(
+        ptemplate = target_sat.api.ProvisioningTemplate().search(
             query={'per_page': 10, 'search': f'name~{prefix}', 'organization_id': module_org.id}
         )
         if ptemplate:
@@ -216,12 +215,12 @@ class TestTemplateSyncTestCase:
                 'repo': url,
                 'branch': git_branch,
                 'organization-id': module_org.id,
-                'filter': 'atomic',
+                'filter': 'provisioning',
                 'dirname': dirname,
             }
         ).split('\n')
         exported_count = ['Exported: true' in row.strip() for row in output].count(True)
-        path = f'{dirname}/provisioning_templates/provision'
+        path = f'{dirname}/provisioning_templates/snippet'
         auth = (git.username, git.password)
         api_url = f'http://{git.hostname}:{git.http_port}'
         api_url = f'{api_url}/api/v1/repos/{git.username}/{git_repository["name"]}/contents'

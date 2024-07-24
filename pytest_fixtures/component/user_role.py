@@ -1,5 +1,4 @@
 from fauxfactory import gen_alphanumeric, gen_string
-from nailgun import entities
 import pytest
 
 
@@ -10,23 +9,25 @@ def class_user_password():
 
 
 @pytest.fixture
-def function_role():
-    return entities.Role().create()
+def function_role(target_sat):
+    return target_sat.api.Role().create()
 
 
 @pytest.fixture(scope='module')
-def module_user(module_org, module_location):
-    return entities.User(organization=[module_org], location=[module_location]).create()
+def module_user(module_target_sat, module_org, module_location):
+    return module_target_sat.api.User(
+        organization=[module_org], location=[module_location]
+    ).create()
 
 
 @pytest.fixture(scope='module')
-def default_viewer_role(module_org, default_location):
+def default_viewer_role(module_target_sat, module_org, default_location):
     """Custom user with viewer role for tests validating visibility of entities or fields created
     by some other user. Created only when accessed, unlike `module_user`.
     """
-    viewer_role = entities.Role().search(query={'search': 'name="Viewer"'})[0]
+    viewer_role = module_target_sat.api.Role().search(query={'search': 'name="Viewer"'})[0]
     custom_password = gen_string('alphanumeric')
-    custom_user = entities.User(
+    custom_user = module_target_sat.api.User(
         admin=False,
         default_organization=module_org,
         location=[default_location],

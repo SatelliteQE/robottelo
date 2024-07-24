@@ -29,3 +29,5 @@ def setup_http_proxy(request, module_manifest_org, target_sat):
     yield http_proxy, request.param
     target_sat.update_setting('content_default_http_proxy', content_proxy_value)
     target_sat.update_setting('http_proxy', general_proxy_value)
+    if http_proxy:
+        http_proxy.delete()

@@ -18,7 +18,7 @@ from pprint import pformat
 
 from deepdiff import DeepDiff
 from fauxfactory import gen_string
-from nailgun import client, entities
+from nailgun import client
 import pytest
 
 from robottelo import constants
@@ -608,25 +608,6 @@ API_PATHS = {
         '/api/operatingsystems/:operatingsystem_id/os_default_templates/:id',
         '/api/operatingsystems/:operatingsystem_id/os_default_templates/:id',
     ),
-    'oval_contents': (
-        '/api/compliance/oval_contents',
-        '/api/compliance/oval_contents/:id',
-        '/api/compliance/oval_contents',
-        '/api/compliance/oval_contents/:id',
-        '/api/compliance/oval_contents/:id',
-        '/api/compliance/oval_contents/sync',
-    ),
-    'oval_policies': (
-        '/api/compliance/oval_policies',
-        '/api/compliance/oval_policies/:id',
-        '/api/compliance/oval_policies',
-        '/api/compliance/oval_policies/:id',
-        '/api/compliance/oval_policies/:id',
-        '/api/compliance/oval_policies/:id/assign_hostgroups',
-        '/api/compliance/oval_policies/:id/assign_hosts',
-        '/api/compliance/oval_policies/:id/oval_content',
-    ),
-    'oval_reports': ('/api/compliance/oval_reports/:cname/:oval_policy_id/:date',),
     'package_groups': (
         '/katello/api/package_groups/:id',
         '/katello/api/package_groups/compare',
@@ -1006,39 +987,41 @@ class TestEndToEnd:
     def fake_manifest_is_set(self):
         return setting_is_set('fake_manifest')
 
-    def test_positive_find_default_org(self):
+    def test_positive_find_default_org(self, class_target_sat):
         """Check if 'Default Organization' is present
 
         :id: c6e45b36-d8b6-4507-8dcd-0645668496b9
 
         :expectedresults: 'Default Organization' is found
         """
-        results = entities.Organization().search(
+        results = class_target_sat.api.Organization().search(
             query={'search': f'name="{constants.DEFAULT_ORG}"'}
         )
         assert len(results) == 1
         assert results[0].name == constants.DEFAULT_ORG
 
-    def test_positive_find_default_loc(self):
+    def test_positive_find_default_loc(self, class_target_sat):
         """Check if 'Default Location' is present
 
         :id: 1f40b3c6-488d-4037-a7ab-250a02bf919a
 
         :expectedresults: 'Default Location' is found
         """
-        results = entities.Location().search(query={'search': f'name="{constants.DEFAULT_LOC}"'})
+        results = class_target_sat.api.Location().search(
+            query={'search': f'name="{constants.DEFAULT_LOC}"'}
+        )
         assert len(results) == 1
         assert results[0].name == constants.DEFAULT_LOC
 
     @pytest.mark.build_sanity
-    def test_positive_find_admin_user(self):
+    def test_positive_find_admin_user(self, class_target_sat):
         """Check if Admin User is present
 
         :id: 892fdfcd-18c0-42ef-988b-f13a04097f5c
 
         :expectedresults: Admin User is found and has Admin role
         """
-        results = entities.User().search(query={'search': 'login=admin'})
+        results = class_target_sat.api.User().search(query={'search': 'login=admin'})
         assert len(results) == 1
         assert results[0].login == 'admin'
 

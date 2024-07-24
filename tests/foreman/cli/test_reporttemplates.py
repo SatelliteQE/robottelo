@@ -19,7 +19,6 @@ from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_LOC,
     DEFAULT_ORG,
-    DEFAULT_SUBSCRIPTION_NAME,
     FAKE_0_CUSTOM_PACKAGE_NAME,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
@@ -34,28 +33,28 @@ from robottelo.hosts import ContentHost
 
 
 @pytest.fixture(scope='module')
-def local_environment(module_entitlement_manifest_org, module_target_sat):
+def local_environment(module_sca_manifest_org, module_target_sat):
     """Create a lifecycle environment with CLI factory"""
     return module_target_sat.cli_factory.make_lifecycle_environment(
-        {'organization-id': module_entitlement_manifest_org.id}
+        {'organization-id': module_sca_manifest_org.id}
     )
 
 
 @pytest.fixture(scope='module')
-def local_content_view(module_entitlement_manifest_org, module_target_sat):
+def local_content_view(module_sca_manifest_org, module_target_sat):
     """Create content view, repository, and product"""
     new_product = module_target_sat.cli_factory.make_product(
-        {'organization-id': module_entitlement_manifest_org.id}
+        {'organization-id': module_sca_manifest_org.id}
     )
     new_repo = module_target_sat.cli_factory.make_repository({'product-id': new_product['id']})
     module_target_sat.cli.Repository.synchronize({'id': new_repo['id']})
     content_view = module_target_sat.cli_factory.make_content_view(
-        {'organization-id': module_entitlement_manifest_org.id}
+        {'organization-id': module_sca_manifest_org.id}
     )
     module_target_sat.cli.ContentView.add_repository(
         {
             'id': content_view['id'],
-            'organization-id': module_entitlement_manifest_org.id,
+            'organization-id': module_sca_manifest_org.id,
             'repository-id': new_repo['id'],
         }
     )
@@ -64,9 +63,7 @@ def local_content_view(module_entitlement_manifest_org, module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def local_ak(
-    module_entitlement_manifest_org, local_environment, local_content_view, module_target_sat
-):
+def local_ak(module_sca_manifest_org, local_environment, local_content_view, module_target_sat):
     """Promote a content view version and create an activation key with CLI Factory"""
     cvv = module_target_sat.cli.ContentView.info({'id': local_content_view['id']})['versions'][0]
     module_target_sat.cli.ContentView.version_promote(
@@ -76,24 +73,10 @@ def local_ak(
         {
             'lifecycle-environment-id': local_environment['id'],
             'content-view': local_content_view['name'],
-            'organization-id': module_entitlement_manifest_org.id,
+            'organization-id': module_sca_manifest_org.id,
             'auto-attach': False,
         }
     )
-
-
-@pytest.fixture(scope='module')
-def local_subscription(module_entitlement_manifest_org, local_ak, module_target_sat):
-    for subscription in module_target_sat.cli.Subscription.list(
-        {'organization-id': module_entitlement_manifest_org.id}, per_page=False
-    ):
-        if subscription['name'] == DEFAULT_SUBSCRIPTION_NAME:
-            break
-    module_target_sat.cli.ActivationKey.add_subscription(
-        {'id': local_ak['id'], 'subscription-id': subscription['id']}
-    )
-
-    return subscription
 
 
 @pytest.mark.tier2
@@ -153,6 +136,7 @@ def test_positive_end_to_end_crud_and_list(target_sat):
             list   - at least two report templates
             info   - some report template
             update - some report template that is not locked
+            clone - some report template
             delete - some report template that is not locked
 
     :steps:
@@ -161,11 +145,12 @@ def test_positive_end_to_end_crud_and_list(target_sat):
         2. hammer report-template list ...
         3. hammer report-template info ...
         4. hammer report-template update ... # change some value
-        5. hammer report-template delete ...
+        5. hammer report-template clone ...
+        6. hammer report-template delete ...
 
     :expectedresults: Report is created, report templates are listed,
                       data about report template is showed,
-                      report template is updated, and deleted.
+                      report template is updated, report template is cloned, and deleted.
 
     :CaseImportance: Critical
     """
@@ -192,6 +177,12 @@ def test_positive_end_to_end_crud_and_list(target_sat):
     assert new_name == result[0]['name']
     rt_list = target_sat.cli.ReportTemplate.list()
     assert name not in [rt['name'] for rt in rt_list]
+
+    # clone
+    clone_name = gen_alpha()
+    target_sat.cli.ReportTemplate.clone({'id': report_template['id'], 'new-name': clone_name})
+    clone_list = target_sat.cli.ReportTemplate.list()
+    assert clone_name in [rt['name'] for rt in clone_list]
 
     # delete tmp
     target_sat.cli.ReportTemplate.delete({'name': tmp_report_template['name']})
@@ -679,7 +670,7 @@ def test_positive_generate_with_name_and_org(module_target_sat):
     result = module_target_sat.cli.ReportTemplate.generate(
         {'name': 'Host - Statuses', 'organization': DEFAULT_ORG}
     )
-
+    assert 'RHEL lifecycle' in result
     assert host['name'] in [item.split(',')[0] for item in result.split('\n')]
 
 
@@ -747,154 +738,8 @@ def test_positive_generate_ansible_template(module_target_sat):
 
 
 @pytest.mark.tier3
-def test_positive_generate_entitlements_report_multiple_formats(
-    module_entitlement_manifest_org, local_ak, local_subscription, rhel7_contenthost, target_sat
-):
-    """Generate an report using the Subscription - Entitlement Report template
-    in html, yaml, and csv format.
-
-    :id: f2b74916-1298-4d20-9c24-a2c2b3a3e9a9
-
-    :setup: Installed Satellite with Organization, Activation key,
-            Content View, Content Host, and Subscriptions.
-
-    :steps:
-        1. hammer report-template generate --organization '' --id '' --report-format ''
-
-    :expectedresults: report is generated containing all the expected information
-                      regarding entitlements.
-
-    :BZ: 1830289
-
-    :parametrized: yes
-
-    :customerscenario: true
-    """
-    client = rhel7_contenthost
-    client.install_katello_ca(target_sat)
-    client.register_contenthost(module_entitlement_manifest_org.label, local_ak['name'])
-    assert client.subscribed
-    result_html = target_sat.cli.ReportTemplate.generate(
-        {
-            'organization': module_entitlement_manifest_org.name,
-            'name': 'Subscription - Entitlement Report',
-            'report-format': 'html',
-            'inputs': 'Days from Now=no limit',
-        }
-    )
-    assert client.hostname in result_html
-    assert local_subscription['name'] in result_html
-    result_yaml = target_sat.cli.ReportTemplate.generate(
-        {
-            'organization': module_entitlement_manifest_org.name,
-            'name': 'Subscription - Entitlement Report',
-            'report-format': 'yaml',
-            'inputs': 'Days from Now=no limit',
-        }
-    )
-    for entry in result_yaml:
-        if '-Name:' in entry:
-            assert client.hostname in entry
-        elif 'Subscription Name:' in entry:
-            assert local_subscription['name'] in entry
-    result_csv = target_sat.cli.ReportTemplate.generate(
-        {
-            'organization': module_entitlement_manifest_org.name,
-            'name': 'Subscription - Entitlement Report',
-            'report-format': 'csv',
-            'inputs': 'Days from Now=no limit',
-        }
-    )
-    assert client.hostname in result_csv
-    assert local_subscription['name'] in result_csv
-    # BZ 1830289
-    assert 'Subscription Total Quantity' in result_csv
-
-
-@pytest.mark.tier3
-def test_positive_schedule_entitlements_report(
-    module_entitlement_manifest_org, local_ak, local_subscription, rhel7_contenthost, target_sat
-):
-    """Schedule an report using the Subscription - Entitlement Report template in csv format.
-
-    :id: 572fb387-86e0-40e2-b2df-e8ec26433610
-
-
-    :setup: Installed Satellite with Organization, Activation key,
-            Content View, Content Host, and Subscriptions.
-
-    :steps:
-        1. hammer report-template schedule --organization '' --id '' --report-format ''
-
-
-    :expectedresults: report is scheduled and generated containing all the expected information
-                      regarding entitlements.
-
-    :parametrized: yes
-    """
-    client = rhel7_contenthost
-    client.install_katello_ca(target_sat)
-    client.register_contenthost(module_entitlement_manifest_org.label, local_ak['name'])
-    assert client.subscribed
-    scheduled_csv = target_sat.cli.ReportTemplate.schedule(
-        {
-            'name': 'Subscription - Entitlement Report',
-            'organization': module_entitlement_manifest_org.name,
-            'report-format': 'csv',
-            'inputs': 'Days from Now=no limit',
-        }
-    )
-    data_csv = target_sat.cli.ReportTemplate.report_data(
-        {
-            'name': 'Subscription - Entitlement Report',
-            'job-id': scheduled_csv.split('\n', 1)[0].split('Job ID: ', 1)[1],
-        }
-    )
-    assert client.hostname in data_csv
-    assert local_subscription['name'] in data_csv
-
-
-@pytest.mark.tier3
-def test_entitlements_report_no_inputs_field(
-    module_entitlement_manifest_org,
-    module_location,
-    local_ak,
-    local_subscription,
-    rhel7_contenthost,
-    target_sat,
-):
-    """Generate an report using the Subscription - Entitlement Report template
-    without passing in the 'Days from Now' argument in the inputs field, to test the
-    default setting
-
-    :id: 5c4e52b9-314c-470d-9946-3d6e05c85b7e
-
-    :steps:
-        1. hammer report-template generate --organization '' --id '' --report-format ''
-
-    :expectedresults: report is generated, and the Days From Now field isn't required
-
-    :BZ: 1943306
-
-    :customerscenario: true
-    """
-    client = rhel7_contenthost
-    client.register(module_entitlement_manifest_org, module_location, local_ak['name'], target_sat)
-    assert client.subscribed
-    result = target_sat.cli.ReportTemplate.generate(
-        {
-            'organization': module_entitlement_manifest_org.name,
-            'name': 'Subscription - Entitlement Report',
-            'report-format': 'csv',
-        }
-    )
-    # Only care that the Days from Now field isn't required, do not care about content
-    assert 'Subscription Total Quantity' in result
-
-
-@pytest.mark.tier3
 def test_positive_generate_hostpkgcompare(
-    module_entitlement_manifest_org, local_ak, local_content_view, local_environment, target_sat
+    module_sca_manifest_org, local_ak, local_content_view, local_environment, target_sat
 ):
     """Generate 'Host - compare content hosts packages' report
 
@@ -920,16 +765,17 @@ def test_positive_generate_hostpkgcompare(
             'product': PRDS['rhel'],
             'repository-set': REPOSET['rhst7'],
             'repository': REPOS['rhst7']['name'],
-            'organization-id': module_entitlement_manifest_org.id,
+            'organization-id': module_sca_manifest_org.id,
             'content-view-id': local_content_view['id'],
             'lifecycle-environment-id': local_environment['id'],
             'activationkey-id': local_ak['id'],
-        }
+        },
+        force=True,
     )
     target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_6.url,
-            'organization-id': module_entitlement_manifest_org.id,
+            'organization-id': module_sca_manifest_org.id,
             'content-view-id': local_content_view['id'],
             'lifecycle-environment-id': local_environment['id'],
             'activationkey-id': local_ak['id'],
@@ -940,9 +786,13 @@ def test_positive_generate_hostpkgcompare(
     with Broker(nick='rhel7', host_class=ContentHost, _count=2) as hosts:
         for client in hosts:
             # Create RHEL hosts via broker and register content host
-            client.install_katello_ca(target_sat)
-            # Register content host, install katello-agent
-            client.register_contenthost(module_entitlement_manifest_org.label, local_ak['name'])
+            result = client.register(
+                module_sca_manifest_org,
+                None,
+                local_ak.name,
+                target_sat,
+            )
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
             assert client.subscribed
             clients.append(client)
             client.enable_repo(REPOS['rhst7']['id'])
@@ -1029,7 +879,7 @@ def test_negative_generate_hostpkgcompare_nonexistent_host(module_target_sat):
 @pytest.mark.rhel_ver_list([7, 8, 9])
 @pytest.mark.tier3
 def test_positive_generate_installed_packages_report(
-    module_entitlement_manifest_org,
+    module_sca_manifest_org,
     local_ak,
     local_content_view,
     local_environment,
@@ -1059,20 +909,25 @@ def test_positive_generate_installed_packages_report(
     target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_6.url,
-            'organization-id': module_entitlement_manifest_org.id,
+            'organization-id': module_sca_manifest_org.id,
             'content-view-id': local_content_view['id'],
             'lifecycle-environment-id': local_environment['id'],
             'activationkey-id': local_ak['id'],
         }
     )
     client = rhel_contenthost
-    client.install_katello_ca(target_sat)
-    client.register_contenthost(module_entitlement_manifest_org.label, local_ak['name'])
+    result = client.register(
+        module_sca_manifest_org,
+        None,
+        local_ak.name,
+        target_sat,
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert client.subscribed
     client.execute(f'yum -y install {FAKE_0_CUSTOM_PACKAGE_NAME} {FAKE_1_CUSTOM_PACKAGE}')
     result_html = target_sat.cli.ReportTemplate.generate(
         {
-            'organization': module_entitlement_manifest_org.name,
+            'organization': module_sca_manifest_org.name,
             'name': 'Host - All Installed Packages',
             'report-format': 'html',
             'inputs': f'Hosts filter={client.hostname}',

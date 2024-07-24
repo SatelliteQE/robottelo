@@ -323,7 +323,6 @@ def test_rhel_ipxe_provisioning(
     assert provisioning_host.subscribed, 'Host is not subscribed'
 
 
-@pytest.mark.skip_if_open("BZ:2242925")
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.parametrize('pxe_loader', ['http_uefi'], indirect=True)
@@ -359,7 +358,9 @@ def test_rhel_httpboot_provisioning(
 
     :parametrized: yes
 
-    :BZ: 2242925
+    :BlockedBy: SAT-20684
+
+    :Verifies: SAT-20684
     """
     sat = module_provisioning_sat.sat
     # update grub2-efi package
@@ -562,11 +563,11 @@ def test_rhel_pxe_provisioning_fips_enabled(
     # Verify FIPS is enabled on host after provisioning is completed sucessfully
     if int(host_os.major) >= 8:
         result = provisioning_host.execute('fips-mode-setup --check')
-        fips_status = 'FIPS mode is disabled' if is_open('BZ:2240076') else 'FIPS mode is enabled'
+        fips_status = 'FIPS mode is disabled' if is_open('SAT-20386') else 'FIPS mode is enabled'
         assert fips_status in result.stdout
     else:
         result = provisioning_host.execute('cat /proc/sys/crypto/fips_enabled')
-        assert (0 if is_open('BZ:2240076') else 1) == int(result.stdout)
+        assert (0 if is_open('SAT-20386') else 1) == int(result.stdout)
 
     # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
     template_id = (

@@ -9,6 +9,7 @@ env:
     PYCURL_SSL_LIBRARY: openssl
     ROBOTTELO_BUGZILLA__API_KEY: ${{ secrets.BUGZILLA_KEY }}
     ROBOTTELO_JIRA__API_KEY: ${{ secrets.JIRA_KEY }}
+    ROBOTTELO_ROBOTTELO__SETTINGS__IGNORE_VALIDATION_ERRORS: true
 
 jobs:
   codechecks:
@@ -62,6 +63,7 @@ jobs:
         run: |
           # To skip vault login in pull request checks
           export VAULT_SECRET_ID_FOR_DYNACONF=somesecret
+          export ROBOTTELO_SERVER__HOSTNAME=""
           pytest -sv tests/robottelo/
 
       - name: Make Docs

@@ -18,6 +18,7 @@ import os
 import re
 
 from airgun.exceptions import DisabledWidgetError, NoSuchElementException
+from box import Box
 import pytest
 from wait_for import wait_for
 import yaml
@@ -35,6 +36,7 @@ from robottelo.constants import (
     OSCAP_WEEKDAY,
     PERMISSIONS,
     REPO_TYPE,
+    ROLES,
 )
 from robottelo.constants.repos import CUSTOM_FILE_REPO
 from robottelo.utils.datafactory import gen_string
@@ -445,6 +447,67 @@ def test_positive_export(session, target_sat, function_org, function_location):
             for row in csv.DictReader(csvfile):
                 actual_fields.append((row['Name'], row['Operatingsystem']))
         assert set(actual_fields) == expected_fields
+
+
+@pytest.mark.skipif(
+    (settings.ui.webdriver != 'chrome'), reason='Currently only chrome is supported'
+)
+@pytest.mark.tier3
+def test_positive_export_selected_columns(target_sat, current_sat_location):
+    """Select certain columns in the hosts table and check that they are exported in the CSV file.
+
+    :id: 2b65c1d6-0b94-11ef-a4b7-000c2989e153
+
+    :steps:
+        1. Select different columns to be displayed in the hosts table.
+        2. Export the hosts into CSV file.
+
+    :expectedresults: All columns selected in the UI table should be exported in the CSV file.
+
+    :BZ: 2167146
+
+    :customerscenario: true
+    """
+    columns = (
+        Box(ui='Power', csv='Power Status', displayed=True),
+        Box(ui='Recommendations', csv='Insights Recommendations Count', displayed=True),
+        Box(ui='Name', csv='Name', displayed=True),
+        Box(ui='IPv4', csv='Ip', displayed=True),
+        Box(ui='IPv6', csv='Ip6', displayed=True),
+        Box(ui='MAC', csv='Mac', displayed=True),
+        Box(ui='OS', csv='Operatingsystem', displayed=True),
+        Box(ui='Owner', csv='Owner', displayed=True),
+        Box(ui='Host group', csv='Hostgroup', displayed=True),
+        Box(ui='Boot time', csv='Reported Data - Boot Time', displayed=True),
+        Box(ui='Last report', csv='Last Report', displayed=True),
+        Box(ui='Comment', csv='Comment', displayed=True),
+        Box(ui='Model', csv='Compute Resource Or Model', displayed=True),
+        Box(ui='Sockets', csv='Reported Data - Sockets', displayed=True),
+        Box(ui='Cores', csv='Reported Data - Cores', displayed=True),
+        Box(ui='RAM', csv='Reported Data - Ram', displayed=True),
+        Box(ui='Virtual', csv='Virtual', displayed=True),
+        Box(ui='Disks space', csv='Reported Data - Disks Total', displayed=True),
+        Box(ui='Kernel version', csv='Reported Data - Kernel Version', displayed=True),
+        Box(ui='BIOS vendor', csv='Reported Data - Bios Vendor', displayed=True),
+        Box(ui='BIOS release date', csv='Reported Data - Bios Release Date', displayed=True),
+        Box(ui='BIOS version', csv='Reported Data - Bios Version', displayed=True),
+        Box(ui='RHEL Lifecycle status', csv='Rhel Lifecycle Status', displayed=True),
+        Box(ui='Installable updates', csv='Installable ...', displayed=False),
+        Box(ui='Lifecycle environment', csv='Lifecycle Environment', displayed=True),
+        Box(ui='Content view', csv='Content View', displayed=True),
+        Box(ui='Registered', csv='Registered', displayed=True),
+        Box(ui='Last checkin', csv='Last Checkin', displayed=True),
+    )
+
+    with target_sat.ui_session() as session:
+        session.location.select(loc_name=current_sat_location.name)
+        session.host.manage_table_columns({column.ui: column.displayed for column in columns})
+        file_path = session.host.export()
+        with open(file_path, newline='') as fh:
+            csvfile = csv.DictReader(fh)
+            assert set(csvfile.fieldnames) == set(
+                [column.csv for column in columns if column.displayed]
+            )
 
 
 @pytest.mark.tier4
@@ -1140,6 +1203,39 @@ def test_positive_manage_table_columns(
             assert (column in displayed_columns) is is_displayed
 
 
+@pytest.mark.tier2
+def test_all_hosts_manage_columns(target_sat, function_org, new_host_ui):
+    """Verify that the manage columns widget changes the columns appropriately
+
+    :id: 5e13267a-68d2-451a-ae00-6502dd5db7f4
+
+    :expectedresults: Through the widget you can change the columns on the All Hosts page
+
+    :CaseComponent: Hosts-Content
+
+    :Team: Phoenix-subscriptions
+
+    :Verifies: SAT-19064
+    """
+    columns = {
+        'Host group': True,
+        'Last report': True,
+        'Comment': True,
+        'IPv4': True,
+        'MAC': True,
+        'Sockets': True,
+        'Cores': True,
+        'RAM': True,
+        'Boot time': True,
+    }
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        session.all_hosts.manage_table_columns(columns)
+        displayed_columns = session.all_hosts.get_displayed_table_headers()
+        for column, is_displayed in columns.items():
+            assert (column in displayed_columns) is is_displayed
+
+
 @pytest.mark.tier4
 def test_positive_host_details_read_templates(
     session, target_sat, current_sat_org, current_sat_location
@@ -1705,6 +1801,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
         assert host_parameters[param_name] == param_value
 
 
+@pytest.mark.pit_client
 @pytest.mark.tier2
 @pytest.mark.rhel_ver_match('[^6].*')
 def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
@@ -1971,3 +2068,64 @@ def test_positive_page_redirect_after_update(target_sat, current_sat_location):
 
         assert 'page-not-found' not in session.browser.url
         assert client.hostname in session.browser.url
+
+
+@pytest.mark.tier3
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('8')
+def test_host_status_honors_taxonomies(
+    module_target_sat, test_name, rhel_contenthost, setup_content, default_location, default_org
+):
+    """Check that host status counts in Monitor -> Host Statuses show only hosts that the user has permisisons to
+
+    :id: 2c4e6df7-c17e-4074-b691-4d8e2efda062
+    :steps:
+        1. In a non-default organization, create a user
+        2. As that user, check that host count is 0 in Monitor -> Host Statuses
+        3. Add a host to the non-default org
+        4. As that user, check that host count is 1 in Monitor -> Host Statuses
+
+    :expectedresults: First, the user can't see any host, then they can see one host
+    """
+    ak, org, _ = setup_content
+    # default_org != org (== module_org)
+    default_org_ak_name = gen_string('alpha')
+    module_target_sat.cli.ActivationKey.create(
+        {
+            'name': default_org_ak_name,
+            'organization-id': default_org.id,
+            'lifecycle-environment': 'Library',
+        }
+    )['name']
+    # register the host to default_org
+    assert (
+        rhel_contenthost.register(
+            default_org, default_location, default_org_ak_name, module_target_sat
+        ).status
+        == 0
+    )
+    host_id = module_target_sat.cli.Host.info({'name': rhel_contenthost.hostname})['id']
+    password = gen_string('alpha')
+    login = gen_string('alpha')
+    # the user is in org
+    module_target_sat.cli.User.create(
+        {
+            'organization-id': org.id,
+            'location-id': default_location.id,
+            'auth-source': 'Internal',
+            'password': password,
+            'mail': 'root@localhost',
+            'login': login,
+            'roles': ROLES,
+        }
+    )
+    with module_target_sat.ui_session(test_name, user=login, password=password) as session:
+        statuses = session.host.host_statuses()
+    assert all(int(status['count'].split(': ')[1]) == 0 for status in statuses)
+    # register the host to org
+    assert rhel_contenthost.unregister().status == 0
+    module_target_sat.cli.Host.delete({'id': host_id})
+    assert rhel_contenthost.register(org, default_location, ak.name, module_target_sat).status == 0
+    with module_target_sat.ui_session(test_name, user=login, password=password) as session:
+        statuses = session.host.host_statuses()
+    assert len([status for status in statuses if int(status['count'].split(': ')[1]) != 0]) == 1

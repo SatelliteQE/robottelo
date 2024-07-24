@@ -10,6 +10,7 @@ Parameters::
 
 Subcommands::
 
+    bulk            Modify alternate content sources in bulk
     create          Create an alternate content source to download content from during repository
                     syncing. Note: alternate content sources are global and affect ALL sync actions
                     on their capsules regardless of organization.
@@ -36,4 +37,30 @@ class ACS(Base):
     def refresh(cls, options=None):
         """Refresh the ACS"""
         cls.command_sub = 'refresh'
+        return cls.execute(cls._construct_command(options))
+
+
+class ACSBulk(Base):
+    """
+    Manipulates Alternate Content Sources in bulk
+    """
+
+    command_base = 'alternate-content-source bulk'
+
+    @classmethod
+    def destroy(cls, options=None):
+        """Destroy the ACS(s)"""
+        cls.command_sub = 'destroy'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def refresh(cls, options=None):
+        """Refresh the ACS(s)"""
+        cls.command_sub = 'refresh'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def refresh_all(cls, options=None):
+        """Refresh all ACSs"""
+        cls.command_sub = 'refresh-all'
         return cls.execute(cls._construct_command(options))

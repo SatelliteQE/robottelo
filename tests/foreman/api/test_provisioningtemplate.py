@@ -656,7 +656,7 @@ class TestProvisioningTemplate:
             1. Create a host by setting host param enable-remote-execution-pull/host_registration_remote_execution_pull
             2. Read the template to verify the host param and REX pull mode snippet for respective rhel hosts
 
-        :expectedresults: The rendered template has the host params set and correct home directory permissions for the rex user
+        :expectedresults: The rendered template has the host params set and correct home directory permissions for the rex user.
 
         :parametrized: yes
         """
@@ -742,3 +742,55 @@ class TestProvisioningTemplate:
         for kind in ['PXELinux', 'PXEGrub', 'PXEGrub2', 'iPXE', 'kexec']:
             render = host.read_template(data={'template_kind': kind})['template']
             assert 'fips=1' in render
+
+    @pytest.mark.rhel_ver_match('[^6]')
+    def test_positive_verify_chronyd_timesource_kickstart_template(
+        self,
+        module_sync_kickstart_content,
+        module_target_sat,
+        module_sca_manifest_org,
+        module_location,
+    ):
+        """Read the provision template and verify that chronyd is getting installed and the host params are set in rendered template.
+
+        :id: 0c408d6f-027f-40ca-b36d-fce524877f9b
+
+        :steps:
+            1. Create a host
+            2. Read the provision template to verify host params for NTP/Chrony and Timezone in rendered template.
+
+        :expectedresults: Template is rendered as per the host params set, chronyd is getting installed and timezone is set.
+
+        :Verifies: SAT-20243, SAT-19999
+
+        :parametrized: yes
+        """
+        ntp_server_value = 'server.example.com'
+        timezone = '(GMT+00:00) UTC'
+        host = module_target_sat.api.Host(
+            organization=module_sca_manifest_org,
+            location=module_location,
+            name=gen_string('alpha').lower(),
+            operatingsystem=module_sync_kickstart_content.os,
+            host_parameters_attributes=[
+                {
+                    'name': 'ntp-server',
+                    'value': ntp_server_value,
+                    'parameter_type': 'string',
+                },
+                {
+                    'name': 'time-zone',
+                    'value': timezone,
+                    'parameter_type': 'string',
+                },
+            ],
+        ).create()
+        render = host.read_template(data={'template_kind': 'provision'})['template']
+        # Check chronyd is getting installed in place of ntpdate which is deprecated.
+        assert 'systemctl enable --now chronyd' in render
+        assert 'yum -y install ntpdate' not in render
+        if module_sync_kickstart_content.os.major >= '9':
+            assert f'timesource --ntp-server {ntp_server_value}' in render
+            assert f'timezone --utc {timezone}' in render
+        else:
+            assert f'timezone --utc {timezone} --ntpservers {ntp_server_value}' in render
