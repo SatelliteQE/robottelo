@@ -40,6 +40,7 @@ class EnablePluginsSatellite:
         return self
 
     def enable_multicv_setting(self):
+        """Makes multi-CV setting available in the downstream Satellite"""
         cfg_file = 'upstream_only_settings.rb'
         cfg_path = self.execute(f'find /usr/share/gems/gems/ -name {cfg_file}').stdout.strip()
         assert cfg_file in cfg_path, 'Config file not found'
