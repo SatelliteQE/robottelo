@@ -37,6 +37,7 @@ from robottelo.constants import (
     FAKE_FILE_NEW_NAME,
     KICKSTART_CONTENT,
     PRDS,
+    PULP_ARTIFACT_DIR,
     REPOS,
     REPOSET,
     RH_CONTAINER_REGISTRY_HUB,
@@ -50,7 +51,6 @@ from robottelo.content_info import (
     get_repomd_revision,
 )
 from robottelo.utils.datafactory import gen_string
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture
@@ -68,6 +68,20 @@ def default_non_admin_user(target_sat, default_org, default_location):
     user.delete()
 
 
+@pytest.fixture(scope='module')
+def module_autosync_setting(request, module_target_sat, module_capsule_configured):
+    """Set capsule autosync setting"""
+    setting_entity = module_target_sat.api.Setting().search(
+        query={'search': 'name=foreman_proxy_content_auto_sync'}
+    )[0]
+    original_autosync = setting_entity.value
+    setting_entity.value = request.param
+    setting_entity.update({'value'})
+    yield
+    setting_entity.value = original_autosync
+    setting_entity.update({'value'})
+
+
 @pytest.mark.run_in_one_thread
 class TestCapsuleContentManagement:
     """Content Management related tests, which exercise katello with pulp
@@ -75,7 +89,7 @@ class TestCapsuleContentManagement:
     """
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_uploaded_content_library_sync(
         self,
         module_capsule_configured,
@@ -136,7 +150,7 @@ class TestCapsuleContentManagement:
         assert caps_files[0] == RPM_TO_UPLOAD
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_checksum_sync(
         self, module_capsule_configured, function_org, function_product, function_lce, target_sat
     ):
@@ -155,10 +169,12 @@ class TestCapsuleContentManagement:
 
         :CaseImportance: Critical
         """
+        original_checksum = 'sha256'
+        new_checksum = 'sha512'
         # Create repository with sha256 checksum type
         repo = target_sat.api.Repository(
             product=function_product,
-            checksum_type='sha256',
+            checksum_type=original_checksum,
             mirroring_policy='additive',
             download_policy='immediate',
         ).create()
@@ -188,7 +204,7 @@ class TestCapsuleContentManagement:
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
-        # Verify repodata's checksum type is sha256, not sha1 on capsule
+        # Verify repodata's checksum type is sha256, not sha512 on capsule
         repo_url = module_capsule_configured.get_published_repo_url(
             org=function_org.label,
             prod=function_product.label,
@@ -198,11 +214,11 @@ class TestCapsuleContentManagement:
         )
         repomd = get_repomd(repo_url)
         checksum_types = re.findall(r'(?<=checksum type=").*?(?=")', repomd)
-        assert "sha1" not in checksum_types
-        assert "sha256" in checksum_types
+        assert new_checksum not in checksum_types
+        assert original_checksum in checksum_types
 
-        # Update repo's checksum type to sha1
-        repo.checksum_type = 'sha1'
+        # Update repo's checksum type to sha512
+        repo.checksum_type = new_checksum
         repo = repo.update(['checksum_type'])
 
         # Sync, publish, and promote repo
@@ -221,11 +237,11 @@ class TestCapsuleContentManagement:
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
-        # Verify repodata's checksum type has updated to sha1 on capsule
+        # Verify repodata's checksum type has updated to sha512 on capsule
         repomd = get_repomd(repo_url)
         checksum_types = re.findall(r'(?<=checksum type=").*?(?=")', repomd)
-        assert "sha1" in checksum_types
-        assert "sha256" not in checksum_types
+        assert new_checksum in checksum_types
+        assert original_checksum not in checksum_types
 
     @pytest.mark.skip_if_open("BZ:2025494")
     @pytest.mark.e2e
@@ -338,7 +354,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.e2e
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_capsule_sync(
         self,
         target_sat,
@@ -490,7 +506,7 @@ class TestCapsuleContentManagement:
         assert sat_files == caps_files
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_iso_library_sync(
         self, module_capsule_configured, module_sca_manifest_org, module_target_sat
     ):
@@ -557,7 +573,7 @@ class TestCapsuleContentManagement:
         assert set(sat_isos) == set(caps_isos)
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_on_demand_sync(
         self,
         target_sat,
@@ -635,14 +651,14 @@ class TestCapsuleContentManagement:
         assert len(caps_files) == packages_count
 
         # Download a package from the Capsule and get its md5 checksum
-        published_package_md5 = target_sat.md5_by_url(f'{caps_repo_url}/{package}')
+        published_package_md5 = target_sat.checksum_by_url(f'{caps_repo_url}/{package}')
         # Get md5 checksum of source package
-        package_md5 = target_sat.md5_by_url(f'{repo_url}/{package}')
+        package_md5 = target_sat.checksum_by_url(f'{repo_url}/{package}')
         # Assert checksums are matching
         assert package_md5 == published_package_md5
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_update_with_immediate_sync(
         self,
         target_sat,
@@ -744,7 +760,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.skip_if_open("BZ:2122780")
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_capsule_pub_url_accessible(self, module_capsule_configured):
         """Ensure capsule pub url is accessible
 
@@ -768,7 +784,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.e2e
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients')
+    @pytest.mark.skip_if_not_set('capsule')
     @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos'])
     def test_positive_sync_kickstart_repo(
         self, target_sat, module_capsule_configured, function_sca_manifest_org, distro
@@ -847,8 +863,10 @@ class TestCapsuleContentManagement:
 
         # Check kickstart specific files
         for file in KICKSTART_CONTENT:
-            sat_file = target_sat.md5_by_url(f'{target_sat.url}/{url_base}/{file}')
-            caps_file = target_sat.md5_by_url(f'{module_capsule_configured.url}/{url_base}/{file}')
+            sat_file = target_sat.checksum_by_url(f'{target_sat.url}/{url_base}/{file}')
+            caps_file = target_sat.checksum_by_url(
+                f'{module_capsule_configured.url}/{url_base}/{file}'
+            )
             assert sat_file == caps_file
 
         # Check packages
@@ -861,12 +879,12 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.tier4
     @pytest.mark.e2e
-    @pytest.mark.skip_if_not_set('capsule', 'clients')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_container_repo_end_to_end(
         self,
         target_sat,
         module_capsule_configured,
-        container_contenthost,
+        module_container_contenthost,
         function_org,
         function_product,
         function_lce,
@@ -943,54 +961,53 @@ class TestCapsuleContentManagement:
         ]
 
         for con_client in CONTAINER_CLIENTS:
-            result = container_contenthost.execute(
+            result = module_container_contenthost.execute(
                 f'{con_client} login -u {settings.server.admin_username}'
                 f' -p {settings.server.admin_password} {module_capsule_configured.hostname}'
             )
             assert result.status == 0
 
             for path in repo_paths:
-                result = container_contenthost.execute(
+                result = module_container_contenthost.execute(
                     f'{con_client} search {module_capsule_configured.hostname}/{path}'
                 )
                 assert result.status == 0
 
-                result = container_contenthost.execute(
+                result = module_container_contenthost.execute(
                     f'{con_client} pull {module_capsule_configured.hostname}/{path}'
                 )
                 assert result.status == 0
 
-                result = container_contenthost.execute(
+                result = module_container_contenthost.execute(
                     f'{con_client} rmi {module_capsule_configured.hostname}/{path}'
                 )
                 assert result.status == 0
 
-            result = container_contenthost.execute(
+            result = module_container_contenthost.execute(
                 f'{con_client} logout {module_capsule_configured.hostname}'
             )
             assert result.status == 0
 
         # Inspect the images with skopeo (BZ#2148813)
-        if not is_open('BZ:2148813'):
-            result = module_capsule_configured.execute('yum -y install skopeo')
+        result = module_capsule_configured.execute('yum -y install skopeo')
+        assert result.status == 0
+
+        target_sat.api.LifecycleEnvironment(
+            id=function_lce.id, registry_unauthenticated_pull='true'
+        ).update(['registry_unauthenticated_pull'])
+
+        sleep(20)
+
+        skopeo_cmd = 'skopeo --debug inspect docker://'
+        for path in repo_paths:
+            result = module_capsule_configured.execute(
+                f'{skopeo_cmd}{target_sat.hostname}/{path}:latest'
+            )
             assert result.status == 0
-
-            target_sat.api.LifecycleEnvironment(
-                id=function_lce.id, registry_unauthenticated_pull='true'
-            ).update(['registry_unauthenticated_pull'])
-
-            sleep(20)
-
-            skopeo_cmd = 'skopeo --debug inspect docker://'
-            for path in repo_paths:
-                result = module_capsule_configured.execute(
-                    f'{skopeo_cmd}{target_sat.hostname}/{path}:latest'
-                )
-                assert result.status == 0
-                result = module_capsule_configured.execute(
-                    f'{skopeo_cmd}{module_capsule_configured.hostname}/{path}:latest'
-                )
-                assert result.status == 0
+            result = module_capsule_configured.execute(
+                f'{skopeo_cmd}{module_capsule_configured.hostname}/{path}:latest'
+            )
+            assert result.status == 0
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
@@ -1162,8 +1179,8 @@ class TestCapsuleContentManagement:
         assert sat_files == caps_files
 
         for file in sat_files:
-            sat_file = target_sat.md5_by_url(f'{sat_repo_url}{file}')
-            caps_file = target_sat.md5_by_url(f'{caps_repo_url}{file}')
+            sat_file = target_sat.checksum_by_url(f'{sat_repo_url}{file}')
+            caps_file = target_sat.checksum_by_url(f'{caps_repo_url}{file}')
             assert sat_file == caps_file
 
     @pytest.mark.tier4
@@ -1370,9 +1387,7 @@ class TestCapsuleContentManagement:
         assert sync_status['result'] == 'success', 'Capsule sync task failed.'
 
         # Ensure the RPM artifacts were created.
-        result = capsule_configured.execute(
-            'ls /var/lib/pulp/media/artifact/*/* | xargs file | grep RPM'
-        )
+        result = capsule_configured.execute(f'ls {PULP_ARTIFACT_DIR}*/* | xargs file | grep RPM')
         assert not result.status, 'RPM artifacts are missing after capsule sync.'
 
         # Remove the Library LCE from the capsule and resync it.
@@ -1401,9 +1416,7 @@ class TestCapsuleContentManagement:
         )
 
         # Ensure the artifacts were removed.
-        result = capsule_configured.execute(
-            'ls /var/lib/pulp/media/artifact/*/* | xargs file | grep RPM'
-        )
+        result = capsule_configured.execute(f'ls {PULP_ARTIFACT_DIR}*/* | xargs file | grep RPM')
         assert result.status, 'RPM artifacts are still present. They should be gone.'
 
     @pytest.mark.skip_if_not_set('capsule')
@@ -1651,6 +1664,113 @@ class TestCapsuleContentManagement:
         assert (
             counts is None or len(counts['content_view_versions']) == 0
         ), f"No content counts expected, but got:\n{counts['content_view_versions']}."
+
+    @pytest.mark.parametrize('module_autosync_setting', [True], indirect=True)
+    @pytest.mark.parametrize(
+        'setting_update', ['automatic_content_count_updates=False'], indirect=True
+    )
+    def test_automatic_content_counts_update_toggle(
+        self,
+        target_sat,
+        module_capsule_configured,
+        module_autosync_setting,
+        setting_update,
+        function_org,
+        function_product,
+        function_lce,
+    ):
+        """Verify the automatic content counts update can be turned off and on again.
+
+        :id: aa8d50e3-c04c-4e0f-a1c2-544767331973
+
+        :setup:
+            1. Satellite with registered external Capsule.
+            2. foreman_proxy_content_auto_sync setting is turned on.
+            3. automatic_content_count_updates setting is turned off.
+
+        :steps:
+            1. Sync some content to the Capsule, capsule is synced automatically.
+            2. Verify no content counts update task was spawned after capsule sync completed.
+            3. Invoke manual capsule sync and verify no update task was spawned again.
+            4. Turn the automatic_content_count_updates on, invoke manual capsule sync again
+               and verify the update task was spawned this time.
+
+        :expectedresults:
+            1. Capsule content counts update task respects the setting.
+
+        :CaseImportance: Medium
+
+        :BlockedBy: SAT-25503
+
+        :BZ: 2284027
+
+        :customerscenario: true
+        """
+        # Sync some content to the Capsule, capsule is synced automatically.
+        repo = target_sat.api.Repository(
+            product=function_product, url=settings.repos.yum_1.url
+        ).create()
+        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': function_lce.id}
+        )
+        capsule_lces = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        assert len(capsule_lces['results'])
+        assert function_lce.id in [lce['id'] for lce in capsule_lces['results']]
+
+        cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
+        repo.sync()
+        cv.publish()
+        cv = cv.read()
+
+        cvv = cv.version[-1].read()
+        timestamp = datetime.utcnow()
+        cvv.promote(data={'environment_ids': function_lce.id})
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
+
+        # Verify no content counts update task was spawned after capsule sync completed.
+        with pytest.raises(AssertionError) as err:
+            target_sat.wait_for_tasks(
+                search_query=(
+                    'label = Actions::Katello::CapsuleContent::UpdateContentCounts'
+                    f' and started_at >= "{timestamp}"'
+                ),
+                search_rate=5,
+                max_tries=12,
+            )
+        assert 'No task was found' in str(err)
+
+        # Invoke manual capsule sync and verify no update task again.
+        sync_status = module_capsule_configured.nailgun_capsule.content_sync()
+        assert sync_status['result'] == 'success'
+
+        with pytest.raises(AssertionError) as err:
+            target_sat.wait_for_tasks(
+                search_query=(
+                    'label = Actions::Katello::CapsuleContent::UpdateContentCounts'
+                    f' and started_at >= "{timestamp}"'
+                ),
+                search_rate=5,
+                max_tries=12,
+            )
+        assert 'No task was found' in str(err)
+
+        # Turn the automatic_content_count_updates on, invoke manual capsule sync again
+        # and verify the update task was spawned this time.
+        setting_update.value = True
+        setting_update = setting_update.update({'value'})
+
+        sync_status = module_capsule_configured.nailgun_capsule.content_sync()
+        assert sync_status['result'] == 'success'
+
+        target_sat.wait_for_tasks(
+            search_query=(
+                'label = Actions::Katello::CapsuleContent::UpdateContentCounts'
+                f' and started_at >= "{timestamp}"'
+            ),
+            search_rate=5,
+            max_tries=12,
+        )
 
     def test_positive_read_with_non_admin_user(
         self,

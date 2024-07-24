@@ -16,6 +16,7 @@ from fauxfactory import gen_string
 import pytest
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_org, module_puppet_loc):

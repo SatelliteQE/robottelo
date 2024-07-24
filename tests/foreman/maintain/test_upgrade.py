@@ -15,7 +15,7 @@
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import INSTALLER_CONFIG_FILE, SATELLITE_VERSION
+from robottelo.constants import INSTALLER_CONFIG_FILE
 
 
 def last_y_stream_version(release):
@@ -26,42 +26,6 @@ def last_y_stream_version(release):
     y = release.split('.')[1]
     y_minus = str(int(y) - 1)
     return f"{release.split('.')[0]}.{y_minus}"
-
-
-@pytest.mark.e2e
-@pytest.mark.include_capsule
-def test_positive_satellite_maintain_upgrade_list(sat_maintain):
-    """List versions this system is upgradable to
-
-    :id: 12efec41-4f09-4199-a20c-a4525e773b78
-
-    :parametrized: yes
-
-    :steps:
-        1. Run satellite-maintain upgrade list-versions
-
-    :expectedresults: Versions system is upgradable to are listed.
-    """
-    xy_version = '.'.join(sat_maintain.version.split('.')[:2])
-    previous_xy_version = '.'.join(
-        [xy_version.split('.')[0], str(int(xy_version.split('.')[1]) - 1)]
-    )
-    if sat_maintain.version.startswith(xy_version):
-        versions = [f'{xy_version}.z']
-    elif sat_maintain.version.startswith(previous_xy_version):
-        versions = [f'{previous_xy_version}.z', xy_version]
-    else:
-        versions = ['Unsupported Satellite/Capsule version']
-
-    # Reboot if needed
-    if sat_maintain.execute('needs-restarting -r').status == 1:
-        sat_maintain.power_control(state='reboot')
-
-    result = sat_maintain.cli.Upgrade.list_versions()
-    assert result.status == 0
-    assert 'FAIL' not in result.stdout
-    for ver in versions:
-        assert ver in result.stdout
 
 
 @pytest.mark.include_capsule
@@ -80,12 +44,11 @@ def test_positive_repositories_validate(sat_maintain):
 
     :BZ: 1632111
     """
-    xy_version = '.'.join(sat_maintain.version.split('.')[:2])
     skip_message = 'Your system is subscribed using custom activation key'
-    result = sat_maintain.cli.Upgrade.check(
+    result = sat_maintain.cli.Update.check(
         options={
             'assumeyes': True,
-            'target-version': f'{xy_version}.z',
+            'disable-self-update': True,
             'whitelist': 'check-non-redhat-repository',
         },
         env_var='EXTERNAL_SAT_ORG=Sat6-CI EXTERNAL_SAT_ACTIVATION_KEY=Ext_AK',
@@ -111,37 +74,25 @@ def test_positive_repositories_validate(sat_maintain):
     ids=['default', 'medium'],
     indirect=True,
 )
-def test_negative_pre_upgrade_tuning_profile_check(request, custom_host):
+def test_negative_pre_update_tuning_profile_check(request, custom_host):
     """Negative test that verifies a satellite with less than
-    tuning profile hardware requirements fails on pre-upgrade check.
+    tuning profile hardware requirements fails on pre-update check.
 
     :id: 240bb97e-7353-4397-8d0e-228c3593c8cc
 
     :steps:
         1. Check out a RHEL instance with less than tuning requirements
         2. Install Satellite
-        3. Run pre-upgrade check
+        3. Run pre-update check
 
-    :expectedresults: Pre-upgrade check fails.
+    :expectedresults: Pre-update check fails.
     """
     profile = request.node.callspec.id
-    rhel_major = custom_host.os_version.major
     sat_version = ".".join(settings.server.version.release.split('.')[0:2])
-    # Register to CDN for RHEL repos, download and enable last y stream's ohsnap repos,
+    # Register to CDN for RHEL repos, download and enable ohsnap repos,
     # and enable the satellite module and install it on the host
     custom_host.register_to_cdn()
-    last_y_stream = last_y_stream_version(
-        SATELLITE_VERSION if sat_version == 'stream' else sat_version
-    )
-    # Updated test to do a z-stream upgrade, as Satellite on RHEL9 is supported from 6.16 onwards.
-    # Remove this condition once 6.16 is GA
-    target_version = (
-        '6.16.z' if (SATELLITE_VERSION == '6.16' and rhel_major == 9) else SATELLITE_VERSION
-    )
-    if target_version == '6.16.z':
-        custom_host.download_repofile(product='satellite', release=sat_version)
-    else:
-        custom_host.download_repofile(product='satellite', release=last_y_stream)
+    custom_host.download_repofile(product='satellite', release=sat_version)
     custom_host.install_satellite_or_capsule_package()
     # Install with development tuning profile to get around installer checks
     custom_host.execute(
@@ -153,19 +104,12 @@ def test_negative_pre_upgrade_tuning_profile_check(request, custom_host):
         f'sed -i "s/tuning: development/tuning: {profile}/g" {INSTALLER_CONFIG_FILE};'
         f'satellite-installer'
     )
-    # Get current Satellite version's repofile
-    custom_host.download_repofile(
-        product='satellite', release=sat_version, snap=settings.server.version.snap
-    )
-    # Run satellite-maintain to have it self update to the newest version,
-    # however, this will not actually execute the command after updating
-    custom_host.execute('satellite-maintain upgrade list-versions')
-    # Check that we can upgrade to the new Y stream version
-    result = custom_host.execute('satellite-maintain upgrade list-versions')
-    assert target_version in result.stdout
-    # Check that the upgrade check fails due to system requirements
-    result = custom_host.execute(
-        f'satellite-maintain upgrade check --target-version {target_version}', timeout='5m'
+    # Check that the update check fails due to system requirements
+    result = custom_host.cli.Update.check(
+        options={
+            'assumeyes': True,
+            'disable-self-update': True,
+        }
     )
     assert (
         f'ERROR: The installer is configured to use the {profile} tuning '
@@ -182,8 +126,8 @@ def test_positive_self_update_maintain_package(sat_maintain):
     :parametrized: yes
 
     :steps:
-        1. Run satellite-maintain upgrade list-versions/check/run command.
-        2. Run satellite-maintain upgrade list-versions/check/run command
+        1. Run satellite-maintain update check command.
+        2. Run satellite-maintain update check command
             with disable-self-upgrade option.
 
     :expectedresults:
@@ -192,10 +136,17 @@ def test_positive_self_update_maintain_package(sat_maintain):
 
     :BZ: 1649329
     """
-    result = sat_maintain.cli.Upgrade.list_versions()
+    result = sat_maintain.cli.Update.check(
+        options={'whitelist': 'repositories-validate, non-rh-packages'}
+    )
     assert result.status == 0
     assert 'Checking for new version of satellite-maintain...' in result.stdout
-    result = sat_maintain.cli.Upgrade.list_versions(options={'disable-self-upgrade': True})
+    result = sat_maintain.cli.Update.check(
+        options={
+            'whitelist': 'repositories-validate, non-rh-packages',
+            'disable-self-update': True,
+        }
+    )
     assert result.status == 0
     assert 'Checking for new version of satellite-maintain...' not in result.stdout
 
@@ -236,8 +187,8 @@ def test_positive_check_presence_satellite_or_satellite_capsule(sat_maintain):
     :parametrized: yes
 
     :steps:
-        1. Run satellite-maintain upgrade list-versions/check/run command.
-        2. Run satellite-maintain upgrade list-versions/check/run command,
+        1. Run satellite-maintain upgrade check/run command.
+        2. Run satellite-maintain upgrade check/run command,
             after removing satellite and satellite-capsule packages.
 
     :expectedresults:

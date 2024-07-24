@@ -42,20 +42,29 @@ def test_host_registration_end_to_end(
 
     :steps:
         1. Register host with global registration template to Satellite and Capsule
+        2. Check the host is registered and verify host owner name
 
-    :expectedresults: Host registered successfully
+    :expectedresults: Host registered successfully with valid owner name
 
-    :BZ: 2156926
+    :BZ: 2156926, 2252768
 
     :customerscenario: true
     """
     org = module_sca_manifest_org
     result = rhel_contenthost.register(
-        org, module_location, [module_activation_key.name], module_target_sat
+        org, module_location, module_activation_key.name, module_target_sat
     )
 
     rc = 1 if rhel_contenthost.os_version.major == 6 else 0
     assert result.status == rc, f'Failed to register host: {result.stderr}'
+
+    owner_name = module_target_sat.cli.Host.info(
+        options={'name': rhel_contenthost.hostname, 'fields': 'Additional info/owner'}
+    )
+    # Verify host owner name set correctly
+    assert 'Admin User' in owner_name['additional-info']['owner']['name'], (
+        f'Host owner name is incorrect: ' f'{owner_name["additional-info"]["owner"]["name"]}'
+    )
 
     # Verify server.hostname and server.port from subscription-manager config
     assert module_target_sat.hostname == rhel_contenthost.subscription_config['server']['hostname']
@@ -72,12 +81,20 @@ def test_host_registration_end_to_end(
     result = rhel_contenthost.register(
         org,
         module_location,
-        [module_activation_key.name],
+        module_activation_key.name,
         module_capsule_configured,
         force=True,
     )
     rc = 1 if rhel_contenthost.os_version.major == 6 else 0
     assert result.status == rc, f'Failed to register host: {result.stderr}'
+
+    owner_name = module_target_sat.cli.Host.info(
+        options={'name': rhel_contenthost.hostname, 'fields': 'Additional info/owner'}
+    )
+    # Verify capsule host owner name set correctly
+    assert 'Admin User' in owner_name['additional-info']['owner']['name'], (
+        f'Host owner name is incorrect: ' f'{owner_name["additional-info"]["owner"]["name"]}'
+    )
 
     # Verify server.hostname and server.port from subscription-manager config
     assert (
@@ -268,7 +285,7 @@ def test_positive_custom_facts_for_host_registration(
         json.dump(facts, f, indent=4)
     rhel_contenthost.put(facts_file, '/etc/rhsm/facts/')
     result = rhel_contenthost.register(
-        module_sca_manifest_org, module_location, [module_activation_key.name], module_target_sat
+        module_sca_manifest_org, module_location, module_activation_key.name, module_target_sat
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     host_info = module_target_sat.cli.Host.info(

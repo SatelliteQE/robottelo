@@ -5,21 +5,10 @@ from pathlib import Path
 from box import Box
 from nailgun import entities
 
-
-# String Color codes
-class Colored(Box):
-    YELLOW = '\033[1;33m'
-    REDLIGHT = '\033[3;31m'
-    REDDARK = '\033[1;31m'
-    GREEN = '\033[1;32m'
-    WHITELIGHT = '\033[1;30m'
-    RESET = '\033[0m'
-
-
 # This should be updated after each version branch
-SATELLITE_VERSION = "6.16"
+SATELLITE_VERSION = "6.17"
 SATELLITE_OS_VERSION = "8"
-SAT_NON_GA_VERSIONS = ['6.15', '6.16']
+SAT_NON_GA_VERSIONS = ['6.16', '6.17']
 
 # Default system ports
 HTTPS_PORT = '443'
@@ -112,13 +101,12 @@ _abcs = dict.fromkeys(
 )
 _zones_combo = {**_bcds, **_abcfs, **_abcs}
 VALID_GCE_ZONES = [f'{loc}-{zone}' for loc, zones in _zones_combo.items() for zone in zones]
-LATEST_RHEL7_GCE_IMG_UUID = '7726764279310511390'
 
 GCE_MACHINE_TYPE_DEFAULT = 'f1-micro'
 GCE_NETWORK_DEFAULT = 'default'
 GCE_EXTERNAL_IP_DEFAULT = True
 GCE_RHEL_CLOUD_PROJECTS = ['rhel-cloud', 'rhel-sap-cloud']
-GCE_TARGET_RHEL_IMAGE_NAME = 'rhel-7'
+GCE_TARGET_RHEL_IMAGE_NAME = 'rhel-9'
 
 # AzureRM specific constants
 AZURERM_VALID_REGIONS = [
@@ -164,7 +152,7 @@ AZURERM_VALID_REGIONS = [
     'Norway East',
 ]
 AZURERM_RHEL7_FT_IMG_URN = 'marketplace://RedHat:RHEL:7-RAW:latest'
-AZURERM_RHEL7_UD_IMG_URN = 'marketplace://RedHat:RHEL:7-RAW-CI:7.6.2019072418'
+AZURERM_RHEL7_UD_IMG_URN = 'marketplace://RedHat:rhel-byos:rhel-raw-ci76:7.6.20190814'
 AZURERM_RHEL7_FT_BYOS_IMG_URN = 'marketplace://RedHat:rhel-byos:rhel-lvm78:7.8.20200410'
 AZURERM_RHEL7_FT_CUSTOM_IMG_URN = 'custom://imageVM1-RHEL7-image-20220617150105'
 AZURERM_RHEL7_FT_GALLERY_IMG_URN = 'gallery://RHEL77img'
@@ -539,32 +527,32 @@ REPOS = {
         },
         'rhel8_bos': {
             'id': 'rhel-8-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.9',
-            'version': '8.9',
+            'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.10',
+            'version': '8.10',
             'reposet': REPOSET['kickstart']['rhel8_bos'],
             'product': PRDS['rhel8'],
             'distro': 'rhel8',
         },
         'rhel8_aps': {
             'id': 'rhel-8-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.9',
-            'version': '8.9',
+            'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.10',
+            'version': '8.10',
             'reposet': REPOSET['kickstart']['rhel8_aps'],
             'product': PRDS['rhel8'],
             'distro': 'rhel8',
         },
         'rhel9_bos': {
             'id': 'rhel-9-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.3',
-            'version': '9.3',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.4',
+            'version': '9.4',
             'reposet': REPOSET['kickstart']['rhel9_bos'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
         'rhel9_aps': {
             'id': 'rhel-9-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.3',
-            'version': '9.3',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.4',
+            'version': '9.4',
             'reposet': REPOSET['kickstart']['rhel9_aps'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
@@ -717,15 +705,33 @@ FILTER_ERRATA_DATE = {'updated': "updated", 'issued': "issued"}
 REPORT_TEMPLATE_FILE = 'report_template.txt'
 CONTAINER_REGISTRY_HUB = 'https://mirror.gcr.io'
 RH_CONTAINER_REGISTRY_HUB = 'https://registry.redhat.io/'
+PULP_CONTAINER_REGISTRY_HUB = 'https://ghcr.io'
 CONTAINER_UPSTREAM_NAME = 'library/busybox'
 DOCKER_REPO_UPSTREAM_NAME = 'openshift3/logging-elasticsearch'
 CONTAINER_RH_REGISTRY_UPSTREAM_NAME = 'openshift3/ose-metrics-hawkular-openshift-agent'
+BOOTABLE_REPO = {
+    'upstream_name': 'pulp/bootc-labeled',
+    'manifests_count': 1,
+    'bootable': True,
+    'flatpak': False,
+    'labels_count': 2,
+    'annotations_count': 2,
+}
+FLATPAK_REPO = {
+    'upstream_name': 'pulp/oci-net.fishsoup.hello',
+    'manifests_count': 2,
+    'bootable': False,
+    'flatpak': True,
+    'labels_count': 10,
+    'annotations_count': 0,
+}
+LABELLED_REPOS = [BOOTABLE_REPO, FLATPAK_REPO]
+CONTAINER_MANIFEST_LABELS = {'annotations', 'labels', 'is_bootable', 'is_flatpak'}
 CONTAINER_CLIENTS = ['docker', 'podman']
 CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/lib/pulp/imports/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
-CUSTOM_REPODATA_PATH = '/var/lib/pulp/published/yum/https/repos'
 CERT_PATH = "/etc/pki/ca-trust/source/anchors/"
 CERT_DATA = {
     'capsule_hostname': 'capsule.example.com',
@@ -819,6 +825,8 @@ FAKE_2_ERRATA_ID = 'RHSA-2012:0055'  # for FAKE_1_CUSTOM_PACKAGE
 REAL_RHEL7_0_ERRATA_ID = 'RHBA-2020:3615'  # for REAL_RHEL7_0_0_PACKAGE
 REAL_RHEL7_1_ERRATA_ID = 'RHBA-2017:0395'  # tcsh bug fix update
 REAL_RHEL8_1_ERRATA_ID = 'RHSA-2022:4867'  # for REAL_RHEL8_1_PACKAGE
+REAL_RHEL8_ERRATA_CVES = ['CVE-2021-27023', 'CVE-2021-27025']
+REAL_RHSCLIENT_ERRATA = 'RHSA-2023:5982'  # for RH Satellite Client 8
 FAKE_1_YUM_REPOS_COUNT = 32
 FAKE_3_YUM_REPOS_COUNT = 78
 FAKE_9_YUM_SECURITY_ERRATUM = [
@@ -870,9 +878,11 @@ CUSTOM_PUPPET_MODULE_REPOS = {
 }
 CUSTOM_PUPPET_MODULE_REPOS_VERSION = '-0.2.0.tar.gz'
 
+PULP_ARTIFACT_DIR = '/var/lib/pulp/media/artifact/'
 PULP_EXPORT_DIR = '/var/lib/pulp/exports/'
 PULP_IMPORT_DIR = '/var/lib/pulp/imports/'
 EXPORT_LIBRARY_NAME = 'Export-Library'
+SUPPORTED_REPO_CHECKSUMS = ['sha256', 'sha384', 'sha512']
 
 PUPPET_COMMON_INSTALLER_OPTS = {
     'foreman-proxy-puppetca': 'true',
@@ -996,18 +1006,6 @@ PERMISSIONS = {
         'create_arf_reports',
         'view_arf_reports',
         'destroy_arf_reports',
-    ],
-    'ForemanOpenscap::OvalContent': [
-        'create_oval_contents',
-        'destroy_oval_contents',
-        'edit_oval_contents',
-        'view_oval_contents',
-    ],
-    'ForemanOpenscap::OvalPolicy': [
-        'create_oval_policies',
-        'destroy_oval_policies',
-        'edit_oval_policies',
-        'view_oval_policies',
     ],
     'ForemanOpenscap::Policy': [
         'assign_policies',
@@ -1734,6 +1732,14 @@ SATELLITE_MAINTAIN_YML = "/etc/foreman-maintain/foreman_maintain.yml"
 FOREMAN_SETTINGS_YML = '/etc/foreman/settings.yaml'
 
 FOREMAN_TEMPLATE_IMPORT_URL = 'https://github.com/SatelliteQE/foreman_templates.git'
+FOREMAN_TEMPLATES_IMPORT_COUNT = {
+    'PUPPET_ENABLED': 18,
+    'PUPPET_DISABLED': 17,
+}
+FOREMAN_TEMPLATES_NOT_IMPORTED_COUNT = {
+    'PUPPET_ENABLED': 8,
+    'PUPPET_DISABLED': 9,
+}
 FOREMAN_TEMPLATE_IMPORT_API_URL = 'http://api.github.com/repos/SatelliteQE/foreman_templates'
 
 FOREMAN_TEMPLATE_TEST_TEMPLATE = (
@@ -1759,6 +1765,8 @@ OPEN_STATUSES = ("NEW", "ASSIGNED", "POST", "MODIFIED")
 CLOSED_STATUSES = ("ON_QA", "VERIFIED", "RELEASE_PENDING", "CLOSED")
 WONTFIX_RESOLUTIONS = ("WONTFIX", "CANTFIX", "DEFERRED")
 # Jira statuses used by Robottelo issue handler.
+JIRA_TESTS_PASSED_LABEL = "tests-passed"
+JIRA_TESTS_FAILED_LABEL = "tests-failed"
 JIRA_OPEN_STATUSES = ("New", "Backlog", "Refinement", "To Do", "In Progress")
 JIRA_ONQA_STATUS = "Review"
 JIRA_CLOSED_STATUSES = ("Release Pending", "Closed")
@@ -1894,7 +1902,6 @@ FAM_TEST_PLAYBOOKS = [
     "content_export_repository",
     "content_export_version",
     "content_rhel_role",
-    "content_upload_ostree",
     "content_upload",
     "content_view_filter_info",
     "content_view_filter_rule_info",
@@ -1928,8 +1935,6 @@ FAM_TEST_PLAYBOOKS = [
     "http_proxy",
     "image",
     "installation_medium",
-    "inventory_plugin_ansible",
-    "inventory_plugin",
     "job_invocation",
     "job_template",
     "katello_hostgroup",
@@ -1955,9 +1960,9 @@ FAM_TEST_PLAYBOOKS = [
     "puppet_environment",
     "realm",
     "redhat_manifest",
+    "registration_command",
     "repositories_role",
     "repository_info",
-    "repository_ostree",
     "repository_set_info",
     "repository_set",
     "repository_sync",
@@ -1984,6 +1989,7 @@ FAM_TEST_PLAYBOOKS = [
     "usergroup",
     "user",
     "wait_for_task",
+    "webhook",
 ]
 
 FAM_ROOT_DIR = '/usr/share/ansible/collections/ansible_collections/redhat/satellite'
@@ -2022,9 +2028,7 @@ WEBHOOK_EVENTS = [
     "actions.remote_execution.run_host_job_ansible_enable_web_console_succeeded",
     "actions.remote_execution.run_host_job_ansible_run_capsule_upgrade_succeeded",
     "actions.remote_execution.run_host_job_ansible_run_host_succeeded",
-    "actions.remote_execution.run_host_job_ansible_run_insights_plan_succeeded",
     "actions.remote_execution.run_host_job_ansible_run_playbook_succeeded",
-    "actions.remote_execution.run_host_job_foreman_openscap_run_oval_scans_succeeded",
     "actions.remote_execution.run_host_job_foreman_openscap_run_scans_succeeded",
     "actions.remote_execution.run_host_job_katello_errata_install_succeeded",
     "actions.remote_execution.run_host_job_katello_group_install_succeeded",
@@ -2071,6 +2075,7 @@ WEBHOOK_METHODS = [
     "DELETE",
     "PATCH",
 ]
+LIFECYCLE_METADATA_FILE = '/usr/share/satellite/lifecycle-metadata.yml'
 
 OPENSSH_RECOMMENDATION = 'Decreased security: OpenSSH config permissions'
 DNF_RECOMMENDATION = (
@@ -2079,6 +2084,7 @@ DNF_RECOMMENDATION = (
 )
 
 EXPIRED_MANIFEST = 'expired-manifest.zip'
+EXPIRED_MANIFEST_DATE = 'Fri Dec 03 2021'
 
 
 # Data File Paths

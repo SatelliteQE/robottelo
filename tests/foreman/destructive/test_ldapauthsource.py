@@ -69,10 +69,7 @@ def test_rhsso_login_using_hammer(
     result = module_target_sat.cli.Auth.with_user(
         username=settings.rhsso.rhsso_user, password=settings.rhsso.rhsso_password
     ).status()
-    assert (
-        f"Session exists, currently logged in as '{settings.rhsso.rhsso_user}'."
-        == result[0]['message']
-    )
+    assert f"Session exists, currently logged in as '{settings.rhsso.rhsso_user}'." in result
     task_list = module_target_sat.cli.Task.with_user(
         username=settings.rhsso.rhsso_user, password=settings.rhsso.rhsso_password
     ).list()
@@ -136,15 +133,8 @@ def test_rhsso_two_factor_login_using_hammer(
             {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.rhsso_password},
             default_sso_host.get_two_factor_token_rh_sso_url(),
         )
-        with module_target_sat.session.shell() as ssh_session:
-            ssh_session.sendline(
-                f"echo '{two_factor_code['code']}' | hammer auth login oauth "
-                f'--oidc-token-endpoint {default_sso_host.oidc_token_endpoint} '
-                f'--oidc-authorization-endpoint {default_sso_host.oidc_authorization_endpoint} '
-                f'--oidc-client-id {default_sso_host.get_oidc_client_id()} '
-                f"--oidc-redirect-uri 'urn:ietf:wg:oauth:2.0:oob' "
-                f'--two-factor '
-            )
-            ssh_session.prompt()  # match the prompt
-            result = ssh_session.before.decode()
-            assert f"Successfully logged in as '{settings.rhsso.rhsso_user}'." in result
+    # to workaround SAT-25654, fake tty using 'ssh -tt'
+    result = module_target_sat.execute(
+        f"KEYPATH=/root/$RANDOM; ssh-keygen -f $KEYPATH -N ''; cat $KEYPATH.pub >> /root/.ssh/authorized_keys; ssh -tt -i $KEYPATH -o StrictHostKeyChecking=accept-new root@localhost 'echo '{two_factor_code['code']}' | hammer auth login oauth --oidc-token-endpoint {default_sso_host.oidc_token_endpoint} --oidc-authorization-endpoint {default_sso_host.oidc_authorization_endpoint} --oidc-client-id {default_sso_host.get_oidc_client_id()} --oidc-redirect-uri 'urn:ietf:wg:oauth:2.0:oob' --two-factor'"
+    )
+    assert f"Successfully logged in as '{settings.rhsso.rhsso_user}'." in result.stdout

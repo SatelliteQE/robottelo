@@ -82,7 +82,7 @@ def generate_strings_list(length=None, exclude_types=None, min_length=3, max_len
         generated list. example: exclude_types=['html', 'cjk']
     :param int min_length: Minimum length to be used in integer generator
     :param int max_length: Maximum length to be used in integer generator
-    :returns: A list of various string types.
+    :return: A list of various string types.
 
     """
     if length is None:
@@ -408,7 +408,7 @@ def valid_names_list():
         f"νέος χρήστης-{gen_string('utf8', 2)}",
         f"foo@!#$^&*( ) {gen_string('utf8')}",
         f"<blink>{gen_string('utf8')}</blink>",
-        f"bar+{{}}|\"?hi {gen_string('utf8')}",
+        f"bar+{{}}|?hi {gen_string('utf8')}",
         f" {gen_string('utf8')}",
         f"{gen_string('utf8')} ",
     ]

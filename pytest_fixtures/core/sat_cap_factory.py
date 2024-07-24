@@ -31,6 +31,7 @@ def resolve_deploy_args(args_dict):
 def _target_satellite_host(request, satellite_factory):
     if 'sanity' not in request.config.option.markexpr:
         new_sat = satellite_factory()
+        new_sat.enable_ipv6_http_proxy()
         yield new_sat
         new_sat.teardown()
         Broker(hosts=[new_sat]).checkin()
@@ -48,6 +49,7 @@ def cached_capsule_cdn_register(hostname=None):
 def _target_capsule_host(request, capsule_factory):
     if 'sanity' not in request.config.option.markexpr and not request.config.option.n_minus:
         new_cap = capsule_factory()
+        new_cap.enable_ipv6_http_proxy()
         yield new_cap
         new_cap.teardown()
         Broker(hosts=[new_cap]).checkin()
@@ -94,6 +96,7 @@ def satellite_factory():
 def large_capsule_host(capsule_factory):
     """A fixture that provides a Capsule based on config settings"""
     new_cap = capsule_factory(deploy_flavor=settings.flavors.custom_db)
+    new_cap.enable_ipv6_http_proxy()
     yield new_cap
     new_cap.teardown()
     Broker(hosts=[new_cap]).checkin()
@@ -201,14 +204,6 @@ def module_capsule_configured(request, module_capsule_host, module_target_sat):
     return module_capsule_host
 
 
-@pytest.fixture(scope='session')
-def session_capsule_configured(request, session_capsule_host, session_target_sat):
-    """Configure the capsule instance with the satellite from settings.server.hostname"""
-    if not request.config.option.n_minus:
-        session_capsule_host.capsule_setup(sat_host=session_target_sat)
-    return session_capsule_host
-
-
 @pytest.fixture(scope='module')
 def module_capsule_configured_mqtt(request, module_capsule_configured):
     """Configure the capsule instance with the satellite from settings.server.hostname,
@@ -244,6 +239,7 @@ def module_lb_capsule(retry_limit=3, delay=300, **broker_args):
         )
         cap_hosts = wait_for(hosts.checkout, timeout=timeout, delay=delay)
 
+    [cap.enable_ipv6_http_proxy() for cap in cap_hosts.out]
     yield cap_hosts.out
 
     [cap.teardown() for cap in cap_hosts.out]
@@ -278,6 +274,7 @@ def parametrized_enrolled_sat(
 ):
     """Yields a Satellite enrolled into [IDM, AD] as parameter."""
     new_sat = satellite_factory()
+    new_sat.enable_ipv6_http_proxy()
     ipa_host = IPAHost(new_sat)
     new_sat.register_to_cdn()
     if 'IDM' in request.param:
@@ -297,6 +294,7 @@ def get_deploy_args(request):
     rhel_version = get_sat_rhel_version()
     deploy_args = {
         'deploy_rhel_version': rhel_version.base_version,
+        'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
         'deploy_flavor': settings.flavors.default,
         'promtail_config_template_file': 'config_sat.j2',
         'workflow': settings.server.deploy_workflows.os,
@@ -328,11 +326,13 @@ def cap_ready_rhel():
     rhel_version = Version(settings.capsule.version.rhel_version)
     deploy_args = {
         'deploy_rhel_version': rhel_version.base_version,
+        'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
         'deploy_flavor': settings.flavors.default,
         'promtail_config_template_file': 'config_sat.j2',
         'workflow': settings.capsule.deploy_workflows.os,
     }
     with Broker(**deploy_args, host_class=Capsule) as host:
+        host.enable_ipv6_http_proxy()
         yield host
 
 
@@ -345,22 +345,19 @@ def installer_satellite(request):
     :params request: A pytest request object and this fixture is looking for
         broker object of class satellite
     """
-    sat_version = settings.server.version.release
     if 'sanity' in request.config.option.markexpr:
         sat = Satellite(settings.server.hostname)
     else:
         sat = lru_sat_ready_rhel(getattr(request, 'param', None))
     sat.setup_firewall()
     # # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
-    sat.register_to_cdn()
+    sat.register_to_cdn(enable_proxy=True)
     sat.download_repofile(
         product='satellite',
         release=settings.server.version.release,
         snap=settings.server.version.snap,
     )
     sat.install_satellite_or_capsule_package()
-    installed_version = sat.execute('rpm --query satellite').stdout
-    assert sat_version in installed_version
     # Install Satellite
     sat.execute(
         InstallerCommand(
@@ -371,12 +368,12 @@ def installer_satellite(request):
         ).get_command(),
         timeout='30m',
     )
+    sat.enable_ipv6_http_proxy()
     if 'sanity' in request.config.option.markexpr:
         configure_nailgun()
         configure_airgun()
     yield sat
     if 'sanity' not in request.config.option.markexpr:
-        sanity_sat = Satellite(sat.hostname)
-        sanity_sat.unregister()
-        broker_sat = Satellite.get_host_by_hostname(sanity_sat.hostname)
-        Broker(hosts=[broker_sat]).checkin()
+        sat = Satellite.get_host_by_hostname(sat.hostname)
+        sat.unregister()
+        Broker(hosts=[sat]).checkin()

@@ -84,5 +84,5 @@ def test_negative_remove_satellite_packages(sat_maintain):
         assert result.status != 0
         assert (
             'Problem: The operation would result in removing the following protected packages: satellite'
-            in str(result.stderr[1])
+            in str(result.stderr)
         )

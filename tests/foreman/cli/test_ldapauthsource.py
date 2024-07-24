@@ -13,7 +13,6 @@
 """
 
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 
 from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
@@ -22,15 +21,15 @@ from robottelo.utils.datafactory import generate_strings_list, parametrized
 
 
 @pytest.fixture
-def ldap_tear_down():
+def ldap_tear_down(module_target_sat):
     """Teardown the all ldap settings user, usergroup and ldap delete"""
     yield
-    ldap_auth_sources = entities.AuthSourceLDAP().search()
+    ldap_auth_sources = module_target_sat.api.AuthSourceLDAP().search()
     for ldap_auth in ldap_auth_sources:
-        users = entities.User(auth_source=ldap_auth).search()
+        users = module_target_sat.api.User(auth_source=ldap_auth).search()
         for user in users:
             user.delete()
-        user_groups = entities.UserGroup().search()
+        user_groups = module_target_sat.api.UserGroup().search()
         if user_groups:
             user_groups[0].delete()
         ldap_auth.delete()
@@ -150,15 +149,15 @@ class TestADAuthSource:
 class TestIPAAuthSource:
     """Implements FreeIPA ldap auth feature tests in CLI"""
 
-    def _clean_up_previous_ldap(self):
+    def _clean_up_previous_ldap(self, sat_instance):
         """clean up the all ldap settings user, usergroup and ldap delete"""
-        ldap = entities.AuthSourceLDAP().search()
+        ldap = sat_instance.api.AuthSourceLDAP().search()
         for ldap_auth in range(len(ldap)):
-            users = entities.User(auth_source=ldap[ldap_auth]).search()
+            users = sat_instance.api.User(auth_source=ldap[ldap_auth]).search()
             for user in range(len(users)):
                 users[user].delete()
             ldap[ldap_auth].delete()
-        user_groups = entities.UserGroup().search()
+        user_groups = sat_instance.api.UserGroup().search()
         for user_group in user_groups:
             user_group.delete()
 
@@ -218,7 +217,7 @@ class TestIPAAuthSource:
 
         :CaseImportance: Medium
         """
-        self._clean_up_previous_ldap()
+        self._clean_up_previous_ldap(module_target_sat)
         ipa_group_base_dn = default_ipa_host.group_base_dn.replace('foobargroup', 'foreman_group')
         member_username = 'foreman_test'
         member_group = 'foreman_group'
@@ -305,7 +304,7 @@ class TestIPAAuthSource:
 
         :CaseImportance: Medium
         """
-        self._clean_up_previous_ldap()
+        self._clean_up_previous_ldap(module_target_sat)
         ipa_group_base_dn = default_ipa_host.group_base_dn.replace('foobargroup', 'foreman_group')
         member_username = 'foreman_test'
         member_group = 'foreman_group'

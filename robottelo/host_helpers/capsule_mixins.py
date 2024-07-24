@@ -1,9 +1,14 @@
 from datetime import datetime, timedelta
 import time
 
+from box import Box
 from dateutil.parser import parse
 
-from robottelo.constants import PUPPET_CAPSULE_INSTALLER, PUPPET_COMMON_INSTALLER_OPTS
+from robottelo.constants import (
+    PULP_ARTIFACT_DIR,
+    PUPPET_CAPSULE_INSTALLER,
+    PUPPET_COMMON_INSTALLER_OPTS,
+)
 from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
 
@@ -149,3 +154,38 @@ class CapsuleInfo:
         if lce and cv:
             return f'{self.url}/pulp/content/{org}/{lce}/{cv}/custom/{prod}/{repo}/'
         return f'{self.url}/pulp/content/{org}/Library/custom/{prod}/{repo}/'
+
+    def get_artifacts(self, since=None, tz='UTC'):
+        """Get paths of pulp artifact.
+
+        :param str since: Creation time of artifact we are looking for.
+        :param str tz: Time zone for `since` param.
+        :return: A list of artifacts paths.
+        """
+        query = f'find {PULP_ARTIFACT_DIR} -type f'
+        if since:
+            query = f'{query} -newermt "{since} {tz}"'
+        return self.execute(query).stdout.splitlines()
+
+    def get_artifact_info(self, checksum=None, path=None):
+        """Returns information about pulp artifact if found on FS,
+        throws FileNotFoundError otherwise.
+
+        :param checksum: Checksum of the artifact to look for.
+        :param path: Path to the artifact.
+        :return: A Box with artifact path, size, latest sum and info.
+        """
+        if not (checksum or path):
+            raise ValueError('Either checksum or path must be specified')
+
+        if not path:
+            path = f'{PULP_ARTIFACT_DIR}{checksum[0:2]}/{checksum[2:]}'
+
+        res = self.execute(f'stat --format %s {path}')
+        if res.status:
+            raise FileNotFoundError(f'Artifact not found: {path}')
+        size = int(res.stdout)
+        real_sum = self.execute(f'sha256sum {path}').stdout.split()[0]
+        info = self.execute(f'file {path}').stdout.strip().split(': ')[1]
+
+        return Box(path=path, size=size, sum=real_sum, info=info)

@@ -209,10 +209,7 @@ def check_message_in_rhsm_log(message):
         delay=2,
     )
     logs = get_rhsm_log()
-    for line in logs.split('\n'):
-        if message in line:
-            return message
-    return False
+    return any(message in line for line in logs.split('\n'))
 
 
 def _get_hypervisor_mapping(hypervisor_type):
@@ -461,6 +458,33 @@ def hypervisor_json_create(hypervisors, guests):
     return {"hypervisors": hypervisors_list}
 
 
+def hypervisor_fake_json_create(hypervisors, guests):
+    """
+    Create a hypervisor guest json data for fake config usages. For example:
+    {'hypervisors': [{'uuid': '820b5143-3885-4dba-9358-4ce8c30d934e',
+    'guests': [{'guestId': 'afb91b1f-8438-46f5-bc67-d7ab328ef782', 'state': 1,
+    'attributes': {'active': 1, 'virtWhoType': 'esx'}}]}]}
+    :param hypervisors: how many hypervisors will be created
+    :param guests: how many guests will be created
+    """
+    hypervisors_list = [
+        {
+            'guests': [
+                {
+                    "guestId": str(uuid.uuid4()),
+                    "state": 1,
+                    "attributes": {"active": 1, "virtWhoType": "esx"},
+                }
+                for _ in range(guests)
+            ],
+            'name': str(uuid.uuid4()),
+            'uuid': str(uuid.uuid4()),
+        }
+        for _ in range(hypervisors)
+    ]
+    return {"hypervisors": hypervisors_list}
+
+
 def create_fake_hypervisor_content(org_label, hypervisors, guests):
     """
     Post the fake hypervisor content to satellite server
@@ -530,3 +554,97 @@ def get_configure_command_option(deploy_type, args, org=DEFAULT_ORG):
     if deploy_type == 'name':
         return f"hammer -u {username} -p {password} virt-who-config deploy --name {args['name']} --organization '{org}' "
     return None
+
+
+def vw_fake_conf_create(
+    owner,
+    rhsm_hostname,
+    rhsm_username,
+    rhsm_encrypted_password,
+    fake_conf_file,
+    json_file,
+    is_hypervisor=True,
+):
+    """Create fake config file
+    :param owner: Name of the Owner
+    :param rhsm_hostname: Name of the rhsm_hostname
+    :param rhsm_username: Name of the rhsm_username
+    :param rhsm_encrypted_password: Value of the rhsm_encrypted_password
+    :param fake_conf_file: Name of the fake_conf_file
+    :param json_file: Name of the json_file
+    :param is_hypervisor: Default ir True
+    :return:
+    """
+    conf_name = fake_conf_file.split("/")[-1].split(".")[0]
+    file = f'{fake_conf_file}\n'
+    title = f'[{conf_name}]\n'
+    type = 'type=fake\n'
+    json = f'file={json_file}\n'
+    is_hypervisor = f'is_hypervisor={is_hypervisor}\n'
+    owner = f'owner={owner}\n'
+    env = 'env = Library\n'
+    rhsm_hostname = f'rhsm_hostname={rhsm_hostname}\n'
+    rhsm_username = f'rhsm_username={rhsm_username}\n'
+    rhsm_encrypted_password = f'rhsm_encrypted_password={rhsm_encrypted_password}\n'
+    rhsm_prefix = 'rhsm_prefix=/rhsm\n'
+    rhsm_port = 'rhsm_port=443\n'
+    cmd = f'cat <<EOF > {file}{title}{type}{json}{is_hypervisor}{owner}{env}{rhsm_hostname}{rhsm_username}{rhsm_encrypted_password}{rhsm_prefix}{rhsm_port}EOF'
+    runcmd(cmd)
+
+
+def vw_run_option(option):
+    """virt who run by option
+    :param option:  -d, --debug  -o, --one-shot  -i INTERVAL, --interval INTERVAL -p, --print -c CONFIGS, --config CONFIGS --version
+    :ruturn:
+    """
+    runcmd('systemctl stop virt-who')
+    runcmd('pkill -9 virt-who')
+    runcmd(f'virt-who -{option}')
+
+
+def hypervisor_guest_mapping_check_legacy_ui(
+    org_session, form_data_ui, default_location, hypervisor_name, guest_name
+):
+    # Check virt-who config status
+    assert org_session.virtwho_configure.search(form_data_ui['name'])[0]['Status'] == 'ok'
+    # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in Legacy UI
+    org_session.location.select(default_location.name)
+    hypervisor_display_name = org_session.contenthost.search(hypervisor_name)[0]['Name']
+    hypervisorhost = org_session.contenthost.read_legacy_ui(hypervisor_display_name)
+    assert hypervisorhost['details']['subscription_status'] == 'Simple Content Access'
+    assert hypervisorhost['details']['virtual_guest'] == '1 Content Host'
+    # Check virtual guest subscription status and hypervisor host and virtual guest mapping in Legacy UI
+    virtualguest = org_session.contenthost.read_legacy_ui(guest_name)
+    assert virtualguest['details']['subscription_status'] == 'Simple Content Access'
+    assert virtualguest['details']['virtual_host'] == hypervisor_display_name
+
+
+def hypervisor_guest_mapping_newcontent_ui(org_session, hypervisor_name, guest_name):
+    hypervisor_display_name = org_session.contenthost.search(hypervisor_name)[0]['Name']
+    hypervisorhost_new_overview = org_session.host_new.get_details(
+        hypervisor_display_name, 'overview'
+    )
+    assert hypervisorhost_new_overview['overview']['host_status']['status_success'] == '2'
+    # hypervisor host Check details
+    hypervisorhost_new_detais = org_session.host_new.get_details(hypervisor_display_name, 'details')
+    assert (
+        hypervisorhost_new_detais['details']['system_properties']['sys_properties']['virtual_host']
+        == hypervisor_display_name
+    )
+    assert (
+        hypervisorhost_new_detais['details']['system_properties']['sys_properties']['name']
+        == guest_name
+    )
+    # Check guest overview
+    guest_new_overview = org_session.host_new.get_details(guest_name, 'overview')
+    assert guest_new_overview['overview']['host_status']['status_success'] == '2'
+    # Check guest details
+    virtualguest_new_detais = org_session.host_new.get_details(guest_name, 'details')
+    assert (
+        virtualguest_new_detais['details']['system_properties']['sys_properties']['virtual_host']
+        == hypervisor_display_name
+    )
+    assert (
+        virtualguest_new_detais['details']['system_properties']['sys_properties']['name']
+        == guest_name
+    )

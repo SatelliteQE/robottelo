@@ -182,7 +182,7 @@ def _permission_names(entity, which_perm: str) -> list:
     :param str which_perm: Either the word "create", "read", "update" or
         "delete".
     :raise: ``LookupError`` if a relevant permission cannot be found
-    :returns: list of found permission names
+    :return: list of found permission names
     """
     pattern = {'create': '^create_', 'delete': '^destroy_', 'read': '^view_', 'update': '^edit_'}[
         which_perm
@@ -227,7 +227,7 @@ class TestUserRole:
             searching for the permission with name ``perm_name``.
         :raises: ``requests.exceptions.HTTPError`` if an error occurs when
             updating ``self.user``'s roles.
-        :returns: Nothing.
+        :return: Nothing.
         """
         role = target_sat.api.Role().create()
         permissions = target_sat.api.Permission().search(query={'search': f'name="{perm_name}"'})

@@ -19,6 +19,7 @@ Subcommands::
     synchronize                   Sync a repository
     update                        Update a product
     update-proxy                  Updates an HTTP Proxy for a product
+    verify-checksum               Verify checksum for one or more products
 """
 
 from robottelo.cli.base import Base
@@ -34,22 +35,14 @@ class Product(Base):
 
     @classmethod
     def remove_sync_plan(cls, options=None):
-        """
-        Delete assignment sync plan and product.
-        """
-
+        """Delete assignment sync plan and product."""
         cls.command_sub = 'remove-sync-plan'
-
         return cls.execute(cls._construct_command(options))
 
     @classmethod
     def set_sync_plan(cls, options=None):
-        """
-        Assign sync plan to product.
-        """
-
+        """Assign sync plan to product."""
         cls.command_sub = 'set-sync-plan'
-
         return cls.execute(cls._construct_command(options))
 
     @classmethod
@@ -60,10 +53,12 @@ class Product(Base):
 
     @classmethod
     def update_proxy(cls, options=None):
-        """
-        Assign Http Proxy to products.
-        """
-
+        """Assign Http Proxy to products."""
         cls.command_sub = 'update-proxy'
-
         return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def verify_checksum(cls, options=None):
+        """Verify checksum for one or more products."""
+        cls.command_sub = 'verify-checksum'
+        return cls.execute(cls._construct_command(options), ignore_stderr=True)

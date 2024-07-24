@@ -1,6 +1,5 @@
 # Host Specific Fixtures
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 
 from robottelo.constants import DEFAULT_CV, ENVIRONMENT, PRDS, REPOS, REPOSET
@@ -12,22 +11,22 @@ def function_host(target_sat):
 
 
 @pytest.fixture(scope='module')
-def module_host():
-    return entities.Host().create()
+def module_host(module_target_sat):
+    return module_target_sat.api.Host().create()
 
 
 @pytest.fixture(scope='module')
-def module_model():
-    return entities.Model().create()
+def module_model(module_target_sat):
+    return module_target_sat.api.Model().create()
 
 
 @pytest.fixture(scope="module")
 def setup_rhst_repo(module_target_sat):
     """Prepare Satellite tools repository for usage in specified organization"""
-    org = entities.Organization().create()
-    cv = entities.ContentView(organization=org).create()
-    lce = entities.LifecycleEnvironment(organization=org).create()
-    ak = entities.ActivationKey(
+    org = module_target_sat.api.Organization().create()
+    cv = module_target_sat.api.ContentView(organization=org).create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
+    ak = module_target_sat.api.ActivationKey(
         environment=lce,
         organization=org,
     ).create()

@@ -18,6 +18,7 @@ Subcommands::
     synchronize                   Sync a repository
     update                        Update a repository
     upload-content                Upload content into the repository
+    verify-checksum               Verify checksum of repository contents
 """
 
 from robottelo.cli.base import Base
@@ -78,3 +79,15 @@ class Repository(Base):
         """Upload content to repository."""
         cls.command_sub = 'upload-content'
         return cls.execute(cls._construct_command(options), output_format='csv', ignore_stderr=True)
+
+    @classmethod
+    def reclaim_space(cls, options):
+        """Remove disk space from a synced repository"""
+        cls.command_sub = 'reclaim-space'
+        return cls.execute(cls._construct_command(options), output_format='csv', ignore_stderr=True)
+
+    @classmethod
+    def verify_checksum(cls, options):
+        """Verify checksum of repository contents."""
+        cls.command_sub = 'verify-checksum'
+        return cls.execute(cls._construct_command(options), ignore_stderr=True)

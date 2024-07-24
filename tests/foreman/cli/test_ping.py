@@ -37,7 +37,7 @@ def test_positive_ping(target_sat, switch_user):
     :customerscenario: true
     """
     result = target_sat.execute(f"su - {'postgres' if switch_user else 'root'} -c 'hammer ping'")
-    assert result.stderr[1].decode() == ''
+    assert result.stderr == ''
 
     # Filter lines containing status
     statuses = [line for line in result.stdout.splitlines() if 'status:' in line.lower()]

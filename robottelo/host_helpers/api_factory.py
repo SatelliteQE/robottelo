@@ -8,7 +8,6 @@ from datetime import datetime
 import time
 
 from fauxfactory import gen_ipaddr, gen_mac, gen_string
-from nailgun import entity_mixins
 from nailgun.client import request
 from nailgun.entity_mixins import call_entity_method_with_timeout
 from requests import HTTPError
@@ -16,13 +15,8 @@ from requests import HTTPError
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
-    DEFAULT_OS_SEARCH_QUERY,
-    DEFAULT_PTABLE,
-    DEFAULT_PXE_TEMPLATE,
-    DEFAULT_TEMPLATE,
     REPO_TYPE,
 )
-from robottelo.exceptions import ImproperlyConfigured
 from robottelo.host_helpers.repository_mixins import initiate_repo_helpers
 
 
@@ -169,261 +163,10 @@ class APIFactory:
             True
 
         :param name: A field name.
-        :returns: A set including both ``name`` and variations on ``name``.
+        :return: A set including both ``name`` and variations on ``name``.
 
         """
         return {f'{name}_name', f'{name}_id'}
-
-    def configure_provisioning(self, org=None, loc=None, compute=False, os=None):
-        """Create and configure org, loc, product, repo, cv, env. Update proxy,
-        domain, subnet, compute resource, provision templates and medium with
-        previously created entities and create a hostgroup using all mentioned
-        entities.
-
-        :param str org: Default Organization that should be used in both host
-            discovering and host provisioning procedures
-        :param str loc: Default Location that should be used in both host
-            discovering and host provisioning procedures
-        :param bool compute: If False creates a default Libvirt compute resource
-        :param str os: Specify the os to be used while provisioning and to
-            associate related entities to the specified os.
-        :return: List of created entities that can be re-used further in
-            provisioning or validation procedure (e.g. hostgroup or domain)
-        """
-        # Create new organization and location in case they were not passed
-        if org is None:
-            org = self._satellite.api.Organization().create()
-        if loc is None:
-            loc = self._satellite.api.Location(organization=[org]).create()
-        if settings.repos.rhel7_os is None:
-            raise ImproperlyConfigured('settings file is not configured for rhel os')
-        # Create a new Life-Cycle environment
-        lc_env = self._satellite.api.LifecycleEnvironment(organization=org).create()
-        # Create a Product, Repository for custom RHEL7 contents
-        product = self._satellite.api.Product(organization=org).create()
-        repo = self._satellite.api.Repository(
-            product=product, url=settings.repos.rhel7_os, download_policy='immediate'
-        ).create()
-
-        # Increased timeout value for repo sync and CV publishing and promotion
-        try:
-            old_task_timeout = entity_mixins.TASK_TIMEOUT
-            entity_mixins.TASK_TIMEOUT = 3600
-            repo.sync()
-            # Create, Publish and promote CV
-            content_view = self._satellite.api.ContentView(organization=org).create()
-            content_view.repository = [repo]
-            content_view = content_view.update(['repository'])
-            content_view.publish()
-            content_view = content_view.read()
-            content_view.read().version[0].promote(data={'environment_ids': lc_env.id})
-        finally:
-            entity_mixins.TASK_TIMEOUT = old_task_timeout
-        # Search for existing organization puppet environment, otherwise create a
-        # new one, associate organization and location where it is appropriate.
-        environments = self._satellite.api.Environment().search(
-            query=dict(search=f'organization_id={org.id}')
-        )
-        if len(environments) > 0:
-            environment = environments[0].read()
-            environment.location.append(loc)
-            environment = environment.update(['location'])
-        else:
-            environment = self._satellite.api.Environment(
-                organization=[org], location=[loc]
-            ).create()
-
-        # Search for SmartProxy, and associate location
-        proxy = self._satellite.api.SmartProxy().search(
-            query={'search': f'name={settings.server.hostname}'}
-        )
-        proxy = proxy[0].read()
-        if loc.id not in [location.id for location in proxy.location]:
-            proxy.location.append(loc)
-        if org.id not in [organization.id for organization in proxy.organization]:
-            proxy.organization.append(org)
-        proxy = proxy.update(['location', 'organization'])
-
-        # Search for existing domain or create new otherwise. Associate org,
-        # location and dns to it
-        _, _, domain = settings.server.hostname.partition('.')
-        domain = self._satellite.api.Domain().search(query={'search': f'name="{domain}"'})
-        if len(domain) == 1:
-            domain = domain[0].read()
-            domain.location.append(loc)
-            domain.organization.append(org)
-            domain.dns = proxy
-            domain = domain.update(['dns', 'location', 'organization'])
-        else:
-            domain = self._satellite.api.Domain(
-                dns=proxy, location=[loc], organization=[org]
-            ).create()
-
-        # Search if subnet is defined with given network.
-        # If so, just update its relevant fields otherwise,
-        # Create new subnet
-        network = settings.vlan_networking.subnet
-        subnet = self._satellite.api.Subnet().search(query={'search': f'network={network}'})
-        if len(subnet) == 1:
-            subnet = subnet[0].read()
-            subnet.domain = [domain]
-            subnet.location.append(loc)
-            subnet.organization.append(org)
-            subnet.dns = proxy
-            subnet.dhcp = proxy
-            subnet.tftp = proxy
-            subnet.discovery = proxy
-            subnet.ipam = 'DHCP'
-            subnet = subnet.update(
-                ['domain', 'discovery', 'dhcp', 'dns', 'location', 'organization', 'tftp', 'ipam']
-            )
-        else:
-            # Create new subnet
-            subnet = self._satellite.api.Subnet(
-                network=network,
-                mask=settings.vlan_networking.netmask,
-                domain=[domain],
-                location=[loc],
-                organization=[org],
-                dns=proxy,
-                dhcp=proxy,
-                tftp=proxy,
-                discovery=proxy,
-                ipam='DHCP',
-            ).create()
-
-        # Search if Libvirt compute-resource already exists
-        # If so, just update its relevant fields otherwise,
-        # Create new compute-resource with 'libvirt' provider.
-        # compute boolean is added to not block existing test's that depend on
-        # Libvirt resource and use this same functionality to all CR's.
-        if compute is False:
-            resource_url = f'qemu+ssh://root@{settings.libvirt.libvirt_hostname}/system'
-            comp_res = [
-                res
-                for res in self._satellite.api.LibvirtComputeResource().search()
-                if res.provider == 'Libvirt' and res.url == resource_url
-            ]
-            if len(comp_res) > 0:
-                computeresource = self._satellite.api.LibvirtComputeResource(
-                    id=comp_res[0].id
-                ).read()
-                computeresource.location.append(loc)
-                computeresource.organization.append(org)
-                computeresource.update(['location', 'organization'])
-            else:
-                # Create Libvirt compute-resource
-                self._satellite.api.LibvirtComputeResource(
-                    provider='libvirt',
-                    url=resource_url,
-                    set_console_password=False,
-                    display_type='VNC',
-                    location=[loc.id],
-                    organization=[org.id],
-                ).create()
-
-        # Get the Partition table ID
-        ptable = (
-            self._satellite.api.PartitionTable()
-            .search(query={'search': f'name="{DEFAULT_PTABLE}"'})[0]
-            .read()
-        )
-        if loc.id not in [location.id for location in ptable.location]:
-            ptable.location.append(loc)
-        if org.id not in [organization.id for organization in ptable.organization]:
-            ptable.organization.append(org)
-        ptable = ptable.update(['location', 'organization'])
-
-        # Get the OS ID
-        if os is None:
-            os = (
-                self._satellite.api.OperatingSystem()
-                .search(query={'search': DEFAULT_OS_SEARCH_QUERY})[0]
-                .read()
-            )
-        else:
-            os_ver = os.split(' ')[1].split('.')
-            os = (
-                self._satellite.api.OperatingSystem()
-                .search(
-                    query={
-                        'search': f'family="Redhat" AND major="{os_ver[0]}" '
-                        f'AND minor="{os_ver[1]}")'
-                    }
-                )[0]
-                .read()
-            )
-
-        # Get the Provisioning template_ID and update with OS, Org, Location
-        provisioning_template = self._satellite.api.ProvisioningTemplate().search(
-            query={'search': f'name="{DEFAULT_TEMPLATE}"'}
-        )
-        provisioning_template = provisioning_template[0].read()
-        provisioning_template.operatingsystem.append(os)
-        if org.id not in [organization.id for organization in provisioning_template.organization]:
-            provisioning_template.organization.append(org)
-        if loc.id not in [location.id for location in provisioning_template.location]:
-            provisioning_template.location.append(loc)
-        provisioning_template = provisioning_template.update(
-            ['location', 'operatingsystem', 'organization']
-        )
-
-        # Get the PXE template ID and update with OS, Org, location
-        pxe_template = self._satellite.api.ProvisioningTemplate().search(
-            query={'search': f'name="{DEFAULT_PXE_TEMPLATE}"'}
-        )
-        pxe_template = pxe_template[0].read()
-        pxe_template.operatingsystem.append(os)
-        if org.id not in [organization.id for organization in pxe_template.organization]:
-            pxe_template.organization.append(org)
-        if loc.id not in [location.id for location in pxe_template.location]:
-            pxe_template.location.append(loc)
-        pxe_template = pxe_template.update(['location', 'operatingsystem', 'organization'])
-
-        # Get the arch ID
-        arch = (
-            self._satellite.api.Architecture()
-            .search(query={'search': f'name="{DEFAULT_ARCHITECTURE}"'})[0]
-            .read()
-        )
-
-        # Update the OS to associate arch, ptable, templates
-        os.architecture.append(arch)
-        os.ptable.append(ptable)
-        os.provisioning_template.append(provisioning_template)
-        os.provisioning_template.append(pxe_template)
-        os = os.update(['architecture', 'provisioning_template', 'ptable'])
-        # kickstart_repository is the content view and lce bind repo
-        kickstart_repository = self._satellite.api.Repository().search(
-            query=dict(content_view_id=content_view.id, environment_id=lc_env.id, name=repo.name)
-        )[0]
-        # Create Hostgroup
-        host_group = self._satellite.api.HostGroup(
-            architecture=arch,
-            domain=domain.id,
-            subnet=subnet.id,
-            lifecycle_environment=lc_env.id,
-            content_view=content_view.id,
-            location=[loc.id],
-            environment=environment.id,
-            puppet_proxy=proxy,
-            puppet_ca_proxy=proxy,
-            content_source=proxy,
-            kickstart_repository=kickstart_repository,
-            root_pass=gen_string('alphanumeric'),
-            operatingsystem=os.id,
-            organization=[org.id],
-            ptable=ptable.id,
-        ).create()
-
-        return {
-            'host_group': host_group.name,
-            'domain': domain.name,
-            'environment': environment.name,
-            'ptable': ptable.name,
-            'subnet': subnet.name,
-            'os': os.title,
-        }
 
     def create_role_permissions(
         self, role, permissions_types_names, search=None
@@ -710,6 +453,258 @@ class APIFactory:
             raise AssertionError(
                 f'No task was found using query " {search_query} " for host id: {host_id}'
             )
+
+    def register_host_and_needed_setup(
+        self,
+        client,
+        organization,
+        activation_key,
+        environment,
+        content_view,
+        enable_repos=False,
+        rex_key=False,
+        force=False,
+        loc=None,
+    ):
+        """Helper will setup desired entities to host content. Then, register the
+        host client to the entities, using associated activation-key.
+
+        Attempt to make needed associations between detached entities.
+        Add desired repos to the content-view prior to calling this helper.
+
+        Or, add them to content-view after calling, then publish/promote.
+        The host will be registered to location: None (visible to all locations).
+
+        param client : instance, required
+            An instance of RHEL content host to register.
+        param enable_repos : bool, optional
+            Enable all available repos on the client after registration? Default is False.
+            Be sure to enable any repo(s) for the client after calling this method.
+        param rex_key : bool, optional
+            Add a Remote Execution Key to the client for satellite? Default is False.
+        param force : bool, optional
+            Force registration of the client to bypass? Default is False.
+            A reused fixture content host will fail if already registered.
+        param loc : instance, optional
+            Pass a location to limit host visibility. Default is None,
+            making the client available to all locations.
+
+        Required arguments below, can be any of the following type:
+        int: pass id of the entity to be read
+        str: pass name of the entity to be searched
+        entity: pass an entity instance
+
+        param organization : int, str, or entity
+            Pass an Organization instance, name, or id to use.
+        param activation_key : int, str, or entity
+            Pass an Activation-Key instance, name, or id.
+        param environment : int, str, or entity
+            Pass a Lifecycle-Environment instance, name, or id.
+            Example: can pass string name 'Library'.
+        param content_view : int, str, or entity
+            Pass a Content-View instance, name, or id.
+            Example: can pass string name 'Default Organization View'.
+
+        Note: The Default Organization View cannot be published, promoted, edited etc,
+            but you can register the client to it. Use the 'Library' environment.
+
+        Steps:
+            1. Get needed entities from arguments (id, name, or instance). Read all as instance.
+            2. Publish the content-view if no versions exist or needs_publish.
+            3. Promote the newest content-view-version if not in the environment already. Skip for 'Library'.
+            4. Assign environment and content-view to the activation-key if not associated.
+            5. If desired, enable all repositories from content-view for activation-key.
+            6. Register the host with options, using the activation-key associated with the content.
+            7. Check host was registered, identity matches passed entities.
+
+        Return: dictionary containing the following entries
+            if succeeded:
+                result: 'success'
+                client: registered host client
+                organization: entities['Organization']
+                activation_key: entities['ActivationKey']
+                environment: entities['LifecycleEnvironment']
+                content_view: entities['ContentView']
+
+            if failed:
+                result: 'error'
+                client: None, unless registration was successful
+                message: Details of the failure encountered
+        """
+
+        method_error = {
+            'result': 'error',
+            'client': None,
+            'message': None,
+        }
+        entities = {
+            'Organization': organization,
+            'ActivationKey': activation_key,
+            'LifecycleEnvironment': environment,
+            'ContentView': content_view,
+        }
+        if not hasattr(client, 'hostname'):
+            method_error['message'] = (
+                'Argument "client" must be instance, with attribute "hostname".'
+            )
+            return method_error
+        # for entity arguments matched to above params:
+        # fetch entity instance on satellite,
+        # from given id or name, else read passed argument as an instance.
+        for entity, value in entities.items():
+            param = None
+            # passed int for entity, try to read by id
+            if isinstance(value, int):
+                # equivalent: _satellite_.api.{KEY}(id=VALUE).read()
+                param = getattr(self._satellite.api, entity)(id=value).read()
+            # passed str, search for entity by name
+            elif isinstance(value, str):
+                search_query = f'name="{value}"'
+                if entity == 'Organization':
+                    # search for org name itself, will be just scoped to satellite
+                    # equivalent: _satellite_.api.{KEY}().search(...name={VALUE})
+                    result = getattr(self._satellite.api, entity)().search(
+                        query={'search': search_query}
+                    )
+                else:
+                    # search of non-org entity by name, will be scoped to organization
+                    result = getattr(self._satellite.api, entity)(
+                        organization=entities['Organization']
+                    ).search(query={'search': search_query})
+                if not len(result) > 0:
+                    method_error['message'] = (
+                        f'Could not find {entity} name: {value}, by search query: "{search_query}"'
+                    )
+                    return method_error
+                param = result[0]
+            # did not pass int (id) or str (name), must be readable entity instance
+            else:
+                if not hasattr(value, 'id'):
+                    method_error['message'] = (
+                        f'Passed entity {entity}, has no attribute id:\n{value}'
+                    )
+                    return method_error
+                param = value
+            # updated param, should now be only an entity isntance
+            if not hasattr(param, 'id'):
+                method_error['message'] = (
+                    f'Did not get readable instance from parameter on {self._satellite.hostname}:'
+                    f' Param:{entity}:\n{value}'
+                )
+                return method_error
+            # entity found, read updated instance into dictionary
+            entities[entity] = param.read()
+
+        if (  # publish a content-view-version if none exist, or needs_publish is True
+            len(entities['ContentView'].version) == 0
+            or entities['ContentView'].needs_publish is True
+        ):
+            entities['ContentView'].publish()
+            # read updated entitites after modifying CV
+            entities = {k: v.read() for k, v in entities.items()}
+
+        # promote to non-Library env if not already present:
+        # skip for 'Library' env selected or passed arg,
+        # any published version(s) will already be in Library.
+        if all(
+            [
+                environment != 'Library',
+                entities['LifecycleEnvironment'].name != 'Library',
+                entities['LifecycleEnvironment'] not in entities['ContentView'].environment,
+            ]
+        ):
+            # promote newest version by id
+            entities['ContentView'].version.sort(key=lambda version: version.id)
+            entities['ContentView'].version[-1].promote(
+                data={'environment_ids': entities['LifecycleEnvironment'].id}
+            )
+            # updated entities after promoting
+            entities = {k: v.read() for k, v in entities.items()}
+
+        if (  # assign env to ak if not present
+            entities['ActivationKey'].environment is None
+            or entities['ActivationKey'].environment.id != entities['LifecycleEnvironment'].id
+        ):
+            entities['ActivationKey'].environment = entities['LifecycleEnvironment']
+            entities['ActivationKey'].update(['environment'])
+            entities = {k: v.read() for k, v in entities.items()}
+        if (  # assign cv to ak if not present
+            entities['ActivationKey'].content_view is None
+            or entities['ActivationKey'].content_view.id != entities['ContentView'].id
+        ):
+            entities['ActivationKey'].content_view = entities['ContentView']
+            entities['ActivationKey'].update(['content_view'])
+
+        entities = {k: v.read() for k, v in entities.items()}
+        if enable_repos:
+            repositories = entities['ContentView'].repository
+            if len(repositories) < 1:
+                method_error['message'] = (
+                    f' Cannot enable repositories for clients activation-key: {entities["ActivationKey"].name}'
+                    f' There are no repositories added to the content-view: {entities["ContentView"].name}.'
+                )
+                return method_error
+            for repo in repositories:
+                # fetch content-label for any repo in cv
+                repo_content_label = self._satellite.cli.Repository.info(
+                    {
+                        'name': repo.read().name,
+                        'organization-id': entities['Organization'].id,
+                        'product': repo.read().product.read().name,
+                    }
+                )['content-label']
+                # override the repository to enabled for ak
+                self._satellite.cli.ActivationKey.content_override(
+                    {
+                        'content-label': repo_content_label,
+                        'id': entities['ActivationKey'].id,
+                        'organization-id': entities['Organization'].id,
+                        'value': int(True),
+                    }
+                )
+
+        # register with now setup entities, using ak
+        result = client.register(
+            activation_keys=entities['ActivationKey'].name,
+            target=self._satellite,
+            org=entities['Organization'],
+            setup_remote_execution_pull=rex_key,
+            force=force,
+            loc=loc,
+        )
+        if result.status != 0:
+            method_error['message'] = (
+                f'Failed to register the host: {client.hostname}.\n{result.stderr}'
+            )
+            return method_error
+
+        # check identity of now registered client, matches expected entities
+        if not all(
+            [
+                client.subscribed,
+                client.identity['registered_to'] == self._satellite.hostname,
+                client.identity['org_name'] == entities['Organization'].name,
+                client.identity['environment_name']
+                == (f'{entities["LifecycleEnvironment"].name}/{entities["ContentView"].name}'),
+            ]
+        ):
+            method_error['client'] = client
+            method_error['message'] = (
+                f'Registered client identity field(s) do not match expected:\n{client.identity}'
+            )
+            return method_error
+
+        entities = {k: v.read() for k, v in entities.items()}
+        return (  # dict containing registered host client, and updated entities
+            {
+                'result': 'success',
+                'client': client,
+                'organization': entities['Organization'],
+                'activation_key': entities['ActivationKey'],
+                'environment': entities['LifecycleEnvironment'],
+                'content_view': entities['ContentView'],
+            }
+        )
 
     def wait_for_syncplan_tasks(self, repo_backend_id=None, timeout=10, repo_name=None):
         """Search the pulp tasks and identify repositories sync tasks with

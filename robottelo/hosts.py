@@ -73,6 +73,7 @@ def lru_sat_ready_rhel(rhel_ver):
     rhel_version = rhel_ver or settings.server.version.rhel_version
     deploy_args = {
         'deploy_rhel_version': rhel_version,
+        'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
         'deploy_flavor': settings.flavors.default,
         'promtail_config_template_file': 'config_sat.j2',
         'workflow': settings.server.deploy_workflows.os,
@@ -341,7 +342,7 @@ class ContentHost(Host, ContentHostMixins):
     def os_version(self):
         """Get host's OS version information
 
-        :returns: A ``packaging.version.Version`` instance
+        :return: A ``packaging.version.Version`` instance
         """
         return Version(self._os_release['VERSION_ID'])
 
@@ -474,7 +475,7 @@ class ContentHost(Host, ContentHostMixins):
             provided file will be saved in /tmp/ directory.
         :param str file_name: New name of the Downloaded file else its given from file_url
 
-        :returns: Returns list containing complete file path and name of downloaded file.
+        :return: Returns list containing complete file path and name of downloaded file.
         """
         file_name = PurePath(file_name or file_url).name
         local_path = PurePath(local_path or '/tmp') / file_name
@@ -798,11 +799,23 @@ class ContentHost(Host, ContentHostMixins):
         cmd = target.satellite.cli.HostRegistration.generate_command(options)
         return self.execute(cmd.strip('\n'))
 
+    def api_register(self, target, **kwargs):
+        """Register a content host using global registration through API.
+
+        :param target: Satellite or Capsule object to register to.
+        :param kwargs: Additional keyword arguments to pass to the API call.
+        :return: The result of the API call.
+        """
+        kwargs['insecure'] = kwargs.get('insecure', True)
+        command = target.satellite.api.RegistrationCommand(**kwargs).create()
+        return self.execute(command.strip('\n'))
+
     def register_contenthost(
         self,
         org='Default_Organization',
         activation_key=None,
         lce='Library',
+        environments=None,
         consumerid=None,
         force=True,
         releasever=None,
@@ -812,6 +825,7 @@ class ContentHost(Host, ContentHostMixins):
         auto_attach=False,
         serverurl=None,
         baseurl=None,
+        enable_proxy=False,
     ):
         """Registers content host on foreman server either by specifying
         organization name and activation key name or by specifying organization
@@ -850,6 +864,8 @@ class ContentHost(Host, ContentHostMixins):
             cmd += f' --activationkey {activation_key}'
         elif lce:
             cmd += f' --environment {lce}{userpass}'
+        elif environments:
+            cmd += f' --environments {environments}{userpass}'
         elif consumerid:
             cmd += f' --consumerid {consumerid}{userpass}'
         else:
@@ -868,6 +884,7 @@ class ContentHost(Host, ContentHostMixins):
             cmd += f' --serverurl {serverurl}'
         if baseurl:
             cmd += f' --baseurl {baseurl}'
+
         return self.execute(cmd)
 
     def unregister(self):
@@ -883,12 +900,17 @@ class ContentHost(Host, ContentHostMixins):
         """Get a remote file from the broker virtual machine."""
         self.session.sftp_read(source=remote_path, destination=local_path)
 
-    def put(self, local_path, remote_path=None):
+    def put(self, local_path, remote_path=None, temp_file=False):
         """Put a local file to the broker virtual machine.
         If local_path is a manifest object, write its contents to a temporary file
         then continue with the upload.
         """
-        if 'utils.manifest' in str(local_path):
+        if temp_file:
+            with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
+                content_file.write(str.encode(local_path))
+                content_file.flush()
+                self.session.sftp_write(source=content_file.name, destination=remote_path)
+        elif 'utils.manifest' in str(local_path):
             with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
                 content_file.write(local_path.content.read())
                 content_file.flush()
@@ -908,6 +930,13 @@ class ContentHost(Host, ContentHostMixins):
         result = self.execute(f'chmod 600 {destination_key_path}')
         if result.status != 0:
             raise CLIFactoryError(f'Failed to chmod ssh key file:\n{result.stderr}')
+
+    def enable_rhsm_proxy(self, hostname, port=None):
+        """Configures proxy for subscription manager"""
+        cmd = f"subscription-manager config --server.proxy_hostname={hostname}"
+        if port:
+            cmd += f' --server.proxy_port={port}'
+        self.execute(cmd)
 
     def add_authorized_key(self, pub_key):
         """Inject a public key into the authorized keys file
@@ -1453,7 +1482,7 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError('There was an error installing katello-host-tools-tracer')
         self.execute('katello-tracer-upload')
 
-    def register_to_cdn(self, pool_ids=None):
+    def register_to_cdn(self, pool_ids=None, enable_proxy=False):
         """Subscribe satellite to CDN"""
         if pool_ids is None:
             pool_ids = [settings.subscription.rhn_poolid]
@@ -1463,6 +1492,7 @@ class ContentHost(Host, ContentHostMixins):
             lce=None,
             username=settings.subscription.rhn_username,
             password=settings.subscription.rhn_password,
+            enable_proxy=enable_proxy,
         )
         if cmd_result.status != 0:
             raise ContentHostError(
@@ -1478,7 +1508,7 @@ class ContentHost(Host, ContentHostMixins):
         """Check the provisioned host status by pinging the ip of host
 
         :param host: IP address or hostname of the provisioned host
-        :returns: None
+        :return: None
         :raises: : `HostPingFailed` if the host is not pingable
         """
         result = self.execute(
@@ -1617,6 +1647,17 @@ class Capsule(ContentHost, CapsuleMixins):
             snap=settings.capsule.version.snap,
         )
 
+    def enable_ipv6_http_proxy(self):
+        """Execute procedures for enabling IPv6 HTTP Proxy on Capsule using SM"""
+        if settings.server.is_ipv6:
+            url = urlparse(settings.server.http_proxy_ipv6_url)
+            self.enable_rhsm_proxy(url.hostname, url.port)
+
+    def disable_ipv6_http_proxy(self):
+        """Executes procedures for disabling IPv6 HTTP Proxy on Capsule"""
+        if settings.server.is_ipv6:
+            self.execute('subscription-manager remove server.proxy_hostname server.proxy_port')
+
     def capsule_setup(self, sat_host=None, capsule_cert_opts=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
         self._satellite = sat_host or Satellite()
@@ -1740,6 +1781,10 @@ class Capsule(ContentHost, CapsuleMixins):
         Note: Make sure required repos are enabled before using this.
         """
         if self.os_version.major == 8:
+            if settings.server.is_ipv6:
+                self.execute(
+                    f"echo -e 'proxy={settings.server.http_proxy_ipv6_url}' >> /etc/dnf/dnf.conf"
+                )
             assert (
                 self.execute(
                     f'dnf -y module enable {self.product_rpm_name}:el{self.os_version.major}'
@@ -1781,6 +1826,55 @@ class Satellite(Capsule, SatelliteMixins):
         self._api = type('api', (), {'_configured': False})
         to_clear = [k for k in sys.modules if 'nailgun' in k]
         [sys.modules.pop(k) for k in to_clear]
+
+    def enable_ipv6_http_proxy(self):
+        """Execute procedures for enabling IPv6 HTTP Proxy"""
+        if not settings.server.is_ipv6:
+            logger.warning(
+                'The IPv6 HTTP Proxy setting is not enabled. Skipping the IPv6 HTTP Proxy setup.'
+            )
+            return None
+        proxy_name = 'Robottelo IPv6 Automation Proxy'
+        if not self.cli.HttpProxy.exists(search=('name', proxy_name)):
+            http_proxy = self.api.HTTPProxy(
+                name=proxy_name, url=settings.server.http_proxy_ipv6_url
+            ).create()
+        else:
+            logger.info(
+                'The IPv6 HTTP Proxy is already enabled. Skipping the IPv6 HTTP Proxy setup.'
+            )
+            http_proxy = self.api.HTTPProxy().search(query={'search': f'name={proxy_name}'})[0]
+        # Setting HTTP Proxy as default in the settings
+        self.cli.Settings.set(
+            {
+                'name': 'content_default_http_proxy',
+                'value': proxy_name,
+            }
+        )
+        self.cli.Settings.set(
+            {
+                'name': 'http_proxy',
+                'value': settings.server.http_proxy_ipv6_url,
+            }
+        )
+        return http_proxy
+
+    def disable_ipv6_http_proxy(self, http_proxy):
+        """Execute procedures for disabling IPv6 HTTP Proxy"""
+        if http_proxy:
+            http_proxy.delete()
+            self.cli.Settings.set(
+                {
+                    'name': 'content_default_http_proxy',
+                    'value': '',
+                }
+            )
+            self.cli.Settings.set(
+                {
+                    'name': 'http_proxy',
+                    'value': '',
+                }
+            )
 
     @property
     def api(self):
@@ -1903,17 +1997,15 @@ class Satellite(Capsule, SatelliteMixins):
             return None
 
         try:
-            ui_session = Session(
+            with Session(
                 session_name=testname or get_caller(),
                 user=user or settings.server.admin_username,
                 password=password or settings.server.admin_password,
                 url=url,
                 hostname=self.hostname,
                 login=login,
-            )
-            yield ui_session
-        except Exception:
-            raise
+            ) as ui_session:
+                yield ui_session
         finally:
             if self.record_property is not None and settings.ui.record_video:
                 video_url = settings.ui.grid_url.replace(
@@ -2312,6 +2404,39 @@ class Satellite(Capsule, SatelliteMixins):
         )
         return inventory_sync
 
+    def register_contenthost(
+        self,
+        org='Default_Organization',
+        lce='Library',
+        username=settings.server.admin_username,
+        password=settings.server.admin_password,
+        enable_proxy=False,
+    ):
+        """Satellite Registration to CDN"""
+        # Enabling proxy for IPv6
+        if enable_proxy and settings.server.is_ipv6:
+            url = urlparse(settings.server.http_proxy_ipv6_url)
+            self.enable_rhsm_proxy(url.hostname, url.port)
+        return super().register_contenthost(
+            org=org, lce=lce, username=username, password=password, enable_proxy=enable_proxy
+        )
+
+    def run_orphan_cleanup(self, smart_proxy_id=None):
+        """Run orphan cleanup task for all or given smart proxy."""
+        timestamp = datetime.utcnow().replace(microsecond=0)
+        rake_command = 'foreman-rake katello:delete_orphaned_content RAILS_ENV=production'
+        if smart_proxy_id:
+            rake_command = f'{rake_command} SMART_PROXY_ID={smart_proxy_id}'
+        self.execute(rake_command)
+        self.wait_for_tasks(
+            search_query=(
+                'label = Actions::Katello::OrphanCleanup::RemoveOrphans'
+                f' and started_at >= "{timestamp}"'
+            ),
+            search_rate=5,
+            max_tries=10,
+        )
+
 
 class SSOHost(Host):
     """Class for RHSSO functions and setup"""
@@ -2529,7 +2654,7 @@ class IPAHost(Host):
                 _, password = line.split(': ', 2)
                 break
         self.execute(f'ipa service-add HTTP/{self.satellite.hostname}')
-        _, domain = self.hostname.split('.', 1)
+        domain = self.execute('ipa realmdomains-show | awk \'{print $2}\'').stdout.strip()
         result = self.satellite.execute(
             f"ipa-client-install --password '{password}' "
             f'--domain {domain} '
