@@ -2346,6 +2346,7 @@ def test_positive_dump_enc_yaml(target_sat):
 
 
 # -------------------------- HOST TRACE SUBCOMMAND SCENARIOS -------------------------
+@pytest.mark.pit_client
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6].*')
 def test_positive_tracer_list_and_resolve(tracer_host, target_sat):

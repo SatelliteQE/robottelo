@@ -1675,6 +1675,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
         assert host_parameters[param_name] == param_value
 
 
+@pytest.mark.pit_client
 @pytest.mark.tier2
 @pytest.mark.rhel_ver_match('[^6].*')
 def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
