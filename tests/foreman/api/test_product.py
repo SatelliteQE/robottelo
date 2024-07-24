@@ -85,22 +85,6 @@ def test_positive_create_with_description(description, module_org, module_target
     assert product.description == description
 
 
-@pytest.mark.tier2
-def test_positive_create_with_gpg(module_org, module_target_sat):
-    """Create a product and provide a GPG key.
-
-    :id: 57331c1f-15dd-4c9f-b8fc-3010847b2975
-
-    :expectedresults: A product is created with the specified GPG key.
-    """
-    gpg_key = module_target_sat.api.GPGKey(
-        content=DataFile.VALID_GPG_KEY_FILE.read_text(),
-        organization=module_org,
-    ).create()
-    product = module_target_sat.api.Product(gpg_key=gpg_key, organization=module_org).create()
-    assert product.gpg_key.id == gpg_key.id
-
-
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
 def test_negative_create_with_name(name, module_org, module_target_sat):
@@ -149,25 +133,6 @@ def test_negative_create_with_label(module_org, module_target_sat):
 
 
 @pytest.mark.tier1
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_update_name(name, module_org, module_target_sat):
-    """Update product name to another valid name.
-
-    :id: 1a9f6e0d-43fb-42e2-9dbd-e880f03b0297
-
-    :parametrized: yes
-
-    :expectedresults: Product name can be updated.
-
-    :CaseImportance: Critical
-    """
-    product = module_target_sat.api.Product(organization=module_org).create()
-    product.name = name
-    product = product.update(['name'])
-    assert product.name == name
-
-
-@pytest.mark.tier1
 @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
 def test_positive_update_description(description, module_org, module_target_sat):
     """Update product description to another valid one.
@@ -186,13 +151,14 @@ def test_positive_update_description(description, module_org, module_target_sat)
     assert product.description == description
 
 
+@pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
 @pytest.mark.tier1
-def test_positive_update_name_to_original(module_org, module_target_sat):
-    """Rename Product back to original name
+def test_positive_update_name_to_original(module_org, module_target_sat, new_name):
+    """Update product name and rename product to old name
 
-    :id: 3075f17f-4475-4b64-9fbd-1e41ced9142d
+    :id: 0ef399a7-6d3a-4746-b415-298794497c51
 
-    :expectedresults: Product Renamed to original
+    :expectedresults: Product name updated and renamed to original successfully
 
     :CaseImportance: Critical
     """
@@ -200,7 +166,6 @@ def test_positive_update_name_to_original(module_org, module_target_sat):
     old_name = product.name
 
     # Update product name
-    new_name = gen_string('alpha')
     product.name = new_name
     product = product.update(['name'])
     assert product.name == new_name
@@ -213,12 +178,12 @@ def test_positive_update_name_to_original(module_org, module_target_sat):
 
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_update_gpg(module_org, module_target_sat):
-    """Create a product and update its GPGKey
+def test_positive_create_product_and_update_gpg(module_org, module_target_sat):
+    """Create a product with GPG key and update it with new GPGKey
 
-    :id: 3b08f155-a0d6-4987-b281-dc02e8d5a03e
+    :id: 90bfd250-4446-4e7b-a85e-bafd69f527e5
 
-    :expectedresults: The updated product points to a new GPG key.
+    :expectedresults: A product is created with GPG key and updated product will point to a new GPG key.
     """
     # Create a product and make it point to a GPG key.
     gpg_key_1 = module_target_sat.api.GPGKey(
@@ -226,6 +191,7 @@ def test_positive_update_gpg(module_org, module_target_sat):
         organization=module_org,
     ).create()
     product = module_target_sat.api.Product(gpg_key=gpg_key_1, organization=module_org).create()
+    assert product.gpg_key.id == gpg_key_1.id
 
     # Update the product and make it point to a new GPG key.
     gpg_key_2 = module_target_sat.api.GPGKey(
