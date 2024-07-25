@@ -286,7 +286,6 @@ def get_deploy_args(request):
     deploy_args = {
         'deploy_rhel_version': rhel_version.base_version,
         'deploy_flavor': settings.flavors.default,
-        'promtail_config_template_file': 'config_sat.j2',
         'workflow': settings.server.deploy_workflows.os,
     }
     if hasattr(request, 'param'):
@@ -317,7 +316,6 @@ def cap_ready_rhel():
     deploy_args = {
         'deploy_rhel_version': rhel_version.base_version,
         'deploy_flavor': settings.flavors.default,
-        'promtail_config_template_file': 'config_sat.j2',
         'workflow': settings.capsule.deploy_workflows.os,
     }
     with Broker(**deploy_args, host_class=Capsule) as host:
