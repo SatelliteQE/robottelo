@@ -75,7 +75,6 @@ def lru_sat_ready_rhel(rhel_ver):
         'deploy_rhel_version': rhel_version,
         'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
         'deploy_flavor': settings.flavors.default,
-        'promtail_config_template_file': 'config_sat.j2',
         'workflow': settings.server.deploy_workflows.os,
     }
     return Broker(**deploy_args, host_class=Satellite).checkout()
