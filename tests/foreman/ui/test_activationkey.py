@@ -60,6 +60,7 @@ def test_positive_end_to_end_crud(session, module_org, module_target_sat):
         assert session.activationkey.search(new_name)[0]['Name'] != new_name
 
 
+@pytest.mark.no_containers
 @pytest.mark.e2e
 @pytest.mark.tier3
 @pytest.mark.upgrade
@@ -916,6 +917,8 @@ def test_negative_usage_limit(session, module_org, target_sat):
         assert f'Max Hosts ({hosts_limit}) reached for activation key' in str(result.stderr)
 
 
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('^6')
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
@@ -1016,6 +1019,7 @@ def test_positive_host_associations(session, target_sat):
             assert ak2['content_hosts']['table'][0]['Name'] == vm2.hostname
 
 
+@pytest.mark.no_containers
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_service_level_subscription_with_custom_product(
@@ -1032,9 +1036,9 @@ def test_positive_service_level_subscription_with_custom_product(
         1. Create a product with custom repository synchronized
         2. Create and Publish a content view with the created repository
         3. Create an activation key and assign the created content view
-        5. Set the activation service_level to Premium
-        6. Register a host to activation key
-        8. Assert product is listed under repository sets on the content host
+        4. Set the activation service_level to Premium
+        5. Register a host to activation key
+        6. Assert product is listed under repository sets on the content host
 
     :expectedresults:
         1. The product is listed under repository sets on the content host
