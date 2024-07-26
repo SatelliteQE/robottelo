@@ -648,7 +648,7 @@ class TestRepository:
     def test_positive_update_repo_url_and_unprotected_flag(self, repo):
         """Update repository url and unprotected flag to another valid one.
 
-        :id: 0ef399a7-6d3a-4746-b415-298794497c51
+        :id: 45ddfea2-ba37-45b8-95bb-9e92b8a3a946
 
         :parametrized: yes
 

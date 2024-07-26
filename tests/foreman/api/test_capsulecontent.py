@@ -51,6 +51,7 @@ from robottelo.content_info import (
     get_repomd_revision,
 )
 from robottelo.utils.datafactory import gen_string
+from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture
@@ -909,6 +910,8 @@ class TestCapsuleContentManagement:
 
         :BZ: 2125244, 2148813
 
+        :Verifies: SAT-25813
+
         :customerscenario: true
         """
         upstream_names = [
@@ -972,11 +975,15 @@ class TestCapsuleContentManagement:
                     f'{con_client} search {module_capsule_configured.hostname}/{path}'
                 )
                 assert result.status == 0
+                if not is_open('SAT-25813'):
+                    assert f'{module_capsule_configured.hostname}/{path}' in result.stdout
 
                 result = module_container_contenthost.execute(
                     f'{con_client} pull {module_capsule_configured.hostname}/{path}'
                 )
                 assert result.status == 0
+                result = module_container_contenthost.execute(f'{con_client} images')
+                assert f'{module_capsule_configured.hostname}/{path}' in result.stdout
 
                 result = module_container_contenthost.execute(
                     f'{con_client} rmi {module_capsule_configured.hostname}/{path}'
