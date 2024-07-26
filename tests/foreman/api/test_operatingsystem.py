@@ -48,13 +48,15 @@ class TestOperatingSystem:
         :expectedresults: All CRUD operations are performed successfully.
 
         :BZ: 2101435, 1230902
+
+        :Verifies: SAT-26071
         """
         name = gen_string('alpha')
         desc = gen_string('alpha')
         os_family = 'Redhat'
         minor_version = gen_string('numeric')
         major_version = gen_string('numeric', 5)
-        pass_hash = 'SHA256'
+        default_pass_hash = 'SHA512'
         os_parameters = [{'name': gen_string('alpha'), 'value': gen_string('alpha')}]
         ptable = module_target_sat.api.PartitionTable().create()
         medium = module_target_sat.api.Media(organization=[module_org]).create()
@@ -69,7 +71,6 @@ class TestOperatingSystem:
             major=major_version,
             family=os_family,
             architecture=[module_architecture],
-            password_hash=pass_hash,
             provisioning_template=[template],
             ptable=[ptable],
             medium=[medium],
@@ -81,12 +82,12 @@ class TestOperatingSystem:
         assert os.major == major_version
         assert os.description == desc
         assert os.architecture[0].id == module_architecture.id
-        assert os.password_hash == pass_hash
         assert os.ptable[0].id == ptable.id
         assert os.provisioning_template[0].id == template.id
         assert os.medium[0].id == medium.id
         assert os.os_parameters_attributes[0]['name'] == os_parameters[0]['name']
         assert os.os_parameters_attributes[0]['value'] == os_parameters[0]['value']
+        assert os.password_hash == default_pass_hash
         # Read OS
         os = module_target_sat.api.OperatingSystem(id=os.id).read()
         assert os.name == name
@@ -95,18 +96,18 @@ class TestOperatingSystem:
         assert os.major == major_version
         assert os.description == desc
         assert os.architecture[0].id == module_architecture.id
-        assert os.password_hash == pass_hash
         assert str(ptable.id) in str(os.ptable)
         assert str(template.id) in str(os.provisioning_template)
         assert os.medium[0].id == medium.id
         assert os.os_parameters_attributes[0]['name'] == os_parameters[0]['name']
         assert os.os_parameters_attributes[0]['value'] == os_parameters[0]['value']
+        assert os.password_hash == default_pass_hash
         new_name = gen_string('alpha')
         new_desc = gen_string('alpha')
         new_os_family = 'Rhcos'
         new_minor_version = gen_string('numeric')
         new_major_version = gen_string('numeric', 5)
-        new_pass_hash = 'SHA512'
+        new_pass_hash = 'SHA256'
         new_arch = module_target_sat.api.Architecture().create()
         new_ptable = module_target_sat.api.PartitionTable().create()
         new_medium = module_target_sat.api.Media(organization=[module_org]).create()

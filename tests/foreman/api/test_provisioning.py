@@ -486,11 +486,13 @@ def test_rhel_pxe_provisioning_fips_enabled(
     :parametrized: yes
 
     :BZ: 2240076
+
+    :Verifies: SAT-26071
     """
     sat = module_provisioning_sat.sat
     host_mac_addr = provisioning_host._broker_args['provisioning_nic_mac_addr']
-    # Verify password hashing algorithm SHA256 is set in OS used for provisioning
-    assert module_provisioning_rhel_content.os.password_hash == 'SHA256'
+    # Verify password hashing algorithm SHA512 is set in OS used for provisioning
+    assert module_provisioning_rhel_content.os.password_hash == 'SHA512'
 
     host = sat.api.Host(
         hostgroup=provisioning_hostgroup,
