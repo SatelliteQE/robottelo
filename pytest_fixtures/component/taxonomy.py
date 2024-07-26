@@ -142,10 +142,10 @@ def upgrade_entitlement_manifest_org(function_org, upgrade_entitlement_manifest,
 
 
 @pytest.fixture
-def upgrade_sca_manifest_org(function_org, upgrade_sca_manifest, target_sat):
+def sca_manifest_org_for_upgrade(function_org, sca_manifest_for_upgrade, target_sat):
     """A Pytest fixture that creates an organization and uploads an sca mode manifest
     generated with Manifester. This will be used for upgrade scenarios"""
-    sca_manifest, _ = upgrade_sca_manifest
+    sca_manifest, _ = sca_manifest_for_upgrade
     target_sat.upload_manifest(function_org.id, sca_manifest.content)
     return function_org
 
@@ -257,7 +257,7 @@ def function_sca_manifest():
 
 
 @pytest.fixture
-def function_secondary_sca_manifest():
+def function_golden_ticket_sca_manifest():
     """Yields a manifest in Simple Content Access mode with subscriptions determined by the
     `manifest_category.golden_ticket` setting in conf/manifest.yaml.
     A different one than is used in `function_sca_manifest_org`."""
@@ -283,7 +283,7 @@ def upgrade_entitlement_manifest():
 
 
 @pytest.fixture
-def upgrade_sca_manifest():
+def sca_manifest_for_upgrade():
     """Returns a manifest in sca mode. Used only for upgrade scenarios"""
     manifestor = Manifester(manifest_category=settings.manifest.golden_ticket)
     return manifestor.get_manifest(), manifestor

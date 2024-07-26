@@ -103,7 +103,7 @@ def test_positive_refresh(function_sca_manifest_org, request, target_sat):
 
 @pytest.mark.tier1
 def test_positive_create_after_refresh(
-    function_sca_manifest_org, function_secondary_sca_manifest, target_sat
+    function_sca_manifest_org, function_golden_ticket_sca_manifest, target_sat
 ):
     """Upload a manifest,refresh it and upload a new manifest to an other
      organization.
@@ -124,7 +124,7 @@ def test_positive_create_after_refresh(
     try:
         org_sub.refresh_manifest(data={'organization_id': function_sca_manifest_org.id})
         assert org_sub.search()
-        target_sat.upload_manifest(new_org.id, function_secondary_sca_manifest.content)
+        target_sat.upload_manifest(new_org.id, function_golden_ticket_sca_manifest.content)
         assert new_org_sub.search()
     finally:
         org_sub.delete_manifest(data={'organization_id': function_sca_manifest_org.id})

@@ -27,7 +27,7 @@ class TestManifestScenarioRefresh:
 
     @pytest.mark.pre_upgrade
     def test_pre_manifest_scenario_refresh(
-        self, upgrade_sca_manifest_org, target_sat, save_test_data
+        self, sca_manifest_org_for_upgrade, target_sat, save_test_data
     ):
         """Before upgrade, upload & refresh the manifest.
 
@@ -38,14 +38,14 @@ class TestManifestScenarioRefresh:
 
         :expectedresults: Manifest should be uploaded and refreshed successfully.
         """
-        org = upgrade_sca_manifest_org
+        org = sca_manifest_org_for_upgrade
         history = target_sat.cli.Subscription.manifest_history({'organization-id': org.id})
         assert f'{org.name} file imported successfully.' in ''.join(history)
 
         sub = target_sat.api.Subscription(organization=org)
         sub.refresh_manifest(data={'organization_id': org.id})
         assert sub.search()
-        save_test_data({'org_name': f'{upgrade_sca_manifest_org.name}'})
+        save_test_data({'org_name': f'{sca_manifest_org_for_upgrade.name}'})
 
     @pytest.mark.post_upgrade(depend_on=test_pre_manifest_scenario_refresh)
     def test_post_manifest_scenario_refresh(self, request, target_sat, pre_upgrade_data):
@@ -88,8 +88,8 @@ class TestSubscriptionAutoAttach:
         target_sat,
         save_test_data,
         rhel_contenthost,
-        upgrade_sca_manifest_org,
-        upgrade_sca_manifest,
+        sca_manifest_org_for_upgrade,
+        sca_manifest_for_upgrade,
     ):
         """Create content host and register with Satellite
 
@@ -105,8 +105,8 @@ class TestSubscriptionAutoAttach:
         :expectedresults:
             1. Content host should be created.
         """
-        _, manifester = upgrade_sca_manifest
-        org = upgrade_sca_manifest_org
+        _, manifester = sca_manifest_for_upgrade
+        org = sca_manifest_org_for_upgrade
         rhel_contenthost._skip_context_checkin = True
         lce = target_sat.api.LifecycleEnvironment(organization=org).create()
         if rhel_contenthost.os_version.major > 7:
