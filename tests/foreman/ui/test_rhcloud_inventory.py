@@ -52,6 +52,8 @@ def common_assertion(report_path, inventory_data, org, satellite):
 
 
 @pytest.mark.e2e
+@pytest.mark.pit_server
+@pytest.mark.pit_client
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 def test_rhcloud_inventory_e2e(

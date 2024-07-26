@@ -30,6 +30,8 @@ def create_insights_vulnerability(insights_vm):
 
 
 @pytest.mark.e2e
+@pytest.mark.pit_server
+@pytest.mark.pit_client
 @pytest.mark.tier3
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list(r'^[\d]+$')
