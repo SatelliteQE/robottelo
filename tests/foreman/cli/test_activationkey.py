@@ -12,9 +12,6 @@
 
 """
 
-from random import choice
-import re
-
 from broker import Broker
 from fauxfactory import gen_alphanumeric, gen_string
 import pytest
@@ -41,7 +38,7 @@ def get_default_env(module_org, module_target_sat):
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_create_with_name(module_target_sat, module_entitlement_manifest_org, name):
+def test_positive_create_with_name(module_target_sat, module_sca_manifest_org, name):
     """Create Activation key for all variations of Activation key
     name
 
@@ -54,7 +51,7 @@ def test_positive_create_with_name(module_target_sat, module_entitlement_manifes
     :parametrized: yes
     """
     new_ak = module_target_sat.cli_factory.make_activation_key(
-        {'organization-id': module_entitlement_manifest_org.id, 'name': name}
+        {'organization-id': module_sca_manifest_org.id, 'name': name}
     )
     assert new_ak['name'] == name
 
@@ -169,7 +166,7 @@ def test_positive_create_with_usage_limit_default(module_org, module_target_sat)
     :CaseImportance: Critical
     """
     new_ak = module_target_sat.cli_factory.make_activation_key({'organization-id': module_org.id})
-    assert new_ak['host-limit'] == 'Unlimited'
+    assert new_ak['host-limit'] == '0 of Unlimited'
 
 
 @pytest.mark.tier1
@@ -185,7 +182,7 @@ def test_positive_create_with_usage_limit_finite(module_org, module_target_sat):
     new_ak = module_target_sat.cli_factory.make_activation_key(
         {'organization-id': module_org.id, 'max-hosts': '10'}
     )
-    assert new_ak['host-limit'] == '10'
+    assert new_ak['host-limit'] == '0 of 10'
 
 
 @pytest.mark.tier2
@@ -206,7 +203,7 @@ def test_positive_create_content_and_check_enabled(module_org, module_target_sat
     content = module_target_sat.cli.ActivationKey.product_content(
         {'id': result['activationkey-id'], 'organization-id': module_org.id}
     )
-    assert content[0]['default-enabled?'] == 'true'
+    assert content[0]['default-enabled?'] == 'false'
 
 
 @pytest.mark.tier2
@@ -519,12 +516,12 @@ def test_positive_update_usage_limit_to_finite_number(module_org, module_target_
     :CaseImportance: Critical
     """
     new_ak = module_target_sat.cli_factory.make_activation_key({'organization-id': module_org.id})
-    assert new_ak['host-limit'] == 'Unlimited'
+    assert new_ak['host-limit'] == '0 of Unlimited'
     module_target_sat.cli.ActivationKey.update(
         {'max-hosts': '2147483647', 'name': new_ak['name'], 'organization-id': module_org.id}
     )
     updated_ak = module_target_sat.cli.ActivationKey.info({'id': new_ak['id']})
-    assert updated_ak['host-limit'] == '2147483647'
+    assert updated_ak['host-limit'] == '0 of 2147483647'
 
 
 @pytest.mark.tier1
@@ -540,12 +537,12 @@ def test_positive_update_usage_limit_to_unlimited(module_org, module_target_sat)
     new_ak = module_target_sat.cli_factory.make_activation_key(
         {'organization-id': module_org.id, 'max-hosts': '10'}
     )
-    assert new_ak['host-limit'] == '10'
+    assert new_ak['host-limit'] == '0 of 10'
     module_target_sat.cli.ActivationKey.update(
         {'unlimited-hosts': True, 'name': new_ak['name'], 'organization-id': module_org.id}
     )
     updated_ak = module_target_sat.cli.ActivationKey.info({'id': new_ak['id']})
-    assert updated_ak['host-limit'] == 'Unlimited'
+    assert updated_ak['host-limit'] == '0 of Unlimited'
 
 
 @pytest.mark.tier2
@@ -699,7 +696,7 @@ def test_positive_update_host_collection_with_default_org(module_org, module_tar
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-def test_positive_add_redhat_product(function_entitlement_manifest_org, target_sat):
+def test_positive_add_redhat_product(function_sca_manifest_org, target_sat):
     """Test that RH product can be associated to Activation Keys
 
     :id: 7b15de8e-edde-41aa-937b-ad6aa529891a
@@ -707,7 +704,7 @@ def test_positive_add_redhat_product(function_entitlement_manifest_org, target_s
     :expectedresults: RH products are successfully associated to Activation
         key
     """
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
 
     # Using CDN as we need this repo to be RH one no matter are we in
     # downstream or cdn
@@ -728,7 +725,7 @@ def test_positive_add_redhat_product(function_entitlement_manifest_org, target_s
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_custom_product(module_org, module_target_sat):
+def test_positive_add_custom_product(module_org, target_sat):
     """Test that custom product can be associated to Activation Keys
 
     :id: 96ace967-e165-4069-8ff7-f54c4c822de0
@@ -738,11 +735,11 @@ def test_positive_add_custom_product(module_org, module_target_sat):
 
     :BZ: 1426386
     """
-    result = module_target_sat.cli_factory.setup_org_for_a_custom_repo(
+    result = target_sat.cli_factory.setup_org_for_a_custom_repo(
         {'url': settings.repos.yum_0.url, 'organization-id': module_org.id}
     )
-    repo = module_target_sat.cli.Repository.info({'id': result['repository-id']})
-    content = module_target_sat.cli.ActivationKey.product_content(
+    repo = target_sat.cli.Repository.info({'id': result['repository-id']})
+    content = target_sat.cli.ActivationKey.product_content(
         {'id': result['activationkey-id'], 'organization-id': module_org.id}
     )
     assert content[0]['name'] == repo['name']
@@ -752,9 +749,7 @@ def test_positive_add_custom_product(module_org, module_target_sat):
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_redhat_and_custom_products(
-    module_target_sat, function_entitlement_manifest_org
-):
+def test_positive_add_redhat_and_custom_products(module_target_sat, function_sca_manifest_org):
     """Test if RH/Custom product can be associated to Activation key
 
     :id: 74c77426-18f5-4abb-bca9-a2135f7fcc1f
@@ -770,7 +765,7 @@ def test_positive_add_redhat_and_custom_products(
 
     :BZ: 1426386
     """
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     # Using CDN as we need this repo to be RH one no matter are we in
     # downstream or cdn
     result = module_target_sat.cli_factory.setup_org_for_a_rh_repo(
@@ -799,77 +794,7 @@ def test_positive_add_redhat_and_custom_products(
     assert {REPOSET['rhst7'], repo['name']} == {pc['name'] for pc in content}
 
 
-@pytest.mark.tier2
-def test_positive_delete_manifest(function_entitlement_manifest_org, target_sat):
-    """Check if deleting a manifest removes it from Activation key
-
-    :id: 8256ac6d-3f60-4668-897d-2e88d29532d3
-
-    :steps:
-        1. Upload manifest
-        2. Create activation key - attach some subscriptions
-        3. Delete manifest
-        4. See if the activation key automatically removed the
-           subscriptions.
-
-    :expectedresults: Deleting a manifest removes it from the Activation
-        key
-
-    :CaseAutomation: Automated
-    """
-    org = function_entitlement_manifest_org
-    new_ak = target_sat.cli_factory.make_activation_key({'organization-id': org.id})
-    ak_subs = target_sat.cli.ActivationKey.subscriptions(
-        {'id': new_ak['id'], 'organization-id': org.id}
-    )
-    subscription_result = target_sat.cli.Subscription.list(
-        {'organization-id': org.id, 'order': 'id desc'}, per_page=False
-    )
-    result = target_sat.cli.ActivationKey.add_subscription(
-        {'id': new_ak['id'], 'subscription-id': subscription_result[-1]['id']}
-    )
-    assert 'Subscription added to activation key.' in result
-    target_sat.cli.Subscription.delete_manifest({'organization-id': org.id})
-    ak_subs_info = target_sat.cli.ActivationKey.subscriptions(
-        {'id': new_ak['id'], 'organization-id': org.id}
-    )
-    assert len(ak_subs) == len(ak_subs_info)
-
-
-@pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
-@pytest.mark.tier2
-def test_positive_delete_subscription(function_entitlement_manifest_org, module_target_sat):
-    """Check if deleting a subscription removes it from Activation key
-
-    :id: bbbe4641-bfb0-48d6-acfc-de4294b18c15
-
-    :expectedresults: Deleting subscription removes it from the Activation
-        key
-    """
-    org = function_entitlement_manifest_org
-    new_ak = module_target_sat.cli_factory.make_activation_key({'organization-id': org.id})
-    subscription_result = module_target_sat.cli.Subscription.list(
-        {'organization-id': org.id, 'order': 'id desc'}, per_page=False
-    )
-    result = module_target_sat.cli.ActivationKey.add_subscription(
-        {'id': new_ak['id'], 'subscription-id': subscription_result[-1]['id']}
-    )
-    assert 'Subscription added to activation key.' in result
-    ak_subs_info = module_target_sat.cli.ActivationKey.subscriptions(
-        {'id': new_ak['id'], 'organization-id': org.id}
-    )
-    assert subscription_result[-1]['name'] in ak_subs_info
-    result = module_target_sat.cli.ActivationKey.remove_subscription(
-        {'id': new_ak['id'], 'subscription-id': subscription_result[-1]['id']}
-    )
-    assert 'Subscription removed from activation key.' in result
-    ak_subs_info = module_target_sat.cli.ActivationKey.subscriptions(
-        {'id': new_ak['id'], 'organization-id': org.id}
-    )
-    assert subscription_result[-1]['name'] not in ak_subs_info
-
-
+@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.rhel_ver_match('[^6]')
@@ -1110,7 +1035,7 @@ def test_positive_remove_host_collection_by_name(module_org, host_col, module_ta
 
 
 @pytest.mark.tier2
-def test_create_ak_with_syspurpose_set(module_entitlement_manifest_org, module_target_sat):
+def test_create_ak_with_syspurpose_set(module_sca_manifest_org, module_target_sat):
     """Test that an activation key can be created with system purpose values set.
 
     :id: ac8931e5-7089-494a-adac-cee2a8ab57ee
@@ -1132,7 +1057,7 @@ def test_create_ak_with_syspurpose_set(module_entitlement_manifest_org, module_t
             'purpose-role': "test-role",
             'purpose-usage': "test-usage",
             'service-level': "Self-Support",
-            'organization-id': module_entitlement_manifest_org.id,
+            'organization-id': module_sca_manifest_org.id,
         }
     )
     assert new_ak['system-purpose']['purpose-addons'] == "test-addon1, test-addon2"
@@ -1147,11 +1072,11 @@ def test_create_ak_with_syspurpose_set(module_entitlement_manifest_org, module_t
             'purpose-role': '',
             'purpose-usage': '',
             'service-level': '',
-            'organization-id': module_entitlement_manifest_org.id,
+            'organization-id': module_sca_manifest_org.id,
         }
     )
     updated_ak = module_target_sat.cli.ActivationKey.info(
-        {'id': new_ak['id'], 'organization-id': module_entitlement_manifest_org.id}
+        {'id': new_ak['id'], 'organization-id': module_sca_manifest_org.id}
     )
     assert updated_ak['system-purpose']['purpose-addons'] == ''
     assert updated_ak['system-purpose']['purpose-role'] == ''
@@ -1159,7 +1084,7 @@ def test_create_ak_with_syspurpose_set(module_entitlement_manifest_org, module_t
 
 
 @pytest.mark.tier2
-def test_update_ak_with_syspurpose_values(module_entitlement_manifest_org, module_target_sat):
+def test_update_ak_with_syspurpose_values(module_sca_manifest_org, module_target_sat):
     """Test that system purpose values can be added to an existing activation key
     and can then be changed.
 
@@ -1180,7 +1105,7 @@ def test_update_ak_with_syspurpose_values(module_entitlement_manifest_org, modul
     """
     # Requires Cls org and manifest. Manifest is for self-support values.
     # Create an AK with no system purpose values set
-    org = module_entitlement_manifest_org
+    org = module_sca_manifest_org
     new_ak = module_target_sat.cli_factory.make_activation_key({'organization-id': org.id})
     # Assert system purpose values are null after creating the AK and adding the manifest.
     assert new_ak['system-purpose']['purpose-addons'] == ''
@@ -1223,35 +1148,6 @@ def test_update_ak_with_syspurpose_values(module_entitlement_manifest_org, modul
     assert updated_ak['system-purpose']['purpose-role'] == "test-role2"
     assert updated_ak['system-purpose']['purpose-usage'] == "test-usage2"
     assert updated_ak['system-purpose']['service-level'] == "Premium"
-
-
-@pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
-@pytest.mark.tier2
-def test_positive_add_subscription_by_id(module_entitlement_manifest_org, module_target_sat):
-    """Test that subscription can be added to activation key
-
-    :id: b884be1c-b35d-440a-9a9d-c854c83e10a7
-
-    :steps:
-
-        1. Create Activation key
-        2. Upload manifest and add subscription
-        3. Associate the activation key to subscription
-
-    :expectedresults: Subscription successfully added to activation key
-
-    :BZ: 1463685
-
-    :BZ: 1463685
-    """
-    org_id = module_entitlement_manifest_org.id
-    ackey_id = module_target_sat.cli_factory.make_activation_key({'organization-id': org_id})['id']
-    subs_id = module_target_sat.cli.Subscription.list({'organization-id': org_id}, per_page=False)
-    result = module_target_sat.cli.ActivationKey.add_subscription(
-        {'id': ackey_id, 'subscription-id': subs_id[0]['id']}
-    )
-    assert 'Subscription added to activation key.' in result
 
 
 @pytest.mark.tier1
@@ -1327,7 +1223,9 @@ def test_negative_copy_with_same_name(module_org, module_target_sat):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_copy_subscription(module_entitlement_manifest_org, module_target_sat):
+def test_positive_copy_activationkey_and_check_content(
+    function_sca_manifest_org, module_target_sat
+):
     """Copy Activation key and verify contents
 
     :id: f4ee8096-4120-4d06-8c9a-57ac1eaa8f68
@@ -1341,25 +1239,30 @@ def test_positive_copy_subscription(module_entitlement_manifest_org, module_targ
     :expectedresults: Activation key is successfully copied
     """
     # Begin test setup
-    org = module_entitlement_manifest_org
-    parent_ak = module_target_sat.cli_factory.make_activation_key({'organization-id': org.id})
-    subscription_result = module_target_sat.cli.Subscription.list(
-        {'organization-id': org.id}, per_page=False
+    org = function_sca_manifest_org
+    result = module_target_sat.cli_factory.setup_org_for_a_rh_repo(
+        {
+            'product': PRDS['rhel'],
+            'repository-set': REPOSET['rhst7'],
+            'repository': REPOS['rhst7']['name'],
+            'organization-id': org.id,
+        },
+        force_use_cdn=True,
     )
-    module_target_sat.cli.ActivationKey.add_subscription(
-        {'id': parent_ak['id'], 'subscription-id': subscription_result[0]['id']}
+    content = module_target_sat.cli.ActivationKey.product_content(
+        {'id': result['activationkey-id'], 'organization-id': org.id}
     )
+    assert content[0]['name'] == REPOSET['rhst7']
     # End test setup
     new_name = gen_string('utf8')
-    result = module_target_sat.cli.ActivationKey.copy(
-        {'id': parent_ak['id'], 'new-name': new_name, 'organization-id': org.id}
+    copy_ak = module_target_sat.cli.ActivationKey.copy(
+        {'id': result['activationkey-id'], 'new-name': new_name, 'organization-id': org.id}
     )
-    assert 'Activation key copied.' in result
-    result = module_target_sat.cli.ActivationKey.subscriptions(
-        {'name': new_name, 'organization-id': org.id}
+    assert 'Activation key copied.' in copy_ak
+    new_content = module_target_sat.cli.ActivationKey.product_content(
+        {'id': result['activationkey-id'], 'organization-id': org.id}
     )
-    # Verify that the subscription copied over
-    assert subscription_result[0]['name'] in result  # subscription name  # subscription list
+    assert new_content[0]['name'] == REPOSET['rhst7']
 
 
 @pytest.mark.tier1
@@ -1498,10 +1401,8 @@ def test_positive_remove_user(module_org, module_target_sat):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-def test_positive_view_subscriptions_by_non_admin_user(
-    module_entitlement_manifest_org, module_target_sat
-):
-    """Attempt to read activation key subscriptions by non admin user
+def test_positive_view_content_by_non_admin_user(function_sca_manifest_org, module_target_sat):
+    """Attempt to read activation key content by non admin user
 
     :id: af75b640-97be-431b-8ac0-a6367f8f1996
 
@@ -1510,7 +1411,7 @@ def test_positive_view_subscriptions_by_non_admin_user(
     :steps:
 
         1. As admin user create an activation
-        2. As admin user add a subscription to activation key
+        2. As admin user enable a repository on an activation key
         3. Setup a non admin User with the following permissions
             Katello::ActivationKey:
                 view_activation_keys, create_activation_keys,
@@ -1521,42 +1422,37 @@ def test_positive_view_subscriptions_by_non_admin_user(
                 Search: "name ~ "Test_*_Dev" || name ~ "Test_*_QA"
             Organization:
                 view_organizations, assign_organizations,
-            Katello::Subscription:
-                view_subscriptions, attach_subscriptions,
-                unattach_subscriptions
+            Katello::Product:
+                view_products, edit_products, sync_products,
+                create_products, destroy_products
 
 
     :expectedresults: The non admin user can view the activation key
-        subscription
+        repository sets
 
     :BZ: 1406076
     """
-    org = module_entitlement_manifest_org
+    org = function_sca_manifest_org
     user_name = gen_alphanumeric()
     user_password = gen_alphanumeric()
-    ak_name_like = f'ak_{gen_string("alpha")}'
     hc_names_like = (
         f'Test_*_{gen_string("alpha")}',
         f'Test_*_{gen_string("alpha")}',
     )
-    ak_name = f'{ak_name_like}_{gen_string("alpha")}'
-    available_subscriptions = module_target_sat.cli.Subscription.list(
-        {'organization-id': org.id}, per_page=False
+    result = module_target_sat.cli_factory.setup_org_for_a_rh_repo(
+        {
+            'product': REPOS['rhst7']['product'],
+            'repository-set': REPOS['rhst7']['reposet'],
+            'repository': REPOS['rhst7']['name'],
+            'organization-id': org.id,
+        },
+        force_use_cdn=True,
     )
-    assert len(available_subscriptions) > 0
-    available_subscription_ids = [subscription['id'] for subscription in available_subscriptions]
-    subscription_id = choice(available_subscription_ids)
-    activation_key = module_target_sat.cli_factory.make_activation_key(
-        {'name': ak_name, 'organization-id': org.id}
+    content = module_target_sat.cli.ActivationKey.product_content(
+        {'id': result['activationkey-id'], 'organization-id': org.id}
     )
-    module_target_sat.cli.ActivationKey.add_subscription(
-        {'id': activation_key['id'], 'subscription-id': subscription_id}
-    )
-    subscriptions = module_target_sat.cli.ActivationKey.subscriptions(
-        {'organization-id': org.id, 'id': activation_key['id']},
-        output_format='csv',
-    )
-    assert len(subscriptions) == 1
+    assert content[0]['name'] == REPOSET['rhst7']
+    ak_name = module_target_sat.cli.ActivationKey.info({'id': result['activationkey-id']})['name']
     role = module_target_sat.cli_factory.make_role({'organization-id': org.id})
     resource_permissions = {
         'Katello::ActivationKey': {
@@ -1566,18 +1462,20 @@ def test_positive_view_subscriptions_by_non_admin_user(
                 'edit_activation_keys',
                 'destroy_activation_keys',
             ],
-            'search': f"name ~ {ak_name_like}",
+            'search': f"name ~ {ak_name}",
         },
         'Katello::HostCollection': {
             'permissions': ['view_host_collections', 'edit_host_collections'],
             'search': f'name ~ {hc_names_like[0]} || name ~ {hc_names_like[1]}',
         },
         'Organization': {'permissions': ['view_organizations', 'assign_organizations']},
-        'Katello::Subscription': {
+        'Katello::Product': {
             'permissions': [
-                'view_subscriptions',
-                'attach_subscriptions',
-                'unattach_subscriptions',
+                'view_products',
+                'edit_products',
+                'sync_products',
+                'create_products',
+                'destroy_products',
             ]
         },
     }
@@ -1593,69 +1491,11 @@ def test_positive_view_subscriptions_by_non_admin_user(
     )
     module_target_sat.cli.User.add_role({'id': user['id'], 'role-id': role['id']})
     ak_user_cli_session = module_target_sat.cli.ActivationKey.with_user(user_name, user_password)
-    subscriptions = ak_user_cli_session.subscriptions(
-        {'organization-id': org.id, 'id': activation_key['id']},
-        output_format='csv',
+    reposet = ak_user_cli_session.product_content(
+        {'id': result['activationkey-id'], 'organization-id': org.id}
     )
-    assert len(subscriptions) == 1
-    assert subscriptions[0]['id'] == subscription_id
-
-
-@pytest.mark.tier3
-def test_positive_subscription_quantity_attached(function_org, rhel7_contenthost, target_sat):
-    """Check the Quantity and Attached fields of 'hammer activation-key subscriptions'
-
-    see https://bugzilla.redhat.com/show_bug.cgi?id=1633094
-
-    :id: 6aee3be3-9b23-4de5-a942-897d6c811ba3
-
-    :customerscenario: true
-
-    :steps:
-        1. Create activation key
-        2. add subscriptions to activation key
-        3. Attach a content host to the activation key.
-        4. Verify 'ATTACHED' & 'QUANTITY' columns of 'hammer activation-key subscriptions'
-
-    :parametrized: yes
-
-    :BZ: 1633094
-    """
-    org = function_org
-    result = target_sat.cli_factory.setup_org_for_a_rh_repo(
-        {
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhst7'],
-            'repository': REPOS['rhst7']['name'],
-            'organization-id': org.id,
-        },
-        force_use_cdn=True,
-    )
-    ak = target_sat.cli.ActivationKey.info({'id': result['activationkey-id']})
-    target_sat.cli_factory.setup_org_for_a_custom_repo(
-        {
-            'url': settings.repos.yum_0.url,
-            'organization-id': org.id,
-            'activationkey-id': result['activationkey-id'],
-            'content-view-id': result['content-view-id'],
-            'lifecycle-environment-id': result['lifecycle-environment-id'],
-        }
-    )
-    subs = target_sat.cli.Subscription.list({'organization-id': org.id}, per_page=False)
-    subs_lookup = {s['id']: s for s in subs}
-    rhel7_contenthost.register(org, None, ak['name'], target_sat)
-    assert rhel7_contenthost.subscribed
-
-    ak_subs = target_sat.cli.ActivationKey.subscriptions(
-        {'activation-key': ak['name'], 'organization-id': org.id}, output_format='json'
-    )
-    assert len(ak_subs) == 2  # one for #rh product, one for custom product
-    for ak_sub in ak_subs:
-        assert ak_sub['id'] in subs_lookup
-        assert ak_sub['quantity'] == '1'
-        amount = subs_lookup[ak_sub['id']]['quantity']
-        regex = re.compile(f'1 out of {amount}')
-        assert regex.match(ak_sub['attached'])
+    assert len(reposet) == 1
+    assert reposet[0]['id'] == content[0]['id']
 
 
 @pytest.mark.tier3
@@ -1671,8 +1511,7 @@ def test_positive_ak_with_custom_product_on_rhel6(
     :steps:
         1. Create a custom repo
         2. Create ak and add custom repo to ak
-        3. Add subscriptions to the ak
-        4. Register a rhel6 chost with the ak
+        3. Register a rhel6 chost with the ak
 
     :expectedresults: Host is registered successfully
 
