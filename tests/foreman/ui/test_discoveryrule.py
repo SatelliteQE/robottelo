@@ -121,7 +121,7 @@ def test_positive_crud_with_non_admin_user(
 
         session.discoveryrule.delete(new_rule_name)
         dr_val = session.discoveryrule.read_all()
-        assert new_rule_name not in [rule['Name'] for rule in dr_val]
+        assert new_rule_name not in dr_val
 
 
 @pytest.mark.tier2
@@ -154,7 +154,7 @@ def test_negative_delete_rule_with_non_admin_user(
         with pytest.raises(ValueError):  # noqa: PT011 - TODO Adarsh determine better exception
             session.discoveryrule.delete(dr.name)
         dr_val = session.discoveryrule.read_all()
-        assert dr.name in [rule['Name'] for rule in dr_val]
+        assert dr.name not in dr_val
 
 
 @pytest.mark.run_in_one_thread
@@ -214,8 +214,10 @@ def test_positive_list_host_based_on_rule_search_query(
     with session:
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=module_location.name)
-        values = session.discoveryrule.read_all()
-        assert discovery_rule.name in [rule['Name'] for rule in values]
+        values = session.discoveryrule.read(
+            discovery_rule.name, widget_names=['primary', 'organizations', 'locations']
+        )
+        assert discovery_rule.name in values['primary']['name']
         values = session.discoveryrule.read_discovered_hosts(discovery_rule.name)
         assert values['searchbox'] == rule_search
         assert len(values['table']) == 1
@@ -306,7 +308,7 @@ def test_positive_end_to_end(session, module_org, module_location, module_target
             },
         )
         rules = session.discoveryrule.read_all()
-        assert rule_name not in [rule['Name'] for rule in rules]
+        assert rule_name not in rules
         values = session.discoveryrule.read(
             new_rule_name, widget_names=['primary', 'organizations', 'locations']
         )
@@ -325,4 +327,4 @@ def test_positive_end_to_end(session, module_org, module_location, module_target
         )
         session.discoveryrule.delete(new_rule_name)
         rules = session.discoveryrule.read_all()
-        assert new_rule_name not in [rule['Name'] for rule in rules]
+        assert new_rule_name not in rules
