@@ -1223,7 +1223,9 @@ def test_negative_copy_with_same_name(module_org, module_target_sat):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_copy_activationkey_and_check_content(function_sca_manifest_org, module_target_sat):
+def test_positive_copy_activationkey_and_check_content(
+    function_sca_manifest_org, module_target_sat
+):
     """Copy Activation key and verify contents
 
     :id: f4ee8096-4120-4d06-8c9a-57ac1eaa8f68
