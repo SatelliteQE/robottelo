@@ -51,11 +51,13 @@ class TestOperatingSystem:
             7. Check if OS is deleted
 
         :expectedresults: All CRUD operations are performed successfully.
+
+        :Verifies: SAT-26071
         """
         name = gen_string('alpha')
         desc = gen_string('alpha')
         os_family = 'Redhat'
-        pass_hash = 'SHA256'
+        default_pass_hash = 'SHA512'
         minor_version = gen_string('numeric', 1)
         major_version = gen_string('numeric', 1)
         architecture = target_sat.cli_factory.make_architecture()
@@ -68,7 +70,7 @@ class TestOperatingSystem:
                 'name': name,
                 'description': desc,
                 'family': os_family,
-                'password-hash': pass_hash,
+                'password-hash': default_pass_hash,
                 'major': major_version,
                 'minor': minor_version,
                 'architecture-ids': architecture['id'],
