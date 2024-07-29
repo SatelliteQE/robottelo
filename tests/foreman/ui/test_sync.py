@@ -107,7 +107,7 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product, module
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_sync_rh_ostree_repo(session, target_sat, module_entitlement_manifest_org):
+def test_positive_sync_rh_ostree_repo(session, target_sat, module_sca_manifest_org):
     """Sync CDN based ostree repository.
 
     :id: 4d28fff0-5fda-4eee-aa0c-c5af02c31de5
@@ -124,14 +124,14 @@ def test_positive_sync_rh_ostree_repo(session, target_sat, module_entitlement_ma
     """
     target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=None,
-        org_id=module_entitlement_manifest_org.id,
+        org_id=module_sca_manifest_org.id,
         product=PRDS['rhah'],
         repo=REPOS['rhaht']['name'],
         reposet=REPOSET['rhaht'],
         releasever=None,
     )
     with session:
-        session.organization.select(org_name=module_entitlement_manifest_org.name)
+        session.organization.select(org_name=module_sca_manifest_org.name)
         results = session.sync_status.synchronize([(PRDS['rhah'], REPOS['rhaht']['name'])])
         assert len(results) == 1
         assert results[0] == 'Syncing Complete.'

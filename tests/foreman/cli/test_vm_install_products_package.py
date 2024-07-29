@@ -26,9 +26,9 @@ from robottelo.hosts import ContentHost
 
 
 @pytest.fixture
-def lce(function_entitlement_manifest_org, target_sat):
+def lce(function_sca_manifest_org, target_sat):
     return target_sat.cli_factory.make_lifecycle_environment(
-        {'organization-id': function_entitlement_manifest_org.id}
+        {'organization-id': function_sca_manifest_org.id}
     )
 
 
@@ -50,7 +50,7 @@ def lce(function_entitlement_manifest_org, target_sat):
     ],
     indirect=True,
 )
-def test_vm_install_package(repos_collection, function_entitlement_manifest_org, lce, distro, cdn):
+def test_vm_install_package(repos_collection, function_sca_manifest_org, lce, distro, cdn):
     """Install a package with all supported distros and cdn / non-cdn variants
 
     :id: b2a6065a-69f6-4805-a28b-eaaa812e0f4b
@@ -62,7 +62,7 @@ def test_vm_install_package(repos_collection, function_entitlement_manifest_org,
     if distro == 'rhel6':
         pytest.skip('rhel6 skipped until ELS subscriptions are in manifest.')
     # Create repos, content view, and activation key.
-    repos_collection.setup_content(function_entitlement_manifest_org.id, lce['id'])
+    repos_collection.setup_content(function_sca_manifest_org.id, lce['id'])
     with Broker(nick=distro, host_class=ContentHost) as host:
         # enable custom repos
         repos_collection.setup_virtual_machine(host, enable_custom_repos=True)
