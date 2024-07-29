@@ -188,7 +188,7 @@ def find_content_to_update(target_sat, module_org, distro, contenthost):
 def scap_prerequisites(module_org, default_proxy, target_sat):
     # TODO: add support for RHEL9 (it doesn't have scap content in Sat by default) and parametrize distro
     distro = 'rhel8'
-    profile = OSCAP_PROFILE['ospp8']
+    profile = profiles[distro]
     content = OSCAP_DEFAULT_CONTENT[f'{distro}_content']
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')
