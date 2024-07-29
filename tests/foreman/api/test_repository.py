@@ -1221,7 +1221,7 @@ class TestRepository:
     @pytest.mark.tier3
     @pytest.mark.parametrize('policy', ['additive', 'mirror_content_only'])
     def test_positive_sync_with_treeinfo_ignore(
-        self, target_sat, function_entitlement_manifest_org, policy
+        self, target_sat, function_sca_manifest_org, policy
     ):
         """Verify that the treeinfo file is not synced when added to ignorable content
         and synced otherwise. Check for applicable mirroring policies.
@@ -1247,7 +1247,7 @@ class TestRepository:
         distro = 'rhel8_bos'
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=function_entitlement_manifest_org.id,
+            org_id=function_sca_manifest_org.id,
             product=constants.REPOS['kickstart'][distro]['product'],
             reposet=constants.REPOS['kickstart'][distro]['reposet'],
             repo=constants.REPOS['kickstart'][distro]['name'],
@@ -1357,7 +1357,7 @@ class TestRepositorySync:
         pass
 
     @pytest.mark.tier3
-    def test_positive_bulk_cancel_sync(self, target_sat, module_entitlement_manifest_org):
+    def test_positive_bulk_cancel_sync(self, target_sat, module_sca_manifest_org):
         """Bulk cancel 10+ repository syncs
 
         :id: f9bb1c95-d60f-4c93-b32e-09d58ebce80e
@@ -1377,7 +1377,7 @@ class TestRepositorySync:
         for repo in constants.BULK_REPO_LIST:
             repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
                 basearch='x86_64',
-                org_id=module_entitlement_manifest_org.id,
+                org_id=module_sca_manifest_org.id,
                 product=repo['product'],
                 repo=repo['name'],
                 reposet=repo['reposet'],

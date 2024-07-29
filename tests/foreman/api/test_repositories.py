@@ -31,7 +31,7 @@ from robottelo.utils.datafactory import parametrized
 
 @pytest.mark.skip_if_open('BZ:2137950')
 @pytest.mark.tier1
-def test_negative_disable_repository_with_cv(module_entitlement_manifest_org, target_sat):
+def test_negative_disable_repository_with_cv(module_sca_manifest_org, target_sat):
     """Attempt to disable a Repository that is published in a Content View
 
     :id: e521a7a4-2502-4fe2-b297-a13fc99e679b
@@ -46,7 +46,7 @@ def test_negative_disable_repository_with_cv(module_entitlement_manifest_org, ta
     """
     rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=constants.DEFAULT_ARCHITECTURE,
-        org_id=module_entitlement_manifest_org.id,
+        org_id=module_sca_manifest_org.id,
         product=constants.PRDS['rhel8'],
         repo=constants.REPOS['rhst8']['name'],
         reposet=constants.REPOSET['rhst8'],
@@ -55,7 +55,7 @@ def test_negative_disable_repository_with_cv(module_entitlement_manifest_org, ta
     rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
     rh_repo.sync()
     cv = target_sat.api.ContentView(
-        organization=module_entitlement_manifest_org, repository=[rh_repo_id]
+        organization=module_sca_manifest_org, repository=[rh_repo_id]
     ).create()
     cv.publish()
     reposet = target_sat.api.RepositorySet(
@@ -239,7 +239,7 @@ def test_negative_upload_expired_manifest(module_org, target_sat):
 
     :expectedresults: Manifest refresh should fail and return error message
     """
-    manifester = Manifester(manifest_category=settings.manifest.entitlement)
+    manifester = Manifester(manifest_category=settings.manifest.golden_ticket)
     manifest = manifester.get_manifest()
     target_sat.upload_manifest(module_org.id, manifest.content)
     manifester.delete_subscription_allocation()
@@ -277,7 +277,7 @@ def test_positive_multiple_orgs_with_same_repo(target_sat):
     assert repos[0] == repos[1] == repos[2]
 
 
-def test_positive_sync_mulitple_large_repos(module_target_sat, module_entitlement_manifest_org):
+def test_positive_sync_mulitple_large_repos(module_target_sat, module_sca_manifest_org):
     """Enable and bulk sync multiple large repositories
 
     :id: b51c4a3d-d532-4342-be61-e868f7c3a723
@@ -300,7 +300,7 @@ def test_positive_sync_mulitple_large_repos(module_target_sat, module_entitlemen
     for name in repo_names:
         rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
-            org_id=module_entitlement_manifest_org.id,
+            org_id=module_sca_manifest_org.id,
             product=REPOS[name]['product'],
             repo=REPOS[name]['name'],
             reposet=REPOS[name]['reposet'],
@@ -310,7 +310,7 @@ def test_positive_sync_mulitple_large_repos(module_target_sat, module_entitlemen
     for name in kickstart_names:
         rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=constants.DEFAULT_ARCHITECTURE,
-            org_id=module_entitlement_manifest_org.id,
+            org_id=module_sca_manifest_org.id,
             product=constants.REPOS['kickstart'][name]['product'],
             repo=constants.REPOS['kickstart'][name]['name'],
             reposet=constants.REPOS['kickstart'][name]['reposet'],

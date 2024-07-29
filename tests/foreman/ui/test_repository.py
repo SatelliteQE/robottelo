@@ -681,14 +681,14 @@ def test_positive_no_errors_on_repo_scan(target_sat, function_sca_manifest_org):
 
 
 @pytest.mark.tier2
-def test_positive_reposet_disable(session, target_sat, function_entitlement_manifest_org):
+def test_positive_reposet_disable(session, target_sat, function_sca_manifest_org):
     """Enable RH repo, sync it and then disable
 
     :id: de596c56-1327-49e8-86d5-a1ab907f26aa
 
     :expectedresults: RH repo was disabled
     """
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro='rhel7', cdn=True)
     repository_name = sat_tools_repo.data['repository']
     with session:
@@ -721,7 +721,7 @@ def test_positive_reposet_disable(session, target_sat, function_entitlement_mani
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
 def test_positive_reposet_disable_after_manifest_deleted(
-    session, function_entitlement_manifest_org, target_sat
+    session, function_sca_manifest_org, target_sat
 ):
     """Enable RH repo and sync it. Remove manifest and then disable
     repository
@@ -734,7 +734,7 @@ def test_positive_reposet_disable_after_manifest_deleted(
 
     :BZ: 1344391
     """
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     sub = target_sat.api.Subscription(organization=org)
     sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro='rhel7', cdn=True)
     repository_name = sat_tools_repo.data['repository']
@@ -851,7 +851,7 @@ def test_positive_delete_rhel_repo(session, module_sca_manifest_org, target_sat)
 
 
 @pytest.mark.tier2
-def test_positive_recommended_repos(session, module_entitlement_manifest_org):
+def test_positive_recommended_repos(session, module_sca_manifest_org):
     """list recommended repositories using
      On/Off 'Recommended Repositories' toggle.
 
@@ -865,7 +865,7 @@ def test_positive_recommended_repos(session, module_entitlement_manifest_org):
     :BZ: 1776108
     """
     with session:
-        session.organization.select(module_entitlement_manifest_org.name)
+        session.organization.select(module_sca_manifest_org.name)
         rrepos_on = session.redhatrepository.read(recommended_repo='on')
         assert REPOSET['rhel7'] in [repo['name'] for repo in rrepos_on]
         v = get_sat_version()
