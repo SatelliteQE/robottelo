@@ -4,9 +4,10 @@ import os
 import pytest
 
 from robottelo.config import settings
+from robottelo.constants import JIRA_TESTS_FAILED_LABEL, JIRA_TESTS_PASSED_LABEL
 from robottelo.logging import logger
 from robottelo.utils import parse_comma_separated_list
-from robottelo.utils.issue_handlers.jira import add_comment_on_jira
+from robottelo.utils.issue_handlers.jira import add_comment_on_jira, get_single_jira
 
 
 def pytest_addoption(parser):
@@ -81,21 +82,58 @@ def pytest_runtest_makereport(item, call):
             update_issue_to_tests_map(item, blocked_by_issues, test_result)
 
 
+def escape_special_characters(text):
+    special_chars = '[]'
+    for char in special_chars:
+        text = text.replace(char, f'\\{char}')
+    return text
+
+
 def pytest_sessionfinish(session, exitstatus):
     """Add test result comment to related Jira issues."""
     if hasattr(session.config, 'issue_to_tests_map'):
         user = os.environ.get('USER')
         build_url = os.environ.get('BUILD_URL')
         for issue in session.config.issue_to_tests_map:
+            # Sort test result based on the outcome.
+            session.config.issue_to_tests_map[issue].sort(key=lambda x: x['outcome'])
+            all_tests_passed = True
             comment_body = (
                 f'This is an automated comment from job/user: {build_url if build_url else user} for a Robottelo test run.\n'
                 f'Satellite/Capsule: {settings.server.version.release} Snap: {settings.server.version.snap} \n'
                 f'Result for tests linked with issue: {issue} \n'
             )
             for item in session.config.issue_to_tests_map[issue]:
-                comment_body += f'{item["nodeid"]} : {item["outcome"]} \n'
+                color_code = '{color:green}'
+                if item['outcome'] == 'failed':
+                    all_tests_passed = False
+                    color_code = '{color:red}'
+                # Color code test outcome
+                color_coded_result = f'{color_code}{item["outcome"]}{{color}}'
+                # Escape special characters in the node_id.
+                escaped_node_id = escape_special_characters(item['nodeid'])
+                comment_body += f'{escaped_node_id} : {color_coded_result} \n'
             try:
-                add_comment_on_jira(issue, comment_body)
+                labels = (
+                    [{'add': JIRA_TESTS_PASSED_LABEL}, {'remove': JIRA_TESTS_FAILED_LABEL}]
+                    if all_tests_passed
+                    else [{'add': JIRA_TESTS_FAILED_LABEL}, {'remove': JIRA_TESTS_PASSED_LABEL}]
+                )
+                data = get_single_jira(issue)
+                # Initially set a Pass/Fail label based on the test result
+                # If the state changes add a comment
+                # If the state is already failing, and test is failing, still add a comment
+                # If the state is already passing, and the test passes, don’t add a comment
+                if (data['status'] in settings.jira.issue_status) and (
+                    not all_tests_passed or JIRA_TESTS_PASSED_LABEL not in data['labels']
+                ):
+                    add_comment_on_jira(issue, comment_body, labels=labels)
+                else:
+                    logger.warning(
+                        f'Jira comments are currently disabled for {issue} issue. '
+                        f'It could be because jira is in {data["status"]} state or that there are no failing tests. \n'
+                        'Please update issue_status in jira.conf to override this behaviour.'
+                    )
             except Exception as e:
                 # Handle any errors in adding comments to Jira
                 logger.warning(f'Failed to add comment to Jira issue {issue}: {e}')

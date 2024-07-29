@@ -1797,6 +1797,66 @@ class TestContentViewSync:
         assert imported_gpg['content'] == gpg_key.content
 
     @pytest.mark.tier3
+    def test_postive_export_import_chunked_repo(
+        self,
+        target_sat,
+        config_export_import_settings,
+        export_import_cleanup_function,
+        function_org,
+        function_synced_custom_repo,
+        function_import_org,
+    ):
+        """Test import of a repository exported in chunks bigger than repo size.
+
+        :id: bc27eebf-4749-4dd3-a9d5-c662f43e835b
+
+        :setup:
+            1. Product with synced custom repository.
+
+        :steps:
+            1. Export the repository using chunks and import it into another organization.
+            2. Check the imported content counts.
+
+        :expectedresults:
+            1. Export and import succeeds without any errors.
+
+        :CaseImportance: Medium
+
+        :Verifies: SAT-23573, SAT-26458
+
+        :customerscenario: true
+        """
+        # Export the repository using chunks and import it into another organization.
+        export = target_sat.cli.ContentExport.completeRepository(
+            {'id': function_synced_custom_repo.id, 'chunk-size-gb': 1}
+        )
+        import_path = target_sat.move_pulp_archive(function_org, export['message'])
+        target_sat.cli.ContentImport.repository(
+            {
+                'organization-id': function_import_org.id,
+                'path': import_path,
+            }
+        )
+        # Check the imported content counts.
+        exported_repo = target_sat.cli.Repository.info(
+            {
+                'name': function_synced_custom_repo.name,
+                'product': function_synced_custom_repo.product.name,
+                'organization-id': function_org.id,
+            }
+        )
+        imported_repo = target_sat.cli.Repository.info(
+            {
+                'name': function_synced_custom_repo.name,
+                'product': function_synced_custom_repo.product.name,
+                'organization-id': function_import_org.id,
+            }
+        )
+        assert (
+            exported_repo['content-counts'] == imported_repo['content-counts']
+        ), 'Unexpected package count after import'
+
+    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],
