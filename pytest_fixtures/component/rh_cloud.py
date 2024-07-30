@@ -4,10 +4,10 @@ from robottelo.constants import CAPSULE_REGISTRATION_OPTS
 
 
 @pytest.fixture(scope='module')
-def rhcloud_manifest_org(module_target_sat, module_extra_rhel_entitlement_manifest):
+def rhcloud_manifest_org(module_target_sat, module_sca_manifest):
     """A module level fixture to get organization with manifest."""
     org = module_target_sat.api.Organization().create()
-    module_target_sat.upload_manifest(org.id, module_extra_rhel_entitlement_manifest.content)
+    module_target_sat.upload_manifest(org.id, module_sca_manifest.content)
     return org
 
 

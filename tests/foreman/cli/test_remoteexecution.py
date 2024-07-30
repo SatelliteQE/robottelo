@@ -1072,6 +1072,7 @@ class TestPullProviderRex:
     @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.e2e
+    @pytest.mark.pit_client
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('[^6].*')
     @pytest.mark.parametrize(

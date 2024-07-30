@@ -639,37 +639,29 @@ class TestRepository:
         assert repo.checksum_type == updated_checksum
 
     @pytest.mark.tier1
+    @pytest.mark.parametrize(
+        'repo_options', [{'unprotected': False}], ids=['protected'], indirect=True
+    )
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
-    def test_positive_update_url(self, repo):
-        """Update repository url to another valid one.
+    def test_positive_update_repo_url_and_unprotected_flag(self, repo):
+        """Update repository url and unprotected flag to another valid one.
 
-        :id: 8fbc11f0-a5c5-498e-a314-87958dcd7832
+        :id: 45ddfea2-ba37-45b8-95bb-9e92b8a3a946
 
-        :expectedresults: The repository url can be updated.
+        :parametrized: yes
+
+        :expectedresults: The repository url and unprotected flag can be updated.
 
         :CaseImportance: Critical
         """
+        # Update repo url
         repo.url = settings.repos.yum_2.url
         repo = repo.update(['url'])
         assert repo.url == settings.repos.yum_2.url
 
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options', [{'unprotected': False}], ids=['protected'], indirect=True
-    )
-    def test_positive_update_unprotected(self, repo):
-        """Update repository unprotected flag to another valid one.
-
-        :id: c55d169a-8f11-4bf8-9913-b3d39fee75f0
-
-        :parametrized: yes
-
-        :expectedresults: The repository unprotected flag can be updated.
-
-        :CaseImportance: Critical
-        """
+        # Update repo unprotected flag
         assert repo.unprotected is False
         repo.unprotected = True
         repo = repo.update(['unprotected'])
