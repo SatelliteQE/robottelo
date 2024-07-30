@@ -639,7 +639,7 @@ class TestPodman:
             3. Push the other image to pulp using the /id/org_id/product_id format
 
         :expectedresults: A docker repository is created for both images. Both images are published in pulp,
-        as well as in separate repositories in the given product. All fields on both repositories contain correct information.
+            as well as in separate repositories in the given product. All fields on both repositories contain correct information.
 
         :CaseImportance: High
         """
@@ -707,8 +707,8 @@ class TestPodman:
             3. Publish and Promote the CV
 
         :expectedresults: Podman published images can be added to a CV, and that CV can be published
-        and promoted successfully. You can filter podman repositories in a CV, and you can also delete
-        podman repositories and CVs will work properly.
+            and promoted successfully. You can filter podman repositories in a CV, and you can also delete
+            podman repositories and CVs will work properly.
 
         :CaseImportance: High
         """
