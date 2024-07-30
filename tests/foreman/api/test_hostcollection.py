@@ -418,6 +418,10 @@ def test_positive_add_remove_subscription(module_org, module_ak_cv_lce, target_s
 
     :CaseImportance: Critical
     """
+    # disable SCA if enabled to allow subscription manipulation later
+    if target_sat.is_sca_mode_enabled(module_org.id):
+        module_org.sca_disable()
+
     # this command creates a host collection and "appends", makes available, to the AK
     module_ak_cv_lce.host_collection.append(
         target_sat.api.HostCollection(organization=module_org).create()
