@@ -72,7 +72,7 @@ def fixture_setup_rhc_satellite(
     if settings.rh_cloud.crc_env == 'prod':
         manifester = Manifester(
             allocation_name=module_rhc_org.name,
-            manifest_category=settings.manifest.extra_rhel_entitlement,
+            manifest_category=settings.manifest.golden_ticket,
             simple_content_access="enabled",
         )
         rhcloud_manifest = manifester.get_manifest()
