@@ -604,6 +604,7 @@ class TestDockerActivationKey:
         ak.content_view = None
         assert ak.update(['content_view']).content_view is None
 
+
 class TestPodman:
     """Tests specific to using podman push/pull on Satellite
 
@@ -644,23 +645,41 @@ class TestPodman:
         """
         SMALL_REPO_NAME = 'arianna'
         LARGE_REPO_NAME = 'fedora'
-        result = module_target_sat.execute(f'podman pull registry.fedoraproject.org/{SMALL_REPO_NAME}')
+        result = module_target_sat.execute(
+            f'podman pull registry.fedoraproject.org/{SMALL_REPO_NAME}'
+        )
         assert result.status == 0
-        result = module_target_sat.execute(f'podman pull registry.fedoraproject.org/{LARGE_REPO_NAME}')
+        result = module_target_sat.execute(
+            f'podman pull registry.fedoraproject.org/{LARGE_REPO_NAME}'
+        )
         assert result.status == 0
         small_image_id = module_target_sat.execute(f'podman images {SMALL_REPO_NAME} -q')
         assert small_image_id
         large_image_id = module_target_sat.execute(f'podman images {LARGE_REPO_NAME} -q')
         assert small_image_id
         # Podman pushes require lowercase org and product labels
-        small_repo_cmd = f'{str.lower(module_org.label)}/{str.lower(module_product.label)}/{SMALL_REPO_NAME}'
-        large_repo_cmd = f'{str.lower(module_org.label)}/{str.lower(module_product.label)}/{LARGE_REPO_NAME}'
+        small_repo_cmd = (
+            f'{str.lower(module_org.label)}/{str.lower(module_product.label)}/{SMALL_REPO_NAME}'
+        )
+        large_repo_cmd = (
+            f'{str.lower(module_org.label)}/{str.lower(module_product.label)}/{LARGE_REPO_NAME}'
+        )
         # Push both repos
-        module_target_sat.execute(f'podman push --creds admin:changeme {small_image_id.stdout.strip()} {module_target_sat.hostname}/{small_repo_cmd}')
-        module_target_sat.execute(f'podman push --creds admin:changeme {large_image_id.stdout.strip()} {module_target_sat.hostname}/{large_repo_cmd}')
+        module_target_sat.execute(
+            f'podman push --creds admin:changeme {small_image_id.stdout.strip()} {module_target_sat.hostname}/{small_repo_cmd}'
+        )
+        module_target_sat.execute(
+            f'podman push --creds admin:changeme {large_image_id.stdout.strip()} {module_target_sat.hostname}/{large_repo_cmd}'
+        )
         result = module_target_sat.execute('pulp container repository -t push list')
-        assert f'{str.lower(module_org.label)}/{str.lower(module_product.label)}/{SMALL_REPO_NAME}' in result.stdout
-        assert f'{str.lower(module_org.label)}/{str.lower(module_product.label)}/{LARGE_REPO_NAME}' in result.stdout
+        assert (
+            f'{str.lower(module_org.label)}/{str.lower(module_product.label)}/{SMALL_REPO_NAME}'
+            in result.stdout
+        )
+        assert (
+            f'{str.lower(module_org.label)}/{str.lower(module_product.label)}/{LARGE_REPO_NAME}'
+            in result.stdout
+        )
         product_contents = module_product.read()
         for repo in product_contents.repository:
             repo = module_target_sat.api.Repository(id=repo.id).read()
@@ -675,10 +694,12 @@ class TestPodman:
         assert small_repo.is_container_push is True
         assert large_repo.is_container_push is True
 
-    def test_cv_podman(self, module_target_sat, module_product, module_org, module_lce, enable_podman):
+    def test_cv_podman(
+        self, module_target_sat, module_product, module_org, module_lce, enable_podman
+    ):
         """Push a container image to Pulp and perform various Content View actions with it
 
-        :id:
+        :id: 2f2bfbea-a028-44fc-9802-e9bf19b8bc51
 
         :steps:
             1. Using podman, an image from the fedoraproject registry and publish it to pulp
@@ -696,8 +717,12 @@ class TestPodman:
         assert result.status == 0
         large_image_id = module_target_sat.execute(f'podman images {REPO_NAME} -q')
         assert large_image_id
-        large_repo_cmd = f'{str.lower(module_org.label)}/{str.lower(module_product.label)}/{REPO_NAME}'
-        module_target_sat.execute(f'podman push --creds admin:changeme {large_image_id.stdout.strip()} {module_target_sat.hostname}/{large_repo_cmd}')
+        large_repo_cmd = (
+            f'{str.lower(module_org.label)}/{str.lower(module_product.label)}/{REPO_NAME}'
+        )
+        module_target_sat.execute(
+            f'podman push --creds admin:changeme {large_image_id.stdout.strip()} {module_target_sat.hostname}/{large_repo_cmd}'
+        )
         repo = module_target_sat.api.Repository(id=module_product.read().repository[0].id).read()
         # Create a CV and add Podman repo to it, then publish
         cv = module_target_sat.api.ContentView(organization=module_org.id).create()
@@ -718,7 +743,9 @@ class TestPodman:
             content_view=cv,
             inclusion=False,
         ).create()
-        module_target_sat.api.ContentViewFilterRule(content_view_filter=cv_filter, name='latest').create()
+        module_target_sat.api.ContentViewFilterRule(
+            content_view_filter=cv_filter, name='latest'
+        ).create()
         cv.publish()
         cv = cv.read()
         cvv = cv.read().version[0].read()
@@ -727,9 +754,8 @@ class TestPodman:
         # Check to see if Podman Repos can be deleted, and CVs behave properly
         with pytest.raises(HTTPError):
             repo.delete()
-        #assert repo can be deleted with remove_from_content_view_versions = True
+        # assert repo can be deleted with remove_from_content_view_versions = True
         assert repo.delete_with_args(data={'remove_from_content_view_versions': True})
         cvv = cv.read().version[0].read()
         assert cvv.docker_tag_count == 0
         assert cvv.docker_repository_count == 0
-
