@@ -131,7 +131,7 @@ def test_positive_end_to_end(
             "content_type": "yum",
         }
     )
-    assert len(yum_repo['output']) == 1
+    assert len(yum_repo['output']) == 1  # THIS is the line we are spcifically interested in
     assert yum_repo['output'][0] == f'{settings.repos.repo_discovery.url}/{repo_name}/'
 
     # Discover docker type repo through HTTP proxy
