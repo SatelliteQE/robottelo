@@ -102,7 +102,7 @@ class TestADAuthSource:
             based on user-sync
         """
         ad_data = ad_data()
-        LOGEDIN_MSG = "Using configured credentials for user '{0}'."
+        LOGGEDIN_MSG = "Using configured credentials for user '{0}'."
         auth_source = module_target_sat.cli_factory.ldap_auth_source(
             {
                 'name': gen_string('alpha'),
@@ -134,7 +134,7 @@ class TestADAuthSource:
         result = module_target_sat.cli.Auth.with_user(
             username=ad_data['ldap_user_name'], password=ad_data['ldap_user_passwd']
         ).status()
-        assert LOGEDIN_MSG.format(ad_data['ldap_user_name']) in result.split("\n")[1]
+        assert LOGGEDIN_MSG.format(ad_data['ldap_user_name']) in result[0]['message']
         module_target_sat.cli.UserGroupExternal.refresh(
             {'user-group-id': user_group['id'], 'name': member_group}
         )
@@ -221,7 +221,7 @@ class TestIPAAuthSource:
         ipa_group_base_dn = default_ipa_host.group_base_dn.replace('foobargroup', 'foreman_group')
         member_username = 'foreman_test'
         member_group = 'foreman_group'
-        LOGEDIN_MSG = "Using configured credentials for user '{0}'."
+        LOGGEDIN_MSG = "Using configured credentials for user '{0}'."
         auth_source_name = gen_string('alpha')
         auth_source = module_target_sat.cli_factory.ldap_auth_source(
             {
@@ -262,7 +262,7 @@ class TestIPAAuthSource:
         result = module_target_sat.cli.Auth.with_user(
             username=member_username, password=default_ipa_host.ldap_user_passwd
         ).status()
-        assert LOGEDIN_MSG.format(member_username) in result[0]['message']
+        assert LOGGEDIN_MSG.format(member_username) in result[0]['message']
         with pytest.raises(CLIReturnCodeError) as error:
             module_target_sat.cli.Role.with_user(
                 username=member_username, password=default_ipa_host.ldap_user_passwd
@@ -308,7 +308,7 @@ class TestIPAAuthSource:
         ipa_group_base_dn = default_ipa_host.group_base_dn.replace('foobargroup', 'foreman_group')
         member_username = 'foreman_test'
         member_group = 'foreman_group'
-        LOGEDIN_MSG = "Using configured credentials for user '{0}'."
+        LOGGEDIN_MSG = "Using configured credentials for user '{0}'."
         auth_source_name = gen_string('alpha')
         auth_source = module_target_sat.cli_factory.ldap_auth_source(
             {
@@ -349,7 +349,7 @@ class TestIPAAuthSource:
         result = module_target_sat.cli.Auth.with_user(
             username=member_username, password=default_ipa_host.ldap_user_passwd
         ).status()
-        assert LOGEDIN_MSG.format(member_username) in result[0]['message']
+        assert LOGGEDIN_MSG.format(member_username) in result[0]['message']
         list = module_target_sat.cli.Role.with_user(
             username=member_username, password=default_ipa_host.ldap_user_passwd
         ).list()
