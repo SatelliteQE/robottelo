@@ -639,7 +639,7 @@ class TestPodman:
             3. Push the other image to pulp using the /id/org_id/product_id format
 
         :expectedresults: A docker repository is created for both images. Both images are published in pulp,
-            as well as in separate repositories in the given product. All fields on both repositories contain correct information.
+        as well as in separate repositories in the given product. All fields on both repositories contain correct information.
 
         :CaseImportance: High
         """
@@ -656,14 +656,10 @@ class TestPodman:
         small_image_id = module_target_sat.execute(f'podman images {SMALL_REPO_NAME} -q')
         assert small_image_id
         large_image_id = module_target_sat.execute(f'podman images {LARGE_REPO_NAME} -q')
-        assert small_image_id
+        assert large_image_id
         # Podman pushes require lowercase org and product labels
-        small_repo_cmd = (
-            f'{str.lower(module_org.label)}/{str.lower(module_product.label)}/{SMALL_REPO_NAME}'
-        )
-        large_repo_cmd = (
-            f'{str.lower(module_org.label)}/{str.lower(module_product.label)}/{LARGE_REPO_NAME}'
-        )
+        small_repo_cmd = f'{(module_org.label)}/{(module_product.label)}/{SMALL_REPO_NAME}'.lower()
+        large_repo_cmd = f'{(module_org.label)}/{(module_product.label)}/{LARGE_REPO_NAME}'.lower()
         # Push both repos
         module_target_sat.execute(
             f'podman push --creds admin:changeme {small_image_id.stdout.strip()} {module_target_sat.hostname}/{small_repo_cmd}'
@@ -673,42 +669,35 @@ class TestPodman:
         )
         result = module_target_sat.execute('pulp container repository -t push list')
         assert (
-            f'{str.lower(module_org.label)}/{str.lower(module_product.label)}/{SMALL_REPO_NAME}'
+            f'{(module_org.label)}/{(module_product.label)}/{SMALL_REPO_NAME}'.lower()
             in result.stdout
         )
         assert (
-            f'{str.lower(module_org.label)}/{str.lower(module_product.label)}/{LARGE_REPO_NAME}'
+            f'{(module_org.label)}/{(module_product.label)}/{LARGE_REPO_NAME}'.lower()
             in result.stdout
         )
         product_contents = module_product.read()
         for repo in product_contents.repository:
             repo = module_target_sat.api.Repository(id=repo.id).read()
-            if repo.name == SMALL_REPO_NAME:
-                small_repo = repo
-            if repo.name == LARGE_REPO_NAME:
-                large_repo = repo
-        assert small_repo.name == SMALL_REPO_NAME
-        assert small_repo.label == SMALL_REPO_NAME
-        assert large_repo.name == LARGE_REPO_NAME
-        assert large_repo.label == LARGE_REPO_NAME
-        assert small_repo.is_container_push is True
-        assert large_repo.is_container_push is True
+            assert repo.is_container_push
+            assert repo.name in [SMALL_REPO_NAME, LARGE_REPO_NAME]
+            assert repo.label == repo.name
 
     def test_cv_podman(
         self, module_target_sat, module_product, module_org, module_lce, enable_podman
     ):
         """Push a container image to Pulp and perform various Content View actions with it
 
-        :id: 2f2bfbea-a028-44fc-9802-e9bf19b8bc51
+        :id: e68add27-c7f3-40d7-a149-feedbf5b16cb
 
         :steps:
-            1. Using podman, an image from the fedoraproject registry and publish it to pulp
+            1. Using podman, pull an image from the fedoraproject registry and publish it to pulp
             2. Add this image to a Content View
             3. Publish and Promote the CV
 
         :expectedresults: Podman published images can be added to a CV, and that CV can be published
-            and promoted successfully. You can filter podman repositories in a CV, and you can also delete
-            podman repositories and CVs will work properly.
+        and promoted successfully. You can filter podman repositories in a CV, and you can also delete
+        podman repositories and CVs will work properly.
 
         :CaseImportance: High
         """
@@ -717,9 +706,7 @@ class TestPodman:
         assert result.status == 0
         large_image_id = module_target_sat.execute(f'podman images {REPO_NAME} -q')
         assert large_image_id
-        large_repo_cmd = (
-            f'{str.lower(module_org.label)}/{str.lower(module_product.label)}/{REPO_NAME}'
-        )
+        large_repo_cmd = f'{(module_org.label)}/{(module_product.label)}/{REPO_NAME}'.lower()
         module_target_sat.execute(
             f'podman push --creds admin:changeme {large_image_id.stdout.strip()} {module_target_sat.hostname}/{large_repo_cmd}'
         )
