@@ -12,6 +12,8 @@
 
 """
 
+import json
+
 import pytest
 import requests
 
@@ -166,17 +168,17 @@ def oracle(
 ):
     """Deploy and register Oracle host"""
     major = version.split('.')[0]
-    assert oracle_host.execute('yum -y update').status == 0
     # disable rhn-client-tools because it obsoletes the subscription manager package
     oracle_host.execute('echo "exclude=rhn-client-tools" >> /etc/yum.conf')
-
     # Install and set correct RHEL compatible kernel and using non-UEK kernel, based on C2R docs
-    result = oracle_host.execute(
-        'yum install -y kernel && '
-        'grubby --set-default /boot/vmlinuz-'
-        '`rpm -q --qf "%{BUILDTIME}\t%{EVR}.%{ARCH}\n" kernel | sort -nr | head -1 | cut -f2`'
+    assert (
+        oracle_host.execute(
+            'yum install -y kernel* && '
+            'grubby --set-default /boot/vmlinuz-'
+            '`rpm -q --qf "%{BUILDTIME}\t%{EVR}.%{ARCH}\n" kernel | sort -nr | head -1 | cut -f2`'
+        ).status
+        == 0
     )
-    assert result.status == 0
 
     if major == '8':
         # needs-restarting missing in OEL8
@@ -250,10 +252,12 @@ def test_convert2rhel_oracle_with_pre_conversion_template_check(
 
     :parametrized: yes
 
-    Verifies: SAT-24654
+    :Verifies: SAT-24654, SAT-24655
     """
+    target_os_name = 'Red Hat'
     major = version.split('.')[0]
     assert oracle.execute('yum -y update').status == 0
+
     if major == '8':
         # Fix inhibitor TAINTED_KMODS::TAINTED_KMODS_DETECTED - Tainted kernel modules detected
         blacklist_cfg = '/etc/modprobe.d/blacklist.conf'
@@ -278,7 +282,6 @@ def test_convert2rhel_oracle_with_pre_conversion_template_check(
             'search_query': f'name = {oracle.hostname}',
         },
     )
-
     # wait for job to complete
     module_target_sat.wait_for_tasks(
         f'resource_type = JobInvocation and resource_id = {job["id"]}',
@@ -322,8 +325,11 @@ def test_convert2rhel_oracle_with_pre_conversion_template_check(
     oracle.wait_for_connection()
 
     # Verify convert2rhel facts are generated, and verify fact conversions.success is true
-    assert oracle.execute('test -f /etc/rhsm/facts/convert2rhel.facts').status == 0
     assert host_content['facts']['conversions::success'] == 'true'
+    convert2rhel_facts = json.loads(oracle.execute('cat /etc/rhsm/facts/convert2rhel.facts').stdout)
+    assert convert2rhel_facts['conversions.env.CONVERT2RHEL_THROUGH_FOREMAN'] == '1'
+    assert target_os_name in convert2rhel_facts['conversions.target_os.name']
+    assert convert2rhel_facts['conversions.success'] is True
 
 
 @pytest.mark.e2e
@@ -345,8 +351,9 @@ def test_convert2rhel_centos_with_pre_conversion_template_check(
 
     :parametrized: yes
 
-    Verifies: SAT-24654
+    :Verifies: SAT-24654, SAT-24655
     """
+    target_os_name = 'Red Hat'
     host_content = module_target_sat.api.Host(id=centos.hostname).read_json()
     major = version.split('.')[0]
     assert host_content['operatingsystem_name'] == f'CentOS {major}'
@@ -412,5 +419,8 @@ def test_convert2rhel_centos_with_pre_conversion_template_check(
     centos.wait_for_connection()
 
     # Verify convert2rhel facts are generated, and verify fact conversions.success is true
-    assert centos.execute('test -f /etc/rhsm/facts/convert2rhel.facts').status == 0
     assert host_content['facts']['conversions::success'] == 'true'
+    convert2rhel_facts = json.loads(centos.execute('cat /etc/rhsm/facts/convert2rhel.facts').stdout)
+    assert convert2rhel_facts['conversions.env.CONVERT2RHEL_THROUGH_FOREMAN'] == '1'
+    assert target_os_name in convert2rhel_facts['conversions.target_os.name']
+    assert convert2rhel_facts['conversions.success'] is True
