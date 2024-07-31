@@ -188,7 +188,9 @@ class TestRemoteExecution:
 
         :id: 0cd75cab-f699-47e6-94d3-4477d2a94bb7
 
-        :BZ: 1451675, 1804685, 2258968
+        :BZ: 1451675, 1804685
+
+        :verifies: SAT-22554
 
         :expectedresults: Verify the job was successfully run under the
             effective user identity on host, make sure the password is
