@@ -59,10 +59,10 @@ def test_positive_sync_without_deadlock(
     rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=constants.DEFAULT_ARCHITECTURE,
         org_id=function_sca_manifest_org.id,
-        product=constants.REPOS['rhel9_bos']['product'],
-        repo=constants.REPOS['rhel9_bos']['name'],
-        reposet=constants.REPOSET['rhel9_bos'],
-        releasever=constants.REPOS['rhel9_bos']['releasever'],
+        product=constants.REPOS['rhel9_aps']['product'],
+        repo=constants.REPOS['rhel9_aps']['name'],
+        reposet=constants.REPOSET['rhel9_aps'],
+        releasever=constants.REPOS['rhel9_aps']['releasever'],
     )
     repo = target_sat.api.Repository(id=rh_repo_id).read()
     # add large repo to cv and publish
@@ -70,7 +70,7 @@ def test_positive_sync_without_deadlock(
     function_published_cv.update(['repository'])
     task_query = (
         f'Metadata generate repository "{repo.name}";'
-        f' product "{constants.REPOS["rhel9_bos"]["product"]}";'
+        f' product "{constants.REPOS["rhel9_aps"]["product"]}";'
         f' organization "{function_sca_manifest_org.name}"'
     )
     # wait_for repo metadata task, prior to publish
