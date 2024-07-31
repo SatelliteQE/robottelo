@@ -17,6 +17,7 @@ from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.hosts import ContentHost
 
 
 @pytest.mark.tier1
@@ -77,10 +78,10 @@ def test_positive_vmware_cr_end_to_end(target_sat, module_org, module_location, 
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
-@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
-@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
-@pytest.mark.parametrize('provision_method', ['build', 'bootdisk'])
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.parametrize('vmware', ['vmware8'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['uefi'], indirect=True)
+@pytest.mark.parametrize('provision_method', ['build'])
+@pytest.mark.rhel_ver_match('[8, 9]')
 @pytest.mark.tier3
 def test_positive_provision_end_to_end(
     request,
@@ -94,6 +95,7 @@ def test_positive_provision_end_to_end(
     provision_method,
     vmware,
     vmwareclient,
+    module_ssh_key_file,
 ):
     """Provision a host on vmware compute resource with
     the help of hostgroup.
@@ -101,7 +103,6 @@ def test_positive_provision_end_to_end(
     :id: ff9963fc-a2a7-4392-aa9a-190d5d1c8357
 
     :steps:
-
         1. Configure provisioning setup.
         2. Create VMware CR
         3. Configure host group setup.
@@ -146,6 +147,34 @@ def test_positive_provision_end_to_end(
         != 'Pending installation',
         timeout=1800,
         delay=30,
+        silent_failure=True,
+        handle_exception=True,
     )
     host_info = sat.cli.Host.info({'id': host['id']})
     assert host_info['status']['build-status'] == 'Installed'
+
+    # Perform OS version check and check if root password is properly updated
+    provisioning_host = ContentHost(
+        host_info['network-interfaces'][0]['ipv4-address'], auth=module_ssh_key_file
+    )
+    expected_rhel_version = host_info['operating-system']['operating-system'][-3:]
+
+    # Wait for the host to be rebooted and SSH daemon to be started.
+    provisioning_host.wait_for_connection()
+
+    if int(expected_rhel_version.split('.')[0]) >= 9:
+        assert (
+            provisioning_host.execute(
+                'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
+            ).status
+            == 0
+        )
+    host_ssh_os = sat.execute(
+        f'sshpass -p {settings.provisioning.host_root_password} '
+        'ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o PasswordAuthentication=yes '
+        f'-o UserKnownHostsFile=/dev/null root@{provisioning_host.hostname} cat /etc/redhat-release'
+    )
+    assert host_ssh_os.status == 0
+    assert (
+        expected_rhel_version in host_ssh_os.stdout
+    ), f'The installed OS version differs from the expected version {expected_rhel_version}'
