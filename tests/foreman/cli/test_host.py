@@ -32,10 +32,8 @@ from robottelo.constants import (
     PRDS,
     REPOS,
     REPOSET,
-    SM_OVERALL_STATUS,
 )
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
-from robottelo.hosts import ContentHostError
 from robottelo.logging import logger
 from robottelo.utils.datafactory import (
     invalid_values_list,
@@ -1847,7 +1845,7 @@ def ak_with_subscription(
 
 
 # -------------------------- HOST SUBSCRIPTION SUBCOMMAND SCENARIOS -------------------------
-@pytest.mark.rhel_ver_match('7')
+@pytest.mark.rhel_ver_match('9')
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
 def test_positive_register(
@@ -1903,147 +1901,10 @@ def test_positive_register(
     assert len(host_subscriptions) == 0
 
 
-@pytest.mark.rhel_ver_match('7')
+@pytest.mark.rhel_ver_match('9')
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
-def test_positive_attach(
-    module_org,
-    module_promoted_cv,
-    module_lce,
-    module_ak_with_cv,
-    module_rhst_repo,
-    default_subscription,
-    rhel_contenthost,
-    target_sat,
-):
-    """Attempt to attach a subscription to host
-
-    :id: d5825bfb-59e3-4d49-8df8-902cc7a9d66b
-
-    :BZ: 1199515
-
-    :customerscenario: true
-
-    :expectedresults: host successfully subscribed, subscription repository
-        enabled, and repository package installed
-
-    :parametrized: yes
-    """
-    # create an activation key without subscriptions
-    # register the client host
-    target_sat.cli.Host.subscription_register(
-        {
-            'organization-id': module_org.id,
-            'content-view-id': module_promoted_cv.id,
-            'lifecycle-environment-id': module_lce.id,
-            'name': rhel_contenthost.hostname,
-        }
-    )
-    host = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
-    result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
-    assert result.status == 0
-    assert rhel_contenthost.subscribed
-    # attach the subscription to host
-    target_sat.cli.Host.subscription_attach(
-        {
-            'host-id': host['id'],
-            'subscription-id': default_subscription.id,
-            'quantity': 2,
-        }
-    )
-    rhel_contenthost.enable_repo(module_rhst_repo)
-    # ensure that katello-host-tools can be installed
-    try:
-        rhel_contenthost.install_katello_host_tools()
-    except ContentHostError:
-        pytest.fail('ContentHostError raised unexpectedly!')
-
-
-@pytest.mark.rhel_ver_match('7')
-@pytest.mark.cli_host_subscription
-@pytest.mark.tier3
-def test_positive_attach_with_lce(
-    module_org,
-    module_ak_with_cv,
-    module_rhst_repo,
-    default_subscription,
-    rhel_contenthost,
-    target_sat,
-):
-    """Attempt to attach a subscription to host, registered by lce
-
-    :id: a362b959-9dde-4d1b-ae62-136c6ef943ba
-
-    :BZ: 1199515
-
-    :customerscenario: true
-
-    :expectedresults: host successfully subscribed, subscription
-        repository enabled, and repository package installed
-
-    :parametrized: yes
-    """
-    res = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
-    assert res.status == 0, f'Failed to register host: {res.stderr}'
-    assert rhel_contenthost.subscribed
-    host = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
-    target_sat.cli.Host.subscription_attach(
-        {
-            'host-id': host['id'],
-            'subscription-id': default_subscription.id,
-            'quantity': 2,
-        }
-    )
-    rhel_contenthost.enable_repo(module_rhst_repo)
-    # ensure that katello-host-tools can be installed
-    try:
-        rhel_contenthost.install_katello_host_tools()
-    except ContentHostError:
-        pytest.fail('ContentHostError raised unexpectedly!')
-
-
-@pytest.mark.rhel_ver_match('7')
-@pytest.mark.cli_host_subscription
-@pytest.mark.tier3
-def test_negative_without_attach(
-    module_org, module_promoted_cv, module_lce, rhel_contenthost, target_sat
-):
-    """Register content host from satellite, register client to uuid
-    of that content host, as there was no attach on the client,
-    Test if the list of the repository subscriptions is empty
-
-    :id: 54a2c95f-be08-4353-a96c-4bc4d96ad03d
-
-    :expectedresults: repository list is empty
-
-    :parametrized: yes
-    """
-    target_sat.cli.Host.subscription_register(
-        {
-            'organization-id': module_org.id,
-            'content-view-id': module_promoted_cv.id,
-            'lifecycle-environment-id': module_lce.id,
-            'name': rhel_contenthost.hostname,
-        }
-    )
-    host = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
-
-    rhel_contenthost.register_contenthost(
-        module_org.name,
-        lce=None,  # required, to jump into right branch in register_contenthost method
-        consumerid=host['subscription-information']['uuid'],
-        force=False,
-    )
-    client_status = rhel_contenthost.subscription_manager_status()
-    assert SM_OVERALL_STATUS['current'] in client_status.stdout
-    repo_list = rhel_contenthost.subscription_manager_list_repos()
-    assert "This system has no repositories available through subscriptions." in repo_list.stdout
-
-
-@pytest.mark.rhel_ver_match('7')
-@pytest.mark.cli_host_subscription
-@pytest.mark.tier3
-def test_negative_without_attach_with_lce(
+def test_positive_without_attach_with_lce(
     target_sat,
     rhel_contenthost,
     function_ak_with_cv,
@@ -2057,7 +1918,7 @@ def test_negative_without_attach_with_lce(
 
     :id: fc469e70-a7cb-4fca-b0ea-3c9e3dfff849
 
-    :expectedresults: Repository enabled due to SCA. Why is this "negative"? To keep history, because pre-6.16, this would have failed.
+    :expectedresults: Repository enabled due to SCA.
 
     :parametrized: yes
     """
@@ -2085,167 +1946,7 @@ def test_negative_without_attach_with_lce(
     assert f"Repository '{REPOS['rhsclient7']['id']}' is enabled for this system." in res.stdout
 
 
-@pytest.mark.rhel_ver_match('7')
-@pytest.mark.e2e
-@pytest.mark.cli_host_subscription
-@pytest.mark.tier3
-@pytest.mark.upgrade
-def test_positive_remove(
-    module_org,
-    module_promoted_cv,
-    module_lce,
-    ak_with_subscription,
-    default_subscription,
-    rhel_contenthost,
-    target_sat,
-):
-    """Attempt to remove a subscription from content host
-
-    :id: 3833c349-1f5b-41ac-bbac-2c1f33232d76
-
-    :expectedresults: subscription successfully removed from host
-
-    :parametrized: yes
-    """
-    target_sat.cli.Host.subscription_register(
-        {
-            'organization-id': module_org.id,
-            'content-view-id': module_promoted_cv.id,
-            'lifecycle-environment-id': module_lce.id,
-            'name': rhel_contenthost.hostname,
-        }
-    )
-    host = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
-    host_subscriptions = target_sat.cli.ActivationKey.subscriptions(
-        {
-            'organization-id': module_org.id,
-            'id': ak_with_subscription.id,
-            'host-id': host['id'],
-        },
-        output_format='json',
-    )
-    assert default_subscription.name not in [sub['name'] for sub in host_subscriptions]
-    res = rhel_contenthost.register(module_org, None, ak_with_subscription.name, target_sat)
-    assert res.status == 0, f'Failed to register host: {res.stderr}'
-    target_sat.cli.Host.subscription_attach(
-        {
-            'host-id': host['id'],
-            'subscription-id': default_subscription.id,
-        }
-    )
-    host_subscriptions = target_sat.cli.ActivationKey.subscriptions(
-        {
-            'organization-id': module_org.id,
-            'id': ak_with_subscription.id,
-            'host-id': host['id'],
-        },
-        output_format='json',
-    )
-    assert default_subscription.name in [sub['name'] for sub in host_subscriptions]
-    target_sat.cli.Host.subscription_remove(
-        {
-            'host-id': host['id'],
-            'subscription-id': default_subscription.id,
-        }
-    )
-    host_subscriptions = target_sat.cli.ActivationKey.subscriptions(
-        {
-            'organization-id': module_org.id,
-            'id': ak_with_subscription.id,
-            'host-id': host['id'],
-        },
-        output_format='json',
-    )
-    assert default_subscription.name not in [sub['name'] for sub in host_subscriptions]
-
-
-@pytest.mark.rhel_ver_match('7')
-@pytest.mark.cli_host_subscription
-@pytest.mark.tier3
-def test_positive_auto_attach(
-    module_org,
-    module_promoted_cv,
-    module_lce,
-    module_rhst_repo,
-    ak_with_subscription,
-    rhel_contenthost,
-    target_sat,
-):
-    """Attempt to auto attach a subscription to content host
-
-    :id: e3eebf72-d512-4892-828b-70165ea4b129
-
-    :expectedresults: host successfully subscribed, subscription
-        repository enabled, and repository package installed
-
-    :parametrized: yes
-    """
-    target_sat.cli.Host.subscription_register(
-        {
-            'organization-id': module_org.id,
-            'content-view-id': module_promoted_cv.id,
-            'lifecycle-environment-id': module_lce.id,
-            'name': rhel_contenthost.hostname,
-        }
-    )
-    host = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
-
-    res = rhel_contenthost.register(module_org, None, ak_with_subscription.name, target_sat)
-    assert res.status == 0, f'Failed to register host: {res.stderr}'
-    target_sat.cli.Host.subscription_auto_attach({'host-id': host['id']})
-    rhel_contenthost.enable_repo(module_rhst_repo)
-    # ensure that katello-host-tools can be installed
-    try:
-        rhel_contenthost.install_katello_host_tools()
-    except ContentHostError:
-        pytest.fail('ContentHostError raised unexpectedly!')
-
-
-@pytest.mark.rhel_ver_match('7')
-@pytest.mark.cli_host_subscription
-@pytest.mark.tier3
-def test_positive_unregister_host_subscription(
-    module_org, module_rhst_repo, ak_with_subscription, rhel_contenthost, target_sat
-):
-    """Attempt to unregister host subscription
-
-    :id: 608f5b6d-4688-478e-8be8-e946771d5247
-
-    :expectedresults: host subscription is unregistered
-
-    :parametrized: yes
-    """
-    # register the host client
-    res = rhel_contenthost.register(module_org, None, ak_with_subscription.name, target_sat)
-    assert res.status == 0, f'Failed to register host: {res.stderr}'
-    assert rhel_contenthost.subscribed
-    rhel_contenthost.run('subscription-manager attach --auto')
-    rhel_contenthost.enable_repo(module_rhst_repo)
-    assert rhel_contenthost.subscribed
-    host = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
-    host_subscriptions = target_sat.cli.ActivationKey.subscriptions(
-        {
-            'organization-id': module_org.id,
-            'id': ak_with_subscription.id,
-            'host-id': host['id'],
-        },
-        output_format='json',
-    )
-    assert len(host_subscriptions) > 0
-    target_sat.cli.Host.subscription_unregister({'host': rhel_contenthost.hostname})
-    with pytest.raises(CLIReturnCodeError):
-        # raise error that the host was not registered by
-        # subscription-manager register
-        target_sat.cli.ActivationKey.subscriptions(
-            {
-                'organization-id': module_org.id,
-                'id': ak_with_subscription.id,
-                'host-id': host['id'],
-            }
-        )
-
-
-@pytest.mark.rhel_ver_match('7')
+@pytest.mark.rhel_ver_match('9')
 @pytest.mark.pit_client
 @pytest.mark.pit_server
 @pytest.mark.cli_host_subscription
@@ -2285,7 +1986,6 @@ def test_syspurpose_end_to_end(
     res = rhel_contenthost.register(module_org, None, activation_key.name, target_sat)
     assert res.status == 0, f'Failed to register host: {res.stderr}'
     assert rhel_contenthost.subscribed
-    rhel_contenthost.run('subscription-manager attach --auto')
     rhel_contenthost.enable_repo(module_rhst_repo)
     host = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
     # Assert system purpose values are set in the host as expected
@@ -2689,7 +2389,7 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
 @pytest.mark.cli_puppet_enabled
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_match('[8]')
+@pytest.mark.rhel_ver_match('[9]')
 @pytest.mark.no_containers
 def test_positive_create_and_update_with_content_source(
     target_sat,
