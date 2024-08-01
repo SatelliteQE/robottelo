@@ -645,14 +645,18 @@ class TestPodman:
         """
         SMALL_REPO_NAME = 'arianna'
         LARGE_REPO_NAME = 'fedora'
-        result = module_target_sat.execute(
-            f'podman pull registry.fedoraproject.org/{SMALL_REPO_NAME}'
+        assert (
+            module_target_sat.execute(
+                f'podman pull registry.fedoraproject.org/{SMALL_REPO_NAME}'
+            ).status
+            == 0
         )
-        assert result.status == 0
-        result = module_target_sat.execute(
-            f'podman pull registry.fedoraproject.org/{LARGE_REPO_NAME}'
+        assert (
+            module_target_sat.execute(
+                f'podman pull registry.fedoraproject.org/{LARGE_REPO_NAME}'
+            ).status
+            == 0
         )
-        assert result.status == 0
         small_image_id = module_target_sat.execute(f'podman images {SMALL_REPO_NAME} -q')
         assert small_image_id
         large_image_id = module_target_sat.execute(f'podman images {LARGE_REPO_NAME} -q')
@@ -702,8 +706,10 @@ class TestPodman:
         :CaseImportance: High
         """
         REPO_NAME = 'fedora'
-        result = module_target_sat.execute(f'podman pull registry.fedoraproject.org/{REPO_NAME}')
-        assert result.status == 0
+        assert (
+            module_target_sat.execute(f'podman pull registry.fedoraproject.org/{REPO_NAME}').status
+            == 0
+        )
         large_image_id = module_target_sat.execute(f'podman images {REPO_NAME} -q')
         assert large_image_id
         large_repo_cmd = f'{(module_org.label)}/{(module_product.label)}/{REPO_NAME}'.lower()
