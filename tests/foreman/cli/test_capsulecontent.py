@@ -22,6 +22,7 @@ from robottelo.config import settings
 from robottelo.constants import (
     CONTAINER_REGISTRY_HUB,
     CONTAINER_UPSTREAM_NAME,
+    PULP_EXPORT_DIR,
 )
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
 from robottelo.content_info import get_repo_files_urls_by_url
@@ -304,6 +305,96 @@ def test_positive_update_counts(target_sat, module_capsule_configured):
         search_rate=5,
         max_tries=5,
     )
+
+
+@pytest.mark.tier4
+@pytest.mark.skip_if_not_set('capsule')
+def test_positive_exported_imported_content_sync(
+    target_sat,
+    function_sca_manifest_org,
+    module_capsule_configured,
+    function_published_cv,
+    function_lce_library,
+    function_lce,
+):
+    """Add repo content to Library with a content-view, publish,
+    export the Library content. Then, import the content (CVV) to satellite,
+    promote to a Capsule's LCE, sync the Capsule.
+
+    :id: efb3bb45-fb91-4b40-825a-07c1e9772a55
+
+    :steps:
+        1. Assign a non-Library LCE to Capsule.
+        2. Setup and sync a custom repo, for an SCA-enabled org.
+        3. Export-complete Library content, containing repo's published CV (can take a while).
+        4. Import the exported content from Step 3 (can take a while).
+        5. Promote the imported CVV (Import-Library) to the Capsule's LCE.
+        6. Sync the Capsule with the added Import-Library content.
+
+    :expectedresults:
+        1. Imported content sources assigned to empty Capsule,
+            synced successfully.
+        2. Auxilary created 'Export-Library' CV, made after exporting,
+            is not associated with the Capsule, as it is only in Library.
+
+    :BZ: 2043726, 2059385
+
+    :customerscenario: True
+
+    """
+    # assign the non-Library LCE to Capsule
+    target_sat.cli.Capsule.content_add_lifecycle_environment(
+        {
+            'id': module_capsule_configured.nailgun_capsule.id,
+            'organization-id': function_sca_manifest_org.id,
+            'lifecycle-environment-id': function_lce.id,
+        }
+    )
+    # Create and sync custom repo, add to CV, publish only (Library)
+    target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': settings.repos.yum_3.url,
+            'organization-id': function_sca_manifest_org.id,
+            'content-view-id': function_published_cv.id,
+            'lifecycle-environment-id': function_lce_library.id,
+        }
+    )
+    # Verify export directory is empty
+    assert target_sat.validate_pulp_filepath(function_sca_manifest_org, PULP_EXPORT_DIR) == ''
+    # Export complete Library with content, verify populated export directory
+    exported = target_sat.cli.ContentExport.completeLibrary(
+        {'organization-id': function_sca_manifest_org.id}
+    )
+    assert target_sat.validate_pulp_filepath(function_sca_manifest_org, PULP_EXPORT_DIR)
+    import_path = target_sat.move_pulp_archive(function_sca_manifest_org, exported['message'])
+    # import content from pulp exports
+    target_sat.cli.ContentImport.library(
+        {'organization-id': function_sca_manifest_org.id, 'path': import_path}
+    )
+    import_cv_info = target_sat.cli.ContentView.info(
+        {
+            'name': 'Import-Library',
+            'organization-id': function_sca_manifest_org.id,
+        }
+    )
+    # promote Import-Library to Capsule's LCE
+    target_sat.cli.ContentView.version_promote(
+        {
+            'id': import_cv_info['versions'][0]['id'],
+            'organization-id': function_sca_manifest_org.id,
+            'to-lifecycle-environment-id': function_lce.id,
+        }
+    )
+    capsule = module_capsule_configured.nailgun_capsule.read()
+    # just one LCE found for capsule,
+    # only the environment with Import-Library
+    assert len(capsule.lifecycle_environments) == 1
+    assert capsule.lifecycle_environments[0]['id'] == function_lce.id
+    assert not capsule.lifecycle_environments[0]['library']
+    # Synchronize the Capsule, now with added Import content
+    sync_status = module_capsule_configured.nailgun_capsule.content_sync(timeout='90m')
+    assert sync_status['result'] == 'success', 'Capsule sync task failed'
+    # no need to check content counts, covered by several other cases
 
 
 @pytest.mark.parametrize('repair_type', ['repo', 'cv', 'lce'])
