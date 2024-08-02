@@ -50,6 +50,7 @@ UPSTREAM_SPECIFIC_MODULES = {
     'foreman::plugin::dlm',
     'foreman::plugin::expire_hosts',
     'foreman::plugin::git_templates',
+    'foreman::plugin::hdm',
     'foreman::plugin::hooks',
     'foreman::plugin::kernel_care',
     'foreman::plugin::monitoring',
@@ -67,6 +68,7 @@ UPSTREAM_SPECIFIC_MODULES = {
     'foreman_proxy::plugin::acd',
     'foreman_proxy::plugin::dns::powerdns',
     'foreman_proxy::plugin::dns::route53',
+    'foreman_proxy::plugin::hdm',
     'foreman_proxy::plugin::monitoring',
     'foreman_proxy::plugin::salt',
 }
