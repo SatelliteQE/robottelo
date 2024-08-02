@@ -77,3 +77,33 @@ def module_vmware_hostgroup(
             },
         ],
     ).create()
+
+
+@pytest.fixture
+def module_vmware_image(
+    module_provisioning_sat,
+    module_vmware_cr,
+    module_sca_manifest_org,
+    module_location,
+    module_provisioning_rhel_content,
+    default_architecture,
+    vmware,
+):
+    image_os = (
+        module_provisioning_sat.sat.api.OperatingSystem()
+        .search(query={'search': f'name=RedHat {settings.vmware.image_os.split()[1]}'})[0]
+        .read()
+    )
+    if not image_os:
+        image_os = module_provisioning_sat.sat.api.OperatingSystem(
+            name=f'RedHat {settings.vmware.image_os.split()[1]}'
+        ).create()
+    return module_provisioning_sat.sat.api.Image(
+        architecture=default_architecture,
+        compute_resource=module_vmware_cr,
+        name=gen_string('alpha'),
+        operatingsystem=image_os,
+        username='root',
+        uuid=settings.vmware.image_name,
+        password=settings.provisioning.host_root_password,
+    ).create()
