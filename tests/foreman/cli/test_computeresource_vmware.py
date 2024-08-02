@@ -154,3 +154,98 @@ def test_positive_provision_end_to_end(
     )
     host_info = sat.cli.Host.info({'id': host['id']})
     assert host_info['status']['build-status'] == 'Installed'
+
+
+@pytest.mark.e2e
+@pytest.mark.on_premises_provisioning
+@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
+@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['bios'], indirect=True)
+@pytest.mark.rhel_ver_match('[8]')
+@pytest.mark.tier3
+def test_positive_image_provision_end_to_end(
+    request,
+    setting_update,
+    module_provisioning_sat,
+    module_sca_manifest_org,
+    module_location,
+    pxe_loader,
+    module_vmware_cr,
+    module_vmware_image,
+    module_vmware_hostgroup,
+    vmware,
+    vmwareclient,
+):
+    """Provision a host with image on vmware compute resource with
+    the help of hostgroup.
+
+    :id: 8f0e2278-b897-4927-9c21-d84313623cc4
+
+    :steps:
+
+        1. Configure provisioning setup.
+        2. Create VMware CR
+        3. Create VMware image
+        4. Configure host group setup.
+        5. Provision a host on VMware
+        6. Verify created host on VMware with wrapanapi
+
+    :expectedresults: Host is provisioned succesfully.
+
+    """
+    sat = module_provisioning_sat.sat
+    hostname = gen_string('alpha').lower()
+    module_vmware_hostgroup.group_parameters_attributes = [
+        {'name': 'package_upgrade', 'value': 'false', 'parameter_type': 'boolean'}
+    ]
+    module_vmware_hostgroup.update(['group_parameters_attributes'])
+    host = sat.cli.Host.create(
+        {
+            'name': hostname,
+            'organization': module_sca_manifest_org.name,
+            'location': module_location.name,
+            'hostgroup': module_vmware_hostgroup.name,
+            'compute-resource-id': module_vmware_cr.id,
+            'image': module_vmware_image.name,
+            'ip': None,
+            'mac': None,
+            'parameters': 'name=package_upgrade,' 'type=boolean,' 'value=false',
+            'compute-attributes': f'cluster={settings.vmware.cluster},'
+            f'path=/Datacenters/{settings.vmware.datacenter}/vm/,'
+            'scsi_controller_type=VirtualLsiLogicController,'
+            'guest_id=rhel8_64Guest,firmware=automatic,'
+            'cpus=1,memory_mb=6000, start=1',
+            'interface': 'compute_type=VirtualVmxnet3,'
+            f'compute_network=VLAN {settings.provisioning.vlan_id}',
+            'volume': f'name=Hard disk,size_gb=10,thin=true,eager_zero=false,datastore={settings.vmware.datastore}',
+            'provision-method': 'image',
+        }
+    )
+    # teardown
+    request.addfinalizer(lambda: sat.provisioning_cleanup(host['name'], interface='CLI'))
+
+    hostname = f'{hostname}.{module_provisioning_sat.domain.name}'
+    assert hostname == host['name']
+    # check if vm is created on vmware
+    assert vmwareclient.does_vm_exist(hostname) is True
+    wait_for(
+        lambda: sat.cli.Host.info({'name': hostname})['status']['build-status']
+        != 'Pending installation',
+        timeout=1800,
+        delay=30,
+    )
+
+    host_info = sat.cli.Host.info({'id': host['id']})
+    assert host_info['status']['build-status'] == 'Installed'
+    # check if correct OS version is installed
+    expected_rhel_version = host_info['operating-system']['operating-system']['name'].split(" ")[1]
+    host_ip = host_info['network']['ipv4-address']
+    host_ssh_os = sat.execute(
+        f'sshpass -p {settings.provisioning.host_root_password} '
+        'ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o PasswordAuthentication=yes '
+        f'-o UserKnownHostsFile=/dev/null root@{host_ip} cat /etc/redhat-release'
+    )
+    assert host_ssh_os.status == 0
+    assert (
+        expected_rhel_version in host_ssh_os.stdout
+    ), f'The installed OS version differs from the expected version {expected_rhel_version}'
