@@ -429,7 +429,7 @@ def test_installer_modules_check(target_sat):
     sat_yaml = yaml.safe_load(sat_output.stdout)
     upstream_yaml = yaml.safe_load(upstream_output.stdout)
 
-    assert sat_yaml.keys() == (upstream_yaml.keys() - UPSTREAM_SPECIFIC_MODULES)
+    assert set(sat_yaml.keys()) == (upstream_yaml.keys() - UPSTREAM_SPECIFIC_MODULES)
 
 
 @pytest.mark.stubbed
