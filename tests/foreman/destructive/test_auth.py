@@ -18,7 +18,7 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import HAMMER_CONFIG
 
-LOGEDIN_MSG = "Session exists, currently logged in as '{0}'"
+LOGGEDIN_MSG = "Session exists, currently logged in as '{0}'"
 password = gen_string('alpha')
 pytestmark = pytest.mark.destructive
 
@@ -45,7 +45,7 @@ def test_positive_password_reset(target_sat):
         {'username': settings.server.admin_username, 'password': reset_password}
     )
     result = target_sat.cli.Auth.with_user().status()
-    assert LOGEDIN_MSG.format(settings.server.admin_username) in result.split("\n")[1]
+    assert LOGGEDIN_MSG.format(settings.server.admin_username) in result[0]['message']
     assert target_sat.cli.Org.with_user().list()
 
 
@@ -72,5 +72,5 @@ def test_positive_password_reset_chosen(target_sat):
         {'username': settings.server.admin_username, 'password': new_password}
     )
     result = target_sat.cli.Auth.with_user().status()
-    assert LOGEDIN_MSG.format(settings.server.admin_username) in result.split("\n")[1]
+    assert LOGGEDIN_MSG.format(settings.server.admin_username) in result[0]['message']
     assert target_sat.cli.Org.with_user().list()
