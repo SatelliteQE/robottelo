@@ -103,6 +103,7 @@ def get_sat_rhel_version():
     return Version(rhel_version)
 
 
+
 class ContentHostError(Exception):
     pass
 
