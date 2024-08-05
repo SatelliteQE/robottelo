@@ -23,9 +23,9 @@ Black
 
 Linting
 
-* All code will be linted to black-compatible `PEP8`_ standards using `flake8`_.
-* In the root of the **Robottelo** directory, run :code:`flake8 .`
-* If flake8 returns errors, make corrections before submitting a pull request.
+* All code will be linted to black-compatible `PEP8`_ standards using `ruff linter`_.
+* In the root of the **Robottelo** directory, run :code:`ruff check .`
+* If ruff linter returns errors, make corrections before submitting a pull request.
 * pre-commit configuration is available, and its use is strongly encouraged in local development.
 
 Docstrings
@@ -146,7 +146,7 @@ Categorize each standard into how strictly they are enforced
 
 
 .. _PEP8: http://legacy.python.org/dev/peps/pep-0008/
-.. _flake8: http://flake8.readthedocs.org/
+.. _ruff linter: https://docs.astral.sh/ruff/linter/
 .. _testimony: https://github.com/SatelliteQE/testimony
 .. _sphinx: http://sphinx-doc.org/markup/para.html
 .. _properly format strings: https://docs.python.org/3/library/stdtypes.html#printf-style-string-formatting
