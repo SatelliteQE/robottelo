@@ -72,7 +72,7 @@ class TestCapsuleFeatures:
         assert (
             post_features == pre_features
         ), 'capsule features after and before upgrade are differrent'
-        pre_configured_capsule.nailgun_capsule.refresh()
+        pre_configured_capsule.nailgun_smart_proxy.refresh()
         refreshed_features = set(json.loads(pre_configured_capsule.get_features()))
         assert refreshed_features == pre_features, 'capsule features after refresh are differrent'
 
