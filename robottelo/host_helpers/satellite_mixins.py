@@ -44,7 +44,7 @@ class EnablePluginsSatellite:
         if len(
             self.api.Setting().search(query={'search': f'name={"allow_multiple_content_views"}'})
         ):
-            return  # Setting is already exposed
+            return # Setting is already exposed
         cfg_file = 'upstream_only_settings.rb'
         cfg_path = self.execute(f'find /usr/share/gems/gems/ -name {cfg_file}').stdout.strip()
         assert cfg_file in cfg_path, 'Config file not found'

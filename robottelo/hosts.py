@@ -479,6 +479,18 @@ class ContentHost(Host, ContentHostMixins):
 
     def subscription_manager_list(self):
         return self.execute('subscription-manager list')
+    
+    def subscription_manager_environments_set(self,
+                                              env_names,
+                                              username=settings.server.admin_username,
+                                              password=settings.server.admin_password):
+        """
+        Reassign the host to the specified content view environments
+        """
+        if env_names is None:
+            # raise error
+            raise ContentHostError('No environment names provided')
+        return self.execute(f'subscription-manager environments --set="{env_names}" --username={username} --password={password}')
 
     def subscription_manager_environments_set(
         self,
