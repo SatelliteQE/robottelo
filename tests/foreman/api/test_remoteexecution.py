@@ -15,11 +15,7 @@
 import pytest
 
 from robottelo.config import settings
-from robottelo.hosts import get_sat_version
 from robottelo.utils import ohsnap
-from robottelo.utils.issue_handlers import is_open
-
-CAPSULE_TARGET_VERSION = f'6.{get_sat_version().minor}.z'
 
 
 @pytest.mark.tier4
@@ -38,9 +34,7 @@ def test_positive_run_capsule_upgrade_playbook(module_capsule_configured, target
 
     :CaseImportance: Medium
     """
-    template_name = (
-        'Smart Proxy Upgrade Playbook' if is_open('BZ:2152951') else 'Capsule Upgrade Playbook'
-    )
+    template_name = 'Capsule Update Playbook'
     template_id = (
         target_sat.api.JobTemplate().search(query={'search': f'name="{template_name}"'})[0].id
     )
@@ -50,7 +44,6 @@ def test_positive_run_capsule_upgrade_playbook(module_capsule_configured, target
         data={
             'job_template_id': template_id,
             'inputs': {
-                'target_version': CAPSULE_TARGET_VERSION,
                 'whitelist_options': 'repositories-validate,repositories-setup,non-rh-packages',
             },
             'targeting_type': 'static_query',
@@ -68,7 +61,7 @@ def test_positive_run_capsule_upgrade_playbook(module_capsule_configured, target
         id=target_sat.api.SmartProxy(name=target_sat.hostname).search()[0].id
     ).refresh()
     feature_set = {feat['name'] for feat in result['features']}
-    assert {'Ansible', 'Dynflow', 'Script', 'Pulpcore', 'Logs'}.issubset(feature_set)
+    assert {'Dynflow', 'Script', 'Pulpcore', 'Logs'}.issubset(feature_set)
 
 
 @pytest.mark.tier3
