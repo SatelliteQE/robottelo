@@ -165,6 +165,21 @@ def collect_dupes(jira, collected_data, cached_data=None):  # pragma: no cover
 CACHED_RESPONSES = defaultdict(dict)
 
 
+@retry(stop=stop_after_attempt(4), wait=wait_fixed(15))
+def get_jira_issue(id, fields=None):
+    jql = f'id = {id}'
+    response = requests.get(
+        f"{settings.jira.url}/rest/api/latest/search/",
+        params={
+            "jql": jql,
+            # "fields": ",".join(jira_fields),
+        },
+        headers={"Authorization": f"Bearer {settings.jira.api_key}"},
+    )
+    response.raise_for_status()
+    return response.json()
+
+
 @retry(
     stop=stop_after_attempt(4),  # Retry 3 times before raising
     wait=wait_fixed(20),  # Wait seconds between retries
@@ -218,7 +233,6 @@ def get_data_jira(issue_ids, cached_data=None):  # pragma: no cover
 
     # Generate jql
     jql = ' OR '.join([f"id = {issue_id}" for issue_id in issue_ids])
-
     response = requests.get(
         f"{settings.jira.url}/rest/api/latest/search/",
         params={
