@@ -38,8 +38,8 @@ pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.skip_if_not_set('fake_m
 
 
 @pytest.fixture(scope='module')
-def golden_ticket_host_setup(function_entitlement_manifest_org, module_target_sat):
-    org = function_entitlement_manifest_org
+def golden_ticket_host_setup(function_sca_manifest_org, module_target_sat):
+    org = function_sca_manifest_org
     rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
@@ -179,7 +179,7 @@ def test_positive_access_with_non_admin_user_without_manifest(test_name, target_
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_access_with_non_admin_user_with_manifest(
-    test_name, function_entitlement_manifest_org, target_sat
+    test_name, function_sca_manifest_org, target_sat
 ):
     """Access subscription page with user that has only view_subscriptions and view organizations
     permission and organization that has a manifest uploaded.
@@ -195,7 +195,7 @@ def test_positive_access_with_non_admin_user_with_manifest(
 
     :CaseImportance: Critical
     """
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     role = target_sat.api.Role(organization=[org]).create()
     target_sat.api_factory.create_role_permissions(
         role,
@@ -218,7 +218,7 @@ def test_positive_access_with_non_admin_user_with_manifest(
 
 @pytest.mark.tier2
 def test_positive_access_manifest_as_another_admin_user(
-    test_name, target_sat, function_entitlement_manifest
+    test_name, target_sat, function_sca_manifest
 ):
     """Other admin users should be able to access and manage a manifest
     uploaded by a different admin.
@@ -244,7 +244,7 @@ def test_positive_access_manifest_as_another_admin_user(
     ).create()
     # use the first admin to upload a manifest
     with target_sat.ui_session(test_name, user=user1.login, password=user1_password) as session:
-        target_sat.upload_manifest(org.id, function_entitlement_manifest.content)
+        target_sat.upload_manifest(org.id, function_sca_manifest.content)
         assert session.subscription.has_manifest
         # store subscriptions that have "Red Hat" in the name for later
         rh_subs = session.subscription.search("Red Hat")
@@ -260,7 +260,7 @@ def test_positive_access_manifest_as_another_admin_user(
 
 @pytest.mark.tier3
 def test_positive_view_vdc_subscription_products(
-    session, rhel7_contenthost, target_sat, function_entitlement_manifest_org
+    session, rhel7_contenthost, target_sat, function_sca_manifest_org
 ):
     """Ensure that Virtual Datacenters subscription provided products is
     not empty and that a consumed product exist in content products.
@@ -292,7 +292,7 @@ def test_positive_view_vdc_subscription_products(
 
     :parametrized: yes
     """
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     lce = target_sat.api.LifecycleEnvironment(organization=org).create()
     repos_collection = target_sat.cli_factory.RepositoryCollection(
         distro='rhel7',
@@ -307,7 +307,6 @@ def test_positive_view_vdc_subscription_products(
     )
     with session:
         session.organization.select(org.name)
-        session.contenthost.add_subscription(rhel7_contenthost.hostname, VDC_SUBSCRIPTION_NAME)
         provided_products = session.subscription.provided_products(VDC_SUBSCRIPTION_NAME)
         # ensure that subscription provided products list is not empty and that the product is
         # in the provided products.
@@ -321,7 +320,7 @@ def test_positive_view_vdc_subscription_products(
 @pytest.mark.skip_if_not_set('libvirt')
 @pytest.mark.tier3
 def test_positive_view_vdc_guest_subscription_products(
-    session, rhel7_contenthost, target_sat, function_entitlement_manifest_org
+    session, rhel7_contenthost, target_sat, function_sca_manifest_org
 ):
     """Ensure that Virtual Data Centers guest subscription Provided
     Products and Content Products are not empty.
@@ -350,7 +349,7 @@ def test_positive_view_vdc_guest_subscription_products(
 
     :parametrized: yes
     """
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     lce = target_sat.api.LifecycleEnvironment(organization=org).create()
     provisioning_server = settings.libvirt.libvirt_hostname
     rh_product_repository = target_sat.cli_factory.RHELAnsibleEngineRepository(cdn=True)
@@ -402,7 +401,7 @@ def test_positive_view_vdc_guest_subscription_products(
 
 @pytest.mark.tier3
 def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(
-    session, function_org, function_entitlement_manifest
+    session, function_org, function_sca_manifest
 ):
     """Ensures that no column headers from checkboxes show up in the table after
     unticking everything from selectable customizable column
@@ -441,7 +440,7 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(
     with session:
         session.organization.select(org.name)
         session.subscription.add_manifest(
-            function_entitlement_manifest.path,
+            function_sca_manifest.path,
             ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound'],
         )
         headers = session.subscription.filter_columns(checkbox_dict)
@@ -452,114 +451,6 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(
         col = session.subscription.filter_columns(checkbox_dict)
         checkbox_dict.update({'Select all rows': ''})
         assert set(col) == set(checkbox_dict)
-
-
-@pytest.mark.rhel_ver_match('7')
-@pytest.mark.tier3
-def test_positive_subscription_status_disabled_golden_ticket(
-    session, golden_ticket_host_setup, rhel_contenthost, target_sat
-):
-    """Verify that Content host Subscription status is set to 'Disabled'
-     for a golden ticket manifest
-
-    :id: 115595ef-929d-4c42-bf34-aadd1bd36a5f
-
-    :expectedresults: subscription status is 'Disabled'
-
-    :customerscenario: true
-
-    :BZ: 1789924
-
-    :parametrized: yes
-
-    :CaseImportance: Medium
-    """
-    org, ak = golden_ticket_host_setup
-    result = rhel_contenthost.register(org, None, ak.name, target_sat)
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
-    assert rhel_contenthost.subscribed
-    with session:
-        session.organization.select(org_name=org.name)
-        host = session.contenthost.read(rhel_contenthost.hostname, widget_names='details')[
-            'details'
-        ]['subscription_status']
-        assert 'Simple Content Access' in host
-
-
-@pytest.mark.tier2
-def test_positive_candlepin_events_processed_by_STOMP(
-    session, rhel7_contenthost, target_sat, function_entitlement_manifest_org
-):
-    """Verify that Candlepin events are being read and processed by
-       attaching subscriptions, validating host subscriptions status,
-       and viewing processed and failed Candlepin events
-
-    :id: 9510fd1c-2efb-4132-8665-9a72273cd1af
-
-    :steps:
-
-        1. Register Content Host without subscriptions attached
-        2. Verify subscriptions status is red "invalid"
-        3. Import a Manifest
-        4. Attach subs to content host
-        5. Verify subscription status is green "valid"
-        6. Check for processed and failed Candlepin events
-
-    :expectedresults: Candlepin events are being read and processed
-                      correctly without any failures
-
-    :BZ: 1826515
-
-    :parametrized: yes
-
-    :CaseImportance: High
-    """
-    org = function_entitlement_manifest_org
-    repo = target_sat.api.Repository(
-        product=target_sat.api.Product(organization=org).create()
-    ).create()
-    repo.sync()
-    ak = target_sat.api.ActivationKey(
-        content_view=org.default_content_view,
-        max_hosts=100,
-        organization=org,
-        environment=target_sat.api.LifecycleEnvironment(id=org.library.id),
-    ).create()
-    result = rhel7_contenthost.register(org, None, ak.name, target_sat)
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
-    with session:
-        session.organization.select(org_name=org.name)
-        host = session.contenthost.read(rhel7_contenthost.hostname, widget_names='details')[
-            'details'
-        ]
-        assert 'Unentitled' in host['subscription_status']
-        session.contenthost.add_subscription(rhel7_contenthost.hostname, DEFAULT_SUBSCRIPTION_NAME)
-        session.browser.refresh()
-        updated_sub_status = session.contenthost.read(
-            rhel7_contenthost.hostname, widget_names='details'
-        )['details']['subscription_status']
-        assert 'Fully entitled' in updated_sub_status
-        response = target_sat.api.Ping().search_json()['services']['candlepin_events']
-        assert response['status'] == 'ok'
-        assert '0 Failed' in response['message']
-
-
-def test_positive_prepare_for_sca_only_subscription(target_sat, function_entitlement_manifest_org):
-    """Verify that the Subcsription page notifies users that Simple Content Access
-        will be required for all organizations in Satellite 6.16
-
-    :id: cb6fdfdd-04ee-4acb-9460-c78556cef11e
-
-    :expectedresults: The Subscription page notifies users that Simple Content Access will
-        be required for all organizations in Satellite 6.16
-    """
-    with target_sat.ui_session() as session:
-        session.organization.select(function_entitlement_manifest_org.name)
-        sca_alert = session.subscription.sca_alert()
-        assert (
-            'This organization is not using Simple Content Access. Entitlement-based subscription '
-            'management is deprecated and will be removed in Satellite 6.16.' in sca_alert
-        )
 
 
 @pytest.mark.parametrize('setting_update', ['expire_soon_days'], indirect=True)
