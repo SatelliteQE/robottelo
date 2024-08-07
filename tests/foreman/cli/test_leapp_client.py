@@ -126,18 +126,20 @@ def leapp_repos(
         release_version = RHEL_REPOS[rh_repo_key]['releasever']
         if release_version in str(source) or release_version in target:
             prod = 'rhel' if 'rhel7' in rh_repo_key else rh_repo_key.split('_')[0]
+            repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+                basearch=default_architecture.name,
+                org_id=module_sca_manifest_org.id,
+                product=PRDS[prod],
+                repo=RHEL_REPOS[rh_repo_key]['name'],
+                reposet=RHEL_REPOS[rh_repo_key]['reposet'],
+                releasever=release_version,
+            )
             if module_stash[synced_repos].get(rh_repo_key, None):
+                rh_repo = module_target_sat.api.Repository(id=repo_id).read()
+                all_repos.append(rh_repo)
                 logger.info('Repo %s already synced, not syncing it', rh_repo_key)
             else:
                 module_stash[synced_repos][rh_repo_key] = True
-                repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
-                    basearch=default_architecture.name,
-                    org_id=module_sca_manifest_org.id,
-                    product=PRDS[prod],
-                    repo=RHEL_REPOS[rh_repo_key]['name'],
-                    reposet=RHEL_REPOS[rh_repo_key]['reposet'],
-                    releasever=release_version,
-                )
                 rh_repo = module_target_sat.api.Repository(id=repo_id).read()
                 all_repos.append(rh_repo)
                 rh_repo.sync(timeout=1800)
@@ -219,7 +221,6 @@ def precondition_check_upgrade_and_install_leapp_tool(custom_leapp_host):
         )
 
 
-@pytest.mark.e2e
 @pytest.mark.parametrize(
     'upgrade_path',
     [
@@ -229,12 +230,16 @@ def precondition_check_upgrade_and_install_leapp_tool(custom_leapp_host):
     ids=lambda upgrade_path: f'{upgrade_path["source_version"]}'
     f'_to_{upgrade_path["target_version"]}',
 )
+@pytest.mark.parametrize('auth_type', ['admin', 'non-admin'])
 def test_leapp_upgrade_rhel(
     module_target_sat,
     custom_leapp_host,
     upgrade_path,
     verify_target_repo_on_satellite,
     precondition_check_upgrade_and_install_leapp_tool,
+    auth_type,
+    module_sca_manifest_org,
+    default_location,
 ):
     """Test to upgrade RHEL host to next major RHEL release using leapp preupgrade and leapp upgrade
     job templates
@@ -252,108 +257,24 @@ def test_leapp_upgrade_rhel(
     :expectedresults:
         1. Update RHEL OS major version to another major version
     """
-    # Run LEAPP-PREUPGRADE Job Template-
-    template_id = (
-        module_target_sat.api.JobTemplate()
-        .search(query={'search': 'name="Run preupgrade via Leapp"'})[0]
-        .id
-    )
-    job = module_target_sat.api.JobInvocation().run(
-        synchronous=False,
-        data={
-            'job_template_id': template_id,
-            'targeting_type': 'static_query',
-            'search_query': f'name = {custom_leapp_host.hostname}',
-        },
-    )
-    module_target_sat.wait_for_tasks(
-        f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1800
-    )
-    result = module_target_sat.api.JobInvocation(id=job['id']).read()
-    assert result.succeeded == 1
-
-    # Run LEAPP-UPGRADE Job Template-
-    template_id = (
-        module_target_sat.api.JobTemplate()
-        .search(query={'search': 'name="Run upgrade via Leapp"'})[0]
-        .id
-    )
-    job = module_target_sat.api.JobInvocation().run(
-        synchronous=False,
-        data={
-            'job_template_id': template_id,
-            'targeting_type': 'static_query',
-            'search_query': f'name = {custom_leapp_host.hostname}',
-            'inputs': {'Reboot': 'true'},
-        },
-    )
-    module_target_sat.wait_for_tasks(
-        f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1800
-    )
-    result = module_target_sat.api.JobInvocation(id=job['id']).read()
-    assert result.succeeded == 1
-    # Wait for the host to be rebooted and SSH daemon to be started.
-    custom_leapp_host.wait_for_connection()
-
-    custom_leapp_host.clean_cached_properties()
-    new_ver = str(custom_leapp_host.os_version)
-    assert new_ver == upgrade_path['target_version']
-
-
-@pytest.mark.e2e
-@pytest.mark.parametrize(
-    'upgrade_path',
-    [
-        {'source_version': RHEL8_VER, 'target_version': RHEL9_VER},
-    ],
-    ids=lambda upgrade_path: f'{upgrade_path["source_version"]}'
-    f'_to_{upgrade_path["target_version"]}',
-)
-def test_leapp_upgrade_rhel_non_admin(
-    module_target_sat,
-    module_sca_manifest_org,
-    default_location,
-    custom_leapp_host,
-    upgrade_path,
-    verify_target_repo_on_satellite,
-    precondition_check_upgrade_and_install_leapp_tool,
-):
-    """Test to upgrade RHEL host to next major RHEL release using leapp preupgrade and leapp upgrade
-    job templates
-
-    :id: afd295ca-4b0e-439f-b880-ae92c300fd9f
-
-    :BZ: 2257302
-
-    :customerscenario: true
-
-    :steps:
-        1. Import a subscription manifest and enable, sync source & target repositories
-        2. Create LCE, Create CV, add repositories to it, publish and promote CV, Create AK, etc.
-        3. Register content host with AK
-        4. Verify that target rhel repositories are enabled on Satellite
-        5. Update all packages, install leapp tool and fix inhibitors
-        6. Create a non-admin user with "Organization admin", "Remote Execution Manager" and "Remote Execution User" role assigned to it.
-        7. Run Leapp Preupgrade and Leapp Upgrade job template from the user created in step 6.
-
-    :expectedresults:
-        1. Update RHEL OS major version to another major version from non-admin user role.
-    """
-    login = gen_string('alpha')
-    password = gen_string('alpha')
-    roles = ['Organization admin', 'Remote Execution Manager', 'Remote Execution User']
+    login = settings.server.admin_username
+    password = settings.server.admin_password
     org = module_sca_manifest_org
-    user = module_target_sat.cli_factory.user(
-        {
-            'admin': False,
-            'login': login,
-            'password': password,
-            'organization-ids': org.id,
-            'location-ids': default_location.id,
-        }
-    )
-    for role in roles:
-        module_target_sat.cli.User.add_role({'id': user['id'], 'login': login, 'role': role})
+    if 'auth_type' == 'non-admin':
+        login = gen_string('alpha')
+        password = gen_string('alpha')
+        roles = ['Organization admin', 'Remote Execution Manager', 'Remote Execution User']
+        user = module_target_sat.cli_factory.user(
+            {
+                'admin': False,
+                'login': login,
+                'password': password,
+                'organization-ids': org.id,
+                'location-ids': default_location.id,
+            }
+        )
+        for role in roles:
+            module_target_sat.cli.User.add_role({'id': user['id'], 'login': login, 'role': role})
 
     # Run leapp preupgrade job
     invocation_command = module_target_sat.cli_factory.job_invocation_with_credentials(
@@ -382,3 +303,7 @@ def test_leapp_upgrade_rhel_non_admin(
     custom_leapp_host.power_control(state='reboot')
     result = module_target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
     assert result['success'] == '1'
+
+    custom_leapp_host.clean_cached_properties()
+    new_ver = str(custom_leapp_host.os_version)
+    assert new_ver == upgrade_path['target_version']
