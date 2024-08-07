@@ -24,7 +24,6 @@ from robottelo.constants import (
     FOREMAN_PROVIDERS,
     LIBVIRT_RESOURCE_URL,
 )
-from robottelo.utils.issue_handlers import is_open
 
 pytestmark = [pytest.mark.skip_if_not_set('libvirt')]
 
@@ -142,12 +141,12 @@ def test_positive_provision_end_to_end(
 
     :BZ: 1243223, 2236693
 
+    :Verifies: SAT-22491
+
     :parametrized: yes
     """
     sat = module_libvirt_provisioning_sat.sat
     hostname = gen_string('alpha').lower()
-    os_major_ver = module_provisioning_rhel_content.os.major
-    cpu_mode = 'host-passthrough' if is_open('BZ:2236693') and os_major_ver == '9' else 'default'
     cr = sat.api.LibvirtComputeResource(
         provider=FOREMAN_PROVIDERS['libvirt'],
         url=LIBVIRT_URL,
@@ -167,7 +166,6 @@ def test_positive_provision_end_to_end(
                 'host.inherit_deploy_option': False,
                 'host.deploy': f'{cr.name} (Libvirt)',
                 'provider_content.virtual_machine.memory': '6144',
-                'provider_content.virtual_machine.cpu_mode': cpu_mode,
                 'interfaces.interface.network_type': 'Physical (Bridge)',
                 'interfaces.interface.network': f'br-{settings.provisioning.vlan_id}',
                 'additional_information.comment': 'Libvirt provision using valid data',
