@@ -2058,7 +2058,7 @@ class TestContentView:
         # assert that this is the same content view
         assert content_view['name'] == user_content_view['name']
         # Create activation key with content view
-        ak_name = gen_alphanumeric
+        ak_name = gen_alphanumeric()
         target_sat.cli.ActivationKey.create(
             {
                 'organization-id': org.id,
