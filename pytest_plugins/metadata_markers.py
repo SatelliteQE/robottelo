@@ -152,6 +152,9 @@ def pytest_collection_modifyitems(items, config):
     sat_version = settings.server.version.get('release')
     snap_version = settings.server.version.get('snap', '')
 
+    # Satellite Network Type on which tests are running on
+    satellite_network_type = 'ipv6' if settings.server.is_ipv6 else 'ipv4'
+
     # split the option string and handle no option, single option, multiple
     # config.getoption(default) doesn't work like you think it does, hence or ''
     importance = [i.lower() for i in (config.getoption('importance') or '').split(',') if i != '']
@@ -223,6 +226,9 @@ def pytest_collection_modifyitems(items, config):
         item.user_properties.append(("BaseOS", rhel_version))
         item.user_properties.append(("SatelliteVersion", sat_version))
         item.user_properties.append(("SnapVersion", snap_version))
+
+        # Network Type user property
+        item.user_properties.append(("SatelliteNetworkType", satellite_network_type))
 
         # exit early if no filters were passed
         if importance or component or team:
