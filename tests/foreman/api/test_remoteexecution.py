@@ -51,7 +51,7 @@ def test_positive_run_capsule_upgrade_playbook(module_capsule_configured, target
             'job_template_id': template_id,
             'inputs': {
                 'target_version': CAPSULE_TARGET_VERSION,
-                'whitelist_options': 'repositories-validate,repositories-setup',
+                'whitelist_options': 'repositories-validate,repositories-setup,non-rh-packages',
             },
             'targeting_type': 'static_query',
             'search_query': f'name = {module_capsule_configured.hostname}',
