@@ -39,6 +39,23 @@ def get_bz_data(paths):
     return result
 
 
+def get_tests_path_without_customer_tag(paths):
+    testcases = testimony.get_testcases(paths)
+    result = {}
+    for path, tests in testcases.items():
+        path_result = []
+        for test in tests:
+            test_dict = test.to_dict()
+            test_data = {**test_dict['tokens'], **test_dict['invalid-tokens']}
+            if 'verifies' in test_data and (
+                'customerscenario' not in test_data or test_data['customerscenario'] == 'false'
+            ):
+                path_result.append([test.name, test_data['verifies']])
+        if path_result:
+            result[path] = path_result
+    return result
+
+
 @cache
 def get_response(bzs):
     bz_fields = [
@@ -64,6 +81,12 @@ def get_response(bzs):
     return response.json().get('bugs')
 
 
+def get_cached_single_jira_details(jira):
+    from robottelo.utils.issue_handlers.jira import get_jira_issue
+
+    return get_jira_issue(jira)
+
+
 def query_bz(data):
     output = []
     with click.progressbar(data.items()) as bar:
@@ -82,11 +105,38 @@ def query_bz(data):
     return set(output)
 
 
+def query_jira(data):
+    output = []
+    with click.progressbar(data.items()) as bar:
+        for path, tests in bar:
+            for test in tests:
+                jira_data = get_cached_single_jira_details(test[1])
+                customer_cases = int(
+                    float(jira_data['issues'][0]['fields']['customfield_12313440'])
+                )
+                if customer_cases and customer_cases >= 1:
+                    output.append(f'{path} {test}')
+    return set(output)
+
+
+# @main.command()
+# def run(paths=None):
+#     path_list = make_path_list(paths)
+#     values = get_bz_data(path_list)
+#     results = query_bz(values)
+#     if len(results) == 0:
+#         click.echo('No action needed for customerscenario tags')
+#     else:
+#         click.echo('The following tests need customerscenario tags:')
+#         for result in results:
+#             click.echo(result)
+
+
 @main.command()
 def run(paths=None):
     path_list = make_path_list(paths)
-    values = get_bz_data(path_list)
-    results = query_bz(values)
+    values = get_tests_path_without_customer_tag(path_list)
+    results = query_jira(values)
     if len(results) == 0:
         click.echo('No action needed for customerscenario tags')
     else:
