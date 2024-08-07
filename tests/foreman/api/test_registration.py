@@ -119,10 +119,11 @@ def test_positive_allow_reregistration_when_dmi_uuid_changed(
         location=module_location,
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
-
+    target_sat.execute(f'echo \'{{"dmi.system.uuid": "{uuid_2}"}}\' > /etc/rhsm/facts/uuid.facts')
+    result = rhel_contenthost.execute('subscription-manager unregister')
+    assert result.status == 0
     result = rhel_contenthost.execute('subscription-manager clean')
     assert result.status == 0
-    target_sat.execute(f'echo \'{{"dmi.system.uuid": "{uuid_2}"}}\' > /etc/rhsm/facts/uuid.facts')
     result = rhel_contenthost.api_register(
         target_sat,
         organization=org,
