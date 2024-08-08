@@ -247,6 +247,8 @@ class TestCapsuleContentManagement:
     @pytest.mark.skip_if_open("BZ:2025494")
     @pytest.mark.e2e
     @pytest.mark.tier4
+    @pytest.mark.pit_server
+    @pytest.mark.pit_client
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_updated_repo(
         self,
@@ -355,6 +357,8 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.e2e
     @pytest.mark.tier4
+    @pytest.mark.pit_server
+    @pytest.mark.pit_client
     @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_capsule_sync(
         self,
@@ -880,6 +884,8 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.tier4
     @pytest.mark.e2e
+    @pytest.mark.pit_server
+    @pytest.mark.pit_client
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_container_repo_end_to_end(
         self,
