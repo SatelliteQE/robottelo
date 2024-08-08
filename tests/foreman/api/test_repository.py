@@ -410,13 +410,7 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **datafactory.parametrized(
-            [
-                {'url': url}
-                for url in (datafactory.invalid_names_list())
-                + [f'http://{gen_string("alpha")}{punctuation}.com']
-            ]
-        ),
+        **datafactory.parametrized([{'url': url} for url in (datafactory.invalid_url_list())]),
         indirect=True,
     )
     def test_negative_create_url_with_invalid_and_special_characters(
