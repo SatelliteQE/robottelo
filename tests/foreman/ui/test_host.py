@@ -40,7 +40,6 @@ from robottelo.constants import (
 )
 from robottelo.constants.repos import CUSTOM_FILE_REPO
 from robottelo.utils.datafactory import gen_string
-from robottelo.utils.issue_handlers import is_open
 
 
 def _get_set_from_list_of_dict(value):
@@ -1312,23 +1311,18 @@ def test_positive_update_delete_package(
     module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
-        if not is_open('BZ:2132680'):
-            product_name = module_repos_collection_with_setup.custom_product.name
-            repos = session.host_new.get_repo_sets(client.hostname, product_name)
-            assert repos[0].status == 'Enabled'
-            session.host_new.override_repo_sets(
-                client.hostname, product_name, "Override to disabled"
-            )
-            assert repos[0].status == 'Disabled'
-            session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
-            result = client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
-            assert result.status != 0
-            session.host_new.override_repo_sets(
-                client.hostname, product_name, "Override to enabled"
-            )
-            assert repos[0].status == 'Enabled'
-            # refresh repos on system
-            client.run('subscription-manager repos')
+        product_name = module_repos_collection_with_setup.custom_product.name
+        repos = session.host_new.get_repo_sets(client.hostname, product_name)
+        assert repos[0].status == 'Enabled'
+        session.host_new.override_repo_sets(client.hostname, product_name, "Override to disabled")
+        assert repos[0].status == 'Disabled'
+        session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
+        result = client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
+        assert result.status != 0
+        session.host_new.override_repo_sets(client.hostname, product_name, "Override to enabled")
+        assert repos[0].status == 'Enabled'
+        # refresh repos on system
+        client.run('subscription-manager repos')
         # install package
         session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
         task_result = target_sat.wait_for_tasks(
@@ -1881,6 +1875,33 @@ def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_
         session.organization.select(function_org.name)
         session.location.select(function_location.name)
         assert session.all_hosts.bulk_delete_all()
+
+
+@pytest.mark.tier2
+def test_all_hosts_bulk_build_management(target_sat, function_org, function_location, new_host_ui):
+    """Create several hosts, and manage them via Build Management in All Host UI
+
+    :id: fff71945-6534-45cf-88a6-16b25c060f0a
+
+    :expectedresults: Build Managment dropdown in All Hosts UI works properly.
+
+    :CaseComponent:Hosts-Content
+
+    :Team: Phoenix-subscriptions
+    """
+    for _ in range(3):
+        target_sat.api.Host(organization=function_org, location=function_location).create()
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        session.location.select(function_location.name)
+        assert 'Success alert: Built 3 hosts' in session.all_hosts.build_management()
+        assert (
+            'Success alert: 3 hosts set to build and rebooting.'
+            in session.all_hosts.build_management(reboot=True)
+        )
+        assert 'Rebuilt configuration for 3 hosts' in session.all_hosts.build_management(
+            rebuild=True
+        )
 
 
 @pytest.fixture(scope='module')
