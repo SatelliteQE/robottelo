@@ -6,6 +6,7 @@ import requests
 import testimony
 
 from robottelo.config import settings
+from robottelo.utils.issue_handlers.jira import get_data_jira
 
 
 @click.group()
@@ -81,12 +82,6 @@ def get_response(bzs):
     return response.json().get('bugs')
 
 
-def get_cached_single_jira_details(jira):
-    from robottelo.utils.issue_handlers.jira import get_jira_issue
-
-    return get_jira_issue(jira)
-
-
 def query_bz(data):
     output = []
     with click.progressbar(data.items()) as bar:
@@ -107,15 +102,16 @@ def query_bz(data):
 
 def query_jira(data):
     output = []
+    sfdc_counter_field = 'customfield_12313440'
     with click.progressbar(data.items()) as bar:
         for path, tests in bar:
             for test in tests:
-                jira_data = get_cached_single_jira_details(test[1])
-                customer_cases = int(
-                    float(jira_data['issues'][0]['fields']['customfield_12313440'])
-                )
-                if customer_cases and customer_cases >= 1:
-                    output.append(f'{path} {test}')
+                jira_data = get_data_jira(test[1], jira_fields=[sfdc_counter_field])
+                for data in jira_data:
+                    customer_cases = int(float(data[sfdc_counter_field]))
+                    if customer_cases and customer_cases >= 1:
+                        output.append(f'{path} {test}')
+                        break
     return set(output)
 
 
