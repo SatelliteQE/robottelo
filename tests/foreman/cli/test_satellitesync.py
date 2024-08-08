@@ -219,6 +219,22 @@ def function_restrictive_umask(target_sat):
     target_sat.execute(f'sed -i "/{mask_override}/d" /etc/bashrc')
 
 
+@pytest.fixture
+def function_exporter_user(target_sat, function_org):
+    password = gen_string('alphanumeric')
+    role = target_sat.api.Role().search(query={'search': 'name="Content Exporter"'})[0]
+    user = target_sat.api.User(
+        login=gen_string('alpha'),
+        password=password,
+        admin=False,
+        role=[role],
+        organization=[function_org],
+    ).create()
+    user.password = password
+    yield user
+    user.delete()
+
+
 @pytest.mark.run_in_one_thread
 class TestRepositoryExport:
     """Tests for exporting a repository via CLI"""
@@ -283,14 +299,21 @@ class TestRepositoryExport:
 
     @pytest.mark.tier3
     def test_positive_export_library_custom_repo(
-        self, target_sat, export_import_cleanup_function, function_org, function_synced_custom_repo
+        self,
+        target_sat,
+        export_import_cleanup_function,
+        function_org,
+        function_synced_custom_repo,
+        function_exporter_user,
     ):
-        """Export custom repo via complete and incremental library export.
+        """Export custom repo via complete and incremental library export using a non-admin user
+        with the "Content Exporter" role.
 
         :id: ba8dc7f3-55c2-4120-ac76-cc825ef0abb8
 
         :setup:
             1. Product with synced custom repository.
+            2. Non-admin user with the "Content Exporter" role.
 
         :steps:
             1. Create a CV, add the product and publish it.
@@ -300,6 +323,8 @@ class TestRepositoryExport:
         :expectedresults:
             1. Complete export succeeds, exported files are present on satellite machine.
             2. Incremental export succeeds, exported files are present on satellite machine.
+
+        :Verifies: SAT-24884
 
         """
         # Create cv and publish
@@ -318,10 +343,14 @@ class TestRepositoryExport:
         # Verify export directory is empty
         assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
         # Export complete and check the export directory
-        target_sat.cli.ContentExport.completeLibrary({'organization-id': function_org.id})
+        target_sat.cli.ContentExport.with_user(
+            username=function_exporter_user.login, password=function_exporter_user.password
+        ).completeLibrary({'organization-id': function_org.id})
         assert '1.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
         # Export incremental and check the export directory
-        target_sat.cli.ContentExport.incrementalLibrary({'organization-id': function_org.id})
+        target_sat.cli.ContentExport.with_user(
+            username=function_exporter_user.login, password=function_exporter_user.password
+        ).incrementalLibrary({'organization-id': function_org.id})
         assert '2.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
     @pytest.mark.tier3
