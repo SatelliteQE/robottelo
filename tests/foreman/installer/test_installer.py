@@ -19,7 +19,6 @@ import yaml
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
-from robottelo.hosts import setup_capsule
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
 
@@ -213,7 +212,6 @@ def test_capsule_installation(sat_non_default_install, cap_ready_rhel, setting_u
     :customerscenario: true
     """
     # Get Capsule repofile, and enable and download satellite-capsule
-    org = sat_non_default_install.api.Organization().create()
     cap_ready_rhel.register_to_cdn()
     cap_ready_rhel.download_repofile(
         product='capsule',
@@ -230,7 +228,7 @@ def test_capsule_installation(sat_non_default_install, cap_ready_rhel, setting_u
     cap_ready_rhel.install_satellite_or_capsule_package()
     assert cap_ready_rhel.execute('rpm -q foreman-proxy-fapolicyd').status == 0
     # Setup Capsule
-    setup_capsule(sat_non_default_install, cap_ready_rhel, org)
+    cap_ready_rhel.capsule_setup(sat_host=sat_non_default_install)
     assert sat_non_default_install.api.Capsule().search(
         query={'search': f'name={cap_ready_rhel.hostname}'}
     )[0]

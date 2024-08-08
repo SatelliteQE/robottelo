@@ -317,9 +317,8 @@ def test_positive_cli_end_to_end(function_sca_manifest, target_sat, rhel_content
     # step 2.18: Provision a client
     # TODO this isn't provisioning through satellite as intended
     # Note it wasn't well before the change that added this todo
-    rhel_contenthost.install_katello_ca(target_sat)
     # Register client with foreman server using act keys
-    rhel_contenthost.register_contenthost(org['label'], activation_key['name'])
+    rhel_contenthost.register(org, None, activation_key['name'], target_sat)
     assert rhel_contenthost.subscribed
     # Install rpm on client
     package_name = 'katello-agent'

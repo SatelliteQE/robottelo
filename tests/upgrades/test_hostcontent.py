@@ -55,8 +55,12 @@ class TestScenarioDBseedHostMismatch:
 
         :customerscenario: true
         """
-        rhel7_contenthost_module.install_katello_ca(target_sat)
-        rhel7_contenthost_module.register_contenthost(org=function_org.label, lce='Library')
+        ak = self.api.ActivationKey(
+            content_view=function_org.default_content_view.id,
+            environment=function_org.library.id,
+            organization=function_org,
+        ).create()
+        rhel7_contenthost_module.register(function_org, function_location, ak.name, target_sat)
 
         assert rhel7_contenthost_module.nailgun_host.organization.id == function_org.id
 

@@ -122,14 +122,11 @@ def test_insights_client_registration_with_http_proxy(
 
     :customerscenario: true
     """
-    rhel_contenthost.configure_rex(
-        satellite=module_target_sat, org=rhcloud_manifest_org, register=False
-    )
     rhel_contenthost.configure_rhai_client(
-        satellite=module_target_sat,
-        activation_key=rhcloud_activation_key.name,
-        org=rhcloud_manifest_org.label,
-        rhel_distro=f"rhel{rhel_contenthost.os_version.major}",
+        module_target_sat,
+        rhcloud_activation_key,
+        rhcloud_manifest_org,
+        f"rhel{rhel_contenthost.os_version.major}",
     )
     assert rhel_contenthost.execute('insights-client --register').status == 0
     assert rhel_contenthost.execute('insights-client --test-connection').status == 0
