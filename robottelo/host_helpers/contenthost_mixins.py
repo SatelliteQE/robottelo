@@ -173,7 +173,7 @@ class SystemFacts:
         if result.status == 0:
             for line in result.stdout.splitlines():
                 if ': ' in line:
-                    key, val = line.split(': ')
+                    key, val = line.split(': ', 1)
                 else:
                     key = last_key
                     val = f'{fact_dict[key]} {line}'
