@@ -656,7 +656,7 @@ def test_positive_provision_rhev_image_based_and_disassociate(
         assert host_info.get('network').get('mac') == rhv_vm.get_nics()[0].mac.address
         # Check the host is associated to the CR
         assert 'compute-resource' in host_info
-        assert host_info['compute-resource'] == name
+        assert host_info['compute-resource']['name'] == name
         # Done. Do not try to SSH, this image-based test should work even without
         # being in the same network as RHEV. We checked the VM exists and
         # that's enough.
