@@ -49,6 +49,7 @@ UPSTREAM_SPECIFIC_MODULES = {
     'foreman::plugin::dlm',
     'foreman::plugin::expire_hosts',
     'foreman::plugin::git_templates',
+    'foreman::plugin::hdm',
     'foreman::plugin::hooks',
     'foreman::plugin::kernel_care',
     'foreman::plugin::monitoring',
@@ -66,6 +67,7 @@ UPSTREAM_SPECIFIC_MODULES = {
     'foreman_proxy::plugin::acd',
     'foreman_proxy::plugin::dns::powerdns',
     'foreman_proxy::plugin::dns::route53',
+    'foreman_proxy::plugin::hdm',
     'foreman_proxy::plugin::monitoring',
     'foreman_proxy::plugin::salt',
 }
@@ -427,7 +429,7 @@ def test_installer_modules_check(target_sat):
     sat_yaml = yaml.safe_load(sat_output.stdout)
     upstream_yaml = yaml.safe_load(upstream_output.stdout)
 
-    assert sat_yaml.keys() == (upstream_yaml.keys() - UPSTREAM_SPECIFIC_MODULES)
+    assert set(sat_yaml.keys()) == (upstream_yaml.keys() - UPSTREAM_SPECIFIC_MODULES)
 
 
 @pytest.mark.stubbed
