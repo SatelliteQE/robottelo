@@ -31,18 +31,20 @@ def get_bz_data(paths):
         for test in tests:
             test_dict = test.to_dict()
             test_data = {**test_dict['tokens'], **test_dict['invalid-tokens']}
-            if 'bz' in test_data and (
-                'customerscenario' not in test_data or test_data['customerscenario'] == 'false'
+            lowered_test_data = {name.lower(): val for name, val in test_data.items()}
+            if 'bz' in lowered_test_data and (
+                'customerscenario' not in lowered_test_data
+                or lowered_test_data['customerscenario'] == 'false'
             ):
-                path_result.append([test.name, test_data['bz']])
+                path_result.append([test.name, lowered_test_data['bz']])
         if path_result:
             result[path] = path_result
     return result
 
 
 def get_tests_path_without_customer_tag(paths):
-    """Returns the path and test name that does not have customerscenario token even though
-    it has verifies token when necessary
+    """Returns the path and test name that does not have customerscenario token even
+    though it has verifies token when necessary
 
     Arguments:
         paths {list} -- List of test modules paths
@@ -54,10 +56,14 @@ def get_tests_path_without_customer_tag(paths):
         for test in tests:
             test_dict = test.to_dict()
             test_data = {**test_dict['tokens'], **test_dict['invalid-tokens']}
-            if 'verifies' in test_data and (
-                'customerscenario' not in test_data or test_data['customerscenario'] == 'false'
+            # 1st level lowering should be good enough as `verifies` and `customerscenario`
+            # tokens are at 1st level
+            lowered_test_data = {name.lower(): val for name, val in test_data.items()}
+            if 'verifies' in lowered_test_data and (
+                'customerscenario' not in lowered_test_data
+                or lowered_test_data['customerscenario'] == 'false'
             ):
-                path_result.append([test.name, test_data['verifies']])
+                path_result.append([test.name, lowered_test_data['verifies']])
         if path_result:
             result[path] = path_result
     return result
@@ -126,24 +132,21 @@ def query_jira(data):
     return set(output)
 
 
-# @main.command()
-# def run(paths=None):
-#     path_list = make_path_list(paths)
-#     values = get_bz_data(path_list)
-#     results = query_bz(values)
-#     if len(results) == 0:
-#         click.echo('No action needed for customerscenario tags')
-#     else:
-#         click.echo('The following tests need customerscenario tags:')
-#         for result in results:
-#             click.echo(result)
-
-
 @main.command()
-def run(paths=None):
-    path_list = make_path_list(paths)
-    values = get_tests_path_without_customer_tag(path_list)
-    results = query_jira(values)
+@click.option('--jira', is_flag=True, help='Run the customer scripting for Jira')
+@click.option('--bz', is_flag=True, help='Run the customer scripting for BZ')
+def run(jira, bz, paths=None):
+    if jira:
+        path_list = make_path_list(paths)
+        values = get_tests_path_without_customer_tag(path_list)
+        results = query_jira(values)
+    elif bz:
+        path_list = make_path_list(paths)
+        values = get_bz_data(path_list)
+        results = query_bz(values)
+    else:
+        raise UserWarning('Choose either `--jira` or `--bz` option')
+
     if len(results) == 0:
         click.echo('No action needed for customerscenario tags')
     else:

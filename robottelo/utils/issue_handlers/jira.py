@@ -156,9 +156,7 @@ def collect_data_jira(collected_data, cached_data):  # pragma: no cover
     """
     jira_data = (
         get_data_jira(
-            [item for item in collected_data if item.startswith('SAT-')],
-            cached_data=cached_data,
-            jira_fields=common_jira_fields,
+            [item for item in collected_data if item.startswith('SAT-')], cached_data=cached_data
         )
         or []
     )
@@ -227,6 +225,9 @@ def get_data_jira(issue_ids, cached_data=None, jira_fields=None):  # pragma: no 
     Returns:
         [list of dicts] -- [{'id':..., 'status':..., 'resolution': ...}]
     """
+    if not jira_fields:
+        jira_fields = common_jira_fields
+
     if not issue_ids:
         return []
 
@@ -276,7 +277,7 @@ def get_single_jira(issue_id, cached_data=None):  # pragma: no cover
         try:
             jira_data = cached_data[f"{issue_id}"]['data']
         except (KeyError, TypeError):
-            jira_data = get_data_jira([str(issue_id)], cached_data, jira_fields=common_jira_fields)
+            jira_data = get_data_jira([str(issue_id)], cached_data)
             jira_data = jira_data and jira_data[0]
         CACHED_RESPONSES['get_single'][issue_id] = jira_data
     return jira_data or get_default_jira(issue_id)
