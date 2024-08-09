@@ -33,7 +33,6 @@ from robottelo.constants.repos import CUSTOM_RPM_REPO
 from robottelo.utils.issue_handlers import is_open
 
 API_PATHS = {
-    # flake8:noqa (line-too-long)
     'activation_keys': (
         '/katello/api/activation_keys',
         '/katello/api/activation_keys',
