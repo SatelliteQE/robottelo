@@ -41,6 +41,12 @@ def get_bz_data(paths):
 
 
 def get_tests_path_without_customer_tag(paths):
+    """Returns the path and test name that does not have customerscenario token even though
+    it has verifies token when necessary
+
+    Arguments:
+        paths {list} -- List of test modules paths
+    """
     testcases = testimony.get_testcases(paths)
     result = {}
     for path, tests in testcases.items():
@@ -101,6 +107,11 @@ def query_bz(data):
 
 
 def query_jira(data):
+    """Returns the list of path and test name for missing customerscenario token
+
+    Arguments:
+         data {dict} -- The list of test modules and tests without customerscenario tags
+    """
     output = []
     sfdc_counter_field = 'customfield_12313440'
     with click.progressbar(data.items()) as bar:
