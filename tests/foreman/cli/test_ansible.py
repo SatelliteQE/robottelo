@@ -511,8 +511,12 @@ class TestAnsibleREX:
         result = client.execute(f'systemctl status {service}')
         assert result.status == 0
 
+    @pytest.mark.upgrade
+    @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([8])
-    def test_positive_install_ansible_collection(self, rex_contenthost, target_sat):
+    def test_positive_install_ansible_collection(
+        self, rhel_contenthost, target_sat, module_org, module_ak_with_cv
+    ):
         """Test whether Ansible collection can be installed via Ansible REX
 
         :id: ad25aee5-4ea3-4743-a301-1c6271856f79
@@ -526,8 +530,9 @@ class TestAnsibleREX:
 
         :expectedresults: Ansible collection can be installed on content host via REX.
         """
-        client = rex_contenthost
+        client = rhel_contenthost
         # Enable Ansible repository and Install ansible or ansible-core package
+        client.register(module_org, None, module_ak_with_cv.name, target_sat)
         client.create_custom_repos(rhel8_aps=settings.repos.rhel8_os.appstream)
         assert client.execute('dnf -y install ansible-core').status == 0
 

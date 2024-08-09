@@ -763,9 +763,11 @@ class TestAnsibleREX:
         :CaseAutomation: NotAutomated
         """
 
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_install_ansible_collection_via_job_invocation(self):
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_list([8])
+    def test_positive_install_ansible_collection(
+        self, rhel_contenthost, target_sat, module_org, module_ak_with_cv
+    ):
         """Verify that Ansible collections can be installed on hosts via job invocations
 
         :id: d4096aef-f6fc-41b6-ae56-d19b1f49cd42
@@ -779,9 +781,37 @@ class TestAnsibleREX:
             6. Click "Submit"
 
         :expectedresults: The Ansible collection is successfully installed on the host
-
-        :CaseAutomation: NotAutomated
         """
+        client = rhel_contenthost
+        # Enable Ansible repository and Install ansible or ansible-core package
+        client.register(module_org, None, module_ak_with_cv.name, target_sat)
+        client.create_custom_repos(rhel8_aps=settings.repos.rhel8_os.appstream)
+        assert client.execute('dnf -y install ansible-core').status == 0
+
+        with target_sat.ui_session() as session:
+            session.organization.select(module_org.name)
+            collections_names = 'oasis_roles.system'
+            session.jobinvocation.run(
+                {
+                    'category_and_template.job_category': 'Ansible Galaxy',
+                    'category_and_template.job_template': 'Ansible Collection - Install from Galaxy',
+                    'target_hosts_and_inputs.targetting_type': 'Hosts',
+                    'target_hosts_and_inputs.targets': client.hostname,
+                    'target_hosts_and_inputs.ansible_collections_list': collections_names,
+                    'advanced_fields.ansible_collections_path': '~/',
+                }
+            )
+            job_description = f'Install collections \'{collections_names}\' from Galaxy'
+            session.jobinvocation.wait_job_invocation_state(
+                entity_name=job_description, host_name=client.hostname
+            )
+            status = session.jobinvocation.read(
+                entity_name=job_description, host_name=client.hostname
+            )
+            assert status['overview']['hosts_table'][0]['Status'] == 'success'
+
+            collection_path = client.execute('ls ~/ansible_collections').stdout
+            assert 'oasis_roles' in collection_path
 
     @pytest.mark.stubbed
     @pytest.mark.tier2
