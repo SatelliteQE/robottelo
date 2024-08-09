@@ -56,7 +56,7 @@ def test_positive_provision_end_to_end(
 
     :CaseImportance: Critical
 
-    :Verifies: SAT-23417
+    :Verifies: SAT-23417, SAT-23558
 
     :customerscenario: true
 
@@ -81,11 +81,20 @@ def test_positive_provision_end_to_end(
             'cluster': f'{settings.vmware.cluster}',
             'start': '1',
             'guest_id': 'rhel8_64Guest',
+            'scsi_controllers': [{'type': 'ParaVirtualSCSIController', 'key': 1001}],
+            'nvme_controllers': [{'type': 'VirtualNVMEController', 'key': 2001}],
             'volumes_attributes': {
                 '0': {
-                    'size_gb': 10,
+                    'size_gb': 8,
                     'thin': '1',
-                    'storage_pod': f'{settings.vmware.datastore_cluster}',
+                    'storage_pod': settings.vmware.datastore_cluster,
+                    'controller_key': 2001,
+                },
+                '1': {
+                    'size_gb': 8,
+                    'thin': '1',
+                    'storage_pod': settings.vmware.datastore_cluster,
+                    'controller_key': 1001,
                 },
             },
         },
