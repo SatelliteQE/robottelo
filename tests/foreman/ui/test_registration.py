@@ -375,7 +375,7 @@ def test_global_registration_with_gpg_repo_and_default_package(
     :steps:
         1. create and sync repository
         2. create the content view and activation-key
-        3. update the 'host_packages' parameter in organization with package name e.g. vim
+        3. update the 'host_packages' parameter in organization with package name e.g. zsh
         4. open the global registration form and update the gpg repo and key
         5. check host is registered successfully with installed same package
         6. check gpg repo is exist in registered host
@@ -388,12 +388,13 @@ def test_global_registration_with_gpg_repo_and_default_package(
     repo_gpg_url = settings.repos.gr_yum_repo.gpg_url
     with target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
+
         cmd = session.host.get_register_command(
             {
                 'general.activation_keys': module_activation_key.name,
                 'general.insecure': True,
                 'advanced.force': True,
-                'advanced.install_packages': 'mlocate vim',
+                'advanced.install_packages': 'mlocate zsh',
                 'advanced.repository': repo_url,
                 'advanced.repository_gpg_key_url': repo_gpg_url,
             }
@@ -416,8 +417,9 @@ def test_global_registration_with_gpg_repo_and_default_package(
     result = client.execute('yum list installed | grep mlocate')
     assert result.status == 0
     assert 'mlocate' in result.stdout
-    result = client.execute(f'yum -v repolist {repo_name}')
+    result = client.execute('yum -v repolist')
     assert result.status == 0
+    assert repo_name in result.stdout
     assert repo_url in result.stdout
 
 
