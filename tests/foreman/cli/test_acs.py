@@ -30,6 +30,7 @@ VAL_CANNOT_BE = 'cannot be'
 
 @pytest.mark.e2e
 @pytest.mark.tier2
+@pytest.mark.pit_server
 @pytest.mark.parametrize('cnt_type', ['yum', 'file'])
 @pytest.mark.parametrize('acs_type', ['custom', 'simplified', 'rhui'])
 def test_positive_CRUD_all_types(
