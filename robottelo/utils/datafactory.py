@@ -3,6 +3,7 @@
 from functools import wraps
 import random
 import string
+from string import punctuation
 from urllib.parse import quote_plus
 
 from fauxfactory import gen_alpha, gen_integer, gen_string, gen_url, gen_utf8
@@ -623,6 +624,11 @@ def valid_docker_upstream_names():
 @filtered_datapoint
 def valid_url_list():
     return [gen_url(scheme="http"), gen_url(scheme="https")]
+
+
+@filtered_datapoint
+def invalid_url_list():
+    return invalid_names_list() + [f'http://{gen_string("alpha")}{punctuation}.com']
 
 
 @filtered_datapoint

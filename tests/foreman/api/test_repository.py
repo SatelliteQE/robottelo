@@ -405,38 +405,20 @@ class TestRepository:
             ).create()
 
     @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **datafactory.parametrized([{'url': url} for url in datafactory.invalid_names_list()]),
-        indirect=True,
-    )
-    def test_negative_create_url(self, repo_options, target_sat):
-        """Attempt to create repository with invalid url.
-
-        :id: 0bb9fc3f-d442-4437-b5d8-83024bc7ceab
-
-        :parametrized: yes
-
-        :expectedresults: A repository is not created and error is raised.
-
-        :CaseImportance: Critical
-        """
-        with pytest.raises(HTTPError):
-            target_sat.api.Repository(**repo_options).create()
-
-    @pytest.mark.tier1
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **datafactory.parametrized([{'url': f'http://{gen_string("alpha")}{punctuation}.com'}]),
+        **datafactory.parametrized([{'url': url} for url in (datafactory.invalid_url_list())]),
         indirect=True,
     )
-    def test_negative_create_with_url_with_special_characters(self, repo_options, target_sat):
-        """Verify that repository URL cannot contain unquoted special characters
+    def test_negative_create_url_with_invalid_and_special_characters(
+        self, repo_options, target_sat
+    ):
+        """Attempt to create repository with invalid url and special character.
 
-        :id: 2ffaa412-e5e5-4bec-afaa-9ea54315df49
+        :id: c0fb2079-78c9-4e8b-86ba-44d290c9f803
 
         :parametrized: yes
 
