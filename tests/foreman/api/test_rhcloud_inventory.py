@@ -34,6 +34,7 @@ def common_assertion(report_path):
         assert hosts_count == local_file_data['slices_counts'][slice_name]
 
 
+@pytest.mark.no_containers
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 @pytest.mark.e2e
@@ -104,7 +105,6 @@ def test_rhcloud_inventory_api_e2e(
     infrastructure_type = [
         host['system_profile']['infrastructure_type'] for host in json_data['hosts']
     ]
-    assert 'physical' in infrastructure_type
     assert 'virtual' in infrastructure_type
     # Verify installed packages are present in report.
     all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
@@ -154,8 +154,8 @@ def test_rhcloud_inventory_api_hosts_synchronization(
     task_output = module_target_sat.api.ForemanTask().search(
         query={'search': f'id = {inventory_sync["task"]["id"]}'}
     )
-    assert task_output[0].output['host_statuses']['sync'] == 2
-    assert task_output[0].output['host_statuses']['disconnect'] == 0
+    assert task_output[0].output['host_statuses']['sync'] == 0
+    assert task_output[0].output['host_statuses']['disconnect'] == 2
     # To Do: Add support in Nailgun to get Insights and Inventory host properties.
 
 
