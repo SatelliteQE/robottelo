@@ -78,7 +78,9 @@ def test_positive_install_configure_host(
 
     :customerscenario: true
 
-    :BZ: 2126891, 2026239
+    :BZ: 2026239
+
+    :verifies: SAT-25418
     """
     puppet_infra_host = [session_puppet_enabled_sat, session_puppet_enabled_capsule]
     for client, puppet_proxy in zip(content_hosts, puppet_infra_host, strict=True):
