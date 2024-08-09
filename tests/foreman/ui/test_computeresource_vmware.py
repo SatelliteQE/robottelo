@@ -311,7 +311,9 @@ def test_positive_vmware_custom_profile_end_to_end(
 
     :expectedresults: Compute profiles are updated successfully with all the values.
 
-    :BZ: 1315277, 2266672
+    :BZ: 1315277
+
+    :verifies: SAT-23630
     """
     cr_name = gen_string('alpha')
     guest_os_names = [

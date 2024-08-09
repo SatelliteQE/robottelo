@@ -116,7 +116,9 @@ def test_positive_update_with_all_users(session, target_sat):
     :expectedresults: Location entity is assigned to user after checkbox
         was enabled and then disabled afterwards
 
-    :BZ: 1321543, 1479736, 1479736
+    :BZ: 1479736
+
+    :verifies: SAT-25386
 
     :BlockedBy: SAT-25386
     """
