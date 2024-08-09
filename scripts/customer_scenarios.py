@@ -126,24 +126,21 @@ def query_jira(data):
     return set(output)
 
 
-# @main.command()
-# def run(paths=None):
-#     path_list = make_path_list(paths)
-#     values = get_bz_data(path_list)
-#     results = query_bz(values)
-#     if len(results) == 0:
-#         click.echo('No action needed for customerscenario tags')
-#     else:
-#         click.echo('The following tests need customerscenario tags:')
-#         for result in results:
-#             click.echo(result)
-
-
 @main.command()
-def run(paths=None):
-    path_list = make_path_list(paths)
-    values = get_tests_path_without_customer_tag(path_list)
-    results = query_jira(values)
+@click.option('--jira', is_flag=True, help='Run the customer scripting for Jira')
+@click.option('--bz', is_flag=True, help='Run the customer scripting for BZ')
+def run(jira, bz, paths=None):
+    if jira:
+        path_list = make_path_list(paths)
+        values = get_tests_path_without_customer_tag(path_list)
+        results = query_jira(values)
+    elif bz:
+        path_list = make_path_list(paths)
+        values = get_bz_data(path_list)
+        results = query_bz(values)
+    else:
+        results = []
+
     if len(results) == 0:
         click.echo('No action needed for customerscenario tags')
     else:
