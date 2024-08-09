@@ -73,7 +73,9 @@ def test_positive_provision_pxe_host(
     :expectedresults: Host should be provisioned and entry from
         discovered host should be auto removed.
 
-    :BZ: 1728306, 1731112, 2258024
+    :BZ: 1728306, 1731112
+
+    :verifies: SAT-22452
 
     :CaseImportance: High
     """
@@ -152,7 +154,9 @@ def test_positive_custom_provision_pxe_host(
     :expectedresults: Host should be provisioned and entry from
         discovered host should be auto removed.
 
-    :BZ: 2238952, 2268544, 2258024, 2025523
+    :BZ: 2025523
+
+    :verifies: SAT-22452, SAT-20098, SAT-23860
 
     :customerscenario: true
 
