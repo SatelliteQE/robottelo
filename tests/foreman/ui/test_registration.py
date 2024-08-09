@@ -129,14 +129,13 @@ def test_negative_global_registration_without_ak(
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6]')
 def test_positive_global_registration_end_to_end(
-    session,
     module_activation_key,
     module_org,
     smart_proxy_location,
     default_os,
     default_smart_proxy,
     rhel_contenthost,
-    target_sat,
+    module_target_sat,
 ):
     """Host registration form produces a correct registration command and host is
     registered successfully with it, remote execution and insights are set up
@@ -154,25 +153,27 @@ def test_positive_global_registration_end_to_end(
     """
     # make sure global parameters for rex and insights are set to true
     insights_cp = (
-        target_sat.api.CommonParameter()
+        module_target_sat.api.CommonParameter()
         .search(query={'search': 'name=host_registration_insights'})[0]
         .read()
     )
     rex_cp = (
-        target_sat.api.CommonParameter()
+        module_target_sat.api.CommonParameter()
         .search(query={'search': 'name=host_registration_remote_execution'})[0]
         .read()
     )
 
     if not insights_cp.value:
-        target_sat.api.CommonParameter(id=insights_cp.id, value=1).update(['value'])
+        module_target_sat.api.CommonParameter(id=insights_cp.id, value=1).update(['value'])
     if not rex_cp.value:
-        target_sat.api.CommonParameter(id=rex_cp.id, value=1).update(['value'])
+        module_target_sat.api.CommonParameter(id=rex_cp.id, value=1).update(['value'])
 
     # rex interface
     iface = 'eth0'
     # fill in the global registration form
-    with session:
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=smart_proxy_location.name)
         cmd = session.host.get_register_command(
             {
                 'general.operating_system': default_os.title,
@@ -219,11 +220,11 @@ def test_positive_global_registration_end_to_end(
     # Assert that a yum update was made this day ("Update" or "I, U" in history)
     timezone_offset = rhel_contenthost.execute('date +"%:z"').stdout.strip()
     tzinfo = datetime.strptime(timezone_offset, '%z').tzinfo
-    result = rhel_contenthost.execute('yum history | grep U')
+    result = rhel_contenthost.execute('yum history | grep -E "I|U"')
     assert result.status == 0
     assert datetime.now(tzinfo).strftime('%Y-%m-%d') in result.stdout
     # Set "Connect to host using IP address"
-    target_sat.api.Parameter(
+    module_target_sat.api.Parameter(
         host=rhel_contenthost.hostname,
         name='remote_execution_connect_by_ip',
         parameter_type='boolean',
@@ -231,7 +232,7 @@ def test_positive_global_registration_end_to_end(
     ).create()
     # run insights-client via REX
     command = "insights-client --status"
-    invocation_command = target_sat.cli_factory.job_invocation(
+    invocation_command = module_target_sat.cli_factory.job_invocation(
         {
             'job-template': 'Run Command - Script Default',
             'inputs': f'command={command}',
@@ -240,24 +241,24 @@ def test_positive_global_registration_end_to_end(
     )
     # results provide all info but job invocation might not be finished yet
     result = (
-        target_sat.api.JobInvocation()
+        module_target_sat.api.JobInvocation()
         .search(
             query={'search': f'id={invocation_command["id"]} and host={rhel_contenthost.hostname}'}
         )[0]
         .read()
     )
     # make sure that task is finished
-    task_result = target_sat.wait_for_tasks(
+    task_result = module_target_sat.wait_for_tasks(
         search_query=(f'id = {result.task.id}'), search_rate=2, max_tries=60
     )
     assert task_result[0].result == 'success'
     host = (
-        target_sat.api.Host()
+        module_target_sat.api.Host()
         .search(query={'search': f'name={rhel_contenthost.hostname}'})[0]
         .read()
     )
     for interface in host.interface:
-        interface_result = target_sat.api.Interface(host=host.id).search(
+        interface_result = module_target_sat.api.Interface(host=host.id).search(
             query={'search': f'{interface.id}'}
         )[0]
         # more interfaces can be inside the host
