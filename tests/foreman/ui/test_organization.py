@@ -199,7 +199,7 @@ def test_positive_create_with_all_users(session, module_target_sat):
 
     :expectedresults: Organization and user entities assigned to each other
 
-    :BZ: 1321543
+    :verifies: SAT-25386
 
     :BlockedBy: SAT-25386
     """

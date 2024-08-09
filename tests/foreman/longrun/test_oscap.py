@@ -150,6 +150,8 @@ def test_positive_oscap_run_via_ansible(
 
     :BZ: 1716307, 1992229
 
+    :Verifies: SAT-19389, SAT-24988
+
     :customerscenario: true
 
     :CaseImportance: Critical
@@ -258,7 +260,9 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
 
     :expectedresults: REX job should be success and ARF report should be sent to satellite
 
-    :BZ: 1814988
+    :BlockedBy: SAT-19505
+
+    :verifies: SAT-19505
     """
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')

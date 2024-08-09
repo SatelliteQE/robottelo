@@ -145,10 +145,14 @@ class TestRemoteExecution:
 
         :BZ: 1451675, 1804685
 
+        :verifies: SAT-22554
+
         :expectedresults: Verify the job was successfully run under the
             effective user identity on host
 
         :parametrized: yes
+
+        :customerscenario: true
         """
         client = rex_contenthost
         # create a user on client via remote job
