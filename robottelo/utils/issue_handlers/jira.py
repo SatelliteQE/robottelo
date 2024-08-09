@@ -20,6 +20,8 @@ from robottelo.logging import logger
 # The .version group being a `d.d` string that can be casted to Version()
 VERSION_RE = re.compile(r'(?:sat-)*?(?P<version>\d\.\d)\.\w*')
 
+common_jira_fields = ['key', 'summary', 'status', 'labels', 'resolution', 'fixVersions']
+
 mapped_response_fields = {
     'key': "{obj_name}['key']",
     'summary': "{obj_name}['fields']['summary']",
@@ -33,6 +35,12 @@ mapped_response_fields = {
 
 
 def sanitized_issue_data(issue, out_fields):
+    """fetches the value for all the given fields from a given jira issue
+
+    Arguments:
+        issue {dict} -- The json data for a jira issue
+        out_fields {list} -- The list of fields for which data to be retrieved from jira issue
+    """
     return {
         field: eval(mapped_response_fields[field].format(obj_name='issue')) for field in out_fields
     }
@@ -146,12 +154,11 @@ def collect_data_jira(collected_data, cached_data):  # pragma: no cover
         collected_data {dict} -- dict with Jira issues collected by pytest
         cached_data {dict} -- Cached data previous loaded from API
     """
-    jira_fields = ['key', 'summary', 'status', 'labels', 'resolution', 'fixVersions']
     jira_data = (
         get_data_jira(
             [item for item in collected_data if item.startswith('SAT-')],
             cached_data=cached_data,
-            jira_fields=jira_fields,
+            jira_fields=common_jira_fields,
         )
         or []
     )
@@ -189,6 +196,14 @@ CACHED_RESPONSES = defaultdict(dict)
     wait=wait_fixed(20),  # Wait seconds between retries
 )
 def get_jira(jql, fields=None):
+    """Accepts the jql to retrieve the data from Jira for the given fields
+
+    Arguments:
+        jql {str} -- The query for retrieving the issue(s) details from jira
+        fields {list} -- The custom fields in query to retrieve the data for
+
+    Returns: Jira object of response after status check
+    """
     params = {"jql": jql}
     if fields:
         params.update({"fields": ",".join(fields)})
@@ -207,6 +222,7 @@ def get_data_jira(issue_ids, cached_data=None, jira_fields=None):  # pragma: no 
     Arguments:
         issue_ids {list of str} -- ['SAT-12345', ...]
         cached_data {dict} -- Cached data previous loaded from API
+        jira_fields {list of str} -- List of fields to be retrieved by a jira issue GET request
 
     Returns:
         [list of dicts] -- [{'id':..., 'status':..., 'resolution': ...}]
@@ -260,8 +276,7 @@ def get_single_jira(issue_id, cached_data=None):  # pragma: no cover
         try:
             jira_data = cached_data[f"{issue_id}"]['data']
         except (KeyError, TypeError):
-            jira_fields = ['key', 'summary', 'status', 'labels', 'resolution', 'fixVersions']
-            jira_data = get_data_jira([str(issue_id)], cached_data, jira_fields=jira_fields)
+            jira_data = get_data_jira([str(issue_id)], cached_data, jira_fields=common_jira_fields)
             jira_data = jira_data and jira_data[0]
         CACHED_RESPONSES['get_single'][issue_id] = jira_data
     return jira_data or get_default_jira(issue_id)
