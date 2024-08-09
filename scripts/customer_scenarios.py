@@ -6,6 +6,7 @@ import requests
 import testimony
 
 from robottelo.config import settings
+from robottelo.utils.issue_handlers.jira import get_data_jira
 
 
 @click.group()
@@ -34,6 +35,29 @@ def get_bz_data(paths):
                 'customerscenario' not in test_data or test_data['customerscenario'] == 'false'
             ):
                 path_result.append([test.name, test_data['bz']])
+        if path_result:
+            result[path] = path_result
+    return result
+
+
+def get_tests_path_without_customer_tag(paths):
+    """Returns the path and test name that does not have customerscenario token even though
+    it has verifies token when necessary
+
+    Arguments:
+        paths {list} -- List of test modules paths
+    """
+    testcases = testimony.get_testcases(paths)
+    result = {}
+    for path, tests in testcases.items():
+        path_result = []
+        for test in tests:
+            test_dict = test.to_dict()
+            test_data = {**test_dict['tokens'], **test_dict['invalid-tokens']}
+            if 'verifies' in test_data and (
+                'customerscenario' not in test_data or test_data['customerscenario'] == 'false'
+            ):
+                path_result.append([test.name, test_data['verifies']])
         if path_result:
             result[path] = path_result
     return result
@@ -82,11 +106,41 @@ def query_bz(data):
     return set(output)
 
 
+def query_jira(data):
+    """Returns the list of path and test name for missing customerscenario token
+
+    Arguments:
+         data {dict} -- The list of test modules and tests without customerscenario tags
+    """
+    output = []
+    sfdc_counter_field = 'customfield_12313440'
+    with click.progressbar(data.items()) as bar:
+        for path, tests in bar:
+            for test in tests:
+                jira_data = get_data_jira(test[1], jira_fields=[sfdc_counter_field])
+                for data in jira_data:
+                    customer_cases = int(float(data[sfdc_counter_field]))
+                    if customer_cases and customer_cases >= 1:
+                        output.append(f'{path} {test}')
+                        break
+    return set(output)
+
+
 @main.command()
-def run(paths=None):
-    path_list = make_path_list(paths)
-    values = get_bz_data(path_list)
-    results = query_bz(values)
+@click.option('--jira', is_flag=True, help='Run the customer scripting for Jira')
+@click.option('--bz', is_flag=True, help='Run the customer scripting for BZ')
+def run(jira, bz, paths=None):
+    if jira:
+        path_list = make_path_list(paths)
+        values = get_tests_path_without_customer_tag(path_list)
+        results = query_jira(values)
+    elif bz:
+        path_list = make_path_list(paths)
+        values = get_bz_data(path_list)
+        results = query_bz(values)
+    else:
+        results = []
+
     if len(results) == 0:
         click.echo('No action needed for customerscenario tags')
     else:
