@@ -586,8 +586,6 @@ def test_positive_check_manifest_validity_notification(
     :expectedresults:
         1. 'Manifest expired', 'Manifest expiring soon' messages appear on Manage Manifest modal box
 
-    :BZ: 2075163
-
     :Verifies: SAT-11630
 
     :customerscenario: true
