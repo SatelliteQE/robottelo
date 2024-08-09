@@ -323,7 +323,7 @@ class TestScenarioLargeRepoSyncCheck:
 
     @pytest.mark.pre_upgrade
     def test_pre_scenario_sync_large_repo(
-        self, target_sat, module_entitlement_manifest_org, save_test_data
+        self, target_sat, module_sca_manifest_org, save_test_data
     ):
         """This is a pre-upgrade scenario to verify that users can sync large repositories
         before an upgrade
@@ -338,7 +338,7 @@ class TestScenarioLargeRepoSyncCheck:
         """
         rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
-            org_id=module_entitlement_manifest_org.id,
+            org_id=module_sca_manifest_org.id,
             product=REPOS['rhel8_bos']['product'],
             repo=REPOS['rhel8_bos']['name'],
             reposet=REPOS['rhel8_bos']['reposet'],
@@ -347,7 +347,7 @@ class TestScenarioLargeRepoSyncCheck:
         repo = target_sat.api.Repository(id=rh_repo_id).read()
         res = repo.sync(timeout=2000)
         assert res['result'] == 'success'
-        save_test_data({'org_id': module_entitlement_manifest_org.id})
+        save_test_data({'org_id': module_sca_manifest_org.id})
 
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_sync_large_repo)
     def test_post_scenario_sync_large_repo(self, target_sat, pre_upgrade_data):

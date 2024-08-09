@@ -327,7 +327,7 @@ def test_positive_sync_several_repos(module_org, module_target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_filter_product_list(module_entitlement_manifest_org, module_target_sat):
+def test_positive_filter_product_list(module_sca_manifest_org, module_target_sat):
     """Filter products based on param 'custom/redhat_only'
 
     :id: e61fb63a-4552-4915-b13d-23ab80138249
@@ -336,7 +336,7 @@ def test_positive_filter_product_list(module_entitlement_manifest_org, module_ta
 
     :BZ: 1667129
     """
-    org = module_entitlement_manifest_org
+    org = module_sca_manifest_org
     product = module_target_sat.api.Product(organization=org).create()
     custom_products = module_target_sat.api.Product(organization=org).search(query={'custom': True})
     rh_products = module_target_sat.api.Product(organization=org).search(

@@ -21,7 +21,7 @@ pytestmark = pytest.mark.destructive
 
 
 @pytest.mark.run_in_one_thread
-def test_positive_reboot_recover_sync(target_sat, function_entitlement_manifest_org):
+def test_positive_reboot_recover_sync(target_sat, function_sca_manifest_org):
     """Reboot during repo sync and resume the sync when the Satellite is online
 
     :id: 4f746e28-444c-4688-b92b-778a6e58d614
@@ -37,7 +37,7 @@ def test_positive_reboot_recover_sync(target_sat, function_entitlement_manifest_
 
     :CaseAutomation: Automated
     """
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     rhel7_extra = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,

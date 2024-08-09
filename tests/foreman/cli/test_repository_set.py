@@ -20,13 +20,13 @@ pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.tier1]
 
 
 @pytest.fixture
-def params(function_entitlement_manifest_org, target_sat):
+def params(function_sca_manifest_org, target_sat):
     PRODUCT_NAME = PRDS['rhel']
     REPOSET_NAME = REPOSET['rhva6']
     ARCH = 'x86_64'
     ARCH_2 = 'i386'
     RELEASE = '6Server'
-    manifest_org = function_entitlement_manifest_org
+    manifest_org = function_sca_manifest_org
 
     product_id = target_sat.cli.Product.info(
         {'name': PRODUCT_NAME, 'organization-id': manifest_org.id}
