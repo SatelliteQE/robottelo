@@ -89,14 +89,6 @@ def module_org_with_manifest(module_org, module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def module_entitlement_manifest_org(module_org, module_entitlement_manifest, module_target_sat):
-    """Creates an organization and uploads an entitlement mode manifest generated with manifester"""
-    module_org.sca_disable()
-    module_target_sat.upload_manifest(module_org.id, module_entitlement_manifest.content)
-    return module_org
-
-
-@pytest.fixture(scope='module')
 def module_sca_manifest_org(module_org, module_sca_manifest, module_target_sat):
     """Creates an organization and uploads an SCA mode manifest generated with manifester"""
     module_target_sat.upload_manifest(module_org.id, module_sca_manifest.content)
@@ -177,14 +169,6 @@ def session_sca_manifest():
     """Yields a manifest in entitlement mode with subscriptions determined by the
     `manifest_category.entitlement` setting in conf/manifest.yaml."""
     with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
-        yield manifest
-
-
-@pytest.fixture(scope='module')
-def module_entitlement_manifest():
-    """Yields a manifest in entitlement mode with subscriptions determined by the
-    `manifest_category.entitlement` setting in conf/manifest.yaml."""
-    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
         yield manifest
 
 
