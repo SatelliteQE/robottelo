@@ -315,7 +315,7 @@ def test_positive_candlepin_events_processed_by_stomp(function_org, target_sat):
     def parse(events):
         return {key: int(value) for value, key in re.findall(r'(\d+)\s(\w+)', events)}
 
-    manifester = Manifester(manifest_category=settings.manifest.entitlement)
+    manifester = Manifester(manifest_category=settings.manifest.golden_ticket)
     manifest = manifester.get_manifest()
     pre_candlepin_events = target_sat.api.Ping().search_json()['services']['candlepin_events'][
         'message'
