@@ -17,6 +17,7 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 """
 
 import re
+import time
 
 from fauxfactory import gen_string
 from manifester import Manifester
@@ -321,6 +322,7 @@ def test_positive_candlepin_events_processed_by_stomp(function_org, target_sat):
         'message'
     ]
     target_sat.upload_manifest(function_org.id, manifest.content)
+    time.sleep(5)
     assert target_sat.api.Ping().search_json()['services']['candlepin_events']['status'] == 'ok'
     post_candlepin_events = target_sat.api.Ping().search_json()['services']['candlepin_events'][
         'message'
