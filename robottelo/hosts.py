@@ -12,7 +12,6 @@ import re
 from tempfile import NamedTemporaryFile
 import time
 from urllib.parse import urljoin, urlparse, urlunsplit
-import warnings
 
 import apypie
 from box import Box
@@ -568,39 +567,6 @@ class ContentHost(Host, ContentHostMixins):
         result = self.execute('yum install -y katello-host-tools')
         if result.status != 0:
             raise ContentHostError('Failed to install katello-host-tools')
-
-    def install_katello_ca(self, satellite):
-        """Downloads and installs katello-ca rpm on the content host.
-
-        :param str satellite: robottelo.hosts.Satellite instance
-
-        :return: None.
-        :raises robottelo.hosts.ContentHostError: If katello-ca wasn't
-            installed.
-        """
-        warnings.warn(
-            message='The install_katello_ca method is deprecated, use the register method instead.',
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
-        self._satellite = satellite
-        self.execute(
-            f'curl --insecure --output katello-ca-consumer-latest.noarch.rpm \
-                    {satellite.url_katello_ca_rpm}'
-        )
-        # check if the host is fips-enabled
-        result = self.execute('sysctl crypto.fips_enabled')
-        if 'crypto.fips_enabled = 1' in result.stdout:
-            self.execute('rpm -Uvh --nodigest --nofiledigest katello-ca-consumer-latest.noarch.rpm')
-        else:
-            self.execute('rpm -Uvh katello-ca-consumer-latest.noarch.rpm')
-        # Not checking the status here, as rpm could be installed before
-        # and installation may fail
-        result = self.execute(f'rpm -q katello-ca-consumer-{satellite.hostname}')
-        # Checking the status here to verify katello-ca rpm is actually
-        # present in the system
-        if satellite.hostname not in result.stdout:
-            raise ContentHostError('Failed to download and install the katello-ca rpm')
 
     def remove_katello_ca(self):
         """Removes katello-ca rpm from the broker virtual machine.
