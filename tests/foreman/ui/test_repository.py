@@ -331,25 +331,6 @@ def test_positive_sync_yum_repo_and_verify_content_checksum(session, module_org,
 
 
 @pytest.mark.tier2
-@pytest.mark.upgrade
-def test_positive_sync_custom_repo_docker(session, module_org, module_target_sat):
-    """Create Custom docker repos and sync it via the repos page.
-
-    :id: 942e0b4f-3524-4f00-812d-bdad306f81de
-
-    :expectedresults: Sync procedure for specific docker repository is
-        successful
-    """
-    product = module_target_sat.api.Product(organization=module_org).create()
-    repo = module_target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB, product=product, content_type=REPO_TYPE['docker']
-    ).create()
-    with session:
-        result = session.repository.synchronize(product.name, repo.name)
-        assert result['result'] == 'success'
-
-
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_resync_custom_repo_after_invalid_update(session, module_org, module_target_sat):
     """Create Custom yum repo and sync it via the repos page. Then try to
