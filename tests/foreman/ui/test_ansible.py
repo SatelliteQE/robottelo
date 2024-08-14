@@ -289,41 +289,6 @@ class TestAnsibleCfgMgmt:
 
     @pytest.mark.stubbed
     @pytest.mark.tier3
-    def test_positive_ansible_config_report_failed_tasks_errors(self):
-        """Check that failed Ansible tasks show as errors in the config report
-
-        :id: 1a91e534-143f-4f35-953a-7ad8b7d2ddf3
-
-        :steps:
-            1. Import Ansible roles
-            2. Assign Ansible roles to a host
-            3. Run Ansible roles on host
-
-        :expectedresults: Verify that any task failures are listed as errors in the config report
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_ansible_config_report_changes_notice(self):
-        """Check that Ansible tasks that make changes on a host show as notice in the config report
-
-        :id: 8c90f179-8b70-4932-a477-75dc3566c437
-
-        :steps:
-            1. Import Ansible Roles
-            2. Assign Ansible roles to a host
-            3. Run Ansible Roles on a host
-
-        :expectedresults: Verify that any tasks that make changes on the host
-                        are listed as notice in the config report
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
     def test_positive_ansible_variables_imported_with_roles(self):
         """Verify that, when Ansible roles are imported, their variables are imported simultaneously
 
@@ -555,6 +520,87 @@ class TestAnsibleCfgMgmt:
             wait_for(lambda: session.browser.refresh(), timeout=5)
             ansible_roles_table = session.host_new.get_ansible_roles(target_sat.hostname)
             assert ansible_roles_table[0]['Name'] == SELECTED_ROLE
+
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    def test_positive_ansible_config_report_changes_notice_and_failed_tasks_errors(
+        self,
+        rhel_contenthost,
+        module_target_sat,
+        module_org,
+        module_location,
+        module_activation_key,
+    ):
+        """Check that Ansible tasks that make changes on a host show as notice in the config report and
+        failed Ansible tasks show as errors in the config report
+
+        :id: 286048f8-0f4f-4a3c-b5c7-fe9c7af8a780
+
+        :steps:
+            1. Import Ansible Roles
+            2. Assign and Run Ansible roles to a host
+            3. Run Ansible Roles on a host
+            4. Check Config Report
+
+        :expectedresults:
+            1. Verify that any tasks that make changes on the host are listed as notice in the config report
+            2. Verify that any task failures are listed as errors in the config report
+        """
+        SELECTED_ROLE = 'theforeman.foreman_scap_client'
+        nc = module_target_sat.nailgun_smart_proxy
+        nc.location = [module_location]
+        nc.organization = [module_org]
+        nc.update(['organization', 'location'])
+        module_target_sat.api.AnsibleRoles().sync(
+            data={'proxy_id': nc.id, 'role_names': SELECTED_ROLE}
+        )
+        rhel_ver = rhel_contenthost.os_version.major
+        rhel_repo_urls = getattr(settings.repos, f'rhel{rhel_ver}_os', None)
+        rhel_contenthost.create_custom_repos(**rhel_repo_urls)
+        result = rhel_contenthost.register(
+            module_org, module_location, module_activation_key.name, module_target_sat
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        with module_target_sat.ui_session() as session:
+            session.location.select(module_location.name)
+            session.organization.select(module_org.name)
+            session.host_new.add_single_ansible_role(rhel_contenthost.hostname)
+            ansible_roles_table = session.host_new.get_ansible_roles(rhel_contenthost.hostname)
+            assert ansible_roles_table[0]['Name'] == SELECTED_ROLE
+            # Verify error log for config report after ansible role is executed
+            session.host_new.run_job(rhel_contenthost.hostname)
+            session.jobinvocation.wait_job_invocation_state(
+                entity_name='Run ansible roles',
+                host_name=rhel_contenthost.hostname,
+                expected_state='failed',
+            )
+            err_log = session.configreport.search(rhel_contenthost.hostname)
+            package_name = SELECTED_ROLE.split('.')[1]
+            assert f'err Install the {package_name} package' in err_log['permission_denied']
+            assert (
+                'Execution error: Failed to install some of the specified packages'
+                in err_log['permission_denied']
+            )
+
+            # Verify notice log for config report after ansible role is successfully executed
+            rhel_contenthost.create_custom_repos(
+                client_repo=settings.repos.satclient_repo[f'rhel{rhel_ver}']
+            )
+            result = rhel_contenthost.register(
+                module_org,
+                module_location,
+                module_activation_key.name,
+                module_target_sat,
+                force=True,
+            )
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
+            session.host_new.run_job(rhel_contenthost.hostname)
+            session.jobinvocation.wait_job_invocation_state(
+                entity_name='Run ansible roles', host_name=rhel_contenthost.hostname
+            )
+            notice_log = session.configreport.search(rhel_contenthost.hostname)
+            assert f'notice Install the {package_name} package' in notice_log['permission_denied']
+            assert f'Installed: rubygem-{package_name}' in notice_log['permission_denied']
 
 
 class TestAnsibleREX:
