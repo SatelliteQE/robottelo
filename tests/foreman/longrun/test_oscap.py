@@ -224,6 +224,8 @@ def scap_prerequisites(module_org, default_proxy, target_sat):
 @pytest.mark.upgrade
 @pytest.mark.tier4
 @pytest.mark.rhel_ver_match('[^6].*')
+@pytest.mark.pit_server
+@pytest.mark.pit_client
 def test_positive_oscap_run_via_ansible(
     module_org,
     default_proxy,
