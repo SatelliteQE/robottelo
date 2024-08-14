@@ -41,11 +41,11 @@ documented, it doesn’t exist.
 In order to ensure you are able to pass the Travis CI build, it is recommended
 that you run the following commands in the base of your Robottelo directory.::
 
-    $ flake8 .
+    $ ruff check .
     $ make test-docstrings
     $ make test-robottelo
 
-:code:`flake8` will ensure that the changes you made are not in violation of
+:code:`ruff linter` will ensure that the changes you made are not in violation of
 PEP8 standards. If the command gives no output, then you have passed. If not,
 then address any corrections recommended.
 
