@@ -2197,7 +2197,6 @@ def test_positive_manage_packages(
     - package_management_action: install_1_pckg, install_2_pckgs, upgrade_1_pckg, upgrade_all_pckgs, remove_1_pckg, remove_2_pckgs
     - finish_via: rex or custom_rex
     All this leads to 2 * 6 * 2 = 24 test cases in total.
-    For the visual representation of the test matrix see: https://miro.com/app/board/uXjVK0pTODA=/?share_link_id=776786926115
 
     :id: 1d6760ca-9c7e-4267-9a4b-3f91d50c8eb1
 
