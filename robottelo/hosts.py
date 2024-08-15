@@ -335,7 +335,7 @@ class ContentHost(Host, ContentHostMixins):
     def setup(self):
         logger.debug('START: setting up host %s', self)
         if not self.blank:
-            self.remove_katello_ca()
+            self.reset_rhsm()
 
         logger.debug('END: setting up host %s', self)
 
@@ -568,22 +568,11 @@ class ContentHost(Host, ContentHostMixins):
         if result.status != 0:
             raise ContentHostError('Failed to install katello-host-tools')
 
-    def remove_katello_ca(self):
-        """Removes katello-ca rpm from the broker virtual machine.
-
-        :return: None.
-        :raises robottelo.hosts.ContentHostError: If katello-ca wasn't removed.
+    def reset_rhsm(self):
+        """Global Registration points the host's sub-man to talk to the Sattelite's Candlepin
+        but saves the original rhsm.conf. Reset the rhsm.conf so that it points back to the CDN.
         """
-        # unregister host from CDN to avoid subscription leakage
-        self.execute('subscription-manager unregister')
-        # Not checking the status here, as rpm can be not even installed
-        # and deleting may fail
-        self.execute('yum erase -y $(rpm -qa |grep katello-ca-consumer)')
-        # Checking the status here to verify katello-ca rpm is actually
-        # not present in the system
-        result = self.execute('rpm -qa |grep katello-ca-consumer')
-        if result.status == 0:
-            raise ContentHostError(f'katello-ca rpm(s) are still installed: {result.stdout}')
+        self.execute(r'\cp -f /etc/rhsm/rhsm.conf{.bak,}')
         self.execute('subscription-manager clean')
         self._satellite = None
 
@@ -1389,7 +1378,7 @@ class ContentHost(Host, ContentHostMixins):
         """Subscribe satellite to CDN"""
         if pool_ids is None:
             pool_ids = [settings.subscription.rhn_poolid]
-        self.remove_katello_ca()
+        self.reset_rhsm()
         cmd_result = self.register_contenthost(
             org=None,
             lce=None,
