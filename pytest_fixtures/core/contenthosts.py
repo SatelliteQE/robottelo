@@ -198,7 +198,7 @@ def katello_host_tools_tracer_host(rex_contenthost, target_sat):
 
 
 @pytest.fixture(scope='module')
-def module_container_contenthost(request, module_target_sat, default_org):
+def module_container_contenthost(request, module_target_sat, module_org, module_activation_key):
     """Fixture that installs docker on the content host"""
     request.param = {
         "rhel_version": "8",
@@ -215,15 +215,10 @@ def module_container_contenthost(request, module_target_sat, default_org):
             host.execute('systemctl enable --now podman').status == 0
         ), 'Start of podman service failed'
         host.unregister()
-        # register the host to Satellite to accept its cert
-        ak = module_target_sat.cli_factory.make_activation_key(
-            {
-                'lifecycle-environment': 'Library',
-                'content-view': 'Default Organization View',
-                'organization-id': default_org.id,
-            }
+        assert (
+            host.register(module_org, None, module_activation_key.name, module_target_sat).status
+            == 0
         )
-        assert host.register(default_org, None, ak.name, module_target_sat).status == 0
         yield host
 
 
