@@ -2301,10 +2301,8 @@ def test_positive_manage_packages(
         # Set flags based on current type of the finish
         match finish_via:
             case 'rex':
-                manage_by_rex_flag = True
                 manage_by_customized_rex_flag = False
             case 'custom_rex':
-                manage_by_rex_flag = False
                 manage_by_customized_rex_flag = True
 
         # Get the latest versions of wanted packages on the tested hosts
@@ -2369,7 +2367,6 @@ def test_positive_manage_packages(
             packages_to_upgrade=packages_to_upgrade,
             packages_to_install=packages_to_install,
             packages_to_remove=packages_to_remove,
-            manage_by_rex=manage_by_rex_flag,
             manage_by_customized_rex=manage_by_customized_rex_flag,
         )
 
@@ -2388,11 +2385,11 @@ def test_positive_manage_packages(
             )
 
         elif upgrade_all_packages_flag:
-            if manage_by_rex_flag:
+            if not manage_by_customized_rex_flag:
                 module_target_sat.wait_for_tasks(
                     f'action: "Upgrade all packages" and resource_id = {job_id}'
                 )
-            elif manage_by_customized_rex_flag:
+            else:
                 module_target_sat.wait_for_tasks(
                     f'action: "Update package(s)" and resource_id = {job_id}'
                 )
