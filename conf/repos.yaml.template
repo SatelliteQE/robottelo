@@ -184,6 +184,10 @@ REPOS:
   FILE_TYPE_REPO:
     URL:
 
+  LARGE_FILE_TYPE_REPO:
+    URL:
+    FILES_COUNT:
+
   EPEL_REPO:
     URL:
 
