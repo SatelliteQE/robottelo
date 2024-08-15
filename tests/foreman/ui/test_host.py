@@ -2214,7 +2214,7 @@ def test_positive_manage_packages(
 
     :parametrized: yes
 
-    :Team: Phoenix-content
+    :Team: Phoenix-subscriptions
     """
 
     packages = ['panda', 'seal']
