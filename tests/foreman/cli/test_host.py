@@ -80,10 +80,10 @@ def function_user(target_sat, function_host):
     user_name = gen_string('alphanumeric')
     user_password = gen_string('alphanumeric')
     org = target_sat.api.Organization().search(
-        query={'search': f'name="{function_host["organization"]}"'}
+        query={'search': f'name="{function_host["organization"]["name"]}"'}
     )[0]
     location = target_sat.api.Location().search(
-        query={'search': f'name="{function_host["location"]}"'}
+        query={'search': f'name="{function_host["location"]["name"]}"'}
     )[0]
     user = target_sat.api.User(
         admin=False,
@@ -924,10 +924,10 @@ def test_positive_update_parameters_by_name(
     new_mac = gen_mac(multicast=False)
     new_loc = module_location
     organization = target_sat.api.Organization().search(
-        query={'search': f'name="{function_host["organization"]}"'}
+        query={'search': f'name="{function_host["organization"]["name"]}"'}
     )[0]
     new_domain = target_sat.api.Domain(location=[new_loc], organization=[organization]).create()
-    p_table_name = function_host['operating-system']['partition-table']
+    p_table_name = function_host['operating-system']['partition-table']['name']
     p_table = target_sat.api.PartitionTable().search(query={'search': f'name="{p_table_name}"'})
     new_os = target_sat.api.OperatingSystem(
         major=gen_integer(0, 10),
@@ -954,13 +954,13 @@ def test_positive_update_parameters_by_name(
         }
     )
     host = target_sat.cli.Host.info({'id': function_host['id']})
-    assert '{}.{}'.format(new_name, host['network']['domain']) == host['name']
-    assert host['location'] == new_loc.name
+    assert '{}.{}'.format(new_name, host['network']['domain']['name']) == host['name']
+    assert host['location']['name'] == new_loc.name
     assert host['network']['mac'] == new_mac
-    assert host['network']['domain'] == new_domain.name
-    assert host['operating-system']['architecture'] == module_architecture.name
-    assert host['operating-system']['operating-system'] == new_os.title
-    assert host['operating-system']['medium'] == new_medium.name
+    assert host['network']['domain']['name'] == new_domain.name
+    assert host['operating-system']['architecture']['name'] == module_architecture.name
+    assert host['operating-system']['operating-system']['name'] == new_os.title
+    assert host['operating-system']['medium']['name'] == new_medium.name
 
 
 @pytest.mark.tier1
@@ -1027,8 +1027,8 @@ def test_negative_update_os(target_sat, function_host, module_architecture):
 
     :expectedresults: A host is not updated
     """
-    p_table = function_host['operating-system']['partition-table']
-    p_table = target_sat.api.PartitionTable().search(query={'search': f'name="{p_table}"'})[0]
+    p_table_name = function_host['operating-system']['partition-table']['name']
+    p_table = target_sat.api.PartitionTable().search(query={'search': f'name="{p_table_name}"'})[0]
     new_os = target_sat.api.OperatingSystem(
         major=gen_integer(0, 10),
         name=gen_string('alphanumeric'),
@@ -1174,7 +1174,9 @@ def test_negative_view_parameter_by_non_admin_user(target_sat, function_host, fu
         {'host-id': function_host['id'], 'name': param_name, 'value': param_value}
     )
     host = target_sat.cli.Host.info({'id': function_host['id']})
-    assert host['parameters'][param_name] == param_value
+    assert (param_name, param_value) in [
+        (param['name'], param['value']) for param in host['parameters']
+    ]
     role = target_sat.api.Role(name=gen_string('alphanumeric')).create()
     target_sat.cli_factory.add_role_permissions(
         role.id,
