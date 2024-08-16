@@ -314,6 +314,13 @@ def sat_ready_rhel(request):
 
 
 @pytest.fixture(scope='module')
+def module_sat_ready_rhel(request):
+    deploy_args = get_deploy_args(request)
+    with Broker(**deploy_args, host_class=Satellite) as host:
+        yield host
+
+
+@pytest.fixture(scope='module')
 def module_sat_ready_rhels(request):
     deploy_args = get_deploy_args(request)
     with Broker(**deploy_args, host_class=Satellite, _count=3) as hosts:

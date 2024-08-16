@@ -12,13 +12,18 @@
 
 """
 
+from contextlib import contextmanager
+
+from broker import Broker
 import pytest
 import requests
+from wait_for import wait_for
 import yaml
 
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE, FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
+from robottelo.hosts import Satellite, get_sat_rhel_version
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.ohsnap import dogfood_repository
@@ -263,29 +268,48 @@ def setup_capsule_repos(satellite, capsule_host, org, ak):
 
 
 @pytest.fixture(scope='module')
-def sat_default_install(module_sat_ready_rhels):
+def sat_default_install(module_sat_ready_rhel):
     """Install Satellite with default options"""
     installer_args = [
         'scenario satellite',
         f'foreman-initial-admin-password {settings.server.admin_password}',
     ]
-    install_satellite(module_sat_ready_rhels[0], installer_args)
-    sat = module_sat_ready_rhels[0]
+    install_satellite(module_sat_ready_rhel, installer_args)
+    sat = module_sat_ready_rhel
     sat.enable_ipv6_http_proxy()
     return sat
 
 
 @pytest.fixture(scope='module')
-def sat_fapolicyd_install(module_sat_ready_rhels):
+def sat_fapolicyd_install():
     """Install Satellite with default options and fapolicyd enabled"""
     installer_args = [
         'scenario satellite',
         f'foreman-initial-admin-password {settings.server.admin_password}',
     ]
-    install_satellite(module_sat_ready_rhels[1], installer_args, enable_fapolicyd=True)
-    sat = module_sat_ready_rhels[1]
-    sat.enable_ipv6_http_proxy()
-    return sat
+
+    def deploy(request=None, delay=300):
+        rhel_version = get_sat_rhel_version()
+        deploy_args = {
+            'deploy_rhel_version': rhel_version.base_version,
+            'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
+            'deploy_flavor': settings.flavors.default,
+            'workflow': settings.server.deploy_workflows.os,
+        }
+        if hasattr(request, 'param'):
+            if isinstance(request.param, dict):
+                deploy_args.update(request.param)
+            else:
+                deploy_args['deploy_rhel_version'] = request.param
+        vmb = Broker(**deploy_args, host_class=Satellite)
+        timeout = (1200 + delay) * 3
+        sat_host = wait_for(vmb.checkout, timeout=timeout, delay=delay, fail_condition=[])
+        sat_host = sat_host.out
+        install_satellite(sat_host, installer_args, enable_fapolicyd=True)
+        sat_host.enable_ipv6_http_proxy()
+        return sat_host
+
+    return deploy
 
 
 @pytest.fixture(scope='module')
@@ -306,14 +330,35 @@ def sat_non_default_install(module_sat_ready_rhels):
     return sat
 
 
+@contextmanager
+def _target_sat_for_capsule(request, module_target_sat, sat_fapolicyd_install):
+    """This is the actual working part of the following target_sat fixtures"""
+    if 'sanity' in request.config.option.markexpr:
+        yield module_target_sat
+    else:
+        new_sat = sat_fapolicyd_install(request)
+        yield new_sat
+        new_sat.teardown()
+        Broker(hosts=[new_sat]).checkin()
+
+
+@pytest.fixture(scope='module')
+def satellite_for_capsule_installer(request, module_target_sat, sat_fapolicyd_install):
+    with _target_sat_for_capsule(
+        request, module_target_sat, sat_fapolicyd_install
+    ) as capsule_sat:
+        yield capsule_sat
+
+
 @pytest.mark.e2e
 @pytest.mark.tier1
 @pytest.mark.pit_server
+@pytest.mark.build_sanity
 @pytest.mark.parametrize(
     'setting_update', [f'http_proxy={settings.http_proxy.un_auth_proxy_url}'], indirect=True
 )
 def test_capsule_installation(
-    sat_fapolicyd_install, cap_ready_rhel, module_sca_manifest, setting_update
+    satellite_for_capsule_installer, cap_ready_rhel, module_sca_manifest, setting_update
 ):
     """Run a basic Capsule installation with fapolicyd
 
@@ -340,21 +385,21 @@ def test_capsule_installation(
     :customerscenario: true
     """
     # Create testing organization
-    org = sat_fapolicyd_install.api.Organization().create()
+    org = satellite_for_capsule_installer.api.Organization().create()
 
     # Unregister capsule in case it's registered to CDN
     cap_ready_rhel.unregister()
 
     # Add a manifest to the Satellite
-    sat_fapolicyd_install.upload_manifest(org.id, module_sca_manifest.content)
+    satellite_for_capsule_installer.upload_manifest(org.id, module_sca_manifest.content)
     # Create capsule certs and activation key
-    file, _, cmd_args = sat_fapolicyd_install.capsule_certs_generate(cap_ready_rhel)
-    sat_fapolicyd_install.session.remote_copy(file, cap_ready_rhel)
-    ak = sat_fapolicyd_install.api.ActivationKey(organization=org, environment=org.library).create()
+    file, _, cmd_args = satellite_for_capsule_installer.capsule_certs_generate(cap_ready_rhel)
+    satellite_for_capsule_installer.session.remote_copy(file, cap_ready_rhel)
+    ak = satellite_for_capsule_installer.api.ActivationKey(organization=org, environment=org.library).create()
 
-    setup_capsule_repos(sat_fapolicyd_install, cap_ready_rhel, org, ak)
+    setup_capsule_repos(satellite_for_capsule_installer, cap_ready_rhel, org, ak)
 
-    cap_ready_rhel.register(org, None, ak.name, sat_fapolicyd_install)
+    cap_ready_rhel.register(org, None, ak.name, satellite_for_capsule_installer)
 
     # Install (enable) fapolicyd
     assert (
@@ -371,7 +416,7 @@ def test_capsule_installation(
     # Setup Capsule
     cap_ready_rhel.install(cmd_args)
 
-    assert sat_fapolicyd_install.api.Capsule().search(
+    assert satellite_for_capsule_installer.api.Capsule().search(
         query={'search': f'name={cap_ready_rhel.hostname}'}
     )[0]
 
