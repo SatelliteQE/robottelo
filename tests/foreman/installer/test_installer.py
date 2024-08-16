@@ -209,6 +209,8 @@ def test_capsule_installation(sat_non_default_install, cap_ready_rhel, setting_u
 
     :CaseImportance: Critical
 
+    :Verifies: SAT-24520
+
     :BZ: 1984400
 
     :customerscenario: true
@@ -259,6 +261,14 @@ def test_capsule_installation(sat_non_default_install, cap_ready_rhel, setting_u
 
     result = cap_ready_rhel.cli.Health.check()
     assert 'FAIL' not in result.stdout
+
+    # Verify foreman-proxy-content-reverse-proxy and port 8443 are disabled on default installation
+    help_result = cap_ready_rhel.execute(
+        "satellite-installer --full-help | grep foreman-proxy-content-reverse-proxy"
+    )
+    assert "Add reverse proxy to the parent (current: false)" in help_result.stdout
+    port_result = cap_ready_rhel.execute("ss -tuln | grep 8443")
+    assert not port_result.stdout
 
 
 @pytest.mark.e2e
