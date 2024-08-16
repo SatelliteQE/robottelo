@@ -1928,7 +1928,7 @@ class TestPodman:
         enable_podman_capsule,
         module_capsule_configured,
     ):
-        """Attempt to push a Podman container to a Capsule/Smart Proxy
+        """Attempt to push a Podman image to a Capsule/Smart Proxy
 
         :id: 310f629a-837a-4457-980e-d2f4345b495e
 
@@ -1941,16 +1941,14 @@ class TestPodman:
 
         :CaseImportance: High
         """
-        REPO_NAME = 'fedora'
-        assert (
-            module_capsule_configured.execute(
-                f'podman pull registry.fedoraproject.org/{REPO_NAME}'
-            ).status
-            == 0
+        IMAGE_NAME_TAG = 'fedora:latest'
+        image_pull = module_capsule_configured.execute(
+            f'podman pull registry.fedoraproject.org/{IMAGE_NAME_TAG}'
         )
-        large_image_id = module_capsule_configured.execute(f'podman images {REPO_NAME} -q')
+        assert image_pull.status == 0
+        large_image_id = image_pull.stdout.strip()
         assert large_image_id
-        result = module_capsule_configured.execute(
-            f'podman push --creds admin:changeme {large_image_id.stdout.strip()} {module_capsule_configured.hostname}/{REPO_NAME}'
+        assert 'Pushing content is unsupported' in module_capsule_configured.execute(
+            f'podman push --creds {settings.server.admin_username}:{settings.server.admin_password} {large_image_id} {module_capsule_configured.hostname}/{IMAGE_NAME_TAG}'
         )
-        assert 'Pushing content is unsupported' in str(result.stderr[1])
+        # assert 'Pushing content is unsupported' in result
