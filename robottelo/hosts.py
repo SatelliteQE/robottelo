@@ -677,6 +677,7 @@ class ContentHost(Host, ContentHostMixins):
         if force:
             options['force'] = str(force).lower()
 
+        self._satellite = target
         cmd = target.satellite.cli.HostRegistration.generate_command(options)
         return self.execute(cmd.strip('\n'))
 
@@ -688,6 +689,7 @@ class ContentHost(Host, ContentHostMixins):
         :return: The result of the API call.
         """
         kwargs['insecure'] = kwargs.get('insecure', True)
+        self._satellite = target
         command = target.satellite.api.RegistrationCommand(**kwargs).create()
         return self.execute(command.strip('\n'))
 
