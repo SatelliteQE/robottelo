@@ -45,6 +45,7 @@ from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
     indirect=True,
 )
 @pytest.mark.stream
+@pytest.mark.pit_client
 def test_positive_content_counts_for_mixed_cv(
     target_sat,
     module_capsule_configured,
@@ -181,6 +182,7 @@ def test_positive_content_counts_for_mixed_cv(
 
 
 @pytest.mark.stream
+@pytest.mark.pit_client
 def test_positive_update_counts(target_sat, module_capsule_configured):
     """Verify the update counts functionality
 
