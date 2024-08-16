@@ -146,6 +146,7 @@ def module_capsule_artifact_cleanup(
     ],
     indirect=True,
 )
+@pytest.mark.pit_client
 def test_positive_content_counts_for_mixed_cv(
     target_sat,
     module_capsule_configured,
@@ -281,6 +282,7 @@ def test_positive_content_counts_for_mixed_cv(
     assert len(info['lifecycle-environments']) == 0, 'The LCE is still listed'
 
 
+@pytest.mark.pit_client
 def test_positive_update_counts(target_sat, module_capsule_configured):
     """Verify the update counts functionality
 
@@ -458,7 +460,7 @@ def test_positive_repair_artifacts(
         2. All variants of verify_checksum task are able to repair all types of damage for all
            supported content types.
 
-    :BZ: 2127537
+    :verifies: SAT-16330
 
     :customerscenario: true
 

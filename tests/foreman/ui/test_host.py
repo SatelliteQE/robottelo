@@ -16,6 +16,7 @@ import copy
 import csv
 import os
 import re
+import time
 
 from airgun.exceptions import DisabledWidgetError, NoSuchElementException
 from box import Box
@@ -40,7 +41,6 @@ from robottelo.constants import (
 )
 from robottelo.constants.repos import CUSTOM_FILE_REPO
 from robottelo.utils.datafactory import gen_string
-from robottelo.utils.issue_handlers import is_open
 
 
 def _get_set_from_list_of_dict(value):
@@ -1312,23 +1312,18 @@ def test_positive_update_delete_package(
     module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
-        if not is_open('BZ:2132680'):
-            product_name = module_repos_collection_with_setup.custom_product.name
-            repos = session.host_new.get_repo_sets(client.hostname, product_name)
-            assert repos[0].status == 'Enabled'
-            session.host_new.override_repo_sets(
-                client.hostname, product_name, "Override to disabled"
-            )
-            assert repos[0].status == 'Disabled'
-            session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
-            result = client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
-            assert result.status != 0
-            session.host_new.override_repo_sets(
-                client.hostname, product_name, "Override to enabled"
-            )
-            assert repos[0].status == 'Enabled'
-            # refresh repos on system
-            client.run('subscription-manager repos')
+        product_name = module_repos_collection_with_setup.custom_product.name
+        repos = session.host_new.get_repo_sets(client.hostname, product_name)
+        assert repos[0].status == 'Enabled'
+        session.host_new.override_repo_sets(client.hostname, product_name, "Override to disabled")
+        assert repos[0].status == 'Disabled'
+        session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
+        result = client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
+        assert result.status != 0
+        session.host_new.override_repo_sets(client.hostname, product_name, "Override to enabled")
+        assert repos[0].status == 'Enabled'
+        # refresh repos on system
+        client.run('subscription-manager repos')
         # install package
         session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
         task_result = target_sat.wait_for_tasks(
@@ -1883,6 +1878,33 @@ def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_
         assert session.all_hosts.bulk_delete_all()
 
 
+@pytest.mark.tier2
+def test_all_hosts_bulk_build_management(target_sat, function_org, function_location, new_host_ui):
+    """Create several hosts, and manage them via Build Management in All Host UI
+
+    :id: fff71945-6534-45cf-88a6-16b25c060f0a
+
+    :expectedresults: Build Managment dropdown in All Hosts UI works properly.
+
+    :CaseComponent:Hosts-Content
+
+    :Team: Phoenix-subscriptions
+    """
+    for _ in range(3):
+        target_sat.api.Host(organization=function_org, location=function_location).create()
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        session.location.select(function_location.name)
+        assert 'Success alert: Built 3 hosts' in session.all_hosts.build_management()
+        assert (
+            'Success alert: 3 hosts set to build and rebooting.'
+            in session.all_hosts.build_management(reboot=True)
+        )
+        assert 'Rebuilt configuration for 3 hosts' in session.all_hosts.build_management(
+            rebuild=True
+        )
+
+
 @pytest.fixture(scope='module')
 def change_content_source_prep(
     module_target_sat,
@@ -2129,3 +2151,313 @@ def test_host_status_honors_taxonomies(
     with module_target_sat.ui_session(test_name, user=login, password=password) as session:
         statuses = session.host.host_statuses()
     assert len([status for status in statuses if int(status['count'].split(': ')[1]) != 0]) == 1
+
+
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [
+        {
+            'distro': 'rhel8',
+            'YumRepository': {'url': settings.repos.yum_3.url},
+        }
+    ],
+    ids=['yum3'],
+    indirect=True,
+)
+@pytest.mark.parametrize('finish_via', ['rex', 'custom_rex'])
+@pytest.mark.parametrize(
+    'package_management_action',
+    [
+        'install_1_pckg',
+        'install_2_pckgs',
+        'upgrade_1_pckg',
+        'upgrade_all_pckgs',
+        'remove_1_pckg',
+        'remove_2_pckgs',
+    ],
+)
+@pytest.mark.parametrize('number_of_hosts', [1, 2], ids=['1_host', '2_hosts'])
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.no_containers
+def test_positive_manage_packages(
+    request,
+    module_target_sat,
+    mod_content_hosts,
+    module_repos_collection_with_setup,
+    new_host_ui,
+    number_of_hosts,
+    package_management_action,
+    finish_via,
+):
+    """
+    This test is testing the new Satellite feature - Managing packages on hosts via the new All hosts UI.
+    It is highly parametrized so it can test various package management actions on various hosts.
+    Test cases are defined by the combination of the following parameters:
+    - number_of_hosts: 1 or 2
+    - package_management_action: install_1_pckg, install_2_pckgs, upgrade_1_pckg, upgrade_all_pckgs, remove_1_pckg, remove_2_pckgs
+    - finish_via: rex or custom_rex
+    All this leads to 2 * 6 * 2 = 24 test cases in total.
+
+    :id: 1d6760ca-9c7e-4267-9a4b-3f91d50c8eb1
+
+    :steps:
+        1. Setup hosts on Satellite, override reposets to enabled and refresh applicability so the package profile is updated
+        2. Setup all the control flags for airgun entity
+        3. Setup packages on the selected hosts so they can be managed in the next steps
+        4. Run the selected package management action on the selected hosts
+        5. Wait for the specific tasks to finish
+        6. Assert the results
+
+    :expectedresults: Various package management actions should run successfully on various hosts
+
+    :CaseComponent: Hosts-Content
+
+    :parametrized: yes
+
+    :Team: Phoenix-subscriptions
+    """
+
+    packages = ['panda', 'seal']
+
+    for host in mod_content_hosts:
+        host.add_rex_key(module_target_sat)
+        module_repos_collection_with_setup.setup_virtual_machine(host)
+
+    product_name = module_repos_collection_with_setup.custom_product.name
+
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_repos_collection_with_setup.organization['name'])
+
+        for host in mod_content_hosts:
+            if (
+                session.host_new.get_repo_sets(host.hostname, product_name)[0]['Status']
+                == 'Disabled'
+            ):
+                session.host_new.override_repo_sets(
+                    host.hostname, product_name, "Override to enabled"
+                )
+                session.host_new.refresh_applicability(host.hostname)
+                latest_refresh_applicability_id = int(
+                    module_target_sat.cli.JobInvocation().list()[0]['id']
+                )
+                module_target_sat.wait_for_tasks(
+                    search_query=(
+                        f'action: "Upload package profile for a host" and resource_id = {latest_refresh_applicability_id}'
+                    )
+                )
+
+        # Define hosts to test based on the number of hosts
+        hosts_to_test = []
+        match number_of_hosts:
+            case 1:
+                hosts_to_test = [mod_content_hosts[0]]
+            case 2:
+                hosts_to_test = mod_content_hosts
+
+        # Set default value to management action flags
+        upgrade_all_packages_flag = upgrade_packages_flag = install_packages_flag = (
+            remove_packages_flag
+        ) = False
+
+        # Set flags according to current parametrization
+        match package_management_action:
+            case 'install_1_pckg':
+                install_packages_flag = True
+                packages_to_install = [packages[0]]
+                packages_to_upgrade = None
+                packages_to_remove = None
+
+            case 'install_2_pckgs':
+                install_packages_flag = True
+                packages_to_install = packages
+                packages_to_upgrade = None
+                packages_to_remove = None
+
+            case 'upgrade_1_pckg':
+                upgrade_packages_flag = True
+                packages_to_install = None
+                packages_to_upgrade = [packages[0]]
+                packages_to_remove = None
+
+            case 'upgrade_all_pckgs':
+                upgrade_packages_flag = True
+                upgrade_all_packages_flag = True
+                packages_to_install = None
+                packages_to_upgrade = packages
+                packages_to_remove = None
+
+            case 'remove_1_pckg':
+                remove_packages_flag = True
+                packages_to_install = None
+                packages_to_upgrade = None
+                packages_to_remove = [packages[0]]
+
+            case 'remove_2_pckgs':
+                remove_packages_flag = True
+                packages_to_install = None
+                packages_to_upgrade = None
+                packages_to_remove = packages
+
+        # Set flags based on current type of the finish
+        match finish_via:
+            case 'rex':
+                manage_by_customized_rex_flag = False
+            case 'custom_rex':
+                manage_by_customized_rex_flag = True
+
+        # Get the latest versions of wanted packages on the tested hosts
+        tested_hosts_packages_latest_version_dicts = {}
+        for host in hosts_to_test:
+            # Check the latests versions of wanted packages
+            result = host.run(f'dnf list {" ".join(packages)}').stdout
+            # Cropping dnf output so it shows only packages
+            packages_list = [line for line in result.split('\n')[3:-1]]
+            packages_latest_version_dict = {}
+            # Create dict containing {'package_name': 'version', ...} for further checks
+            for item in packages_list:
+                parts = item.split()
+                # Remove architecture part from package name
+                package_name = parts[0].split('.')[0]
+                version = parts[1]  # parts look like ['package_name', 'version', 'repo']
+                packages_latest_version_dict[package_name] = version
+
+            tested_hosts_packages_latest_version_dicts[host.hostname] = (
+                packages_latest_version_dict  # {'example.com':{'package_name': 'version', ...}, ...}
+            )
+
+        used_action = package_management_action.split('_')[0]
+
+        if used_action == 'install':
+            # Checking if wanted packages are available so they can be installed in the next step
+            for host in hosts_to_test:
+                assert host.run(f'rpm -q {" ".join(packages_to_install)}').status == len(
+                    packages_to_install
+                ), 'Some of the packages are already installed!'
+
+        elif used_action == 'upgrade':
+            # Installing and downgrading packages so they can be upgraded in the next step
+            for host in hosts_to_test:
+                assert (
+                    host.run(
+                        f'dnf list available | grep -E "{"|".join(packages_to_upgrade)}"'
+                    ).status
+                    == 0
+                ), 'Wanted packages are not available!'
+                assert (
+                    host.run(f'dnf install {" ".join(packages_to_upgrade)} -y').status == 0
+                ), 'Could not install wanted packages!'
+                assert (
+                    host.run(f'dnf downgrade {" ".join(packages_to_upgrade)} -y').status == 0
+                ), 'Packages were not downgraded!'
+
+        elif used_action == 'remove':
+            # Installing packages so they can be removed in the next step
+            for host in hosts_to_test:
+                assert (
+                    host.run(f'dnf install {" ".join(packages_to_remove)} -y').status == 0
+                ), 'Could not install wanted packages!'
+
+        # Run airgun entity which performs Package management action based on the flags set above
+        session.all_hosts.manage_packages(
+            host_names=[host.hostname for host in hosts_to_test],
+            upgrade_all_packages=upgrade_all_packages_flag,
+            upgrade_packages=upgrade_packages_flag,
+            install_packages=install_packages_flag,
+            remove_packages=remove_packages_flag,
+            packages_to_upgrade=packages_to_upgrade,
+            packages_to_install=packages_to_install,
+            packages_to_remove=packages_to_remove,
+            manage_by_customized_rex=manage_by_customized_rex_flag,
+        )
+
+        # Wait till the job launched by the management action is finished
+        job_id = int(module_target_sat.cli.JobInvocation().list()[0]['id'])
+        if install_packages_flag:
+            module_target_sat.wait_for_tasks(
+                search_query=(
+                    f'action: "Install package(s) name ^ ({",".join(packages_to_install)})" and resource_id = {job_id}'
+                ),
+            )
+
+        elif upgrade_packages_flag and (not upgrade_all_packages_flag):
+            module_target_sat.wait_for_tasks(
+                f'action:  "Update package(s) name ^ ({",".join(packages_to_upgrade)})" and resource_id = {job_id}'
+            )
+
+        elif upgrade_all_packages_flag:
+            if not manage_by_customized_rex_flag:
+                module_target_sat.wait_for_tasks(
+                    f'action: "Upgrade all packages" and resource_id = {job_id}'
+                )
+            else:
+                module_target_sat.wait_for_tasks(
+                    f'action: "Update package(s)" and resource_id = {job_id}'
+                )
+
+        elif remove_packages_flag:
+            module_target_sat.wait_for_tasks(
+                f'action: "Remove packages name ^ ({",".join(packages_to_remove)})" and resource_id = {job_id}'
+            )
+
+        # MAKE ASSERTS AFTER INSTALLING PACKAGES
+        if used_action == 'install':
+            for host in hosts_to_test:
+                # Check that all the wanted packages are installed
+                assert (
+                    host.run(f'rpm -q {" ".join(packages_to_install)}').status == 0
+                ), 'Some of the wanted packages is not installed!'
+
+                # Get versions of installed packages
+                installed_packages = host.run(
+                    f'rpm -qa {" ".join(packages_to_install)}'
+                ).stdout.split('\n')[:-1]
+                installed_packages_version_dict = {}
+                # Create dict containing {'installed_package_name': 'version', ...} for further checks
+                for package in installed_packages:
+                    package_name, version = package.split('-')[0], '-'.join(package.split('-')[1:])
+                    installed_packages_version_dict[package_name] = version[
+                        : version.rfind('.')
+                    ].strip()
+
+                # Check that the latest version of packages is installed
+                for package in packages_to_install:
+                    assert (
+                        installed_packages_version_dict[package]
+                        == tested_hosts_packages_latest_version_dicts[host.hostname][package]
+                    ), f'Package "{package}" is not installed in the latest version!'
+
+        # MAKE ASSERTS AFTER UPGRADING PACKAGES
+        elif used_action == 'upgrade':
+            for host in hosts_to_test:
+                # Get versions of installed packages
+                installed_packages = host.run(
+                    f'rpm -qa {" ".join(packages_to_upgrade)}'
+                ).stdout.split('\n')[:-1]
+                installed_packages_version_dict = {}
+                # Create dict containing {'installed_package_name': 'version', ...} for further checks
+                for package in installed_packages:
+                    package_name, version = package.split('-')[0], '-'.join(package.split('-')[1:])
+                    installed_packages_version_dict[package_name] = version[
+                        : version.rfind('.')
+                    ].strip()
+
+                # Check that the package was upgraded to the latest version
+                for package in packages_to_upgrade:
+                    assert (
+                        installed_packages_version_dict[package]
+                        == tested_hosts_packages_latest_version_dicts[host.hostname][package]
+                    ), f'Package "{package}" is not upgraded to the latest version!'
+
+        # MAKE ASSERTS AFTER REMOVING PACKAGES
+        elif used_action == 'remove':
+            for host in hosts_to_test:
+                # Assert that all the wanted packages were removed
+                assert host.run(f'rpm -qa {" ".join(packages_to_remove)}').stdout == ''
+
+    @request.addfinalizer
+    def _cleanup():
+        for host in hosts_to_test:
+            time.sleep(5)
+            assert (
+                host.run(f'dnf remove {" ".join(packages)} -y').status == 0
+            ), 'Could not remove installed packages in a finalizer!'

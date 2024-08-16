@@ -33,7 +33,6 @@ from robottelo.constants.repos import CUSTOM_RPM_REPO
 from robottelo.utils.issue_handlers import is_open
 
 API_PATHS = {
-    # flake8:noqa (line-too-long)
     'activation_keys': (
         '/katello/api/activation_keys',
         '/katello/api/activation_keys',
@@ -1186,9 +1185,8 @@ class TestEndToEnd:
         # step 2.18: Provision a client
         # TODO this isn't provisioning through satellite as intended
         # Note it wasn't well before the change that added this todo
-        rhel_contenthost.install_katello_ca(target_sat)
         # Register client with foreman server using act keys
-        rhel_contenthost.register_contenthost(org.label, activation_key_name)
+        rhel_contenthost.register(org, None, activation_key.name, target_sat)
         assert rhel_contenthost.subscribed
         # Install rpm on client
         package_name = 'katello-agent'

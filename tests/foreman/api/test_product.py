@@ -26,63 +26,11 @@ from robottelo.constants import (
     REPO_TYPE,
     DataFile,
 )
+from robottelo.utils import datafactory
 from robottelo.utils.datafactory import (
     invalid_values_list,
     parametrized,
-    valid_data_list,
 )
-
-
-@pytest.mark.tier1
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_create_with_name(request, name, module_org, module_target_sat):
-    """Create a product providing different valid names
-
-    :id: 3d873b73-6919-4fda-84df-0e26bdf0c1dc
-
-    :parametrized: yes
-
-    :expectedresults: A product is created with expected name.
-
-    :CaseImportance: Critical
-    """
-    product = module_target_sat.api.Product(name=name, organization=module_org).create()
-    assert product.name == name
-
-
-@pytest.mark.tier1
-def test_positive_create_with_label(module_org, module_target_sat):
-    """Create a product providing label which is different from its name
-
-    :id: 95cf8e05-fd09-422e-bf6f-8b1dde762976
-
-    :expectedresults: A product is created with expected label.
-
-    :CaseImportance: Critical
-    """
-    label = gen_string('alphanumeric')
-    product = module_target_sat.api.Product(label=label, organization=module_org).create()
-    assert product.label == label
-    assert product.name != label
-
-
-@pytest.mark.tier1
-@pytest.mark.parametrize('description', **parametrized(valid_data_list()))
-def test_positive_create_with_description(description, module_org, module_target_sat):
-    """Create a product providing different descriptions
-
-    :id: f3e2df77-6711-440b-800a-9cebbbec36c5
-
-    :parametrized: yes
-
-    :expectedresults: A product is created with expected description.
-
-    :CaseImportance: Critical
-    """
-    product = module_target_sat.api.Product(
-        description=description, organization=module_org
-    ).create()
-    assert product.description == description
 
 
 @pytest.mark.tier1
@@ -132,50 +80,6 @@ def test_negative_create_with_label(module_org, module_target_sat):
         module_target_sat.api.Product(label=gen_string('utf8'), organization=module_org).create()
 
 
-@pytest.mark.tier1
-@pytest.mark.parametrize('description', **parametrized(valid_data_list()))
-def test_positive_update_description(description, module_org, module_target_sat):
-    """Update product description to another valid one.
-
-    :id: c960c326-2e9f-4ee7-bdec-35a705305067
-
-    :parametrized: yes
-
-    :expectedresults: Product description can be updated.
-
-    :CaseImportance: Critical
-    """
-    product = module_target_sat.api.Product(organization=module_org).create()
-    product.description = description
-    product = product.update(['description'])
-    assert product.description == description
-
-
-@pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-@pytest.mark.tier1
-def test_positive_update_name_to_original(module_org, module_target_sat, new_name):
-    """Update product name and rename product to old name
-
-    :id: 0ef399a7-6d3a-4746-b415-298794497c51
-
-    :expectedresults: Product name updated and renamed to original successfully
-
-    :CaseImportance: Critical
-    """
-    product = module_target_sat.api.Product(organization=module_org).create()
-    old_name = product.name
-
-    # Update product name
-    product.name = new_name
-    product = product.update(['name'])
-    assert product.name == new_name
-
-    # Rename product to old name and verify
-    product.name = old_name
-    product = product.update(['name'])
-    assert product.name == old_name
-
-
 @pytest.mark.upgrade
 @pytest.mark.tier2
 def test_positive_create_product_and_update_gpg(module_org, module_target_sat):
@@ -201,25 +105,6 @@ def test_positive_create_product_and_update_gpg(module_org, module_target_sat):
     product.gpg_key = gpg_key_2
     product = product.update()
     assert product.gpg_key.id == gpg_key_2.id
-
-
-@pytest.mark.skip_if_open("BZ:1310422")
-@pytest.mark.tier2
-def test_positive_update_organization(module_org, module_target_sat):
-    """Create a product and update its organization
-
-    :id: b298957a-2cdb-4f17-a934-098612f3b659
-
-    :expectedresults: The updated product points to a new organization
-
-    :BZ: 1310422
-    """
-    product = module_target_sat.api.Product(organization=module_org).create()
-    # Update the product and make it point to a new organization.
-    new_org = module_target_sat.api.Organization().create()
-    product.organization = new_org
-    product = product.update()
-    assert product.organization.id == new_org.id
 
 
 @pytest.mark.tier1
@@ -254,25 +139,6 @@ def test_negative_update_label(module_org, module_target_sat):
     product.label = gen_string('alpha')
     with pytest.raises(HTTPError):
         product.update(['label'])
-
-
-@pytest.mark.tier1
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_delete(name, module_org, module_target_sat):
-    """Create product and then delete it.
-
-    :id: 30df95f5-0a4e-41ee-a99f-b418c5c5f2f3
-
-    :parametrized: yes
-
-    :expectedresults: Product is successfully deleted.
-
-    :CaseImportance: Critical
-    """
-    product = module_target_sat.api.Product(name=name, organization=module_org).create()
-    product.delete()
-    with pytest.raises(HTTPError):
-        product.read()
 
 
 @pytest.mark.tier1
@@ -327,7 +193,7 @@ def test_positive_sync_several_repos(module_org, module_target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_filter_product_list(module_entitlement_manifest_org, module_target_sat):
+def test_positive_filter_product_list(module_sca_manifest_org, module_target_sat):
     """Filter products based on param 'custom/redhat_only'
 
     :id: e61fb63a-4552-4915-b13d-23ab80138249
@@ -336,7 +202,7 @@ def test_positive_filter_product_list(module_entitlement_manifest_org, module_ta
 
     :BZ: 1667129
     """
-    org = module_entitlement_manifest_org
+    org = module_sca_manifest_org
     product = module_target_sat.api.Product(organization=org).create()
     custom_products = module_target_sat.api.Product(organization=org).search(query={'custom': True})
     rh_products = module_target_sat.api.Product(organization=org).search(
@@ -350,3 +216,49 @@ def test_positive_filter_product_list(module_entitlement_manifest_org, module_ta
     assert len(rh_products) > 1
     assert 'Red Hat Beta' in (prod.name for prod in rh_products)
     assert product.name not in (prod.name for prod in rh_products)
+
+
+@pytest.mark.e2e
+@pytest.mark.tier1
+def test_positive_product_end_to_end(module_target_sat, module_org):
+    """Product scenario with all possible crud operations
+
+    :id: 41abdd24-9c2a-47b8-b595-1b56c05527c9
+
+    :expectedresults: A product crud operation executed successfully
+
+    :CaseImportance: Critical
+    """
+
+    # Create product with name, label, description
+    original_name = gen_string('alphanumeric')
+    label = gen_string('alphanumeric')
+    description = gen_string('alphanumeric')
+    product = module_target_sat.api.Product(
+        name=original_name, label=label, organization=module_org, description=description
+    ).create()
+    assert product.name == original_name
+    assert product.label == label
+    assert product.description == description
+
+    # Update product name, description
+    new_name_list = list(datafactory.valid_data_list().values())
+    for new_name in new_name_list:
+        product.name = new_name
+        product = product.update(['name'])
+        assert product.name == new_name
+    # Rename product to original name and verify
+    product.name = original_name
+    product = product.update(['name'])
+    assert product.name == original_name
+
+    new_desc_list = list(datafactory.valid_data_list().values())
+    for new_desc in new_desc_list:
+        product.description = new_desc
+        product = product.update(['description'])
+        assert product.description == new_desc
+
+    # Delete product
+    product.delete()
+    with pytest.raises(HTTPError):
+        product.read()

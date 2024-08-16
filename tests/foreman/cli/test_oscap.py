@@ -584,13 +584,9 @@ class TestOpenScap:
         :expectedresults: The policy is created and associated successfully.
             Policies can be listed after hostgroup removal.
 
-        :bz: 1728157
-
-        :Verifies: SAT-19502
+        :Verifies: SAT-19502, SAT-19492
 
         :customerscenario: true
-
-        :Verifies: SAT-19492
 
         :CaseImportance: Medium
         """

@@ -405,38 +405,20 @@ class TestRepository:
             ).create()
 
     @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **datafactory.parametrized([{'url': url} for url in datafactory.invalid_names_list()]),
-        indirect=True,
-    )
-    def test_negative_create_url(self, repo_options, target_sat):
-        """Attempt to create repository with invalid url.
-
-        :id: 0bb9fc3f-d442-4437-b5d8-83024bc7ceab
-
-        :parametrized: yes
-
-        :expectedresults: A repository is not created and error is raised.
-
-        :CaseImportance: Critical
-        """
-        with pytest.raises(HTTPError):
-            target_sat.api.Repository(**repo_options).create()
-
-    @pytest.mark.tier1
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **datafactory.parametrized([{'url': f'http://{gen_string("alpha")}{punctuation}.com'}]),
+        **datafactory.parametrized([{'url': url} for url in (datafactory.invalid_url_list())]),
         indirect=True,
     )
-    def test_negative_create_with_url_with_special_characters(self, repo_options, target_sat):
-        """Verify that repository URL cannot contain unquoted special characters
+    def test_negative_create_url_with_invalid_and_special_characters(
+        self, repo_options, target_sat
+    ):
+        """Attempt to create repository with invalid url and special character.
 
-        :id: 2ffaa412-e5e5-4bec-afaa-9ea54315df49
+        :id: c0fb2079-78c9-4e8b-86ba-44d290c9f803
 
         :parametrized: yes
 
@@ -1221,7 +1203,7 @@ class TestRepository:
     @pytest.mark.tier3
     @pytest.mark.parametrize('policy', ['additive', 'mirror_content_only'])
     def test_positive_sync_with_treeinfo_ignore(
-        self, target_sat, function_entitlement_manifest_org, policy
+        self, target_sat, function_sca_manifest_org, policy
     ):
         """Verify that the treeinfo file is not synced when added to ignorable content
         and synced otherwise. Check for applicable mirroring policies.
@@ -1247,7 +1229,7 @@ class TestRepository:
         distro = 'rhel8_bos'
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=function_entitlement_manifest_org.id,
+            org_id=function_sca_manifest_org.id,
             product=constants.REPOS['kickstart'][distro]['product'],
             reposet=constants.REPOS['kickstart'][distro]['reposet'],
             repo=constants.REPOS['kickstart'][distro]['name'],
@@ -1357,7 +1339,7 @@ class TestRepositorySync:
         pass
 
     @pytest.mark.tier3
-    def test_positive_bulk_cancel_sync(self, target_sat, module_entitlement_manifest_org):
+    def test_positive_bulk_cancel_sync(self, target_sat, module_sca_manifest_org):
         """Bulk cancel 10+ repository syncs
 
         :id: f9bb1c95-d60f-4c93-b32e-09d58ebce80e
@@ -1377,7 +1359,7 @@ class TestRepositorySync:
         for repo in constants.BULK_REPO_LIST:
             repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
                 basearch='x86_64',
-                org_id=module_entitlement_manifest_org.id,
+                org_id=module_sca_manifest_org.id,
                 product=repo['product'],
                 repo=repo['name'],
                 reposet=repo['reposet'],

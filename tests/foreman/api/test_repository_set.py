@@ -28,10 +28,10 @@ RELEASE = '6Server'
 
 
 @pytest.fixture
-def product(function_entitlement_manifest_org, module_target_sat):
+def product(function_sca_manifest_org, module_target_sat):
     """Find and return the product matching PRODUCT_NAME."""
     return module_target_sat.api.Product(
-        name=PRODUCT_NAME, organization=function_entitlement_manifest_org
+        name=PRODUCT_NAME, organization=function_sca_manifest_org
     ).search()[0]
 
 

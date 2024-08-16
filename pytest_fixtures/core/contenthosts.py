@@ -114,7 +114,7 @@ def content_hosts(request):
 
 @pytest.fixture(scope='module')
 def mod_content_hosts(request):
-    """A module-level fixture that provides two rhel7 content hosts object"""
+    """A module-level fixture that provides two rhel content hosts object"""
     with Broker(**host_conf(request), host_class=ContentHost, _count=2) as hosts:
         hosts[0].set_infrastructure_type('physical')
         yield hosts

@@ -19,7 +19,6 @@ import yaml
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
-from robottelo.hosts import setup_capsule
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
 
@@ -50,6 +49,7 @@ UPSTREAM_SPECIFIC_MODULES = {
     'foreman::plugin::dlm',
     'foreman::plugin::expire_hosts',
     'foreman::plugin::git_templates',
+    'foreman::plugin::hdm',
     'foreman::plugin::hooks',
     'foreman::plugin::kernel_care',
     'foreman::plugin::monitoring',
@@ -67,6 +67,7 @@ UPSTREAM_SPECIFIC_MODULES = {
     'foreman_proxy::plugin::acd',
     'foreman_proxy::plugin::dns::powerdns',
     'foreman_proxy::plugin::dns::route53',
+    'foreman_proxy::plugin::hdm',
     'foreman_proxy::plugin::monitoring',
     'foreman_proxy::plugin::salt',
 }
@@ -208,12 +209,13 @@ def test_capsule_installation(sat_non_default_install, cap_ready_rhel, setting_u
 
     :CaseImportance: Critical
 
+    :Verifies: SAT-24520
+
     :BZ: 1984400
 
     :customerscenario: true
     """
     # Get Capsule repofile, and enable and download satellite-capsule
-    org = sat_non_default_install.api.Organization().create()
     cap_ready_rhel.register_to_cdn()
     cap_ready_rhel.download_repofile(
         product='capsule',
@@ -230,7 +232,7 @@ def test_capsule_installation(sat_non_default_install, cap_ready_rhel, setting_u
     cap_ready_rhel.install_satellite_or_capsule_package()
     assert cap_ready_rhel.execute('rpm -q foreman-proxy-fapolicyd').status == 0
     # Setup Capsule
-    setup_capsule(sat_non_default_install, cap_ready_rhel, org)
+    cap_ready_rhel.capsule_setup(sat_host=sat_non_default_install)
     assert sat_non_default_install.api.Capsule().search(
         query={'search': f'name={cap_ready_rhel.hostname}'}
     )[0]
@@ -259,6 +261,14 @@ def test_capsule_installation(sat_non_default_install, cap_ready_rhel, setting_u
 
     result = cap_ready_rhel.cli.Health.check()
     assert 'FAIL' not in result.stdout
+
+    # Verify foreman-proxy-content-reverse-proxy and port 8443 are disabled on default installation
+    help_result = cap_ready_rhel.execute(
+        "satellite-installer --full-help | grep foreman-proxy-content-reverse-proxy"
+    )
+    assert "Add reverse proxy to the parent (current: false)" in help_result.stdout
+    port_result = cap_ready_rhel.execute("ss -tuln | grep 8443")
+    assert not port_result.stdout
 
 
 @pytest.mark.e2e
@@ -429,7 +439,7 @@ def test_installer_modules_check(target_sat):
     sat_yaml = yaml.safe_load(sat_output.stdout)
     upstream_yaml = yaml.safe_load(upstream_output.stdout)
 
-    assert sat_yaml.keys() == (upstream_yaml.keys() - UPSTREAM_SPECIFIC_MODULES)
+    assert set(sat_yaml.keys()) == (upstream_yaml.keys() - UPSTREAM_SPECIFIC_MODULES)
 
 
 @pytest.mark.stubbed

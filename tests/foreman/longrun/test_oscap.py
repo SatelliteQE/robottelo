@@ -224,6 +224,8 @@ def scap_prerequisites(module_org, default_proxy, target_sat):
 @pytest.mark.upgrade
 @pytest.mark.tier4
 @pytest.mark.rhel_ver_match('[^6].*')
+@pytest.mark.pit_server
+@pytest.mark.pit_client
 def test_positive_oscap_run_via_ansible(
     module_org,
     default_proxy,
@@ -459,7 +461,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
 
     :BlockedBy: SAT-19505
 
-    :BZ: 1814988
+    :verifies: SAT-19505
     """
     contenthost = rex_contenthost
     os_version = contenthost.os_version.major
