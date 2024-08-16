@@ -2,13 +2,13 @@
 
 apypie==0.4.0
 betelgeuse==1.11.0
-broker[docker,podman,hussh]==0.5.1
+broker[docker,podman,hussh]==0.5.2
 cryptography==43.0.0
 deepdiff==7.0.1
 dynaconf[vault]==3.2.6
 fauxfactory==3.1.1
 jinja2==3.1.4
-manifester==0.2.6
+manifester==0.2.7
 navmazing==1.2.2
 productmd==1.38
 pyotp==2.9.0
@@ -21,12 +21,12 @@ pytest-reportportal==5.4.1
 pytest-xdist==3.6.1
 pytest-fixturecollection==0.1.2
 pytest-ibutsu==2.2.4
-PyYAML==6.0.1
+PyYAML==6.0.2
 requests==2.32.3
 tenacity==9.0.0
 testimony==2.4.0
 wait-for==1.2.0
-wrapanapi==3.6.0
+wrapanapi==3.6.1
 
 # Get airgun, nailgun and upgrade from master
 airgun @ git+https://github.com/SatelliteQE/airgun.git@master#egg=airgun

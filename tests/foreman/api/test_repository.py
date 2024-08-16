@@ -503,15 +503,15 @@ class TestRepository:
         indirect=True,
         ids=lambda x: x['content_type'],
     )
-    def test_negative_create_non_yum_with_download_policy(self, repo_options, target_sat):
-        """Verify that non-YUM repositories cannot be created with
+    def test_negative_create_repos_with_download_policy(self, repo_options, target_sat):
+        """Verify that non-YUM & non-docker repositories cannot be created with
         download policy
 
         :id: 8a59cb31-164d-49df-b3c6-9b90634919ce
 
         :parametrized: yes
 
-        :expectedresults: Non-YUM repository is not created with a download
+        :expectedresults: Non-YUM & non-docker repositories are not created with on_demand download
             policy
 
         :CaseImportance: Critical

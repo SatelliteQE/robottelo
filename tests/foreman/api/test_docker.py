@@ -603,3 +603,152 @@ class TestDockerActivationKey:
         assert ak.content_view.id == comp_content_view.id
         ak.content_view = None
         assert ak.update(['content_view']).content_view is None
+
+
+class TestPodman:
+    """Tests specific to using podman push/pull on Satellite
+
+    :CaseComponent: Repositories
+
+    :team: Phoenix-content
+    """
+
+    @pytest.fixture(scope='class')
+    def enable_podman(module_product, module_target_sat):
+        """Enable base_os and appstream repos on the sat through cdn registration and install podman."""
+        module_target_sat.register_to_cdn()
+        if module_target_sat.os_version.major > 7:
+            module_target_sat.enable_repo(module_target_sat.REPOS['rhel_bos']['id'])
+            module_target_sat.enable_repo(module_target_sat.REPOS['rhel_aps']['id'])
+        else:
+            module_target_sat.enable_repo(module_target_sat.REPOS['rhscl']['id'])
+            module_target_sat.enable_repo(module_target_sat.REPOS['rhel']['id'])
+        result = module_target_sat.execute(
+            'dnf install -y --disableplugin=foreman-protector podman'
+        )
+        assert result.status == 0
+
+    def test_podman_push(self, module_target_sat, module_product, module_org, enable_podman):
+        """Push a small and large container image to Pulp, and verify the results
+
+        :id: 488adc49-899e-4739-8bca-0cd255da63ae
+
+        :steps:
+            1. Using podman, pull a small and large image from the fedoraproject registry
+            2. Push one image to pulp using the /org_label/product_label format
+            3. Push the other image to pulp using the /id/org_id/product_id format
+
+        :expectedresults: A docker repository is created for both images. Both images are published in pulp,
+            as well as in separate repositories in the given product. All fields on both repositories contain correct information.
+
+        :CaseImportance: High
+        """
+        SMALL_REPO_NAME = 'arianna'
+        LARGE_REPO_NAME = 'fedora'
+        assert (
+            module_target_sat.execute(
+                f'podman pull registry.fedoraproject.org/{SMALL_REPO_NAME}'
+            ).status
+            == 0
+        )
+        assert (
+            module_target_sat.execute(
+                f'podman pull registry.fedoraproject.org/{LARGE_REPO_NAME}'
+            ).status
+            == 0
+        )
+        small_image_id = module_target_sat.execute(f'podman images {SMALL_REPO_NAME} -q')
+        assert small_image_id
+        large_image_id = module_target_sat.execute(f'podman images {LARGE_REPO_NAME} -q')
+        assert large_image_id
+        # Podman pushes require lowercase org and product labels
+        small_repo_cmd = f'{(module_org.label)}/{(module_product.label)}/{SMALL_REPO_NAME}'.lower()
+        large_repo_cmd = f'{(module_org.label)}/{(module_product.label)}/{LARGE_REPO_NAME}'.lower()
+        # Push both repos
+        module_target_sat.execute(
+            f'podman push --creds admin:changeme {small_image_id.stdout.strip()} {module_target_sat.hostname}/{small_repo_cmd}'
+        )
+        module_target_sat.execute(
+            f'podman push --creds admin:changeme {large_image_id.stdout.strip()} {module_target_sat.hostname}/{large_repo_cmd}'
+        )
+        result = module_target_sat.execute('pulp container repository -t push list')
+        assert (
+            f'{(module_org.label)}/{(module_product.label)}/{SMALL_REPO_NAME}'.lower()
+            in result.stdout
+        )
+        assert (
+            f'{(module_org.label)}/{(module_product.label)}/{LARGE_REPO_NAME}'.lower()
+            in result.stdout
+        )
+        product_contents = module_product.read()
+        for repo in product_contents.repository:
+            repo = module_target_sat.api.Repository(id=repo.id).read()
+            assert repo.is_container_push
+            assert repo.name in [SMALL_REPO_NAME, LARGE_REPO_NAME]
+            assert repo.label == repo.name
+
+    def test_cv_podman(
+        self, module_target_sat, module_product, module_org, module_lce, enable_podman
+    ):
+        """Push a container image to Pulp and perform various Content View actions with it
+
+        :id: e68add27-c7f3-40d7-a149-feedbf5b16cb
+
+        :steps:
+            1. Using podman, pull an image from the fedoraproject registry and publish it to pulp
+            2. Add this image to a Content View
+            3. Publish and Promote the CV
+
+        :expectedresults: Podman published images can be added to a CV, and that CV can be published
+            and promoted successfully. You can filter podman repositories in a CV, and you can also delete
+            podman repositories and CVs will work properly.
+
+        :CaseImportance: High
+        """
+        REPO_NAME = 'fedora'
+        assert (
+            module_target_sat.execute(f'podman pull registry.fedoraproject.org/{REPO_NAME}').status
+            == 0
+        )
+        large_image_id = module_target_sat.execute(f'podman images {REPO_NAME} -q')
+        assert large_image_id
+        large_repo_cmd = f'{(module_org.label)}/{(module_product.label)}/{REPO_NAME}'.lower()
+        module_target_sat.execute(
+            f'podman push --creds admin:changeme {large_image_id.stdout.strip()} {module_target_sat.hostname}/{large_repo_cmd}'
+        )
+        repo = module_target_sat.api.Repository(id=module_product.read().repository[0].id).read()
+        # Create a CV and add Podman repo to it, then publish
+        cv = module_target_sat.api.ContentView(organization=module_org.id).create()
+        cv.repository = [repo]
+        cv = cv.update(['repository'])
+        cv.publish()
+        cv = cv.read()
+        cvv = cv.version[0].read()
+        cvv.promote(data={'environment_ids': module_lce.id})
+        cvv_repo = cv.repository[0].read()
+        assert cvv_repo.id == repo.id
+        assert cvv.docker_tag_count == 1
+        assert cvv.docker_repository_count == 1
+        # Check to see if a CV with a Podman Repo can have it's repositories' metadata republished.
+        assert cvv.republish_repositories()
+        # Check to see if Podman Repos can be filtered by Tag
+        cv_filter = module_target_sat.api.DockerContentViewFilter(
+            content_view=cv,
+            inclusion=False,
+        ).create()
+        module_target_sat.api.ContentViewFilterRule(
+            content_view_filter=cv_filter, name='latest'
+        ).create()
+        cv.publish()
+        cv = cv.read()
+        cvv = cv.read().version[0].read()
+        assert cvv.docker_tag_count == 0
+        assert cvv.docker_repository_count == 1
+        # Check to see if Podman Repos can be deleted, and CVs behave properly
+        with pytest.raises(HTTPError):
+            repo.delete()
+        # assert repo can be deleted with remove_from_content_view_versions = True
+        assert repo.delete_with_args(data={'remove_from_content_view_versions': True})
+        cvv = cv.read().version[0].read()
+        assert cvv.docker_tag_count == 0
+        assert cvv.docker_repository_count == 0

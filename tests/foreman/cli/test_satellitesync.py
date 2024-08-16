@@ -2910,3 +2910,101 @@ class TestNetworkSync:
         assert (
             repo['content-counts'] == function_synced_rh_repo['content-counts']
         ), 'Content counts do not match'
+
+
+class TestPodman:
+    """Tests specific to using podman push/pull on Satellite
+
+    :CaseComponent: Repositories
+
+    :team: Phoenix-content
+    """
+
+    @pytest.fixture(scope='class')
+    def enable_podman(module_product, module_target_sat):
+        """Enable base_os and appstream repos on the sat through cdn registration and install podman."""
+        module_target_sat.register_to_cdn()
+        if module_target_sat.os_version.major > 7:
+            module_target_sat.enable_repo(module_target_sat.REPOS['rhel_bos']['id'])
+            module_target_sat.enable_repo(module_target_sat.REPOS['rhel_aps']['id'])
+        else:
+            module_target_sat.enable_repo(module_target_sat.REPOS['rhscl']['id'])
+            module_target_sat.enable_repo(module_target_sat.REPOS['rhel']['id'])
+        result = module_target_sat.execute(
+            'dnf install -y --disableplugin=foreman-protector podman'
+        )
+        assert result.status == 0
+
+    @pytest.mark.tier3
+    def test_postive_export_import_podman_repo(
+        self,
+        target_sat,
+        config_export_import_settings,
+        export_import_cleanup_function,
+        function_org,
+        function_product,
+        function_import_org,
+        enable_podman,
+    ):
+        """Test import of a repo created via Podman push
+
+        :id: d44f494c-918f-4cf0-8eae-5b382505e371
+
+        :steps:
+            1. Export the repository.
+            2. Import the repository, and compare tag and container counts.
+
+        :expectedresults:
+            1. Export and import succeeds without any errors.
+
+        :CaseImportance: Medium
+
+        :Verifies: SAT-25265
+        """
+        REPO_NAME = 'fedora'
+        result = target_sat.execute(f'podman pull registry.fedoraproject.org/{REPO_NAME}')
+        assert result.status == 0
+        large_image_id = target_sat.execute(f'podman images {REPO_NAME} -q')
+        assert large_image_id
+        large_repo_cmd = f'{(function_org.label)}/{(function_product.label)}/{REPO_NAME}'.lower()
+        target_sat.execute(
+            f'podman push --creds admin:changeme {large_image_id.stdout.strip()} {target_sat.hostname}/{large_repo_cmd}'
+        )
+        repo = target_sat.cli.Repository.info(
+            {
+                'organization-id': function_org.id,
+                'id': target_sat.cli.Repository.list({'organization-id': function_org.id})[0]['id'],
+            }
+        )
+        assert repo['content-counts']['container-tags'] == '1'
+        assert repo['content-counts']['container-manifests'] == '1'
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
+        export = target_sat.cli.ContentExport.completeRepository({'id': repo['id']})
+        assert '1.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
+        import_path = target_sat.move_pulp_archive(function_org, export['message'])
+        # Check that files are present in import_path
+        result = target_sat.execute(f'ls {import_path}')
+        assert result.stdout != ''
+        # Import files and verify content
+        target_sat.cli.ContentImport.library(
+            {'organization-id': function_import_org.id, 'path': import_path}
+        )
+        assert target_sat.cli.Product.list({'organization-id': function_import_org.id})
+        import_repo = target_sat.cli.Repository.info(
+            {
+                'organization-id': function_import_org.id,
+                'id': target_sat.cli.Repository.list({'organization-id': function_import_org.id})[
+                    0
+                ]['id'],
+            }
+        )
+        assert import_repo['name'] == repo['name']
+        assert import_repo['content-type'] == repo['content-type']
+        assert (
+            import_repo['content-counts']['container-tags']
+            == repo['content-counts']['container-tags']
+        )
+        assert (
+            import_repo['content-counts']['container-manifests']
+            == repo['content-counts']['container-manifests']
+        )

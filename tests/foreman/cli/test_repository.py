@@ -668,21 +668,20 @@ class TestRepository:
             [
                 {'content-type': content_type, 'download-policy': 'on_demand'}
                 for content_type in REPO_TYPE
-                if content_type != 'yum'
-                if content_type != 'ostree'
+                if content_type not in ['yum', 'docker', 'deb']
             ]
         ),
         indirect=True,
     )
-    def test_negative_create_non_yum_with_download_policy(self, repo_options, module_target_sat):
-        """Verify that non-YUM repositories cannot be created with download
-        policy TODO: Remove ostree from exceptions when ostree is added back in Satellite 7
+    def test_negative_create_repos_with_download_policy(self, repo_options, module_target_sat):
+        """Verify that non-YUM & non-docker repositories cannot be created with download
+        policy
 
         :id: 71388973-50ea-4a20-9406-0aca142014ca
 
         :parametrized: yes
 
-        :expectedresults: Non-YUM repository is not created with a download
+        :expectedresults: Non-YUM & non-docker repositories are not created with on_demand download
             policy
 
         :BZ: 1439835
