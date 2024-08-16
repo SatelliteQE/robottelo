@@ -1954,4 +1954,3 @@ class TestPodman:
         assert 'Pushing content is unsupported' in module_capsule_configured.execute(
             f'podman push --creds {settings.server.admin_username}:{settings.server.admin_password} {large_image_id} {module_capsule_configured.hostname}/{IMAGE_NAME_TAG}'
         )
-        # assert 'Pushing content is unsupported' in result
