@@ -14,6 +14,7 @@ from fauxfactory import gen_url
 import pytest
 from requests.exceptions import HTTPError
 
+from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB, CONTAINER_UPSTREAM_NAME
 from robottelo.utils.datafactory import (
     generate_strings_list,
@@ -665,12 +666,17 @@ class TestPodman:
         small_repo_cmd = f'{(module_org.label)}/{(module_product.label)}/{SMALL_REPO_NAME}'.lower()
         large_repo_cmd = f'{(module_org.label)}/{(module_product.label)}/{LARGE_REPO_NAME}'.lower()
         # Push both repos
-        module_target_sat.execute(
-            f'podman push --creds admin:changeme {small_image_id.stdout.strip()} {module_target_sat.hostname}/{small_repo_cmd}'
+        creds = f"{settings.server.admin_username}:{settings.server.admin_password}"
+        result = module_target_sat.execute(
+            f'podman push --creds {creds} {small_image_id.stdout.strip()} {module_target_sat.hostname}/{small_repo_cmd}'
         )
-        module_target_sat.execute(
-            f'podman push --creds admin:changeme {large_image_id.stdout.strip()} {module_target_sat.hostname}/{large_repo_cmd}'
+        assert result.status == 0, result.stderr
+
+        result = module_target_sat.execute(
+            f'podman push --creds {creds} {large_image_id.stdout.strip()} {module_target_sat.hostname}/{large_repo_cmd}'
         )
+        assert result.status == 0, result.stderr
+
         result = module_target_sat.execute('pulp container repository -t push list')
         assert (
             f'{(module_org.label)}/{(module_product.label)}/{SMALL_REPO_NAME}'.lower()
@@ -713,9 +719,13 @@ class TestPodman:
         large_image_id = module_target_sat.execute(f'podman images {REPO_NAME} -q')
         assert large_image_id
         large_repo_cmd = f'{(module_org.label)}/{(module_product.label)}/{REPO_NAME}'.lower()
-        module_target_sat.execute(
-            f'podman push --creds admin:changeme {large_image_id.stdout.strip()} {module_target_sat.hostname}/{large_repo_cmd}'
+
+        creds = f"{settings.server.admin_username}:{settings.server.admin_password}"
+        result = module_target_sat.execute(
+            f'podman push --creds {creds} {large_image_id.stdout.strip()} {module_target_sat.hostname}/{large_repo_cmd}'
         )
+        assert result.status == 0, result.stderr
+
         repo = module_target_sat.api.Repository(id=module_product.read().repository[0].id).read()
         # Create a CV and add Podman repo to it, then publish
         cv = module_target_sat.api.ContentView(organization=module_org.id).create()
