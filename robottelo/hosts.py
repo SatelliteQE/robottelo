@@ -451,7 +451,6 @@ class ContentHost(Host, ContentHostMixins):
     def enable_repo(self, repo, force=False):
         """Enables specified Red Hat repository on the broker virtual machine.
         Does nothing if downstream capsule or satellite tools repo was passed.
-        Custom repos are enabled by default when registering a host.
 
         :param repo: Red Hat repository name.
         :param force: enforce enabling command, even when custom repos are
@@ -483,6 +482,20 @@ class ContentHost(Host, ContentHostMixins):
 
     def subscription_manager_list(self):
         return self.execute('subscription-manager list')
+
+    def subscription_manager_environments_set(
+        self,
+        env_names,
+        username=settings.server.admin_username,
+        password=settings.server.admin_password,
+    ):
+        """
+        Reassign the host to the specified content view environments
+        """
+        assert isinstance(env_names, str)
+        return self.execute(
+            f'subscription-manager environments --set="{env_names}" --username={username} --password={password}'
+        )
 
     def subscription_manager_get_pool(self, sub_list=None):
         """
