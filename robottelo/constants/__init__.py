@@ -8,7 +8,7 @@ from nailgun import entities
 # This should be updated after each version branch
 SATELLITE_VERSION = "6.17"
 SATELLITE_OS_VERSION = "8"
-SAT_NON_GA_VERSIONS = ['6.16', '6.17']
+SAT_NON_GA_VERSIONS = ['6.17']
 
 # Default system ports
 HTTPS_PORT = '443'
@@ -160,7 +160,7 @@ AZURERM_PLATFORM_DEFAULT = 'Linux'
 AZURERM_VM_SIZE_DEFAULT = 'Standard_B1s'
 AZURERM_PREMIUM_OS_Disk = True
 AZURERM_FILE_URI = (
-    'https://raw.githubusercontent.com/SatelliteQE/robottelo/master/tests/foreman/data/uri.sh'
+    'https://raw.githubusercontent.com/SatelliteQE/robottelo/6.16.z/tests/foreman/data/uri.sh'
 )
 
 OPERATING_SYSTEMS = entities._OPERATING_SYSTEMS
