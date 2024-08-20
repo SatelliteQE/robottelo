@@ -6,6 +6,7 @@ import random
 import re
 
 import requests
+from wait_for import TimedOutError, wait_for
 
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
@@ -244,7 +245,7 @@ class SystemInfo:
             f"ss -tnaH sport ge {port_pool[0]} sport le {port_pool[-1]}"
             " | awk '{n=split($4, p, \":\"); print p[n]}' | sort -u"
         )
-        if ss_cmd.stderr[1]:
+        if ss_cmd.stderr:
             raise CapsuleTunnelError(
                 f'Failed to create ssh tunnel: Error getting port status: {ss_cmd.stderr}'
             )
@@ -278,26 +279,45 @@ class SystemInfo:
         :rtype: str
 
         """
-        pre_ncat_procs = self.execute('pgrep ncat').stdout.splitlines()
-        with self.session.shell() as channel:
-            # if ncat isn't backgrounded, it prevents the channel from closing
-            command = f'ncat -kl -p {newport} -c "ncat {self.hostname} {oldport}" &'
-            logger.debug(f'Creating tunnel: {command}')
-            channel.send(command)
+
+        def check_ncat_startup(pre_ncat_procs):
             post_ncat_procs = self.execute('pgrep ncat').stdout.splitlines()
             ncat_pid = set(post_ncat_procs).difference(set(pre_ncat_procs))
-            if not len(ncat_pid):
-                err = channel.get_exit_signal()
-                logger.debug(f'Tunnel failed: {err}')
-                # Something failed, so raise an exception.
-                raise CapsuleTunnelError(f'Starting ncat failed: {err}')
+            if len(ncat_pid):
+                return ncat_pid
+
+            return None
+
+        def start_ncat():
+            pre_ncat_procs = self.execute('pgrep ncat').stdout.splitlines()
+            with self.session.shell() as channel:
+                # if ncat isn't backgrounded, it prevents the channel from closing
+                command = f'ncat -kl -p {newport} -c "ncat {self.hostname} {oldport}" &'
+                logger.debug(f'Creating tunnel: {command}')
+                channel.send(command)
+
+                try:
+                    return wait_for(
+                        check_ncat_startup,
+                        func_args=[pre_ncat_procs],
+                        fail_condition=None,
+                        timeout=5,
+                        delay=0.5,
+                    )[0]
+                except TimedOutError as e:
+                    err = channel.get_exit_signal()
+                    logger.debug(f'Tunnel failed: {err}')
+                    # Something failed, so raise an exception.
+                    raise CapsuleTunnelError(f'Starting ncat failed: {err}') from e
+
+        ncat_pid = start_ncat()
+        try:
             forward_url = f'https://{self.hostname}:{newport}'
             logger.debug(f'Yielding capsule forward port url: {forward_url}')
-            try:
-                yield forward_url
-            finally:
-                logger.debug(f'Killing ncat pid: {ncat_pid}')
-                self.execute(f'kill {ncat_pid.pop()}')
+            yield forward_url
+        finally:
+            logger.debug(f'Killing ncat pid: {ncat_pid}')
+            self.execute(f'kill {ncat_pid.pop()}')
 
     def validate_pulp_filepath(
         self,

@@ -30,7 +30,6 @@ from robottelo.content_info import (
     get_repomd,
     get_repomd_revision,
 )
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.mark.run_in_one_thread
@@ -40,7 +39,7 @@ class TestCapsuleContentManagement:
     """
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_uploaded_content_library_sync(
         self,
         module_capsule_configured,
@@ -101,7 +100,7 @@ class TestCapsuleContentManagement:
         assert caps_files[0] == constants.RPM_TO_UPLOAD
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_checksum_sync(
         self, module_capsule_configured, function_org, function_product, function_lce, target_sat
     ):
@@ -299,7 +298,7 @@ class TestCapsuleContentManagement:
         assert len(caps_files) == 2
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_capsule_sync(
         self,
         target_sat,
@@ -444,7 +443,7 @@ class TestCapsuleContentManagement:
         assert sat_files == caps_files
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_iso_library_sync(
         self, module_capsule_configured, module_entitlement_manifest_org, module_target_sat
     ):
@@ -511,7 +510,7 @@ class TestCapsuleContentManagement:
         assert set(sat_isos) == set(caps_isos)
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_on_demand_sync(
         self,
         target_sat,
@@ -596,7 +595,7 @@ class TestCapsuleContentManagement:
         assert package_md5 == published_package_md5
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_update_with_immediate_sync(
         self,
         target_sat,
@@ -698,7 +697,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.skip_if_open("BZ:2122780")
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_capsule_pub_url_accessible(self, module_capsule_configured):
         """Ensure capsule pub url is accessible
 
@@ -721,7 +720,7 @@ class TestCapsuleContentManagement:
             assert b'katello-server-ca.crt' in response.content
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients')
+    @pytest.mark.skip_if_not_set('capsule')
     @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos'])
     def test_positive_sync_kickstart_repo(
         self, target_sat, module_capsule_configured, function_entitlement_manifest_org, distro
@@ -816,12 +815,12 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.tier4
     @pytest.mark.e2e
-    @pytest.mark.skip_if_not_set('capsule', 'clients')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_container_repo_end_to_end(
         self,
         target_sat,
         module_capsule_configured,
-        container_contenthost,
+        module_container_contenthost,
         function_org,
         function_product,
         function_lce,
@@ -897,54 +896,53 @@ class TestCapsuleContentManagement:
         ]
 
         for con_client in constants.CONTAINER_CLIENTS:
-            result = container_contenthost.execute(
+            result = module_container_contenthost.execute(
                 f'{con_client} login -u {settings.server.admin_username}'
                 f' -p {settings.server.admin_password} {module_capsule_configured.hostname}'
             )
             assert result.status == 0
 
             for path in repo_paths:
-                result = container_contenthost.execute(
+                result = module_container_contenthost.execute(
                     f'{con_client} search {module_capsule_configured.hostname}/{path}'
                 )
                 assert result.status == 0
 
-                result = container_contenthost.execute(
+                result = module_container_contenthost.execute(
                     f'{con_client} pull {module_capsule_configured.hostname}/{path}'
                 )
                 assert result.status == 0
 
-                result = container_contenthost.execute(
+                result = module_container_contenthost.execute(
                     f'{con_client} rmi {module_capsule_configured.hostname}/{path}'
                 )
                 assert result.status == 0
 
-            result = container_contenthost.execute(
+            result = module_container_contenthost.execute(
                 f'{con_client} logout {module_capsule_configured.hostname}'
             )
             assert result.status == 0
 
         # Inspect the images with skopeo (BZ#2148813)
-        if not is_open('BZ:2148813'):
-            result = module_capsule_configured.execute('yum -y install skopeo')
+        result = module_capsule_configured.execute('yum -y install skopeo')
+        assert result.status == 0
+
+        target_sat.api.LifecycleEnvironment(
+            id=function_lce.id, registry_unauthenticated_pull='true'
+        ).update(['registry_unauthenticated_pull'])
+
+        sleep(20)
+
+        skopeo_cmd = 'skopeo --debug inspect docker://'
+        for path in repo_paths:
+            result = module_capsule_configured.execute(
+                f'{skopeo_cmd}{target_sat.hostname}/{path}:latest'
+            )
             assert result.status == 0
-
-            target_sat.api.LifecycleEnvironment(
-                id=function_lce.id, registry_unauthenticated_pull='true'
-            ).update(['registry_unauthenticated_pull'])
-
-            sleep(20)
-
-            skopeo_cmd = 'skopeo --debug inspect docker://'
-            for path in repo_paths:
-                result = module_capsule_configured.execute(
-                    f'{skopeo_cmd}{target_sat.hostname}/{path}:latest'
-                )
-                assert result.status == 0
-                result = module_capsule_configured.execute(
-                    f'{skopeo_cmd}{module_capsule_configured.hostname}/{path}:latest'
-                )
-                assert result.status == 0
+            result = module_capsule_configured.execute(
+                f'{skopeo_cmd}{module_capsule_configured.hostname}/{path}:latest'
+            )
+            assert result.status == 0
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')

@@ -67,7 +67,6 @@ def lru_sat_ready_rhel(rhel_ver):
     deploy_args = {
         'deploy_rhel_version': rhel_version,
         'deploy_flavor': settings.flavors.default,
-        'promtail_config_template_file': 'config_sat.j2',
         'workflow': settings.server.deploy_workflows.os,
     }
     return Broker(**deploy_args, host_class=Satellite).checkout()
@@ -777,6 +776,17 @@ class ContentHost(Host, ContentHostMixins):
         cmd = target.satellite.cli.HostRegistration.generate_command(options)
         return self.execute(cmd.strip('\n'))
 
+    def api_register(self, target, **kwargs):
+        """Register a content host using global registration through API.
+
+        :param target: Satellite or Capsule object to register to.
+        :param kwargs: Additional keyword arguments to pass to the API call.
+        :return: The result of the API call.
+        """
+        kwargs['insecure'] = kwargs.get('insecure', True)
+        command = target.satellite.api.RegistrationCommand(**kwargs).create()
+        return self.execute(command.strip('\n'))
+
     def register_contenthost(
         self,
         org='Default_Organization',
@@ -1478,6 +1488,7 @@ class ContentHost(Host, ContentHostMixins):
 
 
 class Capsule(ContentHost, CapsuleMixins):
+    product_rpm_name = 'satellite-capsule'
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
 
     @property
@@ -1705,8 +1716,29 @@ class Capsule(ContentHost, CapsuleMixins):
         self._cli._configured = True
         return self._cli
 
+    def enable_satellite_or_capsule_module_for_rhel8(self):
+        """Enable Satellite/Capsule module for RHEL8.
+        Note: Make sure required repos are enabled before using this.
+        """
+        if self.os_version.major == 8:
+            assert (
+                self.execute(
+                    f'dnf -y module enable {self.product_rpm_name}:el{self.os_version.major}'
+                ).status
+                == 0
+            )
+
+    def install_satellite_or_capsule_package(self):
+        """Install Satellite/Capsule package. Also handles module enablement for RHEL8.
+        Note: Make sure required repos are enabled before using this.
+        """
+        self.enable_satellite_or_capsule_module_for_rhel8()
+        assert self.execute(f'dnf -y install {self.product_rpm_name}').status == 0
+
 
 class Satellite(Capsule, SatelliteMixins):
+    product_rpm_name = 'satellite'
+
     def __init__(self, hostname=None, **kwargs):
         hostname = hostname or settings.server.hostname  # instance attr set by broker.Host
         self.omitting_credentials = False

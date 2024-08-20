@@ -101,13 +101,12 @@ _abcs = dict.fromkeys(
 )
 _zones_combo = {**_bcds, **_abcfs, **_abcs}
 VALID_GCE_ZONES = [f'{loc}-{zone}' for loc, zones in _zones_combo.items() for zone in zones]
-LATEST_RHEL7_GCE_IMG_UUID = '7726764279310511390'
 
 GCE_MACHINE_TYPE_DEFAULT = 'f1-micro'
 GCE_NETWORK_DEFAULT = 'default'
 GCE_EXTERNAL_IP_DEFAULT = True
 GCE_RHEL_CLOUD_PROJECTS = ['rhel-cloud', 'rhel-sap-cloud']
-GCE_TARGET_RHEL_IMAGE_NAME = 'rhel-7'
+GCE_TARGET_RHEL_IMAGE_NAME = 'rhel-9'
 
 # AzureRM specific constants
 AZURERM_VALID_REGIONS = [
@@ -520,16 +519,16 @@ REPOS = {
         },
         'rhel8_bos': {
             'id': 'rhel-8-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.9',
-            'version': '8.9',
+            'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.10',
+            'version': '8.10',
             'reposet': REPOSET['kickstart']['rhel8'],
             'product': PRDS['rhel8'],
             'distro': 'rhel8',
         },
         'rhel8_aps': {
             'id': 'rhel-8-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.9',
-            'version': '8.9',
+            'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.10',
+            'version': '8.10',
             'reposet': REPOSET['kickstart']['rhel8_aps'],
             'product': PRDS['rhel8'],
             'distro': 'rhel8',
@@ -1723,6 +1722,8 @@ OPEN_STATUSES = ("NEW", "ASSIGNED", "POST", "MODIFIED")
 CLOSED_STATUSES = ("ON_QA", "VERIFIED", "RELEASE_PENDING", "CLOSED")
 WONTFIX_RESOLUTIONS = ("WONTFIX", "CANTFIX", "DEFERRED")
 # Jira statuses used by Robottelo issue handler.
+JIRA_TESTS_PASSED_LABEL = "tests-passed"
+JIRA_TESTS_FAILED_LABEL = "tests-failed"
 JIRA_OPEN_STATUSES = ("New", "Backlog", "Refinement", "To Do", "In Progress")
 JIRA_ONQA_STATUS = "Review"
 JIRA_CLOSED_STATUSES = ("Release Pending", "Closed")

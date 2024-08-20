@@ -13,7 +13,6 @@
 """
 
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -956,7 +955,7 @@ class TestOpenScap:
 
         :CaseImportance: Medium
         """
-        host = entities.Host()
+        host = module_target_sat.api.Host()
         host.create()
         name = gen_string('alpha')
         scap_policy = module_target_sat.cli_factory.make_scap_policy(

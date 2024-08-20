@@ -35,10 +35,9 @@ from robottelo.constants import (
     VIRT_WHO_HYPERVISOR_TYPES,
 )
 from robottelo.exceptions import CLIFactoryError
-from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.virtwho import create_fake_hypervisor_content
 
-if not setting_is_set('clients') or not setting_is_set('fake_manifest'):
+if not setting_is_set('fake_manifest'):
     pytest.skip('skipping tests due to missing settings', allow_module_level=True)
 
 
@@ -166,17 +165,14 @@ def test_positive_end_to_end(session, default_location, module_repos_collection_
             for repo_index in range(len(module_repos_collection_with_manifest.repos_info))
         }
         assert actual_repos == expected_repos
-        # Check start date for BZ#1920860 (but handle BZ#2112320 offset-by-one bug)
+        # Check start date for BZ#1920860
         custom_product_name = module_repos_collection_with_manifest.custom_product['name']
         custom_sub = next(
             item
             for item in chost['subscriptions']['resources']['assigned']
             if item["Repository Name"] == custom_product_name
         )
-        if is_open('BZ:2112320'):
-            assert startdate in custom_sub['Expires']
-        else:
-            assert startdate in custom_sub['Starts']
+        assert startdate in custom_sub['Starts']
         # Update description
         new_description = gen_string('alpha')
         session.contenthost.update(vm.hostname, {'details.description': new_description})
@@ -1412,7 +1408,7 @@ def test_module_stream_update_from_satellite(session, default_location, vm_modul
         )
 
 
-@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -1453,7 +1449,7 @@ def test_syspurpose_attributes_empty(session, default_location, vm_module_stream
             assert details[spname] == ''
 
 
-@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -1497,7 +1493,7 @@ def test_set_syspurpose_attributes_cli(session, default_location, vm_module_stre
             assert details[spname] == spdata[1]
 
 
-@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -1545,7 +1541,7 @@ def test_unset_syspurpose_attributes_cli(session, default_location, vm_module_st
             assert details[spname] == ''
 
 
-@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -1586,7 +1582,7 @@ def test_syspurpose_matched(session, default_location, vm_module_streams):
         assert details['system_purpose_status'] == 'Matched'
 
 
-@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -1630,7 +1626,7 @@ def test_syspurpose_bulk_action(session, default_location, vm):
             assert val in result.stdout
 
 
-@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',

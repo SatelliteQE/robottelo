@@ -40,10 +40,10 @@ def get_settings():
         try:
             settings.validators.validate()
         except ValidationError as err:
-            logger.warning(
-                f'Dynaconf validation failed, continuing for the sake of unit tests\n{err}'
-            )
-
+            if settings.robottelo.settings.get('ignore_validation_errors'):
+                logger.warning(f'Dynaconf validation failed with\n{err}')
+            else:
+                raise err
         return settings
 
 
@@ -88,6 +88,15 @@ def get_url():
         hostname = f"{hostname}:{port}"
 
     return urlunsplit((scheme, hostname, '', '', ''))
+
+
+def admin_nailgun_config():
+    """Return a NailGun configuration file constructed from default admin user credentials.
+
+    :return: ``nailgun.config.ServerConfig`` object, populated from admin user credentials.
+
+    """
+    return ServerConfig(get_url(), get_credentials(), verify=settings.server.verify_ca)
 
 
 def user_nailgun_config(username=None, password=None):

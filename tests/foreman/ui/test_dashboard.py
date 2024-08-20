@@ -176,7 +176,6 @@ def test_positive_task_status(session, target_sat):
 @pytest.mark.upgrade
 @pytest.mark.no_containers
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
