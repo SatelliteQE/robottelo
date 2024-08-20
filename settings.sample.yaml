@@ -3,6 +3,11 @@
 # example:
 # `export SATQE_SERVER__HOSTNAME=myserver.redhat.com`
 ---
+
+# merge settings from this file with the files that were preloaded from the conf/ directory
+# see: https://www.dynaconf.com/merging/
+dynaconf_merge: true
+
 server:
   admin_password: "<str>"
   admin_username: "<str>"
