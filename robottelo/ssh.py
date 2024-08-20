@@ -8,6 +8,7 @@ def get_client(
     username=None,
     password=None,
     port=22,
+    ipv6=None,
 ):
     """Returns a host object that provides an ssh connection
 
@@ -22,6 +23,7 @@ def get_client(
         username=username or settings.server.ssh_username,
         password=password or settings.server.ssh_password,
         port=port or settings.server.ssh_client.port,
+        ipv6=ipv6 or settings.server.is_ipv6,
     )
 
 
@@ -33,6 +35,7 @@ def command(
     password=None,
     timeout=None,
     port=22,
+    ipv6=None,
 ):
     """Executes SSH command(s) on remote hostname.
 
@@ -48,6 +51,7 @@ def command(
         username=username,
         password=password,
         port=port,
+        ipv6=ipv6,
     )
     result = client.execute(cmd, timeout=timeout)
 
