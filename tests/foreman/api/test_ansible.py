@@ -535,8 +535,8 @@ class TestAnsibleREX:
         assert [i['output'] for i in result if i['output'] == 'Exit status: 0']
 
     @pytest.mark.no_containers
-    @pytest.mark.rhel_ver_list('8')
-    def test_negative_ansible_job_timeout_to_kill(
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    def test_positive_ansible_job_timeout_to_kill(
         self, target_sat, module_org, module_location, module_ak_with_synced_repo, rhel_contenthost
     ):
         """when running ansible-playbook, timeout to kill/execution_timeout_interval setting
@@ -690,3 +690,70 @@ class TestAnsibleREX:
         )
         assert '"def_user.stdout": "root"' in task[0].humanized['output']
         assert '"bec_user.stdout": "testing"' in task[0].humanized['output']
+
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    def test_positive_ansible_job_with_nonexisting_module(
+        self, target_sat, module_org, module_location, module_ak_with_synced_repo, rhel_contenthost
+    ):
+        """Verify running ansible-playbook job with nonexisting_module, as a result the playbook fails,
+        and the Ansible REX job fails on Satellite as well.
+
+        :id: a082f599-fbf7-4779-aa18-5139e2bce888
+
+        :steps:
+            1. Register a content host with satellite
+            2. Run Ansible playbook with nonexisting_module
+            3. Verify playbook fails and the Ansible REX job fails on Satellite
+
+        :expectedresults: Satellite job fails with the error and non-zero exit status,
+            when using a playbook with the nonexisting_module module.
+
+        :BZ: 2107577, 2028112
+
+        :customerscenario: true
+        """
+        playbook = '''
+            ---
+            - name: Playbook with a failing task
+              hosts: localhost
+              gather_facts: no
+              tasks:
+              - name: Run a non-existing module
+                nonexisting_module: ""
+        '''
+        result = rhel_contenthost.register(
+            module_org, module_location, module_ak_with_synced_repo.name, target_sat
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+        template_id = (
+            target_sat.api.JobTemplate()
+            .search(query={'search': 'name="Ansible - Run playbook"'})[0]
+            .id
+        )
+        # run ansible-playbook with nonexisting_module
+        job = target_sat.api.JobInvocation().run(
+            synchronous=False,
+            data={
+                'job_template_id': template_id,
+                'targeting_type': 'static_query',
+                'search_query': f'name = {rhel_contenthost.hostname}',
+                'inputs': {'playbook': playbook},
+                'execution_timeout_interval': '30',
+            },
+        )
+        target_sat.wait_for_tasks(
+            f'resource_type = JobInvocation and resource_id = {job["id"]}',
+            poll_timeout=1000,
+            must_succeed=False,
+        )
+        result = target_sat.api.JobInvocation(id=job['id']).read()
+        assert result.pending == 0
+        assert result.failed == 1
+        assert result.status_label == 'failed'
+        result = target_sat.api.JobInvocation(id=job['id']).outputs()['outputs'][0]['output']
+        termination_msg = 'ERROR! couldn\'t resolve module/action \'nonexisting_module\''
+        assert [i['output'] for i in result if termination_msg in i['output']]
+        assert [i['output'] for i in result if i['output'] == 'StandardError: Job execution failed']
+        assert [i['output'] for i in result if i['output'] == 'Exit status: 4']
