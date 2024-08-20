@@ -22,7 +22,7 @@ def _clean_video(session_id, test):
 
         if settings.ui.grid_url and session_id:
             grid = urlparse(url=settings.ui.grid_url)
-            infra_grid = Host(hostname=grid.hostname)
+            infra_grid = Host(hostname=grid.hostname, ipv6=settings.server.is_ipv6)
             infra_grid.execute(command=f'rm -rf /var/www/html/videos/{session_id}')
             logger.info(f"video cleanup for session {session_id} is complete")
         else:
