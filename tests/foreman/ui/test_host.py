@@ -1879,7 +1879,9 @@ def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_
         assert session.all_hosts.bulk_delete_all()
 
 
+@pytest.mark.no_containers
 @pytest.mark.tier2
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_all_hosts_bulk_cve_reassign(
     target_sat, mod_content_hosts, module_org, module_location, module_lce, module_cv, new_host_ui
 ):
@@ -1887,9 +1889,14 @@ def test_all_hosts_bulk_cve_reassign(
 
     :id: 9acb3cf3-c042-4cc7-abdf-31f9a7f1fff0
 
-    :expectedresults: Multiple hosts are successfully assigned to a new LCE and CV
+    :steps:
+        1.Create 2 Hosts, and register them to the first LCE.
+        2.Create a second LCE and promote the CV from the first LCE to this one.
+        3.Using the All Hosts UI, reassign both hosts from the first LCE to the second LCE.
 
-    :CaseComponent:Hosts-Content
+    :expectedresults: Both hosts are successfully assigned to a new LCE and CV
+
+    :CaseComponent: Hosts-Content
 
     :Team: Phoenix-subscriptions
     """
@@ -1911,6 +1918,15 @@ def test_all_hosts_bulk_cve_reassign(
         )
     with target_sat.ui_session() as session:
         session.organization.select(module_org.name)
+        headers = session.all_hosts.get_displayed_table_headers()
+        if "Lifecycle environment" not in headers:
+            wait_for(lambda: session.browser.refresh(), timeout=5)
+            session.all_hosts.manage_table_columns(
+                {
+                    'Host group': True,
+                }
+            )
+        wait_for(lambda: session.browser.refresh(), timeout=5)
         session.all_hosts.manage_cve(lce=lce2.name, cv=module_cv.name)
         wait_for(lambda: session.browser.refresh(), timeout=5)
         table = session.all_hosts.read_table()
