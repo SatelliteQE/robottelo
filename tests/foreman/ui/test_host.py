@@ -1880,7 +1880,7 @@ def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_
 
 
 @pytest.mark.tier2
-def test_all_hosts_cve_2(
+def test_all_hosts_bulk_cve_reassign(
     target_sat, module_org, module_location, module_lce, module_cv, new_host_ui
 ):
     """Create several hosts, and bulk assigns them a new CVE via All Hosts UI
