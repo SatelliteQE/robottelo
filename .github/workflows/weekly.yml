@@ -48,7 +48,7 @@ jobs:
           echo "assignees: pondrejk " >> .env.md
           echo "labels: Documentation" >> .env.md
           echo "---" >> .env.md
-          echo CS_TAGS="$(make customer-scenario-check)" >> .env.md
+          echo CS_TAGS="$(make customer-scenario-check-jira)" >> .env.md
           if grep 'The following tests need customerscenario tags' .env.md; then
             echo "::set-output name=result::0"
           fi

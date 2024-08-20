@@ -25,6 +25,7 @@ from robottelo.constants import (
     FAKE_7_CUSTOM_PACKAGE,
     REPO_TYPE,
 )
+from robottelo.utils.issue_handlers import is_open
 
 pytestmark = pytest.mark.tier1
 
@@ -345,11 +346,15 @@ def test_global_registration_form_populate(
 
         session.organization.select(org_name=new_org.name)
         session.browser.refresh()
+        registration_opts = {
+            'general.insecure': True,
+            'advanced.force': True,
+        }
+        # Select activation key explicitly due to SAT-27348
+        if is_open('SAT-27348'):
+            registration_opts['general.activation_keys'] = new_ak.name
         cmd = session.host.get_register_command(
-            {
-                'general.insecure': True,
-                'advanced.force': True,
-            },
+            registration_opts,
             full_read=True,
         )
         assert new_org.name in cmd['general']['organization']

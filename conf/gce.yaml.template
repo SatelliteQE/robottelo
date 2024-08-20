@@ -1,8 +1,8 @@
 GCE:
   # Google Provider as Compute Resource
   # client json Certificate path which is local path on satellite
-  CERT_PATH: /path/to/certificate.json
+  CERT_PATH: /usr/share/foreman/path/to/certificate.json
   # Zones
-  ZONE: example-zone
+  ZONE: northamerica-northeast1-a
   # client certificate
   CERT: "{}" # client json Certificate
