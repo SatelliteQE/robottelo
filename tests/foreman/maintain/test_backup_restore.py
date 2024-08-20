@@ -425,6 +425,8 @@ def test_positive_backup_restore(
 
     :customerscenario: true
 
+    :Verifies: SAT-23093
+
     :BZ: 2172540, 1978764, 1979045
     """
     subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
@@ -445,6 +447,13 @@ def test_positive_backup_restore(
 
     expected_files = get_exp_files(sat_maintain, skip_pulp)
     assert set(files).issuperset(expected_files), assert_msg
+
+    # Check if certificate tar file is present in Capsule backup.
+    if instance == 'capsule':
+        cert_file = sat_maintain.execute(
+            f'tar -tvf {backup_dir}/config_files.tar.gz | grep {sat_maintain.hostname}'
+        ).stdout
+        assert f'{sat_maintain.hostname}-certs.tar' in cert_file
 
     # Run restore
     if not skip_pulp:
