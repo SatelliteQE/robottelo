@@ -1923,7 +1923,7 @@ def test_all_hosts_bulk_cve_reassign(
             wait_for(lambda: session.browser.refresh(), timeout=5)
             session.all_hosts.manage_table_columns(
                 {
-                    'Host group': True,
+                    'Lifecycle environment': True,
                 }
             )
         wait_for(lambda: session.browser.refresh(), timeout=5)
