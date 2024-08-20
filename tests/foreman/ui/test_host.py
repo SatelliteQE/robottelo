@@ -1879,11 +1879,9 @@ def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_
         assert session.all_hosts.bulk_delete_all()
 
 
-@pytest.mark.no_containers
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-def test_all_hosts_bulk_cve_reassign(
-    target_sat, mod_content_hosts, module_org, module_location, module_lce, module_cv, new_host_ui
+def test_all_hosts_cve_2(
+    target_sat, module_org, module_location, module_lce, module_cv, new_host_ui
 ):
     """Create several hosts, and bulk assigns them a new CVE via All Hosts UI
 
@@ -1904,20 +1902,18 @@ def test_all_hosts_bulk_cve_reassign(
     module_cv = target_sat.api.ContentView(id=module_cv.id).read()
     module_cv = cv_publish_promote(target_sat, module_org, module_cv, module_lce)['content-view']
     module_cv = cv_publish_promote(target_sat, module_org, module_cv, lce2)['content-view']
-    ak = target_sat.api.ActivationKey(
-        organization=module_org,
-        environment=module_lce,
-        content_view=module_cv,
-    ).create()
-    for host in mod_content_hosts:
-        host.register(
-            activation_keys=ak.name,
-            target=target_sat,
-            org=module_org,
-            loc=None,
-        )
+    for _ in range(3):
+        target_sat.api.Host(
+            organization=module_org,
+            location=module_location,
+            content_facet_attributes={
+                'content_view_id': module_cv.id,
+                'lifecycle_environment_id': module_lce.id,
+            },
+        ).create()
     with target_sat.ui_session() as session:
         session.organization.select(module_org.name)
+        session.location.select(module_location.name)
         headers = session.all_hosts.get_displayed_table_headers()
         if "Lifecycle environment" not in headers:
             wait_for(lambda: session.browser.refresh(), timeout=5)
@@ -1926,11 +1922,13 @@ def test_all_hosts_bulk_cve_reassign(
                     'Lifecycle environment': True,
                 }
             )
-        wait_for(lambda: session.browser.refresh(), timeout=5)
+        pre_table = session.all_hosts.read_table()
+        for row in pre_table:
+            assert row['Lifecycle environment'] == module_lce.name
         session.all_hosts.manage_cve(lce=lce2.name, cv=module_cv.name)
         wait_for(lambda: session.browser.refresh(), timeout=5)
-        table = session.all_hosts.read_table()
-        for row in table:
+        post_table = session.all_hosts.read_table()
+        for row in post_table:
             assert row['Lifecycle environment'] == lce2.name
 
 
