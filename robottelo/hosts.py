@@ -143,6 +143,7 @@ class ContentHost(Host, ContentHostMixins):
             # key file based authentication
             kwargs.update({'key_filename': auth})
         self._satellite = kwargs.get('satellite')
+        self.ipv6 = kwargs.get('ipv6', settings.server.is_ipv6)
         self.blank = kwargs.get('blank', False)
         super().__init__(hostname=hostname, **kwargs)
 
@@ -451,7 +452,6 @@ class ContentHost(Host, ContentHostMixins):
     def enable_repo(self, repo, force=False):
         """Enables specified Red Hat repository on the broker virtual machine.
         Does nothing if downstream capsule or satellite tools repo was passed.
-        Custom repos are enabled by default when registering a host.
 
         :param repo: Red Hat repository name.
         :param force: enforce enabling command, even when custom repos are
@@ -480,6 +480,20 @@ class ContentHost(Host, ContentHostMixins):
 
     def subscription_manager_list(self):
         return self.execute('subscription-manager list')
+
+    def subscription_manager_environments_set(
+        self,
+        env_names,
+        username=settings.server.admin_username,
+        password=settings.server.admin_password,
+    ):
+        """
+        Reassign the host to the specified content view environments
+        """
+        assert isinstance(env_names, str)
+        return self.execute(
+            f'subscription-manager environments --set="{env_names}" --username={username} --password={password}'
+        )
 
     def subscription_manager_get_pool(self, sub_list=None):
         """
@@ -977,7 +991,7 @@ class ContentHost(Host, ContentHostMixins):
         # sat6 under the capsule --> certifcates or on capsule via cli "puppetserver
         # ca list", so that we sign it.
         self.execute('/opt/puppetlabs/bin/puppet agent -t')
-        proxy_host = Host(hostname=proxy_hostname)
+        proxy_host = Host(hostname=proxy_hostname, ipv6=settings.server.is_ipv6)
         proxy_host.execute(f'puppetserver ca sign --certname {cert_name}')
 
         if run_puppet_agent:
@@ -1589,6 +1603,7 @@ class Capsule(ContentHost, CapsuleMixins):
         if settings.server.is_ipv6:
             url = urlparse(settings.server.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)
+            self.ipv6 = settings.server.is_ipv6
 
     def disable_ipv6_http_proxy(self):
         """Executes procedures for disabling IPv6 HTTP Proxy on Capsule"""
@@ -1771,6 +1786,7 @@ class Satellite(Capsule, SatelliteMixins):
                 'The IPv6 HTTP Proxy setting is not enabled. Skipping the IPv6 HTTP Proxy setup.'
             )
             return None
+        self.ipv6 = settings.server.is_ipv6
         proxy_name = 'Robottelo IPv6 Automation Proxy'
         if not self.cli.HttpProxy.exists(search=('name', proxy_name)):
             http_proxy = self.api.HTTPProxy(
@@ -1780,7 +1796,7 @@ class Satellite(Capsule, SatelliteMixins):
             logger.info(
                 'The IPv6 HTTP Proxy is already enabled. Skipping the IPv6 HTTP Proxy setup.'
             )
-            http_proxy = self.api.HTTPProxy().search(query={'search': f'name={proxy_name}'})[0]
+            http_proxy = self.api.HTTPProxy().search(query={'search': f'name="{proxy_name}"'})[0]
         # Setting HTTP Proxy as default in the settings
         self.cli.Settings.set(
             {
@@ -2380,6 +2396,7 @@ class SSOHost(Host):
     def __init__(self, sat_obj, **kwargs):
         self.satellite = sat_obj
         kwargs['hostname'] = kwargs.get('hostname', settings.rhsso.host_name)
+        kwargs['ipv6'] = kwargs.get('ipv6', settings.server.is_ipv6)
         super().__init__(**kwargs)
 
     def get_rhsso_client_id(self):
@@ -2551,6 +2568,7 @@ class IPAHost(Host):
     def __init__(self, sat_obj, **kwargs):
         self.satellite = sat_obj
         kwargs['hostname'] = kwargs.get('hostname', settings.ipa.hostname)
+        kwargs['ipv6'] = kwargs.get('ipv6', settings.server.is_ipv6)
         # Allow the class to be constructed from kwargs
         kwargs['from_dict'] = True
         kwargs.update(
@@ -2652,6 +2670,7 @@ class ProxyHost(Host):
         self._conf_dir = '/etc/squid/'
         self._access_log = '/var/log/squid/access.log'
         kwargs['hostname'] = urlparse(url).hostname
+        kwargs['ipv6'] = kwargs.get('ipv6', settings.server.is_ipv6)
         super().__init__(**kwargs)
 
     def add_user(self, name, passwd):
