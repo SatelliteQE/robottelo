@@ -2160,6 +2160,71 @@ def test_positive_multi_cv_registration(
 
 
 @pytest.mark.rhel_ver_match('[^7]')
+def test_positive_multi_cv_assignment(
+    session_multicv_sat,
+    session_multicv_org,
+    session_multicv_default_ak,
+    session_multicv_lce,
+    rhel_contenthost,
+):
+    """Register a host and assign it to multiple content view environments with Hammer.
+
+    :id: c6a120a8-c6b6-483e-ac76-0e67d754038c
+
+    :steps:
+        1. Register a host with global registration
+        2. Update the host using hammer to assign it to multiple content view environments
+        3. Confirm that the host is registered to both environments
+
+    :expectedresults: The update succeeds and the host is assigned to both environments.
+
+    :CaseImportance: Critical
+
+    :CaseComponent: Hosts-Content
+
+    :team: Phoenix-subscriptions
+
+    :parametrized: yes
+    """
+
+    library_lce = (
+        session_multicv_sat.api.LifecycleEnvironment()
+        .search(query={'search': f'name=Library and organization_id={session_multicv_org.id}'})[0]
+        .read()
+    )
+
+    # Create a content view
+    cv1 = session_multicv_sat.api.ContentView(organization=session_multicv_org).create()
+    cv1.publish()
+    cv1 = cv1.read()
+
+    # Create a second content view
+    cv2 = session_multicv_sat.api.ContentView(organization=session_multicv_org).create()
+    cv2.publish()
+    cv2 = cv2.read()
+    cv2_version = cv2.version[0]
+    cv2_version.promote(data={'environment_ids': session_multicv_lce.id})
+
+    # Register with global registration
+    result = rhel_contenthost.register(
+        session_multicv_org, None, session_multicv_default_ak.name, session_multicv_sat
+    )
+    assert result.status == 0
+    assert rhel_contenthost.subscribed
+
+    # Assign multiple content view environments to the host using hammer
+    env_names = f"{library_lce.name}/{cv1.name},{session_multicv_lce.name}/{cv2.name}"
+    host = session_multicv_sat.cli.Host.info({'name': rhel_contenthost.hostname})
+    session_multicv_sat.cli.Host.update({'id': host['id'], 'content-view-environments': env_names})
+
+    # Confirm that the host is registered to both environments
+    host = session_multicv_sat.cli.Host.info({'name': rhel_contenthost.hostname})
+    assert (
+        len(host['content-information']['content-view-environments']) == 2
+    ), "Expected host to be registered to both environments"
+
+
+@pytest.mark.rhel_ver_match('[^7]')
 def test_positive_multi_cv_host_repo_availability(
     session_multicv_sat,
     rhel_contenthost,
