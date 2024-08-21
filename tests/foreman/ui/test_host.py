@@ -2489,7 +2489,7 @@ def test_all_hosts_bulk_hostgroup_assignment(target_sat, module_org, module_loca
         session.organization.select(module_org.name)
         session.location.select(module_location.name)
         headers = session.all_hosts.get_displayed_table_headers()
-        if "Host group" not in headers:
+        if 'Host group' not in headers:
             wait_for(lambda: session.browser.refresh(), timeout=5)
             session.all_hosts.manage_table_columns(
                 {
