@@ -12,7 +12,6 @@ import re
 from tempfile import NamedTemporaryFile
 import time
 from urllib.parse import urljoin, urlparse, urlunsplit
-import warnings
 
 import apypie
 from box import Box
@@ -336,7 +335,7 @@ class ContentHost(Host, ContentHostMixins):
     def setup(self):
         logger.debug('START: setting up host %s', self)
         if not self.blank:
-            self.remove_katello_ca()
+            self.reset_rhsm()
 
         logger.debug('END: setting up host %s', self)
 
@@ -569,55 +568,11 @@ class ContentHost(Host, ContentHostMixins):
         if result.status != 0:
             raise ContentHostError('Failed to install katello-host-tools')
 
-    def install_katello_ca(self, satellite):
-        """Downloads and installs katello-ca rpm on the content host.
-
-        :param str satellite: robottelo.hosts.Satellite instance
-
-        :return: None.
-        :raises robottelo.hosts.ContentHostError: If katello-ca wasn't
-            installed.
+    def reset_rhsm(self):
+        """Global Registration points the host's sub-man to talk to the Sattelite's Candlepin
+        but saves the original rhsm.conf. Reset the rhsm.conf so that it points back to the CDN.
         """
-        warnings.warn(
-            message='The install_katello_ca method is deprecated, use the register method instead.',
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
-        self._satellite = satellite
-        self.execute(
-            f'curl --insecure --output katello-ca-consumer-latest.noarch.rpm \
-                    {satellite.url_katello_ca_rpm}'
-        )
-        # check if the host is fips-enabled
-        result = self.execute('sysctl crypto.fips_enabled')
-        if 'crypto.fips_enabled = 1' in result.stdout:
-            self.execute('rpm -Uvh --nodigest --nofiledigest katello-ca-consumer-latest.noarch.rpm')
-        else:
-            self.execute('rpm -Uvh katello-ca-consumer-latest.noarch.rpm')
-        # Not checking the status here, as rpm could be installed before
-        # and installation may fail
-        result = self.execute(f'rpm -q katello-ca-consumer-{satellite.hostname}')
-        # Checking the status here to verify katello-ca rpm is actually
-        # present in the system
-        if satellite.hostname not in result.stdout:
-            raise ContentHostError('Failed to download and install the katello-ca rpm')
-
-    def remove_katello_ca(self):
-        """Removes katello-ca rpm from the broker virtual machine.
-
-        :return: None.
-        :raises robottelo.hosts.ContentHostError: If katello-ca wasn't removed.
-        """
-        # unregister host from CDN to avoid subscription leakage
-        self.execute('subscription-manager unregister')
-        # Not checking the status here, as rpm can be not even installed
-        # and deleting may fail
-        self.execute('yum erase -y $(rpm -qa |grep katello-ca-consumer)')
-        # Checking the status here to verify katello-ca rpm is actually
-        # not present in the system
-        result = self.execute('rpm -qa |grep katello-ca-consumer')
-        if result.status == 0:
-            raise ContentHostError(f'katello-ca rpm(s) are still installed: {result.stdout}')
+        self.execute(r'\cp -f /etc/rhsm/rhsm.conf{.bak,}')
         self.execute('subscription-manager clean')
         self._satellite = None
 
@@ -722,6 +677,7 @@ class ContentHost(Host, ContentHostMixins):
         if force:
             options['force'] = str(force).lower()
 
+        self._satellite = target
         cmd = target.satellite.cli.HostRegistration.generate_command(options)
         return self.execute(cmd.strip('\n'))
 
@@ -733,6 +689,7 @@ class ContentHost(Host, ContentHostMixins):
         :return: The result of the API call.
         """
         kwargs['insecure'] = kwargs.get('insecure', True)
+        self._satellite = target
         command = target.satellite.api.RegistrationCommand(**kwargs).create()
         return self.execute(command.strip('\n'))
 
@@ -1423,7 +1380,7 @@ class ContentHost(Host, ContentHostMixins):
         """Subscribe satellite to CDN"""
         if pool_ids is None:
             pool_ids = [settings.subscription.rhn_poolid]
-        self.remove_katello_ca()
+        self.reset_rhsm()
         cmd_result = self.register_contenthost(
             org=None,
             lce=None,
