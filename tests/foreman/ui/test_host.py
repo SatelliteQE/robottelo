@@ -2515,3 +2515,64 @@ def test_positive_manage_packages(
             assert (
                 host.run(f'dnf remove {" ".join(packages)} -y').status == 0
             ), 'Could not remove installed packages in a finalizer!'
+
+
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [
+        {
+            'distro': 'rhel8',
+            'YumRepository': {'url': settings.repos.yum_3.url},
+        }
+    ],
+    ids=['yum3'],
+    indirect=True,
+)
+@pytest.mark.no_containers
+@pytest.mark.tier2
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.rhel_ver_match('8')
+def test_all_hosts_manage_errata(
+    session,
+    module_target_sat,
+    module_org,
+    mod_content_hosts,
+    module_repos_collection_with_setup,
+    new_host_ui,
+):
+    """Apply an errata on multiple hosts through bulk errata wizard in All Hosts page.
+
+    :id: 41bca5f8-bf2d-4b16-974c-5abda3c09ee2
+
+    :expectedresults: Errata can be bulk applied to hosts through the All Hosts page.
+
+    :CaseComponent: Hosts-Content
+
+    :Team: Phoenix-content
+    """
+    errata_id = settings.repos.yum_3.errata[25]
+    for host in mod_content_hosts:
+        host.add_rex_key(module_target_sat)
+        module_repos_collection_with_setup.setup_virtual_machine(host, enable_custom_repos=True)
+        host.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
+        result = host.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
+        assert result.status == 0
+
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        session.all_hosts.manage_errata(
+            host_names=[mod_content_hosts[0].hostname, mod_content_hosts[1].hostname],
+            erratas_to_apply_by_id=[errata_id],
+            manage_by_customized_rex=False,
+        )
+        for host in mod_content_hosts:
+            task_result = module_target_sat.wait_for_tasks(
+                search_query=(
+                    f'"Install errata errata_id ^ ({errata_id.lower()}) on {host.hostname}"'
+                ),
+                search_rate=2,
+                max_tries=60,
+            )
+            task_status = module_target_sat.api.ForemanTask(id=task_result[0].id).poll()
+            assert task_status['result'] == 'success'
