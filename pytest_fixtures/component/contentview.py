@@ -76,3 +76,24 @@ def session_multicv_sat(session_satellite_host):
     session_satellite_host.enable_multicv_setting()
     session_satellite_host.update_setting('allow_multiple_content_views', 'True')
     return session_satellite_host
+
+
+@pytest.fixture(scope='session')
+def session_multicv_org(session_multicv_sat):
+    return session_multicv_sat.api.Organization().create()
+
+
+@pytest.fixture(scope='session')
+def session_multicv_default_ak(session_multicv_sat, session_multicv_org):
+    return session_multicv_sat.api.ActivationKey(
+        organization=session_multicv_org,
+        content_view=session_multicv_org.default_content_view.id,
+        environment=session_multicv_org.library.id,
+    ).create()
+
+
+@pytest.fixture(scope='session')
+def session_multicv_lce(session_multicv_sat, session_multicv_org):
+    return session_multicv_sat.api.LifecycleEnvironment(
+        organization=session_multicv_org,
+    ).create()

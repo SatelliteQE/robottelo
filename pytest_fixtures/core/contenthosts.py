@@ -30,9 +30,13 @@ def host_conf(request):
         ]
     ):
         deploy_kwargs = settings.content_host.get(_rhelver).to_dict().get('container', {})
+        if deploy_kwargs and (network := params.get('network')):
+            deploy_kwargs.update({'Container': network})
     # if we're not using containers or a container isn't available, use a VM
     if not deploy_kwargs:
         deploy_kwargs = settings.content_host.get(_rhelver).to_dict().get('vm', {})
+        if network := params.get('network'):
+            deploy_kwargs.update({'deploy_network_type': network})
     conf.update(deploy_kwargs)
     return conf
 
@@ -198,7 +202,7 @@ def katello_host_tools_tracer_host(rex_contenthost, target_sat):
 
 
 @pytest.fixture(scope='module')
-def module_container_contenthost(request, module_target_sat):
+def module_container_contenthost(request, module_target_sat, module_org, module_activation_key):
     """Fixture that installs docker on the content host"""
     request.param = {
         "rhel_version": "8",
@@ -207,8 +211,6 @@ def module_container_contenthost(request, module_target_sat):
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         host.register_to_cdn()
-        # needed for docker commands to accept Satellite's cert
-        host.install_katello_ca(module_target_sat)
         for client in constants.CONTAINER_CLIENTS:
             assert (
                 host.execute(f'yum -y install {client}').status == 0
@@ -216,6 +218,11 @@ def module_container_contenthost(request, module_target_sat):
         assert (
             host.execute('systemctl enable --now podman').status == 0
         ), 'Start of podman service failed'
+        host.unregister()
+        assert (
+            host.register(module_org, None, module_activation_key.name, module_target_sat).status
+            == 0
+        )
         yield host
 
 

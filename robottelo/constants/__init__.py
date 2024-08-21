@@ -1993,6 +1993,12 @@ FAM_TEST_PLAYBOOKS = [
     "webhook",
 ]
 
+FAM_TEST_LIBVIRT_PLAYBOOKS = [
+    "compute_attribute",
+    "compute_profile",
+    "hostgroup",
+]
+
 FAM_ROOT_DIR = '/usr/share/ansible/collections/ansible_collections/redhat/satellite'
 
 FAM_MODULE_PATH = f'{FAM_ROOT_DIR}/plugins/modules'

@@ -1,5 +1,5 @@
 UI:
-  SCREENSHOTS_PATH: /tmp/robottelo/screenshots/
+  SCREENSHOTS_PATH: '@format {env[ROBOTTELO_DIR]}/screenshots/'
   # Webdriver logging options
   LOG_DRIVER_COMMANDS:
   - newSession
@@ -10,38 +10,33 @@ UI:
   - clickElement
   - mouseMoveTo
 
-  # browser tells robottelo which browser to use when testing UI. Valid values
-  # are:
+  # browser tells robottelo which browser to use when testing UI. Valid values:
   # * selenium
-  # * docker: to use a browser inside a docker container. In order to use this
-  #   feature make sure that the docker daemon is running locally and has its
-  #   unix socket published at unix://var/run/docker.sock. Also make sure that
-  #   the docker image selenium/standalone-firefox is available.
   # * remote: to access the remote browser, the webdriver and command_executor
   #   are required.
-  BROWSER: selenium
+  BROWSER: remote
   # Webdriver to use. Valid values are chrome, firefox
   WEBDRIVER: chrome
-  # Binary location for selected wedriver (not needed if using saucelabs)
+  # Binary location for selected wedriver
   WEBDRIVER_BINARY: /usr/bin/chromedriver
   RECORD_VIDEO: false
-  GRID_URL: http://infra-grid.example.com:4444
+  GRID_URL: http://127.0.0.1:4444
+
   # Web_Kaifuku Settings (checkout https://github.com/RonnyPfannschmidt/webdriver_kaifuku)
   WEBKAIFUKU:
-    webdriver: chrome/remote
+    webdriver: '@jinja {{ this.ui.browser if this.ui.browser in ["remote"] else this.ui.webdriver}}'
     webdriver_options:
-      command_executor: http://localhost:4444/wd/hub
+      command_executor: '@jinja {{ this.ui.grid_url }}'
       desired_capabilities:
-        se:recordVideo: '@jinja {{ this.ui.record_video }}'
         browserName: chrome
+        se:recordVideo: '@jinja {{ this.ui.record_video }}'
+        se:screenResolution: 1920x1080
+        se:maxduration: 5400
+        se:idleTimeout: 5000
         chromeOptions:
           args:
-            - 'disable-web-security'
-            - 'ignore-certificate-errors'
+            - disable-web-security
+            - ignore-certificate-errors
           prefs:
-            download.prompt_for_download: False
-        platform: any
-        maxduration: 5400
-        idletimeout: 1000
-        start-maximised: true
-        screenresolution: 1600x1200
+            download.prompt_for_download: false
+

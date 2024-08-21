@@ -251,43 +251,6 @@ class TestAnsibleCfgMgmt:
         """
 
     @pytest.mark.stubbed
-    @pytest.mark.tier2
-    def test_positive_assign_role_in_new_ui(self):
-        """Using the new Host UI, assign a role to a Host
-
-        :id: 044f38b4-cff2-4ddc-b93c-7e9f2826d00d
-
-        :steps:
-            1. Register a RHEL host to Satellite.
-            2. Import all roles available by default.
-            3. Navigate to the new UI for the given Host.
-            4. Select the 'Ansible' tab
-            5. Click the 'Assign Ansible Roles' button.
-            6. Using the popup, assign a role to the Host.
-
-        :expectedresults: The Role is successfully assigned to the Host, and visible on the UI
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier2
-    def test_positive_remove_role_in_new_ui(self):
-        """Using the new Host UI, remove the role(s) of a Host
-
-        :id: d6de5130-45f6-4349-b490-fbde2aed082c
-
-        :steps:
-            1. Register a RHEL host to Satellite.
-            2. Import all roles available by default.
-            3. Assign a role to the host.
-            4. Navigate to the new UI for the given Host.
-            5. Select the 'Ansible' tab
-            6. Click the 'Edit Ansible roles' button.
-            7. Using the popup, remove the assigned role from the Host.
-
-        :expectedresults: Role is successfully removed from the Host, and not visible on the UI
-        """
-
-    @pytest.mark.stubbed
     @pytest.mark.tier3
     def test_positive_ansible_variables_imported_with_roles(self):
         """Verify that, when Ansible roles are imported, their variables are imported simultaneously
@@ -809,9 +772,11 @@ class TestAnsibleREX:
         :CaseAutomation: NotAutomated
         """
 
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_install_ansible_collection_via_job_invocation(self):
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    def test_positive_install_ansible_collection(
+        self, rhel_contenthost, target_sat, module_org, module_ak_with_cv
+    ):
         """Verify that Ansible collections can be installed on hosts via job invocations
 
         :id: d4096aef-f6fc-41b6-ae56-d19b1f49cd42
@@ -825,9 +790,38 @@ class TestAnsibleREX:
             6. Click "Submit"
 
         :expectedresults: The Ansible collection is successfully installed on the host
-
-        :CaseAutomation: NotAutomated
         """
+        client = rhel_contenthost
+        # Enable Ansible repository and Install ansible or ansible-core package
+        client.register(module_org, None, module_ak_with_cv.name, target_sat)
+        rhel_repo_urls = getattr(settings.repos, f'rhel{client.os_version.major}_os', None)
+        rhel_contenthost.create_custom_repos(**rhel_repo_urls)
+        assert client.execute('dnf -y install ansible-core').status == 0
+
+        with target_sat.ui_session() as session:
+            session.organization.select(module_org.name)
+            collections_names = 'oasis_roles.system'
+            session.jobinvocation.run(
+                {
+                    'category_and_template.job_category': 'Ansible Galaxy',
+                    'category_and_template.job_template': 'Ansible Collection - Install from Galaxy',
+                    'target_hosts_and_inputs.targetting_type': 'Hosts',
+                    'target_hosts_and_inputs.targets': client.hostname,
+                    'target_hosts_and_inputs.ansible_collections_list': collections_names,
+                    'advanced_fields.ansible_collections_path': '~/',
+                }
+            )
+            job_description = f'Install collections \'{collections_names}\' from galaxy'
+            session.jobinvocation.wait_job_invocation_state(
+                entity_name=job_description, host_name=client.hostname
+            )
+            status = session.jobinvocation.read(
+                entity_name=job_description, host_name=client.hostname
+            )
+            assert status['overview']['hosts_table'][0]['Status'] == 'success'
+
+            collection_path = client.execute('ls ~/ansible_collections').stdout
+            assert 'oasis_roles' in collection_path
 
     @pytest.mark.stubbed
     @pytest.mark.tier2
