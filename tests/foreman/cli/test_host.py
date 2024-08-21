@@ -1221,7 +1221,9 @@ def test_positive_view_parameter_by_non_admin_user(target_sat, function_host, fu
         {'host-id': function_host['id'], 'name': param_name, 'value': param_value}
     )
     host = target_sat.cli.Host.info({'id': function_host['id']})
-    assert host['parameters'][param_name] == param_value
+    assert (param_name, param_value) in [
+        (param['name'], param['value']) for param in host['parameters']
+    ]
     role = target_sat.api.Role(name=gen_string('alphanumeric')).create()
     target_sat.cli_factory.add_role_permissions(
         role.id,
@@ -1235,8 +1237,9 @@ def test_positive_view_parameter_by_non_admin_user(target_sat, function_host, fu
     host = target_sat.cli.Host.with_user(
         username=function_user['user'].login, password=function_user['password']
     ).info({'id': host['id']})
-    assert param_name in host['parameters']
-    assert host['parameters'][param_name] == param_value
+    assert (param_name, param_value) in [
+        (param['name'], param['value']) for param in host['parameters']
+    ]
 
 
 @pytest.mark.cli_host_parameter
@@ -1268,7 +1271,9 @@ def test_negative_edit_parameter_by_non_admin_user(target_sat, function_host, fu
         {'host-id': function_host['id'], 'name': param_name, 'value': param_value}
     )
     host = target_sat.cli.Host.info({'id': function_host['id']})
-    assert host['parameters'][param_name] == param_value
+    assert (param_name, param_value) in [
+        (param['name'], param['value']) for param in host['parameters']
+    ]
     role = target_sat.api.Role(name=gen_string('alphanumeric')).create()
     target_sat.cli_factory.add_role_permissions(
         role.id,
@@ -1287,7 +1292,9 @@ def test_negative_edit_parameter_by_non_admin_user(target_sat, function_host, fu
             {'host-id': function_host['id'], 'name': param_name, 'value': param_new_value}
         )
     host = target_sat.cli.Host.info({'id': function_host['id']})
-    assert host['parameters'][param_name] == param_value
+    assert (param_name, param_value) in [
+        (param['name'], param['value']) for param in host['parameters']
+    ]
 
 
 @pytest.mark.cli_host_parameter
