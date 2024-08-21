@@ -1951,6 +1951,7 @@ class TestPodman:
         assert image_pull.status == 0
         large_image_id = image_pull.stdout.strip()
         assert large_image_id
-        assert 'Pushing content is unsupported' in module_capsule_configured.execute(
+        result = module_capsule_configured.execute(
             f'podman push --creds {settings.server.admin_username}:{settings.server.admin_password} {large_image_id} {module_capsule_configured.hostname}/{IMAGE_NAME_TAG}'
         )
+        assert 'Pushing content is unsupported' in result.stderr
