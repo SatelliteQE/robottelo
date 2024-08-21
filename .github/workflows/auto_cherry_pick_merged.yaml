@@ -118,7 +118,7 @@ jobs:
       - name: Cherrypicking to zStream branch
         id: cherrypick
         if: ${{ startsWith(matrix.branch, '6.') && matrix.branch != needs.get-parentPR-details.outputs.base_ref }}
-        uses: jyejare/github-cherry-pick-action@given_pulls_cp
+        uses: jyejare/github-cherry-pick-action@main
         with:
           token: ${{ secrets.CHERRYPICK_PAT }}
           pull_number: ${{ env.number }}
