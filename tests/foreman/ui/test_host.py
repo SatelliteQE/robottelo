@@ -2515,3 +2515,46 @@ def test_positive_manage_packages(
             assert (
                 host.run(f'dnf remove {" ".join(packages)} -y').status == 0
             ), 'Could not remove installed packages in a finalizer!'
+
+
+@pytest.mark.tier2
+def test_all_hosts_bulk_hostgroup_assignment(target_sat, module_org, module_location, new_host_ui):
+    """Create several hosts and change their assigned hostgroup via All Hosts UI
+
+    :id: bd162801-1118-440d-9793-eb14db88debf
+
+    :expectedresults: Hostgroup reassignment in All Hosts UI works properly.
+
+    :CaseComponent:Hosts-Content
+
+    :Team: Phoenix-subscriptions
+    """
+    hostgroup = target_sat.api.HostGroup(
+        location=[module_location], organization=[module_org]
+    ).create()
+    new_hostgroup = target_sat.api.HostGroup(
+        location=[module_location], organization=[module_org]
+    ).create()
+    for _ in range(3):
+        target_sat.api.Host(
+            organization=module_org, hostgroup=hostgroup, location=module_location
+        ).create()
+    with target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.location.select(module_location.name)
+        headers = session.all_hosts.get_displayed_table_headers()
+        if 'Host group' not in headers:
+            wait_for(lambda: session.browser.refresh(), timeout=5)
+            session.all_hosts.manage_table_columns(
+                {
+                    'Host group': True,
+                }
+            )
+        pre_table = session.all_hosts.read_table()
+        for row in pre_table:
+            assert row['Host group'] == hostgroup.name
+        session.all_hosts.change_hostgroup(new_hostgroup.name)
+        wait_for(lambda: session.browser.refresh(), timeout=5)
+        post_table = session.all_hosts.read_table()
+        for row in post_table:
+            assert row['Host group'] == new_hostgroup.name
