@@ -227,7 +227,7 @@ def provisioning_host(module_ssh_key_file, pxe_loader):
         host_class=ContentHost,
         target_vlan_id=vlan_id,
         target_vm_firmware=pxe_loader.vm_firmware,
-        target_vm_cd_iso=cd_iso,
+        target_pxeless_image=cd_iso,
         blank=True,
         target_memory='6GiB',
         auth=module_ssh_key_file,
@@ -250,7 +250,7 @@ def provision_multiple_hosts(module_ssh_key_file, pxe_loader, request):
         _count=getattr(request, 'param', 2),
         target_vlan_id=vlan_id,
         target_vm_firmware=pxe_loader.vm_firmware,
-        target_vm_cd_iso=cd_iso,
+        target_pxeless_image=cd_iso,
         blank=True,
         target_memory='6GiB',
         auth=module_ssh_key_file,
@@ -334,22 +334,14 @@ def pxeless_discovery_host(provisioning_host, module_discovery_sat):
         import_disk_image_name=image_name,
         import_disk_image_url=(f'https://{sat.hostname}/pub/{fdi}'),
     ).execute()
-    # Change host to boot from CD ISO
+    # Change host to boot discovery image
     Broker(
-        job_template='configure-pxe-boot-rhv',
+        job_template='configure-pxe-boot',
         target_host=provisioning_host.name,
         target_vlan_id=settings.provisioning.vlan_id,
         target_vm_firmware=provisioning_host._broker_args['target_vm_firmware'],
-        target_vm_cd_iso=image_name,
+        target_pxeless_image=image_name,
         target_boot_scenario='pxeless_pre',
     ).execute()
     yield provisioning_host
-    # Remove ISO from host and delete disk image
-    Broker(
-        job_template='configure-pxe-boot-rhv',
-        target_host=provisioning_host.name,
-        target_vlan_id=settings.provisioning.vlan_id,
-        target_vm_firmware=provisioning_host._broker_args['target_vm_firmware'],
-        target_boot_scenario='pxeless_pre',
-    ).execute()
     Broker(workflow='remove-disk-image', remove_disk_image_name=image_name).execute()
