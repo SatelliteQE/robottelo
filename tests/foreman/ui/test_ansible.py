@@ -251,43 +251,6 @@ class TestAnsibleCfgMgmt:
         """
 
     @pytest.mark.stubbed
-    @pytest.mark.tier2
-    def test_positive_assign_role_in_new_ui(self):
-        """Using the new Host UI, assign a role to a Host
-
-        :id: 044f38b4-cff2-4ddc-b93c-7e9f2826d00d
-
-        :steps:
-            1. Register a RHEL host to Satellite.
-            2. Import all roles available by default.
-            3. Navigate to the new UI for the given Host.
-            4. Select the 'Ansible' tab
-            5. Click the 'Assign Ansible Roles' button.
-            6. Using the popup, assign a role to the Host.
-
-        :expectedresults: The Role is successfully assigned to the Host, and visible on the UI
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier2
-    def test_positive_remove_role_in_new_ui(self):
-        """Using the new Host UI, remove the role(s) of a Host
-
-        :id: d6de5130-45f6-4349-b490-fbde2aed082c
-
-        :steps:
-            1. Register a RHEL host to Satellite.
-            2. Import all roles available by default.
-            3. Assign a role to the host.
-            4. Navigate to the new UI for the given Host.
-            5. Select the 'Ansible' tab
-            6. Click the 'Edit Ansible roles' button.
-            7. Using the popup, remove the assigned role from the Host.
-
-        :expectedresults: Role is successfully removed from the Host, and not visible on the UI
-        """
-
-    @pytest.mark.stubbed
     @pytest.mark.tier3
     def test_positive_ansible_variables_imported_with_roles(self):
         """Verify that, when Ansible roles are imported, their variables are imported simultaneously
