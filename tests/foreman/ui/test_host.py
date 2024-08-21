@@ -41,6 +41,7 @@ from robottelo.constants import (
 )
 from robottelo.constants.repos import CUSTOM_FILE_REPO
 from robottelo.utils.datafactory import gen_string
+from tests.foreman.api.test_errata import cv_publish_promote
 
 
 def _get_set_from_list_of_dict(value):
@@ -1876,6 +1877,59 @@ def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_
         session.organization.select(function_org.name)
         session.location.select(function_location.name)
         assert session.all_hosts.bulk_delete_all()
+
+
+@pytest.mark.tier2
+def test_all_hosts_bulk_cve_reassign(
+    target_sat, module_org, module_location, module_lce, module_cv, new_host_ui
+):
+    """Create several hosts, and bulk assigns them a new CVE via All Hosts UI
+
+    :id: 9acb3cf3-c042-4cc7-abdf-31f9a7f1fff0
+
+    :steps:
+        1.Create 2 Hosts, and register them to the first LCE.
+        2.Create a second LCE and promote the CV from the first LCE to this one.
+        3.Using the All Hosts UI, reassign both hosts from the first LCE to the second LCE.
+
+    :expectedresults: Both hosts are successfully assigned to a new LCE and CV
+
+    :CaseComponent: Hosts-Content
+
+    :Team: Phoenix-subscriptions
+    """
+    lce2 = target_sat.api.LifecycleEnvironment(organization=module_org).create()
+    module_cv = target_sat.api.ContentView(id=module_cv.id).read()
+    module_cv = cv_publish_promote(target_sat, module_org, module_cv, module_lce)['content-view']
+    module_cv = cv_publish_promote(target_sat, module_org, module_cv, lce2)['content-view']
+    for _ in range(3):
+        target_sat.api.Host(
+            organization=module_org,
+            location=module_location,
+            content_facet_attributes={
+                'content_view_id': module_cv.id,
+                'lifecycle_environment_id': module_lce.id,
+            },
+        ).create()
+    with target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.location.select(module_location.name)
+        headers = session.all_hosts.get_displayed_table_headers()
+        if "Lifecycle environment" not in headers:
+            wait_for(lambda: session.browser.refresh(), timeout=5)
+            session.all_hosts.manage_table_columns(
+                {
+                    'Lifecycle environment': True,
+                }
+            )
+        pre_table = session.all_hosts.read_table()
+        for row in pre_table:
+            assert row['Lifecycle environment'] == module_lce.name
+        session.all_hosts.manage_cve(lce=lce2.name, cv=module_cv.name)
+        wait_for(lambda: session.browser.refresh(), timeout=5)
+        post_table = session.all_hosts.read_table()
+        for row in post_table:
+            assert row['Lifecycle environment'] == lce2.name
 
 
 @pytest.mark.tier2

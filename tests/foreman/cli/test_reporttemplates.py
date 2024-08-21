@@ -396,7 +396,7 @@ def test_positive_generate_report_sanitized(module_target_sat):
 
     result = module_target_sat.cli.ReportTemplate.generate({'name': report_template['name']})
     assert 'Name,Operating System' in result  # verify header of custom template
-    assert f'{host["name"]},"{host["operating-system"]["operating-system"]}"' in result
+    assert f'{host["name"]},"{host["operating-system"]["operating-system"]["name"]}"' in result
 
 
 @pytest.mark.tier3

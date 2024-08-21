@@ -1080,8 +1080,8 @@ def test_hammer_host_info_output(target_sat, module_user):
     target_sat.cli.User.update(
         {
             'id': module_user.id,
-            'organizations': [host['organization']],
-            'locations': [host['location']],
+            'organizations': [host['organization']['name']],
+            'locations': [host['location']['name']],
         }
     )
     target_sat.cli.Host.update({'owner-id': module_user.id, 'id': '1'})
