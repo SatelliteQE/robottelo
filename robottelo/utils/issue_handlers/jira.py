@@ -42,7 +42,7 @@ def sanitized_issue_data(issue, out_fields):
         out_fields {list} -- The list of fields for which data to be retrieved from jira issue
     """
     return {
-        field: eval(mapped_response_fields[field].format(obj_name='issue')) for field in out_fields
+        field: eval(mapped_response_fields[field].format(obj_name=issue)) for field in out_fields
     }
 
 
