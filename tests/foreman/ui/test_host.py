@@ -2563,14 +2563,13 @@ def test_all_hosts_manage_errata(
     for host in mod_content_hosts:
         host.add_rex_key(module_target_sat)
         module_repos_collection_with_setup.setup_virtual_machine(host, enable_custom_repos=True)
+        host.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
+        result = host.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
+        assert result.status == 0
         if errata_to_install == "2":
             host.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
             result = host.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
             assert result.status == 0
-        host.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
-        assert result.status == 0
-        result = host.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
-
     with module_target_sat.ui_session() as session:
         session.organization.select(module_org.name)
         session.location.select(loc_name=DEFAULT_LOC)
