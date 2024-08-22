@@ -21,6 +21,7 @@ from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
+    KICKSTART_CONTENT,
     MIRRORING_POLICIES,
     REPOS,
 )
@@ -144,31 +145,27 @@ def test_positive_epel_repositories_with_mirroring_policy(
 
 
 @pytest.mark.tier4
-def test_positive_sync_kickstart_repo(module_sca_manifest_org, target_sat):
-    """No encoding gzip errors on kickstart repositories
-    sync.
+@pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos'])
+def test_positive_sync_kickstart_repo(distro, module_sca_manifest_org, target_sat):
+    """No encoding gzip errors on kickstart repositories sync, kickstart content present.
 
     :id: dbdabc0e-583c-4186-981a-a02844f90412
 
-    :expectedresults: No encoding gzip errors present in /var/log/messages.
+    :steps:
+        1. Sync a kickstart repository.
+        2. After the repo is synced, change the download policy to immediate.
+        3. Sync the repository again.
+        4. Assert that no errors related to encoding gzip are present in /var/log/messages.
+        5. Assert that sync was executed properly and kickstart content is present.
+
+    :expectedresults:
+        1. No encoding gzip errors present in /var/log/messages.
+        2. Sync succeeds and kickstart content is present.
 
     :customerscenario: true
 
-    :steps:
-
-        1. Sync a kickstart repository.
-        2. After the repo is synced, change the download policy to
-            immediate.
-        3. Sync the repository again.
-        4. Assert that no errors related to encoding gzip are present in
-            /var/log/messages.
-        5. Assert that sync was executed properly.
-
-    :CaseComponent: Pulp
-
     :BZ: 1687801
     """
-    distro = 'rhel8_bos'
     rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=module_sca_manifest_org.id,
@@ -190,6 +187,8 @@ def test_positive_sync_kickstart_repo(module_sca_manifest_org, target_sat):
     rh_repo = rh_repo.read()
     assert rh_repo.content_counts['package_group'] > 0
     assert rh_repo.content_counts['rpm'] > 0
+    for file in KICKSTART_CONTENT:
+        assert target_sat.checksum_by_url(f'{rh_repo.full_path}{file}')
 
 
 def test_positive_sync_upstream_repo_with_zst_compression(
