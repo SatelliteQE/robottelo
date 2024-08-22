@@ -29,6 +29,6 @@ wait-for==1.2.0
 wrapanapi==3.6.1
 
 # Get airgun, nailgun and upgrade from master
-airgun @ git+https://github.com/SatelliteQE/airgun.git@master#egg=airgun
-nailgun @ git+https://github.com/SatelliteQE/nailgun.git@master#egg=nailgun
+airgun @ git+https://github.com/SatelliteQE/airgun.git@6.16.z#egg=airgun
+nailgun @ git+https://github.com/SatelliteQE/nailgun.git@6.16.z#egg=nailgun
 --editable .
