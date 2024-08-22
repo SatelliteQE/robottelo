@@ -192,6 +192,8 @@ def test_end_to_end(
 
     :BZ: 2029192
 
+    :verifies: SAT-23414
+
     :customerscenario: true
     """
     ERRATA_DETAILS = {
