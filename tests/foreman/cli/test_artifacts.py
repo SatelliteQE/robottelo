@@ -46,7 +46,6 @@ def module_synced_content(
     return Box(prod=module_product, repo=repo, cv=cv.read(), sync_time=sync_time)
 
 
-@pytest.mark.stream
 @pytest.mark.parametrize('repair_type', ['repo', 'cv', 'product'])
 @pytest.mark.parametrize(
     'module_synced_content',
