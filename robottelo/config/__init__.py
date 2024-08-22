@@ -28,6 +28,7 @@ def get_settings():
         settings = LazySettings(
             envvar_prefix="ROBOTTELO",
             core_loaders=["YAML"],
+            root_path=str(robottelo_root_dir),
             settings_file="settings.yaml",
             preload=["conf/*.yaml"],
             includes=["settings.local.yaml", ".secrets.yaml", ".secrets_*.yaml"],
