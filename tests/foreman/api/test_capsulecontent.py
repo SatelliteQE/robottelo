@@ -1897,3 +1897,61 @@ class TestCapsuleContentManagement:
         assert (
             reclaim_doc['apis'][0]['api_url'] == '/katello/api/capsules/:id/content/reclaim_space'
         ), 'Documented path did not meet the expectation.'
+
+
+class TestPodman:
+    """Tests specific to using podman push/pull on Satellite
+
+    :CaseComponent: Repositories
+
+    :team: Phoenix-content
+    """
+
+    @pytest.fixture(scope='class')
+    def enable_podman_capsule(module_product, module_capsule_configured):
+        """Enable base_os and appstream repos on the sat through cdn registration and install podman."""
+        module_capsule_configured.register_to_cdn()
+        if module_capsule_configured.os_version.major > 7:
+            module_capsule_configured.enable_repo(module_capsule_configured.REPOS['rhel_bos']['id'])
+            module_capsule_configured.enable_repo(module_capsule_configured.REPOS['rhel_aps']['id'])
+        else:
+            module_capsule_configured.enable_repo(module_capsule_configured.REPOS['rhscl']['id'])
+            module_capsule_configured.enable_repo(module_capsule_configured.REPOS['rhel']['id'])
+        result = module_capsule_configured.execute(
+            'dnf install -y --disableplugin=foreman-protector podman'
+        )
+        assert result.status == 0
+
+    def test_negative_podman_capsule_push(
+        self,
+        module_target_sat,
+        module_product,
+        module_org,
+        module_lce,
+        enable_podman_capsule,
+        module_capsule_configured,
+    ):
+        """Attempt to push a Podman image to a Capsule/Smart Proxy
+
+        :id: 310f629a-837a-4457-980e-d2f4345b495e
+
+        :steps:
+            1. Using podman, pull an image from the fedoraproject registry.
+            2. Attempt to push this image to a Capsule/Smart Proxy
+
+        :expectedresults: Podman containers cannot be pushed to a Capsule/Smart Proxy and an appropriate
+            error is returned when attempting to do so.
+
+        :CaseImportance: High
+        """
+        IMAGE_NAME_TAG = 'fedora:latest'
+        image_pull = module_capsule_configured.execute(
+            f'podman pull registry.fedoraproject.org/{IMAGE_NAME_TAG}'
+        )
+        assert image_pull.status == 0
+        large_image_id = image_pull.stdout.strip()
+        assert large_image_id
+        result = module_capsule_configured.execute(
+            f'podman push --creds {settings.server.admin_username}:{settings.server.admin_password} {large_image_id} {module_capsule_configured.hostname}/{IMAGE_NAME_TAG}'
+        )
+        assert 'Pushing content is unsupported' in result.stderr
