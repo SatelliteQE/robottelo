@@ -2563,12 +2563,13 @@ def test_all_hosts_manage_errata(
     for host in mod_content_hosts:
         host.add_rex_key(module_target_sat)
         module_repos_collection_with_setup.setup_virtual_machine(host, enable_custom_repos=True)
-        host.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
+        if errata_to_install == "2":
+            host.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
+            result = host.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
+            assert result.status == 0
         host.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
-        result = host.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
         assert result.status == 0
         result = host.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
-        assert result.status == 0
 
     with module_target_sat.ui_session() as session:
         session.organization.select(module_org.name)
@@ -2579,10 +2580,10 @@ def test_all_hosts_manage_errata(
             manage_by_customized_rex=manage_by_custom_rex,
         )
         if errata_to_install == "2":
-            errata_ids = f'({errata_ids[0]},{errata_ids[1]})'
+            errata_ids = f'{errata_ids[0]},{errata_ids[1]}'
         for host in mod_content_hosts:
             task_result = module_target_sat.wait_for_tasks(
-                search_query=(f'"Install errata errata_id ^ {errata_ids} on {host.hostname}"'),
+                search_query=(f'"Install errata errata_id ^ ({errata_ids}) on {host.hostname}"'),
                 search_rate=2,
                 max_tries=60,
             )
