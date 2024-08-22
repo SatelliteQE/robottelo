@@ -2601,10 +2601,13 @@ class TestInterSatelliteSync:
 
     @pytest.mark.e2e
     @pytest.mark.tier3
-    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.pit_server
+    @pytest.mark.pit_client
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
-        ['rhsclient8'],
+        ['rhsclient9'],
         indirect=True,
     )
     def test_positive_export_import_consume_incremental_yum_repo(
@@ -2837,6 +2840,7 @@ class TestNetworkSync:
     """Implements Network Sync scenarios."""
 
     @pytest.mark.tier2
+    @pytest.mark.pit_server
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],
