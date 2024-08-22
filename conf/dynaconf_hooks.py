@@ -53,7 +53,7 @@ def config_migrations(settings, data):
     :type data: dict
     """
     logger.info('Running config migration hooks')
-    sys.path.append(str(Path(__file__).parent))
+    sys.path.append(str(Path(__file__).parent.parent))
     from conf import migrations
 
     migration_functions = [
