@@ -44,7 +44,9 @@ def test_positive_clone_backup(
 
     :parametrized: yes
 
-    :BZ: 2142514, 2013776
+    :BZ: 2142514
+
+    :Verifies: SAT-10789
 
     :customerscenario: true
     """

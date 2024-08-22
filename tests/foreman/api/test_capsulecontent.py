@@ -1711,7 +1711,7 @@ class TestCapsuleContentManagement:
 
         :BlockedBy: SAT-25503
 
-        :BZ: 2284027
+        :verifies: SAT-25503
 
         :customerscenario: true
         """

@@ -429,8 +429,6 @@ def test_positive_verify_updated_fdi_image(target_sat):
 
     Verifies: SAT-24197, SAT-25275
 
-    :BZ: 2271598
-
     :customerscenario: true
 
     :CaseImportance: Critical
