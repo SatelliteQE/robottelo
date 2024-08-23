@@ -14,7 +14,7 @@ productmd==1.38
 pyotp==2.9.0
 python-box==7.2.0
 pytest==8.3.2
-pytest-order==1.2.1
+pytest-order==1.3.0
 pytest-services==2.2.1
 pytest-mock==3.14.0
 pytest-reportportal==5.4.1
