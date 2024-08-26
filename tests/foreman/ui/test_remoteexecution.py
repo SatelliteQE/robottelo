@@ -387,3 +387,70 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_cont
         assert job_status['overview']['job_status'] == 'Success'
         assert job_status['overview']['hosts_table'][0]['Host'] == hostname
         assert job_status['overview']['hosts_table'][0]['Status'] == 'success'
+
+
+@pytest.mark.tier2
+@pytest.mark.rhel_ver_list('8')
+@pytest.mark.usefixtures('setting_update')
+@pytest.mark.parametrize('setting_update', ['lab_features=true'], indirect=True)
+def test_positive_check_job_invocation_details_page(target_sat, module_org, rex_contenthost):
+    """
+    Run a remote job and check the job invocations detail page for correct values.
+
+    :id: 7d201a52-5db1-11ef-98e6-000c29a0e355
+
+    :steps:
+        1. Run a successful remote job on one host.
+        2. Check the result data on the new job invocation details page.
+
+    :expectedresults:
+        1. It should report the job name in the title.
+        2. It should report the correct numbers in Succeeded, Failed, In Progres and Cancelled fields.
+        3. It should report the correct template name that was used.
+
+    :CaseImportance: High
+
+    :Verifies: SAT-18427
+
+    :parametrized: yes
+    """
+    client = rex_contenthost
+
+    correlation_id = gen_string("alphanumeric").lower()
+    command = f'echo {correlation_id}'
+    job_name = f'Run {command}'
+    template_name = 'Run Command - Script Default'
+    jobs_succeeded = 1
+    total_hosts = 1
+
+    template_id = (
+        target_sat.api.JobTemplate().search(query={'search': f'name="{template_name}"'})[0].id
+    )
+    job = target_sat.api.JobInvocation().run(
+        synchronous=False,
+        data={
+            'job_template_id': template_id,
+            'organization': module_org.name,
+            'inputs': {
+                'command': command,
+            },
+            'targeting_type': 'static_query',
+            'search_query': f'name = {client.hostname}',
+        },
+    )
+    target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
+    result = target_sat.api.JobInvocation(id=job['id']).read()
+    assert result.succeeded == jobs_succeeded
+
+    with target_sat.ui_session() as session:
+        status = session.jobinvocation.read(
+            entity_name=job_name, host_name=client.hostname, new_ui=True
+        )
+        assert status['title'] == job_name
+        assert status['overall_status']['succeeded_hosts'] == jobs_succeeded
+        assert status['overall_status']['total_hosts'] == total_hosts
+        assert status['status']['Succeeded'] == jobs_succeeded
+        assert status['status']['Failed'] == 0
+        assert status['status']['In Progress'] == 0
+        assert status['status']['Canceled'] == 0
+        assert status['overview']['Template'] == template_name
