@@ -2556,9 +2556,9 @@ def test_all_hosts_manage_errata(
 
     :Team: Phoenix-content
     """
-    if errata_to_install == "1":
+    if errata_to_install == '1':
         errata_ids = settings.repos.yum_3.errata[25]
-    if errata_to_install == "2":
+    if errata_to_install == '2':
         errata_ids = [settings.repos.yum_3.errata[25], settings.repos.yum_1.errata[1]]
     for host in mod_content_hosts:
         host.add_rex_key(module_target_sat)
@@ -2566,7 +2566,7 @@ def test_all_hosts_manage_errata(
         host.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
         result = host.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
         assert result.status == 0
-        if errata_to_install == "2":
+        if errata_to_install == '2':
             host.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
             result = host.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
             assert result.status == 0
@@ -2578,7 +2578,7 @@ def test_all_hosts_manage_errata(
             erratas_to_apply_by_id=errata_ids,
             manage_by_customized_rex=manage_by_custom_rex,
         )
-        if errata_to_install == "2":
+        if errata_to_install == '2':
             errata_ids = f'{errata_ids[0]},{errata_ids[1]}'
         for host in mod_content_hosts:
             task_result = module_target_sat.wait_for_tasks(
