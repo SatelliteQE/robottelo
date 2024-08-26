@@ -182,15 +182,26 @@ class TestRemoteExecution:
     @pytest.mark.tier3
     @pytest.mark.pit_client
     @pytest.mark.pit_server
+    @pytest.mark.parametrize(
+        'setting_update',
+        [
+            'remote_execution_effective_user_method=sudo',
+            'remote_execution_effective_user_method=su',
+        ],
+        ids=["sudo", "su"],
+        indirect=True,
+    )
     @pytest.mark.rhel_ver_list([7, 8, 9])
-    def test_positive_run_job_effective_user(self, rex_contenthost, module_target_sat):
+    def test_positive_run_job_effective_user(
+        self, rex_contenthost, module_target_sat, setting_update
+    ):
         """Run default job template as effective user on a host, test ssh user as well
 
         :id: 0cd75cab-f699-47e6-94d3-4477d2a94bb7
 
         :BZ: 1451675, 1804685
 
-        :verifies: SAT-22554
+        :verifies: SAT-22554, SAT-23229
 
         :expectedresults: Verify the job was successfully run under the
             effective user identity on host, make sure the password is
