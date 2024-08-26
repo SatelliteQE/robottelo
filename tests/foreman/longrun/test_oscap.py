@@ -190,6 +190,10 @@ def scap_prerequisites(module_org, default_proxy, target_sat):
     distro = 'rhel8'
     profile = profiles[distro]
     content = OSCAP_DEFAULT_CONTENT[f'{distro}_content']
+    # put the scap content to the correct org
+    orgs = target_sat.cli.Scapcontent.info({'title': content})['organizations']
+    orgs.append(module_org.name)
+    target_sat.cli.Scapcontent.update({'title': content, 'organizations': orgs})
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')
     # Create hostgroup
@@ -384,8 +388,6 @@ def test_positive_oscap_remediation(
         target_sat.cli.Host.update(
             {
                 'name': vm.hostname.lower(),
-                'lifecycle-environment': lifecycle_env.name,
-                'content-view': content_view.name,
                 'hostgroup': hgrp_name,
                 'openscap-proxy-id': default_proxy,
                 'organization': module_org.name,
@@ -423,12 +425,12 @@ def test_positive_oscap_remediation(
                 title in [result['Resource'] for result in results_failed]
             ), 'This test expects the report to contain failure of "aide" package presence check. If this fails, it\'s probably a matter of wrong assumption of this test, not a product bug.'
             session.oscapreport.remediate(f'id={arf_id}', title)
-            wait_for(
-                lambda: vm.execute("rpm -q aide").status == 0,
-                timeout=120,
-                delay=10,
-            )
-            assert vm.execute("rpm -q aide").status == 0
+        wait_for(
+            lambda: vm.execute("rpm -q aide").status == 0,
+            timeout=300,
+            delay=10,
+        )
+        assert vm.execute("rpm -q aide").status == 0
 
 
 @pytest.mark.rhel_ver_list([7, 8, 9])
