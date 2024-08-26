@@ -207,7 +207,8 @@ class TestRepository:
         for key in 'url', 'content-type':
             assert repo.get(key) == repo_options[key]
 
-    @pytest.mark.tier1
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -224,14 +225,16 @@ class TestRepository:
         ),
         indirect=True,
     )
-    def test_positive_create_with_auth_yum_repo(self, target_sat, repo_options, repo):
-        """Create YUM repository with basic HTTP authentication
+    def test_positive_create_and_sync_with_auth_yum_repo(self, target_sat, repo_options, repo):
+        """Create and sync YUM repository with basic HTTP authentication
 
-        :id: da8309fd-3076-427b-a96f-8d883d6e944f
+        :id: 6bb1f158-4821-40ea-badb-43ea75d93b42
 
         :parametrized: yes
 
-        :expectedresults: YUM repository is created
+        :expectedresults: YUM repository is created and synced successfully
+
+        :BZ: 1328092
 
         :CaseImportance: Critical
         """
@@ -239,6 +242,15 @@ class TestRepository:
             assert repo.get(key) == repo_options[key]
         repo = target_sat.api.Repository(id=repo['id']).read()
         assert repo.upstream_username == repo_options['upstream-username']
+
+        repo = target_sat.cli.Repository.info({'id': repo.id})
+        # Assertion that repo is not yet synced
+        assert repo['sync']['status'] == 'Not Synced'
+        # Synchronize it
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+        # Verify it has finished
+        new_repo = target_sat.cli.Repository.info({'id': repo['id']})
+        assert new_repo['sync']['status'] == 'Success'
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
@@ -698,44 +710,6 @@ class TestRepository:
         repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
         assert int(repo['content-counts']['files']) == CUSTOM_FILE_REPO_FILES_COUNT
-
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {
-                    'content-type': 'yum',
-                    'url': FAKE_5_YUM_REPO,
-                    'upstream-username': cred['login'],
-                    'upstream-password': cred['pass'],
-                }
-                for cred in valid_http_credentials()
-                if cred['http_valid']
-            ]
-        ),
-        indirect=True,
-    )
-    def test_positive_synchronize_auth_yum_repo(self, repo, target_sat):
-        """Check if secured repository can be created and synced
-
-        :id: b0db676b-e0f0-428c-adf3-1d7c0c3599f0
-
-        :parametrized: yes
-
-        :expectedresults: Repository is created and synced
-
-        :BZ: 1328092
-
-        """
-        # Assertion that repo is not yet synced
-        assert repo['sync']['status'] == 'Not Synced'
-        # Synchronize it
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        # Verify it has finished
-        new_repo = target_sat.cli.Repository.info({'id': repo['id']})
-        assert new_repo['sync']['status'] == 'Success'
 
     @pytest.mark.skip_if_open("BZ:2035025")
     @pytest.mark.tier2
