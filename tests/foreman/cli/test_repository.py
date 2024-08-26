@@ -156,33 +156,6 @@ class TestRepository:
         assert repo.get('upstream-repository-name') == repo_options['docker-upstream-name']
 
     @pytest.mark.tier1
-    @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'name': name} for name in valid_data_list().values()]),
-        indirect=True,
-    )
-    def test_positive_create_delete_with_name(self, repo_options, repo, module_target_sat):
-        """Check if repository can be created with random names and deleted by the name.
-
-        :id: 604dea2c-d512-4a27-bfc1-24c9655b6ea9
-
-        :parametrized: yes
-
-        :expectedresults:
-            1. Repository is created and has random name.
-            2. Repository can be deleted using that name.
-
-        :CaseImportance: Critical
-        """
-        assert repo['name'] == repo_options['name']
-        module_target_sat.cli.Repository.delete(
-            {'name': repo['name'], 'product-id': repo_options['product-id']}
-        )
-        with pytest.raises(CLIReturnCodeError):
-            module_target_sat.cli.Repository.info({'id': repo['id']})
-
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -193,20 +166,26 @@ class TestRepository:
         ),
         indirect=True,
     )
-    def test_positive_create_with_name_label(self, repo_options, repo):
-        """Check if repository can be created with random names and
-        labels
+    def test_positive_create_delete_with_name_label(self, repo_options, repo, target_sat):
+        """Check if repository can be created with random names and labels and deleted by name.
 
         :id: 79d2a6d0-5032-46cd-880c-46cf392521fa
 
         :parametrized: yes
 
-        :expectedresults: Repository is created and has random name and labels
+        :expectedresults:
+            1. Repository is created and has random name and labels.
+            2. Repository can be deleted by name.
 
         :CaseImportance: Critical
         """
         for key in 'name', 'label':
             assert repo.get(key) == repo_options[key]
+        target_sat.cli.Repository.delete(
+            {'name': repo['name'], 'product-id': repo_options['product-id']}
+        )
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.Repository.info({'id': repo['id']})
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
