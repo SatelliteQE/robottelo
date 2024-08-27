@@ -471,7 +471,7 @@ class TestAnsibleREX:
             None,
             module_ak_with_cv.name,
             target_sat,
-            repo=settings.repos.yum_3.url,
+            repo_data=f'repo={settings.repos.yum_3.url}',
         )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         # install package
