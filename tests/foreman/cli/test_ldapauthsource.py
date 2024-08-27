@@ -131,6 +131,7 @@ class TestADAuthSource:
             {'id': user_group['id'], 'role-id': viewer_role['id']}
         )
         user_group = module_target_sat.cli.UserGroup.info({'id': user_group['id']})
+        module_target_sat.cli.Auth.logout()
         result = module_target_sat.cli.Auth.with_user(
             username=ad_data['ldap_user_name'], password=ad_data['ldap_user_passwd']
         ).status()
