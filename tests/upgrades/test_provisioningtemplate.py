@@ -12,6 +12,8 @@
 
 """
 
+import json
+
 from fauxfactory import gen_string
 import pytest
 
@@ -74,12 +76,12 @@ class TestScenarioPositiveProvisioningTemplates:
         for kind in provisioning_template_kinds:
             assert host.read_template(data={'template_kind': kind})
 
-        save_test_data(
-            {
-                'provision_host_id': host.id,
-                'pxe_loader': pxe_loader.pxe_loader,
-            }
-        )
+        pre_update_data_dict = {
+            'provision_host_id': host.id,
+            'pxe_loader': pxe_loader.pxe_loader,
+        }
+        pre_update_json_file = json.dumps(pre_update_data_dict, indent=2)
+        save_test_data(pre_update_json_file)
 
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_provisioning_templates)
     @pytest.mark.parametrize('pre_upgrade_data', ['bios', 'uefi'], indirect=True)
