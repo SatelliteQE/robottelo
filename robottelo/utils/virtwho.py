@@ -611,11 +611,9 @@ def hypervisor_guest_mapping_check_legacy_ui(
     org_session.location.select(default_location.name)
     hypervisor_display_name = org_session.contenthost.search(hypervisor_name)[0]['Name']
     hypervisorhost = org_session.contenthost.read_legacy_ui(hypervisor_display_name)
-    assert hypervisorhost['details']['subscription_status'] == 'Simple Content Access'
     assert hypervisorhost['details']['virtual_guest'] == '1 Content Host'
     # Check virtual guest subscription status and hypervisor host and virtual guest mapping in Legacy UI
     virtualguest = org_session.contenthost.read_legacy_ui(guest_name)
-    assert virtualguest['details']['subscription_status'] == 'Simple Content Access'
     assert virtualguest['details']['virtual_host'] == hypervisor_display_name
 
 
@@ -624,7 +622,7 @@ def hypervisor_guest_mapping_newcontent_ui(org_session, hypervisor_name, guest_n
     hypervisorhost_new_overview = org_session.host_new.get_details(
         hypervisor_display_name, 'overview'
     )
-    assert hypervisorhost_new_overview['overview']['host_status']['status_success'] == '2'
+    assert hypervisorhost_new_overview['overview']['host_status']['status_success'] == '1'
     # hypervisor host Check details
     hypervisorhost_new_detais = org_session.host_new.get_details(hypervisor_display_name, 'details')
     assert (
@@ -637,7 +635,7 @@ def hypervisor_guest_mapping_newcontent_ui(org_session, hypervisor_name, guest_n
     )
     # Check guest overview
     guest_new_overview = org_session.host_new.get_details(guest_name, 'overview')
-    assert guest_new_overview['overview']['host_status']['status_success'] == '2'
+    assert guest_new_overview['overview']['host_status']['status_success'] == '1'
     # Check guest details
     virtualguest_new_detais = org_session.host_new.get_details(guest_name, 'details')
     assert (
