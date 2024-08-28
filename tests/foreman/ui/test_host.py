@@ -30,6 +30,7 @@ from robottelo.constants import (
     DEFAULT_CV,
     DEFAULT_LOC,
     ENVIRONMENT,
+    FAKE_1_CUSTOM_PACKAGE,
     FAKE_7_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE_NAME,
@@ -2517,44 +2518,73 @@ def test_positive_manage_packages(
             ), 'Could not remove installed packages in a finalizer!'
 
 
+@pytest.mark.parametrize('errata_to_install', ['1', '2'])
+@pytest.mark.parametrize('manage_by_custom_rex', [True, False])
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [
+        {
+            'distro': 'rhel8',
+            'YumRepository': [
+                {'url': settings.repos.yum_3.url},
+                {'url': settings.repos.yum_1.url},
+            ],
+        }
+    ],
+    indirect=True,
+)
+@pytest.mark.no_containers
 @pytest.mark.tier2
-def test_all_hosts_bulk_hostgroup_assignment(target_sat, module_org, module_location, new_host_ui):
-    """Create several hosts and change their assigned hostgroup via All Hosts UI
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_all_hosts_manage_errata(
+    session,
+    module_target_sat,
+    module_org,
+    mod_content_hosts,
+    module_repos_collection_with_setup,
+    manage_by_custom_rex,
+    errata_to_install,
+    new_host_ui,
+):
+    """Apply an errata on multiple hosts through bulk errata wizard in All Hosts page.
 
-    :id: bd162801-1118-440d-9793-eb14db88debf
+    :id: c14c87a3-fdeb-4ad2-af36-65aa17fc7d41
 
-    :expectedresults: Hostgroup reassignment in All Hosts UI works properly.
+    :expectedresults: Errata can be bulk applied to hosts through the All Hosts page.
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent: Hosts-Content
 
-    :Team: Phoenix-subscriptions
+    :Team: Phoenix-content
     """
-    hostgroup = target_sat.api.HostGroup(
-        location=[module_location], organization=[module_org]
-    ).create()
-    new_hostgroup = target_sat.api.HostGroup(
-        location=[module_location], organization=[module_org]
-    ).create()
-    for _ in range(3):
-        target_sat.api.Host(
-            organization=module_org, hostgroup=hostgroup, location=module_location
-        ).create()
-    with target_sat.ui_session() as session:
+    if errata_to_install == '1':
+        errata_ids = settings.repos.yum_3.errata[25]
+    if errata_to_install == '2':
+        errata_ids = [settings.repos.yum_3.errata[25], settings.repos.yum_1.errata[1]]
+    for host in mod_content_hosts:
+        host.add_rex_key(module_target_sat)
+        module_repos_collection_with_setup.setup_virtual_machine(host, enable_custom_repos=True)
+        host.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
+        result = host.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
+        assert result.status == 0
+        if errata_to_install == '2':
+            host.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
+            result = host.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
+            assert result.status == 0
+    with module_target_sat.ui_session() as session:
         session.organization.select(module_org.name)
-        session.location.select(module_location.name)
-        headers = session.all_hosts.get_displayed_table_headers()
-        if 'Host group' not in headers:
-            wait_for(lambda: session.browser.refresh(), timeout=5)
-            session.all_hosts.manage_table_columns(
-                {
-                    'Host group': True,
-                }
+        session.location.select(loc_name=DEFAULT_LOC)
+        session.all_hosts.manage_errata(
+            host_names=[mod_content_hosts[0].hostname, mod_content_hosts[1].hostname],
+            erratas_to_apply_by_id=errata_ids,
+            manage_by_customized_rex=manage_by_custom_rex,
+        )
+        if errata_to_install == '2':
+            errata_ids = f'{errata_ids[0]},{errata_ids[1]}'
+        for host in mod_content_hosts:
+            task_result = module_target_sat.wait_for_tasks(
+                search_query=(f'"Install errata errata_id ^ ({errata_ids}) on {host.hostname}"'),
+                search_rate=2,
+                max_tries=60,
             )
-        pre_table = session.all_hosts.read_table()
-        for row in pre_table:
-            assert row['Host group'] == hostgroup.name
-        session.all_hosts.change_hostgroup(new_hostgroup.name)
-        wait_for(lambda: session.browser.refresh(), timeout=5)
-        post_table = session.all_hosts.read_table()
-        for row in post_table:
-            assert row['Host group'] == new_hostgroup.name
+            task_status = module_target_sat.api.ForemanTask(id=task_result[0].id).poll()
+            assert task_status['result'] == 'success'
