@@ -256,7 +256,7 @@ def test_positive_oscap_run_via_ansible(
 
     :BZ: 1716307, 1992229
 
-    :Verifies: SAT-19389, SAT-24988
+    :Verifies: SAT-19389, SAT-24988, SAT-19491
 
     :customerscenario: true
 
