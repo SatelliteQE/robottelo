@@ -257,7 +257,7 @@ def function_sca_manifest():
 
 
 @pytest.fixture
-def function_golden_ticket_sca_manifest():
+def second_function_sca_manifest():
     """Yields a manifest in Simple Content Access mode with subscriptions determined by the
     `manifest_category.golden_ticket` setting in conf/manifest.yaml.
     A different one than is used in `function_sca_manifest_org`."""
@@ -278,12 +278,12 @@ def upgrade_entitlement_manifest():
     """Returns a manifest in entitlement mode with subscriptions determined by the
     `manifest_category.entitlement` setting in conf/manifest.yaml. used only for
     upgrade scenarios"""
-    manifestor = Manifester(manifest_category=settings.manifest.entitlement)
-    return manifestor.get_manifest(), manifestor
+    manifester = Manifester(manifest_category=settings.manifest.entitlement)
+    return manifester.get_manifest(), manifester
 
 
 @pytest.fixture
 def sca_manifest_for_upgrade():
     """Returns a manifest in sca mode. Used only for upgrade scenarios"""
-    manifestor = Manifester(manifest_category=settings.manifest.golden_ticket)
-    return manifestor.get_manifest(), manifestor
+    manifester = Manifester(manifest_category=settings.manifest.golden_ticket)
+    return manifester.get_manifest(), manifester

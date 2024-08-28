@@ -104,7 +104,7 @@ def test_positive_refresh(function_sca_manifest_org, request, target_sat):
 
 @pytest.mark.tier1
 def test_positive_create_after_refresh(
-    function_sca_manifest_org, function_golden_ticket_sca_manifest, target_sat
+    function_sca_manifest_org, second_function_sca_manifest, target_sat
 ):
     """Upload a manifest,refresh it and upload a new manifest to an other
      organization.
@@ -125,7 +125,7 @@ def test_positive_create_after_refresh(
     try:
         org_sub.refresh_manifest(data={'organization_id': function_sca_manifest_org.id})
         assert org_sub.search()
-        target_sat.upload_manifest(new_org.id, function_golden_ticket_sca_manifest.content)
+        target_sat.upload_manifest(new_org.id, second_function_sca_manifest.content)
         assert new_org_sub.search()
     finally:
         org_sub.delete_manifest(data={'organization_id': function_sca_manifest_org.id})
@@ -284,7 +284,7 @@ def test_sca_end_to_end(
 
 @pytest.mark.rhel_ver_match('7')
 @pytest.mark.tier2
-def test_positive_candlepin_events_processed_by_stomp(function_org, target_sat):
+def test_positive_candlepin_events_processed_by_stomp(function_org, target_sat, function_sca_manifest):
     """Verify that Candlepin events are being read and processed by
         checking candlepin events, uploading a manifest,
         and viewing processed and failed Candlepin events
@@ -316,12 +316,10 @@ def test_positive_candlepin_events_processed_by_stomp(function_org, target_sat):
     def parse(events):
         return {key: int(value) for value, key in re.findall(r'(\d+)\s(\w+)', events)}
 
-    manifester = Manifester(manifest_category=settings.manifest.golden_ticket)
-    manifest = manifester.get_manifest()
     pre_candlepin_events = target_sat.api.Ping().search_json()['services']['candlepin_events'][
         'message'
     ]
-    target_sat.upload_manifest(function_org.id, manifest.content)
+    target_sat.upload_manifest(function_org.id, function_sca_manifest.content)
     time.sleep(5)
     assert target_sat.api.Ping().search_json()['services']['candlepin_events']['status'] == 'ok'
     post_candlepin_events = target_sat.api.Ping().search_json()['services']['candlepin_events'][
