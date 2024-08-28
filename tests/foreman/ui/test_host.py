@@ -1933,6 +1933,24 @@ def test_all_hosts_bulk_cve_reassign(
 
 
 @pytest.mark.tier2
+def test_all_hosts_redirect_button(target_sat):
+    """Verify that the New UI button on the old Host page correctly redirects
+    to the All Hosts UI
+
+    :id: 7256f6d0-3ad9-471c-9e3e-bd41cc00a217
+
+    :expectedresults: New UI Button redirects to All Hosts page
+
+    :CaseComponent: Hosts-Content
+
+    :Team: Phoenix-subscriptions
+    """
+    with target_sat.ui_session() as session:
+        url = session.host.new_ui_button()
+        assert "/new/hosts" in url
+
+
+@pytest.mark.tier2
 def test_all_hosts_bulk_build_management(target_sat, function_org, function_location, new_host_ui):
     """Create several hosts, and manage them via Build Management in All Host UI
 
