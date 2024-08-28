@@ -245,43 +245,23 @@ def test_positive_create_as_non_admin_user_with_cv_published(module_org, test_na
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('allow_repo_discovery')
-def test_positive_discover_repo_via_existing_product(session, module_org, module_target_sat):
-    """Create repository via repo-discovery under existing product
+def test_positive_discover_repo_via_new_and_existing_product(
+    session, module_org, module_target_sat
+):
+    """Create repository via repo discovery under new product and existing product
 
-    :id: 9181950c-a756-456f-a46a-059e7a2add3c
+    :id: d8828eca-5ac5-4507-884c-581b8a39dbe1
 
-    :expectedresults: Repository is discovered and created
-    """
-    repo_name = 'fakerepo01'
-    product = module_target_sat.api.Product(organization=module_org).create()
-    with session:
-        session.organization.select(org_name=module_org.name)
-        session.product.discover_repo(
-            {
-                'repo_type': 'Yum Repositories',
-                'url': settings.repos.repo_discovery.url,
-                'discovered_repos.repos': repo_name,
-                'create_repo.product_type': 'Existing Product',
-                'create_repo.product_content.product_name': product.name,
-            }
-        )
-        assert repo_name in session.repository.search(product.name, repo_name)[0]['Name']
-
-
-@pytest.mark.tier2
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-@pytest.mark.usefixtures('allow_repo_discovery')
-def test_positive_discover_repo_via_new_product(session, module_org):
-    """Create repository via repo discovery under new product
-
-    :id: dc5281f8-1a8a-4a17-b746-728f344a1504
-
-    :expectedresults: Repository is discovered and created
+    :expectedresults: Repository is discovered and created for new product and existing product as well
     """
     product_name = gen_string('alpha')
     repo_name = 'fakerepo01'
+    repo_path = '/pulp/demo_repos/large_errata/'
+    repo_name_1 = 'zoo'
+    repo_url = settings.robottelo.REPOS_HOSTING_URL + repo_path
     with session:
         session.organization.select(org_name=module_org.name)
+        # Discover repo via new product
         session.product.discover_repo(
             {
                 'repo_type': 'Yum Repositories',
@@ -293,6 +273,18 @@ def test_positive_discover_repo_via_new_product(session, module_org):
         )
         assert session.product.search(product_name)[0]['Name'] == product_name
         assert repo_name in session.repository.search(product_name, repo_name)[0]['Name']
+
+        # Discover repo via existing product
+        session.product.discover_repo(
+            {
+                'repo_type': 'Yum Repositories',
+                'url': repo_url,
+                'discovered_repos.repos': repo_name_1,
+                'create_repo.product_type': 'Existing Product',
+                'create_repo.product_content.product_name': product_name,
+            }
+        )
+        assert repo_name_1 in session.repository.search(product_name, repo_name_1)[0]['Name']
 
 
 @pytest.mark.tier2
