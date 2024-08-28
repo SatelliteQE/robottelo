@@ -20,7 +20,6 @@ import re
 import time
 
 from fauxfactory import gen_string
-from manifester import Manifester
 from nailgun.config import ServerConfig
 from nailgun.entity_mixins import TaskFailedError
 import pytest
@@ -284,7 +283,9 @@ def test_sca_end_to_end(
 
 @pytest.mark.rhel_ver_match('7')
 @pytest.mark.tier2
-def test_positive_candlepin_events_processed_by_stomp(function_org, target_sat, function_sca_manifest):
+def test_positive_candlepin_events_processed_by_stomp(
+    function_org, target_sat, function_sca_manifest
+):
     """Verify that Candlepin events are being read and processed by
         checking candlepin events, uploading a manifest,
         and viewing processed and failed Candlepin events
