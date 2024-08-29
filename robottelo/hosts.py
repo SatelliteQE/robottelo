@@ -2696,8 +2696,10 @@ class IPAHost(Host):
     def add_user_to_usergroup(self, member_username, member_group):
         self._kinit_admin()
         result = self.execute(f'ipa group-add-member {member_group} --users={member_username}')
-        if result.status != 0:
-            raise IPAHostError('Failed to add the user to usergroup')
+        if result.status != 0 and 'This entry is already a member' not in result.stdout:
+            raise IPAHostError(
+                f'Failed to add the user to usergroup.\nSTDOUT: {result.stdout}\nSTDERR: {result.stderr}'
+            )
 
     def remove_user_from_usergroup(self, member_username, member_group):
         self._kinit_admin()
