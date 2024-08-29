@@ -193,8 +193,8 @@ class TestAzureRMHostProvisioningTestCase:
             "script_uris": AZURERM_FILE_URI,
             "image_id": self.rhel7_ft_img,
         }
-
-        nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+        results = module_azurerm_cr.available_networks()['results']
+        nw_id = next((item for item in results if item['name'] == 'default'), None)['id']
         request.cls.interfaces_attributes = {
             "0": {
                 "compute_attributes": {
@@ -343,8 +343,8 @@ class TestAzureRMUserDataProvisioning:
             "script_uris": AZURERM_FILE_URI,
             "image_id": self.rhel7_ud_img,
         }
-
-        nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+        results = module_azurerm_cr.available_networks()['results']
+        nw_id = next((item for item in results if item['name'] == 'default'), None)['id']
         request.cls.interfaces_attributes = {
             "0": {
                 "compute_attributes": {
@@ -495,8 +495,8 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
             "script_uris": AZURERM_FILE_URI,
             "image_id": AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
         }
-
-        nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+        results = module_azurerm_cr.available_networks()['results']
+        nw_id = next((item for item in results if item['name'] == 'default'), None)['id']
         request.cls.interfaces_attributes = {
             "0": {
                 "compute_attributes": {
