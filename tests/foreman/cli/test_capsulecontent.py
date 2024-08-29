@@ -313,15 +313,16 @@ def test_positive_update_counts(target_sat, module_capsule_configured):
 @pytest.mark.skip_if_not_set('capsule')
 def test_positive_exported_imported_content_sync(
     target_sat,
+    function_lce,
+    function_lce_library,
+    function_published_cv,
     function_sca_manifest_org,
     module_capsule_configured,
-    function_published_cv,
-    function_lce_library,
-    function_lce,
 ):
-    """Add repo content to Library with a content-view, publish,
-    export the Library content. Then, import the content (CVV) to satellite,
-    promote to a Capsule's LCE, sync the Capsule.
+    """Add repo content to a content-view, publish, export the Library content.
+    Then, import the content (CVV) to satellite, promote to a Capsule's LCE, sync the Capsule.
+    Assign Library environment to Capsule with identical CVs (Export and Import),
+    Sync the Capsule once more, to Library now, and check for redundant tasks.
 
     :id: efb3bb45-fb91-4b40-825a-07c1e9772a55
 
@@ -332,23 +333,28 @@ def test_positive_exported_imported_content_sync(
         4. Import the exported content from Step 3 (can take a while).
         5. Promote the imported CVV (Import-Library) to the Capsule's LCE.
         6. Sync the Capsule with the added Import-Library content.
+        7. Remove non-Library LCE from Capsule.
+        8. Then, add 'Library' environment to Capsule containing both CVs, sync.
 
     :expectedresults:
-        1. Imported content sources assigned to empty Capsule,
-            synced successfully.
-        2. Auxilary created 'Export-Library' CV, made after exporting,
-            is not associated with the Capsule, as it is only in Library.
+        1. Step 6: Imported content sources assigned to empty Capsule,
+            synced successfully using Capsule's LCE.
+        2. Step 6: Auxilary created 'Export-Library' CV, made after exporting,
+            is not associated with the Capsule, as it is only in 'Library'.
+        3. Step 8: Using 'Library', Capsule sync is successful, respositories/sync tasks do not conflict,
+            all pending sync tasks complete in one attempt, none are invoked repeatedly.
 
-    :BZ: 2043726, 2059385
+    :BZ: 2043726, 2059385, 2186765
 
     :customerscenario: True
 
     """
+    org = function_sca_manifest_org
     # assign the non-Library LCE to Capsule
     target_sat.cli.Capsule.content_add_lifecycle_environment(
         {
             'id': module_capsule_configured.nailgun_capsule.id,
-            'organization-id': function_sca_manifest_org.id,
+            'organization-id': org.id,
             'lifecycle-environment-id': function_lce.id,
         }
     )
@@ -356,46 +362,88 @@ def test_positive_exported_imported_content_sync(
     target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_3.url,
-            'organization-id': function_sca_manifest_org.id,
+            'organization-id': org.id,
             'content-view-id': function_published_cv.id,
             'lifecycle-environment-id': function_lce_library.id,
         }
     )
     # Verify export directory is empty
-    assert target_sat.validate_pulp_filepath(function_sca_manifest_org, PULP_EXPORT_DIR) == ''
+    assert target_sat.validate_pulp_filepath(org, PULP_EXPORT_DIR) == ''
     # Export complete Library with content, verify populated export directory
-    exported = target_sat.cli.ContentExport.completeLibrary(
-        {'organization-id': function_sca_manifest_org.id}
-    )
-    assert target_sat.validate_pulp_filepath(function_sca_manifest_org, PULP_EXPORT_DIR)
-    import_path = target_sat.move_pulp_archive(function_sca_manifest_org, exported['message'])
+    exported = target_sat.cli.ContentExport.completeLibrary({'organization-id': org.id})
+    assert target_sat.validate_pulp_filepath(org, PULP_EXPORT_DIR)
+    import_path = target_sat.move_pulp_archive(org, exported['message'])
     # import content from pulp exports
-    target_sat.cli.ContentImport.library(
-        {'organization-id': function_sca_manifest_org.id, 'path': import_path}
-    )
+    target_sat.cli.ContentImport.library({'organization-id': org.id, 'path': import_path})
     import_cv_info = target_sat.cli.ContentView.info(
-        {
-            'name': 'Import-Library',
-            'organization-id': function_sca_manifest_org.id,
-        }
+        {'name': 'Import-Library', 'organization-id': org.id}
     )
     # promote Import-Library to Capsule's LCE
     target_sat.cli.ContentView.version_promote(
         {
             'id': import_cv_info['versions'][0]['id'],
-            'organization-id': function_sca_manifest_org.id,
+            'organization-id': org.id,
             'to-lifecycle-environment-id': function_lce.id,
         }
     )
     capsule = module_capsule_configured.nailgun_capsule.read()
-    # just one LCE found for capsule,
-    # only the environment with Import-Library
-    assert len(capsule.lifecycle_environments) == 1
+    # just one LCE found associated to capsule
+    assert len(capsule.lifecycle_environments) == 1, (
+        f'Expected only one environment for Capsule; {function_lce.name}.'
+        f' Found {len(capsule.lifecycle_environments)}:\n{capsule.lifecycle_environments}'
+    )
     assert capsule.lifecycle_environments[0]['id'] == function_lce.id
     assert not capsule.lifecycle_environments[0]['library']
-    # Synchronize the Capsule, now with added Import content
+    # verify only the Import-Library CV is associated to Capsule,
+    # we check the Capsule's LCE, that it only has the single expected CV.
+    cv_list = function_lce.read_json()['content_views']
+    assert len(cv_list) == 1, (
+        f'Found unexpected CV associated to Capsule, expected only one; {import_cv_info["name"]}.'
+        f' Capsule LCE:\n{function_lce.read_json()}'
+    )
+    assert cv_list[0]['name'] == 'Import-Library'
+    assert str(cv_list[0]['id']) == str(import_cv_info['id'])
+    # Synchronize the Capsule, with the Import content added
     sync_status = module_capsule_configured.nailgun_capsule.content_sync(timeout='90m')
-    assert sync_status['result'] == 'success', 'Capsule sync task failed'
+    assert sync_status['result'] == 'success', f'Capsule sync failed. Task: {sync_status}'
+
+    # Remove the LCE from Capsule
+    target_sat.cli.Capsule.content_remove_lifecycle_environment(
+        {
+            'id': module_capsule_configured.nailgun_capsule.id,
+            'organization-id': org.id,
+            'lifecycle-environment-id': function_lce.id,
+        }
+    )
+
+    # Add Library to Capsule, containing both CVs, 'immediate' download policy.
+    target_sat.cli.Capsule.content_add_lifecycle_environment(
+        {
+            'id': module_capsule_configured.nailgun_capsule.id,
+            'organization-id': org.id,
+            'lifecycle-environment-id': function_lce_library.id,
+        }
+    )
+    module_capsule_configured.update_download_policy('immediate')
+    # Capsule sync successful, repo sync/associated tasks are not redundant (BZ: 2186765)
+    sync_status = module_capsule_configured.nailgun_capsule.content_sync(timeout='90m')
+    assert sync_status['result'] == 'success', f'Capsule sync failed. Task: {sync_status}'
+    # any in-progress tasks, post sync, are not associated to Capsule or repo
+    unexpected_tasks = [
+        'Actions::Katello::Repository::Sync',
+        'Actions::Katello::Repository::CapsuleSync',
+        'Actions::Katello::Repository::MetadataGenerate',
+        'Actions::Katello::CapsuleContent::Sync',
+        'Actions::Katello::ContentView::CapsuleSync',
+        'Actions::Katello::CapsuleContent::UpdateContentCounts',
+    ]
+    pending_tasks = target_sat.api.ForemanTask().search(
+        query={'search': f'organization_id={org.id} and result=pending'}
+    )
+    assert all(task.label not in unexpected_tasks for task in pending_tasks), (
+        'A repeated, pending task was found for repository or capsule, after capsule sync completed:'
+        f'{[task for task in pending_tasks if task.label in unexpected_tasks]}'
+    )
     # no need to check content counts, covered by several other cases
 
 
