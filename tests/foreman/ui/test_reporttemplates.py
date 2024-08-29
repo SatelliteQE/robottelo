@@ -537,7 +537,7 @@ def test_positive_installable_errata_with_user(
     """Generate an Installable Errata report using the Report Template - Available Errata,
         with the option of 'Installable' with a reigistered user.
 
-    :id: 6263a0fa-5021-4553-939b-84fb71c81d59
+    :id: 036e3ed6-b31b-4481-b591-dae438e4e61d
 
     :setup: A Host with some applied errata
 
