@@ -610,12 +610,16 @@ def test_positive_installable_errata_with_user(
     assert rhel_contenthost.execute(f'yum downgrade -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     # Generate the report
     with session:
-        result_json = session.reporttemplate.generate(
+        result_html = session.reporttemplate.generate(
             'Host - Available Errata',
-            values={'output_format': 'JSON', 'installability': 'installable'},
+            values={'output_format': 'HTML', 'installability': 'installable'},
         )
-    with open(result_json) as json_file:
-        data_json = json.load(json_file)
-    assert data_json
-    assert FAKE_1_CUSTOM_PACKAGE_NAME in result_json['Packages']
-    assert result_json['Erratum'] == ERRATUM_ID
+    with open(result_html) as html_file:
+        parser = etree.HTMLParser()
+        tree = etree.parse(html_file, parser)
+        tree_result = etree.tostring(tree.getroot(), pretty_print=True, method='html').decode()
+    
+    # with open(result_json) as json_file:
+    #     data_json = json.load(json_file)
+    assert FAKE_1_CUSTOM_PACKAGE_NAME in tree_result
+    assert ERRATUM_ID in tree_result
