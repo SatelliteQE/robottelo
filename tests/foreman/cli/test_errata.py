@@ -1125,25 +1125,24 @@ def test_positive_check_errata_dates(module_sca_manifest_org, module_target_sat)
     )
     # Synchronize custom repository
     module_target_sat.cli.Repository.synchronize({'id': repo.id})
-    result = module_target_sat.cli.Erratum.list(
-        options={'per-page': '5', 'fields': 'Issued'}
-    ).split()
-    assert 'Issued' in result[0]
+    result = module_target_sat.cli.Erratum.list(options={'per-page': '5', 'fields': 'Issued'})
+    assert 'issued' in result[0]
 
     # Verify any errata ISSUED date from stdout
-    validate_issued_dates = [datetime.strptime(_date, '%Y-%m-%d').date() for _date in result[1:]]
+    validate_issued_dates = [
+        datetime.strptime(entry['issued'], '%Y-%m-%d').date() for entry in result
+    ]
     assert isinstance(validate_issued_dates, list)
     # make sure there are errata entries
     assert len(validate_issued_dates) > 1
     assert all(isinstance(_issued, date) for _issued in validate_issued_dates)
-
-    result = module_target_sat.cli.Erratum.list(
-        options={'per-page': '5', 'fields': 'Updated'}
-    ).split()
-    assert 'Updated' in result[0]
+    result = module_target_sat.cli.Erratum.list(options={'per-page': '5', 'fields': 'Updated'})
+    assert 'updated' in result[0]
 
     # Verify any errata UPDATED date from stdout
-    validate_updated_dates = [datetime.strptime(_date, '%Y-%m-%d').date() for _date in result[1:]]
+    validate_updated_dates = [
+        datetime.strptime(entry['updated'], '%Y-%m-%d').date() for entry in result
+    ]
     assert isinstance(validate_updated_dates, list)
     assert len(validate_updated_dates) > 1
     assert all(isinstance(_updated, date) for _updated in validate_updated_dates)
