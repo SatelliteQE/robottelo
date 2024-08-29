@@ -322,7 +322,8 @@ class TestAzureRMFinishTemplateProvisioning:
             f'script_uris={AZURERM_FILE_URI},'
             f'premium_os_disk={self.premium_os_disk}'
         )
-        nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+        results = module_azurerm_cr.available_networks()['results']
+        nw_id = next((item for item in results if item['name'] == 'default'), None)['id']
         request.cls.interfaces_attributes = (
             f'compute_network={nw_id},compute_public_ip=Static,compute_private_ip=false'
         )
@@ -454,7 +455,8 @@ class TestAzureRMUserDataProvisioning:
             f'script_uris={AZURERM_FILE_URI},'
             f'premium_os_disk={self.premium_os_disk}'
         )
-        nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+        results = module_azurerm_cr.available_networks()['results']
+        nw_id = next((item for item in results if item['name'] == 'default'), None)['id']
         request.cls.interfaces_attributes = (
             f'compute_network={nw_id},compute_public_ip=Dynamic,compute_private_ip=false'
         )
