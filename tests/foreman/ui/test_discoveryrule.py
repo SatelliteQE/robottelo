@@ -121,7 +121,7 @@ def test_positive_crud_with_non_admin_user(
 
         session.discoveryrule.delete(new_rule_name)
         dr_val = session.discoveryrule.read_all()
-        assert new_rule_name not in [rule['Name'] for rule in dr_val]
+        assert 'No Discovery Rules found in this context' in dr_val
 
 
 @pytest.mark.tier2
@@ -325,4 +325,4 @@ def test_positive_end_to_end(session, module_org, module_location, module_target
         )
         session.discoveryrule.delete(new_rule_name)
         rules = session.discoveryrule.read_all()
-        assert new_rule_name not in [rule['Name'] for rule in rules]
+        assert 'No Discovery Rules found in this context' in rules
