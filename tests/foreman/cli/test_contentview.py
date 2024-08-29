@@ -403,12 +403,9 @@ class TestContentView:
         existing_versions = cv_info['versions']
         # perform async repository sync
         repo_task = module_target_sat.cli.Repository.synchronize(
-            {
-                'id': custom_repo['id'],
-                'async': True,
-            }
+            {'id': custom_repo['id'], 'async': True}
         )
-        repo_task_id = repo_task.split()[-1].rstrip('.')
+        repo_task_id = repo_task[0]['id']
         # attempt to publish a new version of the content view
         with pytest.raises(CLIReturnCodeError) as err:
             module_target_sat.cli.ContentView.publish({'id': module_cv.id})
