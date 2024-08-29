@@ -18,7 +18,6 @@ from pathlib import Path, PurePath
 
 from lxml import etree
 import pytest
-from wait_for import wait_for
 
 from robottelo.config import robottelo_tmp_dir, settings
 from robottelo.constants import (
@@ -612,7 +611,8 @@ def test_positive_installable_errata_with_user(
     # Generate the report
     with session:
         result_json = session.reporttemplate.generate(
-            'Host - Available Errata', values={'output_format': 'JSON', 'installability': 'installable'}
+            'Host - Available Errata',
+            values={'output_format': 'JSON', 'installability': 'installable'},
         )
     with open(result_json) as json_file:
         data_json = json.load(json_file)
