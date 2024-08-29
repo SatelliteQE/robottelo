@@ -609,29 +609,13 @@ def test_positive_installable_errata_with_user(
     )
     # Downgrade the package
     assert rhel_contenthost.execute(f'yum downgrade -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
-    # input_data = {
-    #     'organization_id': function_org.id,
-    #     'report_format': "json",
-    #     'input_values': {
-    #         'Installability': 'installable',
-    #     },
-    # }
-    # report = (
-    #     target_sat.api.ReportTemplate()
-    #     .search(query={'search': 'name="Host - Available Errata"'})[0]
-    #     .read()
-    #     .generate(data=input_data)
-    # )
-    # assert report
-    # installable_errata = report[0]
-    # assert FAKE_1_CUSTOM_PACKAGE_NAME in installable_errata['Packages']
-    # assert installable_errata['Erratum'] == ERRATUM_ID
+    # Generate the report
     with session:
         result_json = session.reporttemplate.generate(
-            'Host - Available Errata', values={'output_format': 'JSON', 'Installability': 'Installable'}
+            'Host - Available Errata', values={'output_format': 'JSON', 'installability': 'installable'}
         )
-        with open(result_json) as json_file:
-            data_json = json.load(json_file)
-        assert data_json
-        assert FAKE_1_CUSTOM_PACKAGE_NAME in data_json['Packages']
-        assert data_json['Erratum'] == ERRATUM_ID
+    with open(result_json) as json_file:
+        data_json = json.load(json_file)
+    assert data_json
+    assert FAKE_1_CUSTOM_PACKAGE_NAME in result_json['Packages']
+    assert result_json['Erratum'] == ERRATUM_ID
