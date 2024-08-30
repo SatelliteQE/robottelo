@@ -27,7 +27,7 @@ class TestManifestScenarioRefresh:
 
     @pytest.mark.pre_upgrade
     def test_pre_manifest_scenario_refresh(
-        self, upgrade_entitlement_manifest_org, target_sat, save_test_data
+        self, sca_manifest_org_for_upgrade, target_sat, save_test_data
     ):
         """Before upgrade, upload & refresh the manifest.
 
@@ -38,14 +38,14 @@ class TestManifestScenarioRefresh:
 
         :expectedresults: Manifest should be uploaded and refreshed successfully.
         """
-        org = upgrade_entitlement_manifest_org
+        org = sca_manifest_org_for_upgrade
         history = target_sat.cli.Subscription.manifest_history({'organization-id': org.id})
         assert f'{org.name} file imported successfully.' in ''.join(history)
 
         sub = target_sat.api.Subscription(organization=org)
         sub.refresh_manifest(data={'organization_id': org.id})
         assert sub.search()
-        save_test_data({'org_name': f'{upgrade_entitlement_manifest_org.name}'})
+        save_test_data({'org_name': f'{sca_manifest_org_for_upgrade.name}'})
 
     @pytest.mark.post_upgrade(depend_on=test_pre_manifest_scenario_refresh)
     def test_post_manifest_scenario_refresh(self, request, target_sat, pre_upgrade_data):
@@ -88,8 +88,8 @@ class TestSubscriptionAutoAttach:
         target_sat,
         save_test_data,
         rhel_contenthost,
-        upgrade_entitlement_manifest_org,
-        upgrade_entitlement_manifest,
+        sca_manifest_org_for_upgrade,
+        sca_manifest_for_upgrade,
     ):
         """Create content host and register with Satellite
 
@@ -105,8 +105,8 @@ class TestSubscriptionAutoAttach:
         :expectedresults:
             1. Content host should be created.
         """
-        _, manifester = upgrade_entitlement_manifest
-        org = upgrade_entitlement_manifest_org
+        _, manifester = sca_manifest_for_upgrade
+        org = sca_manifest_org_for_upgrade
         rhel_contenthost._skip_context_checkin = True
         lce = target_sat.api.LifecycleEnvironment(organization=org).create()
         if rhel_contenthost.os_version.major > 7:
@@ -131,7 +131,6 @@ class TestSubscriptionAutoAttach:
             environment=lce,
             auto_attach=False,
         ).create()
-        activation_key.add_subscriptions(data={'subscription_id': subscription[0].id})
         rhel_contenthost.register(org, None, activation_key.name, target_sat)
         assert rhel_contenthost.subscribed
         save_test_data(
@@ -160,10 +159,6 @@ class TestSubscriptionAutoAttach:
             2. All the cleanup should be completed successfully.
         """
         rhel_contenthost = ContentHost.get_host_by_hostname(pre_upgrade_data.rhel_client)
-        host = target_sat.api.Host().search(query={'search': f'name={rhel_contenthost.hostname}'})[
-            0
-        ]
-        target_sat.cli.Host.subscription_auto_attach({'host-id': host.id})
         result = rhel_contenthost.execute('yum install -y zsh')
         assert result.status == 0, 'package was not installed'
         org = target_sat.api.Organization().search(
@@ -173,6 +168,6 @@ class TestSubscriptionAutoAttach:
         sub = target_sat.api.Subscription(organization=org)
         sub.delete_manifest(data={'organization_id': org.id})
         assert len(sub.search()) == 0
-        manifester = Manifester(manifest_category=settings.manifest.entitlement)
+        manifester = Manifester(manifest_category=settings.manifest.golden_ticket)
         request.addfinalizer(manifester.delete_subscription_allocation)
         manifester.allocation_uuid = pre_upgrade_data.allocation_uuid

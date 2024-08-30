@@ -1151,35 +1151,6 @@ class CLIFactory:
                     'content-view-id': content_view['id'],
                 }
             )
-        # Get organization subscriptions
-        subscriptions = self._satellite.cli.Subscription.list(
-            {'organization-id': org_id}, per_page=False
-        )
-        # Add subscriptions to activation-key
-        needed_subscription_names = list(rh_subscriptions)
-        if custom_product:
-            needed_subscription_names.append(custom_product['name'])
-        added_subscription_names = []
-        for subscription in subscriptions:
-            if (
-                subscription['name'] in needed_subscription_names
-                and subscription['name'] not in added_subscription_names
-            ):
-                self._satellite.cli.ActivationKey.add_subscription(
-                    {
-                        'id': activation_key['id'],
-                        'subscription-id': subscription['id'],
-                        'quantity': 1,
-                    }
-                )
-                added_subscription_names.append(subscription['name'])
-                if len(added_subscription_names) == len(needed_subscription_names):
-                    break
-        missing_subscription_names = set(needed_subscription_names).difference(
-            set(added_subscription_names)
-        )
-        if missing_subscription_names:
-            raise CLIFactoryError(f'Missing subscriptions: {missing_subscription_names}')
         data = dict(
             activation_key=activation_key,
             content_view=content_view,
