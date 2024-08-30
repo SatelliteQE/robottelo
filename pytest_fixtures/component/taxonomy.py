@@ -142,6 +142,15 @@ def upgrade_entitlement_manifest_org(function_org, upgrade_entitlement_manifest,
 
 
 @pytest.fixture
+def sca_manifest_org_for_upgrade(function_org, sca_manifest_for_upgrade, target_sat):
+    """A Pytest fixture that creates an organization and uploads an sca mode manifest
+    generated with Manifester. This will be used for upgrade scenarios"""
+    sca_manifest, _ = sca_manifest_for_upgrade
+    target_sat.upload_manifest(function_org.id, sca_manifest.content)
+    return function_org
+
+
+@pytest.fixture
 def function_sca_manifest_org(function_org, function_sca_manifest, target_sat):
     """Creates an organization and uploads an SCA mode manifest generated with manifester"""
     target_sat.upload_manifest(function_org.id, function_sca_manifest.content)
@@ -247,6 +256,15 @@ def function_sca_manifest():
         yield manifest
 
 
+@pytest.fixture
+def second_function_sca_manifest():
+    """Yields a manifest in Simple Content Access mode with subscriptions determined by the
+    `manifest_category.golden_ticket` setting in conf/manifest.yaml.
+    A different one than is used in `function_sca_manifest_org`."""
+    with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
+        yield manifest
+
+
 @pytest.fixture(scope='module')
 def smart_proxy_location(module_org, module_target_sat, default_smart_proxy):
     location = module_target_sat.api.Location(organization=[module_org]).create()
@@ -260,5 +278,12 @@ def upgrade_entitlement_manifest():
     """Returns a manifest in entitlement mode with subscriptions determined by the
     `manifest_category.entitlement` setting in conf/manifest.yaml. used only for
     upgrade scenarios"""
-    manifestor = Manifester(manifest_category=settings.manifest.entitlement)
-    return manifestor.get_manifest(), manifestor
+    manifester = Manifester(manifest_category=settings.manifest.entitlement)
+    return manifester.get_manifest(), manifester
+
+
+@pytest.fixture
+def sca_manifest_for_upgrade():
+    """Returns a manifest in sca mode. Used only for upgrade scenarios"""
+    manifester = Manifester(manifest_category=settings.manifest.golden_ticket)
+    return manifester.get_manifest(), manifester
