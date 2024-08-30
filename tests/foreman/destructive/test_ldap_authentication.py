@@ -177,7 +177,7 @@ def test_positive_create_with_https(
                 'ldap_server.host': auth_data['ldap_hostname'],
                 'ldap_server.ldaps': True,
                 'ldap_server.server_type': auth_data['server_type'],
-                'account.account_name': auth_data['ldap_user_cn'],
+                'account.account_name': f"cn={auth_data['ldap_user_cn']},{auth_data['base_dn']}",
                 'account.password': auth_data['ldap_user_passwd'],
                 'account.base_dn': auth_data['base_dn'],
                 'account.groups_base_dn': auth_data['group_base_dn'],
