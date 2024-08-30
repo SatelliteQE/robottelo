@@ -30,7 +30,8 @@ pytestmark = [pytest.mark.skip_if_not_set('azurerm')]
 def module_azure_cp_attrs(module_azurerm_cr, module_azurerm_custom_finishimg, sat_azure):
     """Create compute attributes on COMPUTE_PROFILE_SMALL"""
 
-    nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+    results = module_azurerm_cr.available_networks()['results']
+    nw_id = next((item for item in results if item['name'] == 'default'), None)['id']
     return sat_azure.api.ComputeAttribute(
         compute_profile=COMPUTE_PROFILE_SMALL,
         compute_resource=module_azurerm_cr,
