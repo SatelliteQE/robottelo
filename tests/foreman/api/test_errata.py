@@ -1359,8 +1359,8 @@ def _set_prerequisites_for_swid_repos(vm):
         f'curl --insecure --remote-name {settings.repos.swid_tools_repo}', vm
     )
     _run_remote_command_on_content_host('mv *swid*.repo /etc/yum.repos.d', vm)
-    _run_remote_command_on_content_host('yum install -y swid-tools', vm)
-    _run_remote_command_on_content_host('yum install -y dnf-plugin-swidtags', vm)
+    _run_remote_command_on_content_host('yum install -y --nogpgcheck swid-tools', vm)
+    _run_remote_command_on_content_host('yum install -y --nogpgcheck dnf-plugin-swidtags', vm)
 
 
 def _validate_swid_tags_installed(vm, module_name):
