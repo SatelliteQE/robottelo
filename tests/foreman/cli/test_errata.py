@@ -388,6 +388,8 @@ def cv_publish_promote(sat, cv, org, lce, force=False):
     :type org: entities.Organization
     :param lce: lifecycle environment
     :type lce: entities.LifecycleEnvironment
+
+    :return int: :id of the content-view-version now published/promoted.
     """
     sat.cli.ContentView.publish({'id': cv.id, 'organization': org})
     # Sort CV Version results by --id, grab last version (latest)
@@ -400,6 +402,7 @@ def cv_publish_promote(sat, cv, org, lce, force=False):
             'force': force,
         }
     )
+    return cvv_id
 
 
 def cv_filter_cleanup(sat, filter_id, cv, org, lce):
@@ -1508,11 +1511,12 @@ def test_errata_list_by_contentview_filter(module_sca_manifest_org, module_targe
     cv = module_target_sat.api.ContentView(
         organization=module_sca_manifest_org, repository=[repo.id]
     ).create()
-    cv_publish_promote(module_target_sat, cv, module_sca_manifest_org, lce)
+    cvv_id = cv_publish_promote(module_target_sat, cv, module_sca_manifest_org, lce)
     errata_count = len(
         module_target_sat.cli.Erratum.list(
             {
                 'organization-id': module_sca_manifest_org.id,
+                'content-view-version-id': cvv_id,
                 'content-view-id': cv.id,
             }
         )
