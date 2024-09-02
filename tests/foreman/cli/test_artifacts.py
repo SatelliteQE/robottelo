@@ -17,6 +17,7 @@ import random
 
 from box import Box
 import pytest
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
@@ -113,6 +114,17 @@ def test_positive_artifact_repair(
             cv=None if repair_type == 'repo' else module_synced_content.cv.label,
             prod=module_synced_content.prod.label,
             repo=module_synced_content.repo.label,
+        )
+        wait_for(
+            lambda: len(
+                get_repo_files_urls_by_url(
+                    sat_repo_url,
+                    extension='rpm' if module_synced_content.repo.content_type == 'yum' else 'iso',
+                )
+            )
+            > 0,
+            timeout=120,
+            delay=15,
         )
         sat_files_urls = get_repo_files_urls_by_url(
             sat_repo_url,
