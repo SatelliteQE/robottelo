@@ -161,11 +161,13 @@ def test_positive_create_with_https(
     if auth_data['auth_type'] == 'ipa':
         set_certificate_in_satellite(server_type='IPA', sat=module_target_sat)
         username = settings.ipa.user
+        account_name = auth_data['ldap_user_cn']
     else:
         set_certificate_in_satellite(
             server_type='AD', sat=module_target_sat, hostname=auth_data['ldap_hostname']
         )
         username = settings.ldap.username
+        account_name = f"cn={auth_data['ldap_user_cn']},{auth_data['base_dn']}"
     org = module_target_sat.api.Organization().create()
     loc = module_target_sat.api.Location().create()
     ldap_auth_name = gen_string('alphanumeric')
@@ -177,7 +179,7 @@ def test_positive_create_with_https(
                 'ldap_server.host': auth_data['ldap_hostname'],
                 'ldap_server.ldaps': True,
                 'ldap_server.server_type': auth_data['server_type'],
-                'account.account_name': auth_data['ldap_user_cn'],
+                'account.account_name': account_name,
                 'account.password': auth_data['ldap_user_passwd'],
                 'account.base_dn': auth_data['base_dn'],
                 'account.groups_base_dn': auth_data['group_base_dn'],
