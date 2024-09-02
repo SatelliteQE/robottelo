@@ -285,11 +285,11 @@ def test_positive_incremental_update_time(module_target_sat, module_sca_manifest
     # update incremental version via hammer, using one errata.
     # expect: incr. "version-1.1" is created
     update_start_time = datetime.utcnow()
-    module_target_sat.cli.ContentView.version_incremental_update(
-        {'content-view-version-id': cvv['id'], 'errata-ids': REAL_RHEL8_1_ERRATA_ID}
+    result = module_target_sat.cli.ContentView.version_incremental_update(
+        options={'content-view-version-id': cvv['id'], 'errata-ids': REAL_RHEL8_1_ERRATA_ID},
+        output_format='base',
     )
-    result = module_target_sat.cli.ContentView.version_list({'content-view-id': cv['id']})
-    assert f'{cv.name} 1.1' in result[0]['name']
+    assert f'Content View: {cv.name} version 1.1' in result
     update_duration = (datetime.utcnow() - update_start_time).total_seconds()
     logger.info(
         f'Update of incremental version-1.1, for CV id: {content_view["id"]},'
