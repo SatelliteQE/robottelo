@@ -124,7 +124,7 @@ def test_negative_time_to_pickup(
         module_ak_with_cv.name,
         module_capsule_configured_mqtt,
         setup_remote_execution_pull=True,
-        repo=client_repo.baseurl,
+        repo_data=f'repo={client_repo.baseurl}',
     )
     template_id = (
         module_target_sat.api.JobTemplate()
@@ -257,7 +257,7 @@ def test_positive_check_longrunning_job(
         module_ak_with_cv.name,
         module_capsule_configured_mqtt,
         setup_remote_execution_pull=True,
-        repo=client_repo.baseurl,
+        repo_data=f'repo={client_repo.baseurl}',
     )
     template_id = (
         module_target_sat.api.JobTemplate()

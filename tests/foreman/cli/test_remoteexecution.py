@@ -349,7 +349,7 @@ class TestRemoteExecution:
             None,
             module_ak_with_cv.name,
             target_sat,
-            repo=settings.repos.yum_3.url,
+            repo_data=f'repo={settings.repos.yum_3.url}',
         )
         # Install packages
         invocation_command = target_sat.cli_factory.job_invocation(
@@ -413,7 +413,7 @@ class TestRemoteExecution:
             None,
             module_ak_with_cv.name,
             target_sat,
-            repo=settings.repos.yum_1.url,
+            repo_data=f'repo={settings.repos.yum_1.url}',
         )
         # Install the package groups
         invocation_command = target_sat.cli_factory.job_invocation(
@@ -462,7 +462,7 @@ class TestRemoteExecution:
             None,
             module_ak_with_cv.name,
             target_sat,
-            repo=settings.repos.yum_1.url,
+            repo_data=f'repo={settings.repos.yum_1.url}',
         )
         client.run(f'dnf install -y {constants.FAKE_1_CUSTOM_PACKAGE}')
         # Install errata
@@ -958,7 +958,7 @@ class TestPullProviderRex:
             module_ak_with_cv.name,
             module_capsule_configured_mqtt,
             packages=['katello-agent'],
-            repo=client_repo.baseurl,
+            repo_data=f'repo={client_repo.baseurl}',
             ignore_subman_errors=True,
             force=True,
         )
@@ -1063,7 +1063,7 @@ class TestPullProviderRex:
             module_ak_with_cv.name,
             module_capsule_configured_mqtt,
             setup_remote_execution_pull=True,
-            repo=client_repo.baseurl,
+            repo_data=f'repo={client_repo.baseurl}',
             ignore_subman_errors=True,
             force=True,
         )
@@ -1171,7 +1171,7 @@ class TestPullProviderRex:
             module_ak_with_cv.name,
             module_capsule_configured_mqtt,
             setup_remote_execution_pull=True,
-            repo=client_repo.baseurl,
+            repo_data=f'repo={client_repo.baseurl}',
             ignore_subman_errors=True,
             force=True,
         )
@@ -1267,7 +1267,7 @@ class TestPullProviderRex:
             module_ak_with_cv.name,
             module_capsule_configured_mqtt,
             setup_remote_execution_pull=True,
-            repo=client_repo.baseurl,
+            repo_data=f'repo={client_repo.baseurl}',
             ignore_subman_errors=True,
             force=True,
         )
@@ -1357,7 +1357,7 @@ class TestPullProviderRex:
             module_ak_with_cv.name,
             module_capsule_configured_mqtt,
             setup_remote_execution_pull=True,
-            repo=client_repo.baseurl,
+            repo_data=f'repo={client_repo.baseurl}',
             ignore_subman_errors=True,
             force=True,
         )
