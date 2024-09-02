@@ -597,8 +597,7 @@ class ContentHost(Host, ContentHostMixins):
         setup_remote_execution_pull=False,
         operating_system=None,
         packages=None,
-        repo=None,
-        repo_gpg_key_url=None,
+        repo_data=None,
         remote_execution_interface=None,
         update_packages=False,
         ignore_subman_errors=False,
@@ -618,8 +617,7 @@ class ContentHost(Host, ContentHostMixins):
         :param setup_remote_execution_pull: Deploy pull provider client on host
         :param operating_system: Operating system.
         :param packages: A list of packages to install on the host when registered.
-        :param repo: Repository to be added before the registration is performed, supply url.
-        :param repo_gpg_key_url: Public key to verify the package signatures, supply url.
+        :param repo_data: Array with repository URL and corresponding GPG key URL.
         :param remote_execution_interface: Identifier of the host interface for remote execution.
         :param update_packages: Update all packages on the host.
         :param ignore_subman_errors: Ignore subscription manager errors.
@@ -660,8 +658,8 @@ class ContentHost(Host, ContentHostMixins):
             options['hostgroup-id'] = hostgroup.id
         if packages is not None:
             options['packages'] = '+'.join(packages)
-        if repo is not None:
-            options['repo'] = repo
+        if repo_data is not None:
+            options['repo-data'] = repo_data
         if setup_insights is not None:
             options['setup-insights'] = str(setup_insights).lower()
         if setup_remote_execution is not None:
@@ -670,8 +668,6 @@ class ContentHost(Host, ContentHostMixins):
             options['setup-remote-execution-pull'] = str(setup_remote_execution_pull).lower()
         if remote_execution_interface is not None:
             options['remote-execution-interface'] = remote_execution_interface
-        if repo_gpg_key_url is not None:
-            options['repo-gpg-key-url'] = repo_gpg_key_url
         if ignore_subman_errors:
             options['ignore-subman-errors'] = str(ignore_subman_errors).lower()
         if force:
