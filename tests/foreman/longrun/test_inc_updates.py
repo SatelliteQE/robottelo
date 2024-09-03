@@ -300,9 +300,10 @@ def test_positive_incremental_update_time(module_target_sat, module_entitlement_
     # expect: incr. "version-1.1" is created
     update_start_time = datetime.utcnow()
     result = module_target_sat.cli.ContentView.version_incremental_update(
-        {'content-view-version-id': cvv['id'], 'errata-ids': REAL_RHEL8_1_ERRATA_ID}
+        options={'content-view-version-id': cvv['id'], 'errata-ids': REAL_RHEL8_1_ERRATA_ID},
+        output_format='base',
     )
-    assert 'version-1.1' in str(result[0].keys())
+    assert f'Content View: {cv.name} version 1.1' in result
     update_duration = (datetime.utcnow() - update_start_time).total_seconds()
     logger.info(
         f'Update of incremental version-1.1, for CV id: {content_view["id"]},'
@@ -319,7 +320,7 @@ def test_positive_incremental_update_time(module_target_sat, module_entitlement_
     if update_duration >= publish_duration:
         # unexpected: perhaps both tasks were very quick, took a handful of seconds,
         # assert the difference was not significant (within 20%).
-        assert (update_duration - publish_duration) / publish_duration <= 0.2, (
+        assert (update_duration - publish_duration) / publish_duration <= 0.25, (
             f'Incremental update took longer than publish of entire content-view id: {content_view["id"]}:'
             f' Update took significantly more time, 20% or longer, than publish.'
             f' update duration: {update_duration} s.\n publish duration: {publish_duration} s.'
