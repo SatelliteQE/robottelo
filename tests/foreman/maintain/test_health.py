@@ -119,7 +119,7 @@ def test_positive_health_check_by_tags(sat_maintain):
     :expectedresults: Health check should pass for listed tags.
     """
     result = sat_maintain.cli.Health.list_tags().stdout
-    output = [i.split("]\x1b[0m")[0] for i in result.split("\x1b[36m[") if i]
+    output = [tag.strip("[]") for tag in result.strip().split("\n")]
     for tag in output:
         assert (
             sat_maintain.cli.Health.check(
