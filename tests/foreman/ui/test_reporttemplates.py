@@ -241,7 +241,7 @@ def test_positive_generate_registered_hosts_report(
     :expectedresults: The Host - Registered Content Hosts report is generated
                       and it contains created host with correct data
 
-    :CaseImportance: High 
+    :CaseImportance: High
     """
     client = rhel_contenthost
     org, ak, _, _ = module_setup_content
@@ -618,4 +618,3 @@ def test_positive_installable_errata_with_user(
             data_json = json.load(json_file)
         assert ERRATUM_ID in data_json[0]['Erratum']
         assert FAKE_1_CUSTOM_PACKAGE_NAME in data_json[0]['Packages']
-
