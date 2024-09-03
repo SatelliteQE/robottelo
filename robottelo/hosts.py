@@ -1649,6 +1649,7 @@ class Capsule(ContentHost, CapsuleMixins):
         if settings.server.is_ipv6:
             url = urlparse(settings.server.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)
+            self.ipv6 = settings.server.is_ipv6
 
     def disable_ipv6_http_proxy(self):
         """Executes procedures for disabling IPv6 HTTP Proxy on Capsule"""
@@ -1831,6 +1832,7 @@ class Satellite(Capsule, SatelliteMixins):
                 'The IPv6 HTTP Proxy setting is not enabled. Skipping the IPv6 HTTP Proxy setup.'
             )
             return None
+        self.ipv6 = settings.server.is_ipv6
         proxy_name = 'Robottelo IPv6 Automation Proxy'
         if not self.cli.HttpProxy.exists(search=('name', proxy_name)):
             http_proxy = self.api.HTTPProxy(
@@ -1840,7 +1842,7 @@ class Satellite(Capsule, SatelliteMixins):
             logger.info(
                 'The IPv6 HTTP Proxy is already enabled. Skipping the IPv6 HTTP Proxy setup.'
             )
-            http_proxy = self.api.HTTPProxy().search(query={'search': f'name={proxy_name}'})[0]
+            http_proxy = self.api.HTTPProxy().search(query={'search': f'name="{proxy_name}"'})[0]
         # Setting HTTP Proxy as default in the settings
         self.cli.Settings.set(
             {
