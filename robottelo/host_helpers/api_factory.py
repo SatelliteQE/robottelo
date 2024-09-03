@@ -379,19 +379,6 @@ class APIFactory:
             template.locked = True
             template.update(['locked'])
 
-    def attach_custom_product_subscription(self, prod_name=None, host_name=None):
-        """Attach custom product subscription to client host
-        :param str prod_name: custom product name
-        :param str host_name: client host name
-        """
-        host = self._satellite.api.Host().search(query={'search': f'{host_name}'})[0]
-        product_subscription = self._satellite.api.Subscription().search(
-            query={'search': f'name={prod_name}'}
-        )[0]
-        self._satellite.api.HostSubscription(host=host.id).add_subscriptions(
-            data={'subscriptions': [{'id': product_subscription.id, 'quantity': 1}]}
-        )
-
     def wait_for_errata_applicability_task(
         self,
         host_id,
