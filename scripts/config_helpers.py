@@ -1,3 +1,12 @@
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#     "click",
+#     "deepdiff",
+#     "logzero",
+#     "pyyaml",
+# ]
+# ///
 """A series of commands to help with robottelo configuration"""
 
 from pathlib import Path
