@@ -1081,8 +1081,7 @@ def test_positive_ak_with_custom_product_on_rhel6(rhel_contenthost, target_sat):
     :steps:
         1. Create a custom repo
         2. Create ak and add custom repo to ak
-        3. Add subscriptions to the ak
-        4. Register a rhel6 chost with the ak
+        3. Register a rhel6 chost with the ak
 
     :expectedresults: Host is registered successfully
 

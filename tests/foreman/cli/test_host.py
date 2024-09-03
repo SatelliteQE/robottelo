@@ -1836,23 +1836,6 @@ def test_positive_install_package_via_rex(
     assert len(installed_packages) == 1
 
 
-# -------------------------- HOST SUBSCRIPTION SUBCOMMAND FIXTURES --------------------------
-
-
-@pytest.fixture
-def ak_with_subscription(
-    target_sat, module_org, module_promoted_cv, module_lce, default_subscription
-):
-    activation_key = target_sat.api.ActivationKey(
-        content_view=module_promoted_cv,
-        organization=module_org,
-        environment=module_lce,
-        auto_attach=False,
-    ).create()
-    activation_key.add_subscriptions(data={'subscription_id': default_subscription.id})
-    return activation_key
-
-
 # -------------------------- HOST SUBSCRIPTION SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.rhel_ver_match('9')
 @pytest.mark.cli_host_subscription

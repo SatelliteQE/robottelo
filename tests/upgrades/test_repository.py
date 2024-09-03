@@ -106,7 +106,7 @@ class TestScenarioCustomRepoCheck:
         1. Before Satellite upgrade.
         2. Create new Organization and Location.
         3. Create Product, custom repo, cv.
-        4. Create activation key and add subscription in it.
+        4. Create activation key.
         5. Create a content host, register and install package on it.
         6. Upgrade Satellite.
         7. Remove Old package and add new package into custom repo.

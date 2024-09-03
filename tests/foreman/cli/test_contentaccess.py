@@ -177,31 +177,6 @@ def test_positive_erratum_installable(vm, module_target_sat):
 
 
 @pytest.mark.tier2
-def test_negative_rct_not_shows_sca_enabled(
-    target_sat, function_org, function_entitlement_manifest
-):
-    """Assert restricted (entitlement) manifest does not show SCA enabled.
-
-    :id: 754c1be7-468e-4795-bcf9-258a38f3418b
-
-    :steps:
-        1. Run `rct cat-manifest /tmp/restricted_manifest.zip`.
-
-    :expectedresults:
-        1. Assert `Content Access Mode: Simple Content Access` is not present.
-
-    :CaseImportance: High
-    """
-    # upload organization manifest with org environment access disabled
-    org = function_org
-    manifest = function_entitlement_manifest
-    target_sat.upload_manifest(org.id, manifest, interface='CLI')
-    result = target_sat.execute(f'rct cat-manifest {manifest.name}')
-    assert result.status == 0
-    assert 'Content Access Mode: Simple Content Access' not in result.stdout
-
-
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_rct_shows_sca_enabled(module_sca_manifest, module_target_sat):
     """Assert unrestricted (SCA) manifest shows SCA enabled.
