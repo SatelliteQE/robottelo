@@ -57,6 +57,22 @@ class VersionedContent:
             raise ValueError(f'Unsupported system version: {self._v_major}') from err
 
     @cached_property
+    def SATELLITE_CDN_REPOS(self):
+        sat_version = ".".join(settings.server.version.release.split('.')[0:2])
+        return {
+            'satellite': f"satellite-{sat_version}-for-rhel-{self._v_major}-x86_64-rpms",
+            'sat-maintenance': f"satellite-maintenance-{sat_version}-for-rhel-{self._v_major}-x86_64-rpms",
+        }
+
+    @cached_property
+    def CAPSULE_CDN_REPOS(self):
+        sat_version = ".".join(settings.server.version.release.split('.')[0:2])
+        return {
+            'capsule': f"satellite-capsule-{sat_version}-for-rhel-{self._v_major}-x86_64-rpms",
+            'sat-maintenance': f"satellite-maintenance-{sat_version}-for-rhel-{self._v_major}-x86_64-rpms",
+        }
+
+    @cached_property
     def OSCAP(self):
         return {
             'default_content': constants.OSCAP_DEFAULT_CONTENT[f'rhel{self._v_major}_content'],
