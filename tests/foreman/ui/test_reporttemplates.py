@@ -614,14 +614,8 @@ def test_positive_installable_errata_with_user(
             'Host - Available Errata',
             values={'output_format': 'JSON', 'installability': 'installable'},
         )
-    # with open(result_html) as html_file:
-    #     parser = etree.HTMLParser()
-    #     tree = etree.parse(html_file, parser)
-    #     tree_result = etree.tostring(tree.getroot(), pretty_print=True, method='html').decode()
         with open(result_json) as json_file:
             data_json = json.load(json_file)
-        assert FAKE_1_CUSTOM_PACKAGE_NAME in data_json
-    # with open(result_json) as json_file:
-    # #     data_json = json.load(json_file)
-    # assert FAKE_1_CUSTOM_PACKAGE_NAME in tree_result
-    # assert ERRATUM_ID in tree_result
+        assert ERRATUM_ID in data_json[0]['Erratum']
+        assert FAKE_1_CUSTOM_PACKAGE_NAME in data_json[0]['Packages']
+
