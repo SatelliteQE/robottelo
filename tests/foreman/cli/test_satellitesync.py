@@ -340,6 +340,7 @@ class TestRepositoryExport:
 
         :Verifies: SAT-24884
 
+        :customerscenario: true
         """
         # Create cv and publish
         cv_name = gen_string('alpha')
