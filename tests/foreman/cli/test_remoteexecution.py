@@ -146,6 +146,8 @@ class TestRemoteExecution:
         :parametrized: yes
 
         :Verifies: SAT-25243
+
+        :customerscenario: true
         """
         client = rex_contenthost
         command = r'for run in {1..160}; do sleep 1; done'
