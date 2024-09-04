@@ -260,6 +260,7 @@ class TestIPAAuthSource:
         assert ext_user_group['auth-source'] == auth_source['server']['name']
         user_group = module_target_sat.cli.UserGroup.info({'id': user_group['id']})
         assert len(user_group['users']) == 0
+        module_target_sat.cli.Auth.logout()
         result = module_target_sat.cli.Auth.with_user(
             username=member_username, password=default_ipa_host.ldap_user_passwd
         ).status()
