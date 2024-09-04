@@ -191,7 +191,7 @@ def test_negative_rename_sat_wrong_passwd(module_target_sat):
         f'satellite-change-hostname -y {new_hostname} -u {username} -p {password}'
     )
     assert result.status == 1
-    assert BAD_CREDS_MSG in result.stderr[1].decode()
+    assert BAD_CREDS_MSG in result.stderr[1]
 
 
 @pytest.mark.stubbed
