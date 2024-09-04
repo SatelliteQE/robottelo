@@ -18,6 +18,9 @@ ROBOTTELO:
   SATELLITE_VERSION: "6.17"
   # The Base OS RHEL Version(x.y) where the satellite would be installed
   RHEL_VERSION: "8.10"
+  # The source of RHEL packages. Can be one of:
+  # internal, ga (CDN)
+  RHEL_SOURCE: "ga"
   # Dynaconf and Dynaconf hooks related options
   SETTINGS:
     GET_FRESH: true

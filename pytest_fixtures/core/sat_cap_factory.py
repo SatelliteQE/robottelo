@@ -316,14 +316,15 @@ def sat_ready_rhel(request):
 @pytest.fixture(scope='module')
 def module_sat_ready_rhels(request):
     deploy_args = get_deploy_args(request)
-    with Broker(**deploy_args, host_class=Satellite, _count=2) as hosts:
+    with Broker(**deploy_args, host_class=Satellite, _count=3) as hosts:
         yield hosts
 
 
 @pytest.fixture
 def cap_ready_rhel():
+    """Deploy bare RHEL system ready for Capsule installation."""
     rhel_version = Version(settings.capsule.version.rhel_version)
-    deploy_args = {
+    deploy_args = settings.capsule.deploy_arguments | {
         'deploy_rhel_version': rhel_version.base_version,
         'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
         'deploy_flavor': settings.flavors.default,
@@ -348,13 +349,28 @@ def installer_satellite(request):
     else:
         sat = lru_sat_ready_rhel(getattr(request, 'param', None))
     sat.setup_firewall()
-    # # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
+
+    # register to cdn (also enables rhel repos from cdn)
     sat.register_to_cdn(enable_proxy=True)
-    sat.download_repofile(
-        product='satellite',
-        release=settings.server.version.release,
-        snap=settings.server.version.snap,
-    )
+
+    # setup source repositories
+    if settings.server.version.source == "ga":
+        # enable satellite repos
+        for repo in sat.SATELLITE_CDN_REPOS.values():
+            sat.enable_repo(repo, force=True)
+    else:
+        # get ohsnap repofile
+        sat.download_repofile(
+            product='satellite',
+            release=settings.server.version.release,
+            snap=settings.server.version.snap,
+        )
+    if settings.robottelo.rhel_source == "internal":
+        # disable rhel repos from cdn
+        sat.disable_repo("rhel-*")
+        # add internal rhel repos
+        sat.create_custom_repos(**settings.repos.get(f'rhel{sat.os_version.major}_os'))
+
     sat.install_satellite_or_capsule_package()
     # Install Satellite
     sat.execute(
