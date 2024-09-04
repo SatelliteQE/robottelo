@@ -130,7 +130,9 @@ def registered_hosts(request, target_sat, module_org, module_ak_with_cv):
     with Broker(**host_conf(request), host_class=ContentHost, _count=2) as hosts:
         for vm in hosts:
             repo = settings.repos['SATCLIENT_REPO'][f'RHEL{vm.os_version.major}']
-            vm.register(module_org, None, module_ak_with_cv.name, target_sat, repo=repo)
+            vm.register(
+                module_org, None, module_ak_with_cv.name, target_sat, repo_data=f'repo={repo}'
+            )
         yield hosts
 
 
@@ -146,7 +148,7 @@ def katello_host_tools_host(target_sat, module_org, rhel_contenthost):
         auto_attach=True,
     ).create()
 
-    rhel_contenthost.register(module_org, None, ak.name, target_sat, repo=repo)
+    rhel_contenthost.register(module_org, None, ak.name, target_sat, repo_data=f'repo={repo}')
     rhel_contenthost.install_katello_host_tools()
     return rhel_contenthost
 
@@ -171,7 +173,9 @@ def rex_contenthost(request, module_org, target_sat, module_ak_with_cv):
     request.param['no_containers'] = True
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         repo = settings.repos['SATCLIENT_REPO'][f'RHEL{host.os_version.major}']
-        host.register(module_org, None, module_ak_with_cv.name, target_sat, repo=repo)
+        host.register(
+            module_org, None, module_ak_with_cv.name, target_sat, repo_data=f'repo={repo}'
+        )
         yield host
 
 
@@ -181,7 +185,9 @@ def rex_contenthosts(request, module_org, target_sat, module_ak_with_cv):
     with Broker(**host_conf(request), host_class=ContentHost, _count=2) as hosts:
         for host in hosts:
             repo = settings.repos['SATCLIENT_REPO'][f'RHEL{host.os_version.major}']
-            host.register(module_org, None, module_ak_with_cv.name, target_sat, repo=repo)
+            host.register(
+                module_org, None, module_ak_with_cv.name, target_sat, repo_data=f'repo={repo}'
+            )
         yield hosts
 
 
