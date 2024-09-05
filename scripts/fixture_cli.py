@@ -1,3 +1,10 @@
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#     "click",
+#     "pytest",
+# ]
+# ///
 from pathlib import Path
 
 import click
