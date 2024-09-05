@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#     "click",
+#     "requests",
+#     "testimony",
+# ]
+# ///
 from functools import cache
 
 import click

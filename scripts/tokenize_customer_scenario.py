@@ -1,6 +1,11 @@
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#     "codemod",
+# ]
+# ///
 """
 This script adds ':customerscenario: true' to all tests by uuid
-depends on `pip install https://github.com/facebook/codemod/tarball/master`
 
 On command line should be like:
 
