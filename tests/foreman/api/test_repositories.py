@@ -226,7 +226,7 @@ def test_positive_sync_upstream_repo_with_zst_compression(
 
 @pytest.mark.tier1
 @pytest.mark.manifester
-def test_negative_upload_expired_manifest(module_org, target_sat):
+def test_negative_upload_expired_manifest(request, default_org, target_sat):
     """Upload an expired manifest and attempt to refresh it
 
     :id: d6e652d8-5f46-4d15-9191-d842466d45d0
@@ -240,10 +240,13 @@ def test_negative_upload_expired_manifest(module_org, target_sat):
     """
     manifester = Manifester(manifest_category=settings.manifest.golden_ticket)
     manifest = manifester.get_manifest()
-    target_sat.upload_manifest(module_org.id, manifest.content)
+    target_sat.upload_manifest(default_org.id, manifest.content)
+    request.addfinalizer(
+        lambda: target_sat.cli.Subscription.delete_manifest({'organization-id': default_org.id})
+    )
     manifester.delete_subscription_allocation()
     with pytest.raises(CLIReturnCodeError) as error:
-        target_sat.cli.Subscription.refresh_manifest({'organization-id': module_org.id})
+        target_sat.cli.Subscription.refresh_manifest({'organization-id': default_org.id})
     assert (
         "The manifest doesn't exist on console.redhat.com. "
         "Please create and import a new manifest." in error.value.stderr
@@ -296,6 +299,7 @@ def test_positive_sync_mulitple_large_repos(module_target_sat, module_sca_manife
     """
     repo_names = ['rhel8_bos', 'rhel8_aps']
     kickstart_names = ['rhel8_bos', 'rhel8_aps']
+    all_repo_ids = []
     for name in repo_names:
         rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
@@ -305,6 +309,7 @@ def test_positive_sync_mulitple_large_repos(module_target_sat, module_sca_manife
             reposet=REPOS[name]['reposet'],
             releasever=REPOS[name]['releasever'],
         )
+        all_repo_ids.append(rh_repo_id)
 
     for name in kickstart_names:
         rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
@@ -315,11 +320,14 @@ def test_positive_sync_mulitple_large_repos(module_target_sat, module_sca_manife
             reposet=constants.REPOS['kickstart'][name]['reposet'],
             releasever=constants.REPOS['kickstart'][name]['version'],
         )
-    rh_repos = module_target_sat.api.Repository(id=rh_repo_id).read()
-    rh_products = module_target_sat.api.Product(id=rh_repos.product.id).read()
-    assert len(rh_products.repository) == 4
+        all_repo_ids.append(rh_repo_id)
+    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+    rh_product = module_target_sat.api.Product(id=rh_repo.product.id).read()
+    assert len(rh_product.repository) >= 4
+    rh_product_repo_ids = [repo.id for repo in rh_product.repository]
+    assert set(all_repo_ids).issubset(rh_product_repo_ids)
     res = module_target_sat.api.ProductBulkAction().sync(
-        data={'ids': [rh_products.id]}, timeout=2000
+        data={'ids': [rh_product.id]}, timeout=2000
     )
     assert res['result'] == 'success'
 
