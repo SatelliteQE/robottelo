@@ -1,3 +1,9 @@
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#     "dynaconf",
+# ]
+# ///
 """Usage: python scripts/validate_config.py"""
 
 from dynaconf.validator import ValidationError
