@@ -607,6 +607,7 @@ def test_positive_usage_limit(module_org, module_location, target_sat):
 
     :CaseImportance: Critical
     """
+    max_hosts = 1
     env = target_sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
     new_cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
     target_sat.cli.ContentView.publish({'id': new_cv['id']})
@@ -619,17 +620,19 @@ def test_positive_usage_limit(module_org, module_location, target_sat):
             'lifecycle-environment-id': env['id'],
             'content-view': new_cv['name'],
             'organization-id': module_org.id,
-            'max-hosts': '1',
+            'max-hosts': max_hosts,
         }
     )
-    with Broker(nick='rhel7', host_class=ContentHost, _count=2) as clients:
+    with Broker(nick='rhel8', host_class=ContentHost, _count=2) as clients:
         vm1, vm2 = clients
         vm1.register(module_org, module_location, new_ak['name'], target_sat)
         assert vm1.subscribed
         result = vm2.register(module_org, module_location, new_ak['name'], target_sat)
         assert not vm2.subscribed
-        assert result.status == 70
-        assert len(result.stderr) > 0
+        assert result.status, 'Second registration was expected to fail'
+        assert (
+            f"Max Hosts ({max_hosts}) reached for activation key '{new_ak.name}'" in result.stderr
+        )
 
 
 @pytest.mark.tier2
@@ -725,7 +728,7 @@ def test_positive_add_redhat_product(function_sca_manifest_org, target_sat):
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_custom_product(module_org, target_sat):
+def test_positive_add_custom_product(function_org, target_sat):
     """Test that custom product can be associated to Activation Keys
 
     :id: 96ace967-e165-4069-8ff7-f54c4c822de0
@@ -736,11 +739,11 @@ def test_positive_add_custom_product(module_org, target_sat):
     :BZ: 1426386
     """
     result = target_sat.cli_factory.setup_org_for_a_custom_repo(
-        {'url': settings.repos.yum_0.url, 'organization-id': module_org.id}
+        {'url': settings.repos.yum_0.url, 'organization-id': function_org.id}
     )
     repo = target_sat.cli.Repository.info({'id': result['repository-id']})
     content = target_sat.cli.ActivationKey.product_content(
-        {'id': result['activationkey-id'], 'organization-id': module_org.id}
+        {'id': result['activationkey-id'], 'organization-id': function_org.id}
     )
     assert content[0]['name'] == repo['name']
 
