@@ -610,6 +610,8 @@ def test_positive_installable_errata_with_user(
     assert rhel_contenthost.execute(f'yum downgrade -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     # Generate the report
     with session:
+        session.organization.select(function_org.name)
+        session.location.select(function_location.name)
         result_json = session.reporttemplate.generate(
             'Host - Available Errata',
             values={'output_format': 'JSON', 'installability': 'installable'},
