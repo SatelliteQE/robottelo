@@ -31,6 +31,20 @@ from robottelo.constants import (
 )
 from robottelo.utils.datafactory import parametrized, valid_data_list
 
+expected_report_columns = [
+    'Name',
+    'Global',
+    'Build',
+    'Compliance',
+    'Configuration',
+    'Errata',
+    'Execution',
+    'Insights',
+    'Inventory',
+    'RHEL lifecycle',
+    'Traces',
+]
+
 
 @pytest.fixture(scope='module')
 def setup_content(module_sca_manifest_org, module_target_sat):
@@ -137,25 +151,7 @@ def test_positive_generate_report_nofilter(target_sat):
         target_sat.api.ReportTemplate().search(query={'search': 'name="Host - Statuses"'})[0].read()
     )
     res = rt.generate()
-    for column_name in [
-        'Name',
-        'Global',
-        'Addons',
-        'Build',
-        'Compliance',
-        'Configuration',
-        'Errata',
-        'Execution',
-        'Insights',
-        'Inventory',
-        'RHEL lifecycle',
-        'Role',
-        'Service level',
-        'Subscription',
-        'System purpose',
-        'Traces',
-        'Usage',
-    ]:
+    for column_name in expected_report_columns:
         assert column_name in res
     assert host_name in res
 
@@ -184,25 +180,7 @@ def test_positive_generate_report_filter(target_sat):
         target_sat.api.ReportTemplate().search(query={'search': 'name="Host - Statuses"'})[0].read()
     )
     res = rt.generate(data={"input_values": {"hosts": host2_name}})
-    for column_name in [
-        'Name',
-        'Global',
-        'Addons',
-        'Build',
-        'Compliance',
-        'Configuration',
-        'Errata',
-        'Execution',
-        'Insights',
-        'Inventory',
-        'RHEL lifecycle',
-        'Role',
-        'Service level',
-        'Subscription',
-        'System purpose',
-        'Traces',
-        'Usage',
-    ]:
+    for column_name in expected_report_columns:
         assert column_name in res
     assert host1_name not in res
     assert host2_name in res
