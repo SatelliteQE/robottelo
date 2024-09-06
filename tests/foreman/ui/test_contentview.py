@@ -58,9 +58,14 @@ def test_positive_ccv_e2e(session, module_target_sat, module_org, module_lce):
 
     :id: d2db760d-4441-4e6e-9f7d-84501d8e0a13
 
-    :expectedresults: CCV can be created, and CVs can be added to it. Repository count is appropriate.
+    :steps:
+        1. Create Product/repo and Sync it
+        2. Create Composite CV
+        3. Create 3 Component CV and add the created Repo.
+        4. Publish and promote them to new LCE
+        5. Add all 3 to the Composite CV, and publish.
 
-    :CaseImportance: High
+    :expectedresults: CCV can be created, and CVs can be added to it. Repository count is appropriate.
     """
     ccv_name = gen_string('alpha')
     repo_name = gen_string('alpha')
