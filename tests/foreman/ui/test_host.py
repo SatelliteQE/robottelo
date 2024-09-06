@@ -1206,7 +1206,7 @@ def test_positive_manage_table_columns(
 
 
 @pytest.mark.tier2
-def test_all_hosts_manage_columns(target_sat, function_org, new_host_ui):
+def test_all_hosts_manage_columns(target_sat, new_host_ui):
     """Verify that the manage columns widget changes the columns appropriately
 
     :id: 5e13267a-68d2-451a-ae00-6502dd5db7f4
@@ -1231,7 +1231,6 @@ def test_all_hosts_manage_columns(target_sat, function_org, new_host_ui):
         'Boot time': True,
     }
     with target_sat.ui_session() as session:
-        session.organization.select(function_org.name)
         session.all_hosts.manage_table_columns(columns)
         displayed_columns = session.all_hosts.get_displayed_table_headers()
         for column, is_displayed in columns.items():
