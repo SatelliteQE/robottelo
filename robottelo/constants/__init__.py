@@ -8,7 +8,6 @@ from nailgun import entities
 # This should be updated after each version branch
 SATELLITE_VERSION = "6.15"
 SATELLITE_OS_VERSION = "8"
-SAT_NON_GA_VERSIONS = ['6.15']
 
 # Default system ports
 HTTPS_PORT = '443'
