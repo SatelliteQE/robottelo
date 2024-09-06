@@ -40,7 +40,7 @@ def test_positive_end_to_end(session, module_target_sat, module_org, module_lce)
     repo_name = gen_string('alpha')
     cv_name = gen_string('alpha')
     # Creates a CV along with product and sync'ed repository
-    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    module_target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     with module_target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
         session.contentview_new.create({'name': cv_name})
@@ -65,7 +65,7 @@ def test_positive_ccv_e2e(session, module_target_sat, module_org, module_lce):
     ccv_name = gen_string('alpha')
     repo_name = gen_string('alpha')
     # Create a product and sync'ed repository
-    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    module_target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
     with module_target_sat.ui_session() as session:
         # Creates a composite CV
         session.organization.select(org_name=module_org.name)
@@ -78,8 +78,8 @@ def test_positive_ccv_e2e(session, module_target_sat, module_org, module_lce):
             result = session.contentview_new.add_cv(ccv_name, cv_name)
             assert result[0]["Status"] == "Added"
         session.contentview_new.publish(ccv_name)
-        # Check that composite cv has three repositories in the table as we
-        # were using one repository for each content view
+        # Check that composite cv has one repository in the table as we
+        # were using the same repository for each Content View.
         result = session.contentview_new.read_version_table(ccv_name, VERSION, "repositories")
         assert len(result) == 1
 
