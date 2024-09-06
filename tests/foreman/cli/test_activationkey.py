@@ -793,7 +793,6 @@ def test_positive_add_redhat_and_custom_products(module_target_sat, function_sca
     assert {REPOSET['rhst7'], repo['name']} == {pc['name'] for pc in content}
 
 
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.rhel_ver_match('[^6]')
