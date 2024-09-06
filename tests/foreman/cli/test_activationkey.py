@@ -12,7 +12,6 @@
 
 """
 
-from broker import Broker
 from fauxfactory import gen_alphanumeric, gen_string
 import pytest
 
@@ -20,7 +19,6 @@ from robottelo.cli.defaults import Defaults
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE, PRDS, REPOS, REPOSET
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
-from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import (
     invalid_values_list,
     parametrized,
@@ -589,7 +587,8 @@ def test_negative_update_usage_limit(module_org, module_target_sat):
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_usage_limit(module_org, module_location, target_sat):
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_positive_usage_limit(module_org, module_location, target_sat, content_hosts):
     """Test that Usage limit actually limits usage
 
     :id: 00ded856-e939-4140-ac84-91b6a8643623
@@ -607,6 +606,7 @@ def test_positive_usage_limit(module_org, module_location, target_sat):
 
     :CaseImportance: Critical
     """
+    max_hosts = 1
     env = target_sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
     new_cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
     target_sat.cli.ContentView.publish({'id': new_cv['id']})
@@ -619,17 +619,16 @@ def test_positive_usage_limit(module_org, module_location, target_sat):
             'lifecycle-environment-id': env['id'],
             'content-view': new_cv['name'],
             'organization-id': module_org.id,
-            'max-hosts': '1',
+            'max-hosts': max_hosts,
         }
     )
-    with Broker(nick='rhel7', host_class=ContentHost, _count=2) as clients:
-        vm1, vm2 = clients
-        vm1.register(module_org, module_location, new_ak['name'], target_sat)
-        assert vm1.subscribed
-        result = vm2.register(module_org, module_location, new_ak['name'], target_sat)
-        assert not vm2.subscribed
-        assert result.status == 70
-        assert len(result.stderr) > 0
+    vm1, vm2 = content_hosts
+    vm1.register(module_org, module_location, new_ak['name'], target_sat)
+    assert vm1.subscribed
+    result = vm2.register(module_org, module_location, new_ak['name'], target_sat)
+    assert not vm2.subscribed
+    assert result.status, 'Second registration was expected to fail'
+    assert f"Max Hosts ({max_hosts}) reached for activation key '{new_ak.name}'" in result.stderr
 
 
 @pytest.mark.tier2
@@ -725,7 +724,7 @@ def test_positive_add_redhat_product(function_sca_manifest_org, target_sat):
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_custom_product(module_org, target_sat):
+def test_positive_add_custom_product(function_org, target_sat):
     """Test that custom product can be associated to Activation Keys
 
     :id: 96ace967-e165-4069-8ff7-f54c4c822de0
@@ -736,11 +735,11 @@ def test_positive_add_custom_product(module_org, target_sat):
     :BZ: 1426386
     """
     result = target_sat.cli_factory.setup_org_for_a_custom_repo(
-        {'url': settings.repos.yum_0.url, 'organization-id': module_org.id}
+        {'url': settings.repos.yum_0.url, 'organization-id': function_org.id}
     )
     repo = target_sat.cli.Repository.info({'id': result['repository-id']})
     content = target_sat.cli.ActivationKey.product_content(
-        {'id': result['activationkey-id'], 'organization-id': module_org.id}
+        {'id': result['activationkey-id'], 'organization-id': function_org.id}
     )
     assert content[0]['name'] == repo['name']
 
@@ -794,7 +793,6 @@ def test_positive_add_redhat_and_custom_products(module_target_sat, function_sca
     assert {REPOSET['rhst7'], repo['name']} == {pc['name'] for pc in content}
 
 
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.rhel_ver_match('[^6]')

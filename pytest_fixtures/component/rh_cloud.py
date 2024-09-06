@@ -35,7 +35,7 @@ def rhcloud_registered_hosts(
     for vm in mod_content_hosts:
         vm.configure_rhai_client(
             satellite=module_target_sat,
-            activation_key=rhcloud_activation_key.name,
+            activation_key=rhcloud_activation_key,
             org=rhcloud_manifest_org,
             rhel_distro=f"rhel{vm.os_version.major}",
         )
@@ -53,7 +53,7 @@ def rhel_insights_vm(
     )
     rhel_contenthost.configure_rhai_client(
         satellite=module_target_sat,
-        activation_key=rhcloud_activation_key.name,
+        activation_key=rhcloud_activation_key,
         org=rhcloud_manifest_org,
         rhel_distro=f"rhel{rhel_contenthost.os_version.major}",
     )
