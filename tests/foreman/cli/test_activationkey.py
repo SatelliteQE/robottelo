@@ -12,7 +12,6 @@
 
 """
 
-from broker import Broker
 from fauxfactory import gen_alphanumeric, gen_string
 import pytest
 
@@ -20,7 +19,6 @@ from robottelo.cli.defaults import Defaults
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE, PRDS, REPOS, REPOSET
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
-from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import (
     invalid_values_list,
     parametrized,
@@ -589,7 +587,8 @@ def test_negative_update_usage_limit(module_org, module_target_sat):
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_usage_limit(module_org, module_location, target_sat):
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_positive_usage_limit(module_org, module_location, target_sat, content_hosts):
     """Test that Usage limit actually limits usage
 
     :id: 00ded856-e939-4140-ac84-91b6a8643623
@@ -623,16 +622,13 @@ def test_positive_usage_limit(module_org, module_location, target_sat):
             'max-hosts': max_hosts,
         }
     )
-    with Broker(nick='rhel8', host_class=ContentHost, _count=2) as clients:
-        vm1, vm2 = clients
-        vm1.register(module_org, module_location, new_ak['name'], target_sat)
-        assert vm1.subscribed
-        result = vm2.register(module_org, module_location, new_ak['name'], target_sat)
-        assert not vm2.subscribed
-        assert result.status, 'Second registration was expected to fail'
-        assert (
-            f"Max Hosts ({max_hosts}) reached for activation key '{new_ak.name}'" in result.stderr
-        )
+    vm1, vm2 = content_hosts
+    vm1.register(module_org, module_location, new_ak['name'], target_sat)
+    assert vm1.subscribed
+    result = vm2.register(module_org, module_location, new_ak['name'], target_sat)
+    assert not vm2.subscribed
+    assert result.status, 'Second registration was expected to fail'
+    assert f"Max Hosts ({max_hosts}) reached for activation key '{new_ak.name}'" in result.stderr
 
 
 @pytest.mark.tier2
