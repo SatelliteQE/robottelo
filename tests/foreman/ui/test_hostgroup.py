@@ -268,7 +268,6 @@ def test_positive_nested_host_groups(
         assert not target_sat.api.HostGroup().search(query={'search': f'name={child_hg_name}'})
 
 
-@pytest.mark.skip_if_open('BZ:2122261')
 @pytest.mark.tier2
 def test_positive_clone_host_groups(
     session, module_org, module_lce, module_published_cv, module_ak_cv_lce, target_sat
@@ -287,6 +286,8 @@ def test_positive_clone_host_groups(
     :expectedresults: Crud operations with cloned host-group should work as expected.
 
     :BZ: 2122261
+
+    :BlockedBy: SAT-20435
 
     :customerscenario: true
     """
