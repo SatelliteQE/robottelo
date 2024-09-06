@@ -1,6 +1,8 @@
+from broker import Broker
 from fauxfactory import gen_string
 import pytest
 from wrapanapi import VMWareSystem
+from wrapanapi.systems.virtualcenter import VMWareVirtualMachine
 
 from robottelo.config import settings
 
@@ -107,3 +109,21 @@ def module_vmware_image(
         uuid=settings.vmware.image_name,
         password=settings.provisioning.host_root_password,
     ).create()
+
+
+@pytest.fixture
+def provisioning_vmware_host(pxe_loader, vmwareclient):
+    """Fixture to check out blank VM on VMware"""
+    vm_boot_firmware = 'efi' if pxe_loader.vm_firmware == 'uefi' else 'bios'
+    provisioning_host = Broker(
+        workflow='deploy-blank-vm-vcenter',
+        artifacts='last',
+        vm_network=settings.provisioning.vlan_id,
+        vm_boot_firmware=vm_boot_firmware,
+    ).execute()
+    yield provisioning_host
+    # delete the host
+    vmware_host = VMWareVirtualMachine(vmwareclient, name=provisioning_host['name'])
+    vmware_host.delete()
+    # check if vm is deleted from VMware
+    assert vmwareclient.does_vm_exist(provisioning_host['name']) is False

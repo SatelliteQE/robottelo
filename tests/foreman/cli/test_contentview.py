@@ -504,7 +504,7 @@ class TestContentView:
         source_cv = module_target_sat.cli.ContentView.info({'id': source_cv['id']})
         assert source_cv['activation-keys'][0] == ac_key['name']
         destination_cv = module_target_sat.cli.ContentView.info({'id': destination_cv['id']})
-        assert len(destination_cv['activation-keys']) == 0
+        assert 'activation-keys' not in destination_cv
 
         module_target_sat.cli.ContentView.remove(
             {
@@ -515,7 +515,7 @@ class TestContentView:
             }
         )
         source_cv = module_target_sat.cli.ContentView.info({'id': source_cv['id']})
-        assert len(source_cv['activation-keys']) == 0
+        assert 'activation-keys' not in source_cv
         destination_cv = module_target_sat.cli.ContentView.info({'id': destination_cv['id']})
         assert destination_cv['activation-keys'][0] == ac_key['name']
 
@@ -670,7 +670,7 @@ class TestContentView:
             {'id': new_cv['id'], 'repository-id': new_repo['id']}
         )
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
-        assert len(new_cv['yum-repositories']) == 0
+        assert 'yum-repositories' not in new_cv
 
     @pytest.mark.tier1
     def test_positive_remove_repository_by_name(
@@ -702,7 +702,7 @@ class TestContentView:
             {'id': new_cv['id'], 'repository': new_repo['name']}
         )
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
-        assert len(new_cv['yum-repositories']) == 0
+        assert 'yum-repositories' not in new_cv
 
     @pytest.mark.tier2
     def test_positive_remove_version_by_id_from_composite(
@@ -807,7 +807,7 @@ class TestContentView:
             }
         )
         comp_cv = module_target_sat.cli.ContentView.info({'id': comp_cv['id']})
-        assert len(comp_cv['components']) == 0
+        assert 'components' not in comp_cv
 
     @pytest.mark.tier3
     def test_positive_create_composite_with_component_ids(self, module_org, module_target_sat):
@@ -1296,9 +1296,7 @@ class TestContentView:
             {'organization-id': module_org.id}
         )
         print("Hello, the org ID is currently", module_org.id)
-        result = module_target_sat.cli.ContentView.list(
-            {'organization-id': module_org.id}, per_page=False
-        )
+        result = module_target_sat.cli.ContentView.list({'organization-id': module_org.id})
         content_view = random.choice([cv for cv in result if cv['name'] == constants.DEFAULT_CV])
         cvv = module_target_sat.cli.ContentView.version_list(
             {'content-view-id': content_view['content-view-id']}
@@ -1571,7 +1569,7 @@ class TestContentView:
             'yum-repositories',
             'container-image-repositories',
         ]:
-            assert len(new_cv[repo_type]) == 0
+            assert repo_type not in new_cv
         # Publish a new version of CV
         module_target_sat.cli.ContentView.publish({'id': new_cv['id']})
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
