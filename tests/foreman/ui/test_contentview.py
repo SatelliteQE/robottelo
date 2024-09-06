@@ -20,9 +20,10 @@ from robottelo.constants import FAKE_FILE_NEW_NAME, REPOS, DataFile
 VERSION = 'Version 1.0'
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_target_sat, module_org, module_lce, target_sat):
+def test_positive_end_to_end(session, module_target_sat, module_org, module_lce):
     """Create content view with yum repo, publish it and promote it to Library
 
     :id: 0970db8d-e9e3-4317-8703-153a6d9b2875
@@ -35,7 +36,6 @@ def test_positive_end_to_end(session, module_target_sat, module_org, module_lce,
     :expectedresults: content view is created, updated with repo publish and
         promoted to  the LCE
 
-    :CaseImportance: High
     """
     repo_name = gen_string('alpha')
     cv_name = gen_string('alpha')
@@ -50,10 +50,11 @@ def test_positive_end_to_end(session, module_target_sat, module_org, module_lce,
         assert module_lce.name in result[0]['Environments']
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
-def test_positive_ccv_e2e(session, module_target_sat, module_org, module_lce, target_sat):
+def test_positive_ccv_e2e(session, module_target_sat, module_org, module_lce):
     """Create several CVs, and a CCV. Associate some content with each, and then associate the CVs
-    with the CV - everything should work properly.
+    with the CCV - everything should work properly.
 
     :id: d2db760d-4441-4e6e-9f7d-84501d8e0a13
 
