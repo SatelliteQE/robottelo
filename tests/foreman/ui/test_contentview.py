@@ -17,6 +17,71 @@ import pytest
 
 from robottelo.constants import FAKE_FILE_NEW_NAME, REPOS, DataFile
 
+VERSION = 'Version 1.0'
+
+
+@pytest.mark.tier2
+@pytest.mark.upgrade
+def test_positive_end_to_end(session, module_target_sat, module_org, module_lce, target_sat):
+    """Create content view with yum repo, publish it and promote it to Library
+
+    :id: 0970db8d-e9e3-4317-8703-153a6d9b2875
+
+    :steps:
+        1. Create Product/repo and Sync it
+        2. Create CV and add created repo in step1
+        3. Publish and promote it to new LCE
+
+    :expectedresults: content view is created, updated with repo publish and
+        promoted to  the LCE
+
+    :CaseImportance: High
+    """
+    repo_name = gen_string('alpha')
+    cv_name = gen_string('alpha')
+    # Creates a CV along with product and sync'ed repository
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.contentview_new.create({'name': cv_name})
+        session.contentview_new.add_content(cv_name, repo_name)
+        result = session.contentview_new.publish(cv_name, promote=True, lce=module_lce.name)
+        assert result[0]['Version'] == VERSION
+        assert module_lce.name in result[0]['Environments']
+
+
+@pytest.mark.tier2
+def test_positive_ccv_e2e(session, module_target_sat, module_org, module_lce, target_sat):
+    """Create several CVs, and a CCV. Associate some content with each, and then associate the CVs
+    with the CV - everything should work properly.
+
+    :id: d2db760d-4441-4e6e-9f7d-84501d8e0a13
+
+    :expectedresults: CCV can be created, and CVs can be added to it. Repository count is appropriate.
+
+    :CaseImportance: High
+    """
+    ccv_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    # Create a product and sync'ed repository
+    target_sat.api_factory.create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    with module_target_sat.ui_session() as session:
+        # Creates a composite CV
+        session.organization.select(org_name=module_org.name)
+        session.contentview_new.create({'name': ccv_name}, composite=True)
+        # Create three content-views and add synced repo to them
+        for _ in range(3):
+            cv_name = module_target_sat.api.ContentView(organization=module_org).create().name
+            session.contentview_new.add_content(cv_name, repo_name)
+            session.contentview_new.publish(cv_name, promote=True, lce=module_lce.name)
+            result = session.contentview_new.add_cv(ccv_name, cv_name)
+            assert result[0]["Status"] == "Added"
+        session.contentview_new.publish(ccv_name)
+        # Check that composite cv has three repositories in the table as we
+        # were using one repository for each content view
+        result = session.contentview_new.read_version_table(ccv_name, VERSION, "repositories")
+        assert len(result) == 1
+
 
 @pytest.mark.tier2
 def test_positive_create_cv(session, target_sat):
