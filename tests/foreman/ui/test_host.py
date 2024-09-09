@@ -2563,7 +2563,7 @@ def test_positive_manage_packages(
 )
 @pytest.mark.no_containers
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.rhel_ver_match('8')
 def test_all_hosts_manage_errata(
     session,
     module_target_sat,
