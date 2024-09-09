@@ -835,6 +835,16 @@ class ContentHost(Host, ContentHostMixins):
             cmd += f' --server.proxy_port={port}'
         self.execute(cmd)
 
+    def enable_dnf_proxy(self, hostname, scheme=None, port=None):
+        """Configures proxy for dnf"""
+        if not scheme:
+            scheme = 'http'
+        cmd = f"echo -e 'proxy = {scheme}://{hostname}"
+        if port:
+            cmd += f':{port}'
+        cmd += "' >> /etc/dnf/dnf.conf"
+        self.execute(cmd)
+
     def add_authorized_key(self, pub_key):
         """Inject a public key into the authorized keys file
 
@@ -1690,10 +1700,6 @@ class Capsule(ContentHost, CapsuleMixins):
         Note: Make sure required repos are enabled before using this.
         """
         if self.os_version.major == 8:
-            if settings.server.is_ipv6:
-                self.execute(
-                    f"echo -e 'proxy={settings.server.http_proxy_ipv6_url}' >> /etc/dnf/dnf.conf"
-                )
             assert (
                 self.execute(
                     f'dnf -y module enable {self.product_rpm_name}:el{self.os_version.major}'
@@ -2326,6 +2332,7 @@ class Satellite(Capsule, SatelliteMixins):
         if enable_proxy and settings.server.is_ipv6:
             url = urlparse(settings.server.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)
+            self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
         return super().register_contenthost(
             org=org, lce=lce, username=username, password=password, enable_proxy=enable_proxy
         )
