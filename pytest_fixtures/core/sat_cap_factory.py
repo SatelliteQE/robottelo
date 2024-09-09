@@ -387,7 +387,7 @@ def installer_satellite(request):
         configure_nailgun()
         configure_airgun()
     yield sat
-    if 'sanity' not in request.config.option.markexpr:
+    if 'sanity' not in request.config.option.markexpr and settings.server.auto_checkin:
         sat = Satellite.get_host_by_hostname(sat.hostname)
         sat.unregister()
         Broker(hosts=[sat]).checkin()
