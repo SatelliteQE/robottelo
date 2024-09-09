@@ -535,7 +535,7 @@ def test_positive_installable_errata_with_user(
     session, target_sat, function_org, function_lce, function_location, rhel_contenthost
 ):
     """Generate an Installable Errata report using the Report Template - Available Errata,
-        with the option of 'Installable' with a reigistered user.
+        with the option of 'Installable' with a registered user.
 
     :id: 036e3ed6-b31b-4481-b591-dae438e4e61d
 
@@ -543,7 +543,7 @@ def test_positive_installable_errata_with_user(
 
     :steps:
         1. Install an outdated package version
-        2. Apply some errata which updates the package
+        2. Apply an errata which updates the package
         3. Downgrade the package impacted by the erratum
         4. Perform a search for any Available Errata
         5. Generate an Installable Report from the Available Errata with a registered user
