@@ -177,7 +177,7 @@ def test_positive_search_scoped(session):
 
     :BlockedBy: SAT-27703
 
-    :Verfies: SAT-27703
+    :Verifies: SAT-27703
 
     :CaseImportance: Medium
     """
