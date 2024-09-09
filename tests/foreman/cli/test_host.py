@@ -2017,6 +2017,7 @@ def test_syspurpose_end_to_end(
 
 
 # -------------------------- MULTI-CV SCENARIOS -------------------------
+@pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('[^7]')
 def test_negative_multi_cv_registration(
     module_org,
