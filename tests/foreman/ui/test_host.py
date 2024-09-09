@@ -1231,6 +1231,9 @@ def test_all_hosts_manage_columns(target_sat, new_host_ui):
         'Boot time': True,
     }
     with target_sat.ui_session() as session:
+        # Small workaround for an existing bug, reloads the page
+        session.all_hosts.get_displayed_table_headers()
+        wait_for(lambda: session.browser.refresh(), timeout=5)
         session.all_hosts.manage_table_columns(columns)
         displayed_columns = session.all_hosts.get_displayed_table_headers()
         for column, is_displayed in columns.items():
