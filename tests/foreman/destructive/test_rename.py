@@ -193,8 +193,8 @@ def test_negative_rename_sat_wrong_passwd(module_target_sat):
     assert result.status == 1
     assert BAD_CREDS_MSG in result.stderr
     # assert no changes were made
-    result = module_target_sat.execute('hostname')
-    assert original_name == result.stdout.strip(), "Invalid hostame assigned"
+    hostname_result = module_target_sat.execute('hostname')
+    assert original_name == hostname_result.stdout.strip(), "Invalid hostame assigned"
 
 
 @pytest.mark.stubbed
