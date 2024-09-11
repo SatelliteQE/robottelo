@@ -418,6 +418,10 @@ def test_positive_add_remove_subscription(module_org, module_ak_cv_lce, target_s
 
     :CaseImportance: Critical
     """
+    # disable SCA if enabled to allow subscription manipulation later
+    if target_sat.is_sca_mode_enabled(module_org.id):
+        module_org.sca_disable()
+
     # this command creates a host collection and "appends", makes available, to the AK
     module_ak_cv_lce.host_collection.append(
         target_sat.api.HostCollection(organization=module_org).create()
@@ -433,12 +437,12 @@ def test_positive_add_remove_subscription(module_org, module_ak_cv_lce, target_s
     # Create and register VMs as members of Host Collection
     with Broker(nick='rhel7', host_class=ContentHost, _count=2) as hosts:
         for client in hosts:
-            result = client.api_register(
+            client.api_register(
                 target_sat,
                 organization=module_org,
                 activation_keys=[module_ak_cv_lce.name],
             )
-            assert result.status == 0, f'Failed to register host: {result.stderr}'
+            assert len(target_sat.api.Host().search(query={"search": f'name={client.hostname}'}))
 
         # Read host_collection back from Satellite to get host_ids
         host_collection = module_ak_cv_lce.host_collection[0].read()
