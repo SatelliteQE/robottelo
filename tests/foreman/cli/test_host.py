@@ -2017,10 +2017,11 @@ def test_syspurpose_end_to_end(
 
 
 # -------------------------- MULTI-CV SCENARIOS -------------------------
+@pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('[^7]')
 def test_negative_multi_cv_registration(
     module_org,
-    module_activation_key,
+    module_ak_with_cv,
     module_lce,
     module_lce_library,
     module_published_cv,
@@ -2052,7 +2053,7 @@ def test_negative_multi_cv_registration(
     """
 
     # Register with global reg, just to get the sub-man config and certs right
-    result = rhel_contenthost.register(module_org, None, module_activation_key.name, target_sat)
+    result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
     assert result.status == 0
     assert rhel_contenthost.subscribed
 
