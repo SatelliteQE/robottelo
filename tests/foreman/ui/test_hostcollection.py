@@ -626,9 +626,7 @@ def test_positive_change_assigned_content(
 
 
 @pytest.mark.tier3
-def test_negative_hosts_limit(
-    session, module_target_sat, module_org_with_parameter, smart_proxy_location
-):
+def test_negative_hosts_limit(module_target_sat, module_org_with_parameter, smart_proxy_location):
     """Check that Host limit actually limits usage
 
     :id: 57b70977-2110-47d9-be3b-461ad15c70c7
@@ -663,7 +661,8 @@ def test_negative_hosts_limit(
             ).create()
         )
     assert len(hosts) == 2
-    with session:
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_org_with_parameter.name)
         session.location.select(smart_proxy_location.name)
         session.hostcollection.create({'name': hc_name, 'unlimited_hosts': False, 'max_hosts': 1})
         assert session.hostcollection.search(hc_name)[0]['Name'] == hc_name
