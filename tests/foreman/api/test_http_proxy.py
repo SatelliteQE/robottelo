@@ -186,10 +186,17 @@ def test_positive_install_content_with_http_proxy(rhel_contenthost):
     container = client.containers.get(name)
     logger.info(f"tpapaioa container status after 1st command: {container.status=}")
 
-    for i in range(5):
-        time.sleep(5)
-        container = client.containers.get(name)
-        logger.info(f"tpapaioa container status {i}: {container.status=}")
+    time.sleep(5)
+    container = client.containers.get(name)
+    logger.info(f"tpapaioa container status after 5s: {container.status=}")
+
+    time.sleep(5)
+    container = client.containers.get(name)
+    logger.info(f"tpapaioa container status after 10s: {container.status=}")
+
+    time.sleep(5)
+    container = client.containers.get(name)
+    logger.info(f"tpapaioa container status after 15s: {container.status=}")
 
     logs = "\n".join(log.decode() for log in container.logs())
     logger.info(f"tpapaioa container {logs=}")
