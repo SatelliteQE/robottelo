@@ -175,29 +175,28 @@ def test_positive_install_content_with_http_proxy(rhel_contenthost):
     name = rhel_contenthost.name
     runtime = rhel_contenthost._prov_inst.runtime
     client = runtime.client
+
+    import podman
+
+    logger.info(f"tpapaioa podman version: {podman.__version__}")
     logger.info(f"tpapaioa broker info: {name=}\n{runtime=}\n{client=}")
+    logger.info(f"tpapaioa podman server info: {client.version()}")
+
+    def log_container_status(container_name):
+        container = client.containers.get(container_name)
+        logger.info(f"tpapaioa container status: {container.status}")
+
+    log_container_status(name)
 
     # This command works
-    container = client.containers.get(name)
-    logger.info(f"tpapaioa container status before 1st command: {container.status=}")
     result = rhel_contenthost.execute('ls')
 
     # The container stops at some point
-    container = client.containers.get(name)
-    logger.info(f"tpapaioa container status after 1st command: {container.status=}")
-
+    log_container_status(name)
     time.sleep(5)
-    container = client.containers.get(name)
-    logger.info(f"tpapaioa container status after 5s: {container.status=}")
+    log_container_status(name)
 
-    time.sleep(5)
     container = client.containers.get(name)
-    logger.info(f"tpapaioa container status after 10s: {container.status=}")
-
-    time.sleep(5)
-    container = client.containers.get(name)
-    logger.info(f"tpapaioa container status after 15s: {container.status=}")
-
     logs = "\n".join(log.decode() for log in container.logs())
     logger.info(f"tpapaioa container {logs=}")
 
