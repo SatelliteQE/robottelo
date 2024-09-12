@@ -12,7 +12,7 @@
 
 """
 
-import time
+from time import sleep
 
 from fauxfactory import gen_string
 import pytest
@@ -188,12 +188,14 @@ def test_positive_install_content_with_http_proxy(rhel_contenthost):
 
     log_container_status(name)
 
+    sleep(30)
+
     # This command works
     result = rhel_contenthost.execute('ls')
 
     # The container stops at some point
     log_container_status(name)
-    time.sleep(5)
+    sleep(5)
     log_container_status(name)
 
     container = client.containers.get(name)
