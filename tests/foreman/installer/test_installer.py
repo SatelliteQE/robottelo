@@ -135,10 +135,12 @@ def install_satellite(satellite, installer_args, enable_fapolicyd=False):
         snap=settings.server.version.snap,
     )
     if enable_fapolicyd:
-        assert (
-            satellite.execute('dnf -y install fapolicyd && systemctl enable --now fapolicyd').status
-            == 0
-        )
+        if satellite.execute('rpm -q satellite-maintain').status == 0:
+            # Installing the rpm on existing sat needs sat-maintain perms
+            cmmd = 'satellite-maintain packages install fapolicyd -y'
+        else:
+            cmmd = 'dnf -y install fapolicyd'
+        assert satellite.execute(f'{cmmd} && systemctl enable --now fapolicyd').status == 0
     satellite.install_satellite_or_capsule_package()
     if enable_fapolicyd:
         assert satellite.execute('rpm -q foreman-fapolicyd').status == 0
