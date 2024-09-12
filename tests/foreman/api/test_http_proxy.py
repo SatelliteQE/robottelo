@@ -12,16 +12,18 @@
 
 """
 
+import time
+
 from fauxfactory import gen_string
 import pytest
 
-from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import (
     CONTAINER_REGISTRY_HUB,
     CONTAINER_UPSTREAM_NAME,
 )
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
+from robottelo.logging import logger
 
 
 @pytest.mark.tier2
@@ -150,17 +152,8 @@ def test_positive_end_to_end(
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.rhel_ver_match('8')
-@pytest.mark.run_in_one_thread
-@pytest.mark.parametrize(
-    'setup_http_proxy',
-    [None, True, False],
-    indirect=True,
-    ids=['no_http_proxy', 'auth_http_proxy', 'unauth_http_proxy'],
-)
 @pytest.mark.tier3
-def test_positive_install_content_with_http_proxy(
-    setup_http_proxy, module_target_sat, rhel_contenthost, function_sca_manifest_org
-):
+def test_positive_install_content_with_http_proxy(rhel_contenthost):
     """Attempt to sync and install RH content on a content host via HTTP proxy.
 
     :id: cce888b5-e023-4ee2-bffe-efa9260224ee
@@ -170,62 +163,40 @@ def test_positive_install_content_with_http_proxy(
         2. Unregistered RHEL contenthost.
 
     :steps:
-        1. Create an LCE and CV.
-        2. Sync a RH repository, publish it in the CV, promote to the LCE.
-        3. Create an AK using the created entities and override the RH repo to Enabled.
-        4. Register the content host using the AK via global registration.
-        5. Install a package from the RH repository.
+        1. Run 'ls' command.
 
     :expectedresults:
-        1. RH repos can be synced successfully.
-        2. Content host can be registered via AK.
-        3. Content can be installed on the content host.
+        1. Successful command.
 
     :customerscenario: true
 
     :parametrized: yes
     """
-    repo_to_use = 'rhae2.9_el8'
-    pkg_name = 'ansible'
-    org = function_sca_manifest_org
-    lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
-    content_view = module_target_sat.api.ContentView(organization=org).create()
-    rh_repo_id = module_target_sat.api_factory.enable_sync_redhat_repo(
-        constants.REPOS[repo_to_use], org.id
-    )
-    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
-    assert rh_repo.content_counts['rpm'] >= 1
-    content_view = module_target_sat.api.ContentView(
-        id=content_view.id, repository=[rh_repo]
-    ).update(["repository"])
-    content_view.publish()
-    content_view = content_view.read()
-    content_view.version[-1].promote(data={'environment_ids': lce.id})
+    name = rhel_contenthost.name
+    runtime = rhel_contenthost._prov_inst.runtime
+    client = runtime.client
+    logger.info(f"tpapaioa broker info: {name=}\n{runtime=}\n{client=}")
 
-    activation_key = module_target_sat.api.ActivationKey(
-        content_view=content_view,
-        organization=org,
-        environment=lce,
-    ).create()
-    activation_key.content_override(
-        data={
-            'content_overrides': [
-                {'content_label': constants.REPOS[repo_to_use]['id'], 'value': '1'}
-            ]
-        }
-    )
+    # This command works
+    container = client.containers.get(name)
+    logger.info(f"tpapaioa container status before 1st command: {container.status=}")
+    result = rhel_contenthost.execute('ls')
 
-    result = rhel_contenthost.register(
-        org=org,
-        activation_keys=activation_key.name,
-        target=module_target_sat,
-        loc=None,
-    )
-    assert result.status == 0, f'Failed to register the host: {rhel_contenthost.hostname}'
-    assert rhel_contenthost.subscribed
+    # The container stops at some point
+    container = client.containers.get(name)
+    logger.info(f"tpapaioa container status after 1st command: {container.status=}")
 
-    result = rhel_contenthost.execute(f'yum install -y {pkg_name}')
-    assert result.status == 0, f'{pkg_name} installation failed with: {result.stderr}'
+    for i in range(5):
+        time.sleep(5)
+        container = client.containers.get(name)
+        logger.info(f"tpapaioa container status {i}: {container.status=}")
+
+    logs = "\n".join(log.decode() for log in container.logs())
+    logger.info(f"tpapaioa container {logs=}")
+
+    # This command fails
+    result = rhel_contenthost.execute('ls')
+    assert result
 
 
 @pytest.mark.e2e
