@@ -1422,10 +1422,9 @@ class TestCannedRole:
         ).create()
         assert user_login == user.login
         assert org_admin.id == user.role[0].id
-        if not is_open('BZ:1825698'):
-            name = gen_string('alphanumeric')
-            location = target_sat.api.Location(sc_user, name=name).create()
-            assert location.name == name
+        name = gen_string('alphanumeric')
+        location = target_sat.api.Location(sc_user, name=name).create()
+        assert location.name == name
 
     @pytest.mark.tier2
     def test_positive_access_users_inside_org_admin_taxonomies(self, role_taxonomies, target_sat):
