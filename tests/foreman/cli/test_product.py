@@ -212,7 +212,6 @@ def test_product_list_with_default_settings(module_org, target_sat):
 
 
 @pytest.mark.tier2
-@pytest.mark.skip_if_open('BZ:1999541')
 def test_positive_product_sync_state(module_org, module_target_sat):
     """hammer product info shows correct sync state.
 

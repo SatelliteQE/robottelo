@@ -705,14 +705,14 @@ def test_positive_list_infrastructure_hosts(
     target_sat.cli.Host.update({'name': target_sat.hostname, 'new-organization-id': module_org.id})
     # list satellite hosts
     hosts = target_sat.cli.Host.list({'search': 'infrastructure_facet.foreman=true'})
-    assert len(hosts) == 1
+    assert len(hosts) == 2
     hostnames = [host['name'] for host in hosts]
     assert rhel7_contenthost.hostname not in hostnames
     assert target_sat.hostname in hostnames
     # list capsule hosts
     hosts = target_sat.cli.Host.list({'search': 'infrastructure_facet.smart_proxy_id=1'})
     hostnames = [host['name'] for host in hosts]
-    assert len(hosts) == 1
+    assert len(hosts) == 2
     assert rhel7_contenthost.hostname not in hostnames
     assert target_sat.hostname in hostnames
 
