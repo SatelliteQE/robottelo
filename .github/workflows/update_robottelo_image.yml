@@ -16,6 +16,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # do not store the auth token in git config
+          persist-credentials: false
 
       - name: Get image tag
         id: image_tag
