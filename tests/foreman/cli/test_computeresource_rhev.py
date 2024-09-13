@@ -281,7 +281,6 @@ def test_positive_add_image_rhev_with_name(rhev, module_os, module_target_sat):
     assert result[0]['uuid'] == rhev.image_uuid
 
 
-@pytest.mark.skip_if_open("BZ:1829239")
 @pytest.mark.tier2
 def test_negative_add_image_rhev_with_invalid_uuid(rhev, module_os, module_target_sat):
     """Attempt to add invalid image to the RHEV compute resource
