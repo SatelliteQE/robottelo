@@ -11,8 +11,6 @@ from robottelo.logging import collection_logger as logger
 from robottelo.utils import slugify_component
 from robottelo.utils.issue_handlers import (
     add_workaround,
-    bugzilla,
-    is_open,
     should_deselect,
 )
 from robottelo.utils.version import VersionEncoder, search_version_key
@@ -36,7 +34,6 @@ def pytest_addoption(parser):
     parser.addoption(
         "--BZ",
         help="Filter test collection based on BZ markers. "
-        "BZ markers are applied automatically by skip_if_open marks on tests. "
         "Comma separated list to include multiple BZs for collection."
         " Example: `--BZ 123456,456789`",
     )
@@ -44,15 +41,10 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     """Register custom markers to avoid warnings."""
-    markers = [
-        "skip_if_open(issue): Skip test based on issue status.",
-        (
-            "BZ(number): Bugzillas related to the testcase, "
-            "for use with `--BZ <number>` option for collection"
-        ),
-    ]
-    for marker in markers:
-        config.addinivalue_line("markers", marker)
+    config.addinivalue_line(
+        "markers",
+        "BZ(number): Bugzillas related to the testcase, for use with `--BZ <number>` option for collection",
+    )
 
 
 @pytest.hookimpl(trylast=True)
@@ -72,13 +64,6 @@ def pytest_collection_modifyitems(session, items, config):
     selected = []
     deselected = []
     for item in items:
-        # Add a skipif marker for the issues
-        skip_if_open = item.get_closest_marker('skip_if_open')
-        if skip_if_open:
-            # marker must have `BZ:123456` as argument.
-            issue = skip_if_open.kwargs.get('reason') or skip_if_open.args[0]
-            item.add_marker(pytest.mark.skipif(is_open(issue), reason=issue))
-
         # remove items from collection
         if bz_filters:
             # Only include items which have BZ mark that includes any of the filtered bz numbers
@@ -162,7 +147,6 @@ def generate_issue_collection(items, config):  # pragma: no cover
                             "lineno": 124,
                             "testcase": "test_positive_sync_custom_ostree_repo",
                             "component": "Repositories",
-                            "usage": "skip_if_open"
                         },
                         ...
                     ]
@@ -170,7 +154,7 @@ def generate_issue_collection(items, config):  # pragma: no cover
                 ...
             }
     """
-    valid_markers = ["skip_if_open", "skip", "deselect"]
+    valid_markers = ["skip", "deselect"]
     collected_data = defaultdict(lambda: {"data": {}, "used_in": []})
 
     use_bz_cache = config.getoption('bz_cache', None)  # use existing json cache?
@@ -290,9 +274,6 @@ def generate_issue_collection(items, config):  # pragma: no cover
                 validation=validation,
                 **kwargs,
             )
-
-    # --- Collect BUGZILLA data ---
-    bugzilla.collect_data_bz(collected_data, cached_data)
 
     # --- add deselect markers dynamically ---
     for item in items:

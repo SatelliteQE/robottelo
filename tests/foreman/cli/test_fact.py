@@ -21,7 +21,6 @@ from robottelo.utils.issue_handlers import is_open
 pytestmark = [pytest.mark.tier1]
 
 
-@pytest.mark.skip_if_open('BZ:2161294')
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
     'fact', ['uptime', 'os::family', 'uptime_seconds', 'memorysize', 'ipaddress']

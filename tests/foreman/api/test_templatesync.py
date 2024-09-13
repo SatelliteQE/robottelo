@@ -791,7 +791,6 @@ class TestTemplateSyncTestCase:
             template['message']['templates'][0]['additional_errors'] == 'Failed to parse metadata'
         )
 
-    @pytest.mark.skip_if_open('BZ:1787355')
     @pytest.mark.tier2
     def test_positive_import_json_output_filtered_skip_message(
         self, create_import_export_local_dir, module_org, module_target_sat

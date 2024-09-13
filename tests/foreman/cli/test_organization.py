@@ -342,8 +342,6 @@ def test_positive_add_and_remove_media(module_org, module_target_sat):
 
 
 @pytest.mark.tier2
-@pytest.mark.skip_if_open("BZ:1845860")
-@pytest.mark.skip_if_open("BZ:1886876")
 def test_positive_add_and_remove_templates(module_org, module_target_sat):
     """Add and remove provisioning templates to organization
 
