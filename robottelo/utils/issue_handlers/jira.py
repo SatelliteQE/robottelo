@@ -52,8 +52,9 @@ def is_open_jira(issue_id, data=None):
 
     Arguments:
         issue_id {str} -- The Jira reference e.g: SAT-20548
-        data {dict} -- Issue data indexed by <handler>:<number> or None
+        data {dict} -- Issue data indexed by issue id or None
     """
+    issue_id = issue_id.strip()
     jira = try_from_cache(issue_id, data)
     if jira.get("is_open") is not None:  # issue has been already processed
         return jira["is_open"]
@@ -85,7 +86,7 @@ def are_all_jira_open(issue_ids, data=None):
 
     Arguments:
         issue_ids {list} -- The Jira reference e.g: ['SAT-20548', 'SAT-20548']
-        data {dict} -- Issue data indexed by <handler>:<number> or None
+        data {dict} -- Issue data indexed by issue id or None
     """
     return all(is_open_jira(issue_id, data) for issue_id in issue_ids)
 
@@ -96,7 +97,7 @@ def are_any_jira_open(issue_ids, data=None):
 
     Arguments:
         issue_ids {list} -- The Jira reference e.g: ['SAT-20548', 'SAT-20548']
-        data {dict} -- Issue data indexed by <handler>:<number> or None
+        data {dict} -- Issue data indexed by issue id or None
     """
     return any(is_open_jira(issue_id, data) for issue_id in issue_ids)
 
@@ -108,9 +109,9 @@ def should_deselect_jira(issue_id, data=None):
 
     Arguments:
         issue_id {str} -- The Jira reference e.g: SAT-12345
-        data {dict} -- Issue data indexed by <handler>:<number> or None
+        data {dict} -- Issue data indexed by issue id or None
     """
-
+    issue_id = issue_id.strip()
     jira = try_from_cache(issue_id, data)
     if jira.get("is_deselected") is not None:  # issue has been already processed
         return jira["is_deselected"]
@@ -135,7 +136,7 @@ def try_from_cache(issue_id, data=None):
 
     Arguments:
          issue_id {str} -- The Jira reference e.g: SAT-12345
-         data {dict} -- Issue data indexed by <handler>:<number> or None
+         data {dict} -- Issue data indexed by issue id or None
     """
     try:
         # issue_id must be passed in `data` argument or already fetched in pytest
@@ -154,12 +155,7 @@ def collect_data_jira(collected_data, cached_data):  # pragma: no cover
         collected_data {dict} -- dict with Jira issues collected by pytest
         cached_data {dict} -- Cached data previous loaded from API
     """
-    jira_data = (
-        get_data_jira(
-            [item for item in collected_data if item.startswith('SAT-')], cached_data=cached_data
-        )
-        or []
-    )
+    jira_data = get_data_jira([item for item in collected_data], cached_data=cached_data) or []
     for data in jira_data:
         # If Jira is CLOSED/DUPLICATE collect the duplicate
         collect_dupes(data, collected_data, cached_data=cached_data)
@@ -244,9 +240,7 @@ def get_data_jira(issue_ids, cached_data=None, jira_fields=None):  # pragma: no 
     # Ensure API key is set
     if not settings.jira.api_key:
         logger.warning(
-            "Config file is missing jira api_key "
-            "so all tests with skip_if_open mark is skipped. "
-            "Provide api_key or a jira_cache.json."
+            "Config file is missing jira api_key. " "Provide api_key or a jira_cache.json."
         )
         # Provide default data for collected Jira's.
         return [get_default_jira(issue_id) for issue_id in issue_ids]
@@ -271,6 +265,7 @@ def get_data_jira(issue_ids, cached_data=None, jira_fields=None):  # pragma: no 
 
 def get_single_jira(issue_id, cached_data=None):  # pragma: no cover
     """Call Jira API to get a single Jira data and cache it"""
+    issue_id = issue_id.strip()
     cached_data = cached_data or {}
     jira_data = CACHED_RESPONSES['get_single'].get(issue_id)
     if not jira_data:
@@ -314,6 +309,7 @@ def add_comment_on_jira(
     Returns:
         [list of dicts] -- [{'id':..., 'status':..., 'resolution': ...}]
     """
+    issue_id = issue_id.strip()
     # Raise a warning if any of the following option is not set. Note: It's a xor condition.
     if settings.jira.enable_comment != bool(pytest.jira_comments):
         logger.warning(

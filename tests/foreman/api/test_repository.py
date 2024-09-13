@@ -2107,7 +2107,6 @@ class TestDockerRepository:
 #             repo.read()
 #
 #     @pytest.mark.tier2
-#     @pytest.mark.skip_if_open("BZ:1625783")
 #     @pytest.mark.run_in_one_thread
 #     @pytest.mark.skip_if_not_set('fake_manifest')
 #     @pytest.mark.upgrade
