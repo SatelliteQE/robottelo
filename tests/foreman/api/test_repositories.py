@@ -30,7 +30,6 @@ from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import parametrized
 
 
-@pytest.mark.skip_if_open('BZ:2137950')
 @pytest.mark.tier1
 def test_negative_disable_repository_with_cv(module_sca_manifest_org, target_sat):
     """Attempt to disable a Repository that is published in a Content View
