@@ -244,7 +244,6 @@ class TestCapsuleContentManagement:
         assert new_checksum in checksum_types
         assert original_checksum not in checksum_types
 
-    @pytest.mark.skip_if_open("BZ:2025494")
     @pytest.mark.e2e
     @pytest.mark.tier4
     @pytest.mark.pit_client
@@ -761,7 +760,6 @@ class TestCapsuleContentManagement:
         caps_files = get_repo_files_by_url(caps_repo_url)
         assert len(caps_files) == packages_count
 
-    @pytest.mark.skip_if_open("BZ:2122780")
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_capsule_pub_url_accessible(self, module_capsule_configured):

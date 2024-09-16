@@ -18,8 +18,6 @@ from robottelo.constants import DataFile
 from robottelo.utils.datafactory import gen_string
 
 
-@pytest.mark.skip_if_open("BZ:2167937")
-@pytest.mark.skip_if_open("BZ:2133151")
 @pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_end_to_end(
@@ -67,8 +65,6 @@ def test_positive_end_to_end(
         assert not session.oscapcontent.search(new_title)
 
 
-@pytest.mark.skip_if_open("BZ:2167937")
-@pytest.mark.skip_if_open("BZ:2133151")
 @pytest.mark.tier1
 def test_negative_create_with_same_name(session, oscap_content_path, default_org, default_location):
     """Create OpenScap content with same name

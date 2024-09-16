@@ -711,7 +711,6 @@ class TestRepository:
         assert repo['sync']['status'] == 'Success'
         assert int(repo['content-counts']['files']) == CUSTOM_FILE_REPO_FILES_COUNT
 
-    @pytest.mark.skip_if_open("BZ:2035025")
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
@@ -1460,7 +1459,6 @@ class TestRepository:
         new_repo = target_sat.cli.Repository.info({'id': new_repo['id']})
         assert int(new_repo['content-counts']['files']) == CUSTOM_FILE_REPO_FILES_COUNT + 1
 
-    @pytest.mark.skip_if_open("BZ:1410916")
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
@@ -1861,7 +1859,6 @@ class TestRepository:
         }
 
     @pytest.mark.tier1
-    @pytest.mark.skip_if_open('BZ:2002653')
     def test_negative_update_red_hat_repo(self, module_manifest_org, module_target_sat):
         """Updates to Red Hat products fail.
 
