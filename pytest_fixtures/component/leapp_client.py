@@ -63,15 +63,19 @@ def module_stash(request):
     return request.node.stash
 
 
-@pytest.fixture(scope='module')
-def module_leapp_lce(module_target_sat, module_sca_manifest_org):
-    return module_target_sat.api.LifecycleEnvironment(organization=module_sca_manifest_org).create()
+@pytest.fixture
+def module_leapp_lce(module_target_sat, module_entitlement_manifest_org):
+    return module_target_sat.api.LifecycleEnvironment(
+        organization=module_entitlement_manifest_org
+    ).create()
 
 
 @pytest.fixture
-def function_leapp_cv(module_target_sat, module_sca_manifest_org, leapp_repos, module_leapp_lce):
+def function_leapp_cv(
+    module_target_sat, module_entitlement_manifest_org, leapp_repos, module_leapp_lce
+):
     function_leapp_cv = module_target_sat.api.ContentView(
-        organization=module_sca_manifest_org
+        organization=module_entitlement_manifest_org
     ).create()
     function_leapp_cv.repository = leapp_repos
     function_leapp_cv = function_leapp_cv.update(['repository'])
@@ -86,12 +90,12 @@ def function_leapp_ak(
     module_target_sat,
     function_leapp_cv,
     module_leapp_lce,
-    module_sca_manifest_org,
+    module_entitlement_manifest_org,
 ):
     return module_target_sat.api.ActivationKey(
         content_view=function_leapp_cv,
         environment=module_leapp_lce,
-        organization=module_sca_manifest_org,
+        organization=module_entitlement_manifest_org,
     ).create()
 
 
@@ -101,7 +105,7 @@ def leapp_repos(
     module_stash,
     upgrade_path,
     module_target_sat,
-    module_sca_manifest_org,
+    module_entitlement_manifest_org,
 ):
     """Enable and sync RHEL BaseOS, AppStream repositories"""
     source = upgrade_path['source_version']
@@ -111,20 +115,20 @@ def leapp_repos(
         release_version = RHEL_REPOS[rh_repo_key]['releasever']
         if release_version in str(source) or release_version in target:
             prod = 'rhel' if 'rhel7' in rh_repo_key else rh_repo_key.split('_')[0]
+            repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+                basearch=default_architecture.name,
+                org_id=module_entitlement_manifest_org.id,
+                product=PRDS[prod],
+                repo=RHEL_REPOS[rh_repo_key]['name'],
+                reposet=RHEL_REPOS[rh_repo_key]['reposet'],
+                releasever=release_version,
+            )
+            rh_repo = module_target_sat.api.Repository(id=repo_id).read()
+            all_repos.append(rh_repo)
             if module_stash[synced_repos].get(rh_repo_key, None):
                 logger.info('Repo %s already synced, not syncing it', rh_repo_key)
             else:
                 module_stash[synced_repos][rh_repo_key] = True
-                repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
-                    basearch=default_architecture.name,
-                    org_id=module_sca_manifest_org.id,
-                    product=PRDS[prod],
-                    repo=RHEL_REPOS[rh_repo_key]['name'],
-                    reposet=RHEL_REPOS[rh_repo_key]['reposet'],
-                    releasever=release_version,
-                )
-                rh_repo = module_target_sat.api.Repository(id=repo_id).read()
-                all_repos.append(rh_repo)
                 rh_repo.sync(timeout=1800)
     return all_repos
 
@@ -133,9 +137,10 @@ def leapp_repos(
 def verify_target_repo_on_satellite(
     module_target_sat,
     function_leapp_cv,
-    module_sca_manifest_org,
+    module_entitlement_manifest_org,
     module_leapp_lce,
     upgrade_path,
+    leapp_repos,
 ):
     """Verify target rhel version repositories have been added in correct CV, LCE on Satellite"""
     target_rhel_major_ver = upgrade_path['target_version'].split('.')[0]
@@ -143,7 +148,7 @@ def verify_target_repo_on_satellite(
         {
             'search': f'content_label ~ rhel-{target_rhel_major_ver}',
             'content-view-id': function_leapp_cv.id,
-            'organization-id': module_sca_manifest_org.id,
+            'organization-id': module_entitlement_manifest_org.id,
             'lifecycle-environment-id': module_leapp_lce.id,
         }
     )
@@ -157,7 +162,9 @@ def verify_target_repo_on_satellite(
 
 
 @pytest.fixture
-def custom_leapp_host(upgrade_path, module_target_sat, module_sca_manifest_org, function_leapp_ak):
+def custom_leapp_host(
+    upgrade_path, module_target_sat, module_entitlement_manifest_org, function_leapp_ak
+):
     """Checkout content host and register with satellite"""
     deploy_args = {}
     deploy_args['deploy_rhel_version'] = upgrade_path['source_version']
@@ -168,7 +175,7 @@ def custom_leapp_host(upgrade_path, module_target_sat, module_sca_manifest_org, 
         deploy_flavor=settings.flavors.default,
     ) as chost:
         result = chost.register(
-            module_sca_manifest_org, None, function_leapp_ak.name, module_target_sat
+            module_entitlement_manifest_org, None, function_leapp_ak.name, module_target_sat
         )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         yield chost
