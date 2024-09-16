@@ -30,7 +30,6 @@ from robottelo.config import (
     user_nailgun_config,
 )
 from robottelo.constants.repos import CUSTOM_RPM_REPO
-from robottelo.utils.issue_handlers import is_open
 
 API_PATHS = {
     'activation_keys': (
@@ -908,10 +907,6 @@ API_PATHS = {
 def filtered_api_paths():
     """Filter the API_PATHS dict based on BZs that impact various endpoints"""
     missing = defaultdict(list)
-    if is_open('BZ:1887932'):
-        missing['subscriptions'].append(
-            '/katello/api/activation_keys/:activation_key_id/subscriptions'
-        )
     filtered_paths = API_PATHS.copy()
     for endpoint, missing_paths in missing.items():
         filtered_paths[endpoint] = tuple(

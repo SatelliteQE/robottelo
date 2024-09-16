@@ -183,7 +183,6 @@ class TestTailoringFiles:
         :CaseImportance: Medium
         """
 
-    @pytest.mark.skip_if_open("BZ:1857572")
     @pytest.mark.tier2
     def test_positive_download_tailoring_file(self, tailoring_file_path, target_sat):
         """Download the tailoring file from satellite
