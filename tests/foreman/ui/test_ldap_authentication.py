@@ -1055,7 +1055,6 @@ def test_timeout_and_cac_card_ejection():
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
-@pytest.mark.skip_if_open('BZ:1670397')
 def test_verify_attribute_of_users_are_updated(
     session, ldap_auth_source, ldap_tear_down, target_sat
 ):
@@ -1162,7 +1161,6 @@ def test_login_failure_if_internal_user_exist(
         target_sat.api.User(id=user.id).delete()
 
 
-@pytest.mark.skip_if_open("BZ:1812688")
 @pytest.mark.tier2
 def test_userlist_with_external_admin(
     session, auth_source_ipa, ldap_tear_down, groups_teardown, target_sat
@@ -1232,7 +1230,6 @@ def test_userlist_with_external_admin(
         assert remote_admin_session.user.search(idm_user)[0]['Username'] == idm_user
 
 
-@pytest.mark.skip_if_open('BZ:1883209')
 @pytest.mark.tier2
 def test_positive_group_sync_open_ldap_authsource(
     test_name,
