@@ -1081,7 +1081,6 @@ def test_negative_non_readonly_user_actions(target_sat, content_view, function_r
         target_sat.api.ContentView(id=content_view.id).read()
 
 
-@pytest.mark.skip_if_open("BZ:1625783")
 class TestOstreeContentView:
     """Tests for ostree contents in content views."""
 
@@ -1185,7 +1184,6 @@ class TestOstreeContentView:
         assert len(content_view.read().version[0].read().environment) == 2
 
 
-@pytest.mark.skip_if_open("BZ:1625783")
 class TestContentViewRedHatOstreeContent:
     """Tests for publishing and promoting cv with RH ostree contents."""
 

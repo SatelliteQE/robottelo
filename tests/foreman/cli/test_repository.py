@@ -732,15 +732,10 @@ class TestRepository:
     )
     def test_positive_synchronize_auth_yum_repo(self, repo, target_sat):
         """Check if secured repository can be created and synced
-
         :id: b0db676b-e0f0-428c-adf3-1d7c0c3599f0
-
         :parametrized: yes
-
         :expectedresults: Repository is created and synced
-
         :BZ: 1328092
-
         """
         # Assertion that repo is not yet synced
         assert repo['sync']['status'] == 'Not Synced'
@@ -750,7 +745,6 @@ class TestRepository:
         new_repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert new_repo['sync']['status'] == 'Success'
 
-    @pytest.mark.skip_if_open("BZ:2035025")
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
@@ -1533,7 +1527,6 @@ class TestRepository:
         new_repo = target_sat.cli.Repository.info({'id': new_repo['id']})
         assert int(new_repo['content-counts']['files']) == CUSTOM_FILE_REPO_FILES_COUNT + 1
 
-    @pytest.mark.skip_if_open("BZ:1410916")
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
@@ -1934,7 +1927,6 @@ class TestRepository:
         }
 
     @pytest.mark.tier1
-    @pytest.mark.skip_if_open('BZ:2002653')
     def test_negative_update_red_hat_repo(self, module_manifest_org, module_target_sat):
         """Updates to Red Hat products fail.
 

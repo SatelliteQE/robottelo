@@ -3272,7 +3272,6 @@ class TestContentViewFileRepo:
         assert int(new_repo['content-counts']['files']) > 0
         return new_repo
 
-    @pytest.mark.skip_if_open('BZ:1610309')
     @pytest.mark.tier3
     def test_positive_arbitrary_file_repo_addition(
         self, module_org, module_product, module_target_sat
@@ -3314,7 +3313,6 @@ class TestContentViewFileRepo:
         cv = module_target_sat.cli.ContentView.info({'id': cv['id']})
         assert cv['file-repositories'][0]['name'] == repo['name']
 
-    @pytest.mark.skip_if_open('BZ:1908465')
     @pytest.mark.tier3
     def test_positive_arbitrary_file_repo_removal(
         self, module_org, module_product, module_target_sat
