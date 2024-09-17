@@ -37,6 +37,8 @@ class TestContentView:
           4. Publish the content-view.
 
         :expectedresults: Content-view created with various repositories.
+
+        :BlockedBy: SAT-28048
         """
         test_name = request.node.name + gen_alpha()
         org = target_sat.api.Organization(name=f'{test_name}_org').create()
@@ -74,6 +76,7 @@ class TestContentView:
           2. Content view created before upgrade should be intact.
           3. The new repository should be added/updated to the CV.
 
+        :BlockedBy: SAT-28048
         """
         pre_test_name = pre_upgrade_data.get('test_name')
         cv_name = pre_upgrade_data.get('cv_name')
