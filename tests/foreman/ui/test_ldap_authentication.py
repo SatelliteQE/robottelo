@@ -345,7 +345,7 @@ def test_positive_update_external_roles(
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
-        assert ldap_data['ldap_user_name'] in current_user
+        assert ldap_data['ldap_user_shown_name'] == current_user
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
@@ -541,7 +541,7 @@ def test_positive_add_admin_role_with_org_loc(
         session.location.create({'name': location_name})
         assert session.location.search(location_name)[0]['Name'] == location_name
         location = session.location.read(location_name, ['current_user', 'primary'])
-        assert ldap_data['ldap_user_name'] in location['current_user']
+        assert ldap_data['ldap_user_shown_name'] in location['current_user']
         assert location['primary']['name'] == location_name
         session.organization.select(module_org.name)
         session.activationkey.create({'name': ak_name})
