@@ -112,7 +112,7 @@ class VersionedContent:
         if not proxy and settings.server.is_ipv6:
             proxy = settings.server.http_proxy_ipv6_url
         url = dogfood_repofile_url(settings.ohsnap, product, release, v_major, snap, proxy=proxy)
-        command = f'curl -o /etc/yum.repos.d/dogfood.repo -L {url}'
+        command = f'curl -o /etc/yum.repos.d/{product}.repo -L {url}'
         if settings.server.is_ipv6:
             command += f' -x {settings.server.http_proxy_ipv6_url}'
         self.execute(command)
