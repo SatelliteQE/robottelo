@@ -252,7 +252,7 @@ def test_positive_end_to_end(module_target_sat, module_org_with_parameter, smart
 
 @pytest.mark.tier2
 def test_negative_install_via_remote_execution(
-    session, module_target_sat, module_org_with_parameter, smart_proxy_location
+    module_target_sat, module_org_with_parameter, smart_proxy_location
 ):
     """Test basic functionality of the Hosts collection UI install package via
     remote execution.
@@ -274,7 +274,8 @@ def test_negative_install_via_remote_execution(
     host_collection = module_target_sat.api.HostCollection(
         host=[host.id for host in hosts], organization=module_org_with_parameter
     ).create()
-    with session:
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_org_with_parameter.name)
         session.location.select(smart_proxy_location.name)
         job_values = session.hostcollection.manage_packages(
             host_collection.name,
@@ -290,7 +291,7 @@ def test_negative_install_via_remote_execution(
 
 @pytest.mark.tier2
 def test_negative_install_via_custom_remote_execution(
-    session, module_target_sat, module_org_with_parameter, smart_proxy_location
+    module_target_sat, module_org_with_parameter, smart_proxy_location
 ):
     """Test basic functionality of the Hosts collection UI install package via
     remote execution - customize first.
@@ -312,7 +313,8 @@ def test_negative_install_via_custom_remote_execution(
     host_collection = module_target_sat.api.HostCollection(
         host=[host.id for host in hosts], organization=module_org_with_parameter
     ).create()
-    with session:
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_org_with_parameter.name)
         session.location.select(smart_proxy_location.name)
         job_values = session.hostcollection.manage_packages(
             host_collection.name,
