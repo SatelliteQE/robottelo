@@ -35,8 +35,6 @@ def test_positive_import_puppet_classes(session_puppet_enabled_sat, puppet_proxy
 
 
 @pytest.mark.stubbed
-@pytest.mark.e2e
-@pytest.mark.upgrade
 def test_positive_capsule_content():
     """Registered and provisioned hosts can consume content from capsule
 
