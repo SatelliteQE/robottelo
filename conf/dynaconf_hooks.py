@@ -149,9 +149,9 @@ def get_dogfood_satclient_repos(settings):
     for ver in rhels:
         data[f'RHEL{ver}'] = get_ohsnap_repo_url(
             settings,
-            repo='client',
+            repo='client-2',
             product='client',
-            release='client',
+            release='client-2',
             os_release=ver,
         )
     return data
