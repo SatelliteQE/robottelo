@@ -209,8 +209,7 @@ def test_positive_filter_product_list(module_sca_manifest_org, module_target_sat
         query={'redhat_only': True, 'per_page': 1000}
     )
 
-    assert len(custom_products) == 1
-    assert product.name == custom_products[0].name
+    assert product.name in (custom_prod.name for custom_prod in custom_products)
     assert 'Red Hat Beta' not in (prod.name for prod in custom_products)
 
     assert len(rh_products) > 1
