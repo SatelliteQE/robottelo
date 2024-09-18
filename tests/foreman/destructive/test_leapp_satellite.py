@@ -17,6 +17,7 @@ from robottelo.hosts import get_sat_rhel_version, get_sat_version
 
 
 @pytest.mark.e2e
+@pytest.mark.pit_server
 @pytest.mark.skipif(
     get_sat_version().minor != 16 or get_sat_rhel_version().major != 8,
     reason='Run only on Satellite 6.16 el8',
