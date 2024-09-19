@@ -40,9 +40,11 @@ def test_os_version(rhel_contenthost):
 
     :BZ: 2001476
     """
+    logger.info(f"tpapaioa execute method: {rhel_contenthost.execute=}")
     for _ in range(5):
         result = rhel_contenthost.execute('cat /etc/os-release')
         logger.info(f"tpapaioa os-release {result=}")
+        result = rhel_contenthost.execute('ls /etc')
+        logger.info(f"tpapaioa ls {result=}")
 
-    sleep(10)
     assert rhel_contenthost.os_version
