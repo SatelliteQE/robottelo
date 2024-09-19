@@ -271,6 +271,7 @@ class ContentHost(Host, ContentHostMixins):
                 f'Not able to cat /etc/os-release "{result.stderr}", '
                 'falling back to /etc/redhat-release'
             )
+            logger.info(f"tpapaioa _os_release returning {self._redhat_release=}")
             return self._redhat_release
         for ln in [line for line in result.stdout.splitlines() if line.strip()]:
             line = ln.strip()
@@ -279,6 +280,7 @@ class ContentHost(Host, ContentHostMixins):
             key, value = line.split('=')
             if key and value:
                 facts[key] = re.sub(regex, r'\2', value).replace('\\', '')
+        logger.info(f"tpapaioa _os_release returning {facts=}")
         return facts
 
     @property
@@ -292,6 +294,7 @@ class ContentHost(Host, ContentHostMixins):
 
         :return: A ``packaging.version.Version`` instance
         """
+        logger.info(f"tpapaioa os_version {self._os_release=}")
         return Version(self._os_release['VERSION_ID'])
 
     @property
