@@ -44,5 +44,5 @@ def test_os_version(rhel_contenthost):
         result = rhel_contenthost.execute('cat /etc/os-release')
         logger.info(f"tpapaioa os-release {result=}")
 
-    sleep(1800)
+    sleep(10)
     assert rhel_contenthost.os_version
