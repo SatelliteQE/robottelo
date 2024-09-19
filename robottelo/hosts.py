@@ -230,7 +230,7 @@ class ContentHost(Host, ContentHostMixins):
     def arch(self):
         return self.get_facts().get('lscpu.architecture') or self.execute('uname -m').stdout.strip()
 
-    @cached_property
+    @property
     def _redhat_release(self):
         """Process redhat-release file for distro and version information
         This is a fallback for when /etc/os-release is not available
@@ -260,7 +260,7 @@ class ContentHost(Host, ContentHostMixins):
                 break
         return r_release
 
-    @cached_property
+    @property
     def _os_release(self):
         """Process os-release file for distro and version information"""
         facts = {}
