@@ -264,7 +264,9 @@ def pre_upgrade_data(request):
     if len(upgrade_data) == 1:
         param_value = next(iter(upgrade_data.values()))
     else:
-        param_value = upgrade_data.get(request.param)
+        param_value = upgrade_data.get(
+            next(key for key in upgrade_data if key.startswith(request.param))
+        )
         if param_value is None:
             pytest.fail(f"Invalid test parameter: {request.param}. Test data not found.")
     return Box(param_value)
