@@ -129,6 +129,8 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         :customerscenario: true
         """
         rhel_contenthost._skip_context_checkin = True
+        # Orgs are SCA-enabled by default since 6.15
+        function_org.sca_disable()
         environment = target_sat.api.LifecycleEnvironment(organization=function_org).search(
             query={'search': f'name={constants.ENVIRONMENT}'}
         )[0]
@@ -152,6 +154,15 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
             query={'search': f'name={product.name}'}
         )[0]
         ak.add_subscriptions(data={'subscription_id': subscription.id})
+        # Override/enable all AK repos (disabled by default since 6.15)
+        c_labels = [
+            i['label'] for i in ak.product_content(data={'content_access_mode_all': '1'})['results']
+        ]
+        ak.content_override(
+            data={
+                'content_overrides': [{'content_label': label, 'value': '1'} for label in c_labels]
+            }
+        )
         rhel_contenthost.register(function_org, None, ak.name, target_sat)
         rhel_contenthost.add_rex_key(satellite=target_sat)
         rhel_contenthost.install_katello_host_tools()
