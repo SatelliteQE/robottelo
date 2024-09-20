@@ -315,7 +315,7 @@ def module_sat_ready_rhels(request, module_target_sat):
 
 @pytest.fixture
 def cap_ready_rhel():
-    rhel_version = Version(settings.capsule.version.release)
+    rhel_version = Version(settings.capsule.version.rhel_version)
     deploy_args = {
         'deploy_rhel_version': rhel_version.base_version,
         'deploy_flavor': settings.flavors.default,
