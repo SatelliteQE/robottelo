@@ -253,22 +253,6 @@ class TestAnsibleCfgMgmt:
 
     @pytest.mark.stubbed
     @pytest.mark.tier3
-    def test_positive_ansible_variables_imported_with_roles(self):
-        """Verify that, when Ansible roles are imported, their variables are imported simultaneously
-
-        :id: 107c53e8-5a8a-4291-bbde-fbd66a0bb85e
-
-        :steps:
-            1. Import Ansible roles
-            2. Navigate to Configure > Variables
-
-        :expectedresults: Verify that any variables in the role were also imported to Satellite
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
     def test_positive_ansible_roles_ignore_list(self):
         """Verify that the ignore list setting prevents selected roles from being available for import
 
