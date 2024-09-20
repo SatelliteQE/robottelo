@@ -114,7 +114,7 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
             1. Create Product and Custom Yum Repo
             2. Create custom tools, rhel repos and sync them
             3. Create content view and publish it
-            4. Create activation key and add subscription
+            4. Create activation key, add subscription if applicable (if the org is SCA-disabled)
             5. Register RHEL host to Satellite
             6. Generate Errata by installing outdated/older packages
             7. Check that errata applicability generated expected errata list for the given client.
@@ -148,10 +148,20 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         ak = target_sat.api.ActivationKey(
             content_view=content_view, organization=function_org, environment=environment
         ).create()
-        subscription = target_sat.api.Subscription(organization=function_org).search(
-            query={'search': f'name={product.name}'}
-        )[0]
-        ak.add_subscriptions(data={'subscription_id': subscription.id})
+        if not target_sat.is_sca_mode_enabled(function_org.id):
+            subscription = target_sat.api.Subscription(organization=function_org).search(
+                query={'search': f'name={product.name}'}
+            )[0]
+            ak.add_subscriptions(data={'subscription_id': subscription.id})
+        # Override/enable all AK repos (disabled by default since 6.15)
+        c_labels = [
+            i['label'] for i in ak.product_content(data={'content_access_mode_all': '1'})['results']
+        ]
+        ak.content_override(
+            data={
+                'content_overrides': [{'content_label': label, 'value': '1'} for label in c_labels]
+            }
+        )
         rhel_contenthost.register(function_org, None, ak.name, target_sat)
         rhel_contenthost.add_rex_key(satellite=target_sat)
         rhel_contenthost.install_katello_host_tools()
