@@ -650,7 +650,6 @@ def test_negative_nonauthor_of_report_cant_download_it(module_target_sat):
 
 
 @pytest.mark.tier2
-@pytest.mark.skip_if_open('BZ:1750924')
 def test_positive_generate_with_name_and_org(module_target_sat):
     """Generate Host Status report, specifying template name and organization
 
@@ -684,7 +683,6 @@ def test_positive_generate_with_name_and_org(module_target_sat):
 
 
 @pytest.mark.tier2
-@pytest.mark.skip_if_open('BZ:1782807')
 def test_positive_generate_ansible_template(module_target_sat):
     """Report template named 'Ansible Inventory' (default name is specified in settings)
     must be present in Satellite 6.7 and later in order to provide enhanced functionality
