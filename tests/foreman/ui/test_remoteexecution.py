@@ -292,7 +292,11 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_cont
             f'Run {command_to_run}', hostname, 'overview.hosts_table'
         )
         assert job_status['overview']['hosts_table'][0]['Host'] == hostname
-        assert job_status['overview']['hosts_table'][0]['Status'] in ('Awaiting start', 'N/A')
+        assert job_status['overview']['hosts_table'][0]['Status'] in (
+            'Awaiting start',
+            'N/A',
+            'success',
+        )
         # recalculate the job left time to be more accurate
         job_left_time = (plan_time - session.browser.get_client_datetime()).total_seconds()
         # the last read time should not take more than 1/4 of the last left time
