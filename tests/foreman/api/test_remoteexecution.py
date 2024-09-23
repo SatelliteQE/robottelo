@@ -17,7 +17,6 @@ import pytest
 from robottelo.config import settings
 from robottelo.hosts import get_sat_version
 from robottelo.utils import ohsnap
-from robottelo.utils.issue_handlers import is_open
 
 CAPSULE_TARGET_VERSION = f'6.{get_sat_version().minor}.z'
 
@@ -34,9 +33,7 @@ def test_positive_find_capsule_upgrade_playbook(target_sat):
 
     :CaseImportance: Medium
     """
-    template_name = (
-        'Smart Proxy Upgrade Playbook' if is_open('BZ:2152951') else 'Capsule Upgrade Playbook'
-    )
+    template_name = 'Capsule Upgrade Playbook'
     templates = target_sat.api.JobTemplate().search(query={'search': f'name="{template_name}"'})
     assert len(templates) > 0
 
