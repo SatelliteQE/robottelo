@@ -1374,8 +1374,9 @@ def sat_default_install(module_sat_ready_rhels):
         'scenario satellite',
         f'foreman-initial-admin-password {settings.server.admin_password}',
     ]
-    install_satellite(module_sat_ready_rhels[0], installer_args)
-    return module_sat_ready_rhels[0]
+    sat = module_sat_ready_rhels.pop()
+    install_satellite(sat, installer_args)
+    return sat
 
 
 @pytest.fixture(scope='module')
@@ -1387,13 +1388,15 @@ def sat_non_default_install(module_sat_ready_rhels):
         'foreman-rails-cache-store type:redis',
         'foreman-proxy-content-pulpcore-hide-guarded-distributions false',
     ]
-    install_satellite(module_sat_ready_rhels[1], installer_args)
-    return module_sat_ready_rhels[1]
+    sat = module_sat_ready_rhels.pop()
+    install_satellite(sat, installer_args)
+    return sat
 
 
 @pytest.mark.e2e
 @pytest.mark.tier1
 @pytest.mark.pit_server
+@pytest.mark.build_sanity
 def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
     """Run a basic Capsule installation
 
