@@ -613,7 +613,6 @@ def test_positive_remove_parameter_non_admin_user(
 
 
 @pytest.mark.tier3
-@pytest.mark.skip_if_open("BZ:2059576")
 def test_negative_remove_parameter_non_admin_user(
     test_name, module_org, smart_proxy_location, target_sat
 ):

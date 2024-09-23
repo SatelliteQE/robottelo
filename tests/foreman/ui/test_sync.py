@@ -75,7 +75,6 @@ def test_positive_sync_rh_repos(session, target_sat, module_entitlement_manifest
         assert all([result == 'Syncing Complete.' for result in results])
 
 
-@pytest.mark.skip_if_open("BZ:1625783")
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
@@ -103,7 +102,6 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product, module
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_open("BZ:1625783")
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade

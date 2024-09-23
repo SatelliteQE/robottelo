@@ -266,7 +266,6 @@ class TestOperatingSystem:
         with pytest.raises(HTTPError):
             target_sat.api.OperatingSystem(description=gen_string('alphanumeric', 256)).create()
 
-    @pytest.mark.skip_if_open('BZ:2101435')
     @pytest.mark.tier1
     @pytest.mark.parametrize('major_version', **parametrized((gen_string('numeric', 6), '', '-6')))
     def test_negative_create_with_invalid_major_version(self, major_version, target_sat):
@@ -374,7 +373,6 @@ class TestOperatingSystem:
         with pytest.raises(HTTPError):
             os = target_sat.api.OperatingSystem(id=os.id, name=new_name).update(['name'])
 
-    @pytest.mark.skip_if_open('BZ:2101435')
     @pytest.mark.tier1
     def test_negative_update_major_version(self, target_sat):
         """Create operating entity providing the initial major version,
