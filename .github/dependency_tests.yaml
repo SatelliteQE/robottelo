@@ -1,4 +1,4 @@
-broker[docker,podman,hussh]: "tests/foreman/ -k 'test_host_registration_end_to_end or test_positive_erratum_applicability or test_positive_upload_content'"
+broker[docker,hussh,podman]: "tests/foreman/ -k 'test_host_registration_end_to_end or test_positive_erratum_applicability or test_positive_upload_content'"
 deepdiff: "tests/foreman/endtoend/test_api_endtoend.py -k 'test_positive_get_links'"
 dynaconf[vault]: "tests/foreman/api/test_ldapauthsource.py -k 'test_positive_endtoend'"
 manifester: "tests/foreman/cli/test_contentview.py -k 'test_positive_promote_rh_content'"
