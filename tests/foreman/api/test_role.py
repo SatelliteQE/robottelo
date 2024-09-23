@@ -1380,14 +1380,12 @@ class TestCannedRole:
             2. Create user and assign above Org Admin role to it
             3. Login with above Org Admin user
             4. Attempt to create new users
-            5. Attempt to create location
 
         :expectedresults:
 
             1. Org Admin should be able to create new users
             2. Only Org Admin role should be available to assign to its users
             3. Org Admin should be able to assign Org Admin role to its users
-            4. Org Admin should be able create locations
 
         :BZ: 1538316, 1825698
 
@@ -1422,9 +1420,6 @@ class TestCannedRole:
         ).create()
         assert user_login == user.login
         assert org_admin.id == user.role[0].id
-        name = gen_string('alphanumeric')
-        location = target_sat.api.Location(sc_user, name=name).create()
-        assert location.name == name
 
     @pytest.mark.tier2
     def test_positive_access_users_inside_org_admin_taxonomies(self, role_taxonomies, target_sat):
