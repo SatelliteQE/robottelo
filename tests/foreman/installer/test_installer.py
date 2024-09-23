@@ -1355,10 +1355,12 @@ def install_satellite(satellite, installer_args, enable_fapolicyd=False):
         snap=settings.server.version.snap,
     )
     if enable_fapolicyd:
-        assert (
-            satellite.execute('dnf -y install fapolicyd && systemctl enable --now fapolicyd').status
-            == 0
-        )
+        if satellite.execute('rpm -q satellite-maintain').status == 0:
+            # Installing the rpm on existing sat needs sat-maintain perms
+            cmmd = 'satellite-maintain packages install -y fapolicyd'
+        else:
+            cmmd = 'dnf -y install fapolicyd'
+        assert satellite.execute(f'{cmmd} && systemctl enable --now fapolicyd').status == 0
     satellite.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
     if enable_fapolicyd:
         assert satellite.execute('rpm -q foreman-fapolicyd').status == 0
@@ -1381,8 +1383,8 @@ def sat_default_install(module_sat_ready_rhels):
         'scenario satellite',
         f'foreman-initial-admin-password {settings.server.admin_password}',
     ]
-    install_satellite(module_sat_ready_rhels[0], installer_args)
-    sat = module_sat_ready_rhels[0]
+    sat = module_sat_ready_rhels.pop()
+    install_satellite(sat, installer_args)
     sat.enable_ipv6_http_proxy()
     return sat
 
@@ -1398,8 +1400,8 @@ def sat_non_default_install(module_sat_ready_rhels):
         'enable-foreman-plugin-discovery',
         'foreman-proxy-plugin-discovery-install-images true',
     ]
-    install_satellite(module_sat_ready_rhels[1], installer_args, enable_fapolicyd=True)
-    sat = module_sat_ready_rhels[1]
+    sat = module_sat_ready_rhels.pop()
+    install_satellite(sat, installer_args, enable_fapolicyd=True)
     sat.enable_ipv6_http_proxy()
     sat.execute('dnf -y --disableplugin=foreman-protector install foreman-discovery-image')
     return sat
@@ -1408,6 +1410,7 @@ def sat_non_default_install(module_sat_ready_rhels):
 @pytest.mark.e2e
 @pytest.mark.tier1
 @pytest.mark.pit_server
+@pytest.mark.build_sanity
 @pytest.mark.parametrize(
     'setting_update', [f'http_proxy={settings.http_proxy.un_auth_proxy_url}'], indirect=True
 )
