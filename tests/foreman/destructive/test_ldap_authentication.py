@@ -775,44 +775,54 @@ def test_positive_negotiate_CRUD(
     result = parametrized_enrolled_sat.execute(f'echo {password} | kinit {user}')
     assert result.status == 0
 
-    # Add the permissions for CRUD operations
-    user = parametrized_enrolled_sat.api.User().search(query={'search': f'login={user.lower()}'})[0]
-    role = parametrized_enrolled_sat.api.Role().search(query={'search': 'name="Manager"'})[0]
-    user.role = [role]
-    user.update(['role'])
+    result = parametrized_enrolled_sat.cli.Auth.logout()
+    assert 'Logged out.' in result[0]['message']
+    with parametrized_enrolled_sat.omit_credentials():
+        # Create a user in Satellite by running any command (using the Kerberos ticket)
+        with pytest.raises(CLIReturnCodeError):
+            result = parametrized_enrolled_sat.cli.Architecture.list()
 
-    # Check that listing and automatic login on first hammer
-    # command (when Kerberos ticket exists) succeeds.
-    result = parametrized_enrolled_sat.cli.Architecture.list()
-    assert len(result)
-    result = parametrized_enrolled_sat.cli.Auth.status()
-    assert SESSION_OK in str(result)
+        # Add the permissions for CRUD operations
+        user = parametrized_enrolled_sat.api.User().search(
+            query={'search': f'login={user.lower()}'}
+        )[0]
+        role = parametrized_enrolled_sat.api.Role().search(query={'search': 'name="Manager"'})[0]
+        user.role = [role]
+        user.update(['role'])
 
-    # Create
-    name = gen_string('alphanumeric')
-    arch = parametrized_enrolled_sat.cli.Architecture.create({'name': name})
+        # Check that listing succeeds.
+        result = parametrized_enrolled_sat.cli.Architecture.list()
+        assert len(result)
+        result = parametrized_enrolled_sat.cli.Auth.status()
+        assert SESSION_OK in str(result)
 
-    # Read
-    arch_read = parametrized_enrolled_sat.cli.Architecture.info({'name': name})
-    assert arch_read == arch
+        # Create
+        name = gen_string('alphanumeric')
+        arch = parametrized_enrolled_sat.cli.Architecture.create({'name': name})
 
-    # Update
-    new_name = gen_string('alphanumeric')
-    result = parametrized_enrolled_sat.cli.Architecture.update({'name': name, 'new-name': new_name})
-    assert 'updated' in str(result)
-    arch_read = parametrized_enrolled_sat.cli.Architecture.info({'name': new_name})
-    assert arch_read['name'] == new_name
+        # Read
+        arch_read = parametrized_enrolled_sat.cli.Architecture.info({'name': name})
+        assert arch_read == arch
 
-    # Delete
-    result = parametrized_enrolled_sat.cli.Architecture.delete({'name': new_name})
-    assert 'deleted' in result
-    with pytest.raises(CLIReturnCodeError) as context:
-        parametrized_enrolled_sat.cli.Architecture.info({'name': new_name})
-    assert 'not found' in context.value.message
+        # Update
+        new_name = gen_string('alphanumeric')
+        result = parametrized_enrolled_sat.cli.Architecture.update(
+            {'name': name, 'new-name': new_name}
+        )
+        assert 'updated' in str(result)
+        arch_read = parametrized_enrolled_sat.cli.Architecture.info({'name': new_name})
+        assert arch_read['name'] == new_name
 
-    # Remove the permissions
-    user.role = []
-    user.update(['role'])
+        # Delete
+        result = parametrized_enrolled_sat.cli.Architecture.delete({'name': new_name})
+        assert 'deleted' in result
+        with pytest.raises(CLIReturnCodeError) as context:
+            parametrized_enrolled_sat.cli.Architecture.info({'name': new_name})
+        assert 'not found' in context.value.message
+
+        # Remove the permissions
+        user.role = []
+        user.update(['role'])
 
 
 def test_positive_negotiate_logout(
