@@ -732,9 +732,13 @@ class TestRepository:
     )
     def test_positive_synchronize_auth_yum_repo(self, repo, target_sat):
         """Check if secured repository can be created and synced
+
         :id: b0db676b-e0f0-428c-adf3-1d7c0c3599f0
+
         :parametrized: yes
+
         :expectedresults: Repository is created and synced
+
         :BZ: 1328092
         """
         # Assertion that repo is not yet synced
