@@ -579,7 +579,6 @@ def test_positive_installable_errata_with_user(
     # Remove package if already installed on this host
     rhel_contenthost.execute(f'yum remove -y {FAKE_1_CUSTOM_PACKAGE_NAME}')
     # Install the outdated package version
-    rhel_contenthost.execute(r'subscription-manager repos --enable \*')
     assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     assert (
         rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE_NAME}').stdout.strip()
