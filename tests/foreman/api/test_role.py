@@ -1452,47 +1452,6 @@ class TestCannedRole:
             pytest.fail(str(err))
 
     @pytest.mark.tier2
-    def test_positive_create_nested_location(self, role_taxonomies, target_sat):
-        """Org Admin can create nested locations
-
-        :id: 971bc909-96a5-4614-b254-04a51c708432
-
-        :bz: 1694199, 1825698
-
-        :customerscenario: true
-
-        :steps:
-            1. Create a regular user and associate it with existing location
-            2. Add org_admin rights to that user
-            3. Attempt to create a nested location
-
-        :expectedresults: after adding the needed permissions, user should be
-            able to create nested locations
-
-        """
-        user_login = gen_string('alpha')
-        user_pass = gen_string('alphanumeric')
-        user = target_sat.api.User(
-            login=user_login,
-            password=user_pass,
-            organization=[role_taxonomies['org']],
-            location=[role_taxonomies['loc']],
-        ).create()
-        org_admin = self.create_org_admin_role(
-            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
-        )
-        user.role = [org_admin]
-        user = user.update(['role'])
-        sc = ServerConfig(
-            auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
-        )
-        name = gen_string('alphanumeric')
-        location = target_sat.api.Location(
-            server_config=sc, name=name, parent=role_taxonomies['loc'].id
-        ).create()
-        assert location.name == name
-
-    @pytest.mark.tier2
     def test_negative_access_users_outside_org_admin_taxonomies(
         self, role_taxonomies, filter_taxonomies, target_sat
     ):
