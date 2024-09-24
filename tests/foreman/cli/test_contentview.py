@@ -3113,10 +3113,7 @@ class TestContentView:
         result = module_target_sat.cli.ContentView.version_incremental_update(
             {'content-view-version-id': cvv['id'], 'errata-ids': settings.repos.yum_1.errata[1]}
         )
-        # Inc update output format is pretty weird - list of dicts where each
-        # key's value is actual line from stdout
-        result = [line.strip() for line_dict in result for line in line_dict.values()]
-        assert FAKE_2_CUSTOM_PACKAGE not in [line.strip() for line in result]
+        assert FAKE_2_CUSTOM_PACKAGE not in result
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         assert '1.1' in [cvv_['version'] for cvv_ in content_view['versions']]
 
@@ -3613,7 +3610,7 @@ class TestContentViewFileRepo:
         result = module_target_sat.cli.ContentView.version_incremental_update(
             {'content-view-version-id': cvv['id'], 'errata-ids': settings.repos.yum_1.errata[0]}
         )
-        assert result[2]
+        assert f'Content View: {content_view["name"]} version 1.1' in result
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         assert '1.1' in [cvv_['version'] for cvv_ in content_view['versions']]
 
