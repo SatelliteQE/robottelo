@@ -1618,7 +1618,7 @@ class TestContentView:
             {'id': new_cv['id'], 'repository-id': module_rhel_content['id']}
         )
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
-        assert len(new_cv['yum-repositories']) == 0
+        assert 'yum-repositories' not in new_cv
         # Publish a new version of CV once more
         module_target_sat.cli.ContentView.publish({'id': new_cv['id']})
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
@@ -3501,10 +3501,13 @@ class TestContentViewFileRepo:
         module_target_sat.cli.ContentView.add_repository(
             {'id': cv['id'], 'repository-id': repo['id'], 'organization-id': module_org.id}
         )
+        cv_info = module_target_sat.cli.ContentView.info({'id': cv['id']})
+        assert cv_info['file-repositories'][0]['id'] == repo['id'], 'File repo should be listed'
         module_target_sat.cli.ContentView.remove_repository(
             {'id': cv['id'], 'repository-id': repo['id']}
         )
-        assert cv['file-repositories'][0]['id'] != repo['id']
+        cv_info = module_target_sat.cli.ContentView.info({'id': cv['id']})
+        assert 'file-repositories' not in cv_info, 'No file repo should be listed'
 
     @pytest.mark.tier3
     def test_positive_arbitrary_file_repo_promotion(
