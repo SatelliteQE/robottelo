@@ -12,6 +12,7 @@ USER 1001
 COPY --chown=1001:0 / ${ROBOTTELO_DIR}
 
 WORKDIR "${ROBOTTELO_DIR}"
-RUN uv pip install -r requirements.txt
+RUN git config --global --add safe.directory ${ROBOTTELO_DIR} && \
+    uv pip install -r requirements.txt
 
 CMD make test-robottelo
