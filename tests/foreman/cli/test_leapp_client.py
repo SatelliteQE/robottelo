@@ -33,7 +33,7 @@ RHEL9_VER = '9.4'
     f'_to_{upgrade_path["target_version"]}',
 )
 @pytest.mark.parametrize('auth_type', ['admin', 'non-admin'])
-def test_leapp_upgrade_rhel(
+def test_positive_leapp_upgrade_rhel(
     request,
     module_target_sat,
     custom_leapp_host,
@@ -62,7 +62,7 @@ def test_leapp_upgrade_rhel(
     login = settings.server.admin_username
     password = settings.server.admin_password
     org = module_sca_manifest_org
-    if 'auth_type' == 'non-admin':
+    if auth_type == 'non-admin':
         login = gen_string('alpha')
         roles = ['Organization admin', 'Remote Execution Manager', 'Remote Execution User']
         user = module_target_sat.cli_factory.user(
@@ -73,7 +73,7 @@ def test_leapp_upgrade_rhel(
                 'organization-ids': org.id,
             }
         )
-        request.addfinalizer(user.delete)
+        request.addfinalizer(lambda: module_target_sat.cli.User.delete({'login': user.login}))
         for role in roles:
             module_target_sat.cli.User.add_role({'id': user['id'], 'login': login, 'role': role})
     # Workaround for https://issues.redhat.com/browse/RHEL-55871
