@@ -134,7 +134,7 @@ class ContentView(Base):
         return result
 
     @classmethod
-    def version_incremental_update(cls, options, output_format='csv'):
+    def version_incremental_update(cls, options, output_format='base'):
         """Performs incremental update of the content-view's version"""
         cls.command_sub = 'version incremental-update'
         if options is None:
