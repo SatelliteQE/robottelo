@@ -26,6 +26,8 @@ from robottelo.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
     FAKE_0_CUSTOM_PACKAGE_NAME,
     FAKE_1_CUSTOM_PACKAGE,
+    FAKE_1_CUSTOM_PACKAGE_NAME,
+    FAKE_2_CUSTOM_PACKAGE,
     PRDS,
     REPOS,
     REPOSET,
@@ -609,3 +611,96 @@ def test_positive_generate_all_installed_packages_report(
         tree_result = etree.tostring(tree.getroot(), pretty_print=True, method='html').decode()
     assert client.hostname in tree_result
     assert FAKE_1_CUSTOM_PACKAGE in tree_result
+
+
+@pytest.mark.tier2
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('[^6]')
+def test_positive_installable_errata_with_user(
+    session, target_sat, function_org, function_lce, function_location, rhel_contenthost
+):
+    """Generate an Installable Errata report using the Report Template - Available Errata,
+        with the option of 'Installable' with a registered user.
+
+    :id: 036e3ed6-b31b-4481-b591-dae438e4e61d
+
+    :setup: A Host with some applied errata
+
+    :steps:
+        1. Install an outdated package version
+        2. Apply an errata which updates the package
+        3. Downgrade the package impacted by the erratum
+        4. Perform a search for any Available Errata
+        5. Generate an Installable Report from the Available Errata with a registered user
+
+    :expectedresults: A report is generated with the installable errata listed
+
+    :CaseImportance: Medium
+
+    :customerscenario: true
+
+    :BZ: 1726504
+    """
+    activation_key = target_sat.api.ActivationKey(
+        environment=function_lce, organization=function_org
+    ).create()
+    custom_cv = target_sat.api.ContentView(organization=function_org).create()
+    ERRATUM_ID = str(settings.repos.yum_6.errata[2])
+    target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': settings.repos.yum_6.url,
+            'organization-id': function_org.id,
+            'content-view-id': custom_cv.id,
+            'lifecycle-environment-id': function_lce.id,
+            'activationkey-id': activation_key.id,
+        }
+    )
+    result = rhel_contenthost.register(
+        function_org, function_location, activation_key.name, target_sat
+    )
+    assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
+    assert rhel_contenthost.subscribed
+
+    # Remove package if already installed on this host
+    rhel_contenthost.execute(f'yum remove -y {FAKE_1_CUSTOM_PACKAGE_NAME}')
+    # Install the outdated package version
+    assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    assert (
+        rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE_NAME}').stdout.strip()
+        == FAKE_1_CUSTOM_PACKAGE
+    )
+
+    # Install/Apply the errata
+    task_id = target_sat.api.JobInvocation().run(
+        data={
+            'feature': 'katello_errata_install',
+            'inputs': {'errata': ERRATUM_ID},
+            'targeting_type': 'static_query',
+            'search_query': f'name = {rhel_contenthost.hostname}',
+            'organization_id': function_org.id,
+        },
+    )['id']
+    target_sat.wait_for_tasks(
+        search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
+        search_rate=15,
+        max_tries=10,
+    )
+    # Check that applying erratum updated the package
+    assert (
+        rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE_NAME}').stdout.strip()
+        == FAKE_2_CUSTOM_PACKAGE
+    )
+    # Downgrade the package
+    assert rhel_contenthost.execute(f'yum downgrade -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    # Generate the report
+    with session:
+        session.organization.select(function_org.name)
+        session.location.select(function_location.name)
+        result_json = session.reporttemplate.generate(
+            'Host - Available Errata',
+            values={'output_format': 'JSON', 'installability': 'installable'},
+        )
+        with open(result_json) as json_file:
+            data_json = json.load(json_file)
+        assert ERRATUM_ID in data_json[0]['Erratum']
+        assert FAKE_1_CUSTOM_PACKAGE_NAME in data_json[0]['Packages']
