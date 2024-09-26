@@ -250,46 +250,6 @@ def prepare_scap_client_and_prerequisites(
     )
 
 
-@pytest.fixture
-def scap_prerequisites(module_org, default_proxy, target_sat):
-    # TODO: add support for RHEL9 (it doesn't have scap content in Sat by default) and parametrize distro
-    distro = 'rhel8'
-    profile = profiles[distro]
-    content = OSCAP_DEFAULT_CONTENT[f'{distro}_content']
-    # put the scap content to the correct org
-    orgs = target_sat.cli.Scapcontent.info({'title': content})['organizations']
-    orgs.append(module_org.name)
-    target_sat.cli.Scapcontent.update({'title': content, 'organizations': orgs})
-    hgrp_name = gen_string('alpha')
-    policy_name = gen_string('alpha')
-    # Create hostgroup
-    target_sat.cli_factory.hostgroup(
-        {
-            'content-source-id': default_proxy,
-            'name': hgrp_name,
-            'organizations': module_org.name,
-        }
-    )
-    # Create oscap policy
-    scap_id, scap_profile_id = fetch_scap_and_profile_id(target_sat, content, profile)
-    target_sat.cli.Ansible.roles_import({'proxy-id': default_proxy})
-    target_sat.cli.Ansible.variables_import({'proxy-id': default_proxy})
-    role_id = target_sat.cli.Ansible.roles_list({'search': 'foreman_scap_client'})[0].get('id')
-    target_sat.cli_factory.make_scap_policy(
-        {
-            'scap-content-id': scap_id,
-            'hostgroups': hgrp_name,
-            'deploy-by': 'ansible',
-            'name': policy_name,
-            'period': OSCAP_PERIOD['weekly'].lower(),
-            'scap-content-profile-id': scap_profile_id,
-            'weekday': OSCAP_WEEKDAY['friday'].lower(),
-            'organizations': module_org.name,
-        }
-    )
-    return hgrp_name, role_id, distro
-
-
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.tier4
@@ -629,7 +589,7 @@ def test_positive_reporting_emails_of_oscap_reports():
 
 @pytest.mark.rhel_ver_list([8])
 def test_positive_oscap_run_via_local_files(
-    module_org, default_proxy, lifecycle_env, module_target_sat, rex_contenthost
+    module_org, default_proxy, lifecycle_env, target_sat, rex_contenthost
 ):
     """End-to-End Oscap run via local files deployed with ansible
 
@@ -657,93 +617,34 @@ def test_positive_oscap_run_via_local_files(
     :CaseImportance: Critical
     """
     contenthost = rex_contenthost
-    os_version = contenthost.os_version.major
-    distro = f'rhel{os_version}'
-    SELECTED_ROLE = 'theforeman.foreman_scap_client'
+    prepare_scap_client_and_prerequisites(
+        target_sat, contenthost, module_org, default_proxy, lifecycle_env
+    )
+
     file_name = 'security-data-oval-com.redhat.rhsa-RHEL8.xml.bz2'
     download_url = 'https://www.redhat.com/security/data/oval/v2/RHEL8/rhel-8.oval.xml.bz2'
-    profile = profiles[distro]
 
-    content = find_content_to_update(module_target_sat, module_org, distro, contenthost)
-    hgrp_name = gen_string('alpha')
-    policy_name = gen_string('alpha')
-
-    proxy_id = module_target_sat.nailgun_smart_proxy.id
-    target_host = contenthost.nailgun_host
-    module_target_sat.api.AnsibleRoles().sync(
-        data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]}
-    )
-    role_id = (
-        module_target_sat.api.AnsibleRoles().search(query={'search': f'name={SELECTED_ROLE}'})[0].id
-    )
-    module_target_sat.api.Host(id=target_host.id).add_ansible_role(
-        data={'ansible_role_id': role_id}
-    )
-    host_roles = target_host.list_ansible_roles()
-    assert host_roles[0]['name'] == SELECTED_ROLE
-
-    module_target_sat.cli_factory.hostgroup(
-        {
-            'content-source-id': default_proxy,
-            'name': hgrp_name,
-            'organization': module_org.name,
-            'lifecycle-environment': lifecycle_env.name,
-            'content-view': cv_name[distro],
-            'ansible-role-ids': role_id,
-            'openscap-proxy-id': default_proxy,
-        }
-    )
-    # Creates oscap_policy.
-    scap_id, scap_profile_id = fetch_scap_and_profile_id(module_target_sat, content, profile)
-
-    result = contenthost.register(
-        module_org,
-        None,
-        ak_name[distro],
-        module_target_sat,
-        ignore_subman_errors=True,
-        force=True,
-        insecure=True,
-    )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
-    rhel_repo = rhel_repos[distro]
-    contenthost.create_custom_repos(**rhel_repo)
-
-    module_target_sat.cli_factory.make_scap_policy(
-        {
-            'scap-content-id': scap_id,
-            'hostgroups': hgrp_name,
-            'deploy-by': 'ansible',
-            'name': policy_name,
-            'period': OSCAP_PERIOD['weekly'].lower(),
-            'scap-content-profile-id': scap_profile_id,
-            'weekday': OSCAP_WEEKDAY['friday'].lower(),
-            'organizations': module_org.name,
-        }
-    )
     # The file here needs to be present on the client in order
     # to perform the scan from the local-files.
     contenthost.execute(f'curl -o {file_name} {download_url}')
 
-    template_id = (
-        module_target_sat.api.JobTemplate()
-        .search(query={'search': 'name="Ansible Roles - Ansible Default"'})[0]
-        .id
+    # Apply policy
+    job_id = target_sat.cli.Host.ansible_roles_play({'name': contenthost.hostname.lower()})[0].get(
+        'id'
     )
-    job = module_target_sat.api.JobInvocation().run(
-        synchronous=False,
-        data={
-            'job_template_id': template_id,
-            'targeting_type': 'static_query',
-            'search_query': f'name = {contenthost.hostname}',
-        },
+    target_sat.wait_for_tasks(
+        f'resource_type = JobInvocation and resource_id = {job_id} and action ~ "hosts job"'
     )
-    module_target_sat.wait_for_tasks(
-        f'resource_type = JobInvocation and resource_id = {job["id"]}',
-        poll_timeout=1000,
-    )
-    assert module_target_sat.api.JobInvocation(id=job['id']).read().succeeded == 1
+    try:
+        result = target_sat.cli.JobInvocation.info({'id': job_id})['success']
+        assert result == '1'
+    except AssertionError as err:
+        output = ' '.join(
+            target_sat.cli.JobInvocation.get_output({'id': job_id, 'host': contenthost.hostname})
+        )
+        result = f'host output: {output}'
+        raise AssertionError(result) from err
+
     assert contenthost.run('grep profile /etc/foreman_scap_client/config.yaml').status == 0
-    # TODO: instead of running it on the client itself we should invoke a job from satellite
     result = contenthost.execute_foreman_scap_client()
     assert f"WARNING: Using local file '/root/{file_name}'" in result
