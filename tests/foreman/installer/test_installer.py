@@ -353,7 +353,9 @@ def test_capsule_installation(
     # Create capsule certs and activation key
     file, _, cmd_args = sat_fapolicyd_install.capsule_certs_generate(cap_ready_rhel)
     sat_fapolicyd_install.session.remote_copy(file, cap_ready_rhel)
-    ak = sat_fapolicyd_install.api.ActivationKey(organization=org, environment=org.library).create()
+    ak = sat_fapolicyd_install.api.ActivationKey(
+        organization=org, environment=org.library, content_view=org.default_content_view
+    ).create()
 
     setup_capsule_repos(sat_fapolicyd_install, cap_ready_rhel, org, ak)
 
