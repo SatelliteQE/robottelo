@@ -371,7 +371,7 @@ class TestAnsibleCfgMgmt:
             session.location.select(location.name)
             session.organization.select(organization.name)
             # add ansible role
-            session.host_new.add_single_ansible_role(function_host.name)
+            session.host_new.add_single_ansible_role(function_host.name, SELECTED_ROLE)
             wait_for(lambda: session.browser.refresh(), timeout=5)
             # verify ansible role assigned to new UI for the given Host
             ansible_roles_table = session.host_new.get_ansible_roles(function_host.name)
@@ -411,13 +411,10 @@ class TestAnsibleCfgMgmt:
             'redhat.satellite.hostgroups',
             'redhat.satellite.compute_profiles',
         ]
+        proxy_id = target_sat.nailgun_smart_proxy.id
+        target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': SELECTED_ROLE})
         name = gen_string('alpha').lower()
         with target_sat.ui_session() as session:
-            synced_all_role = session.ansibleroles.import_all_roles()
-            total_imported_roles = session.ansibleroles.imported_roles_count
-            # verify all roles are synced
-            assert synced_all_role == total_imported_roles
-
             session.location.select(module_location.name)
             session.organization.select(module_org.name)
             # Assign Ansible role(s) while creating the hostgroup.
@@ -449,39 +446,55 @@ class TestAnsibleCfgMgmt:
 
     @pytest.mark.tier3
     def test_positive_non_admin_user_access_with_usergroup(
-        self, request, target_sat, test_name, module_org, module_location
+        self,
+        request,
+        module_org,
+        module_location,
+        target_sat,
+        test_name,
     ):
         """Verify non-admin user can access the ansible page on WebUI
 
         :id: 82d30664-1b74-457c-92e2-31a5ba89e826
 
-        :BZ: 2158508
-
         :steps:
             1. Create user with non-admin
             2. Create usergroup with administrator role
             3. Log in as a user and try to access WebUI -> Hosts -> select host -> Ansible
+            4. Assign ansible role to the host
 
-        :expectedresults: See Ansible page as user should be administrator due to usergroup
+        :expectedresults: The user is able to view the Ansible page and assign roles because they are an administrator due to user group
+
+        :BZ: 2158508
+
+        :Verifies: SAT-15826
 
         :customerscenario: true
         """
         SELECTED_ROLE = 'RedHatInsights.insights-client'
+        name = gen_string('alpha')
         password = gen_string('alpha')
+        host = target_sat.api.Host(organization=module_org, location=module_location).create()
         user = target_sat.api.User(
-            login=gen_string('alpha'), password=password, admin=False
+            login=name,
+            password=password,
+            location=[module_location],
+            organization=[module_org],
+            admin=False,
         ).create()
         request.addfinalizer(user.delete)
         user_gp = target_sat.api.UserGroup(
             name=gen_string('alpha'), user=[user], admin=True
         ).create()
         assert user.login in [u.read().login for u in user_gp.user]
-        with target_sat.ui_session(test_name, user.login, password) as session:
-            id = target_sat.nailgun_smart_proxy.id
-            target_sat.api.AnsibleRoles().sync(data={'proxy_id': id, 'role_names': [SELECTED_ROLE]})
-            session.host_new.add_single_ansible_role(target_sat.hostname)
+        id = target_sat.nailgun_smart_proxy.id
+        target_sat.api.AnsibleRoles().sync(data={'proxy_id': id, 'role_names': [SELECTED_ROLE]})
+        with target_sat.ui_session(test_name, user=user.login, password=password) as session:
+            session.location.select(module_location.name)
+            session.organization.select(module_org.name)
+            session.host_new.add_single_ansible_role(host.name, SELECTED_ROLE)
             wait_for(lambda: session.browser.refresh(), timeout=5)
-            ansible_roles_table = session.host_new.get_ansible_roles(target_sat.hostname)
+            ansible_roles_table = session.host_new.get_ansible_roles(host.name)
             assert ansible_roles_table[0]['Name'] == SELECTED_ROLE
 
     @pytest.mark.no_containers
@@ -527,7 +540,7 @@ class TestAnsibleCfgMgmt:
         with module_target_sat.ui_session() as session:
             session.location.select(module_location.name)
             session.organization.select(module_org.name)
-            session.host_new.add_single_ansible_role(rhel_contenthost.hostname)
+            session.host_new.add_single_ansible_role(rhel_contenthost.hostname, SELECTED_ROLE)
             ansible_roles_table = session.host_new.get_ansible_roles(rhel_contenthost.hostname)
             assert ansible_roles_table[0]['Name'] == SELECTED_ROLE
             # Verify error log for config report after ansible role is executed
