@@ -37,40 +37,53 @@ SATELLITE_SERVICES = [
     'tomcat',
 ]
 
-UPSTREAM_SPECIFIC_MODULES = {
-    'foreman::cli::discovery',
-    'foreman::cli::openscap',
-    'foreman::cli::rh_cloud',
-    'foreman::cli::ssh',
-    'foreman::cli::tasks',
-    'foreman::cli::templates',
-    'foreman::plugin::acd',
-    'foreman::plugin::default_hostgroup',
-    'foreman::plugin::dhcp_browser',
-    'foreman::plugin::dlm',
-    'foreman::plugin::expire_hosts',
-    'foreman::plugin::git_templates',
-    'foreman::plugin::hdm',
-    'foreman::plugin::hooks',
-    'foreman::plugin::kernel_care',
-    'foreman::plugin::monitoring',
-    'foreman::plugin::netbox',
-    'foreman::plugin::proxmox',
-    'foreman::plugin::puppetdb',
-    'foreman::plugin::rescue',
-    'foreman::plugin::salt',
-    'foreman::plugin::scc_manager',
-    'foreman::plugin::setup',
-    'foreman::plugin::snapshot_management',
-    'foreman::plugin::statistics',
-    'foreman::plugin::vault',
-    'foreman::plugin::wreckingball',
-    'foreman_proxy::plugin::acd',
-    'foreman_proxy::plugin::dns::powerdns',
-    'foreman_proxy::plugin::dns::route53',
-    'foreman_proxy::plugin::hdm',
-    'foreman_proxy::plugin::monitoring',
-    'foreman_proxy::plugin::salt',
+DOWNSTREAM_MODULES = {
+    'apache::mod::status',
+    'certs',
+    'foreman',
+    'foreman::cli',
+    'foreman::cli::ansible',
+    'foreman::cli::azure',
+    'foreman::cli::google',
+    'foreman::cli::katello',
+    'foreman::cli::kubevirt',
+    'foreman::cli::puppet',
+    'foreman::cli::remote_execution',
+    'foreman::cli::virt_who_configure',
+    'foreman::cli::webhooks',
+    'foreman::compute::ec2',
+    'foreman::compute::libvirt',
+    'foreman::compute::openstack',
+    'foreman::compute::ovirt',
+    'foreman::compute::vmware',
+    'foreman::plugin::ansible',
+    'foreman::plugin::azure',
+    'foreman::plugin::bootdisk',
+    'foreman::plugin::discovery',
+    'foreman::plugin::google',
+    'foreman::plugin::kubevirt',
+    'foreman::plugin::leapp',
+    'foreman::plugin::openscap',
+    'foreman::plugin::puppet',
+    'foreman::plugin::remote_execution',
+    'foreman::plugin::remote_execution::cockpit',
+    'foreman::plugin::rh_cloud',
+    'foreman::plugin::tasks',
+    'foreman::plugin::templates',
+    'foreman::plugin::virt_who_configure',
+    'foreman::plugin::webhooks',
+    'foreman_proxy',
+    'foreman_proxy::plugin::ansible',
+    'foreman_proxy::plugin::dhcp::infoblox',
+    'foreman_proxy::plugin::dhcp::remote_isc',
+    'foreman_proxy::plugin::discovery',
+    'foreman_proxy::plugin::dns::infoblox',
+    'foreman_proxy::plugin::openscap',
+    'foreman_proxy::plugin::remote_execution::script',
+    'foreman_proxy::plugin::shellhooks',
+    'foreman_proxy_content',
+    'katello',
+    'puppet',
 }
 
 
@@ -560,7 +573,7 @@ def test_positive_check_installer_hammer_ping(target_sat):
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier3
+@pytest.mark.tier1
 @pytest.mark.build_sanity
 def test_installer_modules_check(target_sat):
     """Look for changes in installer modules
@@ -568,19 +581,14 @@ def test_installer_modules_check(target_sat):
     :id: a51d3b9f-f347-4a96-a31a-770349db08c7
 
     :steps:
-        1. Parse installer modules for upstream and downstream
+        1. Parse satellite installer modules
 
-    :expectedresults: Ensure the keys for all modules are in both files
+    :expectedresults: Ensure the keys for all modules are in the file
     """
-    sat_output = target_sat.execute('cat /etc/foreman-installer/scenarios.d/satellite-answers.yaml')
-    upstream_output = target_sat.execute(
-        'cat /etc/foreman-installer/scenarios.d/katello-answers.yaml'
-    )
+    cat_cmd = target_sat.execute('cat /etc/foreman-installer/scenarios.d/satellite-answers.yaml')
+    sat_answers = yaml.safe_load(cat_cmd.stdout)
 
-    sat_yaml = yaml.safe_load(sat_output.stdout)
-    upstream_yaml = yaml.safe_load(upstream_output.stdout)
-
-    assert set(sat_yaml.keys()) == (upstream_yaml.keys() - UPSTREAM_SPECIFIC_MODULES)
+    assert set(sat_answers) == DOWNSTREAM_MODULES
 
 
 @pytest.mark.stubbed
