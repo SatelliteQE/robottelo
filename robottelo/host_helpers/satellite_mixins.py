@@ -367,6 +367,9 @@ class ProvisioningSetup:
             if host:
                 host[0].delete()
             assert not self.api.Host().search(query={'search': f'name={hostname}'})
+        # Workaround SAT-28381
+        assert self.execute('cat /dev/null > /var/lib/dhcpd/dhcpd.leases').status == 0
+        assert self.execute('systemctl restart dhcpd').status == 0
         # Workaround BZ: 2207698
         assert self.cli.Service.restart().status == 0
 
