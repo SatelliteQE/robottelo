@@ -12,6 +12,8 @@
 
 """
 
+from time import sleep
+
 import pytest
 import requests
 import yaml
@@ -19,6 +21,7 @@ import yaml
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE, FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
+from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.ohsnap import dogfood_repository
@@ -342,8 +345,14 @@ def test_capsule_installation(
 
     :customerscenario: true
     """
-    # Create testing organization
-    org = sat_fapolicyd_install.api.Organization().create()
+    for i in range(100):
+        try:
+            org = sat_fapolicyd_install.api.Organization(name=f'Org_{i}').create()
+            break  # when the first org create succeeds
+        except Exception as e:
+            logger.exception(e)
+            sleep(60)
+    sleep(3 * 3600)
 
     # Unregister capsule in case it's registered to CDN
     cap_ready_rhel.unregister()
