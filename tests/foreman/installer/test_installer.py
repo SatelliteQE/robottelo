@@ -319,7 +319,7 @@ def sat_non_default_install(module_sat_ready_rhels):
     ids=["un_auth_proxy"],
 )
 def test_capsule_installation(
-    sat_fapolicyd_install, cap_ready_rhel, module_sca_manifest, setting_update
+    pytestconfig, sat_fapolicyd_install, cap_ready_rhel, module_sca_manifest, setting_update
 ):
     """Run a basic Capsule installation with fapolicyd
 
@@ -345,6 +345,11 @@ def test_capsule_installation(
 
     :customerscenario: true
     """
+    # Setup Capsule Hostname for further sanity caspule testing
+    if 'build_sanity' in pytestconfig.option.markexpr:
+        settings.capsule.hostname = cap_ready_rhel.hostname
+        cap_ready_rhel._skip_context_checkin = True
+
     # Create testing organization
     org = sat_fapolicyd_install.api.Organization().create()
 

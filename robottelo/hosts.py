@@ -344,8 +344,11 @@ class ContentHost(Host, ContentHostMixins):
     def teardown(self):
         logger.debug('START: tearing down host %s', self)
         if not self.blank and not getattr(self, '_skip_context_checkin', False):
-            self.unregister()
-            if type(self) is not Satellite:  # do not delete Satellite's host record
+            if type(self) is not Capsule:
+                self.unregister()
+            if (
+                type(self) is not Satellite or type(self) is not Capsule
+            ):  # do not delete Satellite's host record
                 self._delete_host_record()
 
         logger.debug('END: tearing down host %s', self)
