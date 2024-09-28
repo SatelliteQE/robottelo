@@ -21,6 +21,7 @@ from robottelo.config import (
     settings,
     user_nailgun_config,
 )
+from robottelo.utils.issue_handlers import is_open
 
 
 class TestAnsibleCfgMgmt:
@@ -875,3 +876,69 @@ class TestAnsibleREX:
 
         :expectedresults: Scheduled Job appears in the Job Invocation list at the appointed time
         """
+
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    @pytest.mark.parametrize('setting_update', ['ansible_verbosity'], indirect=True)
+    def test_positive_ansible_job_with_verbose_stdout(
+        self,
+        request,
+        target_sat,
+        module_org,
+        module_location,
+        module_ak_with_cv,
+        setting_update,
+        registered_hosts,
+    ):
+        """Verify ansible_verbosity setting and dynflow console output for expected hosts
+
+        :id: 06e0a95c-530b-11ef-a28c-36dcd2c0c415
+
+        :steps:
+            1. Select two or more hosts
+            2. Run ansible roles on those hosts
+            3. Check the Ansible job execution logs
+
+        :expectedresults: Ansible job console stdout should mention the verbose logs for expected host instead of the all host present in the inventory.
+
+        :BZ: 1912941
+
+        :Verifies: SAT-12267, SAT-27757
+
+        :customerscenario: true
+        """
+        if not is_open('SAT-27757'):
+            setting_update.value = '3'
+            setting_update.update({'value'})
+
+            @request.addfinalizer
+            def _finalize():
+                setting_update.value = '0'
+                setting_update.update({'value'})
+
+        SELECTED_ROLE = 'RedHatInsights.insights-client'
+        nc = target_sat.nailgun_smart_proxy
+        nc.location = [module_location]
+        nc.organization = [module_org]
+        nc.update(['organization', 'location'])
+        target_sat.api.AnsibleRoles().sync(data={'proxy_id': nc.id, 'role_names': SELECTED_ROLE})
+        vm_hostnames = []
+        for vm in registered_hosts:
+            rhel_ver = vm.os_version.major
+            rhel_repo_urls = getattr(settings.repos, f'rhel{rhel_ver}_os', None)
+            vm.create_custom_repos(**rhel_repo_urls)
+            result = vm.register(
+                module_org, module_location, module_ak_with_cv.name, target_sat, force=True
+            )
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
+            vm_hostnames.append(vm.hostname)
+        with target_sat.ui_session() as session:
+            session.organization.select(module_org.name)
+            session.location.select(module_location.name)
+            session.host.play_ansible_roles('All')
+            session.jobinvocation.wait_job_invocation_state(
+                entity_name='Run ansible roles', host_name=vm_hostnames[0]
+            )
+            output = session.jobinvocation.read_dynflow_output('Run ansible roles', vm_hostnames[0])
+            assert vm_hostnames[0] in output
+            assert vm_hostnames[1] not in output
