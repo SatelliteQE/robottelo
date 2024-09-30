@@ -225,3 +225,33 @@ def test_negative_handle_invalid_certificate(cert_setup_destructive_teardown):
 
     result = satellite.execute('hammer ping')
     assert result.status == 0, f'Hammer Ping failed:\n{result.stderr}'
+
+
+def test_negative_installer_invalid_dns_forwarder(target_sat):
+    """Satellite installer should not do any impact if any invalid values are set for DNS forwarder
+
+    :id: 97b72faf-4684-4d8c-ae0e-1ebd5085620d
+
+    :steps:
+        1. Run satellite-installer and attempt to use invalid value for dns_forwarder
+
+    :expectedresults:
+        1. satellite-installer should fail when invalid values are used for dns_forwarder
+        2. satellite-installer shouldn't set the invalid values for dns_forwarder
+
+    :verifies: SAT-26014
+
+    :customerscenario: true
+    """
+    result = target_sat.install(InstallerCommand(help='| grep foreman-proxy-dns-forwarders'))
+    assert 'DNS forwarders (current: [])' in result.stdout
+
+    # attempt to use invalid dns_forwarder
+    for dns_forwarder in ['', gen_string('alpha')]:
+        result = target_sat.install(InstallerCommand(foreman_proxy_dns_forwarders=dns_forwarder))
+        assert result.status != 0
+        assert 'Parameter foreman-proxy-dns-forwarders invalid:' in result.stdout
+
+    # installer should not set the invalid dns_forwarder
+    result = target_sat.install(InstallerCommand(help='| grep foreman-proxy-dns-forwarders'))
+    assert 'DNS forwarders (current: [])' in result.stdout
