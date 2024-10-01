@@ -190,6 +190,72 @@ def test_positive_sync_inventory_status(
     assert task_output[0].output['host_statuses']['disconnect'] == 0
 
 
+@pytest.mark.tier3
+def test_positive_sync_inventory_status_missing_host_ip(
+    rhcloud_manifest_org,
+    rhcloud_registered_hosts,
+    module_target_sat,
+):
+    """Sync inventory status via foreman-rake commands with missing IP
+
+    :id: 5e31d12d-efd7-4f12-bf5c-67305de2857e
+
+    :steps:
+
+        0. Create a VM and register to insights within org having manifest.
+        1  Remove IP from host
+        2. Sync inventory status for specific organization.
+            # export organization_id=1
+            # /usr/sbin/foreman-rake rh_cloud_inventory:sync
+
+
+    :expectedresults: Inventory status is successfully synced for satellite hosts.
+
+    :BZ:
+
+    :CaseAutomation: Automated
+    """
+    org = rhcloud_manifest_org
+    cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
+    success_msg = f"Synchronized inventory for organization '{org.name}'"
+    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+    rhcloud_host = module_target_sat.cli.Host.info({'name': rhcloud_registered_hosts[0].hostname})['id']
+    update_ip = module_target_sat.execute(
+            f'echo "Host.find({rhcloud_host}).update(ip: nil)" | foreman-rake console'
+        )
+    assert 'true' in update_ip.stdout
+    # Host.find(1).update(ip: nil)
+    #rhcloud_host = module_target_sat.cli.Host.info({'name': rhcloud_registered_hosts[0].hostname})['id']
+    result = module_target_sat.execute(cmd)
+    assert result.status == 0
+    assert success_msg in result.stdout
+    # Check task details
+    wait_for(
+        lambda: module_target_sat.api.ForemanTask()
+        .search(query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'})[0]
+        .result
+        == 'success',
+        timeout=400,
+        delay=15,
+        silent_failure=True,
+        handle_exception=True,
+    )
+    task_output = module_target_sat.api.ForemanTask().search(
+        query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'}
+    )
+    host_status = None
+    for task in task_output:
+        if task.input.get("organization_ids") is None:
+            continue
+        if str(task.input.get("organization_ids")[0]) == str(org.id):
+            host_status = task.output
+            break
+    assert host_status['host_statuses']['sync'] == 2
+    assert host_status['host_statuses']['disconnect'] == 0
+    # assert task_output[0].output['host_statuses']['sync'] == 2
+    # assert task_output[0].output['host_statuses']['disconnect'] == 0
+
+
 @pytest.mark.stubbed
 def test_max_org_size_variable():
     """Verify that if organization had more hosts than specified by max_org_size variable
