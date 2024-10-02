@@ -1295,9 +1295,10 @@ class TestContentView:
         environment = module_target_sat.cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id}
         )
-        print("Hello, the org ID is currently", module_org.id)
         result = module_target_sat.cli.ContentView.list({'organization-id': module_org.id})
-        content_view = random.choice([cv for cv in result if cv['name'] == constants.DEFAULT_CV])
+        content_view = random.choice(
+            [cv for cv in result if cv.get('name') == constants.DEFAULT_CV]
+        )
         cvv = module_target_sat.cli.ContentView.version_list(
             {'content-view-id': content_view['content-view-id']}
         )[0]
