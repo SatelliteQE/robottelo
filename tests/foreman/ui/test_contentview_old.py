@@ -1518,52 +1518,6 @@ def test_positive_remove_cv_version_from_env(
         assert all(item in cvv['Environments'] for item in [ENVIRONMENT, dev_lce.name, qe_lce.name])
 
 
-@pytest.mark.upgrade
-@pytest.mark.tier2
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_delete_cv_promoted_to_multi_env(
-    session, module_target_sat, module_org, target_sat
-):
-    """Delete published content view with version promoted to multiple
-     environments
-
-    :id: f16f2db5-7f5b-4ebb-863e-6c18ff745ce4
-
-    :steps:
-
-        1. Create a content view
-        2. Add a yum repo to the content view
-        3. Publish the content view
-        4. Promote the content view to multiple environment Library -> DEV
-        5. Disassociate content view from promoted environment
-        6. Delete the content view.
-
-    :expectedresults: The content view doesn't exists.
-
-    :CaseImportance:High
-    """
-    repo = target_sat.cli_factory.RepositoryCollection(
-        repositories=[target_sat.cli_factory.YumRepository(url=settings.repos.yum_0.url)]
-    )
-    repo.setup(module_org.id)
-    cv, lce = repo.setup_content_view(module_org.id)
-    repo_name = repo.repos_info[0]['name']
-    with session:
-        cvv = session.contentview.read_version(cv['name'], VERSION)
-        assert repo_name == cvv['yum_repositories']['table'][0]['Name']
-        cvv = session.contentview.search_version(cv['name'], VERSION)[0]
-        assert lce['name'] in cvv['Environments']
-        lce_values = session.lifecycleenvironment.read(lce['name'])
-        assert len(lce_values['content_views']['resources']) == 1
-        assert lce_values['content_views']['resources'][0]['Name'] == cv['name']
-        session.contentview.remove_version(cv['name'], VERSION, False, [ENVIRONMENT, lce['name']])
-        cvv = session.contentview.search_version(cv['name'], VERSION)[0]
-        assert lce['name'] not in cvv['Environments']
-        session.contentview.delete(cv['name'])
-        lce_values = session.lifecycleenvironment.read(lce['name'])
-        assert cv not in lce_values['content_views']['resources']
-
-
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_delete_composite_version(session, module_target_sat, module_org, target_sat):
