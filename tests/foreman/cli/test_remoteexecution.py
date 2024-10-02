@@ -258,9 +258,9 @@ class TestRemoteExecution:
         """
         client = rex_contenthost
         # create a user on client via remote job
-        ssh_username = gen_string('alpha')
+        ssh_username = f"sshuser_{gen_string('alpha')}"
         ssh_password = gen_string('alpha')
-        username = gen_string('alpha')
+        username = f"effuser_{gen_string('alpha')}"
         password = gen_string('cjk')
         filename = gen_string('alpha')
         make_user_job = module_target_sat.cli_factory.job_invocation(
@@ -271,8 +271,8 @@ class TestRemoteExecution:
                 'description-format': 'adding users',
             }
         )
-        client.execute('echo "Defaults targetpw" >> /etc/sudoers')
         assert_job_invocation_result(module_target_sat, make_user_job['id'], client.hostname)
+        client.execute('echo "Defaults targetpw" >> /etc/sudoers')
         # create a file as new user
         invocation_command = module_target_sat.cli_factory.job_invocation(
             {
@@ -310,6 +310,193 @@ class TestRemoteExecution:
                     'effective-user': f'{username}',
                 }
             )
+
+    @pytest.mark.tier3
+    @pytest.mark.parametrize(
+        'multi_global_param_update',
+        [
+            [
+                'remote_execution_ssh_user',
+                'remote_execution_effective_user_method',
+            ],
+        ],
+        ids=["global-param-sudo"],
+        indirect=True,
+    )
+    @pytest.mark.rhel_ver_list([9])
+    def test_positive_run_job_ssh_user_from_global_param(
+        self,
+        rex_contenthost,
+        module_target_sat,
+        multi_global_param_update,
+        module_org,
+        module_ak_with_cv,
+    ):
+        """Run default job template with global ssh user, effective user and sudo
+
+        :id: 0adaf5a2-930a-4050-863b-62456234ce8c
+
+        :verifies: SAT-28443
+
+        :steps:
+            1. set global parameters for rex
+            2. re-register the client to check that sudo setup was performed based on parameters
+            3. run rex to see that sudo was configured correctly
+
+        :expectedresults: Verify global paremeters are used to set up rex during registration
+
+        :parametrized: yes
+        """
+        client = rex_contenthost
+
+        # configure global settings
+        ssh_username = f"sshuser_{gen_string('alpha')}"
+        ssh_password = gen_string('alpha')
+        username = f"effuser_{gen_string('alpha')}"
+        password = gen_string('alpha')
+        filename = gen_string('alpha')
+        multi_global_param_update[0].value = ssh_username
+        multi_global_param_update[1].value = 'sudo'
+        for param in multi_global_param_update:
+            param.update({'value'})
+
+        # add users to the host
+        make_user_job = module_target_sat.cli_factory.job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': f"command=useradd {ssh_username}; echo {ssh_username}:{ssh_password} | chpasswd; useradd {username}; echo {username}:{password} | chpasswd",
+                'search-query': f"name ~ {client.hostname}",
+                'effective-user': 'root',
+                'ssh-user': 'root',
+                'description-format': 'adding users',
+            }
+        )
+        assert_job_invocation_result(module_target_sat, make_user_job['id'], client.hostname)
+
+        # re-register host to run the remote_execution_ssh_keys snippet with new defaults
+        client.register(module_org, None, module_ak_with_cv.name, module_target_sat, force=True)
+
+        # check the sudoers.d entry was created by the snippet
+        result = client.execute(f'''stat -c "%a %n" /etc/sudoers.d/{ssh_username}''')
+        assert '440' in result.stdout
+
+        client.execute('echo "Defaults targetpw" >> /etc/sudoers')
+
+        # create a file as new user
+        invocation_command = module_target_sat.cli_factory.job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': f"command=touch /home/{username}/{filename}",
+                'search-query': f"name ~ {client.hostname}",
+                'ssh-user': f'{ssh_username}',
+                'password': f'{ssh_password}',
+                'effective-user': f'{username}',
+                'effective-user-password': f'{password}',
+            }
+        )
+        assert_job_invocation_result(module_target_sat, invocation_command['id'], client.hostname)
+        # check the file owner
+        result = client.execute(
+            f'''stat -c '%U' /home/{username}/{filename}''',
+        )
+        # assert the file is owned by the effective user
+        assert username == result.stdout.strip('\n')
+        result = client.execute(
+            f'''stat -c '%G' /home/{username}/{filename}''',
+        )
+
+    @pytest.mark.tier3
+    @pytest.mark.parametrize(
+        'multi_setting_update',
+        [
+            [
+                'remote_execution_effective_user',
+                'remote_execution_effective_user_password',
+                'remote_execution_effective_user_method',
+                'remote_execution_ssh_user',
+                'remote_execution_ssh_password',
+            ],
+        ],
+        ids=["settings"],
+        indirect=True,
+    )
+    @pytest.mark.rhel_ver_list([9])
+    def test_positive_run_job_effective_user_from_settings(
+        self,
+        rex_contenthost,
+        module_target_sat,
+        multi_setting_update,
+        module_org,
+        module_ak_with_cv,
+    ):
+        """Run default job template with ssh user, effective user and method defined in settings
+
+        :id: 689e20c3-558a-47dc-a4dc-c067d1fb33fe
+
+        :expectedresults: Verify the job uses default values from settings
+
+        :BlockedBy: SAT-30443
+
+        :steps:
+            1. set global settings
+            2. create users on a client via rex overriding the global setinggs
+            3. run another rex checking that global settings are used
+
+        :parametrized: yes
+        """
+        client = rex_contenthost
+
+        # configure global settings
+        ssh_username = f"sshuser_{gen_string('alpha')}"
+        ssh_password = gen_string('alpha')
+        username = f"effuser_{gen_string('alpha')}"
+        password = gen_string('alpha')
+        filename = gen_string('alpha')
+        multi_setting_update[0].value = username
+        multi_setting_update[1].value = password
+        multi_setting_update[2].value = 'sudo'
+        multi_setting_update[3].value = ssh_username
+        multi_setting_update[4].value = ssh_password
+        for param in multi_setting_update:
+            param.update({'value'})
+
+        # add users to the host
+        make_user_job = module_target_sat.cli_factory.job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': f"command=useradd {ssh_username} -G wheel; echo {ssh_username}:{ssh_password} | chpasswd; useradd {username}; echo {username}:{password} | chpasswd",
+                'search-query': f"name ~ {client.hostname}",
+                'effective-user': 'root',
+                'ssh-user': 'root',
+                'description-format': 'adding users',
+                'password': '',
+                'effective-user-password': '',
+            }
+        )
+        assert_job_invocation_result(module_target_sat, make_user_job['id'], client.hostname)
+        client.execute('echo "Defaults targetpw" >> /etc/sudoers')
+
+        # create a file using global ssh-user and effective-user settings
+        invocation_command = module_target_sat.cli_factory.job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': f"command=touch /home/{username}/{filename}",
+                'search-query': f"name ~ {client.hostname}",
+            }
+        )
+        assert_job_invocation_result(module_target_sat, invocation_command['id'], client.hostname)
+
+        # check the file owner
+        result = client.execute(
+            f'''stat -c '%U' /home/{username}/{filename}''',
+        )
+        # assert the file is owned by the effective user
+        assert username == result.stdout.strip('\n')
+        result = client.execute(
+            f'''stat -c '%G' /home/{username}/{filename}''',
+        )
+        # assert the file is in the effective user's group
+        assert username == result.stdout.strip('\n')
 
     @pytest.mark.tier3
     @pytest.mark.e2e
