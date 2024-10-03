@@ -1037,7 +1037,7 @@ class ContentHost(Host, ContentHostMixins):
             host.host_parameters_attributes = host_parameters
             host.update(['host_parameters_attributes'])
 
-    def configure_rhai_client(
+    def configure_insights_client(
         self, satellite, activation_key, org, rhel_distro, register_insights=True, register=True
     ):
         """Configures a Red Hat Access Insights service on the system by
@@ -1051,7 +1051,7 @@ class ContentHost(Host, ContentHostMixins):
         :param register: Whether to register client to insights
         :return: None
         """
-        # Red Hat Insights requires RHEL 6/7/8 repo and it is not
+        # Red Hat Insights requires RHEL 6/7/8/9 repo and it is not
         # possible to sync the repo during the tests, Adding repo file.
         distro_repo_map = {
             'rhel6': settings.repos.rhel6_os,
