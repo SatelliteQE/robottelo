@@ -4,7 +4,7 @@ import csv
 import json
 import re
 
-from robottelo.config import logger
+from robottelo.logging import logger
 
 
 def _normalize(header):
@@ -39,14 +39,6 @@ def _normalize_obj(obj):
 
 def parse_csv(output):
     """Parse CSV output from Hammer CLI and return a Python dictionary."""
-
-    # https://projects.theforeman.org/issues/37264
-    NON_CSV_PATTERN = r'\d+ task\(s\), \d+ success, \d+ fail'
-
-    output, num_changes = re.subn(NON_CSV_PATTERN, '', output)
-    if num_changes > 0:
-        logger.warning(f'Removed output from CLI based on regex: {NON_CSV_PATTERN!s}')
-
     output = output.splitlines()
 
     # Normalize the column names to use when generating the dictionary
