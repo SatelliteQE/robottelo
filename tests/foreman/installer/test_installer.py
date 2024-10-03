@@ -1412,7 +1412,10 @@ def sat_non_default_install(module_sat_ready_rhels):
 @pytest.mark.pit_server
 @pytest.mark.build_sanity
 @pytest.mark.parametrize(
-    'setting_update', [f'http_proxy={settings.http_proxy.un_auth_proxy_url}'], indirect=True
+    'setting_update',
+    [f'http_proxy={settings.http_proxy.un_auth_proxy_url}'],
+    indirect=True,
+    ids=["un_auth_proxy"],
 )
 def test_capsule_installation(sat_non_default_install, cap_ready_rhel, setting_update):
     """Run a basic Capsule installation with fapolicyd
