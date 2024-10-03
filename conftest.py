@@ -49,6 +49,7 @@ pytest_plugins = [
     'pytest_fixtures.component.katello_agent',
     'pytest_fixtures.component.katello_certs_check',
     'pytest_fixtures.component.lce',
+    'pytest_fixtures.component.leapp_client',
     'pytest_fixtures.component.maintain',
     'pytest_fixtures.component.os',
     'pytest_fixtures.component.oscap',
