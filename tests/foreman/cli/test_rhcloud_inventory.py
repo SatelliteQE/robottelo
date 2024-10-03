@@ -196,24 +196,24 @@ def test_positive_sync_inventory_status_missing_host_ip(
     rhcloud_registered_hosts,
     module_target_sat,
 ):
-    """Sync inventory status via foreman-rake commands with missing IP
+    """Sync inventory status via foreman-rake commands with missing IP.
 
-    :id: 5e31d12d-efd7-4f12-bf5c-67305de2857e
+    :id: 372c03df-038b-49fb-a509-bb28edf178f3
 
     :steps:
 
-        0. Create a VM and register to insights within org having manifest.
-        1  Remove IP from host
-        2. Sync inventory status for specific organization.
+        1. Create a vm and register to insights within org having manifest.
+        2. Remove IP from host.
+        3. Sync inventory status for specific organization.
             # export organization_id=1
             # /usr/sbin/foreman-rake rh_cloud_inventory:sync
 
 
-    :expectedresults: Inventory status is successfully synced for satellite hosts.
+    :expectedresults: Inventory status is successfully synced for satellite host with missing IP.
 
-    :BZ:
+    :Verifies: SAT-24805
 
-    :CaseAutomation: Automated
+    :customerscenario: true
     """
     org = rhcloud_manifest_org
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
@@ -224,15 +224,13 @@ def test_positive_sync_inventory_status_missing_host_ip(
             f'echo "Host.find({rhcloud_host}).update(ip: nil)" | foreman-rake console'
         )
     assert 'true' in update_ip.stdout
-    # Host.find(1).update(ip: nil)
-    #rhcloud_host = module_target_sat.cli.Host.info({'name': rhcloud_registered_hosts[0].hostname})['id']
     result = module_target_sat.execute(cmd)
     assert result.status == 0
     assert success_msg in result.stdout
     # Check task details
     wait_for(
         lambda: module_target_sat.api.ForemanTask()
-        .search(query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'})[0]
+        .search(query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"', 'per_page': 'all'})[0]
         .result
         == 'success',
         timeout=400,
@@ -252,8 +250,6 @@ def test_positive_sync_inventory_status_missing_host_ip(
             break
     assert host_status['host_statuses']['sync'] == 2
     assert host_status['host_statuses']['disconnect'] == 0
-    # assert task_output[0].output['host_statuses']['sync'] == 2
-    # assert task_output[0].output['host_statuses']['disconnect'] == 0
 
 
 @pytest.mark.stubbed
