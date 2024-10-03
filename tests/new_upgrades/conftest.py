@@ -1,6 +1,7 @@
 """
 This module is intended to be used for upgrade tests that have a single run stage.
 """
+
 import datetime
 
 from broker import Broker
@@ -78,9 +79,11 @@ def shared_checkin(sat_instance):
 def upgrade_action():
     def _upgrade_action(target_sat):
         Broker(
-            job_template=settings.UPGRADE.SATELLITE_UPGRADE_JOB_TEMPLATE,
+            # job_template=settings.UPGRADE.SATELLITE_UPGRADE_JOB_TEMPLATE,
+            job_template="satellite-upgrade",
             target_vm=target_sat.name,
             sat_version=settings.UPGRADE.TO_VERSION,
+            upgrade_path="ystream",
             tower_inventory=target_sat.tower_inventory,
         ).execute()
 

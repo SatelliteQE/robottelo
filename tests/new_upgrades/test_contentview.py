@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from box import Box
 from fauxfactory import gen_alpha
 import pytest
@@ -52,7 +53,10 @@ def cv_upgrade_setup(content_upgrade_shared_satellite, upgrade_action):
         product = target_sat.api.Product(organization=org, name=f'{test_name}_prod').create()
         test_data.product = product
         yum_repository = target_sat.api.Repository(
-            product=product, name=f'{test_name}_yum_repo', url=settings.repos.yum_1.url
+            product=product,
+            name=f'{test_name}_yum_repo',
+            url=settings.repos.yum_1.url,
+            content_type='yum',
         ).create()
         test_data.yum_repo = yum_repository
         target_sat.api.Repository.sync(yum_repository)
@@ -64,9 +68,11 @@ def cv_upgrade_setup(content_upgrade_shared_satellite, upgrade_action):
         target_sat.put(DataFile.RPM_TO_UPLOAD, remote_file_path)
         file_repository.upload_content(files={'content': DataFile.RPM_TO_UPLOAD.read_bytes()})
         assert 'content' in file_repository.files()['results'][0]['name']
-        cv = target_sat.publish_content_view(org, [yum_repository, file_repository])
+        cv = target_sat.publish_content_view(org, [yum_repository, file_repository], test_name)
         assert len(cv.read_json()['versions']) == 1
+        test_data.cv = cv
         sat_upgrade.ready()
+        target_sat._session = None
         yield test_data
 
 
@@ -110,7 +116,10 @@ def test_cv_upgrade_scenario(cv_upgrade_setup):
     assert len(cv.read_json()['repositories']) == 0
 
     yum_repository2 = target_sat.api.Repository(
-        product=product, name='cv_upgrade_yum_repos2', url=settings.repos.yum_2.url
+        product=product,
+        name='cv_upgrade_yum_repos2',
+        url=settings.repos.yum_2.url,
+        content_type='yum',
     ).create()
     yum_repository2.sync()
     cv.repository = [yum_repository2]
