@@ -1038,7 +1038,7 @@ class ContentHost(Host, ContentHostMixins):
             host.host_parameters_attributes = host_parameters
             host.update(['host_parameters_attributes'])
 
-    def configure_rhai_client(
+    def configure_insights_client(
         self, satellite, activation_key, org, rhel_distro, register_insights=True, register=True
     ):
         """Configures a Red Hat Access Insights service on the system by
@@ -1052,18 +1052,7 @@ class ContentHost(Host, ContentHostMixins):
         :param register: Whether to register client to insights
         :return: None
         """
-        if register:
-            if not activation_key:
-                activation_key = satellite.api.ActivationKey(
-                    content_view=org.default_content_view.id,
-                    environment=org.library.id,
-                    organization=org,
-                ).create()
-            self.register(
-                org, None, activation_key.name, satellite, setup_insights=register_insights
-            )
-
-        # Red Hat Insights requires RHEL 6/7/8 repo and it is not
+        # Red Hat Insights requires RHEL 6/7/8/9 repo and it is not
         # possible to sync the repo during the tests, Adding repo file.
         distro_repo_map = {
             'rhel6': settings.repos.rhel6_os,
@@ -1084,6 +1073,17 @@ class ContentHost(Host, ContentHostMixins):
         # Ensure insights-client rpm is installed
         if self.execute('yum install -y insights-client').status != 0:
             raise ContentHostError('Unable to install insights-client rpm')
+        # attempt to register host
+        if register:
+            if not activation_key:
+                activation_key = satellite.api.ActivationKey(
+                    content_view=org.default_content_view.id,
+                    environment=org.library.id,
+                    organization=org,
+                ).create()
+            self.register(
+                org, None, activation_key.name, satellite, setup_insights=register_insights
+            )
 
     def unregister_insights(self):
         """Unregister insights client.

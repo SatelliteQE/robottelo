@@ -122,7 +122,7 @@ def test_insights_client_registration_with_http_proxy(
 
     :customerscenario: true
     """
-    rhel_contenthost.configure_rhai_client(
+    rhel_contenthost.configure_insights_client(
         module_target_sat,
         rhcloud_activation_key,
         rhcloud_manifest_org,
