@@ -219,10 +219,12 @@ def test_positive_sync_inventory_status_missing_host_ip(
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
     success_msg = f"Synchronized inventory for organization '{org.name}'"
     timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
-    rhcloud_host = module_target_sat.cli.Host.info({'name': rhcloud_registered_hosts[0].hostname})['id']
+    rhcloud_host = module_target_sat.cli.Host.info({'name': rhcloud_registered_hosts[0].hostname})[
+        'id'
+    ]
     update_ip = module_target_sat.execute(
-            f'echo "Host.find({rhcloud_host}).update(ip: nil)" | foreman-rake console'
-        )
+        f'echo "Host.find({rhcloud_host}).update(ip: nil)" | foreman-rake console'
+    )
     assert 'true' in update_ip.stdout
     result = module_target_sat.execute(cmd)
     assert result.status == 0
@@ -230,7 +232,12 @@ def test_positive_sync_inventory_status_missing_host_ip(
     # Check task details
     wait_for(
         lambda: module_target_sat.api.ForemanTask()
-        .search(query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"', 'per_page': 'all'})[0]
+        .search(
+            query={
+                'search': f'{inventory_sync_task} and started_at >= "{timestamp}"',
+                'per_page': 'all',
+            }
+        )[0]
         .result
         == 'success',
         timeout=400,
