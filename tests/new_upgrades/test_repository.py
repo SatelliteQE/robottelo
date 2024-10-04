@@ -13,6 +13,7 @@
 """
 
 from box import Box
+from fauxfactory import gen_alpha
 import pytest
 
 from robottelo.config import settings
@@ -55,30 +56,40 @@ def custom_repo_check_setup(sat_upgrade_chost, content_upgrade_shared_satellite,
                 'content_view': None,
             }
         )
-        org = target_sat.api.Organization().create()
-        lce = target_sat.api.LifecycleEnvironment(organization=org).create()
+        test_name = f'repo_upgrade_{gen_alpha()}'  # unique name for the test
+        org = target_sat.api.Organization(name=f'{test_name}_org').create()
+        lce = target_sat.api.LifecycleEnvironment(
+            organization=org, name=f'{test_name}_lce', prior=2
+        ).create()
         test_data.lce = lce
-        product = target_sat.api.Product(organization=org).create()
-        repo = target_sat.api.Repository(product=product.id, url=settings.repos.yum_1.url).create()
+        product = target_sat.api.Product(organization=org, name=f'{test_name}_prod').create()
+        repo = target_sat.api.Repository(
+            product=product.id,
+            name=f'{test_name}_repo',
+            url=settings.repos.yum_1.url,
+            content_type='yum',
+        ).create()
         test_data.repo = repo
         repo.sync()
-        content_view = target_sat.publish_content_view(org, repo)
+        content_view = target_sat.publish_content_view(org, repo, test_name)
         test_data.content_view = content_view
         content_view.version[0].promote(data={'environment_ids': lce.id})
         ak = target_sat.api.ActivationKey(
-            content_view=content_view, organization=org.id, environment=lce
+            content_view=content_view, organization=org.id, environment=lce, name=test_name
         ).create()
         if not target_sat.is_sca_mode_enabled(org.id):
             subscription = target_sat.api.Subscription(organization=org).search(
                 query={'search': f'name={product.name}'}
             )[0]
             ak.add_subscriptions(data={'subscription_id': subscription.id})
-        sat_upgrade_chost.install_katello_ca(target_sat)
-        sat_upgrade_chost.register_contenthost(org.label, ak.name)
-        sat_upgrade_chost.execute('subscription-manager repos --enable=*;yum clean all')
+        sat_upgrade_chost.api_register(
+            target_sat, organization=org, activation_keys=[ak.name], location=None
+        )
+        sat_upgrade_chost.execute('subscription-manager repos --enable=* && yum clean all')
         result = sat_upgrade_chost.execute(f'yum install -y {FAKE_0_CUSTOM_PACKAGE_NAME}')
         assert result.status == 0
         sat_upgrade.ready()
+        target_sat._session = None
         yield test_data
 
 
