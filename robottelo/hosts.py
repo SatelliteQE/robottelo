@@ -2271,9 +2271,14 @@ class Satellite(Capsule, SatelliteMixins):
         :type ad_data: Callable
         """
         ad_data = ad_data()
+        version_dependent = (
+            'ipa-python-compat'
+            if int(self.satellite.version.split('.')[1]) < 13
+            else 'oddjob oddjob-mkhomedir'
+        )
         packages = (
-            'sssd adcli realmd ipa-python-compat krb5-workstation '
-            'samba-common-tools gssproxy nfs-utils ipa-client'
+            f'sssd adcli realmd krb5-workstation samba-common-tools '
+            f'gssproxy nfs-utils ipa-client {version_dependent}'
         )
         realm = ad_data.realm
         workgroup = ad_data.workgroup
@@ -2362,16 +2367,11 @@ class Satellite(Capsule, SatelliteMixins):
         assert self.execute('systemctl restart gssproxy.service').status == 0
         assert self.execute('systemctl enable gssproxy.service').status == 0
 
+        assert self.execute("mkdir -p /etc/systemd/system/httpd.service.d/").status == 0
+        assert self.execute(
+            "echo -e '[Service]\\nEnvironment=GSS_USE_PROXY=1' > /etc/systemd/system/httpd.service.d/gssproxy.conf"
+        )
         # restart the deamon and httpd services
-        httpd_service_content = (
-            '.include /lib/systemd/system/httpd.service\n[Service]' '\nEnvironment=GSS_USE_PROXY=1'
-        )
-        assert (
-            self.execute(
-                f'echo "{httpd_service_content}" > /etc/systemd/system/httpd.service'
-            ).status
-            == 0
-        )
         assert (
             self.execute('systemctl daemon-reload && systemctl restart httpd.service').status == 0
         )
