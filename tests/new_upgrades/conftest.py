@@ -79,8 +79,7 @@ def shared_checkin(sat_instance):
 def upgrade_action():
     def _upgrade_action(target_sat):
         Broker(
-            # job_template=settings.UPGRADE.SATELLITE_UPGRADE_JOB_TEMPLATE,
-            job_template="satellite-upgrade",
+            job_template=settings.UPGRADE.SATELLITE_UPGRADE_JOB_TEMPLATE,
             target_vm=target_sat.name,
             sat_version=settings.UPGRADE.TO_VERSION,
             upgrade_path="ystream",
