@@ -1081,7 +1081,7 @@ class TestContentViewRedHatContent:
 
 
 @pytest.mark.tier2
-def test_repository_rpm_size(target_sat):
+def test_repository_rpms_id_type(target_sat):
     """Katello_repository_rpms_id_seq needs to have the type bigint to allow
     repeated publishing of Content Views by customers.
 
