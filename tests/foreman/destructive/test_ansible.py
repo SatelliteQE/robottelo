@@ -92,7 +92,7 @@ def test_positive_import_all_roles(request, target_sat, function_org, auth_type)
 
 
 @pytest.mark.parametrize('setting_update', ['entries_per_page=12'], indirect=True)
-def test_positive_hostgroup_ansible_roles_tab_pagination(target_sat, setting_update):
+def test_positive_hostgroup_ansible_roles_tab_pagination(target_sat, setting_update, function_org):
     """Import all Ansible roles available by default.
 
     :id: 53fe3857-a08f-493d-93c7-3fed331ed392
@@ -117,6 +117,7 @@ def test_positive_hostgroup_ansible_roles_tab_pagination(target_sat, setting_upd
         target_sat.api.Setting().search(query={'search': 'name=entries_per_page'})[0].value
     )
     with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
         imported_roles = session.ansibleroles.import_all_roles()
         total_role_count = str(session.ansibleroles.imported_roles_count)
         assert imported_roles == int(total_role_count)
@@ -128,7 +129,9 @@ def test_positive_hostgroup_ansible_roles_tab_pagination(target_sat, setting_upd
         assert create_page['ansible_roles']['pagination']['_items'].split()[2] == setting_value
         assert create_page['ansible_roles']['pagination']['_items'].split()[-2] == total_role_count
 
-        hg = target_sat.api.HostGroup(name=gen_string('alpha')).create()
+        hg = target_sat.api.HostGroup(
+            name=gen_string('alpha'), organization=[function_org]
+        ).create()
         edit_page = session.hostgroup.helper.read_filled_view(
             'Edit',
             navigation_kwargs={'entity_name': hg.name},
