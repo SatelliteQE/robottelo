@@ -61,7 +61,9 @@ def module_repos_collection(module_org_with_parameter, module_lce, module_target
             module_target_sat.cli_factory.YumRepository(url=settings.repos.yum_6.url),
         ],
     )
-    repos_collection.setup_content(module_org_with_parameter.id, module_lce.id)
+    repos_collection.setup_content(
+        org_id=module_org_with_parameter.id, lce_id=module_lce.id, override=True
+    )
     return repos_collection
 
 
