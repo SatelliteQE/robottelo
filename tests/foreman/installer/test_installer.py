@@ -227,21 +227,28 @@ def setup_capsule_repos(satellite, capsule_host, org, ak):
     else:
         # configure internal source as custom repos
         product_capsule = satellite.api.Product(organization=org.id).create()
-        for repo_variant in ['capsule', 'maintenance']:
-            dogfood_repo = dogfood_repository(
-                ohsnap=settings.ohsnap,
-                repo=repo_variant,
-                product="capsule",
-                release=settings.capsule.version.release,
-                os_release=capsule_host.os_version.major,
-                snap=settings.capsule.version.snap,
-            )
+        for repo_variant, repo_default_url in [
+            ('capsule', 'capsule_repo'),
+            ('maintenance', 'satmaintenance_repo'),
+        ]:
+            if settings.capsule.version.source == 'nightly':
+                repo_url = getattr(settings.repos, repo_default_url)
+            else:
+                repo_url = dogfood_repository(
+                    ohsnap=settings.ohsnap,
+                    repo=repo_variant,
+                    product="capsule",
+                    release=settings.capsule.version.release,
+                    os_release=capsule_host.os_version.major,
+                    snap=settings.capsule.version.snap,
+                ).baseurl
             repo = satellite.api.Repository(
                 organization=org.id,
                 product=product_capsule,
                 content_type='yum',
-                url=dogfood_repo.baseurl,
+                url=repo_url,
             ).create()
+
             # custom repos need to be explicitly enabled
             ak.content_override(
                 data={
