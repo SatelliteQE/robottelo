@@ -329,13 +329,28 @@ def installer_satellite(request):
     else:
         sat = lru_sat_ready_rhel(getattr(request, 'param', None))
     sat.setup_firewall()
-    # # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
+    # register to cdn (also enables rhel repos from cdn)
     sat.register_to_cdn()
-    sat.download_repofile(
-        product='satellite',
-        release=settings.server.version.release,
-        snap=settings.server.version.snap,
-    )
+
+    # setup source repositories
+    if settings.server.version.source == "ga":
+        # enable satellite repos
+        for repo in sat.SATELLITE_CDN_REPOS.values():
+            sat.enable_repo(repo, force=True)
+    else:
+        if settings.server.version.source == 'nightly':
+            sat.create_custom_repos(
+                satellite_repo=settings.repos.satellite_repo,
+                satmaintenance_repo=settings.repos.satmaintenance_repo,
+            )
+        else:
+            # get ohsnap repofile
+            sat.download_repofile(
+                product='satellite',
+                release=settings.server.version.release,
+                snap=settings.server.version.snap,
+            )
+
     sat.install_satellite_or_capsule_package()
     # Install Satellite
     sat.execute(
