@@ -191,4 +191,3 @@ def test_positive_custom_facts_and_clean_orphaned_facts(
     result = module_target_sat.execute('foreman-rake facts:clean')
     assert "Finished, cleaned" in result.stdout
     assert result.status == 0
-
