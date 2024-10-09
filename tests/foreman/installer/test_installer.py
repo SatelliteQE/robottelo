@@ -17,10 +17,10 @@ import requests
 
 from robottelo import ssh
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
-from robottelo.hosts import setup_capsule
+from robottelo.constants import DEFAULT_ARCHITECTURE, FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
+from robottelo.utils.ohsnap import dogfood_repository
 
 PREVIOUS_INSTALLER_OPTIONS = {
     '-',
@@ -1361,7 +1361,9 @@ def install_satellite(satellite, installer_args, enable_fapolicyd=False):
         else:
             cmmd = 'dnf -y install fapolicyd'
         assert satellite.execute(f'{cmmd} && systemctl enable --now fapolicyd').status == 0
-    satellite.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
+    satellite.install_satellite_or_capsule_package()
+    if enable_fapolicyd and is_open('SAT-28665'):
+        satellite.execute('systemctl restart fapolicyd')
     if enable_fapolicyd:
         assert satellite.execute('rpm -q foreman-fapolicyd').status == 0
         assert satellite.execute('rpm -q foreman-proxy-fapolicyd').status == 0
@@ -1376,6 +1378,114 @@ def install_satellite(satellite, installer_args, enable_fapolicyd=False):
     )
 
 
+def setup_capsule_repos(satellite, capsule_host, org, ak):
+    """
+    Enables repositories that are necessary to install capsule
+    1. Enable RHEL repositories based on configuration
+    2. Enable capsule repositories based on configuration
+    3. Synchonize repositories
+    """
+    # List of sync tasks - all repos will be synced asynchronously
+    sync_tasks = []
+
+    # Enable and sync RHEL BaseOS and AppStream repos
+    if settings.robottelo.rhel_source == "internal":
+        # Configure internal sources as custom repositories
+        product_rhel = satellite.api.Product(organization=org.id).create()
+        for repourl in settings.repos.get(f'rhel{capsule_host.os_version.major}_os').values():
+            repo = satellite.api.Repository(
+                organization=org.id, product=product_rhel, content_type='yum', url=repourl
+            ).create()
+            # custom repos need to be explicitly enabled
+            ak.content_override(
+                data={
+                    'content_overrides': [
+                        {
+                            'content_label': '_'.join([org.label, product_rhel.label, repo.label]),
+                            'value': '1',
+                        }
+                    ]
+                }
+            )
+    else:
+        # use AppStream and BaseOS from CDN
+        for rh_repo_key in [
+            f'rhel{capsule_host.os_version.major}_bos',
+            f'rhel{capsule_host.os_version.major}_aps',
+        ]:
+            satellite.api_factory.enable_rhrepo_and_fetchid(
+                basearch=DEFAULT_ARCHITECTURE,
+                org_id=org.id,
+                product=PRDS[f'rhel{capsule_host.os_version.major}'],
+                repo=REPOS[rh_repo_key]['name'],
+                reposet=REPOSET[rh_repo_key],
+                releasever=REPOS[rh_repo_key]['releasever'],
+            )
+        product_rhel = satellite.api.Product(
+            name=PRDS[f'rhel{capsule_host.os_version.major}'], organization=org.id
+        ).search()[0]
+    sync_tasks.append(satellite.api.Product(id=product_rhel.id).sync(synchronous=False))
+
+    # Enable and sync Capsule repos
+    if settings.capsule.version.source == "ga":
+        # enable Capsule repos from CDN
+        for repo in capsule_host.CAPSULE_CDN_REPOS.values():
+            reposet = satellite.api.RepositorySet(organization=org.id).search(
+                query={'search': repo}
+            )[0]
+            reposet.enable()
+            # repos need to be explicitly enabled in AK
+            ak.content_override(
+                data={
+                    'content_overrides': [
+                        {
+                            'content_label': reposet.label,
+                            'value': '1',
+                        }
+                    ]
+                }
+            )
+            sync_tasks.append(satellite.api.Product(id=reposet.product.id).sync(synchronous=False))
+    else:
+        # configure internal source as custom repos
+        product_capsule = satellite.api.Product(organization=org.id).create()
+        for repo_variant in ['capsule', 'maintenance']:
+            dogfood_repo = dogfood_repository(
+                ohsnap=settings.ohsnap,
+                repo=repo_variant,
+                product="capsule",
+                release=settings.capsule.version.release,
+                os_release=capsule_host.os_version.major,
+                snap=settings.capsule.version.snap,
+            )
+            repo = satellite.api.Repository(
+                organization=org.id,
+                product=product_capsule,
+                content_type='yum',
+                url=dogfood_repo.baseurl,
+            ).create()
+            # custom repos need to be explicitly enabled
+            ak.content_override(
+                data={
+                    'content_overrides': [
+                        {
+                            'content_label': '_'.join(
+                                [org.label, product_capsule.label, repo.label]
+                            ),
+                            'value': '1',
+                        }
+                    ]
+                }
+            )
+        sync_tasks.append(satellite.api.Product(id=product_capsule.id).sync(synchronous=False))
+
+    # Wait for asynchronous sync tasks
+    satellite.wait_for_tasks(
+        search_query=(f'id ^ "{",".join(task["id"] for task in sync_tasks)}"'),
+        poll_timeout=1800,
+    )
+
+
 @pytest.fixture(scope='module')
 def sat_default_install(module_sat_ready_rhels):
     """Install Satellite with default options"""
@@ -1385,6 +1495,19 @@ def sat_default_install(module_sat_ready_rhels):
     ]
     sat = module_sat_ready_rhels.pop()
     install_satellite(sat, installer_args)
+    sat.enable_ipv6_http_proxy()
+    return sat
+
+
+@pytest.fixture(scope='module')
+def sat_fapolicyd_install(module_sat_ready_rhels):
+    """Install Satellite with default options and fapolicyd enabled"""
+    installer_args = [
+        'scenario satellite',
+        f'foreman-initial-admin-password {settings.server.admin_password}',
+    ]
+    sat = module_sat_ready_rhels.pop()
+    install_satellite(sat, installer_args, enable_fapolicyd=True)
     sat.enable_ipv6_http_proxy()
     return sat
 
@@ -1417,16 +1540,18 @@ def sat_non_default_install(module_sat_ready_rhels):
     indirect=True,
     ids=["un_auth_proxy"],
 )
-def test_capsule_installation(sat_non_default_install, cap_ready_rhel, setting_update):
+def test_capsule_installation(
+    sat_fapolicyd_install, cap_ready_rhel, module_sca_manifest, setting_update
+):
     """Run a basic Capsule installation with fapolicyd
 
     :id: 64fa85b6-96e6-4fea-bea4-a30539d59e65
 
     :steps:
-        1. Get a fapolicyd enabled Satellite
-        2. Configure capsule repos
-        3. Install and enable fapolicyd
-        4. Enable capsule module
+        1. Use Satellite with fapolicyd enabled
+        2. Configure RHEL and Capsule repos on Satellite
+        3. Register Capsule machine to consume Satellite content
+        4. Install and enable fapolicyd
         5. Install and setup capsule
 
     :expectedresults:
@@ -1440,28 +1565,39 @@ def test_capsule_installation(sat_non_default_install, cap_ready_rhel, setting_u
 
     :customerscenario: true
     """
-    # Get Capsule repofile, and enable and download satellite-capsule
-    org = sat_non_default_install.api.Organization().create()
-    cap_ready_rhel.register_to_cdn()
-    cap_ready_rhel.download_repofile(
-        product='capsule',
-        release=settings.server.version.release,
-        snap=settings.server.version.snap,
-    )
-    # Enable fapolicyd
+    # Create testing organization
+    org = sat_fapolicyd_install.api.Organization().create()
+
+    # Unregister capsule in case it's registered to CDN
+    cap_ready_rhel.unregister()
+
+    # Add a manifest to the Satellite
+    sat_fapolicyd_install.upload_manifest(org.id, module_sca_manifest.content)
+    # Create capsule certs and activation key
+    file, _, cmd_args = sat_fapolicyd_install.capsule_certs_generate(cap_ready_rhel)
+    sat_fapolicyd_install.session.remote_copy(file, cap_ready_rhel)
+    ak = sat_fapolicyd_install.api.ActivationKey(organization=org, environment=org.library).create()
+
+    setup_capsule_repos(sat_fapolicyd_install, cap_ready_rhel, org, ak)
+
+    cap_ready_rhel.register(org, None, ak.name, sat_fapolicyd_install)
+
+    # Install (enable) fapolicyd
     assert (
         cap_ready_rhel.execute(
             'dnf -y install fapolicyd && systemctl enable --now fapolicyd'
         ).status
         == 0
     )
-    cap_ready_rhel.execute(
-        'dnf -y module enable satellite-capsule:el8 && dnf -y install satellite-capsule'
-    )
+
+    # Install Capsule package
+    cap_ready_rhel.install_satellite_or_capsule_package()
     assert cap_ready_rhel.execute('rpm -q foreman-proxy-fapolicyd').status == 0
+
     # Setup Capsule
-    setup_capsule(sat_non_default_install, cap_ready_rhel, org)
-    assert sat_non_default_install.api.Capsule().search(
+    cap_ready_rhel.install(cmd_args)
+
+    assert sat_fapolicyd_install.api.Capsule().search(
         query={'search': f'name={cap_ready_rhel.hostname}'}
     )[0]
 
