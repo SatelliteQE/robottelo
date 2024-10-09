@@ -12,8 +12,6 @@
 
 """
 
-import json
-
 from fauxfactory import gen_string
 import pytest
 
@@ -75,13 +73,11 @@ class TestScenarioPositiveProvisioningTemplates:
 
         for kind in provisioning_template_kinds:
             assert host.read_template(data={'template_kind': kind})
-
         pre_update_data_dict = {
-            'provision_host_id': host.id,
+            'provision_host_name': host.name,
             'pxe_loader': pxe_loader.pxe_loader,
         }
-        pre_update_json_file = json.dumps(pre_update_data_dict, indent=2)
-        save_test_data(pre_update_json_file)
+        save_test_data(pre_update_data_dict)
 
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_provisioning_templates)
     @pytest.mark.parametrize('pre_upgrade_data', ['bios', 'uefi'], indirect=True)
@@ -106,7 +102,7 @@ class TestScenarioPositiveProvisioningTemplates:
         """
         pxe_loader = pre_upgrade_data.pxe_loader
         pre_upgrade_host = module_target_sat.api.Host().search(
-            query={'search': f'id={pre_upgrade_data.provision_host_id}'}
+            query={'search': f'name={pre_upgrade_data.provision_host_name}'}
         )[0]
         request.addfinalizer(pre_upgrade_host.delete)
         org = module_target_sat.api.Organization(id=pre_upgrade_host.organization.id).read()
