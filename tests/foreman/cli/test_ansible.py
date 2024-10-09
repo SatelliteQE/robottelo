@@ -191,6 +191,61 @@ class TestAnsibleCfgMgmt:
         )
         assert 'Ansible role has been disassociated.' in result[0]['message']
 
+    @pytest.mark.tier3
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    def test_positive_ansible_variables_installed_with_collection(
+        self, request, target_sat, module_org, module_ak_with_cv, rhel_contenthost
+    ):
+        """Verify that installing an Ansible collection also imports
+        any variables associated with the roles avaialble in the collection
+
+        :id: 7ff88022-fe9b-482f-a6bb-3922036a1e1c
+
+        :steps:
+            1. Register a content host with Satellite
+            2. Install a ansible collection with roles from ansible-galaxy
+            3. Import any role with variables from installed ansible collection
+            4. Assert that the role is imported along with associated variables
+            5. Assign that role to a host and verify the role assigned to the host
+
+        :expectedresults: Verify variables associated to role from collection are also imported along with roles
+
+        :bz: 1982753
+        """
+        SELECTED_COLLECTION = 'oasis_roles.system'
+        SELECTED_ROLE = 'oasis_roles.system.sshd'
+        SELECTED_VAR = 'sshd_allow_password_login'
+
+        @request.addfinalizer
+        def _finalize():
+            result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
+            assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
+
+        result = rhel_contenthost.register(
+            module_org,
+            None,
+            module_ak_with_cv.name,
+            target_sat,
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        target_host = rhel_contenthost.nailgun_host
+        proxy_id = target_sat.nailgun_smart_proxy.id
+
+        for path in ['/etc/ansible/collections', '/usr/share/ansible/collections']:
+            target_sat.execute(f'ansible-galaxy collection install -p {path} {SELECTED_COLLECTION}')
+            target_sat.cli.Ansible.roles_sync({'role-names': SELECTED_ROLE, 'proxy-id': proxy_id})
+            result = target_sat.cli.Host.ansible_roles_assign(
+                {'id': target_host.id, 'ansible-roles': f'{SELECTED_ROLE}'}
+            )
+            assert 'Ansible roles were assigned to the host' in result[0]['message']
+
+            result = target_sat.cli.Ansible.variables_list(
+                {'search': f'ansible_role="{SELECTED_ROLE}"'}
+            )
+            assert result[0]['variable'] == SELECTED_VAR
+            # Remove the ansible collection from collection_paths
+            target_sat.execute(f'rm -rf {path}/ansible_collections/')
+
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
