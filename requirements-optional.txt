@@ -1,7 +1,7 @@
 # For running tests and checking code quality using these modules.
 pytest-cov==5.0.0
 redis==5.1.1
-pre-commit==4.0.0
+pre-commit==4.0.1
 ruff==0.6.9
 
 # For generating documentation.
