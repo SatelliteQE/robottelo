@@ -729,6 +729,8 @@ class ContentHost(Host, ContentHostMixins):
         force=False,
         insecure=True,
         hostgroup=None,
+        auth_username=None,
+        auth_password=None,
     ):
         """Registers content host to the Satellite or Capsule server
         using a global registration template.
@@ -751,6 +753,8 @@ class ContentHost(Host, ContentHostMixins):
         :param force: Register the content host even if it's already registered.
         :param insecure: Don't verify server authenticity.
         :param hostgroup: hostgroup to register with
+        :param auth_username: username required if non-admin user
+        :param auth_password: password required if non-admin user
         :return: SSHCommandResult instance filled with the result of the registration
         """
         options = {
@@ -804,7 +808,21 @@ class ContentHost(Host, ContentHostMixins):
         if force:
             options['force'] = str(force).lower()
 
-        cmd = target.satellite.cli.HostRegistration.generate_command(options)
+        self._satellite = target.satellite
+        if auth_username and auth_password:
+            user = target.satellite.cli.User.list({'search': f'login={auth_username}'})
+            if user:
+                register_role = target.satellite.cli.Role.info({'name': 'Register hosts'})
+                target.satellite.cli.User.add_role(
+                    {'id': user[0]['id'], 'role-id': register_role['id']}
+                )
+                cmd = target.satellite.cli.HostRegistration.with_user(
+                    auth_username, auth_password
+                ).generate_command(options)
+            else:
+                raise CLIFactoryError(f'User {auth_username} doesn\'t exist')
+        else:
+            cmd = target.satellite.cli.HostRegistration.generate_command(options)
         return self.execute(cmd.strip('\n'))
 
     def api_register(self, target, **kwargs):
