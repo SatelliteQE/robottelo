@@ -136,6 +136,49 @@ class TestRemoteExecution:
 
     @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([8])
+    def test_negative_run_default_job_template(
+        self, module_org, rex_contenthost, module_target_sat
+    ):
+        """Confirm that job status is correct if remote action fails
+
+        :id: b6229222-26cf-46bd-bbf6-46814cafd085
+
+        :expectedresults: Verify the job exits as expected
+
+        :verifies: SAT-28435
+
+        :parametrized: yes
+        """
+        client = rex_contenthost
+        command = 'exit 23'
+        with pytest.raises(CLIFactoryError) as error:
+            module_target_sat.cli_factory.job_invocation(
+                {
+                    'job-template': 'Run Command - Script Default',
+                    'inputs': f'command={command}',
+                    'search-query': f"name ~ {client.hostname}",
+                }
+            )
+        assert 'A sub task failed' in error.value.args[0]
+        task = module_target_sat.cli.Task.list_tasks({'search': command})[0]
+        search = module_target_sat.cli.Task.list_tasks({'search': f'id={task["id"]}'})
+        assert search[0]['action'] == task['action']
+        job_id = [
+            job['id']
+            for job in module_target_sat.cli.JobInvocation.list()
+            if job['description'] == f'Run {command}'
+        ][0]
+        out = module_target_sat.cli.JobInvocation.get_output(
+            {
+                'id': job_id,
+                'host': client.hostname,
+                'organization-id': module_org.id,
+            }
+        )
+        assert 'Exit status: 23' in out
+
+    @pytest.mark.tier3
+    @pytest.mark.rhel_ver_list([8])
     def test_positive_timeout_to_kill(self, module_org, rex_contenthost, module_target_sat):
         """Use timeout to kill setting to cancel the job
 
