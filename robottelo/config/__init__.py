@@ -16,6 +16,31 @@ if not os.getenv('ROBOTTELO_DIR'):
     os.environ['ROBOTTELO_DIR'] = str(robottelo_root_dir)
 
 
+def replace_ipv4_with_ipv6_in_urls(settings):
+    def replace_in_value(value):
+        # Only replace 'ipv4' with 'ipv6' in strings that contain 'redhat.com'
+        if isinstance(value, str) and 'ipv4' in value and 'redhat.com' in value:
+            return value.replace('ipv4', 'ipv6')
+        return value
+
+    def resolve_and_replace(settings_dict):
+        resolved = {}
+        for key, value in settings_dict.items():
+            if isinstance(value, str):
+                resolved[key] = replace_in_value(value)
+            elif isinstance(value, dict):
+                # Recursively handle nested dictionaries
+                resolved[key] = resolve_and_replace(value)
+            else:
+                resolved[key] = value
+        return resolved
+
+    # Update the settings in-place with resolved and replaced values
+    updated_settings = resolve_and_replace(settings.as_dict())
+    for key, value in updated_settings.items():
+        settings.set(key, value)
+
+
 def get_settings():
     """Return Lazy settings object after validating
 
@@ -49,6 +74,7 @@ def get_settings():
 
 
 settings = get_settings()
+replace_ipv4_with_ipv6_in_urls(settings)
 robottelo_tmp_dir = Path(settings.robottelo.tmp_dir)
 robottelo_tmp_dir.mkdir(parents=True, exist_ok=True)
 
