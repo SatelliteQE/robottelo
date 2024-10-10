@@ -77,7 +77,7 @@ jobs:
       - name: Add Parent PR's PRT comment to Auto_Cherry_Picked PR's
         id: add-parent-prt-comment
         if: ${{ always() && needs.find-the-parent-prt-comment.outputs.prt_comment != '' && steps.cherrypick.outcome == 'success' }}
-        uses: thollander/actions-comment-pull-request@v2
+        uses: thollander/actions-comment-pull-request@v3
         with:
           message: |
             ${{ needs.find-the-parent-prt-comment.outputs.prt_comment }}
