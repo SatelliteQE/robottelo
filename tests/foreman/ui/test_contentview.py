@@ -15,7 +15,12 @@
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.constants import FAKE_FILE_NEW_NAME, REPOS, DataFile
+from robottelo.config import settings
+from robottelo.constants import (
+    FAKE_FILE_NEW_NAME,
+    REPOS,
+    DataFile,
+)
 
 
 @pytest.mark.tier2
@@ -147,3 +152,71 @@ def test_file_cv_display(session, target_sat, module_org, module_product):
         file_values = session.file.read_cv_table(FAKE_FILE_NEW_NAME)
         assert len(file_values) == 1
         assert file_values[0]['Name'] == cv.name
+
+
+# @pytest.mark.upgrade
+@pytest.mark.tier2
+def test_positive_delete_cv_promoted_to_multi_env(
+    session,
+    module_target_sat,
+    module_org,
+    target_sat,
+):
+    """Delete the published content view and the version promoted to multiple
+        environments.
+
+    :id: f16f2db5-7f5b-4ebb-863e-6c18ff745ce4
+
+    :steps:
+        1. Create a yum repo on satellite
+        2. Create a content view and add the repository
+        3. Publish the content view, creates "Version 1.0"
+        4. Promote the "Version 1.0" to multiple environments Library -> DEV
+        5. Delete the promoted content view version
+        6. Publish and promote a new "Version 1.0" to multiple environments
+        7. Delete the content view
+
+    :expectedresults:
+        5. Deleting the promoted CVV, removed the CV from multiple environments.
+        7. Deleting the CV with promoted CVV, removed the CV from multiple environments.
+
+    :CaseImportance: High
+    """
+    VERSION = 'Version 1.0'
+    repo = target_sat.cli_factory.RepositoryCollection(
+        repositories=[target_sat.cli_factory.YumRepository(url=settings.repos.yum_0.url)]
+    )
+    repo.setup(module_org.id)
+    cv, lce = repo.setup_content_view(module_org.id)
+    repo_name = repo.repos_info[0]['name']
+
+    with target_sat.ui_session() as session:
+        # session.location.select(loc_name=DEFAULT_LOC)
+        session.organization.select(org_name=module_org.name)
+        cv_info = session.contentview_new.search(cv['name'])[0]
+        assert cv_info['Latest version'] == VERSION, (
+            f'Latest version for CV {cv["name"]}: {cv_info["Latest version"]},'
+            f' does not match expected: {VERSION}.'
+        )
+        cvv_values = session.contentview_new.read_cv(cv['name'], VERSION)
+        assert lce['name'] in cvv_values['Environments']
+        # read UI info from repo table in CVV
+        repo_info = session.contentview_new.read_version_table(cv['name'], VERSION, 'repositories')
+        assert (
+            repo_name == repo_info[0]['Name']
+        ), 'Repositories tab for CVV shows incorrect repo name.'
+        # read UI info from LCE of the CVV
+        lce_values = session.lifecycleenvironment.read(lce['name'])
+        assert len(lce_values['content_views']['resources']) == 1
+        assert (
+            cv['name'] == lce_values['content_views']['resources'][0]['Name']
+        ), f'Environment {lce["name"]}, does not show expected CVV {cv["name"]}, contained within.'
+        # delete the CVV, try searching for it, then delete the ContentView itself
+        session.contentview_new.click_version_dropdown(cv['name'], VERSION, 'Delete')
+        # session.contentview.remove_version(cv['name'], VERSION, False, [ENVIRONMENT, lce['name']])
+        cv = session.contentview_new.search(cv['name'], VERSION)[0]
+        """assert lce['name'] not in cv['Environments']
+        assert 'Library' not in cv['Environments']"""
+        session.contentview.delete(cv['name'])
+        lce_values = session.lifecycleenvironment.read(lce['name'])
+        assert cv not in lce_values['content_views']['resources']
