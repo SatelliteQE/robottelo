@@ -64,3 +64,9 @@ class Ansible(Base):
         """Information about ansible variables"""
         cls.command_sub = 'variables info'
         return cls.execute(cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def variables_list(cls, options=None):
+        """Information about ansible variables"""
+        cls.command_sub = 'variables list'
+        return cls.execute(cls._construct_command(options), output_format='csv')
