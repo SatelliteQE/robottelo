@@ -52,9 +52,14 @@ class TestTemplateSyncTestCase:
             f'[ -f example_template.erb ] || wget {FOREMAN_TEMPLATE_TEST_TEMPLATE}'
         )
 
+    @pytest.mark.parametrize(
+        'use_proxy',
+        [True, False],
+        ids=['use_proxy', 'do_not_use_proxy'],
+    )
     @pytest.mark.tier2
     def test_positive_import_force_locked_template(
-        self, module_org, create_import_export_local_dir, target_sat
+        self, module_org, create_import_export_local_dir, target_sat, use_proxy
     ):
         """Assure locked templates are updated from repository when `force` is
         specified.
@@ -76,9 +81,12 @@ class TestTemplateSyncTestCase:
         """
         prefix = gen_string('alpha')
         _, dir_path = create_import_export_local_dir
+        # TODO make sure the system can't communicate with the git directly, without proxy
         target_sat.cli.TemplateSync.imports(
             {'repo': dir_path, 'prefix': prefix, 'organization-ids': module_org.id, 'lock': 'true'}
+            # TODO specify proxy if use_proxy True
         )
+        # TODO assert that proxy has been used
         ptemplate = target_sat.api.ProvisioningTemplate().search(
             query={'per_page': 10, 'search': f'name~{prefix}', 'organization_id': module_org.id}
         )
@@ -121,8 +129,13 @@ class TestTemplateSyncTestCase:
         indirect=True,
         ids=['non_empty_repo'],
     )
+    @pytest.mark.parametrize(
+        'use_proxy',
+        [True, False],
+        ids=['use_proxy', 'do_not_use_proxy'],
+    )
     def test_positive_update_templates_in_git(
-        self, module_org, git_repository, git_branch, url, module_target_sat
+        self, module_org, git_repository, git_branch, url, module_target_sat, use_proxy
     ):
         """Assure only templates with a given filter are pushed to
         git repository and existing template file is updated.
@@ -154,6 +167,7 @@ class TestTemplateSyncTestCase:
             f'{api_url}/{path}', auth=auth, json={'branch': git_branch, 'content': content}
         )
         assert res.status_code == 201
+        # TODO make sure the system can't communicate with the git directly, without proxy
         # export template to git
         url = f'{url}/{git.username}/{git_repository["name"]}'
         output = module_target_sat.cli.TemplateSync.exports(
@@ -163,6 +177,7 @@ class TestTemplateSyncTestCase:
                 'organization-id': module_org.id,
                 'filter': 'User - Registered Users',
                 'dirname': dirname,
+                # TODO specify proxy if use_proxy True
             }
         ).split('\n')
         exported_count = ['Exported: true' in row.strip() for row in output].count(True)
@@ -171,6 +186,7 @@ class TestTemplateSyncTestCase:
         git_file = requests.get(f'{api_url}/{path}', auth=auth, params={'ref': git_branch}).json()
         decoded = base64.b64decode(git_file['content'])
         assert content != decoded
+        # TODO assert that proxy has been used
 
     @pytest.mark.tier2
     @pytest.mark.skip_if_not_set('git')
@@ -188,8 +204,14 @@ class TestTemplateSyncTestCase:
         indirect=True,
         ids=['non_empty_repo', 'empty_repo'],
     )
+    @pytest.mark.parametrize(
+        'use_proxy_global',
+        [True, False],
+        ids=['use_proxy_global', 'do_not_use_proxy_global'],
+    )
+    # TODO a settings fixture that sets using global proxy for template sync to true and after yield, resets it to the original state
     def test_positive_export_filtered_templates_to_git(
-        self, module_org, git_repository, git_branch, url, module_target_sat
+        self, module_org, git_repository, git_branch, url, module_target_sat, use_proxy_global
     ):
         """Assure only templates with a given filter regex are pushed to
         git repository.
@@ -210,6 +232,7 @@ class TestTemplateSyncTestCase:
         """
         dirname = 'export'
         url = f'{url}/{git.username}/{git_repository["name"]}'
+        # TODO make sure the system can't communicate with the git directly, without proxy
         output = module_target_sat.cli.TemplateSync.exports(
             {
                 'repo': url,
@@ -228,6 +251,7 @@ class TestTemplateSyncTestCase:
             requests.get(f'{api_url}/{path}', auth=auth, params={'ref': git_branch}).json()
         )
         assert exported_count == git_count
+        # TODO assert that proxy has been used
 
     @pytest.mark.tier2
     def test_positive_export_filtered_templates_to_temp_dir(self, module_org, target_sat):
