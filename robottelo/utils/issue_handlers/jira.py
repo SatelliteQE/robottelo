@@ -1,7 +1,6 @@
 from collections import defaultdict
 import re
 
-from packaging.version import Version
 import pytest
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed
@@ -13,7 +12,6 @@ from robottelo.constants import (
     JIRA_OPEN_STATUSES,
     JIRA_WONTFIX_RESOLUTIONS,
 )
-from robottelo.hosts import get_sat_version
 from robottelo.logging import logger
 
 # match any version as in `sat-6.14.x` or `sat-6.13.0` or `6.13.9`
@@ -71,11 +69,6 @@ def is_open_jira(issue_id, data=None):
         return True
 
     # Jira is Closed with a resolution in (Done, Done-Errata, ...)
-    # server.version is higher or equal than Jira fixVersion
-    # Consider fixed, Jira is not open
-    fix_version = jira.get('fixVersions')
-    if fix_version:
-        return get_sat_version() < Version(min(fix_version))
     return status not in JIRA_CLOSED_STATUSES and status != JIRA_ONQA_STATUS
 
 
