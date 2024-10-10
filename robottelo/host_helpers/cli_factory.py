@@ -880,6 +880,8 @@ class CLIFactory:
             custom_repo_url = settings.repos.rhel6_os
         elif options.get('repository') == constants.REPOS['rhel7']['name']:
             custom_repo_url = settings.repos.rhel7_os
+        elif options.get('repository') == constants.REPOS['rhel8_aps']['name']:
+            custom_repo_url = settings.repos.rhel8_os.appstream
         elif 'Satellite Capsule' in options.get('repository'):
             custom_repo_url = settings.repos.capsule_repo
         if force_use_cdn or settings.robottelo.cdn or not custom_repo_url:
