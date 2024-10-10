@@ -370,12 +370,19 @@ def installer_satellite(request):
         for repo in sat.SATELLITE_CDN_REPOS.values():
             sat.enable_repo(repo, force=True)
     else:
-        # get ohsnap repofile
-        sat.download_repofile(
-            product='satellite',
-            release=settings.server.version.release,
-            snap=settings.server.version.snap,
-        )
+        if settings.server.version.source == 'nightly':
+            sat.create_custom_repos(
+                satellite_repo=settings.repos.satellite_repo,
+                satmaintenance_repo=settings.repos.satmaintenance_repo,
+            )
+        else:
+            # get ohsnap repofile
+            sat.download_repofile(
+                product='satellite',
+                release=settings.server.version.release,
+                snap=settings.server.version.snap,
+            )
+
     if settings.robottelo.rhel_source == "internal":
         # disable rhel repos from cdn
         sat.disable_repo("rhel-*")
