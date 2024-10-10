@@ -1081,6 +1081,28 @@ class TestContentViewRedHatContent:
 
 
 @pytest.mark.tier2
+def test_repository_rpms_id_type(target_sat):
+    """Katello_repository_rpms_id_seq needs to have the type bigint to allow
+    repeated publishing of Content Views by customers.
+
+    :id: a506782f-1edd-4568-99bb-d289212156ba
+
+    :steps:
+        1. Login to the Satellite cli and access the foreman posgres shell
+        2. Search for katello_repository_rpms_id_seq
+
+    :expectedresults: katello_repository_rpms_id_seq should have the type bigint, and not the type integer
+
+    :CaseImportance: Medium
+    """
+    db_out = target_sat.execute(
+        'sudo -u postgres psql -d foreman -c "select * from pg_sequences where sequencename=\'katello_repository_rpms_id_seq\';"'
+    )
+    assert 'bigint' in db_out.stdout
+    assert 'integer' not in db_out.stdout
+
+
+@pytest.mark.tier2
 def test_negative_readonly_user_actions(
     target_sat, function_role, content_view, module_org, module_lce
 ):
