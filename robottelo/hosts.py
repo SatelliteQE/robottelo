@@ -936,7 +936,9 @@ class ContentHost(Host, ContentHostMixins):
                 f'Failed to put hostname in ssh known_hosts files:\n{result.stderr}'
             )
 
-    def configure_puppet(self, proxy_hostname=None, run_puppet_agent=True):
+    def configure_puppet(
+        self, proxy_hostname=None, run_puppet_agent=True, install_puppet_agent7=False
+    ):
         """Configures puppet on the virtual machine/Host.
         :param proxy_hostname: external capsule hostname
         :return: None.
@@ -945,12 +947,21 @@ class ContentHost(Host, ContentHostMixins):
         if proxy_hostname is None:
             proxy_hostname = settings.server.hostname
 
-        self.create_custom_repos(
-            sat_client=settings.repos['SATCLIENT_REPO'][f'RHEL{self.os_version.major}']
-        )
+        if install_puppet_agent7:
+            self.create_custom_repos(
+                sat_client=settings.repos['SATCLIENT_REPO'][f'RHEL{self.os_version.major}']
+            )
+        else:
+            self.create_custom_repos(
+                sat_client=settings.repos['SATCLIENT2_REPO'][f'RHEL{self.os_version.major}']
+            )
+
         result = self.execute('yum install puppet-agent -y')
         if result.status != 0:
             raise ContentHostError('Failed to install the puppet-agent rpm')
+
+        rpm_version = self.execute('rpm -q --qf "%{VERSION}" puppet-agent').stdout
+        assert '7' in rpm_version if install_puppet_agent7 else '7' not in rpm_version
 
         cert_name = self.hostname
         puppet_conf = (
