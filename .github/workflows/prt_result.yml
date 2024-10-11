@@ -30,7 +30,7 @@ jobs:
       - name: Add last PRT result into the github comment
         id: add-prt-comment
         if: ${{ always() && github.event.inputs.pytest_result != '' }}
-        uses: thollander/actions-comment-pull-request@v2
+        uses: thollander/actions-comment-pull-request@v3
         with:
           message: |
             **PRT Result**
