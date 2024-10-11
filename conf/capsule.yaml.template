@@ -7,7 +7,7 @@ CAPSULE:
     # The snap version currently testing (if applicable)
     # SNAP:
     # The source of Capsule packages. Can be one of:
-    # internal, ga, beta
+    # internal, ga, nightly, beta
     SOURCE: "internal"
     # The base os rhel version where the capsule installed
     # RHEL_VERSION:
