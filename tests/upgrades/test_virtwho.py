@@ -136,14 +136,18 @@ class TestScenarioPositiveVirtWho:
         # Vefify the connection of the guest on Content host
         hypervisor_name = pre_upgrade_data.get('hypervisor_name')
         guest_name = pre_upgrade_data.get('guest_name')
-        hosts = [hypervisor_name, guest_name]
-        for hostname in hosts:
-            result = (
-                target_sat.api.Host(organization=org_id)
-                .search(query={'search': hostname})[0]
-                .read_json()
-            )
-            assert result['subscription_status_label'] == 'Simple Content Access'
+        result = (
+            target_sat.api.Host(organization=org_id)
+            .search(query={'search': hypervisor_name})[0]
+            .read_json()
+        )
+        assert result['subscription_facet_attributes']['virtual_guests'][0]['name'] == guest_name
+        result = (
+            target_sat.api.Host(organization=org_id)
+            .search(query={'search': guest_name})[0]
+            .read_json()
+        )
+        assert hypervisor_name in result['subscription_facet_attributes']['virtual_host']['name']
 
         # Verify the virt-who config-file exists.
         config_file = get_configure_file(vhd.id)
