@@ -21,6 +21,8 @@ VMWARE:
   CLUSTER:
   # DATASTORE: vmware datastore
   DATASTORE:
+  # datastore_cluster: storage datastore cluster
+  DATASTORE_CLUSTER:
   # VM_NAME: Name of VM to power On/Off & delete
   VM_NAME:
   # VMware Compute resource image data
