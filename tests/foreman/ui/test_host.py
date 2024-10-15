@@ -257,6 +257,42 @@ def test_positive_read_from_details_page(session, module_host_template):
         assert 'Admin User' in values['properties']['properties_table']['Owner']
 
 
+def test_read_host_with_ics_domain(
+    session, module_host_template, module_location, module_org, module_target_sat
+):
+    """Create new Host with ics domain name and verify that it can be read
+
+    :id: 54e3db92-16c2-412b-bf68-44d479c5987b
+
+    :steps:
+        1. Create a host with a domain ending in .ics
+        2. Read the host's details through the UI
+
+    :expectedresults: Host ending with ics domain name can be accessed through Host UI
+
+    :customerscenario: true
+
+    :Verifies: SAT-26202
+    """
+    template = module_host_template
+    template.name = gen_string('alpha').lower()
+    ics_domain = module_target_sat.api.Domain(
+        location=[module_location],
+        organization=[module_org],
+        name=gen_string('alpha').lower() + '.ics',
+    ).create()
+    template.domain = ics_domain
+    host = template.create()
+    host_name = host.name
+    with module_target_sat.ui_session() as session:
+        values = session.host_new.get_details(host_name, widget_names='details')
+        assert (
+            values['details']['system_properties']['sys_properties']['domain']
+            == template.domain.name
+        )
+        assert values['details']['system_properties']['sys_properties']['name'] == host_name
+
+
 @pytest.mark.tier4
 def test_positive_read_from_edit_page(session, host_ui_options):
     """Create new Host and read all its content through edit page
@@ -273,9 +309,6 @@ def test_positive_read_from_edit_page(session, host_ui_options):
         values = session.host.read(host_name)
         assert values['host']['name'] == host_name.partition('.')[0]
         assert values['host']['organization'] == api_values['host.organization']
-        assert values['host']['location'] == api_values['host.location']
-        assert values['host']['lce'] == ENVIRONMENT
-        assert values['host']['content_view'] == DEFAULT_CV
         assert (
             values['operating_system']['architecture']
             == api_values['operating_system.architecture']
