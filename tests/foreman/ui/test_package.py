@@ -16,7 +16,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import RPM_TO_UPLOAD, DataFile
+from robottelo.constants import DEFAULT_LOC, PRDS, REPOS, REPOSET, RPM_TO_UPLOAD, DataFile
 
 
 @pytest.fixture(scope='module')
@@ -66,6 +66,72 @@ def module_rh_repo(module_sca_manifest_org, module_target_sat):
     )
     module_target_sat.api.Repository(id=repo_id).sync()
     return module_target_sat.api.Repository(id=repo_id).read()
+
+
+@pytest.fixture(scope='module')
+def module_rhel8_repo(module_sca_manifest_org, module_target_sat):
+    "Enable and sync rhel8 appstream repository"
+    return module_target_sat.cli_factory.setup_org_for_a_rh_repo(
+        {
+            'product': PRDS['rhel8'],
+            'repository-set': REPOSET['rhel8_aps'],
+            'repository': REPOS['rhel8_aps']['name'],
+            'organization-id': module_sca_manifest_org.id,
+            'releasever': REPOS['rhel8_aps']['releasever'],
+        },
+        force_use_cdn=True,
+    )
+
+
+@pytest.mark.rhel_ver_match('8')
+@pytest.mark.no_containers
+def test_positive_parse_package_name_url(
+    session, module_target_sat, module_sca_manifest_org, module_rhel8_repo, rhel_contenthost
+):
+    """
+    Check the links present on Package details page are correctly parse plus signs on Hosts page
+
+    :id: d73c75ff-f422-439b-b97f-5901e7268a7c
+
+    :steps:
+        1. Go to content > content types > packages
+        2. Search for a package from a module (eg httpd-2.4.37-65.module+el8.10.0+22069+b47f5c72.1.x86_64)
+        3. click on the package link
+        4. click on any links "Installed On", "Applicable To" or "Upgradable For"
+
+    :expectedresults: Satellite search for applicable_rpms=followed by package name, including the plus signs,
+        Search box on Hosts page should not omitted the plus signs
+
+    :customerscenario: true
+
+    :Verifies: SAT-26967
+    """
+
+    activation_key = module_target_sat.cli.ActivationKey.info(
+        {'id': module_rhel8_repo['activationkey-id']}
+    )
+    rhel_contenthost.register(
+        activation_keys=activation_key['name'],
+        target=module_target_sat,
+        org=module_sca_manifest_org,
+        loc=None,
+    )
+    assert rhel_contenthost.subscribed
+
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=module_sca_manifest_org.name)
+        session.location.select(DEFAULT_LOC)
+        pkg_httpd = session.package.search('name = httpd')[0]
+        assert '+' in pkg_httpd['RPM']
+        session.package.click_install_on_link('httpd')
+
+        session.browser.switch_to_window(session.browser.window_handles[1])
+
+        read_searchbox_value = session.host.read_filled_searchbox()
+        assert '+' in read_searchbox_value
+        assert 'installed_package=' + pkg_httpd['RPM'] == read_searchbox_value
+
+        session.browser.close_window()
 
 
 @pytest.mark.tier2
