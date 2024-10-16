@@ -137,8 +137,8 @@ jobs:
         with:
           message: |
             ${{ needs.get-parentPR-details.outputs.prt_comment }}
-          pr_number: ${{ steps.cherrypick.outputs.number  }}
-          GITHUB_TOKEN: ${{ secrets.CHERRYPICK_PAT }}
+          pr-number: ${{ steps.cherrypick.outputs.number  }}
+          github-token: ${{ secrets.CHERRYPICK_PAT }}
 
       - name: is autoMerging enabled for Auto CherryPicked PRs ?
         if: ${{ always() && steps.cherrypick.outcome == 'success' && contains(needs.get-parentPR-details.outputs.labels.*.name, 'AutoMerge_Cherry_Picked') }}
