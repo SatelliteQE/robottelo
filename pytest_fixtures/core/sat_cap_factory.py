@@ -208,18 +208,20 @@ def module_capsule_configured(request, module_capsule_host, module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def module_capsule_configured_mqtt(request, module_capsule_configured):
+def module_capsule_configured_mqtt(request, module_capsule_configured_ansible):
     """Configure the capsule instance with the satellite from settings.server.hostname,
     enable MQTT broker"""
-    module_capsule_configured.set_rex_script_mode_provider('pull-mqtt')
+    module_capsule_configured_ansible.set_rex_script_mode_provider('pull-mqtt')
     # lower the mqtt_resend_interval interval
-    module_capsule_configured.set_mqtt_resend_interval('30')
-    result = module_capsule_configured.execute('systemctl status mosquitto')
+    module_capsule_configured_ansible.set_mqtt_resend_interval('30')
+    result = module_capsule_configured_ansible.execute('systemctl status mosquitto')
     assert result.status == 0, 'MQTT broker is not running'
-    result = module_capsule_configured.execute('firewall-cmd --permanent --add-port="1883/tcp"')
+    result = module_capsule_configured_ansible.execute(
+        'firewall-cmd --permanent --add-port="1883/tcp"'
+    )
     assert result.status == 0, 'Failed to open mqtt port on capsule'
-    module_capsule_configured.execute('firewall-cmd --reload')
-    yield module_capsule_configured
+    module_capsule_configured_ansible.execute('firewall-cmd --reload')
+    yield module_capsule_configured_ansible
     if request.config.option.n_minus:
         raise TypeError('The teardown is missed for MQTT configuration undo for nminus testing')
 
