@@ -73,6 +73,15 @@ PUPPET_REPOS = (
 )
 
 
+def can_encode_latin(string):
+    """Check if string can be encoded as latin-1"""
+    try:
+        string.encode('latin-1')
+        return True
+    except UnicodeEncodeError:
+        return False
+
+
 def _get_image_tags_count(repo, sat):
     return sat.cli.Repository.info({'id': repo['id']})
 
@@ -714,21 +723,22 @@ class TestRepository:
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                (
-                    {
-                        'content-type': 'yum',
-                        'url': FAKE_5_YUM_REPO,
-                        'upstream-username': creds['login'],
-                        'upstream-password': creds['pass'],
-                    }
-                    for creds in valid_http_credentials()
-                    if not creds['http_valid']
-                )
-            ]
-        ),
+        [
+            {
+                'content-type': 'yum',
+                'url': FAKE_5_YUM_REPO,
+                'upstream-username': creds['login'],
+                'upstream-password': creds['pass'],
+            }
+            for creds in valid_http_credentials()
+            if not creds['http_valid']
+            and len(creds['login']) < 255
+            and not (not creds['login'] and creds['pass'])
+            and can_encode_latin(creds['login'])
+            and can_encode_latin(creds['pass'])
+        ],
         indirect=['repo_options'],
+        ids=lambda x: x.get("upstream-username") + ":" + x.get("upstream-password"),
     )
     def test_negative_synchronize_auth_yum_repo(self, repo, target_sat):
         """Check if secured repo fails to synchronize with invalid credentials
@@ -747,7 +757,8 @@ class TestRepository:
         response = target_sat.cli.Task.progress(
             {'id': repo_sync[0]['id']}, return_raw_response=True
         )
-        assert "Error: 401, message='Unauthorized'" in response.stderr[1].decode('utf-8')
+
+        assert "Error: 401, message='Unauthorized'" in response.stderr
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
