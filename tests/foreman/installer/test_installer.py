@@ -1350,12 +1350,18 @@ def common_sat_install_assertions(satellite):
 def install_satellite(satellite, installer_args):
     # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
     satellite.register_to_cdn()
-    satellite.download_repofile(
-        product='satellite',
-        release=settings.server.version.release,
-        snap=settings.server.version.snap,
-    )
-    satellite.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
+    if settings.server.version.source == 'nightly':
+        satellite.create_custom_repos(
+            satellite_repo=settings.repos.satellite_repo,
+            satmaintenance_repo=settings.repos.satmaintenance_repo,
+        )
+    else:
+        satellite.download_repofile(
+            product='satellite',
+            release=settings.server.version.release,
+            snap=settings.server.version.snap,
+        )
+        satellite.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
     # Configure Satellite firewall to open communication
     satellite.execute(
         'firewall-cmd --permanent --add-service RH-Satellite-6 && firewall-cmd --reload'
