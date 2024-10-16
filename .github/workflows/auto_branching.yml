@@ -163,8 +163,8 @@ jobs:
         with:
           message: |
             trigger: test-robottelo
-          pr_number: ${{ steps.create_pr.outputs.pr_number }}
-          GITHUB_TOKEN: ${{ secrets._REPO_ADMIN_TOKEN }}
+          pr-number: ${{ steps.create_pr.outputs.pr_number }}
+          github-token: ${{ secrets._REPO_ADMIN_TOKEN }}
 
       - name: add the no-cherrypick label
         uses: actions/github-script@v7
@@ -299,8 +299,8 @@ jobs:
         with:
           message: |
             trigger: test-robottelo
-          pr_number: ${{ steps.create_pr.outputs.pr_number }}
-          GITHUB_TOKEN: ${{ secrets._REPO_ADMIN_TOKEN }}
+          pr-number: ${{ steps.create_pr.outputs.pr_number }}
+          github-token: ${{ secrets._REPO_ADMIN_TOKEN }}
 
       - name: add the no-cherrypick label
         uses: actions/github-script@v7
