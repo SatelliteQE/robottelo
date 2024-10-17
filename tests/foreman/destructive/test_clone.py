@@ -12,6 +12,7 @@
 
 """
 
+from fauxfactory import gen_string
 import pytest
 
 from robottelo import constants
@@ -49,7 +50,7 @@ def test_positive_clone_backup(
 
     :parametrized: yes
 
-    :Verifies: SAT-10789, SAT-15437, SAT-13950
+    :Verifies: SAT-10789, SAT-15437, SAT-13950, SAT-27907
 
     :customerscenario: true
     """
@@ -57,6 +58,15 @@ def test_positive_clone_backup(
     sat_version = 'stream' if target_sat.is_stream else target_sat.version
 
     pulp_artifact_len = len(target_sat.execute('ls /var/lib/pulp/media/artifact').stdout)
+
+    # occupy source user IDs by random users on target server (so clone has to change ownership and permissions)
+    sat_src_users = ["foreman", "pulp"]
+    sat_src_users_ids = []
+    for user in sat_src_users:
+        id = target_sat.execute(f'id -u {user}').stdout.strip()
+        if id:
+            sat_src_users_ids.append(id)
+            sat_ready_rhel.execute(f"useradd {gen_string('alpha')} -u {id}")
 
     # SATELLITE PART - SOURCE SERVER
     # Enabling and starting services
@@ -82,6 +92,17 @@ def test_positive_clone_backup(
     )
     assert target_sat.cli.Service.stop().status == 0
     assert target_sat.cli.Service.disable().status == 0
+
+    # If --skip-pulp-data make sure you can rsync /var/lib/pulp over per BZ#2013776
+    if skip_pulp:
+        # Copying satellite pulp data to target RHEL
+        assert (
+            target_sat.execute(
+                f'sshpass -p "{SSH_PASS}" rsync -e "ssh -o StrictHostKeyChecking=no" --archive --partial --progress --compress '
+                f'/var/lib/pulp/ root@{sat_ready_rhel.hostname}:/var/lib/pulp/'
+            ).status
+            == 0
+        )
 
     # RHEL PART - TARGET SERVER
     assert sat_ready_rhel.execute('ls /backup/config_files.tar.gz').status == 0
@@ -114,20 +135,15 @@ def test_positive_clone_backup(
     cloned_sat = Satellite(sat_ready_rhel.hostname)
     assert cloned_sat.cli.Health.check().status == 0
 
-    # If --skip-pulp-data make sure you can rsync /var/lib/pulp over per BZ#2013776
-    if skip_pulp:
-        # Copying satellite pulp data to target RHEL
-        assert (
-            target_sat.execute(
-                f'sshpass -p "{SSH_PASS}" rsync -e "ssh -o StrictHostKeyChecking=no" --archive --partial --progress --compress '
-                f'/var/lib/pulp root@{sat_ready_rhel.hostname}:/var/lib/'
-            ).status
-            == 0
-        )
-
     # Make sure all of the pulp data that was on the original Satellite is on the clone
     assert (
         len(sat_ready_rhel.execute('ls /var/lib/pulp/media/artifact').stdout) == pulp_artifact_len
+    )
+
+    # verify if owherships of pulp directory was changed (owner's user id has changed)
+    assert (
+        sat_ready_rhel.execute('stat -c "%u" /var/lib/pulp/').stdout.strip()
+        not in sat_src_users_ids
     )
 
 
