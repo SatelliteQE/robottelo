@@ -54,6 +54,8 @@ def test_positive_end_to_end(session, module_target_sat):
 
     :expectedresults: All expected CRUD actions finished successfully
 
+    :BlockedBy: SAT-27703
+
     :CaseImportance: Critical
     """
     name = gen_string('alpha')
@@ -172,6 +174,10 @@ def test_positive_search_scoped(session):
     :expectedresults: Proper organization is found
 
     :BZ: 1259374
+
+    :BlockedBy: SAT-27703
+
+    :Verifies: SAT-27703
 
     :CaseImportance: Medium
     """

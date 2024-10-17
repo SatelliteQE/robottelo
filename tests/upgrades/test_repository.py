@@ -152,8 +152,16 @@ class TestScenarioCustomRepoCheck:
                 query={'search': f'name={product.name}'}
             )[0]
             ak.add_subscriptions(data={'subscription_id': subscription.id})
+        # Override/enable all AK repos (disabled by default since 6.15)
+        c_labels = [
+            i['label'] for i in ak.product_content(data={'content_access_mode_all': '1'})['results']
+        ]
+        ak.content_override(
+            data={
+                'content_overrides': [{'content_label': label, 'value': '1'} for label in c_labels]
+            }
+        )
         sat_upgrade_chost.register(org, None, ak.name, target_sat)
-        sat_upgrade_chost.execute('subscription-manager repos --enable=*;yum clean all')
         result = sat_upgrade_chost.execute(f'yum install -y {FAKE_0_CUSTOM_PACKAGE_NAME}')
         assert result.status == 0
 

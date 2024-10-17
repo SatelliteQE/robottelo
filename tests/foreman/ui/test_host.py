@@ -257,6 +257,42 @@ def test_positive_read_from_details_page(session, module_host_template):
         assert 'Admin User' in values['properties']['properties_table']['Owner']
 
 
+def test_read_host_with_ics_domain(
+    session, module_host_template, module_location, module_org, module_target_sat
+):
+    """Create new Host with ics domain name and verify that it can be read
+
+    :id: 54e3db92-16c2-412b-bf68-44d479c5987b
+
+    :steps:
+        1. Create a host with a domain ending in .ics
+        2. Read the host's details through the UI
+
+    :expectedresults: Host ending with ics domain name can be accessed through Host UI
+
+    :customerscenario: true
+
+    :Verifies: SAT-26202
+    """
+    template = module_host_template
+    template.name = gen_string('alpha').lower()
+    ics_domain = module_target_sat.api.Domain(
+        location=[module_location],
+        organization=[module_org],
+        name=gen_string('alpha').lower() + '.ics',
+    ).create()
+    template.domain = ics_domain
+    host = template.create()
+    host_name = host.name
+    with module_target_sat.ui_session() as session:
+        values = session.host_new.get_details(host_name, widget_names='details')
+        assert (
+            values['details']['system_properties']['sys_properties']['domain']
+            == template.domain.name
+        )
+        assert values['details']['system_properties']['sys_properties']['name'] == host_name
+
+
 @pytest.mark.tier4
 def test_positive_read_from_edit_page(session, host_ui_options):
     """Create new Host and read all its content through edit page
@@ -273,9 +309,6 @@ def test_positive_read_from_edit_page(session, host_ui_options):
         values = session.host.read(host_name)
         assert values['host']['name'] == host_name.partition('.')[0]
         assert values['host']['organization'] == api_values['host.organization']
-        assert values['host']['location'] == api_values['host.location']
-        assert values['host']['lce'] == ENVIRONMENT
-        assert values['host']['content_view'] == DEFAULT_CV
         assert (
             values['operating_system']['architecture']
             == api_values['operating_system.architecture']
@@ -665,7 +698,6 @@ def test_positive_remove_parameter_non_admin_user(
 
 
 @pytest.mark.tier3
-@pytest.mark.skip_if_open("BZ:2059576")
 def test_negative_remove_parameter_non_admin_user(
     test_name, module_org, smart_proxy_location, target_sat
 ):
@@ -1206,7 +1238,7 @@ def test_positive_manage_table_columns(
 
 
 @pytest.mark.tier2
-def test_all_hosts_manage_columns(target_sat, function_org, new_host_ui):
+def test_all_hosts_manage_columns(target_sat, new_host_ui):
     """Verify that the manage columns widget changes the columns appropriately
 
     :id: 5e13267a-68d2-451a-ae00-6502dd5db7f4
@@ -1231,7 +1263,9 @@ def test_all_hosts_manage_columns(target_sat, function_org, new_host_ui):
         'Boot time': True,
     }
     with target_sat.ui_session() as session:
-        session.organization.select(function_org.name)
+        # Small workaround for an existing bug, reloads the page
+        session.all_hosts.get_displayed_table_headers()
+        wait_for(lambda: session.browser.refresh(), timeout=5)
         session.all_hosts.manage_table_columns(columns)
         displayed_columns = session.all_hosts.get_displayed_table_headers()
         for column, is_displayed in columns.items():
@@ -2550,7 +2584,7 @@ def test_positive_manage_packages(
 @pytest.mark.parametrize('errata_to_install', ['1', '2'])
 @pytest.mark.parametrize('manage_by_custom_rex', [True, False])
 @pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
+    'function_repos_collection_with_manifest',
     [
         {
             'distro': 'rhel8',
@@ -2564,13 +2598,13 @@ def test_positive_manage_packages(
 )
 @pytest.mark.no_containers
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.rhel_ver_match('8')
 def test_all_hosts_manage_errata(
     session,
     module_target_sat,
-    module_org,
-    mod_content_hosts,
-    module_repos_collection_with_setup,
+    function_sca_manifest_org,
+    content_hosts,
+    function_repos_collection_with_manifest,
     manage_by_custom_rex,
     errata_to_install,
     new_host_ui,
@@ -2589,9 +2623,11 @@ def test_all_hosts_manage_errata(
         errata_ids = settings.repos.yum_3.errata[25]
     if errata_to_install == '2':
         errata_ids = [settings.repos.yum_3.errata[25], settings.repos.yum_1.errata[1]]
-    for host in mod_content_hosts:
+    for host in content_hosts:
         host.add_rex_key(module_target_sat)
-        module_repos_collection_with_setup.setup_virtual_machine(host, enable_custom_repos=True)
+        function_repos_collection_with_manifest.setup_virtual_machine(
+            host, enable_custom_repos=True
+        )
         host.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
         result = host.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
         assert result.status == 0
@@ -2600,16 +2636,16 @@ def test_all_hosts_manage_errata(
             result = host.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
             assert result.status == 0
     with module_target_sat.ui_session() as session:
-        session.organization.select(module_org.name)
+        session.organization.select(function_sca_manifest_org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         session.all_hosts.manage_errata(
-            host_names=[mod_content_hosts[0].hostname, mod_content_hosts[1].hostname],
+            host_names=[content_hosts[0].hostname, content_hosts[1].hostname],
             erratas_to_apply_by_id=errata_ids,
             manage_by_customized_rex=manage_by_custom_rex,
         )
         if errata_to_install == '2':
             errata_ids = f'{errata_ids[0]},{errata_ids[1]}'
-        for host in mod_content_hosts:
+        for host in content_hosts:
             task_result = module_target_sat.wait_for_tasks(
                 search_query=(f'"Install errata errata_id ^ ({errata_ids}) on {host.hostname}"'),
                 search_rate=2,

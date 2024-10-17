@@ -314,10 +314,13 @@ def sat_ready_rhel(request):
 
 
 @pytest.fixture(scope='module')
-def module_sat_ready_rhels(request):
+def module_sat_ready_rhels(request, module_target_sat):
     deploy_args = get_deploy_args(request)
-    with Broker(**deploy_args, host_class=Satellite, _count=3) as hosts:
-        yield hosts
+    if 'build_sanity' not in request.config.option.markexpr:
+        with Broker(**deploy_args, host_class=Satellite, _count=3) as hosts:
+            yield hosts
+    else:
+        yield [module_target_sat]
 
 
 @pytest.fixture
@@ -359,12 +362,19 @@ def installer_satellite(request):
         for repo in sat.SATELLITE_CDN_REPOS.values():
             sat.enable_repo(repo, force=True)
     else:
-        # get ohsnap repofile
-        sat.download_repofile(
-            product='satellite',
-            release=settings.server.version.release,
-            snap=settings.server.version.snap,
-        )
+        if settings.server.version.source == 'nightly':
+            sat.create_custom_repos(
+                satellite_repo=settings.repos.satellite_repo,
+                satmaintenance_repo=settings.repos.satmaintenance_repo,
+            )
+        else:
+            # get ohsnap repofile
+            sat.download_repofile(
+                product='satellite',
+                release=settings.server.version.release,
+                snap=settings.server.version.snap,
+            )
+
     if settings.robottelo.rhel_source == "internal":
         # disable rhel repos from cdn
         sat.disable_repo("rhel-*")

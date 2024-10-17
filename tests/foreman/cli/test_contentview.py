@@ -1295,9 +1295,10 @@ class TestContentView:
         environment = module_target_sat.cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id}
         )
-        print("Hello, the org ID is currently", module_org.id)
         result = module_target_sat.cli.ContentView.list({'organization-id': module_org.id})
-        content_view = random.choice([cv for cv in result if cv['name'] == constants.DEFAULT_CV])
+        content_view = random.choice(
+            [cv for cv in result if cv.get('name') == constants.DEFAULT_CV]
+        )
         cvv = module_target_sat.cli.ContentView.version_list(
             {'content-view-id': content_view['content-view-id']}
         )[0]
@@ -1618,7 +1619,7 @@ class TestContentView:
             {'id': new_cv['id'], 'repository-id': module_rhel_content['id']}
         )
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
-        assert len(new_cv['yum-repositories']) == 0
+        assert 'yum-repositories' not in new_cv
         # Publish a new version of CV once more
         module_target_sat.cli.ContentView.publish({'id': new_cv['id']})
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
@@ -3113,10 +3114,7 @@ class TestContentView:
         result = module_target_sat.cli.ContentView.version_incremental_update(
             {'content-view-version-id': cvv['id'], 'errata-ids': settings.repos.yum_1.errata[1]}
         )
-        # Inc update output format is pretty weird - list of dicts where each
-        # key's value is actual line from stdout
-        result = [line.strip() for line_dict in result for line in line_dict.values()]
-        assert FAKE_2_CUSTOM_PACKAGE not in [line.strip() for line in result]
+        assert FAKE_2_CUSTOM_PACKAGE not in result
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         assert '1.1' in [cvv_['version'] for cvv_ in content_view['versions']]
 
@@ -3429,7 +3427,6 @@ class TestContentViewFileRepo:
         assert int(new_repo['content-counts']['files']) > 0
         return new_repo
 
-    @pytest.mark.skip_if_open('BZ:1610309')
     @pytest.mark.tier3
     def test_positive_arbitrary_file_repo_addition(
         self, module_org, module_product, module_target_sat
@@ -3471,7 +3468,6 @@ class TestContentViewFileRepo:
         cv = module_target_sat.cli.ContentView.info({'id': cv['id']})
         assert cv['file-repositories'][0]['name'] == repo['name']
 
-    @pytest.mark.skip_if_open('BZ:1908465')
     @pytest.mark.tier3
     def test_positive_arbitrary_file_repo_removal(
         self, module_org, module_product, module_target_sat
@@ -3503,10 +3499,13 @@ class TestContentViewFileRepo:
         module_target_sat.cli.ContentView.add_repository(
             {'id': cv['id'], 'repository-id': repo['id'], 'organization-id': module_org.id}
         )
+        cv_info = module_target_sat.cli.ContentView.info({'id': cv['id']})
+        assert cv_info['file-repositories'][0]['id'] == repo['id'], 'File repo should be listed'
         module_target_sat.cli.ContentView.remove_repository(
             {'id': cv['id'], 'repository-id': repo['id']}
         )
-        assert cv['file-repositories'][0]['id'] != repo['id']
+        cv_info = module_target_sat.cli.ContentView.info({'id': cv['id']})
+        assert 'file-repositories' not in cv_info, 'No file repo should be listed'
 
     @pytest.mark.tier3
     def test_positive_arbitrary_file_repo_promotion(
@@ -3612,7 +3611,7 @@ class TestContentViewFileRepo:
         result = module_target_sat.cli.ContentView.version_incremental_update(
             {'content-view-version-id': cvv['id'], 'errata-ids': settings.repos.yum_1.errata[0]}
         )
-        assert result[2]
+        assert f'Content View: {content_view["name"]} version 1.1' in result
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         assert '1.1' in [cvv_['version'] for cvv_ in content_view['versions']]
 

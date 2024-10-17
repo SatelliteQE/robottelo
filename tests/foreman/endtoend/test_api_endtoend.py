@@ -30,7 +30,6 @@ from robottelo.config import (
     user_nailgun_config,
 )
 from robottelo.constants.repos import CUSTOM_RPM_REPO
-from robottelo.utils.issue_handlers import is_open
 
 API_PATHS = {
     'activation_keys': (
@@ -157,6 +156,7 @@ API_PATHS = {
         '/katello/api/capsules/:id/content/sync',
         '/katello/api/capsules/:id/content/sync',
         '/katello/api/capsules/:id/content/reclaim_space',
+        '/katello/api/capsules/:id/content/verify_checksum',
     ),
     'capsules': ('/katello/api/capsules', '/katello/api/capsules/:id'),
     'common_parameters': (
@@ -296,6 +296,7 @@ API_PATHS = {
         '/katello/api/content_view_versions/:id/promote',
         '/katello/api/content_view_versions/:id/republish_repositories',
         '/katello/api/content_view_versions/incremental_update',
+        '/katello/api/content_view_versions/:id/verify_checksum',
     ),
     'dashboard': ('/api/dashboard',),
     'debs': ('/katello/api/debs/:id', '/katello/api/debs/compare'),
@@ -405,6 +406,7 @@ API_PATHS = {
         '/api/hosts/:host_id/subscriptions',
         '/api/hosts/:host_id/subscriptions',
         '/api/hosts/:host_id/subscriptions/add_subscriptions',
+        '/api/hosts/:host_id/subscriptions/remove_subscriptions',
         '/api/hosts/:host_id/subscriptions/auto_attach',
         '/api/hosts/:host_id/subscriptions/available_release_versions',
         '/api/hosts/:host_id/subscriptions/enabled_repositories',
@@ -461,6 +463,8 @@ API_PATHS = {
     ),
     'hosts_bulk_actions': (
         '/api/hosts/bulk',
+        '/api/hosts/bulk/build',
+        '/api/hosts/bulk/reassign_hostgroups',
         '/api/hosts/bulk/add_host_collections',
         '/api/hosts/bulk/remove_host_collections',
         '/api/hosts/bulk/add_subscriptions',
@@ -611,7 +615,11 @@ API_PATHS = {
         '/katello/api/package_groups/:id',
         '/katello/api/package_groups/compare',
     ),
-    'packages': ('/katello/api/packages/:id', '/katello/api/packages/compare'),
+    'packages': (
+        '/katello/api/packages/:id',
+        '/katello/api/packages/compare',
+        '/katello/api/packages/thindex',
+    ),
     'parameters': (
         '/api/hosts/:host_id/parameters',
         '/api/hosts/:host_id/parameters',
@@ -624,6 +632,7 @@ API_PATHS = {
         '/api/permissions',
         '/api/permissions/:id',
         '/api/permissions/resource_types',
+        '/api/permissions/current_permissions',
     ),
     'personal_access_tokens': (
         '/api/users/:user_id/personal_access_tokens',
@@ -703,12 +712,7 @@ API_PATHS = {
         '/api/api/hosts/:id/available_remote_execution_features',
     ),
     'scap_content_profiles': ('/api/compliance/scap_content_profiles',),
-    'simple_content_access': (
-        '/katello/api/organizations/:organization_id/simple_content_access/eligible',
-        '/katello/api/organizations/:organization_id/simple_content_access/enable',
-        '/katello/api/organizations/:organization_id/simple_content_access/disable',
-        '/katello/api/organizations/:organization_id/simple_content_access/status',
-    ),
+    'simple_content_access': (),
     'registration': ('/api/register', '/api/register'),
     'registration_commands': ('/api/registration_commands',),
     'report_templates': (
@@ -903,10 +907,6 @@ API_PATHS = {
 def filtered_api_paths():
     """Filter the API_PATHS dict based on BZs that impact various endpoints"""
     missing = defaultdict(list)
-    if is_open('BZ:1887932'):
-        missing['subscriptions'].append(
-            '/katello/api/activation_keys/:activation_key_id/subscriptions'
-        )
     filtered_paths = API_PATHS.copy()
     for endpoint, missing_paths in missing.items():
         filtered_paths[endpoint] = tuple(

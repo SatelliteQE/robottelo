@@ -33,7 +33,7 @@ def rhcloud_registered_hosts(
 ):
     """Fixture that registers content hosts to Satellite and Insights."""
     for vm in mod_content_hosts:
-        vm.configure_rhai_client(
+        vm.configure_insights_client(
             satellite=module_target_sat,
             activation_key=rhcloud_activation_key,
             org=rhcloud_manifest_org,
@@ -51,7 +51,7 @@ def rhel_insights_vm(
     rhel_contenthost.configure_rex(
         satellite=module_target_sat, org=rhcloud_manifest_org, register=False
     )
-    rhel_contenthost.configure_rhai_client(
+    rhel_contenthost.configure_insights_client(
         satellite=module_target_sat,
         activation_key=rhcloud_activation_key,
         org=rhcloud_manifest_org,

@@ -21,10 +21,16 @@ from robottelo.utils.issue_handlers import is_open
 pytestmark = [pytest.mark.tier1]
 
 
-@pytest.mark.skip_if_open('BZ:2161294')
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
-    'fact', ['uptime', 'os::family', 'uptime_seconds', 'memorysize', 'ipaddress']
+    'fact',
+    [
+        'system_uptime',
+        'os::family',
+        'system_uptime::seconds',
+        'memory::system::total',
+        'networking::ip',
+    ],
 )
 def test_positive_list_by_name(fact, module_target_sat):
     """Test Fact List

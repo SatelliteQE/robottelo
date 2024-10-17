@@ -587,7 +587,7 @@ class TestDockerContentView:
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         module_target_sat.cli.ContentView.version_promote(
             {
-                'id': content_view['versions'][-1]['id'],
+                'id': sorted(cvv['id'] for cvv in content_view['versions'])[-1],
                 'to-lifecycle-environment-id': lce['id'],
             }
         )
@@ -668,7 +668,7 @@ class TestDockerContentView:
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         module_target_sat.cli.ContentView.version_promote(
             {
-                'id': content_view['versions'][-1]['id'],
+                'id': sorted(cvv['id'] for cvv in content_view['versions'])[-1],
                 'to-lifecycle-environment-id': lce['id'],
             }
         )

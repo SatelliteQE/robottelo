@@ -334,7 +334,7 @@ def test_positive_vmware_custom_profile_end_to_end(
     cpu_hot_add = True
     cdrom_drive = True
     disk_size = '10 GB'
-    network = 'VLAN 1001'  # hardcoding network here as this test won't be doing actual provisioning
+    network = 'VLAN 400'  # hardcoding network here as this test won't be doing actual provisioning
     storage_data = {
         'storage': {
             'controller': VMWARE_CONSTANTS['scsicontroller'],

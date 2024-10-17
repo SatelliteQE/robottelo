@@ -622,6 +622,8 @@ class ContentHost(Host, ContentHostMixins):
         force=False,
         insecure=True,
         hostgroup=None,
+        auth_username=None,
+        auth_password=None,
     ):
         """Registers content host to the Satellite or Capsule server
         using a global registration template.
@@ -642,6 +644,8 @@ class ContentHost(Host, ContentHostMixins):
         :param force: Register the content host even if it's already registered.
         :param insecure: Don't verify server authenticity.
         :param hostgroup: hostgroup to register with
+        :param auth_username: username required if non-admin user
+        :param auth_password: password required if non-admin user
         :return: SSHCommandResult instance filled with the result of the registration
         """
         options = {
@@ -692,7 +696,20 @@ class ContentHost(Host, ContentHostMixins):
             options['force'] = str(force).lower()
 
         self._satellite = target.satellite
-        cmd = target.satellite.cli.HostRegistration.generate_command(options)
+        if auth_username and auth_password:
+            user = target.satellite.cli.User.list({'search': f'login={auth_username}'})
+            if user:
+                register_role = target.satellite.cli.Role.info({'name': 'Register hosts'})
+                target.satellite.cli.User.add_role(
+                    {'id': user[0]['id'], 'role-id': register_role['id']}
+                )
+                cmd = target.satellite.cli.HostRegistration.with_user(
+                    auth_username, auth_password
+                ).generate_command(options)
+            else:
+                raise CLIFactoryError(f'User {auth_username} doesn\'t exist')
+        else:
+            cmd = target.satellite.cli.HostRegistration.generate_command(options)
         return self.execute(cmd.strip('\n'))
 
     def api_register(self, target, **kwargs):
@@ -835,6 +852,16 @@ class ContentHost(Host, ContentHostMixins):
             cmd += f' --server.proxy_port={port}'
         self.execute(cmd)
 
+    def enable_dnf_proxy(self, hostname, scheme=None, port=None):
+        """Configures proxy for dnf"""
+        if not scheme:
+            scheme = 'http'
+        cmd = f"echo -e 'proxy = {scheme}://{hostname}"
+        if port:
+            cmd += f':{port}'
+        cmd += "' >> /etc/dnf/dnf.conf"
+        self.execute(cmd)
+
     def add_authorized_key(self, pub_key):
         """Inject a public key into the authorized keys file
 
@@ -910,7 +937,9 @@ class ContentHost(Host, ContentHostMixins):
                 f'Failed to put hostname in ssh known_hosts files:\n{result.stderr}'
             )
 
-    def configure_puppet(self, proxy_hostname=None, run_puppet_agent=True):
+    def configure_puppet(
+        self, proxy_hostname=None, run_puppet_agent=True, install_puppet_agent7=False
+    ):
         """Configures puppet on the virtual machine/Host.
         :param proxy_hostname: external capsule hostname
         :return: None.
@@ -919,12 +948,21 @@ class ContentHost(Host, ContentHostMixins):
         if proxy_hostname is None:
             proxy_hostname = settings.server.hostname
 
-        self.create_custom_repos(
-            sat_client=settings.repos['SATCLIENT_REPO'][f'RHEL{self.os_version.major}']
-        )
+        if install_puppet_agent7:
+            self.create_custom_repos(
+                sat_client=settings.repos['SATCLIENT_REPO'][f'RHEL{self.os_version.major}']
+            )
+        else:
+            self.create_custom_repos(
+                sat_client=settings.repos['SATCLIENT2_REPO'][f'RHEL{self.os_version.major}']
+            )
+
         result = self.execute('yum install puppet-agent -y')
         if result.status != 0:
             raise ContentHostError('Failed to install the puppet-agent rpm')
+
+        rpm_version = self.execute('rpm -q --qf "%{VERSION}" puppet-agent').stdout
+        assert '7' in rpm_version if install_puppet_agent7 else '7' not in rpm_version
 
         cert_name = self.hostname
         puppet_conf = (
@@ -1028,7 +1066,7 @@ class ContentHost(Host, ContentHostMixins):
             host.host_parameters_attributes = host_parameters
             host.update(['host_parameters_attributes'])
 
-    def configure_rhai_client(
+    def configure_insights_client(
         self, satellite, activation_key, org, rhel_distro, register_insights=True, register=True
     ):
         """Configures a Red Hat Access Insights service on the system by
@@ -1042,18 +1080,7 @@ class ContentHost(Host, ContentHostMixins):
         :param register: Whether to register client to insights
         :return: None
         """
-        if register:
-            if not activation_key:
-                activation_key = satellite.api.ActivationKey(
-                    content_view=org.default_content_view.id,
-                    environment=org.library.id,
-                    organization=org,
-                ).create()
-            self.register(
-                org, None, activation_key.name, satellite, setup_insights=register_insights
-            )
-
-        # Red Hat Insights requires RHEL 6/7/8 repo and it is not
+        # Red Hat Insights requires RHEL 6/7/8/9 repo and it is not
         # possible to sync the repo during the tests, Adding repo file.
         distro_repo_map = {
             'rhel6': settings.repos.rhel6_os,
@@ -1074,6 +1101,17 @@ class ContentHost(Host, ContentHostMixins):
         # Ensure insights-client rpm is installed
         if self.execute('yum install -y insights-client').status != 0:
             raise ContentHostError('Unable to install insights-client rpm')
+        # attempt to register host
+        if register:
+            if not activation_key:
+                activation_key = satellite.api.ActivationKey(
+                    content_view=org.default_content_view.id,
+                    environment=org.library.id,
+                    organization=org,
+                ).create()
+            self.register(
+                org, None, activation_key.name, satellite, setup_insights=register_insights
+            )
 
     def unregister_insights(self):
         """Unregister insights client.
@@ -1690,10 +1728,6 @@ class Capsule(ContentHost, CapsuleMixins):
         Note: Make sure required repos are enabled before using this.
         """
         if self.os_version.major == 8:
-            if settings.server.is_ipv6:
-                self.execute(
-                    f"echo -e 'proxy={settings.server.http_proxy_ipv6_url}' >> /etc/dnf/dnf.conf"
-                )
             assert (
                 self.execute(
                     f'dnf -y module enable {self.product_rpm_name}:el{self.os_version.major}'
@@ -2175,9 +2209,14 @@ class Satellite(Capsule, SatelliteMixins):
         :type ad_data: Callable
         """
         ad_data = ad_data()
+        version_dependent = (
+            'ipa-python-compat'
+            if int(self.satellite.version.split('.')[1]) < 13
+            else 'oddjob oddjob-mkhomedir'
+        )
         packages = (
-            'sssd adcli realmd ipa-python-compat krb5-workstation '
-            'samba-common-tools gssproxy nfs-utils ipa-client'
+            f'sssd adcli realmd krb5-workstation samba-common-tools '
+            f'gssproxy nfs-utils ipa-client {version_dependent}'
         )
         realm = ad_data.realm
         workgroup = ad_data.workgroup
@@ -2266,16 +2305,11 @@ class Satellite(Capsule, SatelliteMixins):
         assert self.execute('systemctl restart gssproxy.service').status == 0
         assert self.execute('systemctl enable gssproxy.service').status == 0
 
+        assert self.execute("mkdir -p /etc/systemd/system/httpd.service.d/").status == 0
+        assert self.execute(
+            "echo -e '[Service]\\nEnvironment=GSS_USE_PROXY=1' > /etc/systemd/system/httpd.service.d/gssproxy.conf"
+        )
         # restart the deamon and httpd services
-        httpd_service_content = (
-            '.include /lib/systemd/system/httpd.service\n[Service]' '\nEnvironment=GSS_USE_PROXY=1'
-        )
-        assert (
-            self.execute(
-                f'echo "{httpd_service_content}" > /etc/systemd/system/httpd.service'
-            ).status
-            == 0
-        )
         assert (
             self.execute('systemctl daemon-reload && systemctl restart httpd.service').status == 0
         )
@@ -2326,6 +2360,7 @@ class Satellite(Capsule, SatelliteMixins):
         if enable_proxy and settings.server.is_ipv6:
             url = urlparse(settings.server.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)
+            self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
         return super().register_contenthost(
             org=org, lce=lce, username=username, password=password, enable_proxy=enable_proxy
         )

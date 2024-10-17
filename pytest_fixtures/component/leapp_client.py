@@ -111,20 +111,20 @@ def leapp_repos(
         release_version = RHEL_REPOS[rh_repo_key]['releasever']
         if release_version in str(source) or release_version in target:
             prod = 'rhel' if 'rhel7' in rh_repo_key else rh_repo_key.split('_')[0]
+            repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+                basearch=default_architecture.name,
+                org_id=module_sca_manifest_org.id,
+                product=PRDS[prod],
+                repo=RHEL_REPOS[rh_repo_key]['name'],
+                reposet=RHEL_REPOS[rh_repo_key]['reposet'],
+                releasever=release_version,
+            )
+            rh_repo = module_target_sat.api.Repository(id=repo_id).read()
+            all_repos.append(rh_repo)
             if module_stash[synced_repos].get(rh_repo_key, None):
                 logger.info('Repo %s already synced, not syncing it', rh_repo_key)
             else:
                 module_stash[synced_repos][rh_repo_key] = True
-                repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
-                    basearch=default_architecture.name,
-                    org_id=module_sca_manifest_org.id,
-                    product=PRDS[prod],
-                    repo=RHEL_REPOS[rh_repo_key]['name'],
-                    reposet=RHEL_REPOS[rh_repo_key]['reposet'],
-                    releasever=release_version,
-                )
-                rh_repo = module_target_sat.api.Repository(id=repo_id).read()
-                all_repos.append(rh_repo)
                 rh_repo.sync(timeout=1800)
     return all_repos
 
@@ -136,6 +136,7 @@ def verify_target_repo_on_satellite(
     module_sca_manifest_org,
     module_leapp_lce,
     upgrade_path,
+    leapp_repos,
 ):
     """Verify target rhel version repositories have been added in correct CV, LCE on Satellite"""
     target_rhel_major_ver = upgrade_path['target_version'].split('.')[0]
@@ -166,6 +167,7 @@ def custom_leapp_host(upgrade_path, module_target_sat, module_sca_manifest_org, 
         host_class=ContentHost,
         deploy_rhel_version=upgrade_path['source_version'],
         deploy_flavor=settings.flavors.default,
+        deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
     ) as chost:
         result = chost.register(
             module_sca_manifest_org, None, function_leapp_ak.name, module_target_sat

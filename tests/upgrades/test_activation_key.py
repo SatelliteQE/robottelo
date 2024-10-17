@@ -63,6 +63,8 @@ class TestActivationKey:
 
         :expectedresults: Activation key should be created successfully and it's subscription id
             should be same with custom repos product id.
+
+        :BlockedBy: SAT-28048
         """
         ak = activation_key_setup['ak']
         org_subscriptions = target_sat.api.Subscription(
@@ -91,6 +93,8 @@ class TestActivationKey:
 
         :expectedresults: Activation key's entities should be same after upgrade and activation
             key update and delete should work.
+
+        :BlockedBy: SAT-28048
         """
         pre_test_name = dependent_scenario_name
         org = target_sat.api.Organization().search(query={'search': f'name={pre_test_name}_org'})

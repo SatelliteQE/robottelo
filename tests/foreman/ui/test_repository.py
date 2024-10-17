@@ -491,7 +491,6 @@ def test_positive_end_to_end_custom_module_streams_crud(session, module_org, mod
         assert not session.repository.search(module_prod.name, repo_name)
 
 
-@pytest.mark.skip_if_open("BZ:1743271")
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_upstream_with_credentials(session, module_prod):
