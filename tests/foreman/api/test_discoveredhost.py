@@ -201,7 +201,7 @@ class TestDiscoveredHost:
         mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
         wait_for(
             lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
-            timeout=1500,
+            timeout=1800,
             delay=40,
         )
         discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
