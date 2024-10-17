@@ -81,11 +81,11 @@ def test_positive_ccv_e2e(session, module_target_sat, module_org, module_lce):
             session.contentview_new.add_content(cv_name, repo_name)
             session.contentview_new.publish(cv_name, promote=True, lce=module_lce.name)
             result = session.contentview_new.add_cv(ccv_name, cv_name)
-            assert result[0]["Status"] == "Added"
+            assert result[0]['Status'] == 'Added'
         session.contentview_new.publish(ccv_name)
         # Check that composite cv has one repository in the table as we
         # were using the same repository for each Content View.
-        result = session.contentview_new.read_version_table(ccv_name, VERSION, "repositories")
+        result = session.contentview_new.read_version_table(ccv_name, VERSION, 'repositories')
         assert len(result) == 1
 
 
