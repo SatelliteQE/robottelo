@@ -948,6 +948,7 @@ def test_positive_installed_products(
             'hosts': rhel_contenthost.hostname,
         },
     }
+    # packit testing for this line here 
     report = (
         target_sat.api.ReportTemplate()
         .search(query={'search': 'name="Host - Installed Products"'})[0]
