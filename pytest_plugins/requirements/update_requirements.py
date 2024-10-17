@@ -32,7 +32,6 @@ def pytest_report_header(config):
         print(f"Mandatory Requirements Mismatch: {' '.join(updater.req_deviation)}")
         if config.getoption('update_required_reqs') or config.getoption('update_all_reqs'):
             updater.install_req_deviations()
-            print('Mandatory requirements are installed to be up-to-date.')
     else:
         print('Mandatory Requirements are up to date.')
 
@@ -40,7 +39,6 @@ def pytest_report_header(config):
         print(f"Optional Requirements Mismatch: {' '.join(updater.opt_deviation)}")
         if config.getoption('update_all_reqs'):
             updater.install_opt_deviations()
-            print('Optional requirements are installed to be up-to-date.')
     else:
         print('Optional Requirements are up to date.')
 
