@@ -608,19 +608,21 @@ class APIFactory:
             # updated entities after promoting
             entities = {k: v.read() for k, v in entities.items()}
 
+        updates = []
         if (  # assign env to ak if not present
             entities['ActivationKey'].environment is None
             or entities['ActivationKey'].environment.id != entities['LifecycleEnvironment'].id
         ):
             entities['ActivationKey'].environment = entities['LifecycleEnvironment']
-            entities['ActivationKey'].update(['environment'])
-            entities = {k: v.read() for k, v in entities.items()}
+            updates.append('environment')
         if (  # assign cv to ak if not present
             entities['ActivationKey'].content_view is None
             or entities['ActivationKey'].content_view.id != entities['ContentView'].id
         ):
             entities['ActivationKey'].content_view = entities['ContentView']
-            entities['ActivationKey'].update(['content_view'])
+            updates.append('content_view')
+        if updates:
+            entities['ActivationKey'].update(['content_view', 'environment'])  # both needed anyway
 
         entities = {k: v.read() for k, v in entities.items()}
         if enable_repos:

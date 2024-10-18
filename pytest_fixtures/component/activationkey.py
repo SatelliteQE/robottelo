@@ -26,9 +26,8 @@ def function_activation_key(function_sca_manifest_org, target_sat):
 
 
 @pytest.fixture(scope='module')
-def module_ak(module_lce, module_org, module_target_sat):
+def module_ak(module_org, module_target_sat):
     return module_target_sat.api.ActivationKey(
-        environment=module_lce,
         organization=module_org,
     ).create()
 
