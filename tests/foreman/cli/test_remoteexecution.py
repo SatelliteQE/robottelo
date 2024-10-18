@@ -1097,6 +1097,7 @@ class TestPullProviderRex:
 
         :parametrized: yes
         """
+
         client_repo = ohsnap.dogfood_repository(
             settings.ohsnap,
             product='client',
@@ -1112,6 +1113,7 @@ class TestPullProviderRex:
                 'location-ids': smart_proxy_location.id,
             }
         )
+
         # register host with pull provider rex
         result = rhel_contenthost.register(
             module_org,
@@ -1220,6 +1222,16 @@ class TestPullProviderRex:
                 'location-ids': smart_proxy_location.id,
             }
         )
+        os_version = rhel_contenthost.os_version.major
+        repos = {
+            9: f'repo=https://download.copr.fedorainfracloud.org/results/@theforeman/client-nightly-staging-scratch-1c8dce7f-847d-58f5-9d4c-591b1aa6b9f0/rhel-9-x86_64,repo=https://download.copr.fedorainfracloud.org/results/@theforeman/client-nightly-staging-scratch-ac8befae-0841-56f5-963f-97afba0edc97/rhel-9-x86_64,repo={client_repo.baseurl},repo={settings.repos.rhel9_os.appstream},repo={settings.repos.rhel9_os.baseos}',
+            8: f'repo=https://download.copr.fedorainfracloud.org/results/@theforeman/client-nightly-staging-scratch-1c8dce7f-847d-58f5-9d4c-591b1aa6b9f0/rhel-8-x86_64/,repo=https://download.copr.fedorainfracloud.org/results/@theforeman/client-nightly-staging-scratch-ac8befae-0841-56f5-963f-97afba0edc97/rhel-8-x86_64,repo={client_repo.baseurl},repo={settings.repos.rhel8_os.appstream},repo={settings.repos.rhel8_os.baseos}',
+            7: f'repo=https://download.copr.fedorainfracloud.org/results/@theforeman/client-nightly-staging-scratch-1c8dce7f-847d-58f5-9d4c-591b1aa6b9f0/rhel-7-x86_64/,repo=https://download.copr.fedorainfracloud.org/results/@theforeman/client-nightly-staging-scratch-ac8befae-0841-56f5-963f-97afba0edc97/rhel-7-x86_64/,repo={client_repo.baseurl},repo={settings.repos.rhel7_os}',
+        }
+
+        service_name = 'yggdrasild'
+        if os_version == 9:
+            service_name = 'yggdrasil'
         # register host with pull provider rex (SAT-1677)
         result = rhel_contenthost.register(
             module_org,
@@ -1227,20 +1239,20 @@ class TestPullProviderRex:
             module_ak_with_cv.name,
             module_capsule_configured_mqtt,
             setup_remote_execution_pull=True,
-            repo_data=f'repo={client_repo.baseurl}',
+            repo_data=repos[os_version],
             ignore_subman_errors=True,
             force=True,
         )
 
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         # check mqtt client is running
-        result = rhel_contenthost.execute('systemctl status yggdrasild')
+        result = rhel_contenthost.execute(f'systemctl status {service_name}')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
         # run script provider rex command
         invocation_command = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Service Action - Script Default',
-                'inputs': 'action=status, service=yggdrasild',
+                'inputs': f'action=status, service={service_name}',
                 'search-query': f"name ~ {rhel_contenthost.hostname}",
             }
         )
