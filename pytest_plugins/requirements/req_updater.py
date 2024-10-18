@@ -17,8 +17,7 @@ class ReqUpdater:
         'dynaconf': 'dynaconf[vault]',
         'Jinja2': 'jinja2',
         'Sphinx': 'sphinx',
-        'airgun': 'airgun @ git+https://github.com/SatelliteQE/airgun.git@master#egg=airgun',
-        'nailgun': 'nailgun @ git+https://github.com/SatelliteQE/nailgun.git@master#egg=nailgun',
+        'pyyaml': 'PyYAML',
     }
 
     @cached_property
@@ -98,7 +97,7 @@ class ReqUpdater:
         if self.req_deviation:
             if (
                 subprocess.run(
-                    f"{self.packagae_manager} install {' '.join(f'\'{req}\'' for req in self.req_deviation)}",
+                    f"{self.packagae_manager} install {' '.join(f"'{req}'" for req in self.req_deviation)}",
                     shell=True,
                     stdout=subprocess.PIPE,
                 ).returncode
