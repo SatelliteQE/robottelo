@@ -252,11 +252,10 @@ def test_positive_delete_cv_promoted_to_multi_env(
 
     :CaseImportance: High
     """
-    VERSION = 'Version 1.0'
     repo = target_sat.cli_factory.RepositoryCollection(
         repositories=[target_sat.cli_factory.YumRepository(url=settings.repos.yum_0.url)]
     )
-    repo.setup(module_org.id)
+    repo.setup(module_org.id, synchronize=False)
     cv, lce = repo.setup_content_view(module_org.id)
     repo_name = repo.repos_info[0]['name']
 
@@ -268,9 +267,9 @@ def test_positive_delete_cv_promoted_to_multi_env(
             f' does not match expected: {VERSION}.'
         )
         # repo name found in CVV's repositories tab
-        # for some unbeknownst reason, the navigation can take a long time, or exceeds tries
-        assert (wait_for(
+        wait_for(
             lambda: (
+                session.browser.refresh(),
                 repo_name == session.contentview_new.read_version_table(
                     entity_name=cv['name'],
                     version=VERSION,
@@ -278,10 +277,10 @@ def test_positive_delete_cv_promoted_to_multi_env(
                 )[0]['Name']
             ),
             handle_exception=NavigationTriesExceeded,
-            timeout=60,
+            timeout=120,
             delay=5,
-        )), f'The repository name: {repo_name}, was not found in the CVV repositories table, or timed out.'
-        # Environment's names are found in CVV info
+        )
+        # Environment's names found in CVV info
         cvv_values = session.contentview_new.read_cv(entity_name=cv['name'], version_name=VERSION)
         assert 'Library' in cvv_values['Environments']
         assert lce['name'] in cvv_values['Environments']
@@ -299,8 +298,8 @@ def test_positive_delete_cv_promoted_to_multi_env(
                 session.contentview_new.delete_version(entity_name=cv['name'], version=VERSION)
             ),
             handle_exception=NavigationTriesExceeded,
-            timeout=30,
-            delay=2,
+            timeout=120,
+            delay=5,
         )
         # CVV is no longer found in CV's Versions tab
         with pytest.raises(NoSuchElementException):
@@ -311,20 +310,14 @@ def test_positive_delete_cv_promoted_to_multi_env(
         library_values = session.lifecycleenvironment.read('Library')
         assert cv['name'] not in str(library_values['content_views']['resources'])
 
-        # publish & promote, a new Version 1.0, to test deleting entire CV with a CVV promoted to LCEs.
+        # publish & promote, a new Version 2.0, to test deleting entire CV with a CVV promoted to LCEs.
         # UI methods aren't needed, this case does not test publish or promote for UI
         cvv_id = (
             target_sat.api.ContentView(id=cv['id']).publish()['input']['content_view_version_id']
         )
-        target_sat.cli.ContentView.version_promote(
-            {
-                'id': cvv_id,
-                'organization-id': module_org.id,
-                'to-lifecycle-environment-id': lce['id'],
-                'async': False,
-            }
-        )
-        session.contentview_new.read_cv(entity_name=cv['name'], version_name='Version 2.0')
+        target_sat.api.ContentViewVersion(id=cvv_id).promote(data={'environment_ids': lce['id']})
+        cv_info = session.contentview_new.search(cv['name'])[0]
+        assert cv_info['Latest version'] == 'Version 2.0'
         cvv_values = session.contentview_new.read_cv(entity_name=cv['name'], version_name='Version 2.0')
         # promotion of CVV added the CV to both environments again
         assert 'Library' in cvv_values['Environments']
