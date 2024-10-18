@@ -176,6 +176,20 @@ def function_synced_file_repo(target_sat, function_org, function_product):
 
 
 @pytest.fixture
+def function_synced_large_file_repo(target_sat, function_org, function_product):
+    repo = target_sat.cli_factory.make_repository(
+        {
+            'organization-id': function_org.id,
+            'product-id': function_product.id,
+            'content-type': 'file',
+            'url': settings.repos.large_file_type_repo.url,
+        }
+    )
+    target_sat.cli.Repository.synchronize({'id': repo['id']}, timeout='2h')
+    return repo
+
+
+@pytest.fixture
 def function_synced_docker_repo(target_sat, function_org):
     product = target_sat.cli_factory.make_product({'organization-id': function_org.id})
     repo = target_sat.cli_factory.make_repository(
@@ -217,6 +231,22 @@ def function_restrictive_umask(target_sat):
     assert new_mask in target_sat.execute('umask').stdout, f'Failed to set new umask to {new_mask}'
     yield
     target_sat.execute(f'sed -i "/{mask_override}/d" /etc/bashrc')
+
+
+@pytest.fixture
+def function_exporter_user(target_sat, function_org):
+    password = gen_string('alphanumeric')
+    role = target_sat.api.Role().search(query={'search': 'name="Content Exporter"'})[0]
+    user = target_sat.api.User(
+        login=gen_string('alpha'),
+        password=password,
+        admin=False,
+        role=[role],
+        organization=[function_org],
+    ).create()
+    user.password = password
+    yield user
+    user.delete()
 
 
 @pytest.mark.run_in_one_thread
@@ -283,14 +313,21 @@ class TestRepositoryExport:
 
     @pytest.mark.tier3
     def test_positive_export_library_custom_repo(
-        self, target_sat, export_import_cleanup_function, function_org, function_synced_custom_repo
+        self,
+        target_sat,
+        export_import_cleanup_function,
+        function_org,
+        function_synced_custom_repo,
+        function_exporter_user,
     ):
-        """Export custom repo via complete and incremental library export.
+        """Export custom repo via complete and incremental library export using a non-admin user
+        with the "Content Exporter" role.
 
         :id: ba8dc7f3-55c2-4120-ac76-cc825ef0abb8
 
         :setup:
             1. Product with synced custom repository.
+            2. Non-admin user with the "Content Exporter" role.
 
         :steps:
             1. Create a CV, add the product and publish it.
@@ -301,6 +338,9 @@ class TestRepositoryExport:
             1. Complete export succeeds, exported files are present on satellite machine.
             2. Incremental export succeeds, exported files are present on satellite machine.
 
+        :Verifies: SAT-24884
+
+        :customerscenario: true
         """
         # Create cv and publish
         cv_name = gen_string('alpha')
@@ -318,10 +358,14 @@ class TestRepositoryExport:
         # Verify export directory is empty
         assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
         # Export complete and check the export directory
-        target_sat.cli.ContentExport.completeLibrary({'organization-id': function_org.id})
+        target_sat.cli.ContentExport.with_user(
+            username=function_exporter_user.login, password=function_exporter_user.password
+        ).completeLibrary({'organization-id': function_org.id})
         assert '1.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
         # Export incremental and check the export directory
-        target_sat.cli.ContentExport.incrementalLibrary({'organization-id': function_org.id})
+        target_sat.cli.ContentExport.with_user(
+            username=function_exporter_user.login, password=function_exporter_user.password
+        ).incrementalLibrary({'organization-id': function_org.id})
         assert '2.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
     @pytest.mark.tier3
@@ -1797,6 +1841,66 @@ class TestContentViewSync:
         assert imported_gpg['content'] == gpg_key.content
 
     @pytest.mark.tier3
+    def test_postive_export_import_chunked_repo(
+        self,
+        target_sat,
+        config_export_import_settings,
+        export_import_cleanup_function,
+        function_org,
+        function_synced_custom_repo,
+        function_import_org,
+    ):
+        """Test import of a repository exported in chunks bigger than repo size.
+
+        :id: bc27eebf-4749-4dd3-a9d5-c662f43e835b
+
+        :setup:
+            1. Product with synced custom repository.
+
+        :steps:
+            1. Export the repository using chunks and import it into another organization.
+            2. Check the imported content counts.
+
+        :expectedresults:
+            1. Export and import succeeds without any errors.
+
+        :CaseImportance: Medium
+
+        :Verifies: SAT-23573, SAT-26458
+
+        :customerscenario: true
+        """
+        # Export the repository using chunks and import it into another organization.
+        export = target_sat.cli.ContentExport.completeRepository(
+            {'id': function_synced_custom_repo.id, 'chunk-size-gb': 1}
+        )
+        import_path = target_sat.move_pulp_archive(function_org, export['message'])
+        target_sat.cli.ContentImport.repository(
+            {
+                'organization-id': function_import_org.id,
+                'path': import_path,
+            }
+        )
+        # Check the imported content counts.
+        exported_repo = target_sat.cli.Repository.info(
+            {
+                'name': function_synced_custom_repo.name,
+                'product': function_synced_custom_repo.product.name,
+                'organization-id': function_org.id,
+            }
+        )
+        imported_repo = target_sat.cli.Repository.info(
+            {
+                'name': function_synced_custom_repo.name,
+                'product': function_synced_custom_repo.product.name,
+                'organization-id': function_import_org.id,
+            }
+        )
+        assert (
+            exported_repo['content-counts'] == imported_repo['content-counts']
+        ), 'Unexpected package count after import'
+
+    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],
@@ -2133,6 +2237,74 @@ class TestContentViewSync:
             {'content-view-version-id': importing_cv['versions'][0]['id']}
         )
         assert exported_packages == imported_packages
+
+    @pytest.mark.tier3
+    def test_postive_export_import_large_cv(
+        self,
+        request,
+        export_import_cleanup_function,
+        target_sat,
+        function_org,
+        function_synced_large_file_repo,
+        function_import_org,
+    ):
+        """Export and import CV with 100k files and check both operations succeeded.
+
+        :id: 07a4cf36-27be-4b71-83e1-51637222d080
+
+        :setup:
+            1. Synced repository with 100k files inside.
+
+        :steps:
+            1. Create CV, add the repository and publish.
+            2. Export the CV version, assert it succeeds.
+            3. Import the exported CV, check the files count.
+
+        :expectedresults:
+            1. The export succeeds without errors.
+            2. The import succeeds and contains all exported files.
+
+        :Verifies: SAT-25194
+
+        :customerscenario: true
+        """
+        # Create CV, add the repository and publish
+        cv = target_sat.cli_factory.make_content_view({'organization-id': function_org.id})
+        target_sat.cli.ContentView.add_repository(
+            {
+                'id': cv['id'],
+                'organization-id': function_org.id,
+                'repository-id': function_synced_large_file_repo['id'],
+            }
+        )
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        exporting_cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        exporting_cvv = target_sat.cli.ContentView.version_info(
+            {'id': exporting_cv['versions'][0]['id']}
+        )
+
+        # Export the CV version, assert it succeeds
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
+        export = target_sat.cli.ContentExport.completeVersion(
+            {'id': exporting_cvv['id'], 'organization-id': function_org.id}, timeout='10m'
+        )
+        assert '1.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
+
+        # Import the exported CV, check the files count.
+        import_path = target_sat.move_pulp_archive(function_org, export['message'])
+        target_sat.cli.ContentImport.version(
+            {'organization-id': function_import_org.id, 'path': import_path}, timeout='90m'
+        )
+        importing_cv = target_sat.cli.ContentView.info(
+            {'name': exporting_cv['name'], 'organization-id': function_import_org.id}
+        )
+        assert len(importing_cv['versions']) == 1
+        assert (
+            target_sat.api.ContentViewVersion(id=importing_cv['versions'][0]['id'])
+            .read()
+            .file_count
+            == settings.repos.large_file_type_repo.files_count
+        ), 'Imported files count did not meet the expectation'
 
 
 class TestInterSatelliteSync:
@@ -2541,10 +2713,13 @@ class TestInterSatelliteSync:
 
     @pytest.mark.e2e
     @pytest.mark.tier3
-    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.pit_server
+    @pytest.mark.pit_client
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
-        ['rhsclient8'],
+        ['rhsclient9'],
         indirect=True,
     )
     def test_positive_export_import_consume_incremental_yum_repo(
@@ -2777,6 +2952,7 @@ class TestNetworkSync:
     """Implements Network Sync scenarios."""
 
     @pytest.mark.tier2
+    @pytest.mark.pit_server
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],
@@ -2850,3 +3026,101 @@ class TestNetworkSync:
         assert (
             repo['content-counts'] == function_synced_rh_repo['content-counts']
         ), 'Content counts do not match'
+
+
+class TestPodman:
+    """Tests specific to using podman push/pull on Satellite
+
+    :CaseComponent: Repositories
+
+    :team: Phoenix-content
+    """
+
+    @pytest.fixture(scope='class')
+    def enable_podman(module_product, module_target_sat):
+        """Enable base_os and appstream repos on the sat through cdn registration and install podman."""
+        module_target_sat.register_to_cdn()
+        if module_target_sat.os_version.major > 7:
+            module_target_sat.enable_repo(module_target_sat.REPOS['rhel_bos']['id'])
+            module_target_sat.enable_repo(module_target_sat.REPOS['rhel_aps']['id'])
+        else:
+            module_target_sat.enable_repo(module_target_sat.REPOS['rhscl']['id'])
+            module_target_sat.enable_repo(module_target_sat.REPOS['rhel']['id'])
+        result = module_target_sat.execute(
+            'dnf install -y --disableplugin=foreman-protector podman'
+        )
+        assert result.status == 0
+
+    @pytest.mark.tier3
+    def test_postive_export_import_podman_repo(
+        self,
+        target_sat,
+        config_export_import_settings,
+        export_import_cleanup_function,
+        function_org,
+        function_product,
+        function_import_org,
+        enable_podman,
+    ):
+        """Test import of a repo created via Podman push
+
+        :id: d44f494c-918f-4cf0-8eae-5b382505e371
+
+        :steps:
+            1. Export the repository.
+            2. Import the repository, and compare tag and container counts.
+
+        :expectedresults:
+            1. Export and import succeeds without any errors.
+
+        :CaseImportance: Medium
+
+        :Verifies: SAT-25265
+        """
+        REPO_NAME = 'fedora'
+        result = target_sat.execute(f'podman pull registry.fedoraproject.org/{REPO_NAME}')
+        assert result.status == 0
+        large_image_id = target_sat.execute(f'podman images {REPO_NAME} -q')
+        assert large_image_id
+        large_repo_cmd = f'{(function_org.label)}/{(function_product.label)}/{REPO_NAME}'.lower()
+        target_sat.execute(
+            f'podman push --creds admin:changeme {large_image_id.stdout.strip()} {target_sat.hostname}/{large_repo_cmd}'
+        )
+        repo = target_sat.cli.Repository.info(
+            {
+                'organization-id': function_org.id,
+                'id': target_sat.cli.Repository.list({'organization-id': function_org.id})[0]['id'],
+            }
+        )
+        assert repo['content-counts']['container-tags'] == '1'
+        assert repo['content-counts']['container-manifests'] == '1'
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
+        export = target_sat.cli.ContentExport.completeRepository({'id': repo['id']})
+        assert '1.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
+        import_path = target_sat.move_pulp_archive(function_org, export['message'])
+        # Check that files are present in import_path
+        result = target_sat.execute(f'ls {import_path}')
+        assert result.stdout != ''
+        # Import files and verify content
+        target_sat.cli.ContentImport.library(
+            {'organization-id': function_import_org.id, 'path': import_path}
+        )
+        assert target_sat.cli.Product.list({'organization-id': function_import_org.id})
+        import_repo = target_sat.cli.Repository.info(
+            {
+                'organization-id': function_import_org.id,
+                'id': target_sat.cli.Repository.list({'organization-id': function_import_org.id})[
+                    0
+                ]['id'],
+            }
+        )
+        assert import_repo['name'] == repo['name']
+        assert import_repo['content-type'] == repo['content-type']
+        assert (
+            import_repo['content-counts']['container-tags']
+            == repo['content-counts']['container-tags']
+        )
+        assert (
+            import_repo['content-counts']['container-manifests']
+            == repo['content-counts']['container-manifests']
+        )

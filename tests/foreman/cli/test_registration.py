@@ -22,6 +22,7 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import CLIENT_PORT
 from robottelo.exceptions import CLIReturnCodeError
+from robottelo.utils.issue_handlers import is_open
 
 pytestmark = pytest.mark.tier1
 
@@ -46,7 +47,7 @@ def test_host_registration_end_to_end(
 
     :expectedresults: Host registered successfully with valid owner name
 
-    :BZ: 2156926, 2252768
+    :verifies: SAT-21682, SAT-14716
 
     :customerscenario: true
     """
@@ -295,3 +296,41 @@ def test_positive_custom_facts_for_host_registration(
     for interface in interfaces:
         for interface_name in interface.values():
             assert interface_name in str(host_info['network-interfaces'])
+
+
+@pytest.mark.upgrade
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_positive_global_registration_with_gpg_repo(
+    module_sca_manifest_org,
+    module_location,
+    module_activation_key,
+    module_target_sat,
+    rhel_contenthost,
+):
+    """Verify host registration command gets generated and host is registered successfully with gpg repo enabled.
+
+    :id: 8f01d904-dd52-47eb-b909-975574a7c7c7
+
+    :steps:
+        1. Register host with global registration template with gpg repo and key to Satellite.
+
+    :expectedresults: Host is successfully registered, gpg repo is enabled.
+    """
+    org = module_sca_manifest_org
+    repo_url = settings.repos.gr_yum_repo.url
+    repo_gpg_url = settings.repos.gr_yum_repo.gpg_url
+    result = rhel_contenthost.register(
+        org,
+        module_location,
+        module_activation_key.name,
+        module_target_sat,
+        repo_data=f'repo={repo_url},repo_gpg_key_url={repo_gpg_url}',
+    )
+    assert result.status == 0
+    assert rhel_contenthost.subscribed
+    result = rhel_contenthost.execute('yum -v repolist')
+    assert repo_url in result.stdout
+    assert result.status == 0
+    if not is_open('SAT-27653'):
+        assert rhel_contenthost.execute('dnf install -y bear').status == 0

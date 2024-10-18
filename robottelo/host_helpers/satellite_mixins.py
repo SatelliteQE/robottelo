@@ -39,6 +39,23 @@ class EnablePluginsSatellite:
         assert 'Success!' in result.stdout
         return self
 
+    def enable_multicv_setting(self):
+        """Makes multi-CV setting available in the downstream Satellite"""
+        if len(
+            self.api.Setting().search(query={'search': 'name={"allow_multiple_content_views"}'})
+        ):
+            return  # Setting is already exposed
+        cfg_file = 'upstream_only_settings.rb'
+        cfg_path = self.execute(f'find /usr/share/gems/gems/ -name {cfg_file}').stdout.strip()
+        assert cfg_file in cfg_path, 'Config file not found'
+        self.execute(
+            f'sed -i "s/allow_multiple_content_views/#allow_multiple_content_views/g" {cfg_path}'
+        )
+        self.cli.Service.restart()
+        assert len(
+            self.api.Setting().search(query={'search': f'name={"allow_multiple_content_views"}'})
+        ), 'Multi-CV enablement failed'
+
 
 class ContentInfo:
     """Miscellaneous content helper methods"""
@@ -370,6 +387,9 @@ class ProvisioningSetup:
             if host:
                 host[0].delete()
             assert not self.api.Host().search(query={'search': f'name={hostname}'})
+        # Workaround SAT-28381
+        assert self.execute('cat /dev/null > /var/lib/dhcpd/dhcpd.leases').status == 0
+        assert self.execute('systemctl restart dhcpd').status == 0
         # Workaround BZ: 2207698
         assert self.cli.Service.restart().status == 0
 

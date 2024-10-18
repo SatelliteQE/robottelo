@@ -4,15 +4,15 @@ SERVER:
   #  - replace.with.satellite.hostname
   #  - replace.with.satellite.hostname
   VERSION:
-    # The full release version (6.9.2)
-    RELEASE: 6.9.2
+    # The full release version (6.16.0)
+    RELEASE: 6.16.0
     # The snap version currently testing (if applicable)
     SNAP: 1.0
     # The source of Satellite packages. Can be one of:
-    # internal, ga, beta
+    # internal, ga, nightly
     SOURCE: "internal"
     # The RHEL Base OS Version(x.y) where the Satellite is installed
-    RHEL_VERSION: '7'
+    RHEL_VERSION: '9'
   # If the the satellite server is IPv6 server
   IS_IPV6: False
   # HTTP Proxy url for IPv6 satellite to connect for outer world access

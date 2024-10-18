@@ -30,7 +30,7 @@ jobs:
       - name: Add last PRT result into the github comment
         id: add-prt-comment
         if: ${{ always() && github.event.inputs.pytest_result != '' }}
-        uses: thollander/actions-comment-pull-request@v2
+        uses: thollander/actions-comment-pull-request@v3
         with:
           message: |
             **PRT Result**
@@ -40,8 +40,8 @@ jobs:
             PRT Comment: ${{ github.event.inputs.prt_comment }}
             Test Result : ${{ github.event.inputs.pytest_result }}
             ```
-          pr_number: ${{ github.event.inputs.pr_number }}
-          GITHUB_TOKEN: ${{ secrets.CHERRYPICK_PAT }}
+          pr-number: ${{ github.event.inputs.pr_number }}
+          github-token: ${{ secrets.CHERRYPICK_PAT }}
 
       - name: Add the PRT passed/failed labels
         id: prt-status

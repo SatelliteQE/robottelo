@@ -18,6 +18,7 @@ def is_ipv4_url(text):
 
 def ipv6_translator(settings_list, setting_major, data):
     """Translates the hostname containing IPv4 to IPv6 and updates the settings object"""
+    setting_major = list(map(str, setting_major))
     dotted_settings = '.'.join(setting_major)
     for _key, _val in settings_list.items():
         if is_ipv4_url(_val):

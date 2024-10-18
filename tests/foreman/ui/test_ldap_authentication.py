@@ -345,7 +345,7 @@ def test_positive_update_external_roles(
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
-        assert ldap_data['ldap_user_name'] in current_user
+        assert ldap_data['ldap_user_shown_name'] == current_user
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
@@ -480,13 +480,13 @@ def test_positive_update_external_user_roles(
         )
     with target_sat.ui_session(
         test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
-    ) as session:
+    ) as ldapsession:
         with pytest.raises(NavigationTriesExceeded):
             ldapsession.architecture.search('')
-        session.activationkey.create({'name': ak_name})
-        assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
-        current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
-        assert ldap_data['ldap_user_name'] in current_user
+        ldapsession.activationkey.create({'name': ak_name})
+        assert ldapsession.activationkey.search(ak_name)[0]['Name'] == ak_name
+        current_user = ldapsession.activationkey.read(ak_name, 'current_user')['current_user']
+        assert ldap_data['ldap_user_shown_name'] == current_user
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
@@ -541,7 +541,7 @@ def test_positive_add_admin_role_with_org_loc(
         session.location.create({'name': location_name})
         assert session.location.search(location_name)[0]['Name'] == location_name
         location = session.location.read(location_name, ['current_user', 'primary'])
-        assert ldap_data['ldap_user_name'] in location['current_user']
+        assert ldap_data['ldap_user_shown_name'] in location['current_user']
         assert location['primary']['name'] == location_name
         session.organization.select(module_org.name)
         session.activationkey.create({'name': ak_name})
@@ -713,7 +713,7 @@ def test_positive_create_user_in_ldap_mode(session, ldap_auth_source, ldap_tear_
         assert user_values['user']['auth'] == auth_source_name
 
 
-@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
 def test_positive_login_user_no_roles(test_name, ldap_tear_down, ldap_auth_source, target_sat):
     """Login with LDAP Auth for user with no roles/rights
@@ -1055,7 +1055,6 @@ def test_timeout_and_cac_card_ejection():
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
-@pytest.mark.skip_if_open('BZ:1670397')
 def test_verify_attribute_of_users_are_updated(
     session, ldap_auth_source, ldap_tear_down, target_sat
 ):
@@ -1162,7 +1161,6 @@ def test_login_failure_if_internal_user_exist(
         target_sat.api.User(id=user.id).delete()
 
 
-@pytest.mark.skip_if_open("BZ:1812688")
 @pytest.mark.tier2
 def test_userlist_with_external_admin(
     session, auth_source_ipa, ldap_tear_down, groups_teardown, target_sat
@@ -1232,7 +1230,6 @@ def test_userlist_with_external_admin(
         assert remote_admin_session.user.search(idm_user)[0]['Username'] == idm_user
 
 
-@pytest.mark.skip_if_open('BZ:1883209')
 @pytest.mark.tier2
 def test_positive_group_sync_open_ldap_authsource(
     test_name,

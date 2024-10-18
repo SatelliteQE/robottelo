@@ -211,10 +211,10 @@ class TestDockerRepository:
 
         :CaseImportance: Critical
         """
-        assert int(repo['content-counts']['container-image-manifests']) == 0
+        assert int(repo['content-counts']['container-manifests']) == 0
         module_target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = module_target_sat.cli.Repository.info({'id': repo['id']})
-        assert int(repo['content-counts']['container-image-manifests']) > 0
+        assert int(repo['content-counts']['container-manifests']) > 0
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('new_name', **parametrized(valid_docker_repository_names()))
@@ -587,7 +587,7 @@ class TestDockerContentView:
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         module_target_sat.cli.ContentView.version_promote(
             {
-                'id': content_view['versions'][-1]['id'],
+                'id': sorted(cvv['id'] for cvv in content_view['versions'])[-1],
                 'to-lifecycle-environment-id': lce['id'],
             }
         )
@@ -668,7 +668,7 @@ class TestDockerContentView:
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         module_target_sat.cli.ContentView.version_promote(
             {
-                'id': content_view['versions'][-1]['id'],
+                'id': sorted(cvv['id'] for cvv in content_view['versions'])[-1],
                 'to-lifecycle-environment-id': lce['id'],
             }
         )

@@ -60,6 +60,7 @@ def test_positive_end_to_end_crud(session, module_org, module_target_sat):
         assert session.activationkey.search(new_name)[0]['Name'] != new_name
 
 
+@pytest.mark.no_containers
 @pytest.mark.e2e
 @pytest.mark.tier3
 @pytest.mark.upgrade
@@ -70,7 +71,7 @@ def test_positive_end_to_end_crud(session, module_org, module_target_sat):
 )
 def test_positive_end_to_end_register(
     session,
-    function_entitlement_manifest_org,
+    function_sca_manifest_org,
     default_location,
     repos_collection,
     rhel7_contenthost,
@@ -87,7 +88,7 @@ def test_positive_end_to_end_register(
 
     :CaseImportance: High
     """
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     lce = target_sat.api.LifecycleEnvironment(organization=org).create()
     repos_collection.setup_content(org.id, lce.id, upload_manifest=False)
     ak_name = repos_collection.setup_content_data['activation_key']['name']
@@ -399,7 +400,7 @@ def test_positive_update_cv(session, module_org, cv2_name, target_sat):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
-def test_positive_update_rh_product(function_entitlement_manifest_org, session, target_sat):
+def test_positive_update_rh_product(function_sca_manifest_org, session, target_sat):
     """Update Content View in an Activation key
 
     :id: 9b0ac209-45de-4cc4-97e8-e191f3f37239
@@ -431,7 +432,7 @@ def test_positive_update_rh_product(function_entitlement_manifest_org, session, 
         'basearch': 'i386',
         'releasever': constants.DEFAULT_RELEASE_VERSION,
     }
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     repo1_id = target_sat.api_factory.enable_sync_redhat_repo(rh_repo1, org.id)
     target_sat.api_factory.cv_publish_promote(cv1_name, env1_name, repo1_id, org.id)
     repo2_id = target_sat.api_factory.enable_sync_redhat_repo(rh_repo2, org.id)
@@ -453,7 +454,7 @@ def test_positive_update_rh_product(function_entitlement_manifest_org, session, 
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
-def test_positive_add_rh_product(function_entitlement_manifest_org, session, target_sat):
+def test_positive_add_rh_product(function_sca_manifest_org, session, target_sat):
     """Test that RH product can be associated to Activation Keys
 
     :id: d805341b-6d2f-4e16-8cb4-902de00b9a6c
@@ -470,7 +471,7 @@ def test_positive_add_rh_product(function_entitlement_manifest_org, session, tar
         'basearch': constants.DEFAULT_ARCHITECTURE,
         'releasever': constants.DEFAULT_RELEASE_VERSION,
     }
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     # Helper function to create and promote CV to next environment
     repo_id = target_sat.api_factory.enable_sync_redhat_repo(rh_repo, org.id)
     target_sat.api_factory.cv_publish_promote(cv_name, env_name, repo_id, org.id)
@@ -480,10 +481,10 @@ def test_positive_add_rh_product(function_entitlement_manifest_org, session, tar
             {'name': name, 'lce': {env_name: True}, 'content_view': cv_name}
         )
         assert session.activationkey.search(name)[0]['Name'] == name
-        session.activationkey.add_subscription(name, constants.DEFAULT_SUBSCRIPTION_NAME)
-        ak = session.activationkey.read(name, widget_names='subscriptions')
-        subs_name = ak['subscriptions']['resources']['assigned'][0]['Repository Name']
-        assert subs_name == constants.DEFAULT_SUBSCRIPTION_NAME
+        ak = session.activationkey.read(name, widget_names='repository sets')['repository sets'][
+            'table'
+        ][0]
+        assert rh_repo['reposet'] == ak['Repository Name']
 
 
 @pytest.mark.tier2
@@ -509,18 +510,16 @@ def test_positive_add_custom_product(session, module_org, target_sat):
             {'name': name, 'lce': {env_name: True}, 'content_view': cv_name}
         )
         assert session.activationkey.search(name)[0]['Name'] == name
-        session.activationkey.add_subscription(name, product_name)
-        ak = session.activationkey.read(name, widget_names='subscriptions')
-        assigned_prod = ak['subscriptions']['resources']['assigned'][0]['Repository Name']
-        assert assigned_prod == product_name
+        ak = session.activationkey.read(name, widget_names='repository sets')['repository sets'][
+            'table'
+        ][0]
+        assert product_name == ak['Product Name']
 
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_add_rh_and_custom_products(
-    target_sat, function_entitlement_manifest_org, session
-):
+def test_positive_add_rh_and_custom_products(target_sat, function_sca_manifest_org, session):
     """Test that RH/Custom product can be associated to Activation keys
 
     :id: 3d8876fa-1412-47ca-a7a4-bce2e8baf3bc
@@ -543,7 +542,7 @@ def test_positive_add_rh_and_custom_products(
     }
     custom_product_name = gen_string('alpha')
     repo_name = gen_string('alpha')
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     product = target_sat.api.Product(name=custom_product_name, organization=org).create()
     repo = target_sat.api.Repository(name=repo_name, product=product).create()
     rhel_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
@@ -566,20 +565,15 @@ def test_positive_add_rh_and_custom_products(
             }
         )
         assert session.activationkey.search(name)[0]['Name'] == name
-        for subscription in (constants.DEFAULT_SUBSCRIPTION_NAME, custom_product_name):
-            session.activationkey.add_subscription(name, subscription)
-        ak = session.activationkey.read(name, widget_names='subscriptions')
-        subscriptions = [
-            subscription['Repository Name']
-            for subscription in ak['subscriptions']['resources']['assigned']
-        ]
-        assert {constants.DEFAULT_SUBSCRIPTION_NAME, custom_product_name} == set(subscriptions)
+        ak = session.activationkey.read(name, widget_names='repository sets')
+        reposets = [reposet['Repository Name'] for reposet in ak['repository sets']['table']]
+        assert {repo_name, constants.REPOSET['rhva6']} == set(reposets)
 
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_fetch_product_content(target_sat, function_entitlement_manifest_org, session):
+def test_positive_fetch_product_content(target_sat, function_sca_manifest_org, session):
     """Associate RH & custom product with AK and fetch AK's product content
 
     :id: 4c37fb12-ea2a-404e-b7cc-a2735e8dedb6
@@ -589,7 +583,8 @@ def test_positive_fetch_product_content(target_sat, function_entitlement_manifes
 
     :BZ: 1426386, 1432285
     """
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
+    lce = target_sat.api.LifecycleEnvironment(organization=org).create()
     rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
@@ -612,11 +607,11 @@ def test_positive_fetch_product_content(target_sat, function_entitlement_manifes
         organization=org, repository=[rh_repo_id, custom_repo.id]
     ).create()
     cv.publish()
-    ak = target_sat.api.ActivationKey(content_view=cv, organization=org).create()
+    cvv = cv.read().version[0].read()
+    cvv.promote(data={'environment_ids': lce.id, 'force': True})
+    ak = target_sat.api.ActivationKey(content_view=cv, organization=org, environment=lce).create()
     with session:
         session.organization.select(org.name)
-        for subscription in (constants.DEFAULT_SUBSCRIPTION_NAME, custom_product.name):
-            session.activationkey.add_subscription(ak.name, subscription)
         ak = session.activationkey.read(ak.name, widget_names='repository_sets')
         reposets = [reposet['Repository Name'] for reposet in ak['repository_sets']['table']]
         assert {custom_repo.name, constants.REPOSET['rhst7']} == set(reposets)
@@ -881,7 +876,6 @@ def test_positive_delete_with_system(session, rhel_contenthost, target_sat):
             {'name': name, 'lce': {env_name: True}, 'content_view': cv_name}
         )
         assert session.activationkey.search(name)[0]['Name'] == name
-        session.activationkey.add_subscription(name, product_name)
         result = rhel_contenthost.register(org, None, name, target_sat)
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         assert rhel_contenthost.subscribed
@@ -923,6 +917,8 @@ def test_negative_usage_limit(session, module_org, target_sat):
         assert f'Max Hosts ({hosts_limit}) reached for activation key' in str(result.stderr)
 
 
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('^6')
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
@@ -962,13 +958,10 @@ def test_positive_add_multiple_aks_to_system(session, module_org, rhel_contentho
                 {'name': key_name, 'lce': {env_name: True}, 'content_view': cv_name}
             )
             assert session.activationkey.search(key_name)[0]['Name'] == key_name
-            session.activationkey.add_subscription(key_name, product_name)
-            ak = session.activationkey.read(key_name, widget_names='subscriptions')
-            subscriptions = [
-                subscription['Repository Name']
-                for subscription in ak['subscriptions']['resources']['assigned']
-            ]
-            assert product_name in subscriptions
+            ak = session.activationkey.read(key_name, widget_names='repository sets')[
+                'repository sets'
+            ]['table'][0]
+            assert product_name == ak['Product Name']
         # Create VM
         result = rhel_contenthost.register(module_org, None, [key_1_name, key_2_name], target_sat)
         assert result.status == 0, f'Failed to register host: {result.stderr}'
@@ -1026,10 +1019,11 @@ def test_positive_host_associations(session, target_sat):
             assert ak2['content_hosts']['table'][0]['Name'] == vm2.hostname
 
 
+@pytest.mark.no_containers
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_service_level_subscription_with_custom_product(
-    session, function_entitlement_manifest_org, rhel7_contenthost, target_sat
+    session, function_sca_manifest_org, rhel7_contenthost, target_sat
 ):
     """Subscribe a host to activation key with Premium service level and with
     custom product
@@ -1042,97 +1036,36 @@ def test_positive_service_level_subscription_with_custom_product(
         1. Create a product with custom repository synchronized
         2. Create and Publish a content view with the created repository
         3. Create an activation key and assign the created content view
-        4. Add a RedHat subscription to activation key (The product
-           subscription should be added automatically)
-        5. Set the activation service_level to Premium
-        6. Register a host to activation key
-        7. List consumed subscriptions on host
-        8. List the subscription in Content Host UI
+        4. Set the activation service_level to Premium
+        5. Register a host to activation key
+        6. Assert product is listed under repository sets on the content host
 
     :expectedresults:
-        1. The product subscription is listed in consumed subscriptions on host
-        2. The product subscription is listed in the contenthost subscriptions
-           UI
+        1. The product is listed under repository sets on the content host
 
     :BZ: 1394357
 
     :parametrized: yes
     """
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     entities_ids = target_sat.cli_factory.setup_org_for_a_custom_repo(
         {'url': settings.repos.yum_1.url, 'organization-id': org.id}
     )
     product = target_sat.api.Product(id=entities_ids['product-id']).read()
     activation_key = target_sat.api.ActivationKey(id=entities_ids['activationkey-id']).read()
-    # add the default RH subscription
-    subscription = target_sat.api.Subscription(organization=org).search(
-        query={'search': f'name="{constants.DEFAULT_SUBSCRIPTION_NAME}"'}
-    )[0]
-    activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
-    # ensure all the needed subscriptions are attached to activation key
-    results = activation_key.subscriptions()['results']
-    assert {product.name, constants.DEFAULT_SUBSCRIPTION_NAME} == {
-        ak_subscription['name'] for ak_subscription in results
-    }
-    # Set the activation service_level to Premium
     activation_key.service_level = 'Premium'
     activation_key = activation_key.update(['service_level'])
 
     result = rhel7_contenthost.register(org, None, activation_key.name, target_sat)
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert rhel7_contenthost.subscribed
-    result = rhel7_contenthost.run('subscription-manager list --consumed')
-    assert result.status == 0
-    assert f'Subscription Name:   {product.name}' in result.stdout
     with session:
         session.organization.select(org.name)
-        chost = session.contenthost.read(rhel7_contenthost.hostname, widget_names='subscriptions')
-        subscriptions = {
-            subs['Repository Name'] for subs in chost['subscriptions']['resources']['assigned']
-        }
-        assert product.name in subscriptions
-
-
-@pytest.mark.run_in_one_thread
-@pytest.mark.tier2
-def test_positive_delete_manifest(session, function_entitlement_manifest_org, target_sat):
-    """Check if deleting a manifest removes it from Activation key
-
-    :id: 512d8e41-b937-451e-a9c6-840457d3d7d4
-
-    :steps:
-        1. Create Activation key
-        2. Associate a manifest to the Activation Key
-        3. Delete the manifest
-
-    :expectedresults: Deleting a manifest removes it from the Activation
-        key
-    """
-    org = function_entitlement_manifest_org
-    # Create activation key
-    activation_key = target_sat.api.ActivationKey(organization=org).create()
-    # Associate a manifest to the activation key
-    subscription = target_sat.api.Subscription(organization=org).search(
-        query={'search': f'name="{constants.DEFAULT_SUBSCRIPTION_NAME}"'}
-    )[0]
-    activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
-    with session:
-        session.organization.select(org.name)
-        # Verify subscription is assigned to activation key
-        ak = session.activationkey.read(activation_key.name, widget_names='subscriptions')
-        assert (
-            ak['subscriptions']['resources']['assigned'][0]['Repository Name']
-            == constants.DEFAULT_SUBSCRIPTION_NAME
+        session.location.select(constants.DEFAULT_LOC)
+        chost = session.host_new.get_details(
+            rhel7_contenthost.hostname, widget_names='content.repository_sets'
         )
-        # Delete the manifest
-        # Ignore "404 Not Found" as server will connect to upstream subscription service to verify
-        # the consumer uuid, that will be displayed in flash error messages
-        # Note: this happen only when using clone manifest.
-        session.subscription.delete_manifest(ignore_error_messages='404 Not Found')
-        assert not session.subscription.has_manifest
-        # Verify subscription is not assigned to activation key anymore
-        ak = session.activationkey.read(activation_key.name, widget_names='subscriptions')
-        assert not ak['subscriptions']['resources']['assigned']
+        assert product.name == chost['content']['repository_sets']['table'][0]['Product']
 
 
 @pytest.mark.rhel_ver_list([6])
@@ -1148,8 +1081,7 @@ def test_positive_ak_with_custom_product_on_rhel6(rhel_contenthost, target_sat):
     :steps:
         1. Create a custom repo
         2. Create ak and add custom repo to ak
-        3. Add subscriptions to the ak
-        4. Register a rhel6 chost with the ak
+        3. Register a rhel6 chost with the ak
 
     :expectedresults: Host is registered successfully
 
@@ -1170,22 +1102,3 @@ def test_positive_ak_with_custom_product_on_rhel6(rhel_contenthost, target_sat):
         ak = session.activationkey.read(ak.name, widget_names='content_hosts')
         assert len(ak['content_hosts']['table']) == 1
         assert ak['content_hosts']['table'][0]['Name'] == rhel_contenthost.hostname
-
-
-def test_positive_prepare_for_sca_only_ak(target_sat, function_entitlement_manifest_org):
-    """Verify that the ActivationKey details page notifies users that Simple Content Access
-        will be required for all organizations in Satellite 6.16
-
-    :id: 417a8331-3c66-473f-938c-bbf01deb6031
-
-    :expectedresults: The ActivationKey page notifies users that Simple Content Access will
-        be required for all organizations in Satellite 6.16
-    """
-    ak = target_sat.api.ActivationKey(organization=function_entitlement_manifest_org).create()
-    with target_sat.ui_session() as session:
-        session.organization.select(function_entitlement_manifest_org.name)
-        ak = session.activationkey.read(ak.name)
-        assert (
-            'This organization is not using Simple Content Access. Entitlement-based subscription '
-            'management is deprecated and will be removed in Satellite 6.16.' in ak['sca_alert']
-        )

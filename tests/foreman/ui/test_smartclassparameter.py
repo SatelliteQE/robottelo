@@ -168,7 +168,6 @@ def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_classes, 
 
 
 @pytest.mark.tier2
-@pytest.mark.skip_if_open("BZ:2015911")
 def test_positive_create_matcher_attribute_priority(
     session_puppet_enabled_sat,
     module_puppet_org,
@@ -264,7 +263,6 @@ def test_positive_create_matcher_attribute_priority(
 
 
 @pytest.mark.tier2
-@pytest.mark.skip_if_open("BZ:2015911")
 def test_positive_create_matcher_avoid_duplicate(
     session_puppet_enabled_sat,
     module_puppet_org,

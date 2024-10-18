@@ -388,6 +388,8 @@ def cv_publish_promote(sat, cv, org, lce, force=False):
     :type org: entities.Organization
     :param lce: lifecycle environment
     :type lce: entities.LifecycleEnvironment
+
+    :return int: :id of the content-view-version now published/promoted.
     """
     sat.cli.ContentView.publish({'id': cv.id, 'organization': org})
     # Sort CV Version results by --id, grab last version (latest)
@@ -400,6 +402,7 @@ def cv_publish_promote(sat, cv, org, lce, force=False):
             'force': force,
         }
     )
+    return cvv_id
 
 
 def cv_filter_cleanup(sat, filter_id, cv, org, lce):
@@ -1125,25 +1128,24 @@ def test_positive_check_errata_dates(module_sca_manifest_org, module_target_sat)
     )
     # Synchronize custom repository
     module_target_sat.cli.Repository.synchronize({'id': repo.id})
-    result = module_target_sat.cli.Erratum.list(
-        options={'per-page': '5', 'fields': 'Issued'}
-    ).split()
-    assert 'Issued' in result[0]
+    result = module_target_sat.cli.Erratum.list(options={'per-page': '5', 'fields': 'Issued'})
+    assert 'issued' in result[0]
 
     # Verify any errata ISSUED date from stdout
-    validate_issued_dates = [datetime.strptime(_date, '%Y-%m-%d').date() for _date in result[1:]]
+    validate_issued_dates = [
+        datetime.strptime(entry['issued'], '%Y-%m-%d').date() for entry in result
+    ]
     assert isinstance(validate_issued_dates, list)
     # make sure there are errata entries
     assert len(validate_issued_dates) > 1
     assert all(isinstance(_issued, date) for _issued in validate_issued_dates)
-
-    result = module_target_sat.cli.Erratum.list(
-        options={'per-page': '5', 'fields': 'Updated'}
-    ).split()
-    assert 'Updated' in result[0]
+    result = module_target_sat.cli.Erratum.list(options={'per-page': '5', 'fields': 'Updated'})
+    assert 'updated' in result[0]
 
     # Verify any errata UPDATED date from stdout
-    validate_updated_dates = [datetime.strptime(_date, '%Y-%m-%d').date() for _date in result[1:]]
+    validate_updated_dates = [
+        datetime.strptime(entry['updated'], '%Y-%m-%d').date() for entry in result
+    ]
     assert isinstance(validate_updated_dates, list)
     assert len(validate_updated_dates) > 1
     assert all(isinstance(_updated, date) for _updated in validate_updated_dates)
@@ -1387,7 +1389,7 @@ def test_downgrade_applicable_package_using_default_content_view(errata_host, ta
 
 @pytest.mark.tier2
 @pytest.mark.rhel_ver_match('8')
-def test_install_applicable_package_to_registerd_host(errata_host, target_sat):
+def test_install_applicable_package_to_registered_host(errata_host, target_sat):
     """Installing an older package to an already registered host should show the newer package
     and errata as applicable and installable.
 
@@ -1498,7 +1500,7 @@ def test_errata_list_by_contentview_filter(module_sca_manifest_org, module_targe
 
     :customerscenario: true
 
-    :BZ: 1785146
+    :verifies: SAT-7987
     """
     product = module_target_sat.api.Product(organization=module_sca_manifest_org).create()
     repo = module_target_sat.cli_factory.make_repository(
@@ -1509,11 +1511,12 @@ def test_errata_list_by_contentview_filter(module_sca_manifest_org, module_targe
     cv = module_target_sat.api.ContentView(
         organization=module_sca_manifest_org, repository=[repo.id]
     ).create()
-    cv_publish_promote(module_target_sat, cv, module_sca_manifest_org, lce)
+    cvv_id = cv_publish_promote(module_target_sat, cv, module_sca_manifest_org, lce)
     errata_count = len(
         module_target_sat.cli.Erratum.list(
             {
                 'organization-id': module_sca_manifest_org.id,
+                'content-view-version-id': cvv_id,
                 'content-view-id': cv.id,
             }
         )

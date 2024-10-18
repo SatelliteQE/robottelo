@@ -16,7 +16,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import RPM_TO_UPLOAD, DataFile
+from robottelo.constants import DEFAULT_LOC, PRDS, REPOS, REPOSET, RPM_TO_UPLOAD, DataFile
 
 
 @pytest.fixture(scope='module')
@@ -54,18 +54,84 @@ def module_yum_repo2(module_product, module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def module_rh_repo(module_entitlement_manifest_org, module_target_sat):
-    rhst = module_target_sat.cli_factory.SatelliteToolsRepository(cdn=True)
+def module_rh_repo(module_sca_manifest_org, module_target_sat):
+    rhsc = module_target_sat.cli_factory.SatelliteCapsuleRepository(cdn=True)
     repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
-        basearch=rhst.data['arch'],
-        org_id=module_entitlement_manifest_org.id,
-        product=rhst.data['product'],
-        repo=rhst.data['repository'],
-        reposet=rhst.data['repository-set'],
-        releasever=rhst.data['releasever'],
+        basearch=rhsc.data['arch'],
+        org_id=module_sca_manifest_org.id,
+        product=rhsc.data['product'],
+        repo=rhsc.data['repository'],
+        reposet=rhsc.data['repository-set'],
+        releasever=rhsc.data['releasever'],
     )
     module_target_sat.api.Repository(id=repo_id).sync()
     return module_target_sat.api.Repository(id=repo_id).read()
+
+
+@pytest.fixture(scope='module')
+def module_rhel8_repo(module_sca_manifest_org, module_target_sat):
+    "Enable and sync rhel8 appstream repository"
+    return module_target_sat.cli_factory.setup_org_for_a_rh_repo(
+        {
+            'product': PRDS['rhel8'],
+            'repository-set': REPOSET['rhel8_aps'],
+            'repository': REPOS['rhel8_aps']['name'],
+            'organization-id': module_sca_manifest_org.id,
+            'releasever': REPOS['rhel8_aps']['releasever'],
+        },
+        force_use_cdn=True,
+    )
+
+
+@pytest.mark.rhel_ver_match('8')
+@pytest.mark.no_containers
+def test_positive_parse_package_name_url(
+    session, module_target_sat, module_sca_manifest_org, module_rhel8_repo, rhel_contenthost
+):
+    """
+    Check the links present on Package details page are correctly parse plus signs on Hosts page
+
+    :id: d73c75ff-f422-439b-b97f-5901e7268a7c
+
+    :steps:
+        1. Go to content > content types > packages
+        2. Search for a package from a module (eg httpd-2.4.37-65.module+el8.10.0+22069+b47f5c72.1.x86_64)
+        3. click on the package link
+        4. click on any links "Installed On", "Applicable To" or "Upgradable For"
+
+    :expectedresults: Satellite search for applicable_rpms=followed by package name, including the plus signs,
+        Search box on Hosts page should not omitted the plus signs
+
+    :customerscenario: true
+
+    :Verifies: SAT-26967
+    """
+
+    activation_key = module_target_sat.cli.ActivationKey.info(
+        {'id': module_rhel8_repo['activationkey-id']}
+    )
+    rhel_contenthost.register(
+        activation_keys=activation_key['name'],
+        target=module_target_sat,
+        org=module_sca_manifest_org,
+        loc=None,
+    )
+    assert rhel_contenthost.subscribed
+
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=module_sca_manifest_org.name)
+        session.location.select(DEFAULT_LOC)
+        pkg_httpd = session.package.search('name = httpd')[0]
+        assert '+' in pkg_httpd['RPM']
+        session.package.click_install_on_link('httpd')
+
+        session.browser.switch_to_window(session.browser.window_handles[1])
+
+        read_searchbox_value = session.host.read_filled_searchbox()
+        assert '+' in read_searchbox_value
+        assert 'installed_package=' + pkg_httpd['RPM'] == read_searchbox_value
+
+        session.browser.close_window()
 
 
 @pytest.mark.tier2
@@ -189,7 +255,7 @@ def test_positive_check_custom_package_details(session, module_org, module_yum_r
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_rh_repo_search_and_check_file_list(session, module_org, module_rh_repo):
-    """Synchronize one of RH repos (for example Satellite Tools). Search
+    """Synchronize one of RH repos (for example Satellite Capsule). Search
     for packages inside of it and open one of the packages and check list of
     files inside of it.
 
@@ -201,20 +267,21 @@ def test_positive_rh_repo_search_and_check_file_list(session, module_org, module
     with session:
         session.organization.select(org_name=module_org.name)
         assert session.package.search(
-            'name = {}'.format('puppet-agent'), repository=module_rh_repo.name
-        )[0]['RPM'].startswith('puppet-agent')
+            'name = {}'.format('foreman-proxy'), repository=module_rh_repo.name
+        )[0]['RPM'].startswith('foreman-proxy')
         assert session.package.search(
-            'name = {}'.format('katello-host-tools'), repository=module_rh_repo.name
-        )[0]['RPM'].startswith('katello-host-tools')
-        package_details = session.package.read('tracer-common', repository=module_rh_repo.name)
+            'name = {}'.format('satellite-capsule'), repository=module_rh_repo.name
+        )[0]['RPM'].startswith('satellite-capsule')
+        package_details = session.package.read(
+            'satellite-installer', repository=module_rh_repo.name
+        )
         assert {
-            '/etc/bash_completion.d/tracer',
-            '/usr/share/locale/cs/LC_MESSAGES/tracer.mo',
-            '/usr/share/tracer',
-            '/usr/share/tracer/__init__.py',
-            '/usr/share/tracer/__init__.pyc',
-            '/usr/share/tracer/__init__.pyo',
-            '/usr/share/tracer/applications.xml',
-            '/usr/share/tracer/README.md',
-            '/usr/share/tracer/rules.xml',
+            '/etc/foreman-installer/scenarios.d/capsule-answers.yaml',
+            '/etc/foreman-installer/scenarios.d/capsule.migrations',
+            '/etc/foreman-installer/scenarios.d/capsule.yaml',
+            '/etc/foreman-installer/scenarios.d/satellite-answers.yaml',
+            '/etc/foreman-installer/scenarios.d/satellite.migrations',
+            '/usr/share/satellite-installer/bin',
+            '/usr/share/satellite-installer/bin/capsule-installer',
+            '/usr/share/satellite-installer/bin/katello-installer',
         }.issubset(set(package_details['files']['package_files']))

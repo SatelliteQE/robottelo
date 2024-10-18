@@ -227,7 +227,7 @@ def provisioning_host(module_ssh_key_file, pxe_loader):
         host_class=ContentHost,
         target_vlan_id=vlan_id,
         target_vm_firmware=pxe_loader.vm_firmware,
-        target_vm_cd_iso=cd_iso,
+        target_pxeless_image=cd_iso,
         blank=True,
         target_memory='6GiB',
         auth=module_ssh_key_file,
@@ -235,30 +235,6 @@ def provisioning_host(module_ssh_key_file, pxe_loader):
         yield prov_host
         # Set host as non-blank to run teardown of the host
         prov_host.blank = getattr(prov_host, 'blank', False)
-
-
-@pytest.fixture
-def provision_multiple_hosts(module_ssh_key_file, pxe_loader, request):
-    """Fixture to check out two blank VMs"""
-    vlan_id = settings.provisioning.vlan_id
-    cd_iso = (
-        ""  # TODO: Make this an optional fixture parameter (update vm_firmware when adding this)
-    )
-    with Broker(
-        workflow=settings.provisioning.provisioning_host_workflow,
-        host_class=ContentHost,
-        _count=getattr(request, 'param', 2),
-        target_vlan_id=vlan_id,
-        target_vm_firmware=pxe_loader.vm_firmware,
-        target_vm_cd_iso=cd_iso,
-        blank=True,
-        target_memory='6GiB',
-        auth=module_ssh_key_file,
-    ) as hosts:
-        yield hosts
-
-        for prov_host in hosts:
-            prov_host.blank = getattr(prov_host, 'blank', False)
 
 
 @pytest.fixture
@@ -316,7 +292,7 @@ def pxe_loader(request):
 
 
 @pytest.fixture
-def pxeless_discovery_host(provisioning_host, module_discovery_sat):
+def pxeless_discovery_host(provisioning_host, module_discovery_sat, pxe_loader):
     """Fixture for returning a pxe-less discovery host for provisioning"""
     sat = module_discovery_sat.sat
     image_name = f"{gen_string('alpha')}-{module_discovery_sat.iso}"
@@ -333,23 +309,16 @@ def pxeless_discovery_host(provisioning_host, module_discovery_sat):
         workflow='import-disk-image',
         import_disk_image_name=image_name,
         import_disk_image_url=(f'https://{sat.hostname}/pub/{fdi}'),
+        firmware_type=pxe_loader.vm_firmware,
     ).execute()
-    # Change host to boot from CD ISO
+    # Change host to boot discovery image
     Broker(
-        job_template='configure-pxe-boot-rhv',
+        job_template='configure-pxe-boot',
         target_host=provisioning_host.name,
         target_vlan_id=settings.provisioning.vlan_id,
         target_vm_firmware=provisioning_host._broker_args['target_vm_firmware'],
-        target_vm_cd_iso=image_name,
+        target_pxeless_image=image_name,
         target_boot_scenario='pxeless_pre',
     ).execute()
     yield provisioning_host
-    # Remove ISO from host and delete disk image
-    Broker(
-        job_template='configure-pxe-boot-rhv',
-        target_host=provisioning_host.name,
-        target_vlan_id=settings.provisioning.vlan_id,
-        target_vm_firmware=provisioning_host._broker_args['target_vm_firmware'],
-        target_boot_scenario='pxeless_pre',
-    ).execute()
     Broker(workflow='remove-disk-image', remove_disk_image_name=image_name).execute()

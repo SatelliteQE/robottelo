@@ -12,6 +12,7 @@
 
 """
 
+import random
 import re
 from string import punctuation
 import tempfile
@@ -29,6 +30,7 @@ from robottelo.config import settings
 from robottelo.constants import (
     CONTAINER_MANIFEST_LABELS,
     LABELLED_REPOS,
+    SUPPORTED_REPO_CHECKSUMS,
     DataFile,
     repos as repo_constants,
 )
@@ -57,9 +59,17 @@ def repo_options_custom_product(request, module_org, module_target_sat):
 
 
 @pytest.fixture
-def repo(repo_options, module_target_sat):
+def repo(repo_options, target_sat):
     """Create a new repository."""
-    return module_target_sat.api.Repository(**repo_options).create()
+    repo = target_sat.api.Repository(**repo_options).create()
+    target_sat.wait_for_tasks(
+        search_query='Actions::Katello::Repository::MetadataGenerate'
+        f' and resource_id = {repo.id}'
+        ' and resource_type = Katello::Repository',
+        max_tries=6,
+        search_rate=10,
+    )
+    return repo
 
 
 class TestRepository:
@@ -211,7 +221,6 @@ class TestRepository:
         assert default_dl_policy
         assert repo.download_policy == default_dl_policy[0].value
 
-    @pytest.mark.skip_if_open("BZ:2042473")
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options', **datafactory.parametrized([{'content_type': 'yum'}]), indirect=True
@@ -265,7 +274,7 @@ class TestRepository:
         **datafactory.parametrized(
             {
                 checksum_type: {'checksum_type': checksum_type, 'download_policy': 'immediate'}
-                for checksum_type in ('sha1', 'sha256')
+                for checksum_type in SUPPORTED_REPO_CHECKSUMS
             }
         ),
         indirect=True,
@@ -395,38 +404,20 @@ class TestRepository:
             ).create()
 
     @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **datafactory.parametrized([{'url': url} for url in datafactory.invalid_names_list()]),
-        indirect=True,
-    )
-    def test_negative_create_url(self, repo_options, target_sat):
-        """Attempt to create repository with invalid url.
-
-        :id: 0bb9fc3f-d442-4437-b5d8-83024bc7ceab
-
-        :parametrized: yes
-
-        :expectedresults: A repository is not created and error is raised.
-
-        :CaseImportance: Critical
-        """
-        with pytest.raises(HTTPError):
-            target_sat.api.Repository(**repo_options).create()
-
-    @pytest.mark.tier1
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **datafactory.parametrized([{'url': f'http://{gen_string("alpha")}{punctuation}.com'}]),
+        **datafactory.parametrized([{'url': url} for url in (datafactory.invalid_url_list())]),
         indirect=True,
     )
-    def test_negative_create_with_url_with_special_characters(self, repo_options, target_sat):
-        """Verify that repository URL cannot contain unquoted special characters
+    def test_negative_create_url_with_invalid_and_special_characters(
+        self, repo_options, target_sat
+    ):
+        """Attempt to create repository with invalid url and special character.
 
-        :id: 2ffaa412-e5e5-4bec-afaa-9ea54315df49
+        :id: c0fb2079-78c9-4e8b-86ba-44d290c9f803
 
         :parametrized: yes
 
@@ -493,15 +484,15 @@ class TestRepository:
         indirect=True,
         ids=lambda x: x['content_type'],
     )
-    def test_negative_create_non_yum_with_download_policy(self, repo_options, target_sat):
-        """Verify that non-YUM repositories cannot be created with
+    def test_negative_create_repos_with_download_policy(self, repo_options, target_sat):
+        """Verify that non-YUM & non-docker repositories cannot be created with
         download policy
 
         :id: 8a59cb31-164d-49df-b3c6-9b90634919ce
 
         :parametrized: yes
 
-        :expectedresults: Non-YUM repository is not created with a download
+        :expectedresults: Non-YUM & non-docker repositories are not created with on_demand download
             policy
 
         :CaseImportance: Critical
@@ -536,9 +527,9 @@ class TestRepository:
         'repo_options',
         [
             {'checksum_type': checksum_type, 'download_policy': 'on_demand'}
-            for checksum_type in ('sha1', 'sha256')
+            for checksum_type in SUPPORTED_REPO_CHECKSUMS
         ],
-        ids=['sha1', 'sha256'],
+        ids=SUPPORTED_REPO_CHECKSUMS,
         indirect=True,
     )
     def test_negative_create_checksum_with_on_demand_policy(self, repo_options, target_sat):
@@ -561,25 +552,26 @@ class TestRepository:
         **datafactory.parametrized(
             {
                 checksum_type: {'checksum_type': checksum_type, 'download_policy': 'immediate'}
-                for checksum_type in ('sha1', 'sha256')
+                for checksum_type in SUPPORTED_REPO_CHECKSUMS
             }
         ),
         indirect=True,
     )
-    def test_negative_update_checksum_with_on_demand_policy(self, repo):
+    def test_positive_update_checksum_with_on_demand_policy(self, repo):
         """Attempt to update the download policy to on_demand on a repository with checksum type.
 
         :id: 5bfaef4f-de66-42a0-8419-b86d00ffde6f
 
         :parametrized: yes
 
-        :expectedresults: A repository is not updated and error is raised.
+        :expectedresults: The download policy is updated and checksum type is reset.
 
         :CaseImportance: Critical
         """
         repo.download_policy = 'on_demand'
-        with pytest.raises(HTTPError):
-            repo.update(['download_policy'])
+        repo = repo.update(['download_policy'])
+        assert repo.download_policy == 'on_demand', 'Download policy was not updated'
+        assert not repo.checksum_type, 'Checksum type was not reset to Default'
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('name', **datafactory.parametrized(datafactory.valid_data_list()))
@@ -604,7 +596,7 @@ class TestRepository:
         **datafactory.parametrized(
             {
                 checksum_type: {'checksum_type': checksum_type, 'download_policy': 'immediate'}
-                for checksum_type in ('sha1', 'sha256')
+                for checksum_type in SUPPORTED_REPO_CHECKSUMS
             }
         ),
         indirect=True,
@@ -620,43 +612,37 @@ class TestRepository:
 
         :CaseImportance: Critical
         """
-        updated_checksum = 'sha256' if repo_options['checksum_type'] == 'sha1' else 'sha1'
+        updated_checksum = random.choice(
+            [cs for cs in SUPPORTED_REPO_CHECKSUMS if cs != repo_options['checksum_type']]
+        )
         repo.checksum_type = updated_checksum
         repo = repo.update(['checksum_type'])
         assert repo.checksum_type == updated_checksum
 
     @pytest.mark.tier1
+    @pytest.mark.parametrize(
+        'repo_options', [{'unprotected': False}], ids=['protected'], indirect=True
+    )
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
-    def test_positive_update_url(self, repo):
-        """Update repository url to another valid one.
+    def test_positive_update_repo_url_and_unprotected_flag(self, repo):
+        """Update repository url and unprotected flag to another valid one.
 
-        :id: 8fbc11f0-a5c5-498e-a314-87958dcd7832
+        :id: 45ddfea2-ba37-45b8-95bb-9e92b8a3a946
 
-        :expectedresults: The repository url can be updated.
+        :parametrized: yes
+
+        :expectedresults: The repository url and unprotected flag can be updated.
 
         :CaseImportance: Critical
         """
+        # Update repo url
         repo.url = settings.repos.yum_2.url
         repo = repo.update(['url'])
         assert repo.url == settings.repos.yum_2.url
 
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options', [{'unprotected': False}], ids=['protected'], indirect=True
-    )
-    def test_positive_update_unprotected(self, repo):
-        """Update repository unprotected flag to another valid one.
-
-        :id: c55d169a-8f11-4bf8-9913-b3d39fee75f0
-
-        :parametrized: yes
-
-        :expectedresults: The repository unprotected flag can be updated.
-
-        :CaseImportance: Critical
-        """
+        # Update repo unprotected flag
         assert repo.unprotected is False
         repo.unprotected = True
         repo = repo.update(['unprotected'])
@@ -794,7 +780,6 @@ class TestRepository:
         with pytest.raises(HTTPError):
             repo.update(['name'])
 
-    @pytest.mark.skip_if_open('BZ:1311113')
     @pytest.mark.tier1
     def test_negative_update_label(self, repo):
         """Attempt to update repository label to another one.
@@ -884,7 +869,6 @@ class TestRepository:
         # Verify it has finished
         assert repo.read().content_counts['rpm'] >= 1
 
-    @pytest.mark.skip_if_open("BZ:2035025")
     @pytest.mark.tier2
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
@@ -1216,7 +1200,7 @@ class TestRepository:
     @pytest.mark.tier3
     @pytest.mark.parametrize('policy', ['additive', 'mirror_content_only'])
     def test_positive_sync_with_treeinfo_ignore(
-        self, target_sat, function_entitlement_manifest_org, policy
+        self, target_sat, function_sca_manifest_org, policy
     ):
         """Verify that the treeinfo file is not synced when added to ignorable content
         and synced otherwise. Check for applicable mirroring policies.
@@ -1242,7 +1226,7 @@ class TestRepository:
         distro = 'rhel8_bos'
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=function_entitlement_manifest_org.id,
+            org_id=function_sca_manifest_org.id,
             product=constants.REPOS['kickstart'][distro]['product'],
             reposet=constants.REPOS['kickstart'][distro]['reposet'],
             repo=constants.REPOS['kickstart'][distro]['name'],
@@ -1352,7 +1336,7 @@ class TestRepositorySync:
         pass
 
     @pytest.mark.tier3
-    def test_positive_bulk_cancel_sync(self, target_sat, module_entitlement_manifest_org):
+    def test_positive_bulk_cancel_sync(self, target_sat, module_sca_manifest_org):
         """Bulk cancel 10+ repository syncs
 
         :id: f9bb1c95-d60f-4c93-b32e-09d58ebce80e
@@ -1372,7 +1356,7 @@ class TestRepositorySync:
         for repo in constants.BULK_REPO_LIST:
             repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
                 basearch='x86_64',
-                org_id=module_entitlement_manifest_org.id,
+                org_id=module_sca_manifest_org.id,
                 product=repo['product'],
                 repo=repo['name'],
                 reposet=repo['reposet'],
@@ -2154,7 +2138,6 @@ class TestDockerRepository:
 class TestSRPMRepository:
     """Tests specific to using repositories containing source RPMs."""
 
-    @pytest.mark.skip_if_open("BZ:2016047")
     @pytest.mark.upgrade
     @pytest.mark.tier2
     def test_positive_srpm_upload_publish_promote_cv(

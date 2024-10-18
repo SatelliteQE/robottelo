@@ -30,9 +30,13 @@ def host_conf(request):
         ]
     ):
         deploy_kwargs = settings.content_host.get(_rhelver).to_dict().get('container', {})
+        if deploy_kwargs and (network := params.get('network')):
+            deploy_kwargs.update({'Container': network})
     # if we're not using containers or a container isn't available, use a VM
     if not deploy_kwargs:
         deploy_kwargs = settings.content_host.get(_rhelver).to_dict().get('vm', {})
+        if network := params.get('network'):
+            deploy_kwargs.update({'deploy_network_type': network})
     conf.update(deploy_kwargs)
     return conf
 
@@ -114,7 +118,7 @@ def content_hosts(request):
 
 @pytest.fixture(scope='module')
 def mod_content_hosts(request):
-    """A module-level fixture that provides two rhel7 content hosts object"""
+    """A module-level fixture that provides two rhel content hosts object"""
     with Broker(**host_conf(request), host_class=ContentHost, _count=2) as hosts:
         hosts[0].set_infrastructure_type('physical')
         yield hosts
@@ -126,7 +130,9 @@ def registered_hosts(request, target_sat, module_org, module_ak_with_cv):
     with Broker(**host_conf(request), host_class=ContentHost, _count=2) as hosts:
         for vm in hosts:
             repo = settings.repos['SATCLIENT_REPO'][f'RHEL{vm.os_version.major}']
-            vm.register(module_org, None, module_ak_with_cv.name, target_sat, repo=repo)
+            vm.register(
+                module_org, None, module_ak_with_cv.name, target_sat, repo_data=f'repo={repo}'
+            )
         yield hosts
 
 
@@ -142,7 +148,7 @@ def katello_host_tools_host(target_sat, module_org, rhel_contenthost):
         auto_attach=True,
     ).create()
 
-    rhel_contenthost.register(module_org, None, ak.name, target_sat, repo=repo)
+    rhel_contenthost.register(module_org, None, ak.name, target_sat, repo_data=f'repo={repo}')
     rhel_contenthost.install_katello_host_tools()
     return rhel_contenthost
 
@@ -167,7 +173,9 @@ def rex_contenthost(request, module_org, target_sat, module_ak_with_cv):
     request.param['no_containers'] = True
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         repo = settings.repos['SATCLIENT_REPO'][f'RHEL{host.os_version.major}']
-        host.register(module_org, None, module_ak_with_cv.name, target_sat, repo=repo)
+        host.register(
+            module_org, None, module_ak_with_cv.name, target_sat, repo_data=f'repo={repo}'
+        )
         yield host
 
 
@@ -177,7 +185,9 @@ def rex_contenthosts(request, module_org, target_sat, module_ak_with_cv):
     with Broker(**host_conf(request), host_class=ContentHost, _count=2) as hosts:
         for host in hosts:
             repo = settings.repos['SATCLIENT_REPO'][f'RHEL{host.os_version.major}']
-            host.register(module_org, None, module_ak_with_cv.name, target_sat, repo=repo)
+            host.register(
+                module_org, None, module_ak_with_cv.name, target_sat, repo_data=f'repo={repo}'
+            )
         yield hosts
 
 
@@ -198,7 +208,7 @@ def katello_host_tools_tracer_host(rex_contenthost, target_sat):
 
 
 @pytest.fixture(scope='module')
-def module_container_contenthost(request, module_target_sat):
+def module_container_contenthost(request, module_target_sat, module_org, module_activation_key):
     """Fixture that installs docker on the content host"""
     request.param = {
         "rhel_version": "8",
@@ -207,8 +217,6 @@ def module_container_contenthost(request, module_target_sat):
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         host.register_to_cdn()
-        # needed for docker commands to accept Satellite's cert
-        host.install_katello_ca(module_target_sat)
         for client in constants.CONTAINER_CLIENTS:
             assert (
                 host.execute(f'yum -y install {client}').status == 0
@@ -216,6 +224,11 @@ def module_container_contenthost(request, module_target_sat):
         assert (
             host.execute('systemctl enable --now podman').status == 0
         ), 'Start of podman service failed'
+        host.unregister()
+        assert (
+            host.register(module_org, None, module_activation_key.name, module_target_sat).status
+            == 0
+        )
         yield host
 
 

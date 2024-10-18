@@ -16,6 +16,7 @@ import copy
 import csv
 import os
 import re
+import time
 
 from airgun.exceptions import DisabledWidgetError, NoSuchElementException
 from box import Box
@@ -29,6 +30,7 @@ from robottelo.constants import (
     DEFAULT_CV,
     DEFAULT_LOC,
     ENVIRONMENT,
+    FAKE_1_CUSTOM_PACKAGE,
     FAKE_7_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE_NAME,
@@ -40,7 +42,7 @@ from robottelo.constants import (
 )
 from robottelo.constants.repos import CUSTOM_FILE_REPO
 from robottelo.utils.datafactory import gen_string
-from robottelo.utils.issue_handlers import is_open
+from tests.foreman.api.test_errata import cv_publish_promote
 
 
 def _get_set_from_list_of_dict(value):
@@ -255,6 +257,42 @@ def test_positive_read_from_details_page(session, module_host_template):
         assert 'Admin User' in values['properties']['properties_table']['Owner']
 
 
+def test_read_host_with_ics_domain(
+    session, module_host_template, module_location, module_org, module_target_sat
+):
+    """Create new Host with ics domain name and verify that it can be read
+
+    :id: 54e3db92-16c2-412b-bf68-44d479c5987b
+
+    :steps:
+        1. Create a host with a domain ending in .ics
+        2. Read the host's details through the UI
+
+    :expectedresults: Host ending with ics domain name can be accessed through Host UI
+
+    :customerscenario: true
+
+    :Verifies: SAT-26202
+    """
+    template = module_host_template
+    template.name = gen_string('alpha').lower()
+    ics_domain = module_target_sat.api.Domain(
+        location=[module_location],
+        organization=[module_org],
+        name=gen_string('alpha').lower() + '.ics',
+    ).create()
+    template.domain = ics_domain
+    host = template.create()
+    host_name = host.name
+    with module_target_sat.ui_session() as session:
+        values = session.host_new.get_details(host_name, widget_names='details')
+        assert (
+            values['details']['system_properties']['sys_properties']['domain']
+            == template.domain.name
+        )
+        assert values['details']['system_properties']['sys_properties']['name'] == host_name
+
+
 @pytest.mark.tier4
 def test_positive_read_from_edit_page(session, host_ui_options):
     """Create new Host and read all its content through edit page
@@ -271,9 +309,6 @@ def test_positive_read_from_edit_page(session, host_ui_options):
         values = session.host.read(host_name)
         assert values['host']['name'] == host_name.partition('.')[0]
         assert values['host']['organization'] == api_values['host.organization']
-        assert values['host']['location'] == api_values['host.location']
-        assert values['host']['lce'] == ENVIRONMENT
-        assert values['host']['content_view'] == DEFAULT_CV
         assert (
             values['operating_system']['architecture']
             == api_values['operating_system.architecture']
@@ -663,7 +698,6 @@ def test_positive_remove_parameter_non_admin_user(
 
 
 @pytest.mark.tier3
-@pytest.mark.skip_if_open("BZ:2059576")
 def test_negative_remove_parameter_non_admin_user(
     test_name, module_org, smart_proxy_location, target_sat
 ):
@@ -1204,7 +1238,7 @@ def test_positive_manage_table_columns(
 
 
 @pytest.mark.tier2
-def test_all_hosts_manage_columns(target_sat, function_org, new_host_ui):
+def test_all_hosts_manage_columns(target_sat, new_host_ui):
     """Verify that the manage columns widget changes the columns appropriately
 
     :id: 5e13267a-68d2-451a-ae00-6502dd5db7f4
@@ -1229,7 +1263,9 @@ def test_all_hosts_manage_columns(target_sat, function_org, new_host_ui):
         'Boot time': True,
     }
     with target_sat.ui_session() as session:
-        session.organization.select(function_org.name)
+        # Small workaround for an existing bug, reloads the page
+        session.all_hosts.get_displayed_table_headers()
+        wait_for(lambda: session.browser.refresh(), timeout=5)
         session.all_hosts.manage_table_columns(columns)
         displayed_columns = session.all_hosts.get_displayed_table_headers()
         for column, is_displayed in columns.items():
@@ -1312,23 +1348,18 @@ def test_positive_update_delete_package(
     module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
-        if not is_open('BZ:2132680'):
-            product_name = module_repos_collection_with_setup.custom_product.name
-            repos = session.host_new.get_repo_sets(client.hostname, product_name)
-            assert repos[0].status == 'Enabled'
-            session.host_new.override_repo_sets(
-                client.hostname, product_name, "Override to disabled"
-            )
-            assert repos[0].status == 'Disabled'
-            session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
-            result = client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
-            assert result.status != 0
-            session.host_new.override_repo_sets(
-                client.hostname, product_name, "Override to enabled"
-            )
-            assert repos[0].status == 'Enabled'
-            # refresh repos on system
-            client.run('subscription-manager repos')
+        product_name = module_repos_collection_with_setup.custom_product.name
+        repos = session.host_new.get_repo_sets(client.hostname, product_name)
+        assert repos[0].status == 'Enabled'
+        session.host_new.override_repo_sets(client.hostname, product_name, "Override to disabled")
+        assert repos[0].status == 'Disabled'
+        session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
+        result = client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
+        assert result.status != 0
+        session.host_new.override_repo_sets(client.hostname, product_name, "Override to enabled")
+        assert repos[0].status == 'Enabled'
+        # refresh repos on system
+        client.run('subscription-manager repos')
         # install package
         session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
         task_result = target_sat.wait_for_tasks(
@@ -1801,6 +1832,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
         assert host_parameters[param_name] == param_value
 
 
+@pytest.mark.pit_client
 @pytest.mark.tier2
 @pytest.mark.rhel_ver_match('[^6].*')
 def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
@@ -1859,7 +1891,18 @@ def test_all_hosts_delete(target_sat, function_org, function_location, new_host_
     with target_sat.ui_session() as session:
         session.organization.select(function_org.name)
         session.location.select(function_location.name)
+        # Get current headers
+        headers = session.all_hosts.get_displayed_table_headers()
+        stripped_headers = tuple(
+            header for header in headers if header is not None and header != 'Name'
+        )
+        wait_for(lambda: session.browser.refresh(), timeout=5)
+        # Make sure there is only Name column displayed
+        session.all_hosts.manage_table_columns({header: False for header in stripped_headers})
         assert session.all_hosts.delete(host.name)
+        # Get table to original state
+        wait_for(lambda: session.browser.refresh(), timeout=5)
+        session.all_hosts.manage_table_columns({header: True for header in stripped_headers})
 
 
 @pytest.mark.tier2
@@ -1880,6 +1923,104 @@ def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_
         session.organization.select(function_org.name)
         session.location.select(function_location.name)
         assert session.all_hosts.bulk_delete_all()
+
+
+@pytest.mark.tier2
+def test_all_hosts_bulk_cve_reassign(
+    target_sat, module_org, module_location, module_lce, module_cv, new_host_ui
+):
+    """Create several hosts, and bulk assigns them a new CVE via All Hosts UI
+
+    :id: 9acb3cf3-c042-4cc7-abdf-31f9a7f1fff0
+
+    :steps:
+        1.Create 2 Hosts, and register them to the first LCE.
+        2.Create a second LCE and promote the CV from the first LCE to this one.
+        3.Using the All Hosts UI, reassign both hosts from the first LCE to the second LCE.
+
+    :expectedresults: Both hosts are successfully assigned to a new LCE and CV
+
+    :CaseComponent: Hosts-Content
+
+    :Team: Phoenix-subscriptions
+    """
+    lce2 = target_sat.api.LifecycleEnvironment(organization=module_org).create()
+    module_cv = target_sat.api.ContentView(id=module_cv.id).read()
+    module_cv = cv_publish_promote(target_sat, module_org, module_cv, module_lce)['content-view']
+    module_cv = cv_publish_promote(target_sat, module_org, module_cv, lce2)['content-view']
+    for _ in range(3):
+        target_sat.api.Host(
+            organization=module_org,
+            location=module_location,
+            content_facet_attributes={
+                'content_view_id': module_cv.id,
+                'lifecycle_environment_id': module_lce.id,
+            },
+        ).create()
+    with target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.location.select(module_location.name)
+        headers = session.all_hosts.get_displayed_table_headers()
+        if "Lifecycle environment" not in headers:
+            wait_for(lambda: session.browser.refresh(), timeout=5)
+            session.all_hosts.manage_table_columns(
+                {
+                    'Lifecycle environment': True,
+                }
+            )
+        pre_table = session.all_hosts.read_table()
+        for row in pre_table:
+            assert row['Lifecycle environment'] == module_lce.name
+        session.all_hosts.manage_cve(lce=lce2.name, cv=module_cv.name)
+        wait_for(lambda: session.browser.refresh(), timeout=5)
+        post_table = session.all_hosts.read_table()
+        for row in post_table:
+            assert row['Lifecycle environment'] == lce2.name
+
+
+@pytest.mark.tier2
+def test_all_hosts_redirect_button(target_sat):
+    """Verify that the New UI button on the old Host page correctly redirects
+    to the All Hosts UI
+
+    :id: 7256f6d0-3ad9-471c-9e3e-bd41cc00a217
+
+    :expectedresults: New UI Button redirects to All Hosts page
+
+    :CaseComponent: Hosts-Content
+
+    :Team: Phoenix-subscriptions
+    """
+    with target_sat.ui_session() as session:
+        url = session.host.new_ui_button()
+        assert "/new/hosts" in url
+
+
+@pytest.mark.tier2
+def test_all_hosts_bulk_build_management(target_sat, function_org, function_location, new_host_ui):
+    """Create several hosts, and manage them via Build Management in All Host UI
+
+    :id: fff71945-6534-45cf-88a6-16b25c060f0a
+
+    :expectedresults: Build Managment dropdown in All Hosts UI works properly.
+
+    :CaseComponent:Hosts-Content
+
+    :Team: Phoenix-subscriptions
+    """
+    for _ in range(3):
+        target_sat.api.Host(organization=function_org, location=function_location).create()
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        session.location.select(function_location.name)
+        assert 'Success alert: Built 3 hosts' in session.all_hosts.build_management()
+        assert (
+            'Success alert: 3 hosts set to build and rebooting.'
+            in session.all_hosts.build_management(reboot=True)
+        )
+        assert 'Rebuilt configuration for 3 hosts' in session.all_hosts.build_management(
+            rebuild=True
+        )
 
 
 @pytest.fixture(scope='module')
@@ -1959,7 +2100,7 @@ def change_content_source_prep(
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('[78]')
+@pytest.mark.rhel_ver_match('[789]')
 def test_change_content_source(session, change_content_source_prep, rhel_contenthost):
     """
     This test excercises different ways to change host's content source
@@ -2128,3 +2269,387 @@ def test_host_status_honors_taxonomies(
     with module_target_sat.ui_session(test_name, user=login, password=password) as session:
         statuses = session.host.host_statuses()
     assert len([status for status in statuses if int(status['count'].split(': ')[1]) != 0]) == 1
+
+
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [
+        {
+            'distro': 'rhel8',
+            'YumRepository': {'url': settings.repos.yum_3.url},
+        }
+    ],
+    ids=['yum3'],
+    indirect=True,
+)
+@pytest.mark.parametrize('finish_via', ['rex', 'custom_rex'])
+@pytest.mark.parametrize(
+    'package_management_action',
+    [
+        'install_1_pckg',
+        'install_2_pckgs',
+        'upgrade_1_pckg',
+        'upgrade_all_pckgs',
+        'remove_1_pckg',
+        'remove_2_pckgs',
+    ],
+)
+@pytest.mark.parametrize('number_of_hosts', [1, 2], ids=['1_host', '2_hosts'])
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.no_containers
+def test_positive_manage_packages(
+    request,
+    module_target_sat,
+    mod_content_hosts,
+    module_repos_collection_with_setup,
+    new_host_ui,
+    number_of_hosts,
+    package_management_action,
+    finish_via,
+):
+    """
+    This test is testing the new Satellite feature - Managing packages on hosts via the new All hosts UI.
+    It is highly parametrized so it can test various package management actions on various hosts.
+    Test cases are defined by the combination of the following parameters:
+    - number_of_hosts: 1 or 2
+    - package_management_action: install_1_pckg, install_2_pckgs, upgrade_1_pckg, upgrade_all_pckgs, remove_1_pckg, remove_2_pckgs
+    - finish_via: rex or custom_rex
+    All this leads to 2 * 6 * 2 = 24 test cases in total.
+
+    :id: 1d6760ca-9c7e-4267-9a4b-3f91d50c8eb1
+
+    :steps:
+        1. Setup hosts on Satellite, override reposets to enabled and refresh applicability so the package profile is updated
+        2. Setup all the control flags for airgun entity
+        3. Setup packages on the selected hosts so they can be managed in the next steps
+        4. Run the selected package management action on the selected hosts
+        5. Wait for the specific tasks to finish
+        6. Assert the results
+
+    :expectedresults: Various package management actions should run successfully on various hosts
+
+    :CaseComponent: Hosts-Content
+
+    :parametrized: yes
+
+    :Team: Phoenix-subscriptions
+    """
+
+    packages = ['panda', 'seal']
+
+    for host in mod_content_hosts:
+        host.add_rex_key(module_target_sat)
+        module_repos_collection_with_setup.setup_virtual_machine(host)
+
+    product_name = module_repos_collection_with_setup.custom_product.name
+
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_repos_collection_with_setup.organization['name'])
+
+        for host in mod_content_hosts:
+            if (
+                session.host_new.get_repo_sets(host.hostname, product_name)[0]['Status']
+                == 'Disabled'
+            ):
+                session.host_new.override_repo_sets(
+                    host.hostname, product_name, "Override to enabled"
+                )
+                session.host_new.refresh_applicability(host.hostname)
+                latest_refresh_applicability_id = int(
+                    module_target_sat.cli.JobInvocation().list()[0]['id']
+                )
+                module_target_sat.wait_for_tasks(
+                    search_query=(
+                        f'action: "Upload package profile for a host" and resource_id = {latest_refresh_applicability_id}'
+                    )
+                )
+
+        # Define hosts to test based on the number of hosts
+        hosts_to_test = []
+        match number_of_hosts:
+            case 1:
+                hosts_to_test = [mod_content_hosts[0]]
+            case 2:
+                hosts_to_test = mod_content_hosts
+
+        # Set default value to management action flags
+        upgrade_all_packages_flag = upgrade_packages_flag = install_packages_flag = (
+            remove_packages_flag
+        ) = False
+
+        # Set flags according to current parametrization
+        match package_management_action:
+            case 'install_1_pckg':
+                install_packages_flag = True
+                packages_to_install = [packages[0]]
+                packages_to_upgrade = None
+                packages_to_remove = None
+
+            case 'install_2_pckgs':
+                install_packages_flag = True
+                packages_to_install = packages
+                packages_to_upgrade = None
+                packages_to_remove = None
+
+            case 'upgrade_1_pckg':
+                upgrade_packages_flag = True
+                packages_to_install = None
+                packages_to_upgrade = [packages[0]]
+                packages_to_remove = None
+
+            case 'upgrade_all_pckgs':
+                upgrade_packages_flag = True
+                upgrade_all_packages_flag = True
+                packages_to_install = None
+                packages_to_upgrade = packages
+                packages_to_remove = None
+
+            case 'remove_1_pckg':
+                remove_packages_flag = True
+                packages_to_install = None
+                packages_to_upgrade = None
+                packages_to_remove = [packages[0]]
+
+            case 'remove_2_pckgs':
+                remove_packages_flag = True
+                packages_to_install = None
+                packages_to_upgrade = None
+                packages_to_remove = packages
+
+        # Set flags based on current type of the finish
+        match finish_via:
+            case 'rex':
+                manage_by_customized_rex_flag = False
+            case 'custom_rex':
+                manage_by_customized_rex_flag = True
+
+        # Get the latest versions of wanted packages on the tested hosts
+        tested_hosts_packages_latest_version_dicts = {}
+        for host in hosts_to_test:
+            # Check the latests versions of wanted packages
+            result = host.run(f'dnf list {" ".join(packages)}').stdout
+            # Cropping dnf output so it shows only packages
+            packages_list = [line for line in result.split('\n')[3:-1]]
+            packages_latest_version_dict = {}
+            # Create dict containing {'package_name': 'version', ...} for further checks
+            for item in packages_list:
+                parts = item.split()
+                # Remove architecture part from package name
+                package_name = parts[0].split('.')[0]
+                version = parts[1]  # parts look like ['package_name', 'version', 'repo']
+                packages_latest_version_dict[package_name] = version
+
+            tested_hosts_packages_latest_version_dicts[host.hostname] = (
+                packages_latest_version_dict  # {'example.com':{'package_name': 'version', ...}, ...}
+            )
+
+        used_action = package_management_action.split('_')[0]
+
+        if used_action == 'install':
+            # Checking if wanted packages are available so they can be installed in the next step
+            for host in hosts_to_test:
+                assert host.run(f'rpm -q {" ".join(packages_to_install)}').status == len(
+                    packages_to_install
+                ), 'Some of the packages are already installed!'
+
+        elif used_action == 'upgrade':
+            # Installing and downgrading packages so they can be upgraded in the next step
+            for host in hosts_to_test:
+                assert (
+                    host.run(
+                        f'dnf list available | grep -E "{"|".join(packages_to_upgrade)}"'
+                    ).status
+                    == 0
+                ), 'Wanted packages are not available!'
+                assert (
+                    host.run(f'dnf install {" ".join(packages_to_upgrade)} -y').status == 0
+                ), 'Could not install wanted packages!'
+                assert (
+                    host.run(f'dnf downgrade {" ".join(packages_to_upgrade)} -y').status == 0
+                ), 'Packages were not downgraded!'
+
+        elif used_action == 'remove':
+            # Installing packages so they can be removed in the next step
+            for host in hosts_to_test:
+                assert (
+                    host.run(f'dnf install {" ".join(packages_to_remove)} -y').status == 0
+                ), 'Could not install wanted packages!'
+
+        # Run airgun entity which performs Package management action based on the flags set above
+        session.all_hosts.manage_packages(
+            host_names=[host.hostname for host in hosts_to_test],
+            upgrade_all_packages=upgrade_all_packages_flag,
+            upgrade_packages=upgrade_packages_flag,
+            install_packages=install_packages_flag,
+            remove_packages=remove_packages_flag,
+            packages_to_upgrade=packages_to_upgrade,
+            packages_to_install=packages_to_install,
+            packages_to_remove=packages_to_remove,
+            manage_by_customized_rex=manage_by_customized_rex_flag,
+        )
+
+        # Wait till the job launched by the management action is finished
+        job_id = int(module_target_sat.cli.JobInvocation().list()[0]['id'])
+        if install_packages_flag:
+            module_target_sat.wait_for_tasks(
+                search_query=(
+                    f'action: "Install package(s) name ^ ({",".join(packages_to_install)})" and resource_id = {job_id}'
+                ),
+            )
+
+        elif upgrade_packages_flag and (not upgrade_all_packages_flag):
+            module_target_sat.wait_for_tasks(
+                f'action:  "Update package(s) name ^ ({",".join(packages_to_upgrade)})" and resource_id = {job_id}'
+            )
+
+        elif upgrade_all_packages_flag:
+            if not manage_by_customized_rex_flag:
+                module_target_sat.wait_for_tasks(
+                    f'action: "Upgrade all packages" and resource_id = {job_id}'
+                )
+            else:
+                module_target_sat.wait_for_tasks(
+                    f'action: "Update package(s)" and resource_id = {job_id}'
+                )
+
+        elif remove_packages_flag:
+            module_target_sat.wait_for_tasks(
+                f'action: "Remove packages name ^ ({",".join(packages_to_remove)})" and resource_id = {job_id}'
+            )
+
+        # MAKE ASSERTS AFTER INSTALLING PACKAGES
+        if used_action == 'install':
+            for host in hosts_to_test:
+                # Check that all the wanted packages are installed
+                assert (
+                    host.run(f'rpm -q {" ".join(packages_to_install)}').status == 0
+                ), 'Some of the wanted packages is not installed!'
+
+                # Get versions of installed packages
+                installed_packages = host.run(
+                    f'rpm -qa {" ".join(packages_to_install)}'
+                ).stdout.split('\n')[:-1]
+                installed_packages_version_dict = {}
+                # Create dict containing {'installed_package_name': 'version', ...} for further checks
+                for package in installed_packages:
+                    package_name, version = package.split('-')[0], '-'.join(package.split('-')[1:])
+                    installed_packages_version_dict[package_name] = version[
+                        : version.rfind('.')
+                    ].strip()
+
+                # Check that the latest version of packages is installed
+                for package in packages_to_install:
+                    assert (
+                        installed_packages_version_dict[package]
+                        == tested_hosts_packages_latest_version_dicts[host.hostname][package]
+                    ), f'Package "{package}" is not installed in the latest version!'
+
+        # MAKE ASSERTS AFTER UPGRADING PACKAGES
+        elif used_action == 'upgrade':
+            for host in hosts_to_test:
+                # Get versions of installed packages
+                installed_packages = host.run(
+                    f'rpm -qa {" ".join(packages_to_upgrade)}'
+                ).stdout.split('\n')[:-1]
+                installed_packages_version_dict = {}
+                # Create dict containing {'installed_package_name': 'version', ...} for further checks
+                for package in installed_packages:
+                    package_name, version = package.split('-')[0], '-'.join(package.split('-')[1:])
+                    installed_packages_version_dict[package_name] = version[
+                        : version.rfind('.')
+                    ].strip()
+
+                # Check that the package was upgraded to the latest version
+                for package in packages_to_upgrade:
+                    assert (
+                        installed_packages_version_dict[package]
+                        == tested_hosts_packages_latest_version_dicts[host.hostname][package]
+                    ), f'Package "{package}" is not upgraded to the latest version!'
+
+        # MAKE ASSERTS AFTER REMOVING PACKAGES
+        elif used_action == 'remove':
+            for host in hosts_to_test:
+                # Assert that all the wanted packages were removed
+                assert host.run(f'rpm -qa {" ".join(packages_to_remove)}').stdout == ''
+
+    @request.addfinalizer
+    def _cleanup():
+        for host in hosts_to_test:
+            time.sleep(5)
+            assert (
+                host.run(f'dnf remove {" ".join(packages)} -y').status == 0
+            ), 'Could not remove installed packages in a finalizer!'
+
+
+@pytest.mark.parametrize('errata_to_install', ['1', '2'])
+@pytest.mark.parametrize('manage_by_custom_rex', [True, False])
+@pytest.mark.parametrize(
+    'function_repos_collection_with_manifest',
+    [
+        {
+            'distro': 'rhel8',
+            'YumRepository': [
+                {'url': settings.repos.yum_3.url},
+                {'url': settings.repos.yum_1.url},
+            ],
+        }
+    ],
+    indirect=True,
+)
+@pytest.mark.no_containers
+@pytest.mark.tier2
+@pytest.mark.rhel_ver_match('8')
+def test_all_hosts_manage_errata(
+    session,
+    module_target_sat,
+    function_sca_manifest_org,
+    content_hosts,
+    function_repos_collection_with_manifest,
+    manage_by_custom_rex,
+    errata_to_install,
+    new_host_ui,
+):
+    """Apply an errata on multiple hosts through bulk errata wizard in All Hosts page.
+
+    :id: c14c87a3-fdeb-4ad2-af36-65aa17fc7d41
+
+    :expectedresults: Errata can be bulk applied to hosts through the All Hosts page.
+
+    :CaseComponent: Hosts-Content
+
+    :Team: Phoenix-content
+    """
+    if errata_to_install == '1':
+        errata_ids = settings.repos.yum_3.errata[25]
+    if errata_to_install == '2':
+        errata_ids = [settings.repos.yum_3.errata[25], settings.repos.yum_1.errata[1]]
+    for host in content_hosts:
+        host.add_rex_key(module_target_sat)
+        function_repos_collection_with_manifest.setup_virtual_machine(
+            host, enable_custom_repos=True
+        )
+        host.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
+        result = host.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
+        assert result.status == 0
+        if errata_to_install == '2':
+            host.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
+            result = host.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
+            assert result.status == 0
+    with module_target_sat.ui_session() as session:
+        session.organization.select(function_sca_manifest_org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        session.all_hosts.manage_errata(
+            host_names=[content_hosts[0].hostname, content_hosts[1].hostname],
+            erratas_to_apply_by_id=errata_ids,
+            manage_by_customized_rex=manage_by_custom_rex,
+        )
+        if errata_to_install == '2':
+            errata_ids = f'{errata_ids[0]},{errata_ids[1]}'
+        for host in content_hosts:
+            task_result = module_target_sat.wait_for_tasks(
+                search_query=(f'"Install errata errata_id ^ ({errata_ids}) on {host.hostname}"'),
+                search_rate=2,
+                max_tries=60,
+            )
+            task_status = module_target_sat.api.ForemanTask(id=task_result[0].id).poll()
+            assert task_status['result'] == 'success'

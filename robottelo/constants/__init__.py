@@ -8,7 +8,6 @@ from nailgun import entities
 # This should be updated after each version branch
 SATELLITE_VERSION = "6.17"
 SATELLITE_OS_VERSION = "8"
-SAT_NON_GA_VERSIONS = ['6.16', '6.17']
 
 # Default system ports
 HTTPS_PORT = '443'
@@ -101,13 +100,12 @@ _abcs = dict.fromkeys(
 )
 _zones_combo = {**_bcds, **_abcfs, **_abcs}
 VALID_GCE_ZONES = [f'{loc}-{zone}' for loc, zones in _zones_combo.items() for zone in zones]
-LATEST_RHEL7_GCE_IMG_UUID = '7726764279310511390'
 
 GCE_MACHINE_TYPE_DEFAULT = 'f1-micro'
 GCE_NETWORK_DEFAULT = 'default'
 GCE_EXTERNAL_IP_DEFAULT = True
 GCE_RHEL_CLOUD_PROJECTS = ['rhel-cloud', 'rhel-sap-cloud']
-GCE_TARGET_RHEL_IMAGE_NAME = 'rhel-7'
+GCE_TARGET_RHEL_IMAGE_NAME = 'rhel-9'
 
 # AzureRM specific constants
 AZURERM_VALID_REGIONS = [
@@ -416,6 +414,7 @@ REPOS = {
         'reposet': REPOSET['rhsclient9'],
         'product': PRDS['rhel9'],
         'distro': 'rhel9',
+        'releasever': '9',
         'key': PRODUCT_KEY_SAT_CLIENT,
     },
     'rhst7': {
@@ -883,6 +882,7 @@ PULP_ARTIFACT_DIR = '/var/lib/pulp/media/artifact/'
 PULP_EXPORT_DIR = '/var/lib/pulp/exports/'
 PULP_IMPORT_DIR = '/var/lib/pulp/imports/'
 EXPORT_LIBRARY_NAME = 'Export-Library'
+SUPPORTED_REPO_CHECKSUMS = ['sha256', 'sha384', 'sha512']
 
 PUPPET_COMMON_INSTALLER_OPTS = {
     'foreman-proxy-puppetca': 'true',
@@ -1006,18 +1006,6 @@ PERMISSIONS = {
         'create_arf_reports',
         'view_arf_reports',
         'destroy_arf_reports',
-    ],
-    'ForemanOpenscap::OvalContent': [
-        'create_oval_contents',
-        'destroy_oval_contents',
-        'edit_oval_contents',
-        'view_oval_contents',
-    ],
-    'ForemanOpenscap::OvalPolicy': [
-        'create_oval_policies',
-        'destroy_oval_policies',
-        'edit_oval_policies',
-        'view_oval_policies',
     ],
     'ForemanOpenscap::Policy': [
         'assign_policies',
@@ -1618,7 +1606,7 @@ OSCAP_PROFILE = {
     'cbrhel6': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 6',
     'cbrhel7': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 7',
     'cbrhel8': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 8',
-    'cbrhel9': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 9',
+    'cbrhel9': 'PCI-DSS v4.0 Control Baseline for Red Hat Enterprise Linux 9',
     'ppgpo': 'Protection Profile for General Purpose Operating Systems',
     'acscee': 'Australian Cyber Security Centre (ACSC) Essential Eight',
     'ospp7': 'OSPP - Protection Profile for General Purpose Operating Systems v4.2.1',
@@ -1719,7 +1707,6 @@ BOOKMARK_ENTITIES_SELECTION = [
         'controller': 'provisioning_templates',
         'session_name': 'provisioningtemplate',
     },
-    {'name': 'Repository', 'controller': 'katello_repositories', 'session_name': 'repository'},
 ]
 
 STRING_TYPES = ['alpha', 'numeric', 'alphanumeric', 'latin1', 'utf8', 'cjk', 'html']
@@ -1777,6 +1764,8 @@ OPEN_STATUSES = ("NEW", "ASSIGNED", "POST", "MODIFIED")
 CLOSED_STATUSES = ("ON_QA", "VERIFIED", "RELEASE_PENDING", "CLOSED")
 WONTFIX_RESOLUTIONS = ("WONTFIX", "CANTFIX", "DEFERRED")
 # Jira statuses used by Robottelo issue handler.
+JIRA_TESTS_PASSED_LABEL = "tests-passed"
+JIRA_TESTS_FAILED_LABEL = "tests-failed"
 JIRA_OPEN_STATUSES = ("New", "Backlog", "Refinement", "To Do", "In Progress")
 JIRA_ONQA_STATUS = "Review"
 JIRA_CLOSED_STATUSES = ("Release Pending", "Closed")
@@ -2002,6 +1991,12 @@ FAM_TEST_PLAYBOOKS = [
     "webhook",
 ]
 
+FAM_TEST_LIBVIRT_PLAYBOOKS = [
+    "compute_attribute",
+    "compute_profile",
+    "hostgroup",
+]
+
 FAM_ROOT_DIR = '/usr/share/ansible/collections/ansible_collections/redhat/satellite'
 
 FAM_MODULE_PATH = f'{FAM_ROOT_DIR}/plugins/modules'
@@ -2038,9 +2033,7 @@ WEBHOOK_EVENTS = [
     "actions.remote_execution.run_host_job_ansible_enable_web_console_succeeded",
     "actions.remote_execution.run_host_job_ansible_run_capsule_upgrade_succeeded",
     "actions.remote_execution.run_host_job_ansible_run_host_succeeded",
-    "actions.remote_execution.run_host_job_ansible_run_insights_plan_succeeded",
     "actions.remote_execution.run_host_job_ansible_run_playbook_succeeded",
-    "actions.remote_execution.run_host_job_foreman_openscap_run_oval_scans_succeeded",
     "actions.remote_execution.run_host_job_foreman_openscap_run_scans_succeeded",
     "actions.remote_execution.run_host_job_katello_errata_install_succeeded",
     "actions.remote_execution.run_host_job_katello_group_install_succeeded",

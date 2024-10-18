@@ -4,10 +4,10 @@ from robottelo.constants import CAPSULE_REGISTRATION_OPTS
 
 
 @pytest.fixture(scope='module')
-def rhcloud_manifest_org(module_target_sat, module_extra_rhel_entitlement_manifest):
+def rhcloud_manifest_org(module_target_sat, module_sca_manifest):
     """A module level fixture to get organization with manifest."""
     org = module_target_sat.api.Organization().create()
-    module_target_sat.upload_manifest(org.id, module_extra_rhel_entitlement_manifest.content)
+    module_target_sat.upload_manifest(org.id, module_sca_manifest.content)
     return org
 
 
@@ -33,10 +33,10 @@ def rhcloud_registered_hosts(
 ):
     """Fixture that registers content hosts to Satellite and Insights."""
     for vm in mod_content_hosts:
-        vm.configure_rhai_client(
+        vm.configure_insights_client(
             satellite=module_target_sat,
-            activation_key=rhcloud_activation_key.name,
-            org=rhcloud_manifest_org.label,
+            activation_key=rhcloud_activation_key,
+            org=rhcloud_manifest_org,
             rhel_distro=f"rhel{vm.os_version.major}",
         )
         assert vm.subscribed
@@ -51,10 +51,10 @@ def rhel_insights_vm(
     rhel_contenthost.configure_rex(
         satellite=module_target_sat, org=rhcloud_manifest_org, register=False
     )
-    rhel_contenthost.configure_rhai_client(
+    rhel_contenthost.configure_insights_client(
         satellite=module_target_sat,
-        activation_key=rhcloud_activation_key.name,
-        org=rhcloud_manifest_org.label,
+        activation_key=rhcloud_activation_key,
+        org=rhcloud_manifest_org,
         rhel_distro=f"rhel{rhel_contenthost.os_version.major}",
     )
     # Generate report

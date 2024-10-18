@@ -17,12 +17,12 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
+    DOCKER_REPO_UPSTREAM_NAME,
     PRDS,
     REPO_TYPE,
     REPOS,
     REPOSET,
+    RH_CONTAINER_REGISTRY_HUB,
 )
 from robottelo.constants.repos import FEDORA_OSTREE_REPO
 
@@ -75,7 +75,6 @@ def test_positive_sync_rh_repos(session, target_sat, module_sca_manifest_org):
         assert all([result == 'Syncing Complete.' for result in results])
 
 
-@pytest.mark.skip_if_open("BZ:1625783")
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
@@ -103,11 +102,10 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product, module
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_open("BZ:1625783")
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_sync_rh_ostree_repo(session, target_sat, module_entitlement_manifest_org):
+def test_positive_sync_rh_ostree_repo(session, target_sat, module_sca_manifest_org):
     """Sync CDN based ostree repository.
 
     :id: 4d28fff0-5fda-4eee-aa0c-c5af02c31de5
@@ -124,14 +122,14 @@ def test_positive_sync_rh_ostree_repo(session, target_sat, module_entitlement_ma
     """
     target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=None,
-        org_id=module_entitlement_manifest_org.id,
+        org_id=module_sca_manifest_org.id,
         product=PRDS['rhah'],
         repo=REPOS['rhaht']['name'],
         reposet=REPOSET['rhaht'],
         releasever=None,
     )
     with session:
-        session.organization.select(org_name=module_entitlement_manifest_org.name)
+        session.organization.select(org_name=module_sca_manifest_org.name)
         results = session.sync_status.synchronize([(PRDS['rhah'], REPOS['rhaht']['name'])])
         assert len(results) == 1
         assert results[0] == 'Syncing Complete.'
@@ -155,8 +153,10 @@ def test_positive_sync_docker_via_sync_status(session, module_org, module_target
             {
                 'name': repo_name,
                 'repo_type': REPO_TYPE['docker'],
-                'repo_content.upstream_url': CONTAINER_REGISTRY_HUB,
-                'repo_content.upstream_repo_name': CONTAINER_UPSTREAM_NAME,
+                'repo_content.upstream_url': RH_CONTAINER_REGISTRY_HUB,
+                'repo_content.upstream_repo_name': DOCKER_REPO_UPSTREAM_NAME,
+                'repo_content.upstream_username': settings.subscription.rhn_username,
+                'repo_content.upstream_password': settings.subscription.rhn_password,
             },
         )
         assert session.repository.search(product.name, repo_name)[0]['Name'] == repo_name

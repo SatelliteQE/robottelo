@@ -322,7 +322,8 @@ class TestAzureRMFinishTemplateProvisioning:
             f'script_uris={AZURERM_FILE_URI},'
             f'premium_os_disk={self.premium_os_disk}'
         )
-        nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+        results = module_azurerm_cr.available_networks()['results']
+        nw_id = next((item for item in results if item['name'] == 'default'), None)['id']
         request.cls.interfaces_attributes = (
             f'compute_network={nw_id},compute_public_ip=Static,compute_private_ip=false'
         )
@@ -410,9 +411,12 @@ class TestAzureRMFinishTemplateProvisioning:
 
         assert class_host_ft['name'] == self.fullhostname
         assert class_host_ft['status']['build-status'] == "Installed"
-        assert class_host_ft['compute-resource'] == module_azurerm_cr.name
-        assert class_host_ft['operating-system']['image'] == module_azurerm_custom_finishimg.name
-        assert class_host_ft['network-interfaces'][0]['ipv4-address'] == azureclient_host.ip
+        assert class_host_ft['compute-resource']['name'] == module_azurerm_cr.name
+        assert (
+            class_host_ft['operating-system']['image']['name']
+            == module_azurerm_custom_finishimg.name
+        )
+        assert class_host_ft['network-interfaces']['1']['ipv4-address'] == azureclient_host.ip
 
         # Azure cloud
         assert self.hostname.lower() == azureclient_host.name
@@ -454,7 +458,8 @@ class TestAzureRMUserDataProvisioning:
             f'script_uris={AZURERM_FILE_URI},'
             f'premium_os_disk={self.premium_os_disk}'
         )
-        nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+        results = module_azurerm_cr.available_networks()['results']
+        nw_id = next((item for item in results if item['name'] == 'default'), None)['id']
         request.cls.interfaces_attributes = (
             f'compute_network={nw_id},compute_public_ip=Dynamic,compute_private_ip=false'
         )
@@ -537,10 +542,10 @@ class TestAzureRMUserDataProvisioning:
         """
         assert class_host_ud['name'] == self.fullhostname
         assert class_host_ud['status']['build-status'] == "Pending installation"
-        assert class_host_ud['network-interfaces'][0]['ipv4-address'] == azureclient_host.ip
-        assert class_host_ud['compute-resource'] == module_azurerm_cr.name
-        assert class_host_ud['operating-system']['image'] == module_azurerm_cloudimg.name
-        assert class_host_ud['host-group'] == azurerm_hostgroup.name
+        assert class_host_ud['network-interfaces']['1']['ipv4-address'] == azureclient_host.ip
+        assert class_host_ud['compute-resource']['name'] == module_azurerm_cr.name
+        assert class_host_ud['operating-system']['image']['name'] == module_azurerm_cloudimg.name
+        assert class_host_ud['host-group']['name'] == azurerm_hostgroup.name
 
         # Azure cloud
         assert self.hostname.lower() == azureclient_host.name

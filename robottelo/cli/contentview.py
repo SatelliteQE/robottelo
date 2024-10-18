@@ -20,6 +20,7 @@ Subcommands::
     info                          Show a content view
     list                          List content views
     publish                       Publish a content view
+    purge                         Delete old versions of a content view
     remove                        Remove versions and/or environments from a
                                   content view and reassign systems and keys
     remove-from-environment       Remove a content view from an environment
@@ -114,6 +115,12 @@ class ContentView(Base):
         return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)
 
     @classmethod
+    def purge(cls, options, timeout='25m'):
+        """Purges old versions of content-view. Defaults to keeping 3"""
+        cls.command_sub = 'purge'
+        return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)
+
+    @classmethod
     def version_info(cls, options, output_format=None):
         """Provides version info related to content-view's version."""
         cls.command_sub = 'version info'
@@ -127,12 +134,12 @@ class ContentView(Base):
         return result
 
     @classmethod
-    def version_incremental_update(cls, options):
+    def version_incremental_update(cls, options, output_format='base'):
         """Performs incremental update of the content-view's version"""
         cls.command_sub = 'version incremental-update'
         if options is None:
             options = {}
-        return cls.execute(cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format=output_format)
 
     @classmethod
     def version_list(cls, options):

@@ -1,7 +1,6 @@
 from collections import defaultdict
 import re
 
-from packaging.version import Version
 import pytest
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed
@@ -13,12 +12,36 @@ from robottelo.constants import (
     JIRA_OPEN_STATUSES,
     JIRA_WONTFIX_RESOLUTIONS,
 )
-from robottelo.hosts import get_sat_version
 from robottelo.logging import logger
 
 # match any version as in `sat-6.14.x` or `sat-6.13.0` or `6.13.9`
 # The .version group being a `d.d` string that can be casted to Version()
 VERSION_RE = re.compile(r'(?:sat-)*?(?P<version>\d\.\d)\.\w*')
+
+common_jira_fields = ['key', 'summary', 'status', 'labels', 'resolution', 'fixVersions']
+
+mapped_response_fields = {
+    'key': "{obj_name}['key']",
+    'summary': "{obj_name}['fields']['summary']",
+    'status': "{obj_name}['fields']['status']['name']",
+    'labels': "{obj_name}['fields']['labels']",
+    'resolution': "{obj_name}['fields']['resolution']['name'] if {obj_name}['fields']['resolution'] else ''",
+    'fixVersions': "[ver['name'] for ver in {obj_name}['fields']['fixVersions']] if {obj_name}['fields']['fixVersions'] else []",
+    # Custom Field - SFDC Cases Counter
+    'customfield_12313440': "{obj_name}['fields']['customfield_12313440']",
+}
+
+
+def sanitized_issue_data(issue, out_fields):
+    """fetches the value for all the given fields from a given jira issue
+
+    Arguments:
+        issue {dict} -- The json data for a jira issue
+        out_fields {list} -- The list of fields for which data to be retrieved from jira issue
+    """
+    return {
+        field: eval(mapped_response_fields[field].format(obj_name=issue)) for field in out_fields
+    }
 
 
 def is_open_jira(issue_id, data=None):
@@ -46,11 +69,6 @@ def is_open_jira(issue_id, data=None):
         return True
 
     # Jira is Closed with a resolution in (Done, Done-Errata, ...)
-    # server.version is higher or equal than Jira fixVersion
-    # Consider fixed, Jira is not open
-    fix_version = jira.get('fixVersions')
-    if fix_version:
-        return get_sat_version() < Version(min(fix_version))
     return status not in JIRA_CLOSED_STATUSES and status != JIRA_ONQA_STATUS
 
 
@@ -131,8 +149,7 @@ def collect_data_jira(collected_data, cached_data):  # pragma: no cover
     """
     jira_data = (
         get_data_jira(
-            [item for item in collected_data if item.startswith('SAT-')],
-            cached_data=cached_data,
+            [item for item in collected_data if item.startswith('SAT-')], cached_data=cached_data
         )
         or []
     )
@@ -169,16 +186,41 @@ CACHED_RESPONSES = defaultdict(dict)
     stop=stop_after_attempt(4),  # Retry 3 times before raising
     wait=wait_fixed(20),  # Wait seconds between retries
 )
-def get_data_jira(issue_ids, cached_data=None):  # pragma: no cover
+def get_jira(jql, fields=None):
+    """Accepts the jql to retrieve the data from Jira for the given fields
+
+    Arguments:
+        jql {str} -- The query for retrieving the issue(s) details from jira
+        fields {list} -- The custom fields in query to retrieve the data for
+
+    Returns: Jira object of response after status check
+    """
+    params = {"jql": jql}
+    if fields:
+        params.update({"fields": ",".join(fields)})
+    response = requests.get(
+        f"{settings.jira.url}/rest/api/latest/search/",
+        params=params,
+        headers={"Authorization": f"Bearer {settings.jira.api_key}"},
+    )
+    response.raise_for_status()
+    return response
+
+
+def get_data_jira(issue_ids, cached_data=None, jira_fields=None):  # pragma: no cover
     """Get a list of marked Jira data and query Jira REST API.
 
     Arguments:
         issue_ids {list of str} -- ['SAT-12345', ...]
         cached_data {dict} -- Cached data previous loaded from API
+        jira_fields {list of str} -- List of fields to be retrieved by a jira issue GET request
 
     Returns:
         [list of dicts] -- [{'id':..., 'status':..., 'resolution': ...}]
     """
+    if not jira_fields:
+        jira_fields = common_jira_fields
+
     if not issue_ids:
         return []
 
@@ -204,46 +246,18 @@ def get_data_jira(issue_ids, cached_data=None):  # pragma: no cover
 
     # No cached data so Call Jira API
     logger.debug(f"Calling Jira API for {set(issue_ids)}")
-    jira_fields = [
-        "key",
-        "summary",
-        "status",
-        "resolution",
-        "fixVersions",
-    ]
     # Following fields are dynamically calculated/loaded
     for field in ('is_open', 'version'):
         assert field not in jira_fields
 
     # Generate jql
+    if isinstance(issue_ids, str):
+        issue_ids = [issue_id.strip() for issue_id in issue_ids.split(',')]
     jql = ' OR '.join([f"id = {issue_id}" for issue_id in issue_ids])
-
-    response = requests.get(
-        f"{settings.jira.url}/rest/api/latest/search/",
-        params={
-            "jql": jql,
-            "fields": ",".join(jira_fields),
-        },
-        headers={"Authorization": f"Bearer {settings.jira.api_key}"},
-    )
-    response.raise_for_status()
+    response = get_jira(jql, jira_fields)
     data = response.json().get('issues')
     # Clean the data, only keep the required info.
-    data = [
-        {
-            'key': issue['key'],
-            'summary': issue['fields']['summary'],
-            'status': issue['fields']['status']['name'],
-            'resolution': issue['fields']['resolution']['name']
-            if issue['fields']['resolution']
-            else '',
-            'fixVersions': [ver['name'] for ver in issue['fields']['fixVersions']]
-            if issue['fields']['fixVersions']
-            else [],
-        }
-        for issue in data
-        if issue is not None
-    ]
+    data = [sanitized_issue_data(issue, jira_fields) for issue in data if issue is not None]
     CACHED_RESPONSES['get_data'][str(sorted(issue_ids))] = data
     return data
 
@@ -279,12 +293,14 @@ def add_comment_on_jira(
     comment,
     comment_type=settings.jira.comment_type,
     comment_visibility=settings.jira.comment_visibility,
+    labels=None,
 ):
     """Adds a new comment to a Jira issue.
 
     Arguments:
         issue_id {str} -- Jira issue number, ex. SAT-12232
         comment {str}  -- Comment to add on the issue.
+        lables {list} - Add/Remove Jira labels, ex. [{'add':'tests_passed'},{'remove':'tests_failed'}]
         comment_type {str}  -- Type of comment to add.
         comment_visibility {str}  -- Comment visibility.
 
@@ -299,24 +315,25 @@ def add_comment_on_jira(
             'and provide --jira-comment pytest option."'
         )
         return None
-    data = try_from_cache(issue_id)
-    if data["status"] in settings.jira.issue_status:
-        logger.debug(f"Adding a new comment on {issue_id} Jira issue.")
-        response = requests.post(
-            f"{settings.jira.url}/rest/api/latest/issue/{issue_id}/comment",
-            json={
-                "body": comment,
-                "visibility": {
-                    "type": comment_type,
-                    "value": comment_visibility,
-                },
-            },
+    if labels:
+        logger.debug(f"Updating labels for {issue_id} issue. \n labels: \n {labels}")
+        response = requests.put(
+            f"{settings.jira.url}/rest/api/latest/issue/{issue_id}/",
+            json={"update": {"labels": labels}},
             headers={"Authorization": f"Bearer {settings.jira.api_key}"},
         )
         response.raise_for_status()
-        return response.json()
-    logger.warning(
-        f"Jira comments are currently disabled for this issue because it's in {data['status']} state. "
-        f"Please update issue_status in jira.conf to overide this behaviour."
+    logger.debug(f"Adding a new comment on {issue_id} Jira issue. \n comment: \n {comment}")
+    response = requests.post(
+        f"{settings.jira.url}/rest/api/latest/issue/{issue_id}/comment",
+        json={
+            "body": comment,
+            "visibility": {
+                "type": comment_type,
+                "value": comment_visibility,
+            },
+        },
+        headers={"Authorization": f"Bearer {settings.jira.api_key}"},
     )
-    return None
+    response.raise_for_status()
+    return response.json()

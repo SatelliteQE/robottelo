@@ -6,6 +6,7 @@ from robottelo.config import settings
 TARGET_FIXTURES = [
     'rhel_contenthost',
     'module_rhel_contenthost',
+    'mod_content_hosts',
     'content_hosts',
     'module_provisioning_rhel_content',
     'capsule_provisioning_rhel_content',
@@ -42,17 +43,33 @@ def pytest_generate_tests(metafunc):
                     if re.fullmatch(str(matcher[0]), str(setting_rhel_ver))
                 ]
             )
+        network_params = ['ipv6' if settings.server.is_ipv6 else 'ipv4']
         rhel_params = []
+        ids = []
         filtered_versions = set(list_params + match_params)
         # default to all supported versions if no filters were found
         for ver in filtered_versions or settings.supportability.content_hosts.rhel.versions:
             rhel_params.append(dict(rhel_version=ver, no_containers=no_containers))
+
         if rhel_params:
             rhel_params.sort(key=lambda r: str(r['rhel_version']))
+            ids = [f'rhel{r["rhel_version"]}' for r in rhel_params]
+            network_marker = metafunc.definition.get_closest_marker("network")
+            if network_marker and settings.server.is_ipv6:
+                network_params = network_marker.args[0] if network_marker.args else ['ipv6']
+            elif network_marker and not settings.server.is_ipv6:
+                network_params = network_marker.args[0] if network_marker.args else ['ipv4']
+            # Create combinations of rhel_params and containers as dictionaries
+            if network_params:
+                rhel_params = [
+                    {**rhel, 'network': cont} for rhel in rhel_params for cont in network_params
+                ]
+                ids = [f"rhel{param['rhel_version']}-{param['network']}" for param in rhel_params]
+        if rhel_params:
             metafunc.parametrize(
                 content_host_fixture,
                 rhel_params,
-                ids=[f'rhel{r["rhel_version"]}' for r in rhel_params],
+                ids=ids,
                 indirect=True,
             )
 

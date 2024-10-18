@@ -135,15 +135,118 @@ class TestRemoteExecution:
         assert 'Internal Server Error' not in out
 
     @pytest.mark.tier3
+    @pytest.mark.rhel_ver_list([8])
+    def test_negative_run_default_job_template(
+        self, module_org, rex_contenthost, module_target_sat
+    ):
+        """Confirm that job status is correct if remote action fails
+
+        :id: b6229222-26cf-46bd-bbf6-46814cafd085
+
+        :expectedresults: Verify the job exits as expected
+
+        :verifies: SAT-28435
+
+        :parametrized: yes
+        """
+        client = rex_contenthost
+        command = 'exit 23'
+        with pytest.raises(CLIFactoryError) as error:
+            module_target_sat.cli_factory.job_invocation(
+                {
+                    'job-template': 'Run Command - Script Default',
+                    'inputs': f'command={command}',
+                    'search-query': f"name ~ {client.hostname}",
+                }
+            )
+        assert 'A sub task failed' in error.value.args[0]
+        task = module_target_sat.cli.Task.list_tasks({'search': command})[0]
+        search = module_target_sat.cli.Task.list_tasks({'search': f'id={task["id"]}'})
+        assert search[0]['action'] == task['action']
+        job_id = [
+            job['id']
+            for job in module_target_sat.cli.JobInvocation.list()
+            if job['description'] == f'Run {command}'
+        ][0]
+        out = module_target_sat.cli.JobInvocation.get_output(
+            {
+                'id': job_id,
+                'host': client.hostname,
+                'organization-id': module_org.id,
+            }
+        )
+        assert 'Exit status: 23' in out
+
+    @pytest.mark.tier3
+    @pytest.mark.rhel_ver_list([8])
+    def test_positive_timeout_to_kill(self, module_org, rex_contenthost, module_target_sat):
+        """Use timeout to kill setting to cancel the job
+
+        :id: 580f886b-ac24-4afa-9aca-e9afc5cfdc9c
+
+        :expectedresults: Verify the job was killed after specified times
+
+        :parametrized: yes
+
+        :Verifies: SAT-25243
+
+        :customerscenario: true
+        """
+        client = rex_contenthost
+        command = r'for run in {1..160}; do sleep 1; done'
+        template_id = (
+            module_target_sat.api.JobTemplate()
+            .search(query={'search': 'name="Run Command - Script Default"'})[0]
+            .id
+        )
+        invocation_command = module_target_sat.api.JobInvocation().run(
+            synchronous=False,
+            data={
+                'job_template_id': template_id,
+                'organization': module_org.name,
+                'inputs': {
+                    'command': command,
+                },
+                'search_query': f'name = {client.hostname}',
+                'targeting_type': 'static_query',
+                'execution_timeout_interval': '5',
+            },
+        )
+        sleep(10)
+        result = module_target_sat.api.JobInvocation(id=invocation_command['id']).read()
+        assert result.failed == 1
+        out = module_target_sat.cli.JobInvocation.get_output(
+            {
+                'id': invocation_command['id'],
+                'host': client.hostname,
+                'organization-id': module_org.id,
+            }
+        )
+        assert 'Timeout for execution passed, trying to stop the job' in out
+
+    @pytest.mark.tier3
     @pytest.mark.pit_client
     @pytest.mark.pit_server
+    @pytest.mark.parametrize(
+        'setting_update',
+        [
+            'remote_execution_effective_user_method=sudo',
+            'remote_execution_effective_user_method=su',
+        ],
+        ids=["sudo", "su"],
+        indirect=True,
+    )
     @pytest.mark.rhel_ver_list([7, 8, 9])
-    def test_positive_run_job_effective_user(self, rex_contenthost, module_target_sat):
+    def test_positive_run_job_effective_user(
+        self, rex_contenthost, module_target_sat, setting_update
+    ):
         """Run default job template as effective user on a host, test ssh user as well
 
         :id: 0cd75cab-f699-47e6-94d3-4477d2a94bb7
 
-        :BZ: 1451675, 1804685, 2258968
+        :BZ: 1451675, 1804685
+
+        :verifies: SAT-22554, SAT-23229
 
         :expectedresults: Verify the job was successfully run under the
             effective user identity on host, make sure the password is
@@ -302,7 +405,7 @@ class TestRemoteExecution:
             None,
             module_ak_with_cv.name,
             target_sat,
-            repo=settings.repos.yum_3.url,
+            repo_data=f'repo={settings.repos.yum_3.url}',
         )
         # Install packages
         invocation_command = target_sat.cli_factory.job_invocation(
@@ -366,7 +469,7 @@ class TestRemoteExecution:
             None,
             module_ak_with_cv.name,
             target_sat,
-            repo=settings.repos.yum_1.url,
+            repo_data=f'repo={settings.repos.yum_1.url}',
         )
         # Install the package groups
         invocation_command = target_sat.cli_factory.job_invocation(
@@ -415,7 +518,7 @@ class TestRemoteExecution:
             None,
             module_ak_with_cv.name,
             target_sat,
-            repo=settings.repos.yum_1.url,
+            repo_data=f'repo={settings.repos.yum_1.url}',
         )
         client.run(f'dnf install -y {constants.FAKE_1_CUSTOM_PACKAGE}')
         # Install errata
@@ -911,7 +1014,7 @@ class TestPullProviderRex:
             module_ak_with_cv.name,
             module_capsule_configured_mqtt,
             packages=['katello-agent'],
-            repo=client_repo.baseurl,
+            repo_data=f'repo={client_repo.baseurl}',
             ignore_subman_errors=True,
             force=True,
         )
@@ -1016,7 +1119,7 @@ class TestPullProviderRex:
             module_ak_with_cv.name,
             module_capsule_configured_mqtt,
             setup_remote_execution_pull=True,
-            repo=client_repo.baseurl,
+            repo_data=f'repo={client_repo.baseurl}',
             ignore_subman_errors=True,
             force=True,
         )
@@ -1072,6 +1175,7 @@ class TestPullProviderRex:
     @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.e2e
+    @pytest.mark.pit_client
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('[^6].*')
     @pytest.mark.parametrize(
@@ -1123,7 +1227,7 @@ class TestPullProviderRex:
             module_ak_with_cv.name,
             module_capsule_configured_mqtt,
             setup_remote_execution_pull=True,
-            repo=client_repo.baseurl,
+            repo_data=f'repo={client_repo.baseurl}',
             ignore_subman_errors=True,
             force=True,
         )
@@ -1219,7 +1323,7 @@ class TestPullProviderRex:
             module_ak_with_cv.name,
             module_capsule_configured_mqtt,
             setup_remote_execution_pull=True,
-            repo=client_repo.baseurl,
+            repo_data=f'repo={client_repo.baseurl}',
             ignore_subman_errors=True,
             force=True,
         )
@@ -1309,7 +1413,7 @@ class TestPullProviderRex:
             module_ak_with_cv.name,
             module_capsule_configured_mqtt,
             setup_remote_execution_pull=True,
-            repo=client_repo.baseurl,
+            repo_data=f'repo={client_repo.baseurl}',
             ignore_subman_errors=True,
             force=True,
         )

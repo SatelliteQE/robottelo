@@ -57,6 +57,22 @@ class VersionedContent:
             raise ValueError(f'Unsupported system version: {self._v_major}') from err
 
     @cached_property
+    def SATELLITE_CDN_REPOS(self):
+        sat_version = ".".join(settings.server.version.release.split('.')[0:2])
+        return {
+            'satellite': f"satellite-{sat_version}-for-rhel-{self._v_major}-x86_64-rpms",
+            'sat-maintenance': f"satellite-maintenance-{sat_version}-for-rhel-{self._v_major}-x86_64-rpms",
+        }
+
+    @cached_property
+    def CAPSULE_CDN_REPOS(self):
+        sat_version = ".".join(settings.server.version.release.split('.')[0:2])
+        return {
+            'capsule': f"satellite-capsule-{sat_version}-for-rhel-{self._v_major}-x86_64-rpms",
+            'sat-maintenance': f"satellite-maintenance-{sat_version}-for-rhel-{self._v_major}-x86_64-rpms",
+        }
+
+    @cached_property
     def OSCAP(self):
         return {
             'default_content': constants.OSCAP_DEFAULT_CONTENT[f'rhel{self._v_major}_content'],
@@ -96,7 +112,7 @@ class VersionedContent:
         if not proxy and settings.server.is_ipv6:
             proxy = settings.server.http_proxy_ipv6_url
         url = dogfood_repofile_url(settings.ohsnap, product, release, v_major, snap, proxy=proxy)
-        command = f'curl -o /etc/yum.repos.d/dogfood.repo -L {url}'
+        command = f'curl -o /etc/yum.repos.d/{product}.repo -L {url}'
         if settings.server.is_ipv6:
             command += f' -x {settings.server.http_proxy_ipv6_url}'
         self.execute(command)
@@ -179,7 +195,7 @@ class SystemFacts:
         if result.status == 0:
             for line in result.stdout.splitlines():
                 if ': ' in line:
-                    key, val = line.split(': ')
+                    key, val = line.split(': ', 1)
                 else:
                     key = last_key
                     val = f'{fact_dict[key]} {line}'

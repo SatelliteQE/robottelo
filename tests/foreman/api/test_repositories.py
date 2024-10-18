@@ -21,6 +21,7 @@ from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
+    KICKSTART_CONTENT,
     MIRRORING_POLICIES,
     REPOS,
 )
@@ -29,9 +30,8 @@ from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import parametrized
 
 
-@pytest.mark.skip_if_open('BZ:2137950')
 @pytest.mark.tier1
-def test_negative_disable_repository_with_cv(module_entitlement_manifest_org, target_sat):
+def test_negative_disable_repository_with_cv(module_sca_manifest_org, target_sat):
     """Attempt to disable a Repository that is published in a Content View
 
     :id: e521a7a4-2502-4fe2-b297-a13fc99e679b
@@ -46,7 +46,7 @@ def test_negative_disable_repository_with_cv(module_entitlement_manifest_org, ta
     """
     rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=constants.DEFAULT_ARCHITECTURE,
-        org_id=module_entitlement_manifest_org.id,
+        org_id=module_sca_manifest_org.id,
         product=constants.PRDS['rhel8'],
         repo=constants.REPOS['rhst8']['name'],
         reposet=constants.REPOSET['rhst8'],
@@ -55,7 +55,7 @@ def test_negative_disable_repository_with_cv(module_entitlement_manifest_org, ta
     rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
     rh_repo.sync()
     cv = target_sat.api.ContentView(
-        organization=module_entitlement_manifest_org, repository=[rh_repo_id]
+        organization=module_sca_manifest_org, repository=[rh_repo_id]
     ).create()
     cv.publish()
     reposet = target_sat.api.RepositorySet(
@@ -144,31 +144,27 @@ def test_positive_epel_repositories_with_mirroring_policy(
 
 
 @pytest.mark.tier4
-def test_positive_sync_kickstart_repo(module_sca_manifest_org, target_sat):
-    """No encoding gzip errors on kickstart repositories
-    sync.
+@pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos'])
+def test_positive_sync_kickstart_repo(distro, module_sca_manifest_org, target_sat):
+    """No encoding gzip errors on kickstart repositories sync, kickstart content present.
 
     :id: dbdabc0e-583c-4186-981a-a02844f90412
 
-    :expectedresults: No encoding gzip errors present in /var/log/messages.
+    :steps:
+        1. Sync a kickstart repository.
+        2. After the repo is synced, change the download policy to immediate.
+        3. Sync the repository again.
+        4. Assert that no errors related to encoding gzip are present in /var/log/messages.
+        5. Assert that sync was executed properly and kickstart content is present.
+
+    :expectedresults:
+        1. No encoding gzip errors present in /var/log/messages.
+        2. Sync succeeds and kickstart content is present.
 
     :customerscenario: true
 
-    :steps:
-
-        1. Sync a kickstart repository.
-        2. After the repo is synced, change the download policy to
-            immediate.
-        3. Sync the repository again.
-        4. Assert that no errors related to encoding gzip are present in
-            /var/log/messages.
-        5. Assert that sync was executed properly.
-
-    :CaseComponent: Pulp
-
     :BZ: 1687801
     """
-    distro = 'rhel8_bos'
     rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=module_sca_manifest_org.id,
@@ -190,6 +186,8 @@ def test_positive_sync_kickstart_repo(module_sca_manifest_org, target_sat):
     rh_repo = rh_repo.read()
     assert rh_repo.content_counts['package_group'] > 0
     assert rh_repo.content_counts['rpm'] > 0
+    for file in KICKSTART_CONTENT:
+        assert target_sat.checksum_by_url(f'{rh_repo.full_path}{file}')
 
 
 def test_positive_sync_upstream_repo_with_zst_compression(
@@ -227,7 +225,7 @@ def test_positive_sync_upstream_repo_with_zst_compression(
 
 @pytest.mark.tier1
 @pytest.mark.manifester
-def test_negative_upload_expired_manifest(module_org, target_sat):
+def test_negative_upload_expired_manifest(request, default_org, target_sat):
     """Upload an expired manifest and attempt to refresh it
 
     :id: d6e652d8-5f46-4d15-9191-d842466d45d0
@@ -239,12 +237,15 @@ def test_negative_upload_expired_manifest(module_org, target_sat):
 
     :expectedresults: Manifest refresh should fail and return error message
     """
-    manifester = Manifester(manifest_category=settings.manifest.entitlement)
+    manifester = Manifester(manifest_category=settings.manifest.golden_ticket)
     manifest = manifester.get_manifest()
-    target_sat.upload_manifest(module_org.id, manifest.content)
+    target_sat.upload_manifest(default_org.id, manifest.content)
+    request.addfinalizer(
+        lambda: target_sat.cli.Subscription.delete_manifest({'organization-id': default_org.id})
+    )
     manifester.delete_subscription_allocation()
     with pytest.raises(CLIReturnCodeError) as error:
-        target_sat.cli.Subscription.refresh_manifest({'organization-id': module_org.id})
+        target_sat.cli.Subscription.refresh_manifest({'organization-id': default_org.id})
     assert (
         "The manifest doesn't exist on console.redhat.com. "
         "Please create and import a new manifest." in error.value.stderr
@@ -277,7 +278,7 @@ def test_positive_multiple_orgs_with_same_repo(target_sat):
     assert repos[0] == repos[1] == repos[2]
 
 
-def test_positive_sync_mulitple_large_repos(module_target_sat, module_entitlement_manifest_org):
+def test_positive_sync_mulitple_large_repos(module_target_sat, module_sca_manifest_org):
     """Enable and bulk sync multiple large repositories
 
     :id: b51c4a3d-d532-4342-be61-e868f7c3a723
@@ -297,30 +298,35 @@ def test_positive_sync_mulitple_large_repos(module_target_sat, module_entitlemen
     """
     repo_names = ['rhel8_bos', 'rhel8_aps']
     kickstart_names = ['rhel8_bos', 'rhel8_aps']
+    all_repo_ids = []
     for name in repo_names:
         rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
-            org_id=module_entitlement_manifest_org.id,
+            org_id=module_sca_manifest_org.id,
             product=REPOS[name]['product'],
             repo=REPOS[name]['name'],
             reposet=REPOS[name]['reposet'],
             releasever=REPOS[name]['releasever'],
         )
+        all_repo_ids.append(rh_repo_id)
 
     for name in kickstart_names:
         rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=constants.DEFAULT_ARCHITECTURE,
-            org_id=module_entitlement_manifest_org.id,
+            org_id=module_sca_manifest_org.id,
             product=constants.REPOS['kickstart'][name]['product'],
             repo=constants.REPOS['kickstart'][name]['name'],
             reposet=constants.REPOS['kickstart'][name]['reposet'],
             releasever=constants.REPOS['kickstart'][name]['version'],
         )
-    rh_repos = module_target_sat.api.Repository(id=rh_repo_id).read()
-    rh_products = module_target_sat.api.Product(id=rh_repos.product.id).read()
-    assert len(rh_products.repository) == 4
+        all_repo_ids.append(rh_repo_id)
+    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+    rh_product = module_target_sat.api.Product(id=rh_repo.product.id).read()
+    assert len(rh_product.repository) >= 4
+    rh_product_repo_ids = [repo.id for repo in rh_product.repository]
+    assert set(all_repo_ids).issubset(rh_product_repo_ids)
     res = module_target_sat.api.ProductBulkAction().sync(
-        data={'ids': [rh_products.id]}, timeout=2000
+        data={'ids': [rh_product.id]}, timeout=2000
     )
     assert res['result'] == 'success'
 

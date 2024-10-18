@@ -403,12 +403,9 @@ class TestContentView:
         existing_versions = cv_info['versions']
         # perform async repository sync
         repo_task = module_target_sat.cli.Repository.synchronize(
-            {
-                'id': custom_repo['id'],
-                'async': True,
-            }
+            {'id': custom_repo['id'], 'async': True}
         )
-        repo_task_id = repo_task.split()[-1].rstrip('.')
+        repo_task_id = repo_task[0]['id']
         # attempt to publish a new version of the content view
         with pytest.raises(CLIReturnCodeError) as err:
             module_target_sat.cli.ContentView.publish({'id': module_cv.id})
@@ -507,7 +504,7 @@ class TestContentView:
         source_cv = module_target_sat.cli.ContentView.info({'id': source_cv['id']})
         assert source_cv['activation-keys'][0] == ac_key['name']
         destination_cv = module_target_sat.cli.ContentView.info({'id': destination_cv['id']})
-        assert len(destination_cv['activation-keys']) == 0
+        assert 'activation-keys' not in destination_cv
 
         module_target_sat.cli.ContentView.remove(
             {
@@ -518,7 +515,7 @@ class TestContentView:
             }
         )
         source_cv = module_target_sat.cli.ContentView.info({'id': source_cv['id']})
-        assert len(source_cv['activation-keys']) == 0
+        assert 'activation-keys' not in source_cv
         destination_cv = module_target_sat.cli.ContentView.info({'id': destination_cv['id']})
         assert destination_cv['activation-keys'][0] == ac_key['name']
 
@@ -673,7 +670,7 @@ class TestContentView:
             {'id': new_cv['id'], 'repository-id': new_repo['id']}
         )
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
-        assert len(new_cv['yum-repositories']) == 0
+        assert 'yum-repositories' not in new_cv
 
     @pytest.mark.tier1
     def test_positive_remove_repository_by_name(
@@ -705,7 +702,7 @@ class TestContentView:
             {'id': new_cv['id'], 'repository': new_repo['name']}
         )
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
-        assert len(new_cv['yum-repositories']) == 0
+        assert 'yum-repositories' not in new_cv
 
     @pytest.mark.tier2
     def test_positive_remove_version_by_id_from_composite(
@@ -810,7 +807,7 @@ class TestContentView:
             }
         )
         comp_cv = module_target_sat.cli.ContentView.info({'id': comp_cv['id']})
-        assert len(comp_cv['components']) == 0
+        assert 'components' not in comp_cv
 
     @pytest.mark.tier3
     def test_positive_create_composite_with_component_ids(self, module_org, module_target_sat):
@@ -1298,11 +1295,10 @@ class TestContentView:
         environment = module_target_sat.cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id}
         )
-        print("Hello, the org ID is currently", module_org.id)
-        result = module_target_sat.cli.ContentView.list(
-            {'organization-id': module_org.id}, per_page=False
+        result = module_target_sat.cli.ContentView.list({'organization-id': module_org.id})
+        content_view = random.choice(
+            [cv for cv in result if cv.get('name') == constants.DEFAULT_CV]
         )
-        content_view = random.choice([cv for cv in result if cv['name'] == constants.DEFAULT_CV])
         cvv = module_target_sat.cli.ContentView.version_list(
             {'content-view-id': content_view['content-view-id']}
         )[0]
@@ -1574,7 +1570,7 @@ class TestContentView:
             'yum-repositories',
             'container-image-repositories',
         ]:
-            assert len(new_cv[repo_type]) == 0
+            assert repo_type not in new_cv
         # Publish a new version of CV
         module_target_sat.cli.ContentView.publish({'id': new_cv['id']})
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
@@ -1623,7 +1619,7 @@ class TestContentView:
             {'id': new_cv['id'], 'repository-id': module_rhel_content['id']}
         )
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
-        assert len(new_cv['yum-repositories']) == 0
+        assert 'yum-repositories' not in new_cv
         # Publish a new version of CV once more
         module_target_sat.cli.ContentView.publish({'id': new_cv['id']})
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
@@ -2057,14 +2053,18 @@ class TestContentView:
         )
         # assert that this is the same content view
         assert content_view['name'] == user_content_view['name']
-        # create a client host and register it with the created user
-        rhel7_contenthost.install_katello_ca(target_sat)
-        rhel7_contenthost.register_contenthost(
-            org['label'],
-            lce=f'{env["name"]}/{content_view["name"]}',
-            username=user_name,
-            password=user_password,
+        # Create activation key with content view
+        ak_name = gen_alphanumeric()
+        target_sat.cli.ActivationKey.create(
+            {
+                'organization-id': org.id,
+                'lifecycle-environment': env.name,
+                'content-view': content_view['name'],
+                'name': ak_name,
+            }
         )
+        # create a client host and register it with the created user
+        rhel7_contenthost.register(org, loc, ak_name, target_sat)
         assert rhel7_contenthost.subscribed
         # check that the client host exist in the system
         org_hosts = target_sat.cli.Host.list({'organization-id': org['id']})
@@ -2211,14 +2211,9 @@ class TestContentView:
         )
         # assert that this is the same content view
         assert content_view['name'] == user_content_view['name']
+        ak = target_sat.api.ActivationKey(content_view=user_content_view, organization=org).create()
         # create a client host and register it with the created user
-        rhel7_contenthost.install_katello_ca(target_sat)
-        rhel7_contenthost.register_contenthost(
-            org['label'],
-            lce='/'.join([env['name'], content_view['name']]),
-            username=user_name,
-            password=user_password,
-        )
+        rhel7_contenthost.register(org, loc, ak.name, target_sat)
         assert rhel7_contenthost.subscribed
         # check that the client host exist in the system
         org_hosts = target_sat.cli.Host.list({'organization-id': org['id']})
@@ -3119,10 +3114,7 @@ class TestContentView:
         result = module_target_sat.cli.ContentView.version_incremental_update(
             {'content-view-version-id': cvv['id'], 'errata-ids': settings.repos.yum_1.errata[1]}
         )
-        # Inc update output format is pretty weird - list of dicts where each
-        # key's value is actual line from stdout
-        result = [line.strip() for line_dict in result for line in line_dict.values()]
-        assert FAKE_2_CUSTOM_PACKAGE not in [line.strip() for line in result]
+        assert FAKE_2_CUSTOM_PACKAGE not in result
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         assert '1.1' in [cvv_['version'] for cvv_ in content_view['versions']]
 
@@ -3295,6 +3287,47 @@ class TestContentView:
         list_info = module_target_sat.cli.ContentView.list({'name': cv.name})
         assert set(list_info[0]['repository-ids'].split(', ')) == set(id_list)
 
+    @pytest.mark.tier2
+    def test_cv_version_purge(self, module_org, module_target_sat):
+        """Hammer content-view purge correctly purges CV Versions, instead
+        of just up to the per page value
+
+        :id: c2db24cd-946a-4cb6-828d-0e0f38b8ef00
+
+        :steps:
+            1. Create a CV
+            2. Publish the CV 50 times
+            3. Run hammer content-view purge --id <cv.id>
+
+        :expectedresults: Hammer should purge all but 3 old versions, not just up to the per page value
+
+        :Verifies: SAT-15185
+
+        :customerscenario: true
+        """
+        content_view = module_target_sat.cli_factory.make_content_view(
+            {'organization-id': module_org.id}
+        )
+        cv_count = 50
+        for _ in range(cv_count):
+            module_target_sat.cli.ContentView.publish({'id': content_view['id']})
+        cvv = module_target_sat.cli.ContentView.version_list(
+            {'content-view-id': content_view['id']}
+        )
+        assert len(cvv) == cv_count
+        response = module_target_sat.cli.ContentView.purge({'id': content_view['id']})
+        assert all(
+            [
+                f"Version '{v+1}.0' of content view '{content_view.name}' deleted." in response
+                for v in range(cv_count - 4)
+            ]
+        )
+        # Check that the correct number of Versions were purged.
+        cvv = module_target_sat.cli.ContentView.version_list(
+            {'content-view-id': content_view['id']}
+        )
+        assert len(cvv) == 4
+
     def test_positive_validate_force_promote_warning(self, target_sat, function_org):
         """Test cv promote shows warning of 'force promotion' for out of sequence LCE
 
@@ -3394,7 +3427,6 @@ class TestContentViewFileRepo:
         assert int(new_repo['content-counts']['files']) > 0
         return new_repo
 
-    @pytest.mark.skip_if_open('BZ:1610309')
     @pytest.mark.tier3
     def test_positive_arbitrary_file_repo_addition(
         self, module_org, module_product, module_target_sat
@@ -3436,7 +3468,6 @@ class TestContentViewFileRepo:
         cv = module_target_sat.cli.ContentView.info({'id': cv['id']})
         assert cv['file-repositories'][0]['name'] == repo['name']
 
-    @pytest.mark.skip_if_open('BZ:1908465')
     @pytest.mark.tier3
     def test_positive_arbitrary_file_repo_removal(
         self, module_org, module_product, module_target_sat
@@ -3468,10 +3499,13 @@ class TestContentViewFileRepo:
         module_target_sat.cli.ContentView.add_repository(
             {'id': cv['id'], 'repository-id': repo['id'], 'organization-id': module_org.id}
         )
+        cv_info = module_target_sat.cli.ContentView.info({'id': cv['id']})
+        assert cv_info['file-repositories'][0]['id'] == repo['id'], 'File repo should be listed'
         module_target_sat.cli.ContentView.remove_repository(
             {'id': cv['id'], 'repository-id': repo['id']}
         )
-        assert cv['file-repositories'][0]['id'] != repo['id']
+        cv_info = module_target_sat.cli.ContentView.info({'id': cv['id']})
+        assert 'file-repositories' not in cv_info, 'No file repo should be listed'
 
     @pytest.mark.tier3
     def test_positive_arbitrary_file_repo_promotion(
@@ -3577,7 +3611,7 @@ class TestContentViewFileRepo:
         result = module_target_sat.cli.ContentView.version_incremental_update(
             {'content-view-version-id': cvv['id'], 'errata-ids': settings.repos.yum_1.errata[0]}
         )
-        assert result[2]
+        assert f'Content View: {content_view["name"]} version 1.1' in result
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         assert '1.1' in [cvv_['version'] for cvv_ in content_view['versions']]
 

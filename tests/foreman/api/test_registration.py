@@ -28,6 +28,7 @@ pytestmark = pytest.mark.tier1
 
 
 @pytest.mark.e2e
+@pytest.mark.pit_client
 @pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.no_containers
 def test_host_registration_end_to_end(
@@ -87,6 +88,7 @@ def test_host_registration_end_to_end(
 
 
 @pytest.mark.tier3
+@pytest.mark.pit_client
 @pytest.mark.rhel_ver_match('[^6]')
 def test_positive_allow_reregistration_when_dmi_uuid_changed(
     module_sca_manifest_org,
@@ -117,10 +119,11 @@ def test_positive_allow_reregistration_when_dmi_uuid_changed(
         location=module_location,
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
-
+    target_sat.execute(f'echo \'{{"dmi.system.uuid": "{uuid_2}"}}\' > /etc/rhsm/facts/uuid.facts')
+    result = rhel_contenthost.execute('subscription-manager unregister')
+    assert result.status == 0
     result = rhel_contenthost.execute('subscription-manager clean')
     assert result.status == 0
-    target_sat.execute(f'echo \'{{"dmi.system.uuid": "{uuid_2}"}}\' > /etc/rhsm/facts/uuid.facts')
     result = rhel_contenthost.api_register(
         target_sat,
         organization=org,
@@ -362,3 +365,83 @@ def test_negative_verify_bash_exit_status_failing_host_registration(
     # verify status code when registrationCommand fails to register on host
     assert result.status == 1
     assert 'Couldn\'t find activation key' in result.stderr
+
+
+@pytest.mark.upgrade
+@pytest.mark.parametrize('job_type', ['ansible', 'ssh'])
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.no_containers
+def test_positive_katello_ca_crt_refresh(
+    module_target_sat,
+    module_sca_manifest_org,
+    module_location,
+    rhel_contenthost,
+    module_activation_key,
+    job_type,
+):
+    """Verify the host is registered and katello-server-ca cert is refreshed on the host after the successful execution of REX job.
+
+    :id: 11d80da8-6113-4a2d-a763-8d1d94cd2b67
+
+    :steps:
+        1. Register the host
+        2. Corrupt the CA cert file and verify it
+        3. Run rex job for refreshing the CA certificate
+        4. Check if the rex job is successfull and certificate is refreshed.
+
+    :expectedresults: Host is registered and katello-server-ca cert is refreshed.
+
+    :Verifies: SAT-18615
+
+    :customerscenario: true
+
+    :parametrized: yes
+    """
+    katello_ca_crt_path = '/etc/rhsm/ca/katello-server-ca.pem'
+    org = module_sca_manifest_org
+    result = rhel_contenthost.api_register(
+        module_target_sat,
+        organization=org,
+        activation_keys=[module_activation_key.name],
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    ca_cert_file = len(str(rhel_contenthost.execute(f'cat {katello_ca_crt_path}')))
+
+    # corrupt the certificate file
+    corrupt_data = gen_string('alphanumeric')
+    result = rhel_contenthost.execute(f'sed -i "$ a {corrupt_data}" {katello_ca_crt_path}')
+    assert result.status == 0
+    corrupted_ca_crt_file = len(str(rhel_contenthost.execute(f'cat {katello_ca_crt_path}')))
+    assert ca_cert_file != corrupted_ca_crt_file
+
+    # run the rex job to refresh the CA certificate
+    template_name = (
+        'Download and execute a script' if job_type == 'ansible' else 'Download and run a script'
+    )
+    template_id = (
+        module_target_sat.api.JobTemplate()
+        .search(query={'search': f'name="{template_name}"'})[0]
+        .id
+    )
+
+    job = module_target_sat.api.JobInvocation().run(
+        synchronous=False,
+        data={
+            'job_template_id': template_id,
+            'targeting_type': 'static_query',
+            'search_query': f'name = {rhel_contenthost.hostname}',
+            'inputs': {
+                'url': f'https://{module_target_sat.hostname}/unattended/public/foreman_ca_refresh'
+            },
+        },
+    )
+    module_target_sat.wait_for_tasks(
+        f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1000
+    )
+    result = module_target_sat.api.JobInvocation(id=job['id']).read()
+    assert result.succeeded == 1
+    assert result.status_label == 'succeeded'
+
+    # check if the certificate file is refreshed
+    ca_file_after_refresh = len(str(rhel_contenthost.execute(f'cat {katello_ca_crt_path}')))
+    assert ca_cert_file == ca_file_after_refresh

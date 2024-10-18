@@ -28,10 +28,10 @@ RELEASE = '6Server'
 
 
 @pytest.fixture
-def product(function_entitlement_manifest_org, module_target_sat):
+def product(function_sca_manifest_org, module_target_sat):
     """Find and return the product matching PRODUCT_NAME."""
     return module_target_sat.api.Product(
-        name=PRODUCT_NAME, organization=function_entitlement_manifest_org
+        name=PRODUCT_NAME, organization=function_sca_manifest_org
     ).search()[0]
 
 
@@ -57,12 +57,13 @@ def match_repos(repos, match_params):
     return [repo for repo in repos if match_params.items() <= repo.items()]
 
 
-def test_positive_reposet_enable(reposet, params):
-    """Enable repo from reposet
+@pytest.mark.upgrade
+def test_positive_reposet_enable_and_disable(reposet, params):
+    """Enable & disble repo from reposet
 
-    :id: dedcecf7-613a-4e85-a3af-92fb57e2b0a1
+    :id: b77b7eb6-a9b0-4e89-bca9-b75c33ac49e2
 
-    :expectedresults: Repository was enabled
+    :expectedresults: Repository was enabled & disabled
 
     :CaseImportance: Critical
     """
@@ -72,18 +73,6 @@ def test_positive_reposet_enable(reposet, params):
     matching_repos = match_repos(repos, params['match'])
     assert len(matching_repos) == 1
 
-
-@pytest.mark.upgrade
-def test_positive_reposet_disable(reposet, params):
-    """Disable repo from reposet
-
-    :id: 60a102df-099e-4325-8924-2a31e5f738ba
-
-    :expectedresults: Repository was disabled
-
-    :CaseImportance: Critical
-    """
-    reposet.enable(data=params['enable'])
     reposet.disable(data=params['enable'])
 
     repos = reposet.available_repositories(data=params['enable'])['results']

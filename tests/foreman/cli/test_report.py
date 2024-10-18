@@ -52,8 +52,9 @@ def test_positive_CRD_satellite(run_puppet_agent, session_puppet_enabled_sat):
 
 @pytest.mark.e2e
 @pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.parametrize('client_repo_ver', ['1', '2'], ids=['client1', 'client2'])
 def test_positive_install_configure_host(
-    session_puppet_enabled_sat, session_puppet_enabled_capsule, content_hosts
+    session_puppet_enabled_sat, session_puppet_enabled_capsule, content_hosts, client_repo_ver
 ):
     """Test that puppet-agent can be installed from the sat-client repo
     and configured to report back to the Satellite.
@@ -78,11 +79,15 @@ def test_positive_install_configure_host(
 
     :customerscenario: true
 
-    :BZ: 2126891, 2026239
+    :BZ: 2026239
+
+    :verifies: SAT-25418
     """
     puppet_infra_host = [session_puppet_enabled_sat, session_puppet_enabled_capsule]
     for client, puppet_proxy in zip(content_hosts, puppet_infra_host, strict=True):
-        client.configure_puppet(proxy_hostname=puppet_proxy.hostname)
+        client.configure_puppet(
+            proxy_hostname=puppet_proxy.hostname, install_puppet_agent7=(client_repo_ver == '1')
+        )
         report = session_puppet_enabled_sat.cli.ConfigReport.list(
             {'search': f'host~{client.hostname}'}
         )
@@ -100,8 +105,9 @@ def test_positive_install_configure_host(
 
 @pytest.mark.e2e
 @pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.parametrize('client_repo_ver', ['1', '2'], ids=['client1', 'client2'])
 def test_positive_run_puppet_agent_generate_report_when_no_message(
-    session_puppet_enabled_sat, rhel_contenthost
+    session_puppet_enabled_sat, rhel_contenthost, client_repo_ver
 ):
     """Verify that puppet-agent can be installed from the sat-client repo
     and configured to report back to the Satellite, and contains the origin
@@ -132,7 +138,11 @@ def test_positive_run_puppet_agent_generate_report_when_no_message(
     """
     sat = session_puppet_enabled_sat
     client = rhel_contenthost
-    client.configure_puppet(proxy_hostname=sat.hostname, run_puppet_agent=False)
+    client.configure_puppet(
+        proxy_hostname=sat.hostname,
+        run_puppet_agent=False,
+        install_puppet_agent7=(client_repo_ver == '1'),
+    )
     # Run either 'puppet agent --detailed-exitcodes' or 'systemctl restart puppet'
     # to generate Puppet config report for host without any messages
     assert client.execute('/opt/puppetlabs/bin/puppet agent --detailed-exitcodes').status == 0

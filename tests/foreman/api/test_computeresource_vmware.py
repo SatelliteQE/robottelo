@@ -14,6 +14,7 @@
 from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
+from wrapanapi.systems.virtualcenter import VMWareVirtualMachine
 
 from robottelo.config import settings
 
@@ -56,11 +57,13 @@ def test_positive_provision_end_to_end(
 
     :CaseImportance: Critical
 
-    :Verifies: SAT-23417
+    :Verifies: SAT-23417, SAT-23558
 
     :customerscenario: true
 
     :BZ: 2186114
+
+    :verifies: SAT-18721
     """
     sat = module_provisioning_sat.sat
     name = gen_string('alpha').lower()
@@ -79,11 +82,20 @@ def test_positive_provision_end_to_end(
             'cluster': f'{settings.vmware.cluster}',
             'start': '1',
             'guest_id': 'rhel8_64Guest',
+            'scsi_controllers': [{'type': 'ParaVirtualSCSIController', 'key': 1001}],
+            'nvme_controllers': [{'type': 'VirtualNVMEController', 'key': 2001}],
             'volumes_attributes': {
                 '0': {
-                    'size_gb': 10,
+                    'size_gb': 8,
                     'thin': '1',
-                    'storage_pod': f'{settings.vmware.datastore_cluster}',
+                    'storage_pod': settings.vmware.datastore_cluster,
+                    'controller_key': 2001,
+                },
+                '1': {
+                    'size_gb': 8,
+                    'thin': '1',
+                    'storage_pod': settings.vmware.datastore_cluster,
+                    'controller_key': 1001,
                 },
             },
         },
@@ -113,3 +125,59 @@ def test_positive_provision_end_to_end(
         delay=10,
     )
     assert host.read().build_status_label == 'Installed'
+
+
+@pytest.mark.on_premises_provisioning
+@pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.tier3
+def test_positive_provision_vmware_pxe_discovery(
+    request,
+    module_provisioning_rhel_content,
+    module_discovery_sat,
+    provisioning_hostgroup,
+    provisioning_vmware_host,
+    pxe_loader,
+    vmwareclient,
+):
+    """Provision a pxe-based discovered host on VMware
+
+    :id: 29d46a87-bd6f-4963-9ed6-b3456c600779
+
+    :parametrized: yes
+
+    :Setup: Provisioning and discovery should be configured
+
+    :steps:
+        1. Boot up the host to discover
+        2. Provision the host
+
+    :expectedresults: Host should be provisioned successfully
+
+    """
+    mac = provisioning_vmware_host['provisioning_nic_mac_addr']
+    sat = module_discovery_sat.sat
+    # start the provisioning host
+    vmware_host = VMWareVirtualMachine(vmwareclient, name=provisioning_vmware_host['name'])
+    vmware_host.start()
+    wait_for(
+        lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
+        timeout=1500,
+        delay=40,
+    )
+    discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
+    discovered_host.hostgroup = provisioning_hostgroup
+    discovered_host.location = provisioning_hostgroup.location[0]
+    discovered_host.organization = provisioning_hostgroup.organization[0]
+    discovered_host.build = True
+    host = discovered_host.update(['hostgroup', 'build', 'location', 'organization'])
+    host = sat.api.Host().search(query={'search': f'name={host.name}'})[0]
+    request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
+    wait_for(
+        lambda: host.read().build_status_label != 'Pending installation',
+        timeout=1500,
+        delay=10,
+    )
+    assert host.read().build_status_label == 'Installed'
+    assert not sat.api.DiscoveredHost().search(query={'mac': mac})

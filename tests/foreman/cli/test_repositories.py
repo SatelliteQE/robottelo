@@ -85,7 +85,7 @@ def test_negative_invalid_repo_fails_publish(
     assert 'Remove the invalid repository before publishing again' in context.value.response.text
 
 
-def test_positive_disable_rh_repo_with_basearch(module_target_sat, module_entitlement_manifest_org):
+def test_positive_disable_rh_repo_with_basearch(module_target_sat, module_sca_manifest_org):
     """Verify that users can disable Red Hat Repositories with basearch
 
     :id: dd3b63b7-1dbf-4d8a-ab66-348de0ad7cf3
@@ -106,7 +106,7 @@ def test_positive_disable_rh_repo_with_basearch(module_target_sat, module_entitl
     """
     rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=DEFAULT_ARCHITECTURE,
-        org_id=module_entitlement_manifest_org.id,
+        org_id=module_sca_manifest_org.id,
         product=REPOS['kickstart']['rhel8_aps']['product'],
         repo=REPOS['kickstart']['rhel8_aps']['name'],
         reposet=REPOS['kickstart']['rhel8_aps']['reposet'],
@@ -119,7 +119,7 @@ def test_positive_disable_rh_repo_with_basearch(module_target_sat, module_entitl
             'basearch': DEFAULT_ARCHITECTURE,
             'name': REPOSET['kickstart']['rhel8_bos'],
             'product-id': repo.product.id,
-            'organization-id': module_entitlement_manifest_org.id,
+            'organization-id': module_sca_manifest_org.id,
             'releasever': REPOS['kickstart']['rhel8_aps']['version'],
             'repository-id': rh_repo_id,
         }
@@ -163,3 +163,46 @@ def test_reclaim_space_command_no_exception(module_target_sat, module_sca_manife
     # Checking that the fail message isn't present. On a success, no message is returned
     if output != {}:
         assert 'Could not reclaim the repository' not in output[0]['message']
+
+
+@pytest.mark.parametrize('setting_update', ['completed_pulp_task_protection_days'], indirect=True)
+def test_purge_pulp_tasks(module_target_sat, module_org, module_repository, setting_update):
+    """Verify that orphan cleanup purges the pulp tasks too.
+
+    :id: c605b42c-9547-4444-bdca-06e7138299b5
+
+    :parametrized: yes
+
+    :setup:
+        1. Enabled and synced custom repository to ensure we have some pulp tasks buffered.
+
+    :steps:
+        1. Read the current pulp tasks count, run orphan cleanup and read the tasks count again.
+        2. Set completed_pulp_task_protection_days to zero.
+        3. Read the current pulp tasks count, run orphan cleanup and read the tasks count again.
+
+    :expectedresults:
+        1. For the default protection time the tasks count should increase since the purge task
+           is a pulp task too and no previous task should have been purged.
+        2. For zero protection time the tasks count should decrease since all successfully
+           completed tasks should have been purged.
+
+    :CaseImportance: Medium
+
+    :Verifies: SAT-25155
+
+    :customerscenario: true
+
+    """
+    original_ptc = int(module_target_sat.execute('pulp task list | jq length').stdout)
+    module_target_sat.run_orphan_cleanup(smart_proxy_id=1)
+    new_ptc = int(module_target_sat.execute('pulp task list | jq length').stdout)
+    assert new_ptc > original_ptc, 'Pulp tasks were unexpectedly purged'
+
+    setting_update.value = 0
+    setting_update.update({'value'})
+
+    original_ptc = int(module_target_sat.execute('pulp task list | jq length').stdout)
+    module_target_sat.run_orphan_cleanup(smart_proxy_id=1)
+    new_ptc = int(module_target_sat.execute('pulp task list | jq length').stdout)
+    assert new_ptc < original_ptc, 'Pulp tasks were not purged'

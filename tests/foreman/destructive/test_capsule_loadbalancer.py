@@ -121,8 +121,7 @@ def setup_haproxy(
     haproxy_ak = content_for_client['client_ak']
     haproxy.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
     haproxy.execute('firewall-cmd --runtime-to-permanent')
-    haproxy.install_katello_ca(module_target_sat)
-    haproxy.register_contenthost(module_org.label, haproxy_ak.name)
+    haproxy.register(module_org, None, haproxy_ak.name, module_target_sat)
     result = haproxy.execute('yum install haproxy policycoreutils-python-utils -y')
     assert result.status == 0
     haproxy.execute('rm -f /etc/haproxy/haproxy.cfg')
@@ -229,8 +228,6 @@ def test_loadbalancer_install_package(
         {'organization-id': loadbalancer_setup['module_org'].id}
     )
     assert rhel_contenthost.hostname in [host['name'] for host in hosts]
-
-    result = rhel_contenthost.execute('rpm -qa | grep katello-ca-consumer')
 
     # Find which capsule the host is registered to since it's RoundRobin
     # The following also asserts the above result

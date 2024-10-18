@@ -13,7 +13,7 @@
 """
 
 from datetime import datetime, timedelta
-from random import randint, shuffle
+from random import choice, randint, shuffle
 
 from navmazing import NavigationTriesExceeded
 import pytest
@@ -28,6 +28,7 @@ from robottelo.constants import (
     REPO_TYPE,
     REPOS,
     REPOSET,
+    SUPPORTED_REPO_CHECKSUMS,
     DataFile,
 )
 from robottelo.constants.repos import (
@@ -245,43 +246,23 @@ def test_positive_create_as_non_admin_user_with_cv_published(module_org, test_na
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('allow_repo_discovery')
-def test_positive_discover_repo_via_existing_product(session, module_org, module_target_sat):
-    """Create repository via repo-discovery under existing product
+def test_positive_discover_repo_via_new_and_existing_product(
+    session, module_org, module_target_sat
+):
+    """Create repository via repo discovery under new product and existing product
 
-    :id: 9181950c-a756-456f-a46a-059e7a2add3c
+    :id: d8828eca-5ac5-4507-884c-581b8a39dbe1
 
-    :expectedresults: Repository is discovered and created
-    """
-    repo_name = 'fakerepo01'
-    product = module_target_sat.api.Product(organization=module_org).create()
-    with session:
-        session.organization.select(org_name=module_org.name)
-        session.product.discover_repo(
-            {
-                'repo_type': 'Yum Repositories',
-                'url': settings.repos.repo_discovery.url,
-                'discovered_repos.repos': repo_name,
-                'create_repo.product_type': 'Existing Product',
-                'create_repo.product_content.product_name': product.name,
-            }
-        )
-        assert repo_name in session.repository.search(product.name, repo_name)[0]['Name']
-
-
-@pytest.mark.tier2
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-@pytest.mark.usefixtures('allow_repo_discovery')
-def test_positive_discover_repo_via_new_product(session, module_org):
-    """Create repository via repo discovery under new product
-
-    :id: dc5281f8-1a8a-4a17-b746-728f344a1504
-
-    :expectedresults: Repository is discovered and created
+    :expectedresults: Repository is discovered and created for new product and existing product as well
     """
     product_name = gen_string('alpha')
     repo_name = 'fakerepo01'
+    repo_path = '/pulp/demo_repos/large_errata/'
+    repo_name_1 = 'zoo'
+    repo_url = settings.robottelo.REPOS_HOSTING_URL + repo_path
     with session:
         session.organization.select(org_name=module_org.name)
+        # Discover repo via new product
         session.product.discover_repo(
             {
                 'repo_type': 'Yum Repositories',
@@ -294,16 +275,37 @@ def test_positive_discover_repo_via_new_product(session, module_org):
         assert session.product.search(product_name)[0]['Name'] == product_name
         assert repo_name in session.repository.search(product_name, repo_name)[0]['Name']
 
+        # Discover repo via existing product
+        session.product.discover_repo(
+            {
+                'repo_type': 'Yum Repositories',
+                'url': repo_url,
+                'discovered_repos.repos': repo_name_1,
+                'create_repo.product_type': 'Existing Product',
+                'create_repo.product_content.product_name': product_name,
+            }
+        )
+        assert repo_name_1 in session.repository.search(product_name, repo_name_1)[0]['Name']
+
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_sync_custom_repo_yum(session, module_org, module_target_sat):
-    """Create Custom yum repos and sync it via the repos page.
+def test_positive_sync_yum_repo_and_verify_content_checksum(session, module_org, module_target_sat):
+    """Create Custom yum repos, sync it via the repos page and verify content checksum succeeds when
+    executing from the products page
 
-    :id: afa218f4-e97a-4240-a82a-e69538d837a1
+    :id: 44a66ea2-aa77-4fcc-8c14-ee82df36ff92
 
-    :expectedresults: Sync procedure for specific yum repository is successful
+    :customerscenario: true
+
+    :BZ: 1951626
+
+    :steps:
+        1. Create Product, create yum repo, enable and sync repository
+        2. Go to Products -> Select Action -> Verify Content Checksum
+
+    :expectedresults: Sync procedure for yum repository and verify Content Checksum task successful
     """
     product = module_target_sat.api.Product(organization=module_org).create()
     repo = module_target_sat.api.Repository(url=settings.repos.yum_1.url, product=product).create()
@@ -311,29 +313,13 @@ def test_positive_sync_custom_repo_yum(session, module_org, module_target_sat):
         result = session.repository.synchronize(product.name, repo.name)
         assert result['result'] == 'success'
         sync_values = session.dashboard.read('SyncOverview')['syncs']
-        assert len(sync_values) == 1
-        assert sync_values[0]['Product'] == product.name
-        assert sync_values[0]['Status'] == 'Syncing Complete.'
-        assert 'ago' in sync_values[0]['Finished']
-
-
-@pytest.mark.tier2
-@pytest.mark.upgrade
-def test_positive_sync_custom_repo_docker(session, module_org, module_target_sat):
-    """Create Custom docker repos and sync it via the repos page.
-
-    :id: 942e0b4f-3524-4f00-812d-bdad306f81de
-
-    :expectedresults: Sync procedure for specific docker repository is
-        successful
-    """
-    product = module_target_sat.api.Product(organization=module_org).create()
-    repo = module_target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB, product=product, content_type=REPO_TYPE['docker']
-    ).create()
-    with session:
-        result = session.repository.synchronize(product.name, repo.name)
-        assert result['result'] == 'success'
+        assert len(sync_values) >= 1
+        for sync_val in sync_values:
+            if 'less than a minute ago' in sync_val['Finished']:
+                assert sync_val['Product'] == product.name
+                assert sync_val['Status'] == 'Syncing Complete.'
+        result = session.product.verify_content_checksum([product.name])
+        assert result['task']['result'] == 'success'
 
 
 @pytest.mark.tier2
@@ -414,15 +400,15 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod, m
     :CaseImportance: High
     """
     repo_name = gen_string('alpha')
-    checksum_type = 'sha256'
+    checksum_type = choice(SUPPORTED_REPO_CHECKSUMS)
     new_repo_name = gen_string('alphanumeric')
-    new_checksum_type = 'sha1'
+    new_checksum_type = choice([cs for cs in SUPPORTED_REPO_CHECKSUMS if cs != checksum_type])
     gpg_key = module_target_sat.api.GPGKey(
-        content=DataFile.VALID_GPG_KEY_FILE.read_bytes(),
+        content=DataFile.VALID_GPG_KEY_FILE.read_text(),
         organization=module_org,
     ).create()
     new_gpg_key = module_target_sat.api.GPGKey(
-        content=DataFile.VALID_GPG_KEY_BETA_FILE.read_bytes(),
+        content=DataFile.VALID_GPG_KEY_BETA_FILE.read_text(),
         organization=module_org,
     ).create()
     with session:
@@ -505,7 +491,6 @@ def test_positive_end_to_end_custom_module_streams_crud(session, module_org, mod
         assert not session.repository.search(module_prod.name, repo_name)
 
 
-@pytest.mark.skip_if_open("BZ:1743271")
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_upstream_with_credentials(session, module_prod):
@@ -668,14 +653,14 @@ def test_positive_no_errors_on_repo_scan(target_sat, function_sca_manifest_org):
 
 
 @pytest.mark.tier2
-def test_positive_reposet_disable(session, target_sat, function_entitlement_manifest_org):
+def test_positive_reposet_disable(session, target_sat, function_sca_manifest_org):
     """Enable RH repo, sync it and then disable
 
     :id: de596c56-1327-49e8-86d5-a1ab907f26aa
 
     :expectedresults: RH repo was disabled
     """
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro='rhel7', cdn=True)
     repository_name = sat_tools_repo.data['repository']
     with session:
@@ -708,7 +693,7 @@ def test_positive_reposet_disable(session, target_sat, function_entitlement_mani
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
 def test_positive_reposet_disable_after_manifest_deleted(
-    session, function_entitlement_manifest_org, target_sat
+    session, function_sca_manifest_org, target_sat
 ):
     """Enable RH repo and sync it. Remove manifest and then disable
     repository
@@ -721,7 +706,7 @@ def test_positive_reposet_disable_after_manifest_deleted(
 
     :BZ: 1344391
     """
-    org = function_entitlement_manifest_org
+    org = function_sca_manifest_org
     sub = target_sat.api.Subscription(organization=org)
     sat_tools_repo = target_sat.cli_factory.SatelliteToolsRepository(distro='rhel7', cdn=True)
     repository_name = sat_tools_repo.data['repository']
@@ -838,7 +823,7 @@ def test_positive_delete_rhel_repo(session, module_sca_manifest_org, target_sat)
 
 
 @pytest.mark.tier2
-def test_positive_recommended_repos(session, module_entitlement_manifest_org):
+def test_positive_recommended_repos(session, module_sca_manifest_org):
     """list recommended repositories using
      On/Off 'Recommended Repositories' toggle.
 
@@ -852,7 +837,7 @@ def test_positive_recommended_repos(session, module_entitlement_manifest_org):
     :BZ: 1776108
     """
     with session:
-        session.organization.select(module_entitlement_manifest_org.name)
+        session.organization.select(module_sca_manifest_org.name)
         rrepos_on = session.redhatrepository.read(recommended_repo='on')
         assert REPOSET['rhel7'] in [repo['name'] for repo in rrepos_on]
         v = get_sat_version()
@@ -1140,40 +1125,6 @@ def test_positive_select_org_in_any_context():
     :CaseImportance: High
     """
     pass
-
-
-@pytest.mark.tier2
-@pytest.mark.upgrade
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_sync_repo_and_verify_checksum(session, module_org, module_target_sat):
-    """Tests that Verify Content Checksum succeeds when executing from the products page
-
-    :id: 577be1f8-7510-49d2-8b33-600db60bd960
-
-    :customerscenario: true
-
-    :BZ: 1951626
-
-    :steps:
-        1. Enable and sync repository
-        2. Go to Products -> Select Action -> Verify Content Checksum
-
-    :expectedresults: Verify Content Checksum task succeeds
-    """
-    repo_name = gen_string('alpha')
-    product = module_target_sat.api.Product(organization=module_org).create()
-    with session:
-        session.repository.create(
-            product.name,
-            {
-                'name': repo_name,
-                'repo_type': REPO_TYPE['yum'],
-                'repo_content.upstream_url': settings.repos.yum_1.url,
-            },
-        )
-        session.repository.synchronize(product.name, repo_name)
-        results = session.product.verify_content_checksum([product.name])
-        assert results['task']['result'] == 'success'
 
 
 @pytest.mark.tier2

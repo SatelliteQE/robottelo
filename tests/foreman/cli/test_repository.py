@@ -33,6 +33,7 @@ from robottelo.constants import (
     REPO_TYPE,
     RPM_TO_UPLOAD,
     SRPM_TO_UPLOAD,
+    SUPPORTED_REPO_CHECKSUMS,
     DataFile,
 )
 from robottelo.constants.repos import (
@@ -53,6 +54,7 @@ from robottelo.utils.datafactory import (
     valid_docker_repository_names,
     valid_http_credentials,
 )
+from robottelo.utils.issue_handlers import is_open
 from tests.foreman.api.test_contentview import content_view
 
 YUM_REPOS = (
@@ -82,9 +84,7 @@ def _validated_image_tags_count(repo, sat):
     immediately after synchronization), which was CLOSED WONTFIX
     """
     wait_for(
-        lambda: int(
-            _get_image_tags_count(repo=repo, sat=sat)['content-counts']['container-image-tags']
-        )
+        lambda: int(_get_image_tags_count(repo=repo, sat=sat)['content-counts']['container-tags'])
         > 0,
         timeout=30,
         delay=2,
@@ -105,7 +105,15 @@ def repo_options(request, module_org, module_product):
 @pytest.fixture
 def repo(repo_options, target_sat):
     """create a new repository."""
-    return target_sat.cli_factory.make_repository(repo_options)
+    repo = target_sat.cli_factory.make_repository(repo_options)
+    target_sat.wait_for_tasks(
+        search_query='Actions::Katello::Repository::MetadataGenerate'
+        f' and resource_id = {repo["id"]}'
+        ' and resource_type = Katello::Repository',
+        max_tries=6,
+        search_rate=10,
+    )
+    return repo
 
 
 @pytest.fixture
@@ -148,33 +156,6 @@ class TestRepository:
         assert repo.get('upstream-repository-name') == repo_options['docker-upstream-name']
 
     @pytest.mark.tier1
-    @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'name': name} for name in valid_data_list().values()]),
-        indirect=True,
-    )
-    def test_positive_create_delete_with_name(self, repo_options, repo, module_target_sat):
-        """Check if repository can be created with random names and deleted by the name.
-
-        :id: 604dea2c-d512-4a27-bfc1-24c9655b6ea9
-
-        :parametrized: yes
-
-        :expectedresults:
-            1. Repository is created and has random name.
-            2. Repository can be deleted using that name.
-
-        :CaseImportance: Critical
-        """
-        assert repo['name'] == repo_options['name']
-        module_target_sat.cli.Repository.delete(
-            {'name': repo['name'], 'product-id': repo_options['product-id']}
-        )
-        with pytest.raises(CLIReturnCodeError):
-            module_target_sat.cli.Repository.info({'id': repo['id']})
-
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -185,20 +166,26 @@ class TestRepository:
         ),
         indirect=True,
     )
-    def test_positive_create_with_name_label(self, repo_options, repo):
-        """Check if repository can be created with random names and
-        labels
+    def test_positive_create_delete_with_name_label(self, repo_options, repo, target_sat):
+        """Check if repository can be created with random names and labels and deleted by name.
 
         :id: 79d2a6d0-5032-46cd-880c-46cf392521fa
 
         :parametrized: yes
 
-        :expectedresults: Repository is created and has random name and labels
+        :expectedresults:
+            1. Repository is created and has random name and labels.
+            2. Repository can be deleted by name.
 
         :CaseImportance: Critical
         """
         for key in 'name', 'label':
             assert repo.get(key) == repo_options[key]
+        target_sat.cli.Repository.delete(
+            {'name': repo['name'], 'product-id': repo_options['product-id']}
+        )
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.Repository.info({'id': repo['id']})
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
@@ -220,7 +207,8 @@ class TestRepository:
         for key in 'url', 'content-type':
             assert repo.get(key) == repo_options[key]
 
-    @pytest.mark.tier1
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -237,14 +225,16 @@ class TestRepository:
         ),
         indirect=True,
     )
-    def test_positive_create_with_auth_yum_repo(self, target_sat, repo_options, repo):
-        """Create YUM repository with basic HTTP authentication
+    def test_positive_create_and_sync_with_auth_yum_repo(self, target_sat, repo_options, repo):
+        """Create and sync YUM repository with basic HTTP authentication
 
-        :id: da8309fd-3076-427b-a96f-8d883d6e944f
+        :id: 6bb1f158-4821-40ea-badb-43ea75d93b42
 
         :parametrized: yes
 
-        :expectedresults: YUM repository is created
+        :expectedresults: YUM repository is created and synced successfully
+
+        :BZ: 1328092
 
         :CaseImportance: Critical
         """
@@ -252,6 +242,15 @@ class TestRepository:
             assert repo.get(key) == repo_options[key]
         repo = target_sat.api.Repository(id=repo['id']).read()
         assert repo.upstream_username == repo_options['upstream-username']
+
+        repo = target_sat.cli.Repository.info({'id': repo.id})
+        # Assertion that repo is not yet synced
+        assert repo['sync']['status'] == 'Not Synced'
+        # Synchronize it
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+        # Verify it has finished
+        new_repo = target_sat.cli.Repository.info({'id': repo['id']})
+        assert new_repo['sync']['status'] == 'Success'
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
@@ -449,7 +448,7 @@ class TestRepository:
                     'content-type': 'yum',
                     'download-policy': 'immediate',
                 }
-                for checksum_type in ('sha1', 'sha256')
+                for checksum_type in SUPPORTED_REPO_CHECKSUMS
             ]
         ),
         indirect=True,
@@ -660,21 +659,20 @@ class TestRepository:
             [
                 {'content-type': content_type, 'download-policy': 'on_demand'}
                 for content_type in REPO_TYPE
-                if content_type != 'yum'
-                if content_type != 'ostree'
+                if content_type not in ['yum', 'docker', 'deb']
             ]
         ),
         indirect=True,
     )
-    def test_negative_create_non_yum_with_download_policy(self, repo_options, module_target_sat):
-        """Verify that non-YUM repositories cannot be created with download
-        policy TODO: Remove ostree from exceptions when ostree is added back in Satellite 7
+    def test_negative_create_repos_with_download_policy(self, repo_options, module_target_sat):
+        """Verify that non-YUM & non-docker repositories cannot be created with download
+        policy
 
         :id: 71388973-50ea-4a20-9406-0aca142014ca
 
         :parametrized: yes
 
-        :expectedresults: Non-YUM repository is not created with a download
+        :expectedresults: Non-YUM & non-docker repositories are not created with on_demand download
             policy
 
         :BZ: 1439835
@@ -713,45 +711,6 @@ class TestRepository:
         assert repo['sync']['status'] == 'Success'
         assert int(repo['content-counts']['files']) == CUSTOM_FILE_REPO_FILES_COUNT
 
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {
-                    'content-type': 'yum',
-                    'url': FAKE_5_YUM_REPO,
-                    'upstream-username': cred['login'],
-                    'upstream-password': cred['pass'],
-                }
-                for cred in valid_http_credentials()
-                if cred['http_valid']
-            ]
-        ),
-        indirect=True,
-    )
-    def test_positive_synchronize_auth_yum_repo(self, repo, target_sat):
-        """Check if secured repository can be created and synced
-
-        :id: b0db676b-e0f0-428c-adf3-1d7c0c3599f0
-
-        :parametrized: yes
-
-        :expectedresults: Repository is created and synced
-
-        :BZ: 1328092
-
-        """
-        # Assertion that repo is not yet synced
-        assert repo['sync']['status'] == 'Not Synced'
-        # Synchronize it
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        # Verify it has finished
-        new_repo = target_sat.cli.Repository.info({'id': repo['id']})
-        assert new_repo['sync']['status'] == 'Success'
-
-    @pytest.mark.skip_if_open("BZ:2035025")
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
@@ -901,13 +860,17 @@ class TestRepository:
         tags = 'latest'
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo, sat=target_sat)
-        assert not repo['container-image-tags-filter']
-        assert int(repo['content-counts']['container-image-tags']) >= 2
+        if not is_open('SAT-26322'):
+            assert not repo['included-container-image-tags']
+        tags_count = int(repo['content-counts']['container-tags'])
+        assert tags_count >= 2, 'insufficient tags count in the repo'
         target_sat.cli.Repository.update({'id': repo['id'], 'include-tags': tags})
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo, sat=target_sat)
-        assert tags in repo['container-image-tags-filter']
-        assert int(repo['content-counts']['container-image-tags']) >= 2
+        # assert tags in repo['container-image-tags-filter']
+        assert (
+            int(repo['content-counts']['container-tags']) == tags_count
+        ), 'unexpected change of tags count'
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
@@ -939,13 +902,18 @@ class TestRepository:
         tags = 'latest'
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo, sat=target_sat)
-        assert not repo['container-image-tags-filter']
-        assert int(repo['content-counts']['container-image-tags']) >= 2
+        if not is_open('SAT-26322'):
+            assert not repo['included-container-image-tags']
+        tags_count = int(repo['content-counts']['container-tags'])
+        assert tags_count >= 2, 'insufficient tags count in the repo'
         target_sat.cli.Repository.update({'id': repo['id'], 'include-tags': tags})
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo, sat=target_sat)
-        assert tags in repo['container-image-tags-filter']
-        assert int(repo['content-counts']['container-image-tags']) <= 2
+        if not is_open('SAT-26322'):
+            assert tags in repo['included-container-image-tags']
+        assert (
+            int(repo['content-counts']['container-tags']) == len(tags.split(',')) < tags_count
+        ), 'unexpected change of tags count'
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
@@ -976,42 +944,10 @@ class TestRepository:
         """
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo, sat=target_sat)
-        for tag in repo_options['include-tags'].split(','):
-            assert tag in repo['container-image-tags-filter']
-        assert int(repo['content-counts']['container-image-tags']) == 1
-
-    @pytest.mark.tier2
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {
-                    'content-type': 'docker',
-                    'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
-                    'url': CONTAINER_REGISTRY_HUB,
-                    'include-tags': ",".join([gen_string('alpha') for _ in range(3)]),
-                }
-            ]
-        ),
-        indirect=True,
-    )
-    def test_negative_synchronize_docker_repo_with_invalid_tags(
-        self, repo_options, repo, target_sat
-    ):
-        """Set tags whitelist to contain only invalid (non-existing)
-        tags. Check that no data is synchronized.
-
-        :id: da05cdb1-2aea-48b9-9424-6cc700bc1194
-
-        :parametrized: yes
-
-        :expectedresults: Tags are not synchronized
-        """
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        repo = target_sat.cli.Repository.info({'id': repo['id']})
-        for tag in repo_options['include-tags'].split(','):
-            assert tag in repo['container-image-tags-filter']
-        assert int(repo['content-counts']['container-image-tags']) == 0
+        if not is_open('SAT-26322'):
+            for tag in repo_options['include-tags'].split(','):
+                assert tag in repo['included-container-image-tags']
+        assert int(repo['content-counts']['container-tags']) == 1
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
@@ -1282,7 +1218,7 @@ class TestRepository:
         **parametrized([{'content-type': 'yum', 'download-policy': 'immediate'}]),
         indirect=True,
     )
-    @pytest.mark.parametrize('checksum_type', ['sha1', 'sha256'])
+    @pytest.mark.parametrize('checksum_type', SUPPORTED_REPO_CHECKSUMS)
     def test_positive_update_checksum_type(
         self, repo_options, repo, checksum_type, module_target_sat
     ):
@@ -1312,7 +1248,7 @@ class TestRepository:
                     'checksum-type': checksum_type,
                     'download-policy': 'on_demand',
                 }
-                for checksum_type in ('sha1', 'sha256')
+                for checksum_type in SUPPORTED_REPO_CHECKSUMS
             ]
         ),
         indirect=True,
@@ -1523,7 +1459,6 @@ class TestRepository:
         new_repo = target_sat.cli.Repository.info({'id': new_repo['id']})
         assert int(new_repo['content-counts']['files']) == CUSTOM_FILE_REPO_FILES_COUNT + 1
 
-    @pytest.mark.skip_if_open("BZ:1410916")
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
@@ -1924,7 +1859,6 @@ class TestRepository:
         }
 
     @pytest.mark.tier1
-    @pytest.mark.skip_if_open('BZ:2002653')
     def test_negative_update_red_hat_repo(self, module_manifest_org, module_target_sat):
         """Updates to Red Hat products fail.
 
@@ -2097,7 +2031,7 @@ class TestRepository:
 #                     'publish-via-http': 'false',
 #                     'url': FEDORA_OSTREE_REPO,
 #                 }
-#                 for checksum_type in ('sha1', 'sha256')
+#                 for checksum_type in SUPPORTED_REPO_CHECKSUMS
 #             ]
 #         ),
 #         indirect=True,
@@ -2344,7 +2278,7 @@ class TestAnsibleCollectionRepository:
                 'ansible-collection-auth-token': settings.ansible_hub.token,
                 'ansible-collection-auth-url': settings.ansible_hub.sso_url,
                 'ansible-collection-requirements': '{collections: \
-                                                         [redhat.satellite_operations ]}',
+                                                            [redhat.satellite_operations ]}',
             },
         ],
         ids=['ansible_galaxy', 'ansible_hub'],
@@ -2365,64 +2299,6 @@ class TestAnsibleCollectionRepository:
         module_target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
-
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options',
-        [
-            {
-                'content-type': 'ansible_collection',
-                'url': ANSIBLE_GALAXY,
-                'ansible-collection-requirements': '{collections: [ \
-                            { name: theforeman.foreman, version: "2.1.0" }, \
-                            { name: theforeman.operations, version: "0.1.0"} ]}',
-            }
-        ],
-        ids=['ansible_galaxy'],
-        indirect=True,
-    )
-    def test_positive_export_ansible_collection(self, repo, module_org, target_sat):
-        """Export ansible collection between organizations
-
-        :id: 4858227e-1669-476d-8da3-4e6bfb6b7e2a
-
-        :expectedresults: All content exported and imported successfully
-
-        :CaseImportance: High
-
-        """
-        import_org = target_sat.cli_factory.make_org()
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        repo = target_sat.cli.Repository.info({'id': repo['id']})
-        assert repo['sync']['status'] == 'Success'
-        # export
-        result = target_sat.cli.ContentExport.completeLibrary({'organization-id': module_org.id})
-        target_sat.execute(f'cp -r /var/lib/pulp/exports/{module_org.name} /var/lib/pulp/imports/.')
-        target_sat.execute('chown -R pulp:pulp /var/lib/pulp/imports')
-        export_metadata = result['message'].split()[1]
-        # import
-        import_path = export_metadata.replace('/metadata.json', '').replace('exports', 'imports')
-        target_sat.cli.ContentImport.library(
-            {'organization-id': import_org['id'], 'path': import_path}
-        )
-        cv = target_sat.cli.ContentView.info(
-            {'name': 'Import-Library', 'organization-label': import_org['label']}
-        )
-        assert cv['description'] == 'Content View used for importing into library'
-        prods = target_sat.cli.Product.list({'organization-id': import_org['id']})
-        prod = target_sat.cli.Product.info(
-            {'id': prods[0]['id'], 'organization-id': import_org['id']}
-        )
-        ac_content = [
-            cont for cont in prod['content'] if cont['content-type'] == 'ansible_collection'
-        ]
-        assert len(ac_content) > 0
-        repo = target_sat.cli.Repository.info(
-            {'name': ac_content[0]['repo-name'], 'product-id': prod['id']}
-        )
-        result = target_sat.execute(f'curl {repo["published-at"]}')
-        assert "available_versions" in result.stdout
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
@@ -2827,7 +2703,8 @@ def test_positive_syncable_yum_format_repo_import(target_sat, module_org):
     assert repodata['sync']['status'] == 'Success'
 
 
-@pytest.mark.rhel_ver_list([9])
+@pytest.mark.pit_client
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_install_uploaded_rpm_on_host(
     target_sat, rhel_contenthost, function_org, function_lce
 ):

@@ -19,6 +19,7 @@ from robottelo.config import settings
 from robottelo.constants import (
     FAM_MODULE_PATH,
     FAM_ROOT_DIR,
+    FAM_TEST_LIBVIRT_PLAYBOOKS,
     FAM_TEST_PLAYBOOKS,
     FOREMAN_ANSIBLE_MODULES,
     RH_SAT_ROLES,
@@ -58,8 +59,7 @@ def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_rol
     # Execute AAP WF for FAM setup
     Broker().execute(workflow='fam-test-setup', source_vm=module_target_sat.name)
 
-    # Setup provisioning resources and copy config files to the Satellite
-    module_target_sat.configure_libvirt_cr()
+    # Copy config files to the Satellite
     module_target_sat.put(
         settings.fam.server.to_yaml(),
         f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/server.yml',
@@ -135,6 +135,10 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
 
     :expectedresults: All modules and roles run successfully
     """
+    # Setup provisioning resources
+    if ansible_module in FAM_TEST_LIBVIRT_PLAYBOOKS:
+        module_target_sat.configure_libvirt_cr()
+
     # Execute test_playbook
     result = module_target_sat.execute(
         f'export NO_COLOR=True && . ~/localenv/bin/activate && cd {FAM_ROOT_DIR} && make livetest_{ansible_module}'

@@ -281,7 +281,6 @@ def test_positive_add_image_rhev_with_name(rhev, module_os, module_target_sat):
     assert result[0]['uuid'] == rhev.image_uuid
 
 
-@pytest.mark.skip_if_open("BZ:1829239")
 @pytest.mark.tier2
 def test_negative_add_image_rhev_with_invalid_uuid(rhev, module_os, module_target_sat):
     """Attempt to add invalid image to the RHEV compute resource
@@ -656,7 +655,7 @@ def test_positive_provision_rhev_image_based_and_disassociate(
         assert host_info.get('network').get('mac') == rhv_vm.get_nics()[0].mac.address
         # Check the host is associated to the CR
         assert 'compute-resource' in host_info
-        assert host_info['compute-resource'] == name
+        assert host_info['compute-resource']['name'] == name
         # Done. Do not try to SSH, this image-based test should work even without
         # being in the same network as RHEV. We checked the VM exists and
         # that's enough.

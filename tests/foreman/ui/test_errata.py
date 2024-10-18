@@ -168,15 +168,17 @@ def registered_contenthost(
 
     :note: rhel_contenthost will be parametrized by rhel6 to 9, also -fips for all distros.
         to use specific rhel version parametrized contenthost;
-        use `pytest.mark.rhel_ver_match()` to mark contenthost version(s) for tests using this fixture.
+        use `pytest.mark.rhel_ver_match('[]')` to mark contenthost rhel major version(s)
+            for tests using this fixture.
 
     :environment: Defaults to module_lce.
         To use Library environment for activation key / content-view:
-        pass the string 'library' (not case sensative) in the list of params.
+        pass the string 'Library' (not case sensative) in the list of params.
 
     :repos: pass as a parametrized request
         list of upstream URLs for custom repositories.
-            default: None; when None set to [CUSTOM_REPO_URL,]
+            default: None; repo enablement will be sklipped for host.
+                if None, add any repos to cv/ak, publish/promote etc, after calling fixture.
         example:
             @pytest.mark.parametrize('registered_contenthost',
                 [[repo1_url, repo2_url,]],
@@ -187,6 +189,11 @@ def registered_contenthost(
                 [['library', repo1_url, repo2_url,]],
                 indirect=True,
             )
+        for Default: no repos, use module_cv, module_ak, module_lce:
+            no need to parametrize fixture, just import it.
+            if desired, still parametrize registered host's rhel major version(s):
+                eg. pytest.mark.rhel_ver_match('[8, 9, ...]') etc.
+
     """
     params = getattr(request, 'param', None)
     environment = module_lce
@@ -208,6 +215,7 @@ def registered_contenthost(
         module_cv.repository = custom_repos
         module_cv.update(['repository'])
     # Publish/promote CV if needed, associate entities, register client:
+    # skip enabling repos, we will do after, with subscription-manager
     setup = module_target_sat.api_factory.register_host_and_needed_setup(
         organization=module_sca_manifest_org,
         client=rhel_contenthost,
@@ -230,18 +238,18 @@ def registered_contenthost(
                 ' Client retains some content association.'
             )
 
+    # no error setting up fixtures and registering client
     assert setup['result'] != 'error', f'{setup["message"]}'
     assert (client := setup['client'])
-
     # nothing applicable to start
     result = client.execute('subscription-manager repos')
     assert client.applicable_errata_count == 0
     assert client.applicable_package_count == 0
-    # no repos given/present, subscription-manager should report error
+    # if no repos given, subscription-manager should report error
     if len(repos) == 0:
         assert client.execute(r'subscription-manager repos --enable \*').status == 1
-    # any custom repos in host are setup, and can be synced,
-    # we can also invoke/enable each repo with subscription-manager:
+    # any custom repos in host are setup, and can be synced again,
+    # we can also enable each repo with subscription-manager:
     else:
         # list all repos available to sub-manager:
         sub_manager_repos = client.execute('subscription-manager repos --list')
@@ -308,7 +316,7 @@ def test_end_to_end(
 
     :parametrized: yes
 
-    :BZ: 2029192, 2265095
+    :verifies: SAT-23414, SAT-7998
 
     :customerscenario: true
     """
@@ -868,6 +876,7 @@ def test_positive_apply_for_all_hosts(
         workflow='deploy-rhel',
         host_class=ContentHost,
         _count=num_hosts,
+        deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
     ) as hosts:
         if not isinstance(hosts, list) or len(hosts) != num_hosts:
             pytest.fail('Failed to provision the expected number of hosts.')
@@ -1085,14 +1094,13 @@ def test_positive_filter_by_environment(
     indirect=True,
 )
 @pytest.mark.rhel_ver_match('8')
-@pytest.mark.skip_if_open('SAT-25213')
 def test_positive_content_host_previous_env(
     session,
     module_cv,
     module_lce,
-    module_org,
     module_target_sat,
     registered_contenthost,
+    module_sca_manifest_org,
 ):
     """Check if the applicable errata are available from the content
     host's previous environment
@@ -1100,39 +1108,56 @@ def test_positive_content_host_previous_env(
     :id: 78110ba8-3942-46dd-8c14-bffa1dbd5195
 
     :Setup:
-        1. Make sure multiple environments are present.
+        1. Make sure multiple environments are present, one registered host.
+            note: registered_contenthost is using module_lce, module_cv.
         2. Content host's previous environments have additional errata.
+        3. Promote the Host's content view version to a new lifecycle environment.
+        4. Set the Host to use the new environment, and original content view.
 
-    :steps: Go to Content Hosts -> Select content host -> Errata Tab ->
-        Select Previous environments.
+    :Steps: Go to Content Hosts -> Select content host -> Errata Tab ->
+        Select Previous environments (Environments Dropdown).
 
-    :expectedresults: The errata from previous environments are displayed.
+    :expectedresults: The previous environment name, and content view name are correct.
+        Expected errata from previous environments are displayed.
+
+    :Verifies: SAT-25213
 
     :parametrized: yes
     """
     vm = registered_contenthost
-    hostname = vm.hostname
+    nailgun_host = registered_contenthost.nailgun_host
     assert vm.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     # Promote the latest content view version to a new lifecycle environment
-    content_view = module_cv.read()
     new_lce = module_target_sat.api.LifecycleEnvironment(
-        organization=module_org,
+        organization=module_sca_manifest_org,
         prior=module_lce,
     ).create()
-    content_view = content_view.read()
+    content_view = module_cv.read()
     content_view.version.sort(key=lambda version: version.id)
     content_view_version = content_view.version[-1].read()
-    content_view_version.promote(data={'environment_ids': new_lce.id})
+    content_view_version.promote(data={'environment_ids': [new_lce.id]})
+    # set host to use {new_lce / module_cv}, prior should be {module_lce / module_cv}
+    nailgun_host.content_facet_attributes = {
+        'lifecycle_environment_id': new_lce.id,
+        'content_view_id': module_cv.id,
+    }
+    nailgun_host.update(['content_facet_attributes'])
+    # new_lce has been set for vm's Current Content Source
+    vm_cve = vm.nailgun_host.read().content_facet_attributes['content_view_environments'][0]
+    assert vm_cve == nailgun_host.read().content_facet_attributes['content_view_environments'][0]
+    assert new_lce.name == vm_cve['lifecycle_environment']['name']
+    assert new_lce.id == vm_cve['lifecycle_environment']['id']
 
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         # can view errata from previous env, dropdown option is correct
         environment = f'Previous Lifecycle Environment ({module_lce.name}/{content_view.name})'
         content_host_erratum = session.contenthost.search_errata(
-            hostname,
+            vm.hostname,
             CUSTOM_REPO_ERRATA_ID,
             environment=environment,
         )
+        # In Previous Env, expected errata_id was found via search
         assert content_host_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
 
 
@@ -1574,7 +1599,7 @@ def test_positive_filtered_errata_status_installable_param(
             'Errata': 'Security errata installable',
             'Subscription': 'Fully entitled',
         }
-        # Refresh the host page to get the new details
+        # Refresh the host page to get newest details
         session.browser.refresh()
         host_details_values = session.host.get_details(client.hostname)
         actual_values = {

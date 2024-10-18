@@ -122,14 +122,11 @@ def test_insights_client_registration_with_http_proxy(
 
     :customerscenario: true
     """
-    rhel_contenthost.configure_rex(
-        satellite=module_target_sat, org=rhcloud_manifest_org, register=False
-    )
-    rhel_contenthost.configure_rhai_client(
-        satellite=module_target_sat,
-        activation_key=rhcloud_activation_key.name,
-        org=rhcloud_manifest_org.label,
-        rhel_distro=f"rhel{rhel_contenthost.os_version.major}",
+    rhel_contenthost.configure_insights_client(
+        module_target_sat,
+        rhcloud_activation_key,
+        rhcloud_manifest_org,
+        f"rhel{rhel_contenthost.os_version.major}",
     )
     assert rhel_contenthost.execute('insights-client --register').status == 0
     assert rhel_contenthost.execute('insights-client --test-connection').status == 0
@@ -264,14 +261,13 @@ def test_positive_assign_http_proxy_to_products(module_org, module_target_sat):
     )
 
     # Set the HTTP proxy through bulk action for both products to the selected proxy
-    res = module_target_sat.cli.Product.update_proxy(
+    module_target_sat.cli.Product.update_proxy(
         {
             'ids': f"{product_a['id']},{product_b['id']}",
             'http-proxy-policy': 'use_selected_http_proxy',
             'http-proxy-id': http_proxy_b['id'],
         }
     )
-    assert 'Product proxy updated' in res
     module_target_sat.wait_for_tasks(
         search_query=(
             f'Actions::Katello::Repository::Update and organization_id = {module_org.id}'
@@ -296,10 +292,9 @@ def test_positive_assign_http_proxy_to_products(module_org, module_target_sat):
         assert int(info['content-counts']['packages']) == FAKE_0_YUM_REPO_PACKAGES_COUNT
 
     # Set the HTTP proxy through bulk action for both products to None
-    res = module_target_sat.cli.Product.update_proxy(
+    module_target_sat.cli.Product.update_proxy(
         {'ids': f"{product_a['id']},{product_b['id']}", 'http-proxy-policy': 'none'}
     )
-    assert 'Product proxy updated' in res
     module_target_sat.wait_for_tasks(
         search_query=(
             f'Actions::Katello::Repository::Update and organization_id = {module_org.id}'

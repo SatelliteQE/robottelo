@@ -12,7 +12,6 @@ import re
 from tempfile import NamedTemporaryFile
 import time
 from urllib.parse import urljoin, urlparse, urlunsplit
-import warnings
 
 import apypie
 from box import Box
@@ -20,7 +19,6 @@ from broker import Broker
 from broker.hosts import Host
 from dynaconf.vendor.box.exceptions import BoxKeyError
 from fauxfactory import gen_alpha, gen_string
-from manifester import Manifester
 from nailgun import entities
 from packaging.version import Version
 import requests
@@ -41,12 +39,8 @@ from robottelo.constants import (
     CUSTOM_PUPPET_MODULE_REPOS,
     CUSTOM_PUPPET_MODULE_REPOS_PATH,
     CUSTOM_PUPPET_MODULE_REPOS_VERSION,
-    DEFAULT_ARCHITECTURE,
     HAMMER_CONFIG,
     KEY_CLOAK_CLI,
-    PRDS,
-    REPOS,
-    REPOSET,
     RHSSO_NEW_GROUP,
     RHSSO_NEW_USER,
     RHSSO_RESET_PASSWORD,
@@ -70,12 +64,12 @@ POWER_OPERATIONS = {
 
 @lru_cache
 def lru_sat_ready_rhel(rhel_ver):
+    """Deploy bare RHEL system ready for Satellite installation."""
     rhel_version = rhel_ver or settings.server.version.rhel_version
-    deploy_args = {
+    deploy_args = settings.server.deploy_arguments | {
         'deploy_rhel_version': rhel_version,
         'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
         'deploy_flavor': settings.flavors.default,
-        'promtail_config_template_file': 'config_sat.j2',
         'workflow': settings.server.deploy_workflows.os,
     }
     return Broker(**deploy_args, host_class=Satellite).checkout()
@@ -107,53 +101,6 @@ def get_sat_rhel_version():
         elif hasattr(settings.robottelo, 'rhel_version'):
             rhel_version = settings.robottelo.rhel_version
     return Version(rhel_version)
-
-
-def setup_capsule(satellite, capsule, org, registration_args=None, installation_args=None):
-    """Given satellite and capsule instances, run the commands needed to set up the capsule
-
-    Note: This does not perform content setup actions on the Satellite
-
-    :param satellite: An instance of this module's Satellite class
-    :param capsule: An instance of this module's Capsule class
-    :param org: An instance of the org to use on the Satellite
-    :param registration_args: A dictionary mapping argument: value pairs for registration
-    :param installation_args: A dictionary mapping argument: value pairs for installation
-    :return: An ssh2-python result object for the installation command.
-
-    """
-    # Unregister capsule incase it's registered to CDN
-    capsule.unregister()
-
-    # Add a manifest to the Satellite
-    with Manifester(manifest_category=settings.manifest.entitlement) as manifest:
-        satellite.upload_manifest(org.id, manifest.content)
-
-    # Enable RHEL 8 BaseOS and AppStream repos and sync
-    for rh_repo_key in ['rhel8_bos', 'rhel8_aps']:
-        satellite.api_factory.enable_rhrepo_and_fetchid(
-            basearch=DEFAULT_ARCHITECTURE,
-            org_id=org.id,
-            product=PRDS['rhel8'],
-            repo=REPOS[rh_repo_key]['name'],
-            reposet=REPOSET[rh_repo_key],
-            releasever=REPOS[rh_repo_key]['releasever'],
-        )
-    product = satellite.api.Product(name=PRDS['rhel8'], organization=org.id).search()[0]
-    product.sync(timeout=1800, synchronous=True)
-
-    if not registration_args:
-        registration_args = {}
-    file, _, cmd_args = satellite.capsule_certs_generate(capsule)
-    if installation_args:
-        cmd_args.update(installation_args)
-    satellite.execute(
-        f'sshpass -p "{capsule.password}" scp -o "StrictHostKeyChecking no" '
-        f'{file} root@{capsule.hostname}:{file}'
-    )
-    capsule.install_katello_ca(satellite)
-    capsule.register_contenthost(org=org.label, **registration_args)
-    return capsule.install(cmd_args)
 
 
 class ContentHostError(Exception):
@@ -196,6 +143,7 @@ class ContentHost(Host, ContentHostMixins):
             # key file based authentication
             kwargs.update({'key_filename': auth})
         self._satellite = kwargs.get('satellite')
+        self.ipv6 = kwargs.get('ipv6', settings.server.is_ipv6)
         self.blank = kwargs.get('blank', False)
         super().__init__(hostname=hostname, **kwargs)
 
@@ -389,7 +337,7 @@ class ContentHost(Host, ContentHostMixins):
     def setup(self):
         logger.debug('START: setting up host %s', self)
         if not self.blank:
-            self.remove_katello_ca()
+            self.reset_rhsm()
 
         logger.debug('END: setting up host %s', self)
 
@@ -504,7 +452,6 @@ class ContentHost(Host, ContentHostMixins):
     def enable_repo(self, repo, force=False):
         """Enables specified Red Hat repository on the broker virtual machine.
         Does nothing if downstream capsule or satellite tools repo was passed.
-        Custom repos are enabled by default when registering a host.
 
         :param repo: Red Hat repository name.
         :param force: enforce enabling command, even when custom repos are
@@ -525,6 +472,9 @@ class ContentHost(Host, ContentHostMixins):
             return self.execute(f'subscription-manager repos --enable {repo}')
         return None
 
+    def disable_repo(self, repo):
+        return self.execute(f'subscription-manager repos --disable {repo}')
+
     def subscription_manager_list_repos(self):
         return self.execute('subscription-manager repos --list')
 
@@ -533,6 +483,20 @@ class ContentHost(Host, ContentHostMixins):
 
     def subscription_manager_list(self):
         return self.execute('subscription-manager list')
+
+    def subscription_manager_environments_set(
+        self,
+        env_names,
+        username=settings.server.admin_username,
+        password=settings.server.admin_password,
+    ):
+        """
+        Reassign the host to the specified content view environments
+        """
+        assert isinstance(env_names, str)
+        return self.execute(
+            f'subscription-manager environments --set="{env_names}" --username={username} --password={password}'
+        )
 
     def subscription_manager_get_pool(self, sub_list=None):
         """
@@ -622,78 +586,13 @@ class ContentHost(Host, ContentHostMixins):
         if result.status != 0:
             raise ContentHostError('Failed to install katello-host-tools')
 
-    def install_katello_ca(self, satellite):
-        """Downloads and installs katello-ca rpm on the content host.
-
-        :param str satellite: robottelo.hosts.Satellite instance
-
-        :return: None.
-        :raises robottelo.hosts.ContentHostError: If katello-ca wasn't
-            installed.
+    def reset_rhsm(self):
+        """Global Registration points the host's sub-man to talk to the Sattelite's Candlepin
+        but saves the original rhsm.conf. Reset the rhsm.conf so that it points back to the CDN.
         """
-        warnings.warn(
-            message='The install_katello_ca method is deprecated, use the register method instead.',
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
-        self._satellite = satellite
-        self.execute(
-            f'curl --insecure --output katello-ca-consumer-latest.noarch.rpm \
-                    {satellite.url_katello_ca_rpm}'
-        )
-        # check if the host is fips-enabled
-        result = self.execute('sysctl crypto.fips_enabled')
-        if 'crypto.fips_enabled = 1' in result.stdout:
-            self.execute('rpm -Uvh --nodigest --nofiledigest katello-ca-consumer-latest.noarch.rpm')
-        else:
-            self.execute('rpm -Uvh katello-ca-consumer-latest.noarch.rpm')
-        # Not checking the status here, as rpm could be installed before
-        # and installation may fail
-        result = self.execute(f'rpm -q katello-ca-consumer-{satellite.hostname}')
-        # Checking the status here to verify katello-ca rpm is actually
-        # present in the system
-        if satellite.hostname not in result.stdout:
-            raise ContentHostError('Failed to download and install the katello-ca rpm')
-
-    def remove_katello_ca(self):
-        """Removes katello-ca rpm from the broker virtual machine.
-
-        :return: None.
-        :raises robottelo.hosts.ContentHostError: If katello-ca wasn't removed.
-        """
-        # unregister host from CDN to avoid subscription leakage
-        self.execute('subscription-manager unregister')
-        # Not checking the status here, as rpm can be not even installed
-        # and deleting may fail
-        self.execute('yum erase -y $(rpm -qa |grep katello-ca-consumer)')
-        # Checking the status here to verify katello-ca rpm is actually
-        # not present in the system
-        result = self.execute('rpm -qa |grep katello-ca-consumer')
-        if result.status == 0:
-            raise ContentHostError(f'katello-ca rpm(s) are still installed: {result.stdout}')
+        self.execute(r'\cp -f /etc/rhsm/rhsm.conf{.bak,}')
         self.execute('subscription-manager clean')
         self._satellite = None
-
-    def install_capsule_katello_ca(self, capsule=None):
-        """Downloads and installs katello-ca rpm on the broker virtual machine.
-
-        :param: str capsule: Capsule hostname
-        :raises robottelo.hosts.ContentHostError: If katello-ca wasn't
-            installed.
-        """
-        warnings.warn(
-            message=(
-                'The install_capsule_katello_ca method is deprecated, '
-                'use the register method instead.'
-            ),
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
-        url = urlunsplit(('http', capsule, 'pub/', '', ''))
-        ca_url = urljoin(url, 'katello-ca-consumer-latest.noarch.rpm')
-        result = self.execute(f'rpm -Uvh {ca_url}')
-        if result.status != 0:
-            raise ContentHostError('Failed to install the katello-ca rpm')
 
     def install_cockpit(self):
         """Installs cockpit on the broker virtual machine.
@@ -716,14 +615,15 @@ class ContentHost(Host, ContentHostMixins):
         setup_remote_execution_pull=False,
         operating_system=None,
         packages=None,
-        repo=None,
-        repo_gpg_key_url=None,
+        repo_data=None,
         remote_execution_interface=None,
         update_packages=False,
         ignore_subman_errors=False,
         force=False,
         insecure=True,
         hostgroup=None,
+        auth_username=None,
+        auth_password=None,
     ):
         """Registers content host to the Satellite or Capsule server
         using a global registration template.
@@ -737,14 +637,15 @@ class ContentHost(Host, ContentHostMixins):
         :param setup_remote_execution_pull: Deploy pull provider client on host
         :param operating_system: Operating system.
         :param packages: A list of packages to install on the host when registered.
-        :param repo: Repository to be added before the registration is performed, supply url.
-        :param repo_gpg_key_url: Public key to verify the package signatures, supply url.
+        :param repo_data: Array with repository URL and corresponding GPG key URL.
         :param remote_execution_interface: Identifier of the host interface for remote execution.
         :param update_packages: Update all packages on the host.
         :param ignore_subman_errors: Ignore subscription manager errors.
         :param force: Register the content host even if it's already registered.
         :param insecure: Don't verify server authenticity.
         :param hostgroup: hostgroup to register with
+        :param auth_username: username required if non-admin user
+        :param auth_password: password required if non-admin user
         :return: SSHCommandResult instance filled with the result of the registration
         """
         options = {
@@ -779,8 +680,8 @@ class ContentHost(Host, ContentHostMixins):
             options['hostgroup-id'] = hostgroup.id
         if packages is not None:
             options['packages'] = '+'.join(packages)
-        if repo is not None:
-            options['repo'] = repo
+        if repo_data is not None:
+            options['repo-data'] = repo_data
         if setup_insights is not None:
             options['setup-insights'] = str(setup_insights).lower()
         if setup_remote_execution is not None:
@@ -789,14 +690,26 @@ class ContentHost(Host, ContentHostMixins):
             options['setup-remote-execution-pull'] = str(setup_remote_execution_pull).lower()
         if remote_execution_interface is not None:
             options['remote-execution-interface'] = remote_execution_interface
-        if repo_gpg_key_url is not None:
-            options['repo-gpg-key-url'] = repo_gpg_key_url
         if ignore_subman_errors:
             options['ignore-subman-errors'] = str(ignore_subman_errors).lower()
         if force:
             options['force'] = str(force).lower()
 
-        cmd = target.satellite.cli.HostRegistration.generate_command(options)
+        self._satellite = target.satellite
+        if auth_username and auth_password:
+            user = target.satellite.cli.User.list({'search': f'login={auth_username}'})
+            if user:
+                register_role = target.satellite.cli.Role.info({'name': 'Register hosts'})
+                target.satellite.cli.User.add_role(
+                    {'id': user[0]['id'], 'role-id': register_role['id']}
+                )
+                cmd = target.satellite.cli.HostRegistration.with_user(
+                    auth_username, auth_password
+                ).generate_command(options)
+            else:
+                raise CLIFactoryError(f'User {auth_username} doesn\'t exist')
+        else:
+            cmd = target.satellite.cli.HostRegistration.generate_command(options)
         return self.execute(cmd.strip('\n'))
 
     def api_register(self, target, **kwargs):
@@ -807,6 +720,7 @@ class ContentHost(Host, ContentHostMixins):
         :return: The result of the API call.
         """
         kwargs['insecure'] = kwargs.get('insecure', True)
+        self._satellite = target.satellite
         command = target.satellite.api.RegistrationCommand(**kwargs).create()
         return self.execute(command.strip('\n'))
 
@@ -815,6 +729,7 @@ class ContentHost(Host, ContentHostMixins):
         org='Default_Organization',
         activation_key=None,
         lce='Library',
+        environments=None,
         consumerid=None,
         force=True,
         releasever=None,
@@ -863,6 +778,8 @@ class ContentHost(Host, ContentHostMixins):
             cmd += f' --activationkey {activation_key}'
         elif lce:
             cmd += f' --environment {lce}{userpass}'
+        elif environments:
+            cmd += f' --environments {environments}{userpass}'
         elif consumerid:
             cmd += f' --consumerid {consumerid}{userpass}'
         else:
@@ -933,6 +850,16 @@ class ContentHost(Host, ContentHostMixins):
         cmd = f"subscription-manager config --server.proxy_hostname={hostname}"
         if port:
             cmd += f' --server.proxy_port={port}'
+        self.execute(cmd)
+
+    def enable_dnf_proxy(self, hostname, scheme=None, port=None):
+        """Configures proxy for dnf"""
+        if not scheme:
+            scheme = 'http'
+        cmd = f"echo -e 'proxy = {scheme}://{hostname}"
+        if port:
+            cmd += f':{port}'
+        cmd += "' >> /etc/dnf/dnf.conf"
         self.execute(cmd)
 
     def add_authorized_key(self, pub_key):
@@ -1010,7 +937,9 @@ class ContentHost(Host, ContentHostMixins):
                 f'Failed to put hostname in ssh known_hosts files:\n{result.stderr}'
             )
 
-    def configure_puppet(self, proxy_hostname=None, run_puppet_agent=True):
+    def configure_puppet(
+        self, proxy_hostname=None, run_puppet_agent=True, install_puppet_agent7=False
+    ):
         """Configures puppet on the virtual machine/Host.
         :param proxy_hostname: external capsule hostname
         :return: None.
@@ -1019,12 +948,21 @@ class ContentHost(Host, ContentHostMixins):
         if proxy_hostname is None:
             proxy_hostname = settings.server.hostname
 
-        self.create_custom_repos(
-            sat_client=settings.repos['SATCLIENT_REPO'][f'RHEL{self.os_version.major}']
-        )
+        if install_puppet_agent7:
+            self.create_custom_repos(
+                sat_client=settings.repos['SATCLIENT_REPO'][f'RHEL{self.os_version.major}']
+            )
+        else:
+            self.create_custom_repos(
+                sat_client=settings.repos['SATCLIENT2_REPO'][f'RHEL{self.os_version.major}']
+            )
+
         result = self.execute('yum install puppet-agent -y')
         if result.status != 0:
             raise ContentHostError('Failed to install the puppet-agent rpm')
+
+        rpm_version = self.execute('rpm -q --qf "%{VERSION}" puppet-agent').stdout
+        assert '7' in rpm_version if install_puppet_agent7 else '7' not in rpm_version
 
         cert_name = self.hostname
         puppet_conf = (
@@ -1048,7 +986,7 @@ class ContentHost(Host, ContentHostMixins):
         # sat6 under the capsule --> certifcates or on capsule via cli "puppetserver
         # ca list", so that we sign it.
         self.execute('/opt/puppetlabs/bin/puppet agent -t')
-        proxy_host = Host(hostname=proxy_hostname)
+        proxy_host = Host(hostname=proxy_hostname, ipv6=settings.server.is_ipv6)
         proxy_host.execute(f'puppetserver ca sign --certname {cert_name}')
 
         if run_puppet_agent:
@@ -1095,8 +1033,19 @@ class ContentHost(Host, ContentHostMixins):
         :param bool register: Whether to register to the Satellite. Keyexchange done regardless
         """
         if register:
-            self.install_katello_ca(satellite)
-            self.register_contenthost(org.label, lce='Library')
+            ak = satellite.api.ActivationKey(
+                content_view=org.default_content_view.id,
+                environment=org.library.id,
+                organization=org,
+            ).create()
+            self.register(
+                org,
+                None,
+                ak.name,
+                satellite,
+                setup_remote_execution=True,
+                setup_remote_execution_pull=True,
+            )
             assert self.subscribed
         self.add_rex_key(satellite=satellite)
         if register and subnet_id is not None:
@@ -1117,7 +1066,7 @@ class ContentHost(Host, ContentHostMixins):
             host.host_parameters_attributes = host_parameters
             host.update(['host_parameters_attributes'])
 
-    def configure_rhai_client(
+    def configure_insights_client(
         self, satellite, activation_key, org, rhel_distro, register_insights=True, register=True
     ):
         """Configures a Red Hat Access Insights service on the system by
@@ -1131,13 +1080,7 @@ class ContentHost(Host, ContentHostMixins):
         :param register: Whether to register client to insights
         :return: None
         """
-        if register:
-            # Install Satellite CA rpm
-            self.install_katello_ca(satellite)
-
-            self.register_contenthost(org, activation_key)
-
-        # Red Hat Insights requires RHEL 6/7/8 repo and it is not
+        # Red Hat Insights requires RHEL 6/7/8/9 repo and it is not
         # possible to sync the repo during the tests, Adding repo file.
         distro_repo_map = {
             'rhel6': settings.repos.rhel6_os,
@@ -1155,16 +1098,20 @@ class ContentHost(Host, ContentHostMixins):
         else:
             self.create_custom_repos(**{rhel_distro: rhel_repo})
 
-        # Install insights-client rpm
+        # Ensure insights-client rpm is installed
         if self.execute('yum install -y insights-client').status != 0:
             raise ContentHostError('Unable to install insights-client rpm')
-
-        if register_insights:
-            # Register client
-            if self.execute('insights-client --register').status != 0:
-                raise ContentHostError('Unable to register client to Insights through Satellite')
-            if self.execute('insights-client --test-connection').status != 0:
-                raise ContentHostError('Test connection failed via insights.')
+        # attempt to register host
+        if register:
+            if not activation_key:
+                activation_key = satellite.api.ActivationKey(
+                    content_view=org.default_content_view.id,
+                    environment=org.library.id,
+                    organization=org,
+                ).create()
+            self.register(
+                org, None, activation_key.name, satellite, setup_insights=register_insights
+            )
 
     def unregister_insights(self):
         """Unregister insights client.
@@ -1228,10 +1175,12 @@ class ContentHost(Host, ContentHostMixins):
         """
         rh_repo_ids = rh_repo_ids or []
         repo_labels = repo_labels or []
+        loc = location_title
         if location_title:
             self.set_facts({'locations.facts': {'foreman_location': str(location_title)}})
-        self.install_katello_ca(satellite)
-        result = self.register_contenthost(org_label, activation_key=activation_key, lce=lce)
+            loc = satellite.api.Location().search(query={'search': f'name="{location_title}"'})[0]
+        org = satellite.api.Organization().search(query={'search': f'name="{org_label}"'})[0]
+        result = self.register(org, loc, activation_key, satellite)
         if not self.subscribed:
             logger.info(result.stdout)
             raise CLIFactoryError('Virtual machine failed subscription')
@@ -1306,8 +1255,8 @@ class ContentHost(Host, ContentHostMixins):
         ]
         repos.extend(extra_repos)
         content_setup_data = satellite.cli_factory.setup_cdn_and_custom_repos_content(
-            org[id],
-            lce[id],
+            org['id'],
+            lce['id'],
             repos,
             upload_manifest=upload_manifest,
             rh_subscriptions=[constants.DEFAULT_SUBSCRIPTION_NAME],
@@ -1483,7 +1432,7 @@ class ContentHost(Host, ContentHostMixins):
         """Subscribe satellite to CDN"""
         if pool_ids is None:
             pool_ids = [settings.subscription.rhn_poolid]
-        self.remove_katello_ca()
+        self.reset_rhsm()
         cmd_result = self.register_contenthost(
             org=None,
             lce=None,
@@ -1646,9 +1595,10 @@ class Capsule(ContentHost, CapsuleMixins):
 
     def enable_ipv6_http_proxy(self):
         """Execute procedures for enabling IPv6 HTTP Proxy on Capsule using SM"""
-        if all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
+        if settings.server.is_ipv6:
             url = urlparse(settings.server.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)
+            self.ipv6 = settings.server.is_ipv6
 
     def disable_ipv6_http_proxy(self):
         """Executes procedures for disabling IPv6 HTTP Proxy on Capsule"""
@@ -1778,10 +1728,6 @@ class Capsule(ContentHost, CapsuleMixins):
         Note: Make sure required repos are enabled before using this.
         """
         if self.os_version.major == 8:
-            if settings.server.is_ipv6:
-                self.execute(
-                    f"echo -e 'proxy={settings.server.http_proxy_ipv6_url}' >> /etc/dnf/dnf.conf"
-                )
             assert (
                 self.execute(
                     f'dnf -y module enable {self.product_rpm_name}:el{self.os_version.major}'
@@ -1826,11 +1772,12 @@ class Satellite(Capsule, SatelliteMixins):
 
     def enable_ipv6_http_proxy(self):
         """Execute procedures for enabling IPv6 HTTP Proxy"""
-        if not all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
+        if not settings.server.is_ipv6:
             logger.warning(
                 'The IPv6 HTTP Proxy setting is not enabled. Skipping the IPv6 HTTP Proxy setup.'
             )
             return None
+        self.ipv6 = settings.server.is_ipv6
         proxy_name = 'Robottelo IPv6 Automation Proxy'
         if not self.cli.HttpProxy.exists(search=('name', proxy_name)):
             http_proxy = self.api.HTTPProxy(
@@ -1840,7 +1787,7 @@ class Satellite(Capsule, SatelliteMixins):
             logger.info(
                 'The IPv6 HTTP Proxy is already enabled. Skipping the IPv6 HTTP Proxy setup.'
             )
-            http_proxy = self.api.HTTPProxy().search(query={'search': f'name={proxy_name}'})[0]
+            http_proxy = self.api.HTTPProxy().search(query={'search': f'name="{proxy_name}"'})[0]
         # Setting HTTP Proxy as default in the settings
         self.cli.Settings.set(
             {
@@ -2222,13 +2169,12 @@ class Satellite(Capsule, SatelliteMixins):
             assert task_status['result'] == 'success'
 
         # register contenthost
-        rhel_contenthost.install_katello_ca(self)
-        register = rhel_contenthost.register_contenthost(
-            org=module_org.label,
-            lce='Library',
-            name=f'{gen_string("alpha")}-{rhel_contenthost.hostname}',
-            force=True,
-        )
+        ak = self.api.ActivationKey(
+            content_view=module_org.default_content_view.id,
+            environment=module_org.library.id,
+            organization=module_org,
+        ).create()
+        register = rhel_contenthost.register(module_org, None, ak.name, self)
         assert register.status == 0, (
             f'Failed to register the host: {rhel_contenthost.hostname}:'
             f'rc: {register.status}: {register.stderr}'
@@ -2263,9 +2209,14 @@ class Satellite(Capsule, SatelliteMixins):
         :type ad_data: Callable
         """
         ad_data = ad_data()
+        version_dependent = (
+            'ipa-python-compat'
+            if int(self.satellite.version.split('.')[1]) < 13
+            else 'oddjob oddjob-mkhomedir'
+        )
         packages = (
-            'sssd adcli realmd ipa-python-compat krb5-workstation '
-            'samba-common-tools gssproxy nfs-utils ipa-client'
+            f'sssd adcli realmd krb5-workstation samba-common-tools '
+            f'gssproxy nfs-utils ipa-client {version_dependent}'
         )
         realm = ad_data.realm
         workgroup = ad_data.workgroup
@@ -2354,16 +2305,11 @@ class Satellite(Capsule, SatelliteMixins):
         assert self.execute('systemctl restart gssproxy.service').status == 0
         assert self.execute('systemctl enable gssproxy.service').status == 0
 
+        assert self.execute("mkdir -p /etc/systemd/system/httpd.service.d/").status == 0
+        assert self.execute(
+            "echo -e '[Service]\\nEnvironment=GSS_USE_PROXY=1' > /etc/systemd/system/httpd.service.d/gssproxy.conf"
+        )
         # restart the deamon and httpd services
-        httpd_service_content = (
-            '.include /lib/systemd/system/httpd.service\n[Service]' '\nEnvironment=GSS_USE_PROXY=1'
-        )
-        assert (
-            self.execute(
-                f'echo "{httpd_service_content}" > /etc/systemd/system/httpd.service'
-            ).status
-            == 0
-        )
         assert (
             self.execute('systemctl daemon-reload && systemctl restart httpd.service').status == 0
         )
@@ -2411,11 +2357,28 @@ class Satellite(Capsule, SatelliteMixins):
     ):
         """Satellite Registration to CDN"""
         # Enabling proxy for IPv6
-        if enable_proxy and all([settings.server.is_ipv6, settings.server.http_proxy_ipv6_url]):
+        if enable_proxy and settings.server.is_ipv6:
             url = urlparse(settings.server.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)
+            self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
         return super().register_contenthost(
             org=org, lce=lce, username=username, password=password, enable_proxy=enable_proxy
+        )
+
+    def run_orphan_cleanup(self, smart_proxy_id=None):
+        """Run orphan cleanup task for all or given smart proxy."""
+        timestamp = datetime.utcnow().replace(microsecond=0)
+        rake_command = 'foreman-rake katello:delete_orphaned_content RAILS_ENV=production'
+        if smart_proxy_id:
+            rake_command = f'{rake_command} SMART_PROXY_ID={smart_proxy_id}'
+        self.execute(rake_command)
+        self.wait_for_tasks(
+            search_query=(
+                'label = Actions::Katello::OrphanCleanup::RemoveOrphans'
+                f' and started_at >= "{timestamp}"'
+            ),
+            search_rate=5,
+            max_tries=10,
         )
 
 
@@ -2425,6 +2388,7 @@ class SSOHost(Host):
     def __init__(self, sat_obj, **kwargs):
         self.satellite = sat_obj
         kwargs['hostname'] = kwargs.get('hostname', settings.rhsso.host_name)
+        kwargs['ipv6'] = kwargs.get('ipv6', settings.server.is_ipv6)
         super().__init__(**kwargs)
 
     def get_rhsso_client_id(self):
@@ -2596,6 +2560,7 @@ class IPAHost(Host):
     def __init__(self, sat_obj, **kwargs):
         self.satellite = sat_obj
         kwargs['hostname'] = kwargs.get('hostname', settings.ipa.hostname)
+        kwargs['ipv6'] = kwargs.get('ipv6', settings.server.is_ipv6)
         # Allow the class to be constructed from kwargs
         kwargs['from_dict'] = True
         kwargs.update(
@@ -2678,8 +2643,10 @@ class IPAHost(Host):
     def add_user_to_usergroup(self, member_username, member_group):
         self._kinit_admin()
         result = self.execute(f'ipa group-add-member {member_group} --users={member_username}')
-        if result.status != 0:
-            raise IPAHostError('Failed to add the user to usergroup')
+        if result.status != 0 and 'This entry is already a member' not in result.stdout:
+            raise IPAHostError(
+                f'Failed to add the user to usergroup.\nSTDOUT: {result.stdout}\nSTDERR: {result.stderr}'
+            )
 
     def remove_user_from_usergroup(self, member_username, member_group):
         self._kinit_admin()
@@ -2697,6 +2664,7 @@ class ProxyHost(Host):
         self._conf_dir = '/etc/squid/'
         self._access_log = '/var/log/squid/access.log'
         kwargs['hostname'] = urlparse(url).hostname
+        kwargs['ipv6'] = kwargs.get('ipv6', settings.server.is_ipv6)
         super().__init__(**kwargs)
 
     def add_user(self, name, passwd):

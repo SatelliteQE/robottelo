@@ -25,6 +25,7 @@ from robottelo.constants import (
     FAKE_7_CUSTOM_PACKAGE,
     REPO_TYPE,
 )
+from robottelo.utils.issue_handlers import is_open
 
 pytestmark = pytest.mark.tier1
 
@@ -134,6 +135,7 @@ def test_negative_global_registration_without_ak(
 
 @pytest.mark.e2e
 @pytest.mark.no_containers
+@pytest.mark.pit_client
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6]')
 def test_positive_global_registration_end_to_end(
@@ -228,7 +230,7 @@ def test_positive_global_registration_end_to_end(
     # Assert that a yum update was made this day ("Update" or "I, U" in history)
     timezone_offset = rhel_contenthost.execute('date +"%:z"').stdout.strip()
     tzinfo = datetime.strptime(timezone_offset, '%z').tzinfo
-    result = rhel_contenthost.execute('yum history | grep U')
+    result = rhel_contenthost.execute('yum history | grep -E "I|U"')
     assert result.status == 0
     assert datetime.now(tzinfo).strftime('%Y-%m-%d') in result.stdout
     # Set "Connect to host using IP address"
@@ -344,11 +346,15 @@ def test_global_registration_form_populate(
 
         session.organization.select(org_name=new_org.name)
         session.browser.refresh()
+        registration_opts = {
+            'general.insecure': True,
+            'advanced.force': True,
+        }
+        # Select activation key explicitly due to SAT-27348
+        if is_open('SAT-27348'):
+            registration_opts['general.activation_keys'] = new_ak.name
         cmd = session.host.get_register_command(
-            {
-                'general.insecure': True,
-                'advanced.force': True,
-            },
+            registration_opts,
             full_read=True,
         )
         assert new_org.name in cmd['general']['organization']
@@ -356,7 +362,8 @@ def test_global_registration_form_populate(
 
 
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.pit_client
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.no_containers
 def test_global_registration_with_gpg_repo_and_default_package(
     module_activation_key, rhel_contenthost, target_sat, module_org
@@ -373,7 +380,7 @@ def test_global_registration_with_gpg_repo_and_default_package(
     :steps:
         1. create and sync repository
         2. create the content view and activation-key
-        3. update the 'host_packages' parameter in organization with package name e.g. vim
+        3. update the 'host_packages' parameter in organization with package name e.g. zsh
         4. open the global registration form and update the gpg repo and key
         5. check host is registered successfully with installed same package
         6. check gpg repo is exist in registered host
@@ -386,12 +393,13 @@ def test_global_registration_with_gpg_repo_and_default_package(
     repo_gpg_url = settings.repos.gr_yum_repo.gpg_url
     with target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
+
         cmd = session.host.get_register_command(
             {
                 'general.activation_keys': module_activation_key.name,
                 'general.insecure': True,
                 'advanced.force': True,
-                'advanced.install_packages': 'mlocate vim',
+                'advanced.install_packages': 'mlocate zsh',
                 'advanced.repository': repo_url,
                 'advanced.repository_gpg_key_url': repo_gpg_url,
             }
@@ -414,8 +422,9 @@ def test_global_registration_with_gpg_repo_and_default_package(
     result = client.execute('yum list installed | grep mlocate')
     assert result.status == 0
     assert 'mlocate' in result.stdout
-    result = client.execute(f'yum -v repolist {repo_name}')
+    result = client.execute('yum -v repolist')
     assert result.status == 0
+    assert repo_name in result.stdout
     assert repo_url in result.stdout
 
 

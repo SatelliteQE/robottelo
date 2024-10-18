@@ -54,6 +54,8 @@ def test_positive_end_to_end(session, module_target_sat):
 
     :expectedresults: All expected CRUD actions finished successfully
 
+    :BlockedBy: SAT-27703
+
     :CaseImportance: Critical
     """
     name = gen_string('alpha')
@@ -173,6 +175,10 @@ def test_positive_search_scoped(session):
 
     :BZ: 1259374
 
+    :BlockedBy: SAT-27703
+
+    :Verifies: SAT-27703
+
     :CaseImportance: Medium
     """
     org_name = gen_string('alpha')
@@ -187,7 +193,6 @@ def test_positive_search_scoped(session):
             assert session.organization.search(query)[0]['Name'] == org_name
 
 
-@pytest.mark.skip_if_open("BZ:1321543")
 @pytest.mark.tier2
 def test_positive_create_with_all_users(session, module_target_sat):
     """Create organization and new user. Check 'all users' setting for
@@ -200,7 +205,9 @@ def test_positive_create_with_all_users(session, module_target_sat):
 
     :expectedresults: Organization and user entities assigned to each other
 
-    :BZ: 1321543
+    :verifies: SAT-25386
+
+    :BlockedBy: SAT-25386
     """
     user = module_target_sat.api.User().create()
     org = module_target_sat.api.Organization().create()

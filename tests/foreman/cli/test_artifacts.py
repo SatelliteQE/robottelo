@@ -17,12 +17,9 @@ import random
 
 from box import Box
 import pytest
+from wait_for import wait_for
 
 from robottelo.config import settings
-from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
-)
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
 from robottelo.content_info import get_repo_files_urls_by_url
 
@@ -50,24 +47,24 @@ def module_synced_content(
     return Box(prod=module_product, repo=repo, cv=cv.read(), sync_time=sync_time)
 
 
-@pytest.mark.stream
 @pytest.mark.parametrize('repair_type', ['repo', 'cv', 'product'])
 @pytest.mark.parametrize(
     'module_synced_content',
     [
         {'content_type': 'yum', 'url': settings.repos.yum_0.url},
         {'content_type': 'file', 'url': CUSTOM_FILE_REPO},
+        # The following repos should be unique through robottelo to avoid 'No NEW artifacts found'
         {
             'content_type': 'docker',
-            'docker_upstream_name': CONTAINER_UPSTREAM_NAME,
-            'url': CONTAINER_REGISTRY_HUB,
+            'docker_upstream_name': 'libpod/busybox',
+            'url': 'https://quay.io',
         },
         {
             'content_type': 'ansible_collection',
             'url': ANSIBLE_GALAXY,
             'ansible_collection_requirements': '{collections: [ \
-                    { name: theforeman.foreman, version: "2.1.0" }, \
-                    { name: theforeman.operations, version: "0.1.0"} ]}',
+                    { name: icinga.icinga, version: "0.3.3" }, \
+                    { name: icinga.icinga, version: "0.3.2"} ]}',
         },
     ],
     indirect=True,
@@ -117,6 +114,17 @@ def test_positive_artifact_repair(
             cv=None if repair_type == 'repo' else module_synced_content.cv.label,
             prod=module_synced_content.prod.label,
             repo=module_synced_content.repo.label,
+        )
+        wait_for(
+            lambda: len(
+                get_repo_files_urls_by_url(
+                    sat_repo_url,
+                    extension='rpm' if module_synced_content.repo.content_type == 'yum' else 'iso',
+                )
+            )
+            > 0,
+            timeout=120,
+            delay=15,
         )
         sat_files_urls = get_repo_files_urls_by_url(
             sat_repo_url,

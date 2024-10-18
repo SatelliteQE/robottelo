@@ -20,13 +20,13 @@ pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.tier1]
 
 
 @pytest.fixture
-def params(function_entitlement_manifest_org, target_sat):
+def params(function_sca_manifest_org, target_sat):
     PRODUCT_NAME = PRDS['rhel']
     REPOSET_NAME = REPOSET['rhva6']
     ARCH = 'x86_64'
     ARCH_2 = 'i386'
     RELEASE = '6Server'
-    manifest_org = function_entitlement_manifest_org
+    manifest_org = function_sca_manifest_org
 
     product_id = target_sat.cli.Product.info(
         {'name': PRODUCT_NAME, 'organization-id': manifest_org.id}
@@ -153,91 +153,20 @@ def test_positive_list_available_repositories(params, target_sat):
     assert len(match_repos(result, params['match']['enabled'])) == 0
 
 
-def test_positive_enable_by_name(params, target_sat):
-    """Enable repo from reposet by names of reposet, org and product
+@pytest.mark.parametrize('act_by', ['name', 'label', 'ids'])
+def test_positive_enable_disable_by_param(act_by, params, target_sat):
+    """Enable and disable repo from reposet by name, label and id (parametrized).
 
-    :id: a78537bd-b88d-4f00-8901-e7944e5de729
+    :id: 6e4817dc-8d05-4296-b47b-78cbb8c68c6b
 
-    :expectedresults: Repository was enabled
+    :expectedresults: Repository was enabled and disabled.
 
     :CaseImportance: Critical
     """
-    target_sat.cli.RepositorySet.enable(params['enable']['name'])
-    result = target_sat.cli.RepositorySet.available_repositories(params['avail']['name'])
+    target_sat.cli.RepositorySet.enable(params['enable'][act_by])
+    result = target_sat.cli.RepositorySet.available_repositories(params['avail'][act_by])
     assert len(match_repos(result, params['match']['enabled_arch_rel'])) == 1
 
-
-def test_positive_enable_by_label(params, target_sat):
-    """Enable repo from reposet by org label, reposet and product
-    names
-
-    :id: 5230c1cd-fed7-40ac-8445-bac4f9c5ee68
-
-    :expectedresults: Repository was enabled
-
-    :CaseImportance: Critical
-    """
-    target_sat.cli.RepositorySet.enable(params['enable']['label'])
-    result = target_sat.cli.RepositorySet.available_repositories(params['avail']['label'])
-    assert len(match_repos(result, params['match']['enabled_arch_rel'])) == 1
-
-
-def test_positive_enable_by_id(params, target_sat):
-    """Enable repo from reposet by IDs of reposet, org and product
-
-    :id: f7c88534-1d45-45d9-9b87-c50c4e268e8d
-
-    :expectedresults: Repository was enabled
-
-    :CaseImportance: Critical
-    """
-    target_sat.cli.RepositorySet.enable(params['enable']['ids'])
-    result = target_sat.cli.RepositorySet.available_repositories(params['avail']['ids'])
-    assert len(match_repos(result, params['match']['enabled_arch_rel'])) == 1
-
-
-def test_positive_disable_by_name(params, target_sat):
-    """Disable repo from reposet by names of reposet, org and
-    product
-
-    :id: 1690a701-ae41-4724-bbc6-b0adba5a5319
-
-    :expectedresults: Repository was disabled
-
-    :CaseImportance: Critical
-    """
-    target_sat.cli.RepositorySet.enable(params['enable']['name'])
-    target_sat.cli.RepositorySet.disable(params['enable']['name'])
-    result = target_sat.cli.RepositorySet.available_repositories(params['avail']['name'])
-    assert len(match_repos(result, params['match']['enabled'])) == 0
-
-
-def test_positive_disable_by_label(params, target_sat):
-    """Disable repo from reposet by org label, reposet and product
-    names
-
-    :id: a87a5df6-f8ab-469e-94e5-ca79378f8dbe
-
-    :expectedresults: Repository was disabled
-
-    :CaseImportance: Critical
-    """
-    target_sat.cli.RepositorySet.enable(params['enable']['label'])
-    target_sat.cli.RepositorySet.disable(params['enable']['label'])
-    result = target_sat.cli.RepositorySet.available_repositories(params['avail']['label'])
-    assert len(match_repos(result, params['match']['enabled'])) == 0
-
-
-def test_positive_disable_by_id(params, target_sat):
-    """Disable repo from reposet by IDs of reposet, org and product
-
-    :id: 0d6102ba-3fb9-4eb8-972e-d537e252a8e6
-
-    :expectedresults: Repository was disabled
-
-    :CaseImportance: Critical
-    """
-    target_sat.cli.RepositorySet.enable(params['enable']['ids'])
-    target_sat.cli.RepositorySet.disable(params['enable']['ids'])
-    result = target_sat.cli.RepositorySet.available_repositories(params['avail']['ids'])
+    target_sat.cli.RepositorySet.disable(params['enable'][act_by])
+    result = target_sat.cli.RepositorySet.available_repositories(params['avail'][act_by])
     assert len(match_repos(result, params['match']['enabled'])) == 0
