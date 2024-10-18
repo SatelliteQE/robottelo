@@ -246,7 +246,7 @@ def test_positive_delete_cv_promoted_to_multi_env(
         5. Publish and promote a new 'Version 2.0' to multiple environments.
         6. Delete the entire content view, verify removed from environments.
 
-    :expectedresults: The deleted CV and CVV do not exist,
+    :expectedresults: The deleted CVV and CV do not exist in ContentViews UI,
         4. Deleting the single promoted CVV, removed the CV from multiple environments.
         6. Deleting the entire CV containing promoted CVV, removed the CV from multiple environments.
 
@@ -255,7 +255,7 @@ def test_positive_delete_cv_promoted_to_multi_env(
     repo = target_sat.cli_factory.RepositoryCollection(
         repositories=[target_sat.cli_factory.YumRepository(url=settings.repos.yum_0.url)]
     )
-    repo.setup(module_org.id, synchronize=False)
+    repo.setup(module_org.id, synchronize=False) # sync=True once fake repos host is back up
     cv, lce = repo.setup_content_view(module_org.id)
     repo_name = repo.repos_info[0]['name']
 
