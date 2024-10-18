@@ -359,7 +359,12 @@ def test_positive_content_counts_granularity(
         1. Create two LCEs, assign them to the Capsule.
         2. Create and sync a repo, publish it in two CVs, promote both CVs to both LCEs.
         3. Ensure full counts were calculated for both CVs, both LCEs.
+       +a. Disable automatic content counts update.
         4. Create a filter for both CVs to change the counts of next version.
+       +b. Publish new version of both CVs and promote to both LCEs.
+           After capsule sync completes we should have changes in all publictions.
+       +c. Ensure full counts (now obsolete) are still reported for both CVs, both LCEs.
+       +d. Enable automatic content counts update.
         5. Publish new version of the first CV, promote it to the first LCE.
         6. Ensure counts of the first CV were updated in the first LCE only, nothing else.
         7. Promote the first CV to the second LCE.
@@ -417,6 +422,10 @@ def test_positive_content_counts_granularity(
                 int(info[lce.name][cv.name][repo.name]['errata']) == repo.content_counts['erratum']
             )
 
+    # Disable automatic content counts update.
+    setting_update.value = False
+    setting_update = setting_update.update({'value'})
+
     # Create a filter for both CVs to change the counts of next version.
     for cv in cvs:
         cvf = module_target_sat.cli_factory.make_content_view_filter(
@@ -432,6 +441,36 @@ def test_positive_content_counts_granularity(
                 'name': FAKE_0_CUSTOM_PACKAGE_NAME,
             }
         )
+
+    # Publish new version of both CVs and promote to both LCEs.
+    # After capsule sync completes we should have changes in all publictions.
+    for cv in cvs:
+        cv.publish()
+        cv = cv.read()
+        cv.version[0].promote(data={'environment_ids': [lce1.id, lce2.id]})
+        cv = cv.read()
+    module_target_sat.wait_for_tasks(search_query=wait_query, search_rate=5, max_tries=5)
+
+    # Ensure full counts (now obsolete) are still reported for both CVs, both LCEs.
+    info = module_target_sat.cli.Capsule.content_info(
+        {'id': module_capsule_configured.nailgun_capsule.id, 'organization-id': function_org.id}
+    )
+    info = _dictionarize_counts(info)
+
+    for lce in [lce1, lce2]:
+        for cv in cvs:
+            assert int(info[lce.name][cv.name][repo.name]['packages']) == repo.content_counts['rpm']
+            assert (
+                int(info[lce.name][cv.name][repo.name]['package-groups'])
+                == repo.content_counts['package_group']
+            )
+            assert (
+                int(info[lce.name][cv.name][repo.name]['errata']) == repo.content_counts['erratum']
+            )
+
+    # Enable automatic content counts update.
+    setting_update.value = False
+    setting_update = setting_update.update({'value'})
 
     # Publish new version of the first CV, promote it to the first LCE.
     cv1.publish()
