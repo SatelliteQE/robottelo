@@ -90,7 +90,6 @@ import os
 from box import Box
 import pytest
 
-from robottelo.config import settings
 from robottelo.logging import logger
 from robottelo.utils.decorators.func_locker import lock_function
 
@@ -261,13 +260,11 @@ def pre_upgrade_data(request):
         start_index = test_node_id.find('[') + 1
         end_index = test_node_id.find(']')
         extracted_value = test_node_id[start_index:end_index]
-        if request.param in extracted_value:
-            upgrade_data[extracted_value] = _read_test_data(test_node_id)
+        upgrade_data[extracted_value] = _read_test_data(test_node_id)
     if len(upgrade_data) == 1:
         param_value = next(iter(upgrade_data.values()))
     else:
-        network_type = 'ipv6' if settings.server.is_ipv6 else 'ipv4'
-        param_value = upgrade_data.get(f'{request.param}-{network_type}')
+        param_value = upgrade_data.get(request.param)
         if param_value is None:
             pytest.fail(f"Invalid test parameter: {request.param}. Test data not found.")
     return Box(param_value)
