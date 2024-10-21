@@ -74,6 +74,13 @@ def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_rol
     # Edit Makefile to not try to rebuild the collection when tests run
     module_target_sat.execute(f"sed -i '/^live/ s/$(MANIFEST)//' {FAM_ROOT_DIR}/Makefile")
 
+    # Edit Makefile to use passed-in pytest
+    # Can be removed once https://github.com/theforeman/foreman-ansible-modules/pull/1788
+    # is present in all relevant branches
+    module_target_sat.execute(
+        f"sed -i '/test_crud/ s/pytest/$(PYTEST_COMMAND)/' {FAM_ROOT_DIR}/Makefile"
+    )
+
     # Upload manifest to test playbooks directory
     module_target_sat.put(str(module_sca_manifest.path), str(module_sca_manifest.name))
     module_target_sat.execute(
@@ -141,7 +148,7 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
 
     # Execute test_playbook
     result = module_target_sat.execute(
-        f'export NO_COLOR=True && . ~/localenv/bin/activate && cd {FAM_ROOT_DIR} && make livetest_{ansible_module}'
+        f'export NO_COLOR=True && cd {FAM_ROOT_DIR} && make livetest_{ansible_module} PYTHON_COMMAND="python3" PYTEST_COMMAND="pytest-3.11"'
     )
     assert 'PASSED' in result.stdout
     assert result.status == 0
