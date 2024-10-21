@@ -19,9 +19,11 @@ http://www.katello.org/docs/api/apidoc/compute_resources.html
 from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
+from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import (
     invalid_values_list,
     parametrized,
@@ -278,3 +280,104 @@ def test_negative_update_url(url, request, module_target_sat, module_org, module
     with pytest.raises(HTTPError):
         compresource.update(['url'])
     assert compresource.read().url != url
+
+
+@pytest.mark.e2e
+@pytest.mark.on_premises_provisioning
+@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
+@pytest.mark.rhel_ver_match('[7]')
+def test_positive_provision_end_to_end(
+    request,
+    setting_update,
+    module_provisioning_rhel_content,
+    module_libvirt_provisioning_sat,
+    module_sca_manifest_org,
+    module_location,
+    pxe_loader,
+    provisioning_hostgroup,
+):
+    """Provision a host on Libvirt compute resource with the help of hostgroup.
+
+    :id: 6985e7c0-d258-4fc4-833b-e680804b55e9
+
+    :steps:
+        1. Configure provisioning setup.
+        2. Create Libvirt CR
+        3. Configure host group setup.
+        4. Create a host on Libvirt compute resource using the Hostgroup
+        5. Verify created host on Libvirt.
+
+    :expectedresults: Host is provisioned succesfully with hostgroup
+
+    :Verifies: SAT-25808
+    """
+    sat = module_libvirt_provisioning_sat.sat
+    cr_name = gen_string('alpha')
+    host_name = gen_string('alpha').lower()
+    libvirt_cr = sat.api.LibvirtComputeResource(
+        name=cr_name,
+        provider=FOREMAN_PROVIDERS['libvirt'],
+        display_type='VNC',
+        organization=[module_sca_manifest_org],
+        location=[module_location],
+        url=LIBVIRT_URL,
+    ).create()
+    request.addfinalizer(libvirt_cr.delete)
+    assert libvirt_cr.name == cr_name
+
+    host = sat.api.Host(
+        hostgroup=provisioning_hostgroup,
+        organization=module_sca_manifest_org,
+        location=module_location,
+        name=host_name,
+        compute_resource=libvirt_cr,
+        compute_attributes={
+            'cpus': 1,
+            'memory': 6442450944,
+            'firmware': pxe_loader.vm_firmware,
+            'start': '1',
+            'volumes_attributes': {
+                '0': {
+                    'capacity': '10G',
+                },
+            },
+        },
+        interfaces_attributes={
+            '0': {
+                'type': 'interface',
+                'primary': True,
+                'managed': True,
+                'compute_attributes': {
+                    'compute_type': 'bridge',
+                    'bridge': f'br-{settings.provisioning.vlan_id}',
+                },
+            }
+        },
+        provision_method='build',
+        host_parameters_attributes=[
+            {'name': 'remote_execution_connect_by_ip', 'value': 'true', 'parameter_type': 'boolean'}
+        ],
+        build=True,
+    ).create(create_missing=False)
+    request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
+    assert host.name == f'{host_name}.{module_libvirt_provisioning_sat.domain.name}'
+    # Check on Libvirt, if VM exists
+    result = sat.execute(
+        f'su foreman -s /bin/bash -c "virsh -c {LIBVIRT_URL} list --state-running"'
+    )
+    assert host_name in result.stdout
+    # check the build status
+    wait_for(
+        lambda: host.read().build_status_label != 'Pending installation',
+        timeout=1500,
+        delay=10,
+    )
+    assert host.read().build_status_label == 'Installed'
+
+    # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
+    if pxe_loader.vm_firmware == 'uefi_secure_boot':
+        provisioning_host = ContentHost(host.ip)
+        # Wait for the host to be rebooted and SSH daemon to be started.
+        provisioning_host.wait_for_connection()
+        assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
