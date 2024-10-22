@@ -1162,6 +1162,7 @@ def new_module_ak(
 ):
     new_module_ak = module_target_sat.api.ActivationKey(
         environment=module_lce_library,
+        content_view=module_sca_manifest_org.default_content_view,
         organization=module_sca_manifest_org,
     ).create()
     # Ensure tools repo is enabled in the activation key

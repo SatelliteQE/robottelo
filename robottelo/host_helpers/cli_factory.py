@@ -666,7 +666,12 @@ class CLIFactory:
             # Associate activation key with CV just to be sure
             try:
                 self._satellite.cli.ActivationKey.update(
-                    {'content-view-id': cv_id, 'id': activationkey_id, 'organization-id': org_id}
+                    {
+                        'id': activationkey_id,
+                        'organization-id': org_id,
+                        'content-view-id': cv_id,
+                        'lifecycle-environment-id': env_id,
+                    }
                 )
             except CLIReturnCodeError as err:
                 raise CLIFactoryError(
@@ -818,7 +823,12 @@ class CLIFactory:
             # Associate activation key with CV just to be sure
             try:
                 self._satellite.cli.ActivationKey.update(
-                    {'id': activationkey_id, 'organization-id': org_id, 'content-view-id': cv_id}
+                    {
+                        'id': activationkey_id,
+                        'organization-id': org_id,
+                        'content-view-id': cv_id,
+                        'lifecycle-environment-id': env_id,
+                    }
                 )
             except CLIReturnCodeError as err:
                 raise CLIFactoryError(
