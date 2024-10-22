@@ -334,3 +334,67 @@ def test_positive_global_registration_with_gpg_repo(
     assert result.status == 0
     if not is_open('SAT-27653'):
         assert rhel_contenthost.execute('dnf install -y bear').status == 0
+
+
+@pytest.mark.parametrize('setting_update', ['default_location_subscribed_hosts'], indirect=True)
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_positive_verify_default_location_for_registered_host(
+    module_target_sat,
+    module_sca_manifest_org,
+    module_location,
+    rhel_contenthost,
+    module_activation_key,
+    setting_update,
+):
+    """Verify default location set for registered host with default_location_subscribed_hosts setting.
+
+    :id: 6ea802d8-0788-4309-845c-c877013a8e48
+
+    :steps:
+        1. Create a location and set it as a default location in Administer --> Settings --> Content --> "Default Location subscribed hosts".
+        2. Register the host without specifying the location.
+        3. Verify that the default location in settings is set as host location after registration.
+        4. Re-register the host with a new location.
+        5. Verify the host location is registered to new location provided during registration.
+
+    :expectedresults:
+        1. Host registers in location set to "Default Location subscribed hosts" setting if no location is provided.
+        2. Host registers in location is set to the location provided during registration which overrides the "Default Location subscribed hosts" setting.
+
+    :Verifies: SAT-23047
+
+    :customerscenario: true
+    """
+    org = module_sca_manifest_org
+    location = module_target_sat.api.Location(organization=[org]).create()
+    setting_update.value = location.name
+    setting_update.update({'value'})
+    location_set = (
+        module_target_sat.api.Setting()
+        .search(query={'search': f'name={setting_update.name}'})[0]
+        .value
+    )
+    result = rhel_contenthost.register(
+        module_sca_manifest_org,
+        None,
+        module_activation_key.name,
+        module_target_sat,
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    host = module_target_sat.api.Host().search(
+        query={"search": f'name={rhel_contenthost.hostname}'}
+    )[0]
+    assert host.location.read().name == location_set
+    # Re-register the host with location provided during registration
+    result = rhel_contenthost.register(
+        module_sca_manifest_org,
+        module_location,
+        module_activation_key.name,
+        module_target_sat,
+        force=True,
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    host = module_target_sat.api.Host().search(
+        query={"search": f'name={rhel_contenthost.hostname}'}
+    )[0]
+    assert host.location.read().name == module_location.name
