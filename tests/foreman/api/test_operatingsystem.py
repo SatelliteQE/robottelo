@@ -12,7 +12,6 @@
 
 """
 
-from http.client import NOT_FOUND
 import random
 
 from fauxfactory import gen_string
@@ -25,38 +24,6 @@ from robottelo.utils.datafactory import (
     parametrized,
     valid_data_list,
 )
-
-
-class TestOperatingSystemParameter:
-    """Tests for operating system parameters."""
-
-    @pytest.mark.tier1
-    @pytest.mark.upgrade
-    def test_verify_bugzilla_1114640(self, target_sat):
-        """Create a parameter for operating system 1.
-
-        :id: e817ae43-226c-44e3-b559-62b8d394047b
-
-        :expectedresults: A parameter is created and can be read afterwards.
-
-        :CaseImportance: Critical
-        """
-        # Check whether OS 1 exists.
-        os1 = target_sat.api.OperatingSystem(id=1).read_raw()
-        if os1.status_code == NOT_FOUND and target_sat.api.OperatingSystem().create().id != 1:
-            pytest.skip('Cannot execute test, as operating system 1 is not available.')
-
-        # Create and read a parameter for operating system 1. The purpose of
-        # this test is to make sure an HTTP 422 is not returned, but we're also
-        # going to verify the name and value of the parameter, just for good
-        # measure.
-        name = gen_string('utf8')
-        value = gen_string('utf8')
-        os_param = target_sat.api.OperatingSystemParameter(
-            name=name, operatingsystem=1, value=value
-        ).create()
-        assert os_param.name == name
-        assert os_param.value == value
 
 
 class TestOperatingSystem:
@@ -88,6 +55,7 @@ class TestOperatingSystem:
         minor_version = gen_string('numeric')
         major_version = gen_string('numeric', 5)
         pass_hash = 'SHA256'
+        os_parameters = [{'name': gen_string('alpha'), 'value': gen_string('alpha')}]
         ptable = module_target_sat.api.PartitionTable().create()
         medium = module_target_sat.api.Media(organization=[module_org]).create()
         template = module_target_sat.api.ProvisioningTemplate(
@@ -105,6 +73,7 @@ class TestOperatingSystem:
             provisioning_template=[template],
             ptable=[ptable],
             medium=[medium],
+            os_parameters_attributes=os_parameters,
         ).create()
         assert os.name == name
         assert os.family == os_family
@@ -116,6 +85,8 @@ class TestOperatingSystem:
         assert os.ptable[0].id == ptable.id
         assert os.provisioning_template[0].id == template.id
         assert os.medium[0].id == medium.id
+        assert os.os_parameters_attributes[0]['name'] == os_parameters[0]['name']
+        assert os.os_parameters_attributes[0]['value'] == os_parameters[0]['value']
         # Read OS
         os = module_target_sat.api.OperatingSystem(id=os.id).read()
         assert os.name == name
@@ -128,6 +99,8 @@ class TestOperatingSystem:
         assert str(ptable.id) in str(os.ptable)
         assert str(template.id) in str(os.provisioning_template)
         assert os.medium[0].id == medium.id
+        assert os.os_parameters_attributes[0]['name'] == os_parameters[0]['name']
+        assert os.os_parameters_attributes[0]['value'] == os_parameters[0]['value']
         new_name = gen_string('alpha')
         new_desc = gen_string('alpha')
         new_os_family = 'Rhcos'
@@ -140,6 +113,7 @@ class TestOperatingSystem:
         new_template = module_target_sat.api.ProvisioningTemplate(
             organization=[module_org]
         ).create()
+        new_os_parameters = [{'name': gen_string('alpha'), 'value': gen_string('alpha')}]
         # Update OS
         os = module_target_sat.api.OperatingSystem(
             id=os.id,
@@ -153,6 +127,7 @@ class TestOperatingSystem:
             provisioning_template=[new_template],
             ptable=[new_ptable],
             medium=[new_medium],
+            os_parameters_attributes=new_os_parameters,
         ).update(
             [
                 'name',
@@ -165,6 +140,7 @@ class TestOperatingSystem:
                 'provisioning_template',
                 'ptable',
                 'medium',
+                'os_parameters_attributes',
             ]
         )
         assert os.name == new_name
@@ -177,6 +153,16 @@ class TestOperatingSystem:
         assert os.ptable[0].id == new_ptable.id
         assert os.provisioning_template[0].id == new_template.id
         assert os.medium[0].id == new_medium.id
+        assert os.os_parameters_attributes[0]['name'] == new_os_parameters[0]['name']
+        assert os.os_parameters_attributes[0]['value'] == new_os_parameters[0]['value']
+        # Delete OS Parameter
+        module_target_sat.api.OperatingSystemParameter(
+            operatingsystem=os.id, id=new_os_parameters[0]['name']
+        ).delete()
+        with pytest.raises(HTTPError):
+            module_target_sat.api.OperatingSystemParameter(
+                operatingsystem=os.id, id=new_os_parameters[0]['name']
+            ).read()
         # Delete OS
         module_target_sat.api.OperatingSystem(id=os.id).delete()
         with pytest.raises(HTTPError):
