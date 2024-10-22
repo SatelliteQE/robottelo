@@ -780,3 +780,65 @@ def test_subscription_manager_install_from_repository(
     result = client.execute('yum repolist')
     assert repo_name in result.stdout
     assert result.status == 0
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_positive_global_registration_with_setup_insights(
+    module_os,
+    rhel_contenthost,
+    module_activation_key,
+    target_sat,
+    module_org,
+    module_location,
+):
+    """Verify that the host is successfully registered with setup_insights=true and does not remain in build mode.
+
+    :id: 729f53c0-853b-11ef-b738-8242a35ddd79
+
+    :steps:
+        1. Generate a curl command which should have setup_insights=true in it
+        2. Execute the command
+
+    :expectedresults: No options should leave the host in build mode at the end of successful registration, specifically not insights configuration/setup.
+
+    :Verifies: SAT-26417
+
+    :customerscenario: true
+    """
+    rhel_ver = rhel_contenthost.os_version.major
+    repo_url = getattr(settings.repos, f'rhel{rhel_ver}_os', None)
+    rhel_contenthost.create_custom_repos(**repo_url)
+    result = rhel_contenthost.api_register(
+        target_sat,
+        organization=module_org,
+        activation_keys=[module_activation_key.name],
+        location=module_location,
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+        cmd = session.host.get_register_command(
+            {
+                'general.operating_system': module_os.title,
+                'general.activation_keys': module_activation_key.name,
+                'general.insecure': True,
+                'advanced.setup_insights': 'Yes (override)',
+                'advanced.force': True,
+            }
+        )
+        cmd_link = re.search(r"'https://ip-[^']*' -H '[^']*'", cmd)
+        output = rhel_contenthost.execute(
+            f'set -o pipefail && curl -sS --insecure {cmd_link.group()} | sed "s/bash/bash -x/g"  | bash -x'
+        )
+        assert f'The registered system name is: {rhel_contenthost.hostname}' in output.stdout
+        assert (
+            f'Host {[rhel_contenthost.hostname]} successfully configured, but failed to set built status.'
+            not in output.stdout
+        )
+        status = session.host.host_status(rhel_contenthost.hostname)
+        assert 'Build: Installed' in status
+        facts = session.host.build_mode(rhel_contenthost.hostname, 'Facts')
+        assert 'insights_client' in facts['permission_denied']
+        assert 'Successfully updated the system facts' in output.stdout
