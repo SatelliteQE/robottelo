@@ -5,6 +5,7 @@ from wrapanapi import VMWareSystem
 from wrapanapi.systems.virtualcenter import VMWareVirtualMachine
 
 from robottelo.config import settings
+from robottelo.hosts import ContentHost
 
 
 @pytest.fixture(scope='module')
@@ -112,20 +113,24 @@ def module_vmware_image(
 
 
 @pytest.fixture
-def provisioning_vmware_host(pxe_loader, vmwareclient):
+def provisioning_vmware_host(pxe_loader, vmwareclient, module_ssh_key_file):
     """Fixture to check out blank VM on VMware"""
     vm_boot_firmware = 'efi' if pxe_loader.vm_firmware.startswith('uefi') else 'bios'
     vm_secure_boot = 'true' if pxe_loader.vm_firmware == 'uefi_secureboot' else 'false'
-    provisioning_host = Broker(
+    vlan_id = settings.provisioning.vlan_id
+    with Broker(
         workflow='deploy-blank-vm-vcenter',
-        artifacts='last',
-        vm_network=settings.provisioning.vlan_id,
+        host_class=ContentHost,
+        vm_network=vlan_id,
         vm_boot_firmware=vm_boot_firmware,
         vm_secure_boot=vm_secure_boot,
-    ).execute()
-    yield provisioning_host
-    # delete the host
-    vmware_host = VMWareVirtualMachine(vmwareclient, name=provisioning_host['name'])
-    vmware_host.delete()
-    # check if vm is deleted from VMware
-    assert vmwareclient.does_vm_exist(provisioning_host['name']) is False
+        auth=module_ssh_key_file,
+        blank=True,
+        _skip_context_checkin=True,
+    ) as provisioning_host:
+        yield provisioning_host
+        # Delete the host
+        vmware_host = VMWareVirtualMachine(vmwareclient, name=provisioning_host.name)
+        vmware_host.delete()
+        # Verify host is deleted from VMware
+        assert vmwareclient.does_vm_exist(provisioning_host.name) is False

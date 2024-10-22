@@ -610,12 +610,12 @@ def test_rhel_pxe_provisioning_secureboot_enabled(
     module_provisioning_rhel_content,
     provisioning_hostgroup,
 ):
-    """Simulate Secureboot baremetal provisioning of a RHEL system via PXE on RHV provider
+    """Simulate Secureboot baremetal provisioning of a RHEL system via PXE on vCenter provider
 
     :id: 8b33f545-c4a8-428d-8fd8-a5e402c8cd23
 
     :steps:
-        1. Provision RHEL system via PXE on RHV
+        1. Provision RHEL system via PXE on vCenter provider
         2. Check that resulting host is registered to Satellite
         3. Check host is subscribed to Satellite
 
@@ -624,13 +624,13 @@ def test_rhel_pxe_provisioning_secureboot_enabled(
         2. Host is registered to Satellite and subscription status is 'Success'
         3. Secureboot is enabled on the host
 
-    :Verifies: SAT-23035
+    :Verifies: SAT-25809
 
     :customerscenario: true
 
     :parametrized: yes
     """
-    host_mac_addr = provisioning_vmware_host['provisioning_nic_mac_addr']
+    host_mac_addr = provisioning_vmware_host._broker_args['provisioning_nic_mac_addr']
     sat = module_provisioning_sat.sat
     host = sat.api.Host(
         hostgroup=provisioning_hostgroup,
@@ -645,7 +645,9 @@ def test_rhel_pxe_provisioning_secureboot_enabled(
     request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
 
     # start the provisioning host on VMware, do not ensure that we can connect to SSHD
-    vmware_host = VMWareVirtualMachine(vmwareclient, name=provisioning_vmware_host['name'])
+    vmware_host = VMWareVirtualMachine(
+        vmwareclient, name=provisioning_vmware_host._broker_args['name']
+    )
     vmware_host.start()
 
     # TODO: Implement Satellite log capturing logic to verify that
