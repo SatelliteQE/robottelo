@@ -95,9 +95,10 @@ class ReqUpdater:
     def install_req_deviations(self):
         """Installs new and updates available packages in requirements file"""
         if self.req_deviation:
+            lst_of_reqs = ' '.join(f"'{req}'" for req in self.req_deviation)
             if (
                 subprocess.run(
-                    f"{self.packagae_manager} install {' '.join(f"'{req}'" for req in self.req_deviation)}",
+                    f"{self.packagae_manager} install {lst_of_reqs}",
                     shell=True,
                     stdout=subprocess.PIPE,
                 ).returncode
@@ -110,9 +111,10 @@ class ReqUpdater:
     def install_opt_deviations(self):
         """Installs new and updates available packages in requirements-optional file"""
         if self.opt_deviation:
+            lst_of_reqs = ' '.join(f"'{req}'" for req in self.opt_deviation)
             if (
                 subprocess.run(
-                    f"{self.packagae_manager} install {' '.join(f'\'{req}\'' for req in self.opt_deviation)}",
+                    f"{self.packagae_manager} install {lst_of_reqs}",
                     shell=True,
                     stdout=subprocess.PIPE,
                 ).returncode
