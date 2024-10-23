@@ -35,28 +35,26 @@ def pytest_report_header(config):
     # pytest tests/foreman --collect-only --update-all-reqs
     """
     req_deviations = updater.req_deviation
-    if req_deviations:
-        # req_deviations = ignore_git_deviations(req_deviations)
-        req_deviations = list(filter(git_deviation_filter, req_deviations))
-        if req_deviations:
-            print(f"Mandatory Requirements Mismatch: {' '.join(req_deviations)}")
-        if config.getoption('update_required_reqs') or config.getoption('update_all_reqs'):
-            updater.install_req_deviations()
+    filtered_req_deviations = list(filter(git_deviation_filter, req_deviations))
+    if filtered_req_deviations:
+        print(f"Mandatory Requirements Mismatch: {' '.join(filtered_req_deviations)}")
     else:
         print('Mandatory Requirements are up to date.')
+    if req_deviations and (
+        config.getoption('update_required_reqs') or config.getoption('update_all_reqs')
+    ):
+        updater.install_req_deviations()
 
     opt_deviations = updater.opt_deviation
-    if opt_deviations:
-        # opt_deviations = ignore_git_deviations(opt_deviations)
-        opt_deviations = list(filter(git_deviation_filter, opt_deviations))
-        if opt_deviations:
-            print(f"Optional Requirements Mismatch: {' '.join(updater.opt_deviation)}")
-        if config.getoption('update_all_reqs'):
-            updater.install_opt_deviations()
+    filtered_opt_deviations = list(filter(git_deviation_filter, opt_deviations))
+    if filtered_opt_deviations:
+        print(f"Optional Requirements Mismatch: {' '.join(filtered_opt_deviations)}")
     else:
         print('Optional Requirements are up to date.')
+    if opt_deviations and config.getoption('update_all_reqs'):
+        updater.install_opt_deviations()
 
-    if updater.req_deviation or updater.opt_deviation:
+    if req_deviations or opt_deviations:
         print(
             "To update requirements, run the pytest with "
             "'--update-required-reqs' OR '--update-all-reqs' option."

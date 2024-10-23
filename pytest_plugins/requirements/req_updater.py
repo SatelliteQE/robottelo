@@ -104,7 +104,7 @@ class ReqUpdater:
                 ).returncode
                 == 0
             ):
-                print('Required requirements are updated.')
+                print('Mandatory requirements are updated.')
             else:
                 print('ERROR: Some issue occurred with updating the required requirements')
 
