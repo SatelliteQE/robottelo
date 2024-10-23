@@ -11,8 +11,12 @@ from robottelo.utils.url import ipv6_hostname_translation, is_url
 
 
 def post(settings):
-    settings_cache_path = Path(f'settings_cache-{settings.server.version.release}.json')
-    if getattr(settings.robottelo.settings, 'get_fresh', True):
+    settings_cache_path = Path(
+        f'settings_cache-{settings.server.version.release}-{settings.server.version.snap}.json'
+    )
+    if settings.server.version.source == 'nightly':
+        data = Box({'REPOS': {}})
+    elif getattr(settings.robottelo.settings, 'get_fresh', True):
         data = get_repos_config(settings)
         write_cache(settings_cache_path, data)
     else:
@@ -149,9 +153,9 @@ def get_dogfood_satclient_repos(settings):
     for ver in rhels:
         data[f'RHEL{ver}'] = get_ohsnap_repo_url(
             settings,
-            repo='client-2',
+            repo='client',
             product='client',
-            release='client-2',
+            release='client',
             os_release=ver,
         )
     return data

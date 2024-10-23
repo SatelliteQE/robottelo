@@ -230,44 +230,6 @@ class TestAnsibleCfgMgmt:
             ]
 
     @pytest.mark.stubbed
-    @pytest.mark.tier2
-    def test_positive_role_variable_information(self):
-        """Create and assign variables to an Ansible Role and verify that the information in
-        the new UI is displayed correctly
-
-        :id: 4ab2813a-6b83-4907-b104-0473465814f5
-
-        :steps:
-            1. Register a RHEL host to Satellite.
-            2. Import all roles available by default.
-            3. Create a host group and assign one of the Ansible roles to the host group.
-            4. Assign the host to the host group.
-            5. Assign one roles to the RHEL host.
-            6. Create a variable and associate it with the role assigned to the Host.
-            7. Create a variable and associate it with the role assigned to the Hostgroup.
-            8. Navigate to the new UI for the given Host.
-            9. Select the 'Ansible' tab, then the 'Variables' sub-tab.
-
-        :expectedresults: The variables information for the given Host is visible.
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_ansible_variables_imported_with_roles(self):
-        """Verify that, when Ansible roles are imported, their variables are imported simultaneously
-
-        :id: 107c53e8-5a8a-4291-bbde-fbd66a0bb85e
-
-        :steps:
-            1. Import Ansible roles
-            2. Navigate to Configure > Variables
-
-        :expectedresults: Verify that any variables in the role were also imported to Satellite
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
     @pytest.mark.tier3
     def test_positive_ansible_roles_ignore_list(self):
         """Verify that the ignore list setting prevents selected roles from being available for import
@@ -279,24 +241,6 @@ class TestAnsibleCfgMgmt:
             2. Navigate to Configure > Roles
 
         :expectedresults: Verify that any roles on the ignore list are not available for import
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_ansible_variables_installed_with_collection(self):
-        """Verify that installing an Ansible collection also imports
-        any variables associated with the collection
-
-        :id: 7ff88022-fe9b-482f-a6bb-3922036a1e1c
-
-        :steps:
-            1. Install an Ansible collection
-            2. Navigate to Configure > Variables
-
-        :expectedresults: Verify that any variables associated with the collection
-            are present on Configure > Variables
 
         :CaseAutomation: NotAutomated
         """

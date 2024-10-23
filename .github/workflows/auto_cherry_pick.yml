@@ -77,12 +77,12 @@ jobs:
       - name: Add Parent PR's PRT comment to Auto_Cherry_Picked PR's
         id: add-parent-prt-comment
         if: ${{ always() && needs.find-the-parent-prt-comment.outputs.prt_comment != '' && steps.cherrypick.outcome == 'success' }}
-        uses: thollander/actions-comment-pull-request@v2
+        uses: thollander/actions-comment-pull-request@v3
         with:
           message: |
             ${{ needs.find-the-parent-prt-comment.outputs.prt_comment }}
-          pr_number: ${{ steps.cherrypick.outputs.number  }}
-          GITHUB_TOKEN: ${{ secrets.CHERRYPICK_PAT }}
+          pr-number: ${{ steps.cherrypick.outputs.number  }}
+          github-token: ${{ secrets.CHERRYPICK_PAT }}
 
       - name: is autoMerging enabled for Auto CherryPicked PRs ?
         if: ${{ always() && steps.cherrypick.outcome == 'success' && contains(github.event.pull_request.labels.*.name, 'AutoMerge_Cherry_Picked') }}

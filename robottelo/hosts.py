@@ -622,6 +622,8 @@ class ContentHost(Host, ContentHostMixins):
         force=False,
         insecure=True,
         hostgroup=None,
+        auth_username=None,
+        auth_password=None,
     ):
         """Registers content host to the Satellite or Capsule server
         using a global registration template.
@@ -642,6 +644,8 @@ class ContentHost(Host, ContentHostMixins):
         :param force: Register the content host even if it's already registered.
         :param insecure: Don't verify server authenticity.
         :param hostgroup: hostgroup to register with
+        :param auth_username: username required if non-admin user
+        :param auth_password: password required if non-admin user
         :return: SSHCommandResult instance filled with the result of the registration
         """
         options = {
@@ -692,7 +696,20 @@ class ContentHost(Host, ContentHostMixins):
             options['force'] = str(force).lower()
 
         self._satellite = target.satellite
-        cmd = target.satellite.cli.HostRegistration.generate_command(options)
+        if auth_username and auth_password:
+            user = target.satellite.cli.User.list({'search': f'login={auth_username}'})
+            if user:
+                register_role = target.satellite.cli.Role.info({'name': 'Register hosts'})
+                target.satellite.cli.User.add_role(
+                    {'id': user[0]['id'], 'role-id': register_role['id']}
+                )
+                cmd = target.satellite.cli.HostRegistration.with_user(
+                    auth_username, auth_password
+                ).generate_command(options)
+            else:
+                raise CLIFactoryError(f'User {auth_username} doesn\'t exist')
+        else:
+            cmd = target.satellite.cli.HostRegistration.generate_command(options)
         return self.execute(cmd.strip('\n'))
 
     def api_register(self, target, **kwargs):
@@ -920,7 +937,9 @@ class ContentHost(Host, ContentHostMixins):
                 f'Failed to put hostname in ssh known_hosts files:\n{result.stderr}'
             )
 
-    def configure_puppet(self, proxy_hostname=None, run_puppet_agent=True):
+    def configure_puppet(
+        self, proxy_hostname=None, run_puppet_agent=True, install_puppet_agent7=False
+    ):
         """Configures puppet on the virtual machine/Host.
         :param proxy_hostname: external capsule hostname
         :return: None.
@@ -929,12 +948,21 @@ class ContentHost(Host, ContentHostMixins):
         if proxy_hostname is None:
             proxy_hostname = settings.server.hostname
 
-        self.create_custom_repos(
-            sat_client=settings.repos['SATCLIENT_REPO'][f'RHEL{self.os_version.major}']
-        )
+        if install_puppet_agent7:
+            self.create_custom_repos(
+                sat_client=settings.repos['SATCLIENT_REPO'][f'RHEL{self.os_version.major}']
+            )
+        else:
+            self.create_custom_repos(
+                sat_client=settings.repos['SATCLIENT2_REPO'][f'RHEL{self.os_version.major}']
+            )
+
         result = self.execute('yum install puppet-agent -y')
         if result.status != 0:
             raise ContentHostError('Failed to install the puppet-agent rpm')
+
+        rpm_version = self.execute('rpm -q --qf "%{VERSION}" puppet-agent').stdout
+        assert '7' in rpm_version if install_puppet_agent7 else '7' not in rpm_version
 
         cert_name = self.hostname
         puppet_conf = (
