@@ -5,6 +5,8 @@ UPGRADE:
   TO_VERSION: "6.9"
   # Satellite, Capsule hosts RHEL operating system version.
   OS: "rhel7"
+  # The job template Broker should use to upgrade a Satellite
+  SATELLITE_UPGRADE_JOB_TEMPLATE: satellite-upgrade
   # Capsule's activation key will only be available when we spawn the VM using upgrade template.
   CAPSULE_AK:
     RHEL6:
