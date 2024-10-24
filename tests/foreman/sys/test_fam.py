@@ -91,6 +91,38 @@ def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_rol
         f'''sed -i 's|subscription_manifest_path:.*|subscription_manifest_path: "data/{module_sca_manifest.name}"|g' {config_file}'''
     )
 
+    repo_path = '/fake_puppet1/system/releases/p/puppetlabs/'
+    module_tarball = 'puppetlabs-ntp-3.0.3.tar.gz'
+    local_path = '/tmp'
+    module_target_sat.execute(
+        f'curl --output {local_path}/{module_tarball} {settings.robottelo.repos_hosting_url}{repo_path}{module_tarball}',
+    )
+    module_target_sat.execute(
+        f'puppet module install --ignore-dependencies {local_path}/{module_tarball}'
+    )
+
+    def create_fake_module(module_target_sat, module_name, module_classes):
+        base_dir = '/etc/puppetlabs/code/environments/production/modules'
+        module_dir = f'{base_dir}/{module_name}'
+        manifest_dir = f'{module_dir}/manifests'
+        module_target_sat.execute(f'mkdir -p {manifest_dir}')
+        for module_class in module_classes:
+            full_class = module_name if module_class == 'init' else f'{module_name}::{module_class}'
+            module_target_sat.execute(
+                f'echo "class {full_class}(){{}}" > {manifest_dir}/{module_class}.pp'
+            )
+
+    create_fake_module(
+        module_target_sat,
+        'prometheus',
+        ['init', 'haproxy_exporter', 'redis_exporter', 'statsd_exporter'],
+    )
+
+    smart_proxy = module_target_sat.nailgun_smart_proxy.read()
+    smart_proxy.import_puppetclasses()
+
+    create_fake_module(module_target_sat, 'fakemodule', ['init'])
+
 
 @pytest.mark.pit_server
 @pytest.mark.run_in_one_thread
