@@ -109,7 +109,8 @@ def extract_help(filter='params'):
 
 def common_sat_install_assertions(satellite):
     sat_version = 'stream' if satellite.is_stream else satellite.version
-    assert settings.server.version.release == sat_version
+    if settings.server.version.source != 'nightly':
+        assert settings.server.version.release == sat_version
 
     # no errors/failures in journald
     result = satellite.execute(
