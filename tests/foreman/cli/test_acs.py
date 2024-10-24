@@ -169,7 +169,7 @@ def test_negative_check_custom_rhui_validations(module_target_sat, acs_type, mod
             {'name': gen_alphanumeric(), 'alternate-content-source-type': acs_type}
         )
     assert VAL_FAILED in context.value.message, 'validation notification is missing or wrong'
-    assert f'Base url {VAL_CANT_BLANK}' in context.value.message
+    assert f'Base URL {VAL_CANT_BLANK}' in context.value.message
     assert (
         f'Verify ssl {VAL_CANT_BLANK}' in context.value.message
         or 'Verify ssl must be provided' in context.value.message
@@ -187,10 +187,7 @@ def test_negative_check_custom_rhui_validations(module_target_sat, acs_type, mod
             }
         )
     assert VAL_FAILED in context.value.message, 'validation notification is missing or wrong'
-    assert (
-        f'Products {VAL_MUST_BLANK}' in context.value.message
-        or f'Product ids {VAL_CANNOT_BE} set' in context.value.message
-    )
+    assert f'Product ids {VAL_CANNOT_BE} set' in context.value.message
 
 
 @pytest.mark.tier2
@@ -236,24 +233,12 @@ def test_negative_check_simplified_validations(
     with pytest.raises(CLIReturnCodeError) as context:
         module_target_sat.cli.ACS.create(params)
     assert VAL_FAILED in context.value.message, 'validation notification is missing or wrong'
-    assert f'Base url {VAL_MUST_BLANK}' in context.value.message
+    assert f'Base URL {VAL_MUST_BLANK}' in context.value.message
     assert f'Subpaths {VAL_MUST_BLANK}' in context.value.message
-    assert (
-        f'Verify ssl {VAL_MUST_BLANK}' in context.value.message
-        or f'Verify ssl {VAL_CANNOT_BE} provided' in context.value.message
-    )
-    assert (
-        f'Ssl ca cert {VAL_MUST_BLANK}' in context.value.message
-        or f'Ssl ca cert {VAL_CANNOT_BE} set' in context.value.message
-    )
-    assert (
-        f'Ssl client cert {VAL_MUST_BLANK}' in context.value.message
-        or f'Ssl client cert {VAL_CANNOT_BE} set' in context.value.message
-    )
-    assert (
-        f'Ssl client key {VAL_MUST_BLANK}' in context.value.message
-        or f'Ssl client key {VAL_CANNOT_BE} set' in context.value.message
-    )
+    assert f'Verify ssl {VAL_CANNOT_BE} provided' in context.value.message
+    assert f'Ssl CA cert {VAL_CANNOT_BE} set' in context.value.message
+    assert f'Ssl client cert {VAL_CANNOT_BE} set' in context.value.message
+    assert f'Ssl client key {VAL_CANNOT_BE} set' in context.value.message
     assert f'Upstream username {VAL_MUST_BLANK}' in context.value.message
     assert f'Upstream password {VAL_MUST_BLANK}' in context.value.message
 
