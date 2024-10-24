@@ -1080,6 +1080,17 @@ class ContentHost(Host, ContentHostMixins):
         :param register: Whether to register client to insights
         :return: None
         """
+        # Attempt to register host
+        if register:
+            if not activation_key:
+                activation_key = satellite.api.ActivationKey(
+                    content_view=org.default_content_view.id,
+                    environment=org.library.id,
+                    organization=org,
+                ).create()
+            self.register(
+                org, None, activation_key.name, satellite, setup_insights=register_insights
+            )
         # Red Hat Insights requires RHEL 6/7/8/9 repo and it is not
         # possible to sync the repo during the tests, Adding repo file.
         distro_repo_map = {
@@ -1101,17 +1112,9 @@ class ContentHost(Host, ContentHostMixins):
         # Ensure insights-client rpm is installed
         if self.execute('yum install -y insights-client').status != 0:
             raise ContentHostError('Unable to install insights-client rpm')
-        # attempt to register host
-        if register:
-            if not activation_key:
-                activation_key = satellite.api.ActivationKey(
-                    content_view=org.default_content_view.id,
-                    environment=org.library.id,
-                    organization=org,
-                ).create()
-            self.register(
-                org, None, activation_key.name, satellite, setup_insights=register_insights
-            )
+        # Register client with insights
+        if self.execute('insights-client --register').status != 0:
+            raise ContentHostError('Unable to register client with insights')
 
     def unregister_insights(self):
         """Unregister insights client.
