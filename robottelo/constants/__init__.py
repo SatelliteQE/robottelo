@@ -317,6 +317,7 @@ SM_OVERALL_STATUS = {
     'current': 'Overall Status: Current',
     'invalid': 'Overall Status: Invalid',
     'insufficient': 'Overall Status: Insufficient',
+    'disabled': 'Overall Status: Disabled',
     'unknown': 'Overall Status: Unknown',
 }
 
