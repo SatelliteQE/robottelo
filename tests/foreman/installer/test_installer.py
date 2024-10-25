@@ -1404,7 +1404,7 @@ def sat_non_default_install(module_sat_ready_rhels):
 @pytest.mark.tier1
 @pytest.mark.pit_server
 @pytest.mark.build_sanity
-def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
+def test_capsule_installation(pytestconfig, sat_default_install, cap_ready_rhel, default_org):
     """Run a basic Capsule installation
 
     :id: 64fa85b6-96e6-4fea-bea4-a30539d59e65
@@ -1422,6 +1422,11 @@ def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
 
     :CaseImportance: Critical
     """
+    # Setup Capsule Hostname for further sanity caspule testing
+    if 'build_sanity' in pytestconfig.option.markexpr:
+        settings.capsule.hostname = cap_ready_rhel.hostname
+        cap_ready_rhel._skip_context_checkin = True
+        pytest.capsule_sanity = True
     # Get Capsule repofile, and enable and download satellite-capsule
     cap_ready_rhel.register_to_cdn()
     cap_ready_rhel.download_repofile(
@@ -1462,6 +1467,10 @@ def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
     # no errors/failures in /var/log/foreman-proxy/*
     result = cap_ready_rhel.execute(r'grep -iR "error" /var/log/foreman-proxy/*')
     assert len(result.stdout) == 0
+
+    # Enabling firewall
+    cap_ready_rhel.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
+    cap_ready_rhel.execute('firewall-cmd --runtime-to-permanent')
 
     result = cap_ready_rhel.cli.Health.check()
     assert 'FAIL' not in result.stdout
