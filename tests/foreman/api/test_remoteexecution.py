@@ -100,10 +100,13 @@ def test_negative_time_to_pickup(
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     # check mqtt client is running
-    result = rhel_contenthost.execute('systemctl status yggdrasild')
+    service_name = (
+        'yggdrasil' if float(rhel_contenthost.os_distribution_version) > 9.5 else 'yggdrasild'
+    )
+    result = rhel_contenthost.execute(f'systemctl status {service_name}')
     assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
     # stop yggdrasil client on host
-    result = rhel_contenthost.execute('systemctl stop yggdrasild')
+    result = rhel_contenthost.execute(f'systemctl stop {service_name}')
     assert result.status == 0, f'Failed to stop yggdrasil on client: {result.stderr}'
 
     # run script provider rex command with time_to_pickup
@@ -163,11 +166,10 @@ def test_negative_time_to_pickup(
     global_ttp.value = default_global_ttp
     global_ttp.update(['value'])
     # start yggdrasil client on host
-    result = rhel_contenthost.execute('systemctl start yggdrasild')
+    result = rhel_contenthost.execute(f'systemctl start {service_name}')
     assert result.status == 0, f'Failed to start on client: {result.stderr}'
-    result = rhel_contenthost.execute('systemctl status yggdrasild')
+    result = rhel_contenthost.execute(f'systemctl status {service_name}')
     assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
-    rhel_contenthost.execute('yggdrasil status')
 
 
 @pytest.mark.tier3

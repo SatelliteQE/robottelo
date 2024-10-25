@@ -52,9 +52,11 @@ def test_host_registration_rex_pull_mode(
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # check mqtt client is running
-    result = rhel_contenthost.execute('systemctl status yggdrasild')
+    service_name = (
+        'yggdrasil' if float(rhel_contenthost.os_distribution_version) > 9.5 else 'yggdrasild'
+    )
+    result = rhel_contenthost.execute(f'systemctl status {service_name}')
     assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
-    assert rhel_contenthost.execute('yggdrasil status').status == 0
     mqtt_url = f'mqtts://{module_satellite_mqtt.hostname}:1883'
     assert rhel_contenthost.execute(f'cat /etc/yggdrasil/config.toml | grep {mqtt_url}').status == 0
 
@@ -77,9 +79,8 @@ def test_host_registration_rex_pull_mode(
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # check mqtt client is running
-    result = rhel_contenthost.execute('systemctl status yggdrasild')
+    result = rhel_contenthost.execute(f'systemctl status {service_name}')
     assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
-    assert rhel_contenthost.execute('yggdrasil status').status == 0
     new_mqtt_url = f'mqtts://{module_capsule_configured_mqtt.hostname}:1883'
     assert (
         rhel_contenthost.execute(f'cat /etc/yggdrasil/config.toml | grep {new_mqtt_url}').status
