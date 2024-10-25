@@ -598,7 +598,7 @@ class ContentHost(Host, ContentHostMixins):
         """Global Registration points the host's sub-man to talk to the Sattelite's Candlepin
         but saves the original rhsm.conf. Reset the rhsm.conf so that it points back to the CDN.
         """
-        self.execute(r'\cp -f /etc/rhsm/rhsm.conf{.bak,}')
+        self.execute(r'\cp -f /etc/rhsm/rhsm.conf{,.bak}')
         self.execute('subscription-manager clean')
         self._satellite = None
 
