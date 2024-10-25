@@ -646,8 +646,8 @@ class TestProvisioningTemplate:
         pkg_manager = 'yum' if module_sync_kickstart_content.rhel_ver < 8 else 'dnf'
         assert f'{pkg_manager} -y install foreman_ygg_worker' in rex_snippet
         assert 'broker = ["mqtts://$SERVER_NAME:1883"]' in rex_snippet
-        assert 'systemctl try-restart yggdrasild' in rex_snippet
-        assert 'systemctl enable --now yggdrasild' in rex_snippet
+        assert 'systemctl try-restart $YGGDRASIL_SERVICE' in rex_snippet
+        assert 'systemctl enable --now $YGGDRASIL_SERVICE' in rex_snippet
         assert 'yggdrasil status' in rex_snippet
         assert 'Remote execution pull provider successfully configured!' in rex_snippet
 
