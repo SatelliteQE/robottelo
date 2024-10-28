@@ -969,7 +969,7 @@ def test_positive_installed_products(
     )
     assert rake.status == 0, f'Rake call failed with this output:\n({rake.stdout}).'
 
-    pattern = re.compile(r'name: "(.*?)".*?cp_product_id: "(.*?)"')
+    pattern = re.compile(r'name: "(.*?)"\s*.*?\s*cp_product_id: "(.*?)"')
     matches = pattern.findall(rake.stdout)
     products = [f'{match[0]} ({match[1]})' for match in matches]
     assert len(products), 'No installed products to compare.'
