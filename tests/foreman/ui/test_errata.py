@@ -292,7 +292,7 @@ def registered_contenthost(
 
 @pytest.mark.e2e
 @pytest.mark.tier3
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match('[^7]|10')
 @pytest.mark.parametrize('registered_contenthost', [[CUSTOM_REPO_URL]], indirect=True)
 @pytest.mark.no_containers
 def test_end_to_end(
