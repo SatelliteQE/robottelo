@@ -46,6 +46,7 @@ from robottelo.constants import (
     RHSSO_RESET_PASSWORD,
     RHSSO_USER_UPDATE,
     SATELLITE_VERSION,
+    SM_OVERALL_STATUS,
 )
 from robottelo.exceptions import CLIFactoryError, DownloadFileError, HostPingFailed
 from robottelo.host_helpers import CapsuleMixins, ContentHostMixins, SatelliteMixins
@@ -1429,8 +1430,6 @@ class ContentHost(Host, ContentHostMixins):
 
     def register_to_cdn(self, pool_ids=None, enable_proxy=False):
         """Subscribe satellite to CDN"""
-        if pool_ids is None:
-            pool_ids = [settings.subscription.rhn_poolid]
         self.reset_rhsm()
         cmd_result = self.register_contenthost(
             org=None,
@@ -1443,11 +1442,17 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError(
                 f'Error during registration, command output: {cmd_result.stdout}'
             )
-        cmd_result = self.subscription_manager_attach_pool(pool_ids)[0]
-        if cmd_result.status != 0:
-            raise ContentHostError(
-                f'Error during pool attachment, command output: {cmd_result.stdout}'
-            )
+        # Attach a pool only if the Org isn't SCA yet
+        sub_status = self.subscription_manager_status().stdout
+        if SM_OVERALL_STATUS['disabled'] not in sub_status:
+            if pool_ids in [None, []]:
+                pool_ids = [settings.subscription.rhn_poolid]
+            for pid in pool_ids:
+                int(pid, 16)  # raises ValueError if not a HEX number
+            cmd_result = self.subscription_manager_attach_pool(pool_ids)
+            for res in cmd_result:
+                if res.status != 0:
+                    raise ContentHostError(f'Pool attachment failed with output: {res.stdout}')
 
     def ping_host(self, host):
         """Check the provisioned host status by pinging the ip of host
