@@ -1086,7 +1086,7 @@ class TestTemplateSyncTestCase:
         ids=['use_proxy', 'do_not_use_proxy'],
     )
     @pytest.mark.parametrize(
-        'setup_http_proxy',
+        'setup_http_proxy_without_global_settings',
         [True, False],
         indirect=True,
         ids=['auth_http_proxy', 'unauth_http_proxy'],
@@ -1099,7 +1099,7 @@ class TestTemplateSyncTestCase:
         url,
         module_target_sat,
         use_proxy,
-        setup_http_proxy,
+        setup_http_proxy_without_global_settings,
     ):
         """Assure all templates are exported if no filter is specified.
 
@@ -1123,7 +1123,7 @@ class TestTemplateSyncTestCase:
         # TODO remove this
         if is_open('SAT-28933') and 'ssh' in url:
             pytest.skip("Temporary skip of SSH tests")
-        proxy, param = setup_http_proxy
+        proxy, param = setup_http_proxy_without_global_settings
         if not use_proxy and not param:
             # only do-not-use one kind of proxy
             pytest.skip(
@@ -1136,7 +1136,7 @@ class TestTemplateSyncTestCase:
                 'organization_ids': [module_org.id],
             }
             if use_proxy:
-                proxy_hostname = setup_http_proxy[0].url.split('/')[2].split(':')[0]
+                proxy_hostname = proxy.url.split('/')[2].split(':')[0]
                 log_path = '/var/log/squid/access.log'
                 old_log = ssh.command('echo /tmp/$RANDOM').stdout.strip()
                 ssh.command(
