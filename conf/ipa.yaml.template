@@ -14,5 +14,5 @@ IPA:
     ADMIN: satadmin_01
   GROUPS:
     USERS: satusers
-    ADMINS: satadmin
+    ADMINS: satadmins
   KEYTAB_URL:

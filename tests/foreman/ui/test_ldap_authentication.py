@@ -1310,7 +1310,7 @@ def test_verify_group_permissions(
     """
     idm_groups_users = settings.ipa.groups.users
     idm_groups_admins = settings.ipa.groups.admins
-    idm_users_user = settings.ipa.users.user
+    idm_users_admin = settings.ipa.users.admin
     auth_source_name = f'LDAP-{auth_source_ipa.name}'
     user_permissions = {None: ['access_dashboard']}
     katello_role = target_sat.api.Role().create()
@@ -1320,7 +1320,7 @@ def test_verify_group_permissions(
             {
                 'usergroup.name': 'sat_users',
                 'roles.resources.assigned': [katello_role.name],
-                'external_groups.name': idm_groups_admins,
+                'external_groups.name': idm_groups_users,
                 'external_groups.auth_source': auth_source_name,
             }
         )
@@ -1328,12 +1328,12 @@ def test_verify_group_permissions(
             {
                 'usergroup.name': 'sat_admins',
                 'roles.admin': True,
-                'external_groups.name': idm_groups_users,
+                'external_groups.name': idm_groups_admins,
                 'external_groups.auth_source': auth_source_name,
             }
         )
     location_name = gen_string('alpha')
-    with target_sat.ui_session(user=idm_users_user, password=settings.ipa.password) as ldapsession:
+    with target_sat.ui_session(user=idm_users_admin, password=settings.ipa.password) as ldapsession:
         ldapsession.location.create({'name': location_name})
         location = target_sat.api.Location().search(query={'search': f'name="{location_name}"'})[0]
         assert location.name == location_name
