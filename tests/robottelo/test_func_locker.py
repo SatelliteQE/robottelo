@@ -28,10 +28,9 @@ class TmpCountFile:
     def __init__(self):
         tmp_root_path = Path(func_locker.get_temp_dir()).joinpath(func_locker.TEMP_ROOT_DIR)
         tmp_root_path.mkdir(parents=True, exist_ok=True)
-        self.file = tempfile.NamedTemporaryFile(delete=False, suffix='.counter', dir=tmp_root_path)
-        self.file_name = self.file.name
-        self.file.write(b'0')
-        self.file.close()
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.counter', dir=tmp_root_path) as cf:
+            cf.write(b'0')
+            self.file_name = cf.name
 
     def read(self):
         with open(self.file_name) as cf:
