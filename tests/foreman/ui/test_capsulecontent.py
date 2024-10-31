@@ -232,3 +232,42 @@ def test_positive_content_counts_for_mixed_cv(
         session.capsule.edit(module_capsule_configured.hostname, remove_all_lces=True)
         details = session.capsule.read_details(module_capsule_configured.hostname)
         assert 'content' not in details, 'Content still listed for removed LCEs'
+
+
+@pytest.mark.parametrize('setting_update', ['hide_reclaim_space_warning=False'], indirect=True)
+def test_hide_reclaim_space_warning(module_target_sat, setting_update):
+    """Verify the Reclaim space warning hiding via Settings works as expected.
+
+    :id: aae93b89-0e8d-41e6-9e5f-40916a44d195
+
+    :parametrized: yes
+
+    :verifies: SAT-18549
+
+    :setup:
+        1. Hiding is turned off.
+
+    :steps:
+        1. Navigate to the internal capsule details page, verify the warning is displayed.
+        2. Turn the hiding on.
+        3. Navigate to the internal capsule details page, verify the warning is gone.
+
+    :expectedresults:
+        1. The Reclaim space warning message can be hidden via Settings as needed.
+    """
+    with module_target_sat.ui_session() as session:
+        # Navigate to the internal capsule details page, verify the warning is displayed.
+        details = session.capsule.read_details(module_target_sat.hostname)
+        assert 'reclaim_space_warning' in details['overview']
+        assert (
+            'Warning: reclaiming space will delete all cached content'
+            in details['overview']['reclaim_space_warning']
+        )
+
+        # Turn the hiding on.
+        setting_update.value = True
+        setting_update.update({'value'})
+
+        # Navigate to the internal capsule details page, verify the warning is gone.
+        details = session.capsule.read_details(module_target_sat.hostname)
+        assert 'reclaim_space_warning' not in details['overview']
