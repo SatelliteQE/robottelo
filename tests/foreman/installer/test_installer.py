@@ -1429,11 +1429,17 @@ def test_capsule_installation(pytestconfig, sat_default_install, cap_ready_rhel,
         pytest.capsule_sanity = True
     # Get Capsule repofile, and enable and download satellite-capsule
     cap_ready_rhel.register_to_cdn()
-    cap_ready_rhel.download_repofile(
-        product='capsule',
-        release=settings.server.version.release,
-        snap=settings.server.version.snap,
-    )
+    if settings.server.version.source == 'nightly':
+        cap_ready_rhel.create_custom_repos(
+            capsule_repo=settings.repos.capsule_repo,
+            satmaintenance_repo=settings.repos.satmaintenance_repo,
+        )
+    else:
+        cap_ready_rhel.download_repofile(
+            product='capsule',
+            release=settings.server.version.release,
+            snap=settings.server.version.snap,
+        )
     cap_ready_rhel.execute(
         'dnf -y module enable satellite-capsule:el8 && dnf -y install satellite-capsule'
     )
