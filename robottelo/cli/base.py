@@ -192,7 +192,9 @@ class Base:
         time_hammer = settings.performance.time_hammer
 
         # add time to measure hammer performance
-        cmd = 'LANG={} {} hammer -v {} {} {} {}'.format(
+        # TODO workaround, remove before commiting
+        # cmd = 'LANG={} {} hammer -v {} {} {} {}'.format(
+        cmd = 'LANG={} {} hammer {} {} {} {}'.format(
             settings.robottelo.locale,
             'time -p' if time_hammer else '',
             f'-u {user}' if user else "--interactive no",
