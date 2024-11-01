@@ -21,6 +21,8 @@ from robottelo.constants import (
     FOREMAN_TEMPLATE_IMPORT_URL,
     FOREMAN_TEMPLATE_TEST_TEMPLATE,
 )
+from robottelo.utils import ssh
+from robottelo.utils.issue_handlers import is_open
 
 git = settings.git
 
@@ -52,14 +54,9 @@ class TestTemplateSyncTestCase:
             f'[ -f example_template.erb ] || wget {FOREMAN_TEMPLATE_TEST_TEMPLATE}'
         )
 
-    @pytest.mark.parametrize(
-        'use_proxy',
-        [True, False],
-        ids=['use_proxy', 'do_not_use_proxy'],
-    )
     @pytest.mark.tier2
     def test_positive_import_force_locked_template(
-        self, module_org, create_import_export_local_dir, target_sat, use_proxy
+        self, module_org, create_import_export_local_dir, target_sat
     ):
         """Assure locked templates are updated from repository when `force` is
         specified.
@@ -81,12 +78,9 @@ class TestTemplateSyncTestCase:
         """
         prefix = gen_string('alpha')
         _, dir_path = create_import_export_local_dir
-        # TODO make sure the system can't communicate with the git directly, without proxy
         target_sat.cli.TemplateSync.imports(
             {'repo': dir_path, 'prefix': prefix, 'organization-ids': module_org.id, 'lock': 'true'}
-            # TODO specify proxy if use_proxy True
         )
-        # TODO assert that proxy has been used
         ptemplate = target_sat.api.ProvisioningTemplate().search(
             query={'per_page': 10, 'search': f'name~{prefix}', 'organization_id': module_org.id}
         )
@@ -112,6 +106,112 @@ class TestTemplateSyncTestCase:
         else:
             pytest.fail('The template is not imported for force test')
 
+    @pytest.mark.skip_if_not_set('git')
+    @pytest.mark.parametrize(
+        'url',
+        [
+            'https://github.com/theforeman/community-templates.git',
+            'ssh://git@github.com/theforeman/community-templates.git',
+        ],
+        ids=['http', 'ssh'],
+    )
+    @pytest.mark.parametrize(
+        'setup_http_proxy_global',
+        [True, False],
+        indirect=True,
+        ids=['auth_http_proxy_global', 'unauth_http_proxy_global'],
+    )
+    @pytest.mark.parametrize(
+        'use_proxy_global',
+        [True, False],
+        ids=['use_proxy_global', 'do_not_use_proxy_global'],
+    )
+    @pytest.mark.tier2
+    def test_positive_import_dir_filtered(
+        self,
+        module_org,
+        create_import_export_local_dir,
+        target_sat,
+        use_proxy_global,
+        setup_http_proxy_global,
+        url,
+    ):
+        """Import a template from git, specifying directory and filter
+
+        :id: 17bfb25a-e215-4f57-b861-294cd018bcf1
+
+        :setup:
+            1. Unlock and remove a template to be imported
+
+        :steps:
+            1. Import a template, specifying its dir and filter
+
+        :expectedresults:
+            1. The template is present
+
+        :CaseImportance: Medium
+        """
+        # TODO remove this
+        if is_open('SAT-28933') and 'ssh' in url:
+            pytest.skip("Temporary skip of SSH tests")
+        proxy, param = setup_http_proxy_global
+        if not use_proxy_global and not param:
+            # only do-not-use one kind of proxy
+            pytest.skip(
+                "Invalid parameter combination. DO NOT USE PROXY scenario should only be tested once."
+            )
+        pt_name = 'FreeBSD default fake'
+        if target_sat.cli.PartitionTable.list({'search': f'name=\\"{pt_name}\\"'}):
+            target_sat.cli.PartitionTable.update({'name': pt_name, 'locked': 0})
+            target_sat.cli.PartitionTable.delete({'name': pt_name})
+        try:
+            data = {
+                'repo': url,
+                'organization-ids': module_org.id,
+                'branch': 'develop',
+                'dirname': '/partition_tables_templates/',
+                'filter': pt_name,
+            }
+            if use_proxy_global:
+                proxy_hostname = (
+                    proxy.split('/')[2].split(':')[0]
+                    if '@' not in proxy
+                    else proxy.split('@')[1].split(':')[0]
+                )
+                log_path = '/var/log/squid/access.log'
+                old_log = ssh.command('echo /tmp/$RANDOM').stdout.strip()
+                ssh.command(
+                    f'sshpass -p "{settings.server.ssh_password}" scp -o StrictHostKeyChecking=no root@{proxy_hostname}:{log_path} {old_log}'
+                )
+                # make sure the system can't communicate with the git directly, without proxy
+                assert (
+                    target_sat.execute(
+                        f'firewall-cmd --permanent --direct --add-rule ipv4 filter OUTPUT 1 -d $(dig +short A {settings.git.hostname}) -j REJECT && firewall-cmd --reload'
+                    ).status
+                    == 0
+                )
+                assert target_sat.execute(f'ping -c 2 {settings.git.hostname}').status != 0
+                data['http-proxy-policy'] = 'global'
+            target_sat.cli.TemplateSync.imports(data)
+        finally:
+            if use_proxy_global:
+                target_sat.execute(
+                    f'firewall-cmd --permanent --direct --remove-rule ipv4 filter OUTPUT 1 -d $(dig +short A {settings.git.hostname}) -j REJECT && firewall-cmd --reload'
+                )
+        # assert that template has been synced -> is present on the Satellite
+        pt = target_sat.cli.PartitionTable.list({'search': f'name=\\"{pt_name}\\"'})
+        assert len(pt) == 1
+        assert pt_name == pt[0]['name']
+        # assert that proxy has been used
+        if use_proxy_global:
+            new_log = ssh.command('echo /tmp/$RANDOM').stdout.strip()
+            ssh.command(
+                f'sshpass -p "{settings.server.ssh_password}" scp -o StrictHostKeyChecking=no root@{proxy_hostname}:{log_path} {new_log}'
+            )
+            diff = ssh.command(f'diff {old_log} {new_log}').stdout
+            satellite_ip = ssh.command('dig A +short $(hostname)').stdout.strip()
+            assert satellite_ip in diff
+
     @pytest.mark.e2e
     @pytest.mark.tier2
     @pytest.mark.skip_if_not_set('git')
@@ -129,13 +229,8 @@ class TestTemplateSyncTestCase:
         indirect=True,
         ids=['non_empty_repo'],
     )
-    @pytest.mark.parametrize(
-        'use_proxy',
-        [True, False],
-        ids=['use_proxy', 'do_not_use_proxy'],
-    )
     def test_positive_update_templates_in_git(
-        self, module_org, git_repository, git_branch, url, module_target_sat, use_proxy
+        self, module_org, git_repository, git_branch, url, module_target_sat
     ):
         """Assure only templates with a given filter are pushed to
         git repository and existing template file is updated.
@@ -167,8 +262,6 @@ class TestTemplateSyncTestCase:
             f'{api_url}/{path}', auth=auth, json={'branch': git_branch, 'content': content}
         )
         assert res.status_code == 201
-        # TODO make sure the system can't communicate with the git directly, without proxy
-        # export template to git
         url = f'{url}/{git.username}/{git_repository["name"]}'
         output = module_target_sat.cli.TemplateSync.exports(
             {
@@ -177,7 +270,6 @@ class TestTemplateSyncTestCase:
                 'organization-id': module_org.id,
                 'filter': 'User - Registered Users',
                 'dirname': dirname,
-                # TODO specify proxy if use_proxy True
             }
         ).split('\n')
         exported_count = ['Exported: true' in row.strip() for row in output].count(True)
@@ -186,7 +278,6 @@ class TestTemplateSyncTestCase:
         git_file = requests.get(f'{api_url}/{path}', auth=auth, params={'ref': git_branch}).json()
         decoded = base64.b64decode(git_file['content'])
         assert content != decoded
-        # TODO assert that proxy has been used
 
     @pytest.mark.tier2
     @pytest.mark.skip_if_not_set('git')
@@ -204,14 +295,8 @@ class TestTemplateSyncTestCase:
         indirect=True,
         ids=['non_empty_repo', 'empty_repo'],
     )
-    @pytest.mark.parametrize(
-        'use_proxy_global',
-        [True, False],
-        ids=['use_proxy_global', 'do_not_use_proxy_global'],
-    )
-    # TODO a settings fixture that sets using global proxy for template sync to true and after yield, resets it to the original state
     def test_positive_export_filtered_templates_to_git(
-        self, module_org, git_repository, git_branch, url, module_target_sat, use_proxy_global
+        self, module_org, git_repository, git_branch, url, module_target_sat
     ):
         """Assure only templates with a given filter regex are pushed to
         git repository.
@@ -232,7 +317,6 @@ class TestTemplateSyncTestCase:
         """
         dirname = 'export'
         url = f'{url}/{git.username}/{git_repository["name"]}'
-        # TODO make sure the system can't communicate with the git directly, without proxy
         output = module_target_sat.cli.TemplateSync.exports(
             {
                 'repo': url,
@@ -251,7 +335,6 @@ class TestTemplateSyncTestCase:
             requests.get(f'{api_url}/{path}', auth=auth, params={'ref': git_branch}).json()
         )
         assert exported_count == git_count
-        # TODO assert that proxy has been used
 
     @pytest.mark.tier2
     def test_positive_export_filtered_templates_to_temp_dir(self, module_org, target_sat):
