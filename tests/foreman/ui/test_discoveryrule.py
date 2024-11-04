@@ -126,7 +126,7 @@ def test_positive_crud_with_non_admin_user(
 
 @pytest.mark.tier2
 def test_negative_delete_rule_with_non_admin_user(
-    module_location, module_org, module_target_sat, reader_user
+    request, module_location, module_org, module_target_sat, reader_user
 ):
     """Delete rule with non-admin user by associating discovery_reader role
 
@@ -148,6 +148,15 @@ def test_negative_delete_rule_with_non_admin_user(
         organization=[module_org],
         location=[module_location],
     ).create()
+
+    # teardown
+    @request.addfinalizer
+    def _finalize():
+        dr = module_target_sat.api.DiscoveryRule().search(query={'search': f'name={rule_name}'})
+        if dr:
+            dr[0].delete()
+        hg.delete()
+
     with module_target_sat.ui_session(
         user=reader_user.login, password=reader_user.password
     ) as session:
@@ -160,7 +169,7 @@ def test_negative_delete_rule_with_non_admin_user(
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 def test_positive_list_host_based_on_rule_search_query(
-    session, module_org, module_location, module_discovery_env, target_sat
+    request, session, module_org, module_location, module_discovery_env, target_sat
 ):
     """List all the discovered hosts resolved by given rule's search query
     e.g. all discovered hosts with cpu_count = 2, and list rule's associated
@@ -169,7 +178,6 @@ def test_positive_list_host_based_on_rule_search_query(
     :id: f7473fa2-7349-42d3-9cdb-f74b55d2f440
 
     :steps:
-
         1. discovered host with cpu_count = 2
         2. Define a rule 'rule1' with search query cpu_count = 2
         3. Click on 'Discovered Hosts' from rule1
@@ -177,7 +185,6 @@ def test_positive_list_host_based_on_rule_search_query(
         5. Click on 'Associated Hosts' from rule1
 
     :expectedresults:
-
         1. After step 3, the rule's Discovered host should be listed.
         2. The rule's Associated Host should be listed.
 
@@ -185,6 +192,7 @@ def test_positive_list_host_based_on_rule_search_query(
     """
     ip_address = gen_ipaddr()
     cpu_count = gen_integer(2, 10)
+    rule_name = gen_string('alpha')
     rule_search = f'cpu_count = {cpu_count}'
     # any way create a host to be sure that this org has more than one host
     host = target_sat.api.Host(organization=module_org, location=module_location).create()
@@ -199,6 +207,7 @@ def test_positive_list_host_based_on_rule_search_query(
         architecture=host.architecture,
     ).create()
     discovery_rule = target_sat.api.DiscoveryRule(
+        name=rule_name,
         hostgroup=host_group,
         search_=rule_search,
         organization=[module_org],
@@ -208,9 +217,17 @@ def test_positive_list_host_based_on_rule_search_query(
     discovered_host = target_sat.api_factory.create_discovered_host(
         ip_address=ip_address, options={'physicalprocessorcount': cpu_count}
     )
-    # create an other discovered host with an other cpu count
-    target_sat.api_factory.create_discovered_host(options={'physicalprocessorcount': cpu_count + 1})
-    provisioned_host_name = f'{host.domain.read().name}'
+
+    # teardown
+    @request.addfinalizer
+    def _finalize():
+        host.delete()
+        dr = target_sat.api.DiscoveryRule().search(query={'search': f'name={rule_name}'})
+        if dr:
+            dr[0].delete()
+        target_sat.api.Host(id=discovered_host['id']).delete()
+        host_group.delete()
+
     with session:
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=module_location.name)
@@ -228,9 +245,8 @@ def test_positive_list_host_based_on_rule_search_query(
         host_name = values['table'][0]['Name']
         assert values['searchbox'] == f'discovery_rule = "{discovery_rule.name}"'
         assert len(values['table']) == 1
-        assert provisioned_host_name in host_name
-        values = session.host.get_details(host_name)
-        assert values['properties']['properties_table']['IP Address'] == ip_address
+        values = session.host_new.get_details(host_name, widget_names='overview')
+        assert values['overview']['details']['details']['ipv4_address'] == ip_address
 
 
 @pytest.mark.e2e
