@@ -50,6 +50,8 @@ class TestHostCockpit:
 
         :Verifies: SAT-27411
 
+        :customerscenario: true
+
         :parametrized: yes
         """
         with class_cockpit_sat.ui_session() as session:
