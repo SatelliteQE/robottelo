@@ -244,6 +244,8 @@ def test_hide_reclaim_space_warning(module_target_sat, setting_update):
 
     :verifies: SAT-18549
 
+    :customerscenario: true
+
     :setup:
         1. Hiding is turned off.
 
