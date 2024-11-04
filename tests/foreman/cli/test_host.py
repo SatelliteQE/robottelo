@@ -22,6 +22,7 @@ import yaml
 
 from robottelo.config import settings
 from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
     DEFAULT_SUBSCRIPTION_NAME,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
@@ -38,6 +39,7 @@ from robottelo.logging import logger
 from robottelo.utils.datafactory import (
     invalid_values_list,
     valid_data_list,
+    valid_domain_names,
     valid_hosts_list,
 )
 
@@ -2793,3 +2795,126 @@ def test_host_registration_with_capsule_using_content_coherence(
     assert 'Validation failed' not in result.stderr, f'Error is: {result.stderr}'
     if rhel_contenthost.os_version.major != 7:
         assert 'HTTP error code 422' not in result.stderr, f'Error is: {result.stderr}'
+
+
+@pytest.fixture
+def enable_sync_rhel_repos(target_sat, function_sca_manifest_org):
+    """
+    Enable and sync rhel8 & rhel9 BaseOS, AppStream repos
+    """
+    rhel_repos = ['rhel8_bos', 'rhel8_aps', 'rhel9_bos', 'rhel9_aps']
+    all_repos = []
+    for repo in rhel_repos:
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch=DEFAULT_ARCHITECTURE,
+            org_id=function_sca_manifest_org.id,
+            product=REPOS[repo]['product'],
+            repo=REPOS[repo]['name'],
+            reposet=REPOS[repo]['reposet'],
+            releasever=REPOS[repo]['releasever'],
+        )
+        rh_repo = target_sat.api.Repository(id=repo_id).read()
+        all_repos.append(rh_repo)
+        rh_repo.sync(timeout=1800)
+    return all_repos
+
+
+@pytest.fixture
+def setup_pre_requisites(
+    target_sat, function_sca_manifest_org, function_lce, enable_sync_rhel_repos
+):
+    """
+    Create cv, publish/promote it which has rhel8/rhel9 repos, and create ak and return updated cv and ak.
+    """
+    # CV publish promoted to non-Library env
+    cv = target_sat.api.ContentView(organization=function_sca_manifest_org).create()
+    cv.repository = enable_sync_rhel_repos
+    cv = cv.update(['repository'])
+    cv.publish()
+    cvv = cv.read().version[0]
+    cvv.promote(data={'environment_ids': function_lce.id, 'force': True})
+    cv = cv.read()
+
+    # Create ak associated with cv and lce
+    ak = target_sat.api.ActivationKey(
+        content_view=cv, environment=function_lce, organization=function_sca_manifest_org
+    ).create()
+
+    return cv, ak
+
+
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.no_containers
+def test_positive_verify_host_statuses(
+    target_sat,
+    rhel_contenthost,
+    function_sca_manifest_org,
+    function_lce,
+    enable_sync_rhel_repos,
+    setup_pre_requisites,
+):
+    """
+    Verify that CV promote doesn't fail with undefined method error when deleting hosts in the CV during
+    finalize phase of the promote task
+
+    :id: ad9688e5-1d52-4514-8a28-dd9cab6126d4
+
+    :steps:
+        1. Satellite with CV (rhel8 & rhel9 bos, aps repo sync), CV publish promoted to non-Library env
+        2. Register N number of content hosts with Satellite
+        3. Promote CV Version to LCE, during this process delete few hosts using hammer cli command
+        4. Monitor foreman-rake console output for update_host_statuses
+            example- ::Katello::ContentView.find(3).update_host_statuses(Katello::KTEnvironment.find(3))
+
+    :expectedresults: No error in task or in foreman-rake console output
+
+    :Verifies: SAT-25160
+    """
+    rh = rhel_contenthost
+    cv = setup_pre_requisites[0]
+    ak = setup_pre_requisites[1]
+
+    rh.register(function_sca_manifest_org, None, ak.name, target_sat)
+    assert rh.subscribed
+
+    domain_name = list(valid_domain_names(length=15).values())[0]
+    org = function_sca_manifest_org.name
+
+    # 2. Register N number of fake content hosts with Satellite
+    for _i in range(20):
+        rh.execute(f'domain={domain_name}')
+        assert rh.execute('uuid=$(uuidgen)').status == 0
+        assert (
+            rh.execute('echo "{"dmi.system.uuid": "${uuid}"}" > /etc/rhsm/facts/uuid.facts').status
+            == 0
+        )
+        assert rh.execute('hostnamectl set-hostname ${short}.${uuid%%-*}.${domain}').status == 0
+        assert rh.execute('subscription-manager clean').status == 0
+        assert (
+            rh.execute(
+                f'subscription-manager register --activationkey {ak.name} --org {org} --force'
+            ).status
+            == 0
+        )
+
+    # 3. Promote CV Version to LCE, during this process delete few hosts using hammer cli command
+    cv.publish()
+    cvv = cv.read().version[0]
+    cvv.promote(data={'environment_ids': function_lce.id, 'force': True}, synchronous=False)
+
+    ret_val = target_sat.execute(
+        'su - postgres -c "psql foreman -c "COPY (SELECT id FROM hosts ORDER BY id DESC LIMIT 10) TO STDOUT""'
+    )
+    assert ret_val.status == 0
+    host_ids = ret_val.stdout.split('\n')[:-1]
+    for id in host_ids:
+        target_sat.execute(f'hammer host info --id {id}')
+
+    # 4. Monitor foreman-rake console output for update_host_statuses
+    foreman_rake_command = (
+        f'echo "::Katello::ContentView.find({cv.id}).update_host_statuses'
+        f'(Katello::KTEnvironment.find({function_lce}))" | foreman-rake console'
+    )
+    foreman_rake_output = target_sat.execute(foreman_rake_command)
+    assert foreman_rake_output.status == 0
+    assert 'NoMethodError' not in foreman_rake_output.stdout
