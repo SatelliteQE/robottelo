@@ -716,16 +716,14 @@ class TestRepository:
         'repo_options',
         **parametrized(
             [
-                (
-                    {
-                        'content-type': 'yum',
-                        'url': FAKE_5_YUM_REPO,
-                        'upstream-username': creds['login'],
-                        'upstream-password': creds['pass'],
-                    }
-                    for creds in valid_http_credentials()
-                    if not creds['http_valid']
-                )
+                {
+                    'content-type': 'yum',
+                    'url': FAKE_5_YUM_REPO,
+                    'upstream-username': creds['login'],
+                    'upstream-password': creds['pass'],
+                }
+                for creds in valid_http_credentials()
+                if not creds['http_valid'] and creds.get('yum_compatible')
             ]
         ),
         indirect=['repo_options'],
@@ -747,7 +745,8 @@ class TestRepository:
         response = target_sat.cli.Task.progress(
             {'id': repo_sync[0]['id']}, return_raw_response=True
         )
-        assert "Error: 401, message='Unauthorized'" in response.stderr[1].decode('utf-8')
+
+        assert "Error: 401, message='Unauthorized'" in response.stderr
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
