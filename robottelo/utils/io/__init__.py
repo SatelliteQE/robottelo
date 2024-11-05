@@ -18,11 +18,10 @@ def get_local_file_data(path):
     checksum = hashlib.sha256(file_content).hexdigest()
 
     try:
-        tarobj = tarfile.open(path, mode='r')
-        host_counts = get_host_counts(tarobj)
-        tarobj.close()
-        extractable = True
-        json_files_parsable = True
+        with tarfile.open(path, mode='r') as tarobj:
+            host_counts = get_host_counts(tarobj)
+            extractable = True
+            json_files_parsable = True
     except (tarfile.TarError, json.JSONDecodeError):
         host_counts = {}
         extractable = False
