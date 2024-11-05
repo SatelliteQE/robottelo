@@ -17,8 +17,10 @@ import re
 from fauxfactory import gen_string
 import pytest
 from wait_for import TimedOutError, wait_for
+from wrapanapi.systems.virtualcenter import VMWareVirtualMachine
 
 from robottelo.config import settings
+from robottelo.hosts import get_sat_rhel_version
 from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
@@ -590,6 +592,112 @@ def test_rhel_pxe_provisioning_fips_enabled(
     # assert that the host is subscribed and consumes
     # subsctiption provided by the activation key
     assert provisioning_host.subscribed, 'Host is not subscribed'
+
+
+@pytest.mark.e2e
+@pytest.mark.upgrade
+@pytest.mark.on_premises_provisioning
+@pytest.mark.parametrize('pxe_loader', ['secureboot'], indirect=True)
+@pytest.mark.rhel_ver_match([get_sat_rhel_version().major])
+def test_rhel_pxe_provisioning_secureboot_enabled(
+    request,
+    module_provisioning_sat,
+    vmwareclient,
+    provisioning_vmware_host,
+    pxe_loader,
+    module_sca_manifest_org,
+    module_location,
+    module_provisioning_rhel_content,
+    provisioning_hostgroup,
+):
+    """Simulate Secureboot baremetal provisioning of a RHEL system via PXE on vCenter provider
+
+    :id: 8b33f545-c4a8-428d-8fd8-a5e402c8cd23
+
+    :steps:
+        1. Provision RHEL system via PXE on vCenter provider
+        2. Check that resulting host is registered to Satellite
+        3. Check host is subscribed to Satellite
+
+    :expectedresults:
+        1. Host installs right version of RHEL
+        2. Host is registered to Satellite and subscription status is 'Success'
+        3. Secureboot is enabled on the host
+
+    :Verifies: SAT-25809
+
+    :customerscenario: true
+
+    :parametrized: yes
+    """
+    host_mac_addr = provisioning_vmware_host._broker_args['provisioning_nic_mac_addr']
+    sat = module_provisioning_sat.sat
+    host = sat.api.Host(
+        hostgroup=provisioning_hostgroup,
+        organization=module_sca_manifest_org,
+        location=module_location,
+        name=gen_string('alpha').lower(),
+        mac=host_mac_addr,
+        build=True,  # put the host in build mode
+    ).create(create_missing=False)
+    # Clean up the host to free IP leases on Satellite.
+    # broker should do that as a part of the teardown, putting here just to make sure.
+    request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
+
+    # start the provisioning host on VMware, do not ensure that we can connect to SSHD
+    vmware_host = VMWareVirtualMachine(
+        vmwareclient, name=provisioning_vmware_host._broker_args['name']
+    )
+    vmware_host.start()
+
+    # TODO: Implement Satellite log capturing logic to verify that
+    # all the events are captured in the logs.
+    # Host should do call back to the Satellite reporting
+    # the result of the installation. Wait until Satellite reports that the host is installed.
+    wait_for(
+        lambda: host.read().build_status_label != 'Pending installation',
+        timeout=1500,
+        delay=10,
+    )
+    host = host.read()
+    assert host.build_status_label == 'Installed'
+
+    # Change the hostname of the host as we know it already.
+    # In the current infra environment we do not support
+    # addressing hosts using FQDNs, falling back to IP.
+    provisioning_vmware_host.hostname = host.ip
+    # Host is not blank anymore
+    provisioning_vmware_host.blank = False
+
+    # Wait for the host to be rebooted and SSH daemon to be started.
+    provisioning_vmware_host.wait_for_connection()
+
+    # Perform version check and check if root password is properly updated
+    host_os = host.operatingsystem.read()
+    expected_rhel_version = f'{host_os.major}.{host_os.minor}'
+
+    if int(host_os.major) >= 9:
+        assert (
+            provisioning_vmware_host.execute(
+                'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
+            ).status
+            == 0
+        )
+    host_ssh_os = sat.execute(
+        f'sshpass -p {settings.provisioning.host_root_password} '
+        'ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o PasswordAuthentication=yes '
+        f'-o UserKnownHostsFile=/dev/null root@{provisioning_vmware_host.hostname} cat /etc/redhat-release'
+    )
+    assert host_ssh_os.status == 0
+    assert (
+        expected_rhel_version in host_ssh_os.stdout
+    ), 'Different than the expected OS version was installed'
+
+    # Verify host is subscribed and consumes subsctiption provided by the activation key
+    assert provisioning_vmware_host.subscribed, 'Host is not subscribed'
+
+    # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
+    assert 'SecureBoot enabled' in provisioning_vmware_host.execute('mokutil --sb-state').stdout
 
 
 @pytest.mark.e2e
