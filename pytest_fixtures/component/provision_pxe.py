@@ -287,6 +287,7 @@ def pxe_loader(request):
         'uefi': {'vm_firmware': 'uefi', 'pxe_loader': 'Grub2 UEFI'},
         'ipxe': {'vm_firmware': 'bios', 'pxe_loader': 'iPXE Embedded'},
         'http_uefi': {'vm_firmware': 'uefi', 'pxe_loader': 'Grub2 UEFI HTTP'},
+        'secureboot': {'vm_firmware': 'uefi_secureboot', 'pxe_loader': 'Grub2 UEFI SecureBoot'},
     }
     return Box(PXE_LOADER_MAP[getattr(request, 'param', 'bios')])
 
