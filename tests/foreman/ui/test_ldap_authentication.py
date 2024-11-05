@@ -104,16 +104,6 @@ def rhsso_groups_teardown(default_sso_host):
 
 
 @pytest.fixture
-def multigroup_setting_cleanup(default_ipa_host):
-    """Adding and removing the user to/from ipa group"""
-    sat_users = settings.ipa.groups
-    idm_users = settings.ipa.group_users
-    default_ipa_host.add_user_to_usergroup(idm_users[1], sat_users[0])
-    yield
-    default_ipa_host.remove_user_from_usergroup(idm_users[1], sat_users[0])
-
-
-@pytest.fixture
 def ipa_add_user(default_ipa_host):
     """Create an IPA user and delete it"""
     test_user = gen_string('alpha')
@@ -1165,7 +1155,13 @@ def test_login_failure_if_internal_user_exist(
 @pytest.mark.skip_if_open("BZ:1812688")
 @pytest.mark.tier2
 def test_userlist_with_external_admin(
-    session, auth_source_ipa, ldap_tear_down, groups_teardown, target_sat
+    session,
+    auth_source_ipa,
+    ldap_tear_down,
+    groups_teardown,
+    target_sat,
+    module_org,
+    module_location,
 ):
     """All the external users should be displayed to all LDAP admins (internal and external).
 
@@ -1192,8 +1188,10 @@ def test_userlist_with_external_admin(
         into Satellite as a local or remote admin.
     """
     # step 1, 2, 3 are already done from IDM and gather the data from settings
-    sat_admins, sat_users = settings.ipa.groups
-    idm_admin, idm_user = settings.ipa.group_users
+    idm_groups_users = settings.ipa.groups.users
+    idm_groups_admins = settings.ipa.groups.admins
+    idm_users_user = settings.ipa.users.user
+    idm_users_admin = settings.ipa.users.admin
 
     auth_source_name = f'LDAP-{auth_source_ipa.name}'
     user_permissions = {'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey']}
@@ -1204,7 +1202,7 @@ def test_userlist_with_external_admin(
             {
                 'usergroup.name': 'sat_users',
                 'roles.resources.assigned': [katello_role.name],
-                'external_groups.name': sat_users,
+                'external_groups.name': idm_groups_users,
                 'external_groups.auth_source': auth_source_name,
             }
         )
@@ -1212,24 +1210,32 @@ def test_userlist_with_external_admin(
             {
                 'usergroup.name': 'sat_admins',
                 'roles.admin': True,
-                'external_groups.name': sat_admins,
+                'external_groups.name': idm_groups_admins,
                 'external_groups.auth_source': auth_source_name,
             }
         )
-    with target_sat.ui_session(user=idm_user, password=settings.server.ssh_password) as ldapsession:
-        assert idm_user in ldapsession.task.read_all()['current_user']
+        # create AK to read a current user in the next session
+        ak_name = gen_string('alpha')
+        session.activationkey.create({'name': ak_name})
+    with target_sat.ui_session(user=idm_users_user, password=settings.ipa.password) as ldapsession:
+        current_user = ldapsession.activationkey.read(ak_name, 'current_user')['current_user']
+        assert idm_users_user in current_user
 
     # verify the users count with local admin and remote/external admin
     with (
         target_sat.ui_session(
-            user=idm_admin, password=settings.server.ssh_password
+            user=idm_users_admin, password=settings.ipa.password
         ) as remote_admin_session,
         target_sat.ui_session(
             user=settings.server.admin_username, password=settings.server.admin_password
         ) as local_admin_session,
     ):
-        assert local_admin_session.user.search(idm_user)[0]['Username'] == idm_user
-        assert remote_admin_session.user.search(idm_user)[0]['Username'] == idm_user
+        local_admin_session.organization.select(module_org.name)
+        local_admin_session.location.select(module_location.name)
+        remote_admin_session.organization.select(module_org.name)
+        remote_admin_session.location.select(module_location.name)
+        assert local_admin_session.user.search(idm_users_user)[0]['Username'] == idm_users_user
+        assert remote_admin_session.user.search(idm_users_user)[0]['Username'] == idm_users_user
 
 
 @pytest.mark.skip_if_open('BZ:1883209')
@@ -1287,7 +1293,6 @@ def test_positive_group_sync_open_ldap_authsource(
 def test_verify_group_permissions(
     session,
     auth_source_ipa,
-    multigroup_setting_cleanup,
     groups_teardown,
     ldap_tear_down,
     target_sat,
@@ -1306,8 +1311,9 @@ def test_verify_group_permissions(
 
     :expectedresults: Group with higher permission is applied on the user
     """
-    sat_users = settings.ipa.groups
-    idm_users = settings.ipa.group_users
+    idm_groups_users = settings.ipa.groups.users
+    idm_groups_admins = settings.ipa.groups.admins
+    idm_users_admin = settings.ipa.users.admin
     auth_source_name = f'LDAP-{auth_source_ipa.name}'
     user_permissions = {None: ['access_dashboard']}
     katello_role = target_sat.api.Role().create()
@@ -1317,7 +1323,7 @@ def test_verify_group_permissions(
             {
                 'usergroup.name': 'sat_users',
                 'roles.resources.assigned': [katello_role.name],
-                'external_groups.name': sat_users[0],
+                'external_groups.name': idm_groups_users,
                 'external_groups.auth_source': auth_source_name,
             }
         )
@@ -1325,14 +1331,12 @@ def test_verify_group_permissions(
             {
                 'usergroup.name': 'sat_admins',
                 'roles.admin': True,
-                'external_groups.name': sat_users[1],
+                'external_groups.name': idm_groups_admins,
                 'external_groups.auth_source': auth_source_name,
             }
         )
     location_name = gen_string('alpha')
-    with target_sat.ui_session(
-        user=idm_users[1], password=settings.server.ssh_password
-    ) as ldapsession:
+    with target_sat.ui_session(user=idm_users_admin, password=settings.ipa.password) as ldapsession:
         ldapsession.location.create({'name': location_name})
         location = target_sat.api.Location().search(query={'search': f'name="{location_name}"'})[0]
         assert location.name == location_name

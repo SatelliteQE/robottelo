@@ -9,10 +9,10 @@ IPA:
   OTP_USER: otp_user
   TIME_BASED_SECRET:  # update the time based token secret
   DISABLED_IPA_USER: disabled_user
-  GROUP_USERS:
-    - satadmin_01
-    - satuser_01
+  USERS:
+    USER: satuser_01
+    ADMIN: satadmin_01
   GROUPS:
-    - satadmins
-    - satusers
+    USERS: satusers
+    ADMINS: satadmins
   KEYTAB_URL:
