@@ -29,7 +29,7 @@ class EnablePluginsSatellite:
     """Miscellaneous settings helper methods"""
 
     def enable_puppet_satellite(self):
-        self.register_to_cdn(enable_proxy=settings.server.is_ipv6)
+        self.register_to_cdn()
         enable_satellite_cmd = InstallerCommand(
             installer_args=PUPPET_SATELLITE_INSTALLER,
             installer_opts=PUPPET_COMMON_INSTALLER_OPTS,
