@@ -2445,7 +2445,7 @@ class IPAHost(Host):
                 'base_dn': settings.ipa.basedn,
                 'disabled_user_ipa': settings.ipa.disabled_ipa_user,
                 'group_base_dn': settings.ipa.grpbasedn,
-                'group_users': settings.ipa.group_users,
+                'users': settings.ipa.users,
                 'groups': settings.ipa.groups,
                 'ipa_otp_username': settings.ipa.otp_user,
                 'ldap_user_cn': settings.ipa.username,
