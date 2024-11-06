@@ -14,6 +14,7 @@ from fauxfactory import gen_string
 import pytest
 import requests
 
+from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL, FOREMAN_TEMPLATE_ROOT_DIR
 
@@ -31,9 +32,28 @@ def templates_loc(templates_org, module_target_sat):
 git = settings.git
 
 
+@pytest.mark.skip_if_not_set('git')
+@pytest.mark.parametrize(
+    'setup_http_proxy_without_global_settings',
+    [True, False],
+    indirect=True,
+    ids=['auth_http_proxy', 'unauth_http_proxy'],
+)
+@pytest.mark.parametrize(
+    'use_proxy',
+    [True, False],
+    ids=['use_proxy', 'do_not_use_proxy'],
+)
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_import_templates(session, templates_org, templates_loc):
+def test_positive_import_templates(
+    session,
+    templates_org,
+    templates_loc,
+    use_proxy,
+    setup_http_proxy_without_global_settings,
+    target_sat,
+):
     """Import template(s) from external source to satellite
 
     :id: 524bf384-703f-48a5-95ff-7c1cf97db694
@@ -58,34 +78,75 @@ def test_positive_import_templates(session, templates_org, templates_loc):
 
     :CaseImportance: Critical
     """
+    proxy, param = setup_http_proxy_without_global_settings
+    if not use_proxy and not param:
+        # only do-not-use one kind of proxy
+        pytest.skip(
+            "Invalid parameter combination. DO NOT USE PROXY scenario should only be tested once."
+        )
     import_template = 'Alterator default PXELinux'
     branch = 'automation'
     prefix_name = gen_string('alpha', 8)
-    with session:
-        session.organization.select(org_name=templates_org.name)
-        session.location.select(loc_name=templates_loc.name)
-        import_title = session.sync_template.sync(
-            {
-                'sync_type': 'Import',
-                'template.associate': 'Always',
-                'template.branch': branch,
-                'template.dirname': 'provisioning_templates',
-                'template.filter': import_template,
-                'template.lock': 'Lock',
-                'template.prefix': f'{prefix_name} ',
-                'template.repo': FOREMAN_TEMPLATE_IMPORT_URL,
-            }
+    # put the http proxy in the correct org and loc
+    target_sat.cli.HttpProxy.update(
+        {'id': proxy.id, 'organization-ids': [templates_org.id], 'location-ids': [templates_loc.id]}
+    )
+    try:
+        data = {
+            'sync_type': 'Import',
+            'template.associate': 'Always',
+            'template.branch': branch,
+            'template.dirname': 'provisioning_templates',
+            'template.filter': import_template,
+            'template.lock': 'Lock',
+            'template.prefix': f'{prefix_name} ',
+            'template.repo': FOREMAN_TEMPLATE_IMPORT_URL,
+        }
+        if use_proxy:
+            proxy_hostname = proxy.url.split('/')[2].split(':')[0]
+            log_path = '/var/log/squid/access.log'
+            old_log = ssh.command('echo /tmp/$RANDOM').stdout.strip()
+            ssh.command(
+                f'sshpass -p "{settings.server.ssh_password}" scp -o StrictHostKeyChecking=no root@{proxy_hostname}:{log_path} {old_log}'
+            )
+            # make sure the system can't communicate with the git directly, without proxy
+            assert (
+                target_sat.execute(
+                    f'firewall-cmd --permanent --direct --add-rule ipv4 filter OUTPUT 1 -d $(dig +short A {settings.git.hostname}) -j REJECT && firewall-cmd --reload'
+                ).status
+                == 0
+            )
+            assert target_sat.execute(f'ping -c 2 {settings.git.hostname}').status != 0
+            data['template.http_proxy_policy'] = 'Use selected HTTP proxy'
+            data['template.http_proxy_id'] = proxy.name
+        with session:
+            session.organization.select(org_name=templates_org.name)
+            session.location.select(loc_name=templates_loc.name)
+            import_title = session.sync_template.sync(data)
+            assert import_title == f'Import from {FOREMAN_TEMPLATE_IMPORT_URL} and branch {branch}'
+            imported_template = f'{prefix_name} {import_template}'
+            assert session.provisioningtemplate.is_locked(imported_template)
+            pt = session.provisioningtemplate.read(imported_template)
+    finally:
+        if use_proxy:
+            target_sat.execute(
+                f'firewall-cmd --permanent --direct --remove-rule ipv4 filter OUTPUT 1 -d $(dig +short A {settings.git.hostname}) -j REJECT && firewall-cmd --reload'
+            )
+    assert pt['template']['name'] == imported_template
+    assert pt['template']['default'] is False
+    assert pt['type']['snippet'] is False
+    assert pt['locations']['resources']['assigned'][0] == templates_loc.name
+    assert pt['organizations']['resources']['assigned'][0] == templates_org.name
+    assert f'name: {import_template}' in pt['template']['template_editor']['editor']
+    # assert that proxy has been used
+    if use_proxy:
+        new_log = ssh.command('echo /tmp/$RANDOM').stdout.strip()
+        ssh.command(
+            f'sshpass -p "{settings.server.ssh_password}" scp -o StrictHostKeyChecking=no root@{proxy_hostname}:{log_path} {new_log}'
         )
-        assert import_title == f'Import from {FOREMAN_TEMPLATE_IMPORT_URL} and branch {branch}'
-        imported_template = f'{prefix_name} {import_template}'
-        assert session.provisioningtemplate.is_locked(imported_template)
-        pt = session.provisioningtemplate.read(imported_template)
-        assert pt['template']['name'] == imported_template
-        assert pt['template']['default'] is False
-        assert pt['type']['snippet'] is False
-        assert pt['locations']['resources']['assigned'][0] == templates_loc.name
-        assert pt['organizations']['resources']['assigned'][0] == templates_org.name
-        assert f'name: {import_template}' in pt['template']['template_editor']['editor']
+        diff = ssh.command(f'diff {old_log} {new_log}').stdout
+        satellite_ip = ssh.command('dig A +short $(hostname)').stdout.strip()
+        assert satellite_ip in diff
 
 
 @pytest.mark.tier2
