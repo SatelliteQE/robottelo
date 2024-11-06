@@ -18,7 +18,6 @@ from fauxfactory import gen_string
 import pytest
 import requests
 
-from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import (
     FOREMAN_TEMPLATE_IMPORT_API_URL,
@@ -1137,19 +1136,9 @@ class TestTemplateSyncTestCase:
             }
             if use_proxy:
                 proxy_hostname = proxy.url.split('/')[2].split(':')[0]
-                log_path = '/var/log/squid/access.log'
-                old_log = ssh.command('echo /tmp/$RANDOM').stdout.strip()
-                ssh.command(
-                    f'sshpass -p "{settings.server.ssh_password}" scp -o StrictHostKeyChecking=no root@{proxy_hostname}:{log_path} {old_log}'
+                old_log = module_target_sat.cutoff_host_setup_log(
+                    proxy_hostname, settings.git.hostname
                 )
-                # make sure the system can't communicate with the git directly, without proxy
-                assert (
-                    module_target_sat.execute(
-                        f'firewall-cmd --permanent --direct --add-rule ipv4 filter OUTPUT 1 -d $(dig +short A {settings.git.hostname}) -j REJECT && firewall-cmd --reload'
-                    ).status
-                    == 0
-                )
-                assert module_target_sat.execute(f'ping -c 2 {settings.git.hostname}').status != 0
                 data['http_proxy_policy'] = 'selected'
                 data['http_proxy_id'] = proxy.id
             output = module_target_sat.api.Template().exports(data=data)
@@ -1163,8 +1152,8 @@ class TestTemplateSyncTestCase:
             res.raise_for_status()
         finally:
             if use_proxy:
-                module_target_sat.execute(
-                    f'firewall-cmd --permanent --direct --remove-rule ipv4 filter OUTPUT 1 -d $(dig +short A {settings.git.hostname}) -j REJECT && firewall-cmd --reload'
+                module_target_sat.restore_host_check_log(
+                    proxy_hostname, settings.git.hostname, old_log
                 )
 
         try:
@@ -1174,15 +1163,6 @@ class TestTemplateSyncTestCase:
             pytest.fail(f"Failed to parse output from git. Response: '{res.text}'")
         git_count = [row['path'].endswith('.erb') for row in tree].count(True)
         assert len(output['message']['templates']) == git_count
-        # assert that proxy has been used
-        if use_proxy:
-            new_log = ssh.command('echo /tmp/$RANDOM').stdout.strip()
-            ssh.command(
-                f'sshpass -p "{settings.server.ssh_password}" scp -o StrictHostKeyChecking=no root@{proxy_hostname}:{log_path} {new_log}'
-            )
-            diff = ssh.command(f'diff {old_log} {new_log}').stdout
-            satellite_ip = ssh.command('dig A +short $(hostname)').stdout.strip()
-            assert satellite_ip in diff
 
     @pytest.mark.tier2
     def test_positive_import_all_templates_from_repo(self, module_org, module_target_sat):
