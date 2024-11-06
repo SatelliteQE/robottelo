@@ -292,7 +292,7 @@ def parametrized_enrolled_sat(
 def get_deploy_args(request):
     """Get deploy arguments for Satellite base OS deployment. Should not be used for Capsule."""
     rhel_version = get_sat_rhel_version()
-    deploy_args = {
+    deploy_args = settings.content_host[f'rhel{rhel_version.major}'].vm | {
         'deploy_rhel_version': rhel_version.base_version,
         'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
         'deploy_flavor': settings.flavors.default,
