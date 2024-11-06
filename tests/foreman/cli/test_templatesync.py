@@ -21,7 +21,6 @@ from robottelo.constants import (
     FOREMAN_TEMPLATE_IMPORT_URL,
     FOREMAN_TEMPLATE_TEST_TEMPLATE,
 )
-from robottelo.utils import ssh
 from robottelo.utils.issue_handlers import is_open
 
 git = settings.git
@@ -178,39 +177,16 @@ class TestTemplateSyncTestCase:
                     if '@' not in proxy
                     else proxy.split('@')[1].split(':')[0]
                 )
-                log_path = '/var/log/squid/access.log'
-                old_log = ssh.command('echo /tmp/$RANDOM').stdout.strip()
-                ssh.command(
-                    f'sshpass -p "{settings.server.ssh_password}" scp -o StrictHostKeyChecking=no root@{proxy_hostname}:{log_path} {old_log}'
-                )
-                # make sure the system can't communicate with the git directly, without proxy
-                assert (
-                    target_sat.execute(
-                        f'firewall-cmd --permanent --direct --add-rule ipv4 filter OUTPUT 1 -d $(dig +short A {settings.git.hostname}) -j REJECT && firewall-cmd --reload'
-                    ).status
-                    == 0
-                )
-                assert target_sat.execute(f'ping -c 2 {settings.git.hostname}').status != 0
+                old_log = target_sat.cutoff_host_setup_log(proxy_hostname, settings.git.hostname)
                 data['http-proxy-policy'] = 'global'
             target_sat.cli.TemplateSync.imports(data)
         finally:
             if use_proxy_global:
-                target_sat.execute(
-                    f'firewall-cmd --permanent --direct --remove-rule ipv4 filter OUTPUT 1 -d $(dig +short A {settings.git.hostname}) -j REJECT && firewall-cmd --reload'
-                )
+                target_sat.restore_host_check_log(proxy_hostname, settings.git.hostname, old_log)
         # assert that template has been synced -> is present on the Satellite
         pt = target_sat.cli.PartitionTable.list({'search': f'name=\\"{pt_name}\\"'})
         assert len(pt) == 1
         assert pt_name == pt[0]['name']
-        # assert that proxy has been used
-        if use_proxy_global:
-            new_log = ssh.command('echo /tmp/$RANDOM').stdout.strip()
-            ssh.command(
-                f'sshpass -p "{settings.server.ssh_password}" scp -o StrictHostKeyChecking=no root@{proxy_hostname}:{log_path} {new_log}'
-            )
-            diff = ssh.command(f'diff {old_log} {new_log}').stdout
-            satellite_ip = ssh.command('dig A +short $(hostname)').stdout.strip()
-            assert satellite_ip in diff
 
     @pytest.mark.e2e
     @pytest.mark.tier2
