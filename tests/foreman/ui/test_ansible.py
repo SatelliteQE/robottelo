@@ -229,9 +229,9 @@ class TestAnsibleCfgMgmt:
                 (v['Name'], v['Ansible role'], v['Type'], v['Value']) for v in variable_table
             ]
 
-    @pytest.mark.stubbed
     @pytest.mark.tier3
-    def test_positive_ansible_roles_ignore_list(self):
+    @pytest.mark.parametrize('setting_update', ['ansible_roles_to_ignore'], indirect=True)
+    def test_positive_ansible_roles_ignore_list(self, target_sat, setting_update):
         """Verify that the ignore list setting prevents selected roles from being available for import
 
         :id: 6fa1d8f0-b583-4a07-88eb-c9ae7fcd0219
@@ -241,9 +241,16 @@ class TestAnsibleCfgMgmt:
             2. Navigate to Configure > Roles
 
         :expectedresults: Verify that any roles on the ignore list are not available for import
-
-        :CaseAutomation: NotAutomated
         """
+        SELECTED_ROLE = ['RedHatInsights.insights-client', 'redhat.satellite.activation_keys']
+        setting_update.value = SELECTED_ROLE
+        setting_update.update({'value'})
+        assert setting_update.value == SELECTED_ROLE
+        with target_sat.ui_session() as session:
+            roles = session.ansibleroles.read_all()
+            assert all(
+                item not in roles for item in SELECTED_ROLE
+            ), 'Roles from ignore list are available for import'
 
     @pytest.mark.stubbed
     @pytest.mark.tier3
