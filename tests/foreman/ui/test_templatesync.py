@@ -14,7 +14,6 @@ from fauxfactory import gen_string
 import pytest
 import requests
 
-from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL, FOREMAN_TEMPLATE_ROOT_DIR
 
@@ -104,19 +103,7 @@ def test_positive_import_templates(
         }
         if use_proxy:
             proxy_hostname = proxy.url.split('/')[2].split(':')[0]
-            log_path = '/var/log/squid/access.log'
-            old_log = ssh.command('echo /tmp/$RANDOM').stdout.strip()
-            ssh.command(
-                f'sshpass -p "{settings.server.ssh_password}" scp -o StrictHostKeyChecking=no root@{proxy_hostname}:{log_path} {old_log}'
-            )
-            # make sure the system can't communicate with the git directly, without proxy
-            assert (
-                target_sat.execute(
-                    f'firewall-cmd --permanent --direct --add-rule ipv4 filter OUTPUT 1 -d $(dig +short A {settings.git.hostname}) -j REJECT && firewall-cmd --reload'
-                ).status
-                == 0
-            )
-            assert target_sat.execute(f'ping -c 2 {settings.git.hostname}').status != 0
+            old_log = target_sat.cutoff_host_setup_log(proxy_hostname, settings.git.hostname)
             data['template.http_proxy_policy'] = 'Use selected HTTP proxy'
             data['template.http_proxy_id'] = proxy.name
         with session:
@@ -129,24 +116,13 @@ def test_positive_import_templates(
             pt = session.provisioningtemplate.read(imported_template)
     finally:
         if use_proxy:
-            target_sat.execute(
-                f'firewall-cmd --permanent --direct --remove-rule ipv4 filter OUTPUT 1 -d $(dig +short A {settings.git.hostname}) -j REJECT && firewall-cmd --reload'
-            )
+            target_sat.restore_host_check_log(proxy_hostname, settings.git.hostname, old_log)
     assert pt['template']['name'] == imported_template
     assert pt['template']['default'] is False
     assert pt['type']['snippet'] is False
     assert pt['locations']['resources']['assigned'][0] == templates_loc.name
     assert pt['organizations']['resources']['assigned'][0] == templates_org.name
     assert f'name: {import_template}' in pt['template']['template_editor']['editor']
-    # assert that proxy has been used
-    if use_proxy:
-        new_log = ssh.command('echo /tmp/$RANDOM').stdout.strip()
-        ssh.command(
-            f'sshpass -p "{settings.server.ssh_password}" scp -o StrictHostKeyChecking=no root@{proxy_hostname}:{log_path} {new_log}'
-        )
-        diff = ssh.command(f'diff {old_log} {new_log}').stdout
-        satellite_ip = ssh.command('dig A +short $(hostname)').stdout.strip()
-        assert satellite_ip in diff
 
 
 @pytest.mark.tier2
