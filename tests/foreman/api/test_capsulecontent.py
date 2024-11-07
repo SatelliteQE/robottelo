@@ -534,6 +534,8 @@ class TestCapsuleContentManagement:
         assert set(sat_isos) == set(caps_isos)
 
     @pytest.mark.tier4
+    @pytest.mark.build_sanity
+    @pytest.mark.order(after="tests/foreman/installer/test_installer.py::test_capsule_installation")
     @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
     def test_positive_on_demand_sync(
         self,
