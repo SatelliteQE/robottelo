@@ -351,7 +351,7 @@ def installer_satellite(request):
     sat.setup_firewall()
 
     # register to cdn (also enables rhel repos from cdn)
-    sat.register_to_cdn(enable_proxy=True)
+    sat.register_to_cdn()
 
     # setup source repositories
     if settings.server.version.source == "ga":
