@@ -1104,7 +1104,7 @@ def test_positive_ak_with_custom_product_on_rhel6(rhel_contenthost, target_sat):
         assert ak['content_hosts']['table'][0]['Name'] == rhel_contenthost.hostname
 
 
-def test_positive_new_ak_lce_cv_assignment(target_sat, module_lce_library):
+def test_positive_new_ak_lce_cv_assignment(target_sat):
     """
     Test that newly created activation key which has Library and Default Org view
     assigned has it really assigned after the creation
