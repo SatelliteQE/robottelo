@@ -22,10 +22,6 @@ from robottelo.logging import logger
 
 
 @pytest.mark.e2e
-@pytest.mark.skipif(
-    (settings.server.version.release.split('.')[0:2] in settings.robottelo.sat_non_ga_versions),
-    reason="The test don't yet support verifying documentation links for non GA'ed Satellite release.",
-)
 def test_positive_documentation_links(target_sat):
     """Verify that Satellite documentation links are working.
         Note: At the moment, the test doesn't support verifying links hidden behind a button.
@@ -67,6 +63,7 @@ def test_positive_documentation_links(target_sat):
         'factvalue',
         'dashboard',
     ]
+    sat_version = ".".join(target_sat.version.split('.')[0:2])
     all_links = defaultdict(list)
     pages_with_broken_links = defaultdict(list)
     with target_sat.ui_session() as session:
@@ -86,6 +83,12 @@ def test_positive_documentation_links(target_sat):
         )
         for page in pages:
             for link in all_links[page]:
+                # Test stage docs url for Non-GA'ed Satellite
+                if sat_version in settings.robottelo.sat_non_ga_versions:
+                    link = link.replace(
+                        'https://docs.redhat.com', settings.robottelo.stage_docs_url
+                    )
+                    link = link.replace('html', 'html-single')
                 if requests.get(link, verify=False).status_code != 200:
                     pages_with_broken_links[page].append(link)
                     logger.info(f"Following link on {page} page seems broken: \n {link}")
