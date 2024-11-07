@@ -46,7 +46,7 @@ def pytest_generate_tests(metafunc):
                 if 'fips' not in str(setting_rhel_ver)
             ][-(num_versions + 1) :]  # inclusive (+1) to collect N as well
             match_params.extend(filtered_versions)
-        # match versions with existing markers
+        # match versions with existing regex markers
         else:
             for matcher in matchers:
                 match_params.extend(
