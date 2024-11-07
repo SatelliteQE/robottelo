@@ -1111,7 +1111,6 @@ def test_positive_new_ak_lce_cv_assignment(target_sat):
 
     :id: 12e36a54-e5ba-49b9-b97a-f1827fc718a0
 
-
     :steps:
         1. Create new AK with Library and Default Org view assigned
         2. Check that created AK has Library and Default Org view assigned
