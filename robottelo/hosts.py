@@ -847,7 +847,6 @@ class ContentHost(Host, ContentHostMixins):
         auto_attach=False,
         serverurl=None,
         baseurl=None,
-        enable_proxy=False,
     ):
         """Registers content host on foreman server either by specifying
         organization name and activation key name or by specifying organization
@@ -1512,15 +1511,21 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError('There was an error installing katello-host-tools-tracer')
         self.execute('katello-tracer-upload')
 
-    def register_to_cdn(self, pool_ids=None, enable_proxy=False):
+    def register_to_cdn(self, pool_ids=None):
         """Subscribe satellite to CDN"""
         self.remove_katello_ca()
+
+        # Enabling proxy for IPv6
+        if settings.server.is_ipv6:
+            url = urlparse(settings.server.http_proxy_ipv6_url)
+            self.enable_rhsm_proxy(url.hostname, url.port)
+            self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
+
         cmd_result = self.register_contenthost(
             org=None,
             lce=None,
             username=settings.subscription.rhn_username,
             password=settings.subscription.rhn_password,
-            enable_proxy=enable_proxy,
         )
         if cmd_result.status != 0:
             raise ContentHostError(
@@ -1686,6 +1691,7 @@ class Capsule(ContentHost, CapsuleMixins):
         if settings.server.is_ipv6:
             url = urlparse(settings.server.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)
+            self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
             self.ipv6 = settings.server.is_ipv6
 
     def disable_ipv6_http_proxy(self):
@@ -2435,24 +2441,6 @@ class Satellite(Capsule, SatelliteMixins):
             handle_exception=True,
         )
         return inventory_sync
-
-    def register_contenthost(
-        self,
-        org='Default_Organization',
-        lce='Library',
-        username=settings.server.admin_username,
-        password=settings.server.admin_password,
-        enable_proxy=False,
-    ):
-        """Satellite Registration to CDN"""
-        # Enabling proxy for IPv6
-        if enable_proxy and settings.server.is_ipv6:
-            url = urlparse(settings.server.http_proxy_ipv6_url)
-            self.enable_rhsm_proxy(url.hostname, url.port)
-            self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
-        return super().register_contenthost(
-            org=org, lce=lce, username=username, password=password, enable_proxy=enable_proxy
-        )
 
     def run_orphan_cleanup(self, smart_proxy_id=None):
         """Run orphan cleanup task for all or given smart proxy."""
