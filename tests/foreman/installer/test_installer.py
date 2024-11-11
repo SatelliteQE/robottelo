@@ -165,6 +165,7 @@ def install_satellite(satellite, installer_args, enable_fapolicyd=False):
     if enable_fapolicyd:
         assert satellite.execute('rpm -q foreman-fapolicyd').status == 0
         assert satellite.execute('rpm -q foreman-proxy-fapolicyd').status == 0
+        assert satellite.execute('systemctl is-active fapolicyd').status == 0
     # Configure Satellite firewall to open communication
     satellite.execute(
         'firewall-cmd --permanent --add-service RH-Satellite-6 && firewall-cmd --reload'
