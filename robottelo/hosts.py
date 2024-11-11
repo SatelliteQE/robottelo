@@ -23,6 +23,7 @@ from fauxfactory import gen_alpha, gen_string
 from manifester import Manifester
 from nailgun import entities
 from packaging.version import Version
+import pytest
 import requests
 from ssh2.exceptions import AuthenticationError
 from wait_for import TimedOutError, wait_for
@@ -398,6 +399,13 @@ class ContentHost(Host, ContentHostMixins):
     def teardown(self):
         logger.debug('START: tearing down host %s', self)
         if not self.blank and not getattr(self, '_skip_context_checkin', False):
+            if (
+                hasattr(pytest, 'capsule_sanity')
+                and pytest.capsule_sanity is True
+                and type(self) is Capsule
+            ):
+                logger.debug('END: Skipping tearing down caspule host %s for sanity', self)
+                return
             self.unregister()
             if type(self) is not Satellite:  # do not delete Satellite's host record
                 self._delete_host_record()
