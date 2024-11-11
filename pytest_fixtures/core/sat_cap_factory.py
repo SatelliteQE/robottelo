@@ -199,8 +199,11 @@ def large_capsule_configured(large_capsule_host, target_sat):
 @pytest.fixture(scope='module')
 def module_capsule_configured(request, module_capsule_host, module_target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
-    if not request.config.option.n_minus:
+    if not any([request.config.option.n_minus, 'build_sanity' in request.config.option.markexpr]):
         module_capsule_host.capsule_setup(sat_host=module_target_sat)
+    # The capsule is being set here by capsule installation test of `test_installer.py` for sanity
+    if 'build_sanity' in request.config.option.markexpr:
+        return Capsule.get_host_by_hostname(settings.capsule.hostname)
     return module_capsule_host
 
 
