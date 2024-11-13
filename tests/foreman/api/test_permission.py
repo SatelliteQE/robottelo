@@ -68,6 +68,9 @@ class TestPermission:
             cls.permissions.pop('ForemanPuppet::HostClass')
             cls.permissions.pop('ForemanPuppet::Puppetclass')
             cls.permissions.pop('ForemanPuppet::PuppetclassLookupKey')
+        if 'rubygem-foreman_scc_manager' not in rpm_packages:
+            cls.permissions.pop('SccAccount')
+            cls.permissions.pop('SccProduct')
 
         #: e.g. ['Architecture', 'Audit', 'AuthSourceLdap', …]
         cls.permission_resource_types = list(cls.permissions.keys())
