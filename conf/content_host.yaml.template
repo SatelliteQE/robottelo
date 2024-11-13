@@ -2,7 +2,7 @@ content_host:
   default_rhel_version: 7
   rhel6:
     vm:
-      workflow: deploy-base-rhel
+      workflow: deploy-rhel
       deploy_rhel_version: '6'
       target_memory: 1GiB
       target_cores: 1
@@ -10,7 +10,7 @@ content_host:
       container_host: rhel6:latest
   rhel7:
     vm:
-      workflow: deploy-base-rhel
+      workflow: deploy-rhel
       deploy_rhel_version: '7'
       target_memory: 1GiB
       target_cores: 1
@@ -18,13 +18,13 @@ content_host:
       container_host: ubi7:latest
   rhel7_fips:
     vm:
-      workflow: deploy-base-rhel-fips
+      workflow: deploy-rhel
       deploy_rhel_version: '7'
       target_memory: 1GiB
       target_cores: 1
   rhel8:
     vm:
-      workflow: deploy-base-rhel
+      workflow: deploy-rhel
       deploy_rhel_version: '8'
       target_memory: 1536 MiB
       target_cores: 1
@@ -32,13 +32,13 @@ content_host:
       container_host: ubi8:latest
   rhel8_fips:
     vm:
-      workflow: deploy-base-rhel-fips
+      workflow: deploy-rhel
       deploy_rhel_version: '8'
       target_memory: 1536 MiB
       target_cores: 1
   rhel9:
     vm:
-      workflow: deploy-base-rhel
+      workflow: deploy-rhel
       deploy_rhel_version: '9'
       target_memory: 1536 MiB
       target_cores: 1
@@ -46,7 +46,7 @@ content_host:
       container_host: ubi9:latest
   rhel9_fips:
     vm:
-      workflow: deploy-base-rhel-fips
+      workflow: deploy-rhel
       deploy_rhel_version: '9'
       target_memory: 1536 MiB
       target_cores: 1

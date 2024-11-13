@@ -41,12 +41,22 @@ def host_conf(request):
     return conf
 
 
+def run_post_deployments(request, host):
+    """Execute post deploy"""
+    params = {}
+    if hasattr(request, 'param'):
+        params = request.param
+    if 'fips' in params.get('rhel_version'):
+        Broker().execute(workflow='enable-fips', target_host=host.name)
+
+
 @pytest.fixture
 def rhel_contenthost(request):
     """A function-level fixture that provides a content host object parametrized"""
     # Request should be parametrized through pytest_fixtures.fixture_markers
     # unpack params dict
     with Broker(**host_conf(request), host_class=ContentHost) as host:
+        run_post_deployments(request, host)
         yield host
 
 
@@ -56,6 +66,7 @@ def module_rhel_contenthost(request):
     # Request should be parametrized through pytest_fixtures.fixture_markers
     # unpack params dict
     with Broker(**host_conf(request), host_class=ContentHost) as host:
+        run_post_deployments(request, host)
         yield host
 
 
@@ -112,6 +123,8 @@ def rhel9_contenthost(request):
 def content_hosts(request):
     """A function-level fixture that provides two rhel content hosts object"""
     with Broker(**host_conf(request), host_class=ContentHost, _count=2) as hosts:
+        for host in hosts:
+            run_post_deployments(request, host)
         hosts[0].set_infrastructure_type('physical')
         yield hosts
 
@@ -120,6 +133,8 @@ def content_hosts(request):
 def mod_content_hosts(request):
     """A module-level fixture that provides two rhel content hosts object"""
     with Broker(**host_conf(request), host_class=ContentHost, _count=2) as hosts:
+        for host in hosts:
+            run_post_deployments(request, host)
         hosts[0].set_infrastructure_type('physical')
         yield hosts
 
@@ -172,6 +187,7 @@ def cockpit_host(class_target_sat, class_org, rhel_contenthost):
 def rex_contenthost(request, module_org, target_sat, module_ak_with_cv):
     request.param['no_containers'] = True
     with Broker(**host_conf(request), host_class=ContentHost) as host:
+        run_post_deployments(request, host)
         repo = settings.repos['SATCLIENT_REPO'][f'RHEL{host.os_version.major}']
         host.register(
             module_org, None, module_ak_with_cv.name, target_sat, repo_data=f'repo={repo}'
@@ -184,6 +200,7 @@ def rex_contenthosts(request, module_org, target_sat, module_ak_with_cv):
     request.param['no_containers'] = True
     with Broker(**host_conf(request), host_class=ContentHost, _count=2) as hosts:
         for host in hosts:
+            run_post_deployments(request, host)
             repo = settings.repos['SATCLIENT_REPO'][f'RHEL{host.os_version.major}']
             host.register(
                 module_org, None, module_ak_with_cv.name, target_sat, repo_data=f'repo={repo}'
