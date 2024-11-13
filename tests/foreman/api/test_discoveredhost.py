@@ -28,7 +28,7 @@ class HostNotDiscoveredException(Exception):
 def _read_log(ch, pattern):
     """Read the first line from the given channel buffer and return the matching line"""
     # read lines until the buffer is empty
-    for log_line in ch.stdout().splitlines():
+    for log_line in ch.result.stdout.splitlines():
         logger.debug(f'foreman-tail: {log_line}')
         if re.search(pattern, log_line):
             return log_line
@@ -179,6 +179,7 @@ class TestDiscoveredHost:
         provisioning_host,
         provisioning_hostgroup,
         pxe_loader,
+        request,
     ):
         """Provision a pxe-based discovered host
 
@@ -214,9 +215,9 @@ class TestDiscoveredHost:
             host = discovered_host.update(['hostgroup', 'build', 'location', 'organization'])
             host = sat.api.Host().search(query={"search": f'name={host.name}'})[0]
             assert host
-            assert_discovered_host_provisioned(shell, module_provisioning_rhel_content.ksrepo)
-            sat.provisioning_cleanup(host.name)
-        provisioning_host.blank = True
+            shell.close()
+        assert_discovered_host_provisioned(shell, module_provisioning_rhel_content.ksrepo)
+        request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
 
     @pytest.mark.upgrade
     @pytest.mark.e2e
@@ -231,6 +232,7 @@ class TestDiscoveredHost:
         pxeless_discovery_host,
         module_provisioning_rhel_content,
         provisioning_hostgroup,
+        request,
     ):
         """Provision a pxe-less discovered hosts
 
@@ -263,9 +265,9 @@ class TestDiscoveredHost:
             host = discovered_host.update(['hostgroup', 'build', 'location', 'organization'])
             host = sat.api.Host().search(query={"search": f'name={host.name}'})[0]
             assert host
-            assert_discovered_host_provisioned(shell, module_provisioning_rhel_content.ksrepo)
-            sat.provisioning_cleanup(host.name)
-        pxeless_discovery_host.blank = True
+            shell.close()
+        assert_discovered_host_provisioned(shell, module_provisioning_rhel_content.ksrepo)
+        request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
 
     @pytest.mark.tier3
     def test_positive_auto_provision_pxe_host(
