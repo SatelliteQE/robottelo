@@ -2855,7 +2855,7 @@ def test_positive_verify_host_statuses(
 ):
     """
     Verify that CV promote doesn't fail with undefined method error when deleting hosts in the CV during
-    finalize phase of the promote task
+    finalize phase of the promote task.
 
     :id: ad9688e5-1d52-4514-8a28-dd9cab6126d4
 
@@ -2878,7 +2878,11 @@ def test_positive_verify_host_statuses(
     assert rh.subscribed
 
     domain_name = list(valid_domain_names(length=15).values())[0]
-    org = function_sca_manifest_org.name
+    org = function_sca_manifest_org
+
+    gr_command = target_sat.execute(
+        f'hammer host-registration generate-command --activation-key {ak.name} --organization-id {org.id} --insecure true --force true'
+    )
 
     # 2. Register N number of fake content hosts with Satellite
     for _i in range(20):
@@ -2890,12 +2894,7 @@ def test_positive_verify_host_statuses(
         )
         assert rh.execute('hostnamectl set-hostname ${short}.${uuid%%-*}.${domain}').status == 0
         assert rh.execute('subscription-manager clean').status == 0
-        assert (
-            rh.execute(
-                f'subscription-manager register --activationkey {ak.name} --org {org} --force'
-            ).status
-            == 0
-        )
+        assert rh.execute(f'{gr_command.stdout}').status == 0
 
     # 3. Promote CV Version to LCE, during this process delete few hosts using hammer cli command
     cv.publish()
