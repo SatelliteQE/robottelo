@@ -288,7 +288,7 @@ def pxe_loader(request):
         'ipxe': {'vm_firmware': 'bios', 'pxe_loader': 'iPXE Embedded'},
         'http_uefi': {'vm_firmware': 'uefi', 'pxe_loader': 'Grub2 UEFI HTTP'},
     }
-    return Box(PXE_LOADER_MAP[getattr(request, 'param', 'bios')])
+    return Box(PXE_LOADER_MAP[getattr(request, 'param', 'uefi')])
 
 
 @pytest.fixture
