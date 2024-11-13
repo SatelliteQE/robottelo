@@ -29,7 +29,7 @@ from robottelo.utils.issue_handlers import is_open
 def _read_log(ch, pattern):
     """Read the first line from the given channel buffer and return the matching line"""
     # read lines until the buffer is empty
-    for log_line in ch.stdout().splitlines():
+    for log_line in ch.result.stdout.splitlines():
         logger.debug(f'foreman-tail: {log_line}')
         if re.search(pattern, log_line):
             return log_line
@@ -391,6 +391,7 @@ def test_rhel_httpboot_provisioning(
     # check for proper HTTP requests
     shell = module_provisioning_sat.session.shell()
     shell.send('foreman-tail')
+    shell.close()
     assert_host_logs(shell, f'GET /httpboot/grub2/grub.cfg-{host_mac_addr} with 200')
     # Host should do call back to the Satellite reporting
     # the result of the installation. Wait until Satellite reports that the host is installed.
