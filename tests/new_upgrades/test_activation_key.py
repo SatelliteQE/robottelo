@@ -15,18 +15,18 @@
 from box import Box
 from fauxfactory import gen_alpha
 import pytest
+from requests.exceptions import HTTPError
 
 from robottelo.config import settings
-from requests.exceptions import HTTPError
 from robottelo.utils.shared_resource import SharedResource
 
 
 @pytest.fixture
 def ak_upgrade_setup(content_upgrade_shared_satellite, upgrade_action):
     """Pre-upgrade scenario that creates an activation key and custom repo.
-    
+
     :id: preupgrade-a7443b54-eb2e-497b-8a50-92abeae01496
-    
+
     :steps:
         1. Create organization.
         2. Create product.
@@ -53,10 +53,10 @@ def ak_upgrade_setup(content_upgrade_shared_satellite, upgrade_action):
         product = target_sat.api.Product(organization=org, name=f'{test_name}_prod').create()
         test_data.product = product
         custom_repo = target_sat.api.Repository(
-            product = product,
-            name = f'{test_name}_repo',
+            product=product,
+            name=f'{test_name}_repo',
             url=settings.repos.yum_1.url,
-            content_type = 'yum',
+            content_type='yum',
         ).create()
         test_data.repo = custom_repo
         custom_repo.sync()
@@ -64,16 +64,18 @@ def ak_upgrade_setup(content_upgrade_shared_satellite, upgrade_action):
         assert len(cv.read_json()['versions']) == 1
         test_data.cv = cv
         ak = target_sat.api.ActivationKey(
-            content_view=cv, organization=org, name=f'{test_name}_ak'
+            content_view=cv, organization=org, environment=org.library.id, name=f'{test_name}_ak'
         ).create()
         test_data.ak = ak
-        ak.host_collection.append(target_sat.api.HostCollection(organization=org, name=f'{test_name}_hc').create())
+        ak.host_collection.append(
+            target_sat.api.HostCollection(organization=org, name=f'{test_name}_hc').create()
+        )
         ak = ak.update(['host_collection'])
         assert len(ak.host_collection) == 1
         sat_upgrade.ready()
         target_sat._session = None
         yield test_data
-    
+
 
 @pytest.mark.content_upgrades
 def test_ak_upgrade_scenario(ak_upgrade_setup):
@@ -93,21 +95,31 @@ def test_ak_upgrade_scenario(ak_upgrade_setup):
     :BlockedBy: SAT-28048, SAT-28990
     """
     target_sat = ak_upgrade_setup.target_sat
-    # pre_test_name = dependent_scenario_name
-    org = target_sat.api.Organization().search(query={'search': f'name={ak_upgrade_setup.org.name}'})[0]
+    org = target_sat.api.Organization().search(
+        query={'search': f'name={ak_upgrade_setup.org.name}'}
+    )[0]
     ak = target_sat.api.ActivationKey(organization=org.id).search(
         query={'search': f'name={ak_upgrade_setup.ak.name}'}
     )[0]
     cv = target_sat.api.ContentView(organization=org.id).search(
         query={'search': f'name={ak_upgrade_setup.cv.name}'}
     )[0]
-    custom_repo = target_sat.api.Repository(organization=org.id).search(query={'search': f'name={ak_upgrade_setup.repo.name}'})[0]
+    custom_repo = target_sat.api.Repository(organization=org.id).search(
+        query={'search': f'name={ak_upgrade_setup.repo.name}'}
+    )[0]
     assert f'{ak_upgrade_setup.test_name}_ak' == ak.name
     assert f'{ak_upgrade_setup.test_name}_cv' == cv.name
-    ak.host_collection.append(target_sat.api.HostCollection(organization=org, name=f'{ak_upgrade_setup.test_name}_hc2').create())
+    assert ak.content_view.id == cv.id
+    ak.host_collection.append(
+        target_sat.api.HostCollection(
+            organization=org, name=f'{ak_upgrade_setup.test_name}_hc2'
+        ).create()
+    )
     ak.update(['host_collection'])
     assert len(ak.host_collection) == 2
-    product2 = target_sat.api.Product(organization=org, name=f'{ak_upgrade_setup.test_name}_prod2').create()
+    product2 = target_sat.api.Product(
+        organization=org, name=f'{ak_upgrade_setup.test_name}_prod2'
+    ).create()
     custom_repo2 = target_sat.api.Repository(
         product=product2,
         name=f'{ak_upgrade_setup.test_name}_repo2',
@@ -115,7 +127,9 @@ def test_ak_upgrade_scenario(ak_upgrade_setup):
         content_type='yum',
     ).create()
     custom_repo2.sync()
-    cv2 = target_sat.api.ContentView(organization=org, repository=[custom_repo2.id], name=f'{ak_upgrade_setup.test_name}_cv2').create()
+    cv2 = target_sat.api.ContentView(
+        organization=org, repository=[custom_repo2.id], name=f'{ak_upgrade_setup.test_name}_cv2'
+    ).create()
     cv2.publish()
     ak.delete()
     with pytest.raises(HTTPError):
