@@ -1153,6 +1153,19 @@ PERMISSIONS = {
         'lock_report_templates',
     ],
     'Role': ['view_roles', 'create_roles', 'edit_roles', 'destroy_roles'],
+    'SccAccount': [
+        "delete_scc_accounts",
+        "edit_scc_accounts",
+        "new_scc_accounts",
+        "sync_scc_accounts",
+        "test_connection_scc_accounts",
+        "use_scc_accounts",
+        "view_scc_accounts",
+    ],
+    'SccProduct': [
+        "subscribe_scc_products",
+        "view_scc_products",
+    ],
     'Setting': ['view_settings', 'edit_settings'],
     'SmartProxy': [
         'view_smart_proxies',
