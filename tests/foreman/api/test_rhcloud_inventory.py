@@ -320,7 +320,8 @@ def test_rhcloud_scheduled_insights_sync(
         query={'search': f'id = {inventory_sync["task"]["id"]}'}
     )
     assert task_output[0].output['host_statuses']['sync'] == 2
-    result = module_target_sat.execute("foreman-rake console SATELLITE_RH_CLOUD_REQUESTS_DELAY=0 <<< 'ForemanTasks.sync_task(InsightsCloud::Async::InsightsScheduledSync)'"
+    result = module_target_sat.execute(
+        "foreman-rake console SATELLITE_RH_CLOUD_REQUESTS_DELAY=0 <<< 'ForemanTasks.sync_task(InsightsCloud::Async::InsightsScheduledSync)'"
     )
     assert 'success' in result.stdout
     assert result.status == 0
