@@ -1102,3 +1102,37 @@ def test_positive_ak_with_custom_product_on_rhel6(rhel_contenthost, target_sat):
         ak = session.activationkey.read(ak.name, widget_names='content_hosts')
         assert len(ak['content_hosts']['table']) == 1
         assert ak['content_hosts']['table'][0]['Name'] == rhel_contenthost.hostname
+
+
+def test_positive_new_ak_lce_cv_assignment(target_sat):
+    """
+    Test that newly created activation key which has Library and Default Org view
+    assigned has it really assigned after the creation
+
+    :id: 12e36a54-e5ba-49b9-b97a-f1827fc718a0
+
+    :steps:
+        1. Create new AK with Library and Default Org view assigned
+        2. Check that created AK has Library and Default Org view assigned
+
+    :expectedresults: Activation key has Library and Default Org view assigned after it is created
+
+    :Verifies: SAT-28981
+    """
+
+    ak_name = gen_string('alpha')
+
+    with target_sat.ui_session() as session:
+        session.location.select(constants.DEFAULT_LOC)
+        session.organization.select(constants.DEFAULT_ORG)
+        session.activationkey.create(
+            {'name': ak_name, 'lce': {'Library': True}, 'content_view': constants.DEFAULT_CV}
+        )
+        ak_values = session.activationkey.read(ak_name, widget_names='details')
+
+        assert (
+            ak_values['details']['content_view'] == constants.DEFAULT_CV
+        ), 'Default Organization View is not assigned to newly created AK'
+        assert (
+            ak_values['details']['lce']['Library']['Library'] == True  # noqa: E712, explicit comparison fits this case
+        ), 'Library view is not assigned to newly created AK'
