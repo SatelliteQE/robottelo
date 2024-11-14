@@ -24,7 +24,16 @@ def resolve_deploy_args(args_dict):
         if isinstance(val, str) and val.startswith('this.'):
             # Args transformed into small letters and existing capital args removed
             args_dict[key.lower()] = settings.get(args_dict.pop(key).replace('this.', ''))
-    return args_dict
+    return _remove_raw_keys(args_dict)
+
+
+def _remove_raw_keys(param):
+    """Recursively remove all keys that start with "raw_" which may break converting to json"""
+    if isinstance(param, list):
+        return [_remove_raw_keys(item) for item in param]
+    if isinstance(param, dict):
+        return {k: _remove_raw_keys(v) for k, v in param.items() if not k.startswith("raw_")}
+    return param
 
 
 @contextmanager
@@ -292,10 +301,10 @@ def parametrized_enrolled_sat(
     Broker(hosts=[new_sat]).checkin()
 
 
-def get_deploy_args(request):
-    """Get deploy arguments for Satellite base OS deployment. Should not be used for Capsule."""
+def get_sat_deploy_args(request):
+    """Get deploy arguments for Satellite base OS deployment."""
     rhel_version = get_sat_rhel_version()
-    deploy_args = settings.content_host[f'rhel{rhel_version.major}'].vm | {
+    deploy_args = settings.server.deploy_arguments | {
         'deploy_rhel_version': rhel_version.base_version,
         'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
         'deploy_flavor': settings.flavors.default,
@@ -306,19 +315,31 @@ def get_deploy_args(request):
             deploy_args.update(request.param)
         else:
             deploy_args['deploy_rhel_version'] = request.param
-    return deploy_args
+    return _remove_raw_keys(deploy_args)
+
+
+def get_cap_deploy_args():
+    """Get deploy arguments for Capsule base OS deployment."""
+    rhel_version = Version(settings.capsule.version.rhel_version)
+    deploy_args = settings.capsule.deploy_arguments | {
+        'deploy_rhel_version': rhel_version.base_version,
+        'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
+        'deploy_flavor': settings.flavors.default,
+        'workflow': settings.capsule.deploy_workflows.os,
+    }
+    return _remove_raw_keys(deploy_args)
 
 
 @pytest.fixture
 def sat_ready_rhel(request):
-    deploy_args = get_deploy_args(request)
+    deploy_args = get_sat_deploy_args(request)
     with Broker(**deploy_args, host_class=Satellite) as host:
         yield host
 
 
 @pytest.fixture(scope='module')
 def module_sat_ready_rhels(request, module_target_sat):
-    deploy_args = get_deploy_args(request)
+    deploy_args = get_sat_deploy_args(request)
     if 'build_sanity' not in request.config.option.markexpr:
         with Broker(**deploy_args, host_class=Satellite, _count=3) as hosts:
             yield hosts
@@ -329,13 +350,7 @@ def module_sat_ready_rhels(request, module_target_sat):
 @pytest.fixture
 def cap_ready_rhel():
     """Deploy bare RHEL system ready for Capsule installation."""
-    rhel_version = Version(settings.capsule.version.rhel_version)
-    deploy_args = settings.capsule.deploy_arguments | {
-        'deploy_rhel_version': rhel_version.base_version,
-        'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
-        'deploy_flavor': settings.flavors.default,
-        'workflow': settings.capsule.deploy_workflows.os,
-    }
+    deploy_args = get_cap_deploy_args()
     with Broker(**deploy_args, host_class=Capsule) as host:
         host.enable_ipv6_dnf_and_rhsm_proxy()
         yield host
