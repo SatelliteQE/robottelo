@@ -14,6 +14,7 @@
 
 from broker import Broker
 import pytest
+import yaml
 
 from robottelo.config import settings
 from robottelo.constants import (
@@ -68,6 +69,15 @@ def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_rol
     module_target_sat.put(
         settings.fam.compute_profile.to_yaml(),
         f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/compute_profile.yml',
+        temp_file=True,
+    )
+
+    # Create fake galaxy.yml to make Makefile happy.
+    # The data in the file is unused, but not being able to load it produces errors in the
+    # logs and is confusing when searching for an actual problem during testing.
+    module_target_sat.put(
+        yaml.safe_dump({'name': 'satellite', 'namespace': 'redhat', 'version': '1.0.0'}),
+        f'{FAM_ROOT_DIR}/galaxy.yml',
         temp_file=True,
     )
 
