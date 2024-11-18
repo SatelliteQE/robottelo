@@ -32,9 +32,9 @@ from robottelo.utils.manifest import clone
 pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.skip_if_not_set('fake_manifest')]
 
 
-@pytest.fixture(scope='module')
-def golden_ticket_host_setup(function_entitlement_manifest_org, module_target_sat):
-    org = function_entitlement_manifest_org
+@pytest.fixture
+def golden_ticket_host_setup(function_sca_manifest_org, module_target_sat):
+    org = function_sca_manifest_org
     rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
@@ -474,12 +474,12 @@ def test_positive_subscription_status_disabled_golden_ticket(
     result = rhel_contenthost.register(org, None, ak.name, target_sat)
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert rhel_contenthost.subscribed
-    with session:
+    with target_sat.ui_session() as session:
         session.organization.select(org_name=org.name)
-        host = session.contenthost.read(rhel_contenthost.hostname, widget_names='details')[
-            'details'
-        ]['subscription_status']
-        assert 'Simple Content Access' in host
+        read_host_subs_status = session.contenthost.read_legacy_ui(
+            rhel_contenthost.hostname, widget_names='details'
+        )['details']['subscription_status']
+        assert 'Simple Content Access' in read_host_subs_status
 
 
 @pytest.mark.tier2
