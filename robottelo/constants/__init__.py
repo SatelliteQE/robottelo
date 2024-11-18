@@ -721,7 +721,7 @@ BOOTABLE_REPO = {
     },
     'manifest_list': {
         'count': 1,
-        'bootable': False,
+        'bootable': True,
         'flatpak': False,
         'labels_count': 0,
         'annotations_count': 0,
