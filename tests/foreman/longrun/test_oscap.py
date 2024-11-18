@@ -111,8 +111,16 @@ def activation_key(module_target_sat, module_org, lifecycle_env):
         content_view = module_target_sat.api.ContentView(
             organization=module_org, name=repo.get('cvname')
         ).create()
+        content_view.publish()
+        content_view = content_view.read()
+        assert len(content_view.version) == 1, "CV not publised"
+        version = content_view.version[0].read()
+        version.promote(data={'environment_ids': lifecycle_env.id, 'force': True})
         activation_key = module_target_sat.api.ActivationKey(
-            name=repo.get('akname'), environment=lifecycle_env, organization=module_org
+            name=repo.get('akname'),
+            environment=lifecycle_env,
+            content_view=content_view,
+            organization=module_org,
         ).create()
         # Setup org for a custom repo for RHEL6, RHEL7 and RHEL8.
         module_target_sat.cli_factory.setup_org_for_a_custom_repo(
