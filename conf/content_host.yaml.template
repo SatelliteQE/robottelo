@@ -50,6 +50,12 @@ content_host:
       deploy_rhel_version: '9'
       target_memory: 1536 MiB
       target_cores: 1
+  rhel10_fips:
+    vm:
+      workflow: deploy-template
+      deploy_rhel_version: '10'
+      target_memory: 1536 MiB
+      target_cores: 1
   centos7:
     vm:
       workflow: deploy-centos
