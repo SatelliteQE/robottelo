@@ -373,16 +373,21 @@ def test_positive_create_and_delete(target_sat, module_lce_library, module_publi
         }
     )
     assert f'{name}.{host.domain.read().name}' == new_host['name']
-    assert new_host['organization'] == host.organization.name
-    assert new_host['content-information']['content-view']['name'] == module_published_cv.name
+    assert new_host['organization']['name'] == host.organization.name
     assert (
-        new_host['content-information']['lifecycle-environment']['name'] == module_lce_library.name
+        new_host['content-information']['content-view-environments']['1']['content-view']['name']
+        == module_published_cv.name
+    )
+    assert (
+        new_host['content-information']['content-view-environments']['1']['lifecycle-environment'][
+            'name'
+        ]
+        == module_lce_library.name
     )
     host_interface = target_sat.cli.HostInterface.info(
-        {'host-id': new_host['id'], 'id': new_host['network-interfaces'][0]['id']}
+        {'host-id': new_host['id'], 'id': new_host['network-interfaces']['1']['id']}
     )
     assert host_interface['domain'] == host.domain.read().name
-
     target_sat.cli.Host.delete({'id': new_host['id']})
     with pytest.raises(CLIReturnCodeError):
         target_sat.cli.Host.info({'id': new_host['id']})
@@ -538,8 +543,16 @@ def test_positive_create_with_lce_and_cv(
             'organization-id': module_org.id,
         }
     )
-    assert new_host['content-information']['lifecycle-environment']['name'] == module_lce.name
-    assert new_host['content-information']['content-view']['name'] == module_promoted_cv.name
+    assert (
+        new_host['content-information']['content-view-environments']['1']['lifecycle-environment'][
+            'name'
+        ]
+        == module_lce.name
+    )
+    assert (
+        new_host['content-information']['content-view-environments']['1']['content-view']['name']
+        == module_promoted_cv.name
+    )
 
 
 @pytest.mark.cli_host_create
@@ -705,14 +718,14 @@ def test_positive_list_infrastructure_hosts(
     target_sat.cli.Host.update({'name': target_sat.hostname, 'new-organization-id': module_org.id})
     # list satellite hosts
     hosts = target_sat.cli.Host.list({'search': 'infrastructure_facet.foreman=true'})
-    assert len(hosts) == 2
+    assert len(hosts) == 1
     hostnames = [host['name'] for host in hosts]
     assert rhel7_contenthost.hostname not in hostnames
     assert target_sat.hostname in hostnames
     # list capsule hosts
     hosts = target_sat.cli.Host.list({'search': 'infrastructure_facet.smart_proxy_id=1'})
     hostnames = [host['name'] for host in hosts]
-    assert len(hosts) == 2
+    assert len(hosts) == 1
     assert rhel7_contenthost.hostname not in hostnames
     assert target_sat.hostname in hostnames
 
@@ -741,10 +754,17 @@ def test_positive_create_inherit_lce_cv(
         {'hostgroup-id': hostgroup.id, 'organization-id': module_org.id}
     )
     assert (
-        int(host['content-information']['lifecycle-environment']['id'])
+        int(
+            host['content-information']['content-view-environments']['1']['lifecycle-environment'][
+                'id'
+            ]
+        )
         == hostgroup.lifecycle_environment.id
     )
-    assert int(host['content-information']['content-view']['id']) == hostgroup.content_view.id
+    assert (
+        int(host['content-information']['content-view-environments']['1']['content-view']['id'])
+        == hostgroup.content_view.id
+    )
 
 
 @pytest.mark.cli_host_create
@@ -856,14 +876,23 @@ def test_positive_list_with_nested_hostgroup(target_sat):
     assert f'{parent_hg_name}/{nested_hg_name}' == hosts[0]['host-group']
     host = target_sat.cli.Host.info({'id': hosts[0]['id']})
     logger.info(f'Host info: {host}')
-    assert host['operating-system']['medium'] == options.medium.name
-    assert host['operating-system']['partition-table'] == options.ptable.name  # inherited
+    assert host['operating-system']['medium']['name'] == options.medium.name
+    assert host['operating-system']['partition-table']['name'] == options.ptable.name  # inherited
     if not target_sat.is_stream:
-        assert 'id' in host['content-information']['lifecycle-environment']
-        assert int(host['content-information']['lifecycle-environment']['id']) == int(lce.id)
-        assert int(host['content-information']['content-view']['id']) == int(
-            content_view.id
-        )  # inherited
+        assert (
+            'id'
+            in host['content-information']['content-view-environments']['1'][
+                'lifecycle-environment'
+            ]
+        )
+        assert int(
+            host['content-information']['content-view-environments']['1']['lifecycle-environment'][
+                'id'
+            ]
+        ) == int(lce.id)
+        assert int(
+            host['content-information']['content-view-environments']['1']['content-view']['id']
+        ) == int(content_view.id)  # inherited
 
 
 @pytest.mark.cli_host_create
