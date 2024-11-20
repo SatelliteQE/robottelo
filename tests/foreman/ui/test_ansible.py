@@ -783,7 +783,7 @@ class TestAnsibleREX:
             status = session.jobinvocation.read(
                 entity_name=job_description, host_name=client.hostname
             )
-            assert status['overview']['hosts_table'][0]['Status'] == 'success'
+            assert status['overview']['hosts_table'][0]['Status'] == 'Succeeded'
 
             collection_path = client.execute('ls ~/ansible_collections').stdout
             assert 'oasis_roles' in collection_path

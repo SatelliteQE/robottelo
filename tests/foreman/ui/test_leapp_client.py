@@ -74,4 +74,4 @@ def test_leapp_preupgrade_report(
         status = session.jobinvocation.read(
             entity_name='Upgradeability check for rhel host', host_name=hostname
         )
-        assert status['overview']['hosts_table'][0]['Status'] == 'success'
+        assert status['overview']['hosts_table'][0]['Status'] == 'Succeeded'
