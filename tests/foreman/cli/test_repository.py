@@ -659,13 +659,13 @@ class TestRepository:
             [
                 {'content-type': content_type, 'download-policy': 'on_demand'}
                 for content_type in REPO_TYPE
-                if content_type not in ['yum', 'docker', 'deb']
+                if content_type not in ['yum', 'docker', 'deb', 'file']
             ]
         ),
         indirect=True,
     )
     def test_negative_create_repos_with_download_policy(self, repo_options, module_target_sat):
-        """Verify that non-YUM & non-docker repositories cannot be created with download
+        """Verify that non-YUM, non-docker, non-debian, and non-file repositories cannot be created with download
         policy
 
         :id: 71388973-50ea-4a20-9406-0aca142014ca
