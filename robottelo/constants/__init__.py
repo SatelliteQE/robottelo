@@ -712,19 +712,37 @@ DOCKER_REPO_UPSTREAM_NAME = 'openshift3/logging-elasticsearch'
 CONTAINER_RH_REGISTRY_UPSTREAM_NAME = 'openshift3/ose-metrics-hawkular-openshift-agent'
 BOOTABLE_REPO = {
     'upstream_name': 'pulp/bootc-labeled',
-    'manifests_count': 1,
-    'bootable': True,
-    'flatpak': False,
-    'labels_count': 2,
-    'annotations_count': 2,
+    'manifest': {
+        'count': 1,
+        'bootable': True,
+        'flatpak': False,
+        'labels_count': 2,
+        'annotations_count': 2,
+    },
+    'manifest_list': {
+        'count': 1,
+        'bootable': True,
+        'flatpak': False,
+        'labels_count': 0,
+        'annotations_count': 0,
+    },
 }
 FLATPAK_REPO = {
     'upstream_name': 'pulp/oci-net.fishsoup.hello',
-    'manifests_count': 2,
-    'bootable': False,
-    'flatpak': True,
-    'labels_count': 10,
-    'annotations_count': 0,
+    'manifest': {
+        'count': 2,
+        'bootable': False,
+        'flatpak': True,
+        'labels_count': 10,
+        'annotations_count': 0,
+    },
+    'manifest_list': {
+        'count': 1,
+        'bootable': False,
+        'flatpak': True,
+        'labels_count': 0,
+        'annotations_count': 0,
+    },
 }
 LABELLED_REPOS = [BOOTABLE_REPO, FLATPAK_REPO]
 CONTAINER_MANIFEST_LABELS = {'annotations', 'labels', 'is_bootable', 'is_flatpak'}
