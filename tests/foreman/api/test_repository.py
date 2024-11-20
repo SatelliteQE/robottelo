@@ -479,7 +479,7 @@ class TestRepository:
         [
             {'content_type': content_type, 'download_policy': 'on_demand'}
             for content_type in constants.REPO_TYPE
-            if content_type not in ['yum', 'docker']
+            if content_type not in ['yum', 'docker', 'deb']
         ],
         indirect=True,
         ids=lambda x: x['content_type'],
