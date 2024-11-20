@@ -593,90 +593,6 @@ def test_positive_check_installer_hammer_ping(target_sat):
             assert 'ok' in line
 
 
-@pytest.mark.upgrade
-@pytest.mark.tier1
-@pytest.mark.build_sanity
-def test_installer_modules_check(target_sat):
-    """Look for changes in installer modules
-
-    :id: a51d3b9f-f347-4a96-a31a-770349db08c7
-
-    :steps:
-        1. Parse satellite installer modules
-
-    :expectedresults: Ensure the keys for all modules are in the file
-    """
-    cat_cmd = target_sat.execute('cat /etc/foreman-installer/scenarios.d/satellite-answers.yaml')
-    sat_answers = yaml.safe_load(cat_cmd.stdout)
-
-    assert set(sat_answers) == DOWNSTREAM_MODULES
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier3
-def test_satellite_installation_on_ipv6():
-    """
-    Check the satellite installation on ipv6 machine.
-
-    :id: 24fa5ef0-1673-427c-82ab-740758683cff
-
-    :steps:
-        1. Install satellite on ipv6 machine.
-
-    :expectedresults:
-        1: Installation should be successful.
-        2: After installation, All the services should be up and running.
-        3. Status of hammer ping should be ok.
-        4: Satellite service restart should work.
-        5: After system reboot all the services comes to up state.
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier3
-def test_capsule_installation_on_ipv6():
-    """
-    Check the capsule installation over ipv6 machine
-
-    :id: 75341e29-342f-41fc-aaa8-cda013b7dfa1
-
-    :steps:
-        1. Install capsule on ipv6 machine.
-
-    :expectedresults:
-        1. Capsule installation should be successful.
-        2. After installation, All the Services should be up and running.
-        3. Satellite service restart should work.
-        4. After system reboot all the services come to up state.
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier3
-def test_installer_check_on_ipv6():
-    """
-    Check the satellite-installer command execution with tuning options and updated config file.
-
-    :id: 411bbffb-027f-4df0-8566-1719d1d0651a
-
-    :steps:
-        1. Install satellite on ipv6 machine
-        2. Trigger the satellite-installer command with "--tuning medium" flag.
-        3. Update the custom-hira.yaml file(add any supportable config parameter).
-        4. Trigger the satellite-installer command with no option.
-
-    :expectedresults:
-        1. Tuning parameter set successfully for medium size.
-        2. custom-hiera.yaml related changes should be successfully applied.
-
-    :CaseAutomation: NotAutomated
-    """
-
-
 @pytest.mark.tier3
 def test_installer_cap_pub_directory_accessibility(capsule_configured):
     """Verify the public directory accessibility from capsule url after disabling it from the
@@ -786,6 +702,7 @@ def test_satellite_installation(installer_satellite):
         3. no unexpected errors in logs
         4. satellite-maintain health check runs successfully
         5. redis is set as default foreman cache
+        6. Parse satellite installer modules
 
     :CaseImportance: Critical
     """
@@ -795,6 +712,12 @@ def test_satellite_installation(installer_satellite):
     assert installer_satellite.execute('rpm -q foreman-redis').status == 0
     settings_file = installer_satellite.load_remote_yaml_file(FOREMAN_SETTINGS_YML)
     assert settings_file.rails_cache_store.type == 'redis'
+    # Parse satellite installer modules
+    cat_cmd = installer_satellite.execute(
+        'cat /etc/foreman-installer/scenarios.d/satellite-answers.yaml'
+    )
+    sat_answers = yaml.safe_load(cat_cmd.stdout)
+    assert set(sat_answers) == DOWNSTREAM_MODULES
 
 
 @pytest.mark.pit_server
