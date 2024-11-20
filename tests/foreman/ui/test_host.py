@@ -869,6 +869,89 @@ def test_positive_search_by_parameter(session, module_org, smart_proxy_location,
         assert values[0]['Name'] == param_host.name
 
 
+@pytest.mark.tier2
+@pytest.mark.rhel_ver_match('8')
+@pytest.mark.no_containers
+def test_positive_search_by_reported_data(
+    target_sat, rhel_contenthost, module_org, module_ak_with_cv
+):
+    """
+    Search for host by reported data.
+    For example, search by `reported.bios_vendor = SeaBIOS`.
+
+    :id: 54341d00-34bc-11ef-a8a6-000c29a0e355
+
+    :expectedresults: Return only hosts matching the reported data.
+
+    :Verifies: SAT-9132
+
+    :customerscenario: true
+    """
+    result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    client = rhel_contenthost
+
+    reported_data_params = [
+        'bios_release_date',
+        'bios_vendor',
+        'bios_version',
+    ]
+    source_host = client.nailgun_host
+    assert source_host.reported_data, f'Source host {client.hostname} does not report any data.'
+    source_reported_data = source_host.reported_data
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=ANY_CONTEXT['org'])
+        session.location.select(loc_name=ANY_CONTEXT['location'])
+
+        for param_name in reported_data_params:
+            param_value = source_reported_data[param_name]
+            search_string = f'reported.{param_name} = {param_value}'
+            api_hosts = target_sat.api.Host().search(query={'search': search_string})
+            ui_hosts = session.host.search(search_string)
+            assert set([host.name for host in api_hosts]) == set(
+                [host['Name'] for host in ui_hosts]
+            )
+
+
+@pytest.mark.tier2
+@pytest.mark.usefixtures('function_host')
+def test_positive_search_by_configuration_status_alias(target_sat):
+    """
+    Search for host by new alias `configuration_status`.
+
+    :id: 6af725d2-44fe-4b04-a8d6-ce8321a673d4
+
+    :expectedresults: Searching hosts by original `status` and new alias `configuration_status`
+        returns the same results.
+
+    :Verifies: SAT-9132
+
+    :customerscenario: true
+    """
+    status_search_term = Box(name='status', alias='configuration_status')
+    search_params = [
+        'enabled = true',
+        'failed >= 0',
+        'failed_restarts >= 0',
+        'applied >= 0',
+        'pending >= 0',
+    ]
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=ANY_CONTEXT['org'])
+        session.location.select(loc_name=ANY_CONTEXT['location'])
+
+        for search_param in search_params:
+            results = {}
+            for search_term in status_search_term.values():
+                search_string = f'{search_term}.{search_param}'
+                results[search_term] = [host['Name'] for host in session.host.search(search_string)]
+            assert (
+                results[status_search_term.name] == results[status_search_term.alias]
+            ), f'Different search results were found: {results}'
+
+
 @pytest.mark.tier4
 def test_positive_search_by_parameter_with_different_values(
     session, module_org, smart_proxy_location, target_sat
