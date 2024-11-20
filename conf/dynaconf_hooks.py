@@ -7,7 +7,7 @@ from box import Box
 
 from robottelo.logging import logger
 from robottelo.utils.ohsnap import dogfood_repository
-from robottelo.utils.url import ipv6_hostname_translation, is_url
+from robottelo.utils.url import is_url
 
 
 def post(settings):
@@ -30,7 +30,6 @@ def post(settings):
             )
             data = get_repos_config(settings)
             write_cache(settings_cache_path, data)
-    ipv6_hostname_translation(settings, data)
     config_migrations(settings, data)
     data['dynaconf_merge'] = True
     return data
