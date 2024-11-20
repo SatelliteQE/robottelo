@@ -865,7 +865,7 @@ def test_positive_apply_for_all_hosts(
         hosts.
     """
     num_hosts = 4
-    distro = 'rhel9'
+    distro = 'rhel10'
     # one custom repo on satellite, for all hosts to use
     custom_repo = target_sat.api.Repository(url=CUSTOM_REPO_URL, product=module_product).create()
     custom_repo.sync()
@@ -873,7 +873,7 @@ def test_positive_apply_for_all_hosts(
     module_cv.update(['repository'])
     with Broker(
         nick=distro,
-        workflow='deploy-rhel',
+        workflow='deploy-template',
         host_class=ContentHost,
         _count=num_hosts,
         deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
@@ -1034,7 +1034,9 @@ def test_positive_filter_by_environment(
     module_cv.repository = [custom_repo]
     module_cv.update(['repository'])
 
-    with Broker(nick='rhel9', workflow='deploy-rhel', host_class=ContentHost, _count=3) as clients:
+    with Broker(
+        nick='rhel10', workflow='deploy-template', host_class=ContentHost, _count=3
+    ) as clients:
         for client in clients:
             # register all hosts to the same AK, CV:
             setup = target_sat.api_factory.register_host_and_needed_setup(
@@ -1663,7 +1665,9 @@ def test_content_host_errata_search_commands(
     cvs = [module_cv.read(), content_view.read()]  # client0, client1
     # walrus-0.71-1.noarch (RHSA), kangaroo-0.1-1.noarch (RHBA)
     packages = [FAKE_1_CUSTOM_PACKAGE, FAKE_4_CUSTOM_PACKAGE]
-    with Broker(nick='rhel9', workflow='deploy-rhel', host_class=ContentHost, _count=2) as clients:
+    with Broker(
+        nick='rhel10', workflow='deploy-template', host_class=ContentHost, _count=2
+    ) as clients:
         for (
             client,
             cv,
