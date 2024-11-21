@@ -17,6 +17,8 @@ content_host:
     vm:
       workflow: deploy-base-rhel-fips
       deploy_rhel_version: '7'
+    post_configs:
+      - fips
   rhel8:
     vm:
       workflow: deploy-rhel
@@ -27,6 +29,8 @@ content_host:
     vm:
       workflow: deploy-base-rhel-fips
       deploy_rhel_version: '8'
+    post_configs:
+      - fips
   rhel9:
     vm:
       workflow: deploy-rhel
@@ -37,6 +41,8 @@ content_host:
     vm:
       workflow: deploy-base-rhel-fips
       deploy_rhel_version: '9'
+    post_configs:
+      - fips
   rhel10:
     vm:
       workflow: deploy-rhel
@@ -49,9 +55,9 @@ content_host:
       deploy_rhel_version: '10'
   centos7:
     vm:
-      workflow: deploy-centos
-      deploy_scenario: centos
       deploy_rhel_version: '7'
+      deploy_scenario: centos
+      workflow: deploy-centos
   centos8:
     vm:
       workflow: deploy-centos
@@ -67,4 +73,10 @@ content_host:
       workflow: deploy-oracle-linux
       deploy_scenario: oracle
       deploy_rhel_version: '8.10'
-
+host_post_configs:
+  fips:
+    workflow: enable-fips
+    target_vm: "{vm.name}"
+  fapolicyd:
+    workflow: enable-fapolicyd
+    target_vm: "{vm.name}"
