@@ -31,7 +31,7 @@ def resolve_deploy_args(args_dict):
 def _target_satellite_host(request, satellite_factory):
     if 'sanity' not in request.config.option.markexpr:
         new_sat = satellite_factory()
-        new_sat.enable_ipv6_http_proxy()
+        new_sat.enable_satellite_ipv6_http_proxy()
         yield new_sat
         new_sat.teardown()
         Broker(hosts=[new_sat]).checkin()
@@ -49,7 +49,7 @@ def cached_capsule_cdn_register(hostname=None):
 def _target_capsule_host(request, capsule_factory):
     if 'sanity' not in request.config.option.markexpr and not request.config.option.n_minus:
         new_cap = capsule_factory()
-        new_cap.enable_ipv6_http_proxy()
+        new_cap.enable_ipv6_dnf_and_rhsm_proxy()
         yield new_cap
         new_cap.teardown()
         Broker(hosts=[new_cap]).checkin()
@@ -96,7 +96,7 @@ def satellite_factory():
 def large_capsule_host(capsule_factory):
     """A fixture that provides a Capsule based on config settings"""
     new_cap = capsule_factory(deploy_flavor=settings.flavors.custom_db)
-    new_cap.enable_ipv6_http_proxy()
+    new_cap.enable_ipv6_dnf_and_rhsm_proxy()
     yield new_cap
     new_cap.teardown()
     Broker(hosts=[new_cap]).checkin()
@@ -250,7 +250,7 @@ def module_lb_capsule(retry_limit=3, delay=300, **broker_args):
         )
         cap_hosts = wait_for(hosts.checkout, timeout=timeout, delay=delay)
 
-    [cap.enable_ipv6_http_proxy() for cap in cap_hosts.out]
+    [cap.enable_ipv6_dnf_and_rhsm_proxy() for cap in cap_hosts.out]
     yield cap_hosts.out
 
     [cap.teardown() for cap in cap_hosts.out]
@@ -285,7 +285,7 @@ def parametrized_enrolled_sat(
 ):
     """Yields a Satellite enrolled into [IDM, AD] as parameter."""
     new_sat = satellite_factory()
-    new_sat.enable_ipv6_http_proxy()
+    new_sat.enable_satellite_ipv6_http_proxy()
     ipa_host = IPAHost(new_sat)
     new_sat.register_to_cdn()
     if 'IDM' in request.param:
@@ -345,7 +345,7 @@ def cap_ready_rhel():
         'workflow': settings.capsule.deploy_workflows.os,
     }
     with Broker(**deploy_args, host_class=Capsule) as host:
-        host.enable_ipv6_http_proxy()
+        host.enable_ipv6_dnf_and_rhsm_proxy()
         yield host
 
 
@@ -403,7 +403,7 @@ def installer_satellite(request):
         ).get_command(),
         timeout='30m',
     )
-    sat.enable_ipv6_http_proxy()
+    sat.enable_satellite_ipv6_http_proxy()
     if 'sanity' in request.config.option.markexpr:
         configure_nailgun()
         configure_airgun()
