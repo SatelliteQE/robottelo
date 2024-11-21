@@ -110,11 +110,11 @@ class VersionedContent:
         """Downloads the tools/client, capsule, or satellite repos on the machine"""
         product, release, v_major, _ = self._dogfood_helper(product, release)
         if not proxy and settings.server.is_ipv6:
-            proxy = settings.server.http_proxy_ipv6_url
+            proxy = settings.http_proxy.http_proxy_ipv6_url
         url = dogfood_repofile_url(settings.ohsnap, product, release, v_major, snap, proxy=proxy)
         command = f'curl -o /etc/yum.repos.d/{product}.repo -L {url}'
         if settings.server.is_ipv6:
-            command += f' -x {settings.server.http_proxy_ipv6_url}'
+            command += f' -x {settings.http_proxy.http_proxy_ipv6_url}'
         self.execute(command)
 
     def dogfood_repository(self, repo=None, product=None, release=None, snap=''):

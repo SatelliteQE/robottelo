@@ -35,3 +35,15 @@ def migration_231129_deploy_workflow(settings, data):
             logger.info(
                 f'Migrated {product_type}.DEPLOY_WORKFLOW to {product_type}.DEPLOY_WORKFLOWS'
             )
+
+
+def migration_241120_http_proxy_ipv6_url(settings, data):
+    """Migrates server.http_proxy_ipv6_url to http_proxy.http_proxy_ipv6_url"""
+    if (
+        settings.server.get('http_proxy_ipv6_url')
+        and isinstance(settings.server.http_proxy_ipv6_url, str)
+        and not settings.http_proxy.get('http_proxy_ipv6_url')
+    ):
+        data.http_proxy = {}
+        data.http_proxy.http_proxy_ipv6_url = settings.server.http_proxy_ipv6_url
+        logger.info('Migrated SERVER.HTTP_PROXY_IPv6_URL to HTTP_PROXY.HTTP_PROXY_IPV6_URL')
