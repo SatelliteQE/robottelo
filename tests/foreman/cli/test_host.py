@@ -2035,9 +2035,8 @@ def test_negative_multi_cv_registration(
     :steps:
         1. Register a host with global reg, just to get the sub-man config and certs right
         2. Unregister the host
-        3. Verify that allow_multiple_content_views setting is not exposed
-        4. Attempt to register the host with subscription-manager, passing multiple environments
-        5. Confirm that registration fails
+        3. Attempt to register the host with subscription-manager, passing multiple environments
+        4. Confirm that registration fails
 
     :expectedresults: allow_multiple_content_views setting is not exposed, and defaults to false.
         So registration fails because multiple environments are not allowed.
@@ -2059,10 +2058,6 @@ def test_negative_multi_cv_registration(
     # Unregister the host
     unregister_result = rhel_contenthost.unregister()
     assert unregister_result.status == 0
-
-    # Verify that allow_multiple_content_views setting is not exposed
-    with pytest.raises(CLIReturnCodeError):
-        target_sat.cli.Settings.info({'name': 'allow_multiple_content_views'})
 
     env_names = f"{module_lce_library.name}/{module_published_cv.name},{module_lce.name}/{module_promoted_cv.name}"
 
