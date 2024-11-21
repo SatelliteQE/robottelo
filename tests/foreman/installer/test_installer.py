@@ -301,7 +301,7 @@ def sat_default_install(module_sat_ready_rhels):
     ]
     sat = module_sat_ready_rhels.pop()
     install_satellite(sat, installer_args)
-    sat.enable_ipv6_http_proxy()
+    sat.enable_satellite_ipv6_http_proxy()
     return sat
 
 
@@ -314,7 +314,8 @@ def sat_fapolicyd_install(module_sat_ready_rhels):
     ]
     sat = module_sat_ready_rhels.pop()
     install_satellite(sat, installer_args, enable_fapolicyd=True)
-    sat.enable_ipv6_http_proxy()
+    sat.enable_ipv6_dnf_and_rhsm_proxy()
+    sat.enable_satellite_http_proxy()
     return sat
 
 
@@ -331,7 +332,7 @@ def sat_non_default_install(module_sat_ready_rhels):
     ]
     sat = module_sat_ready_rhels.pop()
     install_satellite(sat, installer_args, enable_fapolicyd=True)
-    sat.enable_ipv6_http_proxy()
+    sat.enable_satellite_ipv6_http_proxy()
     sat.execute('dnf -y --disableplugin=foreman-protector install foreman-discovery-image')
     return sat
 
@@ -340,14 +341,8 @@ def sat_non_default_install(module_sat_ready_rhels):
 @pytest.mark.tier1
 @pytest.mark.pit_server
 @pytest.mark.build_sanity
-@pytest.mark.parametrize(
-    'setting_update',
-    [f'http_proxy={settings.http_proxy.un_auth_proxy_url}'],
-    indirect=True,
-    ids=["un_auth_proxy"],
-)
 def test_capsule_installation(
-    pytestconfig, sat_fapolicyd_install, cap_ready_rhel, module_sca_manifest, setting_update
+    pytestconfig, sat_fapolicyd_install, cap_ready_rhel, module_sca_manifest
 ):
     """Run a basic Capsule installation with fapolicyd
 

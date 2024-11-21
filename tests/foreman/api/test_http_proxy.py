@@ -60,7 +60,7 @@ from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
 def test_positive_end_to_end(
     setup_http_proxy, module_target_sat, module_org, module_repos_collection_with_manifest
 ):
-    """End-to-end test for HTTP Proxy related scenarios.
+    """End-to-end test for HTTP proxy related scenarios.
 
     :id: 38df5479-9127-49f3-a30e-26b33655971a
 

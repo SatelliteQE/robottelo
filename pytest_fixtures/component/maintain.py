@@ -25,7 +25,7 @@ def module_stash(request):
 def sat_maintain(request, module_target_sat, module_capsule_configured):
     if settings.remotedb.server:
         sat = Satellite(settings.remotedb.server)
-        sat.enable_ipv6_http_proxy()
+        sat.enable_satellite_ipv6_http_proxy()
         yield sat
     else:
         module_target_sat.register_to_cdn(pool_ids=settings.subscription.fm_rhn_poolid.split())

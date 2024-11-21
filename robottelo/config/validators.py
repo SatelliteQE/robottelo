@@ -36,12 +36,6 @@ VALIDATORS = dict(
         Validator('server.ssh_password', default=None),
         Validator('server.verify_ca', default=False),
         Validator('server.is_ipv6', is_type_of=bool, default=False),
-        # validate http_proxy_ipv6_url only if is_ipv6 is True
-        Validator(
-            'server.http_proxy_ipv6_url',
-            is_type_of=str,
-            when=Validator('server.is_ipv6', eq=True),
-        ),
     ],
     content_host=[
         Validator('content_host.default_rhel_version', must_exist=True),
@@ -160,6 +154,12 @@ VALIDATORS = dict(
             'http_proxy.username',
             'http_proxy.password',
             must_exist=True,
+        ),
+        # validate http_proxy_ipv6_url only if server.is_ipv6 is True
+        Validator(
+            'http_proxy.http_proxy_ipv6_url',
+            is_type_of=str,
+            when=Validator('server.is_ipv6', eq=True),
         ),
     ],
     ipa=[
