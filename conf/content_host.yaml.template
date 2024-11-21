@@ -22,6 +22,8 @@ content_host:
       deploy_rhel_version: '7'
       target_memory: 1GiB
       target_cores: 1
+    post_configs:
+      - fips
   rhel8:
     vm:
       workflow: deploy-rhel
@@ -36,6 +38,8 @@ content_host:
       deploy_rhel_version: '8'
       target_memory: 1536 MiB
       target_cores: 1
+    post_configs:
+      - fips
   rhel9:
     vm:
       workflow: deploy-rhel
@@ -50,6 +54,8 @@ content_host:
       deploy_rhel_version: '9'
       target_memory: 1536 MiB
       target_cores: 1
+    post_configs:
+      - fips
   rhel10:
     vm:
       workflow: deploy-template
@@ -59,29 +65,41 @@ content_host:
       container_host: localhost/ubi10-beta:latest
   centos7:
     vm:
-      workflow: deploy-centos
-      deploy_scenario: centos
       deploy_rhel_version: '7'
-      target_memory: 1GiB
+      deploy_scenario: centos
       target_cores: 1
+      target_memory: 1GiB
+      workflow: deploy-centos
   centos8:
     vm:
-      workflow: deploy-centos
+      deploy_rhel_version: '8.5'
       deploy_scenario: centos
       deploy_rhel_version: '8.5'
       target_memory: 1536 MiB
       target_cores: 1
+      target_memory: 1536 MiB
+      workflow: deploy-centos
+  default_rhel_version: 8
   oracle7:
     vm:
-      workflow: deploy-oracle-linux
-      deploy_scenario: oracle
       deploy_rhel_version: '7.9'
-      target_memory: 1GiB
+      deploy_scenario: oracle
       target_cores: 1
+      target_memory: 1GiB
+      workflow: deploy-oracle-linux
   oracle8:
     vm:
-      workflow: deploy-oracle-linux
+      deploy_rhel_version: '8.9'
       deploy_scenario: oracle
       deploy_rhel_version: '8.10'
       target_memory: 1536 MiB
       target_cores: 1
+      target_memory: 1536 MiB
+      workflow: deploy-oracle-linux
+host_post_configs:
+  fips:
+    workflow: enable-fips
+    target_vm: "{vm.name}"
+  fapolicyd:
+    workflow: enable-fapolicyd
+    target_vm: "{vm.name}"
