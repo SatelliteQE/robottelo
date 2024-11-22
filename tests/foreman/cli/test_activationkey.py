@@ -1605,6 +1605,8 @@ def test_positive_multi_cv_info(
     :team: Phoenix-subscriptions
 
     :parametrized: No
+
+    :Verifies: SAT-27863
     """
     # Create two lifecycle environments
     lce1 = session_multicv_sat.api.LifecycleEnvironment(organization=session_multicv_org).create()
