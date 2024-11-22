@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 from airgun.session import Session
 from navmazing import NavigationTriesExceeded
 import pytest
+import requests
 
 from robottelo.utils.datafactory import gen_string
 
@@ -26,6 +27,11 @@ def set_eol_date(target_sat, eol_date):
         rf'''sed -i "/end_of_life/c\    'end_of_life': '{eol_date}'" /usr/share/satellite/lifecycle-metadata.yml'''
     )
     target_sat.restart_services()
+
+
+def check_links(session):
+    for link in [session.eol_banner.lifecycle_link(), session.eol_banner.helper_link()]:
+        assert requests.get(link, verify=False).status_code == 200, f'Failed to reach {link}'
 
 
 @pytest.mark.upgrade
@@ -44,6 +50,8 @@ def test_positive_eol_banner_e2e(session, target_sat, test_name):
         4. Move EOL date to the past, assert error banner
         5. Check non-admin users can't see error banner
         6. Dismiss banner
+
+    :verifies: SAT-29427
 
     :expectedresults: Banner shows up when it should
     """
@@ -74,6 +82,7 @@ def test_positive_eol_banner_e2e(session, target_sat, test_name):
         banner = adminsession.eol_banner.read()
         assert message_date in banner["name"]
         assert adminsession.eol_banner.is_warning()
+        check_links(adminsession)
         adminsession.eol_banner.dismiss()
         with pytest.raises(NavigationTriesExceeded) as error:
             adminsession.eol_banner.read()
@@ -94,6 +103,7 @@ def test_positive_eol_banner_e2e(session, target_sat, test_name):
         banner = adminsession.eol_banner.read()
         assert eol_date in banner["name"]
         assert adminsession.eol_banner.is_danger()
+        check_links(adminsession)
         adminsession.eol_banner.dismiss()
         with pytest.raises(NavigationTriesExceeded) as error:
             adminsession.eol_banner.read()
