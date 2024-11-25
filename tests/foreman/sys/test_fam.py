@@ -101,16 +101,6 @@ def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_rol
         f'''sed -i 's|subscription_manifest_path:.*|subscription_manifest_path: "data/{module_sca_manifest.name}"|g' {config_file}'''
     )
 
-    repo_path = '/fake_puppet1/system/releases/p/puppetlabs/'
-    module_tarball = 'puppetlabs-ntp-3.0.3.tar.gz'
-    local_path = '/tmp'
-    module_target_sat.execute(
-        f'curl --output {local_path}/{module_tarball} {settings.robottelo.repos_hosting_url}{repo_path}{module_tarball}',
-    )
-    module_target_sat.execute(
-        f'puppet module install --ignore-dependencies {local_path}/{module_tarball}'
-    )
-
     def create_fake_module(module_target_sat, module_name, module_classes):
         base_dir = '/etc/puppetlabs/code/environments/production/modules'
         module_dir = f'{base_dir}/{module_name}'
@@ -127,6 +117,12 @@ def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_rol
                 f'{manifest_dir}/{module_class}.pp',
                 temp_file=True,
             )
+
+    create_fake_module(
+        module_target_sat,
+        'ntp',
+        [('init', '($logfile, $config_dir, $servers, $burst, $stepout){}'), 'config'],
+    )
 
     create_fake_module(
         module_target_sat,
