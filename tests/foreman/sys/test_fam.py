@@ -117,9 +117,13 @@ def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_rol
         manifest_dir = f'{module_dir}/manifests'
         module_target_sat.execute(f'mkdir -p {manifest_dir}')
         for module_class in module_classes:
+            if isinstance(module_class, str):
+                module_code = '(){}'
+            else:
+                module_class, module_code = module_class
             full_class = module_name if module_class == 'init' else f'{module_name}::{module_class}'
             module_target_sat.put(
-                f'class {full_class}(){{}}',
+                f'class {full_class}{module_code}',
                 f'{manifest_dir}/{module_class}.pp',
                 temp_file=True,
             )
