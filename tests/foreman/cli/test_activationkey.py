@@ -1587,24 +1587,18 @@ def test_positive_invalid_release_version(module_sca_manifest_org, module_target
 def test_positive_multi_cv_info(
     session_multicv_sat, session_multicv_org, session_multicv_default_ak
 ):
-    """Verify that multi-env AK display into hammer activation-key info commands output
+    """Verify that multi content view environment details displays into hammer activation-key info commands output
 
     :id: 6a1c3189-74f9-4a54-8579-f3b045870cd9
 
     :steps:
         1. Create two lifecycle environments and two content views, publish/promote to respective lce
         2. Create activation key and update ak with multiple content view environments
-        3. Check ak info displays 'Multi Content View Environment' and 'Content View Environments'
+        3. Check that ak info displays 'Multi Content View Environment' and 'Content View Environments'
 
     :expectedresults: AK info displays 'Multi Content View Environment' and 'Content View Environments'
 
     :CaseImportance: Medium
-
-    :CaseComponent: ActivationKeys
-
-    :team: Phoenix-subscriptions
-
-    :parametrized: No
 
     :Verifies: SAT-27863
     """
