@@ -1581,3 +1581,61 @@ def test_positive_invalid_release_version(module_sca_manifest_org, module_target
         }
     )
     assert update_ak[0]['message'] == 'Activation key updated.'
+
+
+# -------------------------- MULTI-CV SCENARIOS -------------------------
+def test_positive_multi_cv_info(
+    session_multicv_sat, session_multicv_org, session_multicv_default_ak
+):
+    """Verify that multi content view environment details displays into hammer activation-key info commands output
+
+    :id: 6a1c3189-74f9-4a54-8579-f3b045870cd9
+
+    :steps:
+        1. Create two lifecycle environments and two content views, publish/promote to respective lce
+        2. Create activation key and update ak with multiple content view environments
+        3. Check that ak info displays 'Multi Content View Environment' and 'Content View Environments'
+
+    :expectedresults: AK info displays 'Multi Content View Environment' and 'Content View Environments'
+
+    :CaseImportance: Medium
+
+    :Verifies: SAT-27863
+    """
+    # Create two lifecycle environments
+    lces_list = [
+        session_multicv_sat.api.LifecycleEnvironment(organization=session_multicv_org).create()
+        for i in range(2)
+    ]
+    lce1, lce2 = lces_list
+    # Create two content views
+    cvs_list = [
+        session_multicv_sat.api.ContentView(organization=session_multicv_org).create()
+        for i in range(2)
+    ]
+    for i in range(2):
+        cvs_list[i].publish()
+        cvs_list[i] = cvs_list[i].read()
+        cvs_list[i].version[0].promote(data={'environment_ids': lces_list[i].id})
+    cv1, cv2 = cvs_list
+
+    # Update ak with multiple content view environments
+    ak = session_multicv_default_ak
+    cv_envs = f'{lce1.name}/{cv1.name},{lce2.name}/{cv2.name}'
+    ak_info = session_multicv_sat.cli.ActivationKey.info({'id': ak.id})
+    assert ak_info['multi-content-view-environment'] == 'no'
+    assert ak_info['content-view-environment-labels'] == 'Library'
+
+    ret_val = session_multicv_sat.cli.ActivationKey.update(
+        {
+            'id': ak.id,
+            'organization-id': session_multicv_org.id,
+            'content-view-environments': cv_envs,
+        }
+    )
+    assert ret_val[0]['message'] == 'Activation key updated.'
+
+    # Verify ak info displays 'Multi Content View Environment' and 'Content View Environments'
+    ak_info = session_multicv_sat.cli.ActivationKey.info({'id': ak.id})
+    assert ak_info['multi-content-view-environment'] == 'yes'
+    assert ak_info['content-view-environment-labels'] == cv_envs
