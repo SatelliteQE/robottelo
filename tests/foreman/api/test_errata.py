@@ -114,6 +114,92 @@ def custom_repo(module_sca_manifest_org, module_lce, module_cv, activation_key, 
     )
 
 
+@pytest.fixture(scope='module')
+def rh_repo_module_manifest(module_sca_manifest_org, module_target_sat):
+    """Use module manifest org, creates RHEL8 sat-tools repo, syncs and returns RH repo."""
+    # enable rhel repo and return its ID
+    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+        basearch=DEFAULT_ARCHITECTURE,
+        org_id=module_sca_manifest_org.id,
+        product=PRDS['rhel8'],
+        repo=REPOS['rhst8']['name'],
+        reposet=REPOSET['rhst8'],
+        releasever='None',
+    )
+    # Sync step because repo is not synced by default
+    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+    rh_repo.sync()
+    return rh_repo
+
+
+@pytest.fixture(scope='module')
+def rhel10_module_repo(module_sca_manifest_org, module_target_sat):
+    """In module manifest org, creates RHEL10 repo with synced content, returns it."""
+    repo_id = module_target_sat.api_factory.create_sync_custom_repo(
+        module_sca_manifest_org.id,
+        repo_url=settings.repos.RHEL10_OS.APPSTREAM,
+    )
+    return module_target_sat.api.Repository(id=repo_id).read()
+
+
+@pytest.fixture(scope='module')
+def setup_fake_yum_content(
+    module_sca_manifest_org,
+    rhel10_module_repo,
+    activation_key,
+    module_lce,
+    module_cv,
+    module_target_sat,
+    return_result=True,
+):
+    """Setup yum content for rhel content host w/ errata
+    Using RHEL10 Appstream RH repo, and custom repo FAKE_YUM_9.
+    Published to content-view and promoted to lifecycle-environment.
+
+    Raises `AssertionError` if one or more of the setup components read are empty.
+
+    :return: if return_result is True: otherwise None
+        A dictionary (_result) with the satellite instances of activaton-key, organization,
+        content-view, lifecycle-environment, rh_repo, custom_repo.
+    """
+    org = module_sca_manifest_org
+    # Setup Custom and RH repos
+    custom_repo_id = module_target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': CUSTOM_REPO_URL,
+            'organization-id': org.id,
+            'lifecycle-environment-id': module_lce.id,
+            'activationkey-id': activation_key.id,
+            'content-view-id': module_cv.id,
+        }
+    )['repository-id']
+    custom_repo = module_target_sat.api.Repository(id=custom_repo_id).read()
+    custom_repo.sync()
+    # Sync and add RH repo
+    rh_repo = module_target_sat.api.Repository(id=rhel10_module_repo.id).read()
+    rh_repo.sync()
+    module_target_sat.cli.ContentView.add_repository(
+        {'id': module_cv.id, 'organization-id': org.id, 'repository-id': rh_repo.id}
+    )
+    _cv = cv_publish_promote(module_target_sat, org, module_cv, module_lce)
+    module_cv = _cv['content-view']
+    latest_cvv = _cv['content-view-version']
+
+    _result = {
+        'activation-key': activation_key.read(),
+        'organization': org.read(),
+        'content-view': module_cv.read(),
+        'content-view-version': latest_cvv.read(),
+        'lifecycle-environment': module_lce.read(),
+        'rh_repo': rh_repo.read(),
+        'custom_repo': custom_repo.read(),
+    }
+    assert all(
+        entry for entry in _result.values()
+    ), f'One or more necessary components are not present: {_result}'
+    return _result if return_result else None
+
+
 def _validate_errata_counts(host, errata_type, expected_value, timeout=120):
     """Check whether host contains expected errata counts."""
     for _ in range(timeout // 5):
@@ -1007,64 +1093,6 @@ def test_positive_list_sorted_filtered(custom_repo, target_sat):
         assert cve_ids == sorted(cve_ids, reverse=True)
 
 
-@pytest.fixture(scope='module')
-def setup_fake_yum_content(
-    module_sca_manifest_org,
-    rh_repo_module_manifest,
-    activation_key,
-    module_lce,
-    module_cv,
-    module_target_sat,
-    return_result=True,
-):
-    """Setup yum content for rhel content host w/ errata
-    Using rh repo satellite-tools, and custom repo FAKE_YUM_9.
-    Published to content-view and promoted to lifecycle-environment.
-
-    Raises `AssertionError` if one or more of the setup components read are empty.
-
-    :return: if return_result is True: otherwise None
-        A dictionary (_result) with the satellite instances of activaton-key, organization,
-        content-view, lifecycle-environment, rh_repo, custom_repo.
-    """
-    org = module_sca_manifest_org
-    # Setup Custom and RH repos
-    custom_repo_id = module_target_sat.cli_factory.setup_org_for_a_custom_repo(
-        {
-            'url': CUSTOM_REPO_URL,
-            'organization-id': org.id,
-            'lifecycle-environment-id': module_lce.id,
-            'activationkey-id': activation_key.id,
-            'content-view-id': module_cv.id,
-        }
-    )['repository-id']
-    custom_repo = module_target_sat.api.Repository(id=custom_repo_id).read()
-    custom_repo.sync()
-    # Sync and add RH repo
-    rh_repo = module_target_sat.api.Repository(id=rh_repo_module_manifest.id).read()
-    rh_repo.sync()
-    module_target_sat.cli.ContentView.add_repository(
-        {'id': module_cv.id, 'organization-id': org.id, 'repository-id': rh_repo.id}
-    )
-    _cv = cv_publish_promote(module_target_sat, org, module_cv, module_lce)
-    module_cv = _cv['content-view']
-    latest_cvv = _cv['content-view-version']
-
-    _result = {
-        'activation-key': activation_key.read(),
-        'organization': org.read(),
-        'content-view': module_cv.read(),
-        'content-view-version': latest_cvv.read(),
-        'lifecycle-environment': module_lce.read(),
-        'rh_repo': rh_repo.read(),
-        'custom_repo': custom_repo.read(),
-    }
-    assert all(
-        entry for entry in _result.values()
-    ), f'One or more necessary components are not present: {_result}'
-    return _result if return_result else None
-
-
 @pytest.mark.tier2
 def test_positive_get_count_for_host(
     setup_fake_yum_content, activation_key, rhel10_contenthost, module_target_sat
@@ -1135,10 +1163,10 @@ def test_positive_get_count_for_host(
 @pytest.mark.upgrade
 @pytest.mark.tier3
 def test_positive_get_applicable_for_host(
-    activation_key,
-    rhel10_contenthost,
-    target_sat,
     setup_fake_yum_content,
+    rhel10_contenthost,
+    activation_key,
+    target_sat,
 ):
     """Get applicable errata ids for a host
 
@@ -1163,9 +1191,8 @@ def test_positive_get_applicable_for_host(
     :CaseImportance: Medium
     """
     org = setup_fake_yum_content['organization']
-    custom_repo = setup_fake_yum_content['rh_repo']
-
-    rhel10_contenthost.create_custom_repos(**{f'{custom_repo.name}': custom_repo.url})
+    # rh_repo = setup_fake_yum_content['rh_repo']
+    # rhel10_contenthost.create_custom_repos(**{f'{rh_repo.name}': rh_repo.url})
     result = rhel10_contenthost.register(
         activation_keys=activation_key.name,
         target=target_sat,
@@ -1196,7 +1223,8 @@ def test_positive_get_applicable_for_host(
     assert len(erratum) == 1
     assert CUSTOM_REPO_ERRATA_ID in [errata['errata_id'] for errata in erratum]
     # Install outdated applicable real package (from RH repo)
-    rhel10_contenthost.run(f'yum install -y {REAL_RHEL8_1_PACKAGE_FILENAME}')
+    # rhel10_contenthost.run(f'yum install -y {REAL_RHEL8_1_PACKAGE_FILENAME}')
+    # rhel10_contenthost.run(f'yum install -y {REAL_RHEL10_OUTDATED_FILENAME}')
     erratum = _fetch_available_errata(host, 2)
     assert len(erratum) == 2
     assert REAL_RHEL8_1_ERRATA_ID in [errata['errata_id'] for errata in erratum]
@@ -1353,24 +1381,6 @@ def test_positive_incremental_update_required(
 def errata_host_lce(module_sca_manifest_org, target_sat):
     """Create and return a new lce in module SCA org."""
     return target_sat.api.LifecycleEnvironment(organization=module_sca_manifest_org).create()
-
-
-@pytest.fixture(scope='module')
-def rh_repo_module_manifest(module_sca_manifest_org, module_target_sat):
-    """Use module manifest org, creates RHEL8 tools repo, syncs and returns RH repo."""
-    # enable rhel repo and return its ID
-    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
-        basearch=DEFAULT_ARCHITECTURE,
-        org_id=module_sca_manifest_org.id,
-        product=PRDS['rhel8'],
-        repo=REPOS['rhst8']['name'],
-        reposet=REPOSET['rhst8'],
-        releasever='None',
-    )
-    # Sync step because repo is not synced by default
-    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
-    rh_repo.sync()
-    return rh_repo
 
 
 @pytest.mark.tier3

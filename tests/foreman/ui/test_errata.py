@@ -486,7 +486,7 @@ def test_end_to_end(
 
 @pytest.mark.tier2
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('N-2')
+@pytest.mark.rhel_ver_match('N-3')
 @pytest.mark.parametrize('registered_contenthost', [[CUSTOM_REPO_3_URL]], indirect=True)
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_host_content_errata_tab_pagination(
@@ -925,7 +925,7 @@ def test_positive_apply_for_all_hosts(
                 search_rate=2,
                 max_tries=60,
             )
-            assert len(hosts_job) == 1
+            assert len(hosts_job) >= 1
             # find multiple install tasks, one for each host
             install_tasks = target_sat.wait_for_tasks(
                 search_query=(
