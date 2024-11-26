@@ -1617,8 +1617,7 @@ def test_positive_multi_cv_info(
         cvs_list[i].publish()
         cvs_list[i] = cvs_list[i].read()
         cvs_list[i].version[0].promote(data={'environment_ids': lces_list[i].id})
-    cv1 = cvs_list[0]
-    cv2 = cvs_list[1]
+    cv1, cv2 = cvs_list
 
     # Update ak with multiple content view environments
     ak = session_multicv_default_ak
