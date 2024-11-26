@@ -63,20 +63,22 @@ def module_org(module_target_sat):
 
 
 @pytest.fixture
-def vm(module_repos_collection_with_manifest, rhel7_contenthost, target_sat):
+@pytest.mark.rhel_ver_match('N-1')
+def vm(module_repos_collection_with_manifest, rhel_contenthost, target_sat):
     """Virtual machine registered in satellite"""
-    module_repos_collection_with_manifest.setup_virtual_machine(rhel7_contenthost)
-    rhel7_contenthost.add_rex_key(target_sat)
-    rhel7_contenthost.run(r'subscription-manager repos --enable \*')
-    return rhel7_contenthost
+    module_repos_collection_with_manifest.setup_virtual_machine(rhel_contenthost)
+    rhel_contenthost.add_rex_key(target_sat)
+    rhel_contenthost.run(r'subscription-manager repos --enable \*')
+    return rhel_contenthost
 
 
 @pytest.fixture
-def vm_module_streams(module_repos_collection_with_manifest, rhel8_contenthost, target_sat):
+@pytest.mark.rhel_ver_match('N-1')
+def vm_module_streams(module_repos_collection_with_manifest, rhel_contenthost, target_sat):
     """Virtual machine registered in satellite"""
-    module_repos_collection_with_manifest.setup_virtual_machine(rhel8_contenthost)
-    rhel8_contenthost.add_rex_key(satellite=target_sat)
-    return rhel8_contenthost
+    module_repos_collection_with_manifest.setup_virtual_machine(rhel_contenthost)
+    rhel_contenthost.add_rex_key(satellite=target_sat)
+    return rhel_contenthost
 
 
 def set_ignore_facts_for_os(module_target_sat, value=False):
