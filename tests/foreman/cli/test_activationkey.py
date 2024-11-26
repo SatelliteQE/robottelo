@@ -1607,8 +1607,7 @@ def test_positive_multi_cv_info(
         session_multicv_sat.api.LifecycleEnvironment(organization=session_multicv_org).create()
         for i in range(2)
     ]
-    lce1 = lces_list[0]
-    lce2 = lces_list[1]
+    lce1, lce2 = lces_list
     # Create two content views
     cvs_list = [
         session_multicv_sat.api.ContentView(organization=session_multicv_org).create()
