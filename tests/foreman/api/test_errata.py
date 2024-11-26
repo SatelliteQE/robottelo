@@ -509,7 +509,7 @@ def _publish_and_wait(sat, org, cv, search_rate=1, max_tries=10):
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')  # all major versions, excluding fips
 @pytest.mark.no_containers
 @pytest.mark.e2e
 def test_positive_install_in_hc(
@@ -656,7 +656,7 @@ def test_positive_install_in_hc(
 
 
 @pytest.mark.tier3
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')  # all major versions, excluding fips
 @pytest.mark.no_containers
 @pytest.mark.e2e
 @pytest.mark.pit_client
