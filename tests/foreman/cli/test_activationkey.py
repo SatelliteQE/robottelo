@@ -1603,19 +1603,23 @@ def test_positive_multi_cv_info(
     :Verifies: SAT-27863
     """
     # Create two lifecycle environments
-    lce1 = session_multicv_sat.api.LifecycleEnvironment(organization=session_multicv_org).create()
-    lce2 = session_multicv_sat.api.LifecycleEnvironment(organization=session_multicv_org).create()
-
+    lces_list = [
+        session_multicv_sat.api.LifecycleEnvironment(organization=session_multicv_org).create()
+        for i in range(2)
+    ]
+    lce1 = lces_list[0]
+    lce2 = lces_list[1]
     # Create two content views
-    cv1 = session_multicv_sat.api.ContentView(organization=session_multicv_org).create()
-    cv1.publish()
-    cv1 = cv1.read()
-    cv1.version[0].promote(data={'environment_ids': lce1.id})
-
-    cv2 = session_multicv_sat.api.ContentView(organization=session_multicv_org).create()
-    cv2.publish()
-    cv2 = cv2.read()
-    cv2.version[0].promote(data={'environment_ids': lce2.id})
+    cvs_list = [
+        session_multicv_sat.api.ContentView(organization=session_multicv_org).create()
+        for i in range(2)
+    ]
+    for i in range(2):
+        cvs_list[i].publish()
+        cvs_list[i] = cvs_list[i].read()
+        cvs_list[i].version[0].promote(data={'environment_ids': lces_list[i].id})
+    cv1 = cvs_list[0]
+    cv2 = cvs_list[1]
 
     # Update ak with multiple content view environments
     ak = session_multicv_default_ak
