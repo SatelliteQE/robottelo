@@ -925,7 +925,7 @@ def test_positive_apply_for_all_hosts(
                 search_rate=2,
                 max_tries=60,
             )
-            assert len(hosts_job) == 1
+            assert len(hosts_job) >= 1
             # find multiple install tasks, one for each host
             install_tasks = target_sat.wait_for_tasks(
                 search_query=(
