@@ -16,7 +16,7 @@ import pytest
 
 RHEL7_VER = '7.9'
 RHEL8_VER = '8.10'
-RHEL9_VER = '9.4'
+RHEL9_VER = '9.5'
 
 
 @pytest.mark.tier3
