@@ -16,6 +16,9 @@ updates:
       - "6.15.z"
       - "6.14.z"
       - "6.13.z"
+    ignore:
+      - dependency-name: "cryptography"
+        update-types: ["version-update:semver-minor"]
 
   # Maintain dependencies for our GitHub Actions
   - package-ecosystem: "github-actions"
