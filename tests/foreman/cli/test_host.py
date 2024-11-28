@@ -1992,12 +1992,10 @@ def test_syspurpose_end_to_end(
     :parametrized: yes
     """
     # Create an activation key with test values
-    purpose_addons = "test-addon1, test-addon2"
     activation_key = target_sat.api.ActivationKey(
         content_view=module_promoted_cv,
         environment=module_lce,
         organization=module_org,
-        purpose_addons=[purpose_addons],
         purpose_role="test-role",
         purpose_usage="test-usage",
         service_level="Self-Support",
@@ -2009,14 +2007,12 @@ def test_syspurpose_end_to_end(
     rhel_contenthost.enable_repo(module_rhst_repo)
     host = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
     # Assert system purpose values are set in the host as expected
-    assert host['subscription-information']['system-purpose']['purpose-addons'][0] == purpose_addons
     assert host['subscription-information']['system-purpose']['purpose-role'] == "test-role"
     assert host['subscription-information']['system-purpose']['purpose-usage'] == "test-usage"
     assert host['subscription-information']['system-purpose']['service-level'] == "Self-Support"
     # Change system purpose values in the host
     target_sat.cli.Host.update(
         {
-            'purpose-addons': "test-addon3",
             'purpose-role': "test-role2",
             'purpose-usage': "test-usage2",
             'service-level': "Self-Support2",
@@ -2025,7 +2021,6 @@ def test_syspurpose_end_to_end(
     )
     host = target_sat.cli.Host.info({'id': host['id']})
     # Assert system purpose values have been updated in the host as expected
-    assert host['subscription-information']['system-purpose']['purpose-addons'][0] == "test-addon3"
     assert host['subscription-information']['system-purpose']['purpose-role'] == "test-role2"
     assert host['subscription-information']['system-purpose']['purpose-usage'] == "test-usage2"
     assert host['subscription-information']['system-purpose']['service-level'] == "Self-Support2"
