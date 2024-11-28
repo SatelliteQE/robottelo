@@ -746,6 +746,18 @@ FLATPAK_REPO = {
 }
 LABELLED_REPOS = [BOOTABLE_REPO, FLATPAK_REPO]
 CONTAINER_MANIFEST_LABELS = {'annotations', 'labels', 'is_bootable', 'is_flatpak'}
+
+FLATPAK_REMOTES = {
+    'Fedora': {
+        'url': 'https://registry.fedoraproject.org',
+        'index_url': 'https://registry.fedoraproject.org/index/static?label:org.flatpak.ref:exists=1&tag=latest',
+    },
+    'RedHat': {
+        'url': 'https://flatpaks.redhat.io',
+        'index_url': 'https://flatpaks.redhat.io/rhel/index/static?label:org.flatpak.ref:exists=1&tag=latest',
+    },
+}
+
 CONTAINER_CLIENTS = ['docker', 'podman']
 CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/lib/pulp/imports/myrepo/test.txt'
@@ -1139,6 +1151,12 @@ PERMISSIONS = {
         'edit_alternate_content_sources',
         'destroy_alternate_content_sources',
         'view_alternate_content_sources',
+    ],
+    'Katello::FlatpakRemote': [
+        'view_flatpak_remotes',
+        'create_flatpak_remotes',
+        'edit_flatpak_remotes',
+        'destroy_flatpak_remotes',
     ],
     'KeyPair': ["view_keypairs", "destroy_keypairs"],
     'Location': [
