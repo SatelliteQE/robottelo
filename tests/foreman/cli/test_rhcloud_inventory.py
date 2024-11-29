@@ -186,8 +186,15 @@ def test_positive_sync_inventory_status(
     task_output = module_target_sat.api.ForemanTask().search(
         query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'}
     )
-    assert task_output[0].output['host_statuses']['sync'] == 2
-    assert task_output[0].output['host_statuses']['disconnect'] == 0
+    host_status = None
+    for task in task_output:
+        if task.input.get("organization_ids") is None:
+            continue
+        if str(task.input.get("organization_ids")[0]) == str(org.id):
+            host_status = task.output
+            break
+    assert host_status['host_statuses']['sync'] == 2
+    assert host_status['host_statuses']['disconnect'] == 0
 
 
 @pytest.mark.tier3
