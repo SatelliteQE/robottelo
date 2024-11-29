@@ -272,10 +272,10 @@ class TestAnsibleCfgMgmt:
         assert ROLE_NAMES[0] not in [role['name'] for role in listroles_hg]
         assert ROLE_NAMES[1] == listroles_hg[0]['name']
 
-    @pytest.mark.rhel_ver_match('[78]')
+    @pytest.mark.rhel_ver_list([7, 8])
     @pytest.mark.tier2
     def test_positive_read_facts_with_filter(
-        self, target_sat, rex_contenthost, filtered_user, module_org, module_location
+        self, request, target_sat, rex_contenthost, filtered_user, module_org, module_location
     ):
         """Read host's Ansible facts as a user with a role that has host filter
 
@@ -292,6 +292,8 @@ class TestAnsibleCfgMgmt:
         :customerscenario: true
         """
         user, password = filtered_user
+        if is_open('SAT-18656'):
+            request.addfinalizer(user.delete)
         host = rex_contenthost.nailgun_host
         host.organization = module_org
         host.location = module_location
