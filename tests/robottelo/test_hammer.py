@@ -468,7 +468,6 @@ class TestParseInfo:
                 '        Service Level:',
                 '        Purpose Usage:',
                 '        Purpose Role:',
-                '        Purpose Addons:',
                 'Host Collections:',
             ]
         )
@@ -531,7 +530,6 @@ class TestParseInfo:
                     'service-level': '',
                     'purpose-usage': '',
                     'purpose-role': '',
-                    'purpose-addons': '',
                 },
             },
             'host-collections': {},

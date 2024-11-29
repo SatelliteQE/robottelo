@@ -1051,14 +1051,12 @@ def test_create_ak_with_syspurpose_set(module_sca_manifest_org, module_target_sa
     # Requires Cls org and manifest. Manifest is for self-support values.
     new_ak = module_target_sat.cli_factory.make_activation_key(
         {
-            'purpose-addons': "test-addon1, test-addon2",
             'purpose-role': "test-role",
             'purpose-usage': "test-usage",
             'service-level': "Self-Support",
             'organization-id': module_sca_manifest_org.id,
         }
     )
-    assert new_ak['system-purpose']['purpose-addons'] == "test-addon1, test-addon2"
     assert new_ak['system-purpose']['purpose-role'] == "test-role"
     assert new_ak['system-purpose']['purpose-usage'] == "test-usage"
     assert new_ak['system-purpose']['service-level'] == "Self-Support"
@@ -1066,7 +1064,6 @@ def test_create_ak_with_syspurpose_set(module_sca_manifest_org, module_target_sa
     module_target_sat.cli.ActivationKey.update(
         {
             'id': new_ak['id'],
-            'purpose-addons': '',
             'purpose-role': '',
             'purpose-usage': '',
             'service-level': '',
@@ -1076,7 +1073,6 @@ def test_create_ak_with_syspurpose_set(module_sca_manifest_org, module_target_sa
     updated_ak = module_target_sat.cli.ActivationKey.info(
         {'id': new_ak['id'], 'organization-id': module_sca_manifest_org.id}
     )
-    assert updated_ak['system-purpose']['purpose-addons'] == ''
     assert updated_ak['system-purpose']['purpose-role'] == ''
     assert updated_ak['system-purpose']['purpose-usage'] == ''
 
@@ -1106,7 +1102,6 @@ def test_update_ak_with_syspurpose_values(module_sca_manifest_org, module_target
     org = module_sca_manifest_org
     new_ak = module_target_sat.cli_factory.make_activation_key({'organization-id': org.id})
     # Assert system purpose values are null after creating the AK and adding the manifest.
-    assert new_ak['system-purpose']['purpose-addons'] == ''
     assert new_ak['system-purpose']['purpose-role'] == ''
     assert new_ak['system-purpose']['purpose-usage'] == ''
 
@@ -1114,7 +1109,6 @@ def test_update_ak_with_syspurpose_values(module_sca_manifest_org, module_target
     module_target_sat.cli.ActivationKey.update(
         {
             'id': new_ak['id'],
-            'purpose-addons': "test-addon1, test-addon2",
             'purpose-role': "test-role1",
             'purpose-usage': "test-usage1",
             'service-level': "Self-Support",
@@ -1124,7 +1118,6 @@ def test_update_ak_with_syspurpose_values(module_sca_manifest_org, module_target
     updated_ak = module_target_sat.cli.ActivationKey.info(
         {'id': new_ak['id'], 'organization-id': org.id}
     )
-    assert updated_ak['system-purpose']['purpose-addons'] == "test-addon1, test-addon2"
     assert updated_ak['system-purpose']['purpose-role'] == "test-role1"
     assert updated_ak['system-purpose']['purpose-usage'] == "test-usage1"
     assert updated_ak['system-purpose']['service-level'] == "Self-Support"
@@ -1132,7 +1125,6 @@ def test_update_ak_with_syspurpose_values(module_sca_manifest_org, module_target
     module_target_sat.cli.ActivationKey.update(
         {
             'id': new_ak['id'],
-            'purpose-addons': "test-addon3, test-addon4",
             'purpose-role': "test-role2",
             'purpose-usage': "test-usage2",
             'service-level': "Premium",
@@ -1142,7 +1134,6 @@ def test_update_ak_with_syspurpose_values(module_sca_manifest_org, module_target
     updated_ak = module_target_sat.cli.ActivationKey.info(
         {'id': new_ak['id'], 'organization-id': org.id}
     )
-    assert updated_ak['system-purpose']['purpose-addons'] == "test-addon3, test-addon4"
     assert updated_ak['system-purpose']['purpose-role'] == "test-role2"
     assert updated_ak['system-purpose']['purpose-usage'] == "test-usage2"
     assert updated_ak['system-purpose']['service-level'] == "Premium"
