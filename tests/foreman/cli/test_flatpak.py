@@ -1,4 +1,4 @@
-"""Capsule-Content related tests being run through CLI.
+"""Flatpak related tests being run through CLI.
 
 :Requirement: Repository
 
@@ -13,6 +13,7 @@
 """
 
 import pytest
+import requests
 
 from robottelo.constants import FLATPAK_REMOTES
 from robottelo.exceptions import CLIReturnCodeError
@@ -142,3 +143,40 @@ def test_CRUD_and_sync_flatpak_remote_with_permissions(
     with pytest.raises(CLIReturnCodeError) as e:
         target_sat.cli.FlatpakRemote().with_user(usr, pwd).info({'name': remote['name']})
     assert 'Error: flatpak_remote not found' in str(e)
+
+
+def test_scan(target_sat, function_org, function_product):
+    """Verify flatpak remote scan detects all repos available in the remote index.
+
+    :id: 3dff23f3-f415-4fb2-a41c-7cdcae617bb0
+
+    :steps:
+        1. Create a flatpak remote and scan it.
+        2. Read the remote index via its API.
+        3. Compare the scanned repos match the repos in the remote index.
+
+    :expectedresults:
+        1. Repos scanned by flatpak remote match the repos available in the remote index.
+
+    """
+    remote = FLATPAK_REMOTES['Fedora']
+
+    # 1. Create a flatpak remote and scan it.
+    fr = target_sat.cli.FlatpakRemote().create(
+        {
+            'organization-id': function_org.id,
+            'url': remote['url'],
+            'name': gen_string('alpha'),
+        }
+    )
+    target_sat.cli.FlatpakRemote().scan({'id': fr['id']})
+
+    scanned_repos = target_sat.cli.FlatpakRemote().repository_list({'flatpak-remote-id': fr['id']})
+    scanned_repo_names = [item['name'] for item in scanned_repos]
+
+    # 2. Read the remote index via its API.
+    rq = requests.get(remote['index_url']).json()
+    index_repo_names = [item['Name'] for item in rq['Results']]
+
+    # 3. Compare the scanned repos match the repos in the remote index.
+    assert sorted(scanned_repo_names) == sorted(index_repo_names)
