@@ -310,8 +310,8 @@ def test_rhcloud_scheduled_insights_sync(
 
     :expectedresults:
         1. Manually triggering the InsightsScheduledSync job succeeds with no errors.
-    :
-    Verifies: SAT-22626
+
+    :Verifies: SAT-22626
 
     :CaseAutomation: Automated
     """
