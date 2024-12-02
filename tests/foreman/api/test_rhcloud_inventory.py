@@ -299,15 +299,20 @@ def test_rhcloud_scheduled_insights_sync(
     module_target_sat,
 ):
     """Verify that triggering the InsightsScheduledSync job in Satellite succeeds with no errors
+
     :id: 59f66062-2865-4cca-82bb-8d0501fd40f1
+
     :steps:
         1. Prepare machine and upload its data to Insights
         2. Sync inventory status using RH Cloud plugin api
         3. Trigger the InsightsScheduledSync job manually
         4. Assert job succeeds
+
     :expectedresults:
         1. Manually triggering the InsightsScheduledSync job succeeds with no errors.
-    :Verifies: SAT-22626
+    :
+    Verifies: SAT-22626
+
     :CaseAutomation: Automated
     """
     org = rhcloud_manifest_org
@@ -319,6 +324,7 @@ def test_rhcloud_scheduled_insights_sync(
     task_output = module_target_sat.api.ForemanTask().search(
         query={'search': f'id = {inventory_sync["task"]["id"]}'}
     )
+    # Assert that both hosts are synced successfully
     assert task_output[0].output['host_statuses']['sync'] == 2
     result = module_target_sat.execute(
         "foreman-rake console SATELLITE_RH_CLOUD_REQUESTS_DELAY=0 <<< 'ForemanTasks.sync_task(InsightsCloud::Async::InsightsScheduledSync)'"
