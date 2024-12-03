@@ -403,4 +403,5 @@ def test_positive_register_insights_client_host(module_target_sat, rhel_insights
 
     # Execute insight client command
     output = rhel_insights_vm.execute(f'insights-client --ansible-host={rhel_insights_vm.hostname}')
+    assert output.status == 0
     assert 'Ansible hostname updated' in output.stdout
