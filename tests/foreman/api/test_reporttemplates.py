@@ -375,10 +375,10 @@ def test_positive_applied_errata(
 
     :CaseImportance: Medium
     """
-    activation_key = target_sat.api.ActivationKey(
-        environment=function_lce, organization=function_org
-    ).create()
     cv = target_sat.api.ContentView(organization=function_org).create()
+    activation_key = target_sat.api.ActivationKey(
+        environment=function_lce, organization=function_org, content_view=cv.id
+    ).create()
     ERRATUM_ID = str(settings.repos.yum_6.errata[2])
     target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
@@ -454,10 +454,10 @@ def test_positive_applied_errata_report_with_invalid_errata(
 
     :customerscenario: true
     """
-    activation_key = target_sat.api.ActivationKey(
-        environment=function_lce, organization=function_org
-    ).create()
     cv = target_sat.api.ContentView(organization=function_org).create()
+    activation_key = target_sat.api.ActivationKey(
+        environment=function_lce, organization=function_org, content_view=cv.id
+    ).create()
     target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_6.url,
@@ -527,10 +527,10 @@ def test_positive_applied_errata_by_search(
 
     :CaseImportance: Medium
     """
-    activation_key = target_sat.api.ActivationKey(
-        environment=function_lce, organization=function_org
-    ).create()
     cv = target_sat.api.ContentView(organization=function_org).create()
+    activation_key = target_sat.api.ActivationKey(
+        environment=function_lce, organization=function_org, content_view=cv.id
+    ).create()
     ERRATUM_ID = str(settings.repos.yum_6.errata[2])
     target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
@@ -798,10 +798,10 @@ def test_positive_installable_errata(
 
     :BZ: 1726504
     """
-    activation_key = target_sat.api.ActivationKey(
-        environment=function_lce, organization=function_org
-    ).create()
     custom_cv = target_sat.api.ContentView(organization=function_org).create()
+    activation_key = target_sat.api.ActivationKey(
+        environment=function_lce, organization=function_org, content_view=custom_cv.id
+    ).create()
     ERRATUM_ID = str(settings.repos.yum_6.errata[2])
     target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
