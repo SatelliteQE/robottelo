@@ -145,7 +145,7 @@ def test_CRUD_and_sync_flatpak_remote_with_permissions(
     assert 'Error: flatpak_remote not found' in str(e)
 
 
-def test_scan(target_sat, function_org, function_product):
+def test_scan_flatpak_remote(target_sat, function_org, function_product):
     """Verify flatpak remote scan detects all repos available in the remote index.
 
     :id: 3dff23f3-f415-4fb2-a41c-7cdcae617bb0
