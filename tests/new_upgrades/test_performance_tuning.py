@@ -1,4 +1,4 @@
-"""Test for Performance Tuning related Upgrade Scenario's
+"""Test for Performance Tuning related Upgrade Scenarios
 
 :Requirement: UpgradedSatellite
 
@@ -24,8 +24,6 @@ from robottelo.utils.shared_resource import SharedResource
 @pytest.fixture
 def perf_tuning_upgrade_setup(perf_tuning_upgrade_shared_satellite, upgrade_action):
     """In preupgrade scenario we apply non-default tuning size.
-
-    :id: preupgrade-83404326-20b7-11ea-a370-48f17f1fc2e1
 
     :steps:
         1. collect the custom_hira.yaml file before upgrade.
@@ -67,7 +65,7 @@ def test_post_performance_tuning_apply(perf_tuning_upgrade_setup):
     """In postupgrade scenario, we verify the set tuning parameters and custom-hiera.yaml
     file's content.
 
-    :id: postupgrade-31e26b08-2157-11ea-9223-001a4a1601d8
+    :id: 31e26b08-2157-11ea-9223-001a4a1601d8
 
     :steps:
         1. Check the tuning size.
