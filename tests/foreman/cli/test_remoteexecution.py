@@ -595,7 +595,7 @@ class TestRemoteExecution:
         """
         client = rex_contenthost
         today = datetime.today()
-        hour = datetime.utcnow().hour
+        hour = datetime.now().hour
         last_day_of_month = monthrange(today.year, today.month)[1]
         # cronline uses https://github.com/floraison/fugit
         fugit_expressions = [
