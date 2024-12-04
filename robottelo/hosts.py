@@ -1105,13 +1105,14 @@ class ContentHost(Host, ContentHostMixins):
         :param register: Whether to register client to insights
         :return: None
         """
-        # Red Hat Insights requires RHEL 6/7/8/9 repo and it is not
+        # Red Hat Insights requires RHEL OS repos and it is not
         # possible to sync the repo during the tests, Adding repo file.
         distro_repo_map = {
             'rhel6': settings.repos.rhel6_os,
             'rhel7': settings.repos.rhel7_os,
             'rhel8': settings.repos.rhel8_os,
             'rhel9': settings.repos.rhel9_os,
+            'rhel10': settings.repos.rhel10_os,
         }
         rhel_repo = distro_repo_map.get(rhel_distro)
 
