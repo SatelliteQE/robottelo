@@ -12,10 +12,16 @@
 
 """
 
+from airgun.exceptions import NoSuchElementException
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.constants import FAKE_FILE_NEW_NAME, REPOS, DataFile
+from robottelo.config import settings
+from robottelo.constants import (
+    FAKE_FILE_NEW_NAME,
+    REPOS,
+    DataFile,
+)
 
 
 @pytest.mark.tier2
@@ -147,3 +153,104 @@ def test_file_cv_display(session, target_sat, module_org, module_product):
         file_values = session.file.read_cv_table(FAKE_FILE_NEW_NAME)
         assert len(file_values) == 1
         assert file_values[0]['Name'] == cv.name
+
+
+@pytest.mark.upgrade
+@pytest.mark.tier2
+def test_positive_delete_cv_promoted_to_multi_env(
+    session,
+    target_sat,
+    module_org,
+):
+    """Delete the published content view version promoted to multiple
+        environments. Delete the entire content view, with a promoted version to
+        multiple environments.
+
+    :id: f16f2db5-7f5b-4ebb-863e-6c18ff745ce4
+
+    :steps:
+        1. Create and sync yum repository on satellite, add to a new content view.
+        2. Publish the content view, 'Version 1.0'
+        3. Promote the 'Version 1.0' to multiple environments, Library -> DEV.
+        4. Delete the promoted 'Version 1.0', verify removed from environments.
+        5. Publish and promote a new 'Version 2.0' to multiple environments.
+        6. Delete the entire content view, verify removed from environments.
+
+    :expectedresults: The deleted CVV and CV do not exist in ContentViews UI,
+        4. Deleting the single promoted CVV, removed the CV from multiple environments.
+        6. Deleting the entire CV containing promoted CVV, removed the CV from multiple environments.
+
+    :CaseImportance: High
+    """
+    repo = target_sat.cli_factory.RepositoryCollection(
+        repositories=[target_sat.cli_factory.YumRepository(url=settings.repos.yum_0.url)]
+    )
+    repo.setup(module_org.id)
+    cv, lce = repo.setup_content_view(module_org.id)
+    repo_name = repo.repos_info[0]['name']
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        cv_info = session.contentview_new.search(cv['name'])[0]
+        assert cv_info['Latest version'] == VERSION, (
+            f'Latest version for CV {cv["name"]}: {cv_info["Latest version"]},'
+            f' does not match expected: {VERSION}.'
+        )
+        # repo name found in CVV's repositories tab
+        assert (
+            repo_name
+            == session.contentview_new.read_version_table(
+                entity_name=cv['name'],
+                version=VERSION,
+                tab_name='repositories',
+            )[0]['Name']
+        )
+        # Environment's names found in CVV info
+        cvv_values = session.contentview_new.read_cv(entity_name=cv['name'], version_name=VERSION)
+        assert 'Library' in cvv_values['Environments']
+        assert lce['name'] in cvv_values['Environments']
+        # CV name is found in both environment's info
+        lce_values = session.lifecycleenvironment.read(lce['name'])
+        assert len(lce_values['content_views']['resources']) == 1
+        assert cv['name'] == lce_values['content_views']['resources'][0]['Name']
+        library_values = session.lifecycleenvironment.read('Library')
+        assert cv['name'] == library_values['content_views']['resources'][0]['Name']
+
+        # Delete the promoted CVV
+        session.contentview_new.delete_version(
+            entity_name=cv['name'],
+            version=VERSION,
+        )
+        # CVV is no longer found in CV's Versions tab
+        with pytest.raises(NoSuchElementException):
+            session.contentview_new.read_cv(entity_name=cv['name'], version_name=VERSION)
+        # the CV's name is not associated to either environment anymore
+        lce_values = session.lifecycleenvironment.read(lce['name'])
+        assert cv['name'] not in str(lce_values['content_views']['resources'])
+        library_values = session.lifecycleenvironment.read('Library')
+        assert cv['name'] not in str(library_values['content_views']['resources'])
+
+        # publish & promote, a new Version 2.0, to test deleting entire CV with a CVV promoted to LCEs.
+        session.contentview_new.publish(entity_name=cv['name'], promote=True, lce=lce['name'])
+        cv_info = session.contentview_new.search(cv['name'])[0]
+        assert cv_info['Latest version'] == 'Version 2.0'
+        cvv_values = session.contentview_new.read_cv(
+            entity_name=cv['name'], version_name='Version 2.0'
+        )
+
+        # promotion of CVV added the CV to both environments again
+        assert 'Library' in cvv_values['Environments']
+        assert lce['name'] in cvv_values['Environments']
+        lce_values = session.lifecycleenvironment.read(lce['name'])
+        assert cv['name'] == lce_values['content_views']['resources'][0]['Name']
+        library_values = session.lifecycleenvironment.read('Library')
+        assert cv['name'] == library_values['content_views']['resources'][0]['Name']
+
+        # delete the whole content view, search for its name to check
+        session.contentview_new.delete(cv['name'])
+        assert not session.contentview_new.search(cv['name'])
+        # the deleted CV's name is not found in either environment
+        lce_values = session.lifecycleenvironment.read(lce['name'])
+        assert cv['name'] not in str(lce_values['content_views']['resources'])
+        library_values = session.lifecycleenvironment.read('Library')
+        assert cv['name'] not in str(library_values['content_views']['resources'])
