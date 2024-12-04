@@ -28,6 +28,7 @@ from robottelo.constants import (
     FOREMAN_TEMPLATES_NOT_IMPORTED_COUNT,
 )
 from robottelo.logging import logger
+from robottelo.utils.issue_handlers import is_open
 
 git = settings.git
 
@@ -1078,12 +1079,33 @@ class TestTemplateSyncTestCase:
         indirect=True,
         ids=['non_empty_repo', 'empty_repo'],
     )
+    @pytest.mark.parametrize(
+        'use_proxy',
+        [True, False],
+        ids=['use_proxy', 'do_not_use_proxy'],
+    )
+    @pytest.mark.parametrize(
+        'setup_http_proxy_without_global_settings',
+        [True, False],
+        indirect=True,
+        ids=['auth_http_proxy', 'unauth_http_proxy'],
+    )
     def test_positive_export_all_templates_to_repo(
-        self, module_org, git_repository, git_branch, url, module_target_sat
+        self,
+        module_org,
+        git_repository,
+        git_branch,
+        url,
+        module_target_sat,
+        use_proxy,
+        setup_http_proxy_without_global_settings,
     ):
         """Assure all templates are exported if no filter is specified.
 
         :id: 0bf6fe77-01a3-4843-86d6-22db5b8adf3b
+
+        :setup:
+            1. If using proxy, disable direct connection to the git instance
 
         :steps:
             1. Using nailgun export all templates to repository (ensure filters are empty)
@@ -1097,21 +1119,43 @@ class TestTemplateSyncTestCase:
 
         :CaseImportance: Low
         """
-        output = module_target_sat.api.Template().exports(
-            data={
+        # TODO remove this
+        if is_open('SAT-28933') and 'ssh' in url:
+            pytest.skip("Temporary skip of SSH tests")
+        proxy, param = setup_http_proxy_without_global_settings
+        if not use_proxy and not param:
+            # only do-not-use one kind of proxy
+            pytest.skip(
+                "Invalid parameter combination. DO NOT USE PROXY scenario should only be tested once."
+            )
+        try:
+            data = {
                 'repo': f'{url}/{git.username}/{git_repository["name"]}',
                 'branch': git_branch,
                 'organization_ids': [module_org.id],
             }
-        )
-        auth = (git.username, git.password)
-        api_url = f'http://{git.hostname}:{git.http_port}/api/v1/repos/{git.username}'
-        res = requests.get(
-            url=f'{api_url}/{git_repository["name"]}/git/trees/{git_branch}',
-            auth=auth,
-            params={'recursive': True},
-        )
-        res.raise_for_status()
+            if use_proxy:
+                proxy_hostname = proxy.url.split('/')[2].split(':')[0]
+                old_log = module_target_sat.cutoff_host_setup_log(
+                    proxy_hostname, settings.git.hostname
+                )
+                data['http_proxy_policy'] = 'selected'
+                data['http_proxy_id'] = proxy.id
+            output = module_target_sat.api.Template().exports(data=data)
+            auth = (git.username, git.password)
+            api_url = f'http://{git.hostname}:{git.http_port}/api/v1/repos/{git.username}'
+            res = requests.get(
+                url=f'{api_url}/{git_repository["name"]}/git/trees/{git_branch}',
+                auth=auth,
+                params={'recursive': True},
+            )
+            res.raise_for_status()
+        finally:
+            if use_proxy:
+                module_target_sat.restore_host_check_log(
+                    proxy_hostname, settings.git.hostname, old_log
+                )
+
         try:
             tree = json.loads(res.text)['tree']
         except json.decoder.JSONDecodeError:
