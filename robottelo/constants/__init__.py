@@ -1752,8 +1752,16 @@ WONTFIX_RESOLUTIONS = ("WONTFIX", "CANTFIX", "DEFERRED")
 # Jira statuses used by Robottelo issue handler.
 JIRA_TESTS_PASSED_LABEL = "tests-passed"
 JIRA_TESTS_FAILED_LABEL = "tests-failed"
-JIRA_OPEN_STATUSES = ("New", "Backlog", "Refinement", "To Do", "In Progress")
-JIRA_ONQA_STATUS = "Review"
+JIRA_OPEN_STATUSES = (
+    "New",
+    "Backlog",
+    "Refinement",
+    "To Do",
+    "In Progress",
+    "Review",
+    "Release Pending - Upstream",
+)
+JIRA_ONQA_STATUS = "Testing"
 JIRA_CLOSED_STATUSES = ("Release Pending", "Closed")
 JIRA_WONTFIX_RESOLUTIONS = "Obsolete"
 
