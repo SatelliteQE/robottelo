@@ -585,7 +585,7 @@ class TestProvisioningTemplate:
         assert f'chown -R {rex_user}: ~{rex_user}' in rex_snippet
         assert f'chown -R {rex_user}: ~{rex_user}/.ssh' in rex_snippet
         assert (
-            f'echo "{rex_user} ALL = (root) NOPASSWD : ALL" > /etc/sudoers.d/{rex_user}\necho "Defaults:{rex_user} !requiretty" >> /etc/sudoers.d/{rex_user}'
+            f'echo "{rex_user} ALL = (ALL) NOPASSWD : ALL" > /etc/sudoers.d/{rex_user}\necho "Defaults:{rex_user} !requiretty" >> /etc/sudoers.d/{rex_user}'
             in rex_snippet
         )
         assert ssh_key in rex_snippet
@@ -646,8 +646,8 @@ class TestProvisioningTemplate:
         pkg_manager = 'yum' if module_sync_kickstart_content.rhel_ver < 8 else 'dnf'
         assert f'{pkg_manager} -y install foreman_ygg_worker' in rex_snippet
         assert 'broker = ["mqtts://$SERVER_NAME:1883"]' in rex_snippet
-        assert 'systemctl try-restart yggdrasild' in rex_snippet
-        assert 'systemctl enable --now yggdrasild' in rex_snippet
+        assert 'systemctl try-restart $YGGDRASIL_SERVICE' in rex_snippet
+        assert 'systemctl enable --now $YGGDRASIL_SERVICE' in rex_snippet
         assert 'yggdrasil status' in rex_snippet
         assert 'Remote execution pull provider successfully configured!' in rex_snippet
 
