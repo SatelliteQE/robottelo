@@ -189,7 +189,7 @@ VALIDATORS = dict(
         Validator('jira.comment_type', default="group"),
         Validator('jira.comment_visibility', default="Red Hat Employee"),
         Validator('jira.enable_comment', default=False),
-        Validator('jira.issue_status', default=["Review", "Release Pending"]),
+        Validator('jira.issue_status', default=["Testing", "Release Pending"]),
     ],
     ldap=[
         Validator(
