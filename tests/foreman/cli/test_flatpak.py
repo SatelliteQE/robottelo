@@ -15,6 +15,7 @@
 import pytest
 import requests
 
+from robottelo.config import settings
 from robottelo.constants import FLATPAK_REMOTES
 from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import gen_string
@@ -145,10 +146,13 @@ def test_CRUD_and_sync_flatpak_remote_with_permissions(
     assert 'Error: flatpak_remote not found' in str(e)
 
 
-def test_scan_flatpak_remote(target_sat, function_org, function_product):
+@pytest.mark.parametrize('remote', FLATPAK_REMOTES.values(), ids=FLATPAK_REMOTES)
+def test_scan_flatpak_remote(target_sat, function_org, function_product, remote):
     """Verify flatpak remote scan detects all repos available in the remote index.
 
     :id: 3dff23f3-f415-4fb2-a41c-7cdcae617bb0
+
+    :parametrized: yes
 
     :steps:
         1. Create a flatpak remote and scan it.
@@ -159,16 +163,17 @@ def test_scan_flatpak_remote(target_sat, function_org, function_product):
         1. Repos scanned by flatpak remote match the repos available in the remote index.
 
     """
-    remote = FLATPAK_REMOTES['Fedora']
-
     # 1. Create a flatpak remote and scan it.
-    fr = target_sat.cli.FlatpakRemote().create(
-        {
-            'organization-id': function_org.id,
-            'url': remote['url'],
-            'name': gen_string('alpha'),
-        }
-    )
+    create_opts = {
+        'organization-id': function_org.id,
+        'url': remote['url'],
+        'name': gen_string('alpha'),
+    }
+    if remote['authenticated']:
+        create_opts['username'] = settings.container_repo.registries.redhat.username
+        create_opts['token'] = settings.container_repo.registries.redhat.password
+
+    fr = target_sat.cli.FlatpakRemote().create(create_opts)
     target_sat.cli.FlatpakRemote().scan({'id': fr['id']})
 
     scanned_repos = target_sat.cli.FlatpakRemote().repository_list({'flatpak-remote-id': fr['id']})
