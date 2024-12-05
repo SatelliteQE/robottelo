@@ -751,10 +751,12 @@ FLATPAK_REMOTES = {
     'Fedora': {
         'url': 'https://registry.fedoraproject.org',
         'index_url': 'https://registry.fedoraproject.org/index/static?label:org.flatpak.ref:exists=1&tag=latest',
+        'authenticated': False,
     },
     'RedHat': {
-        'url': 'https://flatpaks.redhat.io',
+        'url': 'https://flatpaks.redhat.io/rhel/',
         'index_url': 'https://flatpaks.redhat.io/rhel/index/static?label:org.flatpak.ref:exists=1&tag=latest',
+        'authenticated': True,
     },
 }
 
