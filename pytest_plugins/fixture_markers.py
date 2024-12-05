@@ -35,14 +35,27 @@ def pytest_generate_tests(metafunc):
         # process eventual rhel_version_match markers
         matchers = [i.args for i in function_marks if i.name == 'rhel_ver_match']
         match_params = []
-        for matcher in matchers:
-            match_params.extend(
-                [
-                    setting_rhel_ver
-                    for setting_rhel_ver in settings.supportability.content_hosts.rhel.versions
-                    if re.fullmatch(str(matcher[0]), str(setting_rhel_ver))
-                ]
-            )
+        # check if param matches format 'N-x'
+        if matchers and len(matchers[0][0]) == 3 and matchers[0][0].startswith('N-'):
+            # num of desired prior versions
+            num_versions = int(matchers[0][0].split('-')[1])
+            # grab major versions, excluding fips, from tail of supportability list
+            filtered_versions = [
+                setting_rhel_ver
+                for setting_rhel_ver in settings.supportability.content_hosts.rhel.versions
+                if 'fips' not in str(setting_rhel_ver)
+            ][-(num_versions + 1) :]  # inclusive (+1) to collect N as well
+            match_params.extend(filtered_versions)
+        # match versions with existing regex markers
+        else:
+            for matcher in matchers:
+                match_params.extend(
+                    [
+                        setting_rhel_ver
+                        for setting_rhel_ver in settings.supportability.content_hosts.rhel.versions
+                        if re.fullmatch(str(matcher[0]), str(setting_rhel_ver))
+                    ]
+                )
         network_params = ['ipv6' if settings.server.is_ipv6 else 'ipv4']
         rhel_params = []
         ids = []
