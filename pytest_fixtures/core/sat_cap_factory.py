@@ -385,7 +385,7 @@ def installer_satellite(request):
 
     sat.install_satellite_or_capsule_package()
     # Install Satellite
-    sat.execute(
+    installer_result = sat.execute(
         InstallerCommand(
             installer_args=[
                 'scenario satellite',
@@ -394,6 +394,9 @@ def installer_satellite(request):
         ).get_command(),
         timeout='30m',
     )
+    # exit code 0 means no changes, 2 means changes were applied succesfully
+    assert installer_result.status in (0, 2), installer_result.stdout
+
     sat.enable_satellite_ipv6_http_proxy()
     if 'sanity' in request.config.option.markexpr:
         configure_nailgun()
