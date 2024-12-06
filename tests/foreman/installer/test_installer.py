@@ -429,10 +429,9 @@ def test_capsule_installation(
     # no errors/failures in /var/log/httpd/*
     result = cap_ready_rhel.execute(r'grep -iR "error" /var/log/httpd/*')
     assert len(result.stdout) == 0
-    if not is_open('SAT-29982'):
-        # no errors/failures in /var/log/foreman-proxy/*
-        result = cap_ready_rhel.execute(r'grep -iR "error" /var/log/foreman-proxy/*')
-        assert len(result.stdout) == 0
+    # no errors/failures in /var/log/foreman-proxy/*
+    result = cap_ready_rhel.execute(r'grep -iR "error" /var/log/foreman-proxy/*')
+    assert len(result.stdout) == 0
 
     # Enabling firewall
     cap_ready_rhel.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
