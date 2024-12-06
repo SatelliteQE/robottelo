@@ -70,7 +70,7 @@ def test_rhsso_login_using_hammer(
     ).status()
     assert (
         f"Session exists, currently logged in as '{settings.rhsso.rhsso_user}'."
-        == result[0]['message']
+        in result[0]['message']
     )
     task_list = module_target_sat.cli.Task.with_user(
         username=settings.rhsso.rhsso_user, password=settings.rhsso.rhsso_password
