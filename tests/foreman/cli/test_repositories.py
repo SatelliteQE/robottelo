@@ -18,7 +18,7 @@ from requests.exceptions import HTTPError
 from robottelo.constants import DEFAULT_ARCHITECTURE, REPOS, REPOSET
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match('N-3')  # Newest supported N, and 3 prior
 def test_positive_custom_products_disabled_by_default(
     setup_content,
     default_location,
