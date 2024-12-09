@@ -124,14 +124,18 @@ def test_CRUD_and_sync_flatpak_remote_with_permissions(
         )
     assert emsg.format(p) in str(e)
     with pytest.raises(CLIReturnCodeError) as e:
-        target_sat.cli.FlatpakRemote().with_user(usr, pwd).scan({'name': remote['name']})
+        target_sat.cli.FlatpakRemote().with_user(usr, pwd).scan(
+            {'organization-id': function_org.id, 'name': remote['name']}
+        )
     assert emsg.format(p) in str(e)
 
     target_sat.api_factory.create_role_permissions(function_role, {'Katello::FlatpakRemote': [p]})
     target_sat.cli.FlatpakRemote().with_user(usr, pwd).update(
         {'organization-id': function_org.id, 'name': remote['name'], 'description': desc}
     )
-    target_sat.cli.FlatpakRemote().with_user(usr, pwd).scan({'name': remote['name']})
+    target_sat.cli.FlatpakRemote().with_user(usr, pwd).scan(
+        {'organization-id': function_org.id, 'name': remote['name']}
+    )
     res = (
         target_sat.cli.FlatpakRemote()
         .with_user(usr, pwd)
@@ -143,14 +147,22 @@ def test_CRUD_and_sync_flatpak_remote_with_permissions(
     # 4. Ensure that remotes can be deleted only with proper permissions.
     p = 'destroy_flatpak_remotes'
     with pytest.raises(CLIReturnCodeError) as e:
-        target_sat.cli.FlatpakRemote().with_user(usr, pwd).delete({'name': remote['name']})
+        target_sat.cli.FlatpakRemote().with_user(usr, pwd).delete(
+            {'organization-id': function_org.id, 'name': remote['name']}
+        )
     assert emsg.format(p) in str(e)
 
     target_sat.api_factory.create_role_permissions(function_role, {'Katello::FlatpakRemote': [p]})
-    res = target_sat.cli.FlatpakRemote().with_user(usr, pwd).delete({'name': remote['name']})
+    res = (
+        target_sat.cli.FlatpakRemote()
+        .with_user(usr, pwd)
+        .delete({'organization-id': function_org.id, 'name': remote['name']})
+    )
     assert 'Flatpak Remote deleted' in res
     with pytest.raises(CLIReturnCodeError) as e:
-        target_sat.cli.FlatpakRemote().with_user(usr, pwd).info({'name': remote['name']})
+        target_sat.cli.FlatpakRemote().with_user(usr, pwd).info(
+            {'organization-id': function_org.id, 'name': remote['name']}
+        )
     assert 'Error: flatpak_remote not found' in str(e)
 
 
