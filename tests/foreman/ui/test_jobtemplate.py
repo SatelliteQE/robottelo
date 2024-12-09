@@ -12,7 +12,7 @@
 
 """
 
-from fauxfactory import gen_string
+from fauxfactory import gen_alpha, gen_string
 import pytest
 
 
@@ -204,3 +204,74 @@ def test_positive_end_to_end(session, module_org, module_location, target_sat):
         for name in (template_new_name, template_clone_name):
             session.jobtemplate.delete(name)
             assert not session.jobtemplate.search(name)
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('8')
+@pytest.mark.parametrize(
+    'content',
+    [
+        '''<% load_users(joins: "LEFT JOIN hosts ON 1=1", select: 'hosts.name AS login,hosts.id AS id', limit: 100_000).each_record do |h| %>
+<%= h.id %> - <%= h.login %>
+<% end %>
+    ''',
+        '''<% load_users(joins: ["LEFT JOIN hosts ON 1=1"], select: ['hosts.name AS login,hosts.id AS id'],limit: 100_000).each_record do |h| %>
+<%= h.id %> - <%= h.login %>
+<% end %>''',
+    ],
+    ids=['v1', 'v2'],
+)
+@pytest.mark.tier2
+def test_positive_preview_template_check_for_injection(
+    module_target_sat, module_org, module_location, rhel_contenthost, module_ak_with_cv, content
+):
+    """Preview a report and check for injection as per CVE-2024-8553
+
+    :id: df7e7913-630b-4235-9464-5a45f1db244b
+
+    :setup:
+        0. Create a report template containing an exploit
+
+    :steps:
+        0. In WebUI, preview a report
+
+    :expectedresults:
+        Failure with a correct error message
+
+    :CaseImportance: Critical
+    """
+    name = gen_alpha()
+    filename = gen_alpha()
+    module_target_sat.execute(f'''cat << EOF > {filename}
+{content}
+EOF
+''')
+    module_target_sat.cli.JobTemplate.create(
+        {
+            'name': name,
+            'organization-id': module_org.id,
+            'location-id': module_location.id,
+            'file': filename,
+            'job-category': 'Commands',
+            'provider-type': 'script',
+        }
+    )
+    rhel_contenthost.register(
+        module_org, module_location, module_ak_with_cv.name, module_target_sat
+    )
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.location.select(module_location.name)
+        rendered = session.jobtemplate.read(
+            name,
+            editor_view_option='Preview',
+            widget_names=['template.template_editor.editor', 'template.template_editor.error'],
+        )
+    assert (
+        "Problem with previewing the template: error during rendering: Value of 'select' passed to load_users must be Symbol or Array of Symbols. Note that you must save template input changes before you try to preview it."
+        in rendered['template']['template_editor']['error']
+    )
+    assert (
+        "Error during rendering, Return to Editor tab."
+        in rendered['template']['template_editor']['editor']
+    )
