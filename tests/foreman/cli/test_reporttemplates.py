@@ -232,9 +232,8 @@ def test_positive_generate_report_check_for_injection(
         }
     )
 
-    template = module_target_sat.cli.ReportTemplate.info({'name': name})
     with pytest.raises(CLIReturnCodeError) as error:
-        module_target_sat.cli.ReportTemplate.generate({'name': template['name']})
+        module_target_sat.cli.ReportTemplate.generate({'name': name})
     assert (
         "Generating Report template failed for: Value of 'select' passed to load_users must be Symbol or Array of Symbols."
         in error.value.stderr
