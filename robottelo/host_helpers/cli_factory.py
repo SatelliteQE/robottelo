@@ -691,12 +691,7 @@ class CLIFactory:
         custom_repo = self._satellite.cli.Repository.info({'id': custom_repo['id']})
         # Force flag added in hammer-cli-katello#977
         self._satellite.cli.ActivationKey.content_override(
-            {
-                'id': activationkey_id,
-                'content-label': custom_repo['content-label'],
-                'value': 'true',
-                'force': 'true',
-            }
+            {'id': activationkey_id, 'content-label': custom_repo['content-label'], 'value': 'true'}
         )
         return {
             'activationkey-id': activationkey_id,
