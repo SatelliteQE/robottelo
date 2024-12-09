@@ -282,7 +282,7 @@ def test_positive_generate_subscriptions_report_json(
     :CaseImportance: Medium
     """
     # generate Subscriptions report
-    with session:
+    with module_target_sat.ui_session() as session:
         file_path = session.reporttemplate.generate(
             'Subscription - General Report', values={'output_format': 'JSON'}
         )
@@ -295,6 +295,7 @@ def test_positive_generate_subscriptions_report_json(
         'Account number',
         'Available',
         'Contract number',
+        'Days Remaining',
         'End date',
         'ID',
         'Name',
@@ -386,7 +387,7 @@ def test_positive_schedule_generation_and_get_mail(
     # make sure postfix daemon is running
     target_sat.execute('systemctl start postfix')
     # generate Subscriptions report
-    with session:
+    with target_sat.ui_session() as session:
         session.reporttemplate.schedule(
             'Subscription - General Report',
             values={
@@ -426,6 +427,7 @@ def test_positive_schedule_generation_and_get_mail(
         'Account number',
         'Available',
         'Contract number',
+        'Days Remaining',
         'End date',
         'ID',
         'Name',
