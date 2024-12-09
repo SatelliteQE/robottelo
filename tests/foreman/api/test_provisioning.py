@@ -20,7 +20,6 @@ from wait_for import TimedOutError, wait_for
 from wrapanapi.systems.virtualcenter import VMWareVirtualMachine
 
 from robottelo.config import settings
-from robottelo.hosts import get_sat_rhel_version
 from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
@@ -599,7 +598,7 @@ def test_rhel_pxe_provisioning_fips_enabled(
 @pytest.mark.upgrade
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('pxe_loader', ['secureboot'], indirect=True)
-@pytest.mark.rhel_ver_match([get_sat_rhel_version().major])
+@pytest.mark.rhel_ver_match('[^6]')
 def test_rhel_pxe_provisioning_secureboot_enabled(
     request,
     module_provisioning_sat,
