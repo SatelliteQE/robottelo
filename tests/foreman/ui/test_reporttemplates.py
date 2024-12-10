@@ -282,7 +282,7 @@ def test_positive_generate_subscriptions_report_json(
     :CaseImportance: Medium
     """
     # generate Subscriptions report
-    with session:
+    with module_target_sat.ui_session() as session:
         file_path = session.reporttemplate.generate(
             'Subscription - General Report', values={'output_format': 'JSON'}
         )
@@ -295,10 +295,12 @@ def test_positive_generate_subscriptions_report_json(
         'Account number',
         'Available',
         'Contract number',
+        'Days Remaining',
         'End date',
         'ID',
         'Name',
         'Organization',
+        'Product Host Count',
         'Quantity',
         'SKU',
         'Start date',
@@ -386,7 +388,7 @@ def test_positive_schedule_generation_and_get_mail(
     # make sure postfix daemon is running
     target_sat.execute('systemctl start postfix')
     # generate Subscriptions report
-    with session:
+    with target_sat.ui_session() as session:
         session.reporttemplate.schedule(
             'Subscription - General Report',
             values={
@@ -426,10 +428,12 @@ def test_positive_schedule_generation_and_get_mail(
         'Account number',
         'Available',
         'Contract number',
+        'Days Remaining',
         'End date',
         'ID',
         'Name',
         'Organization',
+        'Product Host Count',
         'Quantity',
         'SKU',
         'Start date',
@@ -556,9 +560,7 @@ def test_positive_installable_errata_with_user(
 
     :BZ: 1726504
     """
-    activation_key = target_sat.api.ActivationKey(
-        environment=function_lce, organization=function_org
-    ).create()
+    activation_key = target_sat.api.ActivationKey(organization=function_org).create()
     custom_cv = target_sat.api.ContentView(organization=function_org).create()
     ERRATUM_ID = str(settings.repos.yum_6.errata[2])
     target_sat.cli_factory.setup_org_for_a_custom_repo(
@@ -608,7 +610,7 @@ def test_positive_installable_errata_with_user(
     # Downgrade the package
     assert rhel_contenthost.execute(f'yum downgrade -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     # Generate the report
-    with session:
+    with target_sat.ui_session() as session:
         session.organization.select(function_org.name)
         session.location.select(function_location.name)
         result_json = session.reporttemplate.generate(
