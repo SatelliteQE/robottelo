@@ -151,11 +151,13 @@ class TestAnsibleCfgMgmt:
         module_org,
         module_location,
     ):
-        """Verify ansible variable is added to the role and attached to the host.
+        """Verify ansible variable is added to the role and attached to the host and delete updated value in variable
 
         :id: 7ec4fe19-5a08-4b10-bb4e-7327dd68699a
 
         :BZ: 2170727
+
+        :Verifies: SAT-23109
 
         :customerscenario: true
 
@@ -164,8 +166,13 @@ class TestAnsibleCfgMgmt:
             2. Enable both 'Merge Overrides' and 'Merge Default'.
             3. Add the variable to a role and attach the role to the host.
             4. Verify that ansible role and variable is added to the host.
+            5. Override the variable value.
+            6. Reset the overridden value to the original value.
 
-        :expectedresults: The role and variable is successfully added to the host.
+
+        :expectedresults:
+            1. The role and variable is successfully added to the host.
+            2. The overridden value in the variable was successfully deleted, and the default value remains unchanged.
         """
 
         @request.addfinalizer
@@ -228,6 +235,30 @@ class TestAnsibleCfgMgmt:
             assert (key, SELECTED_ROLE[0], parameter_type, default_value) in [
                 (v['Name'], v['Ansible role'], v['Type'], v['Value']) for v in variable_table
             ]
+
+            new_key = gen_string('alpha')
+            session.ansiblevariables.create_with_overrides(
+                {
+                    'key': new_key,
+                    'ansible_role': SELECTED_ROLE[0],
+                    'override': 'true',
+                    'parameter_type': parameter_type,
+                    'default_value': default_value,
+                }
+            )
+            new_value = '["test update"]'
+            # Update the value in a variable.
+            session.host_new.update_variable_value(rhel_contenthost.hostname, new_key, new_value)
+            update_value = session.host_new.read_variable_value(rhel_contenthost.hostname, new_key)
+            assert new_value in update_value
+
+            # Revert the updated value to its default state.
+            session.host_new.del_variable_value(rhel_contenthost.hostname)
+            reset_variable_value = session.host_new.read_variable_value(
+                rhel_contenthost.hostname, new_key
+            )
+            assert new_value not in reset_variable_value
+            assert default_value in reset_variable_value
 
     @pytest.mark.tier3
     @pytest.mark.parametrize('setting_update', ['ansible_roles_to_ignore'], indirect=True)
