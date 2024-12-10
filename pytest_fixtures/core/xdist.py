@@ -6,7 +6,7 @@ from broker import Broker
 import pytest
 
 from robottelo.config import configure_airgun, configure_nailgun, settings
-from robottelo.hosts import Capsule, Satellite
+from robottelo.hosts import ContentHost, Satellite
 from robottelo.logging import logger
 
 
@@ -17,17 +17,12 @@ def align_to_satellite(request, worker_id, satellite_factory):
         settings.set("server.hostname", None)
         yield
         # Checkout Sanity Capsule finally
-        if settings.capsule.hostname:
-            sanity_cap = Capsule.get_host_by_hostname(settings.capsule.hostname)
-            sanity_cap.unregister()
-            Broker(hosts=[sanity_cap]).checkin()
-        # Checkout Sanity Satellite finally
-        if settings.server.hostname:
-            sanity_sat = Satellite(settings.server.hostname)
-            sanity_sat.unregister()
-            if settings.server.auto_checkin:
-                broker_sat = Satellite.get_host_by_hostname(sanity_sat.hostname)
-                Broker(hosts=[broker_sat]).checkin()
+        for host in [settings.capsule.hostname, settings.server.hostname]:
+            if host:
+                sanity_host = ContentHost.get_host_by_hostname(host)
+                if settings.server.auto_checkin:
+                    sanity_host.unregister()
+                    Broker(hosts=[sanity_host]).checkin()
     else:
         # clear any hostname that may have been previously set
         settings.set("server.hostname", None)
