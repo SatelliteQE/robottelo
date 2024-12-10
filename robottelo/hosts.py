@@ -888,7 +888,7 @@ class ContentHost(Host, ContentHostMixins):
                 content_file.flush()
                 self.session.sftp_write(source=content_file.name, destination=remote_path)
         else:
-            self.session.sftp_write(source=local_path, destination=remote_path)
+            self.session.sftp_write(source=str(local_path), destination=str(remote_path))
 
     def put_ssh_key(self, source_key_path, destination_key_name):
         """Copy ssh key to virtual machine ssh path and ensure proper permission is set
