@@ -1327,22 +1327,22 @@ def common_sat_install_assertions(satellite):
     result = satellite.execute(
         r'journalctl --quiet --no-pager --boot --priority err -u "dynflow-sidekiq*" -u "foreman-proxy" -u "foreman" -u "httpd" -u "postgresql" -u "pulpcore-api" -u "pulpcore-content" -u "pulpcore-worker*" -u "redis" -u "tomcat"'
     )
-    assert len(result.stdout) == 0
+    assert not result.stdout
     # no errors in /var/log/foreman/production.log
     result = satellite.execute(r'grep --context=100 -E "\[E\|" /var/log/foreman/production.log')
     if not is_open('SAT-21086'):
-        assert len(result.stdout) == 0
+        assert not result.stdout
     # no errors/failures in /var/log/foreman-installer/satellite.log
     result = satellite.execute(
         r'grep "\[ERROR" --context=100 /var/log/foreman-installer/satellite.log'
     )
-    assert len(result.stdout) == 0
+    assert not result.stdout
     # no errors/failures in /var/log/httpd/*
     result = satellite.execute(r'grep -iR "error" /var/log/httpd/*')
-    assert len(result.stdout) == 0
+    assert not result.stdout
     # no errors/failures in /var/log/candlepin/*
     result = satellite.execute(r'grep -iR "error" /var/log/candlepin/*')
-    assert len(result.stdout) == 0
+    assert not result.stdout
 
     result = satellite.cli.Health.check()
     assert 'FAIL' not in result.stdout
