@@ -80,8 +80,13 @@ def test_positive_create(module_sca_manifest, module_target_sat):
 
     :CaseImportance: Critical
     """
-    org = module_target_sat.api.Organization().create()
-    module_target_sat.upload_manifest(org.id, module_sca_manifest.content)
+    try:
+        org = module_target_sat.api.Organization().create()
+        module_target_sat.upload_manifest(org.id, module_sca_manifest.content)
+    finally:
+        module_target_sat.api.Subscription(organization=org).delete_manifest(
+            data={'organization_id': org.id}
+        )
 
 
 @pytest.mark.tier1
