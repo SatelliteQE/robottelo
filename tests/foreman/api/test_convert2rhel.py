@@ -301,6 +301,7 @@ def test_convert2rhel_oracle_with_pre_conversion_template_check(
             'inputs': {
                 'Activation Key': activation_key_rhel.id,
                 'Restart': 'yes',
+                'ELS': 'yes' if major <= '7' else 'no',
             },
             'targeting_type': 'static_query',
             'search_query': f'name = {oracle.hostname}',
@@ -392,6 +393,7 @@ def test_convert2rhel_centos_with_pre_conversion_template_check(
             'inputs': {
                 'Activation Key': activation_key_rhel.id,
                 'Restart': 'yes',
+                'ELS': 'yes' if major <= '7' else 'no',
             },
             'targeting_type': 'static_query',
             'search_query': f'name = {centos.hostname}',
