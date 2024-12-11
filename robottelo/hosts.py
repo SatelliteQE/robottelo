@@ -561,10 +561,12 @@ class ContentHost(Host, ContentHostMixins):
             baseurl=http://repourl.domain.com/path
             enabled=1
             gpgcheck=0
-
         """
         for name, url in kwargs.items():
-            content = f'[{name}]\n' f'name={name}\n' f'baseurl={url}\n' 'enabled=1\n' 'gpgcheck=0'
+            content = f'[{name}]\n' f'name={name}\n' f'baseurl={url}\n' 'enabled=1\n' 'gpgcheck=0\n'
+            # Add proxy configuration for IPv6
+            if settings.server.is_ipv6:
+                content += f'proxy={settings.http_proxy.http_proxy_ipv6_url}'
             self.execute(f'echo "{content}" > /etc/yum.repos.d/{name}.repo')
 
     def get_base_url_for_older_rhel_minor(self):
