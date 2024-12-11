@@ -70,26 +70,6 @@ def module_ak(module_sca_manifest_org, rh_repo, custom_repo, module_target_sat):
 
 
 @pytest.mark.tier1
-@pytest.mark.pit_server
-def test_positive_create(module_sca_manifest, module_target_sat):
-    """Upload a manifest.
-
-    :id: 6faf9d96-9b45-4bdc-afa9-ec3fbae83d41
-
-    :expectedresults: Manifest is uploaded successfully
-
-    :CaseImportance: Critical
-    """
-    try:
-        org = module_target_sat.api.Organization().create()
-        module_target_sat.upload_manifest(org.id, module_sca_manifest.content)
-    finally:
-        module_target_sat.api.Subscription(organization=org).delete_manifest(
-            data={'organization_id': org.id}
-        )
-
-
-@pytest.mark.tier1
 def test_positive_refresh(function_sca_manifest_org, request, target_sat):
     """Upload a manifest and refresh it afterwards.
 
