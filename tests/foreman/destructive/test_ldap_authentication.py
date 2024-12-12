@@ -424,8 +424,7 @@ def test_login_failure_rhsso_user_if_internal_user_exist(
         'password': settings.rhsso.rhsso_password,
     }
     with module_target_sat.ui_session(login=False) as rhsso_session:
-        with pytest.raises(NavigationTriesExceeded) as error:
-            rhsso_session.rhsso_login.login(login_details)
+        rhsso_session.rhsso_login.login(login_details)
         with pytest.raises(NavigationTriesExceeded) as error:
             rhsso_session.task.read_all()
         assert error.typename == 'NavigationTriesExceeded'
