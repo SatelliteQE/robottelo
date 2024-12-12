@@ -872,6 +872,18 @@ class ContentHost(Host, ContentHostMixins):
         logger.info(f'Configuring {hostname} HTTP proxy for dnf.')
         self.execute(cmd)
 
+    def enable_ipv6_rhsm_proxy(self):
+        """Execute procedures for enabling rhsm IPv6 HTTP Proxy"""
+        if self.ipv6:
+            url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
+            self.enable_rhsm_proxy(url.hostname, url.port)
+
+    def enable_ipv6_dnf_proxy(self):
+        """Execute procedures for enabling dnf IPv6 HTTP Proxy"""
+        if self.ipv6:
+            url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
+            self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
+
     def disable_rhsm_proxy(self):
         """Disables HTTP proxy for subscription manager"""
         self.execute('subscription-manager remove server.proxy_hostname server.proxy_port')
@@ -883,9 +895,8 @@ class ContentHost(Host, ContentHostMixins):
     def enable_ipv6_dnf_and_rhsm_proxy(self):
         """Execute procedures for enabling rhsm and dnf IPv6 HTTP Proxy"""
         if self.ipv6:
-            url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
-            self.enable_rhsm_proxy(url.hostname, url.port)
-            self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
+            self.enable_ipv6_rhsm_proxy()
+            self.enable_ipv6_dnf_proxy()
 
     def add_authorized_key(self, pub_key):
         """Inject a public key into the authorized keys file
