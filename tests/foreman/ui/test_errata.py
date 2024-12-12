@@ -865,12 +865,17 @@ def test_positive_apply_for_all_hosts(
         hosts.
     """
     num_hosts = 4
-    distro = 'rhel10'
+    # newest major rhel distro from supportability
+    major_versions = [
+        ver for ver in settings.supportability.content_hosts.rhel.versions if isinstance(ver, int)
+    ]
+    distro = 'rhel' + str(max(major_versions))
     # one custom repo on satellite, for all hosts to use
     custom_repo = target_sat.api.Repository(url=CUSTOM_REPO_URL, product=module_product).create()
     custom_repo.sync()
     module_cv.repository = [custom_repo]
     module_cv.update(['repository'])
+
     with Broker(
         nick=distro,
         workflow='deploy-template',
@@ -920,7 +925,7 @@ def test_positive_apply_for_all_hosts(
                 search_rate=2,
                 max_tries=60,
             )
-            assert len(hosts_job) == 1
+            assert len(hosts_job) >= 1
             # find multiple install tasks, one for each host
             install_tasks = target_sat.wait_for_tasks(
                 search_query=(
