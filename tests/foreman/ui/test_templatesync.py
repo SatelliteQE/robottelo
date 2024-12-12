@@ -104,7 +104,7 @@ def test_positive_import_templates(
         if use_proxy:
             proxy_hostname = proxy.url.split('/')[2].split(':')[0]
             old_log = target_sat.cutoff_host_setup_log(proxy_hostname, settings.git.hostname)
-            data['template.http_proxy_policy'] = 'Use selected HTTP proxy'
+            data['template.http_proxy_policy'] = 'Custom HTTP proxy'
             data['template.http_proxy_id'] = proxy.name
         with session:
             session.organization.select(org_name=templates_org.name)
