@@ -1429,6 +1429,131 @@ class TestCapsuleContentManagement:
         result = capsule_configured.execute(f'ls {PULP_ARTIFACT_DIR}*/* | xargs file | grep RPM')
         assert result.status, 'RPM artifacts are still present. They should be gone.'
 
+    @pytest.mark.e2e
+    @pytest.mark.parametrize(
+        'repos_collection',
+        [
+            {
+                'distro': 'rhel9',
+                'YumRepository': {'url': settings.repos.yum_0.url},
+            }
+        ],
+        indirect=True,
+    )
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    def test_complete_sync_fixes_metadata(
+        self,
+        module_target_sat,
+        module_capsule_configured,
+        rhel_contenthost,
+        repos_collection,
+        function_org,
+        function_lce,
+        default_location,
+    ):
+        """Ensure that Capsule complete sync repairs repository metadata.
+
+        :id: bd84f5d0-5d77-4828-ade5-404e713d465b
+
+        :parametrized: yes
+
+        :verifies: SAT-28575
+
+        :customerscenario: true
+
+        :setup:
+            1. Satellite with registered external Capsule, associated with an LCE.
+            2. Sync a yum repo, publish and promote it to a CVE, sync the Capsule and wait for it.
+
+        :steps:
+            1. Gather all metadata files and their checksums from repodata.
+            2. Locate all metadata artifacts on the Capsule filesystem and destroy them.
+            3. Trigger the complete Capsule sync.
+            4. Ensure the metadata artifacts were restored.
+            5. Register a content host and run dnf actions.
+
+        :expectedresults:
+            1. Metadata artifacts are repaired after the complete Capsule sync.
+            2. Repository is consumable at the content host via Capsule.
+
+        """
+        # Associate LCE with the capsule
+        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': function_lce.id}
+        )
+        result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        assert len(result['results'])
+        assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
+
+        # Sync a yum repo, publish and promote it to a CVE, sync the Capsule and wait for it.
+        timestamp = datetime.utcnow()
+        repos_collection.setup_content(function_org.id, function_lce.id, override=True)
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
+
+        # Gather all metadata files and their checksums from repodata.
+        caps_repo_url = module_capsule_configured.get_published_repo_url(
+            org=function_org.label,
+            lce=function_lce.label,
+            cv=repos_collection.setup_content_data['content_view']['label'],
+            prod=repos_collection.setup_content_data['product']['label'],
+            repo=repos_collection.setup_content_data['repos'][0]['label'],
+        )
+        meta_files = get_repo_files_by_url(f'{caps_repo_url}repodata/', extension='gz')
+        meta_sums = [file.split('-')[0] for file in meta_files]
+        meta_sums.append(
+            module_target_sat.checksum_by_url(
+                f'{caps_repo_url}repodata/repomd.xml', sum_type='sha256sum'
+            )
+        )
+
+        # Locate all metadata artifacts on the Capsule filesystem and destroy them.
+        for sum in meta_sums:
+            ai = module_capsule_configured.get_artifact_info(checksum=sum)
+            module_capsule_configured.execute(f'rm -f {ai.path}')
+            with pytest.raises(FileNotFoundError):
+                module_capsule_configured.get_artifact_info(checksum=sum)
+
+        # Trigger the complete Capsule sync.
+        sync_status = module_capsule_configured.nailgun_capsule.content_sync(
+            data={'skip_metadata_check': 'true'}
+        )
+        assert sync_status['result'] == 'success', 'Capsule sync task failed.'
+
+        # Ensure the metadata artifacts were restored.
+        assert all(module_capsule_configured.get_artifact_info(checksum=sum) for sum in meta_sums)
+
+        # Register a content host and run dnf actions.
+        nc = module_capsule_configured.nailgun_smart_proxy
+        module_target_sat.api.SmartProxy(id=nc.id, organization=[function_org]).update(
+            ['organization']
+        )
+        module_target_sat.api.SmartProxy(id=nc.id, location=[default_location]).update(['location'])
+
+        result = rhel_contenthost.api_register(
+            module_target_sat,
+            smart_proxy=nc,
+            organization=function_org,
+            location=default_location,
+            activation_keys=[repos_collection.setup_content_data['activation_key']['name']],
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        host = module_target_sat.api.Host().search(
+            query={'search': f'name="{rhel_contenthost.hostname}"'}
+        )[0]
+        assert (
+            nc.id == host.content_facet_attributes['content_source_id']
+        ), 'Expected to see the Capsule as the content source'
+
+        result = rhel_contenthost.execute('dnf repolist')
+        assert result.status == 0
+        assert repos_collection.setup_content_data['repos'][0].content_label in result.stdout
+
+        result = rhel_contenthost.execute('dnf install -y cheetah')  # with dependencies
+        assert result.status == 0
+
+        result = rhel_contenthost.execute('dnf -y update')
+        assert result.status == 0
+
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_capsule_sync_openstack_container_repos(
         self,
