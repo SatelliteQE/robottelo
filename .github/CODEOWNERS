@@ -52,6 +52,7 @@ tests/foreman/cli/test_contentview.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_contentviewfilter.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_docker.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_errata.py @SatelliteQE/team-phoenix
+tests/foreman/cli/test_flatpak.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_host.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_hostcollection.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_http_proxy.py @SatelliteQE/team-phoenix
