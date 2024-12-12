@@ -314,6 +314,8 @@ def test_rhcloud_scheduled_insights_sync(
     :Verifies: SAT-22626
 
     :CaseAutomation: Automated
+
+    :customerscenario: true
     """
     org = rhcloud_manifest_org
     virtual_host, baremetal_host = rhcloud_registered_hosts

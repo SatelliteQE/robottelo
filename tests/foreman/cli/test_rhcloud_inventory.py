@@ -371,3 +371,37 @@ def test_positive_generate_all_reports_job(target_sat):
         assert task_output[0].result == "success"
     finally:
         target_sat.update_setting('allow_auto_inventory_upload', True)
+
+
+@pytest.mark.rhel_ver_match('N-2')
+def test_positive_register_insights_client_host(module_target_sat, rhel_insights_vm):
+    """Check the below command executed successfully
+    command - insights-client --ansible-host=foo.example.com
+
+    :id: b578371e-ec36-42de-83fa-bcea6e027fe2
+
+    :setup:
+        1. Enable, sync RHEL BaseOS and AppStream repositories
+        2. Create CV, Publish/promote and create AK for host registration
+        3. Register host to satellite, Setup Insights is Yes (Override), Install insights-client
+
+    :steps:
+        2. Test connection of insights client
+        3. execute insight client command given in the description
+
+    :expectedresults: Command executed successfully
+
+    :Verifies: SAT-28695
+
+    :customerscenario: true
+
+    :CaseAutomation: Automated
+
+    """
+    # Test connection of insights client
+    assert rhel_insights_vm.execute('insights-client --test-connection').status == 0
+
+    # Execute insight client command
+    output = rhel_insights_vm.execute(f'insights-client --ansible-host={rhel_insights_vm.hostname}')
+    assert output.status == 0
+    assert 'Ansible hostname updated' in output.stdout
