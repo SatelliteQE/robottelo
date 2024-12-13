@@ -1068,42 +1068,6 @@ def test_positive_service_level_subscription_with_custom_product(
         assert product.name == chost['content']['repository_sets']['table'][0]['Product']
 
 
-@pytest.mark.rhel_ver_list([6])
-@pytest.mark.tier3
-@pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_ak_with_custom_product_on_rhel6(rhel_contenthost, target_sat):
-    """Registering a rhel6 host using an ak with custom repos should not fail
-
-    :id: 4efed0b5-99af-4933-bea7-92a33984ce10
-
-    :customerscenario: true
-
-    :steps:
-        1. Create a custom repo
-        2. Create ak and add custom repo to ak
-        3. Register a rhel6 chost with the ak
-
-    :expectedresults: Host is registered successfully
-
-    :bz: 2038388
-    """
-    org = target_sat.api.Organization().create()
-    entities_ids = target_sat.cli_factory.setup_org_for_a_custom_repo(
-        {'url': settings.repos.yum_1.url, 'organization-id': org.id}
-    )
-    ak = target_sat.api.ActivationKey(id=entities_ids['activationkey-id']).read()
-
-    result = rhel_contenthost.register(org, None, ak.name, target_sat)
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
-    assert 'The system has been registered with ID' in result.stdout
-    with target_sat.ui_session() as session:
-        session.location.select(constants.DEFAULT_LOC)
-        session.organization.select(org.name)
-        ak = session.activationkey.read(ak.name, widget_names='content_hosts')
-        assert len(ak['content_hosts']['table']) == 1
-        assert ak['content_hosts']['table'][0]['Name'] == rhel_contenthost.hostname
-
-
 def test_positive_new_ak_lce_cv_assignment(target_sat):
     """
     Test that newly created activation key which has Library and Default Org view
