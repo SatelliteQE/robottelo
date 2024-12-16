@@ -493,7 +493,9 @@ class TestSimpleContentAccessOnly:
             }
         )
 
-    @pytest.mark.parametrize('pre_upgrade_data', ['rhel7', 'rhel8', 'rhel9'], indirect=True)
+    @pytest.mark.parametrize(
+        'pre_upgrade_data', ['rhel7-ipv4', 'rhel8-ipv4', 'rhel9-ipv4'], indirect=True
+    )
     @pytest.mark.post_upgrade(depend_on=test_pre_simple_content_access_only)
     def test_post_simple_content_access_only(self, target_sat, pre_upgrade_data):
         """Check that both the custom repository and the red hat repository are enabled
