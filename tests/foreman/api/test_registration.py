@@ -29,7 +29,7 @@ pytestmark = pytest.mark.tier1
 
 @pytest.mark.e2e
 @pytest.mark.pit_client
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 @pytest.mark.no_containers
 def test_host_registration_end_to_end(
     module_sca_manifest_org,
@@ -89,7 +89,7 @@ def test_host_registration_end_to_end(
 
 @pytest.mark.tier3
 @pytest.mark.pit_client
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 def test_positive_allow_reregistration_when_dmi_uuid_changed(
     module_sca_manifest_org,
     rhel_contenthost,
@@ -133,7 +133,7 @@ def test_positive_allow_reregistration_when_dmi_uuid_changed(
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('N-1')
 def test_positive_update_packages_registration(
     module_target_sat,
     module_sca_manifest_org,
@@ -166,7 +166,7 @@ def test_positive_update_packages_registration(
     assert result.status == 0
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.no_containers
 def test_positive_rex_interface_for_global_registration(
     module_target_sat,
@@ -272,7 +272,7 @@ def test_negative_capsule_without_registration_enabled(
     )
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 def test_positive_host_registration_with_non_admin_user_with_setup_false(
     module_org,
     module_location,
@@ -333,7 +333,7 @@ def test_positive_host_registration_with_non_admin_user_with_setup_false(
     assert rhel_contenthost.execute('cat ~/.ssh/authorized_keys | grep foreman-proxy').status == 1
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 def test_negative_verify_bash_exit_status_failing_host_registration(
     module_sca_manifest_org,
     module_location,
