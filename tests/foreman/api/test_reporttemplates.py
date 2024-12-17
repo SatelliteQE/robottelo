@@ -82,6 +82,24 @@ def setup_content(module_sca_manifest_org, module_target_sat):
     return ak, org
 
 
+@pytest.fixture
+def setup_ak_with_cve(target_sat, function_lce, function_org):
+    """
+    This fixture sets up an activation key with LCE that has CV promoted to it.
+
+    :return: activation_key, cv, function_lce, function_org
+    """
+    cv = target_sat.api.ContentView(organization=function_org).create()
+    cv.publish()
+    cvv = cv.read().version[0].read()
+    cvv.promote(data={'environment_ids': function_lce.id})
+    activation_key = target_sat.api.ActivationKey(
+        environment=function_lce, organization=function_org, content_view=cv
+    ).create()
+
+    return activation_key, cv, function_lce, function_org
+
+
 # Tests for ``katello/api/v2/report_templates``.
 
 
@@ -359,7 +377,7 @@ def test_negative_create_report_without_name(module_target_sat):
 @pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.no_containers
 def test_positive_applied_errata(
-    function_org, function_location, function_lce, rhel_contenthost, target_sat
+    function_location, rhel_contenthost, target_sat, setup_ak_with_cve
 ):
     """Generate an Applied Errata report
 
@@ -375,10 +393,8 @@ def test_positive_applied_errata(
 
     :CaseImportance: Medium
     """
-    activation_key = target_sat.api.ActivationKey(
-        environment=function_lce, organization=function_org
-    ).create()
-    cv = target_sat.api.ContentView(organization=function_org).create()
+    activation_key, cv, function_lce, function_org = setup_ak_with_cve
+
     ERRATUM_ID = str(settings.repos.yum_6.errata[2])
     target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
@@ -435,7 +451,7 @@ def test_positive_applied_errata(
 @pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.no_containers
 def test_positive_applied_errata_report_with_invalid_errata(
-    function_org, function_location, function_lce, rhel_contenthost, target_sat
+    function_location, rhel_contenthost, target_sat, setup_ak_with_cve
 ):
     """Generate an Applied Errata report after an invalid errata has been applied
 
@@ -454,10 +470,8 @@ def test_positive_applied_errata_report_with_invalid_errata(
 
     :customerscenario: true
     """
-    activation_key = target_sat.api.ActivationKey(
-        environment=function_lce, organization=function_org
-    ).create()
-    cv = target_sat.api.ContentView(organization=function_org).create()
+    activation_key, cv, function_lce, function_org = setup_ak_with_cve
+
     target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_6.url,
@@ -510,9 +524,7 @@ def test_positive_applied_errata_report_with_invalid_errata(
 @pytest.mark.tier2
 @pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.no_containers
-def test_positive_applied_errata_by_search(
-    function_org, function_lce, rhel_contenthost, target_sat
-):
+def test_positive_applied_errata_by_search(rhel_contenthost, target_sat, setup_ak_with_cve):
     """Generate an Applied Errata report
 
     :id: 0f7d2772-47a4-4215-b555-dd8ee675372f
@@ -527,10 +539,7 @@ def test_positive_applied_errata_by_search(
 
     :CaseImportance: Medium
     """
-    activation_key = target_sat.api.ActivationKey(
-        environment=function_lce, organization=function_org
-    ).create()
-    cv = target_sat.api.ContentView(organization=function_org).create()
+    activation_key, cv, function_lce, function_org = setup_ak_with_cve
     ERRATUM_ID = str(settings.repos.yum_6.errata[2])
     target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
