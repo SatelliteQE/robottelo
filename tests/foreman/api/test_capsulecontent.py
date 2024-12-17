@@ -1434,7 +1434,7 @@ class TestCapsuleContentManagement:
         'repos_collection',
         [
             {
-                'distro': 'rhel9',
+                'distro': 'rhel10',
                 'YumRepository': {'url': settings.repos.yum_0.url},
             }
         ],
