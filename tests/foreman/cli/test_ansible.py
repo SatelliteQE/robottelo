@@ -11,8 +11,10 @@
 
 from time import sleep
 
+import awxkit
 from fauxfactory import gen_string
 import pytest
+from wait_for import wait_for
 import yaml
 
 from robottelo.config import (
@@ -726,3 +728,295 @@ class TestAnsibleREX:
         )
         result = target_sat.cli.JobInvocation.info({'id': job_id})['success']
         assert result == '1'
+
+
+@pytest.mark.upgrade
+class TestAnsibleAAPIntegration:
+    """Test class for Satellite integration with Ansible Automation Controller
+
+    :CaseComponent: Ansible-ConfigurationManagement
+    """
+
+    def update_sat_credentials_in_aap(
+        self,
+        aap_client,
+        sat,
+        username=settings.server.admin_username,
+        password=settings.server.admin_password,
+        creds_name=settings.AAP_INTEGRATION.satellite_credentials,
+    ):
+        # Find the Satellite credentials in AAP and update it for target_sat.hostname and user credentials
+        creds_list = aap_client.get(
+            '/api/v2/credentials/', query_parameters=f'name={creds_name}'
+        ).json()
+        new_creds = {
+            'inputs': {
+                'host': f'https://{sat.hostname}',
+                'username': username,
+                'password': password,
+            }
+        }
+        response = aap_client.patch(
+            f'/api/v2/credentials/{creds_list["results"][0]["id"]}/', json=new_creds
+        )
+        assert response.ok
+
+    @pytest.fixture(scope='class')
+    def aap_client(self):
+        client = awxkit.api.client.Connection(f'https://{settings.AAP_INTEGRATION.AAP_FQDN}/')
+        client.login(settings.AAP_INTEGRATION.USERNAME, settings.AAP_INTEGRATION.PASSWORD)
+        yield client
+        client.logout()
+
+    @pytest.mark.parametrize('auth_type', ['admin', 'non-admin'])
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    def test_positive_ansible_dynamic_inventory(
+        self,
+        request,
+        target_sat,
+        module_org,
+        module_location,
+        module_ak_with_cv,
+        aap_client,
+        rhel_contenthost,
+        auth_type,
+    ):
+        """Verify AAP is able to pull a dynamic inventory of hosts from Satellite,
+        with admin and non-admin user.
+
+        :id: ad25aee5-4ea3-4743-a301-1c6271856g19
+
+        :steps:
+            1. Register content host to Satellite with admin and non-admin user
+            2. Update Satellite type credentials in AAP
+            3. Find Satellite inventory, inventory source and sync inventory source in AAP
+            4. Verify registered hosts are added to Satellite inventory
+
+        :expectedresults: All hosts managed by Satellite are added to Satellite inventory.
+        """
+        inventory_name = settings.AAP_INTEGRATION.satellite_inventory
+
+        password = settings.server.admin_password
+        if auth_type == 'admin':
+            login = gen_string('alpha')
+            user = target_sat.api.User(
+                admin=True,
+                login=login,
+                password=password,
+                organization=[module_org],
+                location=[module_location],
+            ).create()
+        else:
+            login = gen_string('alpha')
+            role = target_sat.api.Role(
+                name=gen_string('alpha'), location=[module_location], organization=[module_org]
+            ).create()
+            for perm in ['view_hosts', 'view_hostgroups', 'view_facts']:
+                permission = target_sat.api.Permission().search(query={'search': f'name={perm}'})
+                target_sat.api.Filter(permission=permission, role=role).create()
+            user = target_sat.api.User(
+                role=[role],
+                admin=False,
+                login=login,
+                password=password,
+                organization=[module_org],
+                location=[module_location],
+            ).create()
+            target_sat.cli.User.add_role(
+                {'login': user.login, 'role': 'Ansible Tower Inventory Reader'}
+            )
+        result = rhel_contenthost.register(
+            module_org,
+            module_location,
+            module_ak_with_cv.name,
+            target_sat,
+            auth_username=user.login,
+            auth_password=password,
+            force=True,
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+        if is_open('SAT-28613') and auth_type == 'non-admin':
+            host = rhel_contenthost.nailgun_host
+            host.location = module_location
+            host.update(['location'])
+
+        # Find the Satellite credentials in AAP and update it for target_sat.hostname and user credentials
+        self.update_sat_credentials_in_aap(aap_client, target_sat, username=login)
+
+        # Find the Satellite inventory in AAP and update it for target_sat and user credentials
+        inv_list = aap_client.get(
+            '/api/v2/inventories/', query_parameters=f'name={inventory_name}'
+        ).json()
+        inv_source_list = aap_client.get(
+            f'/api/v2/inventories/{inv_list["results"][0]["id"]}/inventory_sources/'
+        ).json()
+        sync_response = aap_client.post(
+            f'/api/v2/inventory_sources/{inv_source_list["results"][0]["id"]}/update/'
+        )
+        assert sync_response.ok
+        wait_for(
+            lambda: rhel_contenthost.hostname
+            in [
+                host['name']
+                for host in aap_client.get(
+                    f'/api/v2/inventories/{inv_list["results"][0]["id"]}/hosts/'
+                ).json()['results']
+            ],
+            timeout=180,
+            delay=30,
+        )
+        # Find the hosts in Satellite inventory in AAP and verify if target_sat is listed in inventory
+        hosts_list = aap_client.get(
+            f'/api/v2/inventories/{inv_list["results"][0]["id"]}/hosts/'
+        ).json()
+        assert rhel_contenthost.hostname in [host['name'] for host in hosts_list['results']]
+
+    @pytest.mark.on_premises_provisioning
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    def test_positive_ansible_provisioning_callback(
+        self,
+        request,
+        aap_client,
+        module_provisioning_sat,
+        module_sca_manifest_org,
+        module_location,
+        provisioning_host,
+        pxe_loader,
+        module_provisioning_rhel_content,
+        provisioning_hostgroup,
+        module_lce_library,
+        module_default_org_view,
+    ):
+        """Verify provisioning callback functionality which allows to run an Ansible playbook
+        on the new RHEL provisioned host.
+
+        :id: a272a594-f758-40ef-95ec-813245e44b66
+
+        :steps:
+            1. Configure Satellite for provisioning
+            2. Update Satellite type credentials in AAP
+            3. Create or update a hostgroup to add hostgroup parameters for provisioning callback
+            4. Provision a RHEL hosts which must be added to Satellite inventory
+            5. Find Satellite inventory, inventory source and sync inventory source in AAP
+            6. Start ansible-callback systemd service, and Verify that job_template execution has begun in AAP
+
+        :expectedresults:
+            1. All hosts managed by Satellite are added to Satellite inventory.
+            2. Starting ansible-callback systemd service, starts a job_template execution in AAP
+        """
+        host_mac_addr = provisioning_host._broker_args['provisioning_nic_mac_addr']
+        sat = module_provisioning_sat.sat
+        aap_fqdn = settings.AAP_INTEGRATION.AAP_FQDN
+        job_template = settings.AAP_INTEGRATION.callback_job_template
+        config_key = settings.AAP_INTEGRATION.host_config_key
+        inventory_name = settings.AAP_INTEGRATION.satellite_inventory
+        extra_vars_dict = '{"package_install": "tmux"}'
+
+        # Find the Satellite credentials in AAP and update it for sat.hostname and user credentials
+        self.update_sat_credentials_in_aap(aap_client, sat)
+
+        # Find the Satellite inventory in AAP and update it for provisioning_sat and user credentials
+        inv_list = aap_client.get(
+            '/api/v2/inventories/', query_parameters=f'name={inventory_name}'
+        ).json()
+        inv_source_list = aap_client.get(
+            f'/api/v2/inventories/{inv_list["results"][0]["id"]}/inventory_sources/'
+        ).json()
+
+        # Find the provisioning callback job template id, which is required for provisioning
+        jt_list = aap_client.get(
+            '/api/v2/job_templates/', query_parameters=f"name={job_template}"
+        ).json()
+        template_id = jt_list['results'][0]['id']
+
+        # Update the provisioning callback parameters in hostgroup
+        existing_params = provisioning_hostgroup.group_parameters_attributes
+        provisioning_hostgroup.group_parameters_attributes = [
+            {'name': 'ansible_tower_provisioning', 'value': 'true', 'parameter_type': 'boolean'},
+            {'name': 'ansible_tower_fqdn', 'value': aap_fqdn, 'parameter_type': 'string'},
+            {'name': 'ansible_host_config_key', 'value': config_key, 'parameter_type': 'string'},
+            {'name': 'ansible_job_template_id', 'value': template_id, 'parameter_type': 'integer'},
+            {'name': 'ansible_extra_vars', 'value': extra_vars_dict, 'parameter_type': 'string'},
+        ] + existing_params
+        provisioning_hostgroup.update(['group_parameters_attributes'])
+
+        hostname = gen_string('alpha').lower()
+        host = sat.cli.Host.create(
+            {
+                'name': hostname,
+                'organization': module_sca_manifest_org.name,
+                'location': module_location.name,
+                'hostgroup': provisioning_hostgroup.name,
+                'mac': host_mac_addr,
+                'provision-method': 'build',
+            }
+        )
+        # teardown
+        request.addfinalizer(lambda: sat.provisioning_cleanup(host['name'], interface='CLI'))
+
+        hostname = f'{hostname}.{module_provisioning_sat.domain.name}'
+        assert hostname == host['name']
+
+        # Start the VM, do not ensure that we can connect to SSHD
+        provisioning_host.power_control(ensure=False)
+
+        # Host should do call back to the Satellite reporting
+        # the result of the installation. Wait until Satellite reports that the host is installed.
+        wait_for(
+            lambda: sat.cli.Host.info({'name': hostname})['status']['build-status']
+            != 'Pending installation',
+            timeout=1800,
+            delay=30,
+        )
+        host_info = sat.cli.Host.info({'id': host['id']})
+        assert host_info['status']['build-status'] == 'Installed'
+        host_os = sat.api.OperatingSystem(
+            id=host_info['operating-system']['operating-system']['id']
+        ).read()
+
+        # In the current infra environment we don't support, addressing hosts using FQDNs, falling back to IP.
+        # Change the hostname of the host as we know it already.
+        provisioning_host.hostname = host_info['network']['ipv4-address']
+        # Update host since it is not blank anymore
+        provisioning_host.blank = False
+
+        # Wait for the host to be rebooted and SSH daemon to be started.
+        provisioning_host.wait_for_connection()
+
+        if int(host_os.major) >= 9:
+            assert (
+                provisioning_host.execute(
+                    'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
+                ).status
+                == 0
+            )
+
+        # Sync the AAP inventory to add a provisioning host
+        sync_response = aap_client.post(
+            f'/api/v2/inventory_sources/{inv_source_list["results"][0]["id"]}/update/'
+        )
+        assert sync_response.ok
+
+        wait_for(
+            lambda: hostname
+            in [
+                host['name']
+                for host in aap_client.get(
+                    f'/api/v2/inventories/{inv_list["results"][0]["id"]}/hosts/'
+                ).json()['results']
+            ],
+            timeout=180,
+            delay=30,
+        )
+        # Find the hosts in AAP inventory and verify if provisioning host is listed in inventory
+        hosts_list = aap_client.get(
+            f'/api/v2/inventories/{inv_list["results"][0]["id"]}/hosts/'
+        ).json()
+        assert hostname in [host['name'] for host in hosts_list['results']]
+
+        assert provisioning_host.execute('systemctl start ansible-callback').status == 0
+
+        # Verify user rocket and package tmux is installed via ansible-callback on provisioning host
+        assert provisioning_host.execute('cat /etc/passwd | grep rocket').status == 0
+        assert provisioning_host.execute('dnf list installed tmux').status == 0
