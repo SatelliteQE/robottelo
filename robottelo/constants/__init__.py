@@ -33,12 +33,13 @@ LOCALES = (
 
 
 DISTRO_DEFAULT = 'rhel7'
-DISTROS_SUPPORTED = ['rhel6', 'rhel7', 'rhel8', 'rhel9']
+DISTROS_SUPPORTED = ['rhel6', 'rhel7', 'rhel8', 'rhel9', 'rhel10']
 DISTROS_MAJOR_VERSION = {
     'rhel6': 6,
     'rhel7': 7,
     'rhel8': 8,
     'rhel9': 9,
+    'rhel10': 10,
 }
 MAJOR_VERSION_DISTRO = {value: key for key, value in DISTROS_MAJOR_VERSION.items()}
 
@@ -890,6 +891,12 @@ REAL_RHEL7_0_2_PACKAGE_FILENAME = 'python2-psutil-5.7.2-2.el7sat.x86_64.rpm'
 REAL_RHEL8_1_PACKAGE_NAME = 'puppet-agent'  # for RHSA-2022:4867
 REAL_RHEL8_1_PACKAGE_FILENAME = 'puppet-agent-6.19.1-1.el8sat.x86_64'
 REAL_RHEL8_2_PACKAGE_FILENAME = 'puppet-agent-6.26.0-1.el8sat.x86_64'
+REAL_RHEL9_PACKAGE_NAME = ''
+REAL_RHEL9_1_PACKAGE_FILENAME = ''
+REAL_RHEL9_2_PACKAGE_FILENAME = ''
+REAL_RHEL10_PACKAGE_NAME = ''
+REAL_RHEL10_1_PACKAGE_FILENAME = ''
+REAL_RHEL10_2_PACKAGE_FILENAME = ''  # TODO: Add when updated packages are available for RHEL10
 FAKE_0_CUSTOM_PACKAGE_GROUP_NAME = 'birds'
 FAKE_3_YUM_OUTDATED_PACKAGES = [
     'acme-package-1.0.1-1.noarch',
@@ -946,6 +953,10 @@ REAL_RHEL7_0_ERRATA_ID = 'RHBA-2020:3615'  # for REAL_RHEL7_0_0_PACKAGE
 REAL_RHEL7_1_ERRATA_ID = 'RHBA-2017:0395'  # tcsh bug fix update
 REAL_RHEL8_1_ERRATA_ID = 'RHSA-2022:4867'  # for REAL_RHEL8_1_PACKAGE
 REAL_RHEL8_ERRATA_CVES = ['CVE-2021-27023', 'CVE-2021-27025']
+REAL_RHEL9_ERRATA_ID = ''  # for rhel9 RH package
+REAL_RHEL9_ERRATA_CVES = []
+REAL_RHEL10_ERRATA_ID = ''  # TODO: add when real errata is available for RHEL10
+REAL_RHEL10_ERRATA_CVES = []
 REAL_RHSCLIENT_ERRATA = 'RHSA-2023:5982'  # for RH Satellite Client 8
 FAKE_1_YUM_REPOS_COUNT = 32
 FAKE_3_YUM_REPOS_COUNT = 78
