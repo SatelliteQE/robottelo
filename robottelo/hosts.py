@@ -1165,14 +1165,23 @@ class ContentHost(Host, ContentHostMixins):
 
         :param str infrastructure_type: One of 'physical', 'virtual'
         """
-        script_path = '/usr/sbin/virt-what'
-        self.execute(f'cp -n {script_path} {script_path}.old')
+        # Remove the custom facts file if it exists
+        self.execute('rm -f /etc/rhsm/facts/custom.facts')
 
-        script_content = ['#!/bin/sh -']
+        # Define the path for the physical facts file
+        script_path = '/etc/rhsm/facts/physical.facts'
+
+        # Prepare facts content based on infrastructure type
         if infrastructure_type == 'virtual':
-            script_content.append('echo kvm')
-        script_content = '\n'.join(script_content)
-        self.execute(f"echo -e '{script_content}' > {script_path}")
+            facts_content = '{"virt.is_guest": "true"}'
+        else:
+            facts_content = '{"virt.is_guest": "false"}'
+
+        # Create the physical facts file and write the appropriate content
+        self.execute(f"echo '{facts_content}' > {script_path}")
+
+        # Update subscription manager facts
+        self.execute('subscription-manager facts --update')
 
     def patch_os_release_version(self, distro='rhel7'):
         """Patch VM OS release version.
