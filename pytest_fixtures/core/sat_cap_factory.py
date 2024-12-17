@@ -350,23 +350,22 @@ def installer_satellite(request):
         # enable satellite repos
         for repo in sat.SATELLITE_CDN_REPOS.values():
             sat.enable_repo(repo, force=True)
+    elif settings.server.version.source == 'nightly':
+        sat.create_custom_repos(
+            satellite_repo=settings.repos.satellite_repo,
+            satmaintenance_repo=settings.repos.satmaintenance_repo,
+        )
     else:
-        if settings.server.version.source == 'nightly':
-            sat.create_custom_repos(
-                satellite_repo=settings.repos.satellite_repo,
-                satmaintenance_repo=settings.repos.satmaintenance_repo,
-            )
-        else:
-            # get ohsnap repofile
-            sat.download_repofile(
-                product='satellite',
-                release=settings.server.version.release,
-                snap=settings.server.version.snap,
-            )
+        # get ohsnap repofile
+        sat.download_repofile(
+            product='satellite',
+            release=settings.server.version.release,
+            snap=settings.server.version.snap,
+        )
 
     sat.install_satellite_or_capsule_package()
     # Install Satellite
-    sat.execute(
+    installer_result = sat.execute(
         InstallerCommand(
             installer_args=[
                 'scenario satellite',
@@ -375,6 +374,9 @@ def installer_satellite(request):
         ).get_command(),
         timeout='30m',
     )
+    # exit code 0 means no changes, 2 means changes were applied succesfully
+    assert installer_result.status in (0, 2), installer_result.stdout
+
     if 'sanity' in request.config.option.markexpr:
         configure_nailgun()
         configure_airgun()
