@@ -94,16 +94,30 @@ def rhel8_contenthost_module(request):
         yield host
 
 
-@pytest.fixture(params=[{'rhel_version': 6}])
-def rhel6_contenthost(request):
-    """A function-level fixture that provides a rhel6 content host object"""
+@pytest.fixture(params=[{'rhel_version': '9'}])
+def rhel9_contenthost(request):
+    """A fixture that provides a rhel9 content host object"""
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         yield host
 
 
-@pytest.fixture(params=[{'rhel_version': '9'}])
-def rhel9_contenthost(request):
-    """A fixture that provides a rhel9 content host object"""
+@pytest.fixture(scope='module', params=[{'rhel_version': '9'}])
+def rhel9_contenthost_module(request):
+    """A module-level fixture that provides a rhel9 content host object"""
+    with Broker(**host_conf(request), host_class=ContentHost) as host:
+        yield host
+
+
+@pytest.fixture(params=[{'rhel_version': '10'}])
+def rhel10_contenthost(request):
+    """A fixture that provides a rhel10 content host object"""
+    with Broker(**host_conf(request), host_class=ContentHost) as host:
+        yield host
+
+
+@pytest.fixture(scope='module', params=[{'rhel_version': '10'}])
+def rhel10_contenthost_module(request):
+    """A module-level fixture that provides a rhel10 content host object"""
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         yield host
 

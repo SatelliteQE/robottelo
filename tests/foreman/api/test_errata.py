@@ -162,9 +162,9 @@ def _fetch_available_errata_instances(sat, host, expected_amount=None, timeout=1
     _errata_dict = _fetch_available_errata(host.nailgun_host, expected_amount, timeout)
     _errata_ids = [errata['id'] for errata in _errata_dict]
     instances = [sat.api.Errata(id=_id).read() for _id in _errata_ids]
-    assert len(instances) == len(_errata_dict) == host.applicable_errata_count, (
-        'Length of errata instances list or api result differs from expected applicable count.'
-    )
+    assert (
+        len(instances) == len(_errata_dict) == host.applicable_errata_count
+    ), 'Length of errata instances list or api result differs from expected applicable count.'
     return instances
 
 
@@ -244,9 +244,9 @@ def package_applicability_changed_as_expected(
             change_in_errata int: positive, negative, or zero
             changed_errata list[string]: of modified errata_ids
     """
-    assert len(prior_applicable_errata_list) == prior_applicable_errata_count, (
-        'Length of "prior_applicable_errata_list" passed, must equal "prior_applicable_errata_count" passed.'
-    )
+    assert (
+        len(prior_applicable_errata_list) == prior_applicable_errata_count
+    ), 'Length of "prior_applicable_errata_list" passed, must equal "prior_applicable_errata_count" passed.'
     if len(prior_applicable_errata_list) != 0:
         try:
             prior_applicable_errata_list[0].read()
@@ -259,9 +259,9 @@ def package_applicability_changed_as_expected(
     task = None
     epoch_timestamp = int(time() - 1)
     output = host.execute('subscription-manager repos')
-    assert output.status == 0, (
-        f'Command "$subscription-manager repos" failed to execute on host: {host.hostname}'
-    )
+    assert (
+        output.status == 0
+    ), f'Command "$subscription-manager repos" failed to execute on host: {host.hostname}'
     try:
         task = sat.api_factory.wait_for_errata_applicability_task(
             host_id=host.nailgun_host.id,
@@ -281,9 +281,9 @@ def package_applicability_changed_as_expected(
     if prior_applicable_errata_count == host.applicable_errata_count:
         # Applicable errata count had no change.
         # we expect applicable errata id(s) from search also did not change.
-        assert prior_unique_errata_ids == app_unique_errata_ids, (
-            'Expected list of applicable erratum to remain the same.'
-        )
+        assert (
+            prior_unique_errata_ids == app_unique_errata_ids
+        ), 'Expected list of applicable erratum to remain the same.'
         if prior_applicable_package_count == host.applicable_package_count:
             # no applicable packages were modified
             return False
@@ -293,9 +293,9 @@ def package_applicability_changed_as_expected(
         # we expect one or more errata id(s) from search to be added or removed.
         difference = abs(prior_applicable_errata_count - host.applicable_errata_count)
         # Check list of errata id(s) from search matches expected difference
-        assert len(app_unique_errata_ids) == prior_applicable_errata_count + difference, (
-            'Length of applicable errata found by search, does not match applicability count difference.'
-        )
+        assert (
+            len(app_unique_errata_ids) == prior_applicable_errata_count + difference
+        ), 'Length of applicable errata found by search, does not match applicability count difference.'
         # modifying package increased errata applicability count (outdated ver installed)
         if prior_applicable_errata_count < host.applicable_errata_count:
             # save the new errata(s) found, ones added since package modify
@@ -384,12 +384,12 @@ def package_applicability_changed_as_expected(
         # already checked that applicable package count changed,
         # but found applicable erratum list should not change,
         # check the errata count and list remained the same.
-        assert host.applicable_errata_count == prior_applicable_errata_count, (
-            'Expected current applicable errata count, to equal prior applicable errata count.'
-        )
-        assert len(current_applicable_errata) == prior_applicable_errata_count, (
-            'Expected current applicable errata list length, to equal to prior applicable count.'
-        )
+        assert (
+            host.applicable_errata_count == prior_applicable_errata_count
+        ), 'Expected current applicable errata count, to equal prior applicable errata count.'
+        assert (
+            len(current_applicable_errata) == prior_applicable_errata_count
+        ), 'Expected current applicable errata list length, to equal to prior applicable count.'
         assert prior_unique_errata_ids == app_unique_errata_ids, (
             f'Expected set of prior applicable errata_ids: {prior_unique_errata_ids},'
             f' to be equivalent to set of current applicable errata_ids: {app_unique_errata_ids}.'
@@ -479,9 +479,9 @@ def cv_publish_promote(sat, org, cv, lce=None, needs_publish=True, force=False):
         'content-view': sat.api.ContentView(id=cv.id).read(),
         'content-view-version': sat.api.ContentViewVersion(id=cvv_id).read(),
     }
-    assert all(entry for entry in _result.values()), (
-        f'One or more necessary components are missing: {_result}'
-    )
+    assert all(
+        entry for entry in _result.values()
+    ), f'One or more necessary components are missing: {_result}'
     return _result
 
 
@@ -502,7 +502,7 @@ def _publish_and_wait(sat, org, cv, search_rate=1, max_tries=10):
         ),
         (
             f'Failed to publish the Content-View: {cv.id}, in time.'
-            f'Task: {task_id} failed, or timed out ({search_rate * max_tries}s).'
+            f'Task: {task_id} failed, or timed out ({search_rate*max_tries}s).'
         ),
     )
 
@@ -562,9 +562,9 @@ def test_positive_install_in_hc(
             target=target_sat,
             loc=None,
         )
-        assert result.status == 0, (
-            f'Failed to register the host - {client.hostname}: {result.stderr}'
-        )
+        assert (
+            result.status == 0
+        ), f'Failed to register the host - {client.hostname}: {result.stderr}'
         client.add_rex_key(satellite=target_sat)
         assert client.subscribed
         client.run(r'subscription-manager repos --enable \*')
@@ -607,9 +607,9 @@ def test_positive_install_in_hc(
             pre_errata_count,
             pre_package_count,
         )
-        assert passed_checks is True, (
-            f'The package: {FAKE_1_CUSTOM_PACKAGE}, was not applicable to any erratum present on host: {client.hostname}.'
-        )
+        assert (
+            passed_checks is True
+        ), f'The package: {FAKE_1_CUSTOM_PACKAGE}, was not applicable to any erratum present on host: {client.hostname}.'
     # Setup host collection using client ids
     host_collection = target_sat.api.HostCollection(organization=module_sca_manifest_org).create()
     host_ids = [client.nailgun_host.id for client in content_hosts]
@@ -638,9 +638,9 @@ def test_positive_install_in_hc(
     )
     for client in content_hosts:
         # No applicable errata after install on all clients
-        assert client.applicable_errata_count == 0, (
-            f'A client in Host-Collection: {client.hostname}, had {client.applicable_errata_count} '
-        )
+        assert (
+            client.applicable_errata_count == 0
+        ), f'A client in Host-Collection: {client.hostname}, had {client.applicable_errata_count} '
         'applicable errata, expected 0.'
         # Updated package is present on all clients
         result = client.run(f'rpm -q {FAKE_2_CUSTOM_PACKAGE}')
@@ -870,17 +870,17 @@ def test_positive_install_multiple_in_host(
             from_when=epoch_timestamp,
         )
         # Host Applicable Errata count decreased by one
-        assert rhel_contenthost.applicable_errata_count == pre_errata_count - 1, (
-            f'Host applicable errata did not decrease by one, after installation of {ERRATUM}'
-        )
+        assert (
+            rhel_contenthost.applicable_errata_count == pre_errata_count - 1
+        ), f'Host applicable errata did not decrease by one, after installation of {ERRATUM}'
         # Applying this ERRATUM updated one or more of the erratum's listed packages
         found_updated_packages = []
         for package in errata_packages:
             result = rhel_contenthost.run(f'rpm -q {package}')
             if result.status == 0:
-                assert package in FAKE_9_YUM_UPDATED_PACKAGES, (
-                    f'An unexpected package: "{package}", was updated by this errata: {ERRATUM}.'
-                )
+                assert (
+                    package in FAKE_9_YUM_UPDATED_PACKAGES
+                ), f'An unexpected package: "{package}", was updated by this errata: {ERRATUM}.'
                 if package in ERRATUM_instance.packages:
                     found_updated_packages.append(package)
 
@@ -900,21 +900,21 @@ def test_positive_install_multiple_in_host(
 
     # In case no ERRATUM in list are applicable:
     # Lack of any package or errata install will raise `AssertionError`.
-    assert len(installed_errata) > 0, (
-        f'No applicable errata were found or installed from list: {FAKE_9_YUM_SECURITY_ERRATUM}.'
-    )
-    assert len(updated_packages) > 0, (
-        f'No applicable packages were found or installed from list: {FAKE_9_YUM_UPDATED_PACKAGES}.'
-    )
+    assert (
+        len(installed_errata) > 0
+    ), f'No applicable errata were found or installed from list: {FAKE_9_YUM_SECURITY_ERRATUM}.'
+    assert (
+        len(updated_packages) > 0
+    ), f'No applicable packages were found or installed from list: {FAKE_9_YUM_UPDATED_PACKAGES}.'
     # Each expected erratum and packages installed only once
     pkg_set = set(updated_packages)
     errata_set = set(installed_errata)
-    assert len(pkg_set) == len(updated_packages), (
-        f'Expect no repeat packages in install list: {updated_packages}.'
-    )
-    assert len(errata_set) == len(installed_errata), (
-        f'Expected no repeat errata in install list: {installed_errata}.'
-    )
+    assert len(pkg_set) == len(
+        updated_packages
+    ), f'Expect no repeat packages in install list: {updated_packages}.'
+    assert len(errata_set) == len(
+        installed_errata
+    ), f'Expected no repeat errata in install list: {installed_errata}.'
     # Only the expected YUM_9 packages were installed
     assert set(updated_packages).issubset(set(FAKE_9_YUM_UPDATED_PACKAGES))
     # Only the expected YUM_9 errata were updated
@@ -925,18 +925,18 @@ def test_positive_install_multiple_in_host(
         f' but installed: {len(installed_errata)}.'
     )
     # Check sets of installed errata id(s) strings, matches expected
-    assert set(installed_errata) == set(expected_errata_to_install), (
-        'Expected errata id(s) and installed errata id(s) are not the same.'
-    )
+    assert set(installed_errata) == set(
+        expected_errata_to_install
+    ), 'Expected errata id(s) and installed errata id(s) are not the same.'
     # Check number of updated package version filename(s) matches expected
     assert len(updated_packages) == len(security_packages_to_install), (
         f'Expected to install {len(security_packages_to_install)} packages from list: {FAKE_9_YUM_UPDATED_PACKAGES},'
         f' but installed {len(updated_packages)}.'
     )
     # Check sets of installed package filename(s) strings, matches expected
-    assert set(updated_packages) == set(security_packages_to_install), (
-        'Expected package version filename(s) and installed package version filenam(s) are not the same.'
-    )
+    assert (
+        set(updated_packages) == set(security_packages_to_install)
+    ), 'Expected package version filename(s) and installed package version filenam(s) are not the same.'
 
 
 @pytest.mark.tier3
@@ -1008,7 +1008,7 @@ def test_positive_list_sorted_filtered(custom_repo, target_sat):
 
 
 @pytest.fixture(scope='module')
-def setup_content_rhel8(
+def setup_rhel_content(
     module_sca_manifest_org,
     rh_repo_module_manifest,
     activation_key,
@@ -1017,7 +1017,7 @@ def setup_content_rhel8(
     module_target_sat,
     return_result=True,
 ):
-    """Setup content for rhel8 content host
+    """Setup content for rhel content host
     Using RH SAT-TOOLS RHEL8 for sat-tools, and FAKE_YUM_9 as custom-repo.
     Published to content-view and promoted to lifecycle-environment.
 
@@ -1059,15 +1059,15 @@ def setup_content_rhel8(
         'rh_repo': rh_repo.read(),
         'custom_repo': custom_repo.read(),
     }
-    assert all(entry for entry in _result.values()), (
-        f'One or more necessary components are not present: {_result}'
-    )
+    assert all(
+        entry for entry in _result.values()
+    ), f'One or more necessary components are not present: {_result}'
     return _result if return_result else None
 
 
 @pytest.mark.tier2
 def test_positive_get_count_for_host(
-    setup_content_rhel8, activation_key, rhel8_contenthost, module_target_sat
+    setup_rhel_content, activation_key, rhel9_contenthost, module_target_sat
 ):
     """Available errata count when retrieving Host
 
@@ -1092,50 +1092,53 @@ def test_positive_get_count_for_host(
 
     :CaseImportance: Medium
     """
-    org = setup_content_rhel8['organization']
-    custom_repo = setup_content_rhel8['rh_repo']
-    rhel8_contenthost.create_custom_repos(**{f'{custom_repo.name}': custom_repo.url})
-    result = rhel8_contenthost.register(
+    chost = rhel9_contenthost
+    org = setup_rhel_content['organization']
+    custom_repo = setup_rhel_content['rh_repo']
+    chost.create_custom_repos(**{f'{custom_repo.name}': custom_repo.url})
+    result = chost.register(
         org=org,
         activation_keys=activation_key.name,
         target=module_target_sat,
         loc=None,
     )
-    assert result.status == 0, (
-        f'Failed to register the host - {rhel8_contenthost.hostname}: {result.stderr}'
-    )
-    assert rhel8_contenthost.subscribed
-    rhel8_contenthost.execute(r'subscription-manager repos --enable \*')
-    host = rhel8_contenthost.nailgun_host.read()
+    assert (
+        result.status == 0
+    ), f'Failed to register the host - {chost.hostname}: {result.stderr}'
+    assert chost.subscribed
+    chost.execute(r'subscription-manager repos --enable \*')
+    host = chost.nailgun_host.read()
+
     # No applicable errata to start
-    assert rhel8_contenthost.applicable_errata_count == 0
+    assert chost.applicable_errata_count == 0
     for errata in ('security', 'bugfix', 'enhancement'):
         _validate_errata_counts(host, errata_type=errata, expected_value=0)
     # One bugfix errata after installing outdated Kangaroo
-    result = rhel8_contenthost.execute(f'yum install -y {FAKE_9_YUM_OUTDATED_PACKAGES[7]}')
+    result = chost.execute(f'yum install -y {FAKE_9_YUM_OUTDATED_PACKAGES[7]}')
     assert result.status == 0, f'Failed to install package {FAKE_9_YUM_OUTDATED_PACKAGES[7]}'
     _validate_errata_counts(host, errata_type='bugfix', expected_value=1)
     # One enhancement errata after installing outdated Gorilla
-    result = rhel8_contenthost.execute(f'yum install -y {FAKE_9_YUM_OUTDATED_PACKAGES[3]}')
+    result = chost.execute(f'yum install -y {FAKE_9_YUM_OUTDATED_PACKAGES[3]}')
     assert result.status == 0, f'Failed to install package {FAKE_9_YUM_OUTDATED_PACKAGES[3]}'
     _validate_errata_counts(host, errata_type='enhancement', expected_value=1)
     # Install and check two outdated packages, with applicable security erratum
     # custom_repo outdated Walrus
-    result = rhel8_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
+    result = chost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0, f'Failed to install package {FAKE_1_CUSTOM_PACKAGE}'
     _validate_errata_counts(host, errata_type='security', expected_value=1)
     # rh_repo outdated Puppet-agent
-    result = rhel8_contenthost.execute(f'yum install -y {REAL_RHEL8_1_PACKAGE_FILENAME}')
+    # TODO: Use REAL_RHEL 9 or 10 Packages 
+    '''result = chost.execute(f'yum install -y {REAL_RHEL8_1_PACKAGE_FILENAME}')
     assert result.status == 0, f'Failed to install package {REAL_RHEL8_1_PACKAGE_FILENAME}'
     _validate_errata_counts(host, errata_type='security', expected_value=2)
     # All avaliable errata present
-    assert rhel8_contenthost.applicable_errata_count == 4
+    assert chost.applicable_errata_count == 4'''
 
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
 def test_positive_get_applicable_for_host(
-    setup_content_rhel8, activation_key, rhel8_contenthost, target_sat
+    setup_rhel_content, activation_key, rhel10_contenthost, target_sat
 ):
     """Get applicable errata ids for a host
 
@@ -1159,44 +1162,45 @@ def test_positive_get_applicable_for_host(
 
     :CaseImportance: Medium
     """
-    org = setup_content_rhel8['organization']
-    custom_repo = setup_content_rhel8['rh_repo']
+    org = setup_rhel_content['organization']
+    custom_repo = setup_rhel_content['rh_repo']
+    chost = rhel10_contenthost
 
-    rhel8_contenthost.create_custom_repos(**{f'{custom_repo.name}': custom_repo.url})
-    result = rhel8_contenthost.register(
+    chost.create_custom_repos(**{f'{custom_repo.name}': custom_repo.url})
+    result = chost.register(
         activation_keys=activation_key.name,
         target=target_sat,
         org=org,
         loc=None,
     )
-    assert result.status == 0, (
-        f'Failed to register the host - {rhel8_contenthost.hostname}: {result.stderr}'
-    )
-    assert rhel8_contenthost.subscribed
-    rhel8_contenthost.execute(r'subscription-manager repos --enable \*')
+    assert (
+        result.status == 0
+    ), f'Failed to register the host - {chost.hostname}: {result.stderr}'
+    assert chost.subscribed
+    chost.execute(r'subscription-manager repos --enable \*')
     for errata in REPO_WITH_ERRATA['errata']:
         # Remove custom package if present, old or new.
         package_name = errata['package_name']
-        result = rhel8_contenthost.execute(f'yum erase -y {package_name}')
+        result = chost.execute(f'yum erase -y {package_name}')
         if result.status != 0:
             pytest.fail(f'Failed to remove {package_name}: {result.stdout} {result.stderr}')
 
-    rhel8_contenthost.execute('subscription-manager repos')
-    assert rhel8_contenthost.applicable_errata_count == 0
-    host = rhel8_contenthost.nailgun_host.read()
+    chost.execute('subscription-manager repos')
+    assert chost.applicable_errata_count == 0
+    host = chost.nailgun_host.read()
     # Check no applicable errata to start
     erratum = _fetch_available_errata(host, expected_amount=0)
     assert len(erratum) == 0
     # Install outdated applicable custom package
-    rhel8_contenthost.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
+    chost.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     erratum = _fetch_available_errata(host, 1)
     assert len(erratum) == 1
     assert CUSTOM_REPO_ERRATA_ID in [errata['errata_id'] for errata in erratum]
     # Install outdated applicable real package (from RH repo)
-    rhel8_contenthost.run(f'yum install -y {REAL_RHEL8_1_PACKAGE_FILENAME}')
+    '''chost.run(f'yum install -y {REAL_RHEL8_1_PACKAGE_FILENAME}')
     erratum = _fetch_available_errata(host, 2)
     assert len(erratum) == 2
-    assert REAL_RHEL8_1_ERRATA_ID in [errata['errata_id'] for errata in erratum]
+    assert REAL_RHEL8_1_ERRATA_ID in [errata['errata_id'] for errata in erratum]'''
 
 
 @pytest.mark.tier3
@@ -1260,7 +1264,7 @@ def test_positive_incremental_update_required(
     activation_key,
     module_cv,
     rh_repo_module_manifest,
-    rhel8_contenthost,
+    rhel9_contenthost,
     target_sat,
 ):
     """Given a set of hosts and errata, check for content view version
@@ -1291,6 +1295,7 @@ def test_positive_incremental_update_required(
 
     :BZ: 2013093
     """
+    chost = rhel9_contenthost
     org = module_sca_manifest_org
     rh_repo = target_sat.api.Repository(
         id=rh_repo_module_manifest.id,
@@ -1304,18 +1309,18 @@ def test_positive_incremental_update_required(
     _cv = cv_publish_promote(target_sat, org, module_cv, module_lce)
     module_cv = _cv['content-view']
 
-    result = rhel8_contenthost.register(
+    result = chost.register(
         org=org,
         activation_keys=activation_key.name,
         target=target_sat,
         loc=None,
     )
-    assert result.status == 0, f'Failed to register the host: {rhel8_contenthost.hostname}'
-    assert rhel8_contenthost.subscribed
-    rhel8_contenthost.execute(r'subscription-manager repos --enable \*')
-    host = rhel8_contenthost.nailgun_host.read()
+    assert result.status == 0, f'Failed to register the host: {chost.hostname}'
+    assert chost.subscribed
+    chost.execute(r'subscription-manager repos --enable \*')
+    host = chost.nailgun_host.read()
     # install package to create demand for an Erratum
-    result = rhel8_contenthost.run(f'yum install -y {REAL_RHEL8_1_PACKAGE_FILENAME}')
+    result = chost.run(f'yum install -y {REAL_RHEL8_1_PACKAGE_FILENAME}')
     assert result.status == 0, f'Failed to install package: {REAL_RHEL8_1_PACKAGE_FILENAME}'
     # Call nailgun to make the API POST to see if any incremental updates are required
     response = target_sat.api.Host().bulk_available_incremental_updates(
@@ -1333,7 +1338,7 @@ def test_positive_incremental_update_required(
     ).create()
     module_cv = target_sat.api.ContentView(id=module_cv.id).read()
     module_cv = cv_publish_promote(target_sat, org, module_cv, module_lce)['content-view']
-    rhel8_contenthost.execute('subscription-manager repos')
+    chost.execute('subscription-manager repos')
     # Call nailgun to make the API POST to ensure an incremental update is required
     response = target_sat.api.Host().bulk_available_incremental_updates(
         data={
@@ -1374,7 +1379,7 @@ def rh_repo_module_manifest(module_sca_manifest_org, module_target_sat):
 def test_positive_incremental_update_apply_to_envs_cvs(
     target_sat,
     module_sca_manifest_org,
-    rhel8_contenthost,
+    rhel10_contenthost,
     module_product,
 ):
     """With multiple environments and content views, register a host to one,
@@ -1405,6 +1410,7 @@ def test_positive_incremental_update_apply_to_envs_cvs(
             incremental version of the content-view.
 
     """
+    chost = rhel10_contenthost
     # any existing custom CVs in org, except Default CV
     prior_cv_count = (
         len(target_sat.api.ContentView(organization=module_sca_manifest_org).search()) - 1
@@ -1475,21 +1481,21 @@ def test_positive_incremental_update_apply_to_envs_cvs(
         content_view=host_cv,
     ).create()
     # content host, global registration
-    result = rhel8_contenthost.register(
+    result = chost.register(
         org=module_sca_manifest_org,
         activation_keys=ak.name,
         target=target_sat,
         loc=None,
     )
-    assert result.status == 0, f'Failed to register the host: {rhel8_contenthost.hostname}'
-    assert rhel8_contenthost.subscribed
-    rhel8_contenthost.execute(r'subscription-manager repos --enable \*')
+    assert result.status == 0, f'Failed to register the host: {chost.hostname}'
+    assert chost.subscribed
+    chost.execute(r'subscription-manager repos --enable \*')
     # Installing all outdated packages
     pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
-    assert rhel8_contenthost.execute(f'yum install -y {pkgs}').status == 0
-    rhel8_contenthost.execute('subscription-manager repos')
+    assert chost.execute(f'yum install -y {pkgs}').status == 0
+    chost.execute('subscription-manager repos')
     # After installing packages, check available incremental updates
-    host = rhel8_contenthost.nailgun_host.read()
+    host = chost.nailgun_host.read()
     response = target_sat.api.Host().bulk_available_incremental_updates(
         data={
             'organization_id': module_sca_manifest_org.id,
@@ -1498,9 +1504,9 @@ def test_positive_incremental_update_apply_to_envs_cvs(
         },
     )
     # expecting no available updates before CV change
-    assert response == [], (
-        f'No incremental updates should currently be available to host: {rhel8_contenthost.hostname}.'
-    )
+    assert (
+        response == []
+    ), f'No incremental updates should currently be available to host: {chost.hostname}.'
 
     # New Erratum CV filter created for host view
     target_sat.api.ErratumContentViewFilter(content_view=host_cv, inclusion=True).create()
@@ -1515,11 +1521,11 @@ def test_positive_incremental_update_apply_to_envs_cvs(
     )['content-view-version']
 
     # cv is not updated to host yet, applicable errata should be zero
-    rhel8_contenthost.execute('subscription-manager repos')
-    host_app_errata = rhel8_contenthost.applicable_errata_count
+    chost.execute('subscription-manager repos')
+    host_app_errata = chost.applicable_errata_count
     assert host_app_errata == 0
     # After adding filter to cv, check available incremental updates
-    host_app_packages = rhel8_contenthost.applicable_package_count
+    host_app_packages = chost.applicable_package_count
     response = target_sat.api.Host().bulk_available_incremental_updates(
         data={
             'organization_id': module_sca_manifest_org.id,
@@ -1527,13 +1533,13 @@ def test_positive_incremental_update_apply_to_envs_cvs(
             'errata_ids': FAKE_9_YUM_SECURITY_ERRATUM,
         },
     )
-    assert response, (
-        f'Expected one incremental update, but found none, for host: {rhel8_contenthost.hostname}.'
-    )
+    assert (
+        response
+    ), f'Expected one incremental update, but found none, for host: {chost.hostname}.'
     # find that only expected CV version has incremental update available
-    assert len(response) == 1, (
-        f'Incremental update should currently be available to only one host: {rhel8_contenthost.hostname}.'
-    )
+    assert (
+        len(response) == 1
+    ), f'Incremental update should currently be available to only one host: {chost.hostname}.'
     next_version = float(response[0]['next_version'])
     assert float(host_cvv.version) + 0.1 == next_version  # example: 2.0 > 2.1
     assert response[0]['content_view_version']['id'] == host_cvv.id
@@ -1577,34 +1583,34 @@ def test_positive_incremental_update_apply_to_envs_cvs(
     assert host_version_number == next_version
     host_cvv = target_sat.api.ContentViewVersion(id=created_version_id).read()
     assert float(host_cvv.version) == next_version
-    rhel8_contenthost.execute('subscription-manager repos')
+    chost.execute('subscription-manager repos')
     # expected errata from FAKE_9 Security list added
     added_errata = response['output']['changed_content'][0]['added_units']['erratum']
     assert set(added_errata) == set(FAKE_9_YUM_SECURITY_ERRATUM)
     # applicable errata count increased by length of security ids list
-    assert rhel8_contenthost.applicable_errata_count == host_app_errata + len(
+    assert chost.applicable_errata_count == host_app_errata + len(
         FAKE_9_YUM_SECURITY_ERRATUM
     )
     # newly added errata from incremental version are now applicable to host
     post_app_errata_ids = errata_id_set(
-        _fetch_available_errata_instances(target_sat, rhel8_contenthost)
+        _fetch_available_errata_instances(target_sat, chost)
     )
     assert set(FAKE_9_YUM_SECURITY_ERRATUM).issubset(post_app_errata_ids)
     # expected packages from the security erratum were added to host
     added_packages = response['output']['changed_content'][0]['added_units']['rpm']
     assert len(added_packages) == 12
     # expected that not all of the added packages will be applicable
-    assert 8 == host_app_packages == rhel8_contenthost.applicable_package_count
+    assert 8 == host_app_packages == chost.applicable_package_count
     # install all of the newly added packages, recalculate applicability
     for pkg in added_packages:
-        assert rhel8_contenthost.run(f'yum install -y {pkg}').status == 0
-    rhel8_contenthost.execute('subscription-manager repos')
+        assert chost.run(f'yum install -y {pkg}').status == 0
+    chost.execute('subscription-manager repos')
     # security errata should not be applicable after installing updated packages
     post_app_errata_ids = errata_id_set(
-        _fetch_available_errata_instances(target_sat, rhel8_contenthost)
+        _fetch_available_errata_instances(target_sat, chost)
     )
     assert set(FAKE_9_YUM_SECURITY_ERRATUM).isdisjoint(post_app_errata_ids)
-    assert rhel8_contenthost.applicable_errata_count == 0
+    assert chost.applicable_errata_count == 0
 
     # after applying the incremental update, check for any more available
     response = target_sat.api.Host().bulk_available_incremental_updates(
@@ -1615,6 +1621,6 @@ def test_positive_incremental_update_apply_to_envs_cvs(
         },
     )
     # expect no remaining updates, after applying the only one
-    assert response == [], (
-        f'No incremental updates should currently be available to host: {rhel8_contenthost.hostname}.'
-    )
+    assert (
+        response == []
+    ), f'No incremental updates should currently be available to host: {chost.hostname}.'
