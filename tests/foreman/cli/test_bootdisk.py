@@ -19,7 +19,7 @@ from robottelo.config import settings
 from robottelo.constants import HTTPS_MEDIUM_URL
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 def test_positive_bootdisk_download_https(
     request,
     module_location,

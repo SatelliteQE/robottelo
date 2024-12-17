@@ -38,6 +38,10 @@ def module_provisioning_rhel_content(
     repo_names = []
     if int(rhel_ver) <= 7:
         repo_names.append(f'rhel{rhel_ver}')
+    # Provision using RHEL10 Beta repos until its GA
+    elif int(rhel_ver) == 10:
+        repo_names.append(f'rhel{rhel_ver}_bos_beta')
+        repo_names.append(f'rhel{rhel_ver}_aps_beta')
     else:
         repo_names.append(f'rhel{rhel_ver}_bos')
         repo_names.append(f'rhel{rhel_ver}_aps')
