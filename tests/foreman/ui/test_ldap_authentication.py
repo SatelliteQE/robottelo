@@ -1187,8 +1187,8 @@ def test_positive_group_sync_open_ldap_authsource(
         )
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
         session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
-    user_name = open_ldap_data.open_ldap_user
-    with target_sat.ui_session(test_name, user_name, open_ldap_data.password) as session:
+    user_name = open_ldap_data['ldap_user_name']
+    with target_sat.ui_session(test_name, user_name, open_ldap_data['ldap_user_passwd']) as session:
         with pytest.raises(NavigationTriesExceeded):
             session.architecture.search('')
         session.activationkey.create({'name': ak_name})
