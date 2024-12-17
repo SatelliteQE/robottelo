@@ -401,6 +401,7 @@ class TestAnsibleREX:
         self,
         target_sat,
         module_org,
+        rhel10_contenthost,
         rhel9_contenthost,
         rhel8_contenthost,
         rhel7_contenthost,
@@ -426,7 +427,7 @@ class TestAnsibleREX:
 
         :BZ: 2167396, 2190464, 2184117
         """
-        hosts = [rhel9_contenthost, rhel8_contenthost, rhel7_contenthost]
+        hosts = [rhel10_contenthost, rhel9_contenthost, rhel8_contenthost, rhel7_contenthost]
         SELECTED_ROLE = 'RedHatInsights.insights-client'
         for host in hosts:
             result = host.register(
@@ -474,7 +475,7 @@ class TestAnsibleREX:
         assert result.status_label == 'failed'
 
     @pytest.mark.no_containers
-    @pytest.mark.rhel_ver_match('[^6]')
+    @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')  # all major versions, excluding fips
     def test_positive_ansible_localhost_job_on_host(
         self, target_sat, module_org, module_location, module_ak_with_synced_repo, rhel_contenthost
     ):

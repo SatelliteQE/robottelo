@@ -804,7 +804,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.e2e
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
-    @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos'])
+    @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos', 'rhel10_bos_beta'])
     def test_positive_sync_kickstart_repo(
         self, target_sat, module_capsule_configured, function_sca_manifest_org, distro
     ):
@@ -1450,7 +1450,7 @@ class TestCapsuleContentManagement:
         'repos_collection',
         [
             {
-                'distro': 'rhel9',
+                'distro': 'rhel10',
                 'YumRepository': {'url': settings.repos.yum_0.url},
             }
         ],
