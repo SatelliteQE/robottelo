@@ -14,6 +14,7 @@
 
 from datetime import datetime, timedelta
 
+from navmazing import NavigationTriesExceeded
 import pytest
 from wait_for import wait_for
 
@@ -354,3 +355,29 @@ def test_rhcloud_inventory_without_manifest(session, module_org, target_sat):
         f'Skipping organization {module_org.name}, no candlepin certificate defined.'
         in inventory_data['uploading']['terminal']
     )
+
+
+@pytest.mark.parametrize("module_target_sat_insights", [False], ids=["local"], indirect=True)
+def test_rhcloud_inventory_disabled_local_insights(
+    session, module_target_sat_insights, rhcloud_manifest_org
+):
+    """Verify that the 'Configure > Insights > Inventory Upload' navigation item is not available
+    when the Satellite is configured to use a local advisor engine.
+
+    :id: 84023ae9-7bc4-4332-9aaf-749d6c48c2d2
+
+    :steps:
+        1. Configure Satellite to use local Insights advisor engine.
+        3. Navigate to the Overview page.
+
+    :expectedresults:
+        1. "Configure > Insights > Inventory Upload" does not exist.
+
+    :CaseImportance: Medium
+
+    :CaseAutomation: Automated
+    """
+    with session:
+        session.organization.select(org_name=rhcloud_manifest_org.name)
+        with pytest.raises(NavigationTriesExceeded):
+            session.cloudinventory.read()

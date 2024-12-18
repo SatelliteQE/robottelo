@@ -2419,6 +2419,11 @@ class Satellite(Capsule, SatelliteMixins):
             max_tries=10,
         )
 
+    @property
+    def local_advisor_enabled(self):
+        """Return boolean indicating whether local Insights advisor engine is enabled."""
+        return not self.api.RHCloud().advisor_engine_config()['use_local_advisor_engine']
+
 
 class SSOHost(Host):
     """Class for SSO functions and setup"""
