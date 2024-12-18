@@ -54,6 +54,7 @@ def ad_data():
         if version in supported_server_versions:
             ad_server_details = {
                 'ldap_user_name': settings.ldap.username,
+                'ldap_user_shown_name': settings.ldap.user_shown_name,
                 'ldap_user_cn': settings.ldap.username,
                 'ldap_user_passwd': settings.ldap.password,
                 'base_dn': settings.ldap.basedn,
@@ -78,6 +79,7 @@ def ad_data():
 def ipa_data():
     return {
         'ldap_user_name': settings.ipa.user,
+        'ldap_user_shown_name': settings.ipa.user_shown_name,
         'ldap_user_cn': settings.ipa.username,
         'ipa_otp_username': settings.ipa.otp_user,
         'ldap_user_passwd': settings.ipa.password,
@@ -95,6 +97,7 @@ def ipa_data():
 def open_ldap_data():
     return {
         'ldap_user_name': settings.open_ldap.open_ldap_user,
+        'ldap_user_shown_name': settings.open_ldap.user_shown_name,
         'ldap_user_cn': settings.open_ldap.username,
         'ldap_hostname': settings.open_ldap.hostname,
         'ldap_user_passwd': settings.open_ldap.password,
