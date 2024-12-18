@@ -43,7 +43,7 @@ def rhcloud_registered_hosts(
 
 @pytest.fixture
 def rhel_insights_vm(
-    module_target_sat, rhcloud_activation_key, rhcloud_manifest_org, rhel_contenthost
+    request, module_target_sat, rhcloud_activation_key, rhcloud_manifest_org, rhel_contenthost
 ):
     """A function-level fixture to create rhel content host registered with insights."""
     rhel_contenthost.configure_rex(
@@ -55,10 +55,13 @@ def rhel_insights_vm(
         org=rhcloud_manifest_org,
         rhel_distro=f"rhel{rhel_contenthost.os_version.major}",
     )
-    # Generate report
-    module_target_sat.generate_inventory_report(rhcloud_manifest_org)
-    # Sync inventory status
-    module_target_sat.sync_inventory_status(rhcloud_manifest_org)
+
+    hosted_insights = getattr(request, 'param', True)
+    if hosted_insights:
+        # Generate report
+        module_target_sat.generate_inventory_report(rhcloud_manifest_org)
+        # Sync inventory status
+        module_target_sat.sync_inventory_status(rhcloud_manifest_org)
     return rhel_contenthost
 
 
