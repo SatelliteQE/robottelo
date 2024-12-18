@@ -289,7 +289,8 @@ def auth_data(request, ad_data, ipa_data):
 @pytest.fixture(scope='module')
 def enroll_configure_rhsso_external_auth(module_target_sat):
     """Enroll the Satellite6 Server to an RHSSO Server."""
-    module_target_sat.register_to_cdn()
+    if settings.robottelo.rhel_source == "ga":
+        module_target_sat.register_to_cdn()
     # keycloak-httpd-client-install needs lxml but it's not an rpm dependency + is not documented
     assert (
         module_target_sat.execute(
