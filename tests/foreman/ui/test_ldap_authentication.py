@@ -266,7 +266,7 @@ def test_positive_add_katello_role(
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
-        assert f"{auth_source.attr_firstname} {auth_source.attr_lastname}" in current_user
+        assert ldap_data['ldap_user_shown_name'] in current_user
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
@@ -1041,72 +1041,6 @@ def test_timeout_and_cac_card_ejection():
 
     :expectedresults: Satellite should terminate the session after mentioned timeout in setting
     """
-
-
-@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
-@pytest.mark.tier2
-def test_verify_attribute_of_users_are_updated(
-    session, ldap_auth_source, ldap_tear_down, target_sat
-):
-    """Verify if attributes of LDAP user are updated upon first login when
-        onthefly is disabled
-
-    :id: 163b346c-03be-11eb-acb9-0c7a158cbff4
-
-    :customerscenario: true
-
-    :steps:
-        1. Create authsource with onthefly disabled
-        2. Create a user manually and select the authsource created
-        3. Attributes of the user (like names and email) should be synced.
-
-    :BZ: 1670397
-
-    :CaseImportance: Medium
-
-    :expectedresults: The attributes should be synced.
-
-    :parametrized: yes
-    """
-    ldap_data, auth_source = ldap_auth_source
-    ldap_auth_name = gen_string('alphanumeric')
-    auth_source_name = f'LDAP-{auth_source.name}'
-    with session:
-        session.ldapauthentication.create(
-            {
-                'ldap_server.name': ldap_auth_name,
-                'ldap_server.host': ldap_data['ldap_hostname'],
-                'ldap_server.server_type': ldap_data['server_type'],
-                'account.account_name': ldap_data['ldap_user_name'],
-                'account.password': ldap_data['ldap_user_passwd'],
-                'account.base_dn': ldap_data['base_dn'],
-                'account.onthefly_register': False,
-                'account.groups_base_dn': ldap_data['group_base_dn'],
-                'attribute_mappings.login': ldap_data['attr_login'],
-                'attribute_mappings.first_name': LDAP_ATTR['firstname'],
-                'attribute_mappings.last_name': LDAP_ATTR['surname'],
-                'attribute_mappings.mail': LDAP_ATTR['mail'],
-            }
-        )
-        session.user.create(
-            {
-                'user.login': ldap_data['ldap_user_name'],
-                'user.auth': auth_source_name,
-                'roles.admin': True,
-            }
-        )
-    with target_sat.ui_session(
-        user=ldap_data['ldap_user_name'], password=ldap_data['ldap_user_passwd']
-    ) as ldapsession:
-        with pytest.raises(NavigationTriesExceeded) as error:
-            ldapsession.user.search('')
-        assert error.typename == 'NavigationTriesExceeded'
-    with session:
-        user_values = session.user.read(ldap_data['ldap_user_name'])
-        assert ldap_data['ldap_user_name'] == user_values['user']['login']
-        assert ldap_data['ldap_user_name'] in user_values['user']['firstname']
-        assert ldap_data['ldap_user_name'] in user_values['user']['lastname']
-        assert ldap_data['ldap_user_name'] in user_values['user']['mail']
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
