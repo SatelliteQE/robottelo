@@ -124,7 +124,7 @@ def test_positive_bootdisk_subnet_download(module_location, module_org, module_t
             'name': name,
             'mask': mask,
             'network': network,
-            'domain-ids': [domain['id']],
+            'domain-ids': [domain.id],
             'gateway': gateway,
             'ipam': SUBNET_IPAM_TYPES['dhcp'],
             'tftp-id': capsule.id,
@@ -134,6 +134,6 @@ def test_positive_bootdisk_subnet_download(module_location, module_org, module_t
     )
     # Check if subnet disk image bootdisk can be downloaded.
     bootdisk = module_target_sat.cli.Bootdisk.subnet(
-        {'subnet-id': subnet['id'], 'file': f'{file_name}'}
+        {'subnet-id': subnet.id, 'file': file_name}
     )
     assert f'Successfully downloaded subnet disk image to {file_name}' in bootdisk['message']
