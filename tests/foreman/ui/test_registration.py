@@ -161,6 +161,8 @@ def test_positive_global_registration_end_to_end(
 
     :parametrized: yes
     """
+    # Adding IPv6 proxy for IPv6 communication
+    rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
     # make sure global parameters for rex and insights are set to true
     insights_cp = (
         module_target_sat.api.CommonParameter()
@@ -204,6 +206,7 @@ def test_positive_global_registration_end_to_end(
     ]
     for pair in expected_pairs:
         assert pair in cmd
+
     # rhel repo required for insights client installation,
     # syncing it to the satellite would take too long
     rhelver = rhel_contenthost.os_version.major
@@ -387,6 +390,8 @@ def test_global_registration_with_gpg_repo_and_default_package(
 
     :parametrized: yes
     """
+    # Adding IPv6 proxy for IPv6 communication
+    rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
     client = rhel_contenthost
     repo_name = 'foreman_register'
     repo_url = settings.repos.gr_yum_repo.url
@@ -752,6 +757,8 @@ def test_subscription_manager_install_from_repository(
 
     :BZ: 1923320
     """
+    # Adding IPv6 proxy for IPv6 communication
+    rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
     client = rhel_contenthost
     repo_name = 'foreman_register'
     rhel_ver = rhel_contenthost.os_version.major

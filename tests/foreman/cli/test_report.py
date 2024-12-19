@@ -85,6 +85,8 @@ def test_positive_install_configure_host(
     """
     puppet_infra_host = [session_puppet_enabled_sat, session_puppet_enabled_capsule]
     for client, puppet_proxy in zip(content_hosts, puppet_infra_host, strict=True):
+        # Adding IPv6 proxy for IPv6 communication
+        client.enable_ipv6_dnf_and_rhsm_proxy()
         client.configure_puppet(
             proxy_hostname=puppet_proxy.hostname, install_puppet_agent7=(client_repo_ver == '1')
         )
@@ -137,6 +139,8 @@ def test_positive_run_puppet_agent_generate_report_when_no_message(
     :parametrized: yes
     """
     sat = session_puppet_enabled_sat
+    # Adding IPv6 proxy for IPv6 communication
+    rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
     client = rhel_contenthost
     client.configure_puppet(
         proxy_hostname=sat.hostname,

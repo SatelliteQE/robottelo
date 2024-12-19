@@ -129,6 +129,8 @@ def test_upgrade_katello_ca_consumer_rpm(
 
     :BZ: 1791503
     """
+    # Adding IPv6 proxy for IPv6 communication
+    rhel7_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
     consumer_cert_name = f'katello-ca-consumer-{target_sat.hostname}'
     consumer_cert_src = f'{consumer_cert_name}-1.0-1.src.rpm'
     new_consumer_cert_rpm = f'{consumer_cert_name}-1.0-2.noarch.rpm'
