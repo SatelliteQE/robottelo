@@ -42,7 +42,7 @@ def test_leapp_preupgrade_report(
 
     :BZ: 2168494
 
-    :Verifies: SAT-15889
+    :Verifies: SAT-15889, SAT-28216
 
     :customerscenario: true
 
@@ -69,6 +69,9 @@ def test_leapp_preupgrade_report(
             }
         )
         session.jobinvocation.wait_job_invocation_state(
+            entity_name='Upgradeability check for rhel host', host_name=hostname
+        )
+        session.jobinvocation.leapp_fix_inhibitor(
             entity_name='Upgradeability check for rhel host', host_name=hostname
         )
         status = session.jobinvocation.read(
