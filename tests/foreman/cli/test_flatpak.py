@@ -16,7 +16,7 @@ import pytest
 import requests
 
 from robottelo.config import settings
-from robottelo.constants import FLATPAK_REMOTES
+from robottelo.constants import FLATPAK_REMOTES, PULPCORE_FLATPAK_ENDPOINT
 from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import gen_string
 
@@ -205,3 +205,19 @@ def test_scan_flatpak_remote(target_sat, function_org, function_product, remote)
 
     # 3. Compare the scanned repos match the repos in the remote index.
     assert sorted(scanned_repo_names) == sorted(index_repo_names)
+
+
+@pytest.mark.upgrade
+def test_flatpak_pulpcore_enpoint(target_sat):
+    """Ensure the Satellite's flatpak pulpcore endpoint is up after install or upgrade.
+
+    :id: 3593ac46-4e5d-495e-95eb-d9609cb46a15
+
+    :steps:
+        1. Hit Satellite's pulpcore_registry endpoint.
+
+    :expectedresults:
+        1. HTTP 200
+    """
+    rq = requests.get(PULPCORE_FLATPAK_ENDPOINT.format(target_sat.hostname), verify=False)
+    assert rq.ok, f'Expected 200 but got {rq.status_code} from pulpcore registry index'
