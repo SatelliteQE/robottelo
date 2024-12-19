@@ -42,6 +42,7 @@ def rh_sso_hammer_auth_setup(module_target_sat, default_sso_host, request):
     default_sso_host.update_client_configuration(client_config)
 
 
+@pytest.mark.pit_server
 def test_rhsso_login_using_hammer(
     module_target_sat,
     enable_external_auth_rhsso,
