@@ -14,10 +14,8 @@
 
 import pytest
 
-from robottelo.config import settings
 
-
-@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.rhel_ver_match('N-1')
 def test_positive_upload_host_facts(
     module_target_sat,
     rhel_contenthost,
