@@ -80,7 +80,7 @@ def test_positive_vmware_cr_end_to_end(target_sat, module_org, module_location, 
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.parametrize('provision_method', ['build', 'bootdisk'])
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 @pytest.mark.tier3
 def test_positive_provision_end_to_end(
     request,
