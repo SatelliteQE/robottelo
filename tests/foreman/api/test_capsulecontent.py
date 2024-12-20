@@ -1434,13 +1434,13 @@ class TestCapsuleContentManagement:
         'repos_collection',
         [
             {
-                'distro': 'rhel9',
+                'distro': 'rhel10',
                 'YumRepository': {'url': settings.repos.yum_0.url},
             }
         ],
         indirect=True,
     )
-    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    @pytest.mark.rhel_ver_match('N-1')
     def test_complete_sync_fixes_metadata(
         self,
         module_target_sat,

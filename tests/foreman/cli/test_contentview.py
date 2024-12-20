@@ -1910,8 +1910,9 @@ class TestContentView:
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
+    @pytest.mark.rhel_ver_match('N-1')
     def test_positive_sub_host_with_restricted_user_perm_at_custom_loc(
-        self, module_org, rhel7_contenthost, target_sat
+        self, module_org, rhel_contenthost, target_sat
     ):
         """Attempt to subscribe a host with restricted user permissions and
         custom location.
@@ -2064,16 +2065,17 @@ class TestContentView:
             }
         )
         # create a client host and register it with the created user
-        rhel7_contenthost.register(org, loc, ak_name, target_sat)
-        assert rhel7_contenthost.subscribed
+        rhel_contenthost.register(org, loc, ak_name, target_sat)
+        assert rhel_contenthost.subscribed
         # check that the client host exist in the system
         org_hosts = target_sat.cli.Host.list({'organization-id': org['id']})
         assert len(org_hosts) == 1
-        assert org_hosts[0]['name'] == rhel7_contenthost.hostname
+        assert org_hosts[0]['name'] == rhel_contenthost.hostname
 
     @pytest.mark.tier3
+    @pytest.mark.rhel_ver_match('N-1')
     def test_positive_sub_host_with_restricted_user_perm_at_default_loc(
-        self, module_org, rhel7_contenthost, target_sat
+        self, module_org, rhel_contenthost, target_sat
     ):
         """Attempt to subscribe a host with restricted user permissions and
         default location.
@@ -2213,12 +2215,12 @@ class TestContentView:
         assert content_view['name'] == user_content_view['name']
         ak = target_sat.api.ActivationKey(content_view=user_content_view, organization=org).create()
         # create a client host and register it with the created user
-        rhel7_contenthost.register(org, loc, ak.name, target_sat)
-        assert rhel7_contenthost.subscribed
+        rhel_contenthost.register(org, loc, ak.name, target_sat)
+        assert rhel_contenthost.subscribed
         # check that the client host exist in the system
         org_hosts = target_sat.cli.Host.list({'organization-id': org['id']})
         assert len(org_hosts) == 1
-        assert org_hosts[0]['name'] == rhel7_contenthost.hostname
+        assert org_hosts[0]['name'] == rhel_contenthost.hostname
 
     @pytest.mark.tier1
     def test_positive_clone_by_name(self, module_org, module_target_sat):
