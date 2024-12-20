@@ -65,7 +65,7 @@ def assert_host_logs(channel, pattern):
 @pytest.mark.upgrade
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.on_premises_provisioning
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 def test_rhel_pxe_provisioning(
     request,
     module_provisioning_sat,
@@ -198,7 +198,7 @@ def test_rhel_pxe_provisioning(
 @pytest.mark.upgrade
 @pytest.mark.parametrize('pxe_loader', ['ipxe'], indirect=True)
 @pytest.mark.on_premises_provisioning
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 def test_rhel_ipxe_provisioning(
     request,
     module_provisioning_sat,
@@ -328,7 +328,7 @@ def test_rhel_ipxe_provisioning(
 @pytest.mark.upgrade
 @pytest.mark.parametrize('pxe_loader', ['http_uefi'], indirect=True)
 @pytest.mark.on_premises_provisioning
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 def test_rhel_httpboot_provisioning(
     request,
     module_provisioning_sat,
@@ -456,7 +456,7 @@ def test_rhel_httpboot_provisioning(
 
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.on_premises_provisioning
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 def test_rhel_pxe_provisioning_fips_enabled(
     request,
     module_provisioning_sat,
@@ -598,7 +598,7 @@ def test_rhel_pxe_provisioning_fips_enabled(
 @pytest.mark.upgrade
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('pxe_loader', ['secureboot'], indirect=True)
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 def test_rhel_pxe_provisioning_secureboot_enabled(
     request,
     module_provisioning_sat,
@@ -704,7 +704,7 @@ def test_rhel_pxe_provisioning_secureboot_enabled(
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.skip(reason='Skipping till we have destructive support')
 @pytest.mark.on_premises_provisioning
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 def test_capsule_pxe_provisioning(
     request,
     capsule_provisioning_sat,
