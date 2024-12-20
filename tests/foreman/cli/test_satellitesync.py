@@ -28,6 +28,7 @@ from robottelo.constants import (
     DEFAULT_CV,
     ENVIRONMENT,
     EXPORT_LIBRARY_NAME,
+    FLATPAK_REMOTES,
     PULP_EXPORT_DIR,
     PULP_IMPORT_DIR,
     REPO_TYPE,
@@ -190,12 +191,11 @@ def function_synced_large_file_repo(target_sat, function_org, function_product):
 
 
 @pytest.fixture
-def function_synced_docker_repo(target_sat, function_org):
-    product = target_sat.cli_factory.make_product({'organization-id': function_org.id})
+def function_synced_docker_repo(target_sat, function_org, function_product):
     repo = target_sat.cli_factory.make_repository(
         {
             'organization-id': function_org.id,
-            'product-id': product['id'],
+            'product-id': function_product.id,
             'content-type': REPO_TYPE['docker'],
             'download-policy': 'immediate',
             'url': CONTAINER_REGISTRY_HUB,
@@ -204,6 +204,31 @@ def function_synced_docker_repo(target_sat, function_org):
     )
     target_sat.cli.Repository.synchronize({'id': repo['id']})
     return repo
+
+
+@pytest.fixture
+def function_synced_flatpak_repo(target_sat, function_org, function_product):
+    fr = target_sat.cli.FlatpakRemote().create(
+        {
+            'organization-id': function_org.id,
+            'url': FLATPAK_REMOTES['Fedora']['url'],
+            'name': gen_string('alpha'),
+        }
+    )
+    target_sat.cli.FlatpakRemote().scan({'id': fr['id']})
+    repos = target_sat.cli.FlatpakRemote().repository_list({'flatpak-remote-id': fr['id']})
+    assert len(repos), 'No repositories scanned'
+    repo_name = 'firefox'
+    remote_repo = next(r for r in repos if r['name'] == repo_name)
+    target_sat.cli.FlatpakRemote().repository_mirror(
+        {'flatpak-remote-id': fr['id'], 'id': remote_repo['id'], 'product-id': function_product.id}
+    )
+    local_repo = target_sat.cli.Repository.list(
+        {'product-id': function_product.id, 'name': repo_name}
+    )[0]
+    target_sat.cli.Repository.update({'id': local_repo['id'], 'download-policy': 'immediate'})
+    target_sat.cli.Repository.synchronize({'id': local_repo['id']})
+    return target_sat.cli.Repository.info({'id': local_repo['id']})
 
 
 @pytest.fixture
@@ -1313,7 +1338,7 @@ class TestContentViewSync:
         assert 'content_view not found' in error.value.message, 'The imported CV should be gone'
 
     @pytest.mark.tier3
-    def test_postive_export_cv_with_mixed_content_repos(
+    def test_postive_export_import_cv_with_mixed_content_repos(
         self,
         export_import_cleanup_function,
         target_sat,
@@ -1321,27 +1346,32 @@ class TestContentViewSync:
         function_synced_custom_repo,
         function_synced_file_repo,
         function_synced_docker_repo,
+        function_synced_flatpak_repo,
         function_synced_AC_repo,
+        function_import_org,
     ):
-        """Exporting CV version having yum and non-yum(docker) is successful
+        """Export and import CV with mixed content types in the exportable format.
 
         :id: ffcdbbc6-f787-4978-80a7-4b44c389bf49
 
         :setup:
-            1. Synced repositories of each content type: yum, file, docker, AC
+            1. Synced repositories of each content type: yum, file, docker, flatpak, AC
 
         :steps:
             1. Create CV, add all setup repos and publish.
             2. Export CV version contents to a directory.
+            3. Import the exported CV, check the content.
 
         :expectedresults:
             1. Export succeeds and content is exported.
+            2. Import succeeds, content is imported and matches the export.
 
         :BZ: 1726457
 
         :customerscenario: true
 
         """
+        # Create CV, add all setup repos and publish.
         content_view = target_sat.cli_factory.make_content_view(
             {'organization-id': function_org.id}
         )
@@ -1349,6 +1379,7 @@ class TestContentViewSync:
             function_synced_custom_repo,
             function_synced_file_repo,
             function_synced_docker_repo,
+            function_synced_flatpak_repo,
             function_synced_AC_repo,
         ]
         for repo in repos:
@@ -1366,19 +1397,66 @@ class TestContentViewSync:
             {'id': exporting_cv['versions'][0]['id']}
         )
         assert len(exporting_cvv['repositories']) == len(repos)
-        # check packages
         exported_packages = target_sat.cli.Package.list(
             {'content-view-version-id': exporting_cvv['id']}
         )
-        assert len(exported_packages)
-        # Verify export directory is empty
+        exported_files = target_sat.cli.File.list({'content-view-version-id': exporting_cvv['id']})
+
+        # Export CV version contents in exportable format.
         assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
-        # Export cv
-        target_sat.cli.ContentExport.completeVersion(
+        export = target_sat.cli.ContentExport.completeVersion(
             {'id': exporting_cvv['id'], 'organization-id': function_org.id}
         )
-        # Verify export directory is not empty
         assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) != ''
+
+        # Import the exported CV, check the content.
+        import_path = target_sat.move_pulp_archive(function_org, export['message'])
+        target_sat.cli.ContentImport.version(
+            {'organization-id': function_import_org.id, 'path': import_path}
+        )
+        importing_cv = target_sat.cli.ContentView.info(
+            {'name': exporting_cv['name'], 'organization-id': function_import_org.id}
+        )
+        assert all(
+            [exporting_cv[key] == importing_cv[key] for key in ['label', 'name']]
+        ), 'Imported CV name/label does not match the export'
+        assert (
+            len(exporting_cv['versions']) == len(importing_cv['versions']) == 1
+        ), 'CV versions count does not match'
+
+        importing_cvv = target_sat.cli.ContentView.version_info(
+            {'id': importing_cv['versions'][0]['id']}
+        )
+        assert (
+            len(exporting_cvv['repositories']) == len(importing_cvv['repositories']) == len(repos)
+        ), 'Repositories count does not match'
+
+        imported_packages = target_sat.cli.Package.list(
+            {'content-view-version-id': importing_cvv['id']}
+        )
+        imported_files = target_sat.cli.File.list({'content-view-version-id': importing_cvv['id']})
+        assert exported_packages == imported_packages, 'Imported RPMs do not match the export'
+        assert exported_files == imported_files, 'Imported Files do not match the export'
+
+        for repo in repos:
+            exp = target_sat.cli.Repository.info(
+                {
+                    'organization-id': function_org.id,
+                    'product': repo['product']['name'],
+                    'name': repo['name'],
+                }
+            )
+            imp = target_sat.cli.Repository.info(
+                {
+                    'organization-id': function_import_org.id,
+                    'product': repo['product']['name'],
+                    'name': repo['name'],
+                }
+            )
+            for key in ['label', 'description', 'content-type', 'content-counts']:
+                assert (
+                    exp[key] == imp[key]
+                ), f'"{key}" of the {imp["content-type"]} repo differs: {exp[key]} ≠ {imp[key]}'
 
     @pytest.mark.tier3
     def test_postive_export_import_cv_with_mixed_content_syncable(
