@@ -147,6 +147,8 @@ def test_positive_update_packages_registration(
 
     :expectedresults: Package update is successful on host post registration.
     """
+    # Adding IPv6 proxy for IPv6 communication
+    rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
     org = module_sca_manifest_org
     result = rhel_contenthost.api_register(
         module_target_sat,

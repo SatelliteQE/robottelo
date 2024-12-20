@@ -86,6 +86,7 @@ class TestAnsibleCfgMgmt:
         SELECTED_ROLE_1 = 'theforeman.foreman_scap_client'
         SELECTED_VAR = gen_string('alpha')
         proxy_id = target_sat.nailgun_smart_proxy.id
+        rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
         # disable batch tasks to test BZ#2154184
         target_sat.cli.Settings.set({'name': 'foreman_tasks_proxy_batch_trigger', 'value': 'false'})
         result = rhel_contenthost.register(
@@ -593,6 +594,8 @@ class TestAnsibleREX:
         :expectedresults: Ansible collection can be installed on content host via REX.
         """
         client = rhel_contenthost
+        # Adding IPv6 proxy for IPv6 communication
+        client.enable_ipv6_dnf_and_rhsm_proxy()
         # Enable Ansible repository and Install ansible or ansible-core package
         client.register(module_org, None, module_ak_with_cv.name, target_sat)
         rhel_repo_urls = getattr(settings.repos, f'rhel{client.os_version.major}_os', None)

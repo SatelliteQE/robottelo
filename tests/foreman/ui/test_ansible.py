@@ -592,6 +592,7 @@ class TestAnsibleREX:
             2. Job report should be created.
         """
         SELECTED_ROLE = 'RedHatInsights.insights-client'
+        rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
         if rhel_contenthost.os_version.major <= 7:
             rhel_contenthost.create_custom_repos(rhel7=settings.repos.rhel7_os)
             assert rhel_contenthost.execute('yum install -y insights-client').status == 0
@@ -787,6 +788,8 @@ class TestAnsibleREX:
 
         :expectedresults: The Ansible collection is successfully installed on the host
         """
+        # Adding IPv6 proxy for IPv6 communication
+        rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
         client = rhel_contenthost
         # Enable Ansible repository and Install ansible or ansible-core package
         client.register(module_org, None, module_ak_with_cv.name, target_sat)
