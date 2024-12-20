@@ -147,6 +147,7 @@ class ContentHost(Host, ContentHostMixins):
         self._satellite = kwargs.get('satellite')
         self.ipv6 = kwargs.get('ipv6', settings.server.is_ipv6)
         self.blank = kwargs.get('blank', False)
+        self.fips = kwargs.get('fips', False)
         super().__init__(hostname=hostname, **kwargs)
 
     @classmethod
@@ -336,10 +337,17 @@ class ContentHost(Host, ContentHostMixins):
             with contextlib.suppress(KeyError):  # ignore if property is not cached
                 del self.__dict__[name]
 
+    def enable_fips(self):
+        logger.debug(f'Enabling FIPS on the host {self.name}')
+        Broker().execute(workflow='enable-fips', target_host=self.name)
+        logger.debug(f'Enabling FIPS on the host {self.name} finished.')
+
     def setup(self):
         logger.debug('START: setting up host %s', self)
         if not self.blank:
             self.reset_rhsm()
+        if self.fips:
+            self.enable_fips()
 
         logger.debug('END: setting up host %s', self)
 
