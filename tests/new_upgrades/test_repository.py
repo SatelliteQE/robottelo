@@ -29,7 +29,7 @@ from robottelo.utils.shared_resource import SharedResource
 
 
 @pytest.fixture
-def custom_repo_check_setup(sat_upgrade_chost, content_upgrade_shared_satellite, upgrade_action):
+def custom_repo_check_setup(rhel9_contenthost, content_upgrade_shared_satellite, upgrade_action):
     """This is pre-upgrade scenario test to verify if we can create a
         custom repository and consume it via content host.
 
@@ -53,7 +53,7 @@ def custom_repo_check_setup(sat_upgrade_chost, content_upgrade_shared_satellite,
         test_data = Box(
             {
                 'target_sat': target_sat,
-                'rhel_client': sat_upgrade_chost,
+                'rhel_client': rhel9_contenthost,
                 'lce': None,
                 'repo': None,
                 'content_view': None,
@@ -85,11 +85,11 @@ def custom_repo_check_setup(sat_upgrade_chost, content_upgrade_shared_satellite,
                 query={'search': f'name={product.name}'}
             )[0]
             ak.add_subscriptions(data={'subscription_id': subscription.id})
-        sat_upgrade_chost.api_register(
+        rhel9_contenthost.api_register(
             target_sat, organization=org, activation_keys=[ak.name], location=None
         )
-        sat_upgrade_chost.execute('subscription-manager repos --enable=* && yum clean all')
-        result = sat_upgrade_chost.execute(f'yum install -y {FAKE_0_CUSTOM_PACKAGE_NAME}')
+        rhel9_contenthost.execute('subscription-manager repos --enable=* && yum clean all')
+        result = rhel9_contenthost.execute(f'yum install -y {FAKE_0_CUSTOM_PACKAGE_NAME}')
         assert result.status == 0
         sat_upgrade.ready()
         target_sat._session = None
