@@ -325,3 +325,35 @@ def test_positive_delete_cv_promoted_to_multi_env(
         assert cv['name'] not in str(lce_values['content_views']['resources'])
         library_values = session.lifecycleenvironment.read('Library')
         assert cv['name'] not in str(library_values['content_views']['resources'])
+
+
+@pytest.mark.upgrade
+@pytest.mark.tier2
+def test_cv_publish_warning(session, target_sat, function_sca_manifest_org, module_lce):
+    """Verify that the publish warning banner accurately reflects the state of a given CV
+
+    :id: 5d6187bf-2f36-46cd-bdfe-dfbda244af39
+
+    :steps:
+        1. Create and sync yum repository on satellite, add to a new content view.
+        2. Check the publish wizard, and verify that the publish warning banner is visible
+        3. Publish the CV
+        4. Check the publish wizard again for the CV and verify the warning isn't visible
+
+    :expectedresults: The publish warning banner accurately reflects the status of the CV
+
+    :CaseImportance: High
+    """
+    rh_repo_id = target_sat.api_factory.enable_sync_redhat_repo(
+        REPOS['rhae2.9_el8'], function_sca_manifest_org.id
+    )
+    rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
+    cv = target_sat.api.ContentView(organization=function_sca_manifest_org).create()
+    cv = target_sat.api.ContentView(id=cv.id, repository=[rh_repo]).update(["repository"])
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=function_sca_manifest_org.name)
+        result = session.contentview_new.check_publish_banner(cv.name)
+        assert result
+        cv.publish()
+        result2 = session.contentview_new.check_publish_banner(cv.name)
+        assert not result2
