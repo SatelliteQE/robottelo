@@ -17,15 +17,16 @@ from wait_for import wait_for
 from wrapanapi.systems.virtualcenter import VMWareVirtualMachine
 
 from robottelo.config import settings
+from robottelo.hosts import ContentHost
 
 
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
-@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
 @pytest.mark.parametrize('provision_method', ['build', 'bootdisk'])
-@pytest.mark.rhel_ver_match('[8]')
+@pytest.mark.rhel_ver_match('[7]')
 def test_positive_provision_end_to_end(
     request,
     setting_update,
@@ -57,13 +58,11 @@ def test_positive_provision_end_to_end(
 
     :CaseImportance: Critical
 
-    :Verifies: SAT-23417, SAT-23558
+    :Verifies: SAT-18721, SAT-23558, SAT-25810
 
     :customerscenario: true
 
     :BZ: 2186114
-
-    :verifies: SAT-18721
     """
     sat = module_provisioning_sat.sat
     name = gen_string('alpha').lower()
@@ -78,10 +77,10 @@ def test_positive_provision_end_to_end(
             'path': '/Datacenters/SatQE-Datacenter/vm/',
             'cpus': 2,
             'memory_mb': 6000,
-            'firmware': 'bios' if pxe_loader.vm_firmware == 'bios' else 'efi',
-            'cluster': f'{settings.vmware.cluster}',
+            'firmware': pxe_loader.vm_firmware,
+            'cluster': settings.vmware.cluster,
             'start': '1',
-            'guest_id': 'rhel8_64Guest',
+            'guest_id': 'rhel7_64Guest',
             'scsi_controllers': [{'type': 'ParaVirtualSCSIController', 'key': 1001}],
             'nvme_controllers': [{'type': 'VirtualNVMEController', 'key': 2001}],
             'volumes_attributes': {
@@ -125,6 +124,13 @@ def test_positive_provision_end_to_end(
         delay=10,
     )
     assert host.read().build_status_label == 'Installed'
+
+    # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
+    if pxe_loader.vm_firmware == 'uefi_secure_boot':
+        provisioning_host = ContentHost(host.ip)
+        # Wait for the host to be rebooted and SSH daemon to be started.
+        provisioning_host.wait_for_connection()
+        assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
 
 
 @pytest.mark.on_premises_provisioning

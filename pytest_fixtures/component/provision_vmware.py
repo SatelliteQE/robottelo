@@ -72,6 +72,11 @@ def module_vmware_hostgroup(
         subnet=module_provisioning_sat.subnet,
         pxe_loader=pxe_loader.pxe_loader,
         group_parameters_attributes=[
+            {
+                'name': 'remote_execution_connect_by_ip',
+                'parameter_type': 'boolean',
+                'value': 'true',
+            },
             # assign AK in order the hosts to be subscribed
             {
                 'name': 'kt_activation_keys',
