@@ -326,7 +326,7 @@ def test_positive_vmware_custom_profile_end_to_end(
     cpus = ['2', '4', '6']
     vm_memory = ['4000', '6000', '8000']
     annotation_notes = gen_string('alpha')
-    firmware_type = ['Automatic', 'BIOS', 'UEFI']
+    firmware_type = ['Automatic', 'BIOS', 'UEFI', 'UEFI Secure Boot']
     resource_pool = VMWARE_CONSTANTS['pool']
     folder = VMWARE_CONSTANTS['folder']
     virtual_hw_version = VMWARE_CONSTANTS['virtualhw_version']
@@ -554,14 +554,10 @@ def test_positive_virt_card(session, target_sat, module_location, module_org, vm
 
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
-@pytest.mark.parametrize(
-    'setting_update',
-    ['remote_execution_connect_by_ip=True', 'destroy_vm_on_host_delete=True'],
-    indirect=True,
-)
-@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
+@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
 @pytest.mark.parametrize('provision_method', ['build'])
-@pytest.mark.rhel_ver_match('[8]')
+@pytest.mark.rhel_ver_match('[9]')
 @pytest.mark.tier3
 def test_positive_provision_end_to_end(
     request,
@@ -576,6 +572,7 @@ def test_positive_provision_end_to_end(
     vmwareclient,
     target_sat,
     module_provisioning_rhel_content,
+    module_ssh_key_file,
     get_vmware_datastore_summary_string,
 ):
     """Assign Ansible role to a Hostgroup and verify ansible role execution job is scheduled after a host is provisioned
@@ -593,13 +590,13 @@ def test_positive_provision_end_to_end(
 
     :BZ: 2025523
 
-    :Verifies: SAT-24780
+    :Verifies: SAT-24780, SAT-25810
 
     :customerscenario: true
     """
     SELECTED_ROLE = 'theforeman.foreman_scap_client'
     host_name = gen_string('alpha').lower()
-    guest_os_names = 'Red Hat Enterprise Linux 8 (64 bit)'
+    guest_os_names = 'Red Hat Enterprise Linux 9 (64 bit)'
     storage_data = {'storage': {'disks': [{'data_store': get_vmware_datastore_summary_string}]}}
     network_data = {
         'network_interfaces': {
@@ -608,10 +605,9 @@ def test_positive_provision_end_to_end(
         }
     }
     with target_sat.ui_session() as session:
-        session.ansibleroles.import_all_roles()
-        assert session.ansibleroles.import_all_roles() == session.ansibleroles.imported_roles_count
-        session.location.select(module_location.name)
         session.organization.select(module_sca_manifest_org.name)
+        session.location.select(module_location.name)
+        assert session.ansibleroles.import_all_roles() == session.ansibleroles.imported_roles_count
         session.hostgroup.assign_role_to_hostgroup(
             module_vmware_hostgroup.name, {'ansible_roles.resources': SELECTED_ROLE}
         )
@@ -652,6 +648,22 @@ def test_positive_provision_end_to_end(
         values = session.host_new.get_host_statuses(host_name)
         assert values['Build']['Status'] == 'Installed'
         assert values['Execution']['Status'] == 'Last execution succeeded'
+
+        # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
+        if pxe_loader.vm_firmware == 'uefi_secure_boot':
+            host = target_sat.api.Host().search(query={'host': host_name})[0].read()
+            provisioning_host = ContentHost(host.ip, auth=module_ssh_key_file)
+            # Wait for the host to be rebooted and SSH daemon to be started.
+            provisioning_host.wait_for_connection()
+            # Enable Root Login
+            if int(host.operatingsystem.read().major) >= 9:
+                assert (
+                    provisioning_host.execute(
+                        'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
+                    ).status
+                    == 0
+                )
+            assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
 
         # Verify if assigned role is executed on the host, and correct host passwd is set
         host = ContentHost(target_sat.api.Host().search(query={'host': host_name})[0].read().ip)
