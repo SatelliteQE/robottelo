@@ -150,9 +150,9 @@ def rh_repo_module_manifest(module_sca_manifest_org, module_target_sat):
     rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=DEFAULT_ARCHITECTURE,
         org_id=module_sca_manifest_org.id,
-        product=PRDS['rhel8'],
-        repo=REPOS['rhsclient8']['name'],
-        reposet=REPOSET['rhsclient8'],
+        product=PRDS['rhel9'],
+        repo=REPOS['rhsclient9']['name'],
+        reposet=REPOSET['rhsclient9'],
         releasever=None,
     )
     # Sync step because repo is not synced by default
@@ -165,7 +165,7 @@ def rh_repo_module_manifest(module_sca_manifest_org, module_target_sat):
 def hosts(request):
     """Deploy hosts via broker."""
     num_hosts = getattr(request, 'param', 2)
-    with Broker(nick='rhel8', host_class=ContentHost, _count=num_hosts) as hosts:
+    with Broker(nick='rhel10', host_class=ContentHost, _count=num_hosts) as hosts:
         if not isinstance(hosts, list) or len(hosts) != num_hosts:
             pytest.fail('Failed to provision the expected number of hosts.')
         yield hosts
@@ -1167,7 +1167,7 @@ def new_module_ak(
     ).create()
     # Ensure tools repo is enabled in the activation key
     new_module_ak.content_override(
-        data={'content_overrides': [{'content_label': REPOS['rhsclient8']['id'], 'value': '1'}]}
+        data={'content_overrides': [{'content_label': REPOS['rhsclient9']['id'], 'value': '1'}]}
     )
     return new_module_ak.read()
 

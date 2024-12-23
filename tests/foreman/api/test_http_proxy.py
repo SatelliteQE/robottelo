@@ -149,7 +149,7 @@ def test_positive_end_to_end(
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('N-2')  # newest N, and two prior [10,9,8]
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize(
     'setup_http_proxy',

@@ -32,13 +32,14 @@ LOCALES = (
 )
 
 
-DISTRO_DEFAULT = 'rhel7'
-DISTROS_SUPPORTED = ['rhel6', 'rhel7', 'rhel8', 'rhel9']
+DISTRO_DEFAULT = 'rhel9'
+DISTROS_SUPPORTED = ['rhel6', 'rhel7', 'rhel8', 'rhel9', 'rhel10']
 DISTROS_MAJOR_VERSION = {
     'rhel6': 6,
     'rhel7': 7,
     'rhel8': 8,
     'rhel9': 9,
+    'rhel10': 10,
 }
 MAJOR_VERSION_DISTRO = {value: key for key, value in DISTROS_MAJOR_VERSION.items()}
 
@@ -271,6 +272,7 @@ PRDS = {
     'rhae': 'Red Hat Ansible Engine',
     'rhel8': 'Red Hat Enterprise Linux for x86_64',
     'rhel9': 'Red Hat Enterprise Linux for x86_64',
+    'rhel10': 'Red Hat Enterprise Linux for x86_64',
 }
 
 REPOSET = {
@@ -302,12 +304,16 @@ REPOSET = {
         'rhel8_bos': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)',
         'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (Kickstart)',
         'rhel9_bos': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS (Kickstart)',
+        'rhel10_bos': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS (Kickstart)',
+        'rhel10_aps': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream (Kickstart)',
         'rhel9_aps': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream (Kickstart)',
     },
-    'rhel8_bos': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)',
-    'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (RPMs)',
+    'rhel10_bos': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS (RPMs)',
+    'rhel10_aps': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream (RPMs)',
     'rhel9_bos': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS (RPMs)',
     'rhel9_aps': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream (RPMs)',
+    'rhel8_bos': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)',
+    'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (RPMs)',
     'rhel7_extra': 'Red Hat Enterprise Linux 7 Server - Extras (RPMs)',
     'rhel7_optional': 'Red Hat Enterprise Linux 7 Server - Optional (RPMs)',
     'rhel7_sup': 'Red Hat Enterprise Linux 7 Server - Supplementary (RPMs)',
@@ -558,6 +564,44 @@ REPOS = {
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
+        'rhel10_bos': {
+            'id': 'rhel-10-for-x86_64-baseos-kickstart',
+            'name': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS (Kickstart) 10.0',
+            'version': '10.0',
+            'reposet': REPOSET['kickstart']['rhel10_bos'],
+            'product': PRDS['rhel10'],
+            'distro': 'rhel10',
+        },
+        'rhel10_aps': {
+            'id': 'rhel-10-for-x86_64-appstream-kickstart',
+            'name': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Kickstart 10.0',
+            'version': '10.0',
+            'reposet': REPOSET['kickstart']['rhel10_aps'],
+            'product': PRDS['rhel10'],
+            'distro': 'rhel10',
+        },
+    },
+    'rhel10_bos': {
+        'id': 'rhel-10-for-x86_64-baseos-rpms',
+        'name': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS RPMs 10',
+        'releasever': '10',
+        'basearch': 'x86_64',
+        'version': '10.0',
+        'reposet': REPOSET['rhel10_bos'],
+        'product': PRDS['rhel10'],
+        'distro': 'rhel10',
+        'key': 'rhel10_bos',
+    },
+    'rhel10_aps': {
+        'id': 'rhel-10-for-x86_64-appstream-rpms',
+        'name': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream RPMs 10',
+        'releasever': '10',
+        'basearch': 'x86_64',
+        'version': '10.0',
+        'reposet': REPOSET['rhel10_aps'],
+        'product': PRDS['rhel10'],
+        'distro': 'rhel10',
+        'key': 'rhel10_aps',
     },
     'rhel8_bos': {
         'id': 'rhel-8-for-x86_64-baseos-rpms',
@@ -803,6 +847,12 @@ REAL_RHEL7_0_2_PACKAGE_FILENAME = 'python2-psutil-5.7.2-2.el7sat.x86_64.rpm'
 REAL_RHEL8_1_PACKAGE_NAME = 'puppet-agent'  # for RHSA-2022:4867
 REAL_RHEL8_1_PACKAGE_FILENAME = 'puppet-agent-6.19.1-1.el8sat.x86_64'
 REAL_RHEL8_2_PACKAGE_FILENAME = 'puppet-agent-6.26.0-1.el8sat.x86_64'
+REAL_RHEL9_PACKAGE_FILENAME = ''
+REAL_RHEL10_REPO_URL = 'https://download.eng.bos.redhat.com/rhel-10/composes/RHEL-10/'
+REAL_RHEL10_PACKAGE_NAME = ''
+REAL_RHEL10_OUTDATED_PACKAGE = ''
+REAL_RHEL10_UPDATED_PACKAGE = ''
+REAL_RHEL10_ERRATA_ID = ''
 FAKE_0_CUSTOM_PACKAGE_GROUP_NAME = 'birds'
 FAKE_3_YUM_OUTDATED_PACKAGES = [
     'acme-package-1.0.1-1.noarch',
@@ -858,7 +908,11 @@ FAKE_2_ERRATA_ID = 'RHSA-2012:0055'  # for FAKE_1_CUSTOM_PACKAGE
 REAL_RHEL7_0_ERRATA_ID = 'RHBA-2020:3615'  # for REAL_RHEL7_0_0_PACKAGE
 REAL_RHEL7_1_ERRATA_ID = 'RHBA-2017:0395'  # tcsh bug fix update
 REAL_RHEL8_1_ERRATA_ID = 'RHSA-2022:4867'  # for REAL_RHEL8_1_PACKAGE
+REAL_RHEL9_ERRATA_ID = ''
+REAL_RHEL10_ERRATA_ID = ''
 REAL_RHEL8_ERRATA_CVES = ['CVE-2021-27023', 'CVE-2021-27025']
+REAL_RHEL9_ERRATA_CVES = []
+REAL_RHEL10_ERRATA_CVES = []
 REAL_RHSCLIENT_ERRATA = 'RHSA-2023:5982'  # for RH Satellite Client 8
 FAKE_1_YUM_REPOS_COUNT = 32
 FAKE_3_YUM_REPOS_COUNT = 78
