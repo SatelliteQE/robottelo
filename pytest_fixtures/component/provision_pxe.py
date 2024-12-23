@@ -52,7 +52,7 @@ def module_provisioning_rhel_content(
     content_view = sat.api.ContentView(organization=module_sca_manifest_org).create()
 
     # Custom Content for Client repo
-    if is_open('SAT-27193') and int(rhel_ver) == 10:
+    if is_open('SAT-27193') and int(rhel_ver) != 10:
         custom_product = sat.api.Product(
             organization=module_sca_manifest_org, name=f'rhel{rhel_ver}_{gen_string("alpha")}'
         ).create()
@@ -131,7 +131,7 @@ def module_provisioning_rhel_content(
     ).create()
 
     # Ensure client repo is enabled in the activation key
-    if is_open('SAT-27193') and int(rhel_ver) == 10:
+    if is_open('SAT-27193') and int(rhel_ver) != 10:
         content = ak.product_content(data={'content_access_mode_all': '1'})['results']
         client_repo_label = [repo['label'] for repo in content if repo['name'] == client_repo.name][
             0
