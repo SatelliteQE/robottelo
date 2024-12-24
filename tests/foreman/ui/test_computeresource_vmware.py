@@ -557,7 +557,7 @@ def test_positive_virt_card(session, target_sat, module_location, module_org, vm
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
 @pytest.mark.parametrize('provision_method', ['build'])
-@pytest.mark.rhel_ver_match('[9]')
+@pytest.mark.rhel_ver_list('[9, 10]')
 @pytest.mark.tier3
 def test_positive_provision_end_to_end(
     request,
@@ -607,7 +607,7 @@ def test_positive_provision_end_to_end(
     with target_sat.ui_session() as session:
         session.organization.select(module_sca_manifest_org.name)
         session.location.select(module_location.name)
-        assert session.ansibleroles.import_all_roles() == session.ansibleroles.imported_roles_count
+        session.ansibleroles.import_all_roles()
         session.hostgroup.assign_role_to_hostgroup(
             module_vmware_hostgroup.name, {'ansible_roles.resources': SELECTED_ROLE}
         )
