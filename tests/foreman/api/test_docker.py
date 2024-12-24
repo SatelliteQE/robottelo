@@ -545,8 +545,8 @@ class TestDockerActivationKey:
             content_view=content_view, environment=module_lce, organization=module_org
         ).create()
         assert ak.content_view.id == content_view.id
-        ak.content_view = None
-        assert ak.update(['content_view']).content_view is None
+        ak.content_view_environments = None
+        assert ak.update(['content_view_environments']).content_view is None
 
     @pytest.mark.tier2
     def test_positive_add_docker_repo_ccv(
@@ -610,8 +610,8 @@ class TestDockerActivationKey:
             content_view=comp_content_view, environment=module_lce, organization=module_org
         ).create()
         assert ak.content_view.id == comp_content_view.id
-        ak.content_view = None
-        assert ak.update(['content_view']).content_view is None
+        ak.content_view_environments = None
+        assert ak.update(['content_view_environments']).content_view is None
 
 
 class TestPodman:
