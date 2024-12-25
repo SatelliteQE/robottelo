@@ -371,7 +371,7 @@ def test_negative_add_image_rhev_with_invalid_name(rhev, module_os, module_targe
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier3
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 def test_positive_provision_rhev_with_host_group(
     request,
@@ -537,7 +537,7 @@ def test_positive_provision_rhev_without_host_group(rhev):
 
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier3
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 def test_positive_provision_rhev_image_based_and_disassociate(
     request,
