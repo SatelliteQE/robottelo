@@ -96,7 +96,7 @@ def test_positive_puppet_bootstrap(
 
 
 @pytest.mark.on_premises_provisioning
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 def test_host_provisioning_with_external_puppetserver(
     request,
     external_puppet_server,
