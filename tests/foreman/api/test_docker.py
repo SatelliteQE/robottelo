@@ -53,7 +53,15 @@ def _create_repository(module_target_sat, product, name=None, upstream_name=None
 @pytest.fixture
 def repo(module_product, module_target_sat):
     """Create a single repository."""
-    return _create_repository(module_target_sat, module_product)
+    repo = _create_repository(module_target_sat, module_product)
+    module_target_sat.wait_for_tasks(
+        search_query='Actions::Katello::Repository::MetadataGenerate'
+        f' and resource_id = {repo.id}'
+        ' and resource_type = Katello::Repository',
+        max_tries=6,
+        search_rate=10,
+    )
+    return repo
 
 
 @pytest.fixture
