@@ -710,9 +710,15 @@ class TestAnsibleREX:
         )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         proxy_id = target_sat.nailgun_smart_proxy.id
+        new_port = target_sat.available_capsule_port
+        with target_sat.default_url_on_new_port(9090, new_port) as url:
+            proxy_id_new = target_sat.api.SmartProxy(url=url).search(
+                query={'search': f'name={target_sat.hostname}'}
+            )[0]
         target_host = rhel_contenthost.nailgun_host
+        new_proxy = proxy_id if auth_type == 'admin' else proxy_id_new
         target_sat.cli.Ansible.with_user(username, password).roles_sync(
-            {'role-names': SELECTED_ROLE, 'proxy-id': proxy_id}
+            {'role-names': SELECTED_ROLE, 'proxy-id': new_proxy}
         )
         result = target_sat.cli.Host.with_user(username, password).ansible_roles_assign(
             {'id': target_host.id, 'ansible-roles': f'{SELECTED_ROLE}'}
