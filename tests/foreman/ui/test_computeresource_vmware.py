@@ -557,12 +557,11 @@ def test_positive_virt_card(session, target_sat, module_location, module_org, vm
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
 @pytest.mark.parametrize('provision_method', ['build'])
-@pytest.mark.rhel_ver_list('[9, 10]')
+@pytest.mark.rhel_ver_match('[8]')
 @pytest.mark.tier3
 def test_positive_provision_end_to_end(
     request,
     module_sca_manifest_org,
-    module_location,
     pxe_loader,
     module_vmware_cr,
     module_vmware_hostgroup,
@@ -572,7 +571,6 @@ def test_positive_provision_end_to_end(
     vmwareclient,
     target_sat,
     module_provisioning_rhel_content,
-    module_ssh_key_file,
     get_vmware_datastore_summary_string,
 ):
     """Assign Ansible role to a Hostgroup and verify ansible role execution job is scheduled after a host is provisioned
@@ -606,7 +604,6 @@ def test_positive_provision_end_to_end(
     }
     with target_sat.ui_session() as session:
         session.organization.select(module_sca_manifest_org.name)
-        session.location.select(module_location.name)
         session.ansibleroles.import_all_roles()
         session.hostgroup.assign_role_to_hostgroup(
             module_vmware_hostgroup.name, {'ansible_roles.resources': SELECTED_ROLE}
@@ -652,17 +649,9 @@ def test_positive_provision_end_to_end(
         # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
         if pxe_loader.vm_firmware == 'uefi_secure_boot':
             host = target_sat.api.Host().search(query={'host': host_name})[0].read()
-            provisioning_host = ContentHost(host.ip, auth=module_ssh_key_file)
+            provisioning_host = ContentHost(host.ip)
             # Wait for the host to be rebooted and SSH daemon to be started.
             provisioning_host.wait_for_connection()
-            # Enable Root Login
-            if int(host.operatingsystem.read().major) >= 9:
-                assert (
-                    provisioning_host.execute(
-                        'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
-                    ).status
-                    == 0
-                )
             assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
 
         # Verify if assigned role is executed on the host, and correct host passwd is set

@@ -26,7 +26,7 @@ from robottelo.hosts import ContentHost
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
 @pytest.mark.parametrize('provision_method', ['build', 'bootdisk'])
-@pytest.mark.rhel_ver_match('[7]')
+@pytest.mark.rhel_ver_list('[9, 10]')
 def test_positive_provision_end_to_end(
     request,
     setting_update,
@@ -34,6 +34,7 @@ def test_positive_provision_end_to_end(
     module_provisioning_sat,
     module_sca_manifest_org,
     module_location,
+    module_ssh_key_file,
     pxe_loader,
     module_vmware_cr,
     module_vmware_hostgroup,
@@ -47,7 +48,6 @@ def test_positive_provision_end_to_end(
     :id: 6985e7c0-d258-4fc4-833b-e680804b55e8
 
     :steps:
-
         1. Configure provisioning setup.
         2. Create VMware CR
         3. Configure host group setup.
@@ -80,7 +80,7 @@ def test_positive_provision_end_to_end(
             'firmware': pxe_loader.vm_firmware,
             'cluster': settings.vmware.cluster,
             'start': '1',
-            'guest_id': 'rhel7_64Guest',
+            'guest_id': 'rhel9_64Guest',
             'scsi_controllers': [{'type': 'ParaVirtualSCSIController', 'key': 1001}],
             'nvme_controllers': [{'type': 'VirtualNVMEController', 'key': 2001}],
             'volumes_attributes': {
@@ -127,9 +127,17 @@ def test_positive_provision_end_to_end(
 
     # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
     if pxe_loader.vm_firmware == 'uefi_secure_boot':
-        provisioning_host = ContentHost(host.ip)
+        provisioning_host = ContentHost(host.ip, auth=module_ssh_key_file)
         # Wait for the host to be rebooted and SSH daemon to be started.
         provisioning_host.wait_for_connection()
+        # Enable Root Login
+        if int(host.operatingsystem.read().major) >= 9:
+            assert (
+                provisioning_host.execute(
+                    'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
+                ).status
+                == 0
+            )
         assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
 
 
