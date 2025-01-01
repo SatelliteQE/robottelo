@@ -120,7 +120,7 @@ def test_positive_end_to_end(session, module_target_sat, module_org, module_loca
 
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
-@pytest.mark.rhel_ver_list('[9, 10]')
+@pytest.mark.rhel_ver_match('[8]')
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
 def test_positive_provision_end_to_end(
@@ -132,7 +132,6 @@ def test_positive_provision_end_to_end(
     provisioning_hostgroup,
     module_libvirt_provisioning_sat,
     module_provisioning_rhel_content,
-    module_ssh_key_file,
 ):
     """Provision Host on libvirt compute resource, and delete it afterwards
 
@@ -206,17 +205,9 @@ def test_positive_provision_end_to_end(
         # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
         if pxe_loader.vm_firmware == 'uefi_secure_boot':
             host = sat.api.Host().search(query={'host': hostname})[0].read()
-            provisioning_host = ContentHost(host.ip, auth=module_ssh_key_file)
+            provisioning_host = ContentHost(host.ip)
             # Wait for the host to be rebooted and SSH daemon to be started.
             provisioning_host.wait_for_connection()
-            # Enable Root Login
-            if int(host.operatingsystem.read().major) >= 9:
-                assert (
-                    provisioning_host.execute(
-                        'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
-                    ).status
-                    == 0
-                )
             assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
 
         session.host.delete(name)

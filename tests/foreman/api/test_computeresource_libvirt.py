@@ -286,7 +286,7 @@ def test_negative_update_url(url, request, module_target_sat, module_org, module
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
-@pytest.mark.rhel_ver_match('[7]')
+@pytest.mark.rhel_ver_list('[9, 10]')
 def test_positive_provision_end_to_end(
     request,
     setting_update,
@@ -294,6 +294,7 @@ def test_positive_provision_end_to_end(
     module_libvirt_provisioning_sat,
     module_sca_manifest_org,
     module_location,
+    module_ssh_key_file,
     pxe_loader,
     provisioning_hostgroup,
 ):
@@ -377,7 +378,15 @@ def test_positive_provision_end_to_end(
 
     # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
     if pxe_loader.vm_firmware == 'uefi_secure_boot':
-        provisioning_host = ContentHost(host.ip)
+        provisioning_host = ContentHost(host.ip, auth=module_ssh_key_file)
         # Wait for the host to be rebooted and SSH daemon to be started.
         provisioning_host.wait_for_connection()
+        # Enable Root Login
+        if int(host.operatingsystem.read().major) >= 9:
+            assert (
+                provisioning_host.execute(
+                    'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
+                ).status
+                == 0
+            )
         assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
