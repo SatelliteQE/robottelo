@@ -157,6 +157,7 @@ def test_positive_provision_vmware_pxe_discovery(
     """
     mac = provisioning_vmware_host._broker_args['provisioning_nic_mac_addr']
     sat = module_discovery_sat.sat
+    assert sat.execute('systemctl restart dhcpd').status == 0
     # start the provisioning host
     vmware_host = VMWareVirtualMachine(
         vmwareclient, name=provisioning_vmware_host._broker_args['name']
