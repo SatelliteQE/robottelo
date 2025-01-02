@@ -5,6 +5,7 @@ import os
 import random
 import re
 
+from broker.hosts import Host
 import requests
 from wait_for import TimedOutError, wait_for
 
@@ -197,16 +198,24 @@ class ContentInfo:
         content_view.publish()
         return content_view.read()
 
-    def move_pulp_archive(self, org, export_message):
+    def move_pulp_archive(self, org, export_message, target=None):
         """
         Moves exported archive(s) and its metadata into import directory,
         sets ownership, returns import path
         """
-        self.execute(
-            f'rm -rf {PULP_IMPORT_DIR}/{org.name} &&'
-            f'mv {PULP_EXPORT_DIR}/{org.name} {PULP_IMPORT_DIR} && '
-            f'chown -R pulp:pulp {PULP_IMPORT_DIR}'
-        )
+        if target and isinstance(target, Host):
+            self.execute(
+                f'sshpass -p "{settings.server.ssh_password}" rsync -e "ssh -o StrictHostKeyChecking=no" -aPz '
+                f'{PULP_EXPORT_DIR}{org.name} root@{target.hostname}:{PULP_IMPORT_DIR}'
+            )
+            self.execute(f'rm -rf {PULP_EXPORT_DIR}{org.name}')
+            target.execute(f'chown -R pulp:pulp {PULP_IMPORT_DIR}')
+        else:
+            self.execute(
+                f'rm -rf {PULP_IMPORT_DIR}{org.name} &&'
+                f'mv {PULP_EXPORT_DIR}{org.name} {PULP_IMPORT_DIR} && '
+                f'chown -R pulp:pulp {PULP_IMPORT_DIR}'
+            )
 
         # removes everything before export path,
         # replaces EXPORT_PATH by IMPORT_PATH,
