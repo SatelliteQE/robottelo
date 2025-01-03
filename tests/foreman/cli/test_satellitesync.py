@@ -274,6 +274,26 @@ def function_exporter_user(target_sat, function_org):
     user.delete()
 
 
+@pytest.fixture(scope='module')
+def module_import_sat(module_satellite_host):
+    """Provides a separate Satellite instance for imports."""
+    return module_satellite_host
+
+
+@pytest.fixture
+def function_import_org_at_isat(module_import_sat):
+    """Creates an Organization for content import."""
+    return module_import_sat.api.Organization().create()
+
+
+@pytest.fixture
+def complete_export_import_cleanup(target_sat, module_import_sat):
+    """Deletes all export/import dirs at both, export and import, Satellites."""
+    yield
+    target_sat.execute(f'rm -rf {PULP_EXPORT_DIR}* {PULP_IMPORT_DIR}*')
+    module_import_sat.execute(f'rm -rf {PULP_EXPORT_DIR}* {PULP_IMPORT_DIR}*')
+
+
 @pytest.mark.run_in_one_thread
 class TestRepositoryExport:
     """Tests for exporting a repository via CLI"""
@@ -1340,7 +1360,7 @@ class TestContentViewSync:
     @pytest.mark.tier3
     def test_postive_export_import_cv_with_mixed_content_repos(
         self,
-        export_import_cleanup_function,
+        complete_export_import_cleanup,
         target_sat,
         function_org,
         function_synced_custom_repo,
@@ -1348,7 +1368,8 @@ class TestContentViewSync:
         function_synced_docker_repo,
         function_synced_flatpak_repo,
         function_synced_AC_repo,
-        function_import_org,
+        module_import_sat,
+        function_import_org_at_isat,
     ):
         """Export and import CV with mixed content types in the exportable format.
 
@@ -1410,12 +1431,14 @@ class TestContentViewSync:
         assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) != ''
 
         # Import the exported CV, check the content.
-        import_path = target_sat.move_pulp_archive(function_org, export['message'])
-        target_sat.cli.ContentImport.version(
-            {'organization-id': function_import_org.id, 'path': import_path}
+        import_path = target_sat.move_pulp_archive(
+            function_org, export['message'], target=module_import_sat
         )
-        importing_cv = target_sat.cli.ContentView.info(
-            {'name': exporting_cv['name'], 'organization-id': function_import_org.id}
+        module_import_sat.cli.ContentImport.version(
+            {'organization-id': function_import_org_at_isat.id, 'path': import_path}
+        )
+        importing_cv = module_import_sat.cli.ContentView.info(
+            {'name': exporting_cv['name'], 'organization-id': function_import_org_at_isat.id}
         )
         assert all(
             [exporting_cv[key] == importing_cv[key] for key in ['label', 'name']]
@@ -1424,17 +1447,19 @@ class TestContentViewSync:
             len(exporting_cv['versions']) == len(importing_cv['versions']) == 1
         ), 'CV versions count does not match'
 
-        importing_cvv = target_sat.cli.ContentView.version_info(
+        importing_cvv = module_import_sat.cli.ContentView.version_info(
             {'id': importing_cv['versions'][0]['id']}
         )
         assert (
             len(exporting_cvv['repositories']) == len(importing_cvv['repositories']) == len(repos)
         ), 'Repositories count does not match'
 
-        imported_packages = target_sat.cli.Package.list(
+        imported_packages = module_import_sat.cli.Package.list(
             {'content-view-version-id': importing_cvv['id']}
         )
-        imported_files = target_sat.cli.File.list({'content-view-version-id': importing_cvv['id']})
+        imported_files = module_import_sat.cli.File.list(
+            {'content-view-version-id': importing_cvv['id']}
+        )
         assert exported_packages == imported_packages, 'Imported RPMs do not match the export'
         assert exported_files == imported_files, 'Imported Files do not match the export'
 
@@ -1446,9 +1471,9 @@ class TestContentViewSync:
                     'name': repo['name'],
                 }
             )
-            imp = target_sat.cli.Repository.info(
+            imp = module_import_sat.cli.Repository.info(
                 {
-                    'organization-id': function_import_org.id,
+                    'organization-id': function_import_org_at_isat.id,
                     'product': repo['product']['name'],
                     'name': repo['name'],
                 }
@@ -1923,10 +1948,11 @@ class TestContentViewSync:
         self,
         target_sat,
         config_export_import_settings,
-        export_import_cleanup_function,
+        complete_export_import_cleanup,
         function_org,
         function_synced_custom_repo,
-        function_import_org,
+        module_import_sat,
+        function_import_org_at_isat,
     ):
         """Test import of a repository exported in chunks bigger than repo size.
 
@@ -1952,10 +1978,12 @@ class TestContentViewSync:
         export = target_sat.cli.ContentExport.completeRepository(
             {'id': function_synced_custom_repo.id, 'chunk-size-gb': 1}
         )
-        import_path = target_sat.move_pulp_archive(function_org, export['message'])
-        target_sat.cli.ContentImport.repository(
+        import_path = target_sat.move_pulp_archive(
+            function_org, export['message'], target=module_import_sat
+        )
+        module_import_sat.cli.ContentImport.repository(
             {
-                'organization-id': function_import_org.id,
+                'organization-id': function_import_org_at_isat.id,
                 'path': import_path,
             }
         )
@@ -1967,11 +1995,11 @@ class TestContentViewSync:
                 'organization-id': function_org.id,
             }
         )
-        imported_repo = target_sat.cli.Repository.info(
+        imported_repo = module_import_sat.cli.Repository.info(
             {
                 'name': function_synced_custom_repo.name,
                 'product': function_synced_custom_repo.product.name,
-                'organization-id': function_import_org.id,
+                'organization-id': function_import_org_at_isat.id,
             }
         )
         assert (
