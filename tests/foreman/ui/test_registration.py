@@ -787,3 +787,54 @@ def test_subscription_manager_install_from_repository(
     result = client.execute('yum repolist')
     assert repo_name in result.stdout
     assert result.status == 0
+
+
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_registering_with_title_using_global_registration_parameter(
+    module_target_sat,
+    rhel_contenthost,
+    module_sca_manifest_org,
+    module_location,
+    module_activation_key,
+    default_os,
+):
+    """Verify after updating the curl command that the parameter with the name host is registered successfully.
+
+    :id: 60061546-c3b2-11ef-b570-6c240829b295
+
+    :expectedresults: The host is successfully registering using the label/name instead of the ID, and this applies to the following parameters:
+        1. Organization
+        2. Location
+        3. Host group
+        4. Operating System
+
+    :steps:
+        1. Create Curl/Registration command
+        2. Before registering the host, update the command
+        3. Register host with the updated command
+
+    :Verifies: SAT-28832
+
+    """
+    hostgroup = module_target_sat.api.HostGroup(
+        organization=[module_sca_manifest_org], location=[module_location]
+    ).create()
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_sca_manifest_org.name)
+        session.location.select(module_location.name)
+        cmd = session.host.get_register_command(
+            {
+                'general.operating_system': default_os.title,
+                'general.host_group': hostgroup.name,
+                'general.activation_keys': module_activation_key.name,
+                'general.insecure': True,
+            }
+        )
+        result = cmd[cmd.find('hostgroup_id=') : cmd.find('&update_packages=')]
+        if ' ' in default_os.title:
+            new_os_title = default_os.title.replace(' ', '+')
+        new_data = f'hostgroup={hostgroup.name}&location={module_location.name}&operatingsystem={new_os_title}&organization={module_sca_manifest_org.name}'
+        updated_cmd = cmd.replace(result, new_data)
+        assert new_data in updated_cmd
+        result = rhel_contenthost.execute(updated_cmd)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
