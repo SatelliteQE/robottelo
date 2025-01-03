@@ -205,3 +205,112 @@ def test_scan_flatpak_remote(target_sat, function_org, function_product, remote)
 
     # 3. Compare the scanned repos match the repos in the remote index.
     assert sorted(scanned_repo_names) == sorted(index_repo_names)
+
+
+@pytest.mark.e2e
+@pytest.mark.upgrade
+def test_flatpak_client(
+    request, module_target_sat, module_flatpak_contenthost, function_org, function_product
+):
+    """Verify flatpak repository workflow end to end.
+
+    :id: 06043b3e-be9b-4444-96b1-d3d15b7e3d8c
+
+    :steps:
+        1. Create a flatpak remote and scan it.
+        2. Mirror a flatpak repository and sync it.
+        3. Add the flatpak repo into a CV and publish+promote it into an LCE. (TBD)
+        4. Create an AK with the CVE and flatpak repo.
+        5. Register a content host using the AK.
+        6. Configure the contenthost to use Satellite's flatpak index. (TBD: via REX)
+        7. Exercise flatpak actions against Satellite at the content host. (TBD: via REX)
+
+    :expectedresults:
+        1. Entire workflow works and allows user to install a flatpak app at the registered
+           contenthost.
+
+    """
+    sat, host = module_target_sat, module_flatpak_contenthost
+    # 1. Create a flatpak remote and scan it.
+    fr = sat.cli.FlatpakRemote().create(
+        {
+            'organization-id': function_org.id,
+            'url': FLATPAK_REMOTES['RedHat']['url'],
+            'name': gen_string('alpha'),
+            'username': settings.container_repo.registries.redhat.username,
+            'token': settings.container_repo.registries.redhat.password,
+        }
+    )
+    sat.cli.FlatpakRemote().scan({'id': fr['id']})
+    repos = sat.cli.FlatpakRemote().repository_list({'flatpak-remote-id': fr['id']})
+    assert len(repos), 'No repositories scanned'
+
+    # 2. Mirror a flatpak repository and sync it.
+    repo_names = ['rhel9/firefox-flatpak', 'rhel9/flatpak-runtime']  # runtime is dependency
+    remote_repos = [r for r in repos if r['name'] in repo_names]
+    for repo in remote_repos:
+        sat.cli.FlatpakRemote().repository_mirror(
+            {
+                'flatpak-remote-id': fr['id'],
+                'id': repo['id'],  # or by name
+                'product-id': function_product.id,
+            }
+        )
+        local_repo = sat.cli.Repository.list(
+            {'product-id': function_product.id, 'name': repo['name']}
+        )[0]
+        sat.cli.Repository.synchronize({'id': local_repo['id']})
+        assert 'latest' in sat.api.Repository(id=local_repo['id']).read().include_tags
+    local_repos = sat.cli.Repository.list({'product-id': function_product.id})
+    assert set([r['name'] for r in local_repos]) == set(repo_names)
+
+    # 3. Add the flatpak repo into a CV and publish+promote it into an LCE. (TBD)
+    # TBD; use Library/Defaut_org_view for now
+
+    # 4. Create an AK with the CVE and flatpak repo.
+    ak_lib = sat.cli.ActivationKey.create(
+        {
+            'name': gen_string('alpha'),
+            'organization-id': function_org.id,
+            'lifecycle-environment': 'Library',
+            'content-view': 'Default Organization View',
+        }
+    )
+    # ak_lib = {}
+    # ak_lib['name'] = 'AK1'
+
+    # 5. Register a content host using the AK.
+    res = host.register(function_org, None, ak_lib['name'], sat, force=True)
+    assert res.status == 0, (
+        f'Failed to register host: {host.hostname}\n' f'StdOut: {res.stdout}\nStdErr: {res.stderr}'
+    )
+    assert host.subscribed
+
+    # 6. Configure the contenthost to use Satellite's flatpak index. (TBD: via REX)
+    remote_name = f'SAT-remote-{gen_string("alpha")}'
+    res = host.execute(
+        'flatpak --user remote-add --authenticator-name=org.flatpak.Authenticator.Oci '
+        f'{remote_name} oci+https://{sat.hostname}/pulpcore_registry/'
+    )
+    assert res.status == 0
+    request.addfinalizer(lambda: host.execute(f'flatpak remote-delete {remote_name}'))
+
+    # 7. Exercise flatpak actions against Satellite at the content host. (TBD: via REX)
+    res = host.execute('flatpak remotes')
+    assert remote_name in res.stdout
+
+    repo_name = 'Firefox'  # or 'org.mozilla.Firefox'
+    res = host.execute('flatpak remote-ls')
+    assert repo_name in res.stdout
+
+    res = host.execute(
+        f'podman login -u {settings.server.admin_username}'
+        f' -p {settings.server.admin_password} {sat.hostname}'
+    )
+    assert res.status == 0
+
+    res = host.execute(f'flatpak install {remote_name} {repo_name} -y')
+    assert res.status == 0
+    request.addfinalizer(
+        lambda: host.execute(f'flatpak uninstall {remote_name} {repo_name} com.redhat.Platform -y')
+    )
