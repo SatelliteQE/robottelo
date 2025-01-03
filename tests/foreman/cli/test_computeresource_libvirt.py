@@ -38,6 +38,7 @@ from wait_for import wait_for
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
 from robottelo.exceptions import CLIReturnCodeError
+from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import parametrized
 
 LIBVIRT_URL = LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
@@ -379,11 +380,12 @@ def test_positive_update_console_password(libvirt_url, set_console_password, mod
 
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
-@pytest.mark.tier3
-@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
+@pytest.mark.rhel_ver_match('[7]')
+@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 def test_positive_provision_end_to_end(
     request,
+    pxe_loader,
     setting_update,
     module_libvirt_provisioning_sat,
     module_sca_manifest_org,
@@ -410,7 +412,7 @@ def test_positive_provision_end_to_end(
 
     :BZ: 2236693
 
-    :Verifies: SAT-22491
+    :Verifies: SAT-22491, SAT-25808
 
     :customerscenario: true
     """
@@ -427,6 +429,7 @@ def test_positive_provision_end_to_end(
         }
     )
     assert libvirt_cr['name'] == cr_name
+
     host = sat.cli.Host.create(
         {
             'name': hostname,
@@ -436,9 +439,10 @@ def test_positive_provision_end_to_end(
             'compute-resource-id': libvirt_cr['id'],
             'ip': None,
             'mac': None,
-            'compute-attributes': 'cpus=1, memory=6442450944, start=1',
+            'compute-attributes': f'cpus=1, memory=6442450944, start=1, firmware={pxe_loader.vm_firmware}',
             'interface': f'compute_type=bridge,compute_bridge=br-{settings.provisioning.vlan_id}',
             'volume': 'capacity=10',
+            'parameters': 'name=remote_execution_connect_by_ip,' 'type=boolean,' 'value=true',
             'provision-method': 'build',
         }
     )
@@ -463,3 +467,10 @@ def test_positive_provision_end_to_end(
     )
     host_info = sat.cli.Host.info({'id': host['id']})
     assert host_info['status']['build-status'] == 'Installed'
+
+    # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
+    if pxe_loader.vm_firmware == 'uefi_secure_boot':
+        provisioning_host = ContentHost(host_info['network']['ipv4-address'])
+        # Wait for the host to be rebooted and SSH daemon to be started.
+        provisioning_host.wait_for_connection()
+        assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
