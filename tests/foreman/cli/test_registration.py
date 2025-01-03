@@ -172,7 +172,7 @@ def test_upgrade_katello_ca_consumer_rpm(
     assert result.status == 0
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 @pytest.mark.tier3
 def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost, target_sat):
     """Attempt to register a host twice to Satellite
@@ -193,7 +193,7 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost
     assert 'This system is already registered' in str(result.stderr)
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 @pytest.mark.tier3
 def test_positive_force_register_twice(module_ak_with_cv, module_org, rhel_contenthost, target_sat):
     """Register a host twice to Satellite, with force=true

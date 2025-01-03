@@ -75,7 +75,7 @@ def test_negative_list_by_name(module_target_sat):
 @pytest.mark.e2e
 @pytest.mark.no_containers
 @pytest.mark.pit_client
-@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.rhel_ver_match('N-1')
 def test_positive_facts_end_to_end(
     module_target_sat, rhel_contenthost, module_org, module_location, module_activation_key
 ):
@@ -140,7 +140,7 @@ def test_positive_facts_end_to_end(
         ), f'Assertion failed: {fact} (expected: {expected_value}, actual: {actual_value})'
 
 
-@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.rhel_ver_match('N-1')
 def test_positive_custom_facts_and_clean_orphaned_facts(
     module_target_sat, module_org, module_location, module_activation_key, rhel_contenthost
 ):
