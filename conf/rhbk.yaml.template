@@ -1,0 +1,15 @@
+# section for RHBK integration
+RHBK:
+  # RHBK Hostname
+  HOST_NAME:  # update with rhbk host name
+  # RHBK port, 8443 by default
+  HOST_PORT:  # update with rhbk host name
+  # RHBK Host Url
+  HOST_URL:  # update with rhbk environment url
+  # RHBK Host Admin of Realm
+  RHBK_USER: sat_admin
+  # RHBK Host Admin Password
+  RHBK_PASSWORD:  # update with password
+  # RHBK Host Realm
+  REALM: satqe
+  TOTP_SECRET:  # update with the totp secret token
