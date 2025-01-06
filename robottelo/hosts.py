@@ -1160,8 +1160,7 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError('Failed to unregister client from Insights through Satellite')
 
     def set_infrastructure_type(self, infrastructure_type='physical'):
-        """Force host to appear as bare-metal orbroker virtual machine in
-        subscription-manager fact.
+        """Force host to appear as bare-metal or virtual machine in subscription-manager fact.
 
         :param str infrastructure_type: One of 'physical', 'virtual'
         """
