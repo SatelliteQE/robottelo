@@ -318,6 +318,28 @@ REPOSET = {
     'rhel7_sup': 'Red Hat Enterprise Linux 7 Server - Supplementary (RPMs)',
 }
 
+RECOMMENDED_REPOS = [
+    'rhel-9-for-x86_64-baseos-rpms',
+    'rhel-9-for-x86_64-appstream-rpms',
+    'rhel-9-for-x86_64-baseos-eus-rpms',  # 6.17+
+    'rhel-9-for-x86_64-appstream-eus-rpms',  # 6.17+
+    'rhel-8-for-x86_64-baseos-rpms',
+    'rhel-8-for-x86_64-appstream-rpms',
+    'rhel-8-for-x86_64-baseos-eus-rpms',
+    'rhel-8-for-x86_64-appstream-eus-rpms',
+    'satellite-client-6-for-rhel-9-x86_64-rpms',
+    'satellite-client-6-for-rhel-8-x86_64-rpms',
+]
+
+VERSIONED_REPOS = [
+    'satellite-capsule-{}-for-rhel-8-x86_64-rpms',
+    'satellite-maintenance-{}-for-rhel-8-x86_64-rpms',
+    'satellite-utils-{}-for-rhel-8-x86_64-rpms',
+    'satellite-capsule-{}-for-rhel-9-x86_64-rpms',  # 6.16+
+    'satellite-maintenance-{}-for-rhel-9-x86_64-rpms',  # 6.16+
+    'satellite-utils-{}-for-rhel-9-x86_64-rpms',  # 6.16+
+]
+
 SM_OVERALL_STATUS = {
     'current': 'Overall Status: Current',
     'invalid': 'Overall Status: Invalid',
