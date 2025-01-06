@@ -1046,7 +1046,7 @@ class TestEndToEnd:
     @pytest.mark.skip_if_not_set('libvirt')
     @pytest.mark.tier4
     @pytest.mark.no_containers
-    @pytest.mark.rhel_ver_match('7')
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     @pytest.mark.e2e
     @pytest.mark.upgrade
     @pytest.mark.skipif(
@@ -1112,13 +1112,14 @@ class TestEndToEnd:
         repositories.append(custom_repo)
 
         # step 2.6: Enable a Red Hat repository
+        repo_key = f'{constants.PRODUCT_KEY_SAT_CLIENT}{rhel_contenthost.os_version.major}'
         rhel_repo = target_sat.api.Repository(
             id=target_sat.api_factory.enable_rhrepo_and_fetchid(
-                basearch='x86_64',
+                basearch=constants.DEFAULT_ARCHITECTURE,
                 org_id=org.id,
-                product=constants.PRDS['rhel'],
-                repo=constants.REPOS['rhst7']['name'],
-                reposet=constants.REPOSET['rhst7'],
+                product=constants.REPOS[repo_key]['product'],
+                repo=constants.REPOS[repo_key]['name'],
+                reposet=constants.REPOS[repo_key]['reposet'],
             )
         )
         repositories.append(rhel_repo)
@@ -1163,11 +1164,10 @@ class TestEndToEnd:
         activation_key.content_override(
             data={
                 'content_overrides': [
-                    {'content_label': constants.REPOS['rhst7']['id'], 'value': '1'}
+                    {'content_label': constants.REPOS[repo_key]['id'], 'value': '1'}
                 ]
             }
         )
-
         # BONUS: Create a content host and associate it with promoted
         # content view and last lifecycle where it exists
         content_host = target_sat.api.Host(
@@ -1210,14 +1210,17 @@ class TestEndToEnd:
         # step 2.18: Provision a client
         # TODO this isn't provisioning through satellite as intended
         # Note it wasn't well before the change that added this todo
-        rhel_contenthost.install_katello_ca(target_sat)
-        # Register client with foreman server using act keys
-        rhel_contenthost.register_contenthost(org.label, activation_key_name)
+
+        # Register client with foreman server using act keys and install packages
+        packages = 'katello-host-tools puppet-agent'
+        result = rhel_contenthost.api_register(
+            target_sat,
+            organization=org,
+            activation_keys=[activation_key.name],
+            packages=packages,
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
         assert rhel_contenthost.subscribed
-        # Install rpm on client
-        package_name = 'katello-agent'
-        result = rhel_contenthost.execute(f'yum install -y {package_name}')
-        assert result.status == 0
-        # Verify that the package is installed by querying it
-        result = rhel_contenthost.run(f'rpm -q {package_name}')
-        assert result.status == 0
+        # Verify that the packages are installed by querying it
+        for package in packages.split(' '):
+            assert rhel_contenthost.execute(f'rpm -q {package}').status == 0
