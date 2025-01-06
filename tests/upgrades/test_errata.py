@@ -186,6 +186,9 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
             }
         )
 
+    @pytest.mark.parametrize(
+        'pre_upgrade_data', ['rhel7-ipv4', 'rhel8-ipv4', 'rhel9-ipv4'], indirect=True
+    )
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_generate_errata_for_client)
     def test_post_scenario_errata_count_installation(self, target_sat, pre_upgrade_data):
         """Post-upgrade scenario that applies errata on the RHEL client that was set up
