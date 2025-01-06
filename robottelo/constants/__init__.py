@@ -824,6 +824,9 @@ FLATPAK_REMOTES = {
         'authenticated': True,
     },
 }
+PULPCORE_FLATPAK_ENDPOINT = (
+    'https://{}/pulpcore_registry/index/static?label:org.flatpak.ref:exists=1'
+)
 
 CONTAINER_CLIENTS = ['docker', 'podman']
 CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
