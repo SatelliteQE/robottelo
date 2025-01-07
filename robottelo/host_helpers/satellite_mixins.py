@@ -182,7 +182,7 @@ class ContentInfo:
         """
         return self.api.Organization(id=org_id).read().simple_content_access
 
-    def publish_content_view(self, org, repo_list):
+    def publish_content_view(self, org, repo_list, name):
         """This method publishes the content view for a given organization and repository list.
 
         :param str org: The name of the organization to which the content view belongs
@@ -191,7 +191,7 @@ class ContentInfo:
         :return: A dictionary containing the details of the published content view.
         """
         repo = repo_list if isinstance(repo_list, list) else [repo_list]
-        content_view = self.api.ContentView(organization=org, repository=repo).create()
+        content_view = self.api.ContentView(organization=org, repository=repo, name=name).create()
         content_view.publish()
         return content_view.read()
 

@@ -11,6 +11,7 @@ def upgrade_action(*args, **kwargs):
     print(f"Upgrading satellite with {args=} and {kwargs=}")
     time.sleep(1)
     print("Satellite upgraded!")
+    return True
 
 
 def run_resource(resource_name):
@@ -24,7 +25,14 @@ def run_resource(resource_name):
 
 def test_shared_resource():
     """Test the SharedResource class."""
-    with SharedResource("test_resource", upgrade_action, 1, 2, 3, foo="bar") as resource:
+
+    def action_validator(result):
+        return result is True
+
+    shared_args = (1, 2, 3)
+    with SharedResource(
+        "test_resource", upgrade_action, *shared_args, action_validator=action_validator, foo="bar"
+    ) as resource:
         assert Path("/tmp/test_resource.shared").exists()
         assert resource.is_main
         assert not resource.is_recovering
