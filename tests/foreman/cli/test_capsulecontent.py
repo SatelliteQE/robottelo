@@ -27,6 +27,7 @@ from robottelo.constants import (
 )
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
 from robottelo.content_info import get_repo_files_urls_by_url
+from robottelo.utils.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')
@@ -782,3 +783,135 @@ def test_positive_repair_artifacts(
         assert module_target_sat.checksum_by_url(url, sum_type='sha256sum') == ai.sum, (
             'Published file is unaccessible or corrupted'
         )
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize('function_flatpak_remote', ['RedHat'], indirect=True)
+def test_sync_consume_flatpak_repo_via_library(
+    request,
+    module_target_sat,
+    module_capsule_configured,
+    module_flatpak_contenthost,
+    function_org,
+    function_product,
+    function_lce_library,
+    function_flatpak_remote,
+):
+    """Verify flatpak repository workflow via capsule end to end.
+
+    :id: 8871b695-18fd-45a8-bb40-664c384996a0
+
+    :setup:
+        1. Registered external capsule.
+        2. Flatpak remote created and scanned.
+
+    :steps:
+        1. Associate the organization and its Library to the capsule.
+        2. Mirror a flatpak repository and sync it, verify the capsule was synced.
+        3. Create an AK with the library/default_org_view.
+        4. Register a content host using the AK via Capsule.
+        5. Configure the contenthost via REX to use Capsule's flatpak index.
+        6. Install flatpak app from the repo via REX on the contenthost.
+        7. Ensure the app has been installed successfully.
+
+    :expectedresults:
+        1. Entire workflow works and allows user to install a flatpak app at the registered
+           contenthost.
+
+    """
+    sat, caps, host = module_target_sat, module_capsule_configured, module_flatpak_contenthost
+
+    # Associate the organization and its Library to the capsule.
+    res = sat.cli.Capsule.update(
+        {'name': module_capsule_configured.hostname, 'organization-ids': function_org.id}
+    )
+    assert 'proxy updated' in str(res)
+
+    caps.nailgun_capsule.content_add_lifecycle_environment(
+        data={'environment_id': function_lce_library.id}
+    )
+    res = caps.nailgun_capsule.content_lifecycle_environments()
+    assert len(res['results']) >= 1
+    assert function_lce_library.id in [capsule_lce['id'] for capsule_lce in res['results']]
+
+    # Mirror a flatpak repository and sync it, verify the capsule was synced.
+    repo_names = ['rhel9/firefox-flatpak', 'rhel9/flatpak-runtime']  # runtime is dependency
+    remote_repos = [r for r in function_flatpak_remote.repos if r['name'] in repo_names]
+    for repo in remote_repos:
+        sat.cli.FlatpakRemote().repository_mirror(
+            {
+                'flatpak-remote-id': function_flatpak_remote.remote['id'],
+                'id': repo['id'],  # or by name
+                'product-id': function_product.id,
+            }
+        )
+
+    local_repos = sat.cli.Repository.list({'product-id': function_product.id})
+    assert set([r['name'] for r in local_repos]) == set(repo_names)
+
+    timestamp = datetime.utcnow()
+    for repo in local_repos:
+        sat.cli.Repository.synchronize({'id': repo['id']})
+    module_capsule_configured.wait_for_sync(start_time=timestamp)
+
+    # Create an AK with the library/default_org_view.
+    ak_lib = sat.cli.ActivationKey.create(
+        {
+            'name': gen_string('alpha'),
+            'organization-id': function_org.id,
+            'lifecycle-environment': 'Library',
+            'content-view': 'Default Organization View',
+        }
+    )
+
+    # Register a content host using the AK via Capsule.
+    res = host.register(function_org, None, ak_lib['name'], caps, force=True)
+    assert res.status == 0, (
+        f'Failed to register host: {host.hostname}\nStdOut: {res.stdout}\nStdErr: {res.stderr}'
+    )
+    assert host.subscribed
+
+    # Configure the contenthost via REX to use Capsule's flatpak index.
+    remote_name = f'CAPS-remote-{gen_string("alpha")}'
+    job = module_target_sat.cli_factory.job_invocation(
+        {
+            'organization': function_org.name,
+            'job-template': 'Set up Flatpak remote on host',
+            'inputs': (
+                f'Remote Name={remote_name}, '
+                f'Flatpak registry URL=https://{caps.hostname}/pulpcore_registry/, '
+                f'Username={settings.server.admin_username}, '
+                f'Password={settings.server.admin_password}'
+            ),
+            'search-query': f"name ~ {host.hostname}",
+        }
+    )
+    res = module_target_sat.cli.JobInvocation.info({'id': job.id})
+    assert 'succeeded' in res['status']
+    request.addfinalizer(lambda: host.execute(f'flatpak remote-delete {remote_name}'))
+
+    # Install flatpak app from the repo via REX on the contenthost.
+    res = host.execute('flatpak remotes')
+    assert remote_name in res.stdout
+
+    app_name = 'Firefox'  # or 'org.mozilla.Firefox'
+    res = host.execute('flatpak remote-ls')
+    assert app_name in res.stdout
+
+    job = module_target_sat.cli_factory.job_invocation(
+        {
+            'organization': function_org.name,
+            'job-template': 'Install Flatpak application on host',
+            'inputs': f'Flatpak remote name={remote_name}, Application name={app_name}',
+            'search-query': f"name ~ {host.hostname}",
+        }
+    )
+    res = module_target_sat.cli.JobInvocation.info({'id': job.id})
+    assert 'succeeded' in res['status']
+    request.addfinalizer(
+        lambda: host.execute(f'flatpak uninstall {remote_name} {app_name} com.redhat.Platform -y')
+    )
+
+    # Ensure the app has been installed successfully.
+    res = host.execute('flatpak list')
+    assert app_name in res.stdout
