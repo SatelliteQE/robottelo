@@ -43,7 +43,7 @@ def module_rhc_org(module_target_sat):
     """Module level fixture for creating organization"""
     if settings.rh_cloud.crc_env == 'prod':
         org = module_target_sat.api.Organization(
-            name=settings.rh_cloud.organization or gen_string('alpha')
+            name=settings.rh_cloud.organization or 'satqe-rhc-org-' + gen_string('alpha')
         ).create()
     else:
         org = (
