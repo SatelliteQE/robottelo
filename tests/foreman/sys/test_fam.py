@@ -14,6 +14,7 @@
 
 from broker import Broker
 import pytest
+import yaml
 
 from robottelo.config import settings
 from robottelo.constants import (
@@ -71,6 +72,15 @@ def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_rol
         temp_file=True,
     )
 
+    # Create fake galaxy.yml to make Makefile happy.
+    # The data in the file is unused, but not being able to load it produces errors in the
+    # logs and is confusing when searching for an actual problem during testing.
+    module_target_sat.put(
+        yaml.safe_dump({'name': 'satellite', 'namespace': 'redhat', 'version': '1.0.0'}),
+        f'{FAM_ROOT_DIR}/galaxy.yml',
+        temp_file=True,
+    )
+
     # Edit Makefile to not try to rebuild the collection when tests run
     module_target_sat.execute(f"sed -i '/^live/ s/$(MANIFEST)//' {FAM_ROOT_DIR}/Makefile")
 
@@ -91,26 +101,28 @@ def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_rol
         f'''sed -i 's|subscription_manifest_path:.*|subscription_manifest_path: "data/{module_sca_manifest.name}"|g' {config_file}'''
     )
 
-    repo_path = '/fake_puppet1/system/releases/p/puppetlabs/'
-    module_tarball = 'puppetlabs-ntp-3.0.3.tar.gz'
-    local_path = '/tmp'
-    module_target_sat.execute(
-        f'curl --output {local_path}/{module_tarball} {settings.robottelo.repos_hosting_url}{repo_path}{module_tarball}',
-    )
-    module_target_sat.execute(
-        f'puppet module install --ignore-dependencies {local_path}/{module_tarball}'
-    )
-
     def create_fake_module(module_target_sat, module_name, module_classes):
         base_dir = '/etc/puppetlabs/code/environments/production/modules'
         module_dir = f'{base_dir}/{module_name}'
         manifest_dir = f'{module_dir}/manifests'
         module_target_sat.execute(f'mkdir -p {manifest_dir}')
         for module_class in module_classes:
+            if isinstance(module_class, str):
+                module_code = '(){}'
+            else:
+                module_class, module_code = module_class
             full_class = module_name if module_class == 'init' else f'{module_name}::{module_class}'
-            module_target_sat.execute(
-                f'echo "class {full_class}(){{}}" > {manifest_dir}/{module_class}.pp'
+            module_target_sat.put(
+                f'class {full_class}{module_code}',
+                f'{manifest_dir}/{module_class}.pp',
+                temp_file=True,
             )
+
+    create_fake_module(
+        module_target_sat,
+        'ntp',
+        [('init', '($logfile, $config_dir, $servers, $burst, $stepout){}'), 'config'],
+    )
 
     create_fake_module(
         module_target_sat,
@@ -180,7 +192,6 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
 
     # Execute test_playbook
     result = module_target_sat.execute(
-        f'export NO_COLOR=True && cd {FAM_ROOT_DIR} && make livetest_{ansible_module} PYTHON_COMMAND="python3" PYTEST_COMMAND="pytest-3.11"'
+        f'NO_COLOR=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 make --directory {FAM_ROOT_DIR} livetest_{ansible_module} PYTHON_COMMAND="python3" PYTEST_COMMAND="pytest-3.11"'
     )
-    assert 'PASSED' in result.stdout
-    assert result.status == 0
+    assert result.status == 0, f"{result.status=}\n{result.stdout=}\n{result.stderr=}"

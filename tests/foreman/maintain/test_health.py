@@ -21,11 +21,9 @@ from robottelo.config import settings
 from robottelo.utils.installer import InstallerCommand
 
 upstream_url = {
-    'foreman_repo': 'https://yum.theforeman.org/releases/nightly/el8/x86_64/',
-    'puppet_repo': 'https://yum.puppetlabs.com/puppet/el/8/x86_64/',
-    'fedorapeople_repo': (
-        'https://fedorapeople.org/groups/katello/releases/yum/latest/candlepin/el7/x86_64/'
-    ),
+    'foreman_repo': 'https://yum.theforeman.org/releases/nightly/el9/x86_64/',
+    'puppet_repo': 'https://yum.puppetlabs.com/puppet/el/9/x86_64/',
+    'katello_repo': 'https://yum.theforeman.org/katello/nightly/katello/el9/x86_64/',
 }
 
 
@@ -215,14 +213,14 @@ def test_negative_health_check_upstream_repository(sat_maintain, request):
         options={'label': 'check-upstream-repository', 'assumeyes': True}
     )
     assert result.status == 0
-    assert 'System has upstream foreman_repo,puppet_repo repositories enabled' in result.stdout
+    assert (
+        f"System has upstream {','.join(sorted([ name for name in upstream_url ]))} repositories enabled"
+        in result.stdout
+    )
     assert 'FAIL' in result.stdout
     for name in upstream_url:
         result = sat_maintain.execute(f'cat /etc/yum.repos.d/{name}.repo')
-        if name == 'fedorapeople_repo':
-            assert 'enabled=1' in result.stdout
-        elif name in ['foreman_repo', 'puppet_repo']:
-            assert 'enabled=0' in result.stdout
+        assert 'enabled=0' in result.stdout
 
 
 def test_positive_health_check_available_space(sat_maintain):

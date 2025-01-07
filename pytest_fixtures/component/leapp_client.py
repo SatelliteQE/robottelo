@@ -10,7 +10,7 @@ synced_repos = pytest.StashKey[dict]
 
 RHEL7_VER = '7.9'
 RHEL8_VER = '8.10'
-RHEL9_VER = '9.4'
+RHEL9_VER = '9.5'
 
 RHEL_REPOS = {
     'rhel7_server': {
@@ -166,6 +166,7 @@ def custom_leapp_host(upgrade_path, module_target_sat, module_sca_manifest_org, 
         host_class=ContentHost,
         deploy_rhel_version=upgrade_path['source_version'],
         deploy_flavor=settings.flavors.default,
+        deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
     ) as chost:
         result = chost.register(
             module_sca_manifest_org, None, function_leapp_ak.name, module_target_sat

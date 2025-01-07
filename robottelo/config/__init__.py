@@ -37,7 +37,6 @@ def get_settings():
             load_dotenv=True,
         )
         settings.validators.register(**VALIDATORS)
-
         try:
             settings.validators.validate()
         except ValidationError as err:

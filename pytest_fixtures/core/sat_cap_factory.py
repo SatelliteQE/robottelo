@@ -31,7 +31,7 @@ def resolve_deploy_args(args_dict):
 def _target_satellite_host(request, satellite_factory):
     if 'sanity' not in request.config.option.markexpr:
         new_sat = satellite_factory()
-        new_sat.enable_ipv6_http_proxy()
+        new_sat.enable_satellite_ipv6_http_proxy()
         yield new_sat
         new_sat.teardown()
         Broker(hosts=[new_sat]).checkin()
@@ -49,7 +49,7 @@ def cached_capsule_cdn_register(hostname=None):
 def _target_capsule_host(request, capsule_factory):
     if 'sanity' not in request.config.option.markexpr and not request.config.option.n_minus:
         new_cap = capsule_factory()
-        new_cap.enable_ipv6_http_proxy()
+        new_cap.enable_ipv6_dnf_and_rhsm_proxy()
         yield new_cap
         new_cap.teardown()
         Broker(hosts=[new_cap]).checkin()
@@ -96,7 +96,7 @@ def satellite_factory():
 def large_capsule_host(capsule_factory):
     """A fixture that provides a Capsule based on config settings"""
     new_cap = capsule_factory(deploy_flavor=settings.flavors.custom_db)
-    new_cap.enable_ipv6_http_proxy()
+    new_cap.enable_ipv6_dnf_and_rhsm_proxy()
     yield new_cap
     new_cap.teardown()
     Broker(hosts=[new_cap]).checkin()
@@ -250,7 +250,7 @@ def module_lb_capsule(retry_limit=3, delay=300, **broker_args):
         )
         cap_hosts = wait_for(hosts.checkout, timeout=timeout, delay=delay)
 
-    [cap.enable_ipv6_http_proxy() for cap in cap_hosts.out]
+    [cap.enable_ipv6_dnf_and_rhsm_proxy() for cap in cap_hosts.out]
     yield cap_hosts.out
 
     [cap.teardown() for cap in cap_hosts.out]
@@ -285,7 +285,7 @@ def parametrized_enrolled_sat(
 ):
     """Yields a Satellite enrolled into [IDM, AD] as parameter."""
     new_sat = satellite_factory()
-    new_sat.enable_ipv6_http_proxy()
+    new_sat.enable_satellite_ipv6_http_proxy()
     ipa_host = IPAHost(new_sat)
     new_sat.register_to_cdn()
     if 'IDM' in request.param:
@@ -345,7 +345,7 @@ def cap_ready_rhel():
         'workflow': settings.capsule.deploy_workflows.os,
     }
     with Broker(**deploy_args, host_class=Capsule) as host:
-        host.enable_ipv6_http_proxy()
+        host.enable_ipv6_dnf_and_rhsm_proxy()
         yield host
 
 
@@ -372,19 +372,18 @@ def installer_satellite(request):
         # enable satellite repos
         for repo in sat.SATELLITE_CDN_REPOS.values():
             sat.enable_repo(repo, force=True)
+    elif settings.server.version.source == 'nightly':
+        sat.create_custom_repos(
+            satellite_repo=settings.repos.satellite_repo,
+            satmaintenance_repo=settings.repos.satmaintenance_repo,
+        )
     else:
-        if settings.server.version.source == 'nightly':
-            sat.create_custom_repos(
-                satellite_repo=settings.repos.satellite_repo,
-                satmaintenance_repo=settings.repos.satmaintenance_repo,
-            )
-        else:
-            # get ohsnap repofile
-            sat.download_repofile(
-                product='satellite',
-                release=settings.server.version.release,
-                snap=settings.server.version.snap,
-            )
+        # get ohsnap repofile
+        sat.download_repofile(
+            product='satellite',
+            release=settings.server.version.release,
+            snap=settings.server.version.snap,
+        )
 
     if settings.robottelo.rhel_source == "internal":
         # disable rhel repos from cdn
@@ -394,7 +393,7 @@ def installer_satellite(request):
 
     sat.install_satellite_or_capsule_package()
     # Install Satellite
-    sat.execute(
+    installer_result = sat.execute(
         InstallerCommand(
             installer_args=[
                 'scenario satellite',
@@ -403,7 +402,10 @@ def installer_satellite(request):
         ).get_command(),
         timeout='30m',
     )
-    sat.enable_ipv6_http_proxy()
+    # exit code 0 means no changes, 2 means changes were applied succesfully
+    assert installer_result.status in (0, 2), installer_result.stdout
+
+    sat.enable_satellite_ipv6_http_proxy()
     if 'sanity' in request.config.option.markexpr:
         configure_nailgun()
         configure_airgun()
