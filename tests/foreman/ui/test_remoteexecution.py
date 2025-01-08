@@ -141,7 +141,7 @@ def test_positive_run_default_job_template(
         )
         session.jobinvocation.wait_job_invocation_state(entity_name='Run ls', host_name=hostname)
         status = session.jobinvocation.read(entity_name='Run ls', host_name=hostname)
-        assert status['overview']['hosts_table'][0]['Status'] == 'success'
+        assert status['overview']['hosts_table'][0]['Status'] == 'Succeeded'
 
         # check status also on the job dashboard
         job_name = f'Run {command}'
@@ -250,7 +250,7 @@ def test_positive_run_custom_job_template(
             entity_name=job_description, host_name=hostname
         )
         status = session.jobinvocation.read(entity_name=job_description, host_name=hostname)
-        assert status['overview']['hosts_table'][0]['Status'] == 'success'
+        assert status['overview']['hosts_table'][0]['Status'] == 'Succeeded'
 
 
 @pytest.mark.upgrade
@@ -364,7 +364,7 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_cont
         assert job_status['overview']['hosts_table'][0]['Status'] in (
             'Awaiting start',
             'N/A',
-            'success',
+            'Succeeded',
         )
         # recalculate the job left time to be more accurate
         job_left_time = (plan_time - session.browser.get_client_datetime()).total_seconds()
@@ -383,14 +383,14 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_cont
             lambda: session.jobinvocation.read(
                 f'Run {command_to_run}', hostname, 'overview.hosts_table'
             )['overview']['hosts_table'][0]['Status']
-            == 'success',
+            == 'Succeeded',
             timeout=30,
             delay=1,
         )
         job_status = session.jobinvocation.read(f'Run {command_to_run}', hostname, 'overview')
         assert job_status['overview']['job_status'] == 'Success'
         assert job_status['overview']['hosts_table'][0]['Host'] == hostname
-        assert job_status['overview']['hosts_table'][0]['Status'] == 'success'
+        assert job_status['overview']['hosts_table'][0]['Status'] == 'Succeeded'
 
 
 @pytest.mark.tier2

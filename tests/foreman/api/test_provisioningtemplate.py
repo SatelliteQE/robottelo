@@ -242,7 +242,7 @@ class TestProvisioningTemplate:
                 )
 
     @pytest.mark.e2e
-    @pytest.mark.rhel_ver_match('[^6]')
+    @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
     def test_positive_template_check_ipxe(
         self,
         module_sync_kickstart_content,
@@ -290,7 +290,7 @@ class TestProvisioningTemplate:
         ks_param = 'ks=' if module_sync_kickstart_content.rhel_ver <= 8 else 'inst.ks='
         assert ipxe_template.count(ks_param) == 1
 
-    @pytest.mark.rhel_ver_match('[^6]')
+    @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
     def test_positive_template_check_vlan_parameter(
         self,
         module_sync_kickstart_content,
@@ -359,7 +359,7 @@ class TestProvisioningTemplate:
 
     @pytest.mark.parametrize('pxe_loader', ['uefi'], indirect=True)
     @pytest.mark.parametrize('boot_mode', ['Static', 'DHCP'])
-    @pytest.mark.rhel_ver_match('[^6]')
+    @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
     def test_positive_template_subnet_with_boot_mode(
         self,
         module_sync_kickstart_content,
@@ -511,7 +511,7 @@ class TestProvisioningTemplate:
         assert f'"host_config_key":"{config_key}"' in render
         assert '{"package_install": "zsh"}' in render
 
-    @pytest.mark.rhel_ver_match('[^6]')
+    @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
     def test_positive_template_check_rex_snippet(
         self,
         module_sync_kickstart_content,
@@ -585,12 +585,12 @@ class TestProvisioningTemplate:
         assert f'chown -R {rex_user}: ~{rex_user}' in rex_snippet
         assert f'chown -R {rex_user}: ~{rex_user}/.ssh' in rex_snippet
         assert (
-            f'echo "{rex_user} ALL = (root) NOPASSWD : ALL" > /etc/sudoers.d/{rex_user}\necho "Defaults:{rex_user} !requiretty" >> /etc/sudoers.d/{rex_user}'
+            f'echo "{rex_user} ALL = (ALL) NOPASSWD : ALL" > /etc/sudoers.d/{rex_user}\necho "Defaults:{rex_user} !requiretty" >> /etc/sudoers.d/{rex_user}'
             in rex_snippet
         )
         assert ssh_key in rex_snippet
 
-    @pytest.mark.rhel_ver_match('[^6]')
+    @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
     def test_positive_template_check_rex_pull_mode_snippet(
         self,
         module_sync_kickstart_content,
@@ -646,12 +646,12 @@ class TestProvisioningTemplate:
         pkg_manager = 'yum' if module_sync_kickstart_content.rhel_ver < 8 else 'dnf'
         assert f'{pkg_manager} -y install foreman_ygg_worker' in rex_snippet
         assert 'broker = ["mqtts://$SERVER_NAME:1883"]' in rex_snippet
-        assert 'systemctl try-restart yggdrasild' in rex_snippet
-        assert 'systemctl enable --now yggdrasild' in rex_snippet
+        assert 'systemctl try-restart $YGGDRASIL_SERVICE' in rex_snippet
+        assert 'systemctl enable --now $YGGDRASIL_SERVICE' in rex_snippet
         assert 'yggdrasil status' in rex_snippet
         assert 'Remote execution pull provider successfully configured!' in rex_snippet
 
-    @pytest.mark.rhel_ver_match('[^6]')
+    @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
     def test_positive_template_check_fips_enabled(
         self,
         module_sync_kickstart_content,
@@ -698,7 +698,7 @@ class TestProvisioningTemplate:
             render = host.read_template(data={'template_kind': kind})['template']
             assert 'fips=1' in render
 
-    @pytest.mark.rhel_ver_match('[^6]')
+    @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
     def test_positive_verify_chronyd_timesource_kickstart_template(
         self,
         module_sync_kickstart_content,

@@ -53,6 +53,10 @@ def test_positive_register(
 
     :BZ: 2001476
     """
+    # Workaround for a bug in bootstrap.py https://github.com/Katello/katello-client-bootstrap/pull/373
+    # rhel_contenthost has internet-based repos enabled, which it can't reach in IPv6-only setups,
+    # but also shouldn't have configured to begin with.
+    rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
     if rhel_contenthost.os_version.major == 7:
         python_cmd = 'python'
     elif rhel_contenthost.os_version.major == 8:

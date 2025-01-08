@@ -21,6 +21,7 @@ from robottelo.constants import (
     FOREMAN_TEMPLATE_IMPORT_URL,
     FOREMAN_TEMPLATE_TEST_TEMPLATE,
 )
+from robottelo.utils.issue_handlers import is_open
 
 git = settings.git
 
@@ -104,6 +105,89 @@ class TestTemplateSyncTestCase:
         else:
             pytest.fail('The template is not imported for force test')
 
+    @pytest.mark.skip_if_not_set('git')
+    @pytest.mark.parametrize(
+        'url',
+        [
+            'https://github.com/theforeman/community-templates.git',
+            'ssh://git@github.com/theforeman/community-templates.git',
+        ],
+        ids=['http', 'ssh'],
+    )
+    @pytest.mark.parametrize(
+        'setup_http_proxy_global',
+        [True, False],
+        indirect=True,
+        ids=['auth_http_proxy_global', 'unauth_http_proxy_global'],
+    )
+    @pytest.mark.parametrize(
+        'use_proxy_global',
+        [True, False],
+        ids=['use_proxy_global', 'do_not_use_proxy_global'],
+    )
+    @pytest.mark.tier2
+    def test_positive_import_dir_filtered(
+        self,
+        module_org,
+        create_import_export_local_dir,
+        target_sat,
+        use_proxy_global,
+        setup_http_proxy_global,
+        url,
+    ):
+        """Import a template from git, specifying directory and filter
+
+        :id: 17bfb25a-e215-4f57-b861-294cd018bcf1
+
+        :setup:
+            1. Unlock and remove a template to be imported
+
+        :steps:
+            1. Import a template, specifying its dir and filter
+
+        :expectedresults:
+            1. The template is present
+
+        :CaseImportance: Medium
+        """
+        # TODO remove this
+        if is_open('SAT-28933') and 'ssh' in url:
+            pytest.skip("Temporary skip of SSH tests")
+        proxy, param = setup_http_proxy_global
+        if not use_proxy_global and not param:
+            # only do-not-use one kind of proxy
+            pytest.skip(
+                "Invalid parameter combination. DO NOT USE PROXY scenario should only be tested once."
+            )
+        pt_name = 'FreeBSD default fake'
+        if target_sat.cli.PartitionTable.list({'search': f'name=\\"{pt_name}\\"'}):
+            target_sat.cli.PartitionTable.update({'name': pt_name, 'locked': 0})
+            target_sat.cli.PartitionTable.delete({'name': pt_name})
+        try:
+            data = {
+                'repo': url,
+                'organization-ids': module_org.id,
+                'branch': 'develop',
+                'dirname': '/partition_tables_templates/',
+                'filter': pt_name,
+            }
+            if use_proxy_global:
+                proxy_hostname = (
+                    proxy.split('/')[2].split(':')[0]
+                    if '@' not in proxy
+                    else proxy.split('@')[1].split(':')[0]
+                )
+                old_log = target_sat.cutoff_host_setup_log(proxy_hostname, settings.git.hostname)
+                data['http-proxy-policy'] = 'global'
+            target_sat.cli.TemplateSync.imports(data)
+        finally:
+            if use_proxy_global:
+                target_sat.restore_host_check_log(proxy_hostname, settings.git.hostname, old_log)
+        # assert that template has been synced -> is present on the Satellite
+        pt = target_sat.cli.PartitionTable.list({'search': f'name=\\"{pt_name}\\"'})
+        assert len(pt) == 1
+        assert pt_name == pt[0]['name']
+
     @pytest.mark.e2e
     @pytest.mark.tier2
     @pytest.mark.skip_if_not_set('git')
@@ -154,7 +238,6 @@ class TestTemplateSyncTestCase:
             f'{api_url}/{path}', auth=auth, json={'branch': git_branch, 'content': content}
         )
         assert res.status_code == 201
-        # export template to git
         url = f'{url}/{git.username}/{git_repository["name"]}'
         output = module_target_sat.cli.TemplateSync.exports(
             {

@@ -271,6 +271,7 @@ PRDS = {
     'rhae': 'Red Hat Ansible Engine',
     'rhel8': 'Red Hat Enterprise Linux for x86_64',
     'rhel9': 'Red Hat Enterprise Linux for x86_64',
+    'rhel10_beta': 'Red Hat Enterprise Linux for x86_64 Beta',
 }
 
 REPOSET = {
@@ -303,15 +304,41 @@ REPOSET = {
         'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (Kickstart)',
         'rhel9_bos': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS (Kickstart)',
         'rhel9_aps': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream (Kickstart)',
+        'rhel10_bos_beta': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Beta (Kickstart)',
+        'rhel10_aps_beta': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Beta (Kickstart)',
     },
     'rhel8_bos': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)',
     'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (RPMs)',
     'rhel9_bos': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS (RPMs)',
     'rhel9_aps': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream (RPMs)',
+    'rhel10_bos_beta': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Beta (RPMs)',
+    'rhel10_aps_beta': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Beta (RPMs)',
     'rhel7_extra': 'Red Hat Enterprise Linux 7 Server - Extras (RPMs)',
     'rhel7_optional': 'Red Hat Enterprise Linux 7 Server - Optional (RPMs)',
     'rhel7_sup': 'Red Hat Enterprise Linux 7 Server - Supplementary (RPMs)',
 }
+
+RECOMMENDED_REPOS = [
+    'rhel-9-for-x86_64-baseos-rpms',
+    'rhel-9-for-x86_64-appstream-rpms',
+    'rhel-9-for-x86_64-baseos-eus-rpms',  # 6.17+
+    'rhel-9-for-x86_64-appstream-eus-rpms',  # 6.17+
+    'rhel-8-for-x86_64-baseos-rpms',
+    'rhel-8-for-x86_64-appstream-rpms',
+    'rhel-8-for-x86_64-baseos-eus-rpms',
+    'rhel-8-for-x86_64-appstream-eus-rpms',
+    'satellite-client-6-for-rhel-9-x86_64-rpms',
+    'satellite-client-6-for-rhel-8-x86_64-rpms',
+]
+
+VERSIONED_REPOS = [
+    'satellite-capsule-{}-for-rhel-8-x86_64-rpms',
+    'satellite-maintenance-{}-for-rhel-8-x86_64-rpms',
+    'satellite-utils-{}-for-rhel-8-x86_64-rpms',
+    'satellite-capsule-{}-for-rhel-9-x86_64-rpms',  # 6.16+
+    'satellite-maintenance-{}-for-rhel-9-x86_64-rpms',  # 6.16+
+    'satellite-utils-{}-for-rhel-9-x86_64-rpms',  # 6.16+
+]
 
 SM_OVERALL_STATUS = {
     'current': 'Overall Status: Current',
@@ -544,19 +571,35 @@ REPOS = {
         },
         'rhel9_bos': {
             'id': 'rhel-9-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.4',
-            'version': '9.4',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.5',
+            'version': '9.5',
             'reposet': REPOSET['kickstart']['rhel9_bos'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
         'rhel9_aps': {
             'id': 'rhel-9-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.4',
-            'version': '9.4',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.5',
+            'version': '9.5',
             'reposet': REPOSET['kickstart']['rhel9_aps'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
+        },
+        'rhel10_bos_beta': {
+            'id': 'rhel-10-for-x86_64-baseos-beta-kickstart',
+            'name': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Beta Kickstart',
+            'version': '10',
+            'reposet': REPOSET['kickstart']['rhel10_bos_beta'],
+            'product': PRDS['rhel10_beta'],
+            'distro': 'rhel10',
+        },
+        'rhel10_aps_beta': {
+            'id': 'rhel-10-for-x86_64-appstream-beta-kickstart',
+            'name': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Beta Kickstart',
+            'version': '10',
+            'reposet': REPOSET['kickstart']['rhel10_aps_beta'],
+            'product': PRDS['rhel10_beta'],
+            'distro': 'rhel10',
         },
     },
     'rhel8_bos': {
@@ -602,6 +645,28 @@ REPOS = {
         'product': PRDS['rhel9'],
         'distro': 'rhel9',
         'key': 'rhel9_aps',
+    },
+    'rhel10_bos_beta': {
+        'id': 'rhel-10-for-x86_64-baseos-beta-rpms',
+        'name': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Beta RPMs',
+        'releasever': '10',
+        'version': '10',
+        'reposet': REPOSET['rhel10_bos_beta'],
+        'product': PRDS['rhel10_beta'],
+        'distro': 'rhel10',
+        'key': 'rhel10_bos_beta',
+        'basearch': 'x86_64',
+    },
+    'rhel10_aps_beta': {
+        'id': 'rhel-10-for-x86_64-appstream-beta-rpms',
+        'name': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Beta RPMs',
+        'releasever': '10',
+        'basearch': 'x86_64',
+        'version': '10',
+        'reposet': REPOSET['rhel10_aps_beta'],
+        'product': PRDS['rhel10_beta'],
+        'distro': 'rhel10',
+        'key': 'rhel10_aps_beta',
     },
     'rhel7_optional': {
         'id': 'rhel-7-server-optional-rpms',
@@ -712,22 +777,57 @@ DOCKER_REPO_UPSTREAM_NAME = 'openshift3/logging-elasticsearch'
 CONTAINER_RH_REGISTRY_UPSTREAM_NAME = 'openshift3/ose-metrics-hawkular-openshift-agent'
 BOOTABLE_REPO = {
     'upstream_name': 'pulp/bootc-labeled',
-    'manifests_count': 1,
-    'bootable': True,
-    'flatpak': False,
-    'labels_count': 2,
-    'annotations_count': 2,
+    'manifest': {
+        'count': 1,
+        'bootable': True,
+        'flatpak': False,
+        'labels_count': 2,
+        'annotations_count': 2,
+    },
+    'manifest_list': {
+        'count': 1,
+        'bootable': True,
+        'flatpak': False,
+        'labels_count': 0,
+        'annotations_count': 0,
+    },
 }
 FLATPAK_REPO = {
     'upstream_name': 'pulp/oci-net.fishsoup.hello',
-    'manifests_count': 2,
-    'bootable': False,
-    'flatpak': True,
-    'labels_count': 10,
-    'annotations_count': 0,
+    'manifest': {
+        'count': 2,
+        'bootable': False,
+        'flatpak': True,
+        'labels_count': 10,
+        'annotations_count': 0,
+    },
+    'manifest_list': {
+        'count': 1,
+        'bootable': False,
+        'flatpak': True,
+        'labels_count': 0,
+        'annotations_count': 0,
+    },
 }
 LABELLED_REPOS = [BOOTABLE_REPO, FLATPAK_REPO]
 CONTAINER_MANIFEST_LABELS = {'annotations', 'labels', 'is_bootable', 'is_flatpak'}
+
+FLATPAK_REMOTES = {
+    'Fedora': {
+        'url': 'https://registry.fedoraproject.org',
+        'index_url': 'https://registry.fedoraproject.org/index/static?label:org.flatpak.ref:exists=1&tag=latest',
+        'authenticated': False,
+    },
+    'RedHat': {
+        'url': 'https://flatpaks.redhat.io/rhel/',
+        'index_url': 'https://flatpaks.redhat.io/rhel/index/static?label:org.flatpak.ref:exists=1&tag=latest',
+        'authenticated': True,
+    },
+}
+PULPCORE_FLATPAK_ENDPOINT = (
+    'https://{}/pulpcore_registry/index/static?label:org.flatpak.ref:exists=1'
+)
+
 CONTAINER_CLIENTS = ['docker', 'podman']
 CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/lib/pulp/imports/myrepo/test.txt'
@@ -997,7 +1097,31 @@ PERMISSIONS = {
         'destroy_external_usergroups',
     ],
     'FactValue': ['view_facts', 'upload_facts'],
-    'Filter': ['view_filters', 'create_filters', 'edit_filters', 'destroy_filters'],
+    'Filter': [
+        'view_filters',
+        'create_filters',
+        'edit_filters',
+        'destroy_filters',
+    ],
+    'ForemanSalt::SaltVariable': [
+        'edit_salt_variables',
+        'destroy_salt_variables',
+        'create_salt_variables',
+        'view_salt_variables',
+    ],
+    'ForemanSalt::SaltEnvironment': [
+        'edit_salt_environments',
+        'create_salt_environments',
+        'destroy_salt_environments',
+        'view_salt_environments',
+    ],
+    'ForemanSalt::SaltModule': [
+        'import_salt_modules',
+        'create_salt_modules',
+        'edit_salt_modules',
+        'view_salt_modules',
+        'destroy_salt_modules',
+    ],
     'ForemanTasks::RecurringLogic': [
         'create_recurring_logics',
         'view_recurring_logics',
@@ -1098,6 +1222,12 @@ PERMISSIONS = {
         'destroy_alternate_content_sources',
         'view_alternate_content_sources',
     ],
+    'Katello::FlatpakRemote': [
+        'view_flatpak_remotes',
+        'create_flatpak_remotes',
+        'edit_flatpak_remotes',
+        'destroy_flatpak_remotes',
+    ],
     'KeyPair': ["view_keypairs", "destroy_keypairs"],
     'Location': [
         'view_locations',
@@ -1153,6 +1283,19 @@ PERMISSIONS = {
         'lock_report_templates',
     ],
     'Role': ['view_roles', 'create_roles', 'edit_roles', 'destroy_roles'],
+    'SccAccount': [
+        "delete_scc_accounts",
+        "edit_scc_accounts",
+        "new_scc_accounts",
+        "sync_scc_accounts",
+        "test_connection_scc_accounts",
+        "use_scc_accounts",
+        "view_scc_accounts",
+    ],
+    'SccProduct': [
+        "subscribe_scc_products",
+        "view_scc_products",
+    ],
     'Setting': ['view_settings', 'edit_settings'],
     'SmartProxy': [
         'view_smart_proxies',
@@ -1168,6 +1311,13 @@ PERMISSIONS = {
         'manage_capsule_content',
         'view_capsule_content',
         'view_openscap_proxies',
+        'destroy_smart_proxies_salt_autosign',
+        'view_smart_proxies_salt_autosign',
+        'destroy_smart_proxies_salt_keys',
+        'view_smart_proxies_salt_keys',
+        'edit_smart_proxies_salt_keys',
+        'auth_smart_proxies_salt_autosign',
+        'create_smart_proxies_salt_autosign',
     ],
     'SshKey': ["view_ssh_keys", "create_ssh_keys", "destroy_ssh_keys"],
     'Subnet': [
@@ -1216,6 +1366,7 @@ PERMISSIONS = {
         'view_discovered_hosts',
         'view_hosts',
         'forget_status_hosts',
+        'saltrun_hosts',
     ],
     'Katello::ActivationKey': [
         'view_activation_keys',
@@ -1767,8 +1918,16 @@ WONTFIX_RESOLUTIONS = ("WONTFIX", "CANTFIX", "DEFERRED")
 # Jira statuses used by Robottelo issue handler.
 JIRA_TESTS_PASSED_LABEL = "tests-passed"
 JIRA_TESTS_FAILED_LABEL = "tests-failed"
-JIRA_OPEN_STATUSES = ("New", "Backlog", "Refinement", "To Do", "In Progress")
-JIRA_ONQA_STATUS = "Review"
+JIRA_OPEN_STATUSES = (
+    "New",
+    "Backlog",
+    "Refinement",
+    "To Do",
+    "In Progress",
+    "Review",
+    "Release Pending - Upstream",
+)
+JIRA_ONQA_STATUS = "Testing"
 JIRA_CLOSED_STATUSES = ("Release Pending", "Closed")
 JIRA_WONTFIX_RESOLUTIONS = "Obsolete"
 

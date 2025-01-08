@@ -479,13 +479,13 @@ class TestRepository:
         [
             {'content_type': content_type, 'download_policy': 'on_demand'}
             for content_type in constants.REPO_TYPE
-            if content_type not in ['yum', 'docker']
+            if content_type not in ['yum', 'docker', 'deb', 'file']
         ],
         indirect=True,
         ids=lambda x: x['content_type'],
     )
     def test_negative_create_repos_with_download_policy(self, repo_options, target_sat):
-        """Verify that non-YUM & non-docker repositories cannot be created with
+        """Verify that non-YUM, non-docker, non-debian, and non-file repositories cannot be created with
         download policy
 
         :id: 8a59cb31-164d-49df-b3c6-9b90634919ce
@@ -1846,7 +1846,8 @@ class TestDockerRepository:
     def test_positive_synchronize_docker_repo_with_manifest_labels(
         self, target_sat, repo_options, repo
     ):
-        """Verify the container manifest labels were indexed properly during the repo sync.
+        """Verify the container manifests and manifest_lists labels were indexed properly during
+            the repo sync.
 
         :id: c865d350-fd19-43fb-b9fd-5ef86cbe3e09
 
@@ -1855,40 +1856,49 @@ class TestDockerRepository:
         :steps:
             1. Sync container-type repositories with some labels, annotations
                and bootable and flatpak flags.
-            2. Verify all manifests in each repo contain the expected keys.
-            3. Verify the manifests count matches the repository content counts and the expectation.
+            2. Verify all manifests and manifest_lists in each repo contain the expected keys.
+            3. Verify the manifests and manifest_lists count matches the repository content counts
+               and the expectation.
             4. Verify the values meet the expectations specific for each repo.
 
         :expectedresults: Container labels were indexed properly.
         """
         repo.sync()
         repo = repo.read()
-        dms = target_sat.api.Repository(id=repo.id).docker_manifests()['results']
-        assert all(
-            [CONTAINER_MANIFEST_LABELS.issubset(m.keys()) for m in dms]
-        ), 'Some expected key is missing in the repository manifests'
-        expected_values = next(
-            (i for i in LABELLED_REPOS if i['upstream_name'] == repo.docker_upstream_name), None
-        )
-        assert expected_values, f'{repo.docker_upstream_name} not found in {LABELLED_REPOS}'
-        assert (
-            len(dms) == repo.content_counts['docker_manifest']
-        ), 'Manifests count does not match the repository content counts'
-        assert (
-            len(dms) == expected_values['manifests_count']
-        ), 'Manifests count does not meet the expectation'
-        assert all(
-            [m['is_bootable'] == expected_values['bootable'] for m in dms]
-        ), 'Unexpected is_bootable flag'
-        assert all(
-            [m['is_flatpak'] == expected_values['flatpak'] for m in dms]
-        ), 'Unexpected is_flatpak flag'
-        assert all(
-            [len(m['labels']) == expected_values['labels_count'] for m in dms]
-        ), 'Unexpected lables count'
-        assert all(
-            [len(m['annotations']) == expected_values['annotations_count'] for m in dms]
-        ), 'Unexpected annotations count'
+
+        for entity_type in ['manifest', 'manifest_list']:
+            entity_data = (
+                target_sat.api.Repository(id=repo.id).docker_manifests()['results']
+                if entity_type == 'manifest'
+                else target_sat.api.Repository(id=repo.id).docker_manifest_lists()['results']
+            )
+
+            assert all(
+                [CONTAINER_MANIFEST_LABELS.issubset(m.keys()) for m in entity_data]
+            ), f'Some expected key is missing in the repository {entity_type}s'
+            expected_values = next(
+                (i for i in LABELLED_REPOS if i['upstream_name'] == repo.docker_upstream_name), None
+            )
+            assert expected_values, f'{repo.docker_upstream_name} not found in {LABELLED_REPOS}'
+            expected_values = expected_values[entity_type]
+            assert (
+                len(entity_data) == repo.content_counts[f'docker_{entity_type}']
+            ), f'{entity_type}s count does not match the repository content counts'
+            assert (
+                len(entity_data) == expected_values['count']
+            ), f'{entity_type}s count does not meet the expectation'
+            assert all(
+                [m['is_bootable'] == expected_values['bootable'] for m in entity_data]
+            ), 'Unexpected is_bootable flag'
+            assert all(
+                [m['is_flatpak'] == expected_values['flatpak'] for m in entity_data]
+            ), 'Unexpected is_flatpak flag'
+            assert all(
+                [len(m['labels']) == expected_values['labels_count'] for m in entity_data]
+            ), 'Unexpected lables count'
+            assert all(
+                [len(m['annotations']) == expected_values['annotations_count'] for m in entity_data]
+            ), 'Unexpected annotations count'
 
     @pytest.mark.skip(
         reason="Tests behavior that is no longer present in the same way, needs refactor"

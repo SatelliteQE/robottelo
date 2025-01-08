@@ -20,7 +20,7 @@ def pytest_configure(config):
         "run_in_one_thread: Sequential tests",
         "build_sanity: Fast, basic tests that confirm build is ready for full test suite",
         "rhel_ver_list: Filter rhel_contenthost versions by list",
-        "rhel_ver_match: Filter rhel_contenthost versions by regexp",
+        "rhel_ver_match: Filter rhel_contenthost versions by regexp, or format 'N-#'",
         "no_containers: Disable container hosts from being used in favor of VMs",
         "include_capsule: For satellite-maintain tests to run on Satellite and Capsule both",
         "capsule_only: For satellite-maintain tests to run only on Capsules",

@@ -12,6 +12,8 @@
 
 """
 
+from datetime import datetime, timedelta
+
 import pytest
 
 from robottelo.config import settings
@@ -232,6 +234,139 @@ def test_positive_content_counts_for_mixed_cv(
         session.capsule.edit(module_capsule_configured.hostname, remove_all_lces=True)
         details = session.capsule.read_details(module_capsule_configured.hostname)
         assert 'content' not in details, 'Content still listed for removed LCEs'
+
+
+@pytest.mark.parametrize('setting_update', ['automatic_content_count_updates=False'], indirect=True)
+def test_positive_content_counts_granular_update(
+    module_target_sat, module_capsule_configured, setting_update, function_org, function_product
+):
+    """Verify that the capsule content counts can be updated separately for LCEs and CVs.
+
+    :id: 64f241f5-1766-4d11-95c7-f15633c10a80
+
+    :parametrized: yes
+
+    :verifies: SAT-28338
+
+    :BlockedBy: SAT-29679
+
+    :setup:
+        1. Satellite with registered external Capsule.
+        2. Disabled automatic content counts update.
+
+    :steps:
+        1. Create two LCEs, assign them to the Capsule.
+        2. Create and sync a repo, publish it in two CVs, promote both CVs to both LCEs.
+        3. Ensure no counts were calculated yet for both CVs, both LCEs.
+        4. Refresh counts for the first CV in the first LCE, check entity IDs in the Update task.
+        5. Ensure the counts were updated for the first CV and
+           the second CV stayed untouched, as well as the second LCE.
+        6. Refresh counts for the second LCE, check entity IDs in the Update task.
+        7. Ensure the counts were updated for the second LCE and
+           the second CV in the first LCE stayed untouched.
+
+    :expectedresults:
+        1. Content counts are updated only for the specific LCEs and CVs.
+
+    """
+    wait_query = (
+        'label = Actions::Katello::ContentView::CapsuleSync OR '
+        'Actions::Katello::CapsuleContent::UpdateContentCounts'
+    )
+
+    # 1. Create two LCEs, assign them to the Capsule.
+    lce1 = module_target_sat.api.LifecycleEnvironment(organization=function_org).create()
+    lce2 = module_target_sat.api.LifecycleEnvironment(
+        organization=function_org, prior=lce1
+    ).create()
+    module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+        data={'environment_id': [lce1.id, lce2.id]}
+    )
+
+    # 2. Create and sync a repo, publish it in two CVs, promote both CVs to both LCEs.
+    repo = module_target_sat.api.Repository(
+        product=function_product,
+    ).create()
+    repo.sync()
+    repo = repo.read()
+    cvs = []
+    for _ in range(2):
+        cv = module_target_sat.api.ContentView(
+            organization=function_org, repository=[repo]
+        ).create()
+        cv.publish()
+        cv = cv.read()
+        cv.version[0].promote(data={'environment_ids': [lce1.id, lce2.id]})
+        cvs.append(cv.read())
+    cv1, cv2 = cvs
+    module_target_sat.wait_for_tasks(search_query=wait_query, search_rate=5, max_tries=5)
+
+    empty_counts = [repo.name, 'N/A', 'N/A']
+    valid_counts = [
+        repo.name,
+        f'{repo.content_counts["rpm"]} Packages',
+        f'{repo.content_counts["erratum"]} Errata',
+        f'{repo.content_counts["package_group"]} Package groups',
+    ]
+
+    with module_target_sat.ui_session() as session:
+        session.capsule.edit(
+            module_capsule_configured.hostname, add_organizations=[function_org.name]
+        )
+        session.organization.select(org_name=function_org.name)
+
+        # 3. Ensure no counts were calculated yet for both CVs, both LCEs.
+        details = session.capsule.read_details(module_capsule_configured.hostname)
+        assert all(
+            details['content'][lce.name][cv.name]['expanded_repo_details'][1] == empty_counts
+            for lce in [lce1, lce2]
+            for cv in cvs
+        ), 'Expected "N/A" for content counts displayed'
+
+        # 4. Refresh counts for the first CV in the first LCE, check entity IDs in the Update task.
+        session.capsule.refresh_lce_counts(
+            module_capsule_configured.hostname, lce_name=lce1.name, cv_name=cv1.name
+        )
+        timestamp = (datetime.utcnow() - timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M')
+        task = module_target_sat.api.ForemanTask().search(
+            query={
+                'search': f'label=Actions::Katello::CapsuleContent::UpdateContentCounts and started_at>="{timestamp}"'
+            }
+        )[0]
+        assert task.input['smart_proxy_id'] == module_capsule_configured.nailgun_capsule.id
+        assert task.input['environment_id'] == lce1.id
+        assert task.input['content_view_id'] == cv1.id
+
+        # 5. Ensure the counts were updated for the first CV and
+        #    the second CV stayed untouched, as well as the second LCE.
+        details = session.capsule.read_details(module_capsule_configured.hostname)
+        assert details['content'][lce1.name][cv1.name]['expanded_repo_details'][1] == valid_counts
+        assert details['content'][lce1.name][cv2.name]['expanded_repo_details'][1] == empty_counts
+        assert all(
+            details['content'][lce2.name][cv.name]['expanded_repo_details'][1] == empty_counts
+            for cv in cvs
+        )
+
+        # 6. Refresh counts for the second LCE, check entity IDs in the Update task.
+        session.capsule.refresh_lce_counts(module_capsule_configured.hostname, lce_name=lce2.name)
+        timestamp = (datetime.utcnow() - timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M')
+        task = module_target_sat.api.ForemanTask().search(
+            query={
+                'search': f'label=Actions::Katello::CapsuleContent::UpdateContentCounts and started_at>="{timestamp}"'
+            }
+        )[0]
+        assert task.input['smart_proxy_id'] == module_capsule_configured.nailgun_capsule.id
+        assert task.input['environment_id'] == lce2.id
+        assert not task.input['content_view_id']
+
+        # 7. Ensure the counts were updated for the second LCE and
+        #    the second CV in the first LCE stayed untouched.
+        details = session.capsule.read_details(module_capsule_configured.hostname)
+        assert all(
+            details['content'][lce2.name][cv.name]['expanded_repo_details'][1] == valid_counts
+            for cv in cvs
+        )
+        assert details['content'][lce1.name][cv2.name]['expanded_repo_details'][1] == empty_counts
 
 
 @pytest.mark.parametrize('setting_update', ['hide_reclaim_space_warning=False'], indirect=True)

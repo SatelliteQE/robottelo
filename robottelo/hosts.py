@@ -854,21 +854,49 @@ class ContentHost(Host, ContentHostMixins):
             raise CLIFactoryError(f'Failed to chmod ssh key file:\n{result.stderr}')
 
     def enable_rhsm_proxy(self, hostname, port=None):
-        """Configures proxy for subscription manager"""
+        """Configures HTTP proxy for subscription manager"""
         cmd = f"subscription-manager config --server.proxy_hostname={hostname}"
         if port:
             cmd += f' --server.proxy_port={port}'
+        logger.info(f'Configuring {hostname} HTTP proxy for subscription manager.')
         self.execute(cmd)
 
     def enable_dnf_proxy(self, hostname, scheme=None, port=None):
-        """Configures proxy for dnf"""
+        """Configures HTTP proxy for dnf"""
         if not scheme:
             scheme = 'http'
         cmd = f"echo -e 'proxy = {scheme}://{hostname}"
         if port:
             cmd += f':{port}'
         cmd += "' >> /etc/dnf/dnf.conf"
+        logger.info(f'Configuring {hostname} HTTP proxy for dnf.')
         self.execute(cmd)
+
+    def enable_ipv6_rhsm_proxy(self):
+        """Execute procedures for enabling rhsm IPv6 HTTP Proxy"""
+        if self.ipv6:
+            url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
+            self.enable_rhsm_proxy(url.hostname, url.port)
+
+    def enable_ipv6_dnf_proxy(self):
+        """Execute procedures for enabling dnf IPv6 HTTP Proxy"""
+        if self.ipv6:
+            url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
+            self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
+
+    def disable_rhsm_proxy(self):
+        """Disables HTTP proxy for subscription manager"""
+        self.execute('subscription-manager remove server.proxy_hostname server.proxy_port')
+
+    def disable_dnf_proxy(self):
+        """Disable HTTP proxy for dnf"""
+        self.execute('sed -i "/^proxy/d" /etc/dnf/dnf.conf')
+
+    def enable_ipv6_dnf_and_rhsm_proxy(self):
+        """Execute procedures for enabling rhsm and dnf IPv6 HTTP Proxy"""
+        if self.ipv6:
+            self.enable_ipv6_rhsm_proxy()
+            self.enable_ipv6_dnf_proxy()
 
     def add_authorized_key(self, pub_key):
         """Inject a public key into the authorized keys file
@@ -994,7 +1022,7 @@ class ContentHost(Host, ContentHostMixins):
         # sat6 under the capsule --> certifcates or on capsule via cli "puppetserver
         # ca list", so that we sign it.
         self.execute('/opt/puppetlabs/bin/puppet agent -t')
-        proxy_host = Host(hostname=proxy_hostname, ipv6=settings.server.is_ipv6)
+        proxy_host = Host(hostname=proxy_hostname, ipv6=self.ipv6)
         proxy_host.execute(f'puppetserver ca sign --certname {cert_name}')
 
         if run_puppet_agent:
@@ -1088,13 +1116,14 @@ class ContentHost(Host, ContentHostMixins):
         :param register: Whether to register client to insights
         :return: None
         """
-        # Red Hat Insights requires RHEL 6/7/8/9 repo and it is not
+        # Red Hat Insights requires RHEL OS repos and it is not
         # possible to sync the repo during the tests, Adding repo file.
         distro_repo_map = {
             'rhel6': settings.repos.rhel6_os,
             'rhel7': settings.repos.rhel7_os,
             'rhel8': settings.repos.rhel8_os,
             'rhel9': settings.repos.rhel9_os,
+            'rhel10': settings.repos.rhel10_os,
         }
         rhel_repo = distro_repo_map.get(rhel_distro)
 
@@ -1131,19 +1160,27 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError('Failed to unregister client from Insights through Satellite')
 
     def set_infrastructure_type(self, infrastructure_type='physical'):
-        """Force host to appear as bare-metal orbroker virtual machine in
-        subscription-manager fact.
+        """Force host to appear as bare-metal or virtual machine in subscription-manager fact.
 
         :param str infrastructure_type: One of 'physical', 'virtual'
         """
-        script_path = '/usr/sbin/virt-what'
-        self.execute(f'cp -n {script_path} {script_path}.old')
+        # Remove the custom facts file if it exists
+        self.execute('rm -f /etc/rhsm/facts/custom.facts')
 
-        script_content = ['#!/bin/sh -']
+        # Define the path for the physical facts file
+        script_path = '/etc/rhsm/facts/physical.facts'
+
+        # Prepare facts content based on infrastructure type
         if infrastructure_type == 'virtual':
-            script_content.append('echo kvm')
-        script_content = '\n'.join(script_content)
-        self.execute(f"echo -e '{script_content}' > {script_path}")
+            facts_content = '{"virt.is_guest": "true"}'
+        else:
+            facts_content = '{"virt.is_guest": "false"}'
+
+        # Create the physical facts file and write the appropriate content
+        self.execute(f"echo '{facts_content}' > {script_path}")
+
+        # Update subscription manager facts
+        self.execute('subscription-manager facts --update')
 
     def patch_os_release_version(self, distro='rhel7'):
         """Patch VM OS release version.
@@ -1441,8 +1478,8 @@ class ContentHost(Host, ContentHostMixins):
         self.reset_rhsm()
 
         # Enabling proxy for IPv6
-        if settings.server.is_ipv6:
-            url = urlparse(settings.server.http_proxy_ipv6_url)
+        if self.ipv6:
+            url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)
             self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
 
@@ -1611,19 +1648,6 @@ class Capsule(ContentHost, CapsuleMixins):
             snap=settings.capsule.version.snap,
         )
 
-    def enable_ipv6_http_proxy(self):
-        """Execute procedures for enabling IPv6 HTTP Proxy on Capsule using SM"""
-        if settings.server.is_ipv6:
-            url = urlparse(settings.server.http_proxy_ipv6_url)
-            self.enable_rhsm_proxy(url.hostname, url.port)
-            self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
-            self.ipv6 = settings.server.is_ipv6
-
-    def disable_ipv6_http_proxy(self):
-        """Executes procedures for disabling IPv6 HTTP Proxy on Capsule"""
-        if settings.server.is_ipv6:
-            self.execute('subscription-manager remove server.proxy_hostname server.proxy_port')
-
     def capsule_setup(self, sat_host=None, capsule_cert_opts=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
         self._satellite = sat_host or Satellite()
@@ -1789,56 +1813,6 @@ class Satellite(Capsule, SatelliteMixins):
         to_clear = [k for k in sys.modules if 'nailgun' in k]
         [sys.modules.pop(k) for k in to_clear]
 
-    def enable_ipv6_http_proxy(self):
-        """Execute procedures for enabling IPv6 HTTP Proxy"""
-        if not settings.server.is_ipv6:
-            logger.warning(
-                'The IPv6 HTTP Proxy setting is not enabled. Skipping the IPv6 HTTP Proxy setup.'
-            )
-            return None
-        self.ipv6 = settings.server.is_ipv6
-        proxy_name = 'Robottelo IPv6 Automation Proxy'
-        if not self.cli.HttpProxy.exists(search=('name', proxy_name)):
-            http_proxy = self.api.HTTPProxy(
-                name=proxy_name, url=settings.server.http_proxy_ipv6_url
-            ).create()
-        else:
-            logger.info(
-                'The IPv6 HTTP Proxy is already enabled. Skipping the IPv6 HTTP Proxy setup.'
-            )
-            http_proxy = self.api.HTTPProxy().search(query={'search': f'name="{proxy_name}"'})[0]
-        # Setting HTTP Proxy as default in the settings
-        self.cli.Settings.set(
-            {
-                'name': 'content_default_http_proxy',
-                'value': proxy_name,
-            }
-        )
-        self.cli.Settings.set(
-            {
-                'name': 'http_proxy',
-                'value': settings.server.http_proxy_ipv6_url,
-            }
-        )
-        return http_proxy
-
-    def disable_ipv6_http_proxy(self, http_proxy):
-        """Execute procedures for disabling IPv6 HTTP Proxy"""
-        if http_proxy:
-            http_proxy.delete()
-            self.cli.Settings.set(
-                {
-                    'name': 'content_default_http_proxy',
-                    'value': '',
-                }
-            )
-            self.cli.Settings.set(
-                {
-                    'name': 'http_proxy',
-                    'value': '',
-                }
-            )
-
     @property
     def api(self):
         """Import all nailgun entities and wrap them under self.api"""
@@ -1983,6 +1957,65 @@ class Satellite(Capsule, SatelliteMixins):
         if not self._satellite:
             return self
         return self._satellite
+
+    def enable_satellite_http_proxy(self):
+        """Execute procedures for setting HTTP Proxy in Satellite settings.
+        Sets an HTTP proxy for all outgoing HTTP(S) connections from Satellite and
+        default HTTP proxy for syncing content.
+        """
+        http_proxy_name = 'IPv4 HTTP Proxy for Content sync'
+        http_proxy_url = settings.http_proxy.un_auth_proxy_url
+        if self.ipv6:
+            http_proxy_name = 'IPv6 HTTP Proxy for Content sync'
+            http_proxy_url = settings.http_proxy.http_proxy_ipv6_url
+        if not self.cli.HttpProxy.exists(search=('name', http_proxy_name)):
+            http_proxy = self.api.HTTPProxy(name=http_proxy_name, url=http_proxy_url).create()
+        else:
+            logger.info('The HTTP Proxy is already enabled. Skipping the HTTP Proxy setup.')
+            http_proxy = self.api.HTTPProxy().search(query={'search': f'name="{http_proxy_name}"'})[
+                0
+            ]
+        # Setting HTTP Proxy as default in the settings
+        logger.info(
+            f'Setting {http_proxy_name} as content_default_http_proxy in Satellite settings.'
+        )
+        self.cli.Settings.set(
+            {
+                'name': 'content_default_http_proxy',
+                'value': http_proxy_name,
+            }
+        )
+        logger.info(f'Setting {http_proxy_name} as general http_proxy in Satellite settings.')
+        self.cli.Settings.set(
+            {
+                'name': 'http_proxy',
+                'value': http_proxy_url,
+            }
+        )
+        return http_proxy
+
+    def disable_satellite_http_proxy(self, http_proxy):
+        """Execute procedures for disabling HTTP Proxy in Satellite settings."""
+        if http_proxy:
+            http_proxy.delete()
+            self.cli.Settings.set(
+                {
+                    'name': 'content_default_http_proxy',
+                    'value': '',
+                }
+            )
+            self.cli.Settings.set(
+                {
+                    'name': 'http_proxy',
+                    'value': '',
+                }
+            )
+
+    def enable_satellite_ipv6_http_proxy(self):
+        """Execute procedures for setting ipv6 HTTP Proxy in Satellite settings, rhsm and dnf."""
+        if self.ipv6:
+            self.enable_satellite_http_proxy()
+            self.enable_ipv6_dnf_and_rhsm_proxy()
 
     def is_remote_db(self):
         return (

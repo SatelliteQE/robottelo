@@ -292,7 +292,7 @@ def registered_contenthost(
 
 @pytest.mark.e2e
 @pytest.mark.tier3
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match('N-3')  # Newest major RHEL version (N), and three prior.
 @pytest.mark.parametrize('registered_contenthost', [[CUSTOM_REPO_URL]], indirect=True)
 @pytest.mark.no_containers
 def test_end_to_end(
@@ -486,7 +486,7 @@ def test_end_to_end(
 
 @pytest.mark.tier2
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.parametrize('registered_contenthost', [[CUSTOM_REPO_3_URL]], indirect=True)
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_host_content_errata_tab_pagination(
@@ -502,7 +502,7 @@ def test_host_content_errata_tab_pagination(
     # Test apply by REX using Select All for BZ#1846670
 
     :setup:
-        1. rhel8 registered contenthost with custom repos enabled.
+        1. registered contenthost with custom repos enabled.
         2. enable and sync rh repository.
         3. add rh repo to cv for registered host and publish/promote.
 
@@ -793,7 +793,7 @@ def test_positive_list_permission(
         product only.
     """
     module_target_sat.api_factory.enable_sync_redhat_repo(
-        constants.REPOS['rhsclient8'],
+        constants.REPOS['rhsclient9'],
         function_sca_manifest_org.id,
     )
     custom_repo = module_target_sat.api.Repository(
@@ -808,7 +808,7 @@ def test_positive_list_permission(
             query={'search': 'resource_type="Katello::Product"'}
         ),
         role=role,
-        search=f'name = "{PRDS["rhel8"]}"',
+        search=f'name = "{PRDS["rhel9"]}"',
     ).create()
     # generate login credentials for new role
     user_password = gen_string('alphanumeric')
@@ -854,7 +854,7 @@ def test_positive_apply_for_all_hosts(
 
     :setup:
         1. Create and sync one custom repo for all hosts, add to a content-view.
-        2. Checkout four rhel9 contenthosts via Broker.
+        2. Checkout four contenthosts, latest rhel ver, via Broker.
         3. Register all of the hosts to the same AK, CV, single repo.
 
     :steps:
@@ -865,7 +865,7 @@ def test_positive_apply_for_all_hosts(
         hosts.
     """
     num_hosts = 4
-    distro = 'rhel9'
+    distro = 'rhel10'
     # one custom repo on satellite, for all hosts to use
     custom_repo = target_sat.api.Repository(url=CUSTOM_REPO_URL, product=module_product).create()
     custom_repo.sync()
@@ -873,7 +873,7 @@ def test_positive_apply_for_all_hosts(
     module_cv.update(['repository'])
     with Broker(
         nick=distro,
-        workflow='deploy-rhel',
+        workflow='deploy-template',
         host_class=ContentHost,
         _count=num_hosts,
         deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
@@ -968,7 +968,7 @@ def test_positive_apply_for_all_hosts(
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('N-1')
 def test_positive_view_cve(session, module_product, module_sca_manifest_org, target_sat):
     """View CVE number(s) in Errata Details page
 
@@ -1034,7 +1034,9 @@ def test_positive_filter_by_environment(
     module_cv.repository = [custom_repo]
     module_cv.update(['repository'])
 
-    with Broker(nick='rhel8', host_class=ContentHost, _count=3) as clients:
+    with Broker(
+        nick='rhel10', workflow='deploy-template', host_class=ContentHost, _count=3
+    ) as clients:
         for client in clients:
             # register all hosts to the same AK, CV:
             setup = target_sat.api_factory.register_host_and_needed_setup(
@@ -1093,7 +1095,7 @@ def test_positive_filter_by_environment(
     [[CUSTOM_REPO_URL]],
     indirect=True,
 )
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('N-2')
 def test_positive_content_host_previous_env(
     session,
     module_cv,
@@ -1162,7 +1164,7 @@ def test_positive_content_host_previous_env(
 
 
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.parametrize(
     'registered_contenthost',
     [[CUSTOM_REPO_URL]],
@@ -1194,7 +1196,7 @@ def test_positive_check_errata(session, registered_contenthost):
 
 
 @pytest.mark.tier3
-@pytest.mark.rhel_ver_match('[8, 9]')
+@pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.parametrize(
     'registered_contenthost',
     [['Library', CUSTOM_REPO_URL]],
@@ -1266,7 +1268,7 @@ def test_positive_host_content_library(
 
 
 @pytest.mark.tier3
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.parametrize(
     'registered_contenthost',
     [[CUSTOM_REPO_URL]],
@@ -1331,7 +1333,7 @@ def test_positive_errata_search_type(session, module_sca_manifest_org, registere
 
 
 @pytest.mark.tier3
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.parametrize(
     'registered_contenthost',
     [[CUSTOM_REPO_URL]],
@@ -1437,7 +1439,7 @@ def test_positive_show_count_on_host_pages(session, module_org, registered_conte
 
 
 @pytest.mark.tier3
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.parametrize(
     'registered_contenthost',
     [[CUSTOM_REPO_URL]],
@@ -1511,7 +1513,7 @@ def test_positive_check_errata_counts_by_type_on_host_details_page(
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.parametrize('setting_update', ['errata_status_installable'], indirect=True)
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.parametrize(
     'registered_contenthost',
     [[CUSTOM_REPO_URL]],
@@ -1663,7 +1665,9 @@ def test_content_host_errata_search_commands(
     cvs = [module_cv.read(), content_view.read()]  # client0, client1
     # walrus-0.71-1.noarch (RHSA), kangaroo-0.1-1.noarch (RHBA)
     packages = [FAKE_1_CUSTOM_PACKAGE, FAKE_4_CUSTOM_PACKAGE]
-    with Broker(nick='rhel8', host_class=ContentHost, _count=2) as clients:
+    with Broker(
+        nick='rhel10', workflow='deploy-template', host_class=ContentHost, _count=2
+    ) as clients:
         for (
             client,
             cv,

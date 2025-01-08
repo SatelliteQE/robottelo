@@ -1,0 +1,13 @@
+AAP_INTEGRATION:
+  AAP_FQDN: env-aap-01.example.com
+  # USERNAME: Login for AAP
+  USERNAME:
+  # PASSWORD: Password for AAP
+  PASSWORD:
+  # Red Hat Satellite 6 type credentials for dynamic inventory testing
+  SATELLITE_CREDENTIALS:
+  # Satellite as a Dynamic Inventory in Ansible Tower
+  SATELLITE_INVENTORY:
+  # Job template and host_config_key for ansible-callback with Satellite testing
+  CALLBACK_JOB_TEMPLATE:
+  HOST_CONFIG_KEY:

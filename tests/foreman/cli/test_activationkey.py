@@ -1051,14 +1051,12 @@ def test_create_ak_with_syspurpose_set(module_sca_manifest_org, module_target_sa
     # Requires Cls org and manifest. Manifest is for self-support values.
     new_ak = module_target_sat.cli_factory.make_activation_key(
         {
-            'purpose-addons': "test-addon1, test-addon2",
             'purpose-role': "test-role",
             'purpose-usage': "test-usage",
             'service-level': "Self-Support",
             'organization-id': module_sca_manifest_org.id,
         }
     )
-    assert new_ak['system-purpose']['purpose-addons'] == "test-addon1, test-addon2"
     assert new_ak['system-purpose']['purpose-role'] == "test-role"
     assert new_ak['system-purpose']['purpose-usage'] == "test-usage"
     assert new_ak['system-purpose']['service-level'] == "Self-Support"
@@ -1066,7 +1064,6 @@ def test_create_ak_with_syspurpose_set(module_sca_manifest_org, module_target_sa
     module_target_sat.cli.ActivationKey.update(
         {
             'id': new_ak['id'],
-            'purpose-addons': '',
             'purpose-role': '',
             'purpose-usage': '',
             'service-level': '',
@@ -1076,7 +1073,6 @@ def test_create_ak_with_syspurpose_set(module_sca_manifest_org, module_target_sa
     updated_ak = module_target_sat.cli.ActivationKey.info(
         {'id': new_ak['id'], 'organization-id': module_sca_manifest_org.id}
     )
-    assert updated_ak['system-purpose']['purpose-addons'] == ''
     assert updated_ak['system-purpose']['purpose-role'] == ''
     assert updated_ak['system-purpose']['purpose-usage'] == ''
 
@@ -1106,7 +1102,6 @@ def test_update_ak_with_syspurpose_values(module_sca_manifest_org, module_target
     org = module_sca_manifest_org
     new_ak = module_target_sat.cli_factory.make_activation_key({'organization-id': org.id})
     # Assert system purpose values are null after creating the AK and adding the manifest.
-    assert new_ak['system-purpose']['purpose-addons'] == ''
     assert new_ak['system-purpose']['purpose-role'] == ''
     assert new_ak['system-purpose']['purpose-usage'] == ''
 
@@ -1114,7 +1109,6 @@ def test_update_ak_with_syspurpose_values(module_sca_manifest_org, module_target
     module_target_sat.cli.ActivationKey.update(
         {
             'id': new_ak['id'],
-            'purpose-addons': "test-addon1, test-addon2",
             'purpose-role': "test-role1",
             'purpose-usage': "test-usage1",
             'service-level': "Self-Support",
@@ -1124,7 +1118,6 @@ def test_update_ak_with_syspurpose_values(module_sca_manifest_org, module_target
     updated_ak = module_target_sat.cli.ActivationKey.info(
         {'id': new_ak['id'], 'organization-id': org.id}
     )
-    assert updated_ak['system-purpose']['purpose-addons'] == "test-addon1, test-addon2"
     assert updated_ak['system-purpose']['purpose-role'] == "test-role1"
     assert updated_ak['system-purpose']['purpose-usage'] == "test-usage1"
     assert updated_ak['system-purpose']['service-level'] == "Self-Support"
@@ -1132,7 +1125,6 @@ def test_update_ak_with_syspurpose_values(module_sca_manifest_org, module_target
     module_target_sat.cli.ActivationKey.update(
         {
             'id': new_ak['id'],
-            'purpose-addons': "test-addon3, test-addon4",
             'purpose-role': "test-role2",
             'purpose-usage': "test-usage2",
             'service-level': "Premium",
@@ -1142,7 +1134,6 @@ def test_update_ak_with_syspurpose_values(module_sca_manifest_org, module_target
     updated_ak = module_target_sat.cli.ActivationKey.info(
         {'id': new_ak['id'], 'organization-id': org.id}
     )
-    assert updated_ak['system-purpose']['purpose-addons'] == "test-addon3, test-addon4"
     assert updated_ak['system-purpose']['purpose-role'] == "test-role2"
     assert updated_ak['system-purpose']['purpose-usage'] == "test-usage2"
     assert updated_ak['system-purpose']['service-level'] == "Premium"
@@ -1497,33 +1488,6 @@ def test_positive_view_content_by_non_admin_user(function_sca_manifest_org, modu
 
 
 @pytest.mark.tier3
-def test_positive_ak_with_custom_product_on_rhel6(
-    module_org, module_location, rhel6_contenthost, target_sat
-):
-    """Registering a rhel6 host using an ak with custom repos should not fail
-
-    :id: d02c2664-8034-4562-914a-3b68f0c35b32
-
-    :customerscenario: true
-
-    :steps:
-        1. Create a custom repo
-        2. Create ak and add custom repo to ak
-        3. Register a rhel6 chost with the ak
-
-    :expectedresults: Host is registered successfully
-
-    :bz: 2038388
-    """
-    entities_ids = target_sat.cli_factory.setup_org_for_a_custom_repo(
-        {'url': settings.repos.yum_1.url, 'organization-id': module_org.id}
-    )
-    ak = target_sat.api.ActivationKey(id=entities_ids['activationkey-id']).read()
-    result = rhel6_contenthost.register(module_org.label, module_location, ak.name, target_sat)
-    assert 'The system has been registered with ID' in result.stdout
-
-
-@pytest.mark.tier3
 def test_positive_invalid_release_version(module_sca_manifest_org, module_target_sat):
     """Check invalid release versions when updating or creating an activation key
 
@@ -1581,3 +1545,61 @@ def test_positive_invalid_release_version(module_sca_manifest_org, module_target
         }
     )
     assert update_ak[0]['message'] == 'Activation key updated.'
+
+
+# -------------------------- MULTI-CV SCENARIOS -------------------------
+def test_positive_multi_cv_info(
+    session_multicv_sat, session_multicv_org, session_multicv_default_ak
+):
+    """Verify that multi content view environment details displays into hammer activation-key info commands output
+
+    :id: 6a1c3189-74f9-4a54-8579-f3b045870cd9
+
+    :steps:
+        1. Create two lifecycle environments and two content views, publish/promote to respective lce
+        2. Create activation key and update ak with multiple content view environments
+        3. Check that ak info displays 'Multi Content View Environment' and 'Content View Environments'
+
+    :expectedresults: AK info displays 'Multi Content View Environment' and 'Content View Environments'
+
+    :CaseImportance: Medium
+
+    :Verifies: SAT-27863
+    """
+    # Create two lifecycle environments
+    lces_list = [
+        session_multicv_sat.api.LifecycleEnvironment(organization=session_multicv_org).create()
+        for i in range(2)
+    ]
+    lce1, lce2 = lces_list
+    # Create two content views
+    cvs_list = [
+        session_multicv_sat.api.ContentView(organization=session_multicv_org).create()
+        for i in range(2)
+    ]
+    for i in range(2):
+        cvs_list[i].publish()
+        cvs_list[i] = cvs_list[i].read()
+        cvs_list[i].version[0].promote(data={'environment_ids': lces_list[i].id})
+    cv1, cv2 = cvs_list
+
+    # Update ak with multiple content view environments
+    ak = session_multicv_default_ak
+    cv_envs = f'{lce1.name}/{cv1.name},{lce2.name}/{cv2.name}'
+    ak_info = session_multicv_sat.cli.ActivationKey.info({'id': ak.id})
+    assert ak_info['multi-content-view-environment'] == 'no'
+    assert ak_info['content-view-environment-labels'] == 'Library'
+
+    ret_val = session_multicv_sat.cli.ActivationKey.update(
+        {
+            'id': ak.id,
+            'organization-id': session_multicv_org.id,
+            'content-view-environments': cv_envs,
+        }
+    )
+    assert ret_val[0]['message'] == 'Activation key updated.'
+
+    # Verify ak info displays 'Multi Content View Environment' and 'Content View Environments'
+    ak_info = session_multicv_sat.cli.ActivationKey.info({'id': ak.id})
+    assert ak_info['multi-content-view-environment'] == 'yes'
+    assert ak_info['content-view-environment-labels'] == cv_envs

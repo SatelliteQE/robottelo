@@ -137,7 +137,7 @@ def test_negative_global_registration_without_ak(
 @pytest.mark.no_containers
 @pytest.mark.pit_client
 @pytest.mark.tier3
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 def test_positive_global_registration_end_to_end(
     module_activation_key,
     module_org,
@@ -161,6 +161,8 @@ def test_positive_global_registration_end_to_end(
 
     :parametrized: yes
     """
+    # Adding IPv6 proxy for IPv6 communication
+    rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
     # make sure global parameters for rex and insights are set to true
     insights_cp = (
         module_target_sat.api.CommonParameter()
@@ -204,6 +206,7 @@ def test_positive_global_registration_end_to_end(
     ]
     for pair in expected_pairs:
         assert pair in cmd
+
     # rhel repo required for insights client installation,
     # syncing it to the satellite would take too long
     rhelver = rhel_contenthost.os_version.major
@@ -387,6 +390,8 @@ def test_global_registration_with_gpg_repo_and_default_package(
 
     :parametrized: yes
     """
+    # Adding IPv6 proxy for IPv6 communication
+    rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
     client = rhel_contenthost
     repo_name = 'foreman_register'
     repo_url = settings.repos.gr_yum_repo.url
@@ -429,7 +434,7 @@ def test_global_registration_with_gpg_repo_and_default_package(
 
 
 @pytest.mark.tier3
-@pytest.mark.rhel_ver_match('9')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_global_re_registration_host_with_force_ignore_error_options(
     module_activation_key, rhel_contenthost, module_target_sat, module_org
 ):
@@ -470,7 +475,7 @@ def test_global_re_registration_host_with_force_ignore_error_options(
 
 
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_global_registration_token_restriction(
     module_activation_key, rhel_contenthost, module_target_sat, module_org
 ):
@@ -510,7 +515,7 @@ def test_global_registration_token_restriction(
         assert 'Unable to authenticate user' in result.stdout
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_host_registration_with_non_admin_user(
     test_name,
     module_sca_manifest_org,
@@ -630,7 +635,7 @@ def test_positive_global_registration_form(
 
 
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_global_registration_with_capsule_host(
     capsule_configured,
     rhel_contenthost,
@@ -752,6 +757,8 @@ def test_subscription_manager_install_from_repository(
 
     :BZ: 1923320
     """
+    # Adding IPv6 proxy for IPv6 communication
+    rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
     client = rhel_contenthost
     repo_name = 'foreman_register'
     rhel_ver = rhel_contenthost.os_version.major

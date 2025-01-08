@@ -1,6 +1,6 @@
 RH_CLOUD:
   TOKEN: this-isnt-the-token
   INSTALL_RHC: false
-  ORGANIZATION: org_name
+  ORGANIZATION:
   ACTIVATION_KEY: ak_name
   CRC_ENV: prod

@@ -471,10 +471,15 @@ class TestEntityRead:
             class and name and resource_type fields are populated
 
         :CaseImportance: Critical
+
+        :Verifies: SAT-29957
+
+        :BlockedBy: SAT-29957
         """
-        perm = target_sat.api.Permission().search(query={'per_page': '1'})[0]
-        assert perm.name
-        assert perm.resource_type
+        perms = target_sat.api.Permission().search(query={'per_page': '1'})
+        for perm in perms:
+            assert perm.name
+            assert perm.resource_type
 
     @pytest.mark.tier1
     def test_positive_media_read(self, target_sat):

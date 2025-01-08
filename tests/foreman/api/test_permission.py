@@ -68,6 +68,21 @@ class TestPermission:
             cls.permissions.pop('ForemanPuppet::HostClass')
             cls.permissions.pop('ForemanPuppet::Puppetclass')
             cls.permissions.pop('ForemanPuppet::PuppetclassLookupKey')
+        if 'rubygem-foreman_scc_manager' not in rpm_packages:
+            cls.permissions.pop('SccAccount')
+            cls.permissions.pop('SccProduct')
+        if 'rubygem-foreman_salt' not in rpm_packages:
+            cls.permissions['Host'].remove('saltrun_hosts')
+            cls.permissions['SmartProxy'].remove('destroy_smart_proxies_salt_autosign')
+            cls.permissions['SmartProxy'].remove('view_smart_proxies_salt_autosign')
+            cls.permissions['SmartProxy'].remove('destroy_smart_proxies_salt_keys')
+            cls.permissions['SmartProxy'].remove('view_smart_proxies_salt_keys')
+            cls.permissions['SmartProxy'].remove('edit_smart_proxies_salt_keys')
+            cls.permissions['SmartProxy'].remove('auth_smart_proxies_salt_autosign')
+            cls.permissions['SmartProxy'].remove('create_smart_proxies_salt_autosign')
+            cls.permissions.pop('ForemanSalt::SaltVariable')
+            cls.permissions.pop('ForemanSalt::SaltEnvironment')
+            cls.permissions.pop('ForemanSalt::SaltModule')
 
         #: e.g. ['Architecture', 'Audit', 'AuthSourceLdap', …]
         cls.permission_resource_types = list(cls.permissions.keys())
