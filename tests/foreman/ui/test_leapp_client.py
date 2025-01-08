@@ -16,7 +16,7 @@ import pytest
 
 RHEL7_VER = '7.9'
 RHEL8_VER = '8.10'
-RHEL9_VER = '9.4'
+RHEL9_VER = '9.5'
 
 
 @pytest.mark.tier3
@@ -42,7 +42,7 @@ def test_leapp_preupgrade_report(
 
     :BZ: 2168494
 
-    :Verifies: SAT-15889
+    :Verifies: SAT-15889, SAT-28216
 
     :customerscenario: true
 
@@ -71,7 +71,10 @@ def test_leapp_preupgrade_report(
         session.jobinvocation.wait_job_invocation_state(
             entity_name='Upgradeability check for rhel host', host_name=hostname
         )
+        session.jobinvocation.leapp_fix_inhibitor(
+            entity_name='Upgradeability check for rhel host', host_name=hostname
+        )
         status = session.jobinvocation.read(
             entity_name='Upgradeability check for rhel host', host_name=hostname
         )
-        assert status['overview']['hosts_table'][0]['Status'] == 'success'
+        assert status['overview']['hosts_table'][0]['Status'] == 'Succeeded'

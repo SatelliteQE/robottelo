@@ -230,8 +230,8 @@ class TestGCEHostProvisioningTestCase:
     @pytest.mark.pit_server
     @pytest.mark.build_sanity
     @pytest.mark.skipif(
-        ((settings.server.is_ipv6) and is_open('SAT-27997')),
-        reason='Google CR APIs failing for IPv6',
+        (is_open('SAT-27997')),
+        reason='Google CR APIs failing',
     )
     @pytest.mark.parametrize('sat_gce', ['sat', 'puppet_sat'], indirect=True)
     def test_positive_gce_host_provisioned(self, class_host, google_host):

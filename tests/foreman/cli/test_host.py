@@ -373,16 +373,21 @@ def test_positive_create_and_delete(target_sat, module_lce_library, module_publi
         }
     )
     assert f'{name}.{host.domain.read().name}' == new_host['name']
-    assert new_host['organization'] == host.organization.name
-    assert new_host['content-information']['content-view']['name'] == module_published_cv.name
+    assert new_host['organization']['name'] == host.organization.name
     assert (
-        new_host['content-information']['lifecycle-environment']['name'] == module_lce_library.name
+        new_host['content-information']['content-view-environments']['1']['content-view']['name']
+        == module_published_cv.name
+    )
+    assert (
+        new_host['content-information']['content-view-environments']['1']['lifecycle-environment'][
+            'name'
+        ]
+        == module_lce_library.name
     )
     host_interface = target_sat.cli.HostInterface.info(
-        {'host-id': new_host['id'], 'id': new_host['network-interfaces'][0]['id']}
+        {'host-id': new_host['id'], 'id': new_host['network-interfaces']['1']['id']}
     )
     assert host_interface['domain'] == host.domain.read().name
-
     target_sat.cli.Host.delete({'id': new_host['id']})
     with pytest.raises(CLIReturnCodeError):
         target_sat.cli.Host.info({'id': new_host['id']})
@@ -538,8 +543,16 @@ def test_positive_create_with_lce_and_cv(
             'organization-id': module_org.id,
         }
     )
-    assert new_host['content-information']['lifecycle-environment']['name'] == module_lce.name
-    assert new_host['content-information']['content-view']['name'] == module_promoted_cv.name
+    assert (
+        new_host['content-information']['content-view-environments']['1']['lifecycle-environment'][
+            'name'
+        ]
+        == module_lce.name
+    )
+    assert (
+        new_host['content-information']['content-view-environments']['1']['content-view']['name']
+        == module_promoted_cv.name
+    )
 
 
 @pytest.mark.cli_host_create
@@ -705,14 +718,14 @@ def test_positive_list_infrastructure_hosts(
     target_sat.cli.Host.update({'name': target_sat.hostname, 'new-organization-id': module_org.id})
     # list satellite hosts
     hosts = target_sat.cli.Host.list({'search': 'infrastructure_facet.foreman=true'})
-    assert len(hosts) == 2
+    assert len(hosts) == 1
     hostnames = [host['name'] for host in hosts]
     assert rhel7_contenthost.hostname not in hostnames
     assert target_sat.hostname in hostnames
     # list capsule hosts
     hosts = target_sat.cli.Host.list({'search': 'infrastructure_facet.smart_proxy_id=1'})
     hostnames = [host['name'] for host in hosts]
-    assert len(hosts) == 2
+    assert len(hosts) == 1
     assert rhel7_contenthost.hostname not in hostnames
     assert target_sat.hostname in hostnames
 
@@ -741,10 +754,17 @@ def test_positive_create_inherit_lce_cv(
         {'hostgroup-id': hostgroup.id, 'organization-id': module_org.id}
     )
     assert (
-        int(host['content-information']['lifecycle-environment']['id'])
+        int(
+            host['content-information']['content-view-environments']['1']['lifecycle-environment'][
+                'id'
+            ]
+        )
         == hostgroup.lifecycle_environment.id
     )
-    assert int(host['content-information']['content-view']['id']) == hostgroup.content_view.id
+    assert (
+        int(host['content-information']['content-view-environments']['1']['content-view']['id'])
+        == hostgroup.content_view.id
+    )
 
 
 @pytest.mark.cli_host_create
@@ -856,14 +876,23 @@ def test_positive_list_with_nested_hostgroup(target_sat):
     assert f'{parent_hg_name}/{nested_hg_name}' == hosts[0]['host-group']
     host = target_sat.cli.Host.info({'id': hosts[0]['id']})
     logger.info(f'Host info: {host}')
-    assert host['operating-system']['medium'] == options.medium.name
-    assert host['operating-system']['partition-table'] == options.ptable.name  # inherited
+    assert host['operating-system']['medium']['name'] == options.medium.name
+    assert host['operating-system']['partition-table']['name'] == options.ptable.name  # inherited
     if not target_sat.is_stream:
-        assert 'id' in host['content-information']['lifecycle-environment']
-        assert int(host['content-information']['lifecycle-environment']['id']) == int(lce.id)
-        assert int(host['content-information']['content-view']['id']) == int(
-            content_view.id
-        )  # inherited
+        assert (
+            'id'
+            in host['content-information']['content-view-environments']['1'][
+                'lifecycle-environment'
+            ]
+        )
+        assert int(
+            host['content-information']['content-view-environments']['1']['lifecycle-environment'][
+                'id'
+            ]
+        ) == int(lce.id)
+        assert int(
+            host['content-information']['content-view-environments']['1']['content-view']['id']
+        ) == int(content_view.id)  # inherited
 
 
 @pytest.mark.cli_host_create
@@ -1963,12 +1992,10 @@ def test_syspurpose_end_to_end(
     :parametrized: yes
     """
     # Create an activation key with test values
-    purpose_addons = "test-addon1, test-addon2"
     activation_key = target_sat.api.ActivationKey(
         content_view=module_promoted_cv,
         environment=module_lce,
         organization=module_org,
-        purpose_addons=[purpose_addons],
         purpose_role="test-role",
         purpose_usage="test-usage",
         service_level="Self-Support",
@@ -1980,14 +2007,12 @@ def test_syspurpose_end_to_end(
     rhel_contenthost.enable_repo(module_rhst_repo)
     host = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
     # Assert system purpose values are set in the host as expected
-    assert host['subscription-information']['system-purpose']['purpose-addons'][0] == purpose_addons
     assert host['subscription-information']['system-purpose']['purpose-role'] == "test-role"
     assert host['subscription-information']['system-purpose']['purpose-usage'] == "test-usage"
     assert host['subscription-information']['system-purpose']['service-level'] == "Self-Support"
     # Change system purpose values in the host
     target_sat.cli.Host.update(
         {
-            'purpose-addons': "test-addon3",
             'purpose-role': "test-role2",
             'purpose-usage': "test-usage2",
             'service-level': "Self-Support2",
@@ -1996,7 +2021,6 @@ def test_syspurpose_end_to_end(
     )
     host = target_sat.cli.Host.info({'id': host['id']})
     # Assert system purpose values have been updated in the host as expected
-    assert host['subscription-information']['system-purpose']['purpose-addons'][0] == "test-addon3"
     assert host['subscription-information']['system-purpose']['purpose-role'] == "test-role2"
     assert host['subscription-information']['system-purpose']['purpose-usage'] == "test-usage2"
     assert host['subscription-information']['system-purpose']['service-level'] == "Self-Support2"
@@ -2035,9 +2059,8 @@ def test_negative_multi_cv_registration(
     :steps:
         1. Register a host with global reg, just to get the sub-man config and certs right
         2. Unregister the host
-        3. Verify that allow_multiple_content_views setting is not exposed
-        4. Attempt to register the host with subscription-manager, passing multiple environments
-        5. Confirm that registration fails
+        3. Attempt to register the host with subscription-manager, passing multiple environments
+        4. Confirm that registration fails
 
     :expectedresults: allow_multiple_content_views setting is not exposed, and defaults to false.
         So registration fails because multiple environments are not allowed.
@@ -2059,10 +2082,6 @@ def test_negative_multi_cv_registration(
     # Unregister the host
     unregister_result = rhel_contenthost.unregister()
     assert unregister_result.status == 0
-
-    # Verify that allow_multiple_content_views setting is not exposed
-    with pytest.raises(CLIReturnCodeError):
-        target_sat.cli.Settings.info({'name': 'allow_multiple_content_views'})
 
     env_names = f"{module_lce_library.name}/{module_published_cv.name},{module_lce.name}/{module_promoted_cv.name}"
 

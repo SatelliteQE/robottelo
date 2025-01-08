@@ -140,7 +140,10 @@ def test_positive_self_update_maintain_package(sat_maintain):
         options={'whitelist': 'repositories-validate, non-rh-packages'}
     )
     assert result.status == 0
-    assert 'Checking for new version of satellite-maintain...' in result.stdout
+    assert (
+        'Checking for new version of satellite-maintain, rubygem-foreman_maintain...'
+        in result.stdout
+    )
     result = sat_maintain.cli.Update.check(
         options={
             'whitelist': 'repositories-validate, non-rh-packages',
@@ -148,7 +151,10 @@ def test_positive_self_update_maintain_package(sat_maintain):
         }
     )
     assert result.status == 0
-    assert 'Checking for new version of satellite-maintain...' not in result.stdout
+    assert (
+        'Checking for new version of satellite-maintain, rubygem-foreman_maintain...'
+        not in result.stdout
+    )
 
 
 @pytest.mark.stubbed

@@ -351,6 +351,7 @@ class TestAnsibleREX:
         :BZ: 2164400
         """
         SELECTED_ROLE = 'RedHatInsights.insights-client'
+        rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
         if rhel_contenthost.os_version.major <= 7:
             rhel_contenthost.create_custom_repos(rhel7=settings.repos.rhel7_os)
             assert rhel_contenthost.execute('yum install -y insights-client').status == 0

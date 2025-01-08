@@ -22,6 +22,9 @@ REPOS:
   RHEL9_OS:
     BASEOS: replace-with-rhel9-os-baseos-http-link
     APPSTREAM: replace-with-rhel9-os-appstream-http-link
+  RHEL10_OS:
+    BASEOS: replace-with-rhel10-os-baseos-http-link
+    APPSTREAM: replace-with-rhel10-os-appstream-http-link
   RHEL7_OPTIONAL: replace-with-rhel7-optional-url
   RHEL7_EXTRAS: replace-with-rhel7-extras-url
   # If capsule and satellite tools repositories available related packages will

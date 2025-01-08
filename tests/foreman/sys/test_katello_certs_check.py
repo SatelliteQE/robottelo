@@ -73,11 +73,12 @@ class TestKatelloCertsCheck:
     CA cert (a.k.a cacert.crt or rootCA.pem) can be used as bundle file.
     """
 
+    error_message = f"error 26 at 0 depth lookup: {'unsupported' if settings.repos.rhel_major_version == '8' else 'unsuitable'} certificate purpose"
     invalid_inputs = [
         (
             {
                 'check': 'Checking CA bundle against the certificate file',
-                'message': 'error 26 at 0 depth lookup: unsupported certificate purpose',
+                'message': error_message,
             },
             'certs/invalid.crt',
             'certs/invalid.key',
