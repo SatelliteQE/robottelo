@@ -116,7 +116,7 @@ def module_vmware_image(
 def provisioning_vmware_host(pxe_loader, vmwareclient, module_ssh_key_file):
     """Fixture to check out blank VM on VMware"""
     vm_boot_firmware = 'efi' if pxe_loader.vm_firmware.startswith('uefi') else 'bios'
-    vm_secure_boot = 'true' if pxe_loader.vm_firmware == 'uefi_secureboot' else 'false'
+    vm_secure_boot = 'true' if pxe_loader.vm_firmware == 'uefi_secure_boot' else 'false'
     vlan_id = settings.provisioning.vlan_id
     with Broker(
         workflow='deploy-blank-vm-vcenter',
