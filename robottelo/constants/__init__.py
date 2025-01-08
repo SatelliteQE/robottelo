@@ -283,6 +283,7 @@ REPOSET = {
     'rhs8': 'Red Hat Satellite 6.13 for RHEL 8 x86_64 (RPMs)',
     'rhsc7': 'Red Hat Satellite Capsule 6.11 (for RHEL 7 Server) (RPMs)',
     'rhsc8': 'Red Hat Satellite Capsule 6.13 for RHEL 8 x86_64 (RPMs)',
+    'rhsc9': 'Red Hat Satellite Capsule 6.16 for RHEL 9 x86_64 (RPMs)',
     'rhsc7_iso': 'Red Hat Satellite Capsule 6.4 (for RHEL 7 Server) (ISOs)',
     'rhsclient7': 'Red Hat Satellite Client 6 (for RHEL 7 Server) (RPMs)',
     'rhsclient8': 'Red Hat Satellite Client 6 for RHEL 8 x86_64 (RPMs)',
@@ -394,6 +395,15 @@ REPOS = {
         'distro': 'rhel7',
         'key': 'rhs',
     },
+    'rhsc7': {
+        'id': 'rhel-7-server-satellite-capsule-6.11-rpms',
+        'name': ('Red Hat Satellite Capsule 6.11 for RHEL 7 Server RPMs x86_64'),
+        'version': '6.11',
+        'reposet': REPOSET['rhsc7'],
+        'product': PRDS['rhsc'],
+        'distro': 'rhel7',
+        'key': 'rhsc',
+    },
     'rhsc8': {
         'id': 'satellite-capsule-6.13-for-rhel-8-x86_64-rpms',
         'name': ('Red Hat Satellite Capsule 6.13 for RHEL 8 x86_64 RPMs'),
@@ -403,13 +413,13 @@ REPOS = {
         'distro': 'rhel8',
         'key': 'rhsc',
     },
-    'rhsc7': {
-        'id': 'rhel-7-server-satellite-capsule-6.11-rpms',
-        'name': ('Red Hat Satellite Capsule 6.11 for RHEL 7 Server RPMs x86_64'),
-        'version': '6.11',
-        'reposet': REPOSET['rhsc7'],
+    'rhsc9': {
+        'id': 'satellite-capsule-6.16-for-rhel-9-x86_64-rpms',
+        'name': ('Red Hat Satellite Capsule 6.16 for RHEL 9 x86_64 RPMs'),
+        'version': '6.16',
+        'reposet': REPOSET['rhsc9'],
         'product': PRDS['rhsc'],
-        'distro': 'rhel7',
+        'distro': 'rhel9',
         'key': 'rhsc',
     },
     'rhsc7_iso': {
