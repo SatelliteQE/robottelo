@@ -11,6 +11,7 @@
 :Team: Rocket
 
 """
+
 import json
 import re
 from tempfile import mkstemp
@@ -44,13 +45,13 @@ def test_host_registration_end_to_end(
 
     :expectedresults: Host registered successfully
 
-    :BZ: 2156926
+    :verifies: SAT-14716
 
     :customerscenario: true
     """
     org = module_entitlement_manifest_org
     result = rhel_contenthost.register(
-        org, module_location, [module_activation_key.name], module_target_sat
+        org, module_location, module_activation_key.name, module_target_sat
     )
 
     rc = 1 if rhel_contenthost.os_version.major == 6 else 0
@@ -71,7 +72,7 @@ def test_host_registration_end_to_end(
     result = rhel_contenthost.register(
         org,
         module_location,
-        [module_activation_key.name],
+        module_activation_key.name,
         module_capsule_configured,
         force=True,
     )

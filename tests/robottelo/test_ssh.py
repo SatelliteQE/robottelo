@@ -1,4 +1,5 @@
 """Tests for module ``robottelo.utils.ssh``."""
+
 from unittest import mock
 
 from robottelo import ssh

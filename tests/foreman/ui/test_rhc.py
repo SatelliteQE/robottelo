@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from datetime import datetime, timedelta
 
 from fauxfactory import gen_string
@@ -20,7 +21,6 @@ import pytest
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.logging import logger
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
@@ -42,7 +42,7 @@ def module_rhc_org(module_target_sat):
     """Module level fixture for creating organization"""
     if settings.rh_cloud.crc_env == 'prod':
         org = module_target_sat.api.Organization(
-            name=settings.rh_cloud.organization or gen_string('alpha')
+            name=settings.rh_cloud.organization or 'satqe-rhc-org-' + gen_string('alpha')
         ).create()
     else:
         org = (
@@ -77,7 +77,7 @@ def fixture_setup_rhc_satellite(
         rhcloud_manifest = manifester.get_manifest()
         module_target_sat.upload_manifest(module_rhc_org.id, rhcloud_manifest.content)
     yield
-    if request.node.rep_call.passed:
+    if request.node.report_call.passed:
         # Enable and sync required repos
         repo1_id = module_target_sat.api_factory.enable_sync_redhat_repo(
             constants.REPOS['rhel8_aps'], module_rhc_org.id
@@ -108,6 +108,7 @@ def fixture_setup_rhc_satellite(
 
 @pytest.mark.e2e
 @pytest.mark.tier3
+@pytest.mark.pit_server
 def test_positive_configure_cloud_connector(
     session,
     module_target_sat,
@@ -131,13 +132,6 @@ def test_positive_configure_cloud_connector(
 
     :BZ: 1818076
     """
-    # Delete old satellite hostname if BZ#2130173 is open
-    if is_open('BZ:2130173'):
-        host = module_target_sat.api.Host().search(
-            query={'search': f"! {module_target_sat.hostname}"}
-        )[0]
-        host.delete()
-
     # Copy foreman-proxy user's key to root@localhost user's authorized_keys
     module_target_sat.add_rex_key(satellite=module_target_sat)
 

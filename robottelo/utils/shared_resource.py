@@ -21,12 +21,17 @@ Example:
     ...     yield target_sat  # give the upgraded satellite to the test
     ...     # Do post-upgrade cleanup steps if any
 """
+
 import json
 from pathlib import Path
 import time
 from uuid import uuid4
 
 from broker.helpers import FileLock
+
+
+class SharedResourceError(Exception):
+    """An exception class for SharedResource errors."""
 
 
 class SharedResource:
@@ -43,19 +48,21 @@ class SharedResource:
         is_recovering (bool): Whether the current instance is recovering from an error or not.
     """
 
-    def __init__(self, resource_name, action, *action_args, **action_kwargs):
+    def __init__(self, resource_name, action, *action_args, action_validator=None, **action_kwargs):
         """Initializes a new instance of the SharedResource class.
 
         Args:
             resource_name (str): The name of the shared resource.
             action (function): The function to be executed when the resource is ready.
             action_args (tuple): The arguments to be passed to the action function.
+            action_validator (function): The function to validate the action results.
             action_kwargs (dict): The keyword arguments to be passed to the action function.
         """
         self.resource_file = Path(f"/tmp/{resource_name}.shared")
         self.lock_file = FileLock(self.resource_file)
         self.id = str(uuid4().fields[-1])
         self.action = action
+        self.action_validator = action_validator
         self.action_is_recoverable = action_kwargs.pop("action_is_recoverable", False)
         self.action_args = action_args
         self.action_kwargs = action_kwargs
@@ -151,6 +158,14 @@ class SharedResource:
             curr_data["statuses"][self.id] = "pending"
             self.resource_file.write_text(json.dumps(curr_data, indent=4))
 
+    def unregister(self):
+        """Unregisters the current process as a watcher."""
+        with self.lock_file:
+            curr_data = json.loads(self.resource_file.read_text())
+            curr_data["watchers"].remove(self.id)
+            del curr_data["statuses"][self.id]
+            self.resource_file.write_text(json.dumps(curr_data, indent=4))
+
     def ready(self):
         """Marks the current process as ready to perform the action."""
         self._update_status("ready")
@@ -163,10 +178,13 @@ class SharedResource:
     def act(self):
         """Attempt to perform the action."""
         try:
-            self.action(*self.action_args, **self.action_kwargs)
+            result = self.action(*self.action_args, **self.action_kwargs)
         except Exception as err:
             self._update_main_status("error")
-            raise err
+            raise SharedResourceError("Main worker failed during action") from err
+        # If the action_validator is a callable, use it to validate the result
+        if callable(self.action_validator) and not self.action_validator(result):
+            raise SharedResourceError(f"Action validation failed for {self.action} with {result=}")
 
     def wait(self):
         """Top-level wait function, separating behavior between main and non-main watchers."""
@@ -189,11 +207,16 @@ class SharedResource:
             raise exc_value
         if exc_type is None:
             self.done()
+            self.unregister()
             if self.is_main:
                 self._wait_for_status("done")
                 self.resource_file.unlink()
         else:
             self._update_status("error")
             if self.is_main:
-                self._update_main_status("error")
+                if self._check_all_status("error"):
+                    # All have failed, delete the file
+                    self.resource_file.unlink()
+                else:
+                    self._update_main_status("error")
             raise exc_value

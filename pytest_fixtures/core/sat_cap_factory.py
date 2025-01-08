@@ -196,8 +196,11 @@ def large_capsule_configured(large_capsule_host, target_sat):
 @pytest.fixture(scope='module')
 def module_capsule_configured(request, module_capsule_host, module_target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
-    if not request.config.option.n_minus:
+    if not any([request.config.option.n_minus, 'build_sanity' in request.config.option.markexpr]):
         module_capsule_host.capsule_setup(sat_host=module_target_sat)
+    # The capsule is being set here by capsule installation test of `test_installer.py` for sanity
+    if 'build_sanity' in request.config.option.markexpr:
+        return Capsule.get_host_by_hostname(settings.capsule.hostname)
     return module_capsule_host
 
 
@@ -286,7 +289,6 @@ def get_deploy_args(request):
     deploy_args = {
         'deploy_rhel_version': rhel_version.base_version,
         'deploy_flavor': settings.flavors.default,
-        'promtail_config_template_file': 'config_sat.j2',
         'workflow': settings.server.deploy_workflows.os,
     }
     if hasattr(request, 'param'):
@@ -305,19 +307,21 @@ def sat_ready_rhel(request):
 
 
 @pytest.fixture(scope='module')
-def module_sat_ready_rhels(request):
+def module_sat_ready_rhels(request, module_target_sat):
     deploy_args = get_deploy_args(request)
-    with Broker(**deploy_args, host_class=Satellite, _count=2) as hosts:
-        yield hosts
+    if 'build_sanity' not in request.config.option.markexpr:
+        with Broker(**deploy_args, host_class=Satellite, _count=2) as hosts:
+            yield hosts
+    else:
+        yield [module_target_sat]
 
 
 @pytest.fixture
 def cap_ready_rhel():
-    rhel_version = Version(settings.capsule.version.release)
+    rhel_version = Version(settings.capsule.version.rhel_version)
     deploy_args = {
         'deploy_rhel_version': rhel_version.base_version,
         'deploy_flavor': settings.flavors.default,
-        'promtail_config_template_file': 'config_sat.j2',
         'workflow': settings.capsule.deploy_workflows.os,
     }
     with Broker(**deploy_args, host_class=Capsule) as host:
@@ -333,24 +337,35 @@ def installer_satellite(request):
     :params request: A pytest request object and this fixture is looking for
         broker object of class satellite
     """
-    sat_version = settings.server.version.release
     if 'sanity' in request.config.option.markexpr:
         sat = Satellite(settings.server.hostname)
     else:
         sat = lru_sat_ready_rhel(getattr(request, 'param', None))
     sat.setup_firewall()
-    # # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
+    # register to cdn (also enables rhel repos from cdn)
     sat.register_to_cdn()
-    sat.download_repofile(
-        product='satellite',
-        release=settings.server.version.release,
-        snap=settings.server.version.snap,
-    )
-    sat.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
-    installed_version = sat.execute('rpm --query satellite').stdout
-    assert sat_version in installed_version
+
+    # setup source repositories
+    if settings.server.version.source == "ga":
+        # enable satellite repos
+        for repo in sat.SATELLITE_CDN_REPOS.values():
+            sat.enable_repo(repo, force=True)
+    elif settings.server.version.source == 'nightly':
+        sat.create_custom_repos(
+            satellite_repo=settings.repos.satellite_repo,
+            satmaintenance_repo=settings.repos.satmaintenance_repo,
+        )
+    else:
+        # get ohsnap repofile
+        sat.download_repofile(
+            product='satellite',
+            release=settings.server.version.release,
+            snap=settings.server.version.snap,
+        )
+
+    sat.install_satellite_or_capsule_package()
     # Install Satellite
-    sat.execute(
+    installer_result = sat.execute(
         InstallerCommand(
             installer_args=[
                 'scenario satellite',
@@ -359,6 +374,9 @@ def installer_satellite(request):
         ).get_command(),
         timeout='30m',
     )
+    # exit code 0 means no changes, 2 means changes were applied succesfully
+    assert installer_result.status in (0, 2), installer_result.stdout
+
     if 'sanity' in request.config.option.markexpr:
         configure_nailgun()
         configure_airgun()

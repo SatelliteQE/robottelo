@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from tempfile import mkstemp
 import time
 
@@ -204,10 +205,11 @@ def test_positive_access_with_non_admin_user_with_manifest(
         default_organization=org,
     ).create()
     with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
-        assert (
-            session.subscription.search(f'name = "{DEFAULT_SUBSCRIPTION_NAME}"')[0]['Name']
-            == DEFAULT_SUBSCRIPTION_NAME
-        )
+        all_subscriptions = session.subscription.read_subscriptions()
+        assert len(all_subscriptions) > 0
+        assert any(
+            [sub['Name'] == DEFAULT_SUBSCRIPTION_NAME for sub in all_subscriptions]
+        ), 'Default subsciption not found'
 
 
 @pytest.mark.tier2
@@ -449,9 +451,10 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(
         assert set(col) == set(checkbox_dict)
 
 
+@pytest.mark.rhel_ver_match('7')
 @pytest.mark.tier3
 def test_positive_subscription_status_disabled_golden_ticket(
-    session, golden_ticket_host_setup, rhel7_contenthost, target_sat
+    session, golden_ticket_host_setup, rhel_contenthost, target_sat
 ):
     """Verify that Content host Subscription status is set to 'Disabled'
      for a golden ticket manifest
@@ -468,13 +471,13 @@ def test_positive_subscription_status_disabled_golden_ticket(
 
     :CaseImportance: Medium
     """
-    rhel7_contenthost.install_katello_ca(target_sat)
     org, ak = golden_ticket_host_setup
-    rhel7_contenthost.register_contenthost(org.label, ak.name)
-    assert rhel7_contenthost.subscribed
+    result = rhel_contenthost.register(org, None, ak.name, target_sat)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    assert rhel_contenthost.subscribed
     with session:
         session.organization.select(org_name=org.name)
-        host = session.contenthost.read(rhel7_contenthost.hostname, widget_names='details')[
+        host = session.contenthost.read(rhel_contenthost.hostname, widget_names='details')[
             'details'
         ]['subscription_status']
         assert 'Simple Content Access' in host
@@ -519,8 +522,8 @@ def test_positive_candlepin_events_processed_by_STOMP(
         organization=org,
         environment=target_sat.api.LifecycleEnvironment(id=org.library.id),
     ).create()
-    rhel7_contenthost.install_katello_ca(target_sat)
-    rhel7_contenthost.register_contenthost(org.name, ak.name)
+    result = rhel7_contenthost.register(org, None, ak.name, target_sat)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
     with session:
         session.organization.select(org_name=org.name)
         host = session.contenthost.read(rhel7_contenthost.hostname, widget_names='details')[

@@ -2,12 +2,12 @@
 It is not meant to be used directly, but as part of a robottelo.hosts.Satellite instance
 example: my_satellite.api_factory.api_method()
 """
+
 from contextlib import contextmanager
 from datetime import datetime
 import time
 
 from fauxfactory import gen_ipaddr, gen_mac, gen_string
-from nailgun import entity_mixins
 from nailgun.client import request
 from nailgun.entity_mixins import call_entity_method_with_timeout
 from requests import HTTPError
@@ -15,12 +15,8 @@ from requests import HTTPError
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
-    DEFAULT_PTABLE,
-    DEFAULT_PXE_TEMPLATE,
-    DEFAULT_TEMPLATE,
     REPO_TYPE,
 )
-from robottelo.exceptions import ImproperlyConfigured
 from robottelo.host_helpers.repository_mixins import initiate_repo_helpers
 
 
@@ -167,261 +163,10 @@ class APIFactory:
             True
 
         :param name: A field name.
-        :returns: A set including both ``name`` and variations on ``name``.
+        :return: A set including both ``name`` and variations on ``name``.
 
         """
         return {f'{name}_name', f'{name}_id'}
-
-    def configure_provisioning(self, org=None, loc=None, compute=False, os=None):
-        """Create and configure org, loc, product, repo, cv, env. Update proxy,
-        domain, subnet, compute resource, provision templates and medium with
-        previously created entities and create a hostgroup using all mentioned
-        entities.
-
-        :param str org: Default Organization that should be used in both host
-            discovering and host provisioning procedures
-        :param str loc: Default Location that should be used in both host
-            discovering and host provisioning procedures
-        :param bool compute: If False creates a default Libvirt compute resource
-        :param str os: Specify the os to be used while provisioning and to
-            associate related entities to the specified os.
-        :return: List of created entities that can be re-used further in
-            provisioning or validation procedure (e.g. hostgroup or domain)
-        """
-        # Create new organization and location in case they were not passed
-        if org is None:
-            org = self._satellite.api.Organization().create()
-        if loc is None:
-            loc = self._satellite.api.Location(organization=[org]).create()
-        if settings.repos.rhel7_os is None:
-            raise ImproperlyConfigured('settings file is not configured for rhel os')
-        # Create a new Life-Cycle environment
-        lc_env = self._satellite.api.LifecycleEnvironment(organization=org).create()
-        # Create a Product, Repository for custom RHEL7 contents
-        product = self._satellite.api.Product(organization=org).create()
-        repo = self._satellite.api.Repository(
-            product=product, url=settings.repos.rhel7_os, download_policy='immediate'
-        ).create()
-
-        # Increased timeout value for repo sync and CV publishing and promotion
-        try:
-            old_task_timeout = entity_mixins.TASK_TIMEOUT
-            entity_mixins.TASK_TIMEOUT = 3600
-            repo.sync()
-            # Create, Publish and promote CV
-            content_view = self._satellite.api.ContentView(organization=org).create()
-            content_view.repository = [repo]
-            content_view = content_view.update(['repository'])
-            content_view.publish()
-            content_view = content_view.read()
-            content_view.read().version[0].promote(data={'environment_ids': lc_env.id})
-        finally:
-            entity_mixins.TASK_TIMEOUT = old_task_timeout
-        # Search for existing organization puppet environment, otherwise create a
-        # new one, associate organization and location where it is appropriate.
-        environments = self._satellite.api.Environment().search(
-            query=dict(search=f'organization_id={org.id}')
-        )
-        if len(environments) > 0:
-            environment = environments[0].read()
-            environment.location.append(loc)
-            environment = environment.update(['location'])
-        else:
-            environment = self._satellite.api.Environment(
-                organization=[org], location=[loc]
-            ).create()
-
-        # Search for SmartProxy, and associate location
-        proxy = self._satellite.api.SmartProxy().search(
-            query={'search': f'name={settings.server.hostname}'}
-        )
-        proxy = proxy[0].read()
-        if loc.id not in [location.id for location in proxy.location]:
-            proxy.location.append(loc)
-        if org.id not in [organization.id for organization in proxy.organization]:
-            proxy.organization.append(org)
-        proxy = proxy.update(['location', 'organization'])
-
-        # Search for existing domain or create new otherwise. Associate org,
-        # location and dns to it
-        _, _, domain = settings.server.hostname.partition('.')
-        domain = self._satellite.api.Domain().search(query={'search': f'name="{domain}"'})
-        if len(domain) == 1:
-            domain = domain[0].read()
-            domain.location.append(loc)
-            domain.organization.append(org)
-            domain.dns = proxy
-            domain = domain.update(['dns', 'location', 'organization'])
-        else:
-            domain = self._satellite.api.Domain(
-                dns=proxy, location=[loc], organization=[org]
-            ).create()
-
-        # Search if subnet is defined with given network.
-        # If so, just update its relevant fields otherwise,
-        # Create new subnet
-        network = settings.vlan_networking.subnet
-        subnet = self._satellite.api.Subnet().search(query={'search': f'network={network}'})
-        if len(subnet) == 1:
-            subnet = subnet[0].read()
-            subnet.domain = [domain]
-            subnet.location.append(loc)
-            subnet.organization.append(org)
-            subnet.dns = proxy
-            subnet.dhcp = proxy
-            subnet.tftp = proxy
-            subnet.discovery = proxy
-            subnet.ipam = 'DHCP'
-            subnet = subnet.update(
-                ['domain', 'discovery', 'dhcp', 'dns', 'location', 'organization', 'tftp', 'ipam']
-            )
-        else:
-            # Create new subnet
-            subnet = self._satellite.api.Subnet(
-                network=network,
-                mask=settings.vlan_networking.netmask,
-                domain=[domain],
-                location=[loc],
-                organization=[org],
-                dns=proxy,
-                dhcp=proxy,
-                tftp=proxy,
-                discovery=proxy,
-                ipam='DHCP',
-            ).create()
-
-        # Search if Libvirt compute-resource already exists
-        # If so, just update its relevant fields otherwise,
-        # Create new compute-resource with 'libvirt' provider.
-        # compute boolean is added to not block existing test's that depend on
-        # Libvirt resource and use this same functionality to all CR's.
-        if compute is False:
-            resource_url = f'qemu+ssh://root@{settings.libvirt.libvirt_hostname}/system'
-            comp_res = [
-                res
-                for res in self._satellite.api.LibvirtComputeResource().search()
-                if res.provider == 'Libvirt' and res.url == resource_url
-            ]
-            if len(comp_res) > 0:
-                computeresource = self._satellite.api.LibvirtComputeResource(
-                    id=comp_res[0].id
-                ).read()
-                computeresource.location.append(loc)
-                computeresource.organization.append(org)
-                computeresource.update(['location', 'organization'])
-            else:
-                # Create Libvirt compute-resource
-                self._satellite.api.LibvirtComputeResource(
-                    provider='libvirt',
-                    url=resource_url,
-                    set_console_password=False,
-                    display_type='VNC',
-                    location=[loc.id],
-                    organization=[org.id],
-                ).create()
-
-        # Get the Partition table ID
-        ptable = (
-            self._satellite.api.PartitionTable()
-            .search(query={'search': f'name="{DEFAULT_PTABLE}"'})[0]
-            .read()
-        )
-        if loc.id not in [location.id for location in ptable.location]:
-            ptable.location.append(loc)
-        if org.id not in [organization.id for organization in ptable.organization]:
-            ptable.organization.append(org)
-        ptable = ptable.update(['location', 'organization'])
-
-        # Get the OS ID
-        if os is None:
-            os = (
-                self._satellite.api.OperatingSystem()
-                .search(query={'search': 'name="RedHat" AND (major="6" OR major="7")'})[0]
-                .read()
-            )
-        else:
-            os_ver = os.split(' ')[1].split('.')
-            os = (
-                self._satellite.api.OperatingSystem()
-                .search(
-                    query={
-                        'search': f'family="Redhat" AND major="{os_ver[0]}" '
-                        f'AND minor="{os_ver[1]}")'
-                    }
-                )[0]
-                .read()
-            )
-
-        # Get the Provisioning template_ID and update with OS, Org, Location
-        provisioning_template = self._satellite.api.ProvisioningTemplate().search(
-            query={'search': f'name="{DEFAULT_TEMPLATE}"'}
-        )
-        provisioning_template = provisioning_template[0].read()
-        provisioning_template.operatingsystem.append(os)
-        if org.id not in [organization.id for organization in provisioning_template.organization]:
-            provisioning_template.organization.append(org)
-        if loc.id not in [location.id for location in provisioning_template.location]:
-            provisioning_template.location.append(loc)
-        provisioning_template = provisioning_template.update(
-            ['location', 'operatingsystem', 'organization']
-        )
-
-        # Get the PXE template ID and update with OS, Org, location
-        pxe_template = self._satellite.api.ProvisioningTemplate().search(
-            query={'search': f'name="{DEFAULT_PXE_TEMPLATE}"'}
-        )
-        pxe_template = pxe_template[0].read()
-        pxe_template.operatingsystem.append(os)
-        if org.id not in [organization.id for organization in pxe_template.organization]:
-            pxe_template.organization.append(org)
-        if loc.id not in [location.id for location in pxe_template.location]:
-            pxe_template.location.append(loc)
-        pxe_template = pxe_template.update(['location', 'operatingsystem', 'organization'])
-
-        # Get the arch ID
-        arch = (
-            self._satellite.api.Architecture()
-            .search(query={'search': f'name="{DEFAULT_ARCHITECTURE}"'})[0]
-            .read()
-        )
-
-        # Update the OS to associate arch, ptable, templates
-        os.architecture.append(arch)
-        os.ptable.append(ptable)
-        os.provisioning_template.append(provisioning_template)
-        os.provisioning_template.append(pxe_template)
-        os = os.update(['architecture', 'provisioning_template', 'ptable'])
-        # kickstart_repository is the content view and lce bind repo
-        kickstart_repository = self._satellite.api.Repository().search(
-            query=dict(content_view_id=content_view.id, environment_id=lc_env.id, name=repo.name)
-        )[0]
-        # Create Hostgroup
-        host_group = self._satellite.api.HostGroup(
-            architecture=arch,
-            domain=domain.id,
-            subnet=subnet.id,
-            lifecycle_environment=lc_env.id,
-            content_view=content_view.id,
-            location=[loc.id],
-            environment=environment.id,
-            puppet_proxy=proxy,
-            puppet_ca_proxy=proxy,
-            content_source=proxy,
-            kickstart_repository=kickstart_repository,
-            root_pass=gen_string('alphanumeric'),
-            operatingsystem=os.id,
-            organization=[org.id],
-            ptable=ptable.id,
-        ).create()
-
-        return {
-            'host_group': host_group.name,
-            'domain': domain.name,
-            'environment': environment.name,
-            'ptable': ptable.name,
-            'subnet': subnet.name,
-            'os': os.title,
-        }
 
     def create_role_permissions(
         self, role, permissions_types_names, search=None

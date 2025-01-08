@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from datetime import datetime, timedelta
 import re
 from urllib.parse import urlparse
@@ -34,10 +35,9 @@ from robottelo.constants import (
     VIRT_WHO_HYPERVISOR_TYPES,
 )
 from robottelo.exceptions import CLIFactoryError
-from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.virtwho import create_fake_hypervisor_content
 
-if not setting_is_set('clients') or not setting_is_set('fake_manifest'):
+if not setting_is_set('fake_manifest'):
     pytest.skip('skipping tests due to missing settings', allow_module_level=True)
 
 
@@ -166,17 +166,14 @@ def test_positive_end_to_end(session, default_location, module_repos_collection_
             for repo_index in range(len(module_repos_collection_with_manifest.repos_info))
         }
         assert actual_repos == expected_repos
-        # Check start date for BZ#1920860 (but handle BZ#2112320 offset-by-one bug)
+        # Check start date for BZ#1920860
         custom_product_name = module_repos_collection_with_manifest.custom_product['name']
         custom_sub = next(
             item
             for item in chost['subscriptions']['resources']['assigned']
             if item["Repository Name"] == custom_product_name
         )
-        if is_open('BZ:2112320'):
-            assert startdate in custom_sub['Expires']
-        else:
-            assert startdate in custom_sub['Starts']
+        assert startdate in custom_sub['Starts']
         # Update description
         new_description = gen_string('alpha')
         session.contenthost.update(vm.hostname, {'details.description': new_description})
@@ -814,7 +811,7 @@ def test_positive_check_ignore_facts_os_setting(
         # Change necessary setting to true
         set_ignore_facts_for_os(module_target_sat, True)
         # Add cleanup function to roll back setting to default value
-        request.addfinalizer(set_ignore_facts_for_os)
+        request.addfinalizer(lambda: set_ignore_facts_for_os(module_target_sat, False))
         # Read all facts for corresponding host
         facts = host.get_facts(data={'per_page': 10000})['results'][vm.hostname]
         # Modify OS facts to another values and upload them to the server
@@ -1412,7 +1409,7 @@ def test_module_stream_update_from_satellite(session, default_location, vm_modul
         )
 
 
-@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -1453,7 +1450,7 @@ def test_syspurpose_attributes_empty(session, default_location, vm_module_stream
             assert details[spname] == ''
 
 
-@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -1497,7 +1494,7 @@ def test_set_syspurpose_attributes_cli(session, default_location, vm_module_stre
             assert details[spname] == spdata[1]
 
 
-@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -1545,7 +1542,7 @@ def test_unset_syspurpose_attributes_cli(session, default_location, vm_module_st
             assert details[spname] == ''
 
 
-@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -1586,7 +1583,7 @@ def test_syspurpose_matched(session, default_location, vm_module_streams):
         assert details['system_purpose_status'] == 'Matched'
 
 
-@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -1630,7 +1627,7 @@ def test_syspurpose_bulk_action(session, default_location, vm):
             assert val in result.stdout
 
 
-@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -1717,7 +1714,7 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template,
             f'os = {module_host_template.operatingsystem.name}'
         )
         # Assert dump of fake hosts found includes the higest numbered host created for this test
-        match = re.search(fr'test-{host_num:0>2}', str(all_fake_hosts_found))
+        match = re.search(rf'test-{host_num:0>2}', str(all_fake_hosts_found))
         assert match, 'Highest numbered host not found.'
         # Get all the pagination values
         pagination_values = session.contenthost.read_all('Pagination')['Pagination']
@@ -1755,8 +1752,8 @@ def test_search_for_virt_who_hypervisors(session, default_location, module_targe
         hypervisor_display_name = f'virt-who-{hypervisor_name}-{org.id}'
         # Search with hypervisor=True gives the correct result.
         assert (
-            session.contenthost.search('hypervisor = true')[0]['Name']
-        ) == hypervisor_display_name
+            (session.contenthost.search('hypervisor = true')[0]['Name']) == hypervisor_display_name
+        )
         # Search with hypervisor=false gives the correct result.
         content_hosts = [host['Name'] for host in session.contenthost.search('hypervisor = false')]
         assert hypervisor_display_name not in content_hosts

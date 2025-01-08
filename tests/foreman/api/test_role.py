@@ -15,6 +15,7 @@ http://theforeman.org/api/apidoc/v2/roles.html
 :CaseImportance: High
 
 """
+
 from nailgun.config import ServerConfig
 import pytest
 from requests.exceptions import HTTPError
@@ -183,7 +184,7 @@ class TestCannedRole:
             ldap_user_passwd=ad_data['ldap_user_passwd'],
             authsource=target_sat.api.AuthSourceLDAP(
                 onthefly_register=True,
-                account=fr"{ad_data['workgroup']}\{ad_data['ldap_user_name']}",
+                account=rf"{ad_data['workgroup']}\{ad_data['ldap_user_name']}",
                 account_password=ad_data['ldap_user_passwd'],
                 base_dn=ad_data['base_dn'],
                 groups_base=ad_data['group_base_dn'],
@@ -1379,14 +1380,12 @@ class TestCannedRole:
             2. Create user and assign above Org Admin role to it
             3. Login with above Org Admin user
             4. Attempt to create new users
-            5. Attempt to create location
 
         :expectedresults:
 
             1. Org Admin should be able to create new users
             2. Only Org Admin role should be available to assign to its users
             3. Org Admin should be able to assign Org Admin role to its users
-            4. Org Admin should be able create locations
 
         :BZ: 1538316, 1825698
 
@@ -1421,10 +1420,6 @@ class TestCannedRole:
         ).create()
         assert user_login == user.login
         assert org_admin.id == user.role[0].id
-        if not is_open('BZ:1825698'):
-            name = gen_string('alphanumeric')
-            location = target_sat.api.Location(sc_user, name=name).create()
-            assert location.name == name
 
     @pytest.mark.tier2
     def test_positive_access_users_inside_org_admin_taxonomies(self, role_taxonomies, target_sat):
@@ -1455,48 +1450,6 @@ class TestCannedRole:
             target_sat.api.User(server_config=sc, id=test_user.id).read()
         except HTTPError as err:
             pytest.fail(str(err))
-
-    @pytest.mark.skip_if_open('BZ:1825698')
-    @pytest.mark.tier2
-    def test_positive_create_nested_location(self, role_taxonomies, target_sat):
-        """Org Admin can create nested locations
-
-        :id: 971bc909-96a5-4614-b254-04a51c708432
-
-        :bz: 1694199, 1825698
-
-        :customerscenario: true
-
-        :steps:
-            1. Create a regular user and associate it with existing location
-            2. Add org_admin rights to that user
-            3. Attempt to create a nested location
-
-        :expectedresults: after adding the needed permissions, user should be
-            able to create nested locations
-
-        """
-        user_login = gen_string('alpha')
-        user_pass = gen_string('alphanumeric')
-        user = target_sat.api.User(
-            login=user_login,
-            password=user_pass,
-            organization=[role_taxonomies['org']],
-            location=[role_taxonomies['loc']],
-        ).create()
-        org_admin = self.create_org_admin_role(
-            target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
-        )
-        user.role = [org_admin]
-        user = user.update(['role'])
-        sc = ServerConfig(
-            auth=(user_login, user_pass), url=target_sat.url, verify=settings.server.verify_ca
-        )
-        name = gen_string('alphanumeric')
-        location = target_sat.api.Location(
-            server_config=sc, name=name, parent=role_taxonomies['loc'].id
-        ).create()
-        assert location.name == name
 
     @pytest.mark.tier2
     def test_negative_access_users_outside_org_admin_taxonomies(

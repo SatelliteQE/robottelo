@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
 import pytest
 
@@ -321,7 +322,8 @@ class TestAzureRMFinishTemplateProvisioning:
             f'script_uris={AZURERM_FILE_URI},'
             f'premium_os_disk={self.premium_os_disk}'
         )
-        nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+        results = module_azurerm_cr.available_networks()['results']
+        nw_id = next((item for item in results if item['name'] == 'default'), None)['id']
         request.cls.interfaces_attributes = (
             f'compute_network={nw_id},compute_public_ip=Static,compute_private_ip=false'
         )
@@ -343,8 +345,9 @@ class TestAzureRMFinishTemplateProvisioning:
         Provisions the host on AzureRM using Finish template
         Later in tests this host will be used to perform assertions
         """
-        with sat_azure.hammer_api_timeout(), sat_azure.skip_yum_update_during_provisioning(
-            template='Kickstart default finish'
+        with (
+            sat_azure.hammer_api_timeout(),
+            sat_azure.skip_yum_update_during_provisioning(template='Kickstart default finish'),
         ):
             host = sat_azure.cli.Host.create(
                 {
@@ -452,7 +455,8 @@ class TestAzureRMUserDataProvisioning:
             f'script_uris={AZURERM_FILE_URI},'
             f'premium_os_disk={self.premium_os_disk}'
         )
-        nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+        results = module_azurerm_cr.available_networks()['results']
+        nw_id = next((item for item in results if item['name'] == 'default'), None)['id']
         request.cls.interfaces_attributes = (
             f'compute_network={nw_id},compute_public_ip=Dynamic,compute_private_ip=false'
         )
@@ -472,8 +476,9 @@ class TestAzureRMUserDataProvisioning:
         Provisions the host on AzureRM using UserData template
         Later in tests this host will be used to perform assertions
         """
-        with sat_azure.hammer_api_timeout(), sat_azure.skip_yum_update_during_provisioning(
-            template='Kickstart default user data'
+        with (
+            sat_azure.hammer_api_timeout(),
+            sat_azure.skip_yum_update_during_provisioning(template='Kickstart default user data'),
         ):
             host = sat_azure.cli.Host.create(
                 {

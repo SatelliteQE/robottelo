@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import pytest
 
 from robottelo.utils.datafactory import gen_string

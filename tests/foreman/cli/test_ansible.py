@@ -8,12 +8,18 @@
 
 :CaseImportance: High
 """
+
 from time import sleep
 
 from fauxfactory import gen_string
 import pytest
+import yaml
 
-from robottelo.config import settings
+from robottelo.config import (
+    robottelo_tmp_dir,
+    settings,
+)
+from robottelo.utils.issue_handlers import is_open
 
 
 def assert_job_invocation_result(
@@ -183,6 +189,61 @@ class TestAnsibleCfgMgmt:
             {'name': hg_name, 'ansible-role': ROLES[0]}
         )
         assert 'Ansible role has been disassociated.' in result[0]['message']
+
+    @pytest.mark.tier3
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    def test_positive_ansible_variables_installed_with_collection(
+        self, request, target_sat, module_org, module_ak_with_cv, rhel_contenthost
+    ):
+        """Verify that installing an Ansible collection also imports
+        any variables associated with the roles avaialble in the collection
+
+        :id: 7ff88022-fe9b-482f-a6bb-3922036a1e1c
+
+        :steps:
+            1. Register a content host with Satellite
+            2. Install a ansible collection with roles from ansible-galaxy
+            3. Import any role with variables from installed ansible collection
+            4. Assert that the role is imported along with associated variables
+            5. Assign that role to a host and verify the role assigned to the host
+
+        :expectedresults: Verify variables associated to role from collection are also imported along with roles
+
+        :bz: 1982753
+        """
+        SELECTED_COLLECTION = 'oasis_roles.system'
+        SELECTED_ROLE = 'oasis_roles.system.sshd'
+        SELECTED_VAR = 'sshd_allow_password_login'
+
+        @request.addfinalizer
+        def _finalize():
+            result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
+            assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
+
+        result = rhel_contenthost.register(
+            module_org,
+            None,
+            module_ak_with_cv.name,
+            target_sat,
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        target_host = rhel_contenthost.nailgun_host
+        proxy_id = target_sat.nailgun_smart_proxy.id
+
+        for path in ['/etc/ansible/collections', '/usr/share/ansible/collections']:
+            target_sat.execute(f'ansible-galaxy collection install -p {path} {SELECTED_COLLECTION}')
+            target_sat.cli.Ansible.roles_sync({'role-names': SELECTED_ROLE, 'proxy-id': proxy_id})
+            result = target_sat.cli.Host.ansible_roles_assign(
+                {'id': target_host.id, 'ansible-roles': f'{SELECTED_ROLE}'}
+            )
+            assert 'Ansible roles were assigned to the host' in result[0]['message']
+
+            result = target_sat.cli.Ansible.variables_list(
+                {'search': f'ansible_role="{SELECTED_ROLE}"'}
+            )
+            assert result[0]['variable'] == SELECTED_VAR
+            # Remove the ansible collection from collection_paths
+            target_sat.execute(f'rm -rf {path}/ansible_collections/')
 
 
 @pytest.mark.tier3
@@ -402,6 +463,7 @@ class TestAnsibleREX:
     @pytest.mark.e2e
     @pytest.mark.no_containers
     @pytest.mark.pit_server
+    @pytest.mark.pit_client
     @pytest.mark.rhel_ver_match('[^6].*')
     @pytest.mark.skipif(
         (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
@@ -477,8 +539,12 @@ class TestAnsibleREX:
         result = client.execute(f'systemctl status {service}')
         assert result.status == 0
 
-    @pytest.mark.rhel_ver_list([8])
-    def test_positive_install_ansible_collection(self, rex_contenthost, target_sat):
+    @pytest.mark.upgrade
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    def test_positive_install_ansible_collection(
+        self, rhel_contenthost, target_sat, module_org, module_ak_with_cv
+    ):
         """Test whether Ansible collection can be installed via Ansible REX
 
         :id: ad25aee5-4ea3-4743-a301-1c6271856f79
@@ -492,9 +558,11 @@ class TestAnsibleREX:
 
         :expectedresults: Ansible collection can be installed on content host via REX.
         """
-        client = rex_contenthost
+        client = rhel_contenthost
         # Enable Ansible repository and Install ansible or ansible-core package
-        client.create_custom_repos(rhel8_aps=settings.repos.rhel8_os.appstream)
+        client.register(module_org, None, module_ak_with_cv.name, target_sat)
+        rhel_repo_urls = getattr(settings.repos, f'rhel{client.os_version.major}_os', None)
+        rhel_contenthost.create_custom_repos(**rhel_repo_urls)
         assert client.execute('dnf -y install ansible-core').status == 0
 
         collection_job = target_sat.cli_factory.job_invocation(
@@ -521,3 +589,114 @@ class TestAnsibleREX:
         assert result['success'] == '1'
         collection_path = client.execute('ls ~/ansible_collections').stdout
         assert 'oasis_roles' in collection_path
+
+    @pytest.mark.tier3
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    @pytest.mark.parametrize('auth_type', ['admin', 'non-admin'])
+    def test_positive_ansible_variables_imported_with_roles(
+        self, request, auth_type, target_sat, module_org, module_ak_with_cv, rhel_contenthost
+    ):
+        """Verify that when Ansible roles are imported, their variables are imported simultaneously
+
+        :id: 107c53e8-5a8a-4291-bbde-fbd66a0bb85e
+
+        :steps:
+            1. Register a content host with satellite
+            2. Create a custom role with variables and import it into satellite
+            3. Assert that the role is imported along with associated variables
+            4. Assign that role to a host and verify the role is assigned to the host
+            5. Run the Ansible role
+
+        :expectedresults:
+            1. Verify variables associated to role are also imported along with roles
+            2. Verify custom role is successfully assigned and running on a host
+
+        :verifies: SAT-28198
+        """
+        username = settings.server.admin_username
+        password = settings.server.admin_password
+        if auth_type == 'non-admin':
+            username = gen_string('alpha')
+            user = target_sat.cli_factory.user(
+                {
+                    'admin': False,
+                    'login': username,
+                    'password': password,
+                    'organization-ids': module_org.id,
+                }
+            )
+            target_sat.cli.User.add_role(
+                {'id': user['id'], 'login': username, 'role': 'Ansible Roles Manager'}
+            )
+
+        @request.addfinalizer
+        def _finalize():
+            result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
+            assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
+            target_sat.execute(f'rm -rvf /etc/ansible/roles/{SELECTED_ROLE}')
+
+        SELECTED_ROLE = gen_string('alphanumeric')
+        playbook = f'{robottelo_tmp_dir}/playbook.yml'
+        vars = f'{robottelo_tmp_dir}/vars.yml'
+        target_sat.execute(f'ansible-galaxy init --init-path /etc/ansible/roles/ {SELECTED_ROLE}')
+        tasks_file = f'/etc/ansible/roles/{SELECTED_ROLE}/tasks/main.yml'
+        vars_file = f'/etc/ansible/roles/{SELECTED_ROLE}/{"defaults" if is_open("SAT-28198") else "vars"}/main.yml'
+        tasks_main = [
+            {
+                'name': 'Copy SSH keys',
+                'copy': {
+                    'src': '/var/lib/foreman-proxy/ssh/{{ item }}',
+                    'dest': '/root/.ssh',
+                    'owner': 'root',
+                    'group': 'root',
+                    'mode': '0400',
+                },
+                'loop': '{{ ssh_keys }}',
+            }
+        ]
+        vars_main = {'ssh_keys': ['id_rsa_foreman_proxy.pub', 'id_rsa_foreman_proxy']}
+        with open(playbook, 'w') as f:
+            yaml.dump(tasks_main, f, sort_keys=False, default_flow_style=False)
+        with open(vars, 'w') as f:
+            yaml.dump(vars_main, f, sort_keys=False, default_flow_style=False)
+        target_sat.put(playbook, tasks_file)
+        target_sat.put(vars, vars_file)
+
+        result = rhel_contenthost.register(
+            module_org,
+            None,
+            module_ak_with_cv.name,
+            target_sat,
+            auth_username=username,
+            auth_password=password,
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        proxy_id = target_sat.nailgun_smart_proxy.id
+        target_host = rhel_contenthost.nailgun_host
+        target_sat.cli.Ansible.with_user(username, password).roles_sync(
+            {'role-names': SELECTED_ROLE, 'proxy-id': proxy_id}
+        )
+        result = target_sat.cli.Host.with_user(username, password).ansible_roles_assign(
+            {'id': target_host.id, 'ansible-roles': f'{SELECTED_ROLE}'}
+        )
+        assert 'Ansible roles were assigned to the host' in result[0]['message']
+
+        role_list = target_sat.cli.Host.with_user(username, password).ansible_roles_list(
+            {'name': target_host.name}
+        )
+        assert role_list[0]['name'] == SELECTED_ROLE
+
+        result = target_sat.cli.Ansible.with_user(username, password).variables_list(
+            {'search': f'ansible_role="{SELECTED_ROLE}"'}
+        )
+        assert result[0]['variable'] == 'ssh_keys'
+
+        job_id = target_sat.cli.Host.ansible_roles_play({'name': rhel_contenthost.hostname})[0].get(
+            'id'
+        )
+        target_sat.wait_for_tasks(
+            f'resource_type = JobInvocation and resource_id = {job_id} and action ~ "hosts job"'
+        )
+        result = target_sat.cli.JobInvocation.info({'id': job_id})['success']
+        assert result == '1'

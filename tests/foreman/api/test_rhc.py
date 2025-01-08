@@ -11,10 +11,9 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
 import pytest
-
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture
@@ -48,12 +47,6 @@ def test_positive_configure_cloud_connector(target_sat, default_org, fixture_ena
 
     :CaseImportance: Critical
     """
-
-    # Delete old satellite  hostname if BZ#2130173 is open
-    if is_open('BZ:2130173'):
-        host = target_sat.api.Host().search(query={'search': f"! {target_sat.hostname}"})[0]
-        host.delete()
-
     # Copy foreman-proxy user's key to root@localhost user's authorized_keys
     target_sat.add_rex_key(satellite=target_sat)
 

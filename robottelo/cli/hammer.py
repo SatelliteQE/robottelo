@@ -1,7 +1,10 @@
 """Helpers to interact with hammer command line utility."""
+
 import csv
 import json
 import re
+
+from robottelo.config import logger
 
 
 def _normalize(header):
@@ -34,31 +37,25 @@ def _normalize_obj(obj):
     return obj
 
 
-def is_csv(output):
-    """Verifies if the output string is eligible for converting into CSV"""
-    sniffer = csv.Sniffer()
-    try:
-        sniffer.sniff(output)
-        return True
-    except csv.Error:
-        return False
-
-
 def parse_csv(output):
-    """Parse CSV output from Hammer CLI and convert it to python dictionary."""
-    # ignore warning about puppet and ostree deprecation
-    output.replace('Puppet and OSTree will no longer be supported in Katello 3.16\n', '')
-    is_rex = 'Job invocation' in output
-    is_pkg_list = 'Nvra' in output
-    # Validate if the output is eligible for CSV conversions else return as it is
-    if not is_csv(output) and not is_rex and not is_pkg_list:
-        return output
-    output = output.splitlines()[0:2] if is_rex else output.splitlines()
-    reader = csv.reader(output)
-    # Generate the key names, spaces will be converted to dashes "-"
-    keys = [_normalize(header) for header in next(reader)]
-    # For each entry, create a dict mapping each key with each value
-    return [dict(zip(keys, values, strict=True)) for values in reader if len(values) > 0]
+    """Parse CSV output from Hammer CLI and return a Python dictionary."""
+
+    # https://projects.theforeman.org/issues/37264
+    NON_CSV_PATTERN = r'\d+ task\(s\), \d+ success, \d+ fail'
+
+    output, num_changes = re.subn(NON_CSV_PATTERN, '', output)
+    if num_changes > 0:
+        logger.warning(f'Removed output from CLI based on regex: {NON_CSV_PATTERN!s}')
+
+    output = output.splitlines()
+
+    # Normalize the column names to use when generating the dictionary
+    try:
+        keys = [_normalize(header) for header in next(csv.reader(output))]
+        return [value for value in csv.DictReader(output[1:], fieldnames=keys)]
+    except csv.Error as err:
+        logger.error(f'Exception while parsing CSV output {output}: {err}')
+        raise
 
 
 def parse_help(output):

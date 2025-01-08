@@ -9,6 +9,7 @@
 :Team: Phoenix
 
 """
+
 import pytest
 
 from robottelo.config import settings
@@ -249,8 +250,6 @@ class TestVirtWhoConfigforEsx:
         deploy_configure_by_command(
             command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
         )
-        # Check default NO_PROXY option
-        assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == '*'
         # Check HTTTP Proxy and No_PROXY option
         http_proxy_url, http_proxy_name, http_proxy_id = create_http_proxy(
             http_type='http', org=module_sca_manifest_org, location=default_location
@@ -407,9 +406,7 @@ class TestVirtWhoConfigforEsx:
         # Check the option "env=" should be removed from etc/virt-who.d/virt-who.conf
         option = "env"
         config_file = get_configure_file(virtwho_config_api.id)
-        env_error = (
-            f"option {{\'{option}\'}} is not exist or not be enabled in {{\'{config_file}\'}}"
-        )
+        env_error = f"option {{'{option}'}} is not exist or not be enabled in {{'{config_file}'}}"
         with pytest.raises(Exception) as exc_info:  # noqa: PT011 - TODO determine better exception
             get_configure_option({option}, {config_file})
         assert str(exc_info.value) == env_error

@@ -10,6 +10,7 @@
 :CaseImportance: High
 
 """
+
 from broker import Broker
 from fauxfactory import gen_alpha
 import pytest
@@ -196,6 +197,56 @@ def test_positive_end_to_end_crud_and_list(target_sat):
     target_sat.cli.ReportTemplate.delete({'name': tmp_report_template['name']})
     with pytest.raises(CLIReturnCodeError):
         target_sat.cli.ReportTemplate.info({'id': tmp_report_template['id']})
+
+
+@pytest.mark.parametrize(
+    'content',
+    [
+        '''<% load_users(joins: "LEFT JOIN hosts ON 1=1", select: 'hosts.name AS login,hosts.id AS id', limit: 100_000).each_record do |h| %>
+<%= h.id %> - <%= h.login %>
+<% end %>
+    ''',
+        '''<% load_users(joins: ["LEFT JOIN hosts ON 1=1"], select: ['hosts.name AS login,hosts.id AS id'],limit: 100_000).each_record do |h| %>
+<%= h.id %> - <%= h.login %>
+<% end %>''',
+    ],
+    ids=['v1', 'v2'],
+)
+@pytest.mark.tier2
+def test_positive_generate_report_check_for_injection(
+    module_target_sat, module_org, module_location, content
+):
+    """Generate a report and check for injection as per CVE-2024-8553
+
+    :id: 1126640e-2eee-4476-aa51-cb473096cbd8
+
+    :setup:
+        0. Create a report template containing an exploit
+
+    :steps:
+        0. hammer report-template generate --id ...
+
+    :expectedresults:
+        Failure with a correct error message
+
+    :CaseImportance: Critical
+    """
+    name = gen_alpha()
+    module_target_sat.cli.ReportTemplate.create(
+        {
+            'name': name,
+            'organization-id': module_org.id,
+            'location-id': module_location.id,
+            'file': content,
+        }
+    )
+
+    with pytest.raises(CLIReturnCodeError) as error:
+        module_target_sat.cli.ReportTemplate.generate({'name': name})
+    assert (
+        "Generating Report template failed for: Value of 'select' passed to load_users must be Symbol or Array of Symbols."
+        in error.value.stderr
+    )
 
 
 @pytest.mark.tier1
@@ -649,7 +700,6 @@ def test_negative_nonauthor_of_report_cant_download_it(module_target_sat):
 
 
 @pytest.mark.tier2
-@pytest.mark.skip_if_open('BZ:1750924')
 def test_positive_generate_with_name_and_org(module_target_sat):
     """Generate Host Status report, specifying template name and organization
 
@@ -683,7 +733,6 @@ def test_positive_generate_with_name_and_org(module_target_sat):
 
 
 @pytest.mark.tier2
-@pytest.mark.skip_if_open('BZ:1782807')
 def test_positive_generate_ansible_template(module_target_sat):
     """Report template named 'Ansible Inventory' (default name is specified in settings)
     must be present in Satellite 6.7 and later in order to provide enhanced functionality
@@ -832,8 +881,13 @@ def test_positive_schedule_entitlements_report(
     :parametrized: yes
     """
     client = rhel7_contenthost
-    client.install_katello_ca(target_sat)
-    client.register_contenthost(module_entitlement_manifest_org.label, local_ak['name'])
+    result = client.register(
+        module_entitlement_manifest_org,
+        None,
+        local_ak.name,
+        target_sat,
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert client.subscribed
     scheduled_csv = target_sat.cli.ReportTemplate.schedule(
         {
@@ -901,9 +955,13 @@ def test_positive_generate_hostpkgcompare(
     with Broker(nick='rhel7', host_class=ContentHost, _count=2) as hosts:
         for client in hosts:
             # Create RHEL hosts via broker and register content host
-            client.install_katello_ca(target_sat)
-            # Register content host, install katello-agent
-            client.register_contenthost(module_entitlement_manifest_org.label, local_ak['name'])
+            result = client.register(
+                module_entitlement_manifest_org,
+                None,
+                local_ak.name,
+                target_sat,
+            )
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
             assert client.subscribed
             clients.append(client)
             client.enable_repo(REPOS['rhst7']['id'])
@@ -1028,8 +1086,13 @@ def test_positive_generate_installed_packages_report(
         }
     )
     client = rhel_contenthost
-    client.install_katello_ca(target_sat)
-    client.register_contenthost(module_entitlement_manifest_org.label, local_ak['name'])
+    result = client.register(
+        module_entitlement_manifest_org,
+        None,
+        local_ak.name,
+        target_sat,
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert client.subscribed
     client.execute(f'yum -y install {FAKE_0_CUSTOM_PACKAGE_NAME} {FAKE_1_CUSTOM_PACKAGE}')
     result_html = target_sat.cli.ReportTemplate.generate(

@@ -11,11 +11,11 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
-from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.virtwho import (
     deploy_configure_by_command,
     get_configure_command,
@@ -123,8 +123,7 @@ class TestScenarioPositiveVirtWho:
         vhd = target_sat.api.VirtWhoConfig(organization_id=org_id).search(
             query={'search': f'name={name}'}
         )[0]
-        if not is_open('BZ:1802395'):
-            assert vhd.status == 'ok'
+        assert vhd.status == 'ok'
         # Verify virt-who status via CLI as we cannot check it via API now
         vhd_cli = target_sat.cli.VirtWhoConfig.exists(search=('name', name))
         assert (
@@ -148,7 +147,7 @@ class TestScenarioPositiveVirtWho:
 
         # Verify the virt-who config-file exists.
         config_file = get_configure_file(vhd.id)
-        get_configure_option('hypervisor_id', config_file),
+        get_configure_option('hypervisor_id', config_file)
 
         # Verify Report is sent to satellite.
         command = get_configure_command(vhd.id, org=org_name)

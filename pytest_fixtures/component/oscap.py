@@ -1,11 +1,10 @@
 from pathlib import PurePath
 
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 
 from robottelo.config import robottelo_tmp_dir, settings
-from robottelo.constants import OSCAP_PROFILE, OSCAP_TAILORING_FILE, DataFile
+from robottelo.constants import OSCAP_TAILORING_FILE, DataFile
 
 
 @pytest.fixture(scope="session")
@@ -34,12 +33,11 @@ def scap_content(import_ansible_roles, module_target_sat):
         {'title': title, 'scap-file': f'{settings.oscap.content_path}'}
     )
     scap_id = scap_info['id']
-    scap_info = entities.ScapContents(id=scap_id).read()
-
+    scap_info = module_target_sat.api.ScapContents(id=scap_id).read()
     scap_profile_id = [
         profile['id']
         for profile in scap_info.scap_content_profiles
-        if OSCAP_PROFILE[settings.oscap.profile] in profile['title']
+        if module_target_sat.OSCAP['dsrhel'] in profile['title']
     ][0]
     return {
         "title": title,
@@ -49,10 +47,10 @@ def scap_content(import_ansible_roles, module_target_sat):
 
 
 @pytest.fixture(scope="module")
-def tailoring_file(module_org, module_location, tailoring_file_path):
+def tailoring_file(module_target_sat, module_org, module_location, tailoring_file_path):
     """Create Tailoring file."""
     tailoring_file_name = f"tailoring-file-{gen_string('alpha')}"
-    tf_info = entities.TailoringFile(
+    tf_info = module_target_sat.api.TailoringFile(
         name=f"{tailoring_file_name}",
         scap_file=f"{tailoring_file_path['local']}",
         organization=[module_org],

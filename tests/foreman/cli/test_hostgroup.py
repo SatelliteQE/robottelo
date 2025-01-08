@@ -11,8 +11,8 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_integer
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -117,7 +117,7 @@ def test_positive_create_with_multiple_entities_and_delete(
         # Common entities
         name = valid_hostgroups_list()[0]
         loc = session_puppet_enabled_sat.cli_factory.make_location()
-        org_2 = entities.Organization().create()
+        org_2 = session_puppet_enabled_sat.api.Organization().create()
         orgs = [module_puppet_org, org_2]
         env = session_puppet_enabled_sat.cli_factory.make_environment(
             {'location-ids': loc['id'], 'organization-ids': org_2.id}

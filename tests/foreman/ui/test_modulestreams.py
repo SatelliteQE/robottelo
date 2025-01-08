@@ -11,26 +11,26 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
 
 
 @pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
+def module_org(module_target_sat):
+    return module_target_sat.api.Organization().create()
 
 
 @pytest.fixture(scope='module')
-def module_product(module_org):
-    return entities.Product(organization=module_org).create()
+def module_product(module_org, module_target_sat):
+    return module_target_sat.api.Product(organization=module_org).create()
 
 
 @pytest.fixture(scope='module')
-def module_yum_repo(module_product):
-    yum_repo = entities.Repository(
+def module_yum_repo(module_product, module_target_sat):
+    yum_repo = module_target_sat.api.Repository(
         name=gen_string('alpha'),
         product=module_product,
         content_type='yum',
@@ -40,7 +40,6 @@ def module_yum_repo(module_product):
     return yum_repo
 
 
-@pytest.mark.skip_if_open("BZ:1948758")
 @pytest.mark.tier2
 def test_positive_module_stream_details_search_in_repo(session, module_org, module_yum_repo):
     """Create product with yum repository assigned to it. Search for

@@ -9,13 +9,14 @@
 :CaseAutomation: Automated
 
 """
+
 from copy import copy
 import re
 
-from nailgun import entity_mixins
 import pytest
 from wait_for import TimedOutError, wait_for
 
+from robottelo.config import admin_nailgun_config
 from robottelo.logging import logger
 
 pytestmark = pytest.mark.destructive
@@ -123,7 +124,7 @@ def _assert_discovered_host(host, channel=None, user_config=None, sat=None):
         # raise assertion error
         raise AssertionError('Timed out waiting for "/facts" 201 response') from err
 
-    default_config = entity_mixins.DEFAULT_SERVER_CONFIG
+    default_config = admin_nailgun_config()
 
     try:
         wait_for(

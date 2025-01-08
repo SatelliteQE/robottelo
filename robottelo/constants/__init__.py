@@ -1,24 +1,13 @@
 """Defines various constants"""
+
 from pathlib import Path
 
 from box import Box
 from nailgun import entities
 
-
-# String Color codes
-class Colored(Box):
-    YELLOW = '\033[1;33m'
-    REDLIGHT = '\033[3;31m'
-    REDDARK = '\033[1;31m'
-    GREEN = '\033[1;32m'
-    WHITELIGHT = '\033[1;30m'
-    RESET = '\033[0m'
-
-
 # This should be updated after each version branch
 SATELLITE_VERSION = "6.14"
 SATELLITE_OS_VERSION = "8"
-SAT_NON_GA_VERSIONS = ['6.14', '6.15']
 
 # Default system ports
 HTTPS_PORT = '443'
@@ -111,13 +100,12 @@ _abcs = dict.fromkeys(
 )
 _zones_combo = {**_bcds, **_abcfs, **_abcs}
 VALID_GCE_ZONES = [f'{loc}-{zone}' for loc, zones in _zones_combo.items() for zone in zones]
-LATEST_RHEL7_GCE_IMG_UUID = '7726764279310511390'
 
 GCE_MACHINE_TYPE_DEFAULT = 'f1-micro'
 GCE_NETWORK_DEFAULT = 'default'
 GCE_EXTERNAL_IP_DEFAULT = True
 GCE_RHEL_CLOUD_PROJECTS = ['rhel-cloud', 'rhel-sap-cloud']
-GCE_TARGET_RHEL_IMAGE_NAME = 'rhel-7'
+GCE_TARGET_RHEL_IMAGE_NAME = 'rhel-9'
 
 # AzureRM specific constants
 AZURERM_VALID_REGIONS = [
@@ -163,7 +151,7 @@ AZURERM_VALID_REGIONS = [
     'Norway East',
 ]
 AZURERM_RHEL7_FT_IMG_URN = 'marketplace://RedHat:RHEL:7-RAW:latest'
-AZURERM_RHEL7_UD_IMG_URN = 'marketplace://RedHat:RHEL:7-RAW-CI:7.6.2019072418'
+AZURERM_RHEL7_UD_IMG_URN = 'marketplace://RedHat:rhel-byos:rhel-raw-ci76:7.6.20190814'
 AZURERM_RHEL7_FT_BYOS_IMG_URN = 'marketplace://RedHat:rhel-byos:rhel-lvm78:7.8.20200410'
 AZURERM_RHEL7_FT_CUSTOM_IMG_URN = 'custom://imageVM1-RHEL7-image-20220617150105'
 AZURERM_RHEL7_FT_GALLERY_IMG_URN = 'gallery://RHEL77img'
@@ -324,6 +312,7 @@ SM_OVERALL_STATUS = {
     'current': 'Overall Status: Current',
     'invalid': 'Overall Status: Invalid',
     'insufficient': 'Overall Status: Insufficient',
+    'disabled': 'Overall Status: Disabled',
     'unknown': 'Overall Status: Unknown',
 }
 
@@ -533,32 +522,32 @@ REPOS = {
         },
         'rhel8_bos': {
             'id': 'rhel-8-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.9',
-            'version': '8.9',
+            'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.10',
+            'version': '8.10',
             'reposet': REPOSET['kickstart']['rhel8_bos'],
             'product': PRDS['rhel8'],
             'distro': 'rhel8',
         },
         'rhel8_aps': {
             'id': 'rhel-8-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.9',
-            'version': '8.9',
+            'name': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8.10',
+            'version': '8.10',
             'reposet': REPOSET['kickstart']['rhel8_aps'],
             'product': PRDS['rhel8'],
             'distro': 'rhel8',
         },
         'rhel9_bos': {
             'id': 'rhel-9-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.3',
-            'version': '9.3',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.5',
+            'version': '9.5',
             'reposet': REPOSET['kickstart']['rhel9_bos'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
         'rhel9_aps': {
             'id': 'rhel-9-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.3',
-            'version': '9.3',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.5',
+            'version': '9.5',
             'reposet': REPOSET['kickstart']['rhel9_aps'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
@@ -1565,6 +1554,7 @@ OSCAP_DEFAULT_CONTENT = {
     'rhel6_content': 'Red Hat rhel6 default content',
     'rhel7_content': 'Red Hat rhel7 default content',
     'rhel8_content': 'Red Hat rhel8 default content',
+    'rhel9_content': 'Red Hat rhel9 default content',
     'rhel_firefox': 'Red Hat firefox default content',
 }
 
@@ -1572,7 +1562,8 @@ OSCAP_PROFILE = {
     'c2s_rhel6': 'C2S for Red Hat Enterprise Linux 6',
     'dsrhel6': 'DISA STIG for Red Hat Enterprise Linux 6',
     'dsrhel7': 'DISA STIG for Red Hat Enterprise Linux 7',
-    'dsrhel8': '[DRAFT] DISA STIG for Red Hat Enterprise Linux 8',
+    'dsrhel8': 'DISA STIG for Red Hat Enterprise Linux 8',
+    'dsrhel9': 'DISA STIG for Red Hat Enterprise Linux 9',
     'esp': 'Example Server Profile',
     'rhccp': 'Red Hat Corporate Profile for Certified Cloud Providers (RH CCP)',
     'firefox': 'Mozilla Firefox STIG',
@@ -1584,6 +1575,7 @@ OSCAP_PROFILE = {
     'cbrhel6': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 6',
     'cbrhel7': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 7',
     'cbrhel8': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 8',
+    'cbrhel9': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 9',
     'ppgpo': 'Protection Profile for General Purpose Operating Systems',
     'acscee': 'Australian Cyber Security Centre (ACSC) Essential Eight',
     'ospp7': 'OSPP - Protection Profile for General Purpose Operating Systems v4.2.1',
@@ -1684,7 +1676,6 @@ BOOKMARK_ENTITIES_SELECTION = [
         'controller': 'provisioning_templates',
         'session_name': 'provisioningtemplate',
     },
-    {'name': 'Repository', 'controller': 'katello_repositories', 'session_name': 'repository'},
 ]
 
 STRING_TYPES = ['alpha', 'numeric', 'alphanumeric', 'latin1', 'utf8', 'cjk', 'html']
@@ -1736,8 +1727,18 @@ OPEN_STATUSES = ("NEW", "ASSIGNED", "POST", "MODIFIED")
 CLOSED_STATUSES = ("ON_QA", "VERIFIED", "RELEASE_PENDING", "CLOSED")
 WONTFIX_RESOLUTIONS = ("WONTFIX", "CANTFIX", "DEFERRED")
 # Jira statuses used by Robottelo issue handler.
-JIRA_OPEN_STATUSES = ("New", "Backlog", "Refinement", "To Do", "In Progress")
-JIRA_ONQA_STATUS = "Review"
+JIRA_TESTS_PASSED_LABEL = "tests-passed"
+JIRA_TESTS_FAILED_LABEL = "tests-failed"
+JIRA_OPEN_STATUSES = (
+    "New",
+    "Backlog",
+    "Refinement",
+    "To Do",
+    "In Progress",
+    "Review",
+    "Release Pending - Upstream",
+)
+JIRA_ONQA_STATUS = "Testing"
 JIRA_CLOSED_STATUSES = ("Release Pending", "Closed")
 JIRA_WONTFIX_RESOLUTIONS = "Obsolete"
 
@@ -1871,7 +1872,6 @@ FAM_TEST_PLAYBOOKS = [
     "content_export_repository",
     "content_export_version",
     "content_rhel_role",
-    "content_upload_ostree",
     "content_upload",
     "content_view_filter_info",
     "content_view_filter_rule_info",
@@ -1905,8 +1905,6 @@ FAM_TEST_PLAYBOOKS = [
     "http_proxy",
     "image",
     "installation_medium",
-    "inventory_plugin_ansible",
-    "inventory_plugin",
     "job_invocation",
     "job_template",
     "katello_hostgroup",
@@ -1932,9 +1930,9 @@ FAM_TEST_PLAYBOOKS = [
     "puppet_environment",
     "realm",
     "redhat_manifest",
+    "registration_command",
     "repositories_role",
     "repository_info",
-    "repository_ostree",
     "repository_set_info",
     "repository_set",
     "repository_sync",
@@ -1961,6 +1959,13 @@ FAM_TEST_PLAYBOOKS = [
     "usergroup",
     "user",
     "wait_for_task",
+    "webhook",
+]
+
+FAM_TEST_LIBVIRT_PLAYBOOKS = [
+    "compute_attribute",
+    "compute_profile",
+    "hostgroup",
 ]
 
 FAM_ROOT_DIR = '/usr/share/ansible/collections/ansible_collections/redhat/satellite'
@@ -2048,6 +2053,7 @@ WEBHOOK_METHODS = [
     "DELETE",
     "PATCH",
 ]
+LIFECYCLE_METADATA_FILE = '/usr/share/satellite/lifecycle-metadata.yml'
 
 OPENSSH_RECOMMENDATION = 'Decreased security: OpenSSH config permissions'
 DNF_RECOMMENDATION = (
@@ -2056,6 +2062,7 @@ DNF_RECOMMENDATION = (
 )
 
 EXPIRED_MANIFEST = 'expired-manifest.zip'
+
 
 # Data File Paths
 class DataFile(Box):

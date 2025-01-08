@@ -11,11 +11,11 @@
 :CaseImportance: High
 
 """
+
 import pytest
 
 
 @pytest.mark.e2e
-@pytest.mark.skip_if_open("BZ:2105949")
 def test_verify_satellite_login_screen_info(target_sat):
     """Verify Satellite version on the login screen
 

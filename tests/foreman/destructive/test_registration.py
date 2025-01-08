@@ -10,6 +10,7 @@
 
 :Team: Rocket
 """
+
 import pytest
 
 from robottelo.config import settings
@@ -19,6 +20,7 @@ pytestmark = pytest.mark.destructive
 
 @pytest.mark.tier3
 @pytest.mark.no_containers
+@pytest.mark.pit_client
 @pytest.mark.rhel_ver_match('[^6]')
 def test_host_registration_rex_pull_mode(
     module_org,
@@ -39,15 +41,14 @@ def test_host_registration_rex_pull_mode(
     org = module_org
     client_repo = settings.repos.SATCLIENT_REPO[f'rhel{rhel_contenthost.os_version.major}']
     # register host to satellite with pull provider rex
-    command = module_satellite_mqtt.api.RegistrationCommand(
+    result = rhel_contenthost.api_register(
+        module_satellite_mqtt,
         organization=org,
         location=module_location,
         activation_keys=[module_ak_with_cv.name],
         setup_remote_execution_pull=True,
-        insecure=True,
         repo=client_repo,
-    ).create()
-    result = rhel_contenthost.execute(command)
+    )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # check mqtt client is running
@@ -63,17 +64,16 @@ def test_host_registration_rex_pull_mode(
     module_satellite_mqtt.api.SmartProxy(id=nc.id, location=[module_location]).update(['location'])
 
     # register host to capsule with pull provider rex
-    command = module_satellite_mqtt.api.RegistrationCommand(
+    result = rhel_contenthost.api_register(
+        module_satellite_mqtt,
         smart_proxy=nc,
         organization=org,
         location=module_location,
         activation_keys=[module_ak_with_cv.name],
         setup_remote_execution_pull=True,
         repo=client_repo,
-        insecure=True,
         force=True,
-    ).create()
-    result = rhel_contenthost.execute(command)
+    )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # check mqtt client is running

@@ -26,6 +26,7 @@ def pytest_configure(config):
         "capsule_only: For satellite-maintain tests to run only on Capsules",
         "manifester: Tests that require manifester",
         "ldap: Tests related to ldap authentication",
+        "no_compose : Skip the marked sanity test for nightly compose",
     ]
     markers.extend(module_markers())
     for marker in markers:

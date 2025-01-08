@@ -16,6 +16,7 @@ Subcommands::
                                   Simple Content Access enabled
 
 """
+
 from robottelo.cli.base import Base
 
 

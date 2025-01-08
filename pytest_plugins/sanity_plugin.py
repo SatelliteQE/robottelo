@@ -1,4 +1,4 @@
-""" A sanity testing plugin to assist in executing robottelo tests as sanity tests smartly
+"""A sanity testing plugin to assist in executing robottelo tests as sanity tests smartly
 
 1. Make installer test to run first which should set the hostname and all other tests then
 should run after that

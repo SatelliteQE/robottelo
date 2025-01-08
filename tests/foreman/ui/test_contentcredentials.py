@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import pytest
 
 from robottelo.config import settings
@@ -247,50 +248,6 @@ def test_positive_add_repo_from_product_with_repos(session, target_sat, module_o
         assert values['products']['table'][0]['Name'] == empty_message
         assert len(values['repositories']['table']) == 1
         assert values['repositories']['table'][0]['Name'] == repo1.name
-
-
-@pytest.mark.tier2
-@pytest.mark.upgrade
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-@pytest.mark.usefixtures('allow_repo_discovery')
-def test_positive_add_product_using_repo_discovery(session, gpg_path):
-    """Create gpg key with valid name and valid gpg key
-    then associate it with custom product using Repo discovery method
-
-    :id: 7490a5a6-8575-45eb-addc-298ed3b62649
-
-    :expectedresults: gpg key is associated with product as well as with
-        the repositories
-
-    :BZ: 1210180, 1461804, 1595792
-    """
-    name = gen_string('alpha')
-    product_name = gen_string('alpha')
-    repo_name = 'fakerepo01'
-    with session:
-        session.contentcredential.create(
-            {
-                'name': name,
-                'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
-                'upload_file': gpg_path,
-            }
-        )
-        assert session.contentcredential.search(name)[0]['Name'] == name
-        session.product.discover_repo(
-            {
-                'repo_type': 'Yum Repositories',
-                'url': settings.repos.repo_discovery.url,
-                'discovered_repos.repos': repo_name,
-                'create_repo.product_type': 'New Product',
-                'create_repo.product_content.product_name': product_name,
-                'create_repo.product_content.gpg_key': name,
-            }
-        )
-        values = session.contentcredential.read(name)
-        assert len(values['products']['table']) == 1
-        assert values['products']['table'][0]['Name'] == product_name
-        assert len(values['repositories']['table']) == 1
-        assert values['repositories']['table'][0]['Name'].split(' ')[-1] == repo_name
 
 
 @pytest.mark.tier2

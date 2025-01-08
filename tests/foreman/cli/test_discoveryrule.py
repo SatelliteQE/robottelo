@@ -11,12 +11,12 @@
 :CaseImportance: High
 
 """
+
 from functools import partial
 import random
 
 from box import Box
 from fauxfactory import gen_choice, gen_integer, gen_string
-from nailgun.entities import Role as RoleEntity, User as UserEntity
 import pytest
 from requests import HTTPError
 
@@ -438,12 +438,14 @@ class TestDiscoveryRuleRole:
     """Implements Foreman discovery Rules tests along with roles from CLI."""
 
     @pytest.fixture(scope='class')
-    def class_user_manager(self, class_user_password, class_org, class_location):
+    def class_user_manager(self, class_target_sat, class_user_password, class_org, class_location):
         try:
-            manager_role = RoleEntity().search(query={'search': 'name="Discovery Manager"'})[0]
+            manager_role = class_target_sat.api.Role().search(
+                query={'search': 'name="Discovery Manager"'}
+            )[0]
         except IndexError:
             pytest.fail('Discovery Manager role was not found, setup cannot continue')
-        user = UserEntity(
+        user = class_target_sat.api.User(
             organization=[class_org],
             location=[class_location],
             password=class_user_password,
@@ -457,12 +459,14 @@ class TestDiscoveryRuleRole:
             logger.error('Exception while deleting class scope user entity in teardown')
 
     @pytest.fixture(scope='class')
-    def class_user_reader(self, class_user_password, class_org, class_location):
+    def class_user_reader(self, class_target_sat, class_user_password, class_org, class_location):
         try:
-            reader_role = RoleEntity().search(query={'search': 'name="Discovery Reader"'})[0]
+            reader_role = class_target_sat.api.Role().search(
+                query={'search': 'name="Discovery Reader"'}
+            )[0]
         except IndexError:
             pytest.fail('Discovery Manager role was not found, setup cannot continue')
-        user = UserEntity(
+        user = class_target_sat.api.User(
             organization=[class_org],
             location=[class_location],
             password=class_user_password,

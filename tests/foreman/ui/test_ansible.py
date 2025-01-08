@@ -8,13 +8,20 @@
 
 :CaseImportance: Critical
 """
+
 from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
 import yaml
 
 from robottelo import constants
-from robottelo.config import robottelo_tmp_dir, settings
+from robottelo.config import (
+    admin_nailgun_config,
+    robottelo_tmp_dir,
+    settings,
+    user_nailgun_config,
+)
+from robottelo.utils.issue_handlers import is_open
 
 
 class TestAnsibleCfgMgmt:
@@ -23,43 +30,18 @@ class TestAnsibleCfgMgmt:
     :CaseComponent: Ansible-ConfigurationManagement
     """
 
-    @pytest.mark.tier2
-    def test_positive_create_and_delete_variable(self, target_sat):
-        """Create an Ansible variable with the minimum required values, then delete the variable.
-
-        :id: 7006d7c7-788a-4447-a564-d6b03ec06aaf
-
-        :steps:
-            1. Import Ansible roles if none have been imported yet.
-            2. Create an Ansible variable with only a name and an assigned Ansible role.
-            3. Verify that the Ansible variable has been created.
-            4. Delete the Ansible variable.
-            5. Verify that the Ansible Variable has been deleted.
-
-        :expectedresults: The variable is successfully created and deleted.
-        """
-        key = gen_string('alpha')
-        SELECTED_ROLE = 'redhat.satellite.activation_keys'
-        proxy_id = target_sat.nailgun_smart_proxy.id
-        target_sat.api.AnsibleRoles().sync(
-            data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]}
-        )
-        with target_sat.ui_session() as session:
-            session.ansiblevariables.create(
-                {
-                    'key': key,
-                    'ansible_role': SELECTED_ROLE,
-                }
-            )
-            assert session.ansiblevariables.search(key)[0]['Name'] == key
-            session.ansiblevariables.delete(key)
-            assert not session.ansiblevariables.search(key)
-
     @pytest.mark.tier3
-    def test_positive_create_variable_with_overrides(self, target_sat):
+    @pytest.mark.parametrize('auth_type', ['admin', 'non-admin'])
+    def test_positive_create_delete_variable_with_overrides(
+        self, request, function_org, target_sat, auth_type
+    ):
         """Create an Ansible variable with all values populated.
 
         :id: 90acea37-4c2f-42e5-92a6-0c88148f4fb6
+
+        :customerscenario: true
+
+        :Verifies: SAT-19619
 
         :steps:
             1. Import Ansible roles if none have been imported yet.
@@ -70,19 +52,37 @@ class TestAnsibleCfgMgmt:
 
         :expectedresults: The variable is successfully created.
         """
+        user_cfg = admin_nailgun_config()
+        password = settings.server.admin_password
         key = gen_string('alpha')
+        param_type = 'integer'
+        if auth_type == 'non-admin':
+            ansible_manager_role = target_sat.api.Role().search(
+                query={'search': 'name="Ansible Roles Manager"'}
+            )
+            user = target_sat.api.User(
+                role=ansible_manager_role,
+                admin=False,
+                login=gen_string('alphanumeric'),
+                password=password,
+                organization=[function_org],
+            ).create()
+            request.addfinalizer(user.delete)
+            user_cfg = user_nailgun_config(user.login, password)
+
         SELECTED_ROLE = 'redhat.satellite.activation_keys'
         proxy_id = target_sat.nailgun_smart_proxy.id
-        target_sat.api.AnsibleRoles().sync(
+        target_sat.api.AnsibleRoles(server_config=user_cfg).sync(
             data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]}
         )
-        with target_sat.ui_session() as session:
+        with target_sat.ui_session(user=user_cfg.auth[0], password=password) as session:
+            session.organization.select(function_org.name)
             session.ansiblevariables.create_with_overrides(
                 {
                     'key': key,
-                    'description': 'this is a description',
+                    'description': gen_string(str_type='alpha'),
                     'ansible_role': SELECTED_ROLE,
-                    'parameter_type': 'integer',
+                    'parameter_type': param_type,
                     'default_value': '11',
                     'validator_type': 'list',
                     'validator_rule': '11, 12, 13',
@@ -95,7 +95,12 @@ class TestAnsibleCfgMgmt:
                     ],
                 }
             )
-            assert session.ansiblevariables.search(key)[0]['Name'] == key
+            result = session.ansiblevariables.search(key)[0]
+            assert result['Name'] == key
+            assert result['Role'] == SELECTED_ROLE
+            assert result['Type'] == param_type
+            assert result['Imported?'] == ''
+
             session.ansiblevariables.delete(key)
             assert not session.ansiblevariables.search(key)
 
@@ -165,24 +170,26 @@ class TestAnsibleCfgMgmt:
 
         @request.addfinalizer
         def _finalize():
-            result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
-            assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
+            result = target_sat.cli.Ansible.variables_delete({'name': key})
+            assert f'Ansible variable [{key}] was deleted.' in result[0]['message']
+            for role in SELECTED_ROLE:
+                result = target_sat.cli.Ansible.roles_delete({'name': role})
+                assert f'Ansible role [{role}] was deleted.' in result[0]['message']
 
         key = gen_string('alpha')
-        SELECTED_ROLE = 'redhat.satellite.activation_keys'
+        SELECTED_ROLE = ['redhat.satellite.activation_keys', 'RedHatInsights.insights-client']
         proxy_id = target_sat.nailgun_smart_proxy.id
-        target_sat.api.AnsibleRoles().sync(
-            data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]}
-        )
-        command = target_sat.api.RegistrationCommand(
+        target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': SELECTED_ROLE})
+        result = rhel_contenthost.api_register(
+            target_sat,
             organization=module_org,
-            location=module_location,
             activation_keys=[module_activation_key.name],
-        ).create()
-        result = rhel_contenthost.execute(command)
+            location=module_location,
+        )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
+
         target_host = rhel_contenthost.nailgun_host
-        default_value = '[\"test\"]'
+        default_value = '[\"test\"]'  # fmt: skip
         parameter_type = 'array'
         with target_sat.ui_session() as session:
             session.organization.select(org_name=module_org.name)
@@ -190,7 +197,7 @@ class TestAnsibleCfgMgmt:
             session.ansiblevariables.create_with_overrides(
                 {
                     'key': key,
-                    'ansible_role': SELECTED_ROLE,
+                    'ansible_role': SELECTED_ROLE[0],
                     'override': 'true',
                     'parameter_type': parameter_type,
                     'default_value': default_value,
@@ -207,129 +214,24 @@ class TestAnsibleCfgMgmt:
                 }
             )
             result = target_sat.cli.Host.ansible_roles_assign(
-                {'id': target_host.id, 'ansible-roles': SELECTED_ROLE}
+                {'id': target_host.id, 'ansible-roles': ','.join(SELECTED_ROLE)}
             )
             assert 'Ansible roles were assigned' in result[0]['message']
-            values = session.host_new.get_details(rhel_contenthost.hostname, 'ansible')['ansible'][
-                'variables'
-            ]['table']
-            assert (key, SELECTED_ROLE, default_value, parameter_type) in [
-                (var['Name'], var['Ansible role'], var['Value'], var['Type']) for var in values
+
+            values = session.host_new.get_details(rhel_contenthost.hostname, 'ansible')['ansible']
+            roles_table = values['roles']['table']
+            variable_table = values['variables']['table']
+            for role in SELECTED_ROLE:
+                var_count = str(len([v for v in variable_table if v['Ansible role'] == role]))
+                assert (role, var_count) in [(r['Name'], r['Variables']) for r in roles_table]
+
+            assert (key, SELECTED_ROLE[0], parameter_type, default_value) in [
+                (v['Name'], v['Ansible role'], v['Type'], v['Value']) for v in variable_table
             ]
 
-    @pytest.mark.stubbed
-    @pytest.mark.tier2
-    def test_positive_role_variable_information(self):
-        """Create and assign variables to an Ansible Role and verify that the information in
-        the new UI is displayed correctly
-
-        :id: 4ab2813a-6b83-4907-b104-0473465814f5
-
-        :steps:
-            1. Register a RHEL host to Satellite.
-            2. Import all roles available by default.
-            3. Create a host group and assign one of the Ansible roles to the host group.
-            4. Assign the host to the host group.
-            5. Assign one roles to the RHEL host.
-            6. Create a variable and associate it with the role assigned to the Host.
-            7. Create a variable and associate it with the role assigned to the Hostgroup.
-            8. Navigate to the new UI for the given Host.
-            9. Select the 'Ansible' tab, then the 'Variables' sub-tab.
-
-        :expectedresults: The variables information for the given Host is visible.
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier2
-    def test_positive_assign_role_in_new_ui(self):
-        """Using the new Host UI, assign a role to a Host
-
-        :id: 044f38b4-cff2-4ddc-b93c-7e9f2826d00d
-
-        :steps:
-            1. Register a RHEL host to Satellite.
-            2. Import all roles available by default.
-            3. Navigate to the new UI for the given Host.
-            4. Select the 'Ansible' tab
-            5. Click the 'Assign Ansible Roles' button.
-            6. Using the popup, assign a role to the Host.
-
-        :expectedresults: The Role is successfully assigned to the Host, and visible on the UI
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier2
-    def test_positive_remove_role_in_new_ui(self):
-        """Using the new Host UI, remove the role(s) of a Host
-
-        :id: d6de5130-45f6-4349-b490-fbde2aed082c
-
-        :steps:
-            1. Register a RHEL host to Satellite.
-            2. Import all roles available by default.
-            3. Assign a role to the host.
-            4. Navigate to the new UI for the given Host.
-            5. Select the 'Ansible' tab
-            6. Click the 'Edit Ansible roles' button.
-            7. Using the popup, remove the assigned role from the Host.
-
-        :expectedresults: Role is successfully removed from the Host, and not visible on the UI
-        """
-
-    @pytest.mark.stubbed
     @pytest.mark.tier3
-    def test_positive_ansible_config_report_failed_tasks_errors(self):
-        """Check that failed Ansible tasks show as errors in the config report
-
-        :id: 1a91e534-143f-4f35-953a-7ad8b7d2ddf3
-
-        :steps:
-            1. Import Ansible roles
-            2. Assign Ansible roles to a host
-            3. Run Ansible roles on host
-
-        :expectedresults: Verify that any task failures are listed as errors in the config report
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_ansible_config_report_changes_notice(self):
-        """Check that Ansible tasks that make changes on a host show as notice in the config report
-
-        :id: 8c90f179-8b70-4932-a477-75dc3566c437
-
-        :steps:
-            1. Import Ansible Roles
-            2. Assign Ansible roles to a host
-            3. Run Ansible Roles on a host
-
-        :expectedresults: Verify that any tasks that make changes on the host
-                        are listed as notice in the config report
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_ansible_variables_imported_with_roles(self):
-        """Verify that, when Ansible roles are imported, their variables are imported simultaneously
-
-        :id: 107c53e8-5a8a-4291-bbde-fbd66a0bb85e
-
-        :steps:
-            1. Import Ansible roles
-            2. Navigate to Configure > Variables
-
-        :expectedresults: Verify that any variables in the role were also imported to Satellite
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_ansible_roles_ignore_list(self):
+    @pytest.mark.parametrize('setting_update', ['ansible_roles_to_ignore'], indirect=True)
+    def test_positive_ansible_roles_ignore_list(self, target_sat, setting_update):
         """Verify that the ignore list setting prevents selected roles from being available for import
 
         :id: 6fa1d8f0-b583-4a07-88eb-c9ae7fcd0219
@@ -339,27 +241,16 @@ class TestAnsibleCfgMgmt:
             2. Navigate to Configure > Roles
 
         :expectedresults: Verify that any roles on the ignore list are not available for import
-
-        :CaseAutomation: NotAutomated
         """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_ansible_variables_installed_with_collection(self):
-        """Verify that installing an Ansible collection also imports
-        any variables associated with the collection
-
-        :id: 7ff88022-fe9b-482f-a6bb-3922036a1e1c
-
-        :steps:
-            1. Install an Ansible collection
-            2. Navigate to Configure > Variables
-
-        :expectedresults: Verify that any variables associated with the collection
-            are present on Configure > Variables
-
-        :CaseAutomation: NotAutomated
-        """
+        SELECTED_ROLE = ['RedHatInsights.insights-client', 'redhat.satellite.activation_keys']
+        setting_update.value = SELECTED_ROLE
+        setting_update.update({'value'})
+        assert setting_update.value == SELECTED_ROLE
+        with target_sat.ui_session() as session:
+            roles = session.ansibleroles.read_all()
+            assert all(
+                item not in roles for item in SELECTED_ROLE
+            ), 'Roles from ignore list are available for import'
 
     @pytest.mark.stubbed
     @pytest.mark.tier3
@@ -432,7 +323,7 @@ class TestAnsibleCfgMgmt:
             session.location.select(location.name)
             session.organization.select(organization.name)
             # add ansible role
-            session.host_new.add_single_ansible_role(function_host.name)
+            session.host_new.add_single_ansible_role(function_host.name, SELECTED_ROLE)
             wait_for(lambda: session.browser.refresh(), timeout=5)
             # verify ansible role assigned to new UI for the given Host
             ansible_roles_table = session.host_new.get_ansible_roles(function_host.name)
@@ -447,6 +338,197 @@ class TestAnsibleCfgMgmt:
                 result['ansible']['roles']['noRoleAssign']
                 == 'No roles assigned directly to the host'
             )
+
+    @pytest.mark.tier2
+    def test_positive_assign_and_remove_ansible_role_to_hostgroup(
+        self,
+        target_sat,
+        module_org,
+        module_location,
+    ):
+        """Add and remove functionality for ansible roles in hostgroup
+
+        :id: 5d94a484-92c1-4387-ab92-0649e4c4f907
+
+        :steps:
+            1. Import all roles available by default.
+            2. Assign ansible role while creating the hostgroup
+            3. Assign ansible role after creating the hostgroup
+            4. Remove previously added ansible roles from the hostgroup
+
+        :expectedresults: The Ansible Role is successfully added and removed from the hostgroup
+        """
+        SELECTED_ROLE = [
+            'RedHatInsights.insights-client',
+            'redhat.satellite.hostgroups',
+            'redhat.satellite.compute_profiles',
+        ]
+        proxy_id = target_sat.nailgun_smart_proxy.id
+        target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': SELECTED_ROLE})
+        name = gen_string('alpha').lower()
+        with target_sat.ui_session() as session:
+            session.location.select(module_location.name)
+            session.organization.select(module_org.name)
+            # Assign Ansible role(s) while creating the hostgroup.
+            session.hostgroup.create(
+                {
+                    'host_group.name': name,
+                    'ansible_roles.resources': SELECTED_ROLE[:2],
+                }
+            )
+            # verify ansible role(s) assigned properly while creating a host group.
+            assert session.hostgroup.read_role(name, SELECTED_ROLE) == SELECTED_ROLE[:2]
+
+            session.hostgroup.assign_role_to_hostgroup(
+                name, {'ansible_roles.resources': SELECTED_ROLE[2]}
+            )
+            # verify ansible role(s) assigned properly after creating the hostgroup.
+            assert SELECTED_ROLE[2] in session.hostgroup.read_role(name, SELECTED_ROLE)
+
+            session.hostgroup.remove_hostgroup_role(
+                name, {'ansible_roles.resources': SELECTED_ROLE[0]}
+            )
+            # verify ansible role(s) removed properly from the host group.
+            assert SELECTED_ROLE[0] not in session.hostgroup.read_role(name, SELECTED_ROLE)
+            assert SELECTED_ROLE[1:] == session.hostgroup.read_role(name, SELECTED_ROLE)
+
+            # Delete host group
+            session.hostgroup.delete(name)
+            assert not target_sat.api.HostGroup().search(query={'search': f'name={name}'})
+
+    @pytest.mark.tier3
+    def test_positive_non_admin_user_access_with_usergroup(
+        self,
+        request,
+        module_org,
+        module_location,
+        target_sat,
+        test_name,
+    ):
+        """Verify non-admin user can access the ansible page on WebUI
+
+        :id: 82d30664-1b74-457c-92e2-31a5ba89e826
+
+        :steps:
+            1. Create user with non-admin
+            2. Create usergroup with administrator role
+            3. Log in as a user and try to access WebUI -> Hosts -> select host -> Ansible
+            4. Assign ansible role to the host
+
+        :expectedresults: The user is able to view the Ansible page and assign roles because they are an administrator due to user group
+
+        :BZ: 2158508
+
+        :Verifies: SAT-15826
+
+        :customerscenario: true
+        """
+        SELECTED_ROLE = 'RedHatInsights.insights-client'
+        name = gen_string('alpha')
+        password = gen_string('alpha')
+        host = target_sat.api.Host(organization=module_org, location=module_location).create()
+        user = target_sat.api.User(
+            login=name,
+            password=password,
+            location=[module_location],
+            organization=[module_org],
+            admin=False,
+        ).create()
+        request.addfinalizer(user.delete)
+        user_gp = target_sat.api.UserGroup(
+            name=gen_string('alpha'), user=[user], admin=True
+        ).create()
+        assert user.login in [u.read().login for u in user_gp.user]
+        id = target_sat.nailgun_smart_proxy.id
+        target_sat.api.AnsibleRoles().sync(data={'proxy_id': id, 'role_names': [SELECTED_ROLE]})
+        with target_sat.ui_session(test_name, user=user.login, password=password) as session:
+            session.location.select(module_location.name)
+            session.organization.select(module_org.name)
+            session.host_new.add_single_ansible_role(host.name, SELECTED_ROLE)
+            wait_for(lambda: session.browser.refresh(), timeout=5)
+            ansible_roles_table = session.host_new.get_ansible_roles(host.name)
+            assert ansible_roles_table[0]['Name'] == SELECTED_ROLE
+
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    def test_positive_ansible_config_report_changes_notice_and_failed_tasks_errors(
+        self,
+        rhel_contenthost,
+        module_target_sat,
+        module_org,
+        module_location,
+        module_activation_key,
+    ):
+        """Check that Ansible tasks that make changes on a host show as notice in the config report and
+        failed Ansible tasks show as errors in the config report
+
+        :id: 286048f8-0f4f-4a3c-b5c7-fe9c7af8a780
+
+        :steps:
+            1. Import Ansible Roles
+            2. Assign and Run Ansible roles to a host
+            3. Run Ansible Roles on a host
+            4. Check Config Report
+
+        :expectedresults:
+            1. Verify that any tasks that make changes on the host are listed as notice in the config report
+            2. Verify that any task failures are listed as errors in the config report
+        """
+        SELECTED_ROLE = 'theforeman.foreman_scap_client'
+        nc = module_target_sat.nailgun_smart_proxy
+        nc.location = [module_location]
+        nc.organization = [module_org]
+        nc.update(['organization', 'location'])
+        module_target_sat.api.AnsibleRoles().sync(
+            data={'proxy_id': nc.id, 'role_names': SELECTED_ROLE}
+        )
+        rhel_ver = rhel_contenthost.os_version.major
+        rhel_repo_urls = getattr(settings.repos, f'rhel{rhel_ver}_os', None)
+        rhel_contenthost.create_custom_repos(**rhel_repo_urls)
+        result = rhel_contenthost.register(
+            module_org, module_location, module_activation_key.name, module_target_sat
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        with module_target_sat.ui_session() as session:
+            session.location.select(module_location.name)
+            session.organization.select(module_org.name)
+            session.host_new.add_single_ansible_role(rhel_contenthost.hostname, SELECTED_ROLE)
+            ansible_roles_table = session.host_new.get_ansible_roles(rhel_contenthost.hostname)
+            assert ansible_roles_table[0]['Name'] == SELECTED_ROLE
+            # Verify error log for config report after ansible role is executed
+            session.host_new.run_job(rhel_contenthost.hostname)
+            session.jobinvocation.wait_job_invocation_state(
+                entity_name='Run ansible roles',
+                host_name=rhel_contenthost.hostname,
+                expected_state='failed',
+            )
+            err_log = session.configreport.search(rhel_contenthost.hostname)
+            package_name = SELECTED_ROLE.split('.')[1]
+            assert f'err Install the {package_name} package' in err_log['permission_denied']
+            assert (
+                'Execution error: Failed to install some of the specified packages'
+                in err_log['permission_denied']
+            )
+
+            # Verify notice log for config report after ansible role is successfully executed
+            rhel_contenthost.create_custom_repos(
+                client_repo=settings.repos.satclient_repo[f'rhel{rhel_ver}']
+            )
+            result = rhel_contenthost.register(
+                module_org,
+                module_location,
+                module_activation_key.name,
+                module_target_sat,
+                force=True,
+            )
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
+            session.host_new.run_job(rhel_contenthost.hostname)
+            session.jobinvocation.wait_job_invocation_state(
+                entity_name='Run ansible roles', host_name=rhel_contenthost.hostname
+            )
+            notice_log = session.configreport.search(rhel_contenthost.hostname)
+            assert f'notice Install the {package_name} package' in notice_log['permission_denied']
+            assert f'Installed: rubygem-{package_name}' in notice_log['permission_denied']
 
 
 class TestAnsibleREX:
@@ -520,8 +602,15 @@ class TestAnsibleREX:
 
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('9')
+    @pytest.mark.parametrize('auth_type', ['admin', 'non-admin'])
     def test_positive_ansible_custom_role(
-        self, target_sat, module_org, module_ak_with_cv, rhel_contenthost, request
+        self,
+        auth_type,
+        target_sat,
+        module_org,
+        module_ak_with_cv,
+        rhel_contenthost,
+        request,
     ):
         """
         Test Config report generation with Custom Ansible Role
@@ -543,14 +632,29 @@ class TestAnsibleREX:
 
         :customerscenario: true
         """
+        user_cfg = admin_nailgun_config()
+        password = settings.server.admin_password
+        if auth_type == 'non-admin':
+            ansible_manager_role = target_sat.api.Role().search(
+                query={'search': 'name="Ansible Roles Manager"'}
+            )
+            username = gen_string('alphanumeric')
+            target_sat.api.User(
+                role=ansible_manager_role,
+                admin=True,
+                login=username,
+                password=password,
+                organization=[module_org],
+            ).create()
+            user_cfg = user_nailgun_config(username, password)
 
         @request.addfinalizer
         def _finalize():
             result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
             assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
-            target_sat.execute('rm -rvf /etc/ansible/roles/custom_role')
+            target_sat.execute(f'rm -rvf /etc/ansible/roles/{SELECTED_ROLE}')
 
-        SELECTED_ROLE = 'custom_role'
+        SELECTED_ROLE = gen_string('alphanumeric')
         playbook = f'{robottelo_tmp_dir}/playbook.yml'
         data = {
             'name': 'Copy ssh keys',
@@ -563,30 +667,37 @@ class TestAnsibleREX:
             },
             'with_items': ['id_rsa_foreman_proxy.pub', 'id_rsa_foreman_proxy'],
         }
+
         with open(playbook, 'w') as f:
             yaml.dump(data, f, sort_keys=False, default_flow_style=False)
-        target_sat.execute('mkdir /etc/ansible/roles/custom_role')
-        target_sat.put(playbook, '/etc/ansible/roles/custom_role/playbook.yaml')
+        target_sat.execute(f'mkdir /etc/ansible/roles/{SELECTED_ROLE}')
+        target_sat.put(playbook, f'/etc/ansible/roles/{SELECTED_ROLE}/playbook.yaml')
 
         result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         proxy_id = target_sat.nailgun_smart_proxy.id
         target_host = rhel_contenthost.nailgun_host
-        target_sat.api.AnsibleRoles().sync(
+        target_sat.api.AnsibleRoles(server_config=user_cfg).sync(
             data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]}
         )
-        target_sat.cli.Host.ansible_roles_assign(
-            {'id': target_host.id, 'ansible-roles': SELECTED_ROLE}
+        ROLE_ID = [
+            target_sat.api.AnsibleRoles().search(query={'search': f'name={SELECTED_ROLE}'})[0].id
+        ]
+        # Assign first 2 roles to HG and verify it
+        target_sat.api.Host(server_config=user_cfg, id=target_host.id).assign_ansible_roles(
+            data={'ansible_role_ids': ROLE_ID}
         )
-        host_roles = target_host.list_ansible_roles()
+        host_roles = target_sat.api.Host(
+            server_config=user_cfg, id=target_host.id
+        ).list_ansible_roles()
         assert host_roles[0]['name'] == SELECTED_ROLE
 
         template_id = (
-            target_sat.api.JobTemplate()
+            target_sat.api.JobTemplate(server_config=user_cfg)
             .search(query={'search': 'name="Ansible Roles - Ansible Default"'})[0]
             .id
         )
-        job = target_sat.api.JobInvocation().run(
+        job = target_sat.api.JobInvocation(server_config=user_cfg).run(
             synchronous=False,
             data={
                 'job_template_id': template_id,
@@ -597,9 +708,10 @@ class TestAnsibleREX:
         target_sat.wait_for_tasks(
             f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1000
         )
-        result = target_sat.api.JobInvocation(id=job['id']).read()
+        result = target_sat.api.JobInvocation(server_config=user_cfg, id=job['id']).read()
         assert result.succeeded == 1
-        with target_sat.ui_session() as session:
+
+        with target_sat.ui_session(user=user_cfg.auth[0], password=password) as session:
             session.organization.select(module_org.name)
             session.location.select(constants.DEFAULT_LOC)
             assert session.host.search(target_host.name)[0]['Name'] == rhel_contenthost.hostname
@@ -625,9 +737,11 @@ class TestAnsibleREX:
         :CaseAutomation: NotAutomated
         """
 
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_install_ansible_collection_via_job_invocation(self):
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    def test_positive_install_ansible_collection(
+        self, rhel_contenthost, target_sat, module_org, module_ak_with_cv
+    ):
         """Verify that Ansible collections can be installed on hosts via job invocations
 
         :id: d4096aef-f6fc-41b6-ae56-d19b1f49cd42
@@ -641,9 +755,38 @@ class TestAnsibleREX:
             6. Click "Submit"
 
         :expectedresults: The Ansible collection is successfully installed on the host
-
-        :CaseAutomation: NotAutomated
         """
+        client = rhel_contenthost
+        # Enable Ansible repository and Install ansible or ansible-core package
+        client.register(module_org, None, module_ak_with_cv.name, target_sat)
+        rhel_repo_urls = getattr(settings.repos, f'rhel{client.os_version.major}_os', None)
+        rhel_contenthost.create_custom_repos(**rhel_repo_urls)
+        assert client.execute('dnf -y install ansible-core').status == 0
+
+        with target_sat.ui_session() as session:
+            session.organization.select(module_org.name)
+            collections_names = 'oasis_roles.system'
+            session.jobinvocation.run(
+                {
+                    'category_and_template.job_category': 'Ansible Galaxy',
+                    'category_and_template.job_template': 'Ansible Collection - Install from Galaxy',
+                    'target_hosts_and_inputs.targetting_type': 'Hosts',
+                    'target_hosts_and_inputs.targets': client.hostname,
+                    'target_hosts_and_inputs.ansible_collections_list': collections_names,
+                    'advanced_fields.ansible_collections_path': '~/',
+                }
+            )
+            job_description = f'Install collections \'{collections_names}\' from galaxy'
+            session.jobinvocation.wait_job_invocation_state(
+                entity_name=job_description, host_name=client.hostname
+            )
+            status = session.jobinvocation.read(
+                entity_name=job_description, host_name=client.hostname
+            )
+            assert status['overview']['hosts_table'][0]['Status'] == 'success'
+
+            collection_path = client.execute('ls ~/ansible_collections').stdout
+            assert 'oasis_roles' in collection_path
 
     @pytest.mark.stubbed
     @pytest.mark.tier2
@@ -684,3 +827,69 @@ class TestAnsibleREX:
 
         :expectedresults: Scheduled Job appears in the Job Invocation list at the appointed time
         """
+
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    @pytest.mark.parametrize('setting_update', ['ansible_verbosity'], indirect=True)
+    def test_positive_ansible_job_with_verbose_stdout(
+        self,
+        request,
+        target_sat,
+        module_org,
+        module_location,
+        module_ak_with_cv,
+        setting_update,
+        registered_hosts,
+    ):
+        """Verify ansible_verbosity setting and dynflow console output for expected hosts
+
+        :id: 06e0a95c-530b-11ef-a28c-36dcd2c0c415
+
+        :steps:
+            1. Select two or more hosts
+            2. Run ansible roles on those hosts
+            3. Check the Ansible job execution logs
+
+        :expectedresults: Ansible job console stdout should mention the verbose logs for expected host instead of the all host present in the inventory.
+
+        :BZ: 1912941
+
+        :Verifies: SAT-12267, SAT-27757
+
+        :customerscenario: true
+        """
+        if not is_open('SAT-27757'):
+            setting_update.value = '3'
+            setting_update.update({'value'})
+
+            @request.addfinalizer
+            def _finalize():
+                setting_update.value = '0'
+                setting_update.update({'value'})
+
+        SELECTED_ROLE = 'RedHatInsights.insights-client'
+        nc = target_sat.nailgun_smart_proxy
+        nc.location = [module_location]
+        nc.organization = [module_org]
+        nc.update(['organization', 'location'])
+        target_sat.api.AnsibleRoles().sync(data={'proxy_id': nc.id, 'role_names': SELECTED_ROLE})
+        vm_hostnames = []
+        for vm in registered_hosts:
+            rhel_ver = vm.os_version.major
+            rhel_repo_urls = getattr(settings.repos, f'rhel{rhel_ver}_os', None)
+            vm.create_custom_repos(**rhel_repo_urls)
+            result = vm.register(
+                module_org, module_location, module_ak_with_cv.name, target_sat, force=True
+            )
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
+            vm_hostnames.append(vm.hostname)
+        with target_sat.ui_session() as session:
+            session.organization.select(module_org.name)
+            session.location.select(module_location.name)
+            session.host.play_ansible_roles('All')
+            session.jobinvocation.wait_job_invocation_state(
+                entity_name='Run ansible roles', host_name=vm_hostnames[0]
+            )
+            output = session.jobinvocation.read_dynflow_output('Run ansible roles', vm_hostnames[0])
+            assert vm_hostnames[0] in output
+            assert vm_hostnames[1] not in output

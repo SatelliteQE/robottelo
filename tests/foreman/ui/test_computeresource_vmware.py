@@ -11,10 +11,10 @@
 :CaseImportance: High
 
 """
+
 from math import floor, log10
 from random import choice
 
-from nailgun import entities
 import pytest
 from wait_for import TimedOutError, wait_for
 from wrapanapi.systems.virtualcenter import vim
@@ -22,10 +22,12 @@ from wrapanapi.systems.virtualcenter import vim
 from robottelo.config import settings
 from robottelo.constants import (
     COMPUTE_PROFILE_LARGE,
+    COMPUTE_PROFILE_SMALL,
     DEFAULT_LOC,
     FOREMAN_PROVIDERS,
     VMWARE_CONSTANTS,
 )
+from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.issue_handlers import is_open
 
@@ -81,8 +83,8 @@ def get_vmware_datastore_summary_string(vmware, vmwareclient):
 
 @pytest.mark.tier1
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
-def test_positive_end_to_end(session, module_org, module_location, vmware):
-    """Perform end to end testing for compute resource VMware component.
+def test_positive_end_to_end(session, module_org, module_location, vmware, module_target_sat):
+    """Perform end-to-end testing for compute resource VMware component.
 
     :id: 47fc9e77-5b22-46b4-a76c-3217434fde2f
 
@@ -94,8 +96,8 @@ def test_positive_end_to_end(session, module_org, module_location, vmware):
     display_type = choice(('VNC', 'VMRC'))
     vnc_console_passwords = choice((False, True))
     enable_caching = choice((False, True))
-    new_org = entities.Organization().create()
-    new_loc = entities.Location().create()
+    new_org = module_target_sat.api.Organization().create()
+    new_loc = module_target_sat.api.Location().create()
     with session:
         session.computeresource.create(
             {
@@ -309,7 +311,9 @@ def test_positive_vmware_custom_profile_end_to_end(
 
     :expectedresults: Compute profiles are updated successfully with all the values.
 
-    :BZ: 1315277, 2266672
+    :BZ: 1315277
+
+    :verifies: SAT-23630
     """
     cr_name = gen_string('alpha')
     guest_os_names = [
@@ -329,7 +333,7 @@ def test_positive_vmware_custom_profile_end_to_end(
     cpu_hot_add = True
     cdrom_drive = True
     disk_size = '10 GB'
-    network = 'VLAN 1001'  # hardcoding network here as this test won't be doing actual provisioning
+    network = 'VLAN 400'  # hardcoding network here as this test won't be doing actual provisioning
     storage_data = {
         'storage': {
             'controller': VMWARE_CONSTANTS['scsicontroller'],
@@ -400,7 +404,7 @@ def test_positive_vmware_custom_profile_end_to_end(
             assert provider_content['cluster'] == settings.vmware.cluster
             assert provider_content['annotation_notes'] == annotation_notes
             assert provider_content['virtual_hw_version'] == virtual_hw_version
-            if not is_open('BZ:2266672'):
+            if not is_open('SAT-23630'):
                 assert values['provider_content']['firmware'] == firmware
             assert provider_content['resource_pool'] == resource_pool
             assert provider_content['folder'] == folder
@@ -545,3 +549,109 @@ def test_positive_virt_card(session, target_sat, module_location, module_org, vm
         target_sat.api.Host(
             id=target_sat.api.Host().search(query={'search': f'name={host_name}'})[0].id
         ).delete()
+
+
+@pytest.mark.e2e
+@pytest.mark.on_premises_provisioning
+@pytest.mark.parametrize(
+    'setting_update',
+    ['remote_execution_connect_by_ip=True', 'destroy_vm_on_host_delete=True'],
+    indirect=True,
+)
+@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
+@pytest.mark.parametrize('provision_method', ['build'])
+@pytest.mark.rhel_ver_match('[8]')
+@pytest.mark.tier3
+def test_positive_provision_end_to_end(
+    request,
+    module_sca_manifest_org,
+    module_location,
+    pxe_loader,
+    module_vmware_cr,
+    module_vmware_hostgroup,
+    provision_method,
+    setting_update,
+    vmware,
+    vmwareclient,
+    target_sat,
+    module_provisioning_rhel_content,
+    get_vmware_datastore_summary_string,
+):
+    """Assign Ansible role to a Hostgroup and verify ansible role execution job is scheduled after a host is provisioned
+
+    :id: 500f32e8-c1db-4ef9-ae20-0dbb5bccf2ea
+
+    :steps:
+        1. Import role(s) available by default.
+        2. Assign role(s) to Hostgroup.
+        3. Provision a Host with Hostgroup.
+        4. In Host -> Overview -> Select the "Recent Job" action.
+        5. Verify that the Ansible roles job has been Scheduled.
+
+    :expectedresults: Assign ansible role is successfully executed on the provisioned host.
+
+    :BZ: 2025523
+
+    :Verifies: SAT-24780
+
+    :customerscenario: true
+    """
+    SELECTED_ROLE = 'theforeman.foreman_scap_client'
+    host_name = gen_string('alpha').lower()
+    guest_os_names = 'Red Hat Enterprise Linux 8 (64 bit)'
+    storage_data = {'storage': {'disks': [{'data_store': get_vmware_datastore_summary_string}]}}
+    network_data = {
+        'network_interfaces': {
+            'nic_type': VMWARE_CONSTANTS['network_interface_name'],
+            'network': f'VLAN {settings.provisioning.vlan_id}',
+        }
+    }
+    with target_sat.ui_session() as session:
+        session.ansibleroles.import_all_roles()
+        assert session.ansibleroles.import_all_roles() == session.ansibleroles.imported_roles_count
+        session.location.select(module_location.name)
+        session.organization.select(module_sca_manifest_org.name)
+        session.hostgroup.assign_role_to_hostgroup(
+            module_vmware_hostgroup.name, {'ansible_roles.resources': SELECTED_ROLE}
+        )
+        assert SELECTED_ROLE in session.hostgroup.read_role(
+            module_vmware_hostgroup.name, SELECTED_ROLE
+        )
+        session.computeresource.update_computeprofile(
+            entity_name=module_vmware_cr.name,
+            compute_profile=COMPUTE_PROFILE_SMALL,
+            values={
+                'provider_content.memory': '6000',
+                'provider_content.cluster': settings.vmware.cluster,
+                'provider_content.guest_os': guest_os_names,
+                'provider_content.storage': [value for value in storage_data.values()],
+                'provider_content.network_interfaces': [value for value in network_data.values()],
+            },
+        )
+        session.host.create(
+            {
+                'host.name': host_name,
+                'host.hostgroup': module_vmware_hostgroup.name,
+                'host.inherit_deploy_option': False,
+                'host.deploy': module_vmware_cr.name + f' ({FOREMAN_PROVIDERS["vmware"]})',
+                'host.inherit_compute_profile_option': False,
+                'host.compute_profile': COMPUTE_PROFILE_SMALL,
+            }
+        )
+        request.addfinalizer(lambda: target_sat.provisioning_cleanup(host_name))
+        wait_for(
+            lambda: session.host_new.get_host_statuses(host_name)['Build']['Status']
+            != 'Pending installation',
+            timeout=1800,
+            delay=30,
+            fail_func=session.browser.refresh,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        values = session.host_new.get_host_statuses(host_name)
+        assert values['Build']['Status'] == 'Installed'
+        assert values['Execution']['Status'] == 'Last execution succeeded'
+
+        # Verify if assigned role is executed on the host, and correct host passwd is set
+        host = ContentHost(target_sat.api.Host().search(query={'host': host_name})[0].read().ip)
+        assert host.execute('yum list installed rubygem-foreman_scap_client').status == 0

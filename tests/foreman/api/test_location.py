@@ -14,6 +14,7 @@ http://theforeman.org/api/apidoc/v2/locations.html
 :CaseImportance: High
 
 """
+
 from random import randint
 
 from fauxfactory import gen_integer, gen_string

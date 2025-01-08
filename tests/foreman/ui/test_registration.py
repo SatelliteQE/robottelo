@@ -10,6 +10,7 @@
 
 :Team: Rocket
 """
+
 from datetime import datetime
 import re
 
@@ -124,6 +125,7 @@ def test_negative_global_registration_without_ak(
 
 @pytest.mark.e2e
 @pytest.mark.no_containers
+@pytest.mark.pit_client
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6]')
 def test_positive_global_registration_end_to_end(
@@ -170,7 +172,9 @@ def test_positive_global_registration_end_to_end(
     # rex interface
     iface = 'eth0'
     # fill in the global registration form
-    with session:
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=smart_proxy_location.name)
         cmd = session.host.get_register_command(
             {
                 'general.operating_system': default_os.title,
@@ -217,7 +221,7 @@ def test_positive_global_registration_end_to_end(
     # Assert that a yum update was made this day ("Update" or "I, U" in history)
     timezone_offset = rhel_contenthost.execute('date +"%:z"').stdout.strip()
     tzinfo = datetime.strptime(timezone_offset, '%z').tzinfo
-    result = rhel_contenthost.execute('yum history | grep U')
+    result = rhel_contenthost.execute('yum history | grep -E "I|U"')
     assert result.status == 0
     assert datetime.now(tzinfo).strftime('%Y-%m-%d') in result.stdout
     # Set "Connect to host using IP address"
@@ -340,7 +344,9 @@ def test_global_registration_form_populate(
 
 
 @pytest.mark.tier2
+@pytest.mark.pit_client
 @pytest.mark.usefixtures('enable_capsule_for_registration')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.no_containers
 def test_global_registration_with_gpg_repo_and_default_package(
     session, module_activation_key, default_os, default_smart_proxy, rhel8_contenthost
@@ -525,7 +531,6 @@ def test_positive_host_registration_with_non_admin_user(
     target_sat.cli.User.add_role({'id': user.id, 'role-id': role['id']})
 
     with Session(test_name, user=user.login, password=user_password) as session:
-
         cmd = session.host_new.get_register_command(
             {
                 'general.insecure': True,

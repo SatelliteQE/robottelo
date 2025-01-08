@@ -15,6 +15,7 @@ Subcommands::
     info                          Show template input details
     list                          List template inputs
 """
+
 from robottelo.cli.base import Base, CLIError
 
 

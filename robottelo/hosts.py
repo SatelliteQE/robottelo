@@ -21,6 +21,7 @@ from fauxfactory import gen_alpha, gen_string
 from manifester import Manifester
 from nailgun import entities
 from packaging.version import Version
+import pytest
 import requests
 from ssh2.exceptions import AuthenticationError
 from wait_for import TimedOutError, wait_for
@@ -50,6 +51,7 @@ from robottelo.constants import (
     RHSSO_RESET_PASSWORD,
     RHSSO_USER_UPDATE,
     SATELLITE_VERSION,
+    SM_OVERALL_STATUS,
 )
 from robottelo.exceptions import CLIFactoryError, DownloadFileError, HostPingFailed
 from robottelo.host_helpers import CapsuleMixins, ContentHostMixins, SatelliteMixins
@@ -61,7 +63,7 @@ from robottelo.utils.installer import InstallerCommand
 POWER_OPERATIONS = {
     VmState.RUNNING: 'running',
     VmState.STOPPED: 'stopped',
-    'reboot': 'reboot'
+    'reboot': 'reboot',
     # TODO paused, suspended, shelved?
 }
 
@@ -72,7 +74,6 @@ def lru_sat_ready_rhel(rhel_ver):
     deploy_args = {
         'deploy_rhel_version': rhel_version,
         'deploy_flavor': settings.flavors.default,
-        'promtail_config_template_file': 'config_sat.j2',
         'workflow': settings.server.deploy_workflows.os,
     }
     return Broker(**deploy_args, host_class=Satellite).checkout()
@@ -193,6 +194,7 @@ class ContentHost(Host, ContentHostMixins):
             # key file based authentication
             kwargs.update({'key_filename': auth})
         self._satellite = kwargs.get('satellite')
+        self.ipv6 = kwargs.get('ipv6', settings.server.is_ipv6)
         self.blank = kwargs.get('blank', False)
         super().__init__(hostname=hostname, **kwargs)
 
@@ -339,7 +341,7 @@ class ContentHost(Host, ContentHostMixins):
     def os_version(self):
         """Get host's OS version information
 
-        :returns: A ``packaging.version.Version`` instance
+        :return: A ``packaging.version.Version`` instance
         """
         return Version(self._os_release['VERSION_ID'])
 
@@ -393,6 +395,13 @@ class ContentHost(Host, ContentHostMixins):
     def teardown(self):
         logger.debug('START: tearing down host %s', self)
         if not self.blank and not getattr(self, '_skip_context_checkin', False):
+            if (
+                hasattr(pytest, 'capsule_sanity')
+                and pytest.capsule_sanity is True
+                and type(self) is Capsule
+            ):
+                logger.debug('END: Skipping tearing down caspule host %s for sanity', self)
+                return
             self.unregister()
             if type(self) is not Satellite:  # do not delete Satellite's host record
                 self._delete_host_record()
@@ -472,7 +481,7 @@ class ContentHost(Host, ContentHostMixins):
             provided file will be saved in /tmp/ directory.
         :param str file_name: New name of the Downloaded file else its given from file_url
 
-        :returns: Returns list containing complete file path and name of downloaded file.
+        :return: Returns list containing complete file path and name of downloaded file.
         """
         file_name = PurePath(file_name or file_url).name
         local_path = PurePath(local_path or '/tmp') / file_name
@@ -729,6 +738,8 @@ class ContentHost(Host, ContentHostMixins):
         force=False,
         insecure=True,
         hostgroup=None,
+        auth_username=None,
+        auth_password=None,
     ):
         """Registers content host to the Satellite or Capsule server
         using a global registration template.
@@ -751,6 +762,8 @@ class ContentHost(Host, ContentHostMixins):
         :param force: Register the content host even if it's already registered.
         :param insecure: Don't verify server authenticity.
         :param hostgroup: hostgroup to register with
+        :param auth_username: username required if non-admin user
+        :param auth_password: password required if non-admin user
         :return: SSHCommandResult instance filled with the result of the registration
         """
         options = {
@@ -804,8 +817,33 @@ class ContentHost(Host, ContentHostMixins):
         if force:
             options['force'] = str(force).lower()
 
-        cmd = target.satellite.cli.HostRegistration.generate_command(options)
+        self._satellite = target.satellite
+        if auth_username and auth_password:
+            user = target.satellite.cli.User.list({'search': f'login={auth_username}'})
+            if user:
+                register_role = target.satellite.cli.Role.info({'name': 'Register hosts'})
+                target.satellite.cli.User.add_role(
+                    {'id': user[0]['id'], 'role-id': register_role['id']}
+                )
+                cmd = target.satellite.cli.HostRegistration.with_user(
+                    auth_username, auth_password
+                ).generate_command(options)
+            else:
+                raise CLIFactoryError(f'User {auth_username} doesn\'t exist')
+        else:
+            cmd = target.satellite.cli.HostRegistration.generate_command(options)
         return self.execute(cmd.strip('\n'))
+
+    def api_register(self, target, **kwargs):
+        """Register a content host using global registration through API.
+
+        :param target: Satellite or Capsule object to register to.
+        :param kwargs: Additional keyword arguments to pass to the API call.
+        :return: The result of the API call.
+        """
+        kwargs['insecure'] = kwargs.get('insecure', True)
+        command = target.satellite.api.RegistrationCommand(**kwargs).create()
+        return self.execute(command.strip('\n'))
 
     def register_contenthost(
         self,
@@ -849,10 +887,7 @@ class ContentHost(Host, ContentHostMixins):
             registration.
         """
 
-        if username and password:
-            userpass = f' --username {username} --password {password}'
-        else:
-            userpass = ''
+        userpass = f' --username {username} --password {password}' if username and password else ''
         # Setup the base command
         cmd = 'subscription-manager register'
         if org:
@@ -895,18 +930,23 @@ class ContentHost(Host, ContentHostMixins):
         """Get a remote file from the broker virtual machine."""
         self.session.sftp_read(source=remote_path, destination=local_path)
 
-    def put(self, local_path, remote_path=None):
+    def put(self, local_path, remote_path=None, temp_file=False):
         """Put a local file to the broker virtual machine.
         If local_path is a manifest object, write its contents to a temporary file
         then continue with the upload.
         """
-        if 'utils.manifest' in str(local_path):
+        if temp_file:
+            with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
+                content_file.write(str.encode(local_path))
+                content_file.flush()
+                self.session.sftp_write(source=content_file.name, destination=remote_path)
+        elif 'utils.manifest' in str(local_path):
             with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
                 content_file.write(local_path.content.read())
                 content_file.flush()
                 self.session.sftp_write(source=content_file.name, destination=remote_path)
         else:
-            self.session.sftp_write(source=local_path, destination=remote_path)
+            self.session.sftp_write(source=str(local_path), destination=str(remote_path))
 
     def put_ssh_key(self, source_key_path, destination_key_name):
         """Copy ssh key to virtual machine ssh path and ensure proper permission is set
@@ -1034,7 +1074,7 @@ class ContentHost(Host, ContentHostMixins):
         # sat6 under the capsule --> certifcates or on capsule via cli "puppetserver
         # ca list", so that we sign it.
         self.execute('/opt/puppetlabs/bin/puppet agent -t')
-        proxy_host = Host(hostname=proxy_hostname)
+        proxy_host = Host(hostname=proxy_hostname, ipv6=settings.server.is_ipv6)
         proxy_host.execute(f'puppetserver ca sign --certname {cert_name}')
 
         if run_puppet_agent:
@@ -1162,19 +1202,27 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError('Failed to unregister client from Insights through Satellite')
 
     def set_infrastructure_type(self, infrastructure_type='physical'):
-        """Force host to appear as bare-metal orbroker virtual machine in
-        subscription-manager fact.
+        """Force host to appear as bare-metal or virtual machine in subscription-manager fact.
 
         :param str infrastructure_type: One of 'physical', 'virtual'
         """
-        script_path = '/usr/sbin/virt-what'
-        self.execute(f'cp -n {script_path} {script_path}.old')
+        # Remove the custom facts file if it exists
+        self.execute('rm -f /etc/rhsm/facts/custom.facts')
 
-        script_content = ['#!/bin/sh -']
+        # Define the path for the physical facts file
+        script_path = '/etc/rhsm/facts/physical.facts'
+
+        # Prepare facts content based on infrastructure type
         if infrastructure_type == 'virtual':
-            script_content.append('echo kvm')
-        script_content = '\n'.join(script_content)
-        self.execute(f"echo -e '{script_content}' > {script_path}")
+            facts_content = '{"virt.is_guest": "true"}'
+        else:
+            facts_content = '{"virt.is_guest": "false"}'
+
+        # Create the physical facts file and write the appropriate content
+        self.execute(f"echo '{facts_content}' > {script_path}")
+
+        # Update subscription manager facts
+        self.execute('subscription-manager facts --update')
 
     def patch_os_release_version(self, distro='rhel7'):
         """Patch VM OS release version.
@@ -1472,8 +1520,6 @@ class ContentHost(Host, ContentHostMixins):
 
     def register_to_cdn(self, pool_ids=None):
         """Subscribe satellite to CDN"""
-        if pool_ids is None:
-            pool_ids = [settings.subscription.rhn_poolid]
         self.remove_katello_ca()
         cmd_result = self.register_contenthost(
             org=None,
@@ -1485,17 +1531,23 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError(
                 f'Error during registration, command output: {cmd_result.stdout}'
             )
-        cmd_result = self.subscription_manager_attach_pool(pool_ids)[0]
-        if cmd_result.status != 0:
-            raise ContentHostError(
-                f'Error during pool attachment, command output: {cmd_result.stdout}'
-            )
+        # Attach a pool only if the Org isn't SCA yet
+        sub_status = self.subscription_manager_status().stdout
+        if SM_OVERALL_STATUS['disabled'] not in sub_status:
+            if pool_ids in [None, []]:
+                pool_ids = [settings.subscription.rhn_poolid]
+            for pid in pool_ids:
+                int(pid, 16)  # raises ValueError if not a HEX number
+            cmd_result = self.subscription_manager_attach_pool(pool_ids)
+            for res in cmd_result:
+                if res.status != 0:
+                    raise ContentHostError(f'Pool attachment failed with output: {res.stdout}')
 
     def ping_host(self, host):
         """Check the provisioned host status by pinging the ip of host
 
         :param host: IP address or hostname of the provisioned host
-        :returns: None
+        :return: None
         :raises: : `HostPingFailed` if the host is not pingable
         """
         result = self.execute(
@@ -1752,6 +1804,25 @@ class Capsule(ContentHost, CapsuleMixins):
         self._cli._configured = True
         return self._cli
 
+    def enable_satellite_or_capsule_module_for_rhel8(self):
+        """Enable Satellite/Capsule module for RHEL8.
+        Note: Make sure required repos are enabled before using this.
+        """
+        if self.os_version.major == 8:
+            assert (
+                self.execute(
+                    f'dnf -y module enable {self.product_rpm_name}:el{self.os_version.major}'
+                ).status
+                == 0
+            )
+
+    def install_satellite_or_capsule_package(self):
+        """Install Satellite/Capsule package. Also handles module enablement for RHEL8.
+        Note: Make sure required repos are enabled before using this.
+        """
+        self.enable_satellite_or_capsule_module_for_rhel8()
+        assert self.execute(f'dnf -y install {self.product_rpm_name}').status == 0
+
 
 class Satellite(Capsule, SatelliteMixins):
     product_rpm_name = 'satellite'
@@ -1869,17 +1940,15 @@ class Satellite(Capsule, SatelliteMixins):
             return None
 
         try:
-            ui_session = Session(
+            with Session(
                 session_name=testname or get_caller(),
                 user=user or settings.server.admin_username,
                 password=password or settings.server.admin_password,
                 url=url,
                 hostname=self.hostname,
                 login=login,
-            )
-            yield ui_session
-        except Exception:
-            raise
+            ) as ui_session:
+                yield ui_session
         finally:
             if self.record_property is not None and settings.ui.record_video:
                 video_url = settings.ui.grid_url.replace(
@@ -2283,6 +2352,7 @@ class SSOHost(Host):
     def __init__(self, sat_obj, **kwargs):
         self.satellite = sat_obj
         kwargs['hostname'] = kwargs.get('hostname', settings.rhsso.host_name)
+        kwargs['ipv6'] = kwargs.get('ipv6', settings.server.is_ipv6)
         super().__init__(**kwargs)
 
     def get_rhsso_client_id(self):
@@ -2454,6 +2524,7 @@ class IPAHost(Host):
     def __init__(self, sat_obj, **kwargs):
         self.satellite = sat_obj
         kwargs['hostname'] = kwargs.get('hostname', settings.ipa.hostname)
+        kwargs['ipv6'] = kwargs.get('ipv6', settings.server.is_ipv6)
         # Allow the class to be constructed from kwargs
         kwargs['from_dict'] = True
         kwargs.update(
@@ -2461,7 +2532,7 @@ class IPAHost(Host):
                 'base_dn': settings.ipa.basedn,
                 'disabled_user_ipa': settings.ipa.disabled_ipa_user,
                 'group_base_dn': settings.ipa.grpbasedn,
-                'group_users': settings.ipa.group_users,
+                'users': settings.ipa.users,
                 'groups': settings.ipa.groups,
                 'ipa_otp_username': settings.ipa.otp_user,
                 'ldap_user_cn': settings.ipa.username,
@@ -2555,6 +2626,7 @@ class ProxyHost(Host):
         self._conf_dir = '/etc/squid/'
         self._access_log = '/var/log/squid/access.log'
         kwargs['hostname'] = urlparse(url).hostname
+        kwargs['ipv6'] = kwargs.get('ipv6', settings.server.is_ipv6)
         super().__init__(**kwargs)
 
     def add_user(self, name, passwd):

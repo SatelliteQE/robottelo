@@ -11,6 +11,7 @@
 :CaseImportance: Critical
 
 """
+
 import re
 
 import pytest
@@ -21,6 +22,7 @@ from robottelo.utils.ohsnap import ohsnap_snap_rpms
 pytestmark = [pytest.mark.build_sanity]
 
 
+@pytest.mark.no_compose
 def test_installed_packages_with_versions(target_sat):
     """Compare the packages that suppose to be installed from repo vs installed packages
 

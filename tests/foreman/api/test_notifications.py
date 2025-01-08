@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from mailbox import mbox
 from re import findall
 from tempfile import mkstemp
@@ -155,7 +156,7 @@ def wait_for_no_long_running_task_mail(target_sat, clean_root_mailbox, long_runn
 def root_mailbox_copy(target_sat, clean_root_mailbox):
     """Parsed local system copy of the Satellite's root user mailbox.
 
-    :returns: :class:`mailbox.mbox` instance
+    :return: :class:`mailbox.mbox` instance
     """
     result = target_sat.execute(f'cat {clean_root_mailbox}')
     assert result.status == 0, f'Could not read mailbox {clean_root_mailbox} on Satellite host.'
@@ -190,7 +191,7 @@ def long_running_task(target_sat):
             'password': settings.server.ssh_password,
         },
     )
-    sql_date_2_days_ago = "now() - INTERVAL \'2 days\'"
+    sql_date_2_days_ago = "now() - INTERVAL \'2 days\'"  # fmt: skip
     result = target_sat.execute(
         "su - postgres -c \"psql foreman postgres <<EOF\n"
         "UPDATE foreman_tasks_tasks "
@@ -198,7 +199,7 @@ def long_running_task(target_sat):
         f" started_at = {sql_date_2_days_ago}, "
         f" state_updated_at = {sql_date_2_days_ago} "
         f"WHERE id=\'{job['task']['id']}\';\nEOF\n\" "
-    )
+    )  # fmt: skip  # skip formatting to avoid breaking the SQL query
     assert 'UPDATE 1' in result.stdout, f'Failed to age task {job["task"]["id"]}: {result.stderr}'
 
     yield job

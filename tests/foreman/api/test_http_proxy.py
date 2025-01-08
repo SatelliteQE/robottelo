@@ -11,6 +11,7 @@
 :CaseAutomation: Automated
 
 """
+
 from fauxfactory import gen_string
 import pytest
 
@@ -75,12 +76,14 @@ def test_positive_end_to_end(
         2. For each repo set global default HTTP proxy and sync it.
         3. For each repo set specific HTTP proxy and sync it.
         4. For each repo set no HTTP proxy and sync it.
-        5. Discover yum type repo through HTTP proxy.
-        6. Discover docker type repo through HTTP proxy.
+        5. Refresh manifest through HTTP proxy.
+        6. Discover yum type repo through HTTP proxy.
+        7. Discover docker type repo through HTTP proxy.
 
     :expectedresults:
         1. All repository updates and syncs succeed.
-        2. Yum and docker repos can be discovered through HTTP proxy.
+        2. Manifest can be refreshed through HTTP proxy.
+        3. Yum and docker repos can be discovered through HTTP proxy.
 
     :BZ: 2011303, 2042473, 2046337
 
@@ -112,6 +115,12 @@ def test_positive_end_to_end(
             assert (
                 'success' in module_target_sat.api.Repository(id=repo.id).sync()['result']
             ), f'Sync of a {repo.content_type} repo with {policy} HTTP policy failed'
+
+    # Refresh manifest through HTTP proxy
+    res = module_target_sat.api.Subscription().refresh_manifest(
+        data={'organization_id': module_org.id}
+    )
+    assert 'success' in res['result']
 
     # Discover yum type repo through HTTP proxy
     repo_name = 'fakerepo01'

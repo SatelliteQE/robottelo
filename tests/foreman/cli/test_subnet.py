@@ -11,10 +11,11 @@
 :CaseImportance: Medium
 
 """
+
 import random
 import re
 
-from fauxfactory import gen_choice, gen_integer, gen_ipaddr, gen_netmask
+from fauxfactory import gen_choice, gen_integer, gen_ipaddr
 import pytest
 
 from robottelo.constants import SUBNET_IPAM_TYPES
@@ -76,7 +77,7 @@ def test_positive_CRUD(module_target_sat):
     """
     name = gen_choice(list(valid_data_list().values()))
     pool = sorted(valid_addr_pools()[0])
-    mask = gen_netmask()
+    mask = '255.255.255.0'
     # generate pool range from network address
     network = gen_ipaddr()
     from_ip = re.sub(r'\d+$', str(pool[0]), network)
@@ -114,7 +115,7 @@ def test_positive_CRUD(module_target_sat):
     pool = sorted(valid_addr_pools()[0])
     # generate pool range from network address
     new_network = gen_ipaddr()
-    new_mask = gen_netmask()
+    new_mask = '255.255.192.0'
     ip_from = re.sub(r'\d+$', str(pool[0]), new_network)
     ip_to = re.sub(r'\d+$', str(pool[1]), new_network)
     ipam_type = SUBNET_IPAM_TYPES['internal']
@@ -175,7 +176,7 @@ def test_negative_create_with_address_pool(pool, module_target_sat):
 
     :CaseImportance: Medium
     """
-    mask = gen_netmask()
+    mask = '255.255.255.0'
     network = gen_ipaddr()
     options = {'mask': mask, 'network': network}
     # generate pool range from network address

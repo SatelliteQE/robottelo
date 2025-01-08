@@ -11,6 +11,7 @@
 :CaseAutomation: Automated
 
 """
+
 from fauxfactory import gen_integer, gen_string, gen_url
 import pytest
 
@@ -85,33 +86,55 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
 
 
 @pytest.mark.tier3
-@pytest.mark.run_in_one_thread
-@pytest.mark.stubbed
-def test_insights_client_registration_with_http_proxy():
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
+@pytest.mark.parametrize(
+    'setup_http_proxy',
+    [True, False],
+    indirect=True,
+    ids=['auth_http_proxy', 'unauth_http_proxy'],
+)
+def test_insights_client_registration_with_http_proxy(
+    module_target_sat,
+    setup_http_proxy,
+    rhel_contenthost,
+    rhcloud_activation_key,
+    rhcloud_manifest_org,
+):
     """Verify that insights-client registration work with http proxy.
 
     :id: 5158d5c1-2b88-4c05-914b-f1c53656ffc2
 
-    :customerscenario: true
+    :parametrized: yes
+
+    :setup:
+        1. Satellite with Default HTTP Proxy set.
 
     :steps:
-        1. Create HTTP Proxy.
-        2. Set created proxy as "Default HTTP Proxy" in settings.
-        3. Edit /etc/resolv.conf and comment out all entries so that
-            satellite can not directly communicate outside. Ensure that
-            NetworkManger won't change it.
-        4. Register a host with satellite.
-        5. Register host with insights.
-        6. Try insights-client register/unregister/test-connection/status
+        1. Register a host with satellite.
+        2. Register host with insights.
+        3. Try insights-client register/unregister/test-connection/status
+
+    :expectedresults:
+        1. insights-client register/unregister/test-connection/status works with http proxy set.
 
     :BZ: 1959932
 
-    :expectedresults:
-        1. insights-client register/unregister/test-connection/status
-            works with http proxy set.
-
-    :CaseAutomation: NotAutomated
+    :customerscenario: true
     """
+    rhel_contenthost.configure_rex(
+        satellite=module_target_sat, org=rhcloud_manifest_org, register=False
+    )
+    rhel_contenthost.configure_rhai_client(
+        satellite=module_target_sat,
+        activation_key=rhcloud_activation_key.name,
+        org=rhcloud_manifest_org.label,
+        rhel_distro=f"rhel{rhel_contenthost.os_version.major}",
+    )
+    assert rhel_contenthost.execute('insights-client --register').status == 0
+    assert rhel_contenthost.execute('insights-client --test-connection').status == 0
+    assert rhel_contenthost.execute('insights-client --status').status == 0
+    assert rhel_contenthost.execute('insights-client --unregister').status == 0
 
 
 @pytest.mark.tier2
@@ -161,29 +184,6 @@ def test_positive_set_content_default_http_proxy(block_fake_repo_access, target_
     assert rpm_repo.read().content_counts['rpm'] == 0
     product.sync()
     assert rpm_repo.read().content_counts['rpm'] >= 1
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier3
-def test_positive_environment_variable_unset_set():
-    """Verify that satellite installer unsets and then sets back the environment variables
-
-    :id: 596d753b-660b-49cb-b663-ff3cec439564
-
-    :BZ: 1886040
-
-    :customerscenario: true
-
-    :steps:
-        1. Export any environment variable from
-           [http_proxy, https_proxy, ssl_cert_file, HTTP_PROXY, HTTPS_PROXY, SSL_CERT_FILE]
-        2. satellite-installer
-
-    :expectedresults: satellite-installer unsets system proxy and SSL environment variables
-                      only for the duration of install and sets back those in the end.
-
-    :CaseAutomation: NotAutomated
-    """
 
 
 @pytest.mark.e2e

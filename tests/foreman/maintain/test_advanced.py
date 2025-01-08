@@ -11,11 +11,12 @@
 :CaseImportance: Critical
 
 """
+
 import pytest
 import yaml
 
 from robottelo.config import robottelo_tmp_dir, settings
-from robottelo.constants import MAINTAIN_HAMMER_YML, SAT_NON_GA_VERSIONS
+from robottelo.constants import MAINTAIN_HAMMER_YML
 from robottelo.hosts import get_sat_rhel_version, get_sat_version
 
 sat_x_y_release = f'{get_sat_version().major}.{get_sat_version().minor}'
@@ -297,7 +298,7 @@ def test_positive_satellite_repositories_setup(sat_maintain):
     """
     sat_version = ".".join(sat_maintain.version.split('.')[0:2])
     result = sat_maintain.cli.Advanced.run_repositories_setup(options={'version': sat_version})
-    if sat_version not in SAT_NON_GA_VERSIONS:
+    if sat_version not in settings.robottelo.sat_non_ga_versions:
         assert result.status == 0
         assert 'FAIL' not in result.stdout
         result = sat_maintain.execute('yum repolist')
@@ -330,7 +331,7 @@ def test_positive_capsule_repositories_setup(sat_maintain):
     """
     sat_version = ".".join(sat_maintain.version.split('.')[0:2])
     result = sat_maintain.cli.Advanced.run_repositories_setup(options={'version': sat_version})
-    if sat_version not in SAT_NON_GA_VERSIONS:
+    if sat_version not in settings.robottelo.sat_non_ga_versions:
         assert result.status == 0
         assert 'FAIL' not in result.stdout
         result = sat_maintain.execute('yum repolist')

@@ -28,6 +28,7 @@ Subcommands::
 :CaseImportance: High
 
 """
+
 import random
 
 from fauxfactory import gen_string, gen_url
@@ -105,90 +106,70 @@ def libvirt_url():
     return LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
 
 
-@pytest.mark.tier1
-def test_positive_create_with_name(libvirt_url, module_target_sat):
-    """Create Compute Resource
+@pytest.mark.e2e
+@pytest.mark.upgrade
+def test_positive_crud_libvirt_cr(module_target_sat, module_org, module_location, libvirt_url):
+    """CRUD compute resource libvirt
 
-    :id: 6460bcc7-d7f7-406a-aecb-b3d54d51e697
+    :id: a2f99c0e-53b6-435d-9b59-c6cbbcabca1e
 
-    :expectedresults: Compute resource is created
-
-    :CaseImportance: Critical
-    """
-    module_target_sat.cli.ComputeResource.create(
-        {
-            'name': f'cr {gen_string("alpha")}',
-            'provider': 'Libvirt',
-            'url': libvirt_url,
-        }
-    )
-
-
-@pytest.mark.tier1
-def test_positive_info(libvirt_url, module_target_sat):
-    """Test Compute Resource Info
-
-    :id: f54af041-4471-4d8e-9429-45d821df0440
-
-    :expectedresults: Compute resource Info is displayed
+    :expectedresults: All crud operations are performed successfully
 
     :CaseImportance: Critical
     """
-    name = gen_string('utf8')
-    compute_resource = module_target_sat.cli_factory.compute_resource(
+    name = gen_string('alpha')
+    desc = gen_string('alpha')
+    provider = FOREMAN_PROVIDERS['libvirt']
+    # CREATE
+    cr = module_target_sat.cli.ComputeResource.create(
         {
             'name': name,
-            'provider': FOREMAN_PROVIDERS['libvirt'],
+            'provider': 'Libvirt',
             'url': libvirt_url,
+            'description': desc,
+            'location-ids': module_location.id,
+            'organization-ids': module_org.id,
         }
     )
-    # factory already runs info, just check the data
-    assert compute_resource['name'] == name
-
-
-@pytest.mark.tier1
-def test_positive_list(libvirt_url, module_target_sat):
-    """Test Compute Resource List
-
-    :id: 11123361-ffbc-4c59-a0df-a4af3408af7a
-
-    :expectedresults: Compute resource List is displayed
-
-    :CaseImportance: Critical
-    """
-    comp_res = module_target_sat.cli_factory.compute_resource(
-        {'provider': FOREMAN_PROVIDERS['libvirt'], 'url': libvirt_url}
+    assert cr['name'] == name
+    assert cr['provider'] == provider
+    assert cr['description'] == desc
+    assert cr['url'] == libvirt_url
+    assert cr['locations'][0] == module_location.name
+    assert cr['organizations'][0] == module_org.name
+    # UPDATE
+    new_name = gen_string('alphanumeric')
+    new_desc = gen_string('alphanumeric')
+    new_org = module_target_sat.cli.Org.create({'name': gen_string('alpha')})
+    new_loc = module_target_sat.cli.Location.create({'name': gen_string('alpha')})
+    cr_update = module_target_sat.cli.ComputeResource.update(
+        {
+            'id': cr['id'],
+            'new-name': new_name,
+            'description': new_desc,
+            'location-ids': new_loc['id'],
+            'organization-ids': new_org['id'],
+        }
     )
-    assert comp_res['name']
-    result_list = module_target_sat.cli.ComputeResource.list(
-        {'search': 'name=%s' % comp_res['name']}
-    )
-    assert len(result_list) > 0
-    result = module_target_sat.cli.ComputeResource.exists(search=('name', comp_res['name']))
-    assert result
+    # READ
+    cr_read = module_target_sat.cli.ComputeResource.info({'id': cr_update[0]['id']})
+    assert cr_read['name'] == new_name
+    assert cr_read['description'] == new_desc
+    assert cr_read['provider'] == provider
+    assert cr_read['url'] == libvirt_url
+    assert cr_read['locations'][0] == new_loc['name']
+    assert cr_read['organizations'][0] == new_org['name']
+    # LIST
+    cr_list = module_target_sat.cli.ComputeResource.list({'search': f'name={cr_read["name"]}'})
+    assert len(cr_list) == 1
+    assert cr_list[0]['id'] == cr['id']
+    assert cr_list[0]['name'] == new_name
+    assert cr_list[0]['provider'] == provider
+    # DELETE
+    module_target_sat.cli.ComputeResource.delete({'name': cr_list[0]['name']})
+    assert not module_target_sat.cli.ComputeResource.exists(search=('name', cr_list[0]['name']))
 
 
-@pytest.mark.tier1
-@pytest.mark.upgrade
-def test_positive_delete_by_name(libvirt_url, module_target_sat):
-    """Test Compute Resource delete
-
-    :id: 7fcc0b66-f1c1-4194-8a4b-7f04b1dd439a
-
-    :expectedresults: Compute resource deleted
-
-    :CaseImportance: Critical
-    """
-    comp_res = module_target_sat.cli_factory.compute_resource(
-        {'provider': FOREMAN_PROVIDERS['libvirt'], 'url': libvirt_url}
-    )
-    assert comp_res['name']
-    module_target_sat.cli.ComputeResource.delete({'name': comp_res['name']})
-    result = module_target_sat.cli.ComputeResource.exists(search=('name', comp_res['name']))
-    assert len(result) == 0
-
-
-# Positive create
 @pytest.mark.tier1
 @pytest.mark.upgrade
 @pytest.mark.parametrize('options', **parametrized(valid_name_desc_data()))
@@ -211,28 +192,6 @@ def test_positive_create_with_libvirt(libvirt_url, options, target_sat):
             'url': gen_url(),
         }
     )
-
-
-@pytest.mark.tier2
-def test_positive_create_with_loc(libvirt_url, module_target_sat):
-    """Create Compute Resource with location
-
-    :id: 224c7cbc-6bac-4a94-8141-d6249896f5a2
-
-    :expectedresults: Compute resource is created and has location assigned
-
-    :CaseImportance: High
-    """
-    location = module_target_sat.cli_factory.make_location()
-    comp_resource = module_target_sat.cli_factory.compute_resource(
-        {
-            'location-ids': location['id'],
-            'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': libvirt_url,
-        }
-    )
-    assert len(comp_resource['locations']) == 1
-    assert comp_resource['locations'][0] == location['name']
 
 
 @pytest.mark.tier2

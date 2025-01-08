@@ -1,13 +1,18 @@
-FROM fedora:38
+FROM quay.io/fedora/python-312:latest
 MAINTAINER https://github.com/SatelliteQE
 
-RUN dnf install -y gcc git make cmake libffi-devel openssl-devel python3-devel \
-    python3-pip redhat-rpm-config which libcurl-devel libxml2-devel
+ENV PYCURL_SSL_LIBRARY=openssl \
+    ROBOTTELO_DIR="${HOME}/robottelo" \
+    UV_PYTHON="${APP_ROOT}/bin/python3" \
+    UV_NO_CACHE=1
 
-COPY / /robottelo/
-WORKDIR /robottelo
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
-ENV PYCURL_SSL_LIBRARY=openssl
-RUN pip install -r requirements.txt
+USER 1001
+COPY --chown=1001:0 / ${ROBOTTELO_DIR}
+
+WORKDIR "${ROBOTTELO_DIR}"
+RUN git config --global --add safe.directory ${ROBOTTELO_DIR} && \
+    uv pip install -r requirements.txt
 
 CMD make test-robottelo

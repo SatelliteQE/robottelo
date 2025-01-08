@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import os
 from time import sleep
 
@@ -1583,7 +1584,6 @@ class TestContentViewSync:
         assert len(importing_cvv) == 1
 
     @pytest.mark.tier3
-    @pytest.mark.skip_if_open("BZ:2262379")
     def test_postive_export_import_ansible_collection_repo(
         self,
         target_sat,
@@ -1604,6 +1604,10 @@ class TestContentViewSync:
 
         :expectedresults:
             1. Imported library should have the ansible collection present in the imported product.
+
+        :BlockedBy: SAT-23051
+
+        :Verifies: SAT-23051
         """
         # setup ansible_collection product and repo
         export_product = target_sat.cli_factory.make_product({'organization-id': function_org.id})
@@ -2354,10 +2358,13 @@ class TestInterSatelliteSync:
 
     @pytest.mark.e2e
     @pytest.mark.tier3
-    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.pit_server
+    @pytest.mark.pit_client
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
-        ['rhsclient8'],
+        ['rhsclient9'],
         indirect=True,
     )
     def test_positive_export_import_consume_incremental_yum_repo(
@@ -2590,6 +2597,7 @@ class TestNetworkSync:
     """Implements Network Sync scenarios."""
 
     @pytest.mark.tier2
+    @pytest.mark.pit_server
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],

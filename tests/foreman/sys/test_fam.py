@@ -11,13 +11,16 @@
 :Team: Platform
 
 """
+
 from broker import Broker
 import pytest
+import yaml
 
 from robottelo.config import settings
 from robottelo.constants import (
     FAM_MODULE_PATH,
     FAM_ROOT_DIR,
+    FAM_TEST_LIBVIRT_PLAYBOOKS,
     FAM_TEST_PLAYBOOKS,
     FOREMAN_ANSIBLE_MODULES,
     RH_SAT_ROLES,
@@ -41,39 +44,96 @@ def sync_roles(target_sat):
 
 
 @pytest.fixture(scope='module')
-def setup_fam(module_target_sat, module_sca_manifest):
+def install_import_ansible_role(module_target_sat):
+    """Installs and imports the thulium_drake.motd role used in the luna_hostgroup test playbook"""
+    module_target_sat.execute(
+        'ansible-galaxy role install thulium_drake.motd -p /usr/share/ansible/roles'
+    )
+    proxy_id = module_target_sat.nailgun_smart_proxy.id
+    module_target_sat.api.AnsibleRoles().sync(
+        data={'proxy_id': proxy_id, 'role_names': 'thulium_drake.motd'}
+    )
+
+
+@pytest.fixture(scope='module')
+def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_role):
     # Execute AAP WF for FAM setup
     Broker().execute(workflow='fam-test-setup', source_vm=module_target_sat.name)
 
+    # Copy config files to the Satellite
+    module_target_sat.put(
+        settings.fam.server.to_yaml(),
+        f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/server.yml',
+        temp_file=True,
+    )
+    module_target_sat.put(
+        settings.fam.compute_profile.to_yaml(),
+        f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/compute_profile.yml',
+        temp_file=True,
+    )
+
+    # Create fake galaxy.yml to make Makefile happy.
+    # The data in the file is unused, but not being able to load it produces errors in the
+    # logs and is confusing when searching for an actual problem during testing.
+    module_target_sat.put(
+        yaml.safe_dump({'name': 'satellite', 'namespace': 'redhat', 'version': '1.0.0'}),
+        f'{FAM_ROOT_DIR}/galaxy.yml',
+        temp_file=True,
+    )
+
     # Edit Makefile to not try to rebuild the collection when tests run
     module_target_sat.execute(f"sed -i '/^live/ s/$(MANIFEST)//' {FAM_ROOT_DIR}/Makefile")
+
+    # Edit Makefile to use passed-in pytest
+    # Can be removed once https://github.com/theforeman/foreman-ansible-modules/pull/1788
+    # is present in all relevant branches
+    module_target_sat.execute(
+        f"sed -i '/test_crud/ s/pytest/$(PYTEST_COMMAND)/' {FAM_ROOT_DIR}/Makefile"
+    )
 
     # Upload manifest to test playbooks directory
     module_target_sat.put(str(module_sca_manifest.path), str(module_sca_manifest.name))
     module_target_sat.execute(
         f'mv {module_sca_manifest.name} {FAM_ROOT_DIR}/tests/test_playbooks/data'
     )
-
-    # Edit config file
     config_file = f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/server.yml'
-    module_target_sat.execute(
-        f'cp {FAM_ROOT_DIR}/tests/test_playbooks/vars/server.yml.example {config_file}'
-    )
-    module_target_sat.execute(
-        f'sed -i "s/foreman.example.com/{module_target_sat.hostname}/g" {config_file}'
-    )
-    module_target_sat.execute(
-        f'sed -i "s/rhsm_pool_id:.*/rhsm_pool_id: {settings.subscription.rhn_poolid}/g" {config_file}'
-    )
-    module_target_sat.execute(
-        f'''sed -i 's/rhsm_username:.*/rhsm_username: "{settings.subscription.rhn_username}"/g' {config_file}'''
-    )
     module_target_sat.execute(
         f'''sed -i 's|subscription_manifest_path:.*|subscription_manifest_path: "data/{module_sca_manifest.name}"|g' {config_file}'''
     )
-    module_target_sat.execute(
-        f'''sed -i 's/rhsm_password:.*/rhsm_password: "{settings.subscription.rhn_password}"/g' {config_file}'''
+
+    def create_fake_module(module_target_sat, module_name, module_classes):
+        base_dir = '/etc/puppetlabs/code/environments/production/modules'
+        module_dir = f'{base_dir}/{module_name}'
+        manifest_dir = f'{module_dir}/manifests'
+        module_target_sat.execute(f'mkdir -p {manifest_dir}')
+        for module_class in module_classes:
+            if isinstance(module_class, str):
+                module_code = '(){}'
+            else:
+                module_class, module_code = module_class
+            full_class = module_name if module_class == 'init' else f'{module_name}::{module_class}'
+            module_target_sat.put(
+                f'class {full_class}{module_code}',
+                f'{manifest_dir}/{module_class}.pp',
+                temp_file=True,
+            )
+
+    create_fake_module(
+        module_target_sat,
+        'ntp',
+        [('init', '($logfile, $config_dir, $servers, $burst, $stepout){}'), 'config'],
     )
+
+    create_fake_module(
+        module_target_sat,
+        'prometheus',
+        ['init', 'haproxy_exporter', 'redis_exporter', 'statsd_exporter'],
+    )
+
+    smart_proxy = module_target_sat.nailgun_smart_proxy.read()
+    smart_proxy.import_puppetclasses()
+
+    create_fake_module(module_target_sat, 'fakemodule', ['init'])
 
 
 @pytest.mark.pit_server
@@ -126,9 +186,12 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
 
     :expectedresults: All modules and roles run successfully
     """
+    # Setup provisioning resources
+    if ansible_module in FAM_TEST_LIBVIRT_PLAYBOOKS:
+        module_target_sat.configure_libvirt_cr()
+
     # Execute test_playbook
     result = module_target_sat.execute(
-        f'export NO_COLOR=True && . ~/localenv/bin/activate && cd {FAM_ROOT_DIR} && make livetest_{ansible_module}'
+        f'NO_COLOR=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 make --directory {FAM_ROOT_DIR} livetest_{ansible_module} PYTHON_COMMAND="python3" PYTEST_COMMAND="pytest-3.11"'
     )
-    assert 'PASSED' in result.stdout
-    assert result.status == 0
+    assert result.status == 0, f"{result.status=}\n{result.stdout=}\n{result.stderr=}"

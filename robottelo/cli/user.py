@@ -20,6 +20,7 @@ Subcommands::
     ssh-keys                      Managing User SSH Keys.
     update                        Update an user.
 """
+
 from robottelo.cli.base import Base
 
 

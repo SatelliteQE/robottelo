@@ -1,4 +1,5 @@
 """Global Configurations for py.test runner"""
+
 import pytest
 
 pytest_plugins = [
@@ -21,6 +22,8 @@ pytest_plugins = [
     'pytest_plugins.requirements.update_requirements',
     'pytest_plugins.sanity_plugin',
     'pytest_plugins.video_cleanup',
+    'pytest_plugins.jira_comments',
+    'pytest_plugins.select_random_tests',
     'pytest_plugins.capsule_n-minus',
     # Fixtures
     'pytest_fixtures.core.broker',
@@ -46,6 +49,7 @@ pytest_plugins = [
     'pytest_fixtures.component.katello_agent',
     'pytest_fixtures.component.katello_certs_check',
     'pytest_fixtures.component.lce',
+    'pytest_fixtures.component.leapp_client',
     'pytest_fixtures.component.maintain',
     'pytest_fixtures.component.os',
     'pytest_fixtures.component.oscap',
@@ -79,9 +83,9 @@ pytest_plugins = [
 def pytest_runtest_makereport(item, call):
     # execute all other hooks to obtain the report object
     outcome = yield
-    rep = outcome.get_result()
+    report = outcome.get_result()
 
     # set a report attribute for each phase of a call, which can
     # be "setup", "call", "teardown"
 
-    setattr(item, "rep_" + rep.when, rep)
+    setattr(item, "report_" + report.when, report)

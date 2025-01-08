@@ -14,6 +14,7 @@ sat6-upgrade requires env.satellite_hostname to be set, this is required for the
 :CaseImportance: High
 
 """
+
 import pytest
 
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME, FAKE_4_CUSTOM_PACKAGE_NAME

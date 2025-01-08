@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import re
 from string import punctuation
 import tempfile
@@ -205,7 +206,6 @@ class TestRepository:
         assert default_dl_policy
         assert repo.download_policy == default_dl_policy[0].value
 
-    @pytest.mark.skip_if_open("BZ:2042473")
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options', **datafactory.parametrized([{'content_type': 'yum'}]), indirect=True
@@ -788,7 +788,6 @@ class TestRepository:
         with pytest.raises(HTTPError):
             repo.update(['name'])
 
-    @pytest.mark.skip_if_open('BZ:1311113')
     @pytest.mark.tier1
     def test_negative_update_label(self, repo):
         """Attempt to update repository label to another one.
@@ -878,7 +877,6 @@ class TestRepository:
         # Verify it has finished
         assert repo.read().content_counts['rpm'] >= 1
 
-    @pytest.mark.skip_if_open("BZ:2035025")
     @pytest.mark.tier2
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
@@ -1799,7 +1797,7 @@ class TestDockerRepository:
         :BZ: 1475121, 1580510
 
         """
-        msg = "404, message=\'Not Found\'"
+        msg = "404, message='Not Found'"
         with pytest.raises(TaskFailedError, match=msg):
             repo.sync()
 
@@ -2124,7 +2122,6 @@ class TestDockerRepository:
 class TestSRPMRepository:
     """Tests specific to using repositories containing source RPMs."""
 
-    @pytest.mark.skip_if_open("BZ:2016047")
     @pytest.mark.upgrade
     @pytest.mark.tier2
     def test_positive_srpm_upload_publish_promote_cv(

@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
 import pytest
 
@@ -29,7 +30,8 @@ pytestmark = [pytest.mark.skip_if_not_set('azurerm')]
 def module_azure_cp_attrs(module_azurerm_cr, module_azurerm_custom_finishimg, sat_azure):
     """Create compute attributes on COMPUTE_PROFILE_SMALL"""
 
-    nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+    results = module_azurerm_cr.available_networks()['results']
+    nw_id = next((item for item in results if item['name'] == 'default'), None)['id']
     return sat_azure.api.ComputeAttribute(
         compute_profile=COMPUTE_PROFILE_SMALL,
         compute_resource=module_azurerm_cr,
@@ -73,10 +75,10 @@ def module_azure_hg(
     ).create()
 
 
+@pytest.mark.e2e
 @pytest.mark.tier4
 @pytest.mark.parametrize('sat_azure', ['sat'], indirect=True)
 def test_positive_end_to_end_azurerm_ft_host_provision(
-    session,
     sat_azure,
     azurermclient,
     module_azurerm_custom_finishimg,
@@ -150,13 +152,13 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
             raise error
 
 
+@pytest.mark.e2e
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
     'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
 )
 def test_positive_azurerm_host_provision_ud(
-    session,
     sat_azure,
     azurermclient,
     module_azurerm_cloudimg,

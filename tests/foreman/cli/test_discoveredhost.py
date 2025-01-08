@@ -9,6 +9,7 @@
 :Team: Rocket
 
 """
+
 import pytest
 from wait_for import wait_for
 
@@ -411,3 +412,31 @@ def test_positive_list_facts():
 
     :CaseImportance: High
     """
+
+
+@pytest.mark.tier1
+def test_positive_verify_updated_fdi_image(target_sat):
+    """Verify foreman-discovery-image is built on latest up-to-date RHEL
+
+    :id: 2ab2ad88-4470-4d4c-8e0b-5892ad8d688e
+
+    :steps:
+        1. Register Satellite to CDN and install foreman-discovery-image
+
+    :expectedresults: Installed foreman-discovery-image is built on latest up-to-date RHEL
+
+    Verifies: SAT-24197, SAT-25275
+
+    :customerscenario: true
+
+    :CaseImportance: Critical
+    """
+    discovery_ks_path = '/usr/share/foreman-discovery-image/foreman-discovery-image.ks'
+    target_sat.register_to_cdn()
+    target_sat.execute('yum -y --disableplugin=foreman-protector install foreman-discovery-image')
+
+    # For older zstreams, we still have this version of foreman-discovery-image
+    version = '8.6'
+
+    result = target_sat.execute(f'grep "url=" {discovery_ks_path}')
+    assert version in result.stdout

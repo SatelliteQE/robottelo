@@ -1,4 +1,5 @@
 """Implements various decorators"""
+
 from functools import wraps
 
 OBJECT_CACHE = {}

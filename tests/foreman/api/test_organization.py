@@ -14,6 +14,7 @@ http://<satellite-host>/apidoc/v2/organizations.html
 :CaseImportance: High
 
 """
+
 import http
 import json
 from random import randint
@@ -74,7 +75,7 @@ class TestOrganization:
             headers={'content-type': 'text/plain'},
             verify=False,
         )
-        if is_open('BZ:2228820'):
+        if is_open('SAT-20559'):
             assert response.status_code in [http.client.UNSUPPORTED_MEDIA_TYPE, 500]
         else:
             assert response.status_code == http.client.UNSUPPORTED_MEDIA_TYPE

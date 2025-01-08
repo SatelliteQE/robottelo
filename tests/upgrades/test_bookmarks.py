@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import pytest
 
 from robottelo.constants import BOOKMARK_ENTITIES_SELECTION

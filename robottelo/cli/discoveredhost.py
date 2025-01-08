@@ -19,6 +19,7 @@ Subcommands::
     reboot                        Reboot a host
     refresh-facts                 Refresh the facts of a host
 """
+
 from robottelo.cli.base import Base
 
 

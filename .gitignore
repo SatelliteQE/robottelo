@@ -35,6 +35,7 @@ logs/**
 /inventory.yaml
 
 # manifester local files
+/manifester_inventory.yaml
 /manifester_settings.yaml
 /manifests/
 
@@ -79,11 +80,6 @@ tests/foreman/pytest.ini
 /conf/*.yaml
 /conf/*.conf
 !/conf/supportability.yaml
-
-# I don't know where those 2 files come from
-# but they are always there.
-full_upgrade
-upgrade_highlights
 
 #Robottelo artifact
 screenshots/

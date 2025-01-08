@@ -9,6 +9,7 @@
 :Team: Phoenix-subscriptions
 
 """
+
 from fauxfactory import gen_string
 import pytest
 
@@ -21,6 +22,8 @@ from robottelo.utils.virtwho import (
     get_configure_id,
     get_configure_option,
     get_hypervisor_ahv_mapping,
+    hypervisor_guest_mapping_check_legacy_ui,
+    hypervisor_guest_mapping_newcontent_ui,
 )
 
 
@@ -28,7 +31,7 @@ class TestVirtwhoConfigforNutanix:
     @pytest.mark.tier2
     @pytest.mark.parametrize('deploy_type_ui', ['id', 'script'], indirect=True)
     def test_positive_deploy_configure_by_id_script(
-        self, module_sca_manifest_org, org_session, form_data_ui, deploy_type_ui
+        self, module_sca_manifest_org, org_session, form_data_ui, deploy_type_ui, default_location
     ):
         """Verify configure created and deployed with id.
 
@@ -38,11 +41,22 @@ class TestVirtwhoConfigforNutanix:
             1. Config can be created and deployed by command or script
             2. No error msg in /var/log/rhsm/rhsm.log
             3. Report is sent to satellite
-            4. Config can be deleted
+            4. Subscription Status set to 'Simple Content Access', and generate mapping in Legacy UI
+            5. Config can be deleted
 
         :CaseImportance: High
         """
+        hypervisor_name, guest_name = deploy_type_ui
+        # Check virt-who config status
         assert org_session.virtwho_configure.search(form_data_ui['name'])[0]['Status'] == 'ok'
+
+        # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in Legacy UI
+        hypervisor_guest_mapping_check_legacy_ui(
+            org_session, form_data_ui, default_location, hypervisor_name, guest_name
+        )
+
+        # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in UI
+        hypervisor_guest_mapping_newcontent_ui(org_session, hypervisor_name, guest_name)
 
     @pytest.mark.tier2
     def test_positive_hypervisor_id_option(

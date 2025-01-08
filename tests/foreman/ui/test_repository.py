@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from datetime import datetime, timedelta
 from random import randint, shuffle
 
@@ -297,48 +298,6 @@ def test_positive_discover_repo_via_new_product(session, module_org):
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-@pytest.mark.usefixtures('allow_repo_discovery')
-def test_positive_discover_module_stream_repo_via_existing_product(
-    session, module_org, module_target_sat
-):
-    """Create repository with module streams via repo-discovery under an existing product.
-
-    :id: e7b9e2c4-7ecd-4cde-8f74-961fbac8919c
-
-    :BZ: 1676642
-
-    :steps:
-        1. Create a product.
-        2. From Content > Products, click on the Repo Discovery button.
-        3. Enter a url containing a yum repository with module streams, e.g.,
-           settings.repos.module_stream_1.url.
-        4. Click the Discover button.
-
-    :expectedresults: Repositories are discovered.
-    """
-    repo_name = gen_string('alpha')
-    repo_label = gen_string('alpha')
-    product = module_target_sat.api.Product(organization=module_org).create()
-    with session:
-        session.organization.select(org_name=module_org.name)
-        session.product.discover_repo(
-            {
-                'repo_type': 'Yum Repositories',
-                'url': settings.repos.module_stream_1.url,
-                'discovered_repos.repos': "/",
-                'create_repo.product_type': 'Existing Product',
-                'create_repo.product_content.product_name': product.name,
-                'create_repo.create_repos_table': [
-                    {"Repository Name": repo_name, "Repository Label": repo_label}
-                ],
-            }
-        )
-        assert repo_name in session.repository.search(product.name, repo_name)[0]['Name']
-
-
-@pytest.mark.tier2
-@pytest.mark.upgrade
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_sync_custom_repo_yum(session, module_org, module_target_sat):
     """Create Custom yum repos and sync it via the repos page.
 
@@ -356,25 +315,6 @@ def test_positive_sync_custom_repo_yum(session, module_org, module_target_sat):
         assert sync_values[0]['Product'] == product.name
         assert sync_values[0]['Status'] == 'Syncing Complete.'
         assert 'ago' in sync_values[0]['Finished']
-
-
-@pytest.mark.tier2
-@pytest.mark.upgrade
-def test_positive_sync_custom_repo_docker(session, module_org, module_target_sat):
-    """Create Custom docker repos and sync it via the repos page.
-
-    :id: 942e0b4f-3524-4f00-812d-bdad306f81de
-
-    :expectedresults: Sync procedure for specific docker repository is
-        successful
-    """
-    product = module_target_sat.api.Product(organization=module_org).create()
-    repo = module_target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB, product=product, content_type=REPO_TYPE['docker']
-    ).create()
-    with session:
-        result = session.repository.synchronize(product.name, repo.name)
-        assert result['result'] == 'success'
 
 
 @pytest.mark.tier2
@@ -546,7 +486,6 @@ def test_positive_end_to_end_custom_module_streams_crud(session, module_org, mod
         assert not session.repository.search(module_prod.name, repo_name)
 
 
-@pytest.mark.skip_if_open("BZ:1743271")
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_upstream_with_credentials(session, module_prod):

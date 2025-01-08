@@ -16,6 +16,7 @@ http://theforeman.org/api/apidoc/v2/1.15.html
 :CaseImportance: High
 
 """
+
 import re
 
 import pytest

@@ -14,6 +14,7 @@ http://theforeman.org/api/apidoc/v2/provisioning_templates.html
 :CaseImportance: High
 
 """
+
 from random import choice
 
 from fauxfactory import gen_choice, gen_integer, gen_mac, gen_string
@@ -186,7 +187,7 @@ class TestProvisioningTemplate:
         # clone
         template_origin = template.read_json()
         # remove unique keys
-        unique_keys = ('updated_at', 'created_at', 'id', 'name')
+        unique_keys = ('updated_at', 'created_at', 'id', 'name', 'cloned_from_id')
         template_origin = {
             key: value for key, value in template_origin.items() if key not in unique_keys
         }

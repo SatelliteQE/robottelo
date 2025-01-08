@@ -2,6 +2,7 @@
 All the Repository classes in this module are supposed to use from sat_object.cli_factory object.
 The direct import of the repo classes in this module is prohibited !!!!!
 """
+
 import inspect
 import sys
 
@@ -509,7 +510,6 @@ class RepositoryCollection:
     satellite = None
 
     def __init__(self, distro=None, repositories=None):
-
         self._items = []
 
         if distro is not None and distro not in constants.DISTROS_SUPPORTED:
@@ -575,9 +575,7 @@ class RepositoryCollection:
 
     @property
     def need_subscription(self):
-        if self.rh_repos:
-            return True
-        return False
+        return bool(self.rh_repos)
 
     @property
     def organization(self):
@@ -588,7 +586,7 @@ class RepositoryCollection:
         Add repository to collection
 
         :param BaseRepository item: Item to add
-        :returns: None
+        :return: None
         """
         if self._repos_info:
             raise RepositoryAlreadyCreated('Repositories already created can not add more')
@@ -605,7 +603,7 @@ class RepositoryCollection:
         Add multiple repositories to collection
 
         :param List[BaseRepository] items: Items to add
-        :returns: None
+        :return: None
         """
         for item in items:
             self.add_item(item)

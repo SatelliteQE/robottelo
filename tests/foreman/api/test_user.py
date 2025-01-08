@@ -15,6 +15,7 @@ http://<satellite-host>/apidoc/v2/users.html
 :CaseImportance: High
 
 """
+
 import json
 import re
 
@@ -667,7 +668,7 @@ class TestActiveDirectoryUser:
             ldap_user_passwd=ad_data['ldap_user_passwd'],
             authsource=module_target_sat.api.AuthSourceLDAP(
                 onthefly_register=True,
-                account=fr"{ad_data['workgroup']}\{ad_data['ldap_user_name']}",
+                account=rf"{ad_data['workgroup']}\{ad_data['ldap_user_name']}",
                 account_password=ad_data['ldap_user_passwd'],
                 base_dn=ad_data['base_dn'],
                 groups_base=ad_data['group_base_dn'],

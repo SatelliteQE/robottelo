@@ -1,4 +1,5 @@
 """Test important behavior in robottelo's direct dependencies"""
+
 import contextlib
 
 

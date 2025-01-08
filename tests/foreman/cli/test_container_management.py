@@ -9,6 +9,7 @@
 :CaseComponent: ContainerManagement-Content
 
 """
+
 from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
@@ -53,7 +54,9 @@ class TestDockerClient:
     """
 
     @pytest.mark.tier3
-    def test_positive_pull_image(self, module_org, container_contenthost, target_sat):
+    def test_positive_pull_image(
+        self, request, module_org, module_container_contenthost, target_sat
+    ):
         """A Docker-enabled client can use ``docker pull`` to pull a
         Docker image off a Satellite 6 instance.
 
@@ -73,15 +76,18 @@ class TestDockerClient:
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = target_sat.cli.Repository.info({'id': repo['id']})
         try:
-            result = container_contenthost.execute(
+            result = module_container_contenthost.execute(
                 f'docker login -u {settings.server.admin_username}'
                 f' -p {settings.server.admin_password} {target_sat.hostname}'
             )
             assert result.status == 0
+            request.addfinalizer(
+                lambda: module_container_contenthost.execute(f'docker logout {target_sat.hostname}')
+            )
 
             # publishing takes few seconds sometimes
             result, _ = wait_for(
-                lambda: container_contenthost.execute(f'docker pull {repo["published-at"]}'),
+                lambda: module_container_contenthost.execute(f'docker pull {repo["published-at"]}'),
                 num_sec=60,
                 delay=2,
                 fail_condition=lambda out: out.status != 0,
@@ -89,25 +95,25 @@ class TestDockerClient:
             )
             assert result.status == 0
             try:
-                result = container_contenthost.execute(f'docker run {repo["published-at"]}')
+                result = module_container_contenthost.execute(f'docker run {repo["published-at"]}')
                 assert result.status == 0
             finally:
                 # Stop and remove the container
-                result = container_contenthost.execute(
+                result = module_container_contenthost.execute(
                     f'docker ps -a | grep {repo["published-at"]}'
                 )
                 container_id = result.stdout[0].split()[0]
-                container_contenthost.execute(f'docker stop {container_id}')
-                container_contenthost.execute(f'docker rm {container_id}')
+                module_container_contenthost.execute(f'docker stop {container_id}')
+                module_container_contenthost.execute(f'docker rm {container_id}')
         finally:
             # Remove docker image
-            container_contenthost.execute(f'docker rmi {repo["published-at"]}')
+            module_container_contenthost.execute(f'docker rmi {repo["published-at"]}')
 
     @pytest.mark.skip_if_not_set('docker')
     @pytest.mark.tier3
     @pytest.mark.e2e
     def test_positive_container_admin_end_to_end_search(
-        self, module_org, container_contenthost, target_sat
+        self, request, module_org, module_container_contenthost, target_sat
     ):
         """Verify that docker command line can be used against
         Satellite server to search for container images stored
@@ -165,34 +171,37 @@ class TestDockerClient:
             }
         )
         docker_repo_uri = (
-            f' {target_sat.hostname}/{pattern_prefix}-{content_view["label"]}/'
-            f'{CONTAINER_UPSTREAM_NAME} '
+            f'{target_sat.hostname}/{pattern_prefix}-{content_view["label"]}/'
+            f'{CONTAINER_UPSTREAM_NAME}'
         ).lower()
 
         # 3. Try to search for docker images on Satellite
         remote_search_command = f'docker search {target_sat.hostname}/{CONTAINER_UPSTREAM_NAME}'
-        result = container_contenthost.execute(remote_search_command)
+        result = module_container_contenthost.execute(remote_search_command)
         assert result.status == 0
         assert docker_repo_uri not in result.stdout
 
         # 4. Use Docker client to login to Satellite docker hub
-        result = container_contenthost.execute(
+        result = module_container_contenthost.execute(
             f'docker login -u {settings.server.admin_username}'
             f' -p {settings.server.admin_password} {target_sat.hostname}'
         )
         assert result.status == 0
+        request.addfinalizer(
+            lambda: module_container_contenthost.execute(f'docker logout {target_sat.hostname}')
+        )
 
         # 5. Search for docker images
-        result = container_contenthost.execute(remote_search_command)
+        result = module_container_contenthost.execute(remote_search_command)
         assert result.status == 0
         assert docker_repo_uri in result.stdout
 
         # 6. Use Docker client to log out of Satellite docker hub
-        result = container_contenthost.execute(f'docker logout {target_sat.hostname}')
+        result = module_container_contenthost.execute(f'docker logout {target_sat.hostname}')
         assert result.status == 0
 
         # 7. Try to search for docker images
-        result = container_contenthost.execute(remote_search_command)
+        result = module_container_contenthost.execute(remote_search_command)
         assert result.status == 0
         assert docker_repo_uri not in result.stdout
 
@@ -206,7 +215,7 @@ class TestDockerClient:
         )
 
         # 9. Search for docker images
-        result = container_contenthost.execute(remote_search_command)
+        result = module_container_contenthost.execute(remote_search_command)
         assert result.status == 0
         assert docker_repo_uri in result.stdout
 
@@ -214,7 +223,7 @@ class TestDockerClient:
     @pytest.mark.tier3
     @pytest.mark.e2e
     def test_positive_container_admin_end_to_end_pull(
-        self, module_org, container_contenthost, target_sat
+        self, request, module_org, module_container_contenthost, target_sat
     ):
         """Verify that docker command line can be used against
         Satellite server to pull in container images stored
@@ -279,20 +288,23 @@ class TestDockerClient:
 
         # 3. Try to pull in docker image from Satellite
         docker_pull_command = f'docker pull {docker_repo_uri}'
-        result = container_contenthost.execute(docker_pull_command)
-        assert result.status == 1
+        result = module_container_contenthost.execute(docker_pull_command)
+        assert result.status != 0
 
         # 4. Use Docker client to login to Satellite docker hub
-        result = container_contenthost.execute(
+        result = module_container_contenthost.execute(
             f'docker login -u {settings.server.admin_username}'
             f' -p {settings.server.admin_password} {target_sat.hostname}'
         )
         assert result.status == 0
+        request.addfinalizer(
+            lambda: module_container_contenthost.execute(f'docker logout {target_sat.hostname}')
+        )
 
         # 5. Pull in docker image
         # publishing takes few seconds sometimes
         result, _ = wait_for(
-            lambda: container_contenthost.execute(docker_pull_command),
+            lambda: module_container_contenthost.execute(docker_pull_command),
             num_sec=60,
             delay=2,
             fail_condition=lambda out: out.status != 0,
@@ -301,12 +313,12 @@ class TestDockerClient:
         assert result.status == 0
 
         # 6. Use Docker client to log out of Satellite docker hub
-        result = container_contenthost.execute(f'docker logout {target_sat.hostname}')
+        result = module_container_contenthost.execute(f'docker logout {target_sat.hostname}')
         assert result.status == 0
 
         # 7. Try to pull in docker image
-        result = container_contenthost.execute(docker_pull_command)
-        assert result.status == 1
+        result = module_container_contenthost.execute(docker_pull_command)
+        assert result.status != 0
 
         # 8. Set 'Unauthenticated Pull' option to true
         target_sat.cli.LifecycleEnvironment.update(
@@ -318,11 +330,11 @@ class TestDockerClient:
         )
 
         # 9. Pull in docker image
-        result = container_contenthost.execute(docker_pull_command)
+        result = module_container_contenthost.execute(docker_pull_command)
         assert result.status == 0
 
     def test_negative_pull_content_with_longer_name(
-        self, target_sat, container_contenthost, module_org
+        self, request, target_sat, module_container_contenthost, module_org
     ):
         """Verify that long name CV publishes when CV & docker repo both have a larger name.
 
@@ -382,19 +394,20 @@ class TestDockerClient:
         )
 
         podman_pull_command = (
-            f"podman pull --tls-verify=false {target_sat.hostname}/{module_org.label.lower()}"
-            f"-{lce['label'].lower()}-{cv['label'].lower()}-{product['label'].lower()}-{repo_name}"
+            f"podman pull --tls-verify=false {target_sat.hostname}/{module_org.label}"
+            f"-{lce['label']}-{cv['label']}-{product['label']}-{repo_name}".lower()
         )
 
         # 4. Pull in docker image
         assert (
-            container_contenthost.execute(
+            module_container_contenthost.execute(
                 f'podman login -u {settings.server.admin_username}'
                 f' -p {settings.server.admin_password} {target_sat.hostname}'
             ).status
             == 0
         )
+        request.addfinalizer(
+            lambda: module_container_contenthost.execute(f'podman logout {target_sat.hostname}')
+        )
 
-        assert container_contenthost.execute(podman_pull_command).status == 0
-
-        assert container_contenthost.execute(f'podman logout {target_sat.hostname}').status == 0
+        assert module_container_contenthost.execute(podman_pull_command).status == 0

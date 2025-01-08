@@ -11,6 +11,7 @@
 :CaseImportance: Critical
 
 """
+
 from time import sleep
 
 from fauxfactory import gen_string
@@ -29,9 +30,7 @@ def configure_sessions(satellite, enable=True, add_default_creds=False):
     """Enables the `use_sessions` option in hammer config"""
     result = satellite.execute(
         '''sed -i -e '/username/d;/password/d;/use_sessions/d' {0};\
-        echo '  :use_sessions: {1}' >> {0}'''.format(
-            HAMMER_CONFIG, 'true' if enable else 'false'
-        )
+        echo '  :use_sessions: {1}' >> {0}'''.format(HAMMER_CONFIG, 'true' if enable else 'false')
     )
     if result.status == 0 and add_default_creds:
         result = satellite.execute(

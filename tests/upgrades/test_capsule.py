@@ -11,6 +11,8 @@
 :CaseImportance: High
 
 """
+
+import json
 import os
 
 import pytest
@@ -33,6 +35,46 @@ def cleanup(target_sat, content_view, repo, product):
 
     # To clean the orphaned content for next run, it is used to fix KCS#4820591
     target_sat.execute('foreman-rake katello:delete_orphaned_content')
+
+
+class TestCapsuleFeatures:
+    @pytest.mark.pre_upgrade
+    def test_pre_capsule_features(self, pre_configured_capsule, save_test_data):
+        """Pre-upgrade scenario that checks for Capsule enabled features
+
+        :id: preupgrade-1a50f0ec-482e-11ef-a468-98fa9b11ac24
+
+        :steps:
+            1. Before Satellite upgrade check for enabled features on a Capsule
+
+        :expectedresults:
+            1. List of Capsule features
+        """
+        features = json.loads(pre_configured_capsule.get_features())
+        save_test_data({'features': features})
+
+    @pytest.mark.post_upgrade(depend_on=test_pre_capsule_features)
+    def test_post_capsule_features(self, pre_configured_capsule, pre_upgrade_data):
+        """Post-upgrade scenario that sync capsule from satellite and then
+        verifies if the repo/rpm of pre-upgrade scenario is synced to capsule
+
+
+        :id: postupgrade-1a50f0ec-482e-11ef-a468-98fa9b11ac24
+
+        :steps:
+            1. After satellite upgrade check for enabled features on a Capsule
+
+        :expectedresults:
+            1. Capsule features before and after Upgrade match
+        """
+        pre_features = set(pre_upgrade_data.get('features'))
+        post_features = set(json.loads(pre_configured_capsule.get_features()))
+        assert (
+            post_features == pre_features
+        ), 'capsule features after and before upgrade are differrent'
+        pre_configured_capsule.nailgun_smart_proxy.refresh()
+        refreshed_features = set(json.loads(pre_configured_capsule.get_features()))
+        assert refreshed_features == pre_features, 'capsule features after refresh are differrent'
 
 
 class TestCapsuleSync:

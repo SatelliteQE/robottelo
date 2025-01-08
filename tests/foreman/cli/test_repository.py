@@ -11,11 +11,11 @@
 :CaseImportance: High
 
 """
+
 from random import choice
 from string import punctuation
 
 from fauxfactory import gen_alphanumeric, gen_integer, gen_string, gen_url
-from nailgun import entities
 import pytest
 import requests
 from wait_for import wait_for
@@ -148,23 +148,31 @@ class TestRepository:
         assert repo.get('upstream-repository-name') == repo_options['docker-upstream-name']
 
     @pytest.mark.tier1
+    @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'name': name} for name in valid_data_list().values()]),
         indirect=True,
     )
-    def test_positive_create_with_name(self, repo_options, repo):
-        """Check if repository can be created with random names
+    def test_positive_create_delete_with_name(self, repo_options, repo, module_target_sat):
+        """Check if repository can be created with random names and deleted by the name.
 
         :id: 604dea2c-d512-4a27-bfc1-24c9655b6ea9
 
         :parametrized: yes
 
-        :expectedresults: Repository is created and has random name
+        :expectedresults:
+            1. Repository is created and has random name.
+            2. Repository can be deleted using that name.
 
         :CaseImportance: Critical
         """
-        assert repo.get('name') == repo_options['name']
+        assert repo['name'] == repo_options['name']
+        module_target_sat.cli.Repository.delete(
+            {'name': repo['name'], 'product-id': repo_options['product-id']}
+        )
+        with pytest.raises(CLIReturnCodeError):
+            module_target_sat.cli.Repository.info({'id': repo['id']})
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
@@ -229,7 +237,7 @@ class TestRepository:
         ),
         indirect=True,
     )
-    def test_positive_create_with_auth_yum_repo(self, repo_options, repo):
+    def test_positive_create_with_auth_yum_repo(self, target_sat, repo_options, repo):
         """Create YUM repository with basic HTTP authentication
 
         :id: da8309fd-3076-427b-a96f-8d883d6e944f
@@ -242,7 +250,7 @@ class TestRepository:
         """
         for key in 'url', 'content-type':
             assert repo.get(key) == repo_options[key]
-        repo = entities.Repository(id=repo['id']).read()
+        repo = target_sat.api.Repository(id=repo['id']).read()
         assert repo.upstream_username == repo_options['upstream-username']
 
     @pytest.mark.tier1
@@ -733,7 +741,6 @@ class TestRepository:
         :expectedresults: Repository is created and synced
 
         :BZ: 1328092
-
         """
         # Assertion that repo is not yet synced
         assert repo['sync']['status'] == 'Not Synced'
@@ -743,7 +750,6 @@ class TestRepository:
         new_repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert new_repo['sync']['status'] == 'Success'
 
-    @pytest.mark.skip_if_open("BZ:2035025")
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
@@ -1326,30 +1332,6 @@ class TestRepository:
             module_target_sat.cli_factory.make_repository(repo_options)
 
     @pytest.mark.tier1
-    @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'name': name} for name in valid_data_list().values()]),
-        indirect=True,
-    )
-    def test_positive_delete_by_name(self, repo_options, repo, module_target_sat):
-        """Check if repository can be created and deleted
-
-        :id: 463980a4-dbcf-4178-83a6-1863cf59909a
-
-        :parametrized: yes
-
-        :expectedresults: Repository is created and then deleted
-
-        :CaseImportance: Critical
-        """
-        module_target_sat.cli.Repository.delete(
-            {'name': repo['name'], 'product-id': repo_options['product-id']}
-        )
-        with pytest.raises(CLIReturnCodeError):
-            module_target_sat.cli.Repository.info({'id': repo['id']})
-
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content-type': 'yum', 'url': settings.repos.yum_1.url}]),
@@ -1539,7 +1521,6 @@ class TestRepository:
         new_repo = target_sat.cli.Repository.info({'id': new_repo['id']})
         assert int(new_repo['content-counts']['files']) == CUSTOM_FILE_REPO_FILES_COUNT + 1
 
-    @pytest.mark.skip_if_open("BZ:1410916")
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
@@ -1728,7 +1709,7 @@ class TestRepository:
                 'content-type': 'srpm',
             }
         )
-        assert f"Successfully uploaded file '{SRPM_TO_UPLOAD}'" in result[0]['message']
+        assert f'Successfully uploaded file {SRPM_TO_UPLOAD}' in result[0]['message']
         assert (
             int(target_sat.cli.Repository.info({'id': repo['id']})['content-counts']['source-rpms'])
             == 1
@@ -1943,7 +1924,6 @@ class TestRepository:
         }
 
     @pytest.mark.tier1
-    @pytest.mark.skip_if_open('BZ:2002653')
     def test_negative_update_red_hat_repo(self, module_manifest_org, module_target_sat):
         """Updates to Red Hat products fail.
 
@@ -2568,10 +2548,10 @@ class TestFileRepository:
                 'product-id': repo['product']['id'],
             }
         )
-        assert f"Successfully uploaded file '{RPM_TO_UPLOAD}'" in result[0]['message']
+        assert f'Successfully uploaded file {RPM_TO_UPLOAD}' in result[0]['message']
         repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['content-counts']['files'] == '1'
-        filesearch = entities.File().search(
+        filesearch = target_sat.api.File().search(
             query={"search": f"name={RPM_TO_UPLOAD} and repository={repo['name']}"}
         )
         assert filesearch[0].name == RPM_TO_UPLOAD
@@ -2613,7 +2593,7 @@ class TestFileRepository:
                 'product-id': repo['product']['id'],
             }
         )
-        assert f"Successfully uploaded file '{RPM_TO_UPLOAD}'" in result[0]['message']
+        assert f'Successfully uploaded file {RPM_TO_UPLOAD}' in result[0]['message']
         repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert int(repo['content-counts']['files']) > 0
         files = target_sat.cli.File.list({'repository-id': repo['id']})
@@ -2778,11 +2758,11 @@ class TestFileRepository:
                 'product-id': repo['product']['id'],
             }
         )
-        assert f"Successfully uploaded file '{text_file_name}'" in result[0]['message']
+        assert f"Successfully uploaded file {text_file_name}" in result[0]['message']
         repo = target_sat.cli.Repository.info({'id': repo['id']})
         # Assert there is only one file
         assert repo['content-counts']['files'] == '1'
-        filesearch = entities.File().search(
+        filesearch = target_sat.api.File().search(
             query={"search": f"name={text_file_name} and repository={repo['name']}"}
         )
         assert text_file_name == filesearch[0].name
@@ -2796,11 +2776,11 @@ class TestFileRepository:
                 'product-id': repo['product']['id'],
             }
         )
-        assert f"Successfully uploaded file '{text_file_name}'" in result[0]['message']
+        assert f"Successfully uploaded file {text_file_name}" in result[0]['message']
         repo = target_sat.cli.Repository.info({'id': repo['id']})
         # Assert there is still only one file
         assert repo['content-counts']['files'] == '1'
-        filesearch = entities.File().search(
+        filesearch = target_sat.api.File().search(
             query={"search": f"name={text_file_name} and repository={repo['name']}"}
         )
         # Assert file name has not changed

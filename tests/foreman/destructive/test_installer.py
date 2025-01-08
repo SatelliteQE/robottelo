@@ -11,6 +11,7 @@
 :CaseImportance: Critical
 
 """
+
 import random
 
 from fauxfactory import gen_domain, gen_string
@@ -27,10 +28,15 @@ def set_random_fqdn(target_sat):
     shortname = gen_string('alpha')
     new_domain = gen_domain()
     target_sat.execute(
-        f'echo "search {new_domain}" >> /etc/resolv.conf; hostnamectl set-hostname {shortname}'
+        'mv -f /etc/resolv.conf /etc/resolv.conf.bak; '
+        f'echo "search {new_domain}" > /etc/resolv.conf; '
+        f'hostnamectl set-hostname {shortname}'
     )
     yield shortname, new_domain
-    target_sat.execute(f'hostnamectl set-hostname {target_sat.hostname}')
+    target_sat.execute(
+        'mv -f /etc/resolv.conf.bak /etc/resolv.conf; '
+        f'hostnamectl set-hostname {target_sat.hostname}'
+    )
 
 
 def test_installer_sat_pub_directory_accessibility(target_sat):

@@ -18,6 +18,7 @@ Options:
  -h, --help                    Print help
                       Update a compute resource.
 """
+
 from robottelo.cli.base import Base
 
 

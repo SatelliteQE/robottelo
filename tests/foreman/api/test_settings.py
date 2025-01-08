@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import random
 
 import pytest
@@ -88,7 +89,6 @@ def test_positive_update_login_page_footer_text_with_long_string(setting_update)
     assert setting_update.value == login_text_value
 
 
-@pytest.mark.skip_if_open("BZ:1470083")
 @pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['discovery_hostname'], indirect=True)
 def test_negative_update_hostname_with_empty_fact(setting_update):

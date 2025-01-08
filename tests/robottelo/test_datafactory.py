@@ -1,4 +1,5 @@
 """Tests for module ``robottelo.utils.datafactory``."""
+
 import itertools
 import random
 from unittest import mock

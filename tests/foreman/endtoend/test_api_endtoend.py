@@ -11,13 +11,14 @@
 :CaseImportance: High
 
 """
+
 from collections import defaultdict
 import http
 from pprint import pformat
 
 from deepdiff import DeepDiff
 from fauxfactory import gen_string
-from nailgun import client, entities
+from nailgun import client
 import pytest
 
 from robottelo import constants
@@ -29,10 +30,8 @@ from robottelo.config import (
     user_nailgun_config,
 )
 from robottelo.constants.repos import CUSTOM_RPM_REPO
-from robottelo.utils.issue_handlers import is_open
 
 API_PATHS = {
-    # flake8:noqa (line-too-long)
     'activation_keys': (
         '/katello/api/activation_keys',
         '/katello/api/activation_keys',
@@ -927,10 +926,6 @@ API_PATHS = {
 def filtered_api_paths():
     """Filter the API_PATHS dict based on BZs that impact various endpoints"""
     missing = defaultdict(list)
-    if is_open('BZ:1887932'):
-        missing['subscriptions'].append(
-            '/katello/api/activation_keys/:activation_key_id/subscriptions'
-        )
     filtered_paths = API_PATHS.copy()
     for endpoint, missing_paths in missing.items():
         filtered_paths[endpoint] = tuple(
@@ -1010,46 +1005,48 @@ class TestEndToEnd:
     def fake_manifest_is_set(self):
         return setting_is_set('fake_manifest')
 
-    def test_positive_find_default_org(self):
+    def test_positive_find_default_org(self, class_target_sat):
         """Check if 'Default Organization' is present
 
         :id: c6e45b36-d8b6-4507-8dcd-0645668496b9
 
         :expectedresults: 'Default Organization' is found
         """
-        results = entities.Organization().search(
+        results = class_target_sat.api.Organization().search(
             query={'search': f'name="{constants.DEFAULT_ORG}"'}
         )
         assert len(results) == 1
         assert results[0].name == constants.DEFAULT_ORG
 
-    def test_positive_find_default_loc(self):
+    def test_positive_find_default_loc(self, class_target_sat):
         """Check if 'Default Location' is present
 
         :id: 1f40b3c6-488d-4037-a7ab-250a02bf919a
 
         :expectedresults: 'Default Location' is found
         """
-        results = entities.Location().search(query={'search': f'name="{constants.DEFAULT_LOC}"'})
+        results = class_target_sat.api.Location().search(
+            query={'search': f'name="{constants.DEFAULT_LOC}"'}
+        )
         assert len(results) == 1
         assert results[0].name == constants.DEFAULT_LOC
 
     @pytest.mark.build_sanity
-    def test_positive_find_admin_user(self):
+    def test_positive_find_admin_user(self, class_target_sat):
         """Check if Admin User is present
 
         :id: 892fdfcd-18c0-42ef-988b-f13a04097f5c
 
         :expectedresults: Admin User is found and has Admin role
         """
-        results = entities.User().search(query={'search': 'login=admin'})
+        results = class_target_sat.api.User().search(query={'search': 'login=admin'})
         assert len(results) == 1
         assert results[0].login == 'admin'
 
     @pytest.mark.skip_if_not_set('libvirt')
     @pytest.mark.tier4
     @pytest.mark.no_containers
-    @pytest.mark.rhel_ver_match('7')
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     @pytest.mark.e2e
     @pytest.mark.upgrade
     @pytest.mark.skipif(
@@ -1115,13 +1112,14 @@ class TestEndToEnd:
         repositories.append(custom_repo)
 
         # step 2.6: Enable a Red Hat repository
+        repo_key = f'{constants.PRODUCT_KEY_SAT_CLIENT}{rhel_contenthost.os_version.major}'
         rhel_repo = target_sat.api.Repository(
             id=target_sat.api_factory.enable_rhrepo_and_fetchid(
-                basearch='x86_64',
+                basearch=constants.DEFAULT_ARCHITECTURE,
                 org_id=org.id,
-                product=constants.PRDS['rhel'],
-                repo=constants.REPOS['rhst7']['name'],
-                reposet=constants.REPOSET['rhst7'],
+                product=constants.REPOS[repo_key]['product'],
+                repo=constants.REPOS[repo_key]['name'],
+                reposet=constants.REPOS[repo_key]['reposet'],
             )
         )
         repositories.append(rhel_repo)
@@ -1166,11 +1164,10 @@ class TestEndToEnd:
         activation_key.content_override(
             data={
                 'content_overrides': [
-                    {'content_label': constants.REPOS['rhst7']['id'], 'value': '1'}
+                    {'content_label': constants.REPOS[repo_key]['id'], 'value': '1'}
                 ]
             }
         )
-
         # BONUS: Create a content host and associate it with promoted
         # content view and last lifecycle where it exists
         content_host = target_sat.api.Host(
@@ -1213,14 +1210,17 @@ class TestEndToEnd:
         # step 2.18: Provision a client
         # TODO this isn't provisioning through satellite as intended
         # Note it wasn't well before the change that added this todo
-        rhel_contenthost.install_katello_ca(target_sat)
-        # Register client with foreman server using act keys
-        rhel_contenthost.register_contenthost(org.label, activation_key_name)
+
+        # Register client with foreman server using act keys and install packages
+        packages = 'katello-host-tools puppet-agent'
+        result = rhel_contenthost.api_register(
+            target_sat,
+            organization=org,
+            activation_keys=[activation_key.name],
+            packages=packages,
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
         assert rhel_contenthost.subscribed
-        # Install rpm on client
-        package_name = 'katello-agent'
-        result = rhel_contenthost.execute(f'yum install -y {package_name}')
-        assert result.status == 0
-        # Verify that the package is installed by querying it
-        result = rhel_contenthost.run(f'rpm -q {package_name}')
-        assert result.status == 0
+        # Verify that the packages are installed by querying it
+        for package in packages.split(' '):
+            assert rhel_contenthost.execute(f'rpm -q {package}').status == 0

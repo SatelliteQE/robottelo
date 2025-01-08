@@ -1,6 +1,11 @@
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#     "codemod",
+# ]
+# ///
 """
 This script adds ':customerscenario: true' to all tests by uuid
-depends on `pip install https://github.com/facebook/codemod/tarball/master`
 
 On command line should be like:
 
@@ -13,6 +18,7 @@ But in this script we are doing programatically and interactivelly in Python
 On robottelo root dir run:
 $ python scripts/tokenize_customer_scenario.py
 """
+
 import codemod
 from codemod import Query, regex_suggestor, run_interactive
 from codemod.helpers import path_filter

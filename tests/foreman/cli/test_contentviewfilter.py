@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import random
 
 from fauxfactory import gen_string
@@ -767,8 +768,6 @@ class TestContentViewFilter:
 
         :expectedresults: Content view filter is not updated
 
-        :BZ: 1328943
-
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
@@ -787,78 +786,6 @@ class TestContentViewFilter:
             module_target_sat.cli.ContentView.filter.info(
                 {'content-view-id': content_view['id'], 'name': new_name}
             )
-
-    @pytest.mark.tier1
-    def test_negative_update_with_same_name(self, module_org, content_view, module_target_sat):
-        """Try to update content view filter using name of already
-        existing entity
-
-        :id: 9c1b1c75-af57-4218-9e2d-e69d74f50e04
-
-        :expectedresults: Content view filter is not updated
-
-        :CaseImportance: Critical
-        """
-        cvf_name = gen_string('utf8')
-        module_target_sat.cli.ContentView.filter.create(
-            {
-                'content-view-id': content_view['id'],
-                'name': cvf_name,
-                'organization-id': module_org.id,
-                'type': 'rpm',
-            },
-        )
-        new_name = gen_string('alpha', 100)
-        module_target_sat.cli.ContentView.filter.create(
-            {
-                'content-view-id': content_view['id'],
-                'name': new_name,
-                'organization-id': module_org.id,
-                'type': 'rpm',
-            },
-        )
-        with pytest.raises(CLIReturnCodeError):
-            module_target_sat.cli.ContentView.filter.update(
-                {
-                    'content-view-id': content_view['id'],
-                    'name': new_name,
-                    'new-name': cvf_name,
-                }
-            )
-
-    @pytest.mark.tier1
-    def test_negative_update_inclusion(self, module_org, content_view, module_target_sat):
-        """Try to update content view filter and assign incorrect inclusion
-        value for it
-
-        :id: 760400a8-49a5-4a31-924c-c232cb22ddad
-
-        :expectedresults: Content view filter is not updated
-
-        :CaseImportance: Critical
-        """
-        cvf_name = gen_string('utf8')
-        module_target_sat.cli.ContentView.filter.create(
-            {
-                'content-view-id': content_view['id'],
-                'inclusion': 'true',
-                'name': cvf_name,
-                'organization-id': module_org.id,
-                'type': 'rpm',
-            },
-        )
-        with pytest.raises(CLIReturnCodeError):
-            module_target_sat.cli.ContentView.filter.update(
-                {
-                    'content-view-id': content_view['id'],
-                    'inclusion': 'wrong_value',
-                    'name': cvf_name,
-                }
-            )
-        cvf = module_target_sat.cli.ContentView.filter.info(
-            {'content-view-id': content_view['id'], 'name': cvf_name}
-        )
-        assert cvf['inclusion'] == 'true'
 
     @pytest.mark.tier1
     def test_negative_update_with_non_existent_repo_id(

@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import os
 from time import sleep
 
@@ -196,9 +197,12 @@ def test_positive_create_with_https(
         assert ldap_source['ldap_server']['name'] == ldap_auth_name
         assert ldap_source['ldap_server']['host'] == auth_data['ldap_hostname']
         assert ldap_source['ldap_server']['port'] == '636'
-    with module_target_sat.ui_session(
-        test_name, username, auth_data['ldap_user_passwd']
-    ) as ldapsession, pytest.raises(NavigationTriesExceeded):
+    with (
+        module_target_sat.ui_session(
+            test_name, username, auth_data['ldap_user_passwd']
+        ) as ldapsession,
+        pytest.raises(NavigationTriesExceeded),
+    ):
         ldapsession.user.search('')
     assert module_target_sat.api.User().search(query={'search': f'login="{username}"'})
 
@@ -420,8 +424,7 @@ def test_login_failure_rhsso_user_if_internal_user_exist(
         'password': settings.rhsso.rhsso_password,
     }
     with module_target_sat.ui_session(login=False) as rhsso_session:
-        with pytest.raises(NavigationTriesExceeded) as error:
-            rhsso_session.rhsso_login.login(login_details)
+        rhsso_session.rhsso_login.login(login_details)
         with pytest.raises(NavigationTriesExceeded) as error:
             rhsso_session.task.read_all()
         assert error.typename == 'NavigationTriesExceeded'

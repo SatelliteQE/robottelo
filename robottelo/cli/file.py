@@ -13,6 +13,7 @@ Subcommands::
     info                          Show a file
     list                          List files
 """
+
 from robottelo.cli.base import Base
 
 

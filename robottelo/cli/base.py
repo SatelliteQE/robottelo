@@ -1,4 +1,5 @@
 """Generic base class for cli hammer commands."""
+
 import re
 
 from wait_for import wait_for
@@ -35,7 +36,7 @@ class Base:
         :param response: a result object, returned by :mod:`robottelo.utils.ssh.command`.
         :param ignore_stderr: indicates whether to throw a warning in logs if
             ``stderr`` is not empty.
-        :returns: contents of ``stdout``.
+        :return: contents of ``stdout``.
         :raises robottelo.exceptions.CLIReturnCodeError: If return code is
             different from zero.
         """
@@ -200,7 +201,7 @@ class Base:
             command,
         )
         response = ssh.command(
-            cmd.encode('utf-8'),
+            cmd,
             hostname=hostname or cls.hostname or settings.server.hostname,
             output_format=output_format,
             timeout=timeout,

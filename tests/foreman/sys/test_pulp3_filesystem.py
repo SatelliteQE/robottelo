@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from datetime import datetime
 import json
 
@@ -33,7 +34,7 @@ def test_selinux_status(target_sat):
     result = target_sat.execute('getenforce')
     assert 'Enforcing' in result.stdout
     # check there are no SELinux denials
-    if not is_open('BZ:2263294'):
+    if not is_open('SAT-23121'):
         result = target_sat.execute('ausearch --input-logs -m avc -ts today --raw')
         assert result.status == 1, 'Some SELinux denials were found in journal.'
 
@@ -42,7 +43,6 @@ def test_selinux_status(target_sat):
 @pytest.mark.parametrize(
     'directory',
     [
-        '/var/lib/pulp',
         '/var/lib/pulp/assets',
         '/var/lib/pulp/media',
         '/var/lib/pulp/tmp',

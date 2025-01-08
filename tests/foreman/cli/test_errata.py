@@ -10,6 +10,7 @@
 
 :CaseImportance: High
 """
+
 from datetime import date, datetime, timedelta
 from operator import itemgetter
 
@@ -1646,7 +1647,7 @@ def test_errata_list_by_contentview_filter(module_entitlement_manifest_org, modu
 
     :customerscenario: true
 
-    :BZ: 1785146
+    :verifies: SAT-7987
     """
     product = module_target_sat.api.Product(organization=module_entitlement_manifest_org).create()
     repo = module_target_sat.cli_factory.make_repository(

@@ -1,16 +1,23 @@
 from functools import cached_property
 import subprocess
+import sys
+
+
+class UsageError(Exception):
+    """The UsageError raised when the package manager is different from uv or pip"""
+
+    pass
 
 
 class ReqUpdater:
-
     # Installed package name as key and its counterpart in requirements file as value
     package_deviates = {
         'Betelgeuse': 'betelgeuse',
-        'broker': 'broker[docker]',
+        'broker': 'broker[docker,podman,hussh]',
         'dynaconf': 'dynaconf[vault]',
         'Jinja2': 'jinja2',
         'Sphinx': 'sphinx',
+        'pyyaml': 'PyYAML',
     }
 
     @cached_property
@@ -19,9 +26,9 @@ class ReqUpdater:
 
         This also normalizes any package names that deviates in requirements file vs installed names
         """
-        installed_pkges = subprocess.run(
-            'pip list --format=freeze', capture_output=True, shell=True
-        ).stdout.decode()
+        installer_args = [sys.executable, '-m', 'list', '--format=freeze']
+        installer_args[2:2] = self.packagae_manager.split(' ')
+        installed_pkges = subprocess.run(installer_args, capture_output=True).stdout.decode()
         for pkg in self.package_deviates:
             if pkg in installed_pkges:
                 # Replacing the installed package names with their names in requirements file
@@ -57,16 +64,62 @@ class ReqUpdater:
         """Returns new and updates available packages in requirements-optional file"""
         return set(self.optional_packages).difference(self.installed_packages)
 
+    @cached_property
+    def packagae_manager(self):
+        if (
+            subprocess.run(
+                [sys.executable, '-m', 'pip', '--version'],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            ).returncode
+            == 0
+        ):
+            _manager = 'pip'
+        elif (
+            subprocess.run(
+                [sys.executable, '-m', 'uv', '--version'],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            ).returncode
+            == 0
+        ):
+            _manager = 'uv pip'
+        else:
+            raise UsageError(
+                'The package manager is not identifiable for performing package updates.'
+                'Currently only pip and uv is supported. Please manually update the packages '
+                'and rerun pytest command.'
+            )
+        return _manager
+
     def install_req_deviations(self):
         """Installs new and updates available packages in requirements file"""
         if self.req_deviation:
-            subprocess.run(
-                f"pip install {' '.join(self.req_deviation)}", shell=True, stdout=subprocess.PIPE
-            )
+            lst_of_reqs = ' '.join(f"'{req}'" for req in self.req_deviation)
+            if (
+                subprocess.run(
+                    f"{self.packagae_manager} install {lst_of_reqs}",
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                ).returncode
+                == 0
+            ):
+                print('Mandatory requirements are updated.')
+            else:
+                print('ERROR: Some issue occurred with updating the required requirements')
 
     def install_opt_deviations(self):
         """Installs new and updates available packages in requirements-optional file"""
         if self.opt_deviation:
-            subprocess.run(
-                f"pip install {' '.join(self.opt_deviation)}", shell=True, stdout=subprocess.PIPE
-            )
+            lst_of_reqs = ' '.join(f"'{req}'" for req in self.opt_deviation)
+            if (
+                subprocess.run(
+                    f"{self.packagae_manager} install {lst_of_reqs}",
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                ).returncode
+                == 0
+            ):
+                print('Optional requirements are updated.')
+            else:
+                print('ERROR: Some issue occurred with updating the optional requirements')

@@ -1,4 +1,5 @@
 """Miscellaneous content helper functions"""
+
 import os
 import re
 

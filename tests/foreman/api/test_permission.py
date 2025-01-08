@@ -15,6 +15,7 @@ http://<satellite-host>/apidoc/v2/permissions.html
 :CaseImportance: High
 
 """
+
 from itertools import chain
 import json
 import re
@@ -217,7 +218,7 @@ class TestUserRole:
             searching for the permission with name ``perm_name``.
         :raises: ``requests.exceptions.HTTPError`` if an error occurs when
             updating ``self.user``'s roles.
-        :returns: Nothing.
+        :return: Nothing.
         """
         role = target_sat.api.Role().create()
         permissions = target_sat.api.Permission().search(query={'search': f'name="{perm_name}"'})

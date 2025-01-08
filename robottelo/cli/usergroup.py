@@ -20,6 +20,7 @@ Subcommands::
     remove-user-group             Disassociate an user group
     update                        Update a user group
 """
+
 from robottelo.cli.base import Base
 
 

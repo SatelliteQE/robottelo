@@ -11,13 +11,13 @@
 :CaseImportance: High
 
 """
+
 from nailgun.entity_mixins import TaskFailedError
 import pytest
 
 from robottelo.config import settings
 from robottelo.constants import FAKE_7_CUSTOM_PACKAGE
 from robottelo.utils.datafactory import gen_string
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.mark.tier2
@@ -52,20 +52,17 @@ def test_positive_host_configuration_status(session, target_sat):
         'Hosts with no reports',
     ]
     search_strings_list = [
-        'last_report > \"30 minutes ago\" and (status.applied > 0 or'
+        'last_report > "30 minutes ago" and (status.applied > 0 or'
         ' status.restarted > 0) and (status.failed = 0)',
-        'last_report > \"30 minutes ago\" and (status.failed > 0 or'
+        'last_report > "30 minutes ago" and (status.failed > 0 or'
         ' status.failed_restarts > 0) and status.enabled = true',
-        'last_report > \"30 minutes ago\" and status.enabled = true and'
+        'last_report > "30 minutes ago" and status.enabled = true and'
         ' status.applied = 0 and status.failed = 0 and status.pending = 0',
-        'last_report > \"30 minutes ago\" and status.pending > 0 and status.enabled = true',
-        'last_report < \"30 minutes ago\" and status.enabled = true',
+        'last_report > "30 minutes ago" and status.pending > 0 and status.enabled = true',
+        'last_report < "30 minutes ago" and status.enabled = true',
         'status.enabled = false',
         'not has last_report and status.enabled = true',
     ]
-    if is_open('BZ:1631219'):
-        criteria_list.pop()
-        search_strings_list.pop()
 
     with session:
         session.organization.select(org_name=org.name)
@@ -175,7 +172,6 @@ def test_positive_task_status(session, target_sat):
 @pytest.mark.upgrade
 @pytest.mark.no_containers
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')

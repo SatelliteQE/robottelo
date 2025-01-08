@@ -365,7 +365,6 @@ class TestBugzillaIssueHandler:
                 os.remove(DEFAULT_BZ_CACHE_FILE)
 
         try:
-
             subprocess.run(
                 [sys.executable, '-m', 'pytest', '--collect-only', 'tests/robottelo'], check=True
             )
@@ -408,7 +407,11 @@ def test_add_workaround():
     add_workaround(data, matches, 'test', foo='bar')
 
     add_workaround(
-        data, matches, 'test', validation=lambda *a, **k: False, zaz='traz'  # Should not be added
+        data,
+        matches,
+        'test',
+        validation=lambda *a, **k: False,
+        zaz='traz',  # Should not be added
     )
 
     for match in matches:

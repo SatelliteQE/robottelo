@@ -4,6 +4,7 @@ This module is to define pytest functions for content hosts
 The functions in this module are read in the pytest_plugins/fixture_markers.py module
 All functions in this module will be treated as fixtures that apply the contenthost mark
 """
+
 from broker import Broker
 import pytest
 
@@ -196,25 +197,25 @@ def katello_host_tools_tracer_host(rex_contenthost, target_sat):
     return rex_contenthost
 
 
-@pytest.fixture
-def container_contenthost(request, target_sat):
+@pytest.fixture(scope='module')
+def module_container_contenthost(request, module_target_sat):
     """Fixture that installs docker on the content host"""
     request.param = {
-        "rhel_version": "7",
+        "rhel_version": "8",
         "distro": "rhel",
         "no_containers": True,
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
-        host.install_katello_ca(target_sat)
-        repos = {
-            'server': settings.repos.rhel7_os,
-            'optional': settings.repos.rhel7_optional,
-            'extras': settings.repos.rhel7_extras,
-        }
-        host.create_custom_repos(**repos)
-        for service in constants.CONTAINER_CLIENTS:
-            host.execute(f'yum -y install {service}')
-            host.execute(f'systemctl start {service}')
+        host.register_to_cdn()
+        # needed for docker commands to accept Satellite's cert
+        host.install_katello_ca(module_target_sat)
+        for client in constants.CONTAINER_CLIENTS:
+            assert (
+                host.execute(f'yum -y install {client}').status == 0
+            ), f'{client} installation failed'
+        assert (
+            host.execute('systemctl enable --now podman').status == 0
+        ), 'Start of podman service failed'
         yield host
 
 

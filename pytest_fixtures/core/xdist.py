@@ -6,7 +6,7 @@ from broker import Broker
 import pytest
 
 from robottelo.config import configure_airgun, configure_nailgun, settings
-from robottelo.hosts import Satellite
+from robottelo.hosts import Capsule, Satellite
 from robottelo.logging import logger
 
 
@@ -14,7 +14,14 @@ from robottelo.logging import logger
 def align_to_satellite(request, worker_id, satellite_factory):
     """Attempt to align a Satellite to the current xdist worker"""
     if 'build_sanity' in request.config.option.markexpr:
+        settings.set("server.hostname", None)
         yield
+        # Checkout Sanity Capsule finally
+        if settings.capsule.hostname:
+            sanity_cap = Capsule.get_host_by_hostname(settings.capsule.hostname)
+            sanity_cap.unregister()
+            Broker(hosts=[sanity_cap]).checkin()
+        # Checkout Sanity Satellite finally
         if settings.server.hostname:
             sanity_sat = Satellite(settings.server.hostname)
             sanity_sat.unregister()
@@ -25,10 +32,7 @@ def align_to_satellite(request, worker_id, satellite_factory):
         settings.set("server.hostname", None)
         on_demand_sat = None
 
-        if worker_id in ['master', 'local']:
-            worker_pos = 0
-        else:
-            worker_pos = int(worker_id.replace('gw', ''))
+        worker_pos = 0 if worker_id in ["master", "local"] else int(worker_id.replace("gw", ""))
 
         # attempt to add potential satellites from the broker inventory file
         if settings.server.inventory_filter:

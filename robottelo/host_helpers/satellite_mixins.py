@@ -6,6 +6,7 @@ import random
 import re
 
 import requests
+from wait_for import TimedOutError, wait_for
 
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
@@ -142,7 +143,7 @@ class ContentInfo:
         :type interface: str
         :type timeout: int
 
-        :returns: the manifest upload result
+        :return: the manifest upload result
 
         """
         if not isinstance(manifest, bytes | io.BytesIO) and (
@@ -176,21 +177,21 @@ class ContentInfo:
         given organization.
 
         :param str org_id: The unique identifier of the organization to check for SCA mode.
-        :returns: A boolean value indicating whether SCA mode is enabled or not.
+        :return: A boolean value indicating whether SCA mode is enabled or not.
         :rtype: bool
         """
         return self.api.Organization(id=org_id).read().simple_content_access
 
-    def publish_content_view(self, org, repo_list):
+    def publish_content_view(self, org, repo_list, name):
         """This method publishes the content view for a given organization and repository list.
 
         :param str org: The name of the organization to which the content view belongs
         :param list or str repo_list:  A list of repositories or a single repository
 
-        :returns: A dictionary containing the details of the published content view.
+        :return: A dictionary containing the details of the published content view.
         """
         repo = repo_list if isinstance(repo_list, list) else [repo_list]
-        content_view = self.api.ContentView(organization=org, repository=repo).create()
+        content_view = self.api.ContentView(organization=org, repository=repo, name=name).create()
         content_view.publish()
         return content_view.read()
 
@@ -245,7 +246,7 @@ class SystemInfo:
             f"ss -tnaH sport ge {port_pool[0]} sport le {port_pool[-1]}"
             " | awk '{n=split($4, p, \":\"); print p[n]}' | sort -u"
         )
-        if ss_cmd.stderr[1]:
+        if ss_cmd.stderr:
             raise CapsuleTunnelError(
                 f'Failed to create ssh tunnel: Error getting port status: {ss_cmd.stderr}'
             )
@@ -279,26 +280,45 @@ class SystemInfo:
         :rtype: str
 
         """
-        pre_ncat_procs = self.execute('pgrep ncat').stdout.splitlines()
-        with self.session.shell() as channel:
-            # if ncat isn't backgrounded, it prevents the channel from closing
-            command = f'ncat -kl -p {newport} -c "ncat {self.hostname} {oldport}" &'
-            logger.debug(f'Creating tunnel: {command}')
-            channel.send(command)
+
+        def check_ncat_startup(pre_ncat_procs):
             post_ncat_procs = self.execute('pgrep ncat').stdout.splitlines()
             ncat_pid = set(post_ncat_procs).difference(set(pre_ncat_procs))
-            if not len(ncat_pid):
-                err = channel.get_exit_signal()
-                logger.debug(f'Tunnel failed: {err}')
-                # Something failed, so raise an exception.
-                raise CapsuleTunnelError(f'Starting ncat failed: {err}')
+            if len(ncat_pid):
+                return ncat_pid
+
+            return None
+
+        def start_ncat():
+            pre_ncat_procs = self.execute('pgrep ncat').stdout.splitlines()
+            with self.session.shell() as channel:
+                # if ncat isn't backgrounded, it prevents the channel from closing
+                command = f'ncat -kl -p {newport} -c "ncat {self.hostname} {oldport}" &'
+                logger.debug(f'Creating tunnel: {command}')
+                channel.send(command)
+
+                try:
+                    return wait_for(
+                        check_ncat_startup,
+                        func_args=[pre_ncat_procs],
+                        fail_condition=None,
+                        timeout=5,
+                        delay=0.5,
+                    )[0]
+                except TimedOutError as e:
+                    err = channel.get_exit_signal()
+                    logger.debug(f'Tunnel failed: {err}')
+                    # Something failed, so raise an exception.
+                    raise CapsuleTunnelError(f'Starting ncat failed: {err}') from e
+
+        ncat_pid = start_ncat()
+        try:
             forward_url = f'https://{self.hostname}:{newport}'
             logger.debug(f'Yielding capsule forward port url: {forward_url}')
-            try:
-                yield forward_url
-            finally:
-                logger.debug(f'Killing ncat pid: {ncat_pid}')
-                self.execute(f'kill {ncat_pid.pop()}')
+            yield forward_url
+        finally:
+            logger.debug(f'Killing ncat pid: {ncat_pid}')
+            self.execute(f'kill {ncat_pid.pop()}')
 
     def validate_pulp_filepath(
         self,
@@ -308,7 +328,7 @@ class SystemInfo:
     ):
         """Checks the existence of certain files in a pulp dir"""
         extension_query = ' -o '.join([f'-name "{file}"' for file in file_names])
-        result = self.execute(fr'find {dir_path}{org.name} -type f \( {extension_query} \)')
+        result = self.execute(rf'find {dir_path}{org.name} -type f \( {extension_query} \)')
         return result.stdout
 
 
@@ -348,6 +368,9 @@ class ProvisioningSetup:
             if host:
                 host[0].delete()
             assert not self.api.Host().search(query={'search': f'name={hostname}'})
+        # Workaround SAT-28381
+        assert self.execute('cat /dev/null > /var/lib/dhcpd/dhcpd.leases').status == 0
+        assert self.execute('systemctl restart dhcpd').status == 0
         # Workaround BZ: 2207698
         assert self.cli.Service.restart().status == 0
 

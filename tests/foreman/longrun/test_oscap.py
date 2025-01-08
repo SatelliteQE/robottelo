@@ -11,9 +11,9 @@
 :CaseImportance: High
 
 """
+
 from broker import Broker
 from fauxfactory import gen_string
-from nailgun import entities
 import pytest
 
 from robottelo.config import settings
@@ -42,7 +42,7 @@ def fetch_scap_and_profile_id(sat, scap_name, scap_profile):
     :param scap_name: Scap title
     :param scap_profile: Scap profile you want to select
 
-    :returns: scap_id and scap_profile_id
+    :return: scap_id and scap_profile_id
     """
 
     default_content = sat.cli.Scapcontent.info({'title': scap_name}, output_format='json')
@@ -68,15 +68,19 @@ def default_proxy(module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def lifecycle_env(module_org):
+def lifecycle_env(module_target_sat, module_org):
     """Create lifecycle environment"""
-    return entities.LifecycleEnvironment(organization=module_org, name=gen_string('alpha')).create()
+    return module_target_sat.api.LifecycleEnvironment(
+        organization=module_org, name=gen_string('alpha')
+    ).create()
 
 
 @pytest.fixture(scope='module')
-def content_view(module_org):
+def content_view(module_target_sat, module_org):
     """Create content view"""
-    return entities.ContentView(organization=module_org, name=gen_string('alpha')).create()
+    return module_target_sat.api.ContentView(
+        organization=module_org, name=gen_string('alpha')
+    ).create()
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -89,7 +93,7 @@ def activation_key(module_target_sat, module_org, lifecycle_env, content_view):
     ]
 
     for repo in repo_values:
-        activation_key = entities.ActivationKey(
+        activation_key = module_target_sat.api.ActivationKey(
             name=repo.get('akname'), environment=lifecycle_env, organization=module_org
         ).create()
         # Setup org for a custom repo for RHEL6, RHEL7 and RHEL8.
@@ -252,7 +256,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
 
     :expectedresults: REX job should be success and ARF report should be sent to satellite
 
-    :BZ: 1814988
+    :verifies: SAT-19505
     """
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')

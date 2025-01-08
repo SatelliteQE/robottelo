@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from calendar import monthrange
 from datetime import datetime, timedelta
 from time import sleep
@@ -343,7 +344,7 @@ class TestRemoteExecution:
         """
         client = rex_contenthost
         today = datetime.today()
-        hour = datetime.utcnow().hour
+        hour = datetime.now().hour
         last_day_of_month = monthrange(today.year, today.month)[1]
         days_to = (2 - today.weekday()) % 7
         # cronline uses https://github.com/floraison/fugit

@@ -9,6 +9,7 @@
 :CaseAutomation: Automated
 
 """
+
 import re
 
 from fauxfactory import gen_choice, gen_ipaddr, gen_mac, gen_string
@@ -27,7 +28,7 @@ class HostNotDiscoveredException(Exception):
 def _read_log(ch, pattern):
     """Read the first line from the given channel buffer and return the matching line"""
     # read lines until the buffer is empty
-    for log_line in ch.stdout().splitlines():
+    for log_line in ch.result.stdout.splitlines():
         logger.debug(f'foreman-tail: {log_line}')
         if re.search(pattern, log_line):
             return log_line
@@ -178,6 +179,7 @@ class TestDiscoveredHost:
         provisioning_host,
         provisioning_hostgroup,
         pxe_loader,
+        request,
     ):
         """Provision a pxe-based discovered host
 
@@ -213,9 +215,9 @@ class TestDiscoveredHost:
             host = discovered_host.update(['hostgroup', 'build', 'location', 'organization'])
             host = sat.api.Host().search(query={"search": f'name={host.name}'})[0]
             assert host
-            assert_discovered_host_provisioned(shell, module_provisioning_rhel_content.ksrepo)
-            sat.provisioning_cleanup(host.name)
-        provisioning_host.blank = True
+            shell.close()
+        assert_discovered_host_provisioned(shell, module_provisioning_rhel_content.ksrepo)
+        request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
 
     @pytest.mark.upgrade
     @pytest.mark.e2e
@@ -230,6 +232,7 @@ class TestDiscoveredHost:
         pxeless_discovery_host,
         module_provisioning_rhel_content,
         provisioning_hostgroup,
+        request,
     ):
         """Provision a pxe-less discovered hosts
 
@@ -262,9 +265,9 @@ class TestDiscoveredHost:
             host = discovered_host.update(['hostgroup', 'build', 'location', 'organization'])
             host = sat.api.Host().search(query={"search": f'name={host.name}'})[0]
             assert host
-            assert_discovered_host_provisioned(shell, module_provisioning_rhel_content.ksrepo)
-            sat.provisioning_cleanup(host.name)
-        pxeless_discovery_host.blank = True
+            shell.close()
+        assert_discovered_host_provisioned(shell, module_provisioning_rhel_content.ksrepo)
+        request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
 
     @pytest.mark.tier3
     def test_positive_auto_provision_pxe_host(
@@ -403,7 +406,7 @@ class TestDiscoveredHost:
         self,
         module_provisioning_rhel_content,
         module_discovery_sat,
-        provision_multiple_hosts,
+        provisioning_host,
         provisioning_hostgroup,
         pxe_loader,
     ):
@@ -413,33 +416,32 @@ class TestDiscoveredHost:
 
         :parametrized: yes
 
-        :setup: Provisioning should be configured and hosts should be discovered via PXE boot.
+        :Setup: Provisioning should be configured and hosts should be discovered via PXE boot.
 
         :steps: PUT /api/v2/discovered_hosts/reboot_all
 
         :expectedresults: All discovered hosst should be rebooted successfully
 
-        :CaseImportance: Medium
+        :verifies: SAT-23279
 
-        :BZ: 2264195
+        :CaseImportance: Medium
         """
         sat = module_discovery_sat.sat
-        for host in provision_multiple_hosts:
-            host.power_control(ensure=False)
-            mac = host._broker_args['provisioning_nic_mac_addr']
-            wait_for(
-                lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],  # noqa: B023
-                timeout=1500,
-                delay=20,
-            )
-            discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
-            discovered_host.hostgroup = provisioning_hostgroup
-            discovered_host.location = provisioning_hostgroup.location[0]
-            discovered_host.organization = provisioning_hostgroup.organization[0]
-            discovered_host.build = True
-        # Until BZ 2264195 is resolved, reboot_all is expected to fail
-        result = sat.api.DiscoveredHost().reboot_all()
-        assert 'Discovered hosts are rebooting now' in result['success_msg']
+        provisioning_host.power_control(ensure=False)
+        mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
+        wait_for(
+            lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
+            timeout=1500,
+            delay=20,
+        )
+
+        discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
+        discovered_host.hostgroup = provisioning_hostgroup
+        discovered_host.location = provisioning_hostgroup.location[0]
+        discovered_host.organization = provisioning_hostgroup.organization[0]
+        discovered_host.build = True
+        result = sat.api.DiscoveredHost(id=discovered_host.id).reboot_all()
+        assert 'Unable to perform reboot' not in result
 
 
 class TestFakeDiscoveryTests:

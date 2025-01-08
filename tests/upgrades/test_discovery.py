@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 import re
 
 from packaging.version import Version
@@ -27,7 +28,7 @@ class TestDiscoveryImage:
     """
 
     @pytest.mark.pre_upgrade
-    def test_pre_upgrade_fdi_version(self, target_sat, save_test_data, request):
+    def test_pre_upgrade_fdi_version(self, target_sat, save_test_data):
         """Test FDI version before upgrade.
 
         :id: preupgrade-8c94841c-6791-4af0-aa9c-e54c8d8b9a92
@@ -42,7 +43,7 @@ class TestDiscoveryImage:
         fdi_package = target_sat.execute('rpm -qa *foreman-discovery-image*').stdout
         # Note: The regular exp takes care of format digit.digit.digit or digit.digit.digit-digit in the output
         pre_upgrade_version = Version(re.search(r'\d+\.\d+\.\d+(-\d+)?', fdi_package).group())
-        save_test_data({'pre_upgrade_version': pre_upgrade_version})
+        save_test_data({'pre_upgrade_version': str(pre_upgrade_version)})
 
     @pytest.mark.post_upgrade(depend_on=test_pre_upgrade_fdi_version)
     def test_post_upgrade_fdi_version(self, target_sat, pre_upgrade_data):
@@ -59,5 +60,5 @@ class TestDiscoveryImage:
         fdi_package = target_sat.execute('rpm -qa *foreman-discovery-image*').stdout
         # Note: The regular exp takes care of format digit.digit.digit or digit.digit.digit-digit in the output
         post_upgrade_version = Version(re.search(r'\d+\.\d+\.\d+(-\d+)?', fdi_package).group())
-        assert post_upgrade_version >= pre_upgrade_version
+        assert post_upgrade_version >= Version(pre_upgrade_version)
         target_sat.unregister()

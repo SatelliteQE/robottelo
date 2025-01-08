@@ -11,6 +11,7 @@
 :CaseImportance: Low
 
 """
+
 from fauxfactory import gen_string
 import pytest
 
@@ -20,6 +21,7 @@ def module_puppet_class(session_puppet_enabled_sat):
     return session_puppet_enabled_sat.api.PuppetClass().create()
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_class):

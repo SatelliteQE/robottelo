@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
 import pytest
 
@@ -192,8 +193,8 @@ class TestAzureRMHostProvisioningTestCase:
             "script_uris": AZURERM_FILE_URI,
             "image_id": self.rhel7_ft_img,
         }
-
-        nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+        results = module_azurerm_cr.available_networks()['results']
+        nw_id = next((item for item in results if item['name'] == 'default'), None)['id']
         request.cls.interfaces_attributes = {
             "0": {
                 "compute_attributes": {
@@ -250,6 +251,7 @@ class TestAzureRMHostProvisioningTestCase:
 
     @pytest.mark.e2e
     @pytest.mark.upgrade
+    @pytest.mark.pit_server
     @pytest.mark.tier3
     @pytest.mark.parametrize('sat_azure', ['sat'], indirect=True)
     def test_positive_azurerm_host_provisioned(self, class_host_ft, azureclient_host):
@@ -341,8 +343,8 @@ class TestAzureRMUserDataProvisioning:
             "script_uris": AZURERM_FILE_URI,
             "image_id": self.rhel7_ud_img,
         }
-
-        nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+        results = module_azurerm_cr.available_networks()['results']
+        nw_id = next((item for item in results if item['name'] == 'default'), None)['id']
         request.cls.interfaces_attributes = {
             "0": {
                 "compute_attributes": {
@@ -493,8 +495,8 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
             "script_uris": AZURERM_FILE_URI,
             "image_id": AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
         }
-
-        nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+        results = module_azurerm_cr.available_networks()['results']
+        nw_id = next((item for item in results if item['name'] == 'default'), None)['id']
         request.cls.interfaces_attributes = {
             "0": {
                 "compute_attributes": {

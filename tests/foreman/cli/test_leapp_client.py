@@ -6,11 +6,12 @@
 
 :Team: Rocket
 
-:CaseImportance: High
+:CaseImportance: Critical
 
 :CaseAutomation: Automated
 
 """
+
 from broker import Broker
 from fauxfactory import gen_string
 import pytest
@@ -23,8 +24,8 @@ from robottelo.logging import logger
 synced_repos = pytest.StashKey[dict]
 
 RHEL7_VER = '7.9'
-RHEL8_VER = '8.9'
-RHEL9_VER = '9.3'
+RHEL8_VER = '8.10'
+RHEL9_VER = '9.5'
 
 RHEL_REPOS = {
     'rhel7_server': {
@@ -216,6 +217,7 @@ def precondition_check_upgrade_and_install_leapp_tool(custom_leapp_host):
         )
 
 
+@pytest.mark.e2e
 @pytest.mark.parametrize(
     'upgrade_path',
     [
@@ -296,6 +298,7 @@ def test_leapp_upgrade_rhel(
     assert new_ver == upgrade_path['target_version']
 
 
+@pytest.mark.e2e
 @pytest.mark.parametrize(
     'upgrade_path',
     [

@@ -11,6 +11,7 @@
 :CaseImportance: Critical
 
 """
+
 from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
@@ -298,7 +299,7 @@ class TestAnsibleCfgMgmt:
 
         # gather ansible facts by running ansible roles on the host
         host.play_ansible_roles()
-        if is_open('BZ:2216471'):
+        if is_open('SAT-18656'):
             wait_for(
                 lambda: len(rex_contenthost.nailgun_host.get_facts()) > 0,
                 timeout=30,
@@ -325,6 +326,7 @@ class TestAnsibleREX:
     """
 
     @pytest.mark.e2e
+    @pytest.mark.pit_client
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('[^6].*')
     def test_positive_ansible_job_on_host(
@@ -469,3 +471,289 @@ class TestAnsibleREX:
         assert result.succeeded == 2  # SELECTED_ROLE working on rhel8/rhel9 clients
         assert result.failed == 1  # SELECTED_ROLE failing  on rhel7 client
         assert result.status_label == 'failed'
+
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_match('[^6]')
+    def test_positive_ansible_localhost_job_on_host(
+        self, target_sat, module_org, module_location, module_ak_with_synced_repo, rhel_contenthost
+    ):
+        """Test successful execution of Ansible Job with "hosts: localhost" on host.
+
+        :id: c8dcdc54-cb98-4b24-bff9-049a6cc36acd
+
+        :steps:
+            1. Register a content host with satellite
+            2. Run the Ansible playbook with "hosts: localhost" on registered host
+            3. Check if the job is executed and verify job output
+
+        :expectedresults:
+            1. Ansible playbook with "hosts: localhost" job execution must be successful.
+
+        :BZ: 1982698
+
+        :customerscenario: true
+        """
+        playbook = '''
+            ---
+            - name: Simple Ansible Playbook for Localhost
+              hosts: localhost
+              gather_facts: no
+              tasks:
+              - name: Print a message
+                debug:
+                  msg: "Hello, localhost!"
+        '''
+        result = rhel_contenthost.register(
+            module_org, module_location, module_ak_with_synced_repo.name, target_sat
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+        template_id = (
+            target_sat.api.JobTemplate()
+            .search(query={'search': 'name="Ansible - Run playbook"'})[0]
+            .id
+        )
+        job = target_sat.api.JobInvocation().run(
+            synchronous=False,
+            data={
+                'job_template_id': template_id,
+                'targeting_type': 'static_query',
+                'search_query': f'name = {rhel_contenthost.hostname}',
+                'inputs': {'playbook': playbook},
+            },
+        )
+        target_sat.wait_for_tasks(
+            f'resource_type = JobInvocation and resource_id = {job["id"]}', poll_timeout=1000
+        )
+        result = target_sat.api.JobInvocation(id=job['id']).read()
+        assert result.pending == 0
+        assert result.succeeded == 1
+        assert result.status_label == 'succeeded'
+
+        result = target_sat.api.JobInvocation(id=job['id']).outputs()['outputs'][0]['output']
+        assert [i['output'] for i in result if '"msg": "Hello, localhost!"' in i['output']]
+        assert [i['output'] for i in result if i['output'] == 'Exit status: 0']
+
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    def test_positive_ansible_job_timeout_to_kill(
+        self, target_sat, module_org, module_location, module_ak_with_synced_repo, rhel_contenthost
+    ):
+        """when running ansible-playbook, timeout to kill/execution_timeout_interval setting
+            is honored for registered host
+
+        :id: a082f599-fbf7-4779-aa18-5139e2bce777
+
+        :steps:
+            1. Register a content host with satellite
+            2. Run Ansible playbook to pause execution for a while, along with
+                timeout to kill/execution_timeout_interval setting on the registered host
+            3. Verify job is terminated honoring timeout to kill setting and verify job output.
+
+        :expectedresults: Timeout to kill terminates the job if playbook doesn't finish in time
+
+        :BZ: 1931489
+
+        :customerscenario: true
+        """
+        playbook = '''
+            ---
+            - name: Sample Ansible Playbook to pause
+              hosts: all
+              gather_facts: no
+              tasks:
+              - name: Pause for 5 minutes
+                pause:
+                  minutes: 5
+        '''
+        result = rhel_contenthost.register(
+            module_org, module_location, module_ak_with_synced_repo.name, target_sat
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+        template_id = (
+            target_sat.api.JobTemplate()
+            .search(query={'search': 'name="Ansible - Run playbook"'})[0]
+            .id
+        )
+        # run ansible-playbook with execution_timeout_interval/timeout_to_kill
+        job = target_sat.api.JobInvocation().run(
+            synchronous=False,
+            data={
+                'job_template_id': template_id,
+                'targeting_type': 'static_query',
+                'search_query': f'name = {rhel_contenthost.hostname}',
+                'inputs': {'playbook': playbook},
+                'execution_timeout_interval': '30',
+            },
+        )
+        target_sat.wait_for_tasks(
+            f'resource_type = JobInvocation and resource_id = {job["id"]}',
+            poll_timeout=1000,
+            must_succeed=False,
+        )
+        result = target_sat.api.JobInvocation(id=job['id']).read()
+        assert result.pending == 0
+        assert result.failed == 1
+        assert result.status_label == 'failed'
+
+        result = target_sat.api.JobInvocation(id=job['id']).outputs()['outputs'][0]['output']
+        termination_msg = 'Timeout for execution passed, stopping the job'
+        assert [i['output'] for i in result if i['output'] == termination_msg]
+        assert [i['output'] for i in result if i['output'] == 'StandardError: Job execution failed']
+        assert [i['output'] for i in result if i['output'] == 'Exit status: 120']
+
+    @pytest.mark.tier2
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    def test_positive_ansible_job_privilege_escalation(
+        self,
+        target_sat,
+        rhel_contenthost,
+        module_org,
+        module_location,
+        module_ak_with_synced_repo,
+    ):
+        """Verify privilege escalation defined inside ansible playbook tasks is working
+        when executing the playbook via Ansible - Remote Execution
+
+        :id: 8c63fd1a-2121-4cce-9ec1-ae12817c9cc4
+
+        :steps:
+            1. Register a RHEL host to Satellite.
+            2. Setup a user on that host.
+            3. Create a playbook.
+            4. Set the SSH user to the created user, and unset the Effective user.
+            5. Run the playbook.
+
+        :expectedresults: In the playbook, created user is expected instead root user.
+
+        :BZ: 1955385
+
+        :customerscenario: true
+        """
+        playbook = '''
+            ---
+            - name: Test Play
+              hosts: all
+              gather_facts: false
+              tasks:
+                - name: Check current user
+                  command: bash -c "whoami"
+                  register: def_user
+                - debug:
+                    var: def_user.stdout
+                - name: Check become user
+                  command: bash -c "whoami"
+                  become: true
+                  become_user: testing
+                  register: bec_user
+                - debug:
+                    var: bec_user.stdout
+        '''
+        result = rhel_contenthost.register(
+            module_org, module_location, module_ak_with_synced_repo.name, target_sat
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        assert rhel_contenthost.execute('useradd testing').status == 0
+        pwd = rhel_contenthost.execute(
+            f'echo {settings.server.ssh_password} | passwd testing --stdin'
+        )
+        assert 'passwd: all authentication tokens updated successfully.' in pwd.stdout
+        template_id = (
+            target_sat.api.JobTemplate()
+            .search(query={'search': 'name="Ansible - Run playbook"'})[0]
+            .id
+        )
+        job = target_sat.api.JobInvocation().run(
+            synchronous=False,
+            data={
+                'job_category': 'Ansible Playbook',
+                'job_template_id': template_id,
+                'search_query': f'name = {rhel_contenthost.hostname}',
+                'targeting_type': 'static_query',
+                'inputs': {'playbook': playbook},
+            },
+        )
+        target_sat.wait_for_tasks(
+            f'resource_type = JobInvocation and resource_id = {job["id"]}',
+            poll_timeout=1000,
+        )
+
+        result = target_sat.api.JobInvocation(id=job['id']).read()
+        assert result.pending == 0
+        assert result.succeeded == 1
+        assert result.status_label == 'succeeded'
+
+        task = target_sat.wait_for_tasks(
+            f'resource_type = JobInvocation and resource_id = {job["id"]}',
+        )
+        assert '"def_user.stdout": "root"' in task[0].humanized['output']
+        assert '"bec_user.stdout": "testing"' in task[0].humanized['output']
+
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    def test_positive_ansible_job_with_nonexisting_module(
+        self, target_sat, module_org, module_location, module_ak_with_synced_repo, rhel_contenthost
+    ):
+        """Verify running ansible-playbook job with nonexisting_module, as a result the playbook fails,
+        and the Ansible REX job fails on Satellite as well.
+
+        :id: a082f599-fbf7-4779-aa18-5139e2bce888
+
+        :steps:
+            1. Register a content host with satellite
+            2. Run Ansible playbook with nonexisting_module
+            3. Verify playbook fails and the Ansible REX job fails on Satellite
+
+        :expectedresults: Satellite job fails with the error and non-zero exit status,
+            when using a playbook with the nonexisting_module module.
+
+        :BZ: 2107577, 2028112
+
+        :customerscenario: true
+        """
+        playbook = '''
+            ---
+            - name: Playbook with a failing task
+              hosts: localhost
+              gather_facts: no
+              tasks:
+              - name: Run a non-existing module
+                nonexisting_module: ""
+        '''
+        result = rhel_contenthost.register(
+            module_org, module_location, module_ak_with_synced_repo.name, target_sat
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+        template_id = (
+            target_sat.api.JobTemplate()
+            .search(query={'search': 'name="Ansible - Run playbook"'})[0]
+            .id
+        )
+        # run ansible-playbook with nonexisting_module
+        job = target_sat.api.JobInvocation().run(
+            synchronous=False,
+            data={
+                'job_template_id': template_id,
+                'targeting_type': 'static_query',
+                'search_query': f'name = {rhel_contenthost.hostname}',
+                'inputs': {'playbook': playbook},
+                'execution_timeout_interval': '30',
+            },
+        )
+        target_sat.wait_for_tasks(
+            f'resource_type = JobInvocation and resource_id = {job["id"]}',
+            poll_timeout=1000,
+            must_succeed=False,
+        )
+        result = target_sat.api.JobInvocation(id=job['id']).read()
+        assert result.pending == 0
+        assert result.failed == 1
+        assert result.status_label == 'failed'
+        result = target_sat.api.JobInvocation(id=job['id']).outputs()['outputs'][0]['output']
+        termination_msg = 'ERROR! couldn\'t resolve module/action \'nonexisting_module\''
+        assert [i['output'] for i in result if termination_msg in i['output']]
+        assert [i['output'] for i in result if i['output'] == 'StandardError: Job execution failed']
+        assert [i['output'] for i in result if i['output'] == 'Exit status: 4']

@@ -11,6 +11,7 @@
 :CaseImportance: Critical
 
 """
+
 import pytest
 import requests
 
@@ -1319,28 +1320,29 @@ def extract_help(filter='params'):
 
 def common_sat_install_assertions(satellite):
     sat_version = 'stream' if satellite.is_stream else satellite.version
-    assert settings.server.version.release == sat_version
+    if settings.server.version.source != 'nightly':
+        assert settings.server.version.release == sat_version
 
     # no errors/failures in journald
     result = satellite.execute(
         r'journalctl --quiet --no-pager --boot --priority err -u "dynflow-sidekiq*" -u "foreman-proxy" -u "foreman" -u "httpd" -u "postgresql" -u "pulpcore-api" -u "pulpcore-content" -u "pulpcore-worker*" -u "redis" -u "tomcat"'
     )
-    assert len(result.stdout) == 0
+    assert not result.stdout
     # no errors in /var/log/foreman/production.log
     result = satellite.execute(r'grep --context=100 -E "\[E\|" /var/log/foreman/production.log')
-    if not is_open('BZ:2247484'):
-        assert len(result.stdout) == 0
+    if not is_open('SAT-21086'):
+        assert not result.stdout
     # no errors/failures in /var/log/foreman-installer/satellite.log
     result = satellite.execute(
         r'grep "\[ERROR" --context=100 /var/log/foreman-installer/satellite.log'
     )
-    assert len(result.stdout) == 0
+    assert not result.stdout
     # no errors/failures in /var/log/httpd/*
     result = satellite.execute(r'grep -iR "error" /var/log/httpd/*')
-    assert len(result.stdout) == 0
+    assert not result.stdout
     # no errors/failures in /var/log/candlepin/*
     result = satellite.execute(r'grep -iR "error" /var/log/candlepin/*')
-    assert len(result.stdout) == 0
+    assert not result.stdout
 
     result = satellite.cli.Health.check()
     assert 'FAIL' not in result.stdout
@@ -1349,11 +1351,17 @@ def common_sat_install_assertions(satellite):
 def install_satellite(satellite, installer_args):
     # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
     satellite.register_to_cdn()
-    satellite.download_repofile(
-        product='satellite',
-        release=settings.server.version.release,
-        snap=settings.server.version.snap,
-    )
+    if settings.server.version.source == 'nightly':
+        satellite.create_custom_repos(
+            satellite_repo=settings.repos.satellite_repo,
+            satmaintenance_repo=settings.repos.satmaintenance_repo,
+        )
+    else:
+        satellite.download_repofile(
+            product='satellite',
+            release=settings.server.version.release,
+            snap=settings.server.version.snap,
+        )
     satellite.execute('dnf -y module enable satellite:el8 && dnf -y install satellite')
     # Configure Satellite firewall to open communication
     satellite.execute(
@@ -1373,8 +1381,9 @@ def sat_default_install(module_sat_ready_rhels):
         'scenario satellite',
         f'foreman-initial-admin-password {settings.server.admin_password}',
     ]
-    install_satellite(module_sat_ready_rhels[0], installer_args)
-    return module_sat_ready_rhels[0]
+    sat = module_sat_ready_rhels.pop()
+    install_satellite(sat, installer_args)
+    return sat
 
 
 @pytest.fixture(scope='module')
@@ -1386,14 +1395,16 @@ def sat_non_default_install(module_sat_ready_rhels):
         'foreman-rails-cache-store type:redis',
         'foreman-proxy-content-pulpcore-hide-guarded-distributions false',
     ]
-    install_satellite(module_sat_ready_rhels[1], installer_args)
-    return module_sat_ready_rhels[1]
+    sat = module_sat_ready_rhels.pop()
+    install_satellite(sat, installer_args)
+    return sat
 
 
 @pytest.mark.e2e
 @pytest.mark.tier1
 @pytest.mark.pit_server
-def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
+@pytest.mark.build_sanity
+def test_capsule_installation(pytestconfig, sat_default_install, cap_ready_rhel, default_org):
     """Run a basic Capsule installation
 
     :id: 64fa85b6-96e6-4fea-bea4-a30539d59e65
@@ -1411,13 +1422,24 @@ def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
 
     :CaseImportance: Critical
     """
+    # Setup Capsule Hostname for further sanity caspule testing
+    if 'build_sanity' in pytestconfig.option.markexpr:
+        settings.capsule.hostname = cap_ready_rhel.hostname
+        cap_ready_rhel._skip_context_checkin = True
+        pytest.capsule_sanity = True
     # Get Capsule repofile, and enable and download satellite-capsule
     cap_ready_rhel.register_to_cdn()
-    cap_ready_rhel.download_repofile(
-        product='capsule',
-        release=settings.server.version.release,
-        snap=settings.server.version.snap,
-    )
+    if settings.server.version.source == 'nightly':
+        cap_ready_rhel.create_custom_repos(
+            capsule_repo=settings.repos.capsule_repo,
+            satmaintenance_repo=settings.repos.satmaintenance_repo,
+        )
+    else:
+        cap_ready_rhel.download_repofile(
+            product='capsule',
+            release=settings.server.version.release,
+            snap=settings.server.version.snap,
+        )
     cap_ready_rhel.execute(
         'dnf -y module enable satellite-capsule:el8 && dnf -y install satellite-capsule'
     )
@@ -1451,6 +1473,10 @@ def test_capsule_installation(sat_default_install, cap_ready_rhel, default_org):
     # no errors/failures in /var/log/foreman-proxy/*
     result = cap_ready_rhel.execute(r'grep -iR "error" /var/log/foreman-proxy/*')
     assert len(result.stdout) == 0
+
+    # Enabling firewall
+    cap_ready_rhel.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
+    cap_ready_rhel.execute('firewall-cmd --runtime-to-permanent')
 
     result = cap_ready_rhel.cli.Health.check()
     assert 'FAIL' not in result.stdout

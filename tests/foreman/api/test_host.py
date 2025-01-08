@@ -15,6 +15,7 @@ http://theforeman.org/api/apidoc/v2/hosts.html
 :CaseImportance: High
 
 """
+
 import http
 
 from fauxfactory import gen_choice, gen_integer, gen_ipaddr, gen_mac, gen_string

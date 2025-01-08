@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
 import pytest
 
@@ -190,7 +191,10 @@ def test_negative_rename_sat_wrong_passwd(module_target_sat):
         f'satellite-change-hostname -y {new_hostname} -u {username} -p {password}'
     )
     assert result.status == 1
-    assert BAD_CREDS_MSG in result.stderr[1].decode()
+    assert BAD_CREDS_MSG in result.stderr
+    # assert no changes were made
+    hostname_result = module_target_sat.execute('hostname')
+    assert original_name == hostname_result.stdout.strip(), "Invalid hostame assigned"
 
 
 @pytest.mark.stubbed

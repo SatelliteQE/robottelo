@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from functools import partial
 from random import choice
 
@@ -56,6 +57,7 @@ def assert_created(options, hook):
 
 class TestWebhook:
     @pytest.mark.tier3
+    @pytest.mark.pit_server
     @pytest.mark.e2e
     def test_positive_end_to_end(self, webhook_factory, class_target_sat):
         """Test creation, list, update and removal of webhook

@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from random import choice, uniform
 
 import pytest
@@ -65,6 +66,7 @@ def module_domain(session_puppet_enabled_sat, module_host):
     return session_puppet_enabled_sat.api.Domain(id=module_host.domain.id).read()
 
 
+@pytest.mark.e2e
 @pytest.mark.tier2
 def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_classes, sc_params_list):
     """Perform end to end testing for smart class parameter component
@@ -166,7 +168,6 @@ def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_classes, 
 
 
 @pytest.mark.tier2
-@pytest.mark.skip_if_open("BZ:2015911")
 def test_positive_create_matcher_attribute_priority(
     session_puppet_enabled_sat,
     module_puppet_org,
@@ -262,7 +263,6 @@ def test_positive_create_matcher_attribute_priority(
 
 
 @pytest.mark.tier2
-@pytest.mark.skip_if_open("BZ:2015911")
 def test_positive_create_matcher_avoid_duplicate(
     session_puppet_enabled_sat,
     module_puppet_org,

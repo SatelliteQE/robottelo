@@ -39,6 +39,7 @@ Subcommands::
      update                        Update a host
 
 """
+
 from robottelo.cli.base import Base
 
 
@@ -69,6 +70,12 @@ class Host(Base):
     def ansible_roles_remove(cls, options=None):
         """Remove ansible roles"""
         cls.command_sub = 'ansible-roles remove'
+        return cls.execute(cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def ansible_roles_list(cls, options=None):
+        """Remove ansible list"""
+        cls.command_sub = 'ansible-roles list'
         return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod

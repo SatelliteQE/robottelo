@@ -11,6 +11,7 @@
 :CaseImportance: High
 
 """
+
 from fauxfactory import gen_string
 import pytest
 
@@ -341,8 +342,6 @@ def test_positive_add_and_remove_media(module_org, module_target_sat):
 
 
 @pytest.mark.tier2
-@pytest.mark.skip_if_open("BZ:1845860")
-@pytest.mark.skip_if_open("BZ:1886876")
 def test_positive_add_and_remove_templates(module_org, module_target_sat):
     """Add and remove provisioning templates to organization
 
@@ -653,7 +652,7 @@ def test_negative_update_name(new_name, module_org, module_target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_create_user_with_timezone(module_org, module_target_sat):
+def test_positive_create_user_with_timezone(module_target_sat):
     """Create and remove user with valid timezone in an organization
 
     :id: b9b92c00-ee99-4da2-84c5-0a576a862100
@@ -671,6 +670,12 @@ def test_positive_create_user_with_timezone(module_org, module_target_sat):
 
     :expectedresults: User created and removed successfully with valid timezone
     """
+    name = valid_org_names_list()[0]
+    label = valid_labels_list()[0]
+    desc = list(valid_data_list().values())[0]
+    org = module_target_sat.cli_factory.make_org(
+        {'name': name, 'label': label, 'description': desc}
+    )
     users_timezones = [
         'Pacific Time (US & Canada)',
         'International Date Line West',
@@ -680,10 +685,10 @@ def test_positive_create_user_with_timezone(module_org, module_target_sat):
     ]
     for timezone in users_timezones:
         user = module_target_sat.cli_factory.user({'timezone': timezone, 'admin': '1'})
-        module_target_sat.cli.Org.add_user({'name': module_org.name, 'user': user['login']})
-        org_info = module_target_sat.cli.Org.info({'name': module_org.name})
+        module_target_sat.cli.Org.add_user({'name': org.name, 'user': user['login']})
+        org_info = module_target_sat.cli.Org.info({'name': org.name})
         assert user['login'] in org_info['users']
         assert user['timezone'] == timezone
-        module_target_sat.cli.Org.remove_user({'id': module_org.id, 'user-id': user['id']})
-        org_info = module_target_sat.cli.Org.info({'name': module_org.name})
+        module_target_sat.cli.Org.remove_user({'id': org.id, 'user-id': user['id']})
+        org_info = module_target_sat.cli.Org.info({'name': org.name})
         assert user['login'] not in org_info['users']
