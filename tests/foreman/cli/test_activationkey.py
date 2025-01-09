@@ -1549,7 +1549,7 @@ def test_positive_invalid_release_version(module_sca_manifest_org, module_target
 
 # -------------------------- MULTI-CV SCENARIOS -------------------------
 def test_positive_create_ak_with_multi_cv_envs(session_multicv_sat, session_multicv_org):
-    """Verify that multi content view environment can assign during activation key creation
+    """Verify that multiple content view environments can be assigned during activation key creation
 
     :id: 263a6c90-88bf-4888-b1b9-172751a609f3
 
