@@ -814,7 +814,7 @@ def test_positive_add_docker_repo_ccv(session, module_org, module_target_sat):
 
 
 @pytest.mark.tier3
-def test_positive_add_host(session, module_org, rhel_contenthost, target_sat):
+def test_positive_add_host(session, module_org, rhel_contenthost, target_sat, module_promoted_cv, module_lce):
     """Test that hosts can be associated to Activation Keys
 
     :id: 886e9ea5-d917-40e0-a3b1-41254c4bf5bf
@@ -829,9 +829,8 @@ def test_positive_add_host(session, module_org, rhel_contenthost, target_sat):
     :parametrized: yes
     """
     ak = target_sat.api.ActivationKey(
-        environment=target_sat.api.LifecycleEnvironment(
-            name=constants.ENVIRONMENT, organization=module_org
-        ).search()[0],
+        content_view=module_promoted_cv,
+        environment=module_lce,
         organization=module_org,
     ).create()
     result = rhel_contenthost.register(module_org, None, ak.name, target_sat)
