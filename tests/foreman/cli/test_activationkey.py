@@ -1548,6 +1548,53 @@ def test_positive_invalid_release_version(module_sca_manifest_org, module_target
 
 
 # -------------------------- MULTI-CV SCENARIOS -------------------------
+def test_positive_create_ak_with_multi_cv_envs(session_multicv_sat, session_multicv_org):
+    """Verify that multi content view environment can assign during activation key creation
+
+    :id: 263a6c90-88bf-4888-b1b9-172751a609f3
+
+    :steps:
+        1. Create two lifecycle environments and two content views, publish/promote to respective lce
+        2. Create an activation key with created content view environments
+
+    :expectedresults: AK created successfully with Content View Environment
+
+    :CaseImportance: Medium
+
+    :Verifies: SAT-12474
+    """
+    # Create two lifecycle environments
+    lces_list = [
+        session_multicv_sat.api.LifecycleEnvironment(organization=session_multicv_org).create()
+        for i in range(2)
+    ]
+    lce1, lce2 = lces_list
+    # Create two content views
+    cvs_list = [
+        session_multicv_sat.api.ContentView(organization=session_multicv_org).create()
+        for i in range(2)
+    ]
+    for i in range(2):
+        cvs_list[i].publish()
+        cvs_list[i] = cvs_list[i].read()
+        cvs_list[i].version[0].promote(data={'environment_ids': lces_list[i].id})
+    cv1, cv2 = cvs_list
+
+    # Create an activation key with created content view environments
+    ak_name = gen_string('alpha')
+    cv_envs = f'{lce1.name}/{cv1.name},{lce2.name}/{cv2.name}'
+    ak = session_multicv_sat.cli.ActivationKey.create(
+        {
+            'organization-id': session_multicv_org.id,
+            'content-view-environments': cv_envs,
+            'name': ak_name,
+        }
+    )
+    assert ak['name'] == ak_name
+    assert ak['multi-content-view-environment'] == 'yes'
+    assert ak['content-view-environment-labels'] == cv_envs
+
+
 def test_positive_multi_cv_info(
     session_multicv_sat, session_multicv_org, session_multicv_default_ak
 ):
