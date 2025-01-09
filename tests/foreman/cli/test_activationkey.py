@@ -1557,7 +1557,7 @@ def test_positive_create_ak_with_multi_cv_envs(session_multicv_sat, session_mult
         1. Create two lifecycle environments and two content views, publish/promote to respective lce
         2. Create an activation key with created content view environments
 
-    :expectedresults: AK created successfully with Content View Environment
+    :expectedresults: AK created successfully with multiple content view environments
 
     :CaseImportance: Medium
 
