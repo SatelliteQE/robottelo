@@ -91,6 +91,14 @@ def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_rol
         f"sed -i '/test_crud/ s/pytest/$(PYTEST_COMMAND)/' {FAM_ROOT_DIR}/Makefile"
     )
 
+    # Edit inventory configurations
+    module_target_sat.execute(
+        f"sed -i '/url/ s#http.*#https://localhost#' {FAM_ROOT_DIR}/tests/inventory/*.foreman.yml {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
+    )
+    module_target_sat.execute(
+        f"sed -i '/inventory_use_container/ s#true#false#' {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
+    )
+
     # Upload manifest to test playbooks directory
     module_target_sat.put(str(module_sca_manifest.path), str(module_sca_manifest.name))
     module_target_sat.execute(
@@ -193,5 +201,21 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
     # Execute test_playbook
     result = module_target_sat.execute(
         f'NO_COLOR=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 make --directory {FAM_ROOT_DIR} livetest_{ansible_module} PYTHON_COMMAND="python3" PYTEST_COMMAND="pytest-3.11"'
+    )
+    assert result.status == 0, f"{result.status=}\n{result.stdout=}\n{result.stderr=}"
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize('ansible_module', ['inventory_plugin', 'inventory_plugin_ansible'])
+def test_positive_run_inventory(module_target_sat, setup_fam, ansible_module):
+    """Run FAM inventory on the Satellite
+
+    :id: 6160216d-c460-437c-b440-1d283efbac70
+
+    :expectedresults: All inventories run successfully
+    """
+    # Execute test_playbook
+    result = module_target_sat.execute(
+        f'cd {FAM_ROOT_DIR} && NO_COLOR=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest-3.11 tests/test_crud.py::test_inventory[{ansible_module}]'
     )
     assert result.status == 0, f"{result.status=}\n{result.stdout=}\n{result.stderr=}"
