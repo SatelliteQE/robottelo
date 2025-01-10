@@ -977,9 +977,8 @@ class TestAnsibleAAPIntegration:
         )
         host_info = sat.cli.Host.info({'id': host['id']})
         assert host_info['status']['build-status'] == 'Installed'
-        host_os = sat.api.OperatingSystem(
-            id=host_info['operating-system']['operating-system']['id']
-        ).read()
+        host_os_search = f'title="{host_info['operating-system']['operating-system']}"'
+        host_os = sat.api.OperatingSystem().search(query={'search': host_os_search})[0].read()
 
         # In the current infra environment we don't support, addressing hosts using FQDNs, falling back to IP.
         # Change the hostname of the host as we know it already.
