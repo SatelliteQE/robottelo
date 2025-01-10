@@ -277,16 +277,24 @@ def test_positive_set_default_http_proxy(
             {
                 'http_proxy.name': http_proxy_name,
                 'http_proxy.url': http_proxy_url,
-                'http_proxy.default_content_http_proxy': 'true',
+                'http_proxy.content_default_http_proxy': 'true',
                 'locations.resources.assigned': [module_location.name],
                 'organizations.resources.assigned': [module_org.name],
             }
         )
-        request.addfinalizer(
-            lambda: target_sat.api.HTTPProxy()
-            .search(query={'search': f'name={http_proxy_name}'})[0]
-            .delete()
-        )
+
+        # Teardown
+        @request.addfinalizer
+        def _finalize():
+            target_sat.api.HTTPProxy().search(query={'search': f'name={http_proxy_name}'})[
+                0
+            ].delete()
+            default_proxy = target_sat.api.Setting().search(
+                query={'search': 'name=content_default_http_proxy'}
+            )[0]
+            assert default_proxy.value != http_proxy_name
+            assert not default_proxy.value
+
         result = session.settings.read(f'name = {property_name}')
         assert result['table'][0]['Value'] == f'{http_proxy_name} ({http_proxy_url})'
 
