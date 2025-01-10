@@ -777,14 +777,11 @@ class TestCapsuleContentManagement:
 
         :BZ: 1463810, 2122780
         """
-        https_pub_url = f'https://{module_capsule_configured.ip_addr}/pub'
-        http_pub_url = f'http://{module_capsule_configured.ip_addr}/pub'
+        https_pub_url = f'https://{module_capsule_configured.hostname}/pub'
+        http_pub_url = f'http://{module_capsule_configured.hostname}/pub'
         for url in [http_pub_url, https_pub_url]:
             response = client.get(url, verify=False)
-
-            assert response.status_code == 200
-
-            # check that one of the files is in the content
+            assert response.ok
             assert b'katello-server-ca.crt' in response.content
 
     @pytest.mark.upgrade
