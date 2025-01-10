@@ -13,16 +13,18 @@ def session_auth_proxy(session_target_sat):
 @pytest.fixture
 def setup_http_proxy(request, module_manifest_org, target_sat):
     """Create a new HTTP proxy and set related settings based on proxy"""
-    content_proxy_value = target_sat.api.Setting().search(
+    content_proxy = target_sat.api.Setting().search(
         query={'search': 'name=content_default_http_proxy'}
     )[0]
-    general_proxy_value = target_sat.api.Setting().search(query={'search': 'name=http_proxy'})[0]
+    content_proxy_value = '' if content_proxy.value is None else content_proxy.value
+    general_proxy = target_sat.api.Setting().search(query={'search': 'name=http_proxy'})[0]
+    general_proxy_value = '' if general_proxy.value is None else general_proxy.value
 
     http_proxy = target_sat.api_factory.make_http_proxy(module_manifest_org, request.param)
     content_proxy = target_sat.api.Setting().search(
         query={'search': 'name=content_default_http_proxy'}
     )[0]
-    assert content_proxy.value == http_proxy.name
+    assert content_proxy.value == (http_proxy.name if request.param is not None else '')
 
     if request.param is not None:
         general_proxy = (
