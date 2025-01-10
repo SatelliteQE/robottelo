@@ -81,7 +81,7 @@ def enable_rhel_subscriptions(module_target_sat, module_els_sca_manifest_org, ve
         repo_names = ['rhel8_bos', 'rhel8_aps']
         minor = version[1:]
     else:
-        repo_names = ['rhel7']
+        repo_names = ['rhel7_els']
 
     rh_repos = []
     tasks = []
