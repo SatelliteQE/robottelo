@@ -19,6 +19,7 @@ import requests
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE, REPOS
+from robottelo.utils.issue_handlers import is_open
 
 
 def create_repo(sat, org, repo_url, ssl_cert=None):
@@ -254,7 +255,6 @@ def test_convert2rhel_oracle_with_pre_conversion_template_check(
 
     :Verifies: SAT-24654, SAT-24655
     """
-    target_os_name = 'Red Hat'
     major = version.split('.')[0]
     assert oracle.execute('yum -y update').status == 0
 
@@ -328,6 +328,8 @@ def test_convert2rhel_oracle_with_pre_conversion_template_check(
     assert host_content['facts']['conversions::success'] == 'true'
     convert2rhel_facts = json.loads(oracle.execute('cat /etc/rhsm/facts/convert2rhel.facts').stdout)
     assert convert2rhel_facts['conversions.env.CONVERT2RHEL_THROUGH_FOREMAN'] == '1'
+    # https://issues.redhat.com/browse/RHELC-1737
+    target_os_name = 'Oracle Linux Server' if is_open('RHELC-1737') else 'Red Hat'
     assert target_os_name in convert2rhel_facts['conversions.target_os.name']
     assert convert2rhel_facts['conversions.success'] is True
 
@@ -353,7 +355,6 @@ def test_convert2rhel_centos_with_pre_conversion_template_check(
 
     :Verifies: SAT-24654, SAT-24655
     """
-    target_os_name = 'Red Hat'
     host_content = module_target_sat.api.Host(id=centos.hostname).read_json()
     major = version.split('.')[0]
     assert host_content['operatingsystem_name'] == f'CentOS {major}'
@@ -422,5 +423,7 @@ def test_convert2rhel_centos_with_pre_conversion_template_check(
     assert host_content['facts']['conversions::success'] == 'true'
     convert2rhel_facts = json.loads(centos.execute('cat /etc/rhsm/facts/convert2rhel.facts').stdout)
     assert convert2rhel_facts['conversions.env.CONVERT2RHEL_THROUGH_FOREMAN'] == '1'
+    # https://issues.redhat.com/browse/RHELC-1737
+    target_os_name = 'CentOS Linux' if is_open('RHELC-1737') else 'Red Hat'
     assert target_os_name in convert2rhel_facts['conversions.target_os.name']
     assert convert2rhel_facts['conversions.success'] is True
