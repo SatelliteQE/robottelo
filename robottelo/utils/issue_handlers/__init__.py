@@ -3,7 +3,7 @@ import re
 # Methods related to issue handlers in general
 from robottelo.utils.issue_handlers import bugzilla, jira
 
-handler_methods = {'BZ': bugzilla.is_open_bz, 'SAT': jira.is_open_jira}
+handler_methods = {'BZ': bugzilla.is_open_bz, 'SAT': jira.is_open_jira, 'RHELC': jira.is_open_jira}
 SUPPORTED_HANDLERS = tuple(f"{handler}" for handler in handler_methods)
 
 
