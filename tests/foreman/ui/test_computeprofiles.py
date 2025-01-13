@@ -37,8 +37,7 @@ def test_positive_end_to_end(session, module_location, module_org, module_target
         session.computeprofile.create({'name': name})
 
         assert module_target_sat.api.ComputeProfile().search(query={'search': f'name={name}'}), (
-            f'Compute profile {name} expected to exist, but is not included in the search '
-            'results'
+            f'Compute profile {name} expected to exist, but is not included in the search results'
         )
         compute_resource_list = session.computeprofile.list_resources(name)
         assert f'{compute_resource.name} (Libvirt)' in [

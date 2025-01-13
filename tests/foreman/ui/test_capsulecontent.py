@@ -112,22 +112,22 @@ def test_positive_content_counts_for_mixed_cv(
 
         for lce in lces:
             assert cv.name in details['content'][lce], 'Assigned CV not listed'
-            assert (
-                'N/A' in details['content'][lce]['top_row_content']['Last sync']
-            ), 'LCE should be marked as unsynced'
+            assert 'N/A' in details['content'][lce]['top_row_content']['Last sync'], (
+                'LCE should be marked as unsynced'
+            )
 
             assert (
                 details['content'][lce][cv.name]['mid_row_content']['Version']
                 == f'Version {cvv.version}'
             ), 'CV version does not match'
-            assert not details['content'][lce][cv.name]['mid_row_content'][
-                'Synced'
-            ], 'CV should not be marked as synced'
+            assert not details['content'][lce][cv.name]['mid_row_content']['Synced'], (
+                'CV should not be marked as synced'
+            )
 
             repos_details = details['content'][lce][cv.name]['expanded_repo_details'][1:]
-            assert all(
-                [repo[1] == repo[2] == 'N/A' for repo in repos_details]
-            ), 'Expected all content counts as N/A'
+            assert all([repo[1] == repo[2] == 'N/A' for repo in repos_details]), (
+                'Expected all content counts as N/A'
+            )
 
             if lce == 'Library':
                 # Library should contain the Default Org View too
@@ -137,14 +137,14 @@ def test_positive_content_counts_for_mixed_cv(
                     details['content'][lce][DEFAULT_CV]['mid_row_content']['Version']
                     == 'Version 1.0'
                 ), 'CV version does not match'
-                assert not details['content'][lce][DEFAULT_CV]['mid_row_content'][
-                    'Synced'
-                ], 'CV should not be marked as synced'
+                assert not details['content'][lce][DEFAULT_CV]['mid_row_content']['Synced'], (
+                    'CV should not be marked as synced'
+                )
 
                 repos_details = details['content'][lce][DEFAULT_CV]['expanded_repo_details'][1:]
-                assert all(
-                    [repo[1] == repo[2] == 'N/A' for repo in repos_details]
-                ), 'Expected all content counts as N/A'
+                assert all([repo[1] == repo[2] == 'N/A' for repo in repos_details]), (
+                    'Expected all content counts as N/A'
+                )
 
         # Sync the Capsule and get the content counts again.
         session.capsule.optimized_sync(module_capsule_configured.hostname)
@@ -163,38 +163,38 @@ def test_positive_content_counts_for_mixed_cv(
         # Get the content counts from Satellite side and compare them with Capsule.
         sat_repos = [target_sat.api.Repository(id=repo.id).read() for repo in cvv.repository]
         for lce in lces:
-            assert (
-                'ago' in details['content'][lce]['top_row_content']['Last sync']
-            ), 'LCE should be marked as synced'
-            assert details['content'][lce][cv.name]['mid_row_content'][
-                'Synced'
-            ], 'CV should be marked as synced'
+            assert 'ago' in details['content'][lce]['top_row_content']['Last sync'], (
+                'LCE should be marked as synced'
+            )
+            assert details['content'][lce][cv.name]['mid_row_content']['Synced'], (
+                'CV should be marked as synced'
+            )
             repos_details = details['content'][lce][cv.name]['expanded_repo_details'][1:]
 
             for s_repo in sat_repos:
                 c_repo = next(r for r in repos_details if r[0] == s_repo.name)
                 assert c_repo, 'Repository not listed'
                 if s_repo.content_type == 'yum':
-                    assert (
-                        f'{s_repo.content_counts["rpm"]} Packages' in c_repo
-                    ), 'RPMs count does not match'
-                    assert (
-                        f'{s_repo.content_counts["erratum"]} Errata' in c_repo
-                    ), 'Errata count does not match'
-                    assert (
-                        f'{s_repo.content_counts["package_group"]} Package groups' in c_repo
-                    ), 'Package groups count does not match'
-                    assert (
-                        f'{s_repo.content_counts["module_stream"]} Module streams' in c_repo
-                    ), 'Module streams count does not match'
+                    assert f'{s_repo.content_counts["rpm"]} Packages' in c_repo, (
+                        'RPMs count does not match'
+                    )
+                    assert f'{s_repo.content_counts["erratum"]} Errata' in c_repo, (
+                        'Errata count does not match'
+                    )
+                    assert f'{s_repo.content_counts["package_group"]} Package groups' in c_repo, (
+                        'Package groups count does not match'
+                    )
+                    assert f'{s_repo.content_counts["module_stream"]} Module streams' in c_repo, (
+                        'Module streams count does not match'
+                    )
                 elif s_repo.content_type == 'file':
-                    assert (
-                        f'{s_repo.content_counts["file"]} Files' in c_repo
-                    ), 'Files count does not match'
+                    assert f'{s_repo.content_counts["file"]} Files' in c_repo, (
+                        'Files count does not match'
+                    )
                 elif s_repo.content_type == 'docker':
-                    assert (
-                        f'{s_repo.content_counts["docker_tag"]} Container tags' in c_repo
-                    ), 'Container tags count does not match'
+                    assert f'{s_repo.content_counts["docker_tag"]} Container tags' in c_repo, (
+                        'Container tags count does not match'
+                    )
                     assert (
                         f'{s_repo.content_counts["docker_manifest"]} Container manifests' in c_repo
                     ), 'Container manifests count does not match'

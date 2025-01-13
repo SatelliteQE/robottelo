@@ -1556,9 +1556,9 @@ class TestCapsuleContentManagement:
         host = module_target_sat.api.Host().search(
             query={'search': f'name="{rhel_contenthost.hostname}"'}
         )[0]
-        assert (
-            nc.id == host.content_facet_attributes['content_source_id']
-        ), 'Expected to see the Capsule as the content source'
+        assert nc.id == host.content_facet_attributes['content_source_id'], (
+            'Expected to see the Capsule as the content source'
+        )
 
         result = rhel_contenthost.execute('dnf repolist')
         assert result.status == 0
@@ -1757,9 +1757,9 @@ class TestCapsuleContentManagement:
         # Every "environment repo" (the one promoted to an LCE and synced to the Capsule)
         # is shown in the content_counts, so we get N-times more for every shared lce.
         shared_lces = {env.id for env in cvv.environment} & {env['id'] for env in capsule_lces}
-        assert len(caps_counts['repositories']) == len(cvv.repository) * len(
-            shared_lces
-        ), 'Repositories count does not match.'
+        assert len(caps_counts['repositories']) == len(cvv.repository) * len(shared_lces), (
+            'Repositories count does not match.'
+        )
 
         # Read the environment repos from Satellite side and compare the counts with Capsule.
         sat_repos = [
@@ -1812,9 +1812,9 @@ class TestCapsuleContentManagement:
         assert 'success' in task['result']
 
         counts = module_capsule_configured.nailgun_capsule.content_counts()
-        assert (
-            counts is None or len(counts['content_view_versions']) == 0
-        ), f"No content counts expected, but got:\n{counts['content_view_versions']}."
+        assert counts is None or len(counts['content_view_versions']) == 0, (
+            f"No content counts expected, but got:\n{counts['content_view_versions']}."
+        )
 
     @pytest.mark.parametrize('module_autosync_setting', [True], indirect=True)
     @pytest.mark.parametrize(
@@ -2017,9 +2017,9 @@ class TestCapsuleContentManagement:
         # Trigger the reclaim space task via API, check it succeeds
         task = module_capsule_configured.nailgun_capsule.content_reclaim_space()
         assert task, 'No task was created for reclaim space.'
-        assert (
-            'Actions::Pulp3::CapsuleContent::ReclaimSpace' in task['label']
-        ), 'Unexpected task triggered'
+        assert 'Actions::Pulp3::CapsuleContent::ReclaimSpace' in task['label'], (
+            'Unexpected task triggered'
+        )
         assert 'success' in task['result'], 'Reclaim task did not succeed'
 
         # Check the apidoc references the correct endpoint

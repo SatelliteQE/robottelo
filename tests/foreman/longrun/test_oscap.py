@@ -393,9 +393,9 @@ def test_positive_oscap_remediation(
 
     # Remediate
     with target_sat.ui_session() as session:
-        assert (
-            contenthost.execute('rpm -q aide').status != 0
-        ), 'This test expects package "aide" NOT to be installed but it is. If this fails, it\'s probably a matter of wrong assumption of this test, not a product bug.'
+        assert contenthost.execute('rpm -q aide').status != 0, (
+            'This test expects package "aide" NOT to be installed but it is. If this fails, it\'s probably a matter of wrong assumption of this test, not a product bug.'
+        )
         title = 'xccdf_org.ssgproject.content_rule_package_aide_installed'
         session.organization.select(module_org.name)
         results = session.oscapreport.details(f'id={arf_id}', widget_names=['table'], limit=10)[
@@ -405,9 +405,9 @@ def test_positive_oscap_remediation(
         if title not in [result['Resource'] for result in results_failed]:
             results = session.oscapreport.details(f'id={arf_id}', widget_names=['table'])['table']
             results_failed = [result for result in results if result['Result'] == 'fail']
-        assert (
-            title in [result['Resource'] for result in results_failed]
-        ), 'This test expects the report to contain failure of "aide" package presence check. If this fails, it\'s probably a matter of wrong assumption of this test, not a product bug.'
+        assert title in [result['Resource'] for result in results_failed], (
+            'This test expects the report to contain failure of "aide" package presence check. If this fails, it\'s probably a matter of wrong assumption of this test, not a product bug.'
+        )
         session.oscapreport.remediate(f'id={arf_id}', title)
     wait_for(
         lambda: contenthost.execute("rpm -q aide").status == 0,

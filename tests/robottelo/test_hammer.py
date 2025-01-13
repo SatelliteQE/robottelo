@@ -278,8 +278,7 @@ class TestParseHelp:
                     'shortname': None,
                     'value': None,
                     'help': (
-                        'Set the current environment context for the request.'
-                        ' Name/Id can be used'
+                        'Set the current environment context for the request. Name/Id can be used'
                     ),
                 },
                 {
@@ -287,8 +286,7 @@ class TestParseHelp:
                     'shortname': None,
                     'value': None,
                     'help': (
-                        'Set the current environment context for the request.'
-                        ' Name/Id can be used'
+                        'Set the current environment context for the request. Name/Id can be used'
                     ),
                 },
             ],
