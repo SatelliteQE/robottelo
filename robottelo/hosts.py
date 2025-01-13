@@ -868,7 +868,10 @@ class ContentHost(Host, ContentHostMixins):
         cmd = f"echo -e 'proxy = {scheme}://{hostname}"
         if port:
             cmd += f':{port}'
-        cmd += "' >> /etc/dnf/dnf.conf"
+        if self.execute('test -f /etc/dnf/dnf.conf').status == 0:
+            cmd += "' >> /etc/dnf/dnf.conf"
+        else:
+            cmd += "' >> /etc/yum.conf"
         logger.info(f'Configuring {hostname} HTTP proxy for dnf.')
         self.execute(cmd)
 
