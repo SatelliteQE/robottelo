@@ -63,6 +63,7 @@ def shared_checkout(shared_name):
         sat_checkout.ready()
         sat_instance = bx_inst.from_inventory(
             filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
+<<<<<<< HEAD
             '@inv._broker_args.workflow == "deploy-satellite"'
         )
     return sat_instance[0]
@@ -86,6 +87,32 @@ def shared_cap_checkout(shared_name):
             '@inv._broker_args.workflow == "deploy-capsule"'
         )
     return cap_instance[0]
+=======
+                    '@inv._broker_args.workflow == "deploy-satellite"'
+        )[0]
+        sat_instance.setup()
+    return sat_instance
+>>>>>>> fac15c4b7 (Initial commit for capsule scenario conversion)
+
+def shared_cap_checkout(shared_name):
+    cap_inst = Broker(
+        workflow=settings.SERVER.deploy_workflows.capsule,
+        deploy_sat_version=settings.UPGRADE.FROM_VERSION,
+        host_class=Capsule,
+        upgrade_group=f'{shared_name}_shared_checkout',
+    )
+    with SharedResource(
+        resource_name=f'{shared_name}_cap_checkout',
+        action=cap_inst.checkout,
+        action_validator=lambda result: isinstance(result, Capsule),
+    ) as cap_checkout:
+        cap_checkout.ready()
+        cap_instance = cap_inst.from_inventory(
+            filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |' 
+                     '@inv._broker_args.workflow == "deploy-capsule"'
+        )[0]
+        cap_instance.setup()
+    return cap_instance
 
 
 def shared_checkin(sat_instance):
@@ -182,7 +209,7 @@ def perf_tuning_upgrade_shared_satellite():
         test_duration.ready()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture()
 def capsule_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.capsule_upgrades."""
     sat_instance = shared_checkout("capsule_upgrade")
@@ -193,7 +220,7 @@ def capsule_upgrade_shared_satellite():
         test_duration.ready()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture()
 def capsule_upgrade_shared_capsule():
     """Mark tests using this fixture with pytest.mark.capsule_upgrades."""
     cap_instance = shared_cap_checkout("capsule_upgrade")
@@ -204,7 +231,7 @@ def capsule_upgrade_shared_capsule():
         test_duration.ready()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture()
 def capsule_upgrade_integrated_sat_cap(
     capsule_upgrade_shared_satellite, capsule_upgrade_shared_capsule
 ):
