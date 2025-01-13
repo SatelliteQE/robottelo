@@ -8,7 +8,7 @@ from broker import Broker
 import pytest
 
 from robottelo.config import settings
-from robottelo.hosts import Satellite
+from robottelo.hosts import Capsule, Satellite
 from robottelo.utils.shared_resource import SharedResource
 
 pre_upgrade_failed_tests = []
@@ -60,10 +60,31 @@ def shared_checkout(shared_name):
     ) as sat_checkout:
         sat_checkout.ready()
         sat_instance = bx_inst.from_inventory(
-            filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout"'
+            filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
+                    '@inv._broker_args.workflow == "deploy-satellite"'
         )[0]
         sat_instance.setup()
     return sat_instance
+
+def shared_cap_checkout(shared_name):
+    cap_inst = Broker(
+        workflow=settings.SERVER.deploy_workflows.capsule,
+        deploy_sat_version=settings.UPGRADE.FROM_VERSION,
+        host_class=Capsule,
+        upgrade_group=f'{shared_name}_shared_checkout',
+    )
+    with SharedResource(
+        resource_name=f'{shared_name}_cap_checkout',
+        action=cap_inst.checkout,
+        action_validator=lambda result: isinstance(result, Capsule),
+    ) as cap_checkout:
+        cap_checkout.ready()
+        cap_instance = cap_inst.from_inventory(
+            filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |' 
+                     '@inv._broker_args.workflow == "deploy-capsule"'
+        )[0]
+        cap_instance.setup()
+    return cap_instance
 
 
 def shared_checkin(sat_instance):
@@ -121,4 +142,26 @@ def errata_upgrade_shared_satellite():
         sat_instance=sat_instance,
     ) as test_duration:
         yield sat_instance
+        test_duration.ready()
+
+
+@pytest.fixture
+def capsule_upgrade_shared_satellite():
+    """Mark tests using this fixture with pytest.mark.content_upgrades."""
+    sat_instance = shared_checkout("capsule_upgrade")
+    with SharedResource(
+        "capsule_upgrade_tests_satellite", shared_checkin, sat_instance=sat_instance
+    ) as test_duration:
+        yield sat_instance
+        test_duration.ready()
+        
+
+@pytest.fixture
+def capsule_upgrade_shared_capsule():
+    """Mark tests using this fixture with pytest.mark.content_upgrades."""
+    cap_instance = shared_cap_checkout("capsule_upgrade")
+    with SharedResource(
+        "capsule_upgrade_tests_capsule", shared_checkin, sat_instance=cap_instance
+    ) as test_duration:
+        yield cap_instance
         test_duration.ready()
