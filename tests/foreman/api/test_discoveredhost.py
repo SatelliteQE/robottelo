@@ -422,6 +422,8 @@ class TestDiscoveredHost:
 
         :expectedresults: All discovered hosst should be rebooted successfully
 
+        :BlockedBy: SAT-30395
+
         :verifies: SAT-23279
 
         :CaseImportance: Medium
