@@ -535,16 +535,16 @@ REPOS = {
         },
         'rhel9_bos': {
             'id': 'rhel-9-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.4',
-            'version': '9.4',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.5',
+            'version': '9.5',
             'reposet': REPOSET['kickstart']['rhel9'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
         'rhel9_aps': {
             'id': 'rhel-9-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.4',
-            'version': '9.4',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.5',
+            'version': '9.5',
             'reposet': REPOSET['kickstart']['rhel9_aps'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
@@ -1723,8 +1723,16 @@ WONTFIX_RESOLUTIONS = ("WONTFIX", "CANTFIX", "DEFERRED")
 # Jira statuses used by Robottelo issue handler.
 JIRA_TESTS_PASSED_LABEL = "tests-passed"
 JIRA_TESTS_FAILED_LABEL = "tests-failed"
-JIRA_OPEN_STATUSES = ("New", "Backlog", "Refinement", "To Do", "In Progress")
-JIRA_ONQA_STATUS = "Review"
+JIRA_OPEN_STATUSES = (
+    "New",
+    "Backlog",
+    "Refinement",
+    "To Do",
+    "In Progress",
+    "Review",
+    "Release Pending - Upstream",
+)
+JIRA_ONQA_STATUS = "Testing"
 JIRA_CLOSED_STATUSES = ("Release Pending", "Closed")
 JIRA_WONTFIX_RESOLUTIONS = "Obsolete"
 
