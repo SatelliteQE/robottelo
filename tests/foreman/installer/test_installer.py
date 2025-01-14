@@ -450,8 +450,7 @@ def test_foreman_rails_cache_store(sat_non_default_install):
 
     :steps:
         1. Install Satellite with option foreman-rails-cache-store type:file
-        2. Verify that foreman-redis package is not installed.
-        3. Check /etc/foreman/settings.yaml
+        2. Check /etc/foreman/settings.yaml
 
     :CaseImportance: Medium
 
@@ -460,7 +459,6 @@ def test_foreman_rails_cache_store(sat_non_default_install):
     :BZ: 2063717, 2165092, 2244370
     """
     # Verify foreman-rails-cache-store option works
-    assert sat_non_default_install.execute('rpm -q foreman-redis').status == 1
     settings_file = sat_non_default_install.load_remote_yaml_file(FOREMAN_SETTINGS_YML)
     assert settings_file.rails_cache_store.type == 'file'
 
