@@ -241,9 +241,8 @@ def module_flatpak_contenthost(request):
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         host.register_to_cdn()
-        for pkg in ['podman', 'flatpak', 'dbus-x11']:
-            res = host.execute(f'dnf -y install {pkg}')
-            assert res.status == 0, f'{pkg} installation failed: {res.stderr}'
+        res = host.execute('dnf -y install podman flatpak dbus-x11')
+        assert res.status == 0, f'Initial installation failed: {res.stderr}'
         host.unregister()
         yield host
 

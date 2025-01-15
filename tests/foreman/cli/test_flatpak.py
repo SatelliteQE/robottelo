@@ -316,7 +316,7 @@ def test_sync_consume_flatpak_repo_via_library(
     assert 'succeeded' in res['status']
     request.addfinalizer(lambda: host.execute(f'flatpak remote-delete {remote_name}'))
 
-    # 7. Install flatpak app from the repo via REX on the contenthost.
+    # 6. Install flatpak app from the repo via REX on the contenthost.
     res = host.execute('flatpak remotes')
     assert remote_name in res.stdout
 
