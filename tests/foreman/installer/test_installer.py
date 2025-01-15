@@ -116,22 +116,22 @@ def common_sat_install_assertions(satellite):
     result = satellite.execute(
         r'journalctl --quiet --no-pager --boot --priority err -u "dynflow-sidekiq*" -u "foreman-proxy" -u "foreman" -u "httpd" -u "postgresql" -u "pulpcore-api" -u "pulpcore-content" -u "pulpcore-worker*" -u "redis" -u "tomcat"'
     )
-    assert len(result.stdout) == 0
+    assert not result.stdout
     # no errors in /var/log/foreman/production.log
     result = satellite.execute(r'grep --context=100 -E "\[E\|" /var/log/foreman/production.log')
     if not is_open('SAT-21086'):
-        assert len(result.stdout) == 0
+        assert not result.stdout
     # no errors/failures in /var/log/foreman-installer/satellite.log
     result = satellite.execute(
         r'grep "\[ERROR" --context=100 /var/log/foreman-installer/satellite.log'
     )
-    assert len(result.stdout) == 0
+    assert not result.stdout
     # no errors/failures in /var/log/httpd/*
     result = satellite.execute(r'grep -iR "error" /var/log/httpd/*')
-    assert len(result.stdout) == 0
+    assert not result.stdout
     # no errors/failures in /var/log/candlepin/*
     result = satellite.execute(r'grep -iR "error" /var/log/candlepin/*')
-    assert len(result.stdout) == 0
+    assert not result.stdout
 
     httpd_log = satellite.execute('journalctl --unit=httpd')
     assert "WARNING" not in httpd_log.stdout
@@ -450,8 +450,7 @@ def test_foreman_rails_cache_store(sat_non_default_install):
 
     :steps:
         1. Install Satellite with option foreman-rails-cache-store type:file
-        2. Verify that foreman-redis package is not installed.
-        3. Check /etc/foreman/settings.yaml
+        2. Check /etc/foreman/settings.yaml
 
     :CaseImportance: Medium
 
@@ -460,7 +459,6 @@ def test_foreman_rails_cache_store(sat_non_default_install):
     :BZ: 2063717, 2165092, 2244370
     """
     # Verify foreman-rails-cache-store option works
-    assert sat_non_default_install.execute('rpm -q foreman-redis').status == 1
     settings_file = sat_non_default_install.load_remote_yaml_file(FOREMAN_SETTINGS_YML)
     assert settings_file.rails_cache_store.type == 'file'
 

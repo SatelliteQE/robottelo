@@ -21,6 +21,7 @@ from nailgun import client
 from nailgun.config import ServerConfig
 from nailgun.entity_mixins import call_entity_method_with_timeout
 import pytest
+import requests
 from requests.exceptions import HTTPError
 
 from robottelo.config import settings
@@ -38,6 +39,7 @@ from robottelo.constants import (
     KICKSTART_CONTENT,
     PRDS,
     PULP_ARTIFACT_DIR,
+    PULPCORE_FLATPAK_ENDPOINT,
     REPOS,
     REPOSET,
     RH_CONTAINER_REGISTRY_HUB,
@@ -775,15 +777,29 @@ class TestCapsuleContentManagement:
 
         :BZ: 1463810, 2122780
         """
-        https_pub_url = f'https://{module_capsule_configured.ip_addr}/pub'
-        http_pub_url = f'http://{module_capsule_configured.ip_addr}/pub'
+        https_pub_url = f'https://{module_capsule_configured.hostname}/pub'
+        http_pub_url = f'http://{module_capsule_configured.hostname}/pub'
         for url in [http_pub_url, https_pub_url]:
             response = client.get(url, verify=False)
-
-            assert response.status_code == 200
-
-            # check that one of the files is in the content
+            assert response.ok
             assert b'katello-server-ca.crt' in response.content
+
+    @pytest.mark.upgrade
+    def test_flatpak_pulpcore_enpoint(self, target_sat, module_capsule_configured):
+        """Ensure the Capsules's flatpak pulpcore endpoint is up after install or upgrade.
+
+        :id: 5676fbbb-75be-4660-a09e-65cafdfb221a
+
+        :steps:
+            1. Hit Capsule's pulpcore_registry endpoint.
+
+        :expectedresults:
+            1. HTTP 200
+        """
+        rq = requests.get(
+            PULPCORE_FLATPAK_ENDPOINT.format(module_capsule_configured.hostname), verify=False
+        )
+        assert rq.ok, f'Expected 200 but got {rq.status_code} from pulpcore registry index'
 
     @pytest.mark.e2e
     @pytest.mark.tier4

@@ -47,7 +47,7 @@ def invalid_sc_parameters_data():
         {'sc_type': 'real', 'value': gen_string('alpha')},
         {'sc_type': 'array', 'value': '0'},
         {'sc_type': 'hash', 'value': 'a:test'},
-        {'sc_type': 'yaml', 'value': '{a:test}'},
+        {'sc_type': 'yaml', 'value': '@test'},
         {'sc_type': 'json', 'value': gen_string('alpha')},
     ]
 

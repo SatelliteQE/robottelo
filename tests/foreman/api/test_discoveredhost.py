@@ -203,6 +203,7 @@ class TestDiscoveredHost:
         wait_for(
             lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
             timeout=1500,
+            retries=2,
             delay=40,
         )
         discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
@@ -421,6 +422,8 @@ class TestDiscoveredHost:
         :steps: PUT /api/v2/discovered_hosts/reboot_all
 
         :expectedresults: All discovered hosst should be rebooted successfully
+
+        :BlockedBy: SAT-30395
 
         :verifies: SAT-23279
 

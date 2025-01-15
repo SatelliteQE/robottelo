@@ -14,10 +14,8 @@
 
 import pytest
 
-from robottelo.config import settings
 
-
-@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.rhel_ver_match('N-1')
 def test_positive_upload_host_facts(
     module_target_sat,
     rhel_contenthost,
@@ -53,7 +51,7 @@ def test_positive_upload_host_facts(
         assert result.status == 0, f'Failed to register host: {result.stderr}'
 
         rhel_contenthost.execute('subscription-manager facts --update')
-        host_facts = session.host_new.get_host_facts(rhel_contenthost.hostname, fact='network')
+        host_facts = session.host_new.get_host_facts(rhel_contenthost.hostname, fact='fqdn')
         assert host_facts is not None
         assert rhel_contenthost.hostname in [
             var['Value'] for var in host_facts if var['Name'] == 'networkfqdn'

@@ -53,7 +53,15 @@ def _create_repository(module_target_sat, product, name=None, upstream_name=None
 @pytest.fixture
 def repo(module_product, module_target_sat):
     """Create a single repository."""
-    return _create_repository(module_target_sat, module_product)
+    repo = _create_repository(module_target_sat, module_product)
+    module_target_sat.wait_for_tasks(
+        search_query='Actions::Katello::Repository::MetadataGenerate'
+        f' and resource_id = {repo.id}'
+        ' and resource_type = Katello::Repository',
+        max_tries=6,
+        search_rate=10,
+    )
+    return repo
 
 
 @pytest.fixture
@@ -537,8 +545,8 @@ class TestDockerActivationKey:
             content_view=content_view, environment=module_lce, organization=module_org
         ).create()
         assert ak.content_view.id == content_view.id
-        ak.content_view = None
-        assert ak.update(['content_view']).content_view is None
+        ak.content_view_environments = None
+        assert ak.update(['content_view_environments']).content_view is None
 
     @pytest.mark.tier2
     def test_positive_add_docker_repo_ccv(
@@ -602,8 +610,8 @@ class TestDockerActivationKey:
             content_view=comp_content_view, environment=module_lce, organization=module_org
         ).create()
         assert ak.content_view.id == comp_content_view.id
-        ak.content_view = None
-        assert ak.update(['content_view']).content_view is None
+        ak.content_view_environments = None
+        assert ak.update(['content_view_environments']).content_view is None
 
 
 class TestPodman:

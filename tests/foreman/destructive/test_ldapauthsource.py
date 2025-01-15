@@ -42,6 +42,7 @@ def rh_sso_hammer_auth_setup(module_target_sat, default_sso_host, request):
     default_sso_host.update_client_configuration(client_config)
 
 
+@pytest.mark.pit_server
 def test_rhsso_login_using_hammer(
     module_target_sat,
     enable_external_auth_rhsso,
@@ -69,7 +70,10 @@ def test_rhsso_login_using_hammer(
     result = module_target_sat.cli.Auth.with_user(
         username=settings.rhsso.rhsso_user, password=settings.rhsso.rhsso_password
     ).status()
-    assert f"Session exists, currently logged in as '{settings.rhsso.rhsso_user}'." in result
+    assert (
+        f"Session exists, currently logged in as '{settings.rhsso.rhsso_user}'."
+        in result[0]['message']
+    )
     task_list = module_target_sat.cli.Task.with_user(
         username=settings.rhsso.rhsso_user, password=settings.rhsso.rhsso_password
     ).list()

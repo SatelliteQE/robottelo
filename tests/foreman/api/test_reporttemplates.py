@@ -359,7 +359,7 @@ def test_negative_create_report_without_name(module_target_sat):
 @pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.no_containers
 def test_positive_applied_errata(
-    function_org, function_location, function_lce, rhel_contenthost, target_sat
+    rhel_contenthost, target_sat, function_location, function_org, function_lce
 ):
     """Generate an Applied Errata report
 
@@ -375,20 +375,16 @@ def test_positive_applied_errata(
 
     :CaseImportance: Medium
     """
-    activation_key = target_sat.api.ActivationKey(
-        environment=function_lce, organization=function_org
-    ).create()
-    cv = target_sat.api.ContentView(organization=function_org).create()
+
     ERRATUM_ID = str(settings.repos.yum_6.errata[2])
-    target_sat.cli_factory.setup_org_for_a_custom_repo(
+    created_vals = target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_9.url,
             'organization-id': function_org.id,
-            'content-view-id': cv.id,
             'lifecycle-environment-id': function_lce.id,
-            'activationkey-id': activation_key.id,
         }
     )
+    activation_key = target_sat.api.ActivationKey(id=created_vals['activationkey-id']).read()
     result = rhel_contenthost.register(
         function_org, function_location, activation_key.name, target_sat
     )
@@ -435,7 +431,11 @@ def test_positive_applied_errata(
 @pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.no_containers
 def test_positive_applied_errata_report_with_invalid_errata(
-    function_org, function_location, function_lce, rhel_contenthost, target_sat
+    rhel_contenthost,
+    target_sat,
+    function_location,
+    function_org,
+    function_lce,
 ):
     """Generate an Applied Errata report after an invalid errata has been applied
 
@@ -454,19 +454,16 @@ def test_positive_applied_errata_report_with_invalid_errata(
 
     :customerscenario: true
     """
-    activation_key = target_sat.api.ActivationKey(
-        environment=function_lce, organization=function_org
-    ).create()
-    cv = target_sat.api.ContentView(organization=function_org).create()
-    target_sat.cli_factory.setup_org_for_a_custom_repo(
+
+    created_vals = target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_6.url,
             'organization-id': function_org.id,
-            'content-view-id': cv.id,
             'lifecycle-environment-id': function_lce.id,
-            'activationkey-id': activation_key.id,
         }
     )
+    activation_key = target_sat.api.ActivationKey(id=created_vals['activationkey-id']).read()
+
     result = rhel_contenthost.register(
         function_org, function_location, activation_key.name, target_sat
     )
@@ -511,7 +508,7 @@ def test_positive_applied_errata_report_with_invalid_errata(
 @pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.no_containers
 def test_positive_applied_errata_by_search(
-    function_org, function_lce, rhel_contenthost, target_sat
+    rhel_contenthost, target_sat, function_org, function_lce
 ):
     """Generate an Applied Errata report
 
@@ -527,20 +524,16 @@ def test_positive_applied_errata_by_search(
 
     :CaseImportance: Medium
     """
-    activation_key = target_sat.api.ActivationKey(
-        environment=function_lce, organization=function_org
-    ).create()
-    cv = target_sat.api.ContentView(organization=function_org).create()
+
     ERRATUM_ID = str(settings.repos.yum_6.errata[2])
-    target_sat.cli_factory.setup_org_for_a_custom_repo(
+    created_vals = target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_6.url,
             'organization-id': function_org.id,
-            'content-view-id': cv.id,
             'lifecycle-environment-id': function_lce.id,
-            'activationkey-id': activation_key.id,
         }
     )
+    activation_key = target_sat.api.ActivationKey(id=created_vals['activationkey-id']).read()
     errata_name = (
         target_sat.api.Errata()
         .search(query={'search': f'errata_id="{ERRATUM_ID}"'})[0]

@@ -189,7 +189,7 @@ VALIDATORS = dict(
         Validator('jira.comment_type', default="group"),
         Validator('jira.comment_visibility', default="Red Hat Employee"),
         Validator('jira.enable_comment', default=False),
-        Validator('jira.issue_status', default=["Review", "Release Pending"]),
+        Validator('jira.issue_status', default=["Testing", "Release Pending"]),
     ],
     ldap=[
         Validator(
@@ -321,6 +321,7 @@ VALIDATORS = dict(
         Validator('remotedb.port', default=5432),
     ],
     robottelo=[
+        Validator('robottelo.stage_docs_url', default='https://docs.redhat.com'),
         Validator('robottelo.settings.ignore_validation_errors', is_type_of=bool, default=False),
         Validator('robottelo.rhel_source', default='ga', is_in=['ga', 'internal']),
         Validator(

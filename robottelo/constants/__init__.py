@@ -271,6 +271,7 @@ PRDS = {
     'rhae': 'Red Hat Ansible Engine',
     'rhel8': 'Red Hat Enterprise Linux for x86_64',
     'rhel9': 'Red Hat Enterprise Linux for x86_64',
+    'rhel10_beta': 'Red Hat Enterprise Linux for x86_64 Beta',
 }
 
 REPOSET = {
@@ -280,8 +281,9 @@ REPOSET = {
     'rhva6': ('Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'),
     'rhs7': 'Red Hat Satellite 6.11 (for RHEL 7 Server) (RPMs)',
     'rhs8': 'Red Hat Satellite 6.13 for RHEL 8 x86_64 (RPMs)',
-    'rhsc7': 'Red Hat Satellite Capsule 6.11 (for RHEL 7 Server) (RPMs)',
-    'rhsc8': 'Red Hat Satellite Capsule 6.13 for RHEL 8 x86_64 (RPMs)',
+    'rhsc7': 'Red Hat Satellite Capsule 6.16 (for RHEL 7 Server) (RPMs)',
+    'rhsc8': 'Red Hat Satellite Capsule 6.16 for RHEL 8 x86_64 (RPMs)',
+    'rhsc9': 'Red Hat Satellite Capsule 6.16 for RHEL 9 x86_64 (RPMs)',
     'rhsc7_iso': 'Red Hat Satellite Capsule 6.4 (for RHEL 7 Server) (ISOs)',
     'rhsclient7': 'Red Hat Satellite Client 6 (for RHEL 7 Server) (RPMs)',
     'rhsclient8': 'Red Hat Satellite Client 6 for RHEL 8 x86_64 (RPMs)',
@@ -303,15 +305,41 @@ REPOSET = {
         'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (Kickstart)',
         'rhel9_bos': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS (Kickstart)',
         'rhel9_aps': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream (Kickstart)',
+        'rhel10_bos_beta': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Beta (Kickstart)',
+        'rhel10_aps_beta': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Beta (Kickstart)',
     },
     'rhel8_bos': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)',
     'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (RPMs)',
     'rhel9_bos': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS (RPMs)',
     'rhel9_aps': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream (RPMs)',
+    'rhel10_bos_beta': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Beta (RPMs)',
+    'rhel10_aps_beta': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Beta (RPMs)',
     'rhel7_extra': 'Red Hat Enterprise Linux 7 Server - Extras (RPMs)',
     'rhel7_optional': 'Red Hat Enterprise Linux 7 Server - Optional (RPMs)',
     'rhel7_sup': 'Red Hat Enterprise Linux 7 Server - Supplementary (RPMs)',
 }
+
+RECOMMENDED_REPOS = [
+    'rhel-9-for-x86_64-baseos-rpms',
+    'rhel-9-for-x86_64-appstream-rpms',
+    'rhel-9-for-x86_64-baseos-eus-rpms',  # 6.17+
+    'rhel-9-for-x86_64-appstream-eus-rpms',  # 6.17+
+    'rhel-8-for-x86_64-baseos-rpms',
+    'rhel-8-for-x86_64-appstream-rpms',
+    'rhel-8-for-x86_64-baseos-eus-rpms',
+    'rhel-8-for-x86_64-appstream-eus-rpms',
+    'satellite-client-6-for-rhel-9-x86_64-rpms',
+    'satellite-client-6-for-rhel-8-x86_64-rpms',
+]
+
+VERSIONED_REPOS = [
+    'satellite-capsule-{}-for-rhel-8-x86_64-rpms',
+    'satellite-maintenance-{}-for-rhel-8-x86_64-rpms',
+    'satellite-utils-{}-for-rhel-8-x86_64-rpms',
+    'satellite-capsule-{}-for-rhel-9-x86_64-rpms',  # 6.16+
+    'satellite-maintenance-{}-for-rhel-9-x86_64-rpms',  # 6.16+
+    'satellite-utils-{}-for-rhel-9-x86_64-rpms',  # 6.16+
+]
 
 SM_OVERALL_STATUS = {
     'current': 'Overall Status: Current',
@@ -367,22 +395,31 @@ REPOS = {
         'distro': 'rhel7',
         'key': 'rhs',
     },
+    'rhsc7': {
+        'id': 'rhel-7-server-satellite-capsule-6.16-rpms',
+        'name': ('Red Hat Satellite Capsule 6.16 for RHEL 7 Server RPMs x86_64'),
+        'version': '6.16',
+        'reposet': REPOSET['rhsc7'],
+        'product': PRDS['rhsc'],
+        'distro': 'rhel7',
+        'key': 'rhsc',
+    },
     'rhsc8': {
-        'id': 'satellite-capsule-6.13-for-rhel-8-x86_64-rpms',
-        'name': ('Red Hat Satellite Capsule 6.13 for RHEL 8 x86_64 RPMs'),
-        'version': '6.13',
+        'id': 'satellite-capsule-6.16-for-rhel-8-x86_64-rpms',
+        'name': ('Red Hat Satellite Capsule 6.16 for RHEL 8 x86_64 RPMs'),
+        'version': '6.16',
         'reposet': REPOSET['rhsc8'],
         'product': PRDS['rhsc'],
         'distro': 'rhel8',
         'key': 'rhsc',
     },
-    'rhsc7': {
-        'id': 'rhel-7-server-satellite-capsule-6.11-rpms',
-        'name': ('Red Hat Satellite Capsule 6.11 for RHEL 7 Server RPMs x86_64'),
-        'version': '6.11',
-        'reposet': REPOSET['rhsc7'],
+    'rhsc9': {
+        'id': 'satellite-capsule-6.16-for-rhel-9-x86_64-rpms',
+        'name': ('Red Hat Satellite Capsule 6.16 for RHEL 9 x86_64 RPMs'),
+        'version': '6.16',
+        'reposet': REPOSET['rhsc9'],
         'product': PRDS['rhsc'],
-        'distro': 'rhel7',
+        'distro': 'rhel9',
         'key': 'rhsc',
     },
     'rhsc7_iso': {
@@ -558,6 +595,22 @@ REPOS = {
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
+        'rhel10_bos_beta': {
+            'id': 'rhel-10-for-x86_64-baseos-beta-kickstart',
+            'name': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Beta Kickstart',
+            'version': '10',
+            'reposet': REPOSET['kickstart']['rhel10_bos_beta'],
+            'product': PRDS['rhel10_beta'],
+            'distro': 'rhel10',
+        },
+        'rhel10_aps_beta': {
+            'id': 'rhel-10-for-x86_64-appstream-beta-kickstart',
+            'name': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Beta Kickstart',
+            'version': '10',
+            'reposet': REPOSET['kickstart']['rhel10_aps_beta'],
+            'product': PRDS['rhel10_beta'],
+            'distro': 'rhel10',
+        },
     },
     'rhel8_bos': {
         'id': 'rhel-8-for-x86_64-baseos-rpms',
@@ -602,6 +655,28 @@ REPOS = {
         'product': PRDS['rhel9'],
         'distro': 'rhel9',
         'key': 'rhel9_aps',
+    },
+    'rhel10_bos_beta': {
+        'id': 'rhel-10-for-x86_64-baseos-beta-rpms',
+        'name': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Beta RPMs',
+        'releasever': '10',
+        'version': '10',
+        'reposet': REPOSET['rhel10_bos_beta'],
+        'product': PRDS['rhel10_beta'],
+        'distro': 'rhel10',
+        'key': 'rhel10_bos_beta',
+        'basearch': 'x86_64',
+    },
+    'rhel10_aps_beta': {
+        'id': 'rhel-10-for-x86_64-appstream-beta-rpms',
+        'name': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Beta RPMs',
+        'releasever': '10',
+        'basearch': 'x86_64',
+        'version': '10',
+        'reposet': REPOSET['rhel10_aps_beta'],
+        'product': PRDS['rhel10_beta'],
+        'distro': 'rhel10',
+        'key': 'rhel10_aps_beta',
     },
     'rhel7_optional': {
         'id': 'rhel-7-server-optional-rpms',
@@ -746,6 +821,23 @@ FLATPAK_REPO = {
 }
 LABELLED_REPOS = [BOOTABLE_REPO, FLATPAK_REPO]
 CONTAINER_MANIFEST_LABELS = {'annotations', 'labels', 'is_bootable', 'is_flatpak'}
+
+FLATPAK_REMOTES = {
+    'Fedora': {
+        'url': 'https://registry.fedoraproject.org',
+        'index_url': 'https://registry.fedoraproject.org/index/static?label:org.flatpak.ref:exists=1&tag=latest',
+        'authenticated': False,
+    },
+    'RedHat': {
+        'url': 'https://flatpaks.redhat.io/rhel/',
+        'index_url': 'https://flatpaks.redhat.io/rhel/index/static?label:org.flatpak.ref:exists=1&tag=latest',
+        'authenticated': True,
+    },
+}
+PULPCORE_FLATPAK_ENDPOINT = (
+    'https://{}/pulpcore_registry/index/static?label:org.flatpak.ref:exists=1'
+)
+
 CONTAINER_CLIENTS = ['docker', 'podman']
 CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/lib/pulp/imports/myrepo/test.txt'
@@ -1139,6 +1231,12 @@ PERMISSIONS = {
         'edit_alternate_content_sources',
         'destroy_alternate_content_sources',
         'view_alternate_content_sources',
+    ],
+    'Katello::FlatpakRemote': [
+        'view_flatpak_remotes',
+        'create_flatpak_remotes',
+        'edit_flatpak_remotes',
+        'destroy_flatpak_remotes',
     ],
     'KeyPair': ["view_keypairs", "destroy_keypairs"],
     'Location': [
@@ -1830,8 +1928,16 @@ WONTFIX_RESOLUTIONS = ("WONTFIX", "CANTFIX", "DEFERRED")
 # Jira statuses used by Robottelo issue handler.
 JIRA_TESTS_PASSED_LABEL = "tests-passed"
 JIRA_TESTS_FAILED_LABEL = "tests-failed"
-JIRA_OPEN_STATUSES = ("New", "Backlog", "Refinement", "To Do", "In Progress")
-JIRA_ONQA_STATUS = "Review"
+JIRA_OPEN_STATUSES = (
+    "New",
+    "Backlog",
+    "Refinement",
+    "To Do",
+    "In Progress",
+    "Review",
+    "Release Pending - Upstream",
+)
+JIRA_ONQA_STATUS = "Testing"
 JIRA_CLOSED_STATUSES = ("Release Pending", "Closed")
 JIRA_WONTFIX_RESOLUTIONS = "Obsolete"
 
