@@ -64,6 +64,7 @@ def shared_checkout(shared_name):
         sat_instance = bx_inst.from_inventory(
             filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
 <<<<<<< HEAD
+<<<<<<< HEAD
             '@inv._broker_args.workflow == "deploy-satellite"'
         )
     return sat_instance[0]
@@ -89,10 +90,14 @@ def shared_cap_checkout(shared_name):
     return cap_instance[0]
 =======
                     '@inv._broker_args.workflow == "deploy-satellite"'
+=======
+            '@inv._broker_args.workflow == "deploy-satellite"'
+>>>>>>> f69085ddd (Get capsule upgrade tests passing with shared resources)
         )[0]
         sat_instance.setup()
     return sat_instance
 >>>>>>> fac15c4b7 (Initial commit for capsule scenario conversion)
+
 
 def shared_cap_checkout(shared_name):
     cap_inst = Broker(
@@ -108,8 +113,8 @@ def shared_cap_checkout(shared_name):
     ) as cap_checkout:
         cap_checkout.ready()
         cap_instance = cap_inst.from_inventory(
-            filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |' 
-                     '@inv._broker_args.workflow == "deploy-capsule"'
+            filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
+            '@inv._broker_args.workflow == "deploy-capsule"'
         )[0]
         cap_instance.setup()
     return cap_instance
@@ -220,7 +225,11 @@ def capsule_upgrade_shared_satellite():
         test_duration.ready()
 
 
+<<<<<<< HEAD
 @pytest.fixture()
+=======
+@pytest.fixture(scope='module')
+>>>>>>> f69085ddd (Get capsule upgrade tests passing with shared resources)
 def capsule_upgrade_shared_capsule():
     """Mark tests using this fixture with pytest.mark.capsule_upgrades."""
     cap_instance = shared_cap_checkout("capsule_upgrade")
