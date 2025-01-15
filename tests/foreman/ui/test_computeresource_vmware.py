@@ -326,7 +326,7 @@ def test_positive_vmware_custom_profile_end_to_end(
     cpus = ['2', '4', '6']
     vm_memory = ['4000', '6000', '8000']
     annotation_notes = gen_string('alpha')
-    firmware_type = ['Automatic', 'BIOS', 'EFI']
+    firmware_type = ['Automatic', 'BIOS', 'UEFI']
     resource_pool = VMWARE_CONSTANTS['pool']
     folder = VMWARE_CONSTANTS['folder']
     virtual_hw_version = VMWARE_CONSTANTS['virtualhw_version']
