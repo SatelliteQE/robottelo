@@ -55,6 +55,7 @@ def test_rhel_pxe_discovery_provisioning(
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
         timeout=1500,
+        retries=2,
         delay=40,
     )
     discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
