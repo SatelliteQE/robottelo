@@ -328,7 +328,6 @@ def test_positive_delete_cv_promoted_to_multi_env(
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier2
 def test_cv_publish_warning(session, target_sat, function_sca_manifest_org, module_lce):
     """Verify that the publish warning banner accurately reflects the state of a given CV
 
@@ -342,6 +341,10 @@ def test_cv_publish_warning(session, target_sat, function_sca_manifest_org, modu
 
     :expectedresults: The publish warning banner accurately reflects the status of the CV
 
+    :Verifies: SAT-28271
+
+    :customerscenario: true
+
     :CaseImportance: High
     """
     rh_repo_id = target_sat.api_factory.enable_sync_redhat_repo(
@@ -352,8 +355,6 @@ def test_cv_publish_warning(session, target_sat, function_sca_manifest_org, modu
     cv = target_sat.api.ContentView(id=cv.id, repository=[rh_repo]).update(["repository"])
     with target_sat.ui_session() as session:
         session.organization.select(org_name=function_sca_manifest_org.name)
-        result = session.contentview_new.check_publish_banner(cv.name)
-        assert result
+        assert not session.contentview_new.check_publish_banner(cv.name)
         cv.publish()
-        result2 = session.contentview_new.check_publish_banner(cv.name)
-        assert not result2
+        assert session.contentview_new.check_publish_banner(cv.name)
