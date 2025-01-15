@@ -1102,9 +1102,7 @@ def test_positive_get_count_for_host(
         target=module_target_sat,
         loc=None,
     )
-    assert (
-        result.status == 0
-    ), f'Failed to register the host - {chost.hostname}: {result.stderr}'
+    assert result.status == 0, f'Failed to register the host - {chost.hostname}: {result.stderr}'
     assert chost.subscribed
     chost.execute(r'subscription-manager repos --enable \*')
     host = chost.nailgun_host.read()
@@ -1127,7 +1125,7 @@ def test_positive_get_count_for_host(
     assert result.status == 0, f'Failed to install package {FAKE_1_CUSTOM_PACKAGE}'
     _validate_errata_counts(host, errata_type='security', expected_value=1)
     # rh_repo outdated Puppet-agent
-    # TODO: Use REAL_RHEL 9 or 10 Packages 
+    # TODO: Use REAL_RHEL 9 or 10 Packages
     '''result = chost.execute(f'yum install -y {REAL_RHEL8_1_PACKAGE_FILENAME}')
     assert result.status == 0, f'Failed to install package {REAL_RHEL8_1_PACKAGE_FILENAME}'
     _validate_errata_counts(host, errata_type='security', expected_value=2)
@@ -1173,9 +1171,7 @@ def test_positive_get_applicable_for_host(
         org=org,
         loc=None,
     )
-    assert (
-        result.status == 0
-    ), f'Failed to register the host - {chost.hostname}: {result.stderr}'
+    assert result.status == 0, f'Failed to register the host - {chost.hostname}: {result.stderr}'
     assert chost.subscribed
     chost.execute(r'subscription-manager repos --enable \*')
     for errata in REPO_WITH_ERRATA['errata']:
@@ -1533,9 +1529,7 @@ def test_positive_incremental_update_apply_to_envs_cvs(
             'errata_ids': FAKE_9_YUM_SECURITY_ERRATUM,
         },
     )
-    assert (
-        response
-    ), f'Expected one incremental update, but found none, for host: {chost.hostname}.'
+    assert response, f'Expected one incremental update, but found none, for host: {chost.hostname}.'
     # find that only expected CV version has incremental update available
     assert (
         len(response) == 1
@@ -1588,13 +1582,9 @@ def test_positive_incremental_update_apply_to_envs_cvs(
     added_errata = response['output']['changed_content'][0]['added_units']['erratum']
     assert set(added_errata) == set(FAKE_9_YUM_SECURITY_ERRATUM)
     # applicable errata count increased by length of security ids list
-    assert chost.applicable_errata_count == host_app_errata + len(
-        FAKE_9_YUM_SECURITY_ERRATUM
-    )
+    assert chost.applicable_errata_count == host_app_errata + len(FAKE_9_YUM_SECURITY_ERRATUM)
     # newly added errata from incremental version are now applicable to host
-    post_app_errata_ids = errata_id_set(
-        _fetch_available_errata_instances(target_sat, chost)
-    )
+    post_app_errata_ids = errata_id_set(_fetch_available_errata_instances(target_sat, chost))
     assert set(FAKE_9_YUM_SECURITY_ERRATUM).issubset(post_app_errata_ids)
     # expected packages from the security erratum were added to host
     added_packages = response['output']['changed_content'][0]['added_units']['rpm']
@@ -1606,9 +1596,7 @@ def test_positive_incremental_update_apply_to_envs_cvs(
         assert chost.run(f'yum install -y {pkg}').status == 0
     chost.execute('subscription-manager repos')
     # security errata should not be applicable after installing updated packages
-    post_app_errata_ids = errata_id_set(
-        _fetch_available_errata_instances(target_sat, chost)
-    )
+    post_app_errata_ids = errata_id_set(_fetch_available_errata_instances(target_sat, chost))
     assert set(FAKE_9_YUM_SECURITY_ERRATUM).isdisjoint(post_app_errata_ids)
     assert chost.applicable_errata_count == 0
 
