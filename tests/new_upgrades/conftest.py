@@ -61,10 +61,11 @@ def shared_checkout(shared_name):
         sat_checkout.ready()
         sat_instance = bx_inst.from_inventory(
             filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
-                    '@inv._broker_args.workflow == "deploy-satellite"'
+            '@inv._broker_args.workflow == "deploy-satellite"'
         )[0]
         sat_instance.setup()
     return sat_instance
+
 
 def shared_cap_checkout(shared_name):
     cap_inst = Broker(
@@ -80,8 +81,8 @@ def shared_cap_checkout(shared_name):
     ) as cap_checkout:
         cap_checkout.ready()
         cap_instance = cap_inst.from_inventory(
-            filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |' 
-                     '@inv._broker_args.workflow == "deploy-capsule"'
+            filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
+            '@inv._broker_args.workflow == "deploy-capsule"'
         )[0]
         cap_instance.setup()
     return cap_instance
@@ -131,19 +132,21 @@ def search_upgrade_shared_satellite():
         yield sat_instance
         test_duration.ready()
 
-@pytest.fixture
+
+@pytest.fixture(scope='module')
 def capsule_upgrade_shared_satellite():
-    """Mark tests using this fixture with pytest.mark.content_upgrades."""
+    """Mark tests using this fixture with pytest.mark.capsule_upgrades."""
     sat_instance = shared_checkout("capsule_upgrade")
     with SharedResource(
         "capsule_upgrade_tests_satellite", shared_checkin, sat_instance=sat_instance
     ) as test_duration:
         yield sat_instance
         test_duration.ready()
-        
-@pytest.fixture
+
+
+@pytest.fixture(scope='module')
 def capsule_upgrade_shared_capsule():
-    """Mark tests using this fixture with pytest.mark.content_upgrades."""
+    """Mark tests using this fixture with pytest.mark.capsule_upgrades."""
     cap_instance = shared_cap_checkout("capsule_upgrade")
     with SharedResource(
         "capsule_upgrade_tests_capsule", shared_checkin, sat_instance=cap_instance
