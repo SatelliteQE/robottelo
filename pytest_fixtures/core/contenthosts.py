@@ -232,6 +232,21 @@ def module_container_contenthost(request, module_target_sat, module_org, module_
         yield host
 
 
+@pytest.fixture(scope='module')
+def module_flatpak_contenthost(request):
+    request.param = {
+        "rhel_version": "9",
+        "distro": "rhel",
+        "no_containers": True,
+    }
+    with Broker(**host_conf(request), host_class=ContentHost) as host:
+        host.register_to_cdn()
+        res = host.execute('dnf -y install podman flatpak dbus-x11')
+        assert res.status == 0, f'Initial installation failed: {res.stderr}'
+        host.unregister()
+        yield host
+
+
 @pytest.fixture
 def centos_host(request, version):
     request.param = {

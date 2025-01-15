@@ -208,7 +208,7 @@ def test_scan_flatpak_remote(target_sat, function_org, function_product, remote)
 
 
 @pytest.mark.upgrade
-def test_flatpak_pulpcore_enpoint(target_sat):
+def test_flatpak_pulpcore_endpoint(target_sat):
     """Ensure the Satellite's flatpak pulpcore endpoint is up after install or upgrade.
 
     :id: 3593ac46-4e5d-495e-95eb-d9609cb46a15
@@ -221,3 +221,123 @@ def test_flatpak_pulpcore_enpoint(target_sat):
     """
     rq = requests.get(PULPCORE_FLATPAK_ENDPOINT.format(target_sat.hostname), verify=False)
     assert rq.ok, f'Expected 200 but got {rq.status_code} from pulpcore registry index'
+
+
+@pytest.mark.e2e
+@pytest.mark.upgrade
+def test_sync_consume_flatpak_repo_via_library(
+    request, module_target_sat, module_flatpak_contenthost, function_org, function_product
+):
+    """Verify flatpak repository workflow end to end.
+
+    :id: 06043b3e-be9b-4444-96b1-d3d15b7e3d8c
+
+    :steps:
+        1. Create a flatpak remote and scan it.
+        2. Mirror a flatpak repository and sync it.
+        3. Create an AK assigned to the Library.
+        4. Register a content host using the AK.
+        5. Configure the contenthost via REX to use Satellite's flatpak index.
+        6. Install flatpak app from the repo via REX on the contenthost.
+        7. Ensure the app has been installed successfully.
+
+    :expectedresults:
+        1. Entire workflow works and allows user to install a flatpak app at the registered
+           contenthost.
+
+    """
+    sat, host = module_target_sat, module_flatpak_contenthost
+    # 1. Create a flatpak remote and scan it.
+    fr = sat.cli.FlatpakRemote().create(
+        {
+            'organization-id': function_org.id,
+            'url': FLATPAK_REMOTES['RedHat']['url'],
+            'name': gen_string('alpha'),
+            'username': settings.container_repo.registries.redhat.username,
+            'token': settings.container_repo.registries.redhat.password,
+        }
+    )
+    sat.cli.FlatpakRemote().scan({'id': fr['id']})
+    repos = sat.cli.FlatpakRemote().repository_list({'flatpak-remote-id': fr['id']})
+    assert len(repos), 'No repositories scanned'
+
+    # 2. Mirror a flatpak repository and sync it.
+    repo_names = ['rhel9/firefox-flatpak', 'rhel9/flatpak-runtime']  # runtime is dependency
+    remote_repos = [r for r in repos if r['name'] in repo_names]
+    for repo in remote_repos:
+        sat.cli.FlatpakRemote().repository_mirror(
+            {
+                'flatpak-remote-id': fr['id'],
+                'id': repo['id'],  # or by name
+                'product-id': function_product.id,
+            }
+        )
+        local_repo = sat.cli.Repository.list(
+            {'product-id': function_product.id, 'name': repo['name']}
+        )[0]
+        sat.cli.Repository.synchronize({'id': local_repo['id']})
+        assert 'latest' in sat.api.Repository(id=local_repo['id']).read().include_tags
+    local_repos = sat.cli.Repository.list({'product-id': function_product.id})
+    assert set([r['name'] for r in local_repos]) == set(repo_names)
+
+    # 3. Create an AK assigned to the Library.
+    ak_lib = sat.cli.ActivationKey.create(
+        {
+            'name': gen_string('alpha'),
+            'organization-id': function_org.id,
+            'lifecycle-environment': 'Library',
+            'content-view': 'Default Organization View',
+        }
+    )
+
+    # 4. Register a content host using the AK.
+    res = host.register(function_org, None, ak_lib['name'], sat, force=True)
+    assert res.status == 0, (
+        f'Failed to register host: {host.hostname}\n' f'StdOut: {res.stdout}\nStdErr: {res.stderr}'
+    )
+    assert host.subscribed
+
+    # 5. Configure the contenthost via REX to use Satellite's flatpak index.
+    remote_name = f'SAT-remote-{gen_string("alpha")}'
+    job = module_target_sat.cli_factory.job_invocation(
+        {
+            'organization': function_org.name,
+            'job-template': 'Set up Flatpak remote on host',
+            'inputs': (
+                f'Remote Name={remote_name}, '
+                f'Flatpak registry URL=https://{sat.hostname}/pulpcore_registry/, '
+                f'Username={settings.server.admin_username}, '
+                f'Password={settings.server.admin_password}'
+            ),
+            'search-query': f"name ~ {host.hostname}",
+        }
+    )
+    res = module_target_sat.cli.JobInvocation.info({'id': job.id})
+    assert 'succeeded' in res['status']
+    request.addfinalizer(lambda: host.execute(f'flatpak remote-delete {remote_name}'))
+
+    # 6. Install flatpak app from the repo via REX on the contenthost.
+    res = host.execute('flatpak remotes')
+    assert remote_name in res.stdout
+
+    app_name = 'Firefox'  # or 'org.mozilla.Firefox'
+    res = host.execute('flatpak remote-ls')
+    assert app_name in res.stdout
+
+    job = module_target_sat.cli_factory.job_invocation(
+        {
+            'organization': function_org.name,
+            'job-template': 'Install Flatpak application on host',
+            'inputs': f'Flatpak remote name={remote_name}, Application name={app_name}',
+            'search-query': f"name ~ {host.hostname}",
+        }
+    )
+    res = module_target_sat.cli.JobInvocation.info({'id': job.id})
+    assert 'succeeded' in res['status']
+    request.addfinalizer(
+        lambda: host.execute(f'flatpak uninstall {remote_name} {app_name} com.redhat.Platform -y')
+    )
+
+    # 7. Ensure the app has been installed successfully.
+    res = host.execute('flatpak list')
+    assert app_name in res.stdout
