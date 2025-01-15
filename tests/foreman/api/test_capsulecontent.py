@@ -785,7 +785,7 @@ class TestCapsuleContentManagement:
             assert b'katello-server-ca.crt' in response.content
 
     @pytest.mark.upgrade
-    def test_flatpak_pulpcore_enpoint(self, target_sat, module_capsule_configured):
+    def test_flatpak_pulpcore_endpoint(self, target_sat, module_capsule_configured):
         """Ensure the Capsules's flatpak pulpcore endpoint is up after install or upgrade.
 
         :id: 5676fbbb-75be-4660-a09e-65cafdfb221a

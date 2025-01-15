@@ -208,7 +208,7 @@ def test_scan_flatpak_remote(target_sat, function_org, function_product, remote)
 
 
 @pytest.mark.upgrade
-def test_flatpak_pulpcore_enpoint(target_sat):
+def test_flatpak_pulpcore_endpoint(target_sat):
     """Ensure the Satellite's flatpak pulpcore endpoint is up after install or upgrade.
 
     :id: 3593ac46-4e5d-495e-95eb-d9609cb46a15
