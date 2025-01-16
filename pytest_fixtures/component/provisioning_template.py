@@ -67,6 +67,9 @@ def module_sync_kickstart_content(
     rhel_ver = request.param['rhel_version']
     if int(rhel_ver) <= 7:
         repo_names.append(f'rhel{rhel_ver}')
+    # Using RHEL10 Beta repos until its GA
+    elif int(rhel_ver) == 10:
+        repo_names.append(f'rhel{rhel_ver}_bos_beta')
     else:
         repo_names.append(f'rhel{rhel_ver}_bos')
     for name in repo_names:
