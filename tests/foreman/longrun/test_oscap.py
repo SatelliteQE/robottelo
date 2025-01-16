@@ -28,21 +28,25 @@ from robottelo.hosts import ContentHostError
 from robottelo.logging import logger
 
 ak_name = {
+    'rhel10': f'ak_{gen_string("alpha")}_rhel10',
     'rhel9': f'ak_{gen_string("alpha")}_rhel9',
     'rhel8': f'ak_{gen_string("alpha")}_rhel8',
     'rhel7': f'ak_{gen_string("alpha")}_rhel7',
 }
 cv_name = {
+    'rhel10': f'cv_{gen_string("alpha")}_rhel10',
     'rhel9': f'cv_{gen_string("alpha")}_rhel9',
     'rhel8': f'cv_{gen_string("alpha")}_rhel8',
     'rhel7': f'cv_{gen_string("alpha")}_rhel7',
 }
 profiles = {
+    'rhel10': OSCAP_PROFILE['cbrhel10'],
     'rhel9': OSCAP_PROFILE['cbrhel9'],
     'rhel8': OSCAP_PROFILE['ospp8'],
     'rhel7': OSCAP_PROFILE['security7'],
 }
 rhel_repos = {
+    'rhel10': settings.repos.rhel10_os,
     'rhel9': settings.repos.rhel9_os,
     'rhel8': settings.repos.rhel8_os,
     'rhel7': settings.repos.rhel7_os,
