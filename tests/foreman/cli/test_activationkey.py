@@ -1595,10 +1595,11 @@ def test_positive_create_ak_with_multi_cv_envs(session_multicv_sat, session_mult
     assert ak['content-view-environment-labels'] == cv_envs
 
 
-def test_positive_multi_cv_info(
+def test_positive_multi_cv_info_and_remove_all_cv_envs(
     session_multicv_sat, session_multicv_org, session_multicv_default_ak
 ):
-    """Verify that multi content view environment details displays into hammer activation-key info commands output
+    """Verify that multi content view environment details displays into hammer activation-key info commands output, and
+     also remove all content view environments & verify output
 
     :id: 6a1c3189-74f9-4a54-8579-f3b045870cd9
 
@@ -1606,8 +1607,10 @@ def test_positive_multi_cv_info(
         1. Create two lifecycle environments and two content views, publish/promote to respective lce
         2. Create activation key and update ak with multiple content view environments
         3. Check that ak info displays 'Multi Content View Environment' and 'Content View Environments'
+        4. Remove all Content View Environments from activation key
 
-    :expectedresults: AK info displays 'Multi Content View Environment' and 'Content View Environments'
+    :expectedresults: AK info displays 'Multi Content View Environment' and 'Content View Environments', and after
+        removing 'Content View Environments' doesn't display in AK info.
 
     :CaseImportance: Medium
 
@@ -1650,3 +1653,16 @@ def test_positive_multi_cv_info(
     ak_info = session_multicv_sat.cli.ActivationKey.info({'id': ak.id})
     assert ak_info['multi-content-view-environment'] == 'yes'
     assert ak_info['content-view-environment-labels'] == cv_envs
+
+    # Remove all content view environments from the activation key
+    session_multicv_sat.cli.ActivationKey.update(
+        {
+            'id': ak.id,
+            'organization-id': session_multicv_org.id,
+            'content-view-environments': '',
+        }
+    )
+    # Verify ak info doesn't display any 'Content View Environments'
+    ak_info = session_multicv_sat.cli.ActivationKey.info({'id': ak.id})
+    assert ak_info['multi-content-view-environment'] == 'no'
+    assert ak_info['content-view-environment-labels'] == {}
