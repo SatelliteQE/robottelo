@@ -138,6 +138,27 @@ def module_gt_manifest_org(module_target_sat):
     return org
 
 
+@pytest.fixture
+def function_els_sca_manifest_org(function_org, function_sca_els_manifest, target_sat):
+    """Creates an organization and uploads an SCA mode manifest generated with manifester"""
+    target_sat.upload_manifest(function_org.id, function_sca_els_manifest.content)
+    return function_org
+
+
+@pytest.fixture(scope='module')
+def module_els_sca_manifest_org(module_org, module_sca_els_manifest, module_target_sat):
+    """Creates an organization and uploads an SCA mode manifest generated with manifester"""
+    module_target_sat.upload_manifest(module_org.id, module_sca_els_manifest.content)
+    return module_org
+
+
+@pytest.fixture(scope='class')
+def class_els_sca_manifest_org(class_org, class_sca_els_manifest, class_target_sat):
+    """Creates an organization and uploads an SCA mode manifest generated with manifester"""
+    class_target_sat.upload_manifest(class_org.id, class_sca_els_manifest.content)
+    return class_org
+
+
 # Note: Manifester should not be used with the Satellite QE RHSM account until
 # subscription needs are scoped and sufficient subscriptions added to the
 # Satellite QE RHSM account. Manifester can be safely used locally with personal
@@ -192,6 +213,30 @@ def second_function_sca_manifest():
     `manifest_category.golden_ticket` setting in conf/manifest.yaml.
     A different one than is used in `function_sca_manifest_org`."""
     with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
+        yield manifest
+
+
+@pytest.fixture(scope='module')
+def module_sca_els_manifest():
+    """Yields a manifest in Simple Content Access mode with subscriptions determined by the
+    `manifest_category.els_rhel_manifest` setting in conf/manifest.yaml."""
+    with Manifester(manifest_category=settings.manifest.els_rhel_manifest) as manifest:
+        yield manifest
+
+
+@pytest.fixture(scope='class')
+def class_sca_els_manifest():
+    """Yields a manifest in Simple Content Access mode with subscriptions determined by the
+    `manifest_category.els_rhel_manifest` setting in conf/manifest.yaml."""
+    with Manifester(manifest_category=settings.manifest.els_rhel_manifest) as manifest:
+        yield manifest
+
+
+@pytest.fixture
+def function_sca_els_manifest():
+    """Yields a manifest in Simple Content Access mode with subscriptions determined by the
+    `manifest_category.els_rhel_manifest` setting in conf/manifest.yaml."""
+    with Manifester(manifest_category=settings.manifest.els_rhel_manifest) as manifest:
         yield manifest
 
 
