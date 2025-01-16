@@ -226,7 +226,7 @@ class TestRemoteExecution:
     @pytest.mark.pit_client
     @pytest.mark.pit_server
     @pytest.mark.rhel_ver_list([7, 8, 9])
-    def test_positive_run_job_effective_user(self, rex_contenthost, module_target_sat):
+    def test_positive_run_job_effective_user(self, rex_contenthost, module_target_sat, module_org):
         """Run default job template as effective user on a host, test ssh user as well
 
         :id: 0cd75cab-f699-47e6-94d3-4477d2a94bb7
@@ -297,6 +297,37 @@ class TestRemoteExecution:
                     'effective-user': f'{username}',
                 }
             )
+        # negative check for effective user privilige on client
+        command = 'touch /root/test'
+        with pytest.raises(CLIFactoryError) as error:
+            invocation_command = module_target_sat.cli_factory.job_invocation(
+                {
+                    'job-template': 'Run Command - Script Default',
+                    'inputs': f"command={command}",
+                    'search-query': f"name ~ {client.hostname}",
+                    'ssh-user': f'{ssh_username}',
+                    'password': f'{ssh_password}',
+                    'effective-user': f'{username}',
+                    'effective-user-password': f'{password}',
+                }
+            )
+        assert 'A sub task failed' in error.value.args[0]
+        task = module_target_sat.cli.Task.list_tasks({'search': command})[0]
+        search = module_target_sat.cli.Task.list_tasks({'search': f'id={task["id"]}'})
+        assert search[0]['action'] == task['action']
+        job_id = [
+            job['id']
+            for job in module_target_sat.cli.JobInvocation.list()
+            if job['description'] == f'Run {command}'
+        ][0]
+        out = module_target_sat.cli.JobInvocation.get_output(
+            {
+                'id': job_id,
+                'host': client.hostname,
+                'organization-id': module_org.id,
+            }
+        )
+        assert 'Permission denied' in out
 
     @pytest.mark.tier3
     @pytest.mark.e2e
@@ -1265,6 +1296,35 @@ class TestPullProviderRex:
         )
         # assert the file is owned by the effective user
         assert username == result.stdout.strip('\n')
+
+        # negative check for effective user privilige on client
+        command = 'touch /root/test'
+        with pytest.raises(CLIFactoryError) as error:
+            invocation_command = module_target_sat.cli_factory.job_invocation(
+                {
+                    'job-template': 'Run Command - Script Default',
+                    'inputs': f"command={command}",
+                    'search-query': f"name ~ {rhel_contenthost.hostname}",
+                    'effective-user': f'{username}',
+                }
+            )
+        assert 'A sub task failed' in error.value.args[0]
+        task = module_target_sat.cli.Task.list_tasks({'search': command})[0]
+        search = module_target_sat.cli.Task.list_tasks({'search': f'id={task["id"]}'})
+        assert search[0]['action'] == task['action']
+        job_id = [
+            job['id']
+            for job in module_target_sat.cli.JobInvocation.list()
+            if job['description'] == f'Run {command}'
+        ][0]
+        out = module_target_sat.cli.JobInvocation.get_output(
+            {
+                'id': job_id,
+                'host': rhel_contenthost.hostname,
+                'organization-id': module_org.id,
+            }
+        )
+        assert 'Permission denied' in out
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
