@@ -466,11 +466,11 @@ class TestAnsibleREX:
         )
         target_sat.wait_for_tasks(
             f'resource_type = JobInvocation and resource_id = {job["id"]}',
-            poll_timeout=1000,
+            poll_timeout=1500,
             must_succeed=False,
         )
         result = target_sat.api.JobInvocation(id=job['id']).read()
-        assert result.succeeded == 2  # SELECTED_ROLE working on rhel8/rhel9 clients
+        assert result.succeeded == len(hosts) - 1  # SELECTED_ROLE working on rhel8/9/10 clients
         assert result.failed == 1  # SELECTED_ROLE failing  on rhel7 client
         assert result.status_label == 'failed'
 
