@@ -91,12 +91,15 @@ def module_sync_kickstart_content(
         )
         task_status = module_target_sat.api.ForemanTask(id=task['id']).poll()
         assert task_status['result'] == 'success'
-    if rhel_ver == 10:  # TODO: Remove beta repos once RHEL10 is GA
-        rhel_xy = Version(constants.REPOS['kickstart'][f'rhel{rhel_ver}_bos_beta']['version'])
-    elif rhel_ver == 7:
-        rhel_xy = Version(constants.REPOS['kickstart'][f'rhel{rhel_ver}']['version'])
-    else:
-        rhel_xy = Version(constants.REPOS['kickstart'][f'rhel{rhel_ver}_bos']['version'])
+
+    rhel_xy = Version(
+        constants.REPOS['kickstart'][f'rhel{rhel_ver}_bos_beta']['version']
+        if rhel_ver == 10  # TODO: Remove beta repos once RHEL10 is GA
+        else constants.REPOS['kickstart'][f'rhel{rhel_ver}']['version']
+        if rhel_ver == 7
+        else constants.REPOS['kickstart'][f'rhel{rhel_ver}_bos']['version']
+    )
+
     o_systems = module_target_sat.api.OperatingSystem().search(
         query={'search': f'family=Redhat and major={rhel_xy.major} and minor={rhel_xy.minor}'}
     )
