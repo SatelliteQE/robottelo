@@ -64,7 +64,7 @@ def test_host_registration_end_to_end(
     )
     # Verify host owner name set correctly
     assert 'Admin User' in owner_name['additional-info']['owner']['name'], (
-        f'Host owner name is incorrect: ' f'{owner_name["additional-info"]["owner"]["name"]}'
+        f'Host owner name is incorrect: {owner_name["additional-info"]["owner"]["name"]}'
     )
 
     # Verify server.hostname and server.port from subscription-manager config
@@ -94,7 +94,7 @@ def test_host_registration_end_to_end(
     )
     # Verify capsule host owner name set correctly
     assert 'Admin User' in owner_name['additional-info']['owner']['name'], (
-        f'Host owner name is incorrect: ' f'{owner_name["additional-info"]["owner"]["name"]}'
+        f'Host owner name is incorrect: {owner_name["additional-info"]["owner"]["name"]}'
     )
 
     # Verify server.hostname and server.port from subscription-manager config

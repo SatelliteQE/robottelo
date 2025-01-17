@@ -703,9 +703,9 @@ class TestContentViewSync:
                 'organization-id': function_import_org.id,
             }
         )
-        assert (
-            exported_repo['content-counts'] == imported_repo['content-counts']
-        ), 'Exported and imported counts do not match'
+        assert exported_repo['content-counts'] == imported_repo['content-counts'], (
+            'Exported and imported counts do not match'
+        )
 
     @pytest.mark.upgrade
     @pytest.mark.tier3
@@ -1076,9 +1076,9 @@ class TestContentViewSync:
                 'organization-id': function_import_org_with_manifest.id,
             }
         )
-        assert (
-            exported_repo['content-counts'] == imported_repo['content-counts']
-        ), 'Exported and imported counts do not match'
+        assert exported_repo['content-counts'] == imported_repo['content-counts'], (
+            'Exported and imported counts do not match'
+        )
 
     @pytest.mark.tier2
     def test_positive_export_cv_with_on_demand_repo(
@@ -1440,12 +1440,12 @@ class TestContentViewSync:
         importing_cv = module_import_sat.cli.ContentView.info(
             {'name': exporting_cv['name'], 'organization-id': function_import_org_at_isat.id}
         )
-        assert all(
-            [exporting_cv[key] == importing_cv[key] for key in ['label', 'name']]
-        ), 'Imported CV name/label does not match the export'
-        assert (
-            len(exporting_cv['versions']) == len(importing_cv['versions']) == 1
-        ), 'CV versions count does not match'
+        assert all([exporting_cv[key] == importing_cv[key] for key in ['label', 'name']]), (
+            'Imported CV name/label does not match the export'
+        )
+        assert len(exporting_cv['versions']) == len(importing_cv['versions']) == 1, (
+            'CV versions count does not match'
+        )
 
         importing_cvv = module_import_sat.cli.ContentView.version_info(
             {'id': importing_cv['versions'][0]['id']}
@@ -1479,9 +1479,9 @@ class TestContentViewSync:
                 }
             )
             for key in ['label', 'description', 'content-type', 'content-counts']:
-                assert (
-                    exp[key] == imp[key]
-                ), f'"{key}" of the {imp["content-type"]} repo differs: {exp[key]} ≠ {imp[key]}'
+                assert exp[key] == imp[key], (
+                    f'"{key}" of the {imp["content-type"]} repo differs: {exp[key]} ≠ {imp[key]}'
+                )
 
     @pytest.mark.tier3
     def test_postive_export_import_cv_with_mixed_content_syncable(
@@ -1548,12 +1548,12 @@ class TestContentViewSync:
         importing_cv = target_sat.cli.ContentView.info(
             {'name': exporting_cv['name'], 'organization-id': function_import_org.id}
         )
-        assert all(
-            [exporting_cv[key] == importing_cv[key] for key in ['label', 'name']]
-        ), 'Imported CV name/label does not match the export'
-        assert (
-            len(exporting_cv['versions']) == len(importing_cv['versions']) == 1
-        ), 'CV versions count does not match'
+        assert all([exporting_cv[key] == importing_cv[key] for key in ['label', 'name']]), (
+            'Imported CV name/label does not match the export'
+        )
+        assert len(exporting_cv['versions']) == len(importing_cv['versions']) == 1, (
+            'CV versions count does not match'
+        )
 
         importing_cvv = target_sat.cli.ContentView.version_info(
             {'id': importing_cv['versions'][0]['id']}
@@ -2002,9 +2002,9 @@ class TestContentViewSync:
                 'organization-id': function_import_org_at_isat.id,
             }
         )
-        assert (
-            exported_repo['content-counts'] == imported_repo['content-counts']
-        ), 'Unexpected package count after import'
+        assert exported_repo['content-counts'] == imported_repo['content-counts'], (
+            'Unexpected package count after import'
+        )
 
     @pytest.mark.tier3
     @pytest.mark.parametrize(
@@ -2684,9 +2684,9 @@ class TestInterSatelliteSync:
             {'search': f"Import Repository organization '{function_import_org_with_manifest.name}'"}
         )
         assert len(tasks) == 2, f'Expected 2 import tasks in this Org but found {len(tasks)}'
-        assert all(
-            ['success' in task['result'] for task in tasks]
-        ), 'Not every import task succeeded'
+        assert all(['success' in task['result'] for task in tasks]), (
+            'Not every import task succeeded'
+        )
 
     @pytest.mark.tier3
     @pytest.mark.parametrize(
@@ -2791,9 +2791,9 @@ class TestInterSatelliteSync:
                 'search': f'content_label={function_synced_rh_repo["content-label"]}',
             }
         )
-        assert (
-            len(reposet) == 1
-        ), f'Expected just one reposet for "{function_synced_rh_repo["content-label"]}"'
+        assert len(reposet) == 1, (
+            f'Expected just one reposet for "{function_synced_rh_repo["content-label"]}"'
+        )
         res = satellite_host.cli.RepositorySet.enable(
             {
                 'organization-id': import_org.id,
@@ -2809,13 +2809,13 @@ class TestInterSatelliteSync:
         satellite_host.cli.Repository.synchronize({'id': repo['id']})
 
         repo = satellite_host.cli.Repository.info({'id': repo['id']})
-        assert (
-            f'{target_sat.hostname}/pub/repos/' in repo['url']
-        ), 'Enabled repo does not point to the upstream Satellite'
+        assert f'{target_sat.hostname}/pub/repos/' in repo['url'], (
+            'Enabled repo does not point to the upstream Satellite'
+        )
         assert 'Success' in repo['sync']['status'], 'Sync did not succeed'
-        assert (
-            repo['content-counts'] == function_synced_rh_repo['content-counts']
-        ), 'Content counts do not match'
+        assert repo['content-counts'] == function_synced_rh_repo['content-counts'], (
+            'Content counts do not match'
+        )
 
     @pytest.mark.e2e
     @pytest.mark.tier3
@@ -2929,9 +2929,9 @@ class TestInterSatelliteSync:
         assert rhel_contenthost.subscribed
         res = rhel_contenthost.execute('dnf clean all && dnf repolist -v')
         assert res.status == 0
-        assert (
-            f'Repo-available-pkgs: {pkg_cnt_1}' in res.stdout
-        ), 'Package count available on the host did not meet the expectation'
+        assert f'Repo-available-pkgs: {pkg_cnt_1}' in res.stdout, (
+            'Package count available on the host did not meet the expectation'
+        )
 
         res = rhel_contenthost.execute(f'dnf -y install {filtered_pkg}')
         assert res.status, 'Installation of filtered package succeeded unexpectedly'
@@ -2975,9 +2975,9 @@ class TestInterSatelliteSync:
         # Check the package count available to install on the content host.
         res = rhel_contenthost.execute('dnf clean all && dnf repolist -v')
         assert res.status == 0
-        assert (
-            f'Repo-available-pkgs: {pkg_cnt_2}' in res.stdout
-        ), 'Package count available on the host did not meet the expectation'
+        assert f'Repo-available-pkgs: {pkg_cnt_2}' in res.stdout, (
+            'Package count available on the host did not meet the expectation'
+        )
 
         # Install the package.
         res = rhel_contenthost.execute(f'dnf -y install {filtered_pkg}')
@@ -3108,9 +3108,9 @@ class TestNetworkSync:
                 'search': f'content_label={function_synced_rh_repo["content-label"]}',
             }
         )
-        assert (
-            len(reposet) == 1
-        ), f'Expected just one reposet for "{function_synced_rh_repo["content-label"]}"'
+        assert len(reposet) == 1, (
+            f'Expected just one reposet for "{function_synced_rh_repo["content-label"]}"'
+        )
         res = module_downstream_sat.cli.RepositorySet.enable(
             {
                 'organization-id': function_downstream_org.id,
@@ -3129,9 +3129,9 @@ class TestNetworkSync:
 
         repo = module_downstream_sat.cli.Repository.info({'id': repo['id']})
         assert 'Success' in repo['sync']['status'], 'Sync did not succeed'
-        assert (
-            repo['content-counts'] == function_synced_rh_repo['content-counts']
-        ), 'Content counts do not match'
+        assert repo['content-counts'] == function_synced_rh_repo['content-counts'], (
+            'Content counts do not match'
+        )
 
 
 class TestPodman:

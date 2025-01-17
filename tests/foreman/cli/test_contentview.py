@@ -3318,7 +3318,7 @@ class TestContentView:
         response = module_target_sat.cli.ContentView.purge({'id': content_view['id']})
         assert all(
             [
-                f"Version '{v+1}.0' of content view '{content_view.name}' deleted." in response
+                f"Version '{v + 1}.0' of content view '{content_view.name}' deleted." in response
                 for v in range(cv_count - 4)
             ]
         )
@@ -3696,6 +3696,6 @@ class TestContentViewFileRepo:
             )
         envs = module_target_sat.cli.ContentView.info({'id': ccv['id']})['lifecycle-environments']
         assert len(envs) == 3, f'Expected 3 LCEs (Library+2) but got: {envs}'
-        assert {lce1['id'], lce2['id']}.issubset(
-            [lce['id'] for lce in envs]
-        ), 'Expected LCEs not found in CCV envs'
+        assert {lce1['id'], lce2['id']}.issubset([lce['id'] for lce in envs]), (
+            'Expected LCEs not found in CCV envs'
+        )

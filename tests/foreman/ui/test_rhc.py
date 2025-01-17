@@ -154,9 +154,7 @@ def test_positive_configure_cloud_connector(
         session.cloudinventory.configure_cloud_connector()
     template_name = 'Configure Cloud Connector'
     module_target_sat.wait_for_tasks(
-        search_query=(
-            f'action = "Run hosts job: {template_name}"' f' and started_at >= "{timestamp}"'
-        ),
+        search_query=(f'action = "Run hosts job: {template_name}" and started_at >= "{timestamp}"'),
         search_rate=15,
         max_tries=10,
     )

@@ -518,9 +518,9 @@ def test_positive_check_manifest_validity_notification(
         formatted_date = date.strftime('%a %b %d %Y')
         # read expire manifest message
         expiring_soon = session.subscription.read_subscription_manifest_header_message_and_date()
-        assert (
-            'Manifest expiring soon' in expiring_soon['header']
-        ), 'Manifest expire alert not found'
+        assert 'Manifest expiring soon' in expiring_soon['header'], (
+            'Manifest expire alert not found'
+        )
         assert formatted_date in expiring_soon['date']
         session.subscription.refresh_manifest()
         expires_date = session.subscription.read_subscription_manifest_expiration_date_only()

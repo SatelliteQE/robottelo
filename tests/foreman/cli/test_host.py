@@ -642,9 +642,9 @@ def test_positive_katello_and_openscap_loaded(target_sat):
     """
     help_output = target_sat.cli.Host.execute('host update --help')
     for arg in ['lifecycle-environment[-id]', 'openscap-proxy-id']:
-        assert any(
-            f'--{arg}' in line for line in help_output.split('\n')
-        ), f'--{arg} not supported by update subcommand'
+        assert any(f'--{arg}' in line for line in help_output.split('\n')), (
+            f'--{arg} not supported by update subcommand'
+        )
 
 
 @pytest.mark.cli_host_create
@@ -2087,9 +2087,9 @@ def test_negative_multi_cv_registration(
 
     # Register the host with subscription-manager, passing multiple environments
     res = rhel_contenthost.register_contenthost(module_org.label, lce=None, environments=env_names)
-    assert (
-        res.status == 70
-    ), f'Expecting error "Registering to multiple environments is not enabled"; instead got: {res.stderr}'
+    assert res.status == 70, (
+        f'Expecting error "Registering to multiple environments is not enabled"; instead got: {res.stderr}'
+    )
 
 
 @pytest.mark.rhel_ver_match('[^7]')
@@ -2163,9 +2163,9 @@ def test_positive_multi_cv_registration(
 
     # Confirm that the host is registered to both environments
     host = session_multicv_sat.cli.Host.info({'name': rhel_contenthost.hostname})
-    assert (
-        len(host['content-information']['content-view-environments']) == 2
-    ), "Expected host to be registered to both environments"
+    assert len(host['content-information']['content-view-environments']) == 2, (
+        "Expected host to be registered to both environments"
+    )
 
 
 @pytest.mark.rhel_ver_match('[^7]')
@@ -2228,9 +2228,9 @@ def test_positive_multi_cv_assignment(
 
     # Confirm that the host is registered to both environments
     host = session_multicv_sat.cli.Host.info({'name': rhel_contenthost.hostname})
-    assert (
-        len(host['content-information']['content-view-environments']) == 2
-    ), "Expected host to be registered to both environments"
+    assert len(host['content-information']['content-view-environments']) == 2, (
+        "Expected host to be registered to both environments"
+    )
 
 
 @pytest.mark.rhel_ver_match('[^7]')
@@ -2315,9 +2315,9 @@ def test_positive_multi_cv_host_repo_availability(
     host = session_multicv_sat.cli.Host.info({'name': rhel_contenthost.hostname})
     repos = rhel_contenthost.subscription_manager_list_repos()
     # Confirm that the host is registered to both environments
-    assert (
-        len(host['content-information']['content-view-environments']) == 2
-    ), "Expected host to be registered to both environments"
+    assert len(host['content-information']['content-view-environments']) == 2, (
+        "Expected host to be registered to both environments"
+    )
     # Confirm that the host sees repositories from both content view environments
     assert repo_a.label in repos.stdout
     assert repo_b.label in repos.stdout
@@ -2408,9 +2408,9 @@ def test_positive_tracer_list_and_resolve(tracer_host, target_sat):
 
     # verify on the host end, that the service was really restarted
     service_ver_log_new = tracer_host.execute(f'cat /var/log/{package}/service.log')
-    assert (
-        service_ver_log_new != service_ver_log_old
-    ), f'The service {package} did not seem to be restarted'
+    assert service_ver_log_new != service_ver_log_old, (
+        f'The service {package} did not seem to be restarted'
+    )
 
 
 # ---------------------------- PUPPET ENABLED IN INSTALLER TESTS -----------------------

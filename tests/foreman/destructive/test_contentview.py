@@ -98,6 +98,6 @@ def test_positive_reboot_recover_cv_publish(
             max_tries=60,
         )
     task_status = module_target_sat.api.ForemanTask(id=publish_task['id']).poll()
-    assert (
-        task_status['result'] == 'success'
-    ), f'Publish after restart failed, sleep_time was {sleep_time}'
+    assert task_status['result'] == 'success', (
+        f'Publish after restart failed, sleep_time was {sleep_time}'
+    )

@@ -980,9 +980,9 @@ def test_positive_search_by_configuration_status_alias(target_sat):
             for search_term in status_search_term.values():
                 search_string = f'{search_term}.{search_param}'
                 results[search_term] = [host['Name'] for host in session.host.search(search_string)]
-            assert (
-                results[status_search_term.name] == results[status_search_term.alias]
-            ), f'Different search results were found: {results}'
+            assert results[status_search_term.name] == results[status_search_term.alias], (
+                f'Different search results were found: {results}'
+            )
 
 
 @pytest.mark.tier4
@@ -2544,19 +2544,19 @@ def test_positive_manage_packages(
                     ).status
                     == 0
                 ), 'Wanted packages are not available!'
-                assert (
-                    host.run(f'dnf install {" ".join(packages_to_upgrade)} -y').status == 0
-                ), 'Could not install wanted packages!'
-                assert (
-                    host.run(f'dnf downgrade {" ".join(packages_to_upgrade)} -y').status == 0
-                ), 'Packages were not downgraded!'
+                assert host.run(f'dnf install {" ".join(packages_to_upgrade)} -y').status == 0, (
+                    'Could not install wanted packages!'
+                )
+                assert host.run(f'dnf downgrade {" ".join(packages_to_upgrade)} -y').status == 0, (
+                    'Packages were not downgraded!'
+                )
 
         elif used_action == 'remove':
             # Installing packages so they can be removed in the next step
             for host in hosts_to_test:
-                assert (
-                    host.run(f'dnf install {" ".join(packages_to_remove)} -y').status == 0
-                ), 'Could not install wanted packages!'
+                assert host.run(f'dnf install {" ".join(packages_to_remove)} -y').status == 0, (
+                    'Could not install wanted packages!'
+                )
 
         # Run airgun entity which performs Package management action based on the flags set above
         session.all_hosts.manage_packages(
@@ -2604,9 +2604,9 @@ def test_positive_manage_packages(
         if used_action == 'install':
             for host in hosts_to_test:
                 # Check that all the wanted packages are installed
-                assert (
-                    host.run(f'rpm -q {" ".join(packages_to_install)}').status == 0
-                ), 'Some of the wanted packages is not installed!'
+                assert host.run(f'rpm -q {" ".join(packages_to_install)}').status == 0, (
+                    'Some of the wanted packages is not installed!'
+                )
 
                 # Get versions of installed packages
                 installed_packages = host.run(
@@ -2659,9 +2659,9 @@ def test_positive_manage_packages(
     def _cleanup():
         for host in hosts_to_test:
             time.sleep(5)
-            assert (
-                host.run(f'dnf remove {" ".join(packages)} -y').status == 0
-            ), 'Could not remove installed packages in a finalizer!'
+            assert host.run(f'dnf remove {" ".join(packages)} -y').status == 0, (
+                'Could not remove installed packages in a finalizer!'
+            )
 
 
 @pytest.mark.parametrize('errata_to_install', ['1', '2'])

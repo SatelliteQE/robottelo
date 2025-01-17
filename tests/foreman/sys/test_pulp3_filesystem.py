@@ -125,13 +125,13 @@ def test_pulp_status(target_sat):
         datetime.strptime(worker['last_heartbeat'], '%Y-%m-%dT%H:%M:%S.%fZ')
         for worker in status['online_workers']
     ]
-    assert all(
-        (now - beat).seconds < 20 for beat in workers_beats
-    ), 'Some pulp workers seem to me dead!'
+    assert all((now - beat).seconds < 20 for beat in workers_beats), (
+        'Some pulp workers seem to me dead!'
+    )
     apps_beats = [
         datetime.strptime(app['last_heartbeat'], '%Y-%m-%dT%H:%M:%S.%fZ')
         for app in status['online_content_apps']
     ]
-    assert all(
-        (now - beat).seconds < 20 for beat in apps_beats
-    ), 'Some content apps seem to me dead!'
+    assert all((now - beat).seconds < 20 for beat in apps_beats), (
+        'Some content apps seem to me dead!'
+    )

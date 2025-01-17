@@ -442,7 +442,7 @@ def test_positive_provision_end_to_end(
             'compute-attributes': f'cpus=1, memory=6442450944, start=1, firmware={pxe_loader.vm_firmware}',
             'interface': f'compute_type=bridge,compute_bridge=br-{settings.provisioning.vlan_id}',
             'volume': 'capacity=10',
-            'parameters': 'name=remote_execution_connect_by_ip,' 'type=boolean,' 'value=true',
+            'parameters': 'name=remote_execution_connect_by_ip,type=boolean,value=true',
             'provision-method': 'build',
         }
     )

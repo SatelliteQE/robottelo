@@ -108,9 +108,9 @@ def test_positive_rename_satellite(module_org, module_product, module_target_sat
         f'hammer -u {username} -p {password} --output json repository info --id {repo.id}'
     )
     assert result.status == 0
-    assert (
-        new_hostname in hammer.parse_json(result.stdout)['published-at']
-    ), 'repository published path not updated correctly'
+    assert new_hostname in hammer.parse_json(result.stdout)['published-at'], (
+        'repository published path not updated correctly'
+    )
 
     # check for any other occurences of old hostname
     result = module_target_sat.execute(f'grep " {old_hostname}" --exclude-dir="promtail" /etc/* -r')

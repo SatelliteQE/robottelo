@@ -48,7 +48,7 @@ def setup_http_proxy_global(request, target_sat):
     if request.param:
         hostname = settings.http_proxy.auth_proxy_url[7:]
         general_proxy = (
-            f'http://{settings.http_proxy.username}:' f'{settings.http_proxy.password}@{hostname}'
+            f'http://{settings.http_proxy.username}:{settings.http_proxy.password}@{hostname}'
         )
     else:
         general_proxy = settings.http_proxy.un_auth_proxy_url
