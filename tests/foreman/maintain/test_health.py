@@ -214,7 +214,7 @@ def test_negative_health_check_upstream_repository(sat_maintain, request):
     )
     assert result.status == 0
     assert (
-        f"System has upstream {','.join(sorted([ name for name in upstream_url ]))} repositories enabled"
+        f"System has upstream {','.join(sorted([name for name in upstream_url]))} repositories enabled"
         in result.stdout
     )
     assert 'FAIL' in result.stdout

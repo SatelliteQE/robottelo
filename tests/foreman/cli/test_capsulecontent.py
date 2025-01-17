@@ -215,9 +215,9 @@ def test_positive_content_counts_for_mixed_cv(
     assert len(lce_info['content-views']) == 1, 'Too many or few CVs listed'
     cv_info = lce_info['content-views']['1']
     assert cv_info['name']['name'] == cv['name'], 'Wrong CV name listed'
-    assert len(cv_info['repositories']) == len(
-        cvv['repositories']
-    ), 'Too many or few repositories listed'
+    assert len(cv_info['repositories']) == len(cvv['repositories']), (
+        'Too many or few repositories listed'
+    )
     cv_info_reponames = set([repo['repository-name'] for repo in cv_info['repositories'].values()])
     cvv_reponames = set([repo['name'] for repo in cvv['repositories']])
     assert cv_info_reponames == cvv_reponames, 'Wrong repo names listed'
@@ -546,9 +546,9 @@ def test_positive_repair_artifacts(
             f'truncate -s {random.randrange(1, ai.size)} {ai.path}'
         )
         assert res.status == 0, f'Artifact truncation failed: {res.stderr}'
-        assert (
-            module_capsule_configured.get_artifact_info(path=ai.path) != ai
-        ), 'Artifact corruption failed'
+        assert module_capsule_configured.get_artifact_info(path=ai.path) != ai, (
+            'Artifact corruption failed'
+        )
     else:
         raise ValueError(f'Unsupported damage type: {damage_type}')
 
@@ -567,6 +567,6 @@ def test_positive_repair_artifacts(
     assert fixed_ai == ai, f'Artifact restoration failed: {fixed_ai} != {ai}'
 
     if module_synced_content.repos[0].content_type in ['yum', 'file']:
-        assert (
-            module_target_sat.checksum_by_url(url, sum_type='sha256sum') == ai.sum
-        ), 'Published file is unaccessible or corrupted'
+        assert module_target_sat.checksum_by_url(url, sum_type='sha256sum') == ai.sum, (
+            'Published file is unaccessible or corrupted'
+        )

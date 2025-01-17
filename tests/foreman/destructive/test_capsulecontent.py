@@ -104,15 +104,15 @@ def test_positive_sync_without_deadlock(
 
     # Synchronize repository, Capsule Sync tasks triggered
     repo_sync = repo.sync(timeout='60m')
-    assert (
-        'Associating Content' in repo_sync['humanized']['output']
-    ), f'Failed to add new content with repository sync:\n{repo_sync.read()}'
+    assert 'Associating Content' in repo_sync['humanized']['output'], (
+        f'Failed to add new content with repository sync:\n{repo_sync.read()}'
+    )
     # timestamp: to check capsule task(s) began, exclude priors
     # within 120 seconds of end of repo_sync
     timestamp = datetime.utcnow().replace(microsecond=0) - timedelta(seconds=120)
     repo_to_capsule_task = target_sat.wait_for_tasks(
         search_query=(
-            'label=Actions::Katello::Repository::CapsuleSync' f' and started_at >= {timestamp}'
+            f'label=Actions::Katello::Repository::CapsuleSync and started_at >= {timestamp}'
         ),
         search_rate=2,
         max_tries=60,  # in-progress within 120s

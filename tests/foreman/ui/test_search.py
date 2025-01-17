@@ -29,9 +29,9 @@ def menu_search_should_find(search_func: callable, values: list[str]):
         results = search_func(search_string)
         assert results, f'No result found for search string {search_string}!'
         for result in results:
-            assert (
-                search_string.lower() in result.lower()
-            ), f'Search string {search_string} does not match result {result}!'
+            assert search_string.lower() in result.lower(), (
+                f'Search string {search_string} does not match result {result}!'
+            )
 
 
 def menu_search_should_not_find(search_func: callable, values: list[str]):
@@ -204,9 +204,9 @@ def test_positive_vertical_navigation_search_end_to_end(
 
         if search_user.admin is True:
             max_results = search(' ')
-            assert (
-                len(max_results) == max_search_results_limit
-            ), f'Maximum number of search results is {max_search_results_limit}, got {len(max_results)}!'
+            assert len(max_results) == max_search_results_limit, (
+                f'Maximum number of search results is {max_search_results_limit}, got {len(max_results)}!'
+            )
 
             case_string = 'sTAtUs'
             assert (

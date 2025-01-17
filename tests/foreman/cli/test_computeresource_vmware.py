@@ -204,7 +204,7 @@ def test_positive_image_provision_end_to_end(
             'image': module_vmware_image.name,
             'ip': None,
             'mac': None,
-            'parameters': 'name=package_upgrade,' 'type=boolean,' 'value=false',
+            'parameters': 'name=package_upgrade,type=boolean,value=false',
             'compute-attributes': f'cluster={settings.vmware.cluster},'
             f'path=/Datacenters/{settings.vmware.datacenter}/vm/,'
             'scsi_controller_type=VirtualLsiLogicController,'
@@ -241,6 +241,6 @@ def test_positive_image_provision_end_to_end(
         f'-o UserKnownHostsFile=/dev/null root@{host_ip} cat /etc/redhat-release'
     )
     assert host_ssh_os.status == 0
-    assert (
-        expected_rhel_version in host_ssh_os.stdout
-    ), f'The installed OS version differs from the expected version {expected_rhel_version}'
+    assert expected_rhel_version in host_ssh_os.stdout, (
+        f'The installed OS version differs from the expected version {expected_rhel_version}'
+    )

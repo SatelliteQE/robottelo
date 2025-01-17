@@ -306,12 +306,12 @@ def test_positive_add_and_remove_compute_resources(module_org, module_target_sat
         {'compute-resource': compute_resources[1]['name'], 'name': module_org.name}
     )
     org_info = module_target_sat.cli.Org.info({'id': module_org.id})
-    assert (
-        compute_resources[0]['name'] not in org_info['compute-resources']
-    ), "Failed to remove compute resource by id"
-    assert (
-        compute_resources[1]['name'] not in org_info['compute-resources']
-    ), "Failed to remove compute resource by name"
+    assert compute_resources[0]['name'] not in org_info['compute-resources'], (
+        "Failed to remove compute resource by id"
+    )
+    assert compute_resources[1]['name'] not in org_info['compute-resources'], (
+        "Failed to remove compute resource by name"
+    )
 
 
 @pytest.mark.tier2
@@ -366,17 +366,17 @@ def test_positive_add_and_remove_templates(module_org, module_target_sat):
         {'name': module_org.name, 'provisioning-template': template['name']}
     )
     org_info = module_target_sat.cli.Org.info({'name': module_org.name})
-    assert (
-        f"{template['name']} ({template['type']})" in org_info['templates']
-    ), "Failed to add template by name"
+    assert f"{template['name']} ({template['type']})" in org_info['templates'], (
+        "Failed to add template by name"
+    )
     # Remove provisioning-template
     module_target_sat.cli.Org.remove_provisioning_template(
         {'provisioning-template': template['name'], 'name': module_org.name}
     )
     org_info = module_target_sat.cli.Org.info({'name': module_org.name})
-    assert (
-        f"{template['name']} ({template['type']})" not in org_info['templates']
-    ), "Failed to remove template by name"
+    assert f"{template['name']} ({template['type']})" not in org_info['templates'], (
+        "Failed to remove template by name"
+    )
 
     # add and remove templates by id
     # Add provisioning-template
@@ -384,17 +384,17 @@ def test_positive_add_and_remove_templates(module_org, module_target_sat):
         {'provisioning-template-id': template['id'], 'id': module_org.id}
     )
     org_info = module_target_sat.cli.Org.info({'id': module_org.id})
-    assert (
-        f"{template['name']} ({template['type']})" in org_info['templates']
-    ), "Failed to add template by name"
+    assert f"{template['name']} ({template['type']})" in org_info['templates'], (
+        "Failed to add template by name"
+    )
     # Remove provisioning-template
     module_target_sat.cli.Org.remove_provisioning_template(
         {'provisioning-template-id': template['id'], 'id': module_org.id}
     )
     org_info = module_target_sat.cli.Org.info({'id': module_org.id})
-    assert (
-        f"{template['name']} ({template['type']})" not in org_info['templates']
-    ), "Failed to remove template by id"
+    assert f"{template['name']} ({template['type']})" not in org_info['templates'], (
+        "Failed to remove template by id"
+    )
 
 
 @pytest.mark.tier2

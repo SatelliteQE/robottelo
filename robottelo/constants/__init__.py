@@ -668,8 +668,7 @@ REPOS = {
     'rhscl7': {
         'id': 'rhel-server-rhscl-7-rpms',
         'name': (
-            'Red Hat Software Collections RPMs for Red Hat Enterprise'
-            ' Linux 7 Server x86_64 7Server'
+            'Red Hat Software Collections RPMs for Red Hat Enterprise Linux 7 Server x86_64 7Server'
         ),
         'releasever': '7Server',
         'version': '7',
@@ -1458,7 +1457,8 @@ PERMISSIONS_UI = {
         'create_hosts',
         'edit_hosts',
         'destroy_hosts',
-        'build_hosts' 'power_hosts',
+        'build_hosts',
+        'power_hosts',
         'console_hosts',
         'ipmi_boot_hosts',
         'forget_status_hosts',
@@ -1820,8 +1820,7 @@ FOREMAN_TEMPLATES_NOT_IMPORTED_COUNT = {
 FOREMAN_TEMPLATE_IMPORT_API_URL = 'http://api.github.com/repos/SatelliteQE/foreman_templates'
 
 FOREMAN_TEMPLATE_TEST_TEMPLATE = (
-    'https://raw.githubusercontent.com/SatelliteQE/foreman_templates/example/'
-    'example_template.erb'
+    'https://raw.githubusercontent.com/SatelliteQE/foreman_templates/example/example_template.erb'
 )
 
 FOREMAN_TEMPLATE_ROOT_DIR = '/usr/share/foreman_templates'
