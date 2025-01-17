@@ -37,9 +37,7 @@ def module_lce_library(module_target_sat, module_sca_manifest_org):
     return (
         module_target_sat.api.LifecycleEnvironment()
         .search(
-            query={
-                'search': f'name={ENVIRONMENT} and ' f'organization_id={module_sca_manifest_org.id}'
-            }
+            query={'search': f'name={ENVIRONMENT} and organization_id={module_sca_manifest_org.id}'}
         )[0]
         .read()
     )
@@ -270,8 +268,7 @@ def test_positive_incremental_update_time(module_target_sat, module_sca_manifest
     # wait for all repo sync tasks
     sync_tasks = module_target_sat.wait_for_tasks(
         search_query=(
-            'label = Actions::Katello::Repository::Sync'
-            f' and started_at >= "{repo_sync_timestamp}"'
+            f'label = Actions::Katello::Repository::Sync and started_at >= "{repo_sync_timestamp}"'
         ),
         search_rate=10,
         max_tries=200,

@@ -104,17 +104,17 @@ def test_positive_end_to_end(
                 http_proxy_policy=policy,
                 http_proxy_id=setup_http_proxy[0].id if 'selected' in policy else None,
             ).update()
-            assert (
-                repo.http_proxy_policy == policy
-            ), f'Policy update failed for {repo.content_type} repo with {policy} HTTP policy'
+            assert repo.http_proxy_policy == policy, (
+                f'Policy update failed for {repo.content_type} repo with {policy} HTTP policy'
+            )
             assert (
                 repo.http_proxy_id == setup_http_proxy[0].id
                 if 'selected' in policy
                 else repo.http_proxy_id is None
             ), f'Proxy id update failed for {repo.content_type} repo with {policy} HTTP policy'
-            assert (
-                'success' in module_target_sat.api.Repository(id=repo.id).sync()['result']
-            ), f'Sync of a {repo.content_type} repo with {policy} HTTP policy failed'
+            assert 'success' in module_target_sat.api.Repository(id=repo.id).sync()['result'], (
+                f'Sync of a {repo.content_type} repo with {policy} HTTP policy failed'
+            )
 
     # Refresh manifest through HTTP proxy
     res = module_target_sat.api.Subscription().refresh_manifest(

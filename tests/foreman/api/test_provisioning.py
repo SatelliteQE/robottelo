@@ -161,9 +161,9 @@ def test_rhel_pxe_provisioning(
         f'-o UserKnownHostsFile=/dev/null root@{provisioning_host.hostname} cat /etc/redhat-release'
     )
     assert host_ssh_os.status == 0
-    assert (
-        expected_rhel_version in host_ssh_os.stdout
-    ), 'Different than the expected OS version was installed'
+    assert expected_rhel_version in host_ssh_os.stdout, (
+        'Different than the expected OS version was installed'
+    )
 
     # Verify provisioning log exists on host at correct path
     assert provisioning_host.execute('test -s /root/install.post.log').status == 0
@@ -300,9 +300,9 @@ def test_rhel_ipxe_provisioning(
         f'-o UserKnownHostsFile=/dev/null root@{provisioning_host.hostname} cat /etc/redhat-release'
     )
     assert host_ssh_os.status == 0
-    assert (
-        expected_rhel_version in host_ssh_os.stdout
-    ), f'The installed OS version differs from the expected version {expected_rhel_version}'
+    assert expected_rhel_version in host_ssh_os.stdout, (
+        f'The installed OS version differs from the expected version {expected_rhel_version}'
+    )
 
     # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
     template_id = (
@@ -430,9 +430,9 @@ def test_rhel_httpboot_provisioning(
         f'-o UserKnownHostsFile=/dev/null root@{provisioning_host.hostname} cat /etc/redhat-release'
     )
     assert host_ssh_os.status == 0
-    assert (
-        expected_rhel_version in host_ssh_os.stdout
-    ), f'The installed OS version differs from the expected version {expected_rhel_version}'
+    assert expected_rhel_version in host_ssh_os.stdout, (
+        f'The installed OS version differs from the expected version {expected_rhel_version}'
+    )
 
     # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
     template_id = (
@@ -561,9 +561,9 @@ def test_rhel_pxe_provisioning_fips_enabled(
         f'-o UserKnownHostsFile=/dev/null root@{provisioning_host.hostname} cat /etc/redhat-release'
     )
     assert host_ssh_os.status == 0
-    assert (
-        expected_rhel_version in host_ssh_os.stdout
-    ), f'The installed OS version differs from the expected version {expected_rhel_version}'
+    assert expected_rhel_version in host_ssh_os.stdout, (
+        f'The installed OS version differs from the expected version {expected_rhel_version}'
+    )
 
     # Verify FIPS is enabled on host after provisioning is completed sucessfully
     if int(host_os.major) >= 8:
@@ -690,9 +690,9 @@ def test_rhel_pxe_provisioning_secureboot_enabled(
         f'-o UserKnownHostsFile=/dev/null root@{provisioning_vmware_host.hostname} cat /etc/redhat-release'
     )
     assert host_ssh_os.status == 0
-    assert (
-        expected_rhel_version in host_ssh_os.stdout
-    ), 'Different than the expected OS version was installed'
+    assert expected_rhel_version in host_ssh_os.stdout, (
+        'Different than the expected OS version was installed'
+    )
 
     # Verify host is subscribed and consumes subsctiption provided by the activation key
     assert provisioning_vmware_host.subscribed, 'Host is not subscribed'
@@ -803,9 +803,9 @@ def test_capsule_pxe_provisioning(
         f'-o UserKnownHostsFile=/dev/null root@{provisioning_host.hostname} cat /etc/redhat-release'
     )
     assert host_ssh_os.status == 0
-    assert (
-        expected_rhel_version in host_ssh_os.stdout
-    ), f'The installed OS version differs from the expected version {expected_rhel_version}'
+    assert expected_rhel_version in host_ssh_os.stdout, (
+        f'The installed OS version differs from the expected version {expected_rhel_version}'
+    )
 
     # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
     template_id = (
