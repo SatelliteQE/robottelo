@@ -293,7 +293,7 @@ def test_sync_consume_flatpak_repo_via_library(
     # 4. Register a content host using the AK.
     res = host.register(function_org, None, ak_lib['name'], sat, force=True)
     assert res.status == 0, (
-        f'Failed to register host: {host.hostname}\n' f'StdOut: {res.stdout}\nStdErr: {res.stderr}'
+        f'Failed to register host: {host.hostname}\nStdOut: {res.stdout}\nStdErr: {res.stderr}'
     )
     assert host.subscribed
 
