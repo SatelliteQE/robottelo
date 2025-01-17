@@ -24,8 +24,7 @@ def pytest_report_header(config):
             scope = ''
         storage = settings.shared_function.storage
     messages.append(
-        f'shared_function enabled - {shared_function_enabled} - '
-        f'scope: {scope} - storage: {storage}'
+        f'shared_function enabled - {shared_function_enabled} - scope: {scope} - storage: {storage}'
     )
     return messages
 

@@ -1857,9 +1857,9 @@ class TestRepository:
         """
         module_target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = module_target_sat.cli.Repository.info({'id': repo['id']})
-        assert (
-            repo['content-counts']['module-streams'] == '7'
-        ), 'Module Streams not synced correctly'
+        assert repo['content-counts']['module-streams'] == '7', (
+            'Module Streams not synced correctly'
+        )
 
         # adding repo with same yum url should not change count.
         duplicate_repo = module_target_sat.cli_factory.make_repository(repo_options)
@@ -1876,9 +1876,9 @@ class TestRepository:
         )
         module_target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = module_target_sat.cli.Repository.info({'id': repo['id']})
-        assert (
-            repo['content-counts']['module-streams'] == '7'
-        ), 'Module Streams not synced correctly'
+        assert repo['content-counts']['module-streams'] == '7', (
+            'Module Streams not synced correctly'
+        )
 
         module_target_sat.cli.Repository.delete({'id': repo['id']})
         with pytest.raises(CLIReturnCodeError):

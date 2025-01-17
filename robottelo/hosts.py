@@ -597,7 +597,7 @@ class ContentHost(Host, ContentHostMixins):
 
         """
         for name, url in kwargs.items():
-            content = f'[{name}]\n' f'name={name}\n' f'baseurl={url}\n' 'enabled=1\n' 'gpgcheck=0'
+            content = f'[{name}]\nname={name}\nbaseurl={url}\nenabled=1\ngpgcheck=0'
             self.execute(f'echo "{content}" > /etc/yum.repos.d/{name}.repo')
 
     def get_base_url_for_older_rhel_minor(self):
@@ -2302,7 +2302,7 @@ class Satellite(Capsule, SatelliteMixins):
 
         # restart the deamon and httpd services
         httpd_service_content = (
-            '.include /lib/systemd/system/httpd.service\n[Service]' '\nEnvironment=GSS_USE_PROXY=1'
+            '.include /lib/systemd/system/httpd.service\n[Service]\nEnvironment=GSS_USE_PROXY=1'
         )
         assert (
             self.execute(
