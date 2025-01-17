@@ -975,10 +975,7 @@ class TestCapsuleContentManagement:
 
         # Pull the images from capsule to the content host
         repo_paths = [
-            (
-                f'{function_org.label.lower()}-{function_lce.label.lower()}-{cv.label.lower()}-'
-                f'{function_product.label.lower()}-{repo.label.lower()}'
-            )
+            f'{function_org.label}/{function_lce.label}/{cv.label}/{function_product.label}/{repo.label}'.lower()
             for repo in repos
         ]
 
