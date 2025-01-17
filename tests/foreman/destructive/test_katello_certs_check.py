@@ -218,8 +218,7 @@ def test_positive_validate_capsule_certificate(capsule_certs_teardown):
     DNS_Check = False
     # extract the cert from the tar file
     result = target_sat.execute(
-        f'tar -xf {file_setup["tmp_dir"]}/capsule_certs.tar '
-        f'--directory {file_setup["tmp_dir"]}/ '
+        f'tar -xf {file_setup["tmp_dir"]}/capsule_certs.tar --directory {file_setup["tmp_dir"]}/ '
     )
     assert result.status == 0, 'Extraction to working directory failed.'
     # Extract raw data from RPM to a file

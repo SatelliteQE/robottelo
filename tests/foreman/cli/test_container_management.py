@@ -282,8 +282,7 @@ class TestDockerClient:
             }
         )
         docker_repo_uri = (
-            f'{target_sat.hostname}/{pattern_prefix}-{content_view["label"]}/'
-            f'{docker_upstream_name}'
+            f'{target_sat.hostname}/{pattern_prefix}-{content_view["label"]}/{docker_upstream_name}'
         ).lower()
 
         # 3. Try to pull in docker image from Satellite

@@ -944,9 +944,9 @@ def test_positive_search_by_configuration_status_alias(target_sat):
             for search_term in status_search_term.values():
                 search_string = f'{search_term}.{search_param}'
                 results[search_term] = [host['Name'] for host in session.host.search(search_string)]
-            assert (
-                results[status_search_term.name] == results[status_search_term.alias]
-            ), f'Different search results were found: {results}'
+            assert results[status_search_term.name] == results[status_search_term.alias], (
+                f'Different search results were found: {results}'
+            )
 
 
 @pytest.mark.tier4

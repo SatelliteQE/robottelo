@@ -88,9 +88,9 @@ def test_positive_CRUD_all_types(
     list = module_target_sat.cli.ACS.list({'search': f'name={new_acs["name"]}'})
     assert len(list) == 1
     assert list[0]['id'] == new_acs['id'], 'the listed id of ACS does not match the created one'
-    assert (
-        list[0]['type'] == new_acs['alternate-content-source-type']
-    ), 'the listed type of ACS does not match the created one'
+    assert list[0]['type'] == new_acs['alternate-content-source-type'], (
+        'the listed type of ACS does not match the created one'
+    )
 
     # Read
     acs_info = module_target_sat.cli.ACS.info({'id': new_acs['id']})

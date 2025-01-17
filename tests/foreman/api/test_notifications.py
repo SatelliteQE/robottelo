@@ -313,9 +313,9 @@ def test_positive_notification_for_long_running_tasks(long_running_task, root_ma
 
     for email in root_mailbox_copy:
         if task_id in email.as_string():
-            assert 'Tasks pending since' in email.get(
-                'Subject'
-            ), f'Notification e-mail has wrong subject: {email.get("Subject")}'
+            assert 'Tasks pending since' in email.get('Subject'), (
+                f'Notification e-mail has wrong subject: {email.get("Subject")}'
+            )
             for mime_body in email.get_payload():
                 body_text = mime_body.as_string()
                 assert 'Tasks lingering in states running, paused since' in body_text
@@ -357,9 +357,9 @@ def test_positive_notification_failed_repo_sync(failed_repo_sync_task, root_mail
     product_name = failed_repo_sync_task['input']['product']['name']
     for email in root_mailbox_copy:
         if task_id in email.as_string():
-            assert f'Repository {repo_name} failed to synchronize' in email.get(
-                'Subject'
-            ), f'Notification e-mail has wrong subject: {email.get("Subject")}'
+            assert f'Repository {repo_name} failed to synchronize' in email.get('Subject'), (
+                f'Notification e-mail has wrong subject: {email.get("Subject")}'
+            )
             for mime_body in email.get_payload():
                 body_text = mime_body.as_string()
                 assert product_name in body_text
@@ -435,6 +435,6 @@ def test_negative_no_notification_for_long_running_tasks(
     assert task_id
 
     for email in root_mailbox_copy:
-        assert (
-            task_id not in email.as_string()
-        ), f'Unexpected notification e-mail with long-running task ID {task_id} found in user mailbox!'
+        assert task_id not in email.as_string(), (
+            f'Unexpected notification e-mail with long-running task ID {task_id} found in user mailbox!'
+        )

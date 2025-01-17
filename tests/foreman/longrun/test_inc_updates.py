@@ -284,8 +284,7 @@ def test_positive_incremental_update_time(module_target_sat, module_entitlement_
     # wait for all repo sync tasks
     sync_tasks = module_target_sat.wait_for_tasks(
         search_query=(
-            'label = Actions::Katello::Repository::Sync'
-            f' and started_at >= "{repo_sync_timestamp}"'
+            f'label = Actions::Katello::Repository::Sync and started_at >= "{repo_sync_timestamp}"'
         ),
         search_rate=10,
         max_tries=200,

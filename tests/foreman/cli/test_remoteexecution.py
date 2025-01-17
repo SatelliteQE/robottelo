@@ -474,7 +474,7 @@ class TestRemoteExecution:
             ],
             [
                 '@weekly',
-                f'{(today + timedelta(days=-today.weekday() +6)).strftime("%Y/%m/%d")} 00:00:00',
+                f'{(today + timedelta(days=-today.weekday() + 6)).strftime("%Y/%m/%d")} 00:00:00',
             ],
             [
                 '@midnight',
@@ -488,7 +488,7 @@ class TestRemoteExecution:
             [
                 '23 0-23/2 * * *',
                 f'{today.strftime("%Y/%m/%d")} '
-                f'{ (str(hour if hour % 2 == 0 else hour + 1)).rjust(2,"0") }:23:00',
+                f'{(str(hour if hour % 2 == 0 else hour + 1)).rjust(2, "0")}:23:00',
             ],
             # last day of month
             [
@@ -498,12 +498,12 @@ class TestRemoteExecution:
             # last 7 days of month
             [
                 '0 0 -7-L * *',
-                f'{today.strftime("%Y/%m")}/{last_day_of_month-6} 00:00:00',
+                f'{today.strftime("%Y/%m")}/{last_day_of_month - 6} 00:00:00',
             ],
             # last friday of month at 7
             [
                 '0 7 * * fri#-1',
-                f'{(today+relativedelta(day=31, weekday=FR(-1))).strftime("%Y/%m/%d")} 07:00:00',
+                f'{(today + relativedelta(day=31, weekday=FR(-1))).strftime("%Y/%m/%d")} 07:00:00',
             ],
         ]
         for exp in fugit_expressions:
@@ -521,9 +521,9 @@ class TestRemoteExecution:
                 target_sat, invocation_command['id'], client.hostname, 'queued'
             )
             rec_logic = target_sat.cli.RecurringLogic.info({'id': result['recurring-logic-id']})
-            assert (
-                rec_logic['next-occurrence'] == exp[1]
-            ), f'Job was not scheduled as expected using {exp[0]}'
+            assert rec_logic['next-occurrence'] == exp[1], (
+                f'Job was not scheduled as expected using {exp[0]}'
+            )
 
     @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([8])
@@ -724,7 +724,7 @@ class TestRexUsers:
                     {'id': invocation_command['id'], 'host': hostname}
                 )
             )
-            output_msgs.append(f"host output from {hostname}: { inv_output }")
+            output_msgs.append(f"host output from {hostname}: {inv_output}")
         result = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
         assert result['success'] == '2', output_msgs
 

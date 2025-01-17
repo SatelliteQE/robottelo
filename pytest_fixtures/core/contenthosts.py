@@ -214,12 +214,12 @@ def module_container_contenthost(request, module_target_sat):
         # needed for docker commands to accept Satellite's cert
         host.install_katello_ca(module_target_sat)
         for client in constants.CONTAINER_CLIENTS:
-            assert (
-                host.execute(f'yum -y install {client}').status == 0
-            ), f'{client} installation failed'
-        assert (
-            host.execute('systemctl enable --now podman').status == 0
-        ), 'Start of podman service failed'
+            assert host.execute(f'yum -y install {client}').status == 0, (
+                f'{client} installation failed'
+            )
+        assert host.execute('systemctl enable --now podman').status == 0, (
+            'Start of podman service failed'
+        )
         yield host
 
 
