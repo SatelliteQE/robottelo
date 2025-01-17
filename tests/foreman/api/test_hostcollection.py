@@ -459,9 +459,9 @@ def test_positive_add_remove_subscription(module_org, module_ak_cv_lce, target_s
         # GET the subscriptions from hosts and assert they are there
         for host_id in host_ids:
             req = target_sat.api.HostSubscription(host=host_id).subscriptions()
-            assert (
-                prod_name in req['results'][0]['product_name']
-            ), 'Subscription not applied to HC members'
+            assert prod_name in req['results'][0]['product_name'], (
+                'Subscription not applied to HC members'
+            )
         # Remove the subscription
         # Call nailgun to make the API PUT to members of Host Collection
         target_sat.api.Host().bulk_remove_subscriptions(

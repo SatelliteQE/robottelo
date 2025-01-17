@@ -627,9 +627,9 @@ def test_positive_katello_and_openscap_loaded(target_sat):
     """
     help_output = target_sat.cli.Host.execute('host update --help')
     for arg in ['lifecycle-environment[-id]', 'openscap-proxy-id']:
-        assert any(
-            f'--{arg}' in line for line in help_output.split('\n')
-        ), f'--{arg} not supported by update subcommand'
+        assert any(f'--{arg}' in line for line in help_output.split('\n')), (
+            f'--{arg} not supported by update subcommand'
+        )
 
 
 @pytest.mark.cli_host_create
@@ -2444,9 +2444,9 @@ def test_positive_tracer_list_and_resolve(tracer_host, target_sat):
 
     # verify on the host end, that the service was really restarted
     service_ver_log_new = tracer_host.execute(f'cat /var/log/{package}/service.log')
-    assert (
-        service_ver_log_new != service_ver_log_old
-    ), f'The service {package} did not seem to be restarted'
+    assert service_ver_log_new != service_ver_log_old, (
+        f'The service {package} did not seem to be restarted'
+    )
 
 
 # ---------------------------- PUPPET ENABLED IN INSTALLER TESTS -----------------------

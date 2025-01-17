@@ -207,9 +207,9 @@ def test_positive_access_with_non_admin_user_with_manifest(
     with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
         all_subscriptions = session.subscription.read_subscriptions()
         assert len(all_subscriptions) > 0
-        assert any(
-            [sub['Name'] == DEFAULT_SUBSCRIPTION_NAME for sub in all_subscriptions]
-        ), 'Default subsciption not found'
+        assert any([sub['Name'] == DEFAULT_SUBSCRIPTION_NAME for sub in all_subscriptions]), (
+            'Default subsciption not found'
+        )
 
 
 @pytest.mark.tier2

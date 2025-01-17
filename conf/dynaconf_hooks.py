@@ -25,8 +25,7 @@ def post(settings):
         except FileNotFoundError:
             # no settings cache file exists
             logger.warning(
-                f'The [{settings_cache_path}] cache file was not found.'
-                'Config will be fetched now.'
+                f'The [{settings_cache_path}] cache file was not found.Config will be fetched now.'
             )
             data = get_repos_config(settings)
             write_cache(settings_cache_path, data)

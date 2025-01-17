@@ -38,7 +38,7 @@ CONTENT_FILES = {"pulp_data.tar", ".pulp.snar"}
 
 NODIR_MSG = "ERROR: parameter 'BACKUP_DIR': no value provided"
 BADDIR_MSG = "The given directory does not contain the required files or has too many files"
-NOPREV_MSG = "ERROR: option '--incremental': Previous backup " "directory does not exist"
+NOPREV_MSG = "ERROR: option '--incremental': Previous backup directory does not exist"
 
 assert_msg = "Some required backup files are missing"
 

@@ -1252,9 +1252,9 @@ class TestRepository:
         repo.ignorable_content = []
         repo = repo.update(['ignorable_content'])
         repo.sync()
-        assert target_sat.md5_by_url(
-            f'{repo.full_path}.treeinfo'
-        ), 'The treeinfo file is missing in the KS repo but it should be there.'
+        assert target_sat.md5_by_url(f'{repo.full_path}.treeinfo'), (
+            'The treeinfo file is missing in the KS repo but it should be there.'
+        )
 
 
 @pytest.mark.run_in_one_thread

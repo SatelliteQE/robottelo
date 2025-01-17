@@ -248,9 +248,9 @@ class TestAnsibleCfgMgmt:
         assert setting_update.value == SELECTED_ROLE
         with target_sat.ui_session() as session:
             roles = session.ansibleroles.read_all()
-            assert all(
-                item not in roles for item in SELECTED_ROLE
-            ), 'Roles from ignore list are available for import'
+            assert all(item not in roles for item in SELECTED_ROLE), (
+                'Roles from ignore list are available for import'
+            )
 
     @pytest.mark.stubbed
     @pytest.mark.tier3

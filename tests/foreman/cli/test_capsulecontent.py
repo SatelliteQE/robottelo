@@ -115,9 +115,9 @@ def test_positive_content_counts_for_mixed_cv(
     assert len(lce_info['content-views']) == 1, 'Too many or few CVs listed'
     cv_info = lce_info['content-views']['1']
     assert cv_info['name']['name'] == cv['name'], 'Wrong CV name listed'
-    assert len(cv_info['repositories']) == len(
-        cvv['repositories']
-    ), 'Too many or few repositories listed'
+    assert len(cv_info['repositories']) == len(cvv['repositories']), (
+        'Too many or few repositories listed'
+    )
     cv_info_reponames = set([repo['repository-name'] for repo in cv_info['repositories'].values()])
     cvv_reponames = set([repo['name'] for repo in cvv['repositories']])
     assert cv_info_reponames == cvv_reponames, 'Wrong repo names listed'

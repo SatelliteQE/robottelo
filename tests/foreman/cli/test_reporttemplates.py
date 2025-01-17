@@ -1019,7 +1019,7 @@ def test_positive_generate_hostpkgcompare(
         result = target_sat.cli.ReportTemplate.generate(
             {
                 'name': 'Host - compare content hosts packages',
-                'inputs': f'Host 1 = {host1["name"]}, ' f'Host 2 = {host2["name"]}',
+                'inputs': f'Host 1 = {host1["name"]}, Host 2 = {host2["name"]}',
             }
         )
 
@@ -1079,7 +1079,7 @@ def test_negative_generate_hostpkgcompare_nonexistent_host(module_target_sat):
         module_target_sat.cli.ReportTemplate.generate(
             {
                 'name': 'Host - compare content hosts packages',
-                'inputs': 'Host 1 = nonexistent1, ' 'Host 2 = nonexistent2',
+                'inputs': 'Host 1 = nonexistent1, Host 2 = nonexistent2',
             }
         )
     assert "At least one of the hosts couldn't be found" in cm.value.stderr

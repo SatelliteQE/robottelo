@@ -885,9 +885,9 @@ def test_positive_installed_products(
     sys_tags = {'role': gen_string('alpha'), 'usage': gen_string('alpha')}
 
     for key, val in sys_tags.items():
-        assert (
-            rhel_contenthost.execute(f'subscription-manager {key} --set {val}').status == 0
-        ), f'Setting of {key} failed.'
+        assert rhel_contenthost.execute(f'subscription-manager {key} --set {val}').status == 0, (
+            f'Setting of {key} failed.'
+        )
 
     rh_repo = {
         'basearch': DEFAULT_ARCHITECTURE,

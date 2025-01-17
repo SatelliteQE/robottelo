@@ -69,9 +69,9 @@ class TestCapsuleFeatures:
         """
         pre_features = set(pre_upgrade_data.get('features'))
         post_features = set(json.loads(pre_configured_capsule.get_features()))
-        assert (
-            post_features == pre_features
-        ), 'capsule features after and before upgrade are differrent'
+        assert post_features == pre_features, (
+            'capsule features after and before upgrade are differrent'
+        )
         pre_configured_capsule.nailgun_smart_proxy.refresh()
         refreshed_features = set(json.loads(pre_configured_capsule.get_features()))
         assert refreshed_features == pre_features, 'capsule features after refresh are differrent'
@@ -166,12 +166,12 @@ class TestCapsuleSync:
         )
         sat_files_urls = get_repo_files_urls_by_url(sat_repo_url)
         cap_files_urls = get_repo_files_urls_by_url(cap_repo_url)
-        assert (
-            len(sat_files_urls) == constants.FAKE_1_YUM_REPOS_COUNT
-        ), 'upstream and satellite repo rpm counts are differrent'
-        assert len(sat_files_urls) == len(
-            cap_files_urls
-        ), 'satellite and capsule repo rpm counts are differrent'
+        assert len(sat_files_urls) == constants.FAKE_1_YUM_REPOS_COUNT, (
+            'upstream and satellite repo rpm counts are differrent'
+        )
+        assert len(sat_files_urls) == len(cap_files_urls), (
+            'satellite and capsule repo rpm counts are differrent'
+        )
 
         sat_files = {os.path.basename(f) for f in sat_files_urls}
         cap_files = {os.path.basename(f) for f in cap_files_urls}
@@ -247,12 +247,12 @@ class TestCapsuleSyncNewRepo:
 
         sat_files_urls = get_repo_files_urls_by_url(sat_repo_url)
         cap_files_urls = get_repo_files_urls_by_url(cap_repo_url)
-        assert (
-            len(sat_files_urls) == constants.FAKE_1_YUM_REPOS_COUNT
-        ), 'upstream and satellite repo rpm counts are differrent'
-        assert len(sat_files_urls) == len(
-            cap_files_urls
-        ), 'satellite and capsule repo rpm counts are differrent'
+        assert len(sat_files_urls) == constants.FAKE_1_YUM_REPOS_COUNT, (
+            'upstream and satellite repo rpm counts are differrent'
+        )
+        assert len(sat_files_urls) == len(cap_files_urls), (
+            'satellite and capsule repo rpm counts are differrent'
+        )
 
         sat_files = {os.path.basename(f) for f in sat_files_urls}
         cap_files = {os.path.basename(f) for f in cap_files_urls}

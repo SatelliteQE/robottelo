@@ -65,9 +65,9 @@ def test_host_registration_end_to_end(
         options={'name': rhel_contenthost.hostname, 'fields': 'Additional info/owner'}
     )
     # Verify host owner name set correctly
-    assert (
-        'Admin User' in owner_name['additional-info']['owner']
-    ), f'Host owner name is incorrect: {owner_name["additional-info"]["owner"]}'
+    assert 'Admin User' in owner_name['additional-info']['owner'], (
+        f'Host owner name is incorrect: {owner_name["additional-info"]["owner"]}'
+    )
 
     # Verify server.hostname and server.port from subscription-manager config
     assert module_target_sat.hostname == rhel_contenthost.subscription_config['server']['hostname']
@@ -95,9 +95,9 @@ def test_host_registration_end_to_end(
         options={'name': rhel_contenthost.hostname, 'fields': 'Additional info/owner'}
     )
     # Verify capsule host owner name set correctly
-    assert (
-        'Admin User' in owner_name['additional-info']['owner']
-    ), f'Host owner name is incorrect: {owner_name["additional-info"]["owner"]}'
+    assert 'Admin User' in owner_name['additional-info']['owner'], (
+        f'Host owner name is incorrect: {owner_name["additional-info"]["owner"]}'
+    )
 
     # Verify server.hostname and server.port from subscription-manager config
     assert (

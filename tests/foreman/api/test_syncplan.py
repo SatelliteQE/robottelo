@@ -86,14 +86,14 @@ def validate_repo_content(repo, content_types, after_sync=True):
     for content in content_types:
         if after_sync:
             assert repo.last_sync is not None, 'Repository unexpectedly was not synced.'
-            assert (
-                repo.content_counts[content] > 0
-            ), 'Repository contains invalid number of content entities.'
+            assert repo.content_counts[content] > 0, (
+                'Repository contains invalid number of content entities.'
+            )
         else:
             assert repo.last_sync is None, 'Repository was unexpectedly synced.'
-            assert not repo.content_counts[
-                content
-            ], 'Repository contains invalid number of content entities.'
+            assert not repo.content_counts[content], (
+                'Repository contains invalid number of content entities.'
+            )
 
 
 @pytest.mark.tier1
