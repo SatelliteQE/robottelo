@@ -259,7 +259,7 @@ class ContentHost(Host, ContentHostMixins):
     @property
     def subscribed(self):
         """Boolean representation of a content host's subscription status"""
-        return 'Status: Unknown' not in self.execute('subscription-manager status').stdout
+        return 'Overall Status: Unknown' not in self.execute('subscription-manager status').stdout
 
     @property
     def identity(self):
