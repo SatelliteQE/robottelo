@@ -75,6 +75,6 @@ def test_positive_end_to_end(session, module_target_sat, module_dom):
         sn.domain = []
         sn.update(['domain'])
         session.subnet.delete(new_name)
-        assert not module_target_sat.api.Subnet().search(
-            query={'search': f'name={new_name}'}
-        ), 'The subnet was supposed to be deleted'
+        assert not module_target_sat.api.Subnet().search(query={'search': f'name={new_name}'}), (
+            'The subnet was supposed to be deleted'
+        )

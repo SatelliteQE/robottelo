@@ -128,9 +128,9 @@ def test_positive_facts_end_to_end(
         expected_values['net::interface::eth1::mac_address'] = mac_address.lower()
     for fact, expected_value in expected_values.items():
         actual_value = facts_dict.get(fact)
-        assert (
-            actual_value == expected_value
-        ), f'Assertion failed: {fact} (expected: {expected_value}, actual: {actual_value})'
+        assert actual_value == expected_value, (
+            f'Assertion failed: {fact} (expected: {expected_value}, actual: {actual_value})'
+        )
 
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
@@ -182,9 +182,9 @@ def test_positive_custom_facts_and_clean_orphaned_facts(
     }
     for fact, expected_value in expected_values.items():
         actual_value = facts_dict.get(fact)
-        assert (
-            actual_value == expected_value
-        ), f'Assertion failed: {fact} (expected: {expected_value}, actual: {actual_value})'
+        assert actual_value == expected_value, (
+            f'Assertion failed: {fact} (expected: {expected_value}, actual: {actual_value})'
+        )
 
     # Cleanup orphaned facts
     result = module_target_sat.execute('foreman-rake facts:clean')

@@ -229,9 +229,9 @@ def test_end_to_end(
         # equality check here.
         # TODO: Find a way to account for browser time zone, so that the errata dates displayed
         # in the UI can be compared to the UTC values in ERRATA_DETAILS.
-        assert (
-            not ERRATA_DETAILS.items() - errata['details'].items()
-        ), 'Errata details do not match expected values.'
+        assert not ERRATA_DETAILS.items() - errata['details'].items(), (
+            'Errata details do not match expected values.'
+        )
         assert set(errata['packages']['independent_packages']) == set(
             ERRATA_PACKAGES['independent_packages']
         )
