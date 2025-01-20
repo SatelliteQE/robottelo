@@ -43,6 +43,12 @@ def rh_sso_hammer_auth_setup(module_target_sat, default_sso_host, request):
 
 
 @pytest.mark.pit_server
+@pytest.mark.parametrize(
+    ('default_sso_host', 'rhsso_setting_setup', 'enroll_configure_rhsso_external_auth'),
+    [(True, True, True), (False, False, False)],
+    ids=['RHBK', 'RHSSO'],
+    indirect=True,
+)
 def test_rhsso_login_using_hammer(
     module_target_sat,
     enable_external_auth_rhsso,
@@ -58,30 +64,28 @@ def test_rhsso_login_using_hammer(
 
     :CaseImportance: High
     """
+    if default_sso_host.rhbk:
+        user = settings.rhbk.rhbk_user
+        password = settings.rhbk.rhbk_password
+    else:
+        user = settings.rhsso.rhsso_user
+        password = settings.rhsso.rhsso_password
+
     result = module_target_sat.cli.AuthLogin.oauth(
         {
             'oidc-token-endpoint': default_sso_host.oidc_token_endpoint,
             'oidc-client-id': default_sso_host.get_oidc_client_id(),
-            'username': settings.rhsso.rhsso_user,
-            'password': settings.rhsso.rhsso_password,
+            'username': user,
+            'password': password,
         }
     )
-    assert f"Successfully logged in as '{settings.rhsso.rhsso_user}'." == result[0]['message']
-    result = module_target_sat.cli.Auth.with_user(
-        username=settings.rhsso.rhsso_user, password=settings.rhsso.rhsso_password
-    ).status()
-    assert (
-        f"Session exists, currently logged in as '{settings.rhsso.rhsso_user}'."
-        in result[0]['message']
-    )
-    task_list = module_target_sat.cli.Task.with_user(
-        username=settings.rhsso.rhsso_user, password=settings.rhsso.rhsso_password
-    ).list()
+    assert f"Successfully logged in as '{user}'." == result[0]['message']
+    result = module_target_sat.cli.Auth.with_user(username=user, password=password).status()
+    assert f"Session exists, currently logged in as '{user}'." in result[0]['message']
+    task_list = module_target_sat.cli.Task.with_user(username=user, password=password).list()
     assert len(task_list) >= 0
     with pytest.raises(CLIReturnCodeError) as error:
-        module_target_sat.cli.Role.with_user(
-            username=settings.rhsso.rhsso_user, password=settings.rhsso.rhsso_password
-        ).list()
+        module_target_sat.cli.Role.with_user(username=user, password=password).list()
     assert 'Missing one of the required permissions' in error.value.message
 
 
