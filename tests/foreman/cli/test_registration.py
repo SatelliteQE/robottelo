@@ -221,12 +221,13 @@ def test_positive_force_register_twice(module_ak_with_cv, module_org, rhel_conte
     assert result.status == 0
     assert rhel_contenthost.subscribed
     assert f'Unregistering from: {target_sat.hostname}' in str(result.stdout)
-    assert f'The registered system name is: {rhel_contenthost.hostname}' in str(result.stdout)
+    hostname = rhel_contenthost.execute('hostname').stdout.strip()
+    assert f'The registered system name is: {hostname}' in str(result.stdout)
     reg_id_new = re.search(reg_id_pattern, result.stdout).group(1)
     assert f'The system has been registered with ID: {reg_id_new}' in str(result.stdout)
     assert reg_id_new != reg_id_old
     assert (
-        target_sat.cli.Host.info({'name': rhel_contenthost.hostname}, output_format='json')[
+        target_sat.cli.Host.info({'name': hostname.lower()}, output_format='json')[
             'subscription-information'
         ]['uuid']
         == reg_id_new
