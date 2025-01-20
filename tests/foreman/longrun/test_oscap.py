@@ -37,7 +37,9 @@ cv_name = {
     'rhel8': f'cv_{gen_string("alpha")}_rhel8',
     'rhel7': f'cv_{gen_string("alpha")}_rhel7',
 }
+# TODO: add rhel10 profile when available
 profiles = {
+    'rhel10': OSCAP_PROFILE['dsrhel10'],
     'rhel9': OSCAP_PROFILE['cbrhel9'],
     'rhel8': OSCAP_PROFILE['ospp8'],
     'rhel7': OSCAP_PROFILE['security7'],
