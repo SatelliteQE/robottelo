@@ -1367,8 +1367,8 @@ def install_satellite(satellite, installer_args):
     satellite.execute(
         'firewall-cmd --permanent --add-service RH-Satellite-6 && firewall-cmd --reload'
     )
-    # Install Satellite
-    satellite.execute(
+    # Install Satellite and return result
+    return satellite.execute(
         InstallerCommand(installer_args=installer_args).get_command(),
         timeout='30m',
     )
@@ -1382,7 +1382,9 @@ def sat_default_install(module_sat_ready_rhels):
         f'foreman-initial-admin-password {settings.server.admin_password}',
     ]
     sat = module_sat_ready_rhels.pop()
-    install_satellite(sat, installer_args)
+    assert install_satellite(sat, installer_args).status == 0, (
+        "Satellite installation failed (non-zero return code)"
+    )
     return sat
 
 
@@ -1396,7 +1398,9 @@ def sat_non_default_install(module_sat_ready_rhels):
         'foreman-proxy-content-pulpcore-hide-guarded-distributions false',
     ]
     sat = module_sat_ready_rhels.pop()
-    install_satellite(sat, installer_args)
+    assert install_satellite(sat, installer_args).status == 0, (
+        "Satellite installation failed (non-zero return code)"
+    )
     return sat
 
 
