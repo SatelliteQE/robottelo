@@ -1378,8 +1378,8 @@ def install_satellite(satellite, installer_args, enable_fapolicyd=False):
     satellite.execute(
         'firewall-cmd --permanent --add-service RH-Satellite-6 && firewall-cmd --reload'
     )
-    # Install Satellite
-    satellite.execute(
+    # Install Satellite and return result
+    return satellite.execute(
         InstallerCommand(installer_args=installer_args).get_command(),
         timeout='30m',
     )
@@ -1508,7 +1508,9 @@ def sat_default_install(module_sat_ready_rhels):
         f'foreman-initial-admin-password {settings.server.admin_password}',
     ]
     sat = module_sat_ready_rhels.pop()
-    install_satellite(sat, installer_args)
+    assert install_satellite(sat, installer_args).status == 0, (
+        "Satellite installation failed (non-zero return code)"
+    )
     sat.enable_satellite_ipv6_http_proxy()
     return sat
 
@@ -1521,7 +1523,9 @@ def sat_fapolicyd_install(module_sat_ready_rhels):
         f'foreman-initial-admin-password {settings.server.admin_password}',
     ]
     sat = module_sat_ready_rhels.pop()
-    install_satellite(sat, installer_args, enable_fapolicyd=True)
+    assert install_satellite(sat, installer_args, enable_fapolicyd=True).status == 0, (
+        "Satellite installation failed (non-zero return code)"
+    )
     sat.enable_ipv6_dnf_and_rhsm_proxy()
     sat.enable_satellite_http_proxy()
     return sat
@@ -1539,7 +1543,9 @@ def sat_non_default_install(module_sat_ready_rhels):
         'foreman-proxy-plugin-discovery-install-images true',
     ]
     sat = module_sat_ready_rhels.pop()
-    install_satellite(sat, installer_args, enable_fapolicyd=True)
+    assert install_satellite(sat, installer_args, enable_fapolicyd=True).status == 0, (
+        "Satellite installation failed (non-zero return code)"
+    )
     sat.enable_satellite_ipv6_http_proxy()
     sat.execute('dnf -y --disableplugin=foreman-protector install foreman-discovery-image')
     return sat
