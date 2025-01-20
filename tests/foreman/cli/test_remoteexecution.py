@@ -88,6 +88,10 @@ def assert_job_invocation_status(sat, invocation_command_id, client_hostname, st
         ) from err
 
 
+def get_yggdrasil_service_name(rhel_contenthost):
+    return 'yggdrasil' if float(rhel_contenthost.os_distribution_version) > 9.5 else 'yggdrasild'
+
+
 class TestRemoteExecution:
     """Implements job execution tests in CLI."""
 
@@ -1020,13 +1024,12 @@ class TestPullProviderRex:
         )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
 
+        service_name = get_yggdrasil_service_name(rhel_contenthost)
         # install conversion script (SAT-1670)
         result = rhel_contenthost.execute('yum install -y katello-pull-transport-migrate')
         assert result.status == 0, 'Failed to install katello-pull-transport-migrate'
         # check mqtt client is running
-        result = rhel_contenthost.execute('systemctl status yggdrasild')
-        assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
-        result = rhel_contenthost.execute('systemctl status yggdrasild')
+        result = rhel_contenthost.execute(f'systemctl status {service_name}')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
         # run script provider rex command
         invocation_command = module_target_sat.cli_factory.job_invocation(
@@ -1052,9 +1055,7 @@ class TestPullProviderRex:
         )
 
         # check katello-agent removal did not influence ygdrassil (SAT-1672)
-        result = rhel_contenthost.execute('systemctl status yggdrasild')
-        assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
-        result = rhel_contenthost.execute('systemctl status yggdrasild')
+        result = rhel_contenthost.execute(f'systemctl status {service_name}')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
         invocation_command = module_target_sat.cli_factory.job_invocation(
             {
@@ -1123,19 +1124,20 @@ class TestPullProviderRex:
             ignore_subman_errors=True,
             force=True,
         )
-
         assert result.status == 0, f'Failed to register host: {result.stderr}'
+
         # check mqtt client is running
-        result = rhel_contenthost.execute('systemctl status yggdrasild')
+        service_name = get_yggdrasil_service_name(rhel_contenthost)
+        result = rhel_contenthost.execute(f'systemctl status {service_name}')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
 
         # create a new directory and set in in yggdrasil
         path = f'/{gen_string("alpha")}'
-        config_path_dir = '/etc/systemd/system/yggdrasild.service.d/'
+        config_path_dir = f'/etc/systemd/system/{service_name}.service.d/'
         config_path = f'{config_path_dir}/override.conf'
         assert (
             rhel_contenthost.execute(
-                f'mkdir {path} && mount -t tmpfs tmpfs {path} && mkdir {config_path_dir} && echo -e "[Service]\nEnvironment=FOREMAN_YGG_WORKER_WORKDIR={path}" > {config_path} && systemctl daemon-reload && systemctl restart yggdrasild'
+                f'mkdir {path} && mount -t tmpfs tmpfs {path} && mkdir {config_path_dir} && echo -e "[Service]\nEnvironment=FOREMAN_YGG_WORKER_WORKDIR={path}" > {config_path} && systemctl daemon-reload && systemctl restart {service_name}'
             ).status
             == 0
         )
@@ -1203,6 +1205,8 @@ class TestPullProviderRex:
 
         :CaseImportance: Critical
 
+        :Verifies: SAT-30141
+
         :parametrized: yes
         """
         client_repo = ohsnap.dogfood_repository(
@@ -1234,13 +1238,14 @@ class TestPullProviderRex:
 
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         # check mqtt client is running
-        result = rhel_contenthost.execute('systemctl status yggdrasild')
+        service_name = get_yggdrasil_service_name(rhel_contenthost)
+        result = rhel_contenthost.execute(f'systemctl status {service_name}')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
         # run script provider rex command
         invocation_command = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Service Action - Script Default',
-                'inputs': 'action=status, service=yggdrasild',
+                'inputs': f'action=status, service={service_name}',
                 'search-query': f"name ~ {rhel_contenthost.hostname}",
             }
         )
@@ -1330,10 +1335,11 @@ class TestPullProviderRex:
 
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         # check mqtt client is running
-        result = rhel_contenthost.execute('systemctl status yggdrasild')
+        service_name = get_yggdrasil_service_name(rhel_contenthost)
+        result = rhel_contenthost.execute(f'systemctl status {service_name}')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
         # stop the client on host
-        result = rhel_contenthost.execute('systemctl stop yggdrasild')
+        result = rhel_contenthost.execute(f'systemctl stop {service_name}')
         assert result.status == 0, f'Failed to stop yggdrasil on client: {result.stderr}'
         # run script provider rex command
         invocation_command = module_target_sat.cli_factory.job_invocation(
@@ -1349,7 +1355,7 @@ class TestPullProviderRex:
             module_target_sat, invocation_command['id'], rhel_contenthost.hostname, 'running'
         )
         # start client on host
-        result = rhel_contenthost.execute('systemctl start yggdrasild')
+        result = rhel_contenthost.execute(f'systemctl start {service_name}')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
         # wait twice the mqtt_resend_interval (set in module_capsule_configured_mqtt)
         sleep(60)
@@ -1420,7 +1426,8 @@ class TestPullProviderRex:
 
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         # check mqtt client is running
-        result = rhel_contenthost.execute('systemctl status yggdrasild')
+        service_name = get_yggdrasil_service_name(rhel_contenthost)
+        result = rhel_contenthost.execute(f'systemctl status {service_name}')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
 
         # enable repo, install old pkg
