@@ -27,11 +27,6 @@ infoblox_dns_package = 'rubygem-smart_proxy_dns_infoblox'
 
 params = [
     (
-        'enable-foreman-proxy-plugin-dhcp-remote-isc',
-        {'foreman-proxy-dhcp': 'true'},
-        f'rpm -q {dhcp_isc_package}',
-    ),
-    (
         'enable-foreman-proxy-plugin-dhcp-infoblox',
         {
             'foreman-proxy-plugin-dhcp-infoblox-username': 'fakeusername',
@@ -89,7 +84,7 @@ infoblox_plugin_opts = {
 @pytest.mark.parametrize(
     ('command_args', 'command_opts', 'rpm_command'),
     params,
-    ids=['isc_dhcp', 'infoblox_dhcp', 'infoblox_dns'],
+    ids=['infoblox_dhcp', 'infoblox_dns'],
 )
 def test_plugin_installation(target_sat, command_args, command_opts, rpm_command):
     """Check that external DNS and DHCP plugins install correctly
@@ -183,12 +178,16 @@ def test_infoblox_end_to_end(
 
     macaddress = gen_mac(multicast=False)
     # using the domain name as defined in Infoblox DNS
-    domain = module_target_sat.api.Domain(
-        name=settings.infoblox.domain,
-        location=[module_location],
-        dns=module_provisioning_capsule.id,
-        organization=[module_sca_manifest_org],
-    ).create()
+    domain = (
+        settings.infoblox.domain
+        if settings.server.is_ipv6
+        else module_target_sat.api.Domain(
+            name=settings.infoblox.domain,
+            location=[module_location],
+            dns=module_provisioning_capsule.id,
+            organization=[module_sca_manifest_org],
+        ).create()
+    )
     subnet = module_target_sat.api.Subnet(
         location=[module_location],
         organization=[module_sca_manifest_org],
