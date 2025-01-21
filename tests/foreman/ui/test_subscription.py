@@ -214,6 +214,7 @@ def test_positive_access_with_non_admin_user_with_manifest(
             session.subscription.search(f'name = "{DEFAULT_SUBSCRIPTION_NAME}"')[0]['Name']
             == DEFAULT_SUBSCRIPTION_NAME
         )
+    pass
 
 
 @pytest.mark.tier2
