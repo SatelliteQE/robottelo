@@ -17,6 +17,7 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
     DOCKER_REPO_UPSTREAM_NAME,
     PRDS,
     REPO_TYPE,
@@ -162,3 +163,77 @@ def test_positive_sync_docker_via_sync_status(session, module_org, module_target
         assert session.repository.search(product.name, repo_name)[0]['Name'] == repo_name
         result = session.sync_status.synchronize([(product.name, repo_name)])
         assert result[0] == 'Syncing Complete.'
+
+
+def test_sync_active_only(target_sat, function_sca_manifest_org):
+    """Ensure the Active Only check-box works as expected.
+
+    :id: ebffc8d4-c3c3-40fe-a1f5-85148886cc35
+
+    :steps:
+        1. Create two repositories.
+        2. Ensure none of them is displayed when Active Only is selected, both otherwise.
+        3. Start syncing one of them asynchronously.
+        4. Ensure only the syncing repository is displayed when Active Only is selected.
+        5. Wait until the sync finish.
+        6. Ensure none of the repos is displayed when Active Only is selected, both otherwise.
+
+    :expectedresults: Only the repos under active sync are displayed when Active Only is selected.
+
+    :Verifies: SAT-30291
+
+    :customerscenario: true
+
+    """
+    # Create two repositories.
+    for key in ['rhel9_aps', 'rhel9_bos']:
+        prod, ver, arch, name = (
+            REPOS['kickstart'][key]['product'],
+            REPOS['kickstart'][key]['version'],
+            'noarch',
+            REPOS['kickstart'][key]['name'],
+        )
+        rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch=DEFAULT_ARCHITECTURE,
+            org_id=function_sca_manifest_org.id,
+            reposet=REPOS['kickstart'][key]['reposet'],
+            product=prod,
+            repo=name,
+            releasever=ver,
+        )
+        repo = target_sat.api.Repository(id=rh_repo_id).read()
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=function_sca_manifest_org.name)
+
+        # Ensure none of them is displayed when Active Only is selected, both otherwise.
+        res = session.sync_status.read(active_only=True)
+        assert len(res['table']) == 0
+        res = session.sync_status.read(active_only=False)
+        assert len(res['table'][prod][ver][arch]) == 2
+        assert name in res['table'][prod][ver][arch]
+
+        # Start syncing one of them asynchronously.
+        res = session.sync_status.synchronize([(prod, ver, arch, name)], synchronous=False)
+
+        # Ensure only the syncing repository is displayed when Active Only is selected.
+        res = session.sync_status.read(active_only=True)
+        assert len(res['table'][prod][ver][arch]) == 1
+        assert name in res['table'][prod][ver][arch]
+
+        # Wait until the sync finish.
+        target_sat.wait_for_tasks(
+            search_query='Actions::Katello::Repository::Sync'
+            f' and organization_id = {function_sca_manifest_org.id}'
+            f' and resource_id = {repo.id}'
+            ' and resource_type = Katello::Repository',
+            max_tries=12,
+            search_rate=10,
+        )
+        session.browser.refresh()
+
+        # Ensure none of the repos is displayed when Active Only is selected, both otherwise.
+        res = session.sync_status.read(active_only=True)
+        assert len(res['table']) == 0
+        res = session.sync_status.read(active_only=False)
+        assert len(res['table'][prod][ver][arch]) == 2
