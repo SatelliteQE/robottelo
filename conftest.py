@@ -53,6 +53,7 @@ pytest_plugins = [
     'pytest_fixtures.component.os',
     'pytest_fixtures.component.oscap',
     'pytest_fixtures.component.partition_table',
+    'pytest_fixtures.component.permissions',
     'pytest_fixtures.component.provision_azure',
     'pytest_fixtures.component.provision_gce',
     'pytest_fixtures.component.provision_libvirt',
