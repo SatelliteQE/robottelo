@@ -1788,7 +1788,7 @@ OSCAP_PROFILE = {
     'ppgpo': 'Protection Profile for General Purpose Operating Systems',
     'acscee': 'Australian Cyber Security Centre (ACSC) Essential Eight',
     'ospp7': 'OSPP - Protection Profile for General Purpose Operating Systems v4.2.1',
-    'ospp8': 'Protection Profile for General Purpose Operating Systems',
+    'ospp8+': 'Protection Profile for General Purpose Operating Systems',
     'usgcb': 'United States Government Configuration Baseline (USGCB)',
     'pcidss6': 'PCI-DSS v3 Control Baseline for Red Hat Enterprise Linux 6',
     'pcidss7': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 7',
