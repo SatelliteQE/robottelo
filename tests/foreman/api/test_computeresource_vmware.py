@@ -66,6 +66,18 @@ def test_positive_provision_end_to_end(
     """
     sat = module_provisioning_sat.sat
     name = gen_string('alpha').lower()
+
+    # Add remote_execution_ssh_keys parameter in hostgroup for ssh connection to EL9/EL10 host
+    existing_params = module_vmware_hostgroup.group_parameters_attributes
+    module_vmware_hostgroup.group_parameters_attributes = [
+        {
+            'name': 'remote_execution_ssh_keys',
+            'value': settings.provisioning.host_ssh_key_pub,
+            'parameter_type': 'string',
+        },
+    ] + existing_params
+    module_vmware_hostgroup.update(['group_parameters_attributes'])
+
     host = sat.api.Host(
         hostgroup=module_vmware_hostgroup,
         organization=module_sca_manifest_org,
@@ -97,6 +109,7 @@ def test_positive_provision_end_to_end(
                     'controller_key': 1001,
                 },
             },
+            'virtual_tpm': 'false' if pxe_loader.vm_firmware == 'bios' else 'true',
         },
         interfaces_attributes={
             '0': {
