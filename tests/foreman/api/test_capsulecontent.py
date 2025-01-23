@@ -1786,6 +1786,7 @@ class TestCapsuleContentManagement:
         target_sat,
         module_capsule_configured,
         default_org,
+        default_location,
         default_non_admin_user,
     ):
         """Try to list and read Capsules with a non-admin user with and without permissions.
@@ -1797,8 +1798,9 @@ class TestCapsuleContentManagement:
             2. Non-admin user without any roles/permissions.
 
         :steps:
-            1. Using the non-admin user try to list all or particular Capsule.
-            2. Add Viewer role to the user and try again.
+            1. Assign the capsule to the default org/loc so it can be searched and found.
+            2. Using the non-admin user try to list all or particular Capsule.
+            3. Add Viewer role to the user and try again.
 
         :expectedresults:
             1. Read should fail without Viewer role.
@@ -1808,6 +1810,12 @@ class TestCapsuleContentManagement:
 
         :customerscenario: true
         """
+        # Assign the capsule to the default org/loc so it can be searched and found.
+        nc = module_capsule_configured.nailgun_smart_proxy
+        target_sat.api.SmartProxy(
+            id=nc.id, organization=[default_org], location=[default_location]
+        ).update(['organization', 'location'])
+
         # Using the non-admin user try to list all or particular Capsule
         user = default_non_admin_user
         sc = ServerConfig(
