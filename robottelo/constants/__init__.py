@@ -280,7 +280,6 @@ REPOSET = {
     'rhva6': ('Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'),
     'rhs7': 'Red Hat Satellite 6.11 (for RHEL 7 Server) (RPMs)',
     'rhs8': 'Red Hat Satellite 6.13 for RHEL 8 x86_64 (RPMs)',
-    'rhsc7': 'Red Hat Satellite Capsule 6.16 (for RHEL 7 Server) (RPMs)',
     'rhsc8': 'Red Hat Satellite Capsule 6.16 for RHEL 8 x86_64 (RPMs)',
     'rhsc9': 'Red Hat Satellite Capsule 6.16 for RHEL 9 x86_64 (RPMs)',
     'rhsc7_iso': 'Red Hat Satellite Capsule 6.4 (for RHEL 7 Server) (ISOs)',
@@ -389,15 +388,6 @@ REPOS = {
         'product': PRDS['rhs'],
         'distro': 'rhel7',
         'key': 'rhs',
-    },
-    'rhsc7': {
-        'id': 'rhel-7-server-satellite-capsule-6.16-rpms',
-        'name': ('Red Hat Satellite Capsule 6.16 for RHEL 7 Server RPMs x86_64'),
-        'version': '6.16',
-        'reposet': REPOSET['rhsc7'],
-        'product': PRDS['rhsc'],
-        'distro': 'rhel7',
-        'key': 'rhsc',
     },
     'rhsc8': {
         'id': 'satellite-capsule-6.16-for-rhel-8-x86_64-rpms',
