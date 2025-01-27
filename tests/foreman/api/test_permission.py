@@ -35,44 +35,14 @@ class TestPermission:
     """Tests for the ``permissions`` path."""
 
     @pytest.fixture(scope='class', autouse=True)
-    def create_permissions(self, class_target_sat):
+    def create_permissions(self, expected_permissions):
         # workaround for setting class variables
         cls = type(self)
-        cls.permissions = PERMISSIONS.copy()
-
-        rpm_packages = class_target_sat.execute('rpm -qa').stdout
-        if 'rubygem-foreman_rh_cloud' not in rpm_packages:
-            cls.permissions.pop('InsightsHit')
-            cls.permissions[None].remove('generate_foreman_rh_cloud')
-            cls.permissions[None].remove('view_foreman_rh_cloud')
-            cls.permissions[None].remove('dispatch_cloud_requests')
-            cls.permissions[None].remove('control_organization_insights')
-        if 'rubygem-foreman_bootdisk' not in rpm_packages:
-            cls.permissions[None].remove('download_bootdisk')
-        if 'rubygem-foreman_virt_who_configure' not in rpm_packages:
-            cls.permissions.pop('ForemanVirtWhoConfigure::Config')
-        if 'rubygem-foreman_openscap' not in rpm_packages:
-            cls.permissions.pop('ForemanOpenscap::Policy')
-            cls.permissions.pop('ForemanOpenscap::ScapContent')
-            cls.permissions[None].remove('destroy_arf_reports')
-            cls.permissions[None].remove('view_arf_reports')
-            cls.permissions[None].remove('create_arf_reports')
-        if 'rubygem-foreman_remote_execution' not in rpm_packages:
-            cls.permissions.pop('JobInvocation')
-            cls.permissions.pop('JobTemplate')
-            cls.permissions.pop('RemoteExecutionFeature')
-            cls.permissions.pop('TemplateInvocation')
-        if 'rubygem-foreman_puppet' not in rpm_packages:
-            cls.permissions.pop('ForemanPuppet::ConfigGroup')
-            cls.permissions.pop('ForemanPuppet::Environment')
-            cls.permissions.pop('ForemanPuppet::HostClass')
-            cls.permissions.pop('ForemanPuppet::Puppetclass')
-            cls.permissions.pop('ForemanPuppet::PuppetclassLookupKey')
-
+        cls.permissions = expected_permissions
         #: e.g. ['Architecture', 'Audit', 'AuthSourceLdap', …]
-        cls.permission_resource_types = list(cls.permissions.keys())
+        cls.permission_resource_types = list(expected_permissions.keys())
         #: e.g. ['view_architectures', 'create_architectures', …]
-        cls.permission_names = list(chain.from_iterable(cls.permissions.values()))
+        cls.permission_names = list(chain.from_iterable(expected_permissions.values()))
 
     @pytest.mark.tier1
     def test_positive_search_by_name(self, target_sat):
