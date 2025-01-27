@@ -38,8 +38,8 @@ cv_name = {
     'rhel7': f'cv_{gen_string("alpha")}_rhel7',
 }
 profiles = {
-    'rhel9': OSCAP_PROFILE['cbrhel9'],
-    'rhel8': OSCAP_PROFILE['ospp8'],
+    'rhel9': OSCAP_PROFILE['ospp8+'],
+    'rhel8': OSCAP_PROFILE['ospp8+'],
     'rhel7': OSCAP_PROFILE['security7'],
 }
 rhel_repos = {
