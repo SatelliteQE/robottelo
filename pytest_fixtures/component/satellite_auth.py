@@ -14,7 +14,8 @@ from robottelo.constants import (
     LDAP_ATTR,
     LDAP_SERVER_TYPE,
 )
-from robottelo.hosts import IPAHost, SSOHost
+from robottelo.hosts import IPAHost, RHBKHost, RHSSOHost
+from robottelo.logging import logger
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.installer import InstallerCommand
 
@@ -24,9 +25,11 @@ LOGGEDOUT = 'Logged out.'
 @pytest.fixture(scope='module')
 def default_sso_host(request, module_target_sat):
     """Returns default sso host"""
-    if hasattr(request, 'param'):
-        return SSOHost(module_target_sat, rhbk=request.param)
-    return SSOHost(module_target_sat)
+    if hasattr(request, 'param') and request.param:
+        logger.info("Using RHBK host for SSO")
+        return RHBKHost(module_target_sat)
+    logger.info("Using RHSSO host for SSO")
+    return RHSSOHost(module_target_sat)
 
 
 @pytest.fixture(scope='module')
@@ -346,7 +349,7 @@ def enable_external_auth_rhsso(
     enroll_configure_rhsso_external_auth, default_sso_host, module_target_sat
 ):
     """register the satellite with RH-SSO Server for single sign-on"""
-    client_id = default_sso_host.get_rhsso_client_id()
+    client_id = default_sso_host.get_sso_client_id()
     default_sso_host.create_mapper(GROUP_MEMBERSHIP_MAPPER, client_id)
     audience_mapper = copy.deepcopy(AUDIENCE_MAPPER)
     audience_mapper['config']['included.client.audience'] = audience_mapper['config'][

@@ -28,7 +28,6 @@ from robottelo.constants import (
     FOREMAN_TEMPLATES_NOT_IMPORTED_COUNT,
 )
 from robottelo.logging import logger
-from robottelo.utils.issue_handlers import is_open
 
 git = settings.git
 
@@ -1066,29 +1065,58 @@ class TestTemplateSyncTestCase:
     @pytest.mark.tier2
     @pytest.mark.skip_if_not_set('git')
     @pytest.mark.parametrize(
-        'url',
+        ('url', 'git_repository', 'use_proxy', 'setup_http_proxy_without_global_settings'),
         [
-            f'http://{git.username}:{git.password}@{git.hostname}:{git.http_port}',
-            f'ssh://git@{git.hostname}:{git.ssh_port}',
+            (
+                f'http://{git.username}:{git.password}@{git.hostname}:{git.http_port}',
+                True,
+                True,
+                True,
+            ),
+            (
+                f'http://{git.username}:{git.password}@{git.hostname}:{git.http_port}',
+                True,
+                True,
+                False,
+            ),
+            (
+                f'http://{git.username}:{git.password}@{git.hostname}:{git.http_port}',
+                True,
+                False,
+                True,
+            ),
+            (
+                f'http://{git.username}:{git.password}@{git.hostname}:{git.http_port}',
+                False,
+                True,
+                True,
+            ),
+            (
+                f'http://{git.username}:{git.password}@{git.hostname}:{git.http_port}',
+                False,
+                False,
+                True,
+            ),
+            (
+                f'http://{git.username}:{git.password}@{git.hostname}:{git.http_port}',
+                False,
+                True,
+                False,
+            ),
+            (f'ssh://git@{git.hostname}:{git.ssh_port}', True, False, True),
+            (f'ssh://git@{git.hostname}:{git.ssh_port}', False, False, True),
         ],
-        ids=['http', 'ssh'],
-    )
-    @pytest.mark.parametrize(
-        'git_repository',
-        [True, False],
-        indirect=True,
-        ids=['non_empty_repo', 'empty_repo'],
-    )
-    @pytest.mark.parametrize(
-        'use_proxy',
-        [True, False],
-        ids=['use_proxy', 'do_not_use_proxy'],
-    )
-    @pytest.mark.parametrize(
-        'setup_http_proxy_without_global_settings',
-        [True, False],
-        indirect=True,
-        ids=['auth_http_proxy', 'unauth_http_proxy'],
+        ids=[
+            'auth_http_proxy-use_proxy-non_empty_repo-http',
+            'unauth_http_proxy-use_proxy-non_empty_repo-http',
+            'auth_http_proxy-do_not_use_proxy-non_empty_repo-http',
+            'auth_http_proxy-use_proxy-empty_repo-http',
+            'auth_http_proxy-do_not_use_proxy-empty_repo-http',
+            'unauth_http_proxy-use_proxy-empty_repo-http',
+            'auth_http_proxy-do_not_use_proxy-non_empty_repo-ssh',
+            'auth_http_proxy-do_not_use_proxy-empty_repo-ssh',
+        ],
+        indirect=['git_repository', 'setup_http_proxy_without_global_settings'],
     )
     def test_positive_export_all_templates_to_repo(
         self,
@@ -1119,15 +1147,7 @@ class TestTemplateSyncTestCase:
 
         :CaseImportance: Low
         """
-        # TODO remove this
-        if is_open('SAT-28933') and 'ssh' in url:
-            pytest.skip("Temporary skip of SSH tests")
-        proxy, param = setup_http_proxy_without_global_settings
-        if not use_proxy and not param:
-            # only do-not-use one kind of proxy
-            pytest.skip(
-                "Invalid parameter combination. DO NOT USE PROXY scenario should only be tested once."
-            )
+        proxy, _ = setup_http_proxy_without_global_settings
         try:
             data = {
                 'repo': f'{url}/{git.username}/{git_repository["name"]}',
