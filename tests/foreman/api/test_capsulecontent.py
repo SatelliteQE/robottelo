@@ -804,7 +804,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.e2e
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
-    @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos'])
+    @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos', 'rhel10_bos_beta'])
     def test_positive_sync_kickstart_repo(
         self, target_sat, module_capsule_configured, function_sca_manifest_org, distro
     ):
@@ -868,18 +868,18 @@ class TestCapsuleContentManagement:
         module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
-
         # Check for kickstart content on SAT and CAPS
         tail = (
             f'rhel/server/7/{REPOS["kickstart"][distro]["version"]}/x86_64/kickstart'
             if distro == 'rhel7'
+            else f'{distro.split("_")[0]}/{REPOS["kickstart"][distro]["version"]}/beta/x86_64/baseos/kickstart'
+            if 'beta' in distro  # for future beta rhel distros
             else f'{distro.split("_")[0]}/{REPOS["kickstart"][distro]["version"]}/x86_64/baseos/kickstart'  # noqa:E501
         )
         url_base = (
             f'pulp/content/{function_sca_manifest_org.label}/{lce.label}/{cv.label}/'
             f'content/dist/{tail}'
         )
-
         # Check kickstart specific files
         for file in KICKSTART_CONTENT:
             sat_file = target_sat.checksum_by_url(f'{target_sat.url}/{url_base}/{file}')
@@ -1447,7 +1447,7 @@ class TestCapsuleContentManagement:
         'repos_collection',
         [
             {
-                'distro': 'rhel9',
+                'distro': 'rhel10',
                 'YumRepository': {'url': settings.repos.yum_0.url},
             }
         ],
