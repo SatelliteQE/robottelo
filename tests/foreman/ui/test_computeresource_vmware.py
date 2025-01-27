@@ -562,6 +562,7 @@ def test_positive_virt_card(session, target_sat, module_location, module_org, vm
 def test_positive_provision_end_to_end(
     request,
     module_sca_manifest_org,
+    module_location,
     pxe_loader,
     module_vmware_cr,
     module_vmware_hostgroup,
@@ -594,7 +595,7 @@ def test_positive_provision_end_to_end(
     """
     SELECTED_ROLE = 'theforeman.foreman_scap_client'
     host_name = gen_string('alpha').lower()
-    guest_os_names = 'Red Hat Enterprise Linux 9 (64 bit)'
+    guest_os_names = 'Red Hat Enterprise Linux 8 (64 bit)'
     storage_data = {'storage': {'disks': [{'data_store': get_vmware_datastore_summary_string}]}}
     network_data = {
         'network_interfaces': {
@@ -603,8 +604,10 @@ def test_positive_provision_end_to_end(
         }
     }
     with target_sat.ui_session() as session:
-        session.organization.select(module_sca_manifest_org.name)
         session.ansibleroles.import_all_roles()
+        assert session.ansibleroles.import_all_roles() == session.ansibleroles.imported_roles_count
+        session.location.select(module_location.name)
+        session.organization.select(module_sca_manifest_org.name)
         session.hostgroup.assign_role_to_hostgroup(
             module_vmware_hostgroup.name, {'ansible_roles.resources': SELECTED_ROLE}
         )

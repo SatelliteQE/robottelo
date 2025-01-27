@@ -58,7 +58,7 @@ def test_positive_provision_end_to_end(
 
     :CaseImportance: Critical
 
-    :Verifies: SAT-18721, SAT-23558, SAT-25810
+    :Verifies: SAT-18721, SAT-23558, SAT-25810, SAT-25339
 
     :customerscenario: true
 
@@ -128,9 +128,15 @@ def test_positive_provision_end_to_end(
 
     request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
     assert host.name == f'{name}.{module_provisioning_sat.domain.name}'
-    # check if vm is created on vmware
+    # Check if VM is created on VMware
     assert vmwareclient.does_vm_exist(host.name) is True
-    # check the build status
+
+    # Check if virtual TPM device is added to created VM (only for UEFI)
+    if pxe_loader.vm_firmware != 'bios':
+        vm = vmwareclient.get_vm(host.name)
+        assert 'VirtualTPM' in vm.get_virtual_device_type_names()
+
+    # Check the build status
     wait_for(
         lambda: host.read().build_status_label != 'Pending installation',
         timeout=1500,
