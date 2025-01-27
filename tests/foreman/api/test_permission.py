@@ -35,37 +35,14 @@ class TestPermission:
     """Tests for the ``permissions`` path."""
 
     @pytest.fixture(scope='class', autouse=True)
-    def create_permissions(self, class_target_sat):
+    def create_permissions(self, expected_permissions):
         # workaround for setting class variables
         cls = type(self)
-        cls.permissions = PERMISSIONS.copy()
-        if class_target_sat.is_upstream:
-            cls.permissions[None].extend(cls.permissions.pop('DiscoveryRule'))
-            cls.permissions[None].remove('app_root')
-            cls.permissions[None].remove('attachments')
-            cls.permissions[None].remove('configuration')
-            cls.permissions[None].remove('logs')
-            cls.permissions[None].remove('view_cases')
-            cls.permissions[None].remove('view_log_viewer')
-
-        result = class_target_sat.execute('rpm -qa | grep rubygem-foreman_openscap')
-        if result.status != 0:
-            cls.permissions.pop('ForemanOpenscap::Policy')
-            cls.permissions.pop('ForemanOpenscap::ScapContent')
-            cls.permissions[None].remove('destroy_arf_reports')
-            cls.permissions[None].remove('view_arf_reports')
-            cls.permissions[None].remove('create_arf_reports')
-        result = class_target_sat.execute('rpm -qa | grep rubygem-foreman_remote_execution')
-        if result.status != 0:
-            cls.permissions.pop('JobInvocation')
-            cls.permissions.pop('JobTemplate')
-            cls.permissions.pop('RemoteExecutionFeature')
-            cls.permissions.pop('TemplateInvocation')
-
+        cls.permissions = expected_permissions
         #: e.g. ['Architecture', 'Audit', 'AuthSourceLdap', …]
-        cls.permission_resource_types = list(cls.permissions.keys())
+        cls.permission_resource_types = list(expected_permissions.keys())
         #: e.g. ['view_architectures', 'create_architectures', …]
-        cls.permission_names = list(chain.from_iterable(cls.permissions.values()))
+        cls.permission_names = list(chain.from_iterable(expected_permissions.values()))
 
     @pytest.mark.tier1
     def test_positive_search_by_name(self, target_sat):
