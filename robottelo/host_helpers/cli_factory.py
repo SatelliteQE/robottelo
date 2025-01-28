@@ -912,53 +912,6 @@ class CLIFactory:
                 )
         return result
 
-    @staticmethod
-    def _get_capsule_vm_distro_repos(distro):
-        """Return the right RH repos info for the capsule setup"""
-        rh_repos = []
-        if distro == 'rhel7':
-            # Red Hat Enterprise Linux 7 Server
-            rh_product_arch = constants.REPOS['rhel7']['arch']
-            rh_product_releasever = constants.REPOS['rhel7']['releasever']
-            rh_repos.append(
-                {
-                    'product': constants.PRDS['rhel'],
-                    'repository-set': constants.REPOSET['rhel7'],
-                    'repository': constants.REPOS['rhel7']['name'],
-                    'repository-id': constants.REPOS['rhel7']['id'],
-                    'releasever': rh_product_releasever,
-                    'arch': rh_product_arch,
-                    'cdn': True,
-                }
-            )
-            # Red Hat Software Collections (for 7 Server)
-            rh_repos.append(
-                {
-                    'product': constants.PRDS['rhscl'],
-                    'repository-set': constants.REPOSET['rhscl7'],
-                    'repository': constants.REPOS['rhscl7']['name'],
-                    'repository-id': constants.REPOS['rhscl7']['id'],
-                    'releasever': rh_product_releasever,
-                    'arch': rh_product_arch,
-                    'cdn': True,
-                }
-            )
-            # Red Hat Satellite Capsule 6.2 (for RHEL 7 Server)
-            rh_repos.append(
-                {
-                    'product': constants.PRDS['rhsc'],
-                    'repository-set': constants.REPOSET['rhsc7'],
-                    'repository': constants.REPOS['rhsc7']['name'],
-                    'repository-id': constants.REPOS['rhsc7']['id'],
-                    'url': settings.repos.capsule_repo,
-                    'cdn': settings.robottelo.cdn or not settings.repos.capsule_repo,
-                }
-            )
-        else:
-            raise CLIFactoryError(f'distro "{distro}" not supported')
-
-        return rh_product_arch, rh_product_releasever, rh_repos
-
     def add_role_permissions(self, role_id, resource_permissions):
         """Create role permissions found in resource permissions dict
 
