@@ -16,7 +16,15 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_LOC, PRDS, REPOS, REPOSET, RPM_TO_UPLOAD, DataFile
+from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
+    DEFAULT_LOC,
+    PRDS,
+    REPOS,
+    REPOSET,
+    RPM_TO_UPLOAD,
+    DataFile,
+)
 
 
 @pytest.fixture(scope='module')
@@ -55,14 +63,13 @@ def module_yum_repo2(module_product, module_target_sat):
 
 @pytest.fixture(scope='module')
 def module_rh_repo(module_sca_manifest_org, module_target_sat):
-    rhsc = module_target_sat.cli_factory.SatelliteCapsuleRepository(cdn=True)
     repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
-        basearch=rhsc.data['arch'],
+        basearch=DEFAULT_ARCHITECTURE,
         org_id=module_sca_manifest_org.id,
-        product=rhsc.data['product'],
-        repo=rhsc.data['repository'],
-        reposet=rhsc.data['repository-set'],
-        releasever=rhsc.data['releasever'],
+        product=REPOS['rhsc9']['product'],
+        repo=REPOS['rhsc9']['name'],
+        reposet=REPOSET['rhsc9'],
+        releasever=REPOS['rhsc9']['version'],
     )
     module_target_sat.api.Repository(id=repo_id).sync()
     return module_target_sat.api.Repository(id=repo_id).read()
