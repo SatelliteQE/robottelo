@@ -143,7 +143,9 @@ class TestSubscriptionAutoAttach:
             }
         )
 
-    @pytest.mark.parametrize('pre_upgrade_data', ['rhel7', 'rhel8', 'rhel9'], indirect=True)
+    @pytest.mark.parametrize(
+        'pre_upgrade_data', ['rhel7-ipv4', 'rhel8-ipv4', 'rhel9-ipv4'], indirect=True
+    )
     @pytest.mark.post_upgrade(depend_on=test_pre_subscription_scenario_auto_attach)
     @pytest.mark.manifester
     def test_post_subscription_scenario_auto_attach(self, request, target_sat, pre_upgrade_data):
