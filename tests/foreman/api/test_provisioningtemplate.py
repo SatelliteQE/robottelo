@@ -744,7 +744,7 @@ class TestProvisioningTemplate:
         # Check chronyd is getting installed in place of ntpdate which is deprecated.
         assert 'systemctl enable --now chronyd' in render
         assert 'yum -y install ntpdate' not in render
-        if module_sync_kickstart_content.os.major >= '9':
+        if int(module_sync_kickstart_content.os.major) >= 9:
             assert f'timesource --ntp-server {ntp_server_value}' in render
             assert f'timezone --utc {timezone}' in render
         else:
