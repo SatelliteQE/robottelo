@@ -18,6 +18,7 @@ from tempfile import mkstemp
 
 from fauxfactory import gen_mac, gen_string
 import pytest
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import CLIENT_PORT
@@ -400,3 +401,84 @@ def test_positive_verify_default_location_for_registered_host(
         query={"search": f'name={rhel_contenthost.hostname}'}
     )[0]
     assert host.location.read().name == module_location.name
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_positive_invalidating_users_tokens(
+    module_target_sat, rhel_contenthost, module_activation_key, module_org, request
+):
+    """Verify invalidating single and multiple users tokens.
+
+    :id: 5db602d4-9c57-4b70-8d46-5323044824e0
+
+    :steps:
+        1. Create an admin user and a non-admin user with "edit_users" and "register_hosts" permission.
+        2. Generate a token with admin user and register a host with it, it should be successful.
+        3. Invalidate the token and try to use the generated token again to register the host, it should fail.
+        4. Invalidate tokens for multiple users with "invalidate-multiple" command, it should invalidate all the tokens for provided users.
+        5. Repeat Steps 2,3 and 4 with non-admin user and it should work the same way.
+
+    :expectedresults: Host registration will not be possible after/with invalidated tokens.
+
+    :CaseImportance: Critical
+
+    :Verifies: SAT-30385
+    """
+    password = settings.server.admin_password
+    admin_user = module_target_sat.api.User().search(
+        query={'search': f'login={settings.server.admin_username}'}
+    )[0]
+
+    # Non-Admin user with "edit_users" permission and "Register hosts" role
+    non_admin_user = module_target_sat.api.User(
+        login=gen_string('alpha'), password=password, organization=[module_org]
+    ).create()
+    role = module_target_sat.cli_factory.make_role({'organization-id': module_org.id})
+    module_target_sat.cli_factory.add_role_permissions(
+        role.id,
+        resource_permissions={'User': {'permissions': ['edit_users']}},
+    )
+    module_target_sat.cli.User.add_role({'id': non_admin_user.id, 'role-id': role.id})
+    module_target_sat.cli.User.add_role({'id': non_admin_user.id, 'role': 'Register hosts'})
+
+    # delete the host and the user
+    @request.addfinalizer
+    def _finalize():
+        wait_for(lambda: module_target_sat.cli.Host.delete({'name': rhel_contenthost.hostname}))
+        module_target_sat.cli.User.delete({'login': non_admin_user.login})
+
+    # Generate token and verify token invalidation
+    for usertype in (admin_user, non_admin_user):
+        user = admin_user if usertype.admin else non_admin_user
+        cmd = module_target_sat.cli.HostRegistration.with_user(
+            user.login, password
+        ).generate_command(
+            options={
+                'activation-keys': module_activation_key.name,
+                'insecure': 'true',
+                'organization-id': module_org.id,
+            }
+        )
+        result = rhel_contenthost.execute(cmd.strip('\n'))
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+        # Invalidate JWTs for a single user
+        result = module_target_sat.cli.User.with_user(user.login, password).invalidate(
+            options={
+                'user-id': user.id,
+            }
+        )
+        assert f'Successfully invalidated registration tokens for {user.login}' in result
+
+        rhel_contenthost.unregister()
+        # Re-register the host with invalidated token
+        result = rhel_contenthost.execute(cmd.strip('\n'))
+        assert result.status == 1
+        assert 'ERROR: unauthorized' in result.stdout
+
+        # Invalidate JWTs for multiple users
+        result = module_target_sat.cli.User.with_user(user.login, password).invalidate_multiple(
+            options={'search': f"id ^ ({admin_user.id}, {non_admin_user.id})"}
+        )
+        assert 'Successfully invalidated registration tokens' in result
