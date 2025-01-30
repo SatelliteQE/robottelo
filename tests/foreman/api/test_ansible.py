@@ -80,9 +80,17 @@ class TestAnsibleCfgMgmt:
 
         :customerscenario: true
         """
-        target_sat.execute(
-            "ansible-galaxy collection install -p /usr/share/ansible/collections "
-            "xprazak2.forklift_collection"
+        http_proxy = (
+            f'HTTPS_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
+            if settings.server.is_ipv6
+            else ''
+        )
+        assert (
+            target_sat.execute(
+                f'{http_proxy}ansible-galaxy collection install -p /usr/share/ansible/collections '
+                'xprazak2.forklift_collection'
+            ).status
+            == 0
         )
         proxy_id = target_sat.nailgun_smart_proxy.id
         playbook_fetch = target_sat.api.AnsiblePlaybooks().fetch(data={'proxy_id': proxy_id})
