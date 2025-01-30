@@ -18,6 +18,8 @@ import pytest
 
 from robottelo.utils.shared_resource import SharedResource
 
+from remote_pdb import RemotePdb
+
 
 # class TestScenarioREXCapsule:
 #     """Test Remote Execution job created before migration runs successfully
@@ -38,8 +40,9 @@ from robottelo.utils.shared_resource import SharedResource
 @pytest.fixture
 def remote_execution_external_capsule_setup(
     rhel9_contenthost,
-    capsule_upgrade_shared_satellite,
-    capsule_upgrade_shared_capsule,
+    capsule_upgrade_integrated_sat_cap,
+    # capsule_upgrade_shared_satellite,
+    # capsule_upgrade_shared_capsule,
     upgrade_action,
 ):
     """
@@ -59,13 +62,15 @@ def remote_execution_external_capsule_setup(
     :parametrized: yes
 
     """
+    breakpoint()
     rhel9_contenthost._skip_context_checkin = True
-    target_sat = capsule_upgrade_shared_satellite
-    capsule = capsule_upgrade_shared_capsule
-    capsule.capsule_setup(sat_host=target_sat)
-    cap_smart_proxy = target_sat.api.SmartProxy().search(
-        query={'search': f'name = {capsule.hostname}'}
-    )[0]
+    target_sat = capsule_upgrade_integrated_sat_cap.satellite
+    capsule = capsule_upgrade_integrated_sat_cap.capsule
+    cap_smart_proxy = capsule_upgrade_integrated_sat_cap.cap_smart_proxy
+    # RemotePdb('127.0.0.1', 4444).set_trace()
+    # cap_smart_proxy = target_sat.api.SmartProxy().search(
+    #     query={'search': f'name = {capsule.hostname}'}
+    # )[0]
     with (
         SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade,
         SharedResource(capsule.hostname, upgrade_action, target_sat=capsule) as cap_upgrade,
@@ -73,10 +78,11 @@ def remote_execution_external_capsule_setup(
         test_name = f'rex_upgrade_{gen_alpha()}'
         org = target_sat.api.Organization(name=f'{test_name}_org').create()
         location = target_sat.api.Location(name=f'{test_name}_location').create()
+        library_id = int(target_sat.cli.LifecycleEnvironment.list({'organization-id': org.id, 'library': 'true'})[0]['id'])
         lce = target_sat.api.LifecycleEnvironment(
-            name=f'{test_name}_lce', organization=org, prior=2
+            name=f'{test_name}_lce', organization=org, prior=library_id
         ).create()
-        cap_smart_proxy.organization = [org]
+        cap_smart_proxy.organization.append(org)
         cap_smart_proxy.update(['organization'])
         capsule.nailgun_capsule.content_add_lifecycle_environment(data={'environment_id': lce.id})
         content_view = target_sat.publish_content_view(org, [], f'{test_name}_cv')

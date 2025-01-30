@@ -4,12 +4,15 @@ This module is intended to be used for upgrade tests that have a single run stag
 
 import datetime
 
+from box import Box
 from broker import Broker
 import pytest
 
 from robottelo.config import settings
 from robottelo.hosts import Capsule, Satellite
 from robottelo.utils.shared_resource import SharedResource
+
+from remote_pdb import RemotePdb
 
 pre_upgrade_failed_tests = []
 
@@ -180,7 +183,7 @@ def perf_tuning_upgrade_shared_satellite():
         yield sat_instance
         test_duration.ready()
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='session')
 def capsule_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.capsule_upgrades."""
     sat_instance = shared_checkout("capsule_upgrade")
@@ -191,7 +194,7 @@ def capsule_upgrade_shared_satellite():
         test_duration.ready()
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='session')
 def capsule_upgrade_shared_capsule():
     """Mark tests using this fixture with pytest.mark.capsule_upgrades."""
     cap_instance = shared_cap_checkout("capsule_upgrade")
@@ -200,3 +203,19 @@ def capsule_upgrade_shared_capsule():
     ) as test_duration:
         yield cap_instance
         test_duration.ready()
+
+@pytest.fixture(scope='session')
+def capsule_upgrade_integrated_sat_cap(capsule_upgrade_shared_satellite, capsule_upgrade_shared_capsule):
+    """Return a Satellite and Capsule that have been set up"""
+    capsule_upgrade_shared_capsule.capsule_setup(sat_host=capsule_upgrade_shared_satellite)
+    cap_smart_proxy = capsule_upgrade_shared_satellite.api.SmartProxy().search(
+        query={'search': f'name = {capsule_upgrade_shared_capsule.hostname}'}
+    )[0]
+    cap_smart_proxy.organization = []
+    setup_data = Box({
+        "satellite": capsule_upgrade_shared_satellite,
+        "capsule": capsule_upgrade_shared_capsule,
+        "cap_smart_proxy": cap_smart_proxy
+
+    })
+    return setup_data
