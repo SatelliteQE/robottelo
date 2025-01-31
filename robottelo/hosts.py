@@ -2586,7 +2586,6 @@ class RHBKHost(SSOHost):
     """Class for RHBK functions and setup"""
 
     def __init__(self, sat_obj, **kwargs):
-        self.rhbk = True
         self.host_url = settings.rhbk.host_url
         self.uri = self.host_url
         self.host_name = settings.rhbk.host_name
@@ -2603,7 +2602,6 @@ class RHSSOHost(SSOHost):
     """Class for RHSSO functions and setup"""
 
     def __init__(self, sat_obj, **kwargs):
-        self.rhbk = False
         self.host_url = settings.rhsso.host_url
         self.uri = self.host_url.replace("https://", "http://")
         self.host_name = settings.rhsso.host_name
