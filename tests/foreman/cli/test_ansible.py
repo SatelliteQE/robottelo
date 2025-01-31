@@ -235,7 +235,17 @@ class TestAnsibleCfgMgmt:
         proxy_id = target_sat.nailgun_smart_proxy.id
 
         for path in ['/etc/ansible/collections', '/usr/share/ansible/collections']:
-            target_sat.execute(f'ansible-galaxy collection install -p {path} {SELECTED_COLLECTION}')
+            http_proxy = (
+                f'HTTPS_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
+                if settings.server.is_ipv6
+                else ''
+            )
+            assert (
+                target_sat.execute(
+                    f'{http_proxy}ansible-galaxy collection install -p {path} {SELECTED_COLLECTION}'
+                ).status
+                == 0
+            )
             target_sat.cli.Ansible.roles_sync({'role-names': SELECTED_ROLE, 'proxy-id': proxy_id})
             result = target_sat.cli.Host.ansible_roles_assign(
                 {'id': target_host.id, 'ansible-roles': f'{SELECTED_ROLE}'}
