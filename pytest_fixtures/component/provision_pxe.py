@@ -46,21 +46,21 @@ def module_provisioning_rhel_content(
     rh_repo_id = ""
     content_view = sat.api.ContentView(organization=module_sca_manifest_org).create()
 
-    if int(rhel_ver) < 10:
-        # Custom Content for Client repo
-        custom_product = sat.api.Product(
-            organization=module_sca_manifest_org, name=f'rhel{rhel_ver}_{gen_string("alpha")}'
-        ).create()
-        client_repo = sat.api.Repository(
-            organization=module_sca_manifest_org,
-            product=custom_product,
-            content_type='yum',
-            url=settings.repos.SATCLIENT_REPO[f'rhel{rhel_ver}'],
-        ).create()
-        task = client_repo.sync(synchronous=False)
-        tasks.append(task)
-        content_view.repository = [client_repo]
+    # Custom Content for Client repo
+    custom_product = sat.api.Product(
+        organization=module_sca_manifest_org, name=f'rhel{rhel_ver}_{gen_string("alpha")}'
+    ).create()
+    client_repo = sat.api.Repository(
+        organization=module_sca_manifest_org,
+        product=custom_product,
+        content_type='yum',
+        url=settings.repos.SATCLIENT_REPO[f'rhel{rhel_ver}'],
+    ).create()
+    task = client_repo.sync(synchronous=False)
+    tasks.append(task)
+    content_view.repository = [client_repo]
 
+    if int(rhel_ver) < 10:
         for name in repo_names:
             rh_kickstart_repo_id = sat.api_factory.enable_rhrepo_and_fetchid(
                 basearch=constants.DEFAULT_ARCHITECTURE,
@@ -118,7 +118,7 @@ def module_provisioning_rhel_content(
     rhel_xy = Version(
         constants.REPOS['kickstart'][f'rhel{rhel_ver}']['version']
         if rhel_ver == 7
-        else '10.0'
+        else '10.1'  # EL10 pre-release version
         if rhel_ver == 10
         else constants.REPOS['kickstart'][f'rhel{rhel_ver}_bos']['version']
     )
@@ -147,14 +147,11 @@ def module_provisioning_rhel_content(
     ).create()
 
     # Ensure client repo is enabled in the activation key
-    if int(rhel_ver) < 10:
-        content = ak.product_content(data={'content_access_mode_all': '1'})['results']
-        client_repo_label = [repo['label'] for repo in content if repo['name'] == client_repo.name][
-            0
-        ]
-        ak.content_override(
-            data={'content_overrides': [{'content_label': client_repo_label, 'value': '1'}]}
-        )
+    content = ak.product_content(data={'content_access_mode_all': '1'})['results']
+    client_repo_label = [repo['label'] for repo in content if repo['name'] == client_repo.name][0]
+    ak.content_override(
+        data={'content_overrides': [{'content_label': client_repo_label, 'value': '1'}]}
+    )
     return Box(os=os, ak=ak, ksrepo=ksrepo, cv=content_view)
 
 
