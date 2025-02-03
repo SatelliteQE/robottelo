@@ -9,6 +9,7 @@ def pytest_addoption(parser):
     """Add options for pytest to collect tests than can run on SatLab infra"""
     infra_options = [
         '--include-onprem-provisioning',
+        '--include-ipv6-provisioning',
         '--include-libvirt',
         '--include-external-auth',
         '--include-vlan-networking',
@@ -34,6 +35,7 @@ def pytest_collection_modifyitems(items, config):
     Collects and modifies tests collection based on pytest option to deselect tests for new infra
     """
     include_onprem_provision = config.getoption('include_onprem_provisioning', False)
+    include_ipv6_provisioning = config.getoption('include_ipv6_provisioning', False)
     include_libvirt = config.getoption('include_libvirt', False)
     include_eauth = config.getoption('include_external_auth', False)
     include_vlan = config.getoption('include_vlan_networking', False)
@@ -53,11 +55,14 @@ def pytest_collection_modifyitems(items, config):
             else:
                 deselected.append(item)
             continue
-
         item_marks = [m.name for m in item.iter_markers()]
         # Include / Exclude On Premises Provisioning Tests
         if 'on_premises_provisioning' in item_marks:
             selected.append(item) if include_onprem_provision else deselected.append(item)
+            continue
+        # Include / Exclude IPv6 Provisioning Tests
+        if 'ipv6_provisioning' in item_marks:
+            selected.append(item) if include_ipv6_provisioning else deselected.append(item)
             continue
         # Include / Exclude External Libvirt based Tests
         if 'libvirt_discovery' in item_marks:
@@ -67,7 +72,7 @@ def pytest_collection_modifyitems(items, config):
         if 'external_auth' in item_marks:
             selected.append(item) if include_eauth else deselected.append(item)
             continue
-        # Include / Exclude VLAN networking based based Tests
+        # Include / Exclude VLAN networking based Tests
         if 'vlan_networking' in item_marks:
             selected.append(item) if include_vlan else deselected.append(item)
             continue

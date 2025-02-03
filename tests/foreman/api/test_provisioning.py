@@ -65,6 +65,7 @@ def assert_host_logs(channel, pattern):
 @pytest.mark.upgrade
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.on_premises_provisioning
+@pytest.mark.ipv6_provisioning
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 def test_rhel_pxe_provisioning(
     request,
@@ -77,6 +78,7 @@ def test_rhel_pxe_provisioning(
     provisioning_hostgroup,
     module_lce_library,
     module_default_org_view,
+    configure_kea_dhcp6_server,
 ):
     """Simulate baremetal provisioning of a RHEL system via PXE on RHV provider
 
@@ -98,8 +100,16 @@ def test_rhel_pxe_provisioning(
 
     :parametrized: yes
     """
+    if pxe_loader.vm_firmware == 'bios' and settings.server.is_ipv6:
+        pytest.skip('Test cannot be run on BIOS as its not supported')
     host_mac_addr = provisioning_host.provisioning_nic_mac_addr
     sat = module_provisioning_sat.sat
+    # Configure the grubx64.efi image to setup the interface and use TFTP to load the configuration
+    if settings.server.is_ipv6:
+        sat.execute("echo -e 'net_bootp6\nset root=tftp\nset prefix=(tftp)/grub2' > pre.cfg")
+        sat.execute(
+            'grub2-mkimage -c pre.cfg -o /var/lib/tftpboot/grub2/grubx64.efi -p /grub2/ -O x86_64-efi efinet efi_netfs efienv efifwsetup efi_gop tftp net normal chain configfile loadenv procfs romfs'
+        )
     host = sat.api.Host(
         hostgroup=provisioning_hostgroup,
         organization=module_sca_manifest_org,
@@ -107,7 +117,6 @@ def test_rhel_pxe_provisioning(
         name=gen_string('alpha').lower(),
         mac=host_mac_addr,
         operatingsystem=module_provisioning_rhel_content.os,
-        subnet=module_provisioning_sat.subnet,
         host_parameters_attributes=[
             {'name': 'remote_execution_connect_by_ip', 'value': 'true', 'parameter_type': 'boolean'}
         ],
@@ -136,6 +145,8 @@ def test_rhel_pxe_provisioning(
     # Change the hostname of the host as we know it already.
     # In the current infra environment we do not support
     # addressing hosts using FQDNs, falling back to IP.
+    if is_open('SAT-30601') and settings.server.is_ipv6:
+        pytest.exit('skipping because of the SAT-30601 bug')
     provisioning_host.hostname = host.ip
     # Host is not blank anymore
     provisioning_host.blank = False
