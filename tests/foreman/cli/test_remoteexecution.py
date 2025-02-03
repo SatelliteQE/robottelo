@@ -373,6 +373,8 @@ class TestRemoteExecution:
 
         :verifies: SAT-28443
 
+        :customerscenario: true
+
         :steps:
             1. set global parameters for rex
             2. re-register the client to check that sudo setup was performed based on parameters
