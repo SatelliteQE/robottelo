@@ -2518,7 +2518,7 @@ class SSOHost(Host):
     def delete_sso_user(self, username):
         """Delete the RHSSO user"""
         user_details = self.get_sso_user_details(username)
-        self.execute(f"{self.kcadm} delete -r {settings.sso.realm} users/{user_details['id']}")
+        self.execute(f"{self.kcadm} delete -r {self.realm} users/{user_details['id']}")
 
     def create_group(self, group_name=None):
         """Create the RHSSO group"""
@@ -2560,7 +2560,7 @@ class SSOHost(Host):
     @cached_property
     def oidc_authorization_endpoint(self):
         """getter for the oidc authorization endpoint"""
-        return f"https://{self.host_name}/auth/realms/" f"{self.realm}/protocol/openid-connect/auth"
+        return f"https://{self.host_name}/auth/realms/{self.realm}/protocol/openid-connect/auth"
 
     def get_two_factor_token_rh_sso_url(self):
         """getter for the two factor token rh_sso url"""

@@ -19,6 +19,7 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import HAMMER_CONFIG
 from robottelo.exceptions import CLIReturnCodeError
+from robottelo.hosts import RHBKHost
 
 pytestmark = [pytest.mark.destructive]
 
@@ -64,7 +65,7 @@ def test_rhsso_login_using_hammer(
 
     :CaseImportance: High
     """
-    if default_sso_host.rhbk:
+    if type(default_sso_host) is RHBKHost:
         user = settings.rhbk.rhbk_user
         password = settings.rhbk.rhbk_password
     else:

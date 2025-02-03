@@ -408,7 +408,7 @@ def rhsso_setting_setup(request, module_target_sat):
         'oidc_algorithm': 'RS256',
         'oidc_audience': [f'{module_target_sat.hostname}-foreman-openidc'],
         'oidc_issuer': f'{uri}/auth/realms/{realm}',
-        'oidc_jwks_url': f'{uri}/auth/realms' f'/{realm}/protocol/openid-connect/certs',
+        'oidc_jwks_url': f'{uri}/auth/realms/{realm}/protocol/openid-connect/certs',
     }
     for setting_name, setting_value in rhhso_settings.items():
         # replace entietes field with targetsat.api
