@@ -298,7 +298,7 @@ def pxeless_discovery_host(provisioning_host, module_discovery_sat, pxe_loader):
     """Fixture for returning a pxe-less discovery host for provisioning"""
     sat = module_discovery_sat.sat
     image_name = f"{gen_string('alpha')}-{module_discovery_sat.iso}"
-    mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
+    mac = provisioning_host._broker_facts['provisioning_nic_mac_addr']
     # Remaster and upload discovery image to automatically input values
     result = sat.execute(
         'cd /var/www/html/pub && '
@@ -318,7 +318,7 @@ def pxeless_discovery_host(provisioning_host, module_discovery_sat, pxe_loader):
         job_template='configure-pxe-boot',
         target_host=provisioning_host.name,
         target_vlan_id=settings.provisioning.vlan_id,
-        target_vm_firmware=provisioning_host._broker_args['target_vm_firmware'],
+        target_vm_firmware=provisioning_host._broker_facts['target_vm_firmware'],
         target_pxeless_image=image_name,
         target_boot_scenario='pxeless_pre',
     ).execute()
