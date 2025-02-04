@@ -302,7 +302,7 @@ def test_sync_consume_flatpak_repo_via_library(
     job = module_target_sat.cli_factory.job_invocation(
         {
             'organization': function_org.name,
-            'job-template': 'Set up Flatpak remote on host',
+            'job-template': 'Flatpak - Set up remote on host',
             'inputs': (
                 f'Remote Name={remote_name}, '
                 f'Flatpak registry URL=https://{sat.hostname}/pulpcore_registry/, '
@@ -327,7 +327,7 @@ def test_sync_consume_flatpak_repo_via_library(
     job = module_target_sat.cli_factory.job_invocation(
         {
             'organization': function_org.name,
-            'job-template': 'Install Flatpak application on host',
+            'job-template': 'Flatpak - Install application on host',
             'inputs': f'Flatpak remote name={remote_name}, Application name={app_name}',
             'search-query': f"name ~ {host.hostname}",
         }
