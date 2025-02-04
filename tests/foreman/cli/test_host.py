@@ -546,6 +546,8 @@ def test_negative_create_with_unpublished_cv(module_lce, module_org, module_cv, 
     :expectedresults: Host is not created using new unpublished cv
 
     :CaseImportance: Critical
+
+    :BlockedBy: SAT-30848
     """
     with pytest.raises(CLIFactoryError):
         module_target_sat.cli_factory.make_fake_host(
