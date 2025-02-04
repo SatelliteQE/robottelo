@@ -924,7 +924,7 @@ class TestAnsibleAAPIntegration:
             1. All hosts managed by Satellite are added to Satellite inventory.
             2. Starting ansible-callback systemd service, starts a job_template execution in AAP
         """
-        host_mac_addr = provisioning_host._broker_args['provisioning_nic_mac_addr']
+        host_mac_addr = provisioning_host._broker_facts['provisioning_nic_mac_addr']
         sat = module_provisioning_sat.sat
         aap_fqdn = settings.AAP_INTEGRATION.AAP_FQDN
         job_template = settings.AAP_INTEGRATION.callback_job_template
