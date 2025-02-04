@@ -98,7 +98,7 @@ def test_rhel_pxe_provisioning(
 
     :parametrized: yes
     """
-    host_mac_addr = provisioning_host._broker_args['provisioning_nic_mac_addr']
+    host_mac_addr = provisioning_host._broker_facts['provisioning_nic_mac_addr']
     sat = module_provisioning_sat.sat
     host = sat.api.Host(
         hostgroup=provisioning_hostgroup,
@@ -238,7 +238,7 @@ def test_rhel_ipxe_provisioning(
         )
     )
     assert ipxe_http_url.status == 0
-    host_mac_addr = provisioning_host._broker_args['provisioning_nic_mac_addr']
+    host_mac_addr = provisioning_host._broker_facts['provisioning_nic_mac_addr']
     host = sat.api.Host(
         hostgroup=provisioning_hostgroup,
         organization=module_sca_manifest_org,
@@ -367,7 +367,7 @@ def test_rhel_httpboot_provisioning(
     # update grub2-efi package
     sat.cli.Packages.update(packages='grub2-efi', options={'assumeyes': True})
 
-    host_mac_addr = provisioning_host._broker_args['provisioning_nic_mac_addr']
+    host_mac_addr = provisioning_host._broker_facts['provisioning_nic_mac_addr']
     host = sat.api.Host(
         hostgroup=provisioning_hostgroup,
         organization=module_sca_manifest_org,
@@ -492,7 +492,7 @@ def test_rhel_pxe_provisioning_fips_enabled(
     :Verifies: SAT-26071
     """
     sat = module_provisioning_sat.sat
-    host_mac_addr = provisioning_host._broker_args['provisioning_nic_mac_addr']
+    host_mac_addr = provisioning_host._broker_facts['provisioning_nic_mac_addr']
     # Verify password hashing algorithm SHA512 is set in OS used for provisioning
     assert module_provisioning_rhel_content.os.password_hash == 'SHA512'
 
@@ -630,7 +630,7 @@ def test_rhel_pxe_provisioning_secureboot_enabled(
 
     :parametrized: yes
     """
-    host_mac_addr = provisioning_vmware_host._broker_args['provisioning_nic_mac_addr']
+    host_mac_addr = provisioning_vmware_host._broker_facts['provisioning_nic_mac_addr']
     sat = module_provisioning_sat.sat
     host = sat.api.Host(
         hostgroup=provisioning_hostgroup,
@@ -646,7 +646,7 @@ def test_rhel_pxe_provisioning_secureboot_enabled(
 
     # start the provisioning host on VMware, do not ensure that we can connect to SSHD
     vmware_host = VMWareVirtualMachine(
-        vmwareclient, name=provisioning_vmware_host._broker_args['name']
+        vmwareclient, name=provisioning_vmware_host._broker_facts['name']
     )
     vmware_host.start()
 
@@ -736,7 +736,7 @@ def test_capsule_pxe_provisioning(
 
     :parametrized: yes
     """
-    host_mac_addr = provisioning_host._broker_args['provisioning_nic_mac_addr']
+    host_mac_addr = provisioning_host._broker_facts['provisioning_nic_mac_addr']
     sat = capsule_provisioning_sat.sat
     cap = module_capsule_configured
     host = sat.api.Host(
