@@ -75,7 +75,7 @@ def test_positive_create_with_description(desc, module_org, module_target_sat):
 
 @pytest.mark.tier1
 def test_positive_create_with_default_lce_by_id(
-    module_org, get_default_env, target_sat, module_promoted_cv
+    module_org, get_default_env, module_target_sat, module_promoted_cv
 ):
     """Create Activation key with associated default environment
 
@@ -86,7 +86,7 @@ def test_positive_create_with_default_lce_by_id(
     :CaseImportance: Critical
     """
     lce = get_default_env
-    new_ak_env = target_sat.cli_factory.make_activation_key(
+    new_ak_env = module_target_sat.cli_factory.make_activation_key(
         {
             'organization-id': module_org.id,
             'lifecycle-environment-id': lce['id'],
