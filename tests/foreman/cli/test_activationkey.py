@@ -74,7 +74,9 @@ def test_positive_create_with_description(desc, module_org, module_target_sat):
 
 
 @pytest.mark.tier1
-def test_positive_create_with_default_lce_by_id(module_org, get_default_env, target_sat):
+def test_positive_create_with_default_lce_by_id(
+    module_org, get_default_env, module_target_sat, module_promoted_cv
+):
     """Create Activation key with associated default environment
 
     :id: 9171adb2-c9ac-4cda-978f-776826668aa3
@@ -84,14 +86,20 @@ def test_positive_create_with_default_lce_by_id(module_org, get_default_env, tar
     :CaseImportance: Critical
     """
     lce = get_default_env
-    new_ak_env = target_sat.cli_factory.make_activation_key(
-        {'organization-id': module_org.id, 'lifecycle-environment-id': lce['id']}
+    new_ak_env = module_target_sat.cli_factory.make_activation_key(
+        {
+            'organization-id': module_org.id,
+            'lifecycle-environment-id': lce['id'],
+            'content-view': module_promoted_cv.name,
+        }
     )
-    assert new_ak_env['lifecycle-environment'] == lce['name']
+    assert new_ak_env.content_view_environments[0].name == lce['name']
 
 
 @pytest.mark.tier1
-def test_positive_create_with_non_default_lce(module_org, module_target_sat):
+def test_positive_create_with_non_default_lce(
+    module_org, module_lce, module_target_sat, module_promoted_cv
+):
     """Create Activation key with associated custom environment
 
     :id: ad4d4611-3fb5-4449-ae47-305f9931350e
@@ -101,17 +109,21 @@ def test_positive_create_with_non_default_lce(module_org, module_target_sat):
 
     :CaseImportance: Critical
     """
-    env = module_target_sat.cli_factory.make_lifecycle_environment(
-        {'organization-id': module_org.id}
-    )
+
     new_ak_env = module_target_sat.cli_factory.make_activation_key(
-        {'organization-id': module_org.id, 'lifecycle-environment-id': env['id']}
+        {
+            'organization-id': module_org.id,
+            'lifecycle-environment-id': module_lce.id,
+            'content-view': module_promoted_cv.name,
+        }
     )
-    assert new_ak_env['lifecycle-environment'] == env['name']
+    assert new_ak_env.content_view_environments[0].name == module_lce.name
 
 
 @pytest.mark.tier1
-def test_positive_create_with_default_lce_by_name(module_org, get_default_env, module_target_sat):
+def test_positive_create_with_default_lce_by_name(
+    module_org, get_default_env, module_target_sat, module_promoted_cv
+):
     """Create Activation key with associated environment by name
 
     :id: 7410f7c4-e8b5-4080-b6d2-65dbcedffe8a
@@ -122,9 +134,13 @@ def test_positive_create_with_default_lce_by_name(module_org, get_default_env, m
     """
     lce = get_default_env
     new_ak_env = module_target_sat.cli_factory.make_activation_key(
-        {'organization-id': module_org.id, 'lifecycle-environment': lce['name']}
+        {
+            'organization-id': module_org.id,
+            'lifecycle-environment': lce['name'],
+            'content-view': module_promoted_cv.name,
+        }
     )
-    assert new_ak_env['lifecycle-environment'] == lce['name']
+    assert new_ak_env.content_view_environments[0].name == lce['name']
 
 
 @pytest.mark.tier2
@@ -143,14 +159,17 @@ def test_positive_create_with_cv(name, module_org, get_default_env, module_targe
         {'name': name, 'organization-id': module_org.id}
     )
     module_target_sat.cli.ContentView.publish({'id': new_cv['id']})
-    new_ak_cv = module_target_sat.cli_factory.make_activation_key(
+    new_ak = module_target_sat.cli_factory.make_activation_key(
         {
             'content-view': new_cv['name'],
             'lifecycle-environment': get_default_env['name'],
             'organization-id': module_org.id,
         }
     )
-    assert new_ak_cv['content-view'] == name
+    new_ak_cv_id = module_target_sat.api.ActivationKey(id=new_ak.id).read().content_view.id
+    new_ak_cv_name = module_target_sat.api.ContentView(id=new_ak_cv_id).read().name
+
+    assert new_ak_cv_name == name
 
 
 @pytest.mark.tier1
@@ -363,7 +382,9 @@ def test_positive_delete_with_cv(module_org, module_target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_delete_with_lce(module_org, get_default_env, module_target_sat):
+def test_positive_delete_with_lce(
+    module_org, get_default_env, module_target_sat, module_promoted_cv
+):
     """Create activation key with lifecycle environment assigned to
     it and delete it using activation key id
 
@@ -372,7 +393,11 @@ def test_positive_delete_with_lce(module_org, get_default_env, module_target_sat
     :expectedresults: Activation key is deleted
     """
     new_ak = module_target_sat.cli_factory.make_activation_key(
-        {'organization-id': module_org.id, 'lifecycle-environment': get_default_env['name']}
+        {
+            'organization-id': module_org.id,
+            'lifecycle-environment': get_default_env['name'],
+            'content-view': module_promoted_cv.name,
+        }
     )
     module_target_sat.cli.ActivationKey.delete({'id': new_ak['id']})
     with pytest.raises(CLIReturnCodeError):
@@ -452,7 +477,7 @@ def test_positive_update_description(description, module_org, module_target_sat)
 
 
 @pytest.mark.tier2
-def test_positive_update_lce(module_org, get_default_env, module_target_sat):
+def test_positive_update_lce(module_org, get_default_env, module_target_sat, module_promoted_cv):
     """Update Environment in an Activation key
 
     :id: 55aaee60-b8c8-49f0-995a-6c526b9b653b
@@ -460,8 +485,13 @@ def test_positive_update_lce(module_org, get_default_env, module_target_sat):
     :expectedresults: Activation key is updated
     """
     ak_env = module_target_sat.cli_factory.make_activation_key(
-        {'organization-id': module_org.id, 'lifecycle-environment-id': get_default_env['id']}
+        {
+            'organization-id': module_org.id,
+            'lifecycle-environment-id': get_default_env['id'],
+            'content-view': module_promoted_cv.name,
+        }
     )
+
     env = module_target_sat.cli_factory.make_lifecycle_environment(
         {'organization-id': module_org.id}
     )
@@ -479,8 +509,9 @@ def test_positive_update_lce(module_org, get_default_env, module_target_sat):
             'organization-id': module_org.id,
         }
     )
-    updated_ak = module_target_sat.cli.ActivationKey.info({'id': ak_env['id']})
-    assert updated_ak['lifecycle-environment'] == env['name']
+    updated_ak_env = module_target_sat.api.ActivationKey(id=ak_env['id']).read().environment
+    new_ak_env_name = module_target_sat.api.LifecycleEnvironment(id=updated_ak_env.id).read().name
+    assert new_ak_env_name == env['name']
 
 
 @pytest.mark.tier2
@@ -976,8 +1007,10 @@ def test_positive_remove_host_collection_by_id(module_org, module_target_sat):
             'organization': module_org.name,
         }
     )
-    activation_key = module_target_sat.cli.ActivationKey.info({'id': activation_key['id']})
-    assert len(activation_key['host-collections']) == 0
+    assert (
+        len(module_target_sat.api.ActivationKey(id=activation_key['id']).read().host_collection)
+        == 0
+    )
 
 
 @pytest.mark.tier2
@@ -1028,8 +1061,10 @@ def test_positive_remove_host_collection_by_name(module_org, host_col, module_ta
             'organization-id': module_org.id,
         }
     )
-    activation_key = module_target_sat.cli.ActivationKey.info({'id': activation_key['id']})
-    assert len(activation_key['host-collections']) == 0
+    assert (
+        len(module_target_sat.api.ActivationKey(id=activation_key['id']).read().host_collection)
+        == 0
+    )
 
 
 @pytest.mark.tier2
@@ -1271,14 +1306,16 @@ def test_positive_update_autoattach_toggle(module_org, module_target_sat):
     :CaseImportance: Critical
     """
     new_ak = module_target_sat.cli_factory.make_activation_key({'organization-id': module_org.id})
-    attach_value = new_ak['auto-attach']
-    # invert value
-    new_value = 'false' if attach_value == 'true' else 'true'
+    current_ak_auto_attach = module_target_sat.api.ActivationKey(id=new_ak['id']).read().auto_attach
     module_target_sat.cli.ActivationKey.update(
-        {'auto-attach': new_value, 'id': new_ak['id'], 'organization-id': module_org.id}
+        {
+            'auto-attach': str(not current_ak_auto_attach),
+            'id': new_ak['id'],
+            'organization-id': module_org.id,
+        }
     )
-    updated_ak = module_target_sat.cli.ActivationKey.info({'id': new_ak['id']})
-    assert updated_ak['auto-attach'] == new_value
+    updated_ak_auto_attach = module_target_sat.api.ActivationKey(id=new_ak['id']).read().auto_attach
+    assert updated_ak_auto_attach == (not current_ak_auto_attach)
 
 
 @pytest.mark.tier1
