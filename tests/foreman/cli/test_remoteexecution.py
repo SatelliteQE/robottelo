@@ -28,6 +28,7 @@ from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
 from robottelo.exceptions import CLIFactoryError
 from robottelo.utils import ohsnap
 from robottelo.utils.datafactory import filtered_datapoint, parametrized
+from robottelo.utils.issue_handlers import is_open
 
 
 @filtered_datapoint
@@ -344,7 +345,10 @@ class TestRemoteExecution:
                 'organization-id': module_org.id,
             }
         )
-        assert 'Permission denied' in out
+        if not (
+            rex_contenthost.os_distribution_version.split(".")[0] == '7' and is_open('SAT-30898')
+        ):
+            assert 'Permission denied' in out
 
     @pytest.mark.tier3
     @pytest.mark.parametrize(
