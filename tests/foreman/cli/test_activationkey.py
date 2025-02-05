@@ -93,7 +93,7 @@ def test_positive_create_with_default_lce_by_id(
             'content-view': module_promoted_cv.name,
         }
     )
-    assert new_ak_env.lifecycle_environment == lce['name']
+    assert new_ak_env.content_view_environments[0].name == lce['name']
 
 
 @pytest.mark.tier1
@@ -117,7 +117,7 @@ def test_positive_create_with_non_default_lce(
             'content-view': module_promoted_cv.name,
         }
     )
-    assert new_ak_env.lifecycle_environment == module_lce.name
+    assert new_ak_env.content_view_environments[0].name == module_lce.name
 
 
 @pytest.mark.tier1
