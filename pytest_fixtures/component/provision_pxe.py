@@ -318,7 +318,7 @@ def pxeless_discovery_host(provisioning_host, module_discovery_sat, pxe_loader):
         job_template='configure-pxe-boot',
         target_host=provisioning_host.name,
         target_vlan_id=settings.provisioning.vlan_id,
-        target_vm_firmware=provisioning_host._broker_facts['target_vm_firmware'],
+        target_vm_firmware=provisioning_host._broker_args['target_vm_firmware'],
         target_pxeless_image=image_name,
         target_boot_scenario='pxeless_pre',
     ).execute()
