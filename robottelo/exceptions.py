@@ -1,6 +1,10 @@
 """Custom Errors for Robottelo"""
 
 
+class APIResponseError(Exception):
+    """Indicates wrong API response"""
+
+
 class GCECertNotFoundError(Exception):
     """An exception to raise when GCE Cert json is not available for creating GCE CR"""
 
