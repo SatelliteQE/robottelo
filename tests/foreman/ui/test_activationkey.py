@@ -791,7 +791,13 @@ def test_positive_add_docker_repo_cv(session, module_org, module_target_sat):
     content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]
     ).create()
-    sleep(5)
+    module_target_sat.wait_for_tasks(
+        search_query='Actions::Katello::Repository::MetadataGenerate'
+        f' and resource_id = {repo.id}'
+        ' and resource_type = Katello::Repository',
+        max_tries=6,
+        search_rate=10,
+    )
     content_view.publish()
     cvv = content_view.read().version[0].read()
     cvv.promote(data={'environment_ids': lce.id, 'force': False})
