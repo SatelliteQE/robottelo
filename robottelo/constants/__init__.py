@@ -832,18 +832,15 @@ CONTAINER_MANIFEST_LABELS = {'annotations', 'labels', 'is_bootable', 'is_flatpak
 FLATPAK_REMOTES = {
     'Fedora': {
         'url': 'https://registry.fedoraproject.org',
-        'index_url': 'https://registry.fedoraproject.org/index/static?label:org.flatpak.ref:exists=1&tag=latest',
         'authenticated': False,
     },
     'RedHat': {
         'url': 'https://flatpaks.redhat.io/rhel/',
-        'index_url': 'https://flatpaks.redhat.io/rhel/index/static?label:org.flatpak.ref:exists=1&tag=latest',
         'authenticated': True,
     },
 }
-PULPCORE_FLATPAK_ENDPOINT = (
-    'https://{}/pulpcore_registry/index/static?label:org.flatpak.ref:exists=1'
-)
+FLATPAK_INDEX_SUFFIX = 'index/static?label:org.flatpak.ref:exists=1&tag=latest'
+PULPCORE_FLATPAK_ENDPOINT = 'https://{}/pulpcore_registry/' + FLATPAK_INDEX_SUFFIX
 
 CONTAINER_CLIENTS = ['docker', 'podman']
 CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
