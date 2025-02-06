@@ -67,6 +67,13 @@ def repo_setup(target_sat):
     product = target_sat.api.Product(organization=org).create()
     repo = target_sat.api.Repository(name=repo_name, product=product).create()
     lce = target_sat.api.LifecycleEnvironment(organization=org).create()
+    target_sat.wait_for_tasks(
+        search_query='Actions::Katello::Repository::MetadataGenerate'
+        f' and resource_id = {repo.id}'
+        ' and resource_type = Katello::Repository',
+        max_tries=6,
+        search_rate=10,
+    )
     return {'org': org, 'product': product, 'repo': repo, 'lce': lce}
 
 
