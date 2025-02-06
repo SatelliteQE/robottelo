@@ -1756,6 +1756,7 @@ OSCAP_DEFAULT_CONTENT = {
     'rhel7_content': 'Red Hat rhel7 default content',
     'rhel8_content': 'Red Hat rhel8 default content',
     'rhel9_content': 'Red Hat rhel9 default content',
+    'rhel10_content': 'Red Hat rhel10 default content',
     'rhel_firefox': 'Red Hat firefox default content',
 }
 
@@ -1765,6 +1766,7 @@ OSCAP_PROFILE = {
     'dsrhel7': 'DISA STIG for Red Hat Enterprise Linux 7',
     'dsrhel8': 'DISA STIG for Red Hat Enterprise Linux 8',
     'dsrhel9': 'DISA STIG for Red Hat Enterprise Linux 9',
+    'dsrhel10': 'DISA STIG for Red Hat Enterprise Linux 10',
     'esp': 'Example Server Profile',
     'rhccp': 'Red Hat Corporate Profile for Certified Cloud Providers (RH CCP)',
     'firefox': 'Mozilla Firefox STIG',
@@ -1777,6 +1779,7 @@ OSCAP_PROFILE = {
     'cbrhel7': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 7',
     'cbrhel8': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 8',
     'cbrhel9': 'PCI-DSS v4.0 Control Baseline for Red Hat Enterprise Linux 9',
+    'cbrhel10': 'PCI-DSS v4.0 Control Baseline for Red Hat Enterprise Linux 10',
     'ppgpo': 'Protection Profile for General Purpose Operating Systems',
     'acscee': 'Australian Cyber Security Centre (ACSC) Essential Eight',
     'ospp7': 'OSPP - Protection Profile for General Purpose Operating Systems v4.2.1',
