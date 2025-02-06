@@ -64,6 +64,7 @@ def test_positive_update_restrict_composite_view(
     composite_cv = module_target_sat.api.ContentView(
         composite=True, organization=repo_setup['org']
     ).create()
+
     content_view = add_content_views_to_composite(
         composite_cv, repo_setup['org'], repo_setup['repo'], module_target_sat
     )
@@ -73,22 +74,25 @@ def test_positive_update_restrict_composite_view(
         for param_value in ['Yes', 'No']:
             session.settings.update(f'name = {property_name}', param_value)
             if param_value == 'Yes':
-                with pytest.raises(AssertionError) as context:
-                    session.contentview.promote(
-                        composite_cv.name, 'Version 1.0', repo_setup['lce'].name
-                    )
+                err_message = f"['Danger alert: The action requested on this composite view cannot be performed until all of the component content view versions have been promoted to the target environment: [\"{composite_cv.name}\"]. This restriction is optional and can be modified in the Administrator -> Settings -> Content page using the restrict_composite_view flag.']"
+                result = session.contentview_new.promote(
+                    composite_cv.name,
+                    'version = 1',
+                    repo_setup['lce'].name,
+                    err_message=err_message,
+                )
                 assert (
                     'Administrator -> Settings -> Content page using the '
-                    'restrict_composite_view flag.' in str(context.value)
+                    'restrict_composite_view flag.' in result[0]
                 )
             else:
-                result = session.contentview.promote(
-                    composite_cv.name, 'Version 1.0', repo_setup['lce'].name
+                result = session.contentview_new.promote(
+                    composite_cv.name, 'version = 1', repo_setup['lce'].name
                 )
+
                 assert repo_setup['lce'].name in result['Environments']
                 for content_view_name in [composite_cv.name, content_view.name]:
-                    session.contentview.remove_version(content_view_name, 'Version 1.0')
-                    session.contentview.delete(content_view_name)
+                    session.contentview_new.delete(content_view_name)
 
 
 @pytest.mark.parametrize('setting_update', ['http_proxy'], indirect=True)
