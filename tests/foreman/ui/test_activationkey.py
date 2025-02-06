@@ -13,6 +13,7 @@
 """
 
 import random
+from time import sleep
 
 from broker import Broker
 from fauxfactory import gen_string
@@ -171,7 +172,9 @@ def test_positive_search_scoped(session, module_org, target_sat):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_create_with_host_collection(session, module_org, module_target_sat):
+def test_positive_create_with_host_collection(
+    session, module_org, module_target_sat, module_lce, module_promoted_cv
+):
     """Create Activation key with Host Collection
 
     :id: 0e4ad2b4-47a7-4087-828f-2b0535a97b69
@@ -181,7 +184,9 @@ def test_positive_create_with_host_collection(session, module_org, module_target
     name = gen_string('alpha')
     hc = module_target_sat.api.HostCollection(organization=module_org).create()
     with session:
-        session.activationkey.create({'name': name, 'lce': {constants.ENVIRONMENT: True}})
+        session.activationkey.create(
+            {'name': name, 'lce': {module_lce.name: True}, 'content_view': module_promoted_cv.name}
+        )
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.add_host_collection(name, hc.name)
         ak = session.activationkey.read(name, widget_names='host_collections')
@@ -214,7 +219,9 @@ def test_positive_create_with_envs(session, module_org, target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_add_host_collection_non_admin(module_org, test_name, target_sat):
+def test_positive_add_host_collection_non_admin(
+    module_org, test_name, target_sat, module_lce, module_promoted_cv
+):
     """Test that host collection can be associated to Activation Keys by
     non-admin user.
 
@@ -241,7 +248,13 @@ def test_positive_add_host_collection_non_admin(module_org, test_name, target_sa
         admin=False, role=roles, password=password, organization=[module_org]
     ).create()
     with target_sat.ui_session(test_name, user=user.login, password=password) as session:
-        session.activationkey.create({'name': ak_name, 'lce': {constants.ENVIRONMENT: True}})
+        session.activationkey.create(
+            {
+                'name': ak_name,
+                'lce': {module_lce.name: True},
+                'content_view': module_promoted_cv.name,
+            }
+        )
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         session.activationkey.add_host_collection(ak_name, hc.name)
         ak = session.activationkey.read(ak_name, widget_names='host_collections')
@@ -250,7 +263,9 @@ def test_positive_add_host_collection_non_admin(module_org, test_name, target_sa
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_remove_host_collection_non_admin(module_org, test_name, target_sat):
+def test_positive_remove_host_collection_non_admin(
+    module_org, test_name, target_sat, module_lce, module_promoted_cv
+):
     """Test that host collection can be removed from Activation Keys by
     non-admin user.
 
@@ -275,7 +290,13 @@ def test_positive_remove_host_collection_non_admin(module_org, test_name, target
         admin=False, role=roles, password=password, organization=[module_org]
     ).create()
     with target_sat.ui_session(test_name, user=user.login, password=password) as session:
-        session.activationkey.create({'name': ak_name, 'lce': {constants.ENVIRONMENT: True}})
+        session.activationkey.create(
+            {
+                'name': ak_name,
+                'lce': {module_lce.name: True},
+                'content_view': module_promoted_cv.name,
+            }
+        )
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         session.activationkey.add_host_collection(ak_name, hc.name)
         ak = session.activationkey.read(ak_name, widget_names='host_collections')
@@ -301,7 +322,9 @@ def test_positive_delete_with_env(session, module_org, target_sat):
     repo_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
     target_sat.api_factory.cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
     with session:
-        session.activationkey.create({'name': name, 'lce': {env_name: True}})
+        session.activationkey.create(
+            {'name': name, 'lce': {env_name: True}, 'content_view': cv_name}
+        )
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.delete(name)
         assert session.activationkey.search(name)[0]['Name'] != name
@@ -347,7 +370,9 @@ def test_positive_update_env(session, module_org, target_sat):
     repo_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
     target_sat.api_factory.cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
     with session:
-        session.activationkey.create({'name': name, 'lce': {constants.ENVIRONMENT: True}})
+        session.activationkey.create(
+            {'name': name, 'lce': {constants.ENVIRONMENT: True}, 'content_view': cv_name}
+        )
         assert session.activationkey.search(name)[0]['Name'] == name
         ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['lce'][env_name][constants.ENVIRONMENT]
@@ -712,7 +737,9 @@ def test_positive_access_non_admin_user(session, test_name, target_sat):
 
 
 @pytest.mark.tier2
-def test_positive_remove_user(session, module_org, test_name, module_target_sat):
+def test_positive_remove_user(
+    session, module_org, test_name, module_target_sat, module_lce, module_promoted_cv
+):
     """Delete any user who has previously created an activation key
     and check that activation key still exists
 
@@ -731,7 +758,11 @@ def test_positive_remove_user(session, module_org, test_name, module_target_sat)
     # Create Activation Key using new user credentials
     with module_target_sat.ui_session(test_name, user.login, password) as non_admin_session:
         non_admin_session.activationkey.create(
-            {'name': ak_name, 'lce': {constants.ENVIRONMENT: True}}
+            {
+                'name': ak_name,
+                'lce': {module_lce.name: True},
+                'content_view': module_promoted_cv.name,
+            }
         )
         assert non_admin_session.activationkey.search(ak_name)[0]['Name'] == ak_name
     # Remove user and check that AK still exists
@@ -760,6 +791,13 @@ def test_positive_add_docker_repo_cv(session, module_org, module_target_sat):
     content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]
     ).create()
+    module_target_sat.wait_for_tasks(
+        search_query='Actions::Katello::Repository::MetadataGenerate'
+        f' and resource_id = {repo.id}'
+        ' and resource_type = Katello::Repository',
+        max_tries=6,
+        search_rate=10,
+    )
     content_view.publish()
     cvv = content_view.read().version[0].read()
     cvv.promote(data={'environment_ids': lce.id, 'force': False})
@@ -794,6 +832,7 @@ def test_positive_add_docker_repo_ccv(session, module_org, module_target_sat):
     content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]
     ).create()
+    sleep(5)
     content_view.publish()
     cvv = content_view.read().version[0].read()
     cvv.promote(data={'environment_ids': lce.id, 'force': False})
@@ -814,7 +853,9 @@ def test_positive_add_docker_repo_ccv(session, module_org, module_target_sat):
 
 
 @pytest.mark.tier3
-def test_positive_add_host(session, module_org, rhel_contenthost, target_sat):
+def test_positive_add_host(
+    session, module_org, rhel_contenthost, target_sat, module_promoted_cv, module_lce
+):
     """Test that hosts can be associated to Activation Keys
 
     :id: 886e9ea5-d917-40e0-a3b1-41254c4bf5bf
@@ -829,9 +870,8 @@ def test_positive_add_host(session, module_org, rhel_contenthost, target_sat):
     :parametrized: yes
     """
     ak = target_sat.api.ActivationKey(
-        environment=target_sat.api.LifecycleEnvironment(
-            name=constants.ENVIRONMENT, organization=module_org
-        ).search()[0],
+        content_view=module_promoted_cv,
+        environment=module_lce,
         organization=module_org,
     ).create()
     result = rhel_contenthost.register(module_org, None, ak.name, target_sat)
@@ -884,7 +924,7 @@ def test_positive_delete_with_system(session, rhel_contenthost, target_sat):
 
 
 @pytest.mark.tier3
-def test_negative_usage_limit(session, module_org, target_sat):
+def test_negative_usage_limit(session, module_org, target_sat, module_promoted_cv, module_lce):
     """Test that Usage limit actually limits usage
 
     :id: 9fe2d661-66f8-46a4-ae3f-0a9329494bdd
@@ -901,7 +941,9 @@ def test_negative_usage_limit(session, module_org, target_sat):
     name = gen_string('alpha')
     hosts_limit = '1'
     with session:
-        session.activationkey.create({'name': name, 'lce': {constants.ENVIRONMENT: True}})
+        session.activationkey.create(
+            {'name': name, 'lce': {module_lce.name: True}, 'content_view': module_promoted_cv.name}
+        )
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.update(name, {'details.hosts_limit': hosts_limit})
         ak = session.activationkey.read(name, widget_names='details')
