@@ -255,7 +255,7 @@ def test_convert2rhel_oracle_with_pre_conversion_template_check(
 
     :parametrized: yes
 
-    :Verifies: SAT-24654, SAT-24655
+    :Verifies: SAT-24654, SAT-24655, SAT-26076
     """
     major = version.split('.')[0]
     assert oracle.execute('yum -y update').status == 0
@@ -359,7 +359,7 @@ def test_convert2rhel_centos_with_pre_conversion_template_check(
 
     :parametrized: yes
 
-    :Verifies: SAT-24654, SAT-24655
+    :Verifies: SAT-24654, SAT-24655, SAT-26076
     """
     host_content = module_target_sat.api.Host(id=centos.hostname).read_json()
     major = version.split('.')[0]
