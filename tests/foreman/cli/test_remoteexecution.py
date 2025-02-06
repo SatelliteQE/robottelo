@@ -345,9 +345,7 @@ class TestRemoteExecution:
                 'organization-id': module_org.id,
             }
         )
-        if not (
-            rex_contenthost.os_distribution_version.split(".")[0] == '7' and is_open('SAT-30898')
-        ):
+        if not rex_contenthost.os_version.major == 7 and is_open('SAT-30898'):
             assert 'Permission denied' in out
 
     @pytest.mark.tier3
