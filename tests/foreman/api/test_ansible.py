@@ -283,7 +283,7 @@ class TestAnsibleCfgMgmt:
     @pytest.mark.rhel_ver_match('[78]')
     @pytest.mark.tier2
     def test_positive_read_facts_with_filter(
-        self, target_sat, rex_contenthost, filtered_user, module_org, module_location
+        self, request, target_sat, rex_contenthost, filtered_user, module_org, module_location
     ):
         """Read host's Ansible facts as a user with a role that has host filter
 
@@ -304,6 +304,9 @@ class TestAnsibleCfgMgmt:
         host.organization = module_org
         host.location = module_location
         host.update(['organization', 'location'])
+        request.addfinalizer(
+            user.delete
+        )  # Adding a temporary workaround until the issue 'SAT-18656' is resolved.
 
         # gather ansible facts by running ansible roles on the host
         host.play_ansible_roles()
