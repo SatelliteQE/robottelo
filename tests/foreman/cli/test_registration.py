@@ -338,6 +338,39 @@ def test_positive_global_registration_with_gpg_repo(
         assert rhel_contenthost.execute('dnf install -y bear').status == 0
 
 
+@pytest.mark.upgrade
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.parametrize('download_utility', ['wget', 'curl'])
+def test_positive_register_download_utility(
+    module_sca_manifest_org,
+    module_location,
+    module_activation_key,
+    module_target_sat,
+    rhel_contenthost,
+    download_utility,
+):
+    """Verify host registration command gets generated and host is registered successfully with all supported download utilities.
+
+    :id: 80c3204a-7923-4c70-b7c1-7b368c61d4b8
+
+    :steps:
+        1. Register host with global registration template using different download utilities.
+
+    :expectedresults: Host is successfully registered.
+    """
+    org = module_sca_manifest_org
+    result = rhel_contenthost.register(
+        org,
+        module_location,
+        module_activation_key.name,
+        module_target_sat,
+        download_utility=download_utility,
+    )
+    assert result.status == 0
+    assert rhel_contenthost.subscribed
+
+
 @pytest.mark.parametrize('setting_update', ['default_location_subscribed_hosts'], indirect=True)
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_verify_default_location_for_registered_host(
