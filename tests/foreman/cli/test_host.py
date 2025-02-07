@@ -284,7 +284,6 @@ def test_positive_search_all_field_sets(module_target_sat):
         assert field in list(output_field_sets[host_idx].keys())
 
 
-@pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
