@@ -207,6 +207,20 @@ def katello_host_tools_tracer_host(rex_contenthost, target_sat):
     return rex_contenthost
 
 
+@pytest.fixture
+def rhel_contenthost_with_repos(request, target_sat):
+    """Install katello-host-tools-tracer, create custom
+    repositories on the host"""
+    with Broker(**host_conf(request), host_class=ContentHost) as host:
+        # create a custom, rhel version-specific OS repo
+        rhelver = request.param['rhel_version']
+        if rhelver > 7:
+            host.create_custom_repos(**settings.repos[f'rhel{rhelver}_os'])
+        else:
+            host.create_custom_repos(**{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']})
+        yield host
+
+
 @pytest.fixture(scope='module')
 def module_container_contenthost(request, module_target_sat, module_org, module_activation_key):
     """Fixture that installs docker on the content host"""
