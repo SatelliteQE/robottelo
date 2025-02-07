@@ -2826,7 +2826,7 @@ def test_positive_reregister_rhel(
     function_ak_with_cv,
     function_org,
 ):
-    """Reregister a Host after cusumer certs have been removed
+    """Reregister a Host after consumer certs have been removed
 
     :id: 23d1ddba-256f-43a9-bd25-797f6a66942d
 
