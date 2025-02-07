@@ -2855,3 +2855,6 @@ def test_positive_reregister_rhel(
     )
     assert reregister.status == 0
     assert rhel_contenthost.subscribed
+    certs = rhel_contenthost.execute("ls /etc/pki/consumer").stdout
+    assert 'cert.pem' in certs
+    assert 'key.pem' in certs
