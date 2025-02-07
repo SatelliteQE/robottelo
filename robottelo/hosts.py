@@ -1511,6 +1511,16 @@ class ContentHost(Host, ContentHostMixins):
         host.location = location
         host.update(['location'])
 
+    def get_yggdrasil_service_name(self):
+        return (
+            'yggdrasil'
+            if (
+                self.os_version.major > 9
+                or (self.os_version.major == 9 and self.os_version.minor > 5)
+            )
+            else 'yggdrasild'
+        )
+
 
 class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
