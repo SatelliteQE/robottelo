@@ -1527,6 +1527,20 @@ class ContentHost(Host, ContentHostMixins):
         host.location = location
         host.update(['location'])
 
+    def get_yggdrasil_service_name(self):
+        # os_distribution_version doesn't get updated after leapp upgrade
+        distro_ver_list = self.execute(
+            """grep '^VERSION_ID' /etc/os-release | awk -F'=' ' gsub(/"/,"") { print $2}'"""
+        ).stdout.split('.')
+        return (
+            'yggdrasil'
+            if (
+                int(distro_ver_list[0]) > 9
+                or (int(distro_ver_list[0]) == 9 and int(distro_ver_list[1]) > 5)
+            )
+            else 'yggdrasild'
+        )
+
 
 class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
