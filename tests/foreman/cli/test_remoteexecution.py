@@ -870,7 +870,7 @@ class TestRemoteExecution:
             )
 
     @pytest.mark.tier3
-    @pytest.mark.rhel_ver_list([9])
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_run_scheduled_job_template(self, rex_contenthost, target_sat):
         """Schedule a job to be ran against a host
 
