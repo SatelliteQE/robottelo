@@ -2833,7 +2833,7 @@ def test_positive_reregister_rhel(
     :steps:
         1. Register a Host
         2. Remove consumer certs from Host
-        3. Attempt to reregister the Host 
+        3. Attempt to reregister the Host
 
     :expectedresults: Host is reregisterd with no errors
 
@@ -2850,6 +2850,8 @@ def test_positive_reregister_rhel(
     status = rhel_contenthost.execute("subscription-manager status")
     assert "Overall Status: Unknown" in status.stdout
     # reregister host with force
-    reregister = rhel_contenthost.register(function_org, None, function_ak_with_cv.name, target_sat, force=True)
+    reregister = rhel_contenthost.register(
+        function_org, None, function_ak_with_cv.name, target_sat, force=True
+    )
     assert reregister.status == 0
     assert rhel_contenthost.subscribed
