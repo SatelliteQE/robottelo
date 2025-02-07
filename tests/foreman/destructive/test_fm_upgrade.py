@@ -50,6 +50,6 @@ def test_negative_ipv6_update_check(sat_maintain):
     )
     assert result.status != 0
     assert (
-        'The kernel contains ipv6.disable=1 which is known to break installation and upgrade, remove and reboot before continuining.'
+        'The kernel contains ipv6.disable=1 which is known to break installation and upgrade, remove and reboot before continuing.'
         in result.stdout
     )
