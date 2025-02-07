@@ -304,6 +304,18 @@ VALIDATORS = dict(
             must_exist=True,
         ),
     ],
+    rhbk=[
+        Validator(
+            'rhbk.host_name',
+            'rhbk.host_port',
+            'rhbk.host_url',
+            'rhbk.rhbk_user',
+            'rhbk.rhbk_password',
+            'rhbk.realm',
+            'rhbk.totp_secret',
+            must_exist=True,
+        ),
+    ],
     remotedb=[
         Validator(
             'remotedb.server',
