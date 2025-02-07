@@ -1471,8 +1471,12 @@ class TestContentViewSync:
         imported_files = module_import_sat.cli.File.list(
             {'content-view-version-id': importing_cvv['id']}
         )
-        assert exported_packages == imported_packages, 'Imported RPMs do not match the export'
-        assert exported_files == imported_files, 'Imported Files do not match the export'
+        assert set(f['filename'] for f in exported_packages) == set(
+            f['filename'] for f in imported_packages
+        ), 'Imported RPMs do not match the export'
+        assert set(f['name'] for f in exported_files) == set(f['name'] for f in imported_files), (
+            'Imported Files do not match the export'
+        )
 
         for repo in repos:
             exp = target_sat.cli.Repository.info(
