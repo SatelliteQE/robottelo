@@ -284,6 +284,7 @@ def test_positive_search_all_field_sets(module_target_sat):
         assert field in list(output_field_sets[host_idx].keys())
 
 
+@pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.cli_host_subscription
 @pytest.mark.tier3
@@ -2814,3 +2815,42 @@ def test_host_registration_with_capsule_using_content_coherence(
     assert 'Validation failed' not in result.stderr, f'Error is: {result.stderr}'
     if rhel_contenthost.os_version.major != 7:
         assert 'HTTP error code 422' not in result.stderr, f'Error is: {result.stderr}'
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('9')
+@pytest.mark.cli_host_subscription
+@pytest.mark.tier3
+def test_positive_reregister_rhel(
+    target_sat,
+    rhel_contenthost,
+    function_ak_with_cv,
+    function_org,
+):
+    """Reregister a Host after cusumer certs have been removed
+
+    :id: 23d1ddba-256f-43a9-bd25-797f6a66942d
+
+    :steps:
+        1. Register a Host
+        2. Remove consumer certs from Host
+        3. Attempt to reregister the Host 
+
+    :expectedresults: Host is reregisterd with no errors
+
+    :Verifies: SAT-27875
+
+    :customerscenario: true
+    """
+    # register client
+    result = rhel_contenthost.register(function_org, None, function_ak_with_cv.name, target_sat)
+    assert result.status == 0
+    assert rhel_contenthost.subscribed
+    # remove local consumer certs
+    rhel_contenthost.execute('rm -rf /etc/pki/consumer/*')
+    status = rhel_contenthost.execute("subscription-manager status")
+    assert "Overall Status: Unknown" in status.stdout
+    # reregister host with force
+    reregister = rhel_contenthost.register(function_org, None, function_ak_with_cv.name, target_sat, force=True)
+    assert reregister.status == 0
+    assert rhel_contenthost.subscribed
