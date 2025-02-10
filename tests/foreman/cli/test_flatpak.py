@@ -16,7 +16,7 @@ import pytest
 import requests
 
 from robottelo.config import settings
-from robottelo.constants import FLATPAK_INDEX_SUFFIX, FLATPAK_REMOTES, PULPCORE_FLATPAK_ENDPOINT
+from robottelo.constants import FLATPAK_ENDPOINTS, FLATPAK_INDEX_SUFFIX, FLATPAK_REMOTES
 from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import gen_string
 
@@ -198,19 +198,23 @@ def test_scan_flatpak_remote(target_sat, function_org, function_flatpak_remote):
 
 
 @pytest.mark.upgrade
-def test_flatpak_pulpcore_endpoint(target_sat):
-    """Ensure the Satellite's flatpak pulpcore endpoint is up after install or upgrade.
+@pytest.mark.parametrize('endpoint', ['pulpcore', 'katello'])
+def test_flatpak_endpoint(target_sat, endpoint):
+    """Ensure the Satellite's local flatpak index endpoints are up after install or upgrade.
 
     :id: 3593ac46-4e5d-495e-95eb-d9609cb46a15
 
+    :parametrized: yes
+
     :steps:
-        1. Hit Satellite's pulpcore_registry endpoint.
+        1. Hit Satellite's local flatpak index endpoint per parameter.
 
     :expectedresults:
         1. HTTP 200
     """
-    rq = requests.get(PULPCORE_FLATPAK_ENDPOINT.format(target_sat.hostname), verify=False)
-    assert rq.ok, f'Expected 200 but got {rq.status_code} from pulpcore registry index'
+    ep = FLATPAK_ENDPOINTS[endpoint].format(target_sat.hostname)
+    rq = requests.get(ep, verify=False)
+    assert rq.ok, f'Expected 200 but got {rq.status_code} from {endpoint} registry index'
 
 
 @pytest.mark.e2e

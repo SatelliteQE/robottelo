@@ -36,10 +36,10 @@ from robottelo.constants import (
     FAKE_FILE_LARGE_COUNT,
     FAKE_FILE_LARGE_URL,
     FAKE_FILE_NEW_NAME,
+    FLATPAK_ENDPOINTS,
     KICKSTART_CONTENT,
     PRDS,
     PULP_ARTIFACT_DIR,
-    PULPCORE_FLATPAK_ENDPOINT,
     REPOS,
     REPOSET,
     RH_CONTAINER_REGISTRY_HUB,
@@ -785,21 +785,23 @@ class TestCapsuleContentManagement:
             assert b'katello-server-ca.crt' in response.content
 
     @pytest.mark.upgrade
-    def test_flatpak_pulpcore_endpoint(self, target_sat, module_capsule_configured):
-        """Ensure the Capsules's flatpak pulpcore endpoint is up after install or upgrade.
+    @pytest.mark.parametrize('endpoint', ['pulpcore'])
+    def test_flatpak_endpoint(self, target_sat, module_capsule_configured, endpoint):
+        """Ensure the Capsules's local flatpak index endpoint is up after install or upgrade.
 
         :id: 5676fbbb-75be-4660-a09e-65cafdfb221a
 
+        :parametrized: yes
+
         :steps:
-            1. Hit Capsule's pulpcore_registry endpoint.
+            1. Hit Capsule's local flatpak index endpoint per parameter.
 
         :expectedresults:
             1. HTTP 200
         """
-        rq = requests.get(
-            PULPCORE_FLATPAK_ENDPOINT.format(module_capsule_configured.hostname), verify=False
-        )
-        assert rq.ok, f'Expected 200 but got {rq.status_code} from pulpcore registry index'
+        ep = FLATPAK_ENDPOINTS[endpoint].format(module_capsule_configured.hostname)
+        rq = requests.get(ep, verify=False)
+        assert rq.ok, f'Expected 200 but got {rq.status_code} from {endpoint} registry index'
 
     @pytest.mark.e2e
     @pytest.mark.tier4
