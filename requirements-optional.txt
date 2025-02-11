@@ -2,7 +2,7 @@
 pytest-cov==6.0.0
 redis==5.2.1
 pre-commit==4.1.0
-ruff==0.9.5
+ruff==0.9.6
 
 # For generating documentation.
 sphinx==8.1.3
