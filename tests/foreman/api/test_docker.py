@@ -15,7 +15,6 @@ import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import settings
-from robottelo.constants import CONTAINER_REGISTRY_HUB, CONTAINER_UPSTREAM_NAME
 from robottelo.utils.datafactory import (
     generate_strings_list,
     invalid_docker_upstream_names,
@@ -34,19 +33,19 @@ def _create_repository(module_target_sat, product, name=None, upstream_name=None
     :param str name: Name for the repository. If ``None`` then a random
         value will be generated.
     :param str upstream_name: A valid name of an existing upstream repository.
-        If ``None`` then defaults to CONTAINER_UPSTREAM_NAME.
+        If ``None`` then defaults to settings.container.upstream_name.
     :return: A ``Repository`` object.
     """
     if name is None:
         name = choice(generate_strings_list(15, ['numeric', 'html']))
     if upstream_name is None:
-        upstream_name = CONTAINER_UPSTREAM_NAME
+        upstream_name = settings.container.upstream_name
     return module_target_sat.api.Repository(
         content_type='docker',
         docker_upstream_name=upstream_name,
         name=name,
         product=product,
-        url=CONTAINER_REGISTRY_HUB,
+        url=settings.container.registry_hub,
     ).create()
 
 
@@ -125,7 +124,7 @@ class TestDockerRepository:
         """
         repo = _create_repository(module_target_sat, module_product, name)
         assert repo.name == name
-        assert repo.docker_upstream_name == CONTAINER_UPSTREAM_NAME
+        assert repo.docker_upstream_name == settings.container.upstream_name
         assert repo.content_type == 'docker'
 
     @pytest.mark.tier1
@@ -230,7 +229,7 @@ class TestDockerRepository:
 
         :CaseImportance: Critical
         """
-        assert repo.docker_upstream_name == CONTAINER_UPSTREAM_NAME
+        assert repo.docker_upstream_name == settings.container.upstream_name
 
         # Update the repository upstream name
         new_upstream_name = 'fedora/ssh'
@@ -249,14 +248,14 @@ class TestDockerRepository:
 
         :BZ: 1489322
         """
-        assert repo.url == CONTAINER_REGISTRY_HUB
+        assert repo.url == settings.container.registry_hub
 
         # Update the repository URL
         new_url = gen_url()
         repo.url = new_url
         repo = repo.update()
         assert repo.url == new_url
-        assert repo.url != CONTAINER_REGISTRY_HUB
+        assert repo.url != settings.container.registry_hub
 
     @pytest.mark.tier1
     def test_positive_delete(self, repo):

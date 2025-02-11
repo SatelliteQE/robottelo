@@ -1537,7 +1537,7 @@ class TestContentView:
                 'content-type': 'docker',
                 'docker-upstream-name': 'quay/busybox',
                 'product-id': module_product.id,
-                'url': constants.CONTAINER_REGISTRY_HUB,
+                'url': settings.container.registry_hub,
             }
         )
         # Sync all three repos
@@ -2546,10 +2546,10 @@ class TestContentView:
         docker_repository = module_target_sat.cli_factory.make_repository(
             {
                 'content-type': 'docker',
-                'docker-upstream-name': constants.CONTAINER_UPSTREAM_NAME,
+                'docker-upstream-name': settings.container.upstream_name,
                 'name': gen_string('alpha', 20),
                 'product-id': docker_product['id'],
-                'url': constants.CONTAINER_REGISTRY_HUB,
+                'url': settings.container.registry_hub,
             }
         )
         module_target_sat.cli.Repository.synchronize({'id': docker_repository['id']})
@@ -2776,10 +2776,10 @@ class TestContentView:
         docker_repository = module_target_sat.cli_factory.make_repository(
             {
                 'content-type': 'docker',
-                'docker-upstream-name': constants.CONTAINER_UPSTREAM_NAME,
+                'docker-upstream-name': settings.container.upstream_name,
                 'name': gen_string('alpha', 20),
                 'product-id': docker_product['id'],
-                'url': constants.CONTAINER_REGISTRY_HUB,
+                'url': settings.container.registry_hub,
             }
         )
         module_target_sat.cli.Repository.synchronize({'id': docker_repository['id']})
@@ -3644,10 +3644,10 @@ class TestContentViewFileRepo:
         repo = module_target_sat.cli_factory.make_repository(
             {
                 'content-type': 'docker',
-                'docker-upstream-name': constants.CONTAINER_UPSTREAM_NAME,
+                'docker-upstream-name': settings.container.upstream_name,
                 'name': gen_string('alpha', 20),
                 'product-id': module_product.id,
-                'url': constants.CONTAINER_REGISTRY_HUB,
+                'url': settings.container.registry_hub,
             }
         )
         module_target_sat.cli.Repository.synchronize({'id': repo['id']})

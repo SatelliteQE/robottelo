@@ -21,7 +21,6 @@ import pytest
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
     DOWNLOAD_POLICIES,
     INVALID_URL,
     PRDS,
@@ -765,7 +764,7 @@ def test_positive_delete_random_docker_repo(session, module_org, module_target_s
     ]
     for product in products:
         repo = module_target_sat.api.Repository(
-            url=CONTAINER_REGISTRY_HUB, product=product, content_type=REPO_TYPE['docker']
+            url=settings.container.registry_hub, product=product, content_type=REPO_TYPE['docker']
         ).create()
         entities_list.append((product.name, repo.name))
     with session:
