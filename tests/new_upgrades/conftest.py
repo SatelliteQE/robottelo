@@ -12,7 +12,6 @@ from robottelo.config import settings
 from robottelo.hosts import Capsule, Satellite
 from robottelo.utils.shared_resource import SharedResource
 
-from remote_pdb import RemotePdb
 
 pre_upgrade_failed_tests = []
 
@@ -207,7 +206,8 @@ def capsule_upgrade_shared_capsule():
 @pytest.fixture(scope='session')
 def capsule_upgrade_integrated_sat_cap(capsule_upgrade_shared_satellite, capsule_upgrade_shared_capsule):
     """Return a Satellite and Capsule that have been set up"""
-    capsule_upgrade_shared_capsule.capsule_setup(sat_host=capsule_upgrade_shared_satellite)
+    with SharedResource("capsule_setup", action=capsule_upgrade_shared_capsule.capsule_setup, sat_host=capsule_upgrade_shared_satellite) as cap_setup:
+        cap_setup.ready()
     cap_smart_proxy = capsule_upgrade_shared_satellite.api.SmartProxy().search(
         query={'search': f'name = {capsule_upgrade_shared_capsule.hostname}'}
     )[0]

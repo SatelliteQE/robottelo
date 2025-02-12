@@ -25,7 +25,8 @@ from robottelo.content_info import get_repo_files_urls_by_url
 from robottelo.utils.shared_resource import SharedResource
 
 from remote_pdb import RemotePdb
-
+from robottelo.logging import logger
+import random
 
 @pytest.fixture(scope='module')
 def capsule_sync_setup(
@@ -47,10 +48,6 @@ def capsule_sync_setup(
     target_sat = capsule_upgrade_integrated_sat_cap.satellite
     capsule = capsule_upgrade_integrated_sat_cap.capsule
     cap_smart_proxy = capsule_upgrade_integrated_sat_cap.cap_smart_proxy
-    # RemotePdb('127.0.0.1', 5555).set_trace()
-    # cap_smart_proxy = target_sat.api.SmartProxy().search(
-    #     query={'search': f'name = {capsule.hostname}'}
-    # )[0]
     with (
         SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade,
         SharedResource(capsule.hostname, upgrade_action, target_sat=capsule) as cap_upgrade,
