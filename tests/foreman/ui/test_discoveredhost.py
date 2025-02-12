@@ -81,7 +81,7 @@ def test_positive_provision_pxe_host(
     """
     sat = module_discovery_sat.sat
     provisioning_host.power_control(ensure=False)
-    mac = provisioning_host._broker_facts['provisioning_nic_mac_addr']
+    mac = provisioning_host.provisioning_nic_mac_addr
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
         timeout=1500,
@@ -164,7 +164,7 @@ def test_positive_custom_provision_pxe_host(
     """
     sat = module_discovery_sat.sat
     provisioning_host.power_control(ensure=False)
-    mac = provisioning_host._broker_facts['provisioning_nic_mac_addr']
+    mac = provisioning_host.provisioning_nic_mac_addr
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
         timeout=1500,

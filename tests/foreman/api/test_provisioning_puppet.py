@@ -133,7 +133,7 @@ def test_host_provisioning_with_external_puppetserver(
     :customerscenario: true
     """
     puppet_env = 'production'
-    host_mac_addr = provisioning_host._broker_facts['provisioning_nic_mac_addr']
+    host_mac_addr = provisioning_host.provisioning_nic_mac_addr
     sat = module_provisioning_sat.sat
     host = sat.api.Host(
         hostgroup=provisioning_hostgroup,
