@@ -798,24 +798,31 @@ def test_registering_with_title_using_global_registration_parameter(
     module_activation_key,
     default_os,
 ):
-    """Verify after updating the curl command that the parameter with the name host is registered successfully.
+    """Verify after updating the curl command that the parameter with the name host is registered successfully. Also, verify that the host is successfully registered with setup_insights=true and does not remain in build mode.
 
     :id: 60061546-c3b2-11ef-b570-6c240829b295
 
-    :expectedresults: The host is successfully registering using the label/name instead of the ID, and this applies to the following parameters:
-        1. Organization
-        2. Location
-        3. Host group
-        4. Operating System
+    :expectedresults:
+        1. The host is successfully registering using the label/name instead of the ID, and this applies to the following parameters:
+            1. Organization
+            2. Location
+            3. Host group
+            4. Operating System
+        2. No options should leave the host in build mode at the end of successful registration, specifically not insights configuration/setup.
 
     :steps:
-        1. Create Curl/Registration command
+        1. Generate a curl command which should have setup_insights=true in it
         2. Before registering the host, update the command
         3. Register host with the updated command
 
-    :Verifies: SAT-28832
+    :Verifies: SAT-28832, SAT-26417
+
+    :customerscenario: true
 
     """
+    rhel_ver = rhel_contenthost.os_version.major
+    repo_url = getattr(settings.repos, f'rhel{rhel_ver}_os', None)
+    rhel_contenthost.create_custom_repos(**repo_url)
     hostgroup = module_target_sat.api.HostGroup(
         organization=[module_sca_manifest_org], location=[module_location]
     ).create()
@@ -827,6 +834,7 @@ def test_registering_with_title_using_global_registration_parameter(
                 'general.operating_system': default_os.title,
                 'general.host_group': hostgroup.name,
                 'general.activation_keys': module_activation_key.name,
+                'advanced.setup_insights': 'Yes (override)',
                 'general.insecure': True,
             }
         )
@@ -838,3 +846,23 @@ def test_registering_with_title_using_global_registration_parameter(
         assert new_data in updated_cmd
         result = rhel_contenthost.execute(updated_cmd)
         assert result.status == 0, f'Failed to register host: {result.stderr}'
+        assert (
+            f'Host {[rhel_contenthost.hostname]} successfully configured, but failed to set built status.'
+            not in result.stdout
+        )
+        status = session.host_new.get_host_statuses(rhel_contenthost.hostname)
+        assert status['Build']['Status'] == 'Installed'
+        assert status['Insights']['Status'] == 'Reporting'
+        facts = session.host_new.get_host_facts(rhel_contenthost.hostname, 'insights_client')
+        for fact in facts:
+            assert (
+                fact['Name'] == 'insights_clienthostname'
+                if fact['Name'] == 'insights_clienthostname'
+                else 'incorrect name'
+            )
+            assert (
+                fact['Value'] == rhel_contenthost.hostname
+                if fact['Value'] == rhel_contenthost.hostname
+                else 'incorrect value'
+            )
+        assert 'Successfully updated the system facts' in result.stdout
