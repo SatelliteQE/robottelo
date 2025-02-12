@@ -602,10 +602,14 @@ class TestAnsibleREX:
             5. Run REX job to install Ansible collection on content host.
 
         :expectedresults: Ansible collection can be installed on content host via REX.
+
+        :verifies: SAT-30807
         """
         client = rhel_contenthost
         # Adding IPv6 proxy for IPv6 communication
         client.enable_ipv6_dnf_and_rhsm_proxy()
+        if is_open('SAT-30807'):
+            rhel_contenthost.enable_ipv6_system_proxy()
         # Enable Ansible repository and Install ansible or ansible-core package
         client.register(module_org, None, module_ak_with_cv.name, target_sat)
         rhel_repo_urls = getattr(settings.repos, f'rhel{client.os_version.major}_os', None)
