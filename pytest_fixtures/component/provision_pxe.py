@@ -297,7 +297,7 @@ def pxeless_discovery_host(provisioning_host, module_discovery_sat, pxe_loader):
     """Fixture for returning a pxe-less discovery host for provisioning"""
     sat = module_discovery_sat.sat
     image_name = f"{gen_string('alpha')}-{module_discovery_sat.iso}"
-    mac = provisioning_host._broker_facts['provisioning_nic_mac_addr']
+    mac = provisioning_host.provisioning_nic_mac_addr
     # Remaster and upload discovery image to automatically input values
     result = sat.execute(
         'cd /var/www/html/pub && '
