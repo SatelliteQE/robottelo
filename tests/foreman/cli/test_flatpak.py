@@ -16,7 +16,7 @@ import pytest
 import requests
 
 from robottelo.config import settings
-from robottelo.constants import FLATPAK_REMOTES, PULPCORE_FLATPAK_ENDPOINT
+from robottelo.constants import FLATPAK_INDEX_SUFFIX, FLATPAK_REMOTES, PULPCORE_FLATPAK_ENDPOINT
 from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import gen_string
 
@@ -166,44 +166,34 @@ def test_CRUD_and_sync_flatpak_remote_with_permissions(
     assert 'Error: flatpak_remote not found' in str(e)
 
 
-@pytest.mark.parametrize('remote', FLATPAK_REMOTES.values(), ids=FLATPAK_REMOTES)
-def test_scan_flatpak_remote(target_sat, function_org, function_product, remote):
+@pytest.mark.parametrize('function_flatpak_remote', ['RedHat', 'Fedora'], indirect=True)
+def test_scan_flatpak_remote(target_sat, function_org, function_flatpak_remote):
     """Verify flatpak remote scan detects all repos available in the remote index.
 
     :id: 3dff23f3-f415-4fb2-a41c-7cdcae617bb0
 
     :parametrized: yes
 
-    :steps:
+    :setup:
         1. Create a flatpak remote and scan it.
-        2. Read the remote index via its API.
-        3. Compare the scanned repos match the repos in the remote index.
+
+    :steps:
+        1. Read the remote index via its API.
+        2. Compare the scanned repos match the repos in the remote index.
 
     :expectedresults:
         1. Repos scanned by flatpak remote match the repos available in the remote index.
 
     """
-    # 1. Create a flatpak remote and scan it.
-    create_opts = {
-        'organization-id': function_org.id,
-        'url': remote['url'],
-        'name': gen_string('alpha'),
-    }
-    if remote['authenticated']:
-        create_opts['username'] = settings.container_repo.registries.redhat.username
-        create_opts['token'] = settings.container_repo.registries.redhat.password
+    scanned_repo_names = [item['name'] for item in function_flatpak_remote.repos]
 
-    fr = target_sat.cli.FlatpakRemote().create(create_opts)
-    target_sat.cli.FlatpakRemote().scan({'id': fr['id']})
-
-    scanned_repos = target_sat.cli.FlatpakRemote().repository_list({'flatpak-remote-id': fr['id']})
-    scanned_repo_names = [item['name'] for item in scanned_repos]
-
-    # 2. Read the remote index via its API.
-    rq = requests.get(remote['index_url']).json()
+    # 1. Read the remote index via its API.
+    rq = requests.get(
+        f'{function_flatpak_remote.remote["flatpak-index-url"]}/{FLATPAK_INDEX_SUFFIX}'
+    ).json()
     index_repo_names = [item['Name'] for item in rq['Results']]
 
-    # 3. Compare the scanned repos match the repos in the remote index.
+    # 2. Compare the scanned repos match the repos in the remote index.
     assert sorted(scanned_repo_names) == sorted(index_repo_names)
 
 
@@ -225,21 +215,31 @@ def test_flatpak_pulpcore_endpoint(target_sat):
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
+@pytest.mark.parametrize('function_flatpak_remote', ['RedHat'], indirect=True)
 def test_sync_consume_flatpak_repo_via_library(
-    request, module_target_sat, module_flatpak_contenthost, function_org, function_product
+    request,
+    module_target_sat,
+    module_flatpak_contenthost,
+    function_org,
+    function_product,
+    function_flatpak_remote,
 ):
     """Verify flatpak repository workflow end to end.
 
     :id: 06043b3e-be9b-4444-96b1-d3d15b7e3d8c
 
-    :steps:
+    :parametrized: yes
+
+    :setup:
         1. Create a flatpak remote and scan it.
-        2. Mirror a flatpak repository and sync it.
-        3. Create an AK assigned to the Library.
-        4. Register a content host using the AK.
-        5. Configure the contenthost via REX to use Satellite's flatpak index.
-        6. Install flatpak app from the repo via REX on the contenthost.
-        7. Ensure the app has been installed successfully.
+
+    :steps:
+        1. Mirror flatpak repositories and sync them.
+        2. Create an AK assigned to the Library.
+        3. Register a content host using the AK.
+        4. Configure the contenthost via REX to use Satellite's flatpak index.
+        5. Install flatpak app from the repo via REX on the contenthost.
+        6. Ensure the app has been installed successfully.
 
     :expectedresults:
         1. Entire workflow works and allows user to install a flatpak app at the registered
@@ -247,27 +247,14 @@ def test_sync_consume_flatpak_repo_via_library(
 
     """
     sat, host = module_target_sat, module_flatpak_contenthost
-    # 1. Create a flatpak remote and scan it.
-    fr = sat.cli.FlatpakRemote().create(
-        {
-            'organization-id': function_org.id,
-            'url': FLATPAK_REMOTES['RedHat']['url'],
-            'name': gen_string('alpha'),
-            'username': settings.container_repo.registries.redhat.username,
-            'token': settings.container_repo.registries.redhat.password,
-        }
-    )
-    sat.cli.FlatpakRemote().scan({'id': fr['id']})
-    repos = sat.cli.FlatpakRemote().repository_list({'flatpak-remote-id': fr['id']})
-    assert len(repos), 'No repositories scanned'
 
-    # 2. Mirror a flatpak repository and sync it.
+    # 1. Mirror flatpak repositories and sync them.
     repo_names = ['rhel9/firefox-flatpak', 'rhel9/flatpak-runtime']  # runtime is dependency
-    remote_repos = [r for r in repos if r['name'] in repo_names]
+    remote_repos = [r for r in function_flatpak_remote.repos if r['name'] in repo_names]
     for repo in remote_repos:
         sat.cli.FlatpakRemote().repository_mirror(
             {
-                'flatpak-remote-id': fr['id'],
+                'flatpak-remote-id': function_flatpak_remote.remote['id'],
                 'id': repo['id'],  # or by name
                 'product-id': function_product.id,
             }
@@ -277,10 +264,20 @@ def test_sync_consume_flatpak_repo_via_library(
         )[0]
         sat.cli.Repository.synchronize({'id': local_repo['id']})
         assert 'latest' in sat.api.Repository(id=local_repo['id']).read().include_tags
+        assert all(
+            'flatpak' in m['content_type']
+            for m in sat.api.Repository(id=local_repo['id']).docker_manifests()['results']
+        )
+        assert all(
+            'index' in ml['content_type']
+            for ml in sat.api.Repository(id=local_repo['id']).docker_manifest_lists()['results']
+        )
     local_repos = sat.cli.Repository.list({'product-id': function_product.id})
-    assert set([r['name'] for r in local_repos]) == set(repo_names)
+    assert set([r['name'] for r in local_repos]) == set(repo_names), (
+        'Required repo(s) were not scanned or mirrored'
+    )
 
-    # 3. Create an AK assigned to the Library.
+    # 2. Create an AK assigned to the Library.
     ak_lib = sat.cli.ActivationKey.create(
         {
             'name': gen_string('alpha'),
@@ -290,14 +287,14 @@ def test_sync_consume_flatpak_repo_via_library(
         }
     )
 
-    # 4. Register a content host using the AK.
+    # 3. Register a content host using the AK.
     res = host.register(function_org, None, ak_lib['name'], sat, force=True)
     assert res.status == 0, (
         f'Failed to register host: {host.hostname}\nStdOut: {res.stdout}\nStdErr: {res.stderr}'
     )
     assert host.subscribed
 
-    # 5. Configure the contenthost via REX to use Satellite's flatpak index.
+    # 4. Configure the contenthost via REX to use Satellite's flatpak index.
     remote_name = f'SAT-remote-{gen_string("alpha")}'
     job = module_target_sat.cli_factory.job_invocation(
         {
@@ -316,7 +313,7 @@ def test_sync_consume_flatpak_repo_via_library(
     assert 'succeeded' in res['status']
     request.addfinalizer(lambda: host.execute(f'flatpak remote-delete {remote_name}'))
 
-    # 6. Install flatpak app from the repo via REX on the contenthost.
+    # 5. Install flatpak app from the repo via REX on the contenthost.
     res = host.execute('flatpak remotes')
     assert remote_name in res.stdout
 
@@ -338,6 +335,6 @@ def test_sync_consume_flatpak_repo_via_library(
         lambda: host.execute(f'flatpak uninstall {remote_name} {app_name} com.redhat.Platform -y')
     )
 
-    # 7. Ensure the app has been installed successfully.
+    # 6. Ensure the app has been installed successfully.
     res = host.execute('flatpak list')
     assert app_name in res.stdout
