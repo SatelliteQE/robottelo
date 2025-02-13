@@ -155,12 +155,10 @@ def test_positive_provision_vmware_pxe_discovery(
 
     :expectedresults: Host should be provisioned successfully
     """
-    mac = provisioning_vmware_host._broker_facts['provisioning_nic_mac_addr']
+    mac = provisioning_vmware_host.provisioning_nic_mac_addr
     sat = module_discovery_sat.sat
     # start the provisioning host
-    vmware_host = VMWareVirtualMachine(
-        vmwareclient, name=provisioning_vmware_host._broker_facts['name']
-    )
+    vmware_host = VMWareVirtualMachine(vmwareclient, name=provisioning_vmware_host.name)
     vmware_host.start()
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
