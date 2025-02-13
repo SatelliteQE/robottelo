@@ -124,7 +124,10 @@ def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_classes, 
             if data['sc_type'] == 'yaml' or data['sc_type'] == 'hash':
                 data['value'] = f'{data["value"]}\n'
             assert sc_parameter_values['parameter']['parameter_type'] == data['sc_type']
-            assert sc_parameter_values['parameter']['default_value']['value'] == data['value']
+            assert (
+                (sc_parameter_values['parameter']['default_value']['value']).replace(' ', '')
+                == data['value']
+            )
         session.sc_parameter.update(
             sc_param.parameter,
             {
@@ -302,8 +305,8 @@ def test_positive_create_matcher_avoid_duplicate(
     :BZ: 1734022
     """
     sc_param = sc_params_list.pop()
-    override_value = '[80,90]'
-    override_value2 = '[90,100]'
+    override_value = '[80, 90]'
+    override_value2 = '[90, 100]'
     with session_puppet_enabled_sat.ui_session() as session:
         session.organization.select(org_name=module_puppet_org.name)
         session.location.select(loc_name=module_puppet_loc.name)
