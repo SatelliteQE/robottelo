@@ -787,10 +787,12 @@ def test_positive_repair_artifacts(
 
 @pytest.mark.e2e
 @pytest.mark.parametrize('function_flatpak_remote', ['RedHat'], indirect=True)
+@pytest.mark.parametrize('setting_update', ['foreman_proxy_content_auto_sync=True'], indirect=True)
 def test_sync_consume_flatpak_repo_via_library(
     request,
     module_target_sat,
     module_capsule_configured,
+    setting_update,
     module_flatpak_contenthost,
     function_org,
     function_product,
@@ -800,6 +802,8 @@ def test_sync_consume_flatpak_repo_via_library(
     """Verify flatpak repository workflow via capsule end to end.
 
     :id: 8871b695-18fd-45a8-bb40-664c384996a0
+
+    :parametrized: yes
 
     :setup:
         1. Registered external capsule.
