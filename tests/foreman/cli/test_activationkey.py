@@ -364,7 +364,9 @@ def test_positive_delete_by_org_label(module_org, module_target_sat):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_delete_with_cv(module_org, module_target_sat):
+def test_positive_delete_with_cv(
+    module_org, module_target_sat, get_default_env, module_promoted_cv
+):
     """Create activation key with content view assigned to it and
     delete it using activation key id
 
@@ -372,9 +374,13 @@ def test_positive_delete_with_cv(module_org, module_target_sat):
 
     :expectedresults: Activation key is deleted
     """
-    new_cv = module_target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
+    lce = get_default_env
     new_ak = module_target_sat.cli_factory.make_activation_key(
-        {'organization-id': module_org.id, 'content-view': new_cv['name']}
+        {
+            'organization-id': module_org.id,
+            'lifecycle-environment-id': lce['id'],
+            'content-view': module_promoted_cv.name,
+        }
     )
     module_target_sat.cli.ActivationKey.delete({'id': new_ak['id']})
     with pytest.raises(CLIReturnCodeError):
@@ -916,7 +922,7 @@ def test_positive_list_by_name(module_org, name, module_target_sat):
 
 
 @pytest.mark.tier1
-def test_positive_list_by_cv_id(module_org, module_target_sat):
+def test_positive_list_by_cv_id(module_org, module_target_sat, get_default_env, module_promoted_cv):
     """List Activation key for provided Content View ID
 
     :id: 4d9aad38-cd6e-41cb-99a0-9a593cf22655
@@ -925,15 +931,19 @@ def test_positive_list_by_cv_id(module_org, module_target_sat):
 
     :CaseImportance: High
     """
-    cv = module_target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
+    lce = get_default_env
     module_target_sat.cli_factory.make_activation_key(
-        {'organization-id': module_org.id, 'content-view-id': cv['id']}
+        {
+            'organization-id': module_org.id,
+            'lifecycle-environment-id': lce['id'],
+            'content-view-id': module_promoted_cv.id,
+        }
     )
     result = module_target_sat.cli.ActivationKey.list(
-        {'content-view-id': cv['id'], 'organization-id': module_org.id}
+        {'content-view-id': module_promoted_cv.id, 'organization-id': module_org.id}
     )
     assert len(result) == 1
-    assert result[0]['content-view'] == cv['name']
+    assert result[0]['content-view-environments'] == f'{lce["name"]}/{module_promoted_cv.name}'
 
 
 @pytest.mark.tier1
@@ -1137,8 +1147,9 @@ def test_update_ak_with_syspurpose_values(module_sca_manifest_org, module_target
     org = module_sca_manifest_org
     new_ak = module_target_sat.cli_factory.make_activation_key({'organization-id': org.id})
     # Assert system purpose values are null after creating the AK and adding the manifest.
-    assert new_ak['system-purpose']['purpose-role'] == ''
-    assert new_ak['system-purpose']['purpose-usage'] == ''
+    new_ak_info = module_target_sat.api.ActivationKey(id=new_ak.id).read()
+    assert new_ak_info.purpose_role is None
+    assert new_ak_info.purpose_usage is None
 
     # Check that system purpose values can be added to an AK.
     module_target_sat.cli.ActivationKey.update(
