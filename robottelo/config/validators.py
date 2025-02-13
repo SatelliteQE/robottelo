@@ -342,6 +342,7 @@ VALIDATORS = dict(
             default=[],
             cast=lambda x: list(map(str, x)),
         ),
+        Validator('robottelo.shared_resource_wait', default=60, cast=float),
     ],
     shared_function=[
         Validator('shared_function.storage', is_in=('file', 'redis'), default='file'),
