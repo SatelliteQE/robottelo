@@ -22,7 +22,6 @@ from robottelo.constants import (
     FAKE_0_CUSTOM_PACKAGE_NAME,
     FAKE_4_CUSTOM_PACKAGE_NAME,
     LABELLED_REPOS,
-    PULP_CONTAINER_REGISTRY_HUB,
 )
 from robottelo.hosts import ContentHost
 from robottelo.utils.shared_resource import SharedResource
@@ -163,7 +162,7 @@ def container_repo_sync_setup(content_upgrade_shared_satellite, upgrade_action):
                 content_type='docker',
                 docker_upstream_name=item['upstream_name'],
                 product=product,
-                url=PULP_CONTAINER_REGISTRY_HUB,
+                url=settings.container.pulp.registry_hub,
             ).create()
             repo.sync()
             repo = repo.read()

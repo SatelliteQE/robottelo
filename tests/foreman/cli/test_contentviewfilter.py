@@ -18,7 +18,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.cli.defaults import Defaults
-from robottelo.constants import CONTAINER_REGISTRY_HUB
+from robottelo.config import settings
 from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import (
     invalid_values_list,
@@ -435,7 +435,7 @@ class TestContentViewFilter:
                 'docker-upstream-name': 'busybox',
                 'organization-id': module_org.id,
                 'product-id': module_product.id,
-                'url': CONTAINER_REGISTRY_HUB,
+                'url': settings.container.registry_hub,
             },
         )
 
@@ -699,7 +699,7 @@ class TestContentViewFilter:
                 'docker-upstream-name': 'busybox',
                 'organization-id': module_org.id,
                 'product-id': module_product.id,
-                'url': CONTAINER_REGISTRY_HUB,
+                'url': settings.container.registry_hub,
             },
         )
         module_target_sat.cli.ContentView.add_repository(
