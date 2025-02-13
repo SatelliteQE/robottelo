@@ -334,13 +334,14 @@ VALIDATORS = dict(
     ],
     robottelo=[
         Validator('robottelo.settings.ignore_validation_errors', is_type_of=bool, default=False),
+        Validator('robottelo.rhel_source', default='ga', is_in=['ga', 'internal']),
         Validator(
             'robottelo.sat_non_ga_versions',
             is_type_of=list,
             default=[],
             cast=lambda x: list(map(str, x)),
         ),
-        Validator('robottelo.rhel_source', default='ga', is_in=['ga', 'internal']),
+        Validator('robottelo.shared_resource_wait', default=60, cast=float),
     ],
     shared_function=[
         Validator('shared_function.storage', is_in=('file', 'redis'), default='file'),
