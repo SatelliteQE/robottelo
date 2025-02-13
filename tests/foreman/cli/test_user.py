@@ -587,3 +587,73 @@ class TestPersonalAccessToken:
                 action='create',
                 options={'name': token_name, 'user-id': user['id'], 'expires-at': datetime_expire},
             )
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_negative_users_permission_for_invalidating_tokens(
+    module_target_sat, rhel_contenthost, module_activation_key, module_org
+):
+    """Verify invalidating single and multiple users tokens require "edit_users" permission for non_admin user.
+
+    :id: 6592e106-29c8-4360-8ebb-8db0c45ca616
+
+    :steps:
+        1. Create an admin user and a non-admin user with "register_hosts" permission.
+        2. Generate a token with non_admin user and register a host with it, it should be successful.
+        3. Try to invalidate the token with non_admin user, it should fail.
+        4. Repeat Step 3 with invalidate_multiple command and it should fail too.
+
+    :expectedresults: Tokens invalidation fail for non_admin user without "edit_users" permission.
+
+    :Verifies: SAT-30385
+    """
+    admin_login = gen_string('alpha')
+    non_admin_login = gen_string('alpha')
+    password = gen_string('alpha')
+    admin_user = module_target_sat.cli_factory.user(
+        {
+            'login': admin_login,
+            'password': password,
+            'admin': '1',
+            'organization-ids': module_org.id,
+        }
+    )
+    # Non-Admin user with "Register hosts" role
+    non_admin_user = module_target_sat.cli_factory.user(
+        {'login': non_admin_login, 'password': password, 'organization-ids': module_org.id}
+    )
+
+    register_role = module_target_sat.satellite.cli.Role.info({'name': 'Register hosts'})
+    module_target_sat.cli.User.add_role(
+        {'id': non_admin_user['id'], 'role-id': register_role['id']}
+    )
+
+    # Generate token and verify token invalidation
+    cmd = module_target_sat.cli.HostRegistration.with_user(
+        non_admin_login, password
+    ).generate_command(
+        options={
+            'activation-keys': module_activation_key.name,
+            'insecure': 'true',
+            'organization-id': module_org.id,
+        }
+    )
+    result = rhel_contenthost.execute(cmd.strip('\n'))
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+    # Try invalidating JWTs for a single user
+    with pytest.raises(CLIReturnCodeError) as context:
+        module_target_sat.cli.User.with_user(non_admin_login, password).invalidate(
+            options={
+                'user-id': admin_user['id'],
+            }
+        )
+    assert "Missing one of the required permissions: edit_users" in str(context.value)
+
+    # Try invalidating JWTs  for multiple users
+    with pytest.raises(CLIReturnCodeError) as context:
+        module_target_sat.cli.User.with_user(non_admin_login, password).invalidate_multiple(
+            options={'search': f"id ^ ({non_admin_user['id']})"}
+        )
+    assert "Missing one of the required permissions: edit_users" in str(context.value)
