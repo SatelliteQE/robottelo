@@ -489,8 +489,8 @@ def test_rhel_pxe_provisioning_fips_enabled(
     """
     sat = module_provisioning_sat.sat
     host_mac_addr = provisioning_host.provisioning_nic_mac_addr
-    # Verify password hashing algorithm SHA512 is set in OS used for provisioning
-    assert module_provisioning_rhel_content.os.password_hash == 'SHA512'
+    # Verify password hashing algorithm SHA256 is set in OS used for provisioning
+    assert module_provisioning_rhel_content.os.password_hash == 'SHA256'
 
     host = sat.api.Host(
         hostgroup=provisioning_hostgroup,

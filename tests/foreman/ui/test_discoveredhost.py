@@ -320,7 +320,7 @@ def test_positive_auto_provision_host_with_rule(
     """
     sat = module_discovery_sat.sat
     pxeless_discovery_host.power_control(ensure=False)
-    mac = pxeless_discovery_host._broker_facts['provisioning_nic_mac_addr']
+    mac = pxeless_discovery_host.provisioning_nic_mac_addr
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
         timeout=1500,
