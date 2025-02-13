@@ -793,7 +793,10 @@ class TestDockerActivationKey:
                 'organization-id': module_org.id,
             }
         )
-        assert activation_key['content-view'] == content_view_promote['content-view-name']
+        assert (
+            activation_key['content-view-environments'][0]['label']
+            == f'{module_lce.name}/{content_view_promote["content-view-name"]}'
+        )
 
     @pytest.mark.tier2
     def test_positive_remove_docker_repo_cv(
@@ -816,7 +819,10 @@ class TestDockerActivationKey:
                 'organization-id': module_org.id,
             }
         )
-        assert activation_key['content-view'] == content_view_promote['content-view-name']
+        assert (
+            activation_key['content-view-environments'][0]['label']
+            == f'{module_lce.name}/{content_view_promote["content-view-name"]}'
+        )
 
         # Create another content view replace with
         another_cv = module_target_sat.cli_factory.make_content_view(
@@ -837,7 +843,10 @@ class TestDockerActivationKey:
             }
         )
         activation_key = module_target_sat.cli.ActivationKey.info({'id': activation_key['id']})
-        assert activation_key['content-view'] != content_view_promote['content-view-name']
+        assert (
+            activation_key['content-view-environments'][0]['label']
+            != f'{module_lce.name}/{content_view_promote["content-view-name"]}'
+        )
 
     @pytest.mark.tier2
     def test_positive_add_docker_repo_ccv(
