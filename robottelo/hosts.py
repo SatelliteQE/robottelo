@@ -888,6 +888,13 @@ class ContentHost(Host, ContentHostMixins):
             url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
             self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
 
+    def enable_ipv6_system_proxy(self):
+        """Execute procedures for enabling IPv6 HTTP Proxy on system"""
+        if self.ipv6:
+            self.execute(
+                f'echo "export HTTPS_PROXY={settings.http_proxy.http_proxy_ipv6_url}" >> ~/.bashrc'
+            )
+
     def disable_rhsm_proxy(self):
         """Disables HTTP proxy for subscription manager"""
         self.execute('subscription-manager remove server.proxy_hostname server.proxy_port')
