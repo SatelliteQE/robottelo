@@ -13,9 +13,11 @@
 """
 
 # For ease of use hc refers to host-collection throughout this document
+from datetime import datetime, timezone
 from time import sleep, time
 
 import pytest
+import requests
 
 from robottelo.config import settings
 from robottelo.constants import (
@@ -1618,3 +1620,140 @@ def test_positive_incremental_update_apply_to_envs_cvs(
     assert response == [], (
         f'No incremental updates should currently be available to host: {rhel8_contenthost.hostname}.'
     )
+
+
+@pytest.mark.tier3
+def test_positive_filter_errata_type_other(
+    module_sca_manifest_org,
+    target_sat,
+    module_cv,
+):
+    """
+    Sync the EPEL repository, containing many Erratum that are Not of the
+        usual types: 'Bugfix', 'Enhancement', 'Security'.
+        Filter all erratum including 'Other' inclusively, verify content counts remain the same.
+
+    :id: 062bb1a5-814c-4573-bedc-aaa4e2ef557a
+
+    :setup:
+        1. Fetch the latest supported RHEL major version in supportability.yaml (ie: 10)
+        2. GET request to EPEL's PGP-key generator (dl.fedoraproject.org/pub/epel/)
+        3. Create GPG-key on satellite from URL's response.
+        4. Create custom product using the GPG-key.
+
+    :steps:
+        1. Create and sync the EPEL repository as a custom repo (~5 minutes)
+        2. Verify presence of new Erratum types that would fall under 'other'.
+        3. Create a content view, add the EPEL repo, publish the first version.
+        4. Create a content view filter for Erratum (by Date), inclusive.
+        5. Update Erratum filter rules: set end_date to today (UTC),
+            set flag --allow-other-types to True <<<
+            no start_date specified.
+        6. Create another content view filter for RPMs, inclusive.
+        7. Publish a second version (~10 minutes).
+
+    :expectedresults:
+        1. The second published version with filters, has the same
+            content counts (packages and erratum) as the first unfiltered version.
+        2. The second version's filters applied, has published Erratum of types that
+            fall under 'Other' (ie 'newpackage' , 'unspecified').
+        3. There are significantly more Total Errata published, than the sum of
+            the 3 normal types of Errata (bugfix,enhancement,security).
+
+    :BZ: 2160804
+
+    :verifies: SAT-20365
+
+    :customerscenario: true
+
+    """
+    # newest version rhel
+    rhel_N = next(
+        r
+        for r in reversed(settings.supportability.content_hosts.rhel.versions)
+        if 'fips' not in str(r)
+    )
+    # fetch a newly generated PGP key from address's response
+    gpg_url = f'https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{rhel_N}'
+    _response = requests.get(gpg_url, timeout=120, verify=True)
+    _response.raise_for_status()
+    # handle a valid response that might not be a PGP key
+    if "-----BEGIN PGP PUBLIC KEY BLOCK-----" not in _response.text:
+        raise ValueError('Fetched content was not a valid credential')
+
+    # create GPG key on satellite and associated product
+    gpg_key = target_sat.api.GPGKey(
+        organization=module_sca_manifest_org.id,
+        content=_response.text,
+    ).create()
+    epel_product = target_sat.api.Product(
+        organization=module_sca_manifest_org,
+        gpg_key=gpg_key,
+    ).create()
+
+    # create and sync custom EPEL repo
+    epel_url = f'https://dl.fedoraproject.org/pub/epel/{rhel_N}/Everything/x86_64/'
+    epel_repo = target_sat.api.Repository(
+        product=epel_product,
+        url=epel_url,
+    ).create()
+    epel_repo.sync(timeout=1800)
+    # add repo to CV and publish
+    module_cv.repository = [epel_repo.read()]
+    module_cv.update(['repository'])
+    module_cv.read().publish(timeout=240)  # initial unfiltered Version publishes quick
+    module_cv = module_cv.read()
+
+    # create errata filter
+    errata_filter = target_sat.api.ErratumContentViewFilter(
+        content_view=module_cv,
+        name='errata-filter',
+        inclusion=True,
+    ).create()
+
+    today_UTC = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    # rule to filter erratum by date, only specify end_date
+    errata_rule = target_sat.api.ContentViewFilterRule(
+        content_view_filter=errata_filter,
+        end_date=today_UTC,
+    ).create()
+
+    # hammer update the Erratum filter rule, flag 'allow-other-types' set to True <<<
+    target_sat.cli.ContentViewFilterRule.update(
+        {
+            'id': errata_rule.id,
+            'allow-other-types': 'true',
+            'content-view-filter-id': errata_filter.id,
+        }
+    )
+    module_cv = module_cv.read()
+
+    # create rpm filter
+    target_sat.api.RPMContentViewFilter(
+        content_view=module_cv,
+        name='rpm-filter',
+        inclusion=True,
+    ).create()
+
+    # Publish 2nd Version with inclusive filters applied
+    module_cv = module_cv.read()
+    module_cv.publish(timeout=1200)  # can take ~10 minutes, timeout is double that
+    module_cv = module_cv.read()
+
+    version_1 = module_cv.version[-1].read()  # unfiltered
+    version_2 = module_cv.version[0].read()  # filtered
+    # errata and package counts match between the filtered and unfiltered versions
+    assert version_1.errata_counts == version_2.errata_counts
+    assert version_1.package_count == version_2.package_count
+
+    # most of the EPEL repo's erratum are of type Other (~90%),
+    # so we expect the total number of errata is much greater
+    #   than the sum of the 3 regular types (bugfix,enhancement,security)
+    #   ie. The repo has ~200 errata of the 3 types, but over 2500 total errata.
+    regular_types_sum = sum(
+        [version_2.errata_counts[key] for key in ['security', 'bugfix', 'enhancement']]
+    )
+    total_errata = version_2.errata_counts['total']
+    assert total_errata > 2000
+    # Based on counts, the 3 regular types make up less than 1/5 of the total.
+    assert regular_types_sum < total_errata / 5
