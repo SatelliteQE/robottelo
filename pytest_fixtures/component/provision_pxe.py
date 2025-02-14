@@ -161,7 +161,7 @@ def module_provisioning_sat(
     )
 
     broker_data_out = Box(**broker_data_out['data_out'])
-    provisioning_interface = ipaddress.ip_interface(broker_data_out.provisioning_addr_ipv4)
+    provisioning_interface = ipaddress.ip_interface(broker_data_out.provisioning_addr_ip)
     provisioning_network = provisioning_interface.network
     # TODO: investigate DNS setup issue on Satellite,
     # we might need to set up Sat's DNS server as the primary one on the Sat host
@@ -186,7 +186,7 @@ def module_provisioning_sat(
         organization=[module_sca_manifest_org],
         network=str(provisioning_network.network_address),
         mask=str(provisioning_network.netmask),
-        gateway=broker_data_out.provisioning_gw_ipv4,
+        gateway=broker_data_out.provisioning_gw_ip,
         from_=broker_data_out.provisioning_host_range_start,
         to=broker_data_out.provisioning_host_range_end,
         dns_primary=provisioning_upstream_dns_primary,
