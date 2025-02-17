@@ -1453,7 +1453,7 @@ class TestCapsuleContentManagement:
         ],
         indirect=True,
     )
-    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    @pytest.mark.rhel_ver_match('N-0')
     def test_complete_sync_fixes_metadata(
         self,
         module_target_sat,

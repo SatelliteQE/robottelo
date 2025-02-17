@@ -1068,8 +1068,9 @@ def setup_rhel_content(
 
 
 @pytest.mark.tier2
+@pytest.mark.rhel_ver_match('8')
 def test_positive_get_count_for_host(
-    setup_rhel_content, activation_key, rhel9_contenthost, module_target_sat
+    setup_rhel_content, activation_key, rhel_contenthost, module_target_sat
 ):
     """Available errata count when retrieving Host
 
@@ -1094,7 +1095,7 @@ def test_positive_get_count_for_host(
 
     :CaseImportance: Medium
     """
-    chost = rhel9_contenthost
+    chost = rhel_contenthost
     org = setup_rhel_content['organization']
     custom_repo = setup_rhel_content['rh_repo']
     chost.create_custom_repos(**{f'{custom_repo.name}': custom_repo.url})
@@ -1127,18 +1128,18 @@ def test_positive_get_count_for_host(
     assert result.status == 0, f'Failed to install package {FAKE_1_CUSTOM_PACKAGE}'
     _validate_errata_counts(host, errata_type='security', expected_value=1)
     # rh_repo outdated Puppet-agent
-    # TODO: Use REAL_RHEL 9 or 10 Packages
-    '''result = chost.execute(f'yum install -y {REAL_RHEL8_1_PACKAGE_FILENAME}')
+    result = chost.execute(f'yum install -y {REAL_RHEL8_1_PACKAGE_FILENAME}')
     assert result.status == 0, f'Failed to install package {REAL_RHEL8_1_PACKAGE_FILENAME}'
     _validate_errata_counts(host, errata_type='security', expected_value=2)
     # All avaliable errata present
-    assert chost.applicable_errata_count == 4'''
+    assert chost.applicable_errata_count == 4
 
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
+@pytest.mark.rhel_ver_match('8')
 def test_positive_get_applicable_for_host(
-    setup_rhel_content, activation_key, rhel10_contenthost, target_sat
+    setup_rhel_content, activation_key, rhel_contenthost, target_sat
 ):
     """Get applicable errata ids for a host
 
@@ -1164,7 +1165,7 @@ def test_positive_get_applicable_for_host(
     """
     org = setup_rhel_content['organization']
     custom_repo = setup_rhel_content['rh_repo']
-    chost = rhel10_contenthost
+    chost = rhel_contenthost
 
     chost.create_custom_repos(**{f'{custom_repo.name}': custom_repo.url})
     result = chost.register(
@@ -1195,10 +1196,10 @@ def test_positive_get_applicable_for_host(
     assert len(erratum) == 1
     assert CUSTOM_REPO_ERRATA_ID in [errata['errata_id'] for errata in erratum]
     # Install outdated applicable real package (from RH repo)
-    '''chost.run(f'yum install -y {REAL_RHEL8_1_PACKAGE_FILENAME}')
+    chost.run(f'yum install -y {REAL_RHEL8_1_PACKAGE_FILENAME}')
     erratum = _fetch_available_errata(host, 2)
     assert len(erratum) == 2
-    assert REAL_RHEL8_1_ERRATA_ID in [errata['errata_id'] for errata in erratum]'''
+    assert REAL_RHEL8_1_ERRATA_ID in [errata['errata_id'] for errata in erratum]
 
 
 @pytest.mark.tier3
@@ -1256,13 +1257,14 @@ def test_positive_get_diff_for_cv_envs(target_sat):
 
 
 @pytest.mark.tier3
+@pytest.mark.rhel_ver_match('8')
 def test_positive_incremental_update_required(
     module_sca_manifest_org,
     module_lce,
     activation_key,
     module_cv,
     rh_repo_module_manifest,
-    rhel9_contenthost,
+    rhel_contenthost,
     target_sat,
 ):
     """Given a set of hosts and errata, check for content view version
@@ -1293,7 +1295,7 @@ def test_positive_incremental_update_required(
 
     :BZ: 2013093
     """
-    chost = rhel9_contenthost
+    chost = rhel_contenthost
     org = module_sca_manifest_org
     rh_repo = target_sat.api.Repository(
         id=rh_repo_module_manifest.id,
@@ -1374,10 +1376,11 @@ def rh_repo_module_manifest(module_sca_manifest_org, module_target_sat):
 
 
 @pytest.mark.tier3
+@pytest.mark.rhel_ver_match('N-1')
 def test_positive_incremental_update_apply_to_envs_cvs(
     target_sat,
     module_sca_manifest_org,
-    rhel10_contenthost,
+    rhel_contenthost,
     module_product,
 ):
     """With multiple environments and content views, register a host to one,
@@ -1408,7 +1411,7 @@ def test_positive_incremental_update_apply_to_envs_cvs(
             incremental version of the content-view.
 
     """
-    chost = rhel10_contenthost
+    chost = rhel_contenthost
     # any existing custom CVs in org, except Default CV
     prior_cv_count = (
         len(target_sat.api.ContentView(organization=module_sca_manifest_org).search()) - 1
