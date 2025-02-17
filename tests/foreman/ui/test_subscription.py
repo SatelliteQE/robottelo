@@ -20,6 +20,7 @@ from zoneinfo import ZoneInfo
 from fauxfactory import gen_string
 from manifester import Manifester
 import pytest
+from tzlocal import get_localzone_name
 
 from robottelo.config import settings
 from robottelo.constants import (
@@ -556,7 +557,7 @@ def test_positive_populate_future_date_subcription(
         assert session.subscription.has_manifest, 'Manifest not uploaded'
 
         # Get current date time and convert into date
-        current_datetime = datetime.now(ZoneInfo('Asia/Kolkata'))
+        current_datetime = datetime.now(ZoneInfo(get_localzone_name()))
         current_date = current_datetime.date()
 
         # Get subscription Start Date
