@@ -15,7 +15,7 @@ repos:
     rev: v0.9.6
     hooks:
       - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
+        args: [--fix, --exit-non-zero-on-fix, --target-version=py310]
       - id: ruff-format
   - repo: local
     hooks:
