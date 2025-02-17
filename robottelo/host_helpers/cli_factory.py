@@ -31,6 +31,7 @@ from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.host_helpers.repository_mixins import initiate_repo_helpers
+from robottelo.logging import logger
 from robottelo.utils.manifest import clone
 
 
@@ -49,6 +50,8 @@ def create_object(cli_object, options, values=None, credentials=None, timeout=No
     :return: A dictionary representing the newly created resource.
 
     """
+    logger.debug(f'!!!HERE OPTIONS!!!!\n {options}')
+    logger.debug(f'!!!HERE VALUES!!!!\n {values}')
     options.update(values or {})
     if credentials:
         cli_object = cli_object.with_user(*credentials)
@@ -62,6 +65,13 @@ def create_object(cli_object, options, values=None, credentials=None, timeout=No
     # Sometimes we get a list with a dictionary and not a dictionary.
     if isinstance(result, list) and len(result) > 0:
         result = result[0]
+    logger.debug(
+        f'!!!HERE PRE-BOX!!!!\n Created {cli_object.__name__} with data:\n{pprint.pformat(result, indent=2)}'
+    )
+    logger.debug(
+        f'!!!HERE POST-BOX!!!!\n Created {cli_object.__name__} with data:\n{pprint.pformat(Box(result), indent=2)}'
+    )
+
     return Box(result)
 
 
