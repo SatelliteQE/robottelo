@@ -17,7 +17,7 @@ from fauxfactory import gen_integer, gen_string, gen_url
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DOCKER_REPO_UPSTREAM_NAME, REPO_TYPE, REPOS
+from robottelo.constants import REPO_TYPE, REPOS
 from robottelo.hosts import ProxyHostError
 
 
@@ -442,15 +442,17 @@ def test_positive_repo_discovery(setup_http_proxy, module_target_sat, module_org
                 'repo_type': 'Container Images',
                 'create_repo.product_type': 'New Product',
                 'create_repo.product_content.product_name': product_name,
-                'registry_search': DOCKER_REPO_UPSTREAM_NAME,
+                'registry_search': settings.container.docker.repo_upstream_name,
                 'name': gen_string('alphanumeric', 10),
                 'username': settings.subscription.rhn_username,
                 'password': settings.subscription.rhn_password,
-                'discovered_repos.repos': DOCKER_REPO_UPSTREAM_NAME,
+                'discovered_repos.repos': settings.container.docker.repo_upstream_name,
             }
         )
         assert session.product.search(product_name)[0]['Name'] == product_name
         assert (
-            DOCKER_REPO_UPSTREAM_NAME
-            in session.repository.search(product_name, DOCKER_REPO_UPSTREAM_NAME)[0]['Name']
+            settings.container.docker.repo_upstream_name
+            in session.repository.search(
+                product_name, settings.container.docker.repo_upstream_name
+            )[0]['Name']
         )

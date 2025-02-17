@@ -786,12 +786,7 @@ FILTER_ERRATA_TYPE = {
 FILTER_ERRATA_DATE = {'updated': "updated", 'issued': "issued"}
 
 REPORT_TEMPLATE_FILE = 'report_template.txt'
-CONTAINER_REGISTRY_HUB = 'https://mirror.gcr.io'
-RH_CONTAINER_REGISTRY_HUB = 'https://registry.redhat.io/'
-PULP_CONTAINER_REGISTRY_HUB = 'https://ghcr.io'
-CONTAINER_UPSTREAM_NAME = 'library/busybox'
-DOCKER_REPO_UPSTREAM_NAME = 'openshift3/logging-elasticsearch'
-CONTAINER_RH_REGISTRY_UPSTREAM_NAME = 'openshift3/ose-metrics-hawkular-openshift-agent'
+
 BOOTABLE_REPO = {
     'upstream_name': 'pulp/bootc-labeled',
     'manifest': {
@@ -842,7 +837,6 @@ FLATPAK_REMOTES = {
 FLATPAK_INDEX_SUFFIX = 'index/static?label:org.flatpak.ref:exists=1&tag=latest'
 PULPCORE_FLATPAK_ENDPOINT = 'https://{}/pulpcore_registry/' + FLATPAK_INDEX_SUFFIX
 
-CONTAINER_CLIENTS = ['docker', 'podman']
 CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/lib/pulp/imports/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
