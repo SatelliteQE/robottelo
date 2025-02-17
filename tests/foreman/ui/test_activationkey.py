@@ -960,7 +960,7 @@ def test_negative_usage_limit(session, module_org, target_sat, module_promoted_c
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('^6')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')  # all versions, excluding any 'fips'
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')

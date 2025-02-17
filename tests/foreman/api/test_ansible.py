@@ -476,16 +476,16 @@ class TestAnsibleREX:
         )
         target_sat.wait_for_tasks(
             f'resource_type = JobInvocation and resource_id = {job["id"]}',
-            poll_timeout=1000,
+            poll_timeout=1500,
             must_succeed=False,
         )
         result = target_sat.api.JobInvocation(id=job['id']).read()
-        assert result.succeeded == 2  # SELECTED_ROLE working on rhel8/rhel9 clients
+        assert result.succeeded == len(hosts) - 1  # SELECTED_ROLE working on rhel8/9/10 clients
         assert result.failed == 1  # SELECTED_ROLE failing  on rhel7 client
         assert result.status_label == 'failed'
 
     @pytest.mark.no_containers
-    @pytest.mark.rhel_ver_match('[^6]')
+    @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')  # all major versions, excluding fips
     def test_positive_ansible_localhost_job_on_host(
         self, target_sat, module_org, module_location, module_ak_with_synced_repo, rhel_contenthost
     ):
