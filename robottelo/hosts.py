@@ -1663,24 +1663,35 @@ class Capsule(ContentHost, CapsuleMixins):
         """Prepare the host and run the capsule installer"""
         self._satellite = sat_host or Satellite()
 
-        # Register capsule host to CDN and enable repos
-        result = self.register_contenthost(
-            org=None,
-            lce=None,
-            username=settings.subscription.rhn_username,
-            password=settings.subscription.rhn_password,
-            auto_attach=True,
-        )
-        if result.status:
-            raise CapsuleHostError(f'Capsule CDN registration failed\n{result.stderr}')
-
-        for repo in getattr(constants, f"OHSNAP_RHEL{self.os_version.major}_REPOS"):
-            result = self.enable_repo(repo, force=True)
+        if settings.robottelo.rhelsource == "ga":
+            # Register capsule host to CDN and enable repos
+            result = self.register_contenthost(
+                org=None,
+                lce=None,
+                username=settings.subscription.rhn_username,
+                password=settings.subscription.rhn_password,
+                auto_attach=True,
+            )
             if result.status:
-                raise CapsuleHostError(f'Repo enable at capsule host failed\n{result.stdout}')
+                raise CapsuleHostError(f'Capsule CDN registration failed\n{result.stderr}')
+
+            for repo in getattr(constants, f"OHSNAP_RHEL{self.os_version.major}_REPOS"):
+                result = self.enable_repo(repo, force=True)
+                if result.status:
+                    raise CapsuleHostError(f'Repo enable at capsule host failed\n{result.stdout}')
+        elif settings.robottelo.rhel_source == "internal":
+            # add internal rhel repos
+            self.create_custom_repos(**settings.repos.get(f'rhel{self.os_version.major}_os'))
 
         # Update system, firewall services and check capsule is already installed from template
-        self.execute('yum -y update', timeout=0)
+        # Setups firewall on Capsule
+        self.execute('dnf -y update', timeout=0)
+        assert (
+            self.execute(
+                "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
+            ).status
+            == 0
+        ), "firewalld is not present and can't be installed"
         self.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
         self.execute('firewall-cmd --runtime-to-permanent')
         result = self.execute('rpm -q satellite-capsule')
@@ -2035,6 +2046,12 @@ class Satellite(Capsule, SatelliteMixins):
 
     def setup_firewall(self):
         # Setups firewall on Satellite
+        assert (
+            self.execute(
+                "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
+            ).status
+            == 0
+        ), "firewalld is not present and can't be installed"
         assert (
             self.execute(
                 command='firewall-cmd --add-port="53/udp" --add-port="53/tcp" --add-port="67/udp" '

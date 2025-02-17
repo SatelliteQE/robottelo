@@ -141,7 +141,7 @@ def common_sat_install_assertions(satellite):
 
 
 def install_satellite(satellite, installer_args, enable_fapolicyd=False):
-    # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
+    # Register for RHEL repos, get Ohsnap repofile, and enable and download satellite
     satellite.register_to_cdn()
     if settings.server.version.source == 'nightly':
         satellite.create_custom_repos(
@@ -154,6 +154,11 @@ def install_satellite(satellite, installer_args, enable_fapolicyd=False):
             release=settings.server.version.release,
             snap=settings.server.version.snap,
         )
+    if settings.robottelo.rhel_source == "internal":
+        # disable rhel repos from cdn
+        satellite.disable_repo("rhel-*")
+        # add internal rhel repos
+        satellite.create_custom_repos(**settings.repos.get(f'rhel{satellite.os_version.major}_os'))
     if enable_fapolicyd:
         if satellite.execute('rpm -q satellite-maintain').status == 0:
             # Installing the rpm on existing sat needs sat-maintain perms
