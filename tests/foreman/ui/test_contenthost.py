@@ -37,8 +37,6 @@ from robottelo.utils.virtwho import create_fake_hypervisor_content
 if not setting_is_set('fake_manifest'):
     pytest.skip('skipping tests due to missing settings', allow_module_level=True)
 
-CHOST_RHEL_VER = 'rhel10'
-
 
 @pytest.fixture(scope='module', autouse=True)
 def host_ui_default(module_target_sat):
@@ -65,20 +63,20 @@ def module_org(module_target_sat):
 
 
 @pytest.fixture
-def vm(module_repos_collection_with_manifest, rhel10_contenthost, target_sat):
+def vm(module_repos_collection_with_manifest, rhel7_contenthost, target_sat):
     """Virtual machine registered in satellite"""
-    module_repos_collection_with_manifest.setup_virtual_machine(rhel10_contenthost)
-    rhel10_contenthost.add_rex_key(target_sat)
-    rhel10_contenthost.run(r'subscription-manager repos --enable \*')
-    return rhel10_contenthost
+    module_repos_collection_with_manifest.setup_virtual_machine(rhel7_contenthost)
+    rhel7_contenthost.add_rex_key(target_sat)
+    rhel7_contenthost.run(r'subscription-manager repos --enable \*')
+    return rhel7_contenthost
 
 
 @pytest.fixture
-def vm_module_streams(module_repos_collection_with_manifest, rhel10_contenthost, target_sat):
+def vm_module_streams(module_repos_collection_with_manifest, rhel8_contenthost, target_sat):
     """Virtual machine registered in satellite"""
-    module_repos_collection_with_manifest.setup_virtual_machine(rhel10_contenthost)
-    rhel10_contenthost.add_rex_key(satellite=target_sat)
-    return rhel10_contenthost
+    module_repos_collection_with_manifest.setup_virtual_machine(rhel8_contenthost)
+    rhel8_contenthost.add_rex_key(satellite=target_sat)
+    return rhel8_contenthost
 
 
 def set_ignore_facts_for_os(module_target_sat, value=False):
@@ -130,7 +128,9 @@ def get_rhel_lifecycle_support(rhel_version):
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel7',
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
             'YumRepository': [
                 {'url': settings.repos.yum_1.url},
                 {'url': settings.repos.yum_6.url},
@@ -152,7 +152,7 @@ def test_positive_end_to_end(
 
     :id: f43f2826-47c1-4069-9c9d-2410fd1b622c
 
-    :setup: Register a rhel vm as a content host. Import repos
+    :setup: Register a rhel7 vm as a content host. Import repos
         collection and associated manifest.
 
     :steps:
@@ -253,7 +253,9 @@ def test_positive_end_to_end(
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel7',
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
             'YumRepository': [
                 {'url': settings.repos.yum_1.url},
                 {'url': settings.repos.yum_6.url},
@@ -336,7 +338,9 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm, target_s
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel7',
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
             'YumRepository': [
                 {'url': settings.repos.yum_1.url},
                 {'url': settings.repos.yum_6.url},
@@ -373,7 +377,9 @@ def test_negative_install_package(session, default_location, vm):
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel7',
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
             'YumRepository': [
                 {'url': settings.repos.yum_1.url},
                 {'url': settings.repos.yum_6.url},
@@ -408,7 +414,9 @@ def test_positive_remove_package(session, default_location, vm):
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel7',
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
             'YumRepository': [
                 {'url': settings.repos.yum_1.url},
                 {'url': settings.repos.yum_6.url},
@@ -444,7 +452,9 @@ def test_positive_upgrade_package(session, default_location, vm):
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel7',
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
             'YumRepository': [
                 {'url': settings.repos.yum_1.url},
                 {'url': settings.repos.yum_6.url},
@@ -481,7 +491,9 @@ def test_positive_install_package_group(session, default_location, vm):
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel7',
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
             'YumRepository': [
                 {'url': settings.repos.yum_1.url},
                 {'url': settings.repos.yum_6.url},
@@ -516,7 +528,9 @@ def test_positive_remove_package_group(session, default_location, vm):
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel7',
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
             'YumRepository': [
                 {'url': settings.repos.yum_1.url},
                 {'url': settings.repos.yum_6.url},
@@ -558,7 +572,9 @@ def test_positive_search_errata_non_admin(
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel7',
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
             'YumRepository': [
                 {'url': settings.repos.yum_1.url},
                 {'url': settings.repos.yum_6.url},
@@ -616,7 +632,9 @@ def test_positive_ensure_errata_applicability_with_host_reregistered(session, de
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel7',
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
             'YumRepository': [
                 {'url': settings.repos.yum_1.url},
                 {'url': settings.repos.yum_6.url},
@@ -674,7 +692,9 @@ def test_positive_host_re_registration_with_host_rename(
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel7',
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
             'YumRepository': [
                 {'url': settings.repos.yum_1.url},
                 {'url': settings.repos.yum_6.url},
@@ -763,10 +783,11 @@ def test_positive_check_ignore_facts_os_setting(
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel8',
             'YumRepository': [
-                {'url': settings.repos.rhel10_os.baseos},
-                {'url': settings.repos.rhel10_os.appstream},
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
+                {'url': settings.repos.satutils_repo},
                 {'url': settings.repos.module_stream_1.url},
             ],
         }
@@ -797,10 +818,11 @@ def test_module_stream_actions_on_content_host(
     with session:
         session.location.select(default_location.name)
         # install Module Stream
-        result = session.host_new.apply_module_streams_action(
+        result = session.contenthost.execute_module_stream_action(
             vm_module_streams.hostname,
-            module_stream=FAKE_2_CUSTOM_PACKAGE_NAME,
-            action='Install',
+            action_type='Install',
+            module_name=FAKE_2_CUSTOM_PACKAGE_NAME,
+            stream_version=stream_version,
         )
         assert result['overview']['hosts_table'][0]['Status'] == 'success'
         module_stream = session.contenthost.search_module_stream(
@@ -886,10 +908,11 @@ def test_module_stream_actions_on_content_host(
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel8',
             'YumRepository': [
-                {'url': settings.repos.rhel10_os.baseos},
-                {'url': settings.repos.rhel10_os.appstream},
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
+                {'url': settings.repos.satutils_repo},
                 {'url': settings.repos.module_stream_1.url},
             ],
         }
@@ -950,10 +973,11 @@ def test_module_streams_customize_action(session, default_location, vm_module_st
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel8',
             'YumRepository': [
-                {'url': settings.repos.rhel10_os.baseos},
-                {'url': settings.repos.rhel10_os.appstream},
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
+                {'url': settings.repos.satutils_repo},
                 {'url': settings.repos.module_stream_1.url},
             ],
         }
@@ -1026,10 +1050,11 @@ def test_install_modular_errata(session, default_location, vm_module_streams):
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel8',
             'YumRepository': [
-                {'url': settings.repos.rhel10_os.baseos},
-                {'url': settings.repos.rhel10_os.appstream},
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
+                {'url': settings.repos.satutils_repo},
                 {'url': settings.repos.module_stream_1.url},
             ],
         }
@@ -1090,10 +1115,10 @@ def test_module_status_update_from_content_host_to_satellite(
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel8',
             'YumRepository': [
-                {'url': settings.repos.rhel10_os.baseos},
-                {'url': settings.repos.rhel10_os.appstream},
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
                 {'url': settings.repos.satutils_repo},
                 {'url': settings.repos.module_stream_1.url},
             ],
@@ -1174,10 +1199,10 @@ def test_module_status_update_without_force_upload_package_profile(
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel8',
             'YumRepository': [
-                {'url': settings.repos.rhel10_os.baseos},
-                {'url': settings.repos.rhel10_os.appstream},
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
                 {'url': settings.repos.satutils_repo},
                 {'url': settings.repos.module_stream_1.url},
             ],
@@ -1249,10 +1274,10 @@ def test_module_stream_update_from_satellite(session, default_location, vm_modul
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel8',
             'YumRepository': [
-                {'url': settings.repos.rhel10_os.baseos},
-                {'url': settings.repos.rhel10_os.appstream},
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
                 {'url': settings.repos.satutils_repo},
                 {'url': settings.repos.module_stream_1.url},
             ],
@@ -1290,10 +1315,10 @@ def test_syspurpose_attributes_empty(session, default_location, vm_module_stream
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel8',
             'YumRepository': [
-                {'url': settings.repos.rhel10_os.baseos},
-                {'url': settings.repos.rhel10_os.appstream},
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
                 {'url': settings.repos.satutils_repo},
                 {'url': settings.repos.module_stream_1.url},
             ],
@@ -1334,10 +1359,10 @@ def test_set_syspurpose_attributes_cli(session, default_location, vm_module_stre
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel8',
             'YumRepository': [
-                {'url': settings.repos.rhel10_os.baseos},
-                {'url': settings.repos.rhel10_os.appstream},
+                {'url': settings.repos.rhel8_os.baseos},
+                {'url': settings.repos.rhel8_os.appstream},
                 {'url': settings.repos.satutils_repo},
                 {'url': settings.repos.module_stream_1.url},
             ],
@@ -1382,7 +1407,9 @@ def test_unset_syspurpose_attributes_cli(session, default_location, vm_module_st
     'module_repos_collection_with_manifest',
     [
         {
-            'distro': CHOST_RHEL_VER,
+            'distro': 'rhel7',
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
             'YumRepository': [
                 {'url': settings.repos.yum_1.url},
                 {'url': settings.repos.yum_6.url},

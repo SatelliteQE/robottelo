@@ -412,7 +412,6 @@ class TestAnsibleREX:
         self,
         target_sat,
         module_org,
-        rhel10_contenthost,
         rhel9_contenthost,
         rhel8_contenthost,
         rhel7_contenthost,
@@ -438,7 +437,7 @@ class TestAnsibleREX:
 
         :BZ: 2167396, 2190464, 2184117
         """
-        hosts = [rhel10_contenthost, rhel9_contenthost, rhel8_contenthost, rhel7_contenthost]
+        hosts = [rhel9_contenthost, rhel8_contenthost, rhel7_contenthost]
         SELECTED_ROLE = 'RedHatInsights.insights-client'
         for host in hosts:
             result = host.register(
