@@ -393,7 +393,7 @@ class TestDockerRepository:
             result = module_target_sat.cli.Repository.info({'id': repo['id']})
             assert result['product']['id'] in product_ids
 
-    def test_docker_upload_content(self, repo, module_org, module_target_sat):
+    def test_negative_docker_upload_content(self, repo, module_org, module_target_sat):
         """Create and sync a Docker-type repository, and attempt to run upload-content
 
         :id: 031563fb-7265-44e3-9693-43e622b7756f
