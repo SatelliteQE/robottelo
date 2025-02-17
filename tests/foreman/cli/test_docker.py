@@ -18,7 +18,9 @@ from robottelo.constants import (
     CONTAINER_REGISTRY_HUB,
     CONTAINER_RH_REGISTRY_UPSTREAM_NAME,
     CONTAINER_UPSTREAM_NAME,
+    EXPIRED_MANIFEST,
     REPO_TYPE,
+    DataFile,
 )
 from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import (
@@ -390,6 +392,37 @@ class TestDockerRepository:
         for repo in repos:
             result = module_target_sat.cli.Repository.info({'id': repo['id']})
             assert result['product']['id'] in product_ids
+
+    def test_negative_docker_upload_content(self, repo, module_org, module_target_sat):
+        """Create and sync a Docker-type repository, and attempt to run upload-content
+
+        :id: 031563fb-7265-44e3-9693-43e622b7756f
+
+        :Verifies: SAT-21359
+
+        :expectedresults: upload-content cannot be run with a docker type repository
+
+        :CaseImportance: Critical
+        """
+        assert int(repo['content-counts']['container-manifests']) == 0
+        module_target_sat.cli.Repository.synchronize({'id': repo['id']})
+        repo = module_target_sat.cli.Repository.info({'id': repo['id']})
+        assert int(repo['content-counts']['container-manifests']) > 0
+        remote_path = f'/tmp/{EXPIRED_MANIFEST}'
+        module_target_sat.put(DataFile.EXPIRED_MANIFEST_FILE, remote_path)
+        with pytest.raises(CLIReturnCodeError) as error:
+            module_target_sat.cli.Repository.upload_content(
+                {
+                    'name': repo['name'],
+                    'organization-id': module_org.id,
+                    'path': remote_path,
+                    'product-id': repo['product']['id'],
+                }
+            )
+        assert (
+            "Could not upload the content:\n  Cannot upload container content via Hammer/API. Use podman push instead.\n"
+            in error.value.stderr
+        )
 
 
 class TestDockerContentView:
