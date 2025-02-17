@@ -2,15 +2,11 @@ from broker import Broker
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import PRDS
+from robottelo.constants import PRDS, RHEL7_VER, RHEL8_VER, RHEL9_VER
 from robottelo.hosts import ContentHost
 from robottelo.logging import logger
 
 synced_repos = pytest.StashKey[dict]
-
-RHEL7_VER = '7.9'
-RHEL8_VER = '8.10'
-RHEL9_VER = '9.5'
 
 RHEL_REPOS = {
     'rhel7_server': {
