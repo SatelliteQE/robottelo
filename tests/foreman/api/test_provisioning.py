@@ -65,6 +65,7 @@ def assert_host_logs(channel, pattern):
 @pytest.mark.upgrade
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.on_premises_provisioning
+@pytest.mark.ipv6_provisioning
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 def test_rhel_pxe_provisioning(
     request,
@@ -77,6 +78,7 @@ def test_rhel_pxe_provisioning(
     provisioning_hostgroup,
     module_lce_library,
     module_default_org_view,
+    configure_kea_dhcp6_server,
 ):
     """Simulate baremetal provisioning of a RHEL system via PXE on RHV provider
 
@@ -98,8 +100,16 @@ def test_rhel_pxe_provisioning(
 
     :parametrized: yes
     """
+    if pxe_loader.vm_firmware == 'bios' and settings.server.is_ipv6:
+        pytest.skip('Test cannot be run on BIOS as its not supported')
     host_mac_addr = provisioning_host.provisioning_nic_mac_addr
     sat = module_provisioning_sat.sat
+    # Configure the grubx64.efi image to setup the interface and use TFTP to load the configuration
+    if settings.server.is_ipv6:
+        sat.execute("echo -e 'net_bootp6\nset root=tftp\nset prefix=(tftp)/grub2' > pre.cfg")
+        sat.execute(
+            'grub2-mkimage -c pre.cfg -o /var/lib/tftpboot/grub2/grubx64.efi -p /grub2/ -O x86_64-efi efinet efi_netfs efienv efifwsetup efi_gop tftp net normal chain configfile loadenv procfs romfs'
+        )
     host = sat.api.Host(
         hostgroup=provisioning_hostgroup,
         organization=module_sca_manifest_org,
@@ -107,7 +117,6 @@ def test_rhel_pxe_provisioning(
         name=gen_string('alpha').lower(),
         mac=host_mac_addr,
         operatingsystem=module_provisioning_rhel_content.os,
-        subnet=module_provisioning_sat.subnet,
         host_parameters_attributes=[
             {'name': 'remote_execution_connect_by_ip', 'value': 'true', 'parameter_type': 'boolean'}
         ],
@@ -136,62 +145,66 @@ def test_rhel_pxe_provisioning(
     # Change the hostname of the host as we know it already.
     # In the current infra environment we do not support
     # addressing hosts using FQDNs, falling back to IP.
-    provisioning_host.hostname = host.ip
-    # Host is not blank anymore
-    provisioning_host.blank = False
+    if is_open('SAT-30601') and not settings.server.is_ipv6:
+        provisioning_host.hostname = host.ip
+        # Host is not blank anymore
+        provisioning_host.blank = False
 
-    # Wait for the host to be rebooted and SSH daemon to be started.
-    provisioning_host.wait_for_connection()
+        # Wait for the host to be rebooted and SSH daemon to be started.
+        provisioning_host.wait_for_connection()
 
-    # Perform version check and check if root password is properly updated
-    host_os = host.operatingsystem.read()
-    expected_rhel_version = f'{host_os.major}.{host_os.minor}'
+        # Perform version check and check if root password is properly updated
+        host_os = host.operatingsystem.read()
+        expected_rhel_version = f'{host_os.major}.{host_os.minor}'
 
-    if int(host_os.major) >= 9:
-        assert (
-            provisioning_host.execute(
-                'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
-            ).status
-            == 0
+        if int(host_os.major) >= 9:
+            assert (
+                provisioning_host.execute(
+                    'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
+                ).status
+                == 0
+            )
+        host_ssh_os = sat.execute(
+            f'sshpass -p {settings.provisioning.host_root_password} '
+            'ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o PasswordAuthentication=yes '
+            f'-o UserKnownHostsFile=/dev/null root@{provisioning_host.hostname} cat /etc/redhat-release'
         )
-    host_ssh_os = sat.execute(
-        f'sshpass -p {settings.provisioning.host_root_password} '
-        'ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o PasswordAuthentication=yes '
-        f'-o UserKnownHostsFile=/dev/null root@{provisioning_host.hostname} cat /etc/redhat-release'
-    )
-    assert host_ssh_os.status == 0
-    assert expected_rhel_version in host_ssh_os.stdout, (
-        'Different than the expected OS version was installed'
-    )
+        assert host_ssh_os.status == 0
+        assert expected_rhel_version in host_ssh_os.stdout, (
+            'Different than the expected OS version was installed'
+        )
 
-    # Verify provisioning log exists on host at correct path
-    assert provisioning_host.execute('test -s /root/install.post.log').status == 0
-    assert provisioning_host.execute('test -s /mnt/sysimage/root/install.post.log').status == 1
+        # Verify provisioning log exists on host at correct path
+        assert provisioning_host.execute('test -s /root/install.post.log').status == 0
+        assert provisioning_host.execute('test -s /mnt/sysimage/root/install.post.log').status == 1
 
-    # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
-    template_id = (
-        sat.api.JobTemplate().search(query={'search': 'name="Run Command - Script Default"'})[0].id
-    )
-    job = sat.api.JobInvocation().run(
-        data={
-            'job_template_id': template_id,
-            'inputs': {
-                'command': f'subscription-manager config | grep "hostname = {sat.hostname}"'
+        # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
+        template_id = (
+            sat.api.JobTemplate()
+            .search(query={'search': 'name="Run Command - Script Default"'})[0]
+            .id
+        )
+        job = sat.api.JobInvocation().run(
+            data={
+                'job_template_id': template_id,
+                'inputs': {
+                    'command': f'subscription-manager config | grep "hostname = {sat.hostname}"'
+                },
+                'search_query': f"name = {host.name}",
+                'targeting_type': 'static_query',
             },
-            'search_query': f"name = {host.name}",
-            'targeting_type': 'static_query',
-        },
-    )
-    assert job['result'] == 'success', 'Job invocation failed'
+        )
+        assert job['result'] == 'success', 'Job invocation failed'
 
-    # check if katello-ca-consumer is not used while host registration
-    assert provisioning_host.execute('rpm -qa |grep katello-ca-consumer').status == 1
-    assert (
-        'katello-ca-consumer' not in provisioning_host.execute('cat /root/install.post.log').stdout
-    )
-    # assert that the host is subscribed and consumes
-    # subsctiption provided by the activation key
-    assert provisioning_host.subscribed, 'Host is not subscribed'
+        # check if katello-ca-consumer is not used while host registration
+        assert provisioning_host.execute('rpm -qa |grep katello-ca-consumer').status == 1
+        assert (
+            'katello-ca-consumer'
+            not in provisioning_host.execute('cat /root/install.post.log').stdout
+        )
+        # assert that the host is subscribed and consumes
+        # subsctiption provided by the activation key
+        assert provisioning_host.subscribed, 'Host is not subscribed'
 
 
 @pytest.mark.e2e
