@@ -2085,8 +2085,13 @@ class Satellite(Capsule, SatelliteMixins):
             f'curl -O {settings.robottelo.repos_hosting_url}{CUSTOM_PUPPET_MODULE_REPOS_PATH}'
             f'{custom_puppet_module_repo}',
         )
+        http_proxy = (
+            f'HTTP_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
+            if settings.server.is_ipv6
+            else ''
+        )
         self.execute(
-            f'puppet module install {custom_puppet_module_repo} '
+            f'{http_proxy}puppet module install {custom_puppet_module_repo} '
             f'--target-dir /etc/puppetlabs/code/environments/{env_name}/modules/'
         )
         smart_proxy = (
