@@ -18,7 +18,6 @@ import time
 from zoneinfo import ZoneInfo
 
 from fauxfactory import gen_string
-from manifester import Manifester
 import pytest
 from tzlocal import get_localzone_name
 
@@ -37,14 +36,6 @@ from robottelo.constants import (
 from robottelo.utils.issue_handlers import is_open
 
 pytestmark = [pytest.mark.run_in_one_thread]
-
-
-@pytest.fixture
-def import_future_dated_subscription_manifest(target_sat, function_org):
-    """Create and upload future date subscription manifest into org"""
-    with Manifester(manifest_category=settings.manifest.future_date_subscription) as manifest:
-        target_sat.upload_manifest(function_org.id, manifest)
-    return manifest
 
 
 @pytest.fixture(scope='module')
@@ -539,7 +530,7 @@ def test_positive_check_manifest_validity_notification(
 def test_positive_populate_future_date_subcription(
     target_sat,
     function_org,
-    import_future_dated_subscription_manifest,
+    func_future_dated_subscription_manifest,
 ):
     """Upload manifest which has future date subscription and verify future date subscription populated
 
@@ -560,17 +551,16 @@ def test_positive_populate_future_date_subcription(
         current_datetime = datetime.now(ZoneInfo(get_localzone_name()))
         current_date = current_datetime.date()
 
-        # Get subscription Start Date
+        # Get subscription Start Date and compare with current date
         subscriptions = session.subscription.read_subscriptions()
-        subscription_startdate = subscriptions[0]['Start Date']
-        sub_datetime = datetime.strptime(subscription_startdate, '%Y-%m-%d %H:%M:%S %z')
-        sub_date = sub_datetime.date()
-
-        # Compare the dates
-        assert sub_date > current_date, "Subscription start date is not in the future"
+        if not any(
+            datetime.strptime(sub['Start Date'], '%Y-%m-%d %H:%M:%S %Z').date() > current_date
+            for sub in subscriptions
+        ):
+            raise AssertionError('Subscription start date is not in the future')
 
         # Delete the manifest from Organization
         session.subscription.delete_manifest(
             ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound']
         )
-        assert not session.subscription.has_manifest, 'Manifest did not delete'
+        assert not session.subscription.has_manifest, 'Manifest was not deleted'
