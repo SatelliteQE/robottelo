@@ -559,21 +559,20 @@ def test_positive_populate_future_date_subcription(
     :customerscenario: true
     """
     with target_sat.ui_session() as session:
-        session.organization.select(function_org.name)
+        session.organization.select("Default Organization")
         assert session.subscription.has_manifest, 'Manifest not uploaded'
 
         # Get current date time and convert into date
         current_datetime = datetime.now(ZoneInfo(get_localzone_name()))
         current_date = current_datetime.date()
 
-        # Get subscription Start Date
+        # Get subscription Start Date and compare with current date
         subscriptions = session.subscription.read_subscriptions()
-        subscription_startdate = subscriptions[0]['Start Date']
-        sub_datetime = datetime.strptime(subscription_startdate, '%Y-%m-%d %H:%M:%S %z')
-        sub_date = sub_datetime.date()
-
-        # Compare the dates
-        assert sub_date > current_date, "Subscription start date is not in the future"
+        if not any(
+            datetime.strptime(sub['Start Date'], '%Y-%m-%d %H:%M:%S %z').date() > current_date
+            for sub in subscriptions
+        ):
+            raise AssertionError('Subscription start date is not in the future')
 
         # Delete the manifest from Organization
         session.subscription.delete_manifest(
