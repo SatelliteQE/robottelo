@@ -869,13 +869,13 @@ class TestCapsuleContentManagement:
         cvv = cvv.read()
         assert len(cvv.environment) == 2
         # Check for kickstart content on SAT and CAPS
-        tail = (
-            f'rhel/server/7/{REPOS["kickstart"][distro]["version"]}/x86_64/kickstart'
-            if distro == 'rhel7'
-            else f'{distro.split("_")[0]}/{REPOS["kickstart"][distro]["version"]}/beta/x86_64/baseos/kickstart'
-            if 'beta' in distro  # for future beta rhel distros
-            else f'{distro.split("_")[0]}/{REPOS["kickstart"][distro]["version"]}/x86_64/baseos/kickstart'  # noqa:E501
-        )
+        tail = None
+        if distro == 'rhel7':
+            tail = f'rhel/server/7/{REPOS["kickstart"][distro]["version"]}/x86_64/kickstart'
+        elif 'beta' in distro:
+            tail = f'{distro.split("_")[0]}/{REPOS["kickstart"][distro]["version"]}/beta/x86_64/baseos/kickstart'
+        else:
+            tail = f'{distro.split("_")[0]}/{REPOS["kickstart"][distro]["version"]}/x86_64/baseos/kickstart'  # noqa:E501
         url_base = (
             f'pulp/content/{function_sca_manifest_org.label}/{lce.label}/{cv.label}/'
             f'content/dist/{tail}'
