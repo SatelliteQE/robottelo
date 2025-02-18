@@ -37,6 +37,9 @@ def host_conf(request):
         deploy_kwargs = settings.content_host.get(_rhelver).to_dict().get('vm', {})
         if network := params.get('network'):
             deploy_kwargs.update({'deploy_network_type': network})
+    # Post_deploy_workflow_runs to be run in ContentHost.setup method
+    if 'fips' in params.get('rhel_version'):
+        deploy_kwargs.update({'fips': True})
     conf.update(deploy_kwargs)
     return conf
 
