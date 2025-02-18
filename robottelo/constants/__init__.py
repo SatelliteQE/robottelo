@@ -33,12 +33,12 @@ LOCALES = (
 
 
 DISTRO_DEFAULT = 'rhel7'
-DISTROS_SUPPORTED = ['rhel6', 'rhel7', 'rhel8', 'rhel9']
+DISTROS_SUPPORTED = ['rhel7', 'rhel8', 'rhel9', 'rhel10']
 DISTROS_MAJOR_VERSION = {
-    'rhel6': 6,
     'rhel7': 7,
     'rhel8': 8,
     'rhel9': 9,
+    'rhel10': 10,
 }
 MAJOR_VERSION_DISTRO = {value: key for key, value in DISTROS_MAJOR_VERSION.items()}
 

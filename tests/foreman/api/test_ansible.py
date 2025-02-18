@@ -485,7 +485,7 @@ class TestAnsibleREX:
         assert result.status_label == 'failed'
 
     @pytest.mark.no_containers
-    @pytest.mark.rhel_ver_match('[^6]')
+    @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')  # all major versions, excluding fips
     def test_positive_ansible_localhost_job_on_host(
         self, target_sat, module_org, module_location, module_ak_with_synced_repo, rhel_contenthost
     ):
