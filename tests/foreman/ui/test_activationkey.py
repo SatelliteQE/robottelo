@@ -960,7 +960,7 @@ def test_negative_usage_limit(
     assert vm1.subscribed
     result = vm2.register(module_org, None, name, target_sat)
     assert not vm2.subscribed
-    assert len(result.stderr)
+    assert result.status
     assert f'Max Hosts ({hosts_limit}) reached for activation key' in str(result.stderr)
 
 
