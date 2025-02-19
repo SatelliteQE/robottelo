@@ -356,7 +356,7 @@ def test_negative_create_report_without_name(module_target_sat):
 
 
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.no_containers
 def test_positive_applied_errata(
     rhel_contenthost, target_sat, function_location, function_org, function_lce
@@ -428,7 +428,7 @@ def test_positive_applied_errata(
 
 
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.no_containers
 def test_positive_applied_errata_report_with_invalid_errata(
     rhel_contenthost,
@@ -505,7 +505,7 @@ def test_positive_applied_errata_report_with_invalid_errata(
 
 
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.no_containers
 def test_positive_applied_errata_by_search(
     rhel_contenthost, target_sat, function_org, function_lce
@@ -765,7 +765,7 @@ def test_positive_generate_job_report(setup_content, module_target_sat, content_
 
 @pytest.mark.tier2
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match('N-2')
 def test_positive_installable_errata(
     target_sat, function_org, function_lce, function_location, rhel_contenthost
 ):
@@ -879,7 +879,7 @@ def test_positive_installable_errata(
 
 
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match('N-2')
 def test_positive_installed_products(
     target_sat,
     rhel_contenthost,
