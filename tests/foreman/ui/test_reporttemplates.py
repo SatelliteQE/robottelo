@@ -228,7 +228,7 @@ def test_positive_end_to_end(session, module_org, module_location):
         assert not session.reporttemplate.search(new_name)
 
 
-@pytest.mark.rhel_ver_match('N-2')
+@pytest.mark.rhel_ver_list([7, 8, 9])
 @pytest.mark.upgrade
 @pytest.mark.tier2
 def test_positive_generate_registered_hosts_report(
@@ -480,7 +480,7 @@ def test_negative_nonauthor_of_report_cant_download_it(session):
     """
 
 
-@pytest.mark.rhel_ver_match('N-2')
+@pytest.mark.rhel_ver_list([7, 8, 9])
 @pytest.mark.tier3
 def test_positive_generate_all_installed_packages_report(
     session, module_setup_content, rhel_contenthost, target_sat
