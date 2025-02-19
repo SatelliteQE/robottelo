@@ -269,6 +269,23 @@ def oracle_host(request, version):
         yield host
 
 
+@pytest.fixture
+def bootc_host(request):
+    """Fixture to check out boot-c hosts"""
+    with Broker(
+        **host_conf(request),
+        workflow='deploy-bootc',
+        host_class=ContentHost,
+    ) as host:
+        assert (
+            host[0]
+            .execute(f"echo '{constants.DUMMY_BOOTC_FACTS}' > /etc/rhsm/facts/bootc.facts")
+            .status
+            == 0
+        )
+        yield host
+
+
 @pytest.fixture(scope='module', params=[{'rhel_version': 8, 'no_containers': True}])
 def external_puppet_server(request):
     deploy_args = host_conf(request)
