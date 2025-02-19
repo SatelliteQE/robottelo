@@ -236,7 +236,10 @@ def test_positive_list_host_based_on_rule_search_query(
         values = session.discoveryrule.read_discovered_hosts(discovery_rule.name)
         assert values['searchbox'] == rule_search
         assert len(values['table']) == 1
-        assert values['table'][0]['IP Address'] == ip_address
+        if values['table'][0]['IPv4'] != '':
+            assert values['table'][0]['IPv4'] == ip_address
+        else:
+            assert values['table'][0]['IPv6'] == ip_address
         assert values['table'][0]['CPUs'] == str(cpu_count)
         # auto provision the discovered host
         result = target_sat.api.DiscoveredHost(id=discovered_host['id']).auto_provision()
