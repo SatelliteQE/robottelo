@@ -924,7 +924,7 @@ def test_negative_generate_hostpkgcompare_nonexistent_host(module_target_sat):
     assert "At least one of the hosts couldn't be found" in cm.value.stderr
 
 
-@pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.tier3
 def test_positive_generate_installed_packages_report(
     module_sca_manifest_org,
