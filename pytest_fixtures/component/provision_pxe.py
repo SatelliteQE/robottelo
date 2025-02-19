@@ -118,7 +118,7 @@ def module_provisioning_rhel_content(
     rhel_xy = Version(
         constants.REPOS['kickstart'][f'rhel{rhel_ver}']['version']
         if rhel_ver == 7
-        else '10.1'  # EL10 pre-release version
+        else constants.RHEL10_VER
         if rhel_ver == 10
         else constants.REPOS['kickstart'][f'rhel{rhel_ver}_bos']['version']
     )
