@@ -1147,10 +1147,3 @@ def test_positive_new_ak_lce_cv_assignment(target_sat):
         assert (
             ak_values['details']['lce']['Library']['Library'] == True  # noqa: E712, explicit comparison fits this case
         ), 'Library view is not assigned to newly created AK'
-
-
-def test_dummy(target_sat):
-    with target_sat.ui_session() as session:
-        # name = gen_string('alpha')
-        # print(name)
-        session.activationkey.update_ak_host_limit("testKey", 'unlimitedAAAA')
