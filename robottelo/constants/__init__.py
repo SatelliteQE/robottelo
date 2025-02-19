@@ -734,6 +734,7 @@ REPOS = {
 RHEL7_VER = '7.9'
 RHEL8_VER = '8.10'
 RHEL9_VER = '9.5'
+RHEL10_VER = '10.1'  # EL10 pre-release version
 
 BULK_REPO_LIST = [
     REPOS['rhel7_optional'],
