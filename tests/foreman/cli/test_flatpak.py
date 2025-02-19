@@ -47,12 +47,8 @@ def function_user(target_sat, function_role, function_org):
 @pytest.fixture
 def function_host_cleanup(target_sat, module_flatpak_contenthost):
     """Cleans up the flatpak contenthost so it can be re-registered with different org"""
-    module_flatpak_contenthost.unregister()
-    host = target_sat.api.Host().search(
-        query={'search': f'name={module_flatpak_contenthost.hostname}'}
-    )
-    if len(host) > 0:
-        target_sat.api.Host(id=host[0].id).delete()
+    if nh := module_flatpak_contenthost.nailgun_host:
+        nh.delete()
 
 
 def test_CRUD_and_sync_flatpak_remote_with_permissions(
@@ -224,7 +220,7 @@ def test_flatpak_endpoint(target_sat, endpoint):
         1. HTTP 200
     """
     ep = FLATPAK_ENDPOINTS[endpoint].format(target_sat.hostname)
-    rq = requests.get(ep, verify=False)
+    rq = requests.get(ep, verify=settings.server.verify_ca)
     assert rq.ok, f'Expected 200 but got {rq.status_code} from {endpoint} registry index'
 
 
@@ -318,11 +314,11 @@ def test_sync_consume_flatpak_repo_via_library(
             'job-template': 'Flatpak - Set up remote on host',
             'inputs': (
                 f'Remote Name={remote_name}, '
-                f'Flatpak registry URL=https://{sat.hostname}/pulpcore_registry/, '
+                f'Flatpak registry URL={settings.server.scheme}://{sat.hostname}/pulpcore_registry/, '
                 f'Username={settings.server.admin_username}, '
                 f'Password={settings.server.admin_password}'
             ),
-            'search-query': f"name ~ {host.hostname}",
+            'search-query': f"name = {host.hostname}",
         }
     )
     res = module_target_sat.cli.JobInvocation.info({'id': job.id})
@@ -341,7 +337,7 @@ def test_sync_consume_flatpak_repo_via_library(
             'organization': function_org.name,
             'job-template': 'Flatpak - Install application on host',
             'inputs': f'Flatpak remote name={remote_name}, Application name={app_name}',
-            'search-query': f"name ~ {host.hostname}",
+            'search-query': f"name = {host.hostname}",
         }
     )
     res = module_target_sat.cli.JobInvocation.info({'id': job.id})
@@ -459,11 +455,11 @@ def test_sync_consume_flatpak_repo_via_cv(
             'job-template': 'Flatpak - Set up remote on host',
             'inputs': (
                 f'Remote Name={remote_name}, '
-                f'Flatpak registry URL=https://{sat.hostname}/, '
+                f'Flatpak registry URL={settings.server.scheme}://{sat.hostname}/, '
                 f'Username={settings.server.admin_username}, '
                 f'Password={settings.server.admin_password}'
             ),
-            'search-query': f"name ~ {host.hostname}",
+            'search-query': f"name = {host.hostname}",
         }
     )
     res = module_target_sat.cli.JobInvocation.info({'id': job.id})
@@ -481,7 +477,7 @@ def test_sync_consume_flatpak_repo_via_cv(
     opts = {
         'organization': function_org.name,
         'job-template': 'Flatpak - Install application on host',
-        'search-query': f"name ~ {host.hostname}",
+        'search-query': f"name = {host.hostname}",
     }
     cv1_app = 'Inkscape'
     job = module_target_sat.cli_factory.job_invocation(

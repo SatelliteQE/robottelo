@@ -800,7 +800,7 @@ class TestCapsuleContentManagement:
             1. HTTP 200
         """
         ep = FLATPAK_ENDPOINTS[endpoint].format(module_capsule_configured.hostname)
-        rq = requests.get(ep, verify=False)
+        rq = requests.get(ep, verify=settings.server.verify_ca)
         assert rq.ok, f'Expected 200 but got {rq.status_code} from {endpoint} registry index'
 
     @pytest.mark.e2e

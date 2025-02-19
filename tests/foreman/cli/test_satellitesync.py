@@ -1537,11 +1537,11 @@ class TestContentViewSync:
                 'job-template': 'Flatpak - Set up remote on host',
                 'inputs': (
                     f'Remote Name={remote_name}, '
-                    f'Flatpak registry URL=https://{module_import_sat.hostname}/pulpcore_registry/, '
+                    f'Flatpak registry URL={settings.server.scheme}://{module_import_sat.hostname}/pulpcore_registry/, '
                     f'Username={settings.server.admin_username}, '
                     f'Password={settings.server.admin_password}'
                 ),
-                'search-query': f"name ~ {module_flatpak_contenthost.hostname}",
+                'search-query': f"name = {module_flatpak_contenthost.hostname}",
             }
         )
         res = module_import_sat.cli.JobInvocation.info({'id': job.id})
@@ -1564,7 +1564,7 @@ class TestContentViewSync:
                 'organization': function_import_org_at_isat.name,
                 'job-template': 'Flatpak - Install application on host',
                 'inputs': f'Flatpak remote name={remote_name}, Application name={app_name}',
-                'search-query': f"name ~ {module_flatpak_contenthost.hostname}",
+                'search-query': f"name = {module_flatpak_contenthost.hostname}",
             }
         )
         res = module_import_sat.cli.JobInvocation.info({'id': job.id})
