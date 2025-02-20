@@ -883,11 +883,11 @@ def test_sync_consume_flatpak_repo_via_library(
             'job-template': 'Flatpak - Set up remote on host',
             'inputs': (
                 f'Remote Name={remote_name}, '
-                f'Flatpak registry URL=https://{caps.hostname}/pulpcore_registry/, '
+                f'Flatpak registry URL={settings.server.scheme}://{caps.hostname}/pulpcore_registry/, '
                 f'Username={settings.server.admin_username}, '
                 f'Password={settings.server.admin_password}'
             ),
-            'search-query': f"name ~ {host.hostname}",
+            'search-query': f"name = {host.hostname}",
         }
     )
     res = module_target_sat.cli.JobInvocation.info({'id': job.id})
@@ -907,7 +907,7 @@ def test_sync_consume_flatpak_repo_via_library(
             'organization': function_org.name,
             'job-template': 'Flatpak - Install application on host',
             'inputs': f'Flatpak remote name={remote_name}, Application name={app_name}',
-            'search-query': f"name ~ {host.hostname}",
+            'search-query': f"name = {host.hostname}",
         }
     )
     res = module_target_sat.cli.JobInvocation.info({'id': job.id})

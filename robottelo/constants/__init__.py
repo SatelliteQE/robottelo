@@ -846,7 +846,10 @@ FLATPAK_REMOTES = {
     },
 }
 FLATPAK_INDEX_SUFFIX = 'index/static?label:org.flatpak.ref:exists=1&tag=latest'
-PULPCORE_FLATPAK_ENDPOINT = 'https://{}/pulpcore_registry/' + FLATPAK_INDEX_SUFFIX
+FLATPAK_ENDPOINTS = {
+    'pulpcore': 'https://{}/pulpcore_registry/' + FLATPAK_INDEX_SUFFIX,
+    'katello': 'https://{}/' + FLATPAK_INDEX_SUFFIX,
+}
 
 CONTAINER_CLIENTS = ['docker', 'podman']
 CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
