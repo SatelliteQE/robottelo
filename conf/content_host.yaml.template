@@ -1,21 +1,21 @@
 content_host:
-  default_rhel_version: 7
+  default_rhel_version: 9
   rhel6:
     vm:
-      workflow: deploy-base-rhel
+      workflow: deploy-rhel
       deploy_rhel_version: '6'
       target_memory: 1GiB
       target_cores: 1
     container:
-      container_host: rhel6:latest
+      container_host: localhost/rhel6:latest
   rhel7:
     vm:
-      workflow: deploy-base-rhel
+      workflow: deploy-rhel
       deploy_rhel_version: '7'
       target_memory: 1GiB
       target_cores: 1
     container:
-      container_host: ubi7:latest
+      container_host: localhost/ubi7:latest
   rhel7_fips:
     vm:
       workflow: deploy-base-rhel-fips
@@ -24,12 +24,12 @@ content_host:
       target_cores: 1
   rhel8:
     vm:
-      workflow: deploy-base-rhel
+      workflow: deploy-rhel
       deploy_rhel_version: '8'
       target_memory: 1536 MiB
       target_cores: 1
     container:
-      container_host: ubi8:latest
+      container_host: localhost/ubi8:latest
   rhel8_fips:
     vm:
       workflow: deploy-base-rhel-fips
@@ -38,18 +38,25 @@ content_host:
       target_cores: 1
   rhel9:
     vm:
-      workflow: deploy-base-rhel
+      workflow: deploy-rhel
       deploy_rhel_version: '9'
       target_memory: 1536 MiB
       target_cores: 1
     container:
-      container_host: ubi9:latest
+      container_host: localhost/ubi9:latest
   rhel9_fips:
     vm:
       workflow: deploy-base-rhel-fips
       deploy_rhel_version: '9'
       target_memory: 1536 MiB
       target_cores: 1
+  rhel10:
+    vm:
+      workflow: deploy-template
+      deploy_template_type: rhel
+      deploy_custom_template_version: 10
+    container:
+      container_host: localhost/ubi10-beta:latest
   centos7:
     vm:
       workflow: deploy-centos
@@ -61,7 +68,7 @@ content_host:
     vm:
       workflow: deploy-centos
       deploy_scenario: centos
-      deploy_rhel_version: '8.6'
+      deploy_rhel_version: '8.5'
       target_memory: 1536 MiB
       target_cores: 1
   oracle7:
@@ -75,6 +82,6 @@ content_host:
     vm:
       workflow: deploy-oracle-linux
       deploy_scenario: oracle
-      deploy_rhel_version: '8.6'
+      deploy_rhel_version: '8.10'
       target_memory: 1536 MiB
       target_cores: 1
