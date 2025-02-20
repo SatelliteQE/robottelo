@@ -443,21 +443,37 @@ def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel_conten
     assert rhel_contenthost.subscribed
 
 
-@pytest.mark.stubbed
 @pytest.mark.tier2
-def test_positive_os_restriction_on_repos():
-    """Verify that you can specify OS restrictions on custom repos
+@pytest.mark.rhel_ver_match('N-2')
+def test_positive_os_restriction_on_repos(
+    target_sat,
+    module_cv,
+    module_ak,
+    module_product,
+    rhel_contenthost,
+    module_sca_manifest_org,
+):
+    """Verify that you can specify OS restrictions on custom repos for registered host.
+        parametrized: (3) newest supported RHEL distro (N), with two prior.
 
     :id: fd40842f-48c3-4505-a670-235d8a5f466b
 
-    :steps:
-        1. Register Content Host with RHEL/EPEL 6 and 7 repos synced
-        2. Set Restriction to OS on repos
-        3. Subscription-manager refresh
-        4. Verify enabled repos
+    :parametrized: yes
 
-    :expectedresults: Custom EPEL repos with OS restrictions set are
-        disabled based on its corresponding RHEL version
+    :setup:
+        1. Create and sync 3 custom yum repositories
+        2. Add them to content-view and update
+        3. Register host and setup method (publish CV, associate AK, and enable repos)
+
+    :steps:
+        1. Check all repos enabled from start (unrestricted)
+        2. Set Restriction to OS (RHEL10/9/8) on each repo (hammer repository update)
+        3. Subscription-manager refresh
+        4. Verify available repo(s) for content host using subscription-manager.
+
+    :expectedresults:
+        - One custom repo available for client, with matching OS restriction.
+        - Two custom repos not available for client, with non-matching OS restrictions.
 
     :customerscenario: true
 
@@ -465,8 +481,77 @@ def test_positive_os_restriction_on_repos():
 
     :CaseImportance: High
 
-    :CaseAutomation: NotAutomated
     """
+    org = module_sca_manifest_org
+    # 3 newest supported rhel versions from tail, exclude fips
+    rhel_versions = [
+        rhel_major_ver
+        for rhel_major_ver in settings.supportability.content_hosts.rhel.versions
+        if 'fips' not in str(rhel_major_ver)
+    ][-3:]
+    # create & sync 3 custom repositories
+    repo_urls = [settings.repos.yum_9.url, settings.repos.yum_6.url, settings.repos.yum_1.url]
+    custom_repos = []
+    for url in repo_urls:
+        r = target_sat.api.Repository(
+            url=url,
+            product=module_product,
+        ).create()
+        r.sync()
+        custom_repos.append(r.read())
+    # add the repos to module CV
+    module_cv.repository = custom_repos
+    module_cv.update(['repository'])
+    module_cv = module_cv.read()
+    # publish CV, associate AK, register host and enable repos
+    setup = target_sat.api_factory.register_host_and_needed_setup(
+        organization=org,
+        client=rhel_contenthost,
+        activation_key=module_ak,
+        environment='Library',
+        content_view=module_cv,
+        enable_repos=True,
+    )
+    assert setup['result'] != 'error', f'{setup["message"]}'
+    # registered host returned by setup
+    assert (client := setup['client'])
+    result = client.execute('subscription-manager refresh')
+    assert result.status == 0, f'{result.stdout}'
+
+    # get available repos from sub-man repos list
+    sub_man_repos = client.subscription_manager_list_repos().stdout
+    # assert all 3 repos are available at start (unrestricted)
+    assert all(repo.label in sub_man_repos for repo in custom_repos)
+    assert len(custom_repos) == 3
+
+    # restrict each repo to a different RHEL major version
+    matching_repo_id = None
+    for r in custom_repos:
+        repo_OS = rhel_versions[-1]
+        # restrict repo to OS via hammer, ie 'rhel-9'
+        formatted = 'rhel-' + str(repo_OS)
+        target_sat.cli.Repository.update({'os-versions': formatted, 'id': r.id})
+        rhel_versions.remove(repo_OS)
+        # save repo_id with matching OS restrict to chost version,
+        # we expect this repo to remain available and enabled
+        if repo_OS == client.os_version.major:
+            matching_repo_id = r.id
+
+    result = client.execute('subscription-manager refresh')
+    assert result.status == 0, f'{result.stdout}'
+    assert matching_repo_id, 'Expected one repository OS restriction, to match chost RHEL version'
+
+    enabled_repo_label = target_sat.api.Repository(id=matching_repo_id).read().label
+    assert enabled_repo_label in [repo.label for repo in custom_repos]
+    disabled_repos_labels = [
+        repo.label for repo in custom_repos if repo.label != enabled_repo_label
+    ]
+    # enabled repo (1) with matching OS restriction is available from host's sub-man repos
+    sub_man_repos = client.subscription_manager_list_repos().stdout
+    assert enabled_repo_label in sub_man_repos
+    # repos (2) with differing OS, not available from sub-man repos list
+    assert all(label not in sub_man_repos for label in disabled_repos_labels)
+    assert len(disabled_repos_labels) == 2
 
 
 def test_positive_async_endpoint_for_manifest_refresh(target_sat, function_sca_manifest_org):
