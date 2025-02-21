@@ -924,14 +924,14 @@ def test_negative_generate_hostpkgcompare_nonexistent_host(module_target_sat):
     assert "At least one of the hosts couldn't be found" in cm.value.stderr
 
 
-@pytest.mark.rhel_ver_list([7, 8, 9])
 @pytest.mark.tier3
+@pytest.mark.rhel_ver_match('N-2')
 def test_positive_generate_installed_packages_report(
     module_sca_manifest_org,
-    local_ak,
+    rhel_contenthost,
     local_content_view,
     local_environment,
-    rhel_contenthost,
+    local_ak,
     target_sat,
 ):
     """Generate an report using the 'Host - All Installed Packages' Report template

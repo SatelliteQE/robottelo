@@ -356,7 +356,7 @@ def test_negative_create_report_without_name(module_target_sat):
 
 
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.no_containers
 def test_positive_applied_errata(
     rhel_contenthost, target_sat, function_location, function_org, function_lce
@@ -428,7 +428,7 @@ def test_positive_applied_errata(
 
 
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.no_containers
 def test_positive_applied_errata_report_with_invalid_errata(
     rhel_contenthost,
@@ -505,7 +505,7 @@ def test_positive_applied_errata_report_with_invalid_errata(
 
 
 @pytest.mark.tier2
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.no_containers
 def test_positive_applied_errata_by_search(
     rhel_contenthost, target_sat, function_org, function_lce
@@ -765,9 +765,9 @@ def test_positive_generate_job_report(setup_content, module_target_sat, content_
 
 @pytest.mark.tier2
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match('N-2')
 def test_positive_installable_errata(
-    target_sat, function_org, function_lce, function_location, rhel_contenthost
+    target_sat, function_org, function_lce, function_activation_key, rhel_contenthost
 ):
     """Generate an Installable Errata report using the Report Template - Available Errata,
         with the option of 'Installable'.
@@ -791,9 +791,6 @@ def test_positive_installable_errata(
 
     :BZ: 1726504
     """
-    activation_key = target_sat.api.ActivationKey(
-        environment=function_lce, organization=function_org
-    ).create()
     custom_cv = target_sat.api.ContentView(organization=function_org).create()
     ERRATUM_ID = str(settings.repos.yum_6.errata[2])
     target_sat.cli_factory.setup_org_for_a_custom_repo(
@@ -802,11 +799,14 @@ def test_positive_installable_errata(
             'organization-id': function_org.id,
             'content-view-id': custom_cv.id,
             'lifecycle-environment-id': function_lce.id,
-            'activationkey-id': activation_key.id,
+            'activationkey-id': function_activation_key.id,
         }
     )
     result = rhel_contenthost.register(
-        function_org, function_location, activation_key.name, target_sat
+        activation_keys=function_activation_key.name,
+        org=function_org,
+        target=target_sat,
+        loc=None,
     )
     assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
     assert rhel_contenthost.subscribed
