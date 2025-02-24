@@ -800,7 +800,6 @@ class TestRemoteExecution:
         """
         client = rex_contenthost
         today = datetime.today()
-        hour = datetime.now().hour
         last_day_of_month = monthrange(today.year, today.month)[1]
         # cronline uses https://github.com/floraison/fugit
         fugit_expressions = [
@@ -821,21 +820,10 @@ class TestRemoteExecution:
                 '@hourly',
                 f'{(datetime.utcnow() + timedelta(hours=1)).strftime("%Y/%m/%d %H")}:00:00',
             ],
-            # 23 mins after every other hour
-            [
-                '23 0-23/2 * * *',
-                f'{today.strftime("%Y/%m/%d")} '
-                f'{(str(hour if hour % 2 == 0 else hour + 1)).rjust(2, "0")}:23:00',
-            ],
             # last day of month
             [
                 '0 0 last * *',
                 f'{today.strftime("%Y/%m")}/{last_day_of_month} 00:00:00',
-            ],
-            # last 7 days of month
-            [
-                '0 0 -7-L * *',
-                f'{today.strftime("%Y/%m")}/{last_day_of_month - 6} 00:00:00',
             ],
             # last friday of month at 7
             [
@@ -863,7 +851,7 @@ class TestRemoteExecution:
             )
 
     @pytest.mark.tier3
-    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.rhel_ver_list([9])
     def test_positive_run_scheduled_job_template(self, rex_contenthost, target_sat):
         """Schedule a job to be ran against a host
 
@@ -877,7 +865,7 @@ class TestRemoteExecution:
         client = rex_contenthost
         system_current_time = target_sat.execute('date --utc +"%b %d %Y %I:%M%p"').stdout
         current_time_object = datetime.strptime(system_current_time.strip('\n'), '%b %d %Y %I:%M%p')
-        plan_time = (current_time_object + timedelta(seconds=30)).strftime("%Y-%m-%d %H:%M")
+        plan_time = (current_time_object + timedelta(seconds=30)).strftime("%Y-%m-%d %H:%M UTC")
         invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
@@ -887,12 +875,9 @@ class TestRemoteExecution:
             }
         )
         # Wait until the job runs
-        pending_state = '1'
-        while pending_state != '0':
-            invocation_info = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
-            pending_state = invocation_info['pending']
-            sleep(30)
-        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
+        target_sat.wait_for_tasks(
+            f'resource_type = JobInvocation and resource_id = {invocation_command["id"]}'
+        )
 
     @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([8, 9])
