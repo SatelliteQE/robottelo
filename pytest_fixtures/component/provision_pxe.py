@@ -278,6 +278,8 @@ def configure_kea_dhcp6_server():
         ).execute()
         yield kea_host
         Broker(workflow='remove-vm', source_vm=kea_host.name).execute()
+    else:
+        yield None
 
 
 @pytest.fixture
