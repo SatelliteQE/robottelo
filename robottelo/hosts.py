@@ -1663,7 +1663,7 @@ class Capsule(ContentHost, CapsuleMixins):
         """Prepare the host and run the capsule installer"""
         self._satellite = sat_host or Satellite()
 
-        if settings.robottelo.rhelsource == "ga":
+        if settings.robottelo.rhel_source == "ga":
             # Register capsule host to CDN and enable repos
             result = self.register_contenthost(
                 org=None,
