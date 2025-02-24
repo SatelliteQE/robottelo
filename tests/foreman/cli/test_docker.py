@@ -400,6 +400,8 @@ class TestDockerRepository:
 
         :Verifies: SAT-21359
 
+        :customerscenario: true
+
         :expectedresults: upload-content cannot be run with a docker type repository
 
         :CaseImportance: Critical
