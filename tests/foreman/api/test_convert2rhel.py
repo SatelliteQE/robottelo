@@ -124,6 +124,7 @@ def centos(
 ):
     """Deploy and register Centos host"""
     major = version.split('.')[0]
+    centos_host.enable_ipv6_dnf_proxy()
     assert centos_host.execute('yum -y update').status == 0
     repo_url = settings.repos.convert2rhel.convert_to_rhel_repo.format(major)
     repo = create_repo(module_target_sat, module_els_sca_manifest_org, repo_url)
@@ -171,6 +172,7 @@ def oracle(
 ):
     """Deploy and register Oracle host"""
     major = version.split('.')[0]
+    oracle_host.enable_ipv6_dnf_proxy()
     # disable rhn-client-tools because it obsoletes the subscription manager package
     oracle_host.execute('echo "exclude=rhn-client-tools" >> /etc/yum.conf')
     # Install and set correct RHEL compatible kernel and using non-UEK kernel, based on C2R docs
