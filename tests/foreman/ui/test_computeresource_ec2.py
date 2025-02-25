@@ -94,7 +94,7 @@ def test_positive_default_end_to_end_with_custom_profile(
         cr_values = session.computeresource.read(cr_name)
         assert cr_values['name'] == cr_name
         assert cr_values['description'] == cr_description
-        assert cr_values['provider_content']['http_proxy']['value'] == http_proxy.name
+        assert cr_values['provider_content']['http_proxy']['value'].split(" ")[1] == http_proxy.name
         assert cr_values['organizations']['resources']['assigned'] == [module_org.name]
         assert cr_values['locations']['resources']['assigned'] == [module_location.name]
         session.computeresource.edit(
