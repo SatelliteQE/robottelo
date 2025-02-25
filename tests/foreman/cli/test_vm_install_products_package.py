@@ -17,8 +17,6 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
     DISTROS_SUPPORTED,
     FAKE_0_CUSTOM_PACKAGE,
 )
@@ -43,8 +41,8 @@ def lce(function_entitlement_manifest_org, target_sat):
             'SatelliteToolsRepository': {'cdn': 'cdn', 'distro': 'distro'},
             'YumRepository': {'url': settings.repos.yum_0.url},
             'DockerRepository': {
-                'url': CONTAINER_REGISTRY_HUB,
-                'upstream_name': CONTAINER_UPSTREAM_NAME,
+                'url': settings.container.registry_hub,
+                'upstream_name': settings.container.upstream_name,
             },
         }
     ],

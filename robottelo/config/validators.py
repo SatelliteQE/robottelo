@@ -91,6 +91,47 @@ VALIDATORS = dict(
         Validator('libvirt.libvirt_hostname', must_exist=True),
         Validator('libvirt.libvirt_image_dir', default='/var/lib/libvirt/images'),
     ],
+    container=[
+        Validator(
+            'container.clients', must_exist=True, is_type_of=list, default=['docker', 'podman']
+        ),
+        Validator(
+            'container.registry_hub',
+            must_exist=True,
+            is_type_of=str,
+            default='https://mirror.gcr.io',
+        ),
+        Validator(
+            'container.upstream_name',
+            must_exist=True,
+            is_type_of=str,
+            default='library/busybox',
+        ),
+        Validator(
+            'container.docker.repo_upstream_name',
+            must_exist=True,
+            is_type_of=str,
+            default='openshift3/logging-elasticsearch',
+        ),
+        Validator(
+            'container.pulp.registry_hub',
+            must_exist=True,
+            is_type_of=str,
+            default='https://ghcr.io',
+        ),
+        Validator(
+            'container.rh.registry_hub',
+            must_exist=True,
+            is_type_of=str,
+            default='https://registry.redhat.io/',
+        ),
+        Validator(
+            'container.rh.upstream_name',
+            must_exist=True,
+            is_type_of=str,
+            default='openshift3/ose-metrics-hawkular-openshift-agent',
+        ),
+    ],
     container_repo=[
         Validator(
             'container_repo.registries.redhat.url',

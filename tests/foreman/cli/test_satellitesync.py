@@ -22,8 +22,6 @@ from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
     DEFAULT_ARCHITECTURE,
     DEFAULT_CV,
     ENVIRONMENT,
@@ -184,8 +182,8 @@ def function_synced_docker_repo(target_sat, function_org):
             'product-id': product['id'],
             'content-type': REPO_TYPE['docker'],
             'download-policy': 'immediate',
-            'url': CONTAINER_REGISTRY_HUB,
-            'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
+            'url': settings.container.registry_hub,
+            'docker-upstream-name': settings.container.upstream_name,
         }
     )
     target_sat.cli.Repository.synchronize({'id': repo['id']})
