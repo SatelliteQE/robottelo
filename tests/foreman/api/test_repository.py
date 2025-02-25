@@ -1597,9 +1597,9 @@ class TestDockerRepository:
             [
                 {
                     'content_type': 'docker',
-                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
+                    'docker_upstream_name': settings.container.upstream_name,
                     'name': name,
-                    'url': constants.CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
                 for name in datafactory.valid_docker_repository_names()
             ]
@@ -1627,9 +1627,9 @@ class TestDockerRepository:
             {
                 'large_repo': {
                     'content_type': 'docker',
-                    'docker_upstream_name': constants.DOCKER_REPO_UPSTREAM_NAME,
+                    'docker_upstream_name': settings.container.docker.repo_upstream_name,
                     'name': gen_string('alphanumeric', 10),
-                    'url': constants.RH_CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.rh.registry_hub,
                     'upstream_username': settings.subscription.rhn_username,
                     'upstream_password': settings.subscription.rhn_password,
                 }
@@ -1670,11 +1670,11 @@ class TestDockerRepository:
         'repo_options_custom_product',
         **datafactory.parametrized(
             {
-                constants.CONTAINER_UPSTREAM_NAME: {
+                settings.container.upstream_name: {
                     'content_type': 'docker',
-                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
+                    'docker_upstream_name': settings.container.upstream_name,
                     'name': gen_string('alphanumeric', 10),
-                    'url': constants.CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
             }
         ),
@@ -1849,12 +1849,12 @@ class TestDockerRepository:
         'repo_options',
         **datafactory.parametrized(
             {
-                constants.CONTAINER_UPSTREAM_NAME: {
+                settings.container.upstream_name: {
                     'content_type': 'docker',
                     'include_tags': ['latest'],
-                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
+                    'docker_upstream_name': settings.container.upstream_name,
                     'name': gen_string('alphanumeric', 10),
-                    'url': constants.CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
             }
         ),
@@ -1882,11 +1882,11 @@ class TestDockerRepository:
         'repo_options',
         **datafactory.parametrized(
             {
-                constants.CONTAINER_UPSTREAM_NAME: {
+                settings.container.upstream_name: {
                     'content_type': 'docker',
-                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
+                    'docker_upstream_name': settings.container.upstream_name,
                     'name': gen_string('alphanumeric', 10),
-                    'url': constants.CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
             }
         ),
@@ -1923,12 +1923,12 @@ class TestDockerRepository:
         'repo_options',
         **datafactory.parametrized(
             {
-                constants.CONTAINER_UPSTREAM_NAME: {
+                settings.container.upstream_name: {
                     'content_type': 'docker',
                     'include_tags': ['latest', gen_string('alpha')],
-                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
+                    'docker_upstream_name': settings.container.upstream_name,
                     'name': gen_string('alphanumeric', 10),
-                    'url': constants.CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
             }
         ),
@@ -1954,12 +1954,12 @@ class TestDockerRepository:
         'repo_options',
         **datafactory.parametrized(
             {
-                constants.CONTAINER_UPSTREAM_NAME: {
+                settings.container.upstream_name: {
                     'content_type': 'docker',
                     'include_tags': [gen_string('alpha') for _ in range(3)],
-                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
+                    'docker_upstream_name': settings.container.upstream_name,
                     'name': gen_string('alphanumeric', 10),
-                    'url': constants.CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
             }
         ),

@@ -23,7 +23,6 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_CLIENTS,
     ENVIRONMENT,
     FAKE_1_YUM_REPOS_COUNT,
     FAKE_3_YUM_REPO_RPMS,
@@ -35,7 +34,6 @@ from robottelo.constants import (
     PRDS,
     REPOS,
     REPOSET,
-    RH_CONTAINER_REGISTRY_HUB,
     RPM_TO_UPLOAD,
     DataFile,
 )
@@ -920,7 +918,7 @@ class TestCapsuleContentManagement:
             for repo in repos
         ]
 
-        for con_client in CONTAINER_CLIENTS:
+        for con_client in settings.container.clients:
             result = module_container_contenthost.execute(
                 f'{con_client} login -u {settings.server.admin_username}'
                 f' -p {settings.server.admin_password} {module_capsule_configured.hostname}'
@@ -1423,7 +1421,7 @@ class TestCapsuleContentManagement:
                 content_type='docker',
                 docker_upstream_name=ups_name,
                 product=function_product,
-                url=RH_CONTAINER_REGISTRY_HUB,
+                url=settings.container.rh.registry_hub,
                 upstream_username=settings.subscription.rhn_username,
                 upstream_password=settings.subscription.rhn_password,
             ).create()
