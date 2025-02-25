@@ -23,7 +23,6 @@ import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import settings
-from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.utils.datafactory import (
     parametrized,
     valid_data_list,
@@ -217,7 +216,7 @@ class TestContentViewFilter:
             content_type='docker',
             docker_upstream_name='busybox',
             product=module_product.id,
-            url=CONTAINER_REGISTRY_HUB,
+            url=settings.container.registry_hub,
         ).create()
         content_view.repository = [sync_repo, docker_repository]
         content_view.update(['repository'])
@@ -428,7 +427,7 @@ class TestContentViewFilter:
             content_type='docker',
             docker_upstream_name='busybox',
             product=module_product.id,
-            url=CONTAINER_REGISTRY_HUB,
+            url=settings.container.registry_hub,
         ).create()
         content_view.repository = [sync_repo, docker_repository]
         content_view = content_view.update(['repository'])
