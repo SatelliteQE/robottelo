@@ -17,7 +17,7 @@ from fauxfactory import gen_integer, gen_string, gen_url
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DOCKER_REPO_UPSTREAM_NAME, REPO_TYPE, REPOS
+from robottelo.constants import REPO_TYPE, REPOS
 from robottelo.hosts import ProxyHostError
 
 
@@ -201,7 +201,9 @@ def test_positive_assign_http_proxy_to_products_repositories(
 @pytest.mark.tier1
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize('setting_update', ['content_default_http_proxy'], indirect=True)
-def test_set_default_http_proxy(module_org, module_location, setting_update, target_sat):
+def test_set_default_http_proxy_no_global_default(
+    module_org, module_location, setting_update, target_sat
+):
     """Setting "Default HTTP proxy" to "no global default".
 
     :id: e93733e1-5c05-4b7f-89e4-253b9ce55a5a
@@ -242,6 +244,61 @@ def test_set_default_http_proxy(module_org, module_location, setting_update, tar
         session.settings.update(f'name = {property_name}', "no global default")
         result = session.settings.read(f'name = {property_name}')
         assert result['table'][0]['Value'] == "Empty"
+
+
+@pytest.mark.tier1
+@pytest.mark.run_in_one_thread
+@pytest.mark.parametrize('setting_update', ['content_default_http_proxy'], indirect=True)
+def test_positive_set_default_http_proxy(
+    request, module_org, module_location, setting_update, target_sat
+):
+    """Setting "Default HTTP proxy" when new HTTP proxy is created.
+
+    :id: e93733e1-5c05-4b7f-89e4-253b9ce55a5b
+
+    :steps:
+        1. Navigate to Infrastructure > Http Proxies
+        2. Create a Http Proxy and set "Default content HTTP proxy"
+        3. Navigate to Administer > Settings > Content tab
+        4. Verify the "Default HTTP Proxy" setting with created above.
+        5. Update "Default HTTP Proxy" to "no global default".
+
+    :expectedresults: Creating Http Proxy with option "Default content HTTP proxy",
+        updates setting "Default HTTP Proxy" succesfully.
+
+    :verifies: SAT-5118, SAT-28860
+
+    :customerscenario: true
+    """
+    property_name = setting_update.name
+    http_proxy_name = gen_string('alpha', 15)
+    http_proxy_url = settings.http_proxy.un_auth_proxy_url
+
+    with target_sat.ui_session() as session:
+        session.http_proxy.create(
+            {
+                'http_proxy.name': http_proxy_name,
+                'http_proxy.url': http_proxy_url,
+                'http_proxy.content_default_http_proxy': 'true',
+                'locations.resources.assigned': [module_location.name],
+                'organizations.resources.assigned': [module_org.name],
+            }
+        )
+
+        # Teardown
+        @request.addfinalizer
+        def _finalize():
+            target_sat.api.HTTPProxy().search(query={'search': f'name={http_proxy_name}'})[
+                0
+            ].delete()
+            default_proxy = target_sat.api.Setting().search(
+                query={'search': 'name=content_default_http_proxy'}
+            )[0]
+            assert default_proxy.value != http_proxy_name
+            assert not default_proxy.value
+
+        result = session.settings.read(f'name = {property_name}')
+        assert result['table'][0]['Value'] == f'{http_proxy_name} ({http_proxy_url})'
 
 
 @pytest.mark.tier1
@@ -442,15 +499,17 @@ def test_positive_repo_discovery(setup_http_proxy, module_target_sat, module_org
                 'repo_type': 'Container Images',
                 'create_repo.product_type': 'New Product',
                 'create_repo.product_content.product_name': product_name,
-                'registry_search': DOCKER_REPO_UPSTREAM_NAME,
+                'registry_search': settings.container.docker.repo_upstream_name,
                 'name': gen_string('alphanumeric', 10),
                 'username': settings.subscription.rhn_username,
                 'password': settings.subscription.rhn_password,
-                'discovered_repos.repos': DOCKER_REPO_UPSTREAM_NAME,
+                'discovered_repos.repos': settings.container.docker.repo_upstream_name,
             }
         )
         assert session.product.search(product_name)[0]['Name'] == product_name
         assert (
-            DOCKER_REPO_UPSTREAM_NAME
-            in session.repository.search(product_name, DOCKER_REPO_UPSTREAM_NAME)[0]['Name']
+            settings.container.docker.repo_upstream_name
+            in session.repository.search(
+                product_name, settings.container.docker.repo_upstream_name
+            )[0]['Name']
         )

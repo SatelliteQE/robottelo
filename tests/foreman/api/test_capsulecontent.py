@@ -26,9 +26,6 @@ from requests.exceptions import HTTPError
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_CLIENTS,
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
     ENVIRONMENT,
     FAKE_1_YUM_REPOS_COUNT,
     FAKE_3_YUM_REPO_RPMS,
@@ -36,13 +33,12 @@ from robottelo.constants import (
     FAKE_FILE_LARGE_COUNT,
     FAKE_FILE_LARGE_URL,
     FAKE_FILE_NEW_NAME,
+    FLATPAK_ENDPOINTS,
     KICKSTART_CONTENT,
     PRDS,
     PULP_ARTIFACT_DIR,
-    PULPCORE_FLATPAK_ENDPOINT,
     REPOS,
     REPOSET,
-    RH_CONTAINER_REGISTRY_HUB,
     RPM_TO_UPLOAD,
     DataFile,
 )
@@ -785,26 +781,28 @@ class TestCapsuleContentManagement:
             assert b'katello-server-ca.crt' in response.content
 
     @pytest.mark.upgrade
-    def test_flatpak_pulpcore_endpoint(self, target_sat, module_capsule_configured):
-        """Ensure the Capsules's flatpak pulpcore endpoint is up after install or upgrade.
+    @pytest.mark.parametrize('endpoint', ['pulpcore'])
+    def test_flatpak_endpoint(self, target_sat, module_capsule_configured, endpoint):
+        """Ensure the Capsules's local flatpak index endpoint is up after install or upgrade.
 
         :id: 5676fbbb-75be-4660-a09e-65cafdfb221a
 
+        :parametrized: yes
+
         :steps:
-            1. Hit Capsule's pulpcore_registry endpoint.
+            1. Hit Capsule's local flatpak index endpoint per parameter.
 
         :expectedresults:
             1. HTTP 200
         """
-        rq = requests.get(
-            PULPCORE_FLATPAK_ENDPOINT.format(module_capsule_configured.hostname), verify=False
-        )
-        assert rq.ok, f'Expected 200 but got {rq.status_code} from pulpcore registry index'
+        ep = FLATPAK_ENDPOINTS[endpoint].format(module_capsule_configured.hostname)
+        rq = requests.get(ep, verify=settings.server.verify_ca)
+        assert rq.ok, f'Expected 200 but got {rq.status_code} from {endpoint} registry index'
 
     @pytest.mark.e2e
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
-    @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos'])
+    @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos', 'rhel10_bos_beta'])
     def test_positive_sync_kickstart_repo(
         self, target_sat, module_capsule_configured, function_sca_manifest_org, distro
     ):
@@ -868,18 +866,18 @@ class TestCapsuleContentManagement:
         module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
-
         # Check for kickstart content on SAT and CAPS
-        tail = (
-            f'rhel/server/7/{REPOS["kickstart"][distro]["version"]}/x86_64/kickstart'
-            if distro == 'rhel7'
-            else f'{distro.split("_")[0]}/{REPOS["kickstart"][distro]["version"]}/x86_64/baseos/kickstart'  # noqa:E501
-        )
+        tail = None
+        if distro == 'rhel7':
+            tail = f'rhel/server/7/{REPOS["kickstart"][distro]["version"]}/x86_64/kickstart'
+        elif 'beta' in distro:
+            tail = f'{distro.split("_")[0]}/{REPOS["kickstart"][distro]["version"]}/beta/x86_64/baseos/kickstart'
+        else:
+            tail = f'{distro.split("_")[0]}/{REPOS["kickstart"][distro]["version"]}/x86_64/baseos/kickstart'  # noqa:E501
         url_base = (
             f'pulp/content/{function_sca_manifest_org.label}/{lce.label}/{cv.label}/'
             f'content/dist/{tail}'
         )
-
         # Check kickstart specific files
         for file in KICKSTART_CONTENT:
             sat_file = target_sat.checksum_by_url(f'{target_sat.url}/{url_base}/{file}')
@@ -979,7 +977,7 @@ class TestCapsuleContentManagement:
             for repo in repos
         ]
 
-        for con_client in CONTAINER_CLIENTS:
+        for con_client in settings.container.clients:
             result = module_container_contenthost.execute(
                 f'{con_client} login -u {settings.server.admin_username}'
                 f' -p {settings.server.admin_password} {module_capsule_configured.hostname}'
@@ -1447,13 +1445,13 @@ class TestCapsuleContentManagement:
         'repos_collection',
         [
             {
-                'distro': 'rhel9',
+                'distro': 'rhel10',
                 'YumRepository': {'url': settings.repos.yum_0.url},
             }
         ],
         indirect=True,
     )
-    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    @pytest.mark.rhel_ver_match('N-0')
     def test_complete_sync_fixes_metadata(
         self,
         module_target_sat,
@@ -1607,7 +1605,7 @@ class TestCapsuleContentManagement:
                 content_type='docker',
                 docker_upstream_name=ups_name,
                 product=function_product,
-                url=RH_CONTAINER_REGISTRY_HUB,
+                url=settings.container.rh.registry_hub,
                 upstream_username=settings.subscription.rhn_username,
                 upstream_password=settings.subscription.rhn_password,
             ).create()
@@ -1645,8 +1643,8 @@ class TestCapsuleContentManagement:
                 'YumRepository': {'url': settings.repos.module_stream_1.url},
                 'FileRepository': {'url': CUSTOM_FILE_REPO},
                 'DockerRepository': {
-                    'url': CONTAINER_REGISTRY_HUB,
-                    'upstream_name': CONTAINER_UPSTREAM_NAME,
+                    'url': settings.container.registry_hub,
+                    'upstream_name': settings.container.upstream_name,
                 },
                 'AnsibleRepository': {
                     'url': ANSIBLE_GALAXY,

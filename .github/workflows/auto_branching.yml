@@ -66,7 +66,7 @@ jobs:
       - name: Checkout from ${{ github.event.inputs.target_branch }} branch for auto-branching changes
         id: checkout-to-auto-branch
         run: |
-            branch_name="auto-branching-${{ github.event.inputs.target_branch }}-$(date '+%s')"
+            branch_name="auto-branching-${{ github.event.inputs.target_branch }}-$(date '+%s.%N')"
             git checkout -b "$branch_name"
             echo "branch_name=$branch_name" >> $GITHUB_OUTPUT
 
@@ -269,7 +269,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          branch_name="auto-branching-${{ github.event.inputs.target_branch }}-$(date '+%s')"
+          branch_name="auto-branching-${{ github.event.inputs.target_branch }}-$(date '+%s.%N')"
           git checkout -b "$branch_name"
           git add setup.py ./tests/foreman ./robottelo/* ./requirements.txt ./.github/* ./conf/robottelo.yaml.template
           git commit -m "Changes for new ${{ github.event.inputs.target_branch }} branch"

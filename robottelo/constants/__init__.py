@@ -6,7 +6,7 @@ from box import Box
 from nailgun import entities
 
 # This should be updated after each version branch
-SATELLITE_VERSION = "6.17"
+SATELLITE_VERSION = "6.18"
 SATELLITE_OS_VERSION = "9"
 
 # Default system ports
@@ -33,12 +33,12 @@ LOCALES = (
 
 
 DISTRO_DEFAULT = 'rhel7'
-DISTROS_SUPPORTED = ['rhel6', 'rhel7', 'rhel8', 'rhel9']
+DISTROS_SUPPORTED = ['rhel7', 'rhel8', 'rhel9', 'rhel10']
 DISTROS_MAJOR_VERSION = {
-    'rhel6': 6,
     'rhel7': 7,
     'rhel8': 8,
     'rhel9': 9,
+    'rhel10': 10,
 }
 MAJOR_VERSION_DISTRO = {value: key for key, value in DISTROS_MAJOR_VERSION.items()}
 
@@ -730,6 +730,12 @@ REPOS = {
     },
 }
 
+# RHEL versions for LEAPP testing
+RHEL7_VER = '7.9'
+RHEL8_VER = '8.10'
+RHEL9_VER = '9.5'
+RHEL10_VER = '10.1'  # EL10 pre-release version
+
 BULK_REPO_LIST = [
     REPOS['rhel7_optional'],
     REPOS['rhel7_sup'],
@@ -786,12 +792,7 @@ FILTER_ERRATA_TYPE = {
 FILTER_ERRATA_DATE = {'updated': "updated", 'issued': "issued"}
 
 REPORT_TEMPLATE_FILE = 'report_template.txt'
-CONTAINER_REGISTRY_HUB = 'https://mirror.gcr.io'
-RH_CONTAINER_REGISTRY_HUB = 'https://registry.redhat.io/'
-PULP_CONTAINER_REGISTRY_HUB = 'https://ghcr.io'
-CONTAINER_UPSTREAM_NAME = 'library/busybox'
-DOCKER_REPO_UPSTREAM_NAME = 'openshift3/logging-elasticsearch'
-CONTAINER_RH_REGISTRY_UPSTREAM_NAME = 'openshift3/ose-metrics-hawkular-openshift-agent'
+
 BOOTABLE_REPO = {
     'upstream_name': 'pulp/bootc-labeled',
     'manifest': {
@@ -840,9 +841,11 @@ FLATPAK_REMOTES = {
     },
 }
 FLATPAK_INDEX_SUFFIX = 'index/static?label:org.flatpak.ref:exists=1&tag=latest'
-PULPCORE_FLATPAK_ENDPOINT = 'https://{}/pulpcore_registry/' + FLATPAK_INDEX_SUFFIX
+FLATPAK_ENDPOINTS = {
+    'pulpcore': 'https://{}/pulpcore_registry/' + FLATPAK_INDEX_SUFFIX,
+    'katello': 'https://{}/' + FLATPAK_INDEX_SUFFIX,
+}
 
-CONTAINER_CLIENTS = ['docker', 'podman']
 CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/lib/pulp/imports/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3

@@ -20,8 +20,6 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
     FAKE_0_CUSTOM_PACKAGE_NAME,
     PULP_EXPORT_DIR,
 )
@@ -160,8 +158,8 @@ def _dictionarize_counts(data):
             'YumRepository': {'url': settings.repos.module_stream_1.url},
             'FileRepository': {'url': CUSTOM_FILE_REPO},
             'DockerRepository': {
-                'url': CONTAINER_REGISTRY_HUB,
-                'upstream_name': CONTAINER_UPSTREAM_NAME,
+                'url': settings.container.registry_hub,
+                'upstream_name': settings.container.upstream_name,
             },
             'AnsibleRepository': {
                 'url': ANSIBLE_GALAXY,
@@ -668,8 +666,8 @@ def test_positive_exported_imported_content_sync(
         {'content_type': 'file', 'url': CUSTOM_FILE_REPO},
         {
             'content_type': 'docker',
-            'docker_upstream_name': CONTAINER_UPSTREAM_NAME,
-            'url': CONTAINER_REGISTRY_HUB,
+            'docker_upstream_name': settings.container.upstream_name,
+            'url': settings.container.registry_hub,
         },
         {
             'content_type': 'ansible_collection',
@@ -787,10 +785,12 @@ def test_positive_repair_artifacts(
 
 @pytest.mark.e2e
 @pytest.mark.parametrize('function_flatpak_remote', ['RedHat'], indirect=True)
+@pytest.mark.parametrize('setting_update', ['foreman_proxy_content_auto_sync=True'], indirect=True)
 def test_sync_consume_flatpak_repo_via_library(
     request,
     module_target_sat,
     module_capsule_configured,
+    setting_update,
     module_flatpak_contenthost,
     function_org,
     function_product,
@@ -800,6 +800,8 @@ def test_sync_consume_flatpak_repo_via_library(
     """Verify flatpak repository workflow via capsule end to end.
 
     :id: 8871b695-18fd-45a8-bb40-664c384996a0
+
+    :parametrized: yes
 
     :setup:
         1. Registered external capsule.
@@ -879,11 +881,11 @@ def test_sync_consume_flatpak_repo_via_library(
             'job-template': 'Flatpak - Set up remote on host',
             'inputs': (
                 f'Remote Name={remote_name}, '
-                f'Flatpak registry URL=https://{caps.hostname}/pulpcore_registry/, '
+                f'Flatpak registry URL={settings.server.scheme}://{caps.hostname}/pulpcore_registry/, '
                 f'Username={settings.server.admin_username}, '
                 f'Password={settings.server.admin_password}'
             ),
-            'search-query': f"name ~ {host.hostname}",
+            'search-query': f"name = {host.hostname}",
         }
     )
     res = module_target_sat.cli.JobInvocation.info({'id': job.id})
@@ -903,7 +905,7 @@ def test_sync_consume_flatpak_repo_via_library(
             'organization': function_org.name,
             'job-template': 'Flatpak - Install application on host',
             'inputs': f'Flatpak remote name={remote_name}, Application name={app_name}',
-            'search-query': f"name ~ {host.hostname}",
+            'search-query': f"name = {host.hostname}",
         }
     )
     res = module_target_sat.cli.JobInvocation.info({'id': job.id})
