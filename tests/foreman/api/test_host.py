@@ -1070,6 +1070,7 @@ def test_positive_read_enc_information(
 
 
 @pytest.mark.e2e
+@pytest.mark.no_containers
 def test_positive_bootc_api_actions(target_sat, bootc_host, function_ak_with_cv, function_org):
     """Register a bootc host and validate API information
 
@@ -1082,12 +1083,10 @@ def test_positive_bootc_api_actions(target_sat, bootc_host, function_ak_with_cv,
     :CaseImportance: Critical
     """
     bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
-    assert (
-        bootc_host[0].register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
-    )
-    assert bootc_host[0].subscribed
+    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
+    assert bootc_host.subscribed
     # Testing bootc info from content_facet_attributes
-    bootc_host = target_sat.api.Host().search(query={'search': f'name={bootc_host[0].hostname}'})[0]
+    bootc_host = target_sat.api.Host().search(query={'search': f'name={bootc_host.hostname}'})[0]
     assert (
         bootc_host.content_facet_attributes['bootc_booted_image']
         == bootc_dummy_info['bootc.booted.image']
@@ -1105,13 +1104,13 @@ def test_positive_bootc_api_actions(target_sat, bootc_host, function_ak_with_cv,
         == bootc_dummy_info['bootc.rollback.digest']
     )
     # Testing bootc info from hosts/bootc_images
-    bootc_image_info = target_sat.api.Host().get_bootc_images()
-    assert bootc_image_info[0]['bootc_booted_image'] == bootc_dummy_info['bootc.booted.image']
+    bootc_image_info = target_sat.api.Host().get_bootc_images()['results'][0]
+    assert bootc_image_info['bootc_booted_image'] == bootc_dummy_info['bootc.booted.image']
     assert (
-        bootc_image_info[0]['bootc_booted_image']['digests'][0]['bootc_booted_digest']
+        bootc_image_info['digests'][0]['bootc_booted_digest']
         == bootc_dummy_info['bootc.booted.digest']
     )
-    assert bootc_image_info[0]['bootc_booted_image']['digests'][0]['host_count'] > 0
+    assert bootc_image_info['digests'][0]['host_count'] > 0
 
 
 @pytest.mark.tier2
