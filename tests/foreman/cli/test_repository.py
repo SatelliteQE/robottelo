@@ -22,8 +22,6 @@ from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
     CUSTOM_FILE_REPO_FILES_COUNT,
     CUSTOM_LOCAL_FOLDER,
     DOWNLOAD_POLICIES,
@@ -475,9 +473,9 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
+                    'docker-upstream-name': settings.container.upstream_name,
                     'name': valid_docker_repository_names()[0],
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
             ]
         ),
@@ -505,9 +503,9 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
+                    'docker-upstream-name': settings.container.upstream_name,
                     'name': name,
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
                 for name in valid_docker_repository_names()
             ]
@@ -756,9 +754,9 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
+                    'docker-upstream-name': settings.container.upstream_name,
                     'name': valid_docker_repository_names()[0],
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
             ]
         ),
@@ -803,9 +801,9 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
+                    'docker-upstream-name': settings.container.upstream_name,
                     'name': valid_docker_repository_names()[0],
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
             ]
         ),
@@ -837,8 +835,8 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'docker-upstream-name': settings.container.upstream_name,
+                    'url': settings.container.registry_hub,
                     'mirroring-policy': 'additive',
                 }
             ]
@@ -878,8 +876,8 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'docker-upstream-name': settings.container.upstream_name,
+                    'url': settings.container.registry_hub,
                     'mirroring-policy': 'mirror_content_only',
                 }
             ]
@@ -921,8 +919,8 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'docker-upstream-name': settings.container.upstream_name,
+                    'url': settings.container.registry_hub,
                     'include-tags': f"latest,{gen_string('alpha')}",
                 }
             ]

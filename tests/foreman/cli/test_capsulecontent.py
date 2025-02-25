@@ -20,8 +20,6 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
     PULP_EXPORT_DIR,
 )
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
@@ -132,8 +130,8 @@ def module_capsule_artifact_cleanup(
             'YumRepository': {'url': settings.repos.module_stream_1.url},
             'FileRepository': {'url': CUSTOM_FILE_REPO},
             'DockerRepository': {
-                'url': CONTAINER_REGISTRY_HUB,
-                'upstream_name': CONTAINER_UPSTREAM_NAME,
+                'url': settings.container.registry_hub,
+                'upstream_name': settings.container.upstream_name,
             },
             'AnsibleRepository': {
                 'url': ANSIBLE_GALAXY,
@@ -455,8 +453,8 @@ def test_positive_exported_imported_content_sync(
         {'content_type': 'file', 'url': CUSTOM_FILE_REPO},
         {
             'content_type': 'docker',
-            'docker_upstream_name': CONTAINER_UPSTREAM_NAME,
-            'url': CONTAINER_REGISTRY_HUB,
+            'docker_upstream_name': settings.container.upstream_name,
+            'url': settings.container.registry_hub,
         },
         {
             'content_type': 'ansible_collection',

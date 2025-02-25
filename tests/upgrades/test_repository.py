@@ -22,7 +22,6 @@ from robottelo.constants import (
     FAKE_0_CUSTOM_PACKAGE_NAME,
     FAKE_4_CUSTOM_PACKAGE_NAME,
     LABELLED_REPOS,
-    PULP_CONTAINER_REGISTRY_HUB,
     REPOS,
 )
 from robottelo.hosts import ContentHost
@@ -324,7 +323,7 @@ class TestScenarioContainerRepoSync:
                 content_type='docker',
                 docker_upstream_name=item['upstream_name'],
                 product=module_product,
-                url=PULP_CONTAINER_REGISTRY_HUB,
+                url=settings.container.pulp.registry_hub,
             ).create()
             repo.sync()
             repo = repo.read()
