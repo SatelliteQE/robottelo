@@ -18,12 +18,10 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
-    DOCKER_REPO_UPSTREAM_NAME,
     PRDS,
     REPO_TYPE,
     REPOS,
     REPOSET,
-    RH_CONTAINER_REGISTRY_HUB,
 )
 from robottelo.constants.repos import FEDORA_OSTREE_REPO
 
@@ -154,8 +152,8 @@ def test_positive_sync_docker_via_sync_status(session, module_org, module_target
             {
                 'name': repo_name,
                 'repo_type': REPO_TYPE['docker'],
-                'repo_content.upstream_url': RH_CONTAINER_REGISTRY_HUB,
-                'repo_content.upstream_repo_name': DOCKER_REPO_UPSTREAM_NAME,
+                'repo_content.upstream_url': settings.container.rh.registry_hub,
+                'repo_content.upstream_repo_name': settings.container.docker.repo_upstream_name,
                 'repo_content.upstream_username': settings.subscription.rhn_username,
                 'repo_content.upstream_password': settings.subscription.rhn_password,
             },

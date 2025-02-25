@@ -26,9 +26,6 @@ from requests.exceptions import HTTPError
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_CLIENTS,
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
     ENVIRONMENT,
     FAKE_1_YUM_REPOS_COUNT,
     FAKE_3_YUM_REPO_RPMS,
@@ -42,7 +39,6 @@ from robottelo.constants import (
     PULP_ARTIFACT_DIR,
     REPOS,
     REPOSET,
-    RH_CONTAINER_REGISTRY_HUB,
     RPM_TO_UPLOAD,
     DataFile,
 )
@@ -981,7 +977,7 @@ class TestCapsuleContentManagement:
             for repo in repos
         ]
 
-        for con_client in CONTAINER_CLIENTS:
+        for con_client in settings.container.clients:
             result = module_container_contenthost.execute(
                 f'{con_client} login -u {settings.server.admin_username}'
                 f' -p {settings.server.admin_password} {module_capsule_configured.hostname}'
@@ -1609,7 +1605,7 @@ class TestCapsuleContentManagement:
                 content_type='docker',
                 docker_upstream_name=ups_name,
                 product=function_product,
-                url=RH_CONTAINER_REGISTRY_HUB,
+                url=settings.container.rh.registry_hub,
                 upstream_username=settings.subscription.rhn_username,
                 upstream_password=settings.subscription.rhn_password,
             ).create()
@@ -1647,8 +1643,8 @@ class TestCapsuleContentManagement:
                 'YumRepository': {'url': settings.repos.module_stream_1.url},
                 'FileRepository': {'url': CUSTOM_FILE_REPO},
                 'DockerRepository': {
-                    'url': CONTAINER_REGISTRY_HUB,
-                    'upstream_name': CONTAINER_UPSTREAM_NAME,
+                    'url': settings.container.registry_hub,
+                    'upstream_name': settings.container.upstream_name,
                 },
                 'AnsibleRepository': {
                     'url': ANSIBLE_GALAXY,
