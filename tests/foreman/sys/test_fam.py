@@ -200,7 +200,7 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
 
     # Execute test_playbook
     result = module_target_sat.execute(
-        f'NO_COLOR=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 make --directory {FAM_ROOT_DIR} livetest_{ansible_module} PYTHON_COMMAND="python3" PYTEST_COMMAND="pytest-3.11"'
+        f'NO_COLOR=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 make --directory {FAM_ROOT_DIR} livetest_{ansible_module} PYTHON_COMMAND="python3" PYTEST_COMMAND="pytest-3.12"'
     )
     assert result.status == 0, f"{result.status=}\n{result.stdout=}\n{result.stderr=}"
 
@@ -216,6 +216,6 @@ def test_positive_run_inventory(module_target_sat, setup_fam, ansible_module):
     """
     # Execute test_playbook
     result = module_target_sat.execute(
-        f'cd {FAM_ROOT_DIR} && NO_COLOR=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest-3.11 tests/test_crud.py::test_inventory[{ansible_module}]'
+        f'cd {FAM_ROOT_DIR} && NO_COLOR=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest-3.12 tests/test_crud.py::test_inventory[{ansible_module}]'
     )
     assert result.status == 0, f"{result.status=}\n{result.stdout=}\n{result.stderr=}"
