@@ -21,8 +21,6 @@ from requests.exceptions import HTTPError
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
     REPO_TYPE,
     DataFile,
 )
@@ -180,9 +178,9 @@ def test_positive_sync_several_repos(module_org, module_target_sat):
     ).create()
     docker_repo = module_target_sat.api.Repository(
         content_type=REPO_TYPE['docker'],
-        docker_upstream_name=CONTAINER_UPSTREAM_NAME,
+        docker_upstream_name=settings.container.upstream_name,
         product=product,
-        url=CONTAINER_REGISTRY_HUB,
+        url=settings.container.registry_hub,
     ).create()
     assert rpm_repo.read().content_counts['rpm'] == 0
     assert docker_repo.read().content_counts['docker_tag'] == 0
