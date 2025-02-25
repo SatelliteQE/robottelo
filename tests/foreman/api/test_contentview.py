@@ -21,7 +21,6 @@ from requests.exceptions import HTTPError
 
 from robottelo.config import settings, user_nailgun_config
 from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
     CUSTOM_RPM_SHA_512_FEED_COUNT,
     DEFAULT_ARCHITECTURE,
     PERMISSIONS,
@@ -1258,7 +1257,7 @@ class TestOstreeContentView:
             content_type='docker',
             docker_upstream_name='busybox',
             product=module_product,
-            url=CONTAINER_REGISTRY_HUB,
+            url=settings.container.registry_hub,
         ).create()
         self.docker_repo.sync()
 
