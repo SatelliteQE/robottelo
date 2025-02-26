@@ -1663,24 +1663,35 @@ class Capsule(ContentHost, CapsuleMixins):
         """Prepare the host and run the capsule installer"""
         self._satellite = sat_host or Satellite()
 
-        # Register capsule host to CDN and enable repos
-        result = self.register_contenthost(
-            org=None,
-            lce=None,
-            username=settings.subscription.rhn_username,
-            password=settings.subscription.rhn_password,
-            auto_attach=True,
-        )
-        if result.status:
-            raise CapsuleHostError(f'Capsule CDN registration failed\n{result.stderr}')
-
-        for repo in getattr(constants, f"OHSNAP_RHEL{self.os_version.major}_REPOS"):
-            result = self.enable_repo(repo, force=True)
+        if settings.robottelo.rhel_source == "ga":
+            # Register capsule host to CDN and enable repos
+            result = self.register_contenthost(
+                org=None,
+                lce=None,
+                username=settings.subscription.rhn_username,
+                password=settings.subscription.rhn_password,
+                auto_attach=True,
+            )
             if result.status:
-                raise CapsuleHostError(f'Repo enable at capsule host failed\n{result.stdout}')
+                raise CapsuleHostError(f'Capsule CDN registration failed\n{result.stderr}')
+
+            for repo in getattr(constants, f"OHSNAP_RHEL{self.os_version.major}_REPOS"):
+                result = self.enable_repo(repo, force=True)
+                if result.status:
+                    raise CapsuleHostError(f'Repo enable at capsule host failed\n{result.stdout}')
+        elif settings.robottelo.rhel_source == "internal":
+            # add internal rhel repos
+            self.create_custom_repos(**settings.repos.get(f'rhel{self.os_version.major}_os'))
 
         # Update system, firewall services and check capsule is already installed from template
-        self.execute('yum -y update', timeout=0)
+        # Setups firewall on Capsule
+        self.execute('dnf -y update', timeout=0)
+        assert (
+            self.execute(
+                "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
+            ).status
+            == 0
+        ), "firewalld is not present and can't be installed"
         self.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
         self.execute('firewall-cmd --runtime-to-permanent')
         result = self.execute('rpm -q satellite-capsule')
@@ -2037,6 +2048,12 @@ class Satellite(Capsule, SatelliteMixins):
         # Setups firewall on Satellite
         assert (
             self.execute(
+                "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
+            ).status
+            == 0
+        ), "firewalld is not present and can't be installed"
+        assert (
+            self.execute(
                 command='firewall-cmd --add-port="53/udp" --add-port="53/tcp" --add-port="67/udp" '
                 '--add-port="69/udp" --add-port="80/tcp" --add-port="443/tcp" '
                 '--add-port="5647/tcp" --add-port="8000/tcp" --add-port="9090/tcp" '
@@ -2108,8 +2125,13 @@ class Satellite(Capsule, SatelliteMixins):
             f'curl -O {settings.robottelo.repos_hosting_url}{CUSTOM_PUPPET_MODULE_REPOS_PATH}'
             f'{custom_puppet_module_repo}',
         )
+        http_proxy = (
+            f'HTTP_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
+            if settings.server.is_ipv6
+            else ''
+        )
         self.execute(
-            f'puppet module install {custom_puppet_module_repo} '
+            f'{http_proxy}puppet module install {custom_puppet_module_repo} '
             f'--target-dir /etc/puppetlabs/code/environments/{env_name}/modules/'
         )
         smart_proxy = (

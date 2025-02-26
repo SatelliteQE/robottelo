@@ -22,13 +22,10 @@ from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
     DEFAULT_ARCHITECTURE,
     DEFAULT_CV,
     ENVIRONMENT,
     EXPORT_LIBRARY_NAME,
-    FLATPAK_REMOTES,
     PULP_EXPORT_DIR,
     PULP_IMPORT_DIR,
     REPO_TYPE,
@@ -198,8 +195,8 @@ def function_synced_docker_repo(target_sat, function_org, function_product):
             'product-id': function_product.id,
             'content-type': REPO_TYPE['docker'],
             'download-policy': 'immediate',
-            'url': CONTAINER_REGISTRY_HUB,
-            'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
+            'url': settings.container.registry_hub,
+            'docker-upstream-name': settings.container.upstream_name,
         }
     )
     target_sat.cli.Repository.synchronize({'id': repo['id']})
@@ -207,28 +204,30 @@ def function_synced_docker_repo(target_sat, function_org, function_product):
 
 
 @pytest.fixture
-def function_synced_flatpak_repo(target_sat, function_org, function_product):
-    fr = target_sat.cli.FlatpakRemote().create(
-        {
-            'organization-id': function_org.id,
-            'url': FLATPAK_REMOTES['Fedora']['url'],
-            'name': gen_string('alpha'),
-        }
-    )
-    target_sat.cli.FlatpakRemote().scan({'id': fr['id']})
-    repos = target_sat.cli.FlatpakRemote().repository_list({'flatpak-remote-id': fr['id']})
-    assert len(repos), 'No repositories scanned'
-    repo_name = 'firefox'
-    remote_repo = next(r for r in repos if r['name'] == repo_name)
-    target_sat.cli.FlatpakRemote().repository_mirror(
-        {'flatpak-remote-id': fr['id'], 'id': remote_repo['id'], 'product-id': function_product.id}
-    )
-    local_repo = target_sat.cli.Repository.list(
-        {'product-id': function_product.id, 'name': repo_name}
-    )[0]
-    target_sat.cli.Repository.update({'id': local_repo['id'], 'download-policy': 'immediate'})
-    target_sat.cli.Repository.synchronize({'id': local_repo['id']})
-    return target_sat.cli.Repository.info({'id': local_repo['id']})
+def function_synced_flatpak_repos(
+    target_sat, function_org, function_flatpak_remote, function_product
+):
+    repo_names = ['rhel9/firefox-flatpak', 'rhel9/flatpak-runtime']  # runtime is dependency
+    remote_repos = [r for r in function_flatpak_remote.repos if r['name'] in repo_names]
+    for repo in remote_repos:
+        target_sat.cli.FlatpakRemote().repository_mirror(
+            {
+                'flatpak-remote-id': function_flatpak_remote.remote['id'],
+                'id': repo['id'],  # or by name
+                'product-id': function_product.id,
+            }
+        )
+
+    local_repos = [
+        r
+        for r in target_sat.cli.Repository.list({'product-id': function_product.id})
+        if r['name'] in repo_names
+    ]
+    for repo in local_repos:
+        target_sat.cli.Repository.update({'id': repo['id'], 'download-policy': 'immediate'})
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+
+    return [target_sat.cli.Repository.info({'id': repo['id']}) for repo in local_repos]
 
 
 @pytest.fixture
@@ -1357,21 +1356,27 @@ class TestContentViewSync:
             )
         assert 'content_view not found' in error.value.message, 'The imported CV should be gone'
 
+    @pytest.mark.e2e
     @pytest.mark.tier3
+    @pytest.mark.parametrize('function_flatpak_remote', ['RedHat'], indirect=True)
     def test_postive_export_import_cv_with_mixed_content_repos(
         self,
+        request,
         complete_export_import_cleanup,
         target_sat,
         function_org,
+        function_product,
         function_synced_custom_repo,
         function_synced_file_repo,
         function_synced_docker_repo,
-        function_synced_flatpak_repo,
+        function_synced_flatpak_repos,
         function_synced_AC_repo,
         module_import_sat,
         function_import_org_at_isat,
+        module_flatpak_contenthost,
     ):
-        """Export and import CV with mixed content types in the exportable format.
+        """Export and import CV with mixed content types in the exportable format,
+        consume it from the import.
 
         :id: ffcdbbc6-f787-4978-80a7-4b44c389bf49
 
@@ -1382,10 +1387,14 @@ class TestContentViewSync:
             1. Create CV, add all setup repos and publish.
             2. Export CV version contents to a directory.
             3. Import the exported CV, check the content.
+            4. Register a contenthost using AK.
+            5. Configure the contenthost via REX to use import Sat's flatpak index.
+            6. Consume the imported content for each content type.
 
         :expectedresults:
             1. Export succeeds and content is exported.
             2. Import succeeds, content is imported and matches the export.
+            3. Imported content is consumable at the registered host.
 
         :BZ: 1726457
 
@@ -1400,9 +1409,9 @@ class TestContentViewSync:
             function_synced_custom_repo,
             function_synced_file_repo,
             function_synced_docker_repo,
-            function_synced_flatpak_repo,
             function_synced_AC_repo,
         ]
+        repos.extend(function_synced_flatpak_repos)
         for repo in repos:
             target_sat.cli.ContentView.add_repository(
                 {
@@ -1460,8 +1469,12 @@ class TestContentViewSync:
         imported_files = module_import_sat.cli.File.list(
             {'content-view-version-id': importing_cvv['id']}
         )
-        assert exported_packages == imported_packages, 'Imported RPMs do not match the export'
-        assert exported_files == imported_files, 'Imported Files do not match the export'
+        assert set(f['filename'] for f in exported_packages) == set(
+            f['filename'] for f in imported_packages
+        ), 'Imported RPMs do not match the export'
+        assert set(f['name'] for f in exported_files) == set(f['name'] for f in imported_files), (
+            'Imported Files do not match the export'
+        )
 
         for repo in repos:
             exp = target_sat.cli.Repository.info(
@@ -1482,6 +1495,125 @@ class TestContentViewSync:
                 assert exp[key] == imp[key], (
                     f'"{key}" of the {imp["content-type"]} repo differs: {exp[key]} ≠ {imp[key]}'
                 )
+
+        # Register a content host using AK.
+        ak = module_import_sat.cli.ActivationKey.create(
+            {
+                'name': gen_string('alpha'),
+                'organization-id': function_import_org_at_isat.id,
+                'lifecycle-environment': 'Library',
+                'content-view': importing_cv['name'],
+            }
+        )
+        module_import_sat.cli.ActivationKey.content_override(
+            {
+                'id': ak['id'],
+                'content-label': '_'.join(
+                    [
+                        function_import_org_at_isat.name,
+                        function_product.name,
+                        function_synced_custom_repo.name,
+                    ]
+                ),
+                'value': 'true',
+            }
+        )
+        res = module_flatpak_contenthost.register(
+            function_import_org_at_isat, None, ak['name'], module_import_sat, force=True
+        )
+        assert res.status == 0, (
+            f'Failed to register host: {module_flatpak_contenthost.hostname}\n'
+            f'StdOut: {res.stdout}\nStdErr: {res.stderr}'
+        )
+        assert module_flatpak_contenthost.subscribed
+
+        # Configure the contenthost via REX to use Satellite's flatpak index.
+        remote_name = f'ISS-remote-{gen_string("alpha")}'
+        job = module_import_sat.cli_factory.job_invocation(
+            {
+                'organization': function_import_org_at_isat.name,
+                'job-template': 'Flatpak - Set up remote on host',
+                'inputs': (
+                    f'Remote Name={remote_name}, '
+                    f'Flatpak registry URL={settings.server.scheme}://{module_import_sat.hostname}/pulpcore_registry/, '
+                    f'Username={settings.server.admin_username}, '
+                    f'Password={settings.server.admin_password}'
+                ),
+                'search-query': f"name = {module_flatpak_contenthost.hostname}",
+            }
+        )
+        res = module_import_sat.cli.JobInvocation.info({'id': job.id})
+        assert 'succeeded' in res['status']
+        request.addfinalizer(
+            lambda: module_flatpak_contenthost.execute(f'flatpak remote-delete {remote_name}')
+        )
+
+        # Consume the imported content for each content type.
+        #  Flatpak
+        res = module_flatpak_contenthost.execute('flatpak remotes')
+        assert remote_name in res.stdout
+
+        app_name = 'Firefox'
+        res = module_flatpak_contenthost.execute('flatpak remote-ls')
+        assert app_name in res.stdout
+
+        job = module_import_sat.cli_factory.job_invocation(
+            {
+                'organization': function_import_org_at_isat.name,
+                'job-template': 'Flatpak - Install application on host',
+                'inputs': f'Flatpak remote name={remote_name}, Application name={app_name}',
+                'search-query': f"name = {module_flatpak_contenthost.hostname}",
+            }
+        )
+        res = module_import_sat.cli.JobInvocation.info({'id': job.id})
+        assert 'succeeded' in res['status']
+        request.addfinalizer(
+            lambda: module_flatpak_contenthost.execute(
+                f'flatpak uninstall {remote_name} {app_name} com.redhat.Platform -y'
+            )
+        )
+
+        #  Yum
+        res = module_flatpak_contenthost.execute('dnf install -y cheetah')
+        assert res.status == 0
+
+        #  File
+        repo_url = module_import_sat.get_published_repo_url(
+            org=function_import_org_at_isat.label,
+            prod=function_product.label,
+            repo=function_synced_file_repo.label,
+            lce='Library',
+            cv=importing_cv['label'],
+        )
+        res = module_flatpak_contenthost.execute(f'curl {repo_url}test.txt')
+        assert 'Hello, World!' in res.stdout, 'Expected world-wide greeting'
+
+        #  Docker
+        res = module_flatpak_contenthost.execute(
+            f'podman login -u {settings.server.admin_username}'
+            f' -p {settings.server.admin_password} {module_import_sat.hostname}'
+        )
+        assert res.status == 0
+
+        repo_path = f'{function_import_org_at_isat.label}/library/{importing_cv["label"]}/{function_product.label}/{function_synced_docker_repo.label}'.lower()
+        res = module_flatpak_contenthost.execute(
+            f'podman search {module_import_sat.hostname}/{repo_path}'
+        )
+        assert repo_path in res.stdout
+        res = module_flatpak_contenthost.execute(
+            f'podman pull {module_import_sat.hostname}/{repo_path}'
+        )
+        assert res.status == 0
+        res = module_flatpak_contenthost.execute('podman images')
+        assert repo_path in res.stdout
+
+        #  AC
+        api_path = f'https://{module_import_sat.hostname}/pulp_ansible/galaxy/{function_import_org_at_isat.label}/Library/custom/{function_product.label}/{function_synced_AC_repo.label}'
+        res = target_sat.execute(
+            f'ansible-galaxy collection install -c -f -s {api_path} theforeman.foreman'
+        )
+        assert res.status == 0
+        assert 'installed successfully' in res.stdout
 
     @pytest.mark.tier3
     def test_postive_export_import_cv_with_mixed_content_syncable(

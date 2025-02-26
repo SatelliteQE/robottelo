@@ -786,7 +786,7 @@ def test_positive_add_docker_repo_cv(session, module_org, module_target_sat):
     repo = module_target_sat.api.Repository(
         content_type=constants.REPO_TYPE['docker'],
         product=module_target_sat.api.Product(organization=module_org).create(),
-        url=constants.CONTAINER_REGISTRY_HUB,
+        url=settings.container.registry_hub,
     ).create()
     content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]
@@ -827,7 +827,7 @@ def test_positive_add_docker_repo_ccv(session, module_org, module_target_sat):
     repo = module_target_sat.api.Repository(
         content_type=constants.REPO_TYPE['docker'],
         product=module_target_sat.api.Product(organization=module_org).create(),
-        url=constants.CONTAINER_REGISTRY_HUB,
+        url=settings.container.registry_hub,
     ).create()
     content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]
@@ -924,7 +924,10 @@ def test_positive_delete_with_system(session, rhel_contenthost, target_sat):
 
 
 @pytest.mark.tier3
-def test_negative_usage_limit(session, module_org, target_sat, module_promoted_cv, module_lce):
+@pytest.mark.rhel_ver_match('N-2')
+def test_negative_usage_limit(
+    session, module_org, target_sat, module_promoted_cv, module_lce, mod_content_hosts
+):
     """Test that Usage limit actually limits usage
 
     :id: 9fe2d661-66f8-46a4-ae3f-0a9329494bdd
@@ -940,27 +943,29 @@ def test_negative_usage_limit(session, module_org, target_sat, module_promoted_c
     """
     name = gen_string('alpha')
     hosts_limit = '1'
-    with session:
+    with target_sat.ui_session() as session:
+        session.location.select(constants.DEFAULT_LOC)
+        session.organization.select(module_org.name)
         session.activationkey.create(
             {'name': name, 'lce': {module_lce.name: True}, 'content_view': module_promoted_cv.name}
         )
         assert session.activationkey.search(name)[0]['Name'] == name
-        session.activationkey.update(name, {'details.hosts_limit': hosts_limit})
+        session.activationkey.update_ak_host_limit(name, int(hosts_limit))
         ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['hosts_limit'] == hosts_limit
-    with Broker(nick='rhel6', host_class=ContentHost, _count=2) as hosts:
-        vm1, vm2 = hosts
-        result = vm1.register(module_org, None, name, target_sat)
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
-        assert vm1.subscribed
-        result = vm2.register(module_org, None, name, target_sat)
-        assert not vm2.subscribed
-        assert len(result.stderr)
-        assert f'Max Hosts ({hosts_limit}) reached for activation key' in str(result.stderr)
+
+    vm1, vm2 = mod_content_hosts
+    result = vm1.register(module_org, None, name, target_sat)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    assert vm1.subscribed
+    result = vm2.register(module_org, None, name, target_sat)
+    assert not vm2.subscribed
+    assert result.status
+    assert f'Max Hosts ({hosts_limit}) reached for activation key' in str(result.stderr)
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('^6')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')  # all versions, excluding any 'fips'
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')

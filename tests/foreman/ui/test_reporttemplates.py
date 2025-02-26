@@ -534,7 +534,7 @@ def test_positive_generate_all_installed_packages_report(
 
 @pytest.mark.tier2
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')  # all versions, excluding any 'fips'
 def test_positive_installable_errata_with_user(
     session, target_sat, function_org, function_lce, function_location, rhel_contenthost
 ):

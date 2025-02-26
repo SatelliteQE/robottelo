@@ -111,6 +111,8 @@ def test_positive_provision_end_to_end(
     :expectedresults: Host is provisioned succesfully with hostgroup
 
     :Verifies: SAT-25810
+
+    :customerscenario: true
     """
     sat = module_provisioning_sat.sat
     hostname = gen_string('alpha').lower()

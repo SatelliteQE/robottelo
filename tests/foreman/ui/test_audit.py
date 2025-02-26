@@ -185,3 +185,57 @@ def test_positive_add_event(session, module_org, module_target_sat):
         assert (
             values['action_summary'][0]['column0'] == f'Added {ENVIRONMENT}/{cv.name} to {cv.name}'
         )
+
+
+@pytest.mark.tier2
+@pytest.mark.usefixtures('import_ansible_roles')
+def test_positive_add_remove_ansible_host_role_event(request, module_org, module_target_sat):
+    """When an Ansible role is assigned/unassigned to/from a host, each event is logged in Audit.
+
+    :id: a316038a-ea50-11ef-97f3-000c29a0e355
+
+    :Verifies: SAT-29715
+
+    :setup:
+        1. Import Ansible roles to Satellite.
+
+    :steps:
+        1. Create a host.
+        2. Assign a role to the host.
+        3. Unassign the role from the host.
+
+    :expectedresults:
+        2. & 3. Audit entry for added/removed host role is generated and contains information
+            like the action, host name and Ansible role name.
+
+    :CaseImportance: Medium
+    """
+    host = module_target_sat.api.Host(organization=module_org).create()
+    request.addfinalizer(module_target_sat.api.Host(id=host.id).delete)
+    role_name = 'theforeman.foreman_scap_client'
+    role_id = (
+        module_target_sat.api.AnsibleRoles().search(query={'search': f'name={role_name}'})[0].id
+    )
+    module_target_sat.api.Host(id=host.id).assign_ansible_roles(
+        data={'ansible_role_ids': [role_id]}
+    )
+    module_target_sat.api.Host(id=host.id).remove_ansible_role(data={'ansible_role_id': role_id})
+
+    with module_target_sat.ui_session() as session:
+        values = session.audit.search(
+            f'type=host_ansible_role and action=create and organization={module_org.name}'
+        )
+        assert values['action_type'] == 'add'
+        assert values['resource_type'] == 'HOST ANSIBLE ROLE'
+        assert values['resource_name'] == f'{role_name} / {host.name}'
+        assert len(values['action_summary']) == 1
+        assert values['action_summary'][0]['column0'] == f'Added {role_name} to {host.name}'
+
+        values = session.audit.search(
+            f'type=host_ansible_role and action=destroy and organization={module_org.name}'
+        )
+        assert values['action_type'] == 'remove'
+        assert values['resource_type'] == 'HOST ANSIBLE ROLE'
+        assert values['resource_name'] == f'{role_name} / {host.name}'
+        assert len(values['action_summary']) == 1
+        assert values['action_summary'][0]['column0'] == f'Removed {role_name} from {host.name}'

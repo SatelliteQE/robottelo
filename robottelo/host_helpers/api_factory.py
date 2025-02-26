@@ -39,6 +39,7 @@ class APIFactory:
                 name=gen_string('alpha', 15),
                 url=settings.http_proxy.un_auth_proxy_url,
                 organization=[org.id],
+                content_default_http_proxy=True,
             ).create()
         if http_proxy_type:
             return self._satellite.api.HTTPProxy(
@@ -47,6 +48,7 @@ class APIFactory:
                 username=settings.http_proxy.username,
                 password=settings.http_proxy.password,
                 organization=[org.id],
+                content_default_http_proxy=True,
             ).create()
         return None
 
