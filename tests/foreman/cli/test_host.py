@@ -2053,6 +2053,8 @@ def test_positive_register_read_bootc(target_sat, bootc_host, function_ak_with_c
 
     :CaseComponent:Hosts-Content
 
+    :Verifies:SAT-28165, SAT-28167
+
     :CaseImportance: Critical
     """
     bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)

@@ -1080,6 +1080,8 @@ def test_positive_bootc_api_actions(target_sat, bootc_host, function_ak_with_cv,
 
     :CaseComponent:Hosts-Content
 
+    :Verifies:SAT-28165, SAT-28167, SAT-28178
+
     :CaseImportance: Critical
     """
     bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
