@@ -12,6 +12,7 @@
 
 """
 
+from datetime import datetime, timedelta
 import re
 
 from fauxfactory import gen_string
@@ -25,6 +26,7 @@ from robottelo.constants import (
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
+    FAKE_9_YUM_OUTDATED_PACKAGES,
     PRDS,
     REPOS,
     REPOSET,
@@ -582,6 +584,143 @@ def test_positive_applied_errata_by_search(
 
 
 @pytest.mark.tier2
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('N-2')
+def test_positive_applied_errata_for_specific_hosts(
+    mod_content_hosts,
+    module_target_sat,
+    module_org,
+    module_lce,
+):
+    """Generate an Applied Errata report by hostname, with unique erratum
+    applied to multiple hosts.
+
+    :id: 57025661-37cb-44bd-917a-a173605926ad
+
+    :setup:
+        1. Two registered hosts, each with a different applicable erratum.
+        2. Apply one unique erratum to each host.
+
+    :steps: Generate an Applied Errata report for each of the two hosts.
+
+    :expectedresults:
+        1. Two reports are generated, one for each host.
+        2. In each report, only the single errata_id applied for that host is listed.
+        3. The errata_id applied on the other host, is not listed in the same report.
+        4. Only the hostname specified is listed in the generated report.
+
+    :CaseImportance: High
+
+    :customerscenario: true
+
+    :Verifies: SAT-30611
+
+    """
+    RHSA_ERRATA = settings.repos.yum_9.errata[0]  # RHSA-2012:0055
+    RHBA_ERRATA = settings.repos.yum_9.errata[-1]  # RHBA-2012:1030
+    rhsa_pkg = FAKE_9_YUM_OUTDATED_PACKAGES[6]  # walrus-0.71-1.noarch
+    rhba_pkg = FAKE_9_YUM_OUTDATED_PACKAGES[7]  # kangaroo-0.1-1.noarch
+    rhsa_host = mod_content_hosts[0]
+    rhba_host = mod_content_hosts[1]
+    setup = module_target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': settings.repos.yum_9.url,
+            'organization-id': module_org.id,
+            'lifecycle-environment-id': module_lce.id,
+        }
+    )
+    activation_key = module_target_sat.api.ActivationKey(id=setup['activationkey-id']).read()
+    # register both hosts to same activation-key
+    for host in [rhba_host, rhsa_host]:
+        result = host.register(module_org, None, activation_key.name, module_target_sat)
+        assert f'The registered system name is: {host.hostname}' in result.stdout
+        assert host.subscribed
+    # install unique applicable package to each host
+    assert rhsa_host.execute(f'yum install -y {rhsa_pkg}').status == 0
+    assert rhba_host.execute(f'yum install -y {rhba_pkg}').status == 0
+    # apply RHSA errata to one host
+    rhsa_task_id = module_target_sat.api.JobInvocation().run(
+        data={
+            'feature': 'katello_errata_install',
+            'inputs': {'errata': str(RHSA_ERRATA)},
+            'targeting_type': 'static_query',
+            'search_query': f'name = {rhsa_host.hostname}',
+            'organization_id': module_org.id,
+        },
+    )['id']
+    # apply RHBA errata to the other host
+    rhba_task_id = module_target_sat.api.JobInvocation().run(
+        data={
+            'feature': 'katello_errata_install',
+            'inputs': {'errata': str(RHBA_ERRATA)},
+            'targeting_type': 'static_query',
+            'search_query': f'name = {rhba_host.hostname}',
+            'organization_id': module_org.id,
+        },
+    )['id']
+    for task_id in [rhsa_task_id, rhba_task_id]:
+        module_target_sat.wait_for_tasks(
+            search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
+            search_rate=20,
+            poll_timeout=2500,
+        )
+    assert rhsa_host.execute('subscription-manager refresh').status == 0
+    assert rhba_host.execute('subscription-manager refresh').status == 0
+    # generate two reports with hostname specified
+    rhsa_report = (
+        module_target_sat.api.ReportTemplate()
+        .search(query={'search': 'name="Host - Applied Errata"'})[0]
+        .read()
+        .generate(
+            data={
+                'organization_id': module_org.id,
+                'report_format': 'json',
+                'input_values': {
+                    'Hosts filter': rhsa_host.hostname,
+                    'Filter Errata Type': 'all',
+                    'Include Last Reboot': 'no',
+                    'Status': 'all',
+                },
+            }
+        )
+    )
+    rhba_report = (
+        module_target_sat.api.ReportTemplate()
+        .search(query={'search': 'name="Host - Applied Errata"'})[0]
+        .read()
+        .generate(
+            data={
+                'organization_id': module_org.id,
+                'report_format': 'json',
+                'input_values': {
+                    'Hosts filter': rhba_host.hostname,
+                    'Filter Errata Type': 'all',
+                    'Include Last Reboot': 'no',
+                    'Status': 'all',
+                },
+            }
+        )
+    )
+    # RHSA host's report has RHSA errata, and not RHBA
+    report_erratum_ids = [errata['erratum_id'] for errata in rhsa_report]
+    assert RHSA_ERRATA in report_erratum_ids
+    assert RHBA_ERRATA not in report_erratum_ids
+    # RHSA host's report has expected hostname, and not the other hostname
+    report_hostnames = [errata['hostname'] for errata in rhsa_report]
+    assert rhsa_host.hostname in report_hostnames
+    assert rhba_host.hostname not in report_hostnames
+
+    # RHBA host's report has RHBA errata, and not RHSA
+    report_erratum_ids = [errata['erratum_id'] for errata in rhba_report]
+    assert RHBA_ERRATA in report_erratum_ids
+    assert RHSA_ERRATA not in report_erratum_ids
+    # RHBA host's report has expected hostname, and not the other hostname
+    report_hostnames = [errata['hostname'] for errata in rhba_report]
+    assert rhba_host.hostname in report_hostnames
+    assert rhsa_host.hostname not in report_hostnames
+
+
+@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_positive_generate_nonblocking():
     """Generate an Applied Errata report
@@ -970,3 +1109,115 @@ def test_positive_installed_products(
     assert len(products), 'No installed products to compare.'
 
     assert set(products) == set(report[0]['Products']), 'Reported products do not match.'
+
+
+@pytest.mark.tier2
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('N-2')
+def test_positive_applied_errata_by_install_date(
+    module_rhel_contenthost,
+    module_target_sat,
+    module_org,
+    module_lce,
+):
+    """Generate two Applied Errata reports, for Today and Yesterday,
+        specifying the SINCE and UP-TO date fields, when the erratum
+        were installed (local time).
+
+    :id: 33f5abfd-16dd-4f2e-a9c2-c1ce3aaa33d6
+
+    :setup:
+        1. A registered host with outdated applicable packages installed.
+        2. Apply the applicable erratum (all of FAKE_9_YUM).
+
+    :steps:
+        1. Generate an Applied Errata report for 'Today' (Since: 5 minutes prior)
+        2. Generate an Applied Errata report for 'Yesterday' (Up to: 24 hours prior)
+
+    :expectedresults:
+        1. Today's report is generated with all applied erratum listed that were installed today.
+        2. Yesterday's report is generated and is empty, as no erratum were installed prior.
+
+    :CaseImportance: Medium
+
+    """
+    ERRATUM_IDS = [str(errata) for errata in settings.repos.yum_9.errata]
+    setup = module_target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': settings.repos.yum_9.url,
+            'organization-id': module_org.id,
+            'lifecycle-environment-id': module_lce.id,
+        }
+    )
+    activation_key = module_target_sat.api.ActivationKey(id=setup['activationkey-id']).read()
+    result = module_rhel_contenthost.register(
+        module_org, None, activation_key.name, module_target_sat
+    )
+    assert f'The registered system name is: {module_rhel_contenthost.hostname}' in result.stdout
+    assert module_rhel_contenthost.subscribed
+    module_rhel_contenthost.execute(r'subscription-manager repos --enable \*')
+    # Install all FAKE_9_YUM outdated pkgs
+    assert (
+        module_rhel_contenthost.execute(
+            f'yum install -y {" ".join(FAKE_9_YUM_OUTDATED_PACKAGES)}'
+        ).status
+        == 0
+    )
+    assert module_rhel_contenthost.execute('subscription-manager refresh').status == 0
+    assert module_rhel_contenthost.applicable_errata_count == len(ERRATUM_IDS)
+    # Apply all FAKE_9_YUM erratum
+    for _id in ERRATUM_IDS:
+        task_id = module_target_sat.api.JobInvocation().run(
+            data={
+                'feature': 'katello_errata_install',
+                'inputs': {'errata': _id},
+                'targeting_type': 'static_query',
+                'search_query': f'name = {module_rhel_contenthost.hostname}',
+                'organization_id': module_org.id,
+            },
+        )['id']
+        module_target_sat.wait_for_tasks(
+            search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
+            search_rate=20,
+            poll_timeout=2500,
+        )
+    assert module_rhel_contenthost.execute('subscription-manager refresh').status == 0
+    rt = (
+        module_target_sat.api.ReportTemplate()
+        .search(query={'search': 'name="Host - Applied Errata"'})[0]
+        .read()
+    )
+    # Generate a report for Today and Yesterday
+    today_local = (datetime.now() - timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M:%S')
+    yesterday_local = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
+    report_today = rt.generate(
+        data={
+            'organization_id': module_org.id,
+            'report_format': 'json',
+            'input_values': {
+                'Since': today_local,
+                'Filter Errata Type': 'all',
+                'Include Last Reboot': 'no',
+                'Status': 'all',
+            },
+        }
+    )
+    assert len(report_today) == len(ERRATUM_IDS)
+    # Today's report: all ERRATUM_IDS are contained within
+    assert all(
+        errata_id in [entry['erratum_id'] for entry in report_today] for errata_id in ERRATUM_IDS
+    )
+    # Yesterday's report is empty
+    report_yesterday = rt.generate(
+        data={
+            'organization_id': module_org.id,
+            'report_format': 'json',
+            'input_values': {
+                'Up to': yesterday_local,
+                'Filter Errata Type': 'all',
+                'Include Last Reboot': 'no',
+                'Status': 'all',
+            },
+        }
+    )
+    assert len(report_yesterday) == 0
