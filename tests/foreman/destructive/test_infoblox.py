@@ -20,17 +20,11 @@ from robottelo.utils.installer import InstallerCommand
 
 pytestmark = pytest.mark.destructive
 
-dhcp_isc_package = 'rubygem-smart_proxy_dhcp_remote_isc'
 infoblox_package = 'rubygem-infoblox'
 infoblox_dhcp_package = 'rubygem-smart_proxy_dhcp_infoblox'
 infoblox_dns_package = 'rubygem-smart_proxy_dns_infoblox'
 
 params = [
-    (
-        'enable-foreman-proxy-plugin-dhcp-remote-isc',
-        {'foreman-proxy-dhcp': 'true'},
-        f'rpm -q {dhcp_isc_package}',
-    ),
     (
         'enable-foreman-proxy-plugin-dhcp-infoblox',
         {
@@ -89,7 +83,7 @@ infoblox_plugin_opts = {
 @pytest.mark.parametrize(
     ('command_args', 'command_opts', 'rpm_command'),
     params,
-    ids=['isc_dhcp', 'infoblox_dhcp', 'infoblox_dns'],
+    ids=['infoblox_dhcp', 'infoblox_dns'],
 )
 def test_plugin_installation(target_sat, command_args, command_opts, rpm_command):
     """Check that external DNS and DHCP plugins install correctly
@@ -182,23 +176,24 @@ def test_infoblox_end_to_end(
     assert f'current: "{settings.infoblox.hostname}"' in installer.stdout
 
     macaddress = gen_mac(multicast=False)
+    is_ipv6 = settings.server.is_ipv6
     # using the domain name as defined in Infoblox DNS
     domain = module_target_sat.api.Domain(
         name=settings.infoblox.domain,
         location=[module_location],
-        dns=module_provisioning_capsule.id,
         organization=[module_sca_manifest_org],
     ).create()
     subnet = module_target_sat.api.Subnet(
         location=[module_location],
         organization=[module_sca_manifest_org],
         network=settings.infoblox.network,
+        network_type='IPv6' if is_ipv6 else 'IPv4',
         cidr=settings.infoblox.network_prefix,
         mask=settings.infoblox.netmask,
-        from_=settings.infoblox.start_range,
-        to=settings.infoblox.end_range,
+        from_=None if is_ipv6 else settings.infoblox.start_range,
+        to=None if is_ipv6 else settings.infoblox.end_range,
         boot_mode='DHCP',
-        ipam='DHCP',
+        ipam='EUI-64' if is_ipv6 else 'DHCP',
         dhcp=module_provisioning_capsule.id,
         tftp=module_provisioning_capsule.id,
         dns=module_provisioning_capsule.id,
@@ -214,7 +209,8 @@ def test_infoblox_end_to_end(
         operatingsystem=module_sync_kickstart_content.os,
         architecture=default_architecture,
         domain=domain,
-        subnet=subnet,
+        subnet=subnet if not is_ipv6 else None,
+        subnet6=subnet if is_ipv6 else None,
         root_pass=settings.provisioning.host_root_password,
         ptable=default_partitiontable,
         content_facet_attributes={
@@ -224,13 +220,17 @@ def test_infoblox_end_to_end(
         },
     ).create()
     # check if A Record is created for the host IP on Infoblox
-    url = f'https://{settings.infoblox.hostname}/wapi/v2.0/ipv4address?ip_address={host.ip}'
+    url = (
+        f'https://{settings.infoblox.hostname}/wapi/v2.0/ipv6address?ip_address={host.ip6}'
+        if is_ipv6
+        else f'https://{settings.infoblox.hostname}/wapi/v2.0/ipv4address?ip_address={host.ip}'
+    )
     auth = (settings.infoblox.username, settings.infoblox.password)
     result = requests.get(url, auth=auth, verify=False)
     assert result.status_code == 200
     # check hostname and ip is present in A record
     assert host.name in result.text
-    assert host.ip in result.text
+    assert (host.ip6 if is_ipv6 else host.ip) in result.text
     # delete host
     module_target_sat.api.Subnet(id=subnet.id, domain=[]).update()
     module_target_sat.api.Host(id=host.id).delete()
