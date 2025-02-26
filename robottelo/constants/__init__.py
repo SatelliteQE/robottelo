@@ -215,6 +215,7 @@ REPO_TYPE = {
     'docker': "docker",
     'ansible_collection': "ansible_collection",
     'file': "file",
+    'python': 'python',
 }
 
 DOWNLOAD_POLICIES = {
