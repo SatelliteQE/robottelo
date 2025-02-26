@@ -2123,10 +2123,8 @@ def test_bootc_booted_container_images(target_sat, bootc_host, function_ak_with_
     :Team: Phoenix-subscriptions
     """
     bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
-    assert (
-        bootc_host[0].register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
-    )
-    assert bootc_host[0].subscribed
+    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
+    assert bootc_host.subscribed
 
     with target_sat.ui_session() as session:
         session.organization.select(function_org.name)

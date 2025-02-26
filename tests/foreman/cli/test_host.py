@@ -2056,13 +2056,9 @@ def test_positive_register_read_bootc(target_sat, bootc_host, function_ak_with_c
     :CaseImportance: Critical
     """
     bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
-    assert (
-        bootc_host[0].register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
-    )
-    assert bootc_host[0].subscribed
-    bootc_info = target_sat.cli.Host.info({'name': bootc_host[0].hostname})[
-        'bootc-image-information'
-    ]
+    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
+    assert bootc_host.subscribed
+    bootc_info = target_sat.cli.Host.info({'name': bootc_host.hostname})['bootc-image-information']
     assert bootc_info['running-image'] == bootc_dummy_info['bootc.booted.image']
     assert bootc_info['running-image-digest'] == bootc_dummy_info['bootc.booted.digest']
     assert bootc_info['rollback-image'] == bootc_dummy_info['bootc.rollback.image']
