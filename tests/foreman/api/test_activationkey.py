@@ -461,7 +461,13 @@ def test_positive_fetch_product_content(
         organization=module_org, repository=[rh_repo_id, custom_repo.id]
     ).create()
     cv.publish()
-    ak = module_target_sat.api.ActivationKey(content_view=cv, organization=module_org).create()
+    cv = cv.read()
+    cvv = cv.version[0]
+    cvv.promote(data={'environment_ids': module_lce.id})
+
+    ak = module_target_sat.api.ActivationKey(
+        content_view=cv, organization=module_org, environment=module_lce.name
+    ).create()
     ak_content = ak.product_content()['results']
     assert {custom_repo.product.id, rh_repo.product.id} == {
         repos['product']['id'] for repos in ak_content
