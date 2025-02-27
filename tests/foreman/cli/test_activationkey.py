@@ -554,7 +554,9 @@ def test_positive_update_cv(
         }
     )
     updated_ak = module_target_sat.cli.ActivationKey.info({'id': ak_cv['id']})
-    assert updated_ak['content-view-environments'][0]['label'].split('/')[-1] == new_cv.name
+    assert (
+        updated_ak['content-view-environments'][0]['label'] == f'{module_lce.name}/{new_cv.name}'
+    ), 'Incorrect content view environment(s) reported.'
 
 
 @pytest.mark.tier1

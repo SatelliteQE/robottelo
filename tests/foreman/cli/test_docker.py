@@ -926,8 +926,8 @@ class TestDockerActivationKey:
             }
         )
         assert (
-            activation_key['content-view-environments'][0]['label'].split('/')[-1]
-            == comp_content_view['name']
+            activation_key['content-view-environments'][0]['label']
+            == f'{module_lce.name}/{comp_content_view["name"]}'
         )
 
     @pytest.mark.tier2
@@ -977,8 +977,8 @@ class TestDockerActivationKey:
             }
         )
         assert (
-            activation_key['content-view-environments'][0]['label'].split('/')[-1]
-            == comp_content_view['name']
+            activation_key['content-view-environments'][0]['label']
+            == f'{module_lce.name}/{comp_content_view["name"]}'
         )
 
         # Create another content view replace with
@@ -1001,6 +1001,6 @@ class TestDockerActivationKey:
         )
         activation_key = module_target_sat.cli.ActivationKey.info({'id': activation_key['id']})
         assert (
-            activation_key['content-view-environments'][0]['label'].split('/')[-1]
-            != comp_content_view['name']
+            activation_key['content-view-environments'][0]['label']
+            != f'{module_lce.name}/{comp_content_view["name"]}'
         )
