@@ -37,6 +37,16 @@ pytestmark = [
 def rh_repo_setup_ak(module_sca_manifest_org, module_target_sat):
     """Use module sca manifest org, creates rhst repo & syncs it,
     also create CV, LCE & AK and return AK"""
+    rhel7_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+        basearch='x86_64',
+        org_id=module_sca_manifest_org.id,
+        product=PRDS['rhel'],
+        repo=REPOS['rhel7']['name'],
+        reposet=REPOSET['rhel7'],
+        releasever=REPOS['rhel7']['releasever'],
+    )
+    rhel7_repo = module_target_sat.api.Repository(id=rhel7_repo_id).read()
+    rhel7_repo.sync(timeout=1800)
     rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=DEFAULT_ARCHITECTURE,
         org_id=module_sca_manifest_org.id,
@@ -47,13 +57,13 @@ def rh_repo_setup_ak(module_sca_manifest_org, module_target_sat):
     )
     # Sync step because repo is not synced by default
     rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
-    rh_repo.sync()
+    rh_repo.sync(timeout=1800)
 
     # Create CV, LCE and AK
     cv = module_target_sat.api.ContentView(organization=module_sca_manifest_org).create()
     lce = module_target_sat.api.LifecycleEnvironment(organization=module_sca_manifest_org).create()
     # Add CV to AK
-    cv.repository = [rh_repo]
+    cv.repository = [rhel7_repo, rh_repo]
     cv.update(['repository'])
     cv.publish()
     cv = cv.read()
