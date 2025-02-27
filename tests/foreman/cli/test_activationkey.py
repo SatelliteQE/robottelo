@@ -521,23 +521,42 @@ def test_positive_update_lce(module_org, get_default_env, module_target_sat, mod
 
 
 @pytest.mark.tier2
-def test_positive_update_cv(module_org, module_target_sat):
+def test_positive_update_cv(
+    module_org, module_target_sat, module_promoted_cv, get_default_env, module_lce
+):
     """Update Content View in an Activation key
 
     :id: aa94997d-fc9b-4532-aeeb-9f27b9834914
 
     :expectedresults: Activation key is updated
     """
-    cv = module_target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
+    lce = get_default_env
     ak_cv = module_target_sat.cli_factory.make_activation_key(
-        {'organization-id': module_org.id, 'content-view-id': cv['id']}
+        {
+            'organization-id': module_org.id,
+            'lifecycle-environment-id': lce['id'],
+            'content-view': module_promoted_cv.name,
+        }
     )
-    new_cv = module_target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
+
+    new_cv = module_target_sat.api.ContentView(organization=module_org).create()
+    new_cv.publish()
+    new_cv = new_cv.read()
+    new_cvv = new_cv.version[0]
+    new_cvv.promote(data={'environment_ids': module_lce.id})
+
     module_target_sat.cli.ActivationKey.update(
-        {'content-view': new_cv['name'], 'name': ak_cv['name'], 'organization-id': module_org.id}
+        {
+            'content-view': new_cv.name,
+            'lifecycle-environment-id': module_lce.id,
+            'name': ak_cv['name'],
+            'organization-id': module_org.id,
+        }
     )
     updated_ak = module_target_sat.cli.ActivationKey.info({'id': ak_cv['id']})
-    assert updated_ak['content-view'] == new_cv['name']
+    assert (
+        updated_ak['content-view-environments'][0]['label'] == f'{module_lce.name}/{new_cv.name}'
+    ), 'Incorrect content view environment(s) reported.'
 
 
 @pytest.mark.tier1

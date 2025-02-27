@@ -947,11 +947,13 @@ def test_positive_installed_products(
         .read()
         .generate(data=input_data)
     )
+
     assert report, 'No report generated.'
     assert report[0]['Host Name'] == rhel_contenthost.hostname, 'Incorrect host was reported.'
     assert report[0]['Organization'] == org.name, 'Incorrect org was reported.'
-    assert report[0]['Lifecycle Environment'] == lce_name, 'Incorrect LCE was reported.'
-    assert report[0]['Content View'] == cv_name, 'Incorrect CV was reported.'
+    assert report[0]['Content View Environments'] == f'{lce_name}/{cv_name}', (
+        'Incorrect content view environment(s) reported.'
+    )
     assert report[0]['Role'] == sys_tags['role'], 'Incorrect role was reported.'
     assert report[0]['Usage'] == sys_tags['usage'], 'Incorrect usage was reported.'
 
