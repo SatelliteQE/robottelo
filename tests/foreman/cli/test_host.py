@@ -2053,7 +2053,7 @@ def test_positive_register_read_bootc(target_sat, bootc_host, function_ak_with_c
 
     :CaseComponent:Hosts-Content
 
-    :Verifies:SAT-28165, SAT-28167
+    :Verifies:SAT-27168, SAT-27170
 
     :CaseImportance: Critical
     """

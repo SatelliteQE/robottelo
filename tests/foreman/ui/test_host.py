@@ -2120,7 +2120,7 @@ def test_bootc_booted_container_images(target_sat, bootc_host, function_ak_with_
 
     :CaseComponent:Hosts-Content
 
-    :Verifies:SAT-28168
+    :Verifies:SAT-27163
 
     :Team: Phoenix-subscriptions
     """

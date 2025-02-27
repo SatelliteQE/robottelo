@@ -1080,7 +1080,7 @@ def test_positive_bootc_api_actions(target_sat, bootc_host, function_ak_with_cv,
 
     :CaseComponent:Hosts-Content
 
-    :Verifies:SAT-28165, SAT-28167, SAT-28178
+    :Verifies:SAT-27168, SAT-27170, SAT-27173
 
     :CaseImportance: Critical
     """
