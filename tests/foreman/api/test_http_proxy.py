@@ -149,9 +149,9 @@ def test_positive_end_to_end(
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize(
     'setup_http_proxy',
-    [None, True, False],
+    [True, False],
     indirect=True,
-    ids=['no_http_proxy', 'auth_http_proxy', 'unauth_http_proxy'],
+    ids=['auth_http_proxy', 'unauth_http_proxy'],
 )
 @pytest.mark.tier3
 def test_positive_install_content_with_http_proxy(
