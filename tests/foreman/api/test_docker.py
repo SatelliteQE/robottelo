@@ -40,13 +40,21 @@ def _create_repository(module_target_sat, product, name=None, upstream_name=None
         name = choice(generate_strings_list(15, ['numeric', 'html']))
     if upstream_name is None:
         upstream_name = settings.container.upstream_name
-    return module_target_sat.api.Repository(
+    repo = module_target_sat.api.Repository(
         content_type='docker',
         docker_upstream_name=upstream_name,
         name=name,
         product=product,
         url=settings.container.registry_hub,
     ).create()
+    module_target_sat.wait_for_tasks(
+        search_query='Actions::Katello::Repository::MetadataGenerate'
+        f' and resource_id = {repo.id}'
+        ' and resource_type = Katello::Repository',
+        max_tries=6,
+        search_rate=10,
+    )
+    return repo
 
 
 @pytest.fixture
