@@ -711,7 +711,10 @@ class ContentHost(Host, ContentHostMixins):
             if user:
                 register_role = target.satellite.cli.Role.info({'name': 'Register hosts'})
                 target.satellite.cli.User.add_role(
-                    {'id': user[0]['id'], 'role-id': register_role['id']}
+                    {
+                        'id': user[0]['id'],
+                        'role-id': register_role['id'],
+                    }
                 )
                 cmd = target.satellite.cli.HostRegistration.with_user(
                     auth_username, auth_password
@@ -1295,7 +1298,10 @@ class ContentHost(Host, ContentHostMixins):
             lce = satellite.cli_factory.make_lifecycle_environment({'organization-id': org['id']})
         else:
             lce = satellite.cli.LifecycleEnvironment.info(
-                {'id': lce_id, 'organization-id': org['id']}
+                {
+                    'id': lce_id,
+                    'organization-id': org['id'],
+                }
             )
         extra_repos = extra_repos or []
         repos = [
@@ -1427,7 +1433,10 @@ class ContentHost(Host, ContentHostMixins):
                 if subscription['name'] == subscription_name:
                     subscription_id = subscription['id']
                     Host.subscription_attach(
-                        {'host': virt_who_hypervisor_hostname, 'subscription-id': subscription_id}
+                        {
+                            'host': virt_who_hypervisor_hostname,
+                            'subscription-id': subscription_id,
+                        }
                     )
                     break
         return {
@@ -2556,13 +2565,15 @@ class SSOHost(Host):
             group_name = gen_string('alphanumeric')
         update_user_group.name = group_name
         self.upload_sso_entity(update_user_group, "create_group")
-        result = self.execute(f"{self.kcadm} create groups -r {settings.sso.realm} -f create_group")
+        result = self.execute(
+            f"{self.kcadm} create groups -r {settings.rhsso.realm} -f create_group"
+        )
         return result.stdout
 
     def delete_sso_group(self, group_name):
         """Delete the RHSSO group"""
         group_details = self.get_sso_groups_details(group_name)
-        self.execute(f"{self.kcadm} delete -r {settings.sso.realm} groups/{group_details['id']}")
+        self.execute(f"{self.kcadm} delete -r {settings.rhsso.realm} groups/{group_details['id']}")
 
     def update_client_configuration(self, json_content):
         """Update the client configuration"""
