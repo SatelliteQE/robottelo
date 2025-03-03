@@ -468,6 +468,10 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
         f'/usr/share/xml/scap/ssg/content/ssg-{distro}-ds.xml',
     )
 
+    # disable gpgcheck enabled by the above security policy
+    contenthost.run(
+        "sed -i 's/gpgcheck=1/gpgcheck=0/' /etc/yum.repos.d/foreman_registration1.repo "
+    )
     # Apply policy
     job_id = target_sat.cli.Host.ansible_roles_play({'name': contenthost.hostname.lower()})[0].get(
         'id'
