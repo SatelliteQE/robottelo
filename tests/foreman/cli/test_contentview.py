@@ -3224,28 +3224,31 @@ class TestContentView:
             {'organization-id': module_org.id}
         )
         module_target_sat.cli.ContentView.publish({'id': content_view['id']})
+        content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
+        assert len(content_view['versions']) == 1
+        cvv = content_view['versions'][0]
         lce = module_target_sat.cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id}
         )
         module_target_sat.cli.ContentView.version_promote(
-            {'id': content_view['id'], 'to-lifecycle-environment-id': lce['id']}
+            {'id': cvv['id'], 'to-lifecycle-environment-id': lce['id']}
         )
-        content_view = module_target_sat.cli.ContentView.version_info(
+        cvv_info = module_target_sat.cli.ContentView.version_info(
             {
-                'id': content_view['id'],
+                'content-view-id': content_view['id'],
                 'lifecycle-environment-id': lce['id'],
                 'organization-id': module_org.id,
             }
         )
-        assert content_view['version'] == '1.0'
-        content_view = module_target_sat.cli.ContentView.version_info(
+        assert cvv_info['version'] == '1.0'
+        cvv_info = module_target_sat.cli.ContentView.version_info(
             {
-                'id': content_view['id'],
+                'content-view': content_view['name'],
                 'lifecycle-environment': lce['name'],
                 'organization-id': module_org.id,
             }
         )
-        assert content_view['version'] == '1.0'
+        assert cvv_info['version'] == '1.0'
 
     @pytest.mark.tier2
     def test_show_all_repo_ids(self, module_org, module_product, module_target_sat):
