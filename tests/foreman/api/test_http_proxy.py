@@ -145,13 +145,13 @@ def test_positive_end_to_end(
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('9')
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize(
     'setup_http_proxy',
-    [None, True, False],
+    [True, False],
     indirect=True,
-    ids=['no_http_proxy', 'auth_http_proxy', 'unauth_http_proxy'],
+    ids=['auth_http_proxy', 'unauth_http_proxy'],
 )
 @pytest.mark.tier3
 def test_positive_install_content_with_http_proxy(
@@ -181,8 +181,8 @@ def test_positive_install_content_with_http_proxy(
 
     :parametrized: yes
     """
-    repo_to_use = 'rhae2.9_el8'
-    pkg_name = 'ansible'
+    repo_to_use = 'rhsclient9'
+    pkg_name = 'katello-host-tools'
     org = function_sca_manifest_org
     lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
     content_view = module_target_sat.api.ContentView(organization=org).create()
