@@ -2596,13 +2596,13 @@ class SSOHost(Host):
             group_name = gen_string('alphanumeric')
         update_user_group.name = group_name
         self.upload_sso_entity(update_user_group, "create_group")
-        result = self.execute(f"{self.kcadm} create groups -r {settings.sso.realm} -f create_group")
+        result = self.execute(f"{self.kcadm} create groups -r {self.realm} -f create_group")
         return result.stdout
 
     def delete_sso_group(self, group_name):
         """Delete the RHSSO group"""
         group_details = self.get_sso_groups_details(group_name)
-        self.execute(f"{self.kcadm} delete -r {settings.sso.realm} groups/{group_details['id']}")
+        self.execute(f"{self.kcadm} delete -r {self.realm} groups/{group_details['id']}")
 
     def update_client_configuration(self, json_content):
         """Update the client configuration"""
