@@ -181,6 +181,7 @@ def perf_tuning_upgrade_shared_satellite():
         yield sat_instance
         test_duration.ready()
 
+
 @pytest.fixture(scope='session')
 def capsule_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.capsule_upgrades."""
