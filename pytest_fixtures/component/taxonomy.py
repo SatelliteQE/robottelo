@@ -103,16 +103,6 @@ def class_sca_manifest_org(class_org, class_sca_manifest, class_target_sat):
 
 
 @pytest.fixture
-def upgrade_entitlement_manifest_org(function_org, upgrade_entitlement_manifest, target_sat):
-    """A Pytest fixture that creates an organization and uploads an entitlement mode manifest
-    generated with Manifester. This will be used for upgrade scenarios"""
-    entitlement_manifest, _ = upgrade_entitlement_manifest
-    function_org.sca_disable()
-    target_sat.upload_manifest(function_org.id, entitlement_manifest.content)
-    return function_org
-
-
-@pytest.fixture
 def sca_manifest_org_for_upgrade(function_org, sca_manifest_for_upgrade, target_sat):
     """A Pytest fixture that creates an organization and uploads an sca mode manifest
     generated with Manifester. This will be used for upgrade scenarios"""
