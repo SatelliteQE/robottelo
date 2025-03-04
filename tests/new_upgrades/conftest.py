@@ -13,6 +13,11 @@ from robottelo.config import settings
 from robottelo.hosts import Capsule, Satellite
 from robottelo.utils.shared_resource import SharedResource
 
+from remote_pdb import RemotePdb
+import os
+import random
+
+
 pre_upgrade_failed_tests = []
 
 
