@@ -28,18 +28,14 @@ def remote_execution_external_capsule_setup(
     """
     Run REX job on client registered with external capsule
 
-    :id: preupgrade-261dd2aa-be01-4c34-b877-54b8ee346561
-
     :steps:
         1. Create Content host.
-        2. add rex ssh_key of external capsule on content host.
-        3. run the REX job on client vm.
+        2. Add SSH key of external capsule on content host.
+        3. Run REX job on content host.
 
     :expectedresults:
-        1. Content host should create with pre-required details.
+        1. Content host should be created with pre-required details.
         2. REX job should run on it.
-
-    :parametrized: yes
 
     """
     target_sat = capsule_upgrade_integrated_sat_cap.satellite
@@ -130,7 +126,9 @@ def test_post_scenario_remote_execution_external_capsule(remote_execution_extern
         1. Run a REX job on content host.
 
     :expectedresults:
-        1. The job should successfully executed on pre-upgrade created client.
+        1. The job should be successfully executed on pre-upgrade created client.
+
+    :parametrized: yes
     """
     target_sat = remote_execution_external_capsule_setup.target_sat
     template_id = (
@@ -157,13 +155,13 @@ def remote_execution_satellite_setup(
 ):
     """Run REX job on client registered with Satellite
 
-    1. Before Satellite upgrade:
-    2. Create Content host.
-    3. Register content host to Satellite.
-    4. Run a REX job on content host.
-    5. Upgrade satellite/capsule.
-    6. Run a rex Job again with same content host.
-    7. Check if REX job still getting success.
+    Before Satellite upgrade:
+    1. Create content host.
+    2. Register content host to Satellite.
+    3. Run a REX job on content host.
+    4. Upgrade Satellite/Capsule.
+    5. Run a REX job again with same content host.
+    6. Check if REX job still succeeds.
     """
     target_sat = capsule_upgrade_integrated_sat_cap.satellite
     # register host with rex, enable client repo, install katello-agent
@@ -237,6 +235,8 @@ def test_post_scenario_remote_execution_satellite(remote_execution_satellite_set
 
     :expectedresults:
         1. The job should successfully executed on pre-upgrade created client.
+
+    :parametrized: yes
     """
     target_sat = remote_execution_satellite_setup.target_sat
     template_id = (
