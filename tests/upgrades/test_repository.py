@@ -511,7 +511,7 @@ class TestSimpleContentAccessOnly:
         sca_access = target_sat.execute(
             f'echo "Organization.find({org_id}).simple_content_access?" | foreman-rake console'
         )
-        assert 'True' in sca_access.stdout
+        assert 'true' in sca_access.stdout
         sca_mode = target_sat.execute(
             f'echo "Organization.find({org_id}).content_access_mode" | foreman-rake console'
         )
