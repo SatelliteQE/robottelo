@@ -17,6 +17,7 @@ http://theforeman.org/api/apidoc/v2/hosts.html
 """
 
 import http
+import json
 
 from fauxfactory import gen_choice, gen_integer, gen_ipaddr, gen_mac, gen_string
 from nailgun import client
@@ -24,7 +25,7 @@ import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import get_credentials
-from robottelo.constants import DEFAULT_CV, ENVIRONMENT
+from robottelo.constants import DEFAULT_CV, DUMMY_BOOTC_FACTS, ENVIRONMENT
 from robottelo.utils import datafactory
 
 
@@ -1066,6 +1067,52 @@ def test_positive_read_enc_information(
     for param in host_parameters_attributes:
         assert param['name'] in host_enc_parameters
         assert host_enc_parameters[param['name']] == param['value']
+
+
+@pytest.mark.e2e
+@pytest.mark.no_containers
+def test_positive_bootc_api_actions(target_sat, bootc_host, function_ak_with_cv, function_org):
+    """Register a bootc host and validate API information
+
+    :id: b94ab231-0dd8-4e47-a96b-972c5ee55f4d
+
+    :expectedresults: Upon registering a Bootc host, the API returns correct information across multiple endpoints
+
+    :CaseComponent:Hosts-Content
+
+    :Verifies:SAT-27168, SAT-27170, SAT-27173
+
+    :CaseImportance: Critical
+    """
+    bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
+    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
+    assert bootc_host.subscribed
+    # Testing bootc info from content_facet_attributes
+    bootc_host = target_sat.api.Host().search(query={'search': f'name={bootc_host.hostname}'})[0]
+    assert (
+        bootc_host.content_facet_attributes['bootc_booted_image']
+        == bootc_dummy_info['bootc.booted.image']
+    )
+    assert (
+        bootc_host.content_facet_attributes['bootc_booted_digest']
+        == bootc_dummy_info['bootc.booted.digest']
+    )
+    assert (
+        bootc_host.content_facet_attributes['bootc_rollback_image']
+        == bootc_dummy_info['bootc.rollback.image']
+    )
+    assert (
+        bootc_host.content_facet_attributes['bootc_rollback_digest']
+        == bootc_dummy_info['bootc.rollback.digest']
+    )
+    # Testing bootc info from hosts/bootc_images
+    bootc_image_info = target_sat.api.Host().get_bootc_images()['results'][0]
+    assert bootc_image_info['bootc_booted_image'] == bootc_dummy_info['bootc.booted.image']
+    assert (
+        bootc_image_info['digests'][0]['bootc_booted_digest']
+        == bootc_dummy_info['bootc.booted.digest']
+    )
+    assert bootc_image_info['digests'][0]['host_count'] > 0
 
 
 @pytest.mark.tier2
