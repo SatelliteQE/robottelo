@@ -14,6 +14,7 @@
 
 import copy
 import csv
+import json
 import os
 import re
 import time
@@ -29,6 +30,7 @@ from robottelo.constants import (
     ANY_CONTEXT,
     DEFAULT_CV,
     DEFAULT_LOC,
+    DUMMY_BOOTC_FACTS,
     ENVIRONMENT,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_7_CUSTOM_PACKAGE,
@@ -2106,6 +2108,39 @@ def test_all_hosts_bulk_build_management(target_sat, function_org, function_loca
         assert 'Rebuilt configuration for 3 hosts' in session.all_hosts.build_management(
             rebuild=True
         )
+
+
+@pytest.mark.tier2
+def test_bootc_booted_container_images(target_sat, bootc_host, function_ak_with_cv, function_org):
+    """Create a bootc host, and read it's information via the Booted Container Images UI
+
+    :id: c15f02a2-05e0-447a-bbcc-aace08d40d1a
+
+    :expectedresults: Booted Container Images contains the correct information for a given booted image
+
+    :CaseComponent:Hosts-Content
+
+    :Verifies:SAT-27163
+
+    :Team: Phoenix-subscriptions
+    """
+    bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
+    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
+    assert bootc_host.subscribed
+
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        booted_container_image_info = session.bootc.read(bootc_dummy_info['bootc.booted.image'])
+        assert (
+            booted_container_image_info[0]['Image name'] == bootc_dummy_info['bootc.booted.image']
+        )
+        assert booted_container_image_info[0]['Image digests'] == '1'
+        assert booted_container_image_info[0]['Hosts'] == '1'
+        assert (
+            booted_container_image_info[1]['Image digest']
+            == bootc_dummy_info['bootc.booted.digest']
+        )
+        assert booted_container_image_info[1]['Hosts'] == '1'
 
 
 @pytest.fixture(scope='module')
