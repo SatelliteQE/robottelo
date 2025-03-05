@@ -2271,6 +2271,21 @@ DNF_RECOMMENDATION = (
 EXPIRED_MANIFEST = 'expired-manifest.zip'
 EXPIRED_MANIFEST_DATE = 'Fri Dec 03 2021'
 
+DUMMY_BOOTC_FACTS = """{
+  "bootc.booted.image": "quay.io/centos-bootc/centos-bootc:stream10",
+  "bootc.booted.version": "stream10.20241202.0",
+  "bootc.booted.digest": "sha256:54256a998f0c62e16f3927c82b570f90bd8449a52e03daabd5fd16d6419fd572",
+  "bootc.staged.image": null,
+  "bootc.staged.version": null,
+  "bootc.staged.digest": null,
+  "bootc.rollback.image": "quay.io/centos-bootc/centos-bootc:stream10",
+  "bootc.rollback.version": "stream10.20241107.0",
+  "bootc.rollback.digest": "sha256:9ed49e9b189f5dae5a01ea9abdcef0884616300b565d32061aea619f2e916be3",
+  "bootc.available.image": null,
+  "bootc.available.version": null,
+  "bootc.available.digest": null
+}"""
+
 
 # Data File Paths
 class DataFile(Box):
