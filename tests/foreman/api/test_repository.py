@@ -1790,8 +1790,8 @@ class TestDockerRepository:
         """
         with pytest.raises(
             HTTPError,
-            match='422 Client Error: Unprocessable Entity for url: '
-            f'{target_sat.url}:443/katello/api/v2/repositories',
+            match='422 Client Error: Unprocessable Content for url: '
+            f'{target_sat.url}/katello/api/v2/repositories',
         ):
             target_sat.api.Repository(**repo_options).create()
 
