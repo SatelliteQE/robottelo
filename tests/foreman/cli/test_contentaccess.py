@@ -18,9 +18,9 @@ from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
     PRDS,
-    REAL_0_ERRATA_ID,
-    REAL_RHEL7_0_2_PACKAGE_FILENAME,
-    REAL_RHEL7_0_2_PACKAGE_NAME,
+    REAL_RHEL9_ERRATA_ID,
+    REAL_RHEL9_OUTDATED_PACKAGE_FILENAME,
+    REAL_RHEL9_PACKAGE,
     REPOS,
     REPOSET,
 )
@@ -35,35 +35,26 @@ pytestmark = [
 
 @pytest.fixture(scope='module')
 def rh_repo_setup_ak(module_sca_manifest_org, module_target_sat):
-    """Use module sca manifest org, creates rhst repo & syncs it,
+    """Use module sca manifest org, creates rhsclient9 repo & syncs it,
     also create CV, LCE & AK and return AK"""
-    rhel7_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
-        basearch='x86_64',
-        org_id=module_sca_manifest_org.id,
-        product=PRDS['rhel'],
-        repo=REPOS['rhel7']['name'],
-        reposet=REPOSET['rhel7'],
-        releasever=REPOS['rhel7']['releasever'],
-    )
-    rhel7_repo = module_target_sat.api.Repository(id=rhel7_repo_id).read()
-    rhel7_repo.sync(timeout=1800)
     rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=DEFAULT_ARCHITECTURE,
         org_id=module_sca_manifest_org.id,
-        product=PRDS['rhel'],
-        repo=REPOS['rhst7']['name'],
-        reposet=REPOSET['rhst7'],
+        product=PRDS['rhel9'],
+        repo=REPOS['rhsclient9']['name'],
+        reposet=REPOSET['rhsclient9'],
         releasever=None,
     )
     # Sync step because repo is not synced by default
     rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
-    rh_repo.sync(timeout=1800)
+    # rh_repo.sync(timeout=1800)
+    rh_repo.sync()
 
     # Create CV, LCE and AK
     cv = module_target_sat.api.ContentView(organization=module_sca_manifest_org).create()
     lce = module_target_sat.api.LifecycleEnvironment(organization=module_sca_manifest_org).create()
     # Add CV to AK
-    cv.repository = [rhel7_repo, rh_repo]
+    cv.repository = [rh_repo]
     cv.update(['repository'])
     cv.publish()
     cv = cv.read()
@@ -77,7 +68,7 @@ def rh_repo_setup_ak(module_sca_manifest_org, module_target_sat):
     ).create()
     # Ensure tools repo is enabled in the activation key
     ak.content_override(
-        data={'content_overrides': [{'content_label': REPOS['rhst7']['id'], 'value': '1'}]}
+        data={'content_overrides': [{'content_label': REPOS['rhsclient9']['id'], 'value': '1'}]}
     )
     return ak
 
@@ -86,25 +77,22 @@ def rh_repo_setup_ak(module_sca_manifest_org, module_target_sat):
 def vm(
     rh_repo_setup_ak,
     module_sca_manifest_org,
-    rhel7_contenthost_module,
+    rhel9_contenthost_module,
     module_target_sat,
 ):
-    # python-psutil obsoleted by python2-psutil, install older python2-psutil for errata test.
-    rhel7_contenthost_module.run(
-        'rpm -Uvh https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/p/'
-        'python2-psutil-5.6.7-1.el7.x86_64.rpm'
-    )
-    rhel7_contenthost_module.register(
+    rhel9_contenthost_module.register(
         module_sca_manifest_org, None, rh_repo_setup_ak.name, module_target_sat
     )
+    # Install older 'python3-gofer' for errata test
+    rhel9_contenthost_module.run(f'yum install -y {REAL_RHEL9_OUTDATED_PACKAGE_FILENAME}')
     host = module_target_sat.api.Host().search(
-        query={'search': f'name={rhel7_contenthost_module.hostname}'}
+        query={'search': f'name={rhel9_contenthost_module.hostname}'}
     )
     host_id = host[0].id
     host_content = module_target_sat.api.Host(id=host_id).read_json()
     assert host_content['subscription_facet_attributes']['uuid']
-    rhel7_contenthost_module.install_katello_host_tools()
-    return rhel7_contenthost_module
+    rhel9_contenthost_module.install_katello_host_tools()
+    return rhel9_contenthost_module
 
 
 @pytest.mark.tier2
@@ -138,16 +126,14 @@ def test_positive_list_installable_updates(vm, module_target_sat):
             {
                 'host': vm.hostname,
                 'packages-restrict-applicable': 'true',
-                'search': f'name={REAL_RHEL7_0_2_PACKAGE_NAME}',
+                'search': f'name={REAL_RHEL9_PACKAGE}',
             }
         )
         if applicable_packages:
             break
         time.sleep(10)
     assert len(applicable_packages) > 0
-    assert REAL_RHEL7_0_2_PACKAGE_FILENAME in [
-        package['filename'] for package in applicable_packages
-    ]
+    assert REAL_RHEL9_PACKAGE in applicable_packages[0]['filename']
 
 
 @pytest.mark.tier2
@@ -177,7 +163,7 @@ def test_positive_erratum_installable(vm, module_target_sat):
     # check that package errata is applicable
     for _ in range(30):
         erratum = module_target_sat.cli.Host.errata_list(
-            {'host': vm.hostname, 'search': f'id = {REAL_0_ERRATA_ID}'}
+            {'host': vm.hostname, 'search': f'id = {REAL_RHEL9_ERRATA_ID}'}
         )
         if erratum:
             break
