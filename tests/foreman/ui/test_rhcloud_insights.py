@@ -387,3 +387,21 @@ def test_insights_registration_with_capsule(
         # Verify that Insights status again.
         values = session.host_new.get_host_statuses(rhel_contenthost.hostname)
         assert values['Insights']['Status'] == 'Reporting'
+
+
+def test_positive_check_report_autosync_setting(target_sat):
+    """Verify that the Insights report autosync setting is enabled by default.
+
+    :id: 137dffe6-50a4-4327-8e93-79e128bee63b
+
+    :steps:
+        1. Check the Insights report autosync setting.
+
+    :expectedresults:
+        1. The Insights setting "Synchronize recommendations Automatically" should has value "Yes"
+
+    :Verifies: SAT-30227
+    """
+    with target_sat.ui_session() as session:
+        result = session.settings.read('Synchronize recommendations Automatically')
+        assert result['table'][0]['Value'] == 'Yes', 'Setting is not enabled by default!'
