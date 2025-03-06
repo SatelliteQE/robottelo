@@ -1303,8 +1303,7 @@ def test_syspurpose_attributes_empty(session, default_location, vm_module_stream
         details = session.contenthost.read(vm_module_streams.hostname, widget_names='details')[
             'details'
         ]
-        syspurpose_status = details['system_purpose_status']
-        assert syspurpose_status.lower() == 'not specified'
+        assert 'system_purpose_status' not in details
         for spname in DEFAULT_SYSPURPOSE_ATTRIBUTES:
             assert details[spname] == ''
 
