@@ -311,6 +311,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
                 'ansible-role-ids': role_id,
             }
         )
+        vm.run("sed -i 's/gpgcheck=1/gpgcheck=0/' /etc/yum.repos.d/foreman_registration1.repo")
         job_id = target_sat.cli.Host.ansible_roles_play({'name': vm.hostname.lower()})[0].get('id')
         target_sat.wait_for_tasks(
             f'resource_type = JobInvocation and resource_id = {job_id} and action ~ "hosts job"'
