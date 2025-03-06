@@ -405,3 +405,24 @@ def test_positive_register_insights_client_host(module_target_sat, rhel_insights
     output = rhel_insights_vm.execute(f'insights-client --ansible-host={rhel_insights_vm.hostname}')
     assert output.status == 0
     assert 'Ansible hostname updated' in output.stdout
+
+
+def test_positive_check_report_autosync_setting(target_sat):
+    """Verify that the Insights report autosync setting is enabled by default.
+
+    :id: 137dffe6-50a4-4327-8e93-79e128bee63b
+
+    :steps:
+        1. Check the Insights report autosync setting.
+
+    :expectedresults:
+        1. The Insights setting "Synchronize recommendations Automatically" should has value "Yes"
+
+    :Verifies: SAT-30227
+    """
+    assert (
+        target_sat.cli.Settings.list({'search': 'Synchronize recommendations Automatically'})[0][
+            'value'
+        ]
+        == 'true'
+    ), 'Setting is not enabled by default!'
