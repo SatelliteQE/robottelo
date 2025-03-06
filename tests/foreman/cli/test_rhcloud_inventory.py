@@ -416,7 +416,7 @@ def test_positive_check_report_autosync_setting(target_sat):
         1. Check the Insights report autosync setting.
 
     :expectedresults:
-        1. The Insights setting "Synchronize recommendations Automatically" should has value "Yes"
+        1. The Insights setting "Synchronize recommendations Automatically" should have value "true"
 
     :Verifies: SAT-30227
     """
