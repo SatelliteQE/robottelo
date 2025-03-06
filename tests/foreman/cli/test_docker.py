@@ -565,7 +565,7 @@ class TestDockerContentView:
         """
         old_prod_name = gen_string('alpha', 5)
         new_prod_name = gen_string('alpha', 5)
-        docker_upstream_name = 'hello-world'
+        docker_upstream_name = settings.container.alternative_upstream_names[0]
         new_pattern = '<%= content_view.label %>/<%= product.name %>'
 
         lce = module_target_sat.cli_factory.make_lifecycle_environment(
@@ -650,7 +650,7 @@ class TestDockerContentView:
         """
         old_repo_name = gen_string('alpha', 5)
         new_repo_name = gen_string('alpha', 5)
-        docker_upstream_name = 'hello-world'
+        docker_upstream_name = settings.container.alternative_upstream_names[0]
         new_pattern = '<%= content_view.label %>/<%= repository.name %>'
 
         lce = module_target_sat.cli_factory.make_lifecycle_environment(
@@ -728,7 +728,7 @@ class TestDockerContentView:
 
         :expectedresults: Content view is not promoted
         """
-        docker_upstream_names = ['hello-world', 'alpine']
+        docker_upstream_names = settings.container.alternative_upstream_names
         new_pattern = '<%= organization.label %>'
 
         lce = module_target_sat.cli_factory.make_lifecycle_environment(
@@ -766,7 +766,7 @@ class TestDockerContentView:
 
         :expectedresults: Registry name pattern is not changed
         """
-        docker_upstream_names = ['hello-world', 'alpine']
+        docker_upstream_names = settings.container.alternative_upstream_names
         new_pattern = '<%= organization.label %>'
 
         content_view = module_target_sat.cli_factory.make_content_view(
