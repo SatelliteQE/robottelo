@@ -41,7 +41,6 @@ def module_ec2_settings():
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.skip_if_not_set('http_proxy')
 def test_positive_default_end_to_end_with_custom_profile(
     session, module_org, module_location, module_ec2_settings, module_target_sat
@@ -143,7 +142,6 @@ def test_positive_default_end_to_end_with_custom_profile(
         assert not session.computeresource.search(new_cr_name)
 
 
-@pytest.mark.tier2
 def test_positive_create_ec2_with_custom_region(session, module_ec2_settings):
     """Create a new ec2 compute resource with custom region
 

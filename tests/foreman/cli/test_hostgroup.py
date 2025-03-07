@@ -81,7 +81,6 @@ def hostgroup(content_source, module_org, module_target_sat):
     )
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
 def test_negative_create_with_name(name, module_target_sat):
     """Don't create an HostGroup with invalid data.
@@ -97,7 +96,6 @@ def test_negative_create_with_name(name, module_target_sat):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_create_with_multiple_entities_and_delete(
     module_puppet_org, puppet_content_source, puppet_classes, session_puppet_enabled_sat
@@ -199,7 +197,6 @@ def test_positive_create_with_multiple_entities_and_delete(
             session_puppet_enabled_sat.cli.HostGroup.info({'id': hostgroup['id']})
 
 
-@pytest.mark.tier2
 def test_negative_create_with_content_source(module_org, module_target_sat):
     """Attempt to create a hostgroup with invalid content source specified
 
@@ -219,7 +216,6 @@ def test_negative_create_with_content_source(module_org, module_target_sat):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier2
 def test_positive_update_hostgroup_with_puppet(
     request,
     module_puppet_org,
@@ -276,7 +272,6 @@ def test_positive_update_hostgroup_with_puppet(
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier2
 def test_positive_update_hostgroup(
     module_target_sat,
     module_org,
@@ -315,7 +310,6 @@ def test_positive_update_hostgroup(
     assert hostgroup['content-source']['name'] == new_content_source['name']
 
 
-@pytest.mark.tier2
 def test_negative_update_content_source(hostgroup, content_source, module_target_sat):
     """Attempt to update hostgroup's content source with invalid value
 
@@ -334,7 +328,6 @@ def test_negative_update_content_source(hostgroup, content_source, module_target
     assert hostgroup['content-source']['name'] == content_source['name']
 
 
-@pytest.mark.tier2
 def test_negative_update_name(hostgroup, module_target_sat):
     """Create HostGroup then fail to update its name
 
@@ -349,7 +342,6 @@ def test_negative_update_name(hostgroup, module_target_sat):
     assert hostgroup['name'] == result['name']
 
 
-@pytest.mark.tier2
 def test_negative_delete_by_id(module_target_sat):
     """Create HostGroup then delete it by wrong ID
 
@@ -362,7 +354,6 @@ def test_negative_delete_by_id(module_target_sat):
         module_target_sat.cli.HostGroup.delete({'id': entity_id})
 
 
-@pytest.mark.tier2
 def test_positive_created_nested_hostgroup(module_org, module_target_sat):
     """Create a nested host group using multiple parent hostgroup paths.
     e.g. ` hostgroup create --organization 'org_name' --name new3 --parent-title new_1/new_2`

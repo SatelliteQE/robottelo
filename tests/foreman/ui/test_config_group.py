@@ -22,7 +22,6 @@ def module_puppet_class(session_puppet_enabled_sat):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_class):
     """Perform end to end testing for config group component

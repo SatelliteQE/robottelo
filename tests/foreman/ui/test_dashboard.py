@@ -20,7 +20,6 @@ from robottelo.constants import FAKE_7_CUSTOM_PACKAGE
 from robottelo.utils.datafactory import gen_string
 
 
-@pytest.mark.tier2
 def test_positive_host_configuration_status(session, target_sat):
     """Check if the Host Configuration Status Widget links are working
 
@@ -88,7 +87,6 @@ def test_positive_host_configuration_status(session, target_sat):
                 assert len(values['table']) == 0
 
 
-@pytest.mark.tier2
 def test_positive_host_configuration_chart(session, target_sat):
     """Check if the Host Configuration Chart is working in the Dashboard UI
 
@@ -114,7 +112,6 @@ def test_positive_host_configuration_chart(session, target_sat):
 
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier2
 def test_positive_task_status(session, target_sat):
     """Check if the Task Status is working in the Dashboard UI and
         filter from Tasks index page is working correctly
@@ -172,7 +169,6 @@ def test_positive_task_status(session, target_sat):
 @pytest.mark.upgrade
 @pytest.mark.no_containers
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier3
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 @pytest.mark.parametrize(
@@ -258,7 +254,6 @@ def test_positive_user_access_with_host_filter(
         assert settings.repos.yum_3.errata[25] in [e['Errata'].split()[0] for e in errata_values]
 
 
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_sync_overview_widget(session, module_product, module_target_sat):
     """Check if the Sync Overview widget is working in the Dashboard UI

@@ -19,7 +19,6 @@ from robottelo.utils.datafactory import gen_string
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 def test_positive_end_to_end(session, module_org, module_location, target_sat):
     """Create all possible entities that required for operating system and then
     test all scenarios like create/read/update/delete for it
@@ -140,7 +139,6 @@ def test_positive_end_to_end(session, module_org, module_location, target_sat):
         assert not session.operatingsystem.search(new_description)
 
 
-@pytest.mark.tier2
 def test_positive_verify_os_name(session, target_sat):
     """Check that the Operating System name is displayed correctly
 

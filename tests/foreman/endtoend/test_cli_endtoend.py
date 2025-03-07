@@ -20,7 +20,6 @@ from robottelo.config import settings
 from robottelo.constants.repos import CUSTOM_RPM_REPO
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_cli_find_default_org(module_target_sat):
     """Check if 'Default Organization' is present
@@ -33,7 +32,6 @@ def test_positive_cli_find_default_org(module_target_sat):
     assert result['name'] == constants.DEFAULT_ORG
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_cli_find_default_loc(module_target_sat):
     """Check if 'Default Location' is present
@@ -46,7 +44,6 @@ def test_positive_cli_find_default_loc(module_target_sat):
     assert result['name'] == constants.DEFAULT_LOC
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_cli_find_admin_user(module_target_sat):
     """Check if Admin User is present
@@ -62,7 +59,6 @@ def test_positive_cli_find_admin_user(module_target_sat):
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('7')
-@pytest.mark.tier4
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')

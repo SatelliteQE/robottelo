@@ -25,7 +25,6 @@ class TestHostCockpit:
 
     @pytest.mark.upgrade
     @pytest.mark.rhel_ver_match('[^6].*')
-    @pytest.mark.tier2
     @pytest.mark.no_containers
     def test_positive_cockpit(self, cockpit_host, class_cockpit_sat, class_org):
         """Install cockpit plugin and test whether webconsole button and cockpit integration works.

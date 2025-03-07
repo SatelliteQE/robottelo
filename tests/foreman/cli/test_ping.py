@@ -14,10 +14,9 @@
 
 import pytest
 
-pytestmark = [pytest.mark.tier1, pytest.mark.upgrade]
-
 
 @pytest.mark.pit_server
+@pytest.mark.upgrade
 @pytest.mark.parametrize('switch_user', [False, True], ids=['root', 'non-root'])
 def test_positive_ping(target_sat, switch_user):
     """hammer ping return code

@@ -67,7 +67,6 @@ def module_domain(session_puppet_enabled_sat, module_host):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_classes, sc_params_list):
     """Perform end to end testing for smart class parameter component
 
@@ -167,7 +166,6 @@ def test_positive_end_to_end(session_puppet_enabled_sat, module_puppet_classes, 
         )
 
 
-@pytest.mark.tier2
 def test_positive_create_matcher_attribute_priority(
     session_puppet_enabled_sat,
     module_puppet_org,
@@ -262,7 +260,6 @@ def test_positive_create_matcher_attribute_priority(
         assert output_scp == str([module_domain.name, module_host.mac])
 
 
-@pytest.mark.tier2
 def test_positive_create_matcher_avoid_duplicate(
     session_puppet_enabled_sat,
     module_puppet_org,
@@ -348,7 +345,6 @@ def test_positive_create_matcher_avoid_duplicate(
         assert output_scp == [20, 80, 90, 100]
 
 
-@pytest.mark.tier2
 def test_positive_update_matcher_from_attribute(
     session_puppet_enabled_sat, module_puppet_org, module_puppet_loc, sc_params_list, module_host
 ):
@@ -418,7 +414,6 @@ def test_positive_update_matcher_from_attribute(
         assert property_matcher['Value']['value'] == new_override_value
 
 
-@pytest.mark.tier2
 def test_positive_impact_parameter_delete_attribute(
     session_puppet_enabled_sat, sc_params_list, module_env_search, module_puppet_classes
 ):
@@ -481,7 +476,6 @@ def test_positive_impact_parameter_delete_attribute(
         assert session.sc_parameter.search(sc_param.parameter)[0]['Number of Overrides'] == '0'
 
 
-@pytest.mark.tier2
 def test_positive_hidden_value_in_attribute(
     session_puppet_enabled_sat, module_puppet_org, module_puppet_loc, sc_params_list, module_host
 ):

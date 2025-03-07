@@ -27,7 +27,6 @@ from robottelo.utils.datafactory import generate_strings_list, parametrized
 class TestRole:
     """Test class for Roles CLI"""
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         ('name', 'new_name'),
         **parametrized(
@@ -59,7 +58,6 @@ class TestRole:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.Role.info({'id': role['id']})
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     def test_positive_create_with_permission(self, module_target_sat):
         """Create new role with a set of permission
@@ -86,7 +84,6 @@ class TestRole:
             permissions
         )
 
-    @pytest.mark.tier1
     def test_positive_list_filters_by_id(self, module_target_sat):
         """Create new role with a filter and list it by role id
 
@@ -111,7 +108,6 @@ class TestRole:
         assert role['name'] == filter_['role']
         assert module_target_sat.cli.Role.filters({'id': role['id']})[0]['id'] == filter_['id']
 
-    @pytest.mark.tier1
     def test_positive_list_filters_by_name(self, module_target_sat):
         """Create new role with a filter and list it by role name
 
@@ -136,7 +132,6 @@ class TestRole:
         assert role['name'] == filter_['role']
         assert module_target_sat.cli.Role.filters({'name': role['name']})[0]['id'] == filter_['id']
 
-    @pytest.mark.tier1
     def test_negative_list_filters_without_parameters(self, module_target_sat):
         """Try to list filter without specifying role id or name
 
@@ -176,7 +171,6 @@ class TestRole:
             'permissions': permissions,
         }
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize('per_page', [1, 5, 20])
     def test_positive_list_filters_with_pagination(
@@ -217,7 +211,6 @@ class TestRole:
             len(make_role_with_permissions['permissions']) % per_page or per_page
         )
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     def test_positive_delete_cloned_builtin(self, module_target_sat):
         """Clone a builtin role and attempt to delete it
@@ -251,7 +244,6 @@ class TestSystemAdmin:
         class_target_sat.cli.Settings.set({'name': "outofsync_interval", 'value': "30"})
 
     @pytest.mark.upgrade
-    @pytest.mark.tier3
     @pytest.mark.e2e
     def test_system_admin_role_end_to_end(self, target_sat):
         """Test System admin role with a end to end workflow

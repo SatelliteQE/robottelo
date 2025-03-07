@@ -29,7 +29,6 @@ def module_template():
     ssh.command(f'touch {TEMPLATE_FILE_EMPTY}')
 
 
-@pytest.mark.tier1
 def test_positive_create_job_template(module_org, module_target_sat):
     """Create a simple Job Template
 
@@ -50,7 +49,6 @@ def test_positive_create_job_template(module_org, module_target_sat):
     assert module_target_sat.cli.JobTemplate.info({'name': template_name}) is not None
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
 def test_negative_create_job_template_with_invalid_name(module_org, name, module_target_sat):
     """Create Job Template with invalid name
@@ -74,7 +72,6 @@ def test_negative_create_job_template_with_invalid_name(module_org, name, module
         )
 
 
-@pytest.mark.tier1
 def test_negative_create_job_template_with_same_name(module_org, module_target_sat):
     """Create Job Template with duplicate name
 
@@ -102,7 +99,6 @@ def test_negative_create_job_template_with_same_name(module_org, module_target_s
         )
 
 
-@pytest.mark.tier1
 def test_negative_create_empty_job_template(module_org, module_target_sat):
     """Create Job Template with empty template file
 
@@ -123,7 +119,6 @@ def test_negative_create_empty_job_template(module_org, module_target_sat):
         )
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_delete_job_template(module_org, module_target_sat):
     """Delete a job template
@@ -147,7 +142,6 @@ def test_positive_delete_job_template(module_org, module_target_sat):
         module_target_sat.cli.JobTemplate.info({'name': template_name})
 
 
-@pytest.mark.tier2
 def test_positive_view_dump(module_org, module_target_sat):
     """Export contents of a job template
 

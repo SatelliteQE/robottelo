@@ -69,7 +69,6 @@ def module_setup_content(module_sca_manifest_org, module_target_sat):
     return org, ak, cv, lce
 
 
-@pytest.mark.tier3
 @pytest.mark.stubbed
 def test_negative_create_report_without_name(session):
     """A report template with empty name can't be created
@@ -90,7 +89,6 @@ def test_negative_create_report_without_name(session):
     """
 
 
-@pytest.mark.tier3
 @pytest.mark.stubbed
 def test_negative_cannot_delete_locked_report(session):
     """Edit a report template
@@ -110,7 +108,6 @@ def test_negative_cannot_delete_locked_report(session):
     """
 
 
-@pytest.mark.tier3
 @pytest.mark.stubbed
 def test_positive_preview_report(session):
     """Preview a report
@@ -132,7 +129,6 @@ def test_positive_preview_report(session):
     """
 
 
-@pytest.mark.tier2
 def test_positive_end_to_end(session, module_org, module_location):
     """Perform end to end testing for report template component's CRUD operations
 
@@ -230,7 +226,6 @@ def test_positive_end_to_end(session, module_org, module_location):
 
 @pytest.mark.rhel_ver_list([7, 8, 9])
 @pytest.mark.upgrade
-@pytest.mark.tier2
 def test_positive_generate_registered_hosts_report(
     session, target_sat, module_setup_content, rhel_contenthost
 ):
@@ -269,7 +264,6 @@ def test_positive_generate_registered_hosts_report(
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier2
 def test_positive_generate_subscriptions_report_json(
     session, module_org, module_setup_content, module_target_sat
 ):
@@ -309,7 +303,6 @@ def test_positive_generate_subscriptions_report_json(
         assert sorted(list(subscription.keys())) == keys_expected
 
 
-@pytest.mark.tier3
 @pytest.mark.stubbed
 def test_positive_applied_errata(session):
     """Generate an Applied Errata report
@@ -325,7 +318,6 @@ def test_positive_applied_errata(session):
     """
 
 
-@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_datetime_picker(session):
     """Generate an Applied Errata report with date filled
@@ -346,7 +338,6 @@ def test_datetime_picker(session):
     """
 
 
-@pytest.mark.tier3
 @pytest.mark.stubbed
 def test_positive_autocomplete(session):
     """Check if host field suggests matching hosts on typing
@@ -365,7 +356,6 @@ def test_positive_autocomplete(session):
     """
 
 
-@pytest.mark.tier2
 def test_positive_schedule_generation_and_get_mail(
     session, module_sca_manifest_org, module_location, target_sat
 ):
@@ -442,7 +432,6 @@ def test_positive_schedule_generation_and_get_mail(
         assert sorted(list(subscription.keys())) == keys_expected
 
 
-@pytest.mark.tier3
 @pytest.mark.stubbed
 def test_negative_bad_email(session):
     """Generate a report and request the result be sent to
@@ -460,7 +449,6 @@ def test_negative_bad_email(session):
     """
 
 
-@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_negative_nonauthor_of_report_cant_download_it(session):
     """The resulting report should only be downloadable by
@@ -481,7 +469,6 @@ def test_negative_nonauthor_of_report_cant_download_it(session):
 
 
 @pytest.mark.rhel_ver_list([7, 8, 9])
-@pytest.mark.tier3
 def test_positive_generate_all_installed_packages_report(
     session, module_setup_content, rhel_contenthost, target_sat
 ):
@@ -532,7 +519,6 @@ def test_positive_generate_all_installed_packages_report(
     assert FAKE_1_CUSTOM_PACKAGE in tree_result
 
 
-@pytest.mark.tier2
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')  # all versions, excluding any 'fips'
 def test_positive_installable_errata_with_user(
