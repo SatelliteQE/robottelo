@@ -55,7 +55,6 @@ def ui_entity(module_org, module_location, request):
     return entity
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, ui_entity):
     """Perform end to end testing for bookmark component
@@ -88,7 +87,6 @@ def test_positive_end_to_end(session, ui_entity):
         assert not session.bookmark.search(new_name)
 
 
-@pytest.mark.tier2
 def test_positive_create_bookmark_public(
     session, ui_entity, default_viewer_role, test_name, module_target_sat
 ):
@@ -130,7 +128,6 @@ def test_positive_create_bookmark_public(
         assert not session.bookmark.search(nonpublic_name)
 
 
-@pytest.mark.tier2
 def test_positive_update_bookmark_public(
     session, ui_entity, default_viewer_role, ui_user, test_name, target_sat
 ):
@@ -201,7 +198,6 @@ def test_positive_update_bookmark_public(
         assert not non_admin_session.bookmark.search(public_name)
 
 
-@pytest.mark.tier2
 def test_negative_delete_bookmark(ui_entity, default_viewer_role, test_name, module_target_sat):
     """Simple removal of a bookmark query without permissions
 
@@ -233,7 +229,6 @@ def test_negative_delete_bookmark(ui_entity, default_viewer_role, test_name, mod
         assert non_admin_session.bookmark.search(bookmark.name)[0]['Name'] == bookmark.name
 
 
-@pytest.mark.tier2
 def test_negative_create_with_duplicate_name(session, ui_entity, module_target_sat):
     """Create bookmark with duplicate name
 

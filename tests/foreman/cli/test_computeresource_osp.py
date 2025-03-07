@@ -45,7 +45,6 @@ class TestOSPComputeResourceTestCase:
         return versions[getattr(request, 'param', 'osp16')]
 
     @pytest.mark.upgrade
-    @pytest.mark.tier3
     @pytest.mark.parametrize('osp_version', ['osp16', 'osp17'], indirect=True)
     @pytest.mark.parametrize(
         'id_type',
@@ -105,7 +104,6 @@ class TestOSPComputeResourceTestCase:
             compute_resource = target_sat.cli.ComputeResource.info({'id': compute_resource['id']})
         assert new_name == compute_resource['name']
 
-    @pytest.mark.tier3
     def test_negative_create_osp_with_url(self, target_sat):
         """Attempt to create Openstack compute resource with invalid URL
 
@@ -131,7 +129,6 @@ class TestOSPComputeResourceTestCase:
                 }
             )
 
-    @pytest.mark.tier3
     @pytest.mark.stubbed
     def test_positive_provision_osp_with_host_group(self):
         """Provision a host on Openstack compute resource with
@@ -155,7 +152,6 @@ class TestOSPComputeResourceTestCase:
         """
 
     @pytest.mark.stubbed
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_provision_osp_without_host_group(self):
         """Provision a host on Openstack compute resource without

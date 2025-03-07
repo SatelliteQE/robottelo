@@ -31,7 +31,6 @@ from robottelo.utils.datafactory import (
 )
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
 def test_negative_create_with_name(name, module_org, module_target_sat):
     """Create a product providing invalid names only
@@ -48,7 +47,6 @@ def test_negative_create_with_name(name, module_org, module_target_sat):
         module_target_sat.api.Product(name=name, organization=module_org).create()
 
 
-@pytest.mark.tier1
 def test_negative_create_with_same_name(module_org, module_target_sat):
     """Create a product providing a name of already existent entity
 
@@ -64,7 +62,6 @@ def test_negative_create_with_same_name(module_org, module_target_sat):
         module_target_sat.api.Product(name=name, organization=module_org).create()
 
 
-@pytest.mark.tier1
 def test_negative_create_with_label(module_org, module_target_sat):
     """Create a product providing invalid label
 
@@ -79,7 +76,6 @@ def test_negative_create_with_label(module_org, module_target_sat):
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier2
 def test_positive_create_product_and_update_gpg(module_org, module_target_sat):
     """Create a product with GPG key and update it with new GPGKey
 
@@ -105,7 +101,6 @@ def test_positive_create_product_and_update_gpg(module_org, module_target_sat):
     assert product.gpg_key.id == gpg_key_2.id
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
 def test_negative_update_name(name, module_org, module_target_sat):
     """Attempt to update product name to invalid one
@@ -123,7 +118,6 @@ def test_negative_update_name(name, module_org, module_target_sat):
         module_target_sat.api.Product(id=product.id, name=name).update(['name'])
 
 
-@pytest.mark.tier1
 def test_negative_update_label(module_org, module_target_sat):
     """Attempt to update product label to another one.
 
@@ -139,7 +133,6 @@ def test_negative_update_label(module_org, module_target_sat):
         product.update(['label'])
 
 
-@pytest.mark.tier1
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_sync(module_org, module_target_sat):
     """Sync product (repository within a product)
@@ -159,7 +152,6 @@ def test_positive_sync(module_org, module_target_sat):
     assert repo.read().content_counts['rpm'] >= 1
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_sync_several_repos(module_org, module_target_sat):
@@ -190,7 +182,6 @@ def test_positive_sync_several_repos(module_org, module_target_sat):
     assert docker_repo.read().content_counts['docker_tag'] >= 1
 
 
-@pytest.mark.tier2
 def test_positive_filter_product_list(module_sca_manifest_org, module_target_sat):
     """Filter products based on param 'custom/redhat_only'
 
@@ -216,7 +207,6 @@ def test_positive_filter_product_list(module_sca_manifest_org, module_target_sat
 
 
 @pytest.mark.e2e
-@pytest.mark.tier1
 def test_positive_product_end_to_end(module_target_sat, module_org):
     """Product scenario with all possible crud operations
 

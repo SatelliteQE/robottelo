@@ -65,7 +65,6 @@ def golden_ticket_host_setup(function_sca_manifest_org, module_target_sat):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, function_sca_manifest, target_sat):
     """Upload a manifest with minimal input parameters, attempt to
@@ -139,7 +138,6 @@ def test_positive_end_to_end(session, function_sca_manifest, target_sat):
         assert results.stdout == ''
 
 
-@pytest.mark.tier2
 def test_positive_access_with_non_admin_user_without_manifest(test_name, target_sat):
     """Access subscription page with non admin user that has the necessary
     permissions to check that there is no manifest uploaded.
@@ -178,7 +176,6 @@ def test_positive_access_with_non_admin_user_without_manifest(test_name, target_
         assert not session.subscription.has_manifest
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_access_with_non_admin_user_with_manifest(
     test_name, function_sca_manifest_org, target_sat
@@ -218,7 +215,6 @@ def test_positive_access_with_non_admin_user_with_manifest(
         )
 
 
-@pytest.mark.tier2
 def test_positive_access_manifest_as_another_admin_user(
     test_name, target_sat, function_sca_manifest
 ):
@@ -260,7 +256,6 @@ def test_positive_access_manifest_as_another_admin_user(
         assert not session.subscription.has_manifest
 
 
-@pytest.mark.tier3
 def test_positive_view_vdc_subscription_products(
     session, rhel7_contenthost, target_sat, function_sca_manifest_org
 ):
@@ -320,7 +315,6 @@ def test_positive_view_vdc_subscription_products(
 
 
 @pytest.mark.skip_if_not_set('libvirt')
-@pytest.mark.tier3
 def test_positive_view_vdc_guest_subscription_products(
     session, rhel7_contenthost, target_sat, function_sca_manifest_org
 ):
@@ -400,7 +394,6 @@ def test_positive_view_vdc_guest_subscription_products(
         assert product_name in content_products
 
 
-@pytest.mark.tier3
 def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(
     session, function_org, function_sca_manifest
 ):

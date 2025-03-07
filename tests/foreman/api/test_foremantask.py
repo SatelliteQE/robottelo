@@ -16,7 +16,6 @@ import pytest
 from requests.exceptions import HTTPError
 
 
-@pytest.mark.tier1
 def test_negative_fetch_non_existent_task(target_sat):
     """Fetch a non-existent task.
 
@@ -30,7 +29,6 @@ def test_negative_fetch_non_existent_task(target_sat):
         target_sat.api.ForemanTask(id='abc123').read()
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 @pytest.mark.e2e
 def test_positive_get_summary(target_sat):

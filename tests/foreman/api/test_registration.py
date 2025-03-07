@@ -25,8 +25,6 @@ from robottelo.config import (
     user_nailgun_config,
 )
 
-pytestmark = pytest.mark.tier1
-
 
 @pytest.mark.e2e
 @pytest.mark.pit_client
@@ -88,7 +86,6 @@ def test_host_registration_end_to_end(
     assert rhel_contenthost.subscription_config['server']['port'] == constants.CLIENT_PORT
 
 
-@pytest.mark.tier3
 @pytest.mark.pit_client
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 def test_positive_allow_reregistration_when_dmi_uuid_changed(
@@ -217,7 +214,6 @@ def test_positive_rex_interface_for_global_registration(
             assert interface['mac'] == mac_address
 
 
-@pytest.mark.tier1
 def test_negative_global_registration_without_ak(module_target_sat):
     """Attempt to register a host without ActivationKey
 

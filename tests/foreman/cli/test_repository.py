@@ -123,7 +123,6 @@ def gpg_key(module_org, module_target_sat):
 class TestRepository:
     """Repository CLI tests."""
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
@@ -153,7 +152,6 @@ class TestRepository:
         """
         assert repo.get('upstream-repository-name') == repo_options['docker-upstream-name']
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -185,7 +183,6 @@ class TestRepository:
         with pytest.raises(CLIReturnCodeError):
             target_sat.cli.Repository.info({'id': repo['id']})
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content-type': 'yum', 'url': url} for url in YUM_REPOS]),
@@ -205,7 +202,6 @@ class TestRepository:
         for key in 'url', 'content-type':
             assert repo.get(key) == repo_options[key]
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
@@ -250,7 +246,6 @@ class TestRepository:
         new_repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert new_repo['sync']['status'] == 'Success'
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
@@ -272,7 +267,6 @@ class TestRepository:
         """
         assert repo.get('download-policy') == repo_options['download-policy']
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
@@ -297,7 +291,6 @@ class TestRepository:
         """
         assert repo.get('mirroring-policy') == MIRRORING_POLICIES[repo_options['mirroring-policy']]
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options', **parametrized([{'content-type': 'yum'}]), indirect=True
     )
@@ -317,7 +310,6 @@ class TestRepository:
         assert default_dl_policy
         assert repo.get('download-policy') == default_dl_policy[0]['value']
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options', **parametrized([{'content-type': 'yum'}]), indirect=True
     )
@@ -340,7 +332,6 @@ class TestRepository:
         result = target_sat.cli.Repository.info({'id': repo['id']})
         assert result.get('download-policy') == 'on_demand'
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content-type': 'yum', 'download-policy': 'on_demand'}]),
@@ -362,7 +353,6 @@ class TestRepository:
         result = target_sat.cli.Repository.info({'id': repo['id']})
         assert result['download-policy'] == 'immediate'
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     def test_positive_create_with_gpg_key_by_id(self, repo_options, gpg_key, target_sat):
         """Check if repository can be created with gpg key ID
@@ -381,7 +371,6 @@ class TestRepository:
         assert repo['gpg-key']['name'] == gpg_key['name']
 
     # Comment out test until https://bugzilla.redhat.com/show_bug.cgi?id=2008656 is resolved
-    # @pytest.mark.tier1
     # def test_positive_create_with_gpg_key_by_name(
     #         self, repo_options, module_org, module_product, gpg_key
     # ):
@@ -397,7 +386,6 @@ class TestRepository:
     #     assert repo['gpg-key']['id'] == gpg_key['id']
     #     assert repo['gpg-key']['name'] == gpg_key['name']
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'publish-via-http': use_http} for use_http in ('true', 'yes', '1')]),
@@ -416,7 +404,6 @@ class TestRepository:
         """
         assert repo.get('publish-via-http') == 'yes'
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'publish-via-http': use_http} for use_http in ('false', 'no', '0')]),
@@ -435,7 +422,6 @@ class TestRepository:
         """
         assert repo.get('publish-via-http') == 'no'
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
@@ -466,7 +452,6 @@ class TestRepository:
         for key in 'content-type', 'checksum-type':
             assert repo.get(key) == repo_options[key]
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -496,7 +481,6 @@ class TestRepository:
         for key in 'url', 'content-type', 'name':
             assert repo.get(key) == repo_options[key]
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -527,7 +511,6 @@ class TestRepository:
         for key in 'url', 'content-type', 'name':
             assert repo.get(key) == repo_options[key]
 
-    @pytest.mark.tier1
     def test_positive_create_repo_with_new_organization_and_location(self, target_sat):
         """Check if error is thrown when creating a Repo with a new Organization and Location.
 
@@ -564,7 +547,6 @@ class TestRepository:
         )
         assert result.status == 1
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'name': name} for name in invalid_values_list()]),
@@ -584,7 +566,6 @@ class TestRepository:
         with pytest.raises(CLIFactoryError):
             target_sat.cli_factory.make_repository(repo_options)
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'url': f'http://{gen_string("alpha")}{punctuation}.com'}]),
@@ -606,7 +587,6 @@ class TestRepository:
         with pytest.raises(CLIFactoryError):
             module_target_sat.cli_factory.make_repository(repo_options)
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content-type': 'yum', 'download-policy': gen_string('alpha', 5)}]),
@@ -628,7 +608,6 @@ class TestRepository:
         with pytest.raises(CLIFactoryError):
             module_target_sat.cli_factory.make_repository(repo_options)
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options', **parametrized([{'content-type': 'yum'}]), indirect=True
     )
@@ -650,7 +629,6 @@ class TestRepository:
                 {'id': repo['id'], 'download-policy': gen_string('alpha', 5)}
             )
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -683,7 +661,6 @@ class TestRepository:
         ):
             module_target_sat.cli_factory.make_repository(repo_options)
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content-type': 'file', 'url': CUSTOM_FILE_REPO}]),
@@ -709,7 +686,6 @@ class TestRepository:
         assert repo['sync']['status'] == 'Success'
         assert int(repo['content-counts']['files']) == CUSTOM_FILE_REPO_FILES_COUNT
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -746,7 +722,6 @@ class TestRepository:
 
         assert "Error: 401, message='Unauthorized'" in response.stderr
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
@@ -793,7 +768,6 @@ class TestRepository:
             )['content']
         )
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
@@ -828,7 +802,6 @@ class TestRepository:
         new_repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert new_repo['sync']['status'] == 'Success'
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -869,7 +842,6 @@ class TestRepository:
             'unexpected change of tags count'
         )
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -912,7 +884,6 @@ class TestRepository:
             'unexpected change of tags count'
         )
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -946,7 +917,6 @@ class TestRepository:
                 assert tag in repo['included-container-image-tags']
         assert int(repo['content-counts']['container-tags']) == 1
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content-type': 'yum', 'url': settings.repos.yum_1.url}]),
@@ -1006,7 +976,6 @@ class TestRepository:
             ]
         ),
     )
-    @pytest.mark.tier2
     def test_mirror_on_sync_removes_rpm(self, module_org, repo, repo_options_2, module_target_sat):
         """
             Check that a package removed upstream is removed downstream when the repo
@@ -1065,7 +1034,6 @@ class TestRepository:
         assert repo_2['sync']['status'] == 'Success'
         assert repo_2['content-counts']['packages'] == '31'
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -1098,7 +1066,6 @@ class TestRepository:
         assert repo['sync']['status'] == 'Success'
         assert repo['content-counts']['srpms'] == '0', 'content not ignored correctly'
 
-    @pytest.mark.tier1
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -1119,7 +1086,6 @@ class TestRepository:
         result = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert result['url'] == settings.repos.yum_2.url
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'new_repo_options',
         **parametrized([{'url': f'http://{gen_string("alpha")}{punctuation}'}]),
@@ -1146,7 +1112,6 @@ class TestRepository:
         result = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert result['url'] == repo['url']
 
-    @pytest.mark.tier1
     def test_positive_update_gpg_key(self, repo_options, module_org, repo, gpg_key, target_sat):
         """Update the original gpg key
 
@@ -1167,7 +1132,6 @@ class TestRepository:
         result = target_sat.cli.Repository.info({'id': repo['id']})
         assert result['gpg-key']['id'] == gpg_key_new['id']
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'mirroring-policy': policy} for policy in MIRRORING_POLICIES]),
@@ -1190,7 +1154,6 @@ class TestRepository:
         result = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert result['mirroring-policy'] == MIRRORING_POLICIES[repo_options['mirroring-policy']]
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options', **parametrized([{'publish-via-http': 'no'}]), indirect=True
     )
@@ -1209,7 +1172,6 @@ class TestRepository:
         result = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert result['publish-via-http'] == 'yes'
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content-type': 'yum', 'download-policy': 'immediate'}]),
@@ -1235,7 +1197,6 @@ class TestRepository:
         result = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert result['checksum-type'] == checksum_type
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -1266,7 +1227,6 @@ class TestRepository:
         with pytest.raises(CLIFactoryError):
             module_target_sat.cli_factory.make_repository(repo_options)
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content-type': 'yum', 'url': settings.repos.yum_1.url}]),
@@ -1292,7 +1252,6 @@ class TestRepository:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.Repository.info({'id': repo['id']})
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
@@ -1349,7 +1308,6 @@ class TestRepository:
         repo = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['content-counts']['packages'] == '0'
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
@@ -1381,7 +1339,6 @@ class TestRepository:
         repo = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['content-counts']['packages'] == '0'
 
-    @pytest.mark.tier1
     def test_positive_upload_content(self, repo, target_sat):
         """Create repository and upload content
 
@@ -1415,7 +1372,6 @@ class TestRepository:
             == 1
         )
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content-type': 'file', 'url': CUSTOM_FILE_REPO}]),
@@ -1456,7 +1412,6 @@ class TestRepository:
         new_repo = target_sat.cli.Repository.info({'id': new_repo['id']})
         assert int(new_repo['content-counts']['files']) == CUSTOM_FILE_REPO_FILES_COUNT + 1
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content-type': 'yum', 'url': settings.repos.yum_1.url}]),
@@ -1614,7 +1569,6 @@ class TestRepository:
         )
         assert len(repos) == 0
 
-    @pytest.mark.tier2
     def test_positive_upload_remove_srpm_content(self, repo, target_sat):
         """Create repository, upload and remove an SRPM content
 
@@ -1662,7 +1616,6 @@ class TestRepository:
         )
 
     @pytest.mark.upgrade
-    @pytest.mark.tier2
     @pytest.mark.e2e
     def test_positive_srpm_list_end_to_end(self, repo, target_sat):
         """Create repository,  upload, list and remove an SRPM content
@@ -1751,7 +1704,6 @@ class TestRepository:
             target_sat.cli.Repository.info({'id': repo['id']})['content-counts']['srpms']
         ) == len(target_sat.cli.Srpm.list({'repository-id': repo['id']}))
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content-type': 'yum', 'url': settings.repos.module_stream_1.url}]),
@@ -1816,7 +1768,6 @@ class TestRepository:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.Repository.info({'id': repo['id']})
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content-type': 'yum', 'url': settings.repos.module_stream_1.url}]),
@@ -1855,7 +1806,6 @@ class TestRepository:
             key: value for key, value in actual_result.items() if key in expected_result
         }
 
-    @pytest.mark.tier1
     def test_negative_update_red_hat_repo(self, function_sca_manifest_org, module_target_sat):
         """Updates to Red Hat products fail.
 
@@ -1903,7 +1853,6 @@ class TestRepository:
         )
         assert repo_info['url'] in [repo.get('url') for repo in repo_list]
 
-    @pytest.mark.tier1
     def test_positive_accessible_content_status(
         self, module_org, module_ak_with_synced_repo, rhel7_contenthost, target_sat
     ):
@@ -1929,7 +1878,6 @@ class TestRepository:
         )
         assert 'accessible_content HTTP/1.1" 304' in access_log.stdout
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content-type': 'yum', 'url': CUSTOM_RPM_SHA}]),
@@ -1954,7 +1902,6 @@ class TestRepository:
         sha_repo = module_target_sat.cli.Repository.info({'id': sha_repo['id']})
         assert sha_repo['sync']['status'] == 'Success'
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content-type': 'yum', 'url': CUSTOM_3RD_PARTY_REPO}]),
@@ -1984,7 +1931,6 @@ class TestRepository:
 # class TestOstreeRepository:
 #     """Ostree Repository CLI tests."""
 #
-#     @pytest.mark.tier1
 #     @pytest.mark.parametrize(
 #         'repo_options',
 #         **parametrized(
@@ -2017,7 +1963,6 @@ class TestRepository:
 #         assert repo['content-type'] == 'ostree'
 #
 #     @pytest.mark.skip_if_open("BZ:1716429")
-#     @pytest.mark.tier1
 #     @pytest.mark.parametrize(
 #         'repo_options',
 #         **parametrized(
@@ -2052,7 +1997,6 @@ class TestRepository:
 #         ):
 #             make_repository(repo_options)
 #
-#     @pytest.mark.tier1
 #     @pytest.mark.parametrize(
 #         'repo_options',
 #         **parametrized(
@@ -2084,7 +2028,6 @@ class TestRepository:
 #         ):
 #             make_repository(repo_options)
 #
-#     @pytest.mark.tier2
 #     @pytest.mark.upgrade
 #     @pytest.mark.skip_if_open("BZ:1625783")
 #     @pytest.mark.parametrize(
@@ -2102,8 +2045,7 @@ class TestRepository:
 #         :parametrized: yes
 #
 #         :expectedresults: Ostree repository is created and synced
-
-
+#
 #         :BZ: 1625783
 #         """
 #         # Synchronize it
@@ -2112,7 +2054,6 @@ class TestRepository:
 #         repo = Repository.info({'id': repo['id']})
 #         assert repo['sync']['status'] == 'Success'
 #
-#     @pytest.mark.tier1
 #     @pytest.mark.parametrize(
 #         'repo_options',
 #         **parametrized(
@@ -2141,7 +2082,6 @@ class TestRepository:
 #         with pytest.raises(CLIReturnCodeError):
 #             Repository.info({'name': repo['name']})
 #
-#     @pytest.mark.tier1
 #     @pytest.mark.upgrade
 #     @pytest.mark.parametrize(
 #         'repo_options',
@@ -2169,7 +2109,6 @@ class TestRepository:
 class TestSRPMRepository:
     """Tests specific to using repositories containing source RPMs."""
 
-    @pytest.mark.tier2
     @pytest.mark.skip("Uses deprecated SRPM repository")
     @pytest.mark.parametrize(
         'repo_options', **parametrized([{'url': FAKE_YUM_SRPM_REPO}]), indirect=True
@@ -2191,7 +2130,6 @@ class TestSRPMRepository:
         assert result.status == 0
         assert result.stdout
 
-    @pytest.mark.tier2
     @pytest.mark.skip("Uses deprecated SRPM repository")
     @pytest.mark.parametrize(
         'repo_options', **parametrized([{'url': FAKE_YUM_SRPM_REPO}]), indirect=True
@@ -2218,7 +2156,6 @@ class TestSRPMRepository:
         assert result.status == 0
         assert result.stdout
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.skip("Uses deprecated SRPM repository")
     @pytest.mark.parametrize(
@@ -2257,7 +2194,6 @@ class TestSRPMRepository:
 class TestAnsibleCollectionRepository:
     """Ansible Collections repository tests"""
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
@@ -2297,7 +2233,6 @@ class TestAnsibleCollectionRepository:
         repo = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
@@ -2350,7 +2285,6 @@ class TestAnsibleCollectionRepository:
 class TestMD5Repository:
     """Tests specific to using MD5 signed repositories containing RPMs."""
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options', **parametrized([{'url': FAKE_YUM_MD5_REPO}]), indirect=True
@@ -2387,7 +2321,6 @@ class TestMD5Repository:
 class TestFileRepository:
     """Specific tests for File Repositories"""
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content-type': 'file', 'url': CUSTOM_FILE_REPO}]),
@@ -2430,7 +2363,6 @@ class TestFileRepository:
         )
         assert filesearch[0].name == RPM_TO_UPLOAD
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
@@ -2477,7 +2409,6 @@ class TestFileRepository:
         repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['content-counts']['files'] == '0'
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
@@ -2517,7 +2448,6 @@ class TestFileRepository:
         assert repo['sync']['status'] == 'Success'
         assert repo['content-counts']['files'] == '2'
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content-type': 'file', 'url': f'file://{CUSTOM_LOCAL_FOLDER}'}]),
@@ -2554,7 +2484,6 @@ class TestFileRepository:
         repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert int(repo['content-counts']['files']) > 1
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content-type': 'file', 'url': f'file://{CUSTOM_LOCAL_FOLDER}'}]),
@@ -2594,7 +2523,6 @@ class TestFileRepository:
         repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert int(repo['content-counts']['files']) > 1
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content-type': 'file', 'url': CUSTOM_FILE_REPO}]),
@@ -2664,7 +2592,6 @@ class TestFileRepository:
         assert 'Second File' in textfile.text
 
 
-@pytest.mark.tier2
 def test_positive_syncable_yum_format_repo_import(target_sat, module_org):
     """Verify that you can import syncable yum format repositories
 

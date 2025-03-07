@@ -56,7 +56,6 @@ def valid_org_data_list():
 class TestOrganization:
     """Tests for the ``organizations`` path."""
 
-    @pytest.mark.tier1
     def test_positive_create(self, target_sat):
         """Create an organization using a 'text/plain' content-type.
 
@@ -80,7 +79,6 @@ class TestOrganization:
         else:
             assert response.status_code == http.client.UNSUPPORTED_MEDIA_TYPE
 
-    @pytest.mark.tier1
     @pytest.mark.build_sanity
     @pytest.mark.parametrize('name', **parametrized(valid_org_data_list()))
     def test_positive_create_with_name_and_description(self, name, target_sat):
@@ -104,7 +102,6 @@ class TestOrganization:
         assert isinstance(org.label, str)
         assert len(org.label) > 0
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
     def test_negative_create_with_invalid_name(self, name, target_sat):
         """Create an org with an incorrect name.
@@ -118,7 +115,6 @@ class TestOrganization:
         with pytest.raises(HTTPError):
             target_sat.api.Organization(name=name).create()
 
-    @pytest.mark.tier1
     def test_negative_create_with_same_name(self, target_sat):
         """Create two organizations with identical names.
 
@@ -132,7 +128,6 @@ class TestOrganization:
         with pytest.raises(HTTPError):
             target_sat.api.Organization(name=name).create()
 
-    @pytest.mark.tier1
     def test_negative_check_org_endpoint(self, module_sca_manifest_org):
         """Check manifest cert is not exposed in api endpoint
 
@@ -150,7 +145,6 @@ class TestOrganization:
         assert 'BEGIN CERTIFICATE' not in orgstring
         assert 'BEGIN RSA PRIVATE KEY' not in orgstring
 
-    @pytest.mark.tier1
     def test_positive_search(self, target_sat):
         """Create an organization, then search for it by name.
 
@@ -166,7 +160,6 @@ class TestOrganization:
         assert orgs[0].id == org.id
         assert orgs[0].name == org.name
 
-    @pytest.mark.tier1
     def test_negative_create_with_wrong_path(self, target_sat):
         """Attempt to create an organization using foreman API path
         (``api/v2/organizations``)
@@ -187,7 +180,6 @@ class TestOrganization:
         assert err.value.response.status_code == 404
         assert 'Route overriden by Katello' in err.value.response.text
 
-    @pytest.mark.tier2
     def test_default_org_id_check(self, target_sat):
         """test to check the default_organization id
 
@@ -213,7 +205,6 @@ class TestOrganizationUpdate:
         """Create an organization."""
         return target_sat.api.Organization().create()
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(valid_org_data_list()))
     def test_positive_update_name(self, module_org, name):
         """Update an organization's name with valid values.
@@ -230,7 +221,6 @@ class TestOrganizationUpdate:
         module_org = module_org.update(['name'])
         assert module_org.name == name
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('desc', **parametrized(valid_org_data_list()))
     def test_positive_update_description(self, module_org, desc):
         """Update an organization's description with valid values.
@@ -247,7 +237,6 @@ class TestOrganizationUpdate:
         module_org = module_org.update(['description'])
         assert module_org.description == desc
 
-    @pytest.mark.tier2
     def test_positive_update_user(self, module_org, target_sat):
         """Update an organization, associate user with it.
 
@@ -262,7 +251,6 @@ class TestOrganizationUpdate:
         assert len(module_org.user) == 1
         assert module_org.user[0].id == user.id
 
-    @pytest.mark.tier2
     def test_positive_update_subnet(self, module_org, target_sat):
         """Update an organization, associate subnet with it.
 
@@ -277,7 +265,6 @@ class TestOrganizationUpdate:
         assert len(module_org.subnet) == 1
         assert module_org.subnet[0].id == subnet.id
 
-    @pytest.mark.tier2
     def test_positive_add_and_remove_hostgroup(self, target_sat):
         """Add a hostgroup to an organization and then remove it
 
@@ -299,7 +286,6 @@ class TestOrganizationUpdate:
         assert len(org.hostgroup) == 0
 
     @pytest.mark.upgrade
-    @pytest.mark.tier2
     def test_positive_add_and_remove_smart_proxy(self, target_sat):
         """Add a smart proxy to an organization
 
@@ -337,7 +323,6 @@ class TestOrganizationUpdate:
         # Verify smart proxy was actually removed
         assert len(org.smart_proxy) == 0
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('update_field', ['name', 'label'])
     def test_negative_update(self, module_org, update_field, target_sat):
         """Update an organization's attributes with invalid values.

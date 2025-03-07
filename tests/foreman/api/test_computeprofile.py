@@ -23,7 +23,6 @@ from robottelo.utils.datafactory import (
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_positive_create_with_name(name, target_sat):
     """Create new Compute Profile using different names
 
@@ -40,7 +39,6 @@ def test_positive_create_with_name(name, target_sat):
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-@pytest.mark.tier1
 def test_negative_create(name, target_sat):
     """Attempt to create Compute Profile using invalid names only
 
@@ -57,7 +55,6 @@ def test_negative_create(name, target_sat):
 
 
 @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_positive_update_name(new_name, target_sat):
     """Update selected Compute Profile entity using proper names
 
@@ -76,7 +73,6 @@ def test_positive_update_name(new_name, target_sat):
 
 
 @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-@pytest.mark.tier1
 def test_negative_update_name(new_name, target_sat):
     """Attempt to update Compute Profile entity using invalid names only
 
@@ -96,7 +92,6 @@ def test_negative_update_name(new_name, target_sat):
 
 
 @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_positive_delete(new_name, target_sat):
     """Delete Compute Profile entity
 

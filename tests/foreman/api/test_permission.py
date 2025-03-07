@@ -44,7 +44,6 @@ class TestPermission:
         #: e.g. ['view_architectures', 'create_architectures', …]
         cls.permission_names = list(chain.from_iterable(expected_permissions.values()))
 
-    @pytest.mark.tier1
     def test_positive_search_by_name(self, target_sat):
         """Search for a permission by name.
 
@@ -69,7 +68,6 @@ class TestPermission:
         if failures:
             pytest.fail(json.dumps(failures, indent=True, sort_keys=True))
 
-    @pytest.mark.tier1
     def test_positive_search_by_resource_type(self, target_sat):
         """Search for permissions by resource type.
 
@@ -102,7 +100,6 @@ class TestPermission:
         if failures:
             pytest.fail(json.dumps(failures, indent=True, sort_keys=True))
 
-    @pytest.mark.tier1
     def test_positive_search(self, target_sat):
         """search with no parameters return all permissions
 
@@ -240,7 +237,6 @@ class TestUserRole:
                 entity.location = location
         return entity
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'entity_cls',
         **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),
@@ -273,7 +269,6 @@ class TestUserRole:
         new_entity = new_entity.create_json()
         entity_cls(id=new_entity['id']).read()  # As admin user.
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'entity_cls',
         **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),
@@ -300,7 +295,6 @@ class TestUserRole:
         entity_cls(self.cfg, id=new_entity.id).read()
 
     @pytest.mark.upgrade
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'entity_cls',
         **parametrized(
@@ -330,7 +324,6 @@ class TestUserRole:
         with pytest.raises(HTTPError):
             new_entity.read()  # As admin user
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'entity_cls',
         **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),

@@ -53,7 +53,6 @@ class TestAzureRMComputeResourceTestCase:
     """AzureRm compute resource Tests"""
 
     @pytest.mark.upgrade
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
     )
@@ -112,7 +111,6 @@ class TestAzureRMComputeResourceTestCase:
         assert not sat_azure.cli.ComputeResource.exists(search=('name', result['name']))
 
     @pytest.mark.upgrade
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
     )
@@ -212,7 +210,6 @@ class TestAzureRMComputeResourceTestCase:
         assert result['message'] == 'Image deleted.'
         assert result['name'] == new_img_name
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
     )
@@ -229,7 +226,6 @@ class TestAzureRMComputeResourceTestCase:
         result = sat_azure.cli.ComputeResource.networks({'id': module_azurerm_cr.id})
         assert len(result) > 0
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
     )
@@ -378,7 +374,6 @@ class TestAzureRMFinishTemplateProvisioning:
 
     @pytest.mark.e2e
     @pytest.mark.upgrade
-    @pytest.mark.tier3
     @pytest.mark.parametrize('sat_azure', ['sat'], indirect=True)
     def test_positive_azurerm_host_provisioned(
         self,
@@ -507,7 +502,6 @@ class TestAzureRMUserDataProvisioning:
         return azurermclient.get_vm(name=class_host_ud['name'].split('.')[0])
 
     @pytest.mark.upgrade
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
     )

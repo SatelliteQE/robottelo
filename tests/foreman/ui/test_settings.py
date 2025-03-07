@@ -44,7 +44,6 @@ def add_content_views_to_composite(composite_cv, org, repo, module_target_sat):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier3
 @pytest.mark.parametrize('setting_update', ['restrict_composite_view'], indirect=True)
 def test_positive_update_restrict_composite_view(
     session, setting_update, repo_setup, module_target_sat
@@ -92,7 +91,6 @@ def test_positive_update_restrict_composite_view(
                     session.contentview.delete(content_view_name)
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['http_proxy'], indirect=True)
 def test_positive_httpd_proxy_url_update(session, setting_update):
     """Update the http_proxy_url should pass successfully.
@@ -115,10 +113,9 @@ def test_positive_httpd_proxy_url_update(session, setting_update):
         assert result['table'][0]['Value'] == param_value
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['foreman_url'], indirect=True)
 def test_negative_validate_foreman_url_error_message(session, setting_update):
-    """Updates some settings with invalid values (an exceptional tier2 test)
+    """Updates some settings with invalid values
 
     :id: 7c75083d-1b4d-4744-aaa4-6fb9e93ab3c2
 
@@ -137,7 +134,6 @@ def test_negative_validate_foreman_url_error_message(session, setting_update):
         assert err_msg in str(context.value)
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['host_dmi_uuid_duplicates'], indirect=True)
 def test_positive_host_dmi_uuid_duplicates(session, setting_update):
     """Check the setting host_dmi_uuid_duplicates value update.
@@ -160,7 +156,6 @@ def test_positive_host_dmi_uuid_duplicates(session, setting_update):
         assert result['table'][0]['Value'].strip('[]') == property_value
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['register_hostname_fact'], indirect=True)
 def test_positive_register_hostname_fact_update(session, setting_update):
     """Check the settings of register_hostname_fact value update.
@@ -181,7 +176,6 @@ def test_positive_register_hostname_fact_update(session, setting_update):
         assert result['table'][0]['Value'] == property_value
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize('setting_update', ['login_text'], indirect=True)
 def test_positive_update_login_page_footer_text(session, setting_update):
     """Testing to update parameter Login_page_footer_text with long length
@@ -236,7 +230,6 @@ def test_positive_update_login_page_footer_text(session, setting_update):
         assert not result["login_text"]
 
 
-@pytest.mark.tier3
 def test_negative_settings_access_to_non_admin(module_target_sat):
     """Check non admin users can't access Administer -> Settings tab
 
@@ -269,7 +262,6 @@ def test_negative_settings_access_to_non_admin(module_target_sat):
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_update_email_delivery_method_smtp():
     """Updating SMTP params on Email tab
 
@@ -302,7 +294,6 @@ def test_positive_update_email_delivery_method_smtp():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 @pytest.mark.upgrade
 def test_negative_update_email_delivery_method_smtp():
     """Updating SMTP params on Email tab fail
@@ -335,7 +326,6 @@ def test_negative_update_email_delivery_method_smtp():
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier3
 def test_positive_update_email_delivery_method_sendmail(session, target_sat):
     """Updating Sendmail params on Email tab
 
@@ -398,7 +388,6 @@ def test_positive_update_email_delivery_method_sendmail(session, target_sat):
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_negative_update_email_delivery_method_sendmail():
     """Updating Sendmail params on Email tab fail
 
@@ -426,7 +415,6 @@ def test_negative_update_email_delivery_method_sendmail():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_email_yaml_config_precedence():
     """Check configuration file /etc/foreman/email.yaml takes precedence
     over UI. This behaviour will be default until Foreman 1.16. This
@@ -455,7 +443,6 @@ def test_positive_email_yaml_config_precedence():
     """
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['discovery_hostname'], indirect=True)
 def test_negative_update_hostname_with_empty_fact(session, setting_update):
     """Update the Hostname_facts settings without any string(empty values)
@@ -485,7 +472,6 @@ def test_negative_update_hostname_with_empty_fact(session, setting_update):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier3
 @pytest.mark.parametrize('setting_update', ['entries_per_page'], indirect=True)
 def test_positive_entries_per_page(session, setting_update):
     """Update the per page entry in the settings.
@@ -521,7 +507,6 @@ def test_positive_entries_per_page(session, setting_update):
         assert str(total_pages) == page_content["Pagination"]['_total_pages'].split()[-1]
 
 
-@pytest.mark.tier2
 def test_positive_setting_display_fqdn_for_hosts(session, target_sat):
     """Verify setting display_fqdn_for_hosts set as Yes/No, and FQDN is used for host's name
     if it's set to Yes else not, according to setting set.
@@ -556,7 +541,6 @@ def test_positive_setting_display_fqdn_for_hosts(session, target_sat):
         assert values['breadcrumb'] == full_name
 
 
-@pytest.mark.tier2
 def test_positive_show_unsupported_templates(request, target_sat, module_org, module_location):
     """Verify setting show_unsupported_templates with new custom template
 

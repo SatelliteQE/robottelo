@@ -18,7 +18,6 @@ from robottelo.utils.datafactory import gen_string
 
 
 @pytest.mark.e2e
-@pytest.mark.tier1
 def test_positive_create_by_type(target_sat):
     """Create entities of different types and check audit logs for these
     events using entity type as search criteria
@@ -104,7 +103,6 @@ def test_positive_create_by_type(target_sat):
         assert audit.version == 1
 
 
-@pytest.mark.tier1
 def test_positive_update_by_type(target_sat):
     """Update some entities of different types and check audit logs for
     these events using entity type as search criteria
@@ -139,7 +137,6 @@ def test_positive_update_by_type(target_sat):
         assert audit.version == 2
 
 
-@pytest.mark.tier1
 def test_positive_delete_by_type(target_sat):
     """Delete some entities of different types and check audit logs for
     these events using entity type as search criteria

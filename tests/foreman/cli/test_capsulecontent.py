@@ -520,7 +520,6 @@ def test_positive_content_counts_granularity(
     assert all(info[lce.name][cv2.name][repo.name] == {} for lce in [lce1, lce2])
 
 
-@pytest.mark.tier4
 @pytest.mark.skip_if_not_set('capsule')
 def test_positive_exported_imported_content_sync(
     target_sat,

@@ -34,7 +34,6 @@ def get_default_env(module_org, module_target_sat):
     )
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 def test_positive_create_with_name(module_target_sat, module_sca_manifest_org, name):
     """Create Activation key for all variations of Activation key
@@ -54,7 +53,6 @@ def test_positive_create_with_name(module_target_sat, module_sca_manifest_org, n
     assert new_ak['name'] == name
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('desc', **parametrized(valid_data_list()))
 def test_positive_create_with_description(desc, module_org, module_target_sat):
     """Create Activation key for all variations of Description
@@ -73,7 +71,6 @@ def test_positive_create_with_description(desc, module_org, module_target_sat):
     assert new_ak['description'] == desc
 
 
-@pytest.mark.tier1
 def test_positive_create_with_default_lce_by_id(
     module_org, get_default_env, module_target_sat, module_promoted_cv
 ):
@@ -96,7 +93,6 @@ def test_positive_create_with_default_lce_by_id(
     assert new_ak_env.content_view_environments[0].name == lce['name']
 
 
-@pytest.mark.tier1
 def test_positive_create_with_non_default_lce(
     module_org, module_lce, module_target_sat, module_promoted_cv
 ):
@@ -120,7 +116,6 @@ def test_positive_create_with_non_default_lce(
     assert new_ak_env.content_view_environments[0].name == module_lce.name
 
 
-@pytest.mark.tier1
 def test_positive_create_with_default_lce_by_name(
     module_org, get_default_env, module_target_sat, module_promoted_cv
 ):
@@ -143,7 +138,6 @@ def test_positive_create_with_default_lce_by_name(
     assert new_ak_env.content_view_environments[0].name == lce['name']
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 def test_positive_create_with_cv(name, module_org, get_default_env, module_target_sat):
     """Create Activation key for all variations of Content Views
@@ -172,7 +166,6 @@ def test_positive_create_with_cv(name, module_org, get_default_env, module_targe
     assert new_ak_cv_name == name
 
 
-@pytest.mark.tier1
 def test_positive_create_with_usage_limit_default(module_org, module_target_sat):
     """Create Activation key with default Usage limit (Unlimited)
 
@@ -186,7 +179,6 @@ def test_positive_create_with_usage_limit_default(module_org, module_target_sat)
     assert new_ak['host-limit'] == '0 of Unlimited'
 
 
-@pytest.mark.tier1
 def test_positive_create_with_usage_limit_finite(module_org, module_target_sat):
     """Create Activation key with finite Usage limit
 
@@ -202,7 +194,6 @@ def test_positive_create_with_usage_limit_finite(module_org, module_target_sat):
     assert new_ak['host-limit'] == '0 of 10'
 
 
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_create_content_and_check_enabled(module_org, module_target_sat):
     """Create activation key and add content to it. Check enabled state.
@@ -223,7 +214,6 @@ def test_positive_create_content_and_check_enabled(module_org, module_target_sat
     assert content[0]['default-enabled?'] == 'false'
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
 def test_negative_create_with_invalid_name(name, module_org, module_target_sat):
     """Create Activation key with invalid Name
@@ -247,7 +237,6 @@ def test_negative_create_with_invalid_name(name, module_org, module_target_sat):
         assert 'Name is too long (maximum is 255 characters)' in str(raise_ctx)
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'limit',
     **parametrized([value for value in invalid_values_list() if not value.isdigit()] + [0.5]),
@@ -277,7 +266,6 @@ def test_negative_create_with_usage_limit_with_not_integers(module_org, limit, m
         assert 'Numeric value is required.' in str(raise_ctx)
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize('invalid_values', ['-1', '-500', 0])
 def test_negative_create_with_usage_limit_with_invalid_integers(
     module_org, invalid_values, module_target_sat
@@ -300,7 +288,6 @@ def test_negative_create_with_usage_limit_with_invalid_integers(
     assert 'Failed to create ActivationKey with data:' in str(raise_ctx)
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 def test_positive_delete_by_name(name, module_org, module_target_sat):
     """Create Activation key and delete it for all variations of
@@ -324,7 +311,6 @@ def test_positive_delete_by_name(name, module_org, module_target_sat):
         module_target_sat.cli.ActivationKey.info({'id': new_ak['id']})
 
 
-@pytest.mark.tier1
 def test_positive_delete_by_org_name(module_org, module_target_sat):
     """Create Activation key and delete it using organization name
     for which that key was created
@@ -343,7 +329,6 @@ def test_positive_delete_by_org_name(module_org, module_target_sat):
         module_target_sat.cli.ActivationKey.info({'id': new_ak['id']})
 
 
-@pytest.mark.tier1
 def test_positive_delete_by_org_label(module_org, module_target_sat):
     """Create Activation key and delete it using organization label
     for which that key was created
@@ -362,7 +347,6 @@ def test_positive_delete_by_org_label(module_org, module_target_sat):
         module_target_sat.cli.ActivationKey.info({'id': new_ak['id']})
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_delete_with_cv(
     module_org, module_target_sat, get_default_env, module_promoted_cv
@@ -387,7 +371,6 @@ def test_positive_delete_with_cv(
         module_target_sat.cli.ActivationKey.info({'id': new_ak['id']})
 
 
-@pytest.mark.tier2
 def test_positive_delete_with_lce(
     module_org, get_default_env, module_target_sat, module_promoted_cv
 ):
@@ -410,7 +393,6 @@ def test_positive_delete_with_lce(
         module_target_sat.cli.ActivationKey.info({'id': new_ak['id']})
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 def test_positive_update_name_by_id(module_org, name, module_target_sat):
     """Update Activation Key Name in Activation key searching by ID
@@ -433,7 +415,6 @@ def test_positive_update_name_by_id(module_org, name, module_target_sat):
     assert updated_ak['name'] == name
 
 
-@pytest.mark.tier1
 def test_positive_update_name_by_name(module_org, module_target_sat):
     """Update Activation Key Name in an Activation key searching by
     name
@@ -455,7 +436,6 @@ def test_positive_update_name_by_name(module_org, module_target_sat):
     assert updated_ak['name'] == new_name
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
 def test_positive_update_description(description, module_org, module_target_sat):
     """Update Description in an Activation key
@@ -482,7 +462,6 @@ def test_positive_update_description(description, module_org, module_target_sat)
     assert updated_ak['description'] == description
 
 
-@pytest.mark.tier2
 def test_positive_update_lce(module_org, get_default_env, module_target_sat, module_promoted_cv):
     """Update Environment in an Activation key
 
@@ -520,7 +499,6 @@ def test_positive_update_lce(module_org, get_default_env, module_target_sat, mod
     assert new_ak_env_name == env['name']
 
 
-@pytest.mark.tier2
 def test_positive_update_cv(
     module_org, module_target_sat, module_promoted_cv, get_default_env, module_lce
 ):
@@ -559,7 +537,6 @@ def test_positive_update_cv(
     ), 'Incorrect content view environment(s) reported.'
 
 
-@pytest.mark.tier1
 def test_positive_update_usage_limit_to_finite_number(module_org, module_target_sat):
     """Update Usage limit from Unlimited to a finite number
 
@@ -578,7 +555,6 @@ def test_positive_update_usage_limit_to_finite_number(module_org, module_target_
     assert updated_ak['host-limit'] == '0 of 2147483647'
 
 
-@pytest.mark.tier1
 def test_positive_update_usage_limit_to_unlimited(module_org, module_target_sat):
     """Update Usage limit from definite number to Unlimited
 
@@ -599,7 +575,6 @@ def test_positive_update_usage_limit_to_unlimited(module_org, module_target_sat)
     assert updated_ak['host-limit'] == '0 of Unlimited'
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
 def test_negative_update_name(module_org, name, module_target_sat):
     """Try to update Activation Key using invalid value for its name
@@ -621,7 +596,6 @@ def test_negative_update_name(module_org, name, module_target_sat):
     assert 'Could not update the activation key:' in raise_ctx.value.message
 
 
-@pytest.mark.tier2
 def test_negative_update_usage_limit(module_org, module_target_sat):
     """Try to update Activation Key using invalid value for its
     usage limit attribute
@@ -641,7 +615,6 @@ def test_negative_update_usage_limit(module_org, module_target_sat):
     assert 'Validation failed: Max hosts must be less than 2147483648' in raise_ctx.value.message
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_usage_limit(module_org, module_location, target_sat, content_hosts):
@@ -687,7 +660,6 @@ def test_positive_usage_limit(module_org, module_location, target_sat, content_h
     assert f"Max Hosts ({max_hosts}) reached for activation key '{new_ak.name}'" in result.stderr
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('host_col_name', **parametrized(valid_data_list()))
 def test_positive_update_host_collection(module_org, host_col_name, module_target_sat):
     """Test that host collections can be associated to Activation
@@ -722,7 +694,6 @@ def test_positive_update_host_collection(module_org, host_col_name, module_targe
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier2
 def test_positive_update_host_collection_with_default_org(module_org, module_target_sat):
     """Test that host collection can be associated to Activation
     Keys with specified default organization setting in config
@@ -750,7 +721,6 @@ def test_positive_update_host_collection_with_default_org(module_org, module_tar
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier3
 def test_positive_add_redhat_product(function_sca_manifest_org, target_sat):
     """Test that RH product can be associated to Activation Keys
 
@@ -778,7 +748,6 @@ def test_positive_add_redhat_product(function_sca_manifest_org, target_sat):
     assert content[0]['name'] == REPOSET['rhst7']
 
 
-@pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_add_custom_product(function_org, target_sat):
     """Test that custom product can be associated to Activation Keys
@@ -801,7 +770,6 @@ def test_positive_add_custom_product(function_org, target_sat):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_add_redhat_and_custom_products(module_target_sat, function_sca_manifest_org):
@@ -849,7 +817,6 @@ def test_positive_add_redhat_and_custom_products(module_target_sat, function_sca
     assert {REPOSET['rhst7'], repo['name']} == {pc['name'] for pc in content}
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.rhel_ver_match('[^6]')
 def test_positive_update_aks_to_chost(
@@ -893,7 +860,6 @@ def test_positive_update_aks_to_chost(
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_update_aks_to_chost_in_one_command(module_org):
     """Check if multiple Activation keys can be attached to a
     Content host in one command. Here is a command details
@@ -917,7 +883,6 @@ def test_positive_update_aks_to_chost_in_one_command(module_org):
     """
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 def test_positive_list_by_name(module_org, name, module_target_sat):
     """List Activation key for all variations of Activation key name
@@ -940,7 +905,6 @@ def test_positive_list_by_name(module_org, name, module_target_sat):
     assert result[0]['name'] == name
 
 
-@pytest.mark.tier1
 def test_positive_list_by_cv_id(module_org, module_target_sat, get_default_env, module_promoted_cv):
     """List Activation key for provided Content View ID
 
@@ -965,7 +929,6 @@ def test_positive_list_by_cv_id(module_org, module_target_sat, get_default_env, 
     assert result[0]['content-view-environments'] == f'{lce["name"]}/{module_promoted_cv.name}'
 
 
-@pytest.mark.tier1
 def test_positive_create_using_old_name(module_org, module_target_sat):
     """Create activation key, rename it and create another with the
     initial name
@@ -992,7 +955,6 @@ def test_positive_create_using_old_name(module_org, module_target_sat):
     assert new_activation_key['name'] == name
 
 
-@pytest.mark.tier2
 def test_positive_remove_host_collection_by_id(module_org, module_target_sat):
     """Test that hosts associated to Activation Keys can be removed
     using id of that host collection
@@ -1042,7 +1004,6 @@ def test_positive_remove_host_collection_by_id(module_org, module_target_sat):
     )
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('host_col', **parametrized(valid_data_list()))
 def test_positive_remove_host_collection_by_name(module_org, host_col, module_target_sat):
     """Test that hosts associated to Activation Keys can be removed
@@ -1096,7 +1057,6 @@ def test_positive_remove_host_collection_by_name(module_org, host_col, module_ta
     )
 
 
-@pytest.mark.tier2
 def test_create_ak_with_syspurpose_set(module_sca_manifest_org, module_target_sat):
     """Test that an activation key can be created with system purpose values set.
 
@@ -1141,7 +1101,6 @@ def test_create_ak_with_syspurpose_set(module_sca_manifest_org, module_target_sa
     assert updated_ak['system-purpose']['purpose-usage'] == ''
 
 
-@pytest.mark.tier2
 def test_update_ak_with_syspurpose_values(module_sca_manifest_org, module_target_sat):
     """Test that system purpose values can be added to an existing activation key
     and can then be changed.
@@ -1204,7 +1163,6 @@ def test_update_ak_with_syspurpose_values(module_sca_manifest_org, module_target
     assert updated_ak['system-purpose']['service-level'] == "Premium"
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
 def test_positive_copy_by_parent_id(module_org, new_name, module_target_sat):
     """Copy Activation key for all valid Activation Key name
@@ -1227,7 +1185,6 @@ def test_positive_copy_by_parent_id(module_org, new_name, module_target_sat):
     assert 'Activation key copied.' in result
 
 
-@pytest.mark.tier1
 def test_positive_copy_by_parent_name(module_org, module_target_sat):
     """Copy Activation key by passing name of parent
 
@@ -1250,7 +1207,6 @@ def test_positive_copy_by_parent_name(module_org, module_target_sat):
     assert 'Activation key copied.' in result
 
 
-@pytest.mark.tier1
 def test_negative_copy_with_same_name(module_org, module_target_sat):
     """Copy activation key with duplicate name
 
@@ -1274,7 +1230,6 @@ def test_negative_copy_with_same_name(module_org, module_target_sat):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_copy_activationkey_and_check_content(
     function_sca_manifest_org, module_target_sat
@@ -1318,7 +1273,6 @@ def test_positive_copy_activationkey_and_check_content(
     assert new_content[0]['name'] == REPOSET['rhst7']
 
 
-@pytest.mark.tier1
 def test_positive_update_autoattach_toggle(module_org, module_target_sat):
     """Update Activation key with inverse auto-attach value
 
@@ -1347,7 +1301,6 @@ def test_positive_update_autoattach_toggle(module_org, module_target_sat):
     assert updated_ak_auto_attach == (not current_ak_auto_attach)
 
 
-@pytest.mark.tier1
 def test_positive_update_autoattach(module_org, module_target_sat):
     """Update Activation key with valid auto-attach values
 
@@ -1365,7 +1318,6 @@ def test_positive_update_autoattach(module_org, module_target_sat):
         assert result[0]['message'] == 'Activation key updated.'
 
 
-@pytest.mark.tier2
 def test_negative_update_autoattach(module_org, module_target_sat):
     """Attempt to update Activation key with bad auto-attach value
 
@@ -1393,7 +1345,6 @@ def test_negative_update_autoattach(module_org, module_target_sat):
     assert "'--auto-attach': value must be one of" in exe.value.stderr.lower()
 
 
-@pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_content_override(module_org, module_target_sat):
     """Positive content override
@@ -1431,7 +1382,6 @@ def test_positive_content_override(module_org, module_target_sat):
         assert content[0]['override'] == f'enabled:{int(override_value)}'
 
 
-@pytest.mark.tier2
 def test_positive_remove_user(module_org, module_target_sat):
     """Delete any user who has previously created an activation key
     and check that activation key still exists
@@ -1455,7 +1405,6 @@ def test_positive_remove_user(module_org, module_target_sat):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier3
 def test_positive_view_content_by_non_admin_user(function_sca_manifest_org, module_target_sat):
     """Attempt to read activation key content by non admin user
 
@@ -1553,7 +1502,6 @@ def test_positive_view_content_by_non_admin_user(function_sca_manifest_org, modu
     assert reposet[0]['id'] == content[0]['id']
 
 
-@pytest.mark.tier3
 def test_positive_invalid_release_version(module_sca_manifest_org, module_target_sat):
     """Check invalid release versions when updating or creating an activation key
 
