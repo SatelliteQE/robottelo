@@ -33,7 +33,7 @@ from robottelo.constants import (
 )
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.skip_if_not_set('fake_manifest')]
+pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.fixture(scope='module')
