@@ -47,7 +47,6 @@ def rh_repo_setup_ak(module_sca_manifest_org, module_target_sat):
     )
     # Sync step because repo is not synced by default
     rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
-    # rh_repo.sync(timeout=1800)
     rh_repo.sync()
 
     # Create CV, LCE and AK
