@@ -98,6 +98,7 @@ def test_positive_leapp_upgrade_rhel(
         (login, password),
     )
     custom_leapp_host.power_control(state='reboot')
+    custom_leapp_host.wait_for_connection()
     result = module_target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
     assert result['success'] == '1'
 
@@ -244,6 +245,7 @@ def test_positive_ygdrassil_client_after_leapp_upgrade(
     )
 
     custom_leapp_host.power_control(state='reboot')
+    custom_leapp_host.wait_for_connection()
     result = module_target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
     assert result['success'] == '1'
 
