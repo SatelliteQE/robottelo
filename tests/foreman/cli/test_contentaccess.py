@@ -76,27 +76,28 @@ def rh_repo_setup_ak(module_sca_manifest_org, module_target_sat):
 def vm(
     rh_repo_setup_ak,
     module_sca_manifest_org,
-    rhel9_contenthost_module,
+    module_rhel_contenthost,
     module_target_sat,
 ):
-    rhel9_contenthost_module.register(
+    module_rhel_contenthost.register(
         module_sca_manifest_org, None, rh_repo_setup_ak.name, module_target_sat
     )
     # Install older 'python3-gofer' for errata test
-    rhel9_contenthost_module.run(f'yum install -y {REAL_RHEL9_OUTDATED_PACKAGE_FILENAME}')
+    module_rhel_contenthost.run(f'yum install -y {REAL_RHEL9_OUTDATED_PACKAGE_FILENAME}')
     host = module_target_sat.api.Host().search(
-        query={'search': f'name={rhel9_contenthost_module.hostname}'}
+        query={'search': f'name={module_rhel_contenthost.hostname}'}
     )
     host_id = host[0].id
     host_content = module_target_sat.api.Host(id=host_id).read_json()
     assert host_content['subscription_facet_attributes']['uuid']
-    rhel9_contenthost_module.install_katello_host_tools()
-    return rhel9_contenthost_module
+    module_rhel_contenthost.install_katello_host_tools()
+    return module_rhel_contenthost
 
 
 @pytest.mark.tier2
 @pytest.mark.pit_client
 @pytest.mark.pit_server
+@pytest.mark.rhel_ver_match('9')
 def test_positive_list_installable_updates(vm, module_target_sat):
     """Ensure packages applicability is functioning properly.
 
@@ -139,6 +140,7 @@ def test_positive_list_installable_updates(vm, module_target_sat):
 @pytest.mark.upgrade
 @pytest.mark.pit_client
 @pytest.mark.pit_server
+@pytest.mark.rhel_ver_match('9')
 def test_positive_erratum_installable(vm, module_target_sat):
     """Ensure erratum applicability is showing properly, without attaching
     any subscription.
@@ -193,6 +195,7 @@ def test_positive_rct_shows_sca_enabled(module_sca_manifest, module_target_sat):
     assert 'Content Access Mode: Simple Content Access' in result.stdout
 
 
+@pytest.mark.rhel_ver_match('9')
 @pytest.mark.tier3
 def test_negative_unregister_and_pull_content(vm):
     """Attempt to retrieve content after host has been unregistered from Satellite
