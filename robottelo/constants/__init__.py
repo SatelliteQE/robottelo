@@ -687,6 +687,11 @@ REPOS = {
     },
 }
 
+# RHEL versions for LEAPP testing
+RHEL7_VER = '7.9'
+RHEL8_VER = '8.10'
+RHEL9_VER = '9.5'
+
 BULK_REPO_LIST = [
     REPOS['rhel7_optional'],
     REPOS['rhel7_sup'],

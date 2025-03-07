@@ -28,7 +28,7 @@ def test_host_registration_rex_pull_mode(
     module_location,
     module_ak_with_cv,
     module_capsule_configured_mqtt,
-    rhel_contenthost,
+    rhel_contenthost_with_repos,
 ):
     """Verify content host registration with Satellite/Capsule as MQTT broker
 
@@ -38,10 +38,11 @@ def test_host_registration_rex_pull_mode(
 
     :parametrized: yes
     """
+    client = rhel_contenthost_with_repos
     org = module_org
-    client_repo = settings.repos.SATCLIENT_REPO[f'rhel{rhel_contenthost.os_version.major}']
+    client_repo = settings.repos.SATCLIENT_REPO[f'rhel{client.os_version.major}']
     # register host to satellite with pull provider rex
-    result = rhel_contenthost.api_register(
+    result = client.api_register(
         module_satellite_mqtt,
         organization=org,
         location=module_location,
@@ -52,11 +53,12 @@ def test_host_registration_rex_pull_mode(
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # check mqtt client is running
-    result = rhel_contenthost.execute('systemctl status yggdrasild')
+
+    service_name = client.get_yggdrasil_service_name()
+    result = client.execute(f'systemctl status {service_name}')
     assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
-    assert rhel_contenthost.execute('yggdrasil status').status == 0
     mqtt_url = f'mqtts://{module_satellite_mqtt.hostname}:1883'
-    assert rhel_contenthost.execute(f'cat /etc/yggdrasil/config.toml | grep {mqtt_url}').status == 0
+    assert client.execute(f'cat /etc/yggdrasil/config.toml | grep {mqtt_url}').status == 0
 
     # Update module_capsule_configured_mqtt to include module_org/module_location
     nc = module_capsule_configured_mqtt.nailgun_smart_proxy
@@ -64,7 +66,7 @@ def test_host_registration_rex_pull_mode(
     module_satellite_mqtt.api.SmartProxy(id=nc.id, location=[module_location]).update(['location'])
 
     # register host to capsule with pull provider rex
-    result = rhel_contenthost.api_register(
+    result = client.api_register(
         module_satellite_mqtt,
         smart_proxy=nc,
         organization=org,
@@ -77,16 +79,9 @@ def test_host_registration_rex_pull_mode(
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # check mqtt client is running
-    result = rhel_contenthost.execute('systemctl status yggdrasild')
+    result = client.execute(f'systemctl status {service_name}')
     assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
-    assert rhel_contenthost.execute('yggdrasil status').status == 0
     new_mqtt_url = f'mqtts://{module_capsule_configured_mqtt.hostname}:1883'
-    assert (
-        rhel_contenthost.execute(f'cat /etc/yggdrasil/config.toml | grep {new_mqtt_url}').status
-        == 0
-    )
+    assert client.execute(f'cat /etc/yggdrasil/config.toml | grep {new_mqtt_url}').status == 0
     # After force register existing config.toml is saved as backup
-    assert (
-        rhel_contenthost.execute(f'cat /etc/yggdrasil/config.toml.bak | grep {mqtt_url}').status
-        == 0
-    )
+    assert client.execute(f'cat /etc/yggdrasil/config.toml.bak | grep {mqtt_url}').status == 0

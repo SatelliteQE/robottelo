@@ -40,7 +40,7 @@ def test_positive_find_capsule_upgrade_playbook(target_sat):
 
 @pytest.mark.tier3
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_list('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize(
     'setting_update',
     ['remote_execution_global_proxy=False'],
@@ -53,7 +53,7 @@ def test_negative_time_to_pickup(
     smart_proxy_location,
     module_ak_with_cv,
     module_capsule_configured_mqtt,
-    rhel_contenthost,
+    rhel_contenthost_with_repos,
     setting_update,
 ):
     """Time to pickup setting is honored for host registered to mqtt
@@ -69,12 +69,13 @@ def test_negative_time_to_pickup(
 
     :parametrized: yes
     """
+    client = rhel_contenthost_with_repos
     client_repo = ohsnap.dogfood_repository(
         settings.ohsnap,
         product='client',
         repo='client',
         release='client',
-        os_release=rhel_contenthost.os_version.major,
+        os_release=client.os_version.major,
     )
     # Update module_capsule_configured_mqtt to include module_org/smart_proxy_location
     module_target_sat.cli.Capsule.update(
@@ -85,7 +86,7 @@ def test_negative_time_to_pickup(
         }
     )
     # register host with pull provider rex
-    result = rhel_contenthost.register(
+    result = client.register(
         module_org,
         smart_proxy_location,
         module_ak_with_cv.name,
@@ -100,10 +101,11 @@ def test_negative_time_to_pickup(
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     # check mqtt client is running
-    result = rhel_contenthost.execute('systemctl status yggdrasild')
+    service_name = client.get_yggdrasil_service_name()
+    result = client.execute(f'systemctl status {service_name}')
     assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
     # stop yggdrasil client on host
-    result = rhel_contenthost.execute('systemctl stop yggdrasild')
+    result = client.execute(f'systemctl stop {service_name}')
     assert result.status == 0, f'Failed to stop yggdrasil on client: {result.stderr}'
 
     # run script provider rex command with time_to_pickup
@@ -117,7 +119,7 @@ def test_negative_time_to_pickup(
                 'command': 'ls -la',
             },
             'targeting_type': 'static_query',
-            'search_query': f'name = {rhel_contenthost.hostname}',
+            'search_query': f'name = {client.hostname}',
             'time_to_pickup': '10',
         },
     )
@@ -148,7 +150,7 @@ def test_negative_time_to_pickup(
                 'command': 'ls -la',
             },
             'targeting_type': 'static_query',
-            'search_query': f'name = {rhel_contenthost.hostname}',
+            'search_query': f'name = {client.hostname}',
         },
     )
     module_target_sat.wait_for_tasks(
@@ -163,16 +165,15 @@ def test_negative_time_to_pickup(
     global_ttp.value = default_global_ttp
     global_ttp.update(['value'])
     # start yggdrasil client on host
-    result = rhel_contenthost.execute('systemctl start yggdrasild')
+    result = client.execute(f'systemctl start {service_name}')
     assert result.status == 0, f'Failed to start on client: {result.stderr}'
-    result = rhel_contenthost.execute('systemctl status yggdrasild')
+    result = client.execute(f'systemctl status {service_name}')
     assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
-    rhel_contenthost.execute('yggdrasil status')
 
 
 @pytest.mark.tier3
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_list('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize(
     'setting_update',
     ['remote_execution_global_proxy=False'],
@@ -185,7 +186,7 @@ def test_positive_check_longrunning_job(
     smart_proxy_location,
     module_ak_with_cv,
     module_capsule_configured_mqtt,
-    rhel_contenthost,
+    rhel_contenthost_with_repos,
     setting_update,
 ):
     """Time to pickup setting doesn't disrupt longrunning jobs
@@ -201,13 +202,13 @@ def test_positive_check_longrunning_job(
 
     :parametrized: yes
     """
-
+    client = rhel_contenthost_with_repos
     client_repo = ohsnap.dogfood_repository(
         settings.ohsnap,
         product='client',
         repo='client',
         release='client',
-        os_release=rhel_contenthost.os_version.major,
+        os_release=client.os_version.major,
     )
     # Update module_capsule_configured_mqtt to include module_org/smart_proxy_location
     module_target_sat.cli.Capsule.update(
@@ -218,7 +219,7 @@ def test_positive_check_longrunning_job(
         }
     )
     # register host with pull provider rex
-    result = rhel_contenthost.register(
+    result = client.register(
         module_org,
         smart_proxy_location,
         module_ak_with_cv.name,
@@ -242,7 +243,7 @@ def test_positive_check_longrunning_job(
                 'command': 'echo start; sleep 25; echo done',
             },
             'targeting_type': 'static_query',
-            'search_query': f'name = {rhel_contenthost.hostname}',
+            'search_query': f'name = {client.hostname}',
             'time_to_pickup': '20',
         },
     )
