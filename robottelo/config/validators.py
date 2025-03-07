@@ -168,11 +168,6 @@ VALIDATORS = dict(
     fake_capsules=[Validator('fake_capsules.port_range', must_exist=True)],
     # FIXME: we don't check if 'default' is defined
     # since that's YAML, could we change API and check for presence of at least one setting?
-    fake_manifest=[
-        Validator(
-            'fake_manifest.cert_url', 'fake_manifest.key_url', 'fake_manifest.url', must_exist=True
-        ),
-    ],
     gce=[
         Validator(
             'gce.cert_path',
