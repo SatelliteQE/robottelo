@@ -40,7 +40,6 @@ def golden_ticket_host_setup(request, module_sca_manifest_org, module_target_sat
     )
 
 
-@pytest.mark.tier1
 def test_positive_manifest_upload(function_sca_manifest_org, module_target_sat):
     """upload manifest
 
@@ -56,7 +55,6 @@ def test_positive_manifest_upload(function_sca_manifest_org, module_target_sat):
     )
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_manifest_delete(function_sca_manifest_org, module_target_sat):
     """Delete uploaded manifest
@@ -78,7 +76,6 @@ def test_positive_manifest_delete(function_sca_manifest_org, module_target_sat):
     )
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_enable_manifest_reposet(function_sca_manifest_org, module_target_sat):
     """enable repository set
@@ -111,7 +108,6 @@ def test_positive_enable_manifest_reposet(function_sca_manifest_org, module_targ
     )
 
 
-@pytest.mark.tier3
 def test_positive_manifest_history(function_sca_manifest_org, module_target_sat):
     """upload manifest and check history
 
@@ -127,7 +123,6 @@ def test_positive_manifest_history(function_sca_manifest_org, module_target_sat)
     assert f'{org.name} file imported successfully.' in ''.join(history)
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_manifest_refresh(function_sca_manifest_org, module_target_sat):
     """upload manifest and refresh
@@ -149,7 +144,6 @@ def test_positive_manifest_refresh(function_sca_manifest_org, module_target_sat)
     )
 
 
-@pytest.mark.tier2
 def test_positive_subscription_list(function_sca_manifest_org, module_target_sat):
     """Verify that subscription list contains start and end date
 
@@ -170,7 +164,6 @@ def test_positive_subscription_list(function_sca_manifest_org, module_target_sat
         assert column in subscription_list[0]
 
 
-@pytest.mark.tier2
 def test_positive_delete_manifest_as_another_user(target_sat, function_sca_manifest):
     """Verify that uploaded manifest if visible and deletable
         by a different user than the one who uploaded it
@@ -206,7 +199,6 @@ def test_positive_delete_manifest_as_another_user(target_sat, function_sca_manif
     assert len(target_sat.cli.Subscription.list({'organization-id': org.id})) == 0
 
 
-@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_positive_subscription_status_disabled_golden_ticket():
     """Verify that Content host Subscription status is set to 'Disabled'
@@ -250,7 +242,6 @@ def test_positive_candlepin_events_processed_by_STOMP():
     """
 
 
-@pytest.mark.tier2
 def test_positive_auto_attach_disabled_golden_ticket(
     module_org, module_location, golden_ticket_host_setup, rhel7_contenthost_class, target_sat
 ):

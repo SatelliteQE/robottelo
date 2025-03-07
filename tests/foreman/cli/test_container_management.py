@@ -51,7 +51,6 @@ class TestDockerClient:
     :CaseImportance: Medium
     """
 
-    @pytest.mark.tier3
     def test_positive_pull_image(
         self, request, module_org, module_container_contenthost, target_sat
     ):
@@ -108,7 +107,6 @@ class TestDockerClient:
             module_container_contenthost.execute(f'docker rmi {repo["published-at"]}')
 
     @pytest.mark.skip_if_not_set('docker')
-    @pytest.mark.tier3
     @pytest.mark.e2e
     def test_positive_container_admin_end_to_end_search(
         self, request, module_org, module_container_contenthost, target_sat
@@ -220,7 +218,6 @@ class TestDockerClient:
         assert docker_repo_uri in result.stdout
 
     @pytest.mark.skip_if_not_set('docker')
-    @pytest.mark.tier3
     @pytest.mark.e2e
     def test_positive_container_admin_end_to_end_pull(
         self, request, module_org, module_container_contenthost, target_sat

@@ -17,7 +17,6 @@ import pytest
 from robottelo.config import settings
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason="Missing repos_hosting_url")
 def test_positive_list_smart_class_parameters(

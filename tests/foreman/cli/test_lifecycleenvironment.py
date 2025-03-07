@@ -33,7 +33,6 @@ def module_lce(module_org, class_target_sat):
 
 
 # Issues validation
-@pytest.mark.tier2
 def test_positive_list_subcommand(module_org, module_target_sat):
     """List subcommand returns standard output
 
@@ -55,7 +54,6 @@ def test_positive_list_subcommand(module_org, module_target_sat):
     assert len(result) > 0
 
 
-@pytest.mark.tier2
 def test_positive_search_lce_via_UTF8(module_org, module_target_sat):
     """Search lifecycle environment via its name containing UTF-8
     chars
@@ -80,7 +78,6 @@ def test_positive_search_lce_via_UTF8(module_org, module_target_sat):
 
 
 # CRUD
-@pytest.mark.tier1
 def test_positive_lce_crud(module_org, module_target_sat):
     """CRUD test case for lifecycle environment for name, description, label, registry name pattern,
     and unauthenticated pull
@@ -143,7 +140,6 @@ def test_positive_lce_crud(module_org, module_target_sat):
         )
 
 
-@pytest.mark.tier1
 def test_positive_create_with_organization_label(module_org, module_target_sat):
     """Create lifecycle environment, specifying organization label
 
@@ -161,7 +157,6 @@ def test_positive_create_with_organization_label(module_org, module_target_sat):
     assert new_lce['organization'] == module_org.label
 
 
-@pytest.mark.tier1
 def test_positve_list_paths(module_org, module_target_sat):
     """List the environment paths under a given organization
 
@@ -204,7 +199,6 @@ class LifeCycleEnvironmentPaginationTestCase:
 
         self.lces_count += 1  # include default 'Library' lce
 
-    @pytest.mark.tier2
     def test_positive_list_all_with_per_page(self, target_sat):
         """Attempt to list more than 20 lifecycle environment with per-page
         option.
@@ -226,7 +220,6 @@ class LifeCycleEnvironmentPaginationTestCase:
         env_name_set = {env['name'] for env in lifecycle_environments}
         assert env_name_set == set(self.env_names)
 
-    @pytest.mark.tier2
     def test_positive_list_with_pagination(self, target_sat):
         """Make sure lces list can be displayed with different items per page
         value

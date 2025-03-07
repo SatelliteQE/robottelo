@@ -20,7 +20,6 @@ from robottelo.constants import ANY_CONTEXT, INSTALL_MEDIUM_URL, LIBVIRT_RESOURC
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, target_sat):
     """Perform end to end testing for location component
@@ -103,7 +102,6 @@ def test_positive_end_to_end(session, target_sat):
         assert not session.location.search(location_name)
 
 
-@pytest.mark.tier2
 def test_positive_create_with_all_users(session, target_sat):
     """Create location and do not add user to it. Check
     'all users' setting.
@@ -133,7 +131,6 @@ def test_positive_create_with_all_users(session, target_sat):
         # assert loc.name in user_values['locations']['resources']['assigned']
 
 
-@pytest.mark.tier2
 def test_positive_add_org_hostgroup_template(session, target_sat):
     """Add a organization, hostgroup, provisioning template by using
        the location name
@@ -175,7 +172,6 @@ def test_positive_add_org_hostgroup_template(session, target_sat):
 
 
 @pytest.mark.skip_if_not_set('libvirt')
-@pytest.mark.tier2
 def test_positive_update_compresource(session, target_sat):
     """Add/Remove compute resource from/to location
 

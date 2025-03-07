@@ -140,7 +140,6 @@ def search_user(request):
     return request.getfixturevalue(request.param)
 
 
-@pytest.mark.tier2
 def test_positive_vertical_navigation_search_end_to_end(
     search_user,
     module_target_sat,

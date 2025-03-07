@@ -69,7 +69,6 @@ def wait_for_repo_metadata_tasks(sat, org_name, repo_name='', product_name=''):
 search_key = 'name'
 
 
-@pytest.mark.tier1
 def test_verify_gpg_key_content_displayed(target_sat, module_org):
     """content-credential info should display key content
 
@@ -89,7 +88,6 @@ def test_verify_gpg_key_content_displayed(target_sat, module_org):
     assert gpg_key['content'] == content
 
 
-@pytest.mark.tier1
 def test_positive_get_info_by_name(target_sat, module_org):
     """Create single gpg key and get its info by name
 
@@ -110,7 +108,6 @@ def test_positive_get_info_by_name(target_sat, module_org):
     assert gpg_key['name'] == name
 
 
-@pytest.mark.tier1
 def test_positive_block_delete_key_in_use(target_sat, module_org):
     """Create a product and single associated repository. Create a new gpg key and associate
         it with the product and repository. Attempt to delete the gpg key in use
@@ -159,7 +156,6 @@ def test_positive_block_delete_key_in_use(target_sat, module_org):
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_positive_create_with_default_org(target_sat, name, default_org):
     """Create gpg key with valid name and valid gpg key via file
     import using the default created organization
@@ -185,7 +181,6 @@ def test_positive_create_with_default_org(target_sat, name, default_org):
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_positive_create_with_custom_org(target_sat, name, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import using a new organization
@@ -213,7 +208,6 @@ def test_positive_create_with_custom_org(target_sat, name, module_org):
     assert gpg_key[search_key] == result[search_key]
 
 
-@pytest.mark.tier1
 def test_negative_create_with_same_name(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then try to create new one with same name
@@ -240,7 +234,6 @@ def test_negative_create_with_same_name(target_sat, module_org):
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_negative_create_with_no_gpg_key(name, target_sat, module_org):
     """Create gpg key with valid name and no gpg key
 
@@ -257,7 +250,6 @@ def test_negative_create_with_no_gpg_key(name, target_sat, module_org):
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-@pytest.mark.tier1
 def test_negative_create_with_invalid_name(target_sat, name, module_org):
     """Create gpg key with invalid name and valid gpg key via
     file import
@@ -278,7 +270,6 @@ def test_negative_create_with_invalid_name(target_sat, name, module_org):
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_delete(target_sat, name, module_org):
     """Create gpg key with valid name and valid gpg key via file
@@ -309,7 +300,6 @@ def test_positive_delete(target_sat, name, module_org):
 
 
 @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_positive_update_name(target_sat, new_name, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then update its name
@@ -336,7 +326,6 @@ def test_positive_update_name(target_sat, new_name, module_org):
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_positive_update_key(name, module_org, target_sat):
     """Create gpg key with valid name and valid gpg key via file
     import then update its gpg key file
@@ -366,7 +355,6 @@ def test_positive_update_key(name, module_org, target_sat):
 
 
 @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-@pytest.mark.tier1
 def test_negative_update_name(target_sat, new_name, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then fail to update its name
@@ -390,7 +378,6 @@ def test_negative_update_name(target_sat, new_name, module_org):
         )
 
 
-@pytest.mark.tier2
 def test_positive_add_empty_product(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then associate it with empty (no repos) custom product
@@ -406,7 +393,6 @@ def test_positive_add_empty_product(target_sat, module_org):
     assert product['gpg']['gpg-key'] == gpg_key['name']
 
 
-@pytest.mark.tier2
 def test_positive_add_product_with_repo(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then associate it with custom product that has one repository
@@ -437,7 +423,6 @@ def test_positive_add_product_with_repo(target_sat, module_org):
     assert repo['gpg-key']['id'] == gpg_key['id']
 
 
-@pytest.mark.tier2
 def test_positive_add_product_with_repos(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then associate it with custom product that has more than one
@@ -469,7 +454,6 @@ def test_positive_add_product_with_repos(target_sat, module_org):
         assert repo['gpg-key']['id'] == gpg_key['id']
 
 
-@pytest.mark.tier2
 def test_positive_add_repo_from_product_with_repo(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then associate it to repository from custom product that has
@@ -500,7 +484,6 @@ def test_positive_add_repo_from_product_with_repo(target_sat, module_org):
     assert product['gpg'].get('gpg-key-id') != gpg_key['id']
 
 
-@pytest.mark.tier2
 def test_positive_add_repo_from_product_with_repos(target_sat, module_org):
     """Create gpg key via file import and associate with custom repo
 
@@ -537,7 +520,6 @@ def test_positive_add_repo_from_product_with_repos(target_sat, module_org):
         assert repo['gpg-key'].get('id') != gpg_key['id']
 
 
-@pytest.mark.tier2
 def test_positive_update_key_for_empty_product(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then associate it with empty (no repos) custom product then
@@ -573,7 +555,6 @@ def test_positive_update_key_for_empty_product(target_sat, module_org):
     assert product['gpg']['gpg-key'] == new_name
 
 
-@pytest.mark.tier2
 def test_positive_update_key_for_product_with_repo(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then associate it with custom product that has one repository
@@ -625,7 +606,6 @@ def test_positive_update_key_for_product_with_repo(target_sat, module_org):
     assert repo['gpg-key'].get('name') == new_name
 
 
-@pytest.mark.tier2
 def test_positive_update_key_for_product_with_repos(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then associate it with custom product that has more than one
@@ -684,7 +664,6 @@ def test_positive_update_key_for_product_with_repos(target_sat, module_org):
         assert repo['gpg-key'].get('name') == new_name
 
 
-@pytest.mark.tier2
 def test_positive_update_key_for_repo_from_product_with_repo(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then associate it to repository from custom product that has
@@ -728,7 +707,6 @@ def test_positive_update_key_for_repo_from_product_with_repo(target_sat, module_
     assert product['gpg']['gpg-key'] != new_name
 
 
-@pytest.mark.tier2
 def test_positive_update_key_for_repo_from_product_with_repos(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then associate it to repository from custom product that has
@@ -783,7 +761,6 @@ def test_positive_update_key_for_repo_from_product_with_repos(target_sat, module
         assert repo['gpg-key'].get('name') != new_name
 
 
-@pytest.mark.tier1
 def test_positive_list(module_target_sat, module_org):
     """Create gpg key and list it
 
@@ -806,7 +783,6 @@ def test_positive_list(module_target_sat, module_org):
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_positive_search(target_sat, name, module_org):
     """Create gpg key and search for it
 

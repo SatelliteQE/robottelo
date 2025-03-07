@@ -29,7 +29,6 @@ from robottelo.utils.datafactory import gen_string
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier2
 def test_positive_end_to_end(session):
     """Perform end to end testing for lifecycle environment component
 
@@ -65,7 +64,6 @@ def test_positive_end_to_end(session):
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier2
 def test_positive_create_chain(session):
     """Create Content Environment in a chain
 
@@ -85,7 +83,6 @@ def test_positive_create_chain(session):
         assert lce_path_name in lce_values['lce'][lce_name]
 
 
-@pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_search_lce_content_view_packages_by_full_name(session, module_org, target_sat):
     """Search Lifecycle Environment content view packages by full name
@@ -136,7 +133,6 @@ def test_positive_search_lce_content_view_packages_by_full_name(session, module_
                 assert result[0]['Name'] == package['name']
 
 
-@pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_search_lce_content_view_packages_by_name(session, module_org, target_sat):
     """Search Lifecycle Environment content view packages by name
@@ -184,7 +180,6 @@ def test_positive_search_lce_content_view_packages_by_name(session, module_org, 
                 assert entry['Name'].startswith(package['name'])
 
 
-@pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_search_lce_content_view_module_streams_by_name(session, module_org, target_sat):
     """Search Lifecycle Environment content view module streams by name
@@ -229,7 +224,6 @@ def test_positive_search_lce_content_view_module_streams_by_name(session, module
                 assert entry['Name'].startswith(module['name'])
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_custom_user_view_lce(session, test_name, target_sat):
     """As a custom user attempt to view a lifecycle environment created

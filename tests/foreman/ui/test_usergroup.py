@@ -16,7 +16,6 @@ from fauxfactory import gen_string, gen_utf8
 import pytest
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_delete_with_user(session, module_org, module_location, module_target_sat):
     """Delete a Usergroup that contains a user
@@ -44,7 +43,6 @@ def test_positive_delete_with_user(session, module_org, module_location, module_
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, module_location, module_target_sat):
     """Perform end to end testing for usergroup component

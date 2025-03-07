@@ -45,7 +45,6 @@ class TestHostGroup:
     """Tests for host group entity."""
 
     @pytest.mark.upgrade
-    @pytest.mark.tier3
     def test_inherit_puppetclass(self, session_puppet_enabled_sat):
         """Host that created from HostGroup entity with PuppetClass
         assigned to it should inherit such puppet class information under
@@ -154,7 +153,6 @@ class TestHostGroup:
         assert host_attrs['all_puppetclasses'][0]['name'] == puppet_class
 
     @pytest.mark.upgrade
-    @pytest.mark.tier3
     def test_rebuild_config(self, module_org, module_location, hostgroup, module_target_sat):
         """'Rebuild orchestration config' of an existing host group
 
@@ -187,7 +185,6 @@ class TestHostGroup:
             == 'Configuration successfully rebuilt.'
         )
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(valid_hostgroups_list()))
     def test_positive_create_with_name(self, name, module_org, module_location, module_target_sat):
         """Create a hostgroup with different names
@@ -205,7 +202,6 @@ class TestHostGroup:
         ).create()
         assert name == hostgroup.name
 
-    @pytest.mark.tier1
     def test_positive_clone(self, hostgroup, target_sat):
         """Create a hostgroup by cloning an existing one
 
@@ -231,7 +227,6 @@ class TestHostGroup:
 
         assert hostgroup_cloned_reduced.items() <= hostgroup_origin.items()
 
-    @pytest.mark.tier1
     def test_positive_create_with_properties(
         self, module_puppet_org, module_puppet_loc, session_puppet_enabled_sat
     ):
@@ -384,7 +379,6 @@ class TestHostGroup:
             hostgroup.read()
 
     @pytest.mark.stubbed('Remove stub once proper infrastructure will be created')
-    @pytest.mark.tier2
     def test_positive_create_with_realm(self, module_org, module_location, target_sat):
         """Create a hostgroup with realm specified
 
@@ -407,7 +401,6 @@ class TestHostGroup:
         ).create()
         assert hostgroup.realm.read().name == realm.name
 
-    @pytest.mark.tier2
     def test_positive_create_with_locs(self, module_org, module_target_sat):
         """Create a hostgroup with multiple locations specified
 
@@ -428,7 +421,6 @@ class TestHostGroup:
         ).create()
         assert {loc.name for loc in locs} == {loc.read().name for loc in hostgroup.location}
 
-    @pytest.mark.tier2
     def test_positive_create_with_orgs(self, target_sat):
         """Create a hostgroup with multiple organizations specified
 
@@ -444,7 +436,6 @@ class TestHostGroup:
         hostgroup = target_sat.api.HostGroup(organization=orgs).create()
         assert {org.name for org in orgs}, {org.read().name for org in hostgroup.organization}
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(valid_hostgroups_list()))
     def test_positive_update_name(self, name, hostgroup):
         """Update a hostgroup with a new name
@@ -461,7 +452,6 @@ class TestHostGroup:
         hostgroup = hostgroup.update(['name'])
         assert name == hostgroup.name
 
-    @pytest.mark.tier2
     def test_positive_update_puppet_ca_proxy(self, puppet_hostgroup, session_puppet_enabled_sat):
         """Update a hostgroup with a new puppet CA proxy
 
@@ -480,7 +470,6 @@ class TestHostGroup:
         assert puppet_hostgroup.puppet_ca_proxy.read().name == new_proxy.name
 
     @pytest.mark.stubbed('Remove stub once proper infrastructure will be created')
-    @pytest.mark.tier2
     def test_positive_update_realm(self, module_org, module_location, target_sat):
         """Update a hostgroup with a new realm
 
@@ -512,7 +501,6 @@ class TestHostGroup:
         hostgroup = hostgroup.update(['realm'])
         assert hostgroup.realm.read().name == new_realm.name
 
-    @pytest.mark.tier2
     def test_positive_update_puppet_proxy(self, puppet_hostgroup, session_puppet_enabled_sat):
         """Update a hostgroup with a new puppet proxy
 
@@ -530,7 +518,6 @@ class TestHostGroup:
         puppet_hostgroup = puppet_hostgroup.update(['puppet_proxy'])
         assert puppet_hostgroup.puppet_proxy.read().name == new_proxy.name
 
-    @pytest.mark.tier2
     def test_positive_update_content_source(self, hostgroup, target_sat):
         """Update a hostgroup with a new puppet proxy
 
@@ -548,7 +535,6 @@ class TestHostGroup:
         hostgroup = hostgroup.update(['content_source'])
         assert hostgroup.content_source.read().name == new_content_source.name
 
-    @pytest.mark.tier2
     def test_positive_update_locs(self, module_org, hostgroup, module_target_sat):
         """Update a hostgroup with new multiple locations
 
@@ -567,7 +553,6 @@ class TestHostGroup:
         hostgroup = hostgroup.update(['location'])
         assert {loc.name for loc in new_locs}, {loc.read().name for loc in hostgroup.location}
 
-    @pytest.mark.tier2
     def test_positive_update_orgs(self, hostgroup, target_sat):
         """Update a hostgroup with new multiple organizations
 
@@ -583,7 +568,6 @@ class TestHostGroup:
         hostgroup = hostgroup.update(['organization'])
         assert {org.name for org in new_orgs} == {org.read().name for org in hostgroup.organization}
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
     def test_negative_create_with_name(self, name, module_org, module_location, module_target_sat):
         """Attempt to create a hostgroup with invalid names
@@ -601,7 +585,6 @@ class TestHostGroup:
                 location=[module_location], name=name, organization=[module_org]
             ).create()
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
     def test_negative_update_name(self, new_name, hostgroup):
         """Attempt to update a hostgroup with invalid names
@@ -620,7 +603,6 @@ class TestHostGroup:
             hostgroup.update(['name'])
         assert hostgroup.read().name == original_name
 
-    @pytest.mark.tier2
     def test_positive_create_with_group_parameters(self, module_org, module_target_sat):
         """Create a hostgroup with 'group parameters' specified
 
@@ -651,7 +633,6 @@ class TestHostGroupMissingAttr:
     Satellite may assign to fields.
     """
 
-    @pytest.mark.tier2
     def test_positive_get_content_source(self, hostgroup, module_target_sat):
         """Read a host group. Inspect the server's response.
 
@@ -669,7 +650,6 @@ class TestHostGroupMissingAttr:
             f'{names.difference(hostgroup_attrs)} not found in {hostgroup_attrs}'
         )
 
-    @pytest.mark.tier2
     def test_positive_get_cv(self, hostgroup, module_target_sat):
         """Read a host group. Inspect the server's response.
 
@@ -687,7 +667,6 @@ class TestHostGroupMissingAttr:
             f'{names.difference(hostgroup_attrs)} not found in {hostgroup_attrs}'
         )
 
-    @pytest.mark.tier2
     def test_positive_get_lce(self, hostgroup, module_target_sat):
         """Read a host group. Inspect the server's response.
 
@@ -705,7 +684,6 @@ class TestHostGroupMissingAttr:
             f'{names.difference(hostgroup_attrs)} not found in {hostgroup_attrs}'
         )
 
-    @pytest.mark.tier2
     def test_positive_read_puppet_proxy_name(self, session_puppet_enabled_sat):
         """Read a hostgroup created with puppet proxy and inspect server's
         response
@@ -726,7 +704,6 @@ class TestHostGroupMissingAttr:
         assert 'puppet_proxy_name' in hg
         assert proxy.name == hg['puppet_proxy_name']
 
-    @pytest.mark.tier2
     def test_positive_read_puppet_ca_proxy_name(self, session_puppet_enabled_sat):
         """Read a hostgroup created with puppet ca proxy and inspect server's
         response

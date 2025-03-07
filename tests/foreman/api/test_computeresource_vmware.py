@@ -164,7 +164,6 @@ def test_positive_provision_end_to_end(
 @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-@pytest.mark.tier3
 def test_positive_provision_vmware_pxe_discovery(
     request,
     module_provisioning_rhel_content,

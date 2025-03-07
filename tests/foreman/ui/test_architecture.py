@@ -16,7 +16,6 @@ from fauxfactory import gen_string
 import pytest
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, target_sat):
     """Perform end to end testing for architecture component

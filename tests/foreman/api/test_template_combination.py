@@ -14,7 +14,6 @@ import pytest
 from requests.exceptions import HTTPError
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_end_to_end_template_combination(request, module_target_sat, module_hostgroup):
     """Assert API template combination get/delete method works.

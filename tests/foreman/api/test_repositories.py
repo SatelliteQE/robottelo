@@ -30,7 +30,6 @@ from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import parametrized
 
 
-@pytest.mark.tier1
 def test_negative_disable_repository_with_cv(module_sca_manifest_org, target_sat):
     """Attempt to disable a Repository that is published in a Content View
 
@@ -71,7 +70,6 @@ def test_negative_disable_repository_with_cv(module_sca_manifest_org, target_sat
     )
 
 
-@pytest.mark.tier1
 def test_positive_update_repository_metadata(module_org, target_sat):
     """Update a Repositories url and check that the rpm content counts are different.
         This process will modify the publication of a repo(metadata).
@@ -143,7 +141,6 @@ def test_positive_epel_repositories_with_mirroring_policy(
     assert module_repo_options['mirroring_policy'] == repodata.mirroring_policy
 
 
-@pytest.mark.tier4
 @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos'])
 def test_positive_sync_kickstart_repo(distro, module_sca_manifest_org, target_sat):
     """No encoding gzip errors on kickstart repositories sync, kickstart content present.
@@ -223,7 +220,6 @@ def test_positive_sync_upstream_repo_with_zst_compression(
     assert result.status == 1
 
 
-@pytest.mark.tier1
 @pytest.mark.manifester
 def test_negative_upload_expired_manifest(request, default_org, target_sat):
     """Upload an expired manifest and attempt to refresh it
@@ -252,7 +248,6 @@ def test_negative_upload_expired_manifest(request, default_org, target_sat):
     )
 
 
-@pytest.mark.tier1
 def test_positive_multiple_orgs_with_same_repo(target_sat):
     """Test that multiple organizations with the same repository synced have matching metadata
 

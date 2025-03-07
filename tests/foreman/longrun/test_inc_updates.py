@@ -165,7 +165,6 @@ def host(
     return rhel7_contenthost_module
 
 
-@pytest.mark.tier4
 @pytest.mark.upgrade
 def test_positive_noapply_api(
     module_sca_manifest_org, module_cv, custom_repo, host, dev_lce, module_target_sat
@@ -214,7 +213,6 @@ def test_positive_noapply_api(
     )
 
 
-@pytest.mark.tier3
 def test_positive_incremental_update_time(module_target_sat, module_sca_manifest_org):
     """Incremental update should not take a long time.
 

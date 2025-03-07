@@ -25,7 +25,6 @@ inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
 generate_report_jobs = 'ForemanInventoryUpload::Async::GenerateAllReportsJob'
 
 
-@pytest.mark.tier3
 @pytest.mark.e2e
 def test_positive_inventory_generate_upload_cli(
     rhcloud_manifest_org, rhcloud_registered_hosts, module_target_sat
@@ -97,7 +96,6 @@ def test_positive_inventory_generate_upload_cli(
 @pytest.mark.e2e
 @pytest.mark.pit_server
 @pytest.mark.pit_client
-@pytest.mark.tier3
 def test_positive_inventory_recommendation_sync(
     rhcloud_manifest_org,
     rhcloud_registered_hosts,
@@ -141,7 +139,6 @@ def test_positive_inventory_recommendation_sync(
 @pytest.mark.e2e
 @pytest.mark.pit_server
 @pytest.mark.pit_client
-@pytest.mark.tier3
 def test_positive_sync_inventory_status(
     rhcloud_manifest_org,
     rhcloud_registered_hosts,
@@ -190,7 +187,6 @@ def test_positive_sync_inventory_status(
     assert task_output[0].output['host_statuses']['disconnect'] == 0
 
 
-@pytest.mark.tier3
 def test_positive_sync_inventory_status_missing_host_ip(
     rhcloud_manifest_org,
     rhcloud_registered_hosts,
@@ -329,7 +325,6 @@ def test_rhcloud_external_links():
     """
 
 
-@pytest.mark.tier3
 def test_positive_generate_all_reports_job(target_sat):
     """Generate all reports job via foreman-rake console:
 

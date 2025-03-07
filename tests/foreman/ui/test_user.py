@@ -22,7 +22,6 @@ from robottelo.constants import DEFAULT_ORG, PERMISSIONS, ROLES
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.pit_server
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, target_sat, test_name, module_org, module_location):
@@ -97,7 +96,6 @@ def test_positive_end_to_end(session, target_sat, test_name, module_org, module_
         assert not deletehostsession.user.search(new_name)
 
 
-@pytest.mark.tier2
 def test_positive_create_with_multiple_roles(session, target_sat):
     """Create User with multiple roles
 
@@ -127,7 +125,6 @@ def test_positive_create_with_multiple_roles(session, target_sat):
         assert set(user['roles']['resources']['assigned']) == {role1, role2}
 
 
-@pytest.mark.tier2
 def test_positive_create_with_all_roles(session):
     """Create User and assign all available roles to it
 
@@ -152,7 +149,6 @@ def test_positive_create_with_all_roles(session):
         assert set(user['roles']['resources']['assigned']) == set(ROLES)
 
 
-@pytest.mark.tier2
 def test_positive_create_with_multiple_orgs(session, target_sat):
     """Create User associated to multiple Orgs
 
@@ -186,7 +182,6 @@ def test_positive_create_with_multiple_orgs(session, target_sat):
         }
 
 
-@pytest.mark.tier2
 def test_positive_update_with_multiple_roles(session, target_sat):
     """Update User with multiple roles
 
@@ -212,7 +207,6 @@ def test_positive_update_with_multiple_roles(session, target_sat):
         assert set(user['roles']['resources']['assigned']) == set(role_names)
 
 
-@pytest.mark.tier2
 def test_positive_update_with_all_roles(session):
     """Update User with all roles
 
@@ -237,7 +231,6 @@ def test_positive_update_with_all_roles(session):
         assert set(user['roles']['resources']['assigned']) == set(ROLES)
 
 
-@pytest.mark.tier2
 def test_positive_update_orgs(session, target_sat):
     """Assign a User to multiple Orgs
 
@@ -264,7 +257,6 @@ def test_positive_update_orgs(session, target_sat):
         assert set(user['organizations']['resources']['assigned']) == set(org_names)
 
 
-@pytest.mark.tier2
 def test_positive_create_product_with_limited_user_permission(
     session, target_sat, test_name, module_org, module_location
 ):
@@ -396,7 +388,6 @@ def test_positive_invalidate_jwt(
         assert "ERROR: unauthorized" in result.stdout
 
 
-@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_personal_access_token_admin():
     """Personal access token for admin
@@ -416,7 +407,6 @@ def test_personal_access_token_admin():
     """
 
 
-@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_positive_personal_access_token_user_with_role():
     """Personal access token for user with a role
@@ -439,7 +429,6 @@ def test_positive_personal_access_token_user_with_role():
     """
 
 
-@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_expired_personal_access_token():
     """Personal access token expired for the user.
