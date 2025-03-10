@@ -184,6 +184,7 @@ def precondition_check_upgrade_and_install_leapp_tool(custom_leapp_host):
     assert custom_leapp_host.run('yum install leapp-upgrade -y').status == 0
     if custom_leapp_host.run('needs-restarting -r').status == 1:
         custom_leapp_host.power_control(state='reboot', ensure=True)
+        custom_leapp_host.wait_for_connection()
 
     # Fixing known inhibitors for source rhel version 8
     if custom_leapp_host.os_version.major == 8:
