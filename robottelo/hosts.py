@@ -2411,7 +2411,7 @@ class Satellite(Capsule, SatelliteMixins):
 
     def generate_inventory_report(self, org, disconnected='false'):
         """Function to perform inventory upload."""
-        generate_report_task = 'ForemanInventoryUpload::Async::UploadReportJob'
+        generate_report_task = 'ForemanInventoryUpload::Async::GenerateReportJob'
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         self.api.Organization(id=org.id).rh_cloud_generate_report(
             data={'disconnected': disconnected}
@@ -2457,6 +2457,11 @@ class Satellite(Capsule, SatelliteMixins):
             search_rate=5,
             max_tries=10,
         )
+
+    @property
+    def local_advisor_enabled(self):
+        """Return boolean indicating whether local Insights advisor engine is enabled."""
+        return self.api.RHCloud().advisor_engine_config()['use_local_advisor_engine']
 
 
 class SSOHost(Host):
