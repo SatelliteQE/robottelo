@@ -151,9 +151,9 @@ def test_rh_cloud_inventory_settings(
     :steps:
 
         1. Prepare machine and upload its data to Insights.
-        2. Go to Configure > Inventory upload > enable “Obfuscate host names” setting.
-        3. Go to Configure > Inventory upload > enable “Obfuscate host ipv4 addresses” setting.
-        4. Go to Configure > Inventory upload > enable “Exclude Packages” setting.
+        2. Go to Insights > Inventory upload > enable “Obfuscate host names” setting.
+        3. Go to Insights > Inventory upload > enable “Obfuscate host ipv4 addresses” setting.
+        4. Go to Insights > Inventory upload > enable “Exclude Packages” setting.
         5. Generate report after enabling the settings.
         6. Check if host names are obfuscated in generated reports.
         7. Check if hosts ipv4 addresses are obfuscated in generated reports.
@@ -296,7 +296,7 @@ def test_failed_inventory_upload():
         1. Register a satellite content host with insights.
         2. Change 'DEST' from /var/lib/foreman/red_hat_inventory/uploads/uploader.sh
             to an invalid url.
-        3. Go to Configure > Inventory upload > Click on restart button.
+        3. Go to Insights > Inventory upload > Click on restart button.
 
     :expectedresults:
         1. Inventory report upload failed.
@@ -318,7 +318,7 @@ def test_rhcloud_inventory_without_manifest(session, module_org, target_sat):
 
     :steps:
         1. Don't import manifest to satellite.
-        3. Go to Configure > Inventory upload > Click on restart button.
+        3. Go to Insights > Inventory upload > Click on restart button.
 
     :expectedresults:
         1. No stacktrace in production.log
@@ -354,3 +354,28 @@ def test_rhcloud_inventory_without_manifest(session, module_org, target_sat):
         f'Skipping organization {module_org.name}, no candlepin certificate defined.'
         in inventory_data['uploading']['terminal']
     )
+
+
+@pytest.mark.parametrize("module_target_sat_insights", [False], ids=["local"], indirect=True)
+def test_rhcloud_inventory_disabled_local_insights(module_target_sat_insights):
+    """Verify that the 'Insights > Inventory Upload' navigation item is not available
+    when the Satellite is configured to use a local advisor engine.
+
+    :id: 84023ae9-7bc4-4332-9aaf-749d6c48c2d2
+
+    :steps:
+        1. Configure Satellite to use local Insights advisor engine.
+        2. Navigate to the Insights Recommendations page.
+        3. Select Insights > Inventory Upload from the navigation menu.
+
+    :expectedresults:
+        1. "Inventory Upload" is not visible under "Insights".
+
+    :CaseImportance: Medium
+
+    :CaseAutomation: Automated
+    """
+    with module_target_sat_insights.ui_session() as session:
+        insights_view = session.cloudinsights.navigate_to(session.cloudinsights, 'All')
+        with pytest.raises(Exception, match='not found in navigation tree'):
+            insights_view.menu.select('Insights', 'Inventory Upload')
