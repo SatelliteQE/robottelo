@@ -31,7 +31,6 @@ from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.host_helpers.repository_mixins import initiate_repo_helpers
-from robottelo.utils.manifest import clone
 
 
 def create_object(cli_object, options, values=None, credentials=None, timeout=None):
@@ -732,11 +731,6 @@ class CLIFactory:
             env_id = self.make_lifecycle_environment({'organization-id': org_id})['id']
         else:
             env_id = options['lifecycle-environment-id']
-        # If manifest does not exist, clone and upload it
-        if len(self._satellite.cli.Subscription.exists({'organization-id': org_id})) == 0:
-            with clone() as manifest:
-                self._satellite.upload_manifest(org_id, manifest.content)
-        # Enable repo from Repository Set
         try:
             self._satellite.cli.RepositorySet.enable(
                 {
@@ -862,7 +856,6 @@ class CLIFactory:
     def setup_org_for_a_rh_repo(
         self,
         options=None,
-        force_manifest_upload=False,
         force_use_cdn=False,
         force=False,
     ):
@@ -897,30 +890,7 @@ class CLIFactory:
         if force_use_cdn or settings.robottelo.cdn or not custom_repo_url:
             return self._setup_org_for_a_rh_repo(options, force)
         options['url'] = custom_repo_url
-        result = self.setup_org_for_a_custom_repo(options)
-        if force_manifest_upload:
-            with clone() as manifest:
-                self._satellite.put(manifest.path, manifest.name)
-            try:
-                self._satellite.cli.Subscription.upload(
-                    {
-                        'file': manifest.name,
-                        'organization-id': result.get('organization-id'),
-                    }
-                )
-            except CLIReturnCodeError as err:
-                raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}') from err
-
-            # Add default subscription to activation-key, if SCA mode is disabled
-            if self._satellite.is_sca_mode_enabled(result['organization-id']) is False:
-                self.activationkey_add_subscription_to_repo(
-                    {
-                        'activationkey-id': result['activationkey-id'],
-                        'organization-id': result['organization-id'],
-                        'subscription': constants.DEFAULT_SUBSCRIPTION_NAME,
-                    }
-                )
-        return result
+        return self.setup_org_for_a_custom_repo(options)
 
     def add_role_permissions(self, role_id, resource_permissions):
         """Create role permissions found in resource permissions dict

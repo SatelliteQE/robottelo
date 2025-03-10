@@ -37,7 +37,6 @@ def module_custom_product(module_org, module_target_sat):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_sync_rh_repos(session, target_sat, module_sca_manifest_org):
@@ -101,7 +100,6 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product, module
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_sync_rh_ostree_repo(session, target_sat, module_sca_manifest_org):
