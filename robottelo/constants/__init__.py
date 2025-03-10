@@ -933,6 +933,8 @@ FAKE_9_YUM_UPDATED_PACKAGES = [
     'walrus-5.21-1.noarch',
     'kangaroo-0.2-1.noarch',
 ]
+REAL_RHEL9_OUTDATED_PACKAGE_FILENAME = 'python3-gofer-2.12.5-7.1.el9sat.noarch'
+REAL_RHEL9_PACKAGE = 'python3-gofer'
 REAL_0_ERRATA_ID = 'RHBA-2021:1314'  # for rhst7 (update every GA day)
 REAL_1_ERRATA_ID = 'RHBA-2012:1076'  # for REAL_0_RH_PACKAGE
 REAL_2_ERRATA_ID = 'RHBA-2012:0707'  # for REAL_0_RH_PACKAGE
@@ -945,6 +947,7 @@ REAL_RHEL7_1_ERRATA_ID = 'RHBA-2017:0395'  # tcsh bug fix update
 REAL_RHEL8_1_ERRATA_ID = 'RHSA-2022:4867'  # for REAL_RHEL8_1_PACKAGE
 REAL_RHEL8_ERRATA_CVES = ['CVE-2021-27023', 'CVE-2021-27025']
 REAL_RHSCLIENT_ERRATA = 'RHSA-2023:5982'  # for RH Satellite Client 8
+REAL_RHEL9_ERRATA_ID = 'RHBA-2022:7243'
 FAKE_1_YUM_REPOS_COUNT = 32
 FAKE_3_YUM_REPOS_COUNT = 78
 FAKE_9_YUM_SECURITY_ERRATUM = [
@@ -1056,6 +1059,9 @@ PERMISSIONS = {
         'import_ansible_playbooks',
         'dispatch_cloud_requests',
         'control_organization_insights',
+        'destroy_snapshots',
+        'revert_snapshots',
+        'edit_snapshots',
     ],
     'AnsibleRole': ['view_ansible_roles', 'destroy_ansible_roles', 'import_ansible_roles'],
     'AnsibleVariable': [
@@ -1384,6 +1390,8 @@ PERMISSIONS = {
         'view_hosts',
         'forget_status_hosts',
         'saltrun_hosts',
+        'view_snapshots',
+        'create_snapshots',
     ],
     'Katello::ActivationKey': [
         'view_activation_keys',
