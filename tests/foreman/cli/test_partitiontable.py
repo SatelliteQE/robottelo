@@ -24,7 +24,6 @@ from robottelo.utils.datafactory import generate_strings_list, parametrized
 class TestPartitionTable:
     """Partition Table CLI tests."""
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(generate_strings_list(length=1)))
     def test_positive_create_with_one_character_name(self, name, target_sat):
         """Create Partition table with 1 character in name
@@ -42,7 +41,6 @@ class TestPartitionTable:
         ptable = target_sat.cli_factory.make_partition_table({'name': name})
         assert ptable['name'] == name
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         ('name', 'new_name'),
@@ -76,7 +74,6 @@ class TestPartitionTable:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.PartitionTable.info({'name': ptable['name']})
 
-    @pytest.mark.tier1
     def test_positive_create_with_content(self, module_target_sat):
         """Create a Partition Table with content
 
@@ -93,7 +90,6 @@ class TestPartitionTable:
         ptable_content = module_target_sat.cli.PartitionTable().dump({'id': ptable['id']})
         assert content in ptable_content
 
-    @pytest.mark.tier1
     def test_positive_delete_by_id(self, module_target_sat):
         """Create a Partition Table then delete it by its ID
 
@@ -108,7 +104,6 @@ class TestPartitionTable:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.PartitionTable.info({'id': ptable['id']})
 
-    @pytest.mark.tier2
     def test_positive_add_remove_os_by_id(self, module_target_sat):
         """Create a partition table then add and remove an operating system to it using
         IDs for association
@@ -131,7 +126,6 @@ class TestPartitionTable:
         ptable = module_target_sat.cli.PartitionTable.info({'id': ptable['id']})
         assert os['title'] not in ptable['operating-systems']
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_add_remove_os_by_name(self, module_target_sat):
         """Create a partition table then add and remove an operating system to it using

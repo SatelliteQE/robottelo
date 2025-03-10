@@ -19,8 +19,6 @@ import pytest
 
 from robottelo.constants import PRDS, REPOSET
 
-pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.tier1]
-
 PRODUCT_NAME = PRDS['rhel']
 REPOSET_NAME = REPOSET['rhva6']
 ARCH = 'x86_64'
@@ -58,6 +56,7 @@ def match_repos(repos, match_params):
 
 
 @pytest.mark.upgrade
+@pytest.mark.run_in_one_thread
 def test_positive_reposet_enable_and_disable(reposet, params):
     """Enable & disble repo from reposet
 

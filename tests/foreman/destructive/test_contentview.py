@@ -50,7 +50,6 @@ def module_big_repos(module_target_sat, module_sca_manifest_org):
     return repos
 
 
-@pytest.mark.tier4
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize('reboot', [True, False], ids=['vm_reboot', 'fm_restart'])
 def test_positive_reboot_recover_cv_publish(

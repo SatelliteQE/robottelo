@@ -31,7 +31,6 @@ def cut_lines(start_line, end_line, source_file, out_file, host):
     )
 
 
-@pytest.mark.tier4
 def test_positive_logging_from_foreman_core(target_sat):
     """Check that GET command to Hosts API is logged and has request ID.
 
@@ -70,7 +69,6 @@ def test_positive_logging_from_foreman_core(target_sat):
     assert GET_line_found, "The GET command to list hosts was not found in logs."
 
 
-@pytest.mark.tier4
 def test_positive_logging_from_foreman_proxy(target_sat):
     """Check PUT to Smart Proxy API to refresh the features is logged and has request ID.
 
@@ -129,7 +127,6 @@ def test_positive_logging_from_foreman_proxy(target_sat):
             break
 
 
-@pytest.mark.tier4
 def test_positive_logging_from_candlepin(module_org, module_sca_manifest, target_sat):
     """Check logging after manifest upload.
 
@@ -170,7 +167,6 @@ def test_positive_logging_from_candlepin(module_org, module_sca_manifest, target
     assert POST_line_found, "The POST command to candlepin was not found in logs."
 
 
-@pytest.mark.tier4
 def test_positive_logging_from_dynflow(module_org, target_sat):
     """Check POST to repositories API is logged while enabling a repo \
         and it has the request ID.
@@ -211,7 +207,6 @@ def test_positive_logging_from_dynflow(module_org, target_sat):
     assert POST_line_found, "The POST command to enable a repo was not found in logs."
 
 
-@pytest.mark.tier4
 def test_positive_logging_from_pulp3(module_org, target_sat):
     """
     Verify Pulp3 logs are getting captured using pulp3 correlation ID

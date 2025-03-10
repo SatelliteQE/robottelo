@@ -949,7 +949,7 @@ def filtered_api_paths():
 class TestAvailableURLs:
     """Tests for ``api/v2``."""
 
-    pytestmark = [pytest.mark.tier1, pytest.mark.upgrade]
+    pytestmark = pytest.mark.upgrade
 
     @pytest.fixture(scope='class')
     def api_url(self):
@@ -1011,7 +1011,7 @@ class TestAvailableURLs:
 class TestEndToEnd:
     """End-to-end tests using the ``API`` path."""
 
-    pytestmark = [pytest.mark.tier1, pytest.mark.upgrade]
+    pytestmark = pytest.mark.upgrade
 
     @pytest.fixture(scope='class')
     def fake_manifest_is_set(self):
@@ -1056,7 +1056,6 @@ class TestEndToEnd:
         assert results[0].login == 'admin'
 
     @pytest.mark.skip_if_not_set('libvirt')
-    @pytest.mark.tier4
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     @pytest.mark.e2e

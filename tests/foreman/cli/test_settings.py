@@ -32,7 +32,6 @@ from robottelo.utils.datafactory import (
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 def test_negative_update_hostname_with_empty_fact():
     """Update the Hostname_facts settings without any string(empty values)
 
@@ -44,7 +43,6 @@ def test_negative_update_hostname_with_empty_fact():
     """
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['discovery_prefix'], indirect=True)
 def test_positive_update_hostname_prefix_without_value(setting_update, module_target_sat):
     """Update the Hostname_prefix settings without any string(empty values)
@@ -61,7 +59,6 @@ def test_positive_update_hostname_prefix_without_value(setting_update, module_ta
         module_target_sat.cli.Settings.set({'name': "discovery_prefix", 'value': ""})
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['discovery_prefix'], indirect=True)
 def test_positive_update_hostname_default_prefix(setting_update, module_target_sat):
     """Update the default set prefix of hostname_prefix setting
@@ -79,7 +76,6 @@ def test_positive_update_hostname_default_prefix(setting_update, module_target_s
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 def test_positive_update_hostname_default_facts():
     """Update the default set fact of hostname_facts setting with list of
     facts like: bios_vendor,uuid
@@ -93,7 +89,6 @@ def test_positive_update_hostname_default_facts():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 def test_negative_discover_host_with_invalid_prefix():
     """Update the hostname_prefix with invalid string like
     -mac, 1mac or ^%$
@@ -107,7 +102,6 @@ def test_negative_discover_host_with_invalid_prefix():
     """
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['login_text'], indirect=True)
 def test_positive_update_login_page_footer_text(setting_update, module_target_sat):
     """Updates parameter "login_text" in settings
@@ -129,7 +123,6 @@ def test_positive_update_login_page_footer_text(setting_update, module_target_sa
     assert login_text["value"] == login_text_value
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['login_text'], indirect=True)
 def test_positive_update_login_page_footer_text_without_value(setting_update, module_target_sat):
     """Updates parameter "login_text" without any string (empty value)
@@ -150,7 +143,6 @@ def test_positive_update_login_page_footer_text_without_value(setting_update, mo
     assert login_text['value'] == ''
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['login_text'], indirect=True)
 def test_positive_update_login_page_footer_text_with_long_string(setting_update, module_target_sat):
     """Attempt to update parameter "Login_page_footer_text"
@@ -177,7 +169,6 @@ def test_positive_update_login_page_footer_text_with_long_string(setting_update,
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 def test_positive_update_email_delivery_method_smtp():
     """Check Updating SMTP params through settings subcommand
 
@@ -203,7 +194,6 @@ def test_positive_update_email_delivery_method_smtp():
     """
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['delivery_method'], indirect=True)
 def test_positive_update_email_delivery_method_sendmail(setting_update, module_target_sat):
     """Check Updating Sendmail params through settings subcommand
@@ -233,7 +223,6 @@ def test_positive_update_email_delivery_method_sendmail(setting_update, module_t
         assert module_target_sat.cli.Settings.list({'search': f'name={key}'})[0]['value'] == value
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['email_reply_address'], indirect=True)
 def test_positive_update_email_reply_address(setting_update, module_target_sat):
     """Check email reply address is updated
@@ -260,7 +249,6 @@ def test_positive_update_email_reply_address(setting_update, module_target_sat):
     assert updated_email_address == email_address
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['email_reply_address'], indirect=True)
 def test_negative_update_email_reply_address(setting_update, module_target_sat):
     """Check email reply address is not updated
@@ -284,7 +272,6 @@ def test_negative_update_email_reply_address(setting_update, module_target_sat):
         )
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['email_subject_prefix'], indirect=True)
 def test_positive_update_email_subject_prefix(setting_update, module_target_sat):
     """Check email subject prefix is updated
@@ -309,7 +296,6 @@ def test_positive_update_email_subject_prefix(setting_update, module_target_sat)
     assert email_subject_prefix_value == email_subject_prefix['value']
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['email_subject_prefix'], indirect=True)
 def test_negative_update_email_subject_prefix(setting_update, module_target_sat):
     """Check email subject prefix is not updated
@@ -340,7 +326,6 @@ def test_negative_update_email_subject_prefix(setting_update, module_target_sat)
     assert email_subject_prefix == email_subject_prefix_original
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('send_welcome_email_value', ["true", "false"])
 @pytest.mark.parametrize('setting_update', ['send_welcome_email'], indirect=True)
 def test_positive_update_send_welcome_email(
@@ -369,7 +354,6 @@ def test_positive_update_send_welcome_email(
     assert send_welcome_email_value == host_value
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('rss_enable_value', ["true", "false"])
 @pytest.mark.parametrize('setting_update', ['rss_enable'], indirect=True)
 def test_positive_enable_disable_rssfeed(setting_update, rss_enable_value, module_target_sat):
@@ -390,7 +374,6 @@ def test_positive_enable_disable_rssfeed(setting_update, rss_enable_value, modul
     assert rss_setting["value"] == rss_enable_value
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['rss_url'], indirect=True)
 def test_positive_update_rssfeed_url(setting_update, module_target_sat):
     """Check if the RSS feed URL is updated
@@ -416,7 +399,6 @@ def test_positive_update_rssfeed_url(setting_update, module_target_sat):
 
 
 @pytest.mark.parametrize('value', **xdist_adapter(invalid_boolean_strings()))
-@pytest.mark.tier2
 def test_negative_update_send_welcome_email(value, module_target_sat):
     """Check email send welcome email is updated
 
@@ -438,7 +420,6 @@ def test_negative_update_send_welcome_email(value, module_target_sat):
         module_target_sat.cli.Settings.set({'name': 'send_welcome_email', 'value': value})
 
 
-@pytest.mark.tier3
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize('setting_update', ['failed_login_attempts_limit'], indirect=True)
 def test_positive_failed_login_attempts_limit(setting_update, target_sat):

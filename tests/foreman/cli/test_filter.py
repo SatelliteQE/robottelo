@@ -34,7 +34,6 @@ def function_role(target_sat):
     return target_sat.cli_factory.make_role()
 
 
-@pytest.mark.tier1
 def test_positive_create_with_permission(module_perms, function_role, target_sat):
     """Create a filter and assign it some permissions.
 
@@ -51,7 +50,6 @@ def test_positive_create_with_permission(module_perms, function_role, target_sat
     assert set(filter_['permissions'].split(", ")) == set(module_perms)
 
 
-@pytest.mark.tier1
 def test_positive_create_with_org(module_perms, function_role, target_sat):
     """Create a filter and assign it some permissions.
 
@@ -77,7 +75,6 @@ def test_positive_create_with_org(module_perms, function_role, target_sat):
     assert filter_['organizations'][0] == org['name']
 
 
-@pytest.mark.tier1
 def test_positive_create_with_loc(module_perms, function_role, module_target_sat):
     """Create a filter and assign it some permissions.
 
@@ -103,7 +100,6 @@ def test_positive_create_with_loc(module_perms, function_role, module_target_sat
     assert filter_['locations'][0] == loc['name']
 
 
-@pytest.mark.tier1
 def test_positive_delete(module_perms, function_role, module_target_sat):
     """Create a filter and delete it afterwards.
 
@@ -121,7 +117,6 @@ def test_positive_delete(module_perms, function_role, module_target_sat):
         module_target_sat.cli.Filter.info({'id': filter_['id']})
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_delete_role(module_perms, function_role, target_sat):
     """Create a filter and delete the role it points at.
@@ -145,7 +140,6 @@ def test_positive_delete_role(module_perms, function_role, target_sat):
         target_sat.cli.Filter.info({'id': filter_['id']})
 
 
-@pytest.mark.tier1
 def test_positive_update_permissions(module_perms, function_role, target_sat):
     """Create a filter and update its permissions.
 
@@ -169,7 +163,6 @@ def test_positive_update_permissions(module_perms, function_role, target_sat):
     assert set(filter_['permissions'].split(", ")) == set(new_perms)
 
 
-@pytest.mark.tier1
 def test_positive_update_role(module_perms, function_role, target_sat):
     """Create a filter and assign it to another role.
 
@@ -189,7 +182,6 @@ def test_positive_update_role(module_perms, function_role, target_sat):
     assert filter_['role'] == new_role['name']
 
 
-@pytest.mark.tier1
 def test_positive_update_org_loc(module_perms, function_role, target_sat):
     """Create a filter and assign it to another organization and location.
 

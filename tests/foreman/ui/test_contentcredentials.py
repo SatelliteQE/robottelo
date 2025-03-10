@@ -32,7 +32,6 @@ def gpg_path():
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, target_sat, module_org, gpg_content):
     """Perform end to end testing for gpg key component
@@ -81,7 +80,6 @@ def test_positive_end_to_end(session, target_sat, module_org, gpg_content):
         assert session.contentcredential.search(new_name)[0]['Name'] != new_name
 
 
-@pytest.mark.tier2
 def test_positive_search_scoped(session, target_sat, gpg_content, module_org):
     """Search for gpgkey by organization id parameter
 
@@ -109,7 +107,6 @@ def test_positive_search_scoped(session, target_sat, gpg_content, module_org):
         )
 
 
-@pytest.mark.tier2
 def test_positive_add_empty_product(session, target_sat, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate
     it with empty (no repos) custom product
@@ -128,7 +125,6 @@ def test_positive_add_empty_product(session, target_sat, module_org, gpg_content
         assert values['products']['table'][0]['Used as'] == CONTENT_CREDENTIALS_TYPES['gpg']
 
 
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_add_product_with_repo(session, target_sat, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
@@ -162,7 +158,6 @@ def test_positive_add_product_with_repo(session, target_sat, module_org, gpg_con
         assert values['repositories']['table'][0]['Used as'] == CONTENT_CREDENTIALS_TYPES['gpg']
 
 
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_add_product_with_repos(session, target_sat, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
@@ -190,7 +185,6 @@ def test_positive_add_product_with_repos(session, target_sat, module_org, gpg_co
         }
 
 
-@pytest.mark.tier2
 def test_positive_add_repo_from_product_with_repo(session, target_sat, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     to repository from custom product that has one repository
@@ -220,7 +214,6 @@ def test_positive_add_repo_from_product_with_repo(session, target_sat, module_or
         assert values['repositories']['table'][0]['Product'] == product.name
 
 
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_add_repo_from_product_with_repos(session, target_sat, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
@@ -250,7 +243,6 @@ def test_positive_add_repo_from_product_with_repos(session, target_sat, module_o
         assert values['repositories']['table'][0]['Name'] == repo1.name
 
 
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_add_product_and_search(session, target_sat, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key
@@ -286,7 +278,6 @@ def test_positive_add_product_and_search(session, target_sat, module_org, gpg_co
         assert product_values['details']['repos_count'] == '1'
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('allow_repo_discovery')
@@ -341,7 +332,6 @@ def test_positive_update_key_for_product_using_repo_discovery(session, gpg_path)
         assert product_values['details']['gpg_key'] == new_name
 
 
-@pytest.mark.tier2
 def test_positive_update_key_for_empty_product(session, target_sat, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     with empty (no repos) custom product then update the key
@@ -370,7 +360,6 @@ def test_positive_update_key_for_empty_product(session, target_sat, module_org, 
         assert values['products']['table'][0]['Name'] == product.name
 
 
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_update_key_for_product_with_repo(session, target_sat, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
@@ -400,7 +389,6 @@ def test_positive_update_key_for_product_with_repo(session, target_sat, module_o
         assert values['repositories']['table'][0]['Name'] == repo.name
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_update_key_for_product_with_repos(session, target_sat, module_org, gpg_content):
@@ -433,7 +421,6 @@ def test_positive_update_key_for_product_with_repos(session, target_sat, module_
         }
 
 
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_update_key_for_repo_from_product_with_repo(
     session, target_sat, module_org, gpg_content
@@ -469,7 +456,6 @@ def test_positive_update_key_for_repo_from_product_with_repo(
         assert values['repositories']['table'][0]['Name'] == repo.name
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_update_key_for_repo_from_product_with_repos(

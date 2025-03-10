@@ -291,7 +291,6 @@ def registered_contenthost(
 
 
 @pytest.mark.e2e
-@pytest.mark.tier3
 @pytest.mark.rhel_ver_match('N-3')  # Newest major RHEL version (N), and three prior.
 @pytest.mark.parametrize('registered_contenthost', [[CUSTOM_REPO_URL]], indirect=True)
 @pytest.mark.no_containers
@@ -484,7 +483,6 @@ def test_end_to_end(
         assert FAKE_2_CUSTOM_PACKAGE in _package_version
 
 
-@pytest.mark.tier2
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.parametrize('registered_contenthost', [[CUSTOM_REPO_3_URL]], indirect=True)
@@ -707,7 +705,6 @@ def test_host_content_errata_tab_pagination(
         )
 
 
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_list(target_sat, session):
     """View all errata in an Org
@@ -770,7 +767,6 @@ def test_positive_list(target_sat, session):
         )
 
 
-@pytest.mark.tier2
 def test_positive_list_permission(
     test_name,
     module_target_sat,
@@ -832,7 +828,6 @@ def test_positive_list_permission(
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.no_containers
 def test_positive_apply_for_all_hosts(
@@ -965,7 +960,6 @@ def test_positive_apply_for_all_hosts(
                 assert packages_rows[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.rhel_ver_match('N-1')
 def test_positive_view_cve(session, module_product, module_sca_manifest_org, target_sat):
@@ -1000,7 +994,6 @@ def test_positive_view_cve(session, module_product, module_sca_manifest_org, tar
         assert errata_values['details']['cves'] == 'N/A'
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_filter_by_environment(
     module_sca_manifest_org,
@@ -1087,7 +1080,6 @@ def test_positive_filter_by_environment(
             )
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
     'registered_contenthost',
@@ -1162,7 +1154,6 @@ def test_positive_content_host_previous_env(
         assert content_host_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
 
 
-@pytest.mark.tier2
 @pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.parametrize(
     'registered_contenthost',
@@ -1194,7 +1185,6 @@ def test_positive_check_errata(session, registered_contenthost):
         assert read_errata['Content']['Errata']['table'][0]['Errata'] == CUSTOM_REPO_ERRATA_ID
 
 
-@pytest.mark.tier3
 @pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.parametrize(
     'registered_contenthost',
@@ -1266,7 +1256,6 @@ def test_positive_host_content_library(
         assert all_chost_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
 
 
-@pytest.mark.tier3
 @pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.parametrize(
     'registered_contenthost',
@@ -1331,7 +1320,6 @@ def test_positive_errata_search_type(session, module_sca_manifest_org, registere
         assert errata_ids == sorted(FAKE_11_YUM_ENHANCEMENT_ERRATUM)
 
 
-@pytest.mark.tier3
 @pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.parametrize(
     'registered_contenthost',
@@ -1437,7 +1425,6 @@ def test_positive_show_count_on_host_pages(session, module_org, registered_conte
             )
 
 
-@pytest.mark.tier3
 @pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.parametrize(
     'registered_contenthost',
@@ -1508,7 +1495,6 @@ def test_positive_check_errata_counts_by_type_on_host_details_page(
         assert errata_type_counts['Enhancement'] == 1
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.parametrize('setting_update', ['errata_status_installable'], indirect=True)
@@ -1612,7 +1598,6 @@ def test_positive_filtered_errata_status_installable_param(
             assert expected_values[key] in actual_values[key], 'Expected text not found'
 
 
-@pytest.mark.tier3
 def test_content_host_errata_search_commands(
     module_product,
     target_sat,

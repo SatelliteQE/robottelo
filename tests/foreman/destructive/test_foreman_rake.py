@@ -17,7 +17,6 @@ import pytest
 pytestmark = pytest.mark.destructive
 
 
-@pytest.mark.tier3
 def test_positive_katello_reimport(target_sat):
     """Close loop bug for running katello:reimport.  Making sure
     that katello:reimport works and doesn't throw an error.

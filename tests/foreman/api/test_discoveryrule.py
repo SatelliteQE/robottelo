@@ -38,7 +38,6 @@ def module_org(module_org):
     module_org.delete()
 
 
-@pytest.mark.tier1
 @pytest.mark.e2e
 def test_positive_end_to_end_crud(module_org, module_location, module_hostgroup, module_target_sat):
     """Create a new discovery rule with several attributes, update them
@@ -98,7 +97,6 @@ def test_positive_end_to_end_crud(module_org, module_location, module_hostgroup,
         discovery_rule.read()
 
 
-@pytest.mark.tier1
 def test_negative_create_with_invalid_host_limit_and_priority(module_target_sat):
     """Create a discovery rule with invalid host limit and priority
 
@@ -112,7 +110,6 @@ def test_negative_create_with_invalid_host_limit_and_priority(module_target_sat)
         module_target_sat.api.DiscoveryRule(priority=gen_string('alpha')).create()
 
 
-@pytest.mark.tier3
 def test_positive_update_and_provision_with_rule_priority(
     module_target_sat, module_discovery_hostgroup, discovery_location, discovery_org
 ):
@@ -158,7 +155,6 @@ def test_positive_update_and_provision_with_rule_priority(
             _.read()
 
 
-@pytest.mark.tier3
 def test_positive_multi_provision_with_rule_limit(
     request, module_target_sat, module_discovery_hostgroup, discovery_location, discovery_org
 ):

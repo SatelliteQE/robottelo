@@ -30,7 +30,6 @@ def lce(function_sca_manifest_org, target_sat):
     )
 
 
-@pytest.mark.tier4
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.parametrize('cdn', [True, False], ids=['cdn', 'no_cdn'])
 @pytest.mark.parametrize('distro', DISTROS_SUPPORTED)

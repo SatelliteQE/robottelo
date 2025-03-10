@@ -15,7 +15,6 @@ import pytest
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, host_ui_options, module_target_sat):
     """Perform end to end testing for hardware model component

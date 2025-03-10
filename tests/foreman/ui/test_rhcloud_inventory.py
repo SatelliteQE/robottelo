@@ -55,7 +55,6 @@ def common_assertion(report_path, inventory_data, org, satellite):
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier3
 def test_rhcloud_inventory_e2e(
     inventory_settings,
     rhcloud_manifest_org,
@@ -134,7 +133,6 @@ def test_rhcloud_inventory_e2e(
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier3
 def test_rh_cloud_inventory_settings(
     module_target_sat,
     inventory_settings,
@@ -310,7 +308,6 @@ def test_failed_inventory_upload():
     """
 
 
-@pytest.mark.tier2
 def test_rhcloud_inventory_without_manifest(session, module_org, target_sat):
     """Verify that proper error message is given when no manifest is imported in an organization.
 

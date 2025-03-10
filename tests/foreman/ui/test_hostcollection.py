@@ -203,7 +203,6 @@ def _get_content_repository_urls(repos_collection, lce, content_view, module_tar
     return repos_urls
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(module_target_sat, module_org_with_parameter, smart_proxy_location):
     """Perform end to end testing for host collection component
@@ -250,7 +249,6 @@ def test_positive_end_to_end(module_target_sat, module_org_with_parameter, smart
         assert not session.hostcollection.search(new_name)
 
 
-@pytest.mark.tier2
 def test_negative_install_via_remote_execution(
     module_target_sat, module_org_with_parameter, smart_proxy_location
 ):
@@ -289,7 +287,6 @@ def test_negative_install_via_remote_execution(
         assert {host.name for host in hosts} == {host['Host'] for host in job_values['hosts_table']}
 
 
-@pytest.mark.tier2
 def test_negative_install_via_custom_remote_execution(
     module_target_sat, module_org_with_parameter, smart_proxy_location
 ):
@@ -329,7 +326,6 @@ def test_negative_install_via_custom_remote_execution(
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier3
 def test_positive_add_host(session, module_target_sat):
     """Check if host can be added to Host Collection
 
@@ -359,7 +355,6 @@ def test_positive_add_host(session, module_target_sat):
         assert hc_values['hosts']['resources']['assigned'][0]['Name'] == host.name
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_install_package(
     session, module_org_with_parameter, smart_proxy_location, vm_content_hosts, vm_host_collection
@@ -383,7 +378,6 @@ def test_positive_install_package(
         assert _is_package_installed(vm_content_hosts, constants.FAKE_0_CUSTOM_PACKAGE_NAME)
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_remove_package(
     session, module_org_with_parameter, smart_proxy_location, vm_content_hosts, vm_host_collection
@@ -410,7 +404,6 @@ def test_positive_remove_package(
         )
 
 
-@pytest.mark.tier3
 def test_positive_upgrade_package(
     session, module_org_with_parameter, smart_proxy_location, vm_content_hosts, vm_host_collection
 ):
@@ -434,7 +427,6 @@ def test_positive_upgrade_package(
         assert _is_package_installed(vm_content_hosts, constants.FAKE_2_CUSTOM_PACKAGE)
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_install_package_group(
     session, module_org_with_parameter, smart_proxy_location, vm_content_hosts, vm_host_collection
@@ -460,7 +452,6 @@ def test_positive_install_package_group(
             assert _is_package_installed(vm_content_hosts, package)
 
 
-@pytest.mark.tier3
 def test_positive_remove_package_group(
     session, module_org_with_parameter, smart_proxy_location, vm_content_hosts, vm_host_collection
 ):
@@ -490,7 +481,6 @@ def test_positive_remove_package_group(
             assert not _is_package_installed(vm_content_hosts, package, expect_installed=False)
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_install_errata(
     session, module_org_with_parameter, smart_proxy_location, vm_content_hosts, vm_host_collection
@@ -517,7 +507,6 @@ def test_positive_install_errata(
         assert _is_package_installed(vm_content_hosts, constants.FAKE_2_CUSTOM_PACKAGE)
 
 
-@pytest.mark.tier3
 def test_positive_change_assigned_content(
     session,
     module_org_with_parameter,
@@ -626,7 +615,6 @@ def test_positive_change_assigned_content(
             assert set(expected_repo_urls) == set(client_repo_urls)
 
 
-@pytest.mark.tier3
 def test_negative_hosts_limit(module_target_sat, module_org_with_parameter, smart_proxy_location):
     """Check that Host limit actually limits usage
 
@@ -676,7 +664,6 @@ def test_negative_hosts_limit(module_target_sat, module_org_with_parameter, smar
         )
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -724,7 +711,6 @@ def test_positive_install_module_stream(
         )
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',

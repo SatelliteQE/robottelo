@@ -39,7 +39,6 @@ def ldap_tear_down(module_target_sat):
 class TestADAuthSource:
     """Implements Active Directory feature tests in CLI"""
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize('server_name', **parametrized(generate_strings_list()))
     @pytest.mark.usefixtures("ldap_tear_down")
@@ -82,7 +81,6 @@ class TestADAuthSource:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.LDAPAuthSource.info({'name': new_name})
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('member_group', ['foobargroup', 'foobar.group'])
     @pytest.mark.usefixtures("ldap_tear_down")
     def test_positive_refresh_usergroup_with_ad(self, member_group, ad_data, module_target_sat):
@@ -162,7 +160,6 @@ class TestIPAAuthSource:
         for user_group in user_groups:
             user_group.delete()
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('server_name', **parametrized(generate_strings_list()))
     @pytest.mark.upgrade
     @pytest.mark.e2e
@@ -206,7 +203,6 @@ class TestIPAAuthSource:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.LDAPAuthSource.info({'name': new_name})
 
-    @pytest.mark.tier3
     @pytest.mark.usefixtures("ldap_tear_down")
     def test_usergroup_sync_with_refresh(self, default_ipa_host, module_target_sat):
         """Verify the refresh functionality in Ldap Auth Source
@@ -294,7 +290,6 @@ class TestIPAAuthSource:
             ).list()
         assert 'Missing one of the required permissions' in error.value.message
 
-    @pytest.mark.tier3
     @pytest.mark.usefixtures("ldap_tear_down")
     def test_usergroup_with_usergroup_sync(self, default_ipa_host, module_target_sat):
         """Verify the usergroup-sync functionality in Ldap Auth Source
@@ -375,7 +370,6 @@ class TestIPAAuthSource:
 class TestOpenLdapAuthSource:
     """Implements OpenLDAP Auth Source tests in CLI"""
 
-    @pytest.mark.tier2
     @pytest.mark.e2e
     @pytest.mark.parametrize('server_name', **parametrized(generate_strings_list()))
     @pytest.mark.upgrade

@@ -30,7 +30,6 @@ class TestAzureRMComputeResourceTestCase:
     """Tests for ``api/v2/compute_resources``"""
 
     @pytest.mark.upgrade
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
     )
@@ -86,7 +85,6 @@ class TestAzureRMComputeResourceTestCase:
         )
 
     @pytest.mark.upgrade
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
     )
@@ -111,7 +109,6 @@ class TestAzureRMComputeResourceTestCase:
         assert module_azurerm_cloudimg.uuid == AZURERM_RHEL7_UD_IMG_URN
 
     @pytest.mark.upgrade
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
     )
@@ -128,7 +125,6 @@ class TestAzureRMComputeResourceTestCase:
         assert len(portal_nws) == len(cr_nws['results'])
 
     @pytest.mark.stubbed
-    @pytest.mark.tier2
     def test_gov_cloud_regions_from_azure_compute_resources(self):
         """Check Azure Gov Cloud for US Cloud region options when creating a compute resource
 
@@ -252,7 +248,6 @@ class TestAzureRMHostProvisioningTestCase:
     @pytest.mark.e2e
     @pytest.mark.upgrade
     @pytest.mark.pit_server
-    @pytest.mark.tier3
     @pytest.mark.parametrize('sat_azure', ['sat'], indirect=True)
     def test_positive_azurerm_host_provisioned(self, class_host_ft, azureclient_host):
         """Host can be provisioned on AzureRM
@@ -283,7 +278,6 @@ class TestAzureRMHostProvisioningTestCase:
         assert self.hostname.lower() == azureclient_host.name
         assert self.vm_size == azureclient_host.type
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize('sat_azure', ['sat'], indirect=True)
     def test_positive_azurerm_host_power_on_off(self, class_host_ft, azureclient_host):
         """Host can be powered on and off
@@ -400,7 +394,6 @@ class TestAzureRMUserDataProvisioning:
         return azurermclient.get_vm(name=class_host_ud.name.split('.')[0])
 
     @pytest.mark.upgrade
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
     )
@@ -436,7 +429,6 @@ class TestAzureRMUserDataProvisioning:
         assert self.vm_size == azureclient_host.type
 
     @pytest.mark.upgrade
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
     )
@@ -551,7 +543,6 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
         return azurermclient.get_vm(name=class_host_custom_ft.name.split('.')[0])
 
     @pytest.mark.upgrade
-    @pytest.mark.tier3
     @pytest.mark.parametrize('sat_azure', ['sat'], indirect=True)
     def test_positive_azurerm_custom_image_host_provisioned(
         self, class_host_custom_ft, azureclient_host

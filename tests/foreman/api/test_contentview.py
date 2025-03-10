@@ -102,7 +102,6 @@ def apply_package_filter(content_view, repo, package, target_sat, inclusion=True
 
 class TestContentView:
     @pytest.mark.upgrade
-    @pytest.mark.tier3
     def test_positive_subscribe_host(
         self, class_cv, class_promoted_cv, module_lce, module_org, module_target_sat
     ):
@@ -135,7 +134,6 @@ class TestContentView:
         assert host.content_facet_attributes['lifecycle_environment']['id'] == module_lce.id
         assert class_cv.read().content_host_count == 1
 
-    @pytest.mark.tier2
     def test_positive_clone_within_same_env(self, class_published_cloned_cv, module_lce):
         """attempt to create, publish and promote new content view
         based on existing view within the same environment as the
@@ -151,7 +149,6 @@ class TestContentView:
         class_published_cloned_cv.read().version[0].promote(data={'environment_ids': module_lce.id})
 
     @pytest.mark.upgrade
-    @pytest.mark.tier2
     def test_positive_clone_with_diff_env(
         self, module_org, class_published_cloned_cv, module_target_sat
     ):
@@ -169,7 +166,6 @@ class TestContentView:
         le_clone = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
         class_published_cloned_cv.read().version[0].promote(data={'environment_ids': le_clone.id})
 
-    @pytest.mark.tier2
     def test_positive_add_custom_content(self, module_product, module_org, module_target_sat):
         """Associate custom content in a view
 
@@ -188,7 +184,6 @@ class TestContentView:
         assert len(content_view.repository) == 1
         assert content_view.repository[0].read().name == yum_repo.name
 
-    @pytest.mark.tier2
     def test_negative_add_dupe_repos(
         self, content_view, module_product, module_org, module_target_sat
     ):
@@ -209,7 +204,6 @@ class TestContentView:
             content_view.update(['repository'])
         assert len(content_view.read().repository) == 0
 
-    @pytest.mark.tier2
     @pytest.mark.pit_server
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
@@ -252,7 +246,6 @@ class TestContentView:
             content_view_version.errata_counts['total'] == CUSTOM_RPM_SHA_512_FEED_COUNT['errata']
         )
 
-    @pytest.mark.tier2
     def test_ccv_promote_registry_name_change(self, module_target_sat, module_sca_manifest_org):
         """Testing CCV promotion scenarios where the registry_name has been changed to some
         specific value.
@@ -314,7 +307,6 @@ class TestContentViewCreate:
     """Create tests for content views."""
 
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    @pytest.mark.tier1
     def test_positive_create_with_name(self, name, target_sat):
         """Create empty content-view with random names.
 
@@ -329,7 +321,6 @@ class TestContentViewCreate:
         assert target_sat.api.ContentView(name=name).create().name == name
 
     @pytest.mark.parametrize('desc', **parametrized(valid_data_list()))
-    @pytest.mark.tier1
     def test_positive_create_with_description(self, desc, target_sat):
         """Create empty content view with random description.
 
@@ -343,7 +334,6 @@ class TestContentViewCreate:
         """
         assert target_sat.api.ContentView(description=desc).create().description == desc
 
-    @pytest.mark.tier1
     def test_positive_clone(self, content_view, module_org, module_target_sat):
         """Create a content view by copying an existing one
 
@@ -364,7 +354,6 @@ class TestContentViewCreate:
         assert cv_origin == cloned_cv
 
     @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-    @pytest.mark.tier1
     def test_negative_create_with_invalid_name(self, name, target_sat):
         """Create content view providing an invalid name.
 
@@ -410,7 +399,6 @@ class TestContentViewPublishPromote:
         composite_cv = composite_cv.update(['component'])
         assert len(composite_cv.component) == cv_amount
 
-    @pytest.mark.tier2
     def test_positive_publish_with_content_multiple(self, content_view, module_org):
         """Give a content view yum packages and publish it repeatedly.
 
@@ -435,7 +423,6 @@ class TestContentViewPublishPromote:
         for cvv in content_view.read().version:
             assert cvv.read_json()['package_count'] > 0
 
-    @pytest.mark.tier2
     def test_positive_publish_composite_multiple_content_once(self, module_org, module_target_sat):
         """Create empty composite view and assign random number of
         normal content views to it. After that publish that composite content
@@ -458,7 +445,6 @@ class TestContentViewPublishPromote:
         composite_cv.publish()
         assert len(composite_cv.read().version) == 1
 
-    @pytest.mark.tier2
     def test_positive_publish_composite_multiple_content_multiple(
         self, module_org, module_target_sat
     ):
@@ -485,7 +471,6 @@ class TestContentViewPublishPromote:
             composite_cv.publish()
             assert len(composite_cv.read().version) == i + 1
 
-    @pytest.mark.tier2
     def test_positive_promote_with_yum_multiple(self, content_view, module_org, module_target_sat):
         """Give a content view a yum repo, publish it once and promote
         the content view version ``REPEAT + 1`` times.
@@ -518,7 +503,6 @@ class TestContentViewPublishPromote:
         assert len(cvv_attrs['environments']) == REPEAT + 1
         assert cvv_attrs['package_count'] > 0
 
-    @pytest.mark.tier2
     def test_negative_publish_during_repo_sync(self, content_view, module_target_sat):
         """Attempt to publish a new version of the content-view,
         while an associated repository is being synced.
@@ -567,7 +551,6 @@ class TestContentViewPublishPromote:
         assert content_view.read().version == existing_versions
 
     @pytest.mark.upgrade
-    @pytest.mark.tier2
     def test_positive_promote_composite_multiple_content_once(
         self, module_lce, module_org, module_target_sat
     ):
@@ -596,7 +579,6 @@ class TestContentViewPublishPromote:
         assert len(composite_cv.version[0].read().environment) == 2
 
     @pytest.mark.upgrade
-    @pytest.mark.tier2
     def test_positive_promote_composite_multiple_content_multiple(
         self, module_org, module_target_sat
     ):
@@ -629,7 +611,6 @@ class TestContentViewPublishPromote:
         assert len(composite_cv.version) == 1
         assert len(composite_cv.version[0].read().environment) == envs_amount + 1
 
-    @pytest.mark.tier2
     def test_positive_promote_out_of_sequence(self, content_view, module_org):
         """Try to publish content view few times in a row and then re-promote
         first version to default environment
@@ -663,7 +644,6 @@ class TestContentViewPublishPromote:
         assert len(content_view.version[0].read().environment) == 1
         assert len(content_view.version[-1].read().environment) == 0
 
-    @pytest.mark.tier3
     @pytest.mark.pit_server
     def test_positive_publish_multiple_repos(self, content_view, module_org, module_target_sat):
         """Attempt to publish a content view with multiple YUM repos.
@@ -693,7 +673,6 @@ class TestContentViewPublishPromote:
         content_view.publish()
         assert len(content_view.read().version) == 1
 
-    @pytest.mark.tier2
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -746,7 +725,6 @@ class TestContentViewPublishPromote:
         assert comp_content_view_info.package_count == 36
 
     @pytest.mark.e2e
-    @pytest.mark.tier2
     def test_ccv_audit_scenarios(self, module_org, target_sat):
         """Check for various scenarios where a composite content view or it's component
         content views needs_publish flags should be set to true and that they properly
@@ -814,7 +792,6 @@ class TestContentViewPublishPromote:
         composite_cv.publish()
         assert not composite_cv.read().needs_publish
 
-    @pytest.mark.tier2
     def test_check_needs_publish_flag(self, target_sat):
         """Check that the publish_only_if_needed option in the API works as intended (defaults to
         false, is able to be overriden to true, and if so gives the appropriate message
@@ -849,7 +826,6 @@ class TestContentViewUpdate:
             {'description': gen_utf8(), 'name': gen_utf8()}
         ),
     )
-    @pytest.mark.tier1
     def test_positive_update_attributes(self, module_cv, key, value):
         """Update a content view and provide valid attributes.
 
@@ -866,7 +842,6 @@ class TestContentViewUpdate:
         assert getattr(content_view, key) == value
 
     @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-    @pytest.mark.tier1
     def test_positive_update_name(self, module_cv, new_name, module_target_sat):
         """Create content view providing the initial name, then update
         its name to another valid name.
@@ -885,7 +860,6 @@ class TestContentViewUpdate:
         assert new_name == updated.name
 
     @pytest.mark.parametrize('new_name', **parametrized(invalid_names_list()))
-    @pytest.mark.tier1
     def test_negative_update_name(self, module_cv, new_name, module_target_sat):
         """Create content view then update its name to an
         invalid name.
@@ -927,7 +901,6 @@ class TestContentViewRedHatContent:
         module_cv.update(['repository'])
         request.cls.yumcv = module_cv.read()
 
-    @pytest.mark.tier2
     def test_positive_add_rh_custom_spin(self, target_sat):
         """Associate Red Hat content in a view and filter it using rule
 
@@ -952,7 +925,6 @@ class TestContentViewRedHatContent:
         ).create()
         assert cv_filter.id == cv_filter_rule.content_view_filter.id
 
-    @pytest.mark.tier2
     def test_positive_publish_rh_custom_spin(self, module_org, content_view, module_target_sat):
         """Attempt to publish a content view containing Red Hat spin - i.e.,
         contains filters.
@@ -971,7 +943,6 @@ class TestContentViewRedHatContent:
         content_view.publish()
         assert len(content_view.read().version) == 1
 
-    @pytest.mark.tier2
     def test_positive_promote_rh(self, module_org, content_view, module_lce):
         """Attempt to promote a content view containing Red Hat content
 
@@ -993,7 +964,6 @@ class TestContentViewRedHatContent:
         assert len(content_view.read().version[0].read().environment) == 2
 
     @pytest.mark.e2e
-    @pytest.mark.tier2
     def test_cv_audit_scenarios(self, module_product, target_sat):
         """Check for various scenarios where a content view's needs_publish flag
         should be set to true and that it properly gets set and unset
@@ -1079,7 +1049,6 @@ class TestContentViewRedHatContent:
         assert not self.yumcv.read().needs_publish
 
 
-@pytest.mark.tier2
 def test_repository_rpms_id_type(target_sat):
     """Katello_repository_rpms_id_seq needs to have the type bigint to allow
     repeated publishing of Content Views by customers.
@@ -1101,7 +1070,6 @@ def test_repository_rpms_id_type(target_sat):
     assert 'integer' not in db_out.stdout
 
 
-@pytest.mark.tier2
 def test_negative_readonly_user_actions(
     target_sat, function_role, content_view, module_org, module_lce
 ):
@@ -1184,7 +1152,6 @@ def test_negative_readonly_user_actions(
         target_sat.api.HostCollection(server_config=cfg).create()
 
 
-@pytest.mark.tier2
 def test_negative_non_readonly_user_actions(target_sat, content_view, function_role, module_org):
     """Attempt to view content views
 
@@ -1261,7 +1228,6 @@ class TestOstreeContentView:
         ).create()
         self.docker_repo.sync()
 
-    @pytest.mark.tier2
     def test_positive_add_custom_ostree_content(self, content_view):
         """Associate custom ostree content in a view
 
@@ -1278,7 +1244,6 @@ class TestOstreeContentView:
         assert len(content_view.repository) == 1
         assert content_view.repository[0].read().name == self.ostree_repo.name
 
-    @pytest.mark.tier2
     def test_positive_publish_custom_ostree(self, content_view):
         """Publish a content view with custom ostree contents
 
@@ -1294,7 +1259,6 @@ class TestOstreeContentView:
         content_view.publish()
         assert len(content_view.read().version) == 1
 
-    @pytest.mark.tier2
     def test_positive_promote_custom_ostree(self, content_view, module_lce):
         """Promote a content view with custom ostree contents
 
@@ -1313,7 +1277,6 @@ class TestOstreeContentView:
         )
         assert len(content_view.read().version[0].read().environment) == 2
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_publish_promote_with_custom_ostree_and_other(self, content_view, module_lce):
         """Publish & Promote a content view with custom ostree and other contents
@@ -1355,7 +1318,6 @@ class TestContentViewRedHatOstreeContent:
         request.cls.repo = class_target_sat.api.Repository(id=repo_id)
         self.repo.sync()
 
-    @pytest.mark.tier2
     def test_positive_add_rh_ostree_content(self, content_view):
         """Associate RH atomic ostree content in a view
 
@@ -1372,7 +1334,6 @@ class TestContentViewRedHatOstreeContent:
         assert len(content_view.repository) == 1
         assert content_view.repository[0].read().name == REPOS['rhaht']['name']
 
-    @pytest.mark.tier2
     def test_positive_publish_RH_ostree(self, content_view):
         """Publish a content view with RH ostree contents
 
@@ -1388,7 +1349,6 @@ class TestContentViewRedHatOstreeContent:
         content_view.publish()
         assert len(content_view.read().version) == 1
 
-    @pytest.mark.tier2
     def test_positive_promote_RH_ostree(self, content_view, module_lce):
         """Promote a content view with RH ostree contents
 
@@ -1407,7 +1367,6 @@ class TestContentViewRedHatOstreeContent:
         )
         assert len(content_view.read().version[0].read().environment) == 2
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_publish_promote_with_RH_ostree_and_other(
         self, content_view, module_org, module_lce, module_target_sat

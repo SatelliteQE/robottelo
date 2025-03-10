@@ -133,7 +133,6 @@ class TestKatelloCertsCheck:
                     options.append(i)
         assert set(options) == expected_result
 
-    @pytest.mark.tier1
     def test_positive_validate_katello_certs_check_output(self, cert_setup_teardown):
         """Validate that katello-certs-check generates correct output.
 
@@ -160,7 +159,6 @@ class TestKatelloCertsCheck:
         self.validate_output(result, cert_data)
 
     @pytest.mark.parametrize(('error', 'cert_file', 'key_file', 'ca_file'), invalid_inputs)
-    @pytest.mark.tier1
     def test_katello_certs_check_output_invalid_input(
         self,
         cert_setup_teardown,
@@ -200,7 +198,6 @@ class TestKatelloCertsCheck:
         else:
             pytest.fail('Failed to receive the error for invalid katello-cert-check')
 
-    @pytest.mark.tier1
     def test_negative_check_expiration_of_certificate(self, cert_setup_teardown):
         """Check expiration of certificate.
 
@@ -239,7 +236,6 @@ class TestKatelloCertsCheck:
         target_sat.execute("date -s 'last year'")
 
     @pytest.mark.stubbed
-    @pytest.mark.tier1
     def test_negative_validate_certificate_subject(self):
         """Validate certificate subject.
 

@@ -17,7 +17,6 @@ import pytest
 from robottelo.utils.datafactory import gen_string
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_end_to_end(
     session, tailoring_file_path, default_org, default_location, module_target_sat
@@ -59,7 +58,6 @@ def test_positive_end_to_end(
         )
 
 
-@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_positive_download_tailoring_file():
     """Download the tailoring file from satellite
@@ -80,7 +78,6 @@ def test_positive_download_tailoring_file():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier4
 def test_positive_oscap_run_with_tailoring_file_and_external_capsule():
     """End-to-End Oscap run with tailoring files and external capsule
 
@@ -108,7 +105,6 @@ def test_positive_oscap_run_with_tailoring_file_and_external_capsule():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier4
 def test_positive_fetch_tailoring_file_information_from_arfreports():
     """Fetch Tailoring file Information from Arf-reports
 

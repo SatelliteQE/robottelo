@@ -19,7 +19,6 @@ import pytest
 class TestOscapPolicy:
     """Implements Oscap Policy tests in API."""
 
-    @pytest.mark.tier1
     @pytest.mark.e2e
     def test_positive_crud_scap_policy(
         self, default_org, default_location, scap_content, tailoring_file, target_sat

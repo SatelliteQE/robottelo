@@ -43,7 +43,6 @@ def _make_fake_host_helper(module_org, sat):
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier2
 @pytest.mark.e2e
 def test_positive_end_to_end(module_org, module_target_sat):
     """Check if host collection can be created with name and description,
@@ -122,7 +121,6 @@ def test_positive_end_to_end(module_org, module_target_sat):
         module_target_sat.cli.HostCollection.info({'id': new_host_col['id']})
 
 
-@pytest.mark.tier1
 def test_positive_create_with_limit(module_org, module_target_sat):
     """Check if host collection can be created with correct limits
 
@@ -139,7 +137,6 @@ def test_positive_create_with_limit(module_org, module_target_sat):
         assert new_host_col['limit'] == limit
 
 
-@pytest.mark.tier1
 def test_positive_update_to_unlimited_hosts(module_org, module_target_sat):
     """Create Host Collection with a limit and update it to unlimited hosts
 
@@ -173,7 +170,6 @@ def test_positive_update_to_unlimited_hosts(module_org, module_target_sat):
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-@pytest.mark.tier1
 def test_negative_create_with_name(module_org, name, module_target_sat):
     """Attempt to create host collection with invalid name of different
     types
@@ -192,7 +188,6 @@ def test_negative_create_with_name(module_org, name, module_target_sat):
         )
 
 
-@pytest.mark.tier1
 def test_positive_update_limit(module_org, module_target_sat):
     """Check if host collection limits can be updated
 
@@ -213,7 +208,6 @@ def test_positive_update_limit(module_org, module_target_sat):
         assert result['limit'] == limit
 
 
-@pytest.mark.tier2
 def test_positive_list_by_org_id(module_org, module_target_sat):
     """Check if host collection list can be filtered by organization id
 
@@ -235,7 +229,6 @@ def test_positive_list_by_org_id(module_org, module_target_sat):
     assert result[0]['id'] == new_host_col['id']
 
 
-@pytest.mark.tier2
 def test_positive_host_collection_host_pagination(module_org, module_target_sat):
     """Check if pagination configured on per-page param defined in hammer
     host-collection hosts command overrides global configuration defined
@@ -268,7 +261,6 @@ def test_positive_host_collection_host_pagination(module_org, module_target_sat)
         assert len(listed_hosts) == number
 
 
-@pytest.mark.tier2
 def test_positive_copy_by_id(module_org, module_target_sat):
     """Check if host collection can be cloned by id
 
@@ -291,7 +283,6 @@ def test_positive_copy_by_id(module_org, module_target_sat):
     assert result['name'] == new_name
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_register_host_ak_with_host_collection(module_org, module_ak_with_cv, target_sat):
     """Attempt to register a host using activation key with host collection

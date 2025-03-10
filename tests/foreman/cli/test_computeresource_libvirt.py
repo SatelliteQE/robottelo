@@ -170,7 +170,6 @@ def test_positive_crud_libvirt_cr(module_target_sat, module_org, module_location
     assert not module_target_sat.cli.ComputeResource.exists(search=('name', cr_list[0]['name']))
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 @pytest.mark.parametrize('options', **parametrized(valid_name_desc_data()))
 def test_positive_create_with_libvirt(libvirt_url, options, target_sat):
@@ -194,7 +193,6 @@ def test_positive_create_with_libvirt(libvirt_url, options, target_sat):
     )
 
 
-@pytest.mark.tier2
 def test_positive_create_with_locs(libvirt_url, module_target_sat):
     """Create Compute Resource with multiple locations
 
@@ -222,7 +220,6 @@ def test_positive_create_with_locs(libvirt_url, module_target_sat):
 # Negative create
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('options', **parametrized(invalid_create_data()))
 def test_negative_create_with_name_url(libvirt_url, options, target_sat):
     """Compute Resource negative create with invalid values
@@ -245,7 +242,6 @@ def test_negative_create_with_name_url(libvirt_url, options, target_sat):
         )
 
 
-@pytest.mark.tier2
 def test_negative_create_with_same_name(libvirt_url, module_target_sat):
     """Compute Resource negative create with the same name
 
@@ -271,7 +267,6 @@ def test_negative_create_with_same_name(libvirt_url, module_target_sat):
 # Update Positive
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('options', **parametrized(valid_update_data()))
 def test_positive_update_name(libvirt_url, options, module_target_sat):
     """Compute Resource positive update
@@ -301,7 +296,6 @@ def test_positive_update_name(libvirt_url, options, module_target_sat):
 # Update Negative
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('options', **parametrized(invalid_update_data()))
 def test_negative_update(libvirt_url, options, module_target_sat):
     """Compute Resource negative update
@@ -327,7 +321,6 @@ def test_negative_update(libvirt_url, options, module_target_sat):
         assert comp_res[key] == result[key]
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('set_console_password', ['true', 'false'])
 def test_positive_create_with_console_password_and_name(
     libvirt_url, set_console_password, module_target_sat
@@ -354,7 +347,6 @@ def test_positive_create_with_console_password_and_name(
     )
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('set_console_password', ['true', 'false'])
 def test_positive_update_console_password(libvirt_url, set_console_password, module_target_sat):
     """Update a compute resource with ``--set-console-password``.
