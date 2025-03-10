@@ -1059,6 +1059,9 @@ PERMISSIONS = {
         'import_ansible_playbooks',
         'dispatch_cloud_requests',
         'control_organization_insights',
+        'destroy_snapshots',
+        'revert_snapshots',
+        'edit_snapshots',
     ],
     'AnsibleRole': ['view_ansible_roles', 'destroy_ansible_roles', 'import_ansible_roles'],
     'AnsibleVariable': [
@@ -1387,6 +1390,8 @@ PERMISSIONS = {
         'view_hosts',
         'forget_status_hosts',
         'saltrun_hosts',
+        'view_snapshots',
+        'create_snapshots',
     ],
     'Katello::ActivationKey': [
         'view_activation_keys',
