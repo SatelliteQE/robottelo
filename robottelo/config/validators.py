@@ -322,6 +322,12 @@ VALIDATORS = dict(
             must_exist=True,
             is_type_of=str,
         ),
+        Validator(
+            'repos.python.pypi.url',
+            must_exist=True,
+            is_type_of=str,
+            default='https://pypi.org/project/pytest',
+        ),
     ],
     rhev=[
         Validator(
