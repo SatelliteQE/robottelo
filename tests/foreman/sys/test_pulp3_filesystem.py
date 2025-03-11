@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 import json
 
 import pytest
@@ -115,7 +115,7 @@ def test_pulp_status(target_sat):
         2. The pulp components are alive according to provided status.
     """
     result = target_sat.execute('pulp status')
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     assert not result.status
     status = json.loads(result.stdout)
     assert status['database_connection']['connected']

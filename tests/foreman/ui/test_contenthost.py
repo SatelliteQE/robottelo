@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import re
 from urllib.parse import urlparse
 
@@ -305,7 +305,7 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm, target_s
         assert p.path == '/content_hosts'
         assert p.query == query
         # Note time for later wait_for_tasks, and include 4 mins margin of safety.
-        timestamp = (datetime.utcnow() - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
+        timestamp = (datetime.now(UTC) - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
         # Update the package by name
         session.hostcollection.manage_packages(
             hc_name,
@@ -1143,7 +1143,7 @@ def test_module_status_update_without_force_upload_package_profile(
     # reset walrus module streams
     run_remote_command_on_content_host(f'dnf module reset {module_name} -y', vm_module_streams)
     # make a note of time for later wait_for_tasks, and include 4 mins margin of safety.
-    timestamp = (datetime.utcnow() - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
+    timestamp = (datetime.now(UTC) - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
     # install walrus module stream with flipper profile
     run_remote_command_on_content_host(
         f'dnf module install {module_name}:{stream_version}/{profile} -y',

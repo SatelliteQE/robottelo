@@ -10,7 +10,7 @@
 
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from airgun.session import Session
 from fauxfactory import gen_string
@@ -290,7 +290,7 @@ class TestVirtwhoConfigforEsx:
         assert (
             abs(
                 datetime.strptime(checkin_time, "%B %d, %Y at %I:%M %p")
-                .replace(year=datetime.utcnow().year)
+                .replace(year=datetime.now(UTC).year)
                 .timestamp()
                 - time_now.timestamp()
             )

@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import random
 
 from fauxfactory import gen_integer, gen_string, gen_utf8
@@ -543,7 +543,7 @@ class TestContentViewPublishPromote:
         content_view.update(['repository'])
         content_view = content_view.read()
         existing_versions = content_view.version
-        timestamp = (datetime.utcnow() - timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M')
+        timestamp = (datetime.now(UTC) - timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M')
 
         # perform async repository sync, while still in progress-
         # attempt to publish a new version of the content view.
