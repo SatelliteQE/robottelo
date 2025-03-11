@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 from wait_for import wait_for
@@ -37,7 +37,7 @@ def sync_recommendations(satellite, org_name=DEFAULT_ORG, loc_name=DEFAULT_LOC):
         session.organization.select(org_name=org_name)
         session.location.select(loc_name=DEFAULT_LOC)
 
-        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
 
     wait_for(
@@ -119,7 +119,7 @@ def test_rhcloud_insights_e2e(
         assert result['Recommendation'] == OPENSSH_RECOMMENDATION
 
         # Run the remediation.
-        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.remediate(OPENSSH_RECOMMENDATION)
 
     # Wait for the remediation task to complete.

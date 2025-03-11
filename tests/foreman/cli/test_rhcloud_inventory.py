@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 import time
 
 import pytest
@@ -122,7 +122,7 @@ def test_positive_inventory_recommendation_sync(
     """
     org = rhcloud_manifest_org
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_insights:sync'
-    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
     result = module_target_sat.execute(cmd)
     wait_for(
         lambda: module_target_sat.api.ForemanTask()
@@ -168,7 +168,7 @@ def test_positive_sync_inventory_status(
     org = rhcloud_manifest_org
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
     success_msg = f"Synchronized inventory for organization '{org.name}'"
-    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
     result = module_target_sat.execute(cmd)
     assert result.status == 0
     assert success_msg in result.stdout
@@ -218,7 +218,7 @@ def test_positive_sync_inventory_status_missing_host_ip(
     org = rhcloud_manifest_org
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
     success_msg = f"Synchronized inventory for organization '{org.name}'"
-    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
     rhcloud_host = module_target_sat.cli.Host.info({'name': rhcloud_registered_hosts[0].hostname})[
         'id'
     ]
@@ -354,7 +354,7 @@ def test_positive_generate_all_reports_job(target_sat):
             time.sleep(30)  # sleep to allow time for console to open
             sh.send(f'ForemanTasks.async_task({generate_report_jobs})')
             time.sleep(3)  # sleep for the cmd execution
-        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
         wait_for(
             lambda: target_sat.api.ForemanTask()
             .search(query={'search': f'{generate_report_jobs} and started_at >= "{timestamp}"'})[0]
