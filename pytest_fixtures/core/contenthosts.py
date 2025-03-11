@@ -225,7 +225,7 @@ def module_container_contenthost(request, module_target_sat, module_org, module_
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         host.register_to_cdn()
-        for client in constants.CONTAINER_CLIENTS:
+        for client in settings.container.clients:
             assert host.execute(f'yum -y install {client}').status == 0, (
                 f'{client} installation failed'
             )
