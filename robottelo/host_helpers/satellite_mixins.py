@@ -17,7 +17,7 @@ from robottelo.constants import (
     PUPPET_COMMON_INSTALLER_OPTS,
     PUPPET_SATELLITE_INSTALLER,
 )
-from robottelo.exceptions import CLIReturnCodeError
+from robottelo.exceptions import CLIReturnCodeError, NoManifestProvidedError
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
 from robottelo.host_helpers.ui_factory import UIFactory
@@ -141,13 +141,17 @@ class ContentInfo:
         """Upload a manifest using the requested interface.
 
         :type org_id: int
-        :type manifest: Manifester object or None
+        :type manifest: Manifester object
         :type interface: str
         :type timeout: int
 
         :return: the manifest upload result
 
         """
+        if manifest is None:
+            raise NoManifestProvidedError(
+                "A subscription manifest is required but was not provided."
+            )
         if timeout is None:
             # Set the timeout to 1500 seconds to align with the API timeout.
             timeout = 1500000

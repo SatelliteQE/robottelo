@@ -1697,7 +1697,7 @@ class TestCapsuleContentManagement:
             'ansible_collection': {'ansible_collection'},
         }
 
-        repos_collection.setup_content(function_org.id, function_lce.id, upload_manifest=False)
+        repos_collection.setup_content(function_org.id, function_lce.id)
         cv_id = repos_collection.setup_content_data['content_view']['id']
         cv = target_sat.api.ContentView(id=cv_id).read()
 

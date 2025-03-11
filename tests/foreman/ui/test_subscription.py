@@ -374,7 +374,6 @@ def test_positive_view_vdc_guest_subscription_products(
         hypervisor_hostname=provisioning_server,
         configure_ssh=True,
         subscription_name=VDC_SUBSCRIPTION_NAME,
-        upload_manifest=False,
         extra_repos=[rh_product_repository.data],
     )
     virt_who_hypervisor_host = virt_who_data['virt_who_hypervisor_host']

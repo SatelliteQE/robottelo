@@ -1012,7 +1012,6 @@ class CLIFactory:
         org_id,
         lce_id=None,
         repos=None,
-        upload_manifest=True,
         download_policy='on_demand',
         rh_subscriptions=None,
         default_cv=False,
@@ -1023,7 +1022,6 @@ class CLIFactory:
         :param int lce_id: the lifecycle environment id
         :param list repos: a list of dict repositories options
         :param bool default_cv: whether to use the Default Organization CV
-        :param bool upload_manifest: whether to upload the organization manifest
         :param str download_policy: update the repositories with this download
             policy
         :param list rh_subscriptions: a list of RH subscription to attach to
@@ -1034,13 +1032,6 @@ class CLIFactory:
             repos = []
         if rh_subscriptions is None:
             rh_subscriptions = []
-
-        if upload_manifest:
-            # Upload the organization manifest
-            try:
-                self._satellite.upload_manifest(org_id, interface='CLI')
-            except CLIReturnCodeError as err:
-                raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}') from err
 
         custom_product, repos_info = self.setup_cdn_and_custom_repositories(
             org_id=org_id, repos=repos, download_policy=download_policy
