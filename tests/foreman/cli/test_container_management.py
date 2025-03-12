@@ -397,7 +397,7 @@ class TestDockerClient:
 
         podman_pull_command = (
             f"podman pull --tls-verify=false {target_sat.hostname}/{module_org.label}"
-            f"-{lce['label']}-{cv['label']}-{product['label']}-{repo_name}".lower()
+            f"/{lce['label']}/{cv['label']}/{product['label']}/{repo_name}".lower()
         )
 
         # 4. Pull in docker image
