@@ -46,9 +46,30 @@ def sync_roles(target_sat):
 @pytest.fixture(scope='module')
 def install_import_ansible_role(module_target_sat):
     """Installs and imports the thulium_drake.motd role used in the luna_hostgroup test playbook"""
-    module_target_sat.execute(
-        'ansible-galaxy role install thulium_drake.motd -p /usr/share/ansible/roles'
+
+    def create_fake_role(module_target_sat, role_name, role_metadata):
+        base_dir = '/usr/share/ansible/roles'
+        role_dir = f'{base_dir}/{role_name}'
+        meta_dir = f'{role_dir}/meta'
+        tasks_dir = f'{role_dir}/tasks'
+        module_target_sat.execute(f'mkdir -p {meta_dir} {tasks_dir}')
+        module_target_sat.put(
+            yaml.safe_dump(role_metadata),
+            f'{meta_dir}/main.yml',
+            temp_file=True,
+        )
+        module_target_sat.put(
+            '# NOOP',
+            f'{tasks_dir}/main.yml',
+            temp_file=True,
+        )
+
+    create_fake_role(
+        module_target_sat,
+        'thulium_drake.motd',
+        {'galaxy_info': {'author': 'thulium_drake', 'role_name': 'motd'}},
     )
+
     proxy_id = module_target_sat.nailgun_smart_proxy.id
     module_target_sat.api.AnsibleRoles().sync(
         data={'proxy_id': proxy_id, 'role_names': 'thulium_drake.motd'}
