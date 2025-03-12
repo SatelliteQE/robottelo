@@ -636,6 +636,13 @@ class RepositoryCollection:
             repos_info.append(repo_info)
         self._custom_product_info = custom_product
         self._repos_info = repos_info
+        # Wait for metadata generation for repository creation for specific org
+        task_query = f'Metadata generate "{custom_product.organization}"'
+        self.satellite.wait_for_tasks(
+            search_query=task_query,
+            max_tries=6,
+            search_rate=10,
+        )
         return custom_product, repos_info
 
     def setup_content_view(self, org_id, lce_id=None):
