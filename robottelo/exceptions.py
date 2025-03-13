@@ -118,3 +118,7 @@ class CLIDataBaseError(CLIBaseError):
     which cause a data base error on hammer
     See: https://github.com/SatelliteQE/robottelo/issues/3790 for more details
     """
+
+
+class NoManifestProvidedError(Exception):
+    """Raised when a manifest is not provided to a helper function that expects one"""
