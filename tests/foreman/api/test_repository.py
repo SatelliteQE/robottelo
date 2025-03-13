@@ -2450,3 +2450,33 @@ class TestTokenAuthContainerRepository:
             synced_repo = repo.read()
             assert synced_repo.content_counts['docker_manifest'] >= 1
             assert synced_repo.content_counts['docker_tag'] == 1
+
+
+class TestPythonRepository:
+    """Specific tests for Python Repositories"""
+
+    @pytest.mark.tier1
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized(
+            [{'content_type': constants.REPO_TYPE['python'], 'url': settings.repos.python.pypi.url}]
+        ),
+        indirect=True,
+    )
+    def test_positive_sync(self, repo, target_sat):
+        """Check python repository can be synced.
+
+        :id: e521a7a4-2502-4fe2-b297-a13fc99e679f
+
+        :BlockedBy: SAT-23430
+
+        :steps:
+            1. Sync python repo
+
+        :expectedresults: Pyhton repo is synced
+
+        :CaseImportance: Critical
+
+        :CaseAutomation: Automated
+        """
+        repo.sync()
