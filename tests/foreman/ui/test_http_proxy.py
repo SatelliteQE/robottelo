@@ -12,6 +12,8 @@
 
 """
 
+import base64
+
 from box import Box
 from fauxfactory import gen_integer, gen_string, gen_url
 import pytest
@@ -27,7 +29,8 @@ def function_spec_char_user(target_sat, session_auth_proxy):
     name = gen_string('alpha').lower()  # lower!
     passwd = gen_string('punctuation').replace("'", '')
     session_auth_proxy.add_user(name, passwd)
-    yield Box(name=name, passwd=passwd)
+    encoded = base64.b64encode(f'{name}:{passwd}'.encode()).decode('utf-8')
+    yield Box(name=name, passwd=passwd, b64=encoded)
     session_auth_proxy.remove_user(name)
 
 
@@ -348,7 +351,7 @@ def test_http_proxy_containing_special_characters(
     """
     # Check that no logs exist for the spec-char user at the proxy side yet.
     with pytest.raises(ProxyHostError):
-        session_auth_proxy.get_log(tail=100, grep=function_spec_char_user.name)
+        session_auth_proxy.get_log(tail=100, grep=function_spec_char_user.b64)
 
     # Create a proxy via UI using the spec-char user.
     proxy_name = gen_string('alpha')
@@ -381,7 +384,7 @@ def test_http_proxy_containing_special_characters(
             {'organization-id': module_sca_manifest_org.id}
         )
         assert session_auth_proxy.get_log(
-            tail=100, grep=f'CONNECT subscription.rhsm.redhat.com.*{function_spec_char_user.name}'
+            tail=100, grep=f'CONNECT subscription.rhsm.redhat.com.*{function_spec_char_user.b64}'
         ), 'RHSM connection not found in proxy log'
 
         # Enable and sync some RH repository, check it went through the proxy.
@@ -390,7 +393,7 @@ def test_http_proxy_containing_special_characters(
         )
         repo = target_sat.api.Repository(id=repo_id).read()
         assert session_auth_proxy.get_log(
-            tail=100, grep=f'CONNECT cdn.redhat.com.*{function_spec_char_user.name}'
+            tail=100, grep=f'CONNECT cdn.redhat.com.*{function_spec_char_user.b64}'
         ), 'CDN connection not found in proxy log'
         assert repo.content_counts['rpm'] > 0, 'Where is my content?!'
 
