@@ -189,6 +189,12 @@ def test_positive_ansible_modules_installation(target_sat):
     # check installed modules against the expected list
     assert sorted(FOREMAN_ANSIBLE_MODULES) == sorted(installed_modules)
 
+    # check installed modules are tested
+    untested_modules = set(installed_modules) - set(FAM_TEST_PLAYBOOKS)
+    assert untested_modules == set(), (
+        f'The following modules have no tests: {", ".join(untested_modules)}'
+    )
+
 
 @pytest.mark.e2e
 @pytest.mark.pit_server
