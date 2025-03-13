@@ -90,7 +90,7 @@ def test_positive_end_to_end_register(
     """
     org = function_sca_manifest_org
     lce = target_sat.api.LifecycleEnvironment(organization=org).create()
-    repos_collection.setup_content(org.id, lce.id, upload_manifest=False)
+    repos_collection.setup_content(org.id, lce.id)
     ak_name = repos_collection.setup_content_data['activation_key']['name']
 
     repos_collection.setup_virtual_machine(rhel7_contenthost)
