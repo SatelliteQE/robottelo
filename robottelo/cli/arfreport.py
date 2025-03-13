@@ -51,3 +51,22 @@ class Arfreport(Base):
         cls.command_sub = 'list'
 
         return cls.execute(cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def downloadhtml(cls, options=None):
+        """Download arf report as a file
+
+        Usage:
+            hammer arf-report download-html [OPTIONS]
+
+        Options:
+         --id VALUE
+         --location[-id] VALUE/NUMBER     Set the current location context for the request
+         --organization[-id] VALUE/NUMBER Set the current organization context for the request
+         --path VALUE                     Path to directory where downloaded file will be saved
+         -h, --help                       Print help
+
+        """
+        cls.command_sub = 'download-html'
+
+        return cls.execute(cls._construct_command(options), output_format='csv')[0]
