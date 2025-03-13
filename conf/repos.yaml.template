@@ -194,3 +194,7 @@ REPOS:
   GR_YUM_REPO:
     URL:
     GPG_URL:
+
+  PYTHON:
+    PYPI:
+      URL: 'https://pypi.org/project/pytest'
