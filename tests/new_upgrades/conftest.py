@@ -11,11 +11,6 @@ from robottelo.config import settings
 from robottelo.hosts import Satellite
 from robottelo.utils.shared_resource import SharedResource
 
-from remote_pdb import RemotePdb
-import os
-import random
-
-
 pre_upgrade_failed_tests = []
 
 
@@ -143,11 +138,18 @@ def fdi_upgrade_shared_satellite():
 def puppet_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.puppet_upgrades"""
     sat_instance = shared_checkout("puppet_upgrade")
-    port = random.randint(6000, 7000)
-    RemotePdb('127.0.0.1', port).set_trace()
     with (
-        SharedResource("puppet_upgrade_enable_puppet", action=sat_instance.enable_puppet_satellite(), sat_instance=sat_instance) as enable_puppet,
-        SharedResource("puppet_upgrade_tests", shared_checkin, sat_instance=sat_instance) as test_duration
+        SharedResource(
+            "puppet_upgrade_enable_puppet",
+            action=sat_instance.enable_puppet_satellite,
+            action_is_recoverable=True,
+        ) as enable_puppet,
+        SharedResource(
+            "puppet_upgrade_tests",
+            shared_checkin,
+            sat_instance=sat_instance,
+            action_is_recoverable=True,
+        ) as test_duration,
     ):
         enable_puppet.ready()
         yield sat_instance
