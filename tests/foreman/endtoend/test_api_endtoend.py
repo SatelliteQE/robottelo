@@ -25,7 +25,6 @@ from robottelo import constants
 from robottelo.config import (
     get_credentials,
     get_url,
-    setting_is_set,
     settings,
     user_nailgun_config,
 )
@@ -1012,10 +1011,6 @@ class TestEndToEnd:
     """End-to-end tests using the ``API`` path."""
 
     pytestmark = [pytest.mark.tier1, pytest.mark.upgrade]
-
-    @pytest.fixture(scope='class')
-    def fake_manifest_is_set(self):
-        return setting_is_set('fake_manifest')
 
     def test_positive_find_default_org(self, class_target_sat):
         """Check if 'Default Organization' is present

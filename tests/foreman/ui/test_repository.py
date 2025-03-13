@@ -1156,7 +1156,7 @@ def test_positive_sync_sha_repo(session, module_org, module_target_sat):
 
 @pytest.mark.tier2
 def test_positive_able_to_disable_and_enable_rhel_repos(
-    session, module_org_with_manifest, target_sat
+    session, function_sca_manifest_org, target_sat
 ):
     """Upstream repo name changes shouldn't negatively affect a user's ability
     to enable or disable a repo
@@ -1174,14 +1174,14 @@ def test_positive_able_to_disable_and_enable_rhel_repos(
     # rhel7
     rhel7_repo = target_sat.cli_factory.RHELRepository()
     # enable rhel7 repo
-    rhel7_repo.create(module_org_with_manifest.id, synchronize=False)
+    rhel7_repo.create(function_sca_manifest_org.id, synchronize=False)
     rhel7_repo_name = rhel7_repo.data['repository']
     # reable rhel8_baseos repo
     target_sat.cli.RepositorySet.enable(
         {
             'basearch': constants.DEFAULT_ARCHITECTURE,
             'name': REPOSET['rhel8_bos'],
-            'organization-id': module_org_with_manifest.id,
+            'organization-id': function_sca_manifest_org.id,
             'product': PRDS['rhel8'],
             'releasever': REPOS['rhel8_bos']['releasever'],
         }
@@ -1189,7 +1189,7 @@ def test_positive_able_to_disable_and_enable_rhel_repos(
     rhel8_bos_info = target_sat.cli.RepositorySet.info(
         {
             'name': REPOSET['rhel8_bos'],
-            'organization-id': module_org_with_manifest.id,
+            'organization-id': function_sca_manifest_org.id,
             'product': PRDS['rhel8'],
         }
     )
