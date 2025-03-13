@@ -187,7 +187,7 @@ def test_positive_ansible_modules_installation(target_sat):
         doc_name = result.stdout.split('\n')[1].lstrip()[:-1]
         assert doc_name == module_name
     # check installed modules against the expected list
-    assert FOREMAN_ANSIBLE_MODULES.sort() == installed_modules.sort()
+    assert sorted(FOREMAN_ANSIBLE_MODULES) == sorted(installed_modules)
 
 
 @pytest.mark.e2e
