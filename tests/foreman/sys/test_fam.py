@@ -87,6 +87,9 @@ def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_rol
         f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/server.yml',
         temp_file=True,
     )
+    # HACK! let's drop those recursive variable definitions
+    module_target_sat.execute(f"sed -i '/{{/d' {FAM_ROOT_DIR}/tests/test_playbooks/vars/server.yml")
+
     module_target_sat.put(
         settings.fam.compute_profile.to_yaml(),
         f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/compute_profile.yml',
