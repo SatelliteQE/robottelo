@@ -16,13 +16,8 @@ from fauxfactory import gen_alphanumeric, gen_ipaddr
 import pytest
 
 from robottelo import constants
-from robottelo.config import setting_is_set, settings
+from robottelo.config import settings
 from robottelo.constants.repos import CUSTOM_RPM_REPO
-
-
-@pytest.fixture(scope='module')
-def fake_manifest_is_set():
-    return setting_is_set('fake_manifest')
 
 
 @pytest.mark.tier1

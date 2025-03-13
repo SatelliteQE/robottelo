@@ -245,7 +245,6 @@ def test_positive_update_compresource(session, module_target_sat):
         assert resource_name in org_values['compute_resources']['resources']['unassigned']
 
 
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_delete_with_manifest_lces(session, target_sat, function_entitlement_manifest_org):
