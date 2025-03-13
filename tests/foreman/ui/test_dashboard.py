@@ -240,7 +240,7 @@ def test_positive_user_access_with_host_filter(
         assert session.dashboard.read('HostConfigurationStatus')['total_count'] == 0
         assert len(session.dashboard.read('LatestErrata')['erratas']) == 0
         rhel_contenthost.add_rex_key(target_sat)
-        repos_collection.setup_content(org.id, lce.id, upload_manifest=False)
+        repos_collection.setup_content(org.id, lce.id)
         repos_collection.setup_virtual_machine(
             rhel_contenthost, location_title=module_location.name, install_katello_agent=False
         )

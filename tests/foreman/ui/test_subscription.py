@@ -27,9 +27,8 @@ from robottelo.constants import (
     VDC_SUBSCRIPTION_NAME,
     VIRT_WHO_HYPERVISOR_TYPES,
 )
-from robottelo.utils.manifest import clone
 
-pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.skip_if_not_set('fake_manifest')]
+pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.fixture(scope='module')
@@ -63,7 +62,7 @@ def golden_ticket_host_setup(function_entitlement_manifest_org, module_target_sa
 @pytest.mark.e2e
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, target_sat):
+def test_positive_end_to_end(session, function_sca_manifest, target_sat):
     """Upload a manifest with minimal input parameters, attempt to
     delete it with checking the warning message and hit 'Cancel' button after than delete it.
 
@@ -94,8 +93,11 @@ def test_positive_end_to_end(session, target_sat):
     ]
     org = target_sat.api.Organization().create()
     _, temporary_local_manifest_path = mkstemp(prefix='manifest-', suffix='.zip')
-    with clone() as manifest, open(temporary_local_manifest_path, 'wb') as file_handler:
-        file_handler.write(manifest.content.read())
+    with (
+        function_sca_manifest as manifest,
+        open(temporary_local_manifest_path, 'wb') as file_handler,
+    ):
+        file_handler.write(manifest.content)
     with session:
         session.organization.select(org.name)
         # Ignore "Danger alert: Katello::Errors::UpstreamConsumerNotFound'" as server will connect
@@ -370,7 +372,6 @@ def test_positive_view_vdc_guest_subscription_products(
         hypervisor_hostname=provisioning_server,
         configure_ssh=True,
         subscription_name=VDC_SUBSCRIPTION_NAME,
-        upload_manifest=False,
         extra_repos=[rh_product_repository.data],
     )
     virt_who_hypervisor_host = virt_who_data['virt_who_hypervisor_host']

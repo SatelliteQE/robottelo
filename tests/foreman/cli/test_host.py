@@ -2015,7 +2015,7 @@ def test_negative_without_attach_with_lce(
     target_sat,
     rhel_contenthost,
     function_ak_with_cv,
-    function_org,
+    function_sca_manifest_org,
     function_lce,
 ):
     """Attempt to enable a repository of a subscription that was not
@@ -2029,13 +2029,13 @@ def test_negative_without_attach_with_lce(
 
     :parametrized: yes
     """
-    content_view = target_sat.api.ContentView(organization=function_org).create()
+    content_view = target_sat.api.ContentView(organization=function_sca_manifest_org).create()
     target_sat.cli_factory.setup_org_for_a_rh_repo(
         {
             'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhst7'],
-            'repository': REPOS['rhst7']['name'],
-            'organization-id': function_org.id,
+            'repository-set': REPOSET['rhsclient7'],
+            'repository': REPOS['rhsclient7']['name'],
+            'organization-id': function_sca_manifest_org.id,
             'content-view-id': content_view.id,
             'lifecycle-environment-id': function_lce.id,
             'activationkey-id': function_ak_with_cv.id,
@@ -2043,13 +2043,15 @@ def test_negative_without_attach_with_lce(
         },
         force_use_cdn=True,
     )
-    host_lce = target_sat.api.LifecycleEnvironment(organization=function_org).create()
+    host_lce = target_sat.api.LifecycleEnvironment(organization=function_sca_manifest_org).create()
     # refresh content view data
     content_view.publish()
     content_view.read().version[-1].promote(data={'environment_ids': host_lce.id, 'force': False})
 
     # register client
-    result = rhel_contenthost.register(function_org, None, function_ak_with_cv.name, target_sat)
+    result = rhel_contenthost.register(
+        function_sca_manifest_org, None, function_ak_with_cv.name, target_sat
+    )
     assert result.status == 0
     assert rhel_contenthost.subscribed
     res = rhel_contenthost.enable_repo(REPOS['rhsclient7']['id'])
