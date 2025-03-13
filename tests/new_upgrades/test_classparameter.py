@@ -12,13 +12,14 @@
 
 """
 
-from box import Box
-from fauxfactory import gen_alpha
 import json
+import os
+from time import sleep
+
+from box import Box
+import pytest
 
 from robottelo.utils.shared_resource import SharedResource
-
-import pytest
 
 
 def _valid_sc_parameters_data():
@@ -34,22 +35,6 @@ def _valid_sc_parameters_data():
         {'sc_type': 'yaml', 'value': 'name=>XYZ'},
         {'sc_type': 'json', 'value': '{"name": "XYZ"}'},
     ]
-
-
-# class TestScenarioPositivePuppetParameterAndDatatypeIntact:
-"""Puppet Class Parameters value and type is intact post upgrade
-
-:steps:
-
-    1. In Preupgrade Satellite, Import a puppet module having parameters
-    2. Update existing class parameters with different value and type
-    3. Upgrade the satellite to next/latest version
-    4. Postupgrade, Verify the data and type of updated parameters
-
-:expectedresults: The puppet class parameters data and type should be
-    intact post upgrade
-"""
-
 
 
 def _validate_value(data, sc_param):
@@ -70,17 +55,12 @@ def _validate_value(data, sc_param):
     else:
         assert sc_param.default_value == data['value']
 
-# @pytest.mark.pre_upgrade
-# @pytest.mark.parametrize('count', list(range(1, 10)))
+
 @pytest.fixture(params=[1, 2, 3, 4, 5, 6, 7, 8, 9])
 def puppet_class_parameter_data_and_type_setup(
     puppet_upgrade_shared_satellite, upgrade_action, request
 ):
     """Puppet Class parameters with different data type are created
-
-    :id: preupgrade-08012f39-240b-40df-b893-2ee767129737
-
-    :parametrized: yes
 
     :steps:
 
@@ -92,24 +72,24 @@ def puppet_class_parameter_data_and_type_setup(
     """
     target_sat = puppet_upgrade_shared_satellite
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
-        test_name = f'classparam_upgrade{gen_alpha()}'
         test_data = Box(
             {
                 'target_sat': target_sat,
-                'puppet_class': None,
                 'count': None,
             }
         )
-        org = target_sat.api.Organization(name=f'{test_name}_org').create()
         repo = 'api_test_classparameters'
+        # Hitting the import_puppetclasses API endpoint multiple times at once causes frequent
+        # 500 ISE errors, so stagger execution of the `create_custom_environment` method. The
+        # Xdist worker number is used as the basis for the splay because a random splay could
+        # still cause collisions. Since the first worker number is 0, we need to add 1 to the
+        # Xdist worker number before multiplying by the length of the splay.
+        xdist_worker_splay = (int(os.environ.get("PYTEST_XDIST_WORKER")[-1]) + 1) * 20
+        sleep(xdist_worker_splay)
         env_name = target_sat.create_custom_environment(repo=repo)
         puppet_class = target_sat.api.PuppetClass().search(
             query={'search': f'name = "{repo}" and environment = "{env_name}"'}
         )[0]
-        sc_params_list = target_sat.api.SmartClassParameters().search(
-            query={'search': f'puppetclass="{puppet_class.name}"', 'per_page': 1000}
-        )
-
         data = _valid_sc_parameters_data()[request.param - 1]
         sc_param = target_sat.api.SmartClassParameters().search(
             query={'search': f'parameter="api_classparameters_scp_00{request.param}"'}
@@ -128,22 +108,9 @@ def puppet_class_parameter_data_and_type_setup(
         yield test_data
 
 
-@pytest.fixture
-def _clean_scenario(request, puppet_class_parameter_data_and_type_setup):
-    @request.addfinalizer
-    def _cleanup():
-        target_sat = puppet_class_parameter_data_and_type_setup.target_sat
-        # puppet_class = getattr(
-        #     class_pre_upgrade_data, next(iter(class_pre_upgrade_data))
-        # ).puppet_class
-        puppet_class = puppet_class_parameter_data_and_type_setup.puppet_class
-        target_sat.delete_puppet_class(puppet_class)
-
-
-# @pytest.mark.parametrize('count', list(range(1, 10)))
-@pytest.mark.usefixtures('_clean_scenario')
+@pytest.mark.puppet_upgrades
 def test_post_puppet_class_parameter_data_and_type(
-    self, count, puppet_class_parameter_data_and_type_setup,
+    puppet_class_parameter_data_and_type_setup,
 ):
     """Puppet Class Parameters value and type is intact post upgrade
 
@@ -151,7 +118,12 @@ def test_post_puppet_class_parameter_data_and_type(
 
     :parametrized: yes
 
-    :steps: Postupgrade, Verify the value and type of updated parameters
+    :steps:
+
+        1. In Preupgrade Satellite, Import a puppet module having parameters
+        2. Update existing class parameters with different value and type
+        3. Upgrade the satellite to next/latest version
+        4. Postupgrade, Verify the data and type of updated parameters
 
     :expectedresults: The puppet class parameters data and type should be
         intact post upgrade
@@ -163,4 +135,4 @@ def test_post_puppet_class_parameter_data_and_type(
         query={'search': f'parameter="api_classparameters_scp_00{count}"'}
     )[0]
     assert sc_param.parameter_type == data['sc_type']
-    self._validate_value(data, sc_param)
+    _validate_value(data, sc_param)
