@@ -223,6 +223,7 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
         module_target_sat.configure_libvirt_cr()
 
     # Execute test_playbook
+    assert false, f"the default_timeout is {module_target_sat.default_timeout}, the session timeout is {module_target_sat.session.get_timeout()}"
     result = module_target_sat.execute(
         f'NO_COLOR=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ANSIBLE_HOST_PATTERN_MISMATCH=ignore make --directory {FAM_ROOT_DIR} livetest_{ansible_module} PYTHON_COMMAND="python3" PYTEST_COMMAND="pytest-3.12"',
         timeout="12h",
