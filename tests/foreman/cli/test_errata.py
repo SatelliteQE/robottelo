@@ -11,7 +11,7 @@
 :CaseImportance: High
 """
 
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from operator import itemgetter
 import re
 
@@ -267,7 +267,7 @@ def start_and_wait_errata_recalculate(sat, host):
         sat.cli.Host.errata_recalculate({'host-id': host.nailgun_host.id})
         host.run('subscription-manager repos')
     # Note time check for later wait_for_tasks include 30s margin of safety
-    timestamp = (datetime.utcnow() - timedelta(seconds=30)).strftime(TIMESTAMP_FMT_S)
+    timestamp = (datetime.now(UTC) - timedelta(seconds=30)).strftime(TIMESTAMP_FMT_S)
     # Wait for upload profile event (in case Satellite system is slow)
     sat.wait_for_tasks(
         search_query=(

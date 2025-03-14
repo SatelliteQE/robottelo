@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import re
 
 from broker import Broker
@@ -364,7 +364,7 @@ def test_end_to_end(
     )
 
     with session:
-        datetime_utc_start = datetime.utcnow().replace(microsecond=0)
+        datetime_utc_start = datetime.now(UTC).replace(microsecond=0)
         # Check selection box function for BZ#1688636
         session.location.select(loc_name=DEFAULT_LOC)
         results = session.errata.search_content_hosts(
@@ -902,7 +902,7 @@ def test_positive_apply_for_all_hosts(
             assert client.applicable_package_count > 0
 
         with session:
-            timestamp = datetime.utcnow().replace(microsecond=0) - timedelta(seconds=1)
+            timestamp = datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=1)
             session.location.select(loc_name=DEFAULT_LOC)
             # for first errata, apply to all chosts at once,
             # from ContentTypes > Errata > info > ContentHosts tab
@@ -1479,7 +1479,7 @@ def test_positive_check_errata_counts_by_type_on_host_details_page(
         assert int(len(read_errata['Content']['Errata']['pagination'])) == 0
 
         pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
-        install_timestamp = datetime.utcnow().replace(microsecond=0) - timedelta(seconds=1)
+        install_timestamp = datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=1)
         assert vm.execute(f'yum install -y {pkgs}').status == 0
 
         # applicability task(s) found and succeed

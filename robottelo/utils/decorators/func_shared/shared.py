@@ -324,7 +324,7 @@ class _SharedFunction:
 
             if call_function is True:
                 result, exp, traceback_text = self._call_function()
-                creation_datetime = datetime.datetime.utcnow().strftime(_DATETIME_FORMAT)
+                creation_datetime = datetime.datetime.now(datetime.UTC).strftime(_DATETIME_FORMAT)
                 if exp:
                     error = str(exp) or 'error occurred'
                     error_class_name = f'{exp.__class__.__module__}.{exp.__class__.__name__}'
