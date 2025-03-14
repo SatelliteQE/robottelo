@@ -430,7 +430,7 @@ def test_positive_backup_restore(
 
     :customerscenario: true
 
-    :Verifies: SAT-23093
+    :Verifies: SAT-23093, SAT-19933
 
     :BZ: 2172540, 1978764, 1979045
     """
@@ -452,13 +452,14 @@ def test_positive_backup_restore(
 
     expected_files = get_exp_files(sat_maintain, skip_pulp)
     assert set(files).issuperset(expected_files), assert_msg
-
+    config_files = sat_maintain.execute(
+        f"tar -tf {backup_dir}/config_files.tar.gz"
+    ).stdout.splitlines()
     # Check if certificate tar file is present in Capsule backup.
     if instance == 'capsule':
-        cert_file = sat_maintain.execute(
-            f'tar -tvf {backup_dir}/config_files.tar.gz | grep {sat_maintain.hostname}'
-        ).stdout
-        assert f'{sat_maintain.hostname}-certs.tar' in cert_file
+        assert f'root/{sat_maintain.hostname}-certs.tar' in config_files
+    # Check Ansible configuration file under /etc/ansible is present
+    assert 'etc/ansible/ansible.cfg' in config_files
 
     # Run restore
     if not skip_pulp:
