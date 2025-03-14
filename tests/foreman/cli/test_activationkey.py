@@ -1218,7 +1218,6 @@ def test_negative_copy_with_same_name(module_org, module_target_sat):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_copy_activationkey_and_check_content(

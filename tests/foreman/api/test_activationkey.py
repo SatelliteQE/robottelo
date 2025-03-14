@@ -428,7 +428,6 @@ def test_positive_remove_user(target_sat):
 
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_fetch_product_content(
     module_org, module_lce, module_sca_manifest, module_target_sat
