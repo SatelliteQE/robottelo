@@ -120,6 +120,13 @@ def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_rol
         f"sed -i '/inventory_use_container/ s#true#false#' {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
     )
 
+    # Edit content_import tests
+    # They need to extract data on the Foreman/Satellite machine and use "hosts: foreman" for that
+    # As we're running locally, we can use "hosts: localhost" instead
+    module_target_sat.execute(
+        f"sed -i '/hosts:/ s/foreman/localhost/' {FAM_ROOT_DIR}/tests/test_playbooks/content_import_*.yml"
+    )
+
     # Upload manifest to test playbooks directory
     module_target_sat.put(str(module_sca_manifest.path), str(module_sca_manifest.name))
     module_target_sat.execute(
