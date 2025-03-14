@@ -206,7 +206,7 @@ def rhel_contenthost_with_repos(request, target_sat):
     repositories on the host"""
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         # create a custom, rhel version-specific OS repo
-        rhelver = request.param['rhel_version']
+        rhelver = host.os_version.major
         if rhelver > 7:
             host.create_custom_repos(**settings.repos[f'rhel{rhelver}_os'])
         else:
