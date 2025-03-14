@@ -42,7 +42,6 @@ def _bad_max_hosts():
     return [gen_integer(-100, -1), 0, gen_string('alpha')]
 
 
-@pytest.mark.tier1
 def test_positive_create_unlimited_hosts(target_sat):
     """Create a plain vanilla activation key.
 
@@ -56,7 +55,6 @@ def test_positive_create_unlimited_hosts(target_sat):
     assert target_sat.api.ActivationKey().create().unlimited_hosts is True
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('max_host', **parametrized(_good_max_hosts()))
 def test_positive_create_limited_hosts(max_host, target_sat):
     """Create an activation key with limited hosts.
@@ -75,7 +73,6 @@ def test_positive_create_limited_hosts(max_host, target_sat):
     assert act_key.unlimited_hosts is False
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('key_name', **parametrized(valid_data_list()))
 def test_positive_create_with_name(key_name, target_sat):
     """Create an activation key providing the initial name.
@@ -92,7 +89,6 @@ def test_positive_create_with_name(key_name, target_sat):
     assert key_name == act_key.name
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('desc', **parametrized(valid_data_list()))
 def test_positive_create_with_description(desc, target_sat):
     """Create an activation key and provide a description.
@@ -107,7 +103,6 @@ def test_positive_create_with_description(desc, target_sat):
     assert desc == act_key.description
 
 
-@pytest.mark.tier2
 def test_negative_create_with_no_host_limit(target_sat):
     """Create activation key without providing limitation for hosts number
 
@@ -121,7 +116,6 @@ def test_negative_create_with_no_host_limit(target_sat):
         target_sat.api.ActivationKey(unlimited_hosts=False).create()
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize('max_host', **parametrized(_bad_max_hosts()))
 def test_negative_create_with_invalid_host_limit(max_host, target_sat):
     """Create activation key with invalid limit values for hosts number.
@@ -138,7 +132,6 @@ def test_negative_create_with_invalid_host_limit(max_host, target_sat):
         target_sat.api.ActivationKey(max_hosts=max_host, unlimited_hosts=False).create()
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
 def test_negative_create_with_invalid_name(name, target_sat):
     """Create activation key providing an invalid name.
@@ -155,7 +148,6 @@ def test_negative_create_with_invalid_name(name, target_sat):
         target_sat.api.ActivationKey(name=name).create()
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('max_host', **parametrized(_good_max_hosts()))
 def test_positive_update_limited_host(max_host, target_sat):
     """Create activation key then update it to limited hosts.
@@ -176,7 +168,6 @@ def test_positive_update_limited_host(max_host, target_sat):
     assert want == actual
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
 def test_positive_update_name(new_name, target_sat, module_org):
     """Create activation key providing the initial name, then update
@@ -196,7 +187,6 @@ def test_positive_update_name(new_name, target_sat, module_org):
     assert new_name == updated.name
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize('max_host', **parametrized(_bad_max_hosts()))
 def test_negative_update_limit(max_host, target_sat):
     """Create activation key then update its limit to invalid value.
@@ -224,7 +214,6 @@ def test_negative_update_limit(max_host, target_sat):
     assert want == actual
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize('new_name', **parametrized(invalid_names_list()))
 def test_negative_update_name(new_name, target_sat, module_org):
     """Create activation key then update its name to an invalid name.
@@ -248,7 +237,6 @@ def test_negative_update_name(new_name, target_sat, module_org):
     assert new_key.name == act_key.name
 
 
-@pytest.mark.tier3
 def test_negative_update_max_hosts(target_sat, module_org):
     """Create an activation key with ``max_hosts == 1``, then update that
     field with a string value.
@@ -267,7 +255,6 @@ def test_negative_update_max_hosts(target_sat, module_org):
     assert act_key.read().max_hosts == 1
 
 
-@pytest.mark.tier2
 def test_positive_get_releases_status_code(target_sat):
     """Get an activation key's releases. Check response format.
 
@@ -284,7 +271,6 @@ def test_positive_get_releases_status_code(target_sat):
     assert 'application/json' in response.headers['content-type']
 
 
-@pytest.mark.tier2
 def test_positive_get_releases_content(target_sat):
     """Get an activation key's releases. Check response contents.
 
@@ -298,7 +284,6 @@ def test_positive_get_releases_content(target_sat):
     assert isinstance(response['results'], list)
 
 
-@pytest.mark.tier2
 def test_positive_add_host_collections(module_org, module_target_sat):
     """Associate an activation key with several host collections.
 
@@ -333,7 +318,6 @@ def test_positive_add_host_collections(module_org, module_target_sat):
     assert len(act_key.host_collection) == 2
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_remove_host_collection(module_org, module_target_sat):
     """Disassociate host collection from the activation key
@@ -366,7 +350,6 @@ def test_positive_remove_host_collection(module_org, module_target_sat):
     assert len(act_key.read().host_collection) == 0
 
 
-@pytest.mark.tier1
 def test_positive_update_auto_attach(target_sat, module_org):
     """Create an activation key, then update the auto_attach
     field with the inverse boolean value.
@@ -384,7 +367,6 @@ def test_positive_update_auto_attach(target_sat, module_org):
     assert act_key.auto_attach != act_key_2.auto_attach
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 def test_positive_delete(name, target_sat):
@@ -404,7 +386,6 @@ def test_positive_delete(name, target_sat):
         target_sat.api.ActivationKey(id=act_key.id).read()
 
 
-@pytest.mark.tier2
 def test_positive_remove_user(target_sat):
     """Delete any user who has previously created an activation key
     and check that activation key still exists
@@ -428,7 +409,6 @@ def test_positive_remove_user(target_sat):
 
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier2
 def test_positive_fetch_product_content(
     module_org, module_lce, module_sca_manifest, module_target_sat
 ):
@@ -473,7 +453,6 @@ def test_positive_fetch_product_content(
     }
 
 
-@pytest.mark.tier1
 def test_positive_search_by_org(target_sat):
     """Search for all activation keys in an organization.
 

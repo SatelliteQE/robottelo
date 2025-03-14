@@ -18,7 +18,6 @@ from robottelo.config import settings
 pytestmark = pytest.mark.destructive
 
 
-@pytest.mark.tier3
 @pytest.mark.no_containers
 @pytest.mark.pit_client
 @pytest.mark.rhel_ver_match('[^6]')

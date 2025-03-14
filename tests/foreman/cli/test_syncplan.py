@@ -115,7 +115,6 @@ def validate_repo_content(sat, repo, content_types, after_sync=True):
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_positive_create_with_name(module_org, name, module_target_sat):
     """Check if syncplan can be created with random names
 
@@ -135,7 +134,6 @@ def test_positive_create_with_name(module_org, name, module_target_sat):
 
 
 @pytest.mark.parametrize('desc', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_positive_create_with_description(module_org, desc, module_target_sat):
     """Check if syncplan can be created with random description
 
@@ -155,7 +153,6 @@ def test_positive_create_with_description(module_org, desc, module_target_sat):
 
 
 @pytest.mark.parametrize('test_data', **parametrized(valid_name_interval_create_tests()))
-@pytest.mark.tier1
 def test_positive_create_with_interval(module_org, test_data, module_target_sat):
     """Check if syncplan can be created with varied intervals
 
@@ -181,7 +178,6 @@ def test_positive_create_with_interval(module_org, test_data, module_target_sat)
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-@pytest.mark.tier1
 def test_negative_create_with_name(module_org, name, module_target_sat):
     """Check if syncplan can be created with random invalid names
 
@@ -200,7 +196,6 @@ def test_negative_create_with_name(module_org, name, module_target_sat):
 
 
 @pytest.mark.parametrize('new_desc', **parametrized(valid_data_list()))
-@pytest.mark.tier2
 def test_positive_update_description(module_org, new_desc, module_target_sat):
     """Check if syncplan description can be updated
 
@@ -219,7 +214,6 @@ def test_positive_update_description(module_org, new_desc, module_target_sat):
 
 
 @pytest.mark.parametrize('test_data', **parametrized(valid_name_interval_update_tests()))
-@pytest.mark.tier1
 def test_positive_update_interval(module_org, test_data, request, target_sat):
     """Check if syncplan interval can be updated
 
@@ -248,7 +242,6 @@ def test_positive_update_interval(module_org, test_data, request, target_sat):
     assert result['interval'] == test_data['new-interval']
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_update_sync_date(module_org, request, target_sat):
     """Check if syncplan sync date can be updated
@@ -289,7 +282,6 @@ def test_positive_update_sync_date(module_org, request, target_sat):
     ), 'Sync date was not updated'
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_create_sync_date_custom_timezone(module_org, request, target_sat):
     """Check if syncplan sync date accepts supplied timezone
@@ -322,7 +314,6 @@ def test_positive_create_sync_date_custom_timezone(module_org, request, target_s
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_delete_by_id(module_org, module_target_sat, name):
     """Check if syncplan can be created and deleted
@@ -343,7 +334,6 @@ def test_positive_delete_by_id(module_org, module_target_sat, name):
         module_target_sat.cli.SyncPlan.info({'id': new_sync_plan['id']})
 
 
-@pytest.mark.tier1
 def test_positive_info_enabled_field_is_displayed(module_org, request, target_sat):
     """Check if Enabled field is displayed in sync-plan info output
 
@@ -360,7 +350,6 @@ def test_positive_info_enabled_field_is_displayed(module_org, request, target_sa
     assert result.get('enabled') is not None
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_info_with_assigned_product(module_org, module_target_sat):
     """Verify that sync plan info command returns list of products which
@@ -398,7 +387,6 @@ def test_positive_info_with_assigned_product(module_org, module_target_sat):
     assert {prod['name'] for prod in updated_plan['products']} == {prod1, prod2}
 
 
-@pytest.mark.tier4
 @pytest.mark.upgrade
 def test_negative_synchronize_custom_product_past_sync_date(module_org, request, target_sat):
     """Verify product won't get synced immediately after adding association
@@ -426,7 +414,6 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org, request,
         validate_task_status(target_sat, repo['id'], module_org.id, max_tries=2)
 
 
-@pytest.mark.tier4
 @pytest.mark.upgrade
 def test_positive_synchronize_custom_product_past_sync_date(module_org, request, target_sat):
     """Create a sync plan with a past datetime as a sync date, add a
@@ -478,7 +465,6 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org, request,
     validate_repo_content(target_sat, repo, ['errata', 'package-groups', 'packages'])
 
 
-@pytest.mark.tier4
 @pytest.mark.upgrade
 def test_positive_synchronize_custom_product_future_sync_date(module_org, request, target_sat):
     """Create a sync plan with sync date in a future and sync one custom
@@ -535,7 +521,6 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org, reques
     validate_repo_content(target_sat, repo, ['errata', 'package-groups', 'packages'])
 
 
-@pytest.mark.tier4
 @pytest.mark.upgrade
 def test_positive_synchronize_custom_products_future_sync_date(module_org, request, target_sat):
     """Create a sync plan with sync date in a future and sync multiple
@@ -609,7 +594,6 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier4
 @pytest.mark.upgrade
 def test_positive_synchronize_rh_product_past_sync_date(
     target_sat, function_sca_manifest_org, request
@@ -676,7 +660,6 @@ def test_positive_synchronize_rh_product_past_sync_date(
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier4
 @pytest.mark.upgrade
 def test_positive_synchronize_rh_product_future_sync_date(
     target_sat, function_sca_manifest_org, request
@@ -749,7 +732,6 @@ def test_positive_synchronize_rh_product_future_sync_date(
     validate_repo_content(target_sat, repo, ['errata', 'packages'])
 
 
-@pytest.mark.tier3
 def test_positive_synchronize_custom_product_weekly_recurrence(module_org, request, target_sat):
     """Create a weekly sync plan with a past datetime as a sync date,
     add a custom product and verify the product gets synchronized on

@@ -52,7 +52,6 @@ def proxy(target_sat):
     target_sat.cli.Proxy.delete({'id': proxy['id']})
 
 
-@pytest.mark.tier2
 def test_positive_no_duplicate_lines(module_target_sat):
     """hammer organization <info,list> --help types information
     doubled
@@ -77,7 +76,6 @@ def test_positive_no_duplicate_lines(module_target_sat):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier1
 def test_positive_CRD(module_target_sat):
     """Create organization with valid name, label and description
 
@@ -134,7 +132,6 @@ def test_positive_CRD(module_target_sat):
         result = module_target_sat.cli.Org.info({'id': org['id']})
 
 
-@pytest.mark.tier2
 def test_positive_create_with_system_admin_user(module_target_sat):
     """Create organization using user with system admin role
 
@@ -154,7 +151,6 @@ def test_positive_create_with_system_admin_user(module_target_sat):
     assert result['name'] == org_name
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_add_and_remove_subnets(module_org, module_target_sat):
     """add and remove a subnet from organization
@@ -182,7 +178,6 @@ def test_positive_add_and_remove_subnets(module_org, module_target_sat):
     assert len(org_info['subnets']) == 0, "Failed to remove subnets"
 
 
-@pytest.mark.tier2
 def test_positive_add_and_remove_users(module_org, module_target_sat):
     """Add and remove (admin) user to organization
 
@@ -229,7 +224,6 @@ def test_positive_add_and_remove_users(module_org, module_target_sat):
     assert admin_user['login'] not in org_info['users'], "Failed to remove admin user by id"
 
 
-@pytest.mark.tier2
 def test_positive_add_and_remove_hostgroups(module_org, module_target_sat):
     """add and remove a hostgroup from an organization
 
@@ -266,7 +260,6 @@ def test_positive_add_and_remove_hostgroups(module_org, module_target_sat):
 
 
 @pytest.mark.skip_if_not_set('libvirt')
-@pytest.mark.tier2
 @pytest.mark.libvirt_discovery
 @pytest.mark.upgrade
 def test_positive_add_and_remove_compute_resources(module_org, module_target_sat):
@@ -314,7 +307,6 @@ def test_positive_add_and_remove_compute_resources(module_org, module_target_sat
     )
 
 
-@pytest.mark.tier2
 def test_positive_add_and_remove_media(module_org, module_target_sat):
     """Add and remove medium to organization
 
@@ -341,7 +333,6 @@ def test_positive_add_and_remove_media(module_org, module_target_sat):
     assert media[1]['name'] not in org_info['installation-media'], "Failed to remove medium by id"
 
 
-@pytest.mark.tier2
 def test_positive_add_and_remove_templates(module_org, module_target_sat):
     """Add and remove provisioning templates to organization
 
@@ -397,7 +388,6 @@ def test_positive_add_and_remove_templates(module_org, module_target_sat):
     )
 
 
-@pytest.mark.tier2
 def test_positive_add_and_remove_domains(module_org, module_target_sat):
     """Add and remove domains to organization
 
@@ -424,7 +414,6 @@ def test_positive_add_and_remove_domains(module_org, module_target_sat):
     assert len(org_info['domains']) == 0, "Failed to remove domains"
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_add_and_remove_lce(module_org, module_target_sat):
     """Remove a lifecycle environment from organization
@@ -454,7 +443,6 @@ def test_positive_add_and_remove_lce(module_org, module_target_sat):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_add_and_remove_capsules(proxy, module_org, module_target_sat):
     """Add and remove a capsule from organization
@@ -487,7 +475,6 @@ def test_positive_add_and_remove_capsules(proxy, module_org, module_target_sat):
     assert proxy['name'] not in org_info['smart-proxies'], "Failed to add capsule by name"
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_add_and_remove_locations(module_org, module_target_sat):
     """Add and remove a locations from organization
@@ -528,7 +515,6 @@ def test_positive_add_and_remove_locations(module_org, module_target_sat):
     assert locations[1]['name'] not in found_locations, "Failed to remove locations"
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_add_and_remove_parameter(module_org, module_target_sat):
     """Remove a parameter from organization
@@ -569,7 +555,6 @@ def test_positive_add_and_remove_parameter(module_org, module_target_sat):
     assert param_name.lower() not in org_info['parameters']
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
 def test_negative_create_with_invalid_name(name, module_target_sat):
     """Try to create an organization with invalid name, but valid label and
@@ -591,7 +576,6 @@ def test_negative_create_with_invalid_name(name, module_target_sat):
         )
 
 
-@pytest.mark.tier1
 def test_negative_create_same_name(module_org, module_target_sat):
     """Create a new organization with same name, description, and label.
 
@@ -611,7 +595,6 @@ def test_negative_create_same_name(module_org, module_target_sat):
         )
 
 
-@pytest.mark.tier1
 def test_positive_update(module_org, module_target_sat):
     """Update organization name and description
 
@@ -636,7 +619,6 @@ def test_positive_update(module_org, module_target_sat):
     assert org['description'] == new_desc
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
 def test_negative_update_name(new_name, module_org, module_target_sat):
     """Fail to update organization name for invalid values.
@@ -651,7 +633,6 @@ def test_negative_update_name(new_name, module_org, module_target_sat):
         module_target_sat.cli.Org.update({'id': module_org.id, 'new-name': new_name})
 
 
-@pytest.mark.tier2
 def test_positive_create_user_with_timezone(module_target_sat):
     """Create and remove user with valid timezone in an organization
 

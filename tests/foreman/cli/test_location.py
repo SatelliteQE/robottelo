@@ -138,7 +138,6 @@ class TestLocation:
     """Tests for Location via Hammer CLI"""
 
     @pytest.mark.e2e
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_create_update_delete(self, request, target_sat):
         """Create new location with attributes, update and delete it
@@ -218,7 +217,6 @@ class TestLocation:
         with pytest.raises(CLIReturnCodeError):
             target_sat.cli.Location.info({'id': location['id']})
 
-    @pytest.mark.tier1
     def test_positive_create_with_parent(self, request, target_sat):
         """Create new location with parent location specified
 
@@ -236,7 +234,6 @@ class TestLocation:
         location = _location(request, target_sat, {'parent-id': parent_location['id']})
         assert location['parent'] == parent_location['name']
 
-    @pytest.mark.tier1
     def test_negative_create_with_same_name(self, request, target_sat):
         """Try to create location using same name twice
 
@@ -252,7 +249,6 @@ class TestLocation:
         with pytest.raises(CLIFactoryError):
             _location(request, target_sat, options={'name': name})
 
-    @pytest.mark.tier1
     def test_negative_create_with_user_by_name(self, request, target_sat):
         """Try to create new location with incorrect user assigned to it
         Use user login as a parameter
@@ -267,7 +263,6 @@ class TestLocation:
             _location(request, target_sat, options={'users': gen_string('utf8', 80)})
 
     @pytest.mark.run_in_one_thread
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_add_and_remove_capsule(self, request, target_sat):
         """Add a capsule to location and remove it
@@ -294,7 +289,6 @@ class TestLocation:
         location = target_sat.cli.Location.info({'name': location['name']})
         assert proxy['name'] not in location['smart-proxies']
 
-    @pytest.mark.tier1
     def test_positive_add_update_remove_parameter(self, request, target_sat):
         """Add, update and remove parameter to location
 
@@ -330,7 +324,6 @@ class TestLocation:
         assert len(location['parameters']) == 0
         assert param_name.lower() not in location['parameters']
 
-    @pytest.mark.tier2
     def test_positive_update_parent(self, request, target_sat):
         """Update location's parent location
 
@@ -352,7 +345,6 @@ class TestLocation:
         location = target_sat.cli.Location.info({'id': location['id']})
         assert location['parent'] == parent_location_2['name']
 
-    @pytest.mark.tier1
     def test_negative_update_parent_with_child(self, request, target_sat):
         """Attempt to set child location as a parent and vice versa
 

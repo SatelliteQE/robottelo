@@ -16,7 +16,7 @@ import pytest
 
 from robottelo.constants import PRDS, REPOSET
 
-pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.tier1]
+pytestmark = pytest.mark.run_in_one_thread
 
 
 @pytest.fixture

@@ -17,7 +17,6 @@ import pytest
 from robottelo.constants import RHEL8_VER, RHEL9_VER
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'upgrade_path',
     [

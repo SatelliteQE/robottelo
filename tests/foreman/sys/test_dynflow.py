@@ -16,7 +16,6 @@ import pytest
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 def test_positive_setup_dynflow(target_sat):
     """Set dynflow parameters, restart it and check it adheres to them
 

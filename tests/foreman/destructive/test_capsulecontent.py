@@ -23,7 +23,6 @@ from robottelo import constants
 pytestmark = [pytest.mark.destructive]
 
 
-@pytest.mark.tier4
 @pytest.mark.skip_if_not_set('capsule')
 def test_positive_sync_without_deadlock(
     target_sat,
@@ -141,7 +140,6 @@ def test_positive_sync_without_deadlock(
     assert f"'package_group': {repo.content_counts['package_group']}" in updated_content
 
 
-@pytest.mark.tier4
 @pytest.mark.skip_if_not_set('capsule')
 def test_positive_sync_without_deadlock_after_rpm_trim_changelog(
     target_sat,

@@ -19,7 +19,6 @@ from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.utils.datafactory import generate_strings_list
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.parametrize('auth_source_type', ['AD', 'IPA'])
 def test_positive_endtoend(

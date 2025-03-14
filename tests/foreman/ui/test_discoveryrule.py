@@ -66,7 +66,6 @@ def gen_int32(min_value=1):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 def test_positive_crud_with_non_admin_user(
     module_location, manager_user, module_org, module_target_sat
 ):
@@ -126,7 +125,6 @@ def test_positive_crud_with_non_admin_user(
         assert 'No Discovery Rules found in this context' in dr_val
 
 
-@pytest.mark.tier2
 def test_negative_delete_rule_with_non_admin_user(
     request, module_location, module_org, module_target_sat, reader_user
 ):
@@ -169,7 +167,6 @@ def test_negative_delete_rule_with_non_admin_user(
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier3
 def test_positive_list_host_based_on_rule_search_query(
     request,
     session,
@@ -257,7 +254,6 @@ def test_positive_list_host_based_on_rule_search_query(
 
 
 @pytest.mark.e2e
-@pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, module_location, module_target_sat):
     """Perform end to end testing for discovery rule component.

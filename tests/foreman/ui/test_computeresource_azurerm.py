@@ -76,7 +76,6 @@ def module_azure_hg(
 
 
 @pytest.mark.e2e
-@pytest.mark.tier4
 @pytest.mark.parametrize('sat_azure', ['sat'], indirect=True)
 def test_positive_end_to_end_azurerm_ft_host_provision(
     sat_azure,
@@ -153,7 +152,6 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
 
 
 @pytest.mark.e2e
-@pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
     'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']

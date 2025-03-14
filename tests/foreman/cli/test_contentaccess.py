@@ -94,7 +94,6 @@ def vm(
     return module_rhel_contenthost
 
 
-@pytest.mark.tier2
 @pytest.mark.pit_client
 @pytest.mark.pit_server
 @pytest.mark.rhel_ver_match('9')
@@ -136,7 +135,6 @@ def test_positive_list_installable_updates(vm, module_target_sat):
     assert REAL_RHEL9_PACKAGE in applicable_packages[0]['filename']
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.pit_client
 @pytest.mark.pit_server
@@ -173,7 +171,6 @@ def test_positive_erratum_installable(vm, module_target_sat):
     assert erratum[0]['installable'] == 'true'
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_rct_shows_sca_enabled(module_sca_manifest, module_target_sat):
     """Assert unrestricted (SCA) manifest shows SCA enabled.
@@ -196,7 +193,6 @@ def test_positive_rct_shows_sca_enabled(module_sca_manifest, module_target_sat):
 
 
 @pytest.mark.rhel_ver_match('9')
-@pytest.mark.tier3
 def test_negative_unregister_and_pull_content(vm):
     """Attempt to retrieve content after host has been unregistered from Satellite
 

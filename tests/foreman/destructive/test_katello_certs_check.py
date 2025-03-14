@@ -192,7 +192,6 @@ def test_positive_generate_capsule_certs_using_relative_path(cert_setup_destruct
     assert satellite.execute('test -e root/capsule_cert/capsule_certs_Rel.tar')
 
 
-@pytest.mark.tier1
 def test_positive_validate_capsule_certificate(capsule_certs_teardown):
     """Check that Capsules cert handles additional proxy names.
 

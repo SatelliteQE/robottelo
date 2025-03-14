@@ -25,7 +25,6 @@ from robottelo.utils.datafactory import invalid_values_list, valid_data_list
 CONTROLLERS = list(dict.fromkeys(entity['controller'] for entity in BOOKMARK_ENTITIES_SELECTION))
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
 def test_positive_create_with_name(controller, target_sat):
     """Create a bookmark
@@ -51,7 +50,6 @@ def test_positive_create_with_name(controller, target_sat):
     assert bm.name == name
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
 def test_positive_create_with_query(controller, target_sat):
     """Create a bookmark
@@ -77,7 +75,6 @@ def test_positive_create_with_query(controller, target_sat):
     assert bm.query == query
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('public', [True, False])
 @pytest.mark.parametrize('controller', CONTROLLERS)
 def test_positive_create_public(controller, public, target_sat):
@@ -103,7 +100,6 @@ def test_positive_create_public(controller, public, target_sat):
     assert bm.public == public
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
 def test_negative_create_with_invalid_name(controller, target_sat):
     """Create a bookmark with invalid name
@@ -131,7 +127,6 @@ def test_negative_create_with_invalid_name(controller, target_sat):
     assert len(result) == 0
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
 def test_negative_create_empty_query(controller, target_sat):
     """Create a bookmark with empty query
@@ -159,7 +154,6 @@ def test_negative_create_empty_query(controller, target_sat):
     assert len(result) == 0
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
 def test_negative_create_same_name(controller, target_sat):
     """Create bookmarks with the same names
@@ -189,7 +183,6 @@ def test_negative_create_same_name(controller, target_sat):
     assert len(result) == 1
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
 def test_negative_create_null_public(controller, target_sat):
     """Create a bookmark omitting the public parameter
@@ -220,7 +213,6 @@ def test_negative_create_null_public(controller, target_sat):
     assert len(result) == 0
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
 def test_positive_update_name(controller, target_sat):
     """Update a bookmark
@@ -247,7 +239,6 @@ def test_positive_update_name(controller, target_sat):
     assert bm.name == new_name
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
 def test_negative_update_same_name(controller, target_sat):
     """Update a bookmark with name already taken
@@ -278,7 +269,6 @@ def test_negative_update_same_name(controller, target_sat):
     assert bm.name != name
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
 def test_negative_update_invalid_name(controller, target_sat):
     """Update a bookmark with an invalid name
@@ -307,7 +297,6 @@ def test_negative_update_invalid_name(controller, target_sat):
     assert bm.name != new_name
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
 def test_positive_update_query(controller, target_sat):
     """Update a bookmark query
@@ -334,7 +323,6 @@ def test_positive_update_query(controller, target_sat):
     assert bm.query == new_query
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('controller', CONTROLLERS)
 def test_negative_update_empty_query(controller, target_sat):
     """Update a bookmark with an empty query
@@ -362,7 +350,6 @@ def test_negative_update_empty_query(controller, target_sat):
     assert bm.query != ''
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('public', [True, False])
 @pytest.mark.parametrize('controller', CONTROLLERS)
 def test_positive_update_public(controller, public, target_sat):

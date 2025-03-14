@@ -34,7 +34,6 @@ def module_lce_cv(module_org, module_target_sat):
     return lce1, lce2, default_cvv
 
 
-@pytest.mark.tier2
 def test_positive_promote_out_of_sequence_environment(module_org, module_lce_cv, module_target_sat):
     """Promote a content view version to a lifecycle environment
     that is 'out of sequence'.
@@ -60,7 +59,6 @@ def test_positive_promote_out_of_sequence_environment(module_org, module_lce_cv,
     assert len(version.environment) == 2
 
 
-@pytest.mark.tier2
 def test_negative_promote_valid_environment(module_lce_cv):
     """Attempt to promote the default content view version.
 
@@ -75,7 +73,6 @@ def test_negative_promote_valid_environment(module_lce_cv):
         default_cvv.promote(data={'environment_ids': lce1.id, 'force': False})
 
 
-@pytest.mark.tier2
 def test_negative_promote_out_of_sequence_environment(module_lce_cv, module_org, module_target_sat):
     """Attempt to promote a content view version to a Lifecycle environment
     that is 'out of sequence'.
@@ -101,7 +98,6 @@ def test_negative_promote_out_of_sequence_environment(module_lce_cv, module_org,
 # Tests for content view version promotion.
 
 
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_delete(module_org, module_product, module_target_sat):
     """Create content view and publish it. After that try to
@@ -145,7 +141,6 @@ def test_positive_delete(module_org, module_product, module_target_sat):
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier2
 def test_positive_delete_non_default(module_org, module_target_sat):
     """Create content view and publish and promote it to new
     environment. After that try to disassociate content view from 'Library'
@@ -177,7 +172,6 @@ def test_positive_delete_non_default(module_org, module_target_sat):
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_delete_composite_version(module_org, module_target_sat):
     """Create composite content view and publish it. After that try to
@@ -220,7 +214,6 @@ def test_positive_delete_composite_version(module_org, module_target_sat):
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_remove_cv_version_from_env_with_host_registered():
     """Remove promoted content view version from environment that is used
     in association of an Activation key and content-host registration.
@@ -257,7 +250,6 @@ def test_positive_remove_cv_version_from_env_with_host_registered():
 
 @pytest.mark.upgrade
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_delete_cv_multi_env_promoted_with_host_registered():
     """Delete published content view with version promoted to multiple
      environments, with one of the environments used in association of an
@@ -296,7 +288,6 @@ def test_positive_delete_cv_multi_env_promoted_with_host_registered():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_remove_cv_version_from_multi_env_capsule_scenario():
     """Remove promoted content view version from multiple environments,
     with satellite module_lce_cv to use capsule

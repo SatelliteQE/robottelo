@@ -34,7 +34,6 @@ from robottelo.utils.datafactory import (
 class TestPartitionTable:
     """Tests for the ``ptables`` path."""
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'name', **parametrized(generate_strings_list(length=1, exclude_types='alphanumeric'))
     )
@@ -54,7 +53,6 @@ class TestPartitionTable:
         ptable = target_sat.api.PartitionTable(name=name).create()
         assert ptable.name == name
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         ('name', 'new_name'),
         **parametrized(
@@ -90,7 +88,6 @@ class TestPartitionTable:
         with pytest.raises(HTTPError):
             ptable.read()
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         ('layout', 'new_layout'),
         **parametrized(list(zip(valid_data_list(), valid_data_list(), strict=True))),
@@ -113,7 +110,6 @@ class TestPartitionTable:
         ptable.layout = new_layout
         assert ptable.update(['layout']).layout == new_layout
 
-    @pytest.mark.tier1
     def test_positive_create_with_layout_length(self, target_sat):
         """Create a Partition Table with layout length more than 4096 chars
 
@@ -128,7 +124,6 @@ class TestPartitionTable:
         ptable = target_sat.api.PartitionTable(layout=layout).create()
         assert ptable.layout == layout
 
-    @pytest.mark.tier1
     def test_positive_create_update_with_os(self, target_sat):
         """Create new partition table with random operating system and update it with
             random operating system
@@ -165,7 +160,6 @@ class TestPartitionTable:
         assert len(result) == 1
         assert result[0].read().organization[0].id == module_org.id
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
     def test_negative_create_with_invalid_name(self, target_sat, name):
         """Try to create partition table using invalid names only
@@ -181,7 +175,6 @@ class TestPartitionTable:
         with pytest.raises(HTTPError):
             target_sat.api.PartitionTable(name=name).create()
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('layout', **parametrized(('', ' ', None)))
     def test_negative_create_with_empty_layout(self, target_sat, layout):
         """Try to create partition table with empty layout
@@ -195,7 +188,6 @@ class TestPartitionTable:
         with pytest.raises(HTTPError):
             target_sat.api.PartitionTable(layout=layout).create()
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
     def test_negative_update_name(self, target_sat, new_name):
         """Try to update partition table using invalid names only
@@ -213,7 +205,6 @@ class TestPartitionTable:
         with pytest.raises(HTTPError):
             assert ptable.update(['name']).name != new_name
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('new_layout', **parametrized(('', ' ', None)))
     def test_negative_update_layout(self, target_sat, new_layout):
         """Try to update partition table with empty layout

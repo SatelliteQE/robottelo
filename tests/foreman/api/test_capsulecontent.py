@@ -87,7 +87,6 @@ class TestCapsuleContentManagement:
     interactions and use capsule.
     """
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_uploaded_content_library_sync(
         self,
@@ -148,7 +147,6 @@ class TestCapsuleContentManagement:
         assert len(caps_files) == 1
         assert caps_files[0] == RPM_TO_UPLOAD
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_checksum_sync(
         self, module_capsule_configured, function_org, function_product, function_lce, target_sat
@@ -243,7 +241,6 @@ class TestCapsuleContentManagement:
         assert original_checksum not in checksum_types
 
     @pytest.mark.e2e
-    @pytest.mark.tier4
     @pytest.mark.pit_client
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_updated_repo(
@@ -352,7 +349,6 @@ class TestCapsuleContentManagement:
         assert len(caps_files) == 2
 
     @pytest.mark.e2e
-    @pytest.mark.tier4
     @pytest.mark.pit_client
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_capsule_sync(
@@ -505,7 +501,6 @@ class TestCapsuleContentManagement:
         caps_files = get_repo_files_by_url(caps_repo_url)
         assert sat_files == caps_files
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_iso_library_sync(
         self, module_capsule_configured, module_sca_manifest_org, module_target_sat
@@ -572,7 +567,6 @@ class TestCapsuleContentManagement:
         assert len(caps_isos) == 4
         assert set(sat_isos) == set(caps_isos)
 
-    @pytest.mark.tier4
     @pytest.mark.build_sanity
     @pytest.mark.order(after="tests/foreman/installer/test_installer.py::test_capsule_installation")
     @pytest.mark.skip_if_not_set('capsule')
@@ -659,7 +653,6 @@ class TestCapsuleContentManagement:
         # Assert checksums are matching
         assert package_md5 == published_package_md5
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_update_with_immediate_sync(
         self,
@@ -760,7 +753,6 @@ class TestCapsuleContentManagement:
         caps_files = get_repo_files_by_url(caps_repo_url)
         assert len(caps_files) == packages_count
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_capsule_pub_url_accessible(self, module_capsule_configured):
         """Ensure capsule pub url is accessible
@@ -800,7 +792,6 @@ class TestCapsuleContentManagement:
         assert rq.ok, f'Expected 200 but got {rq.status_code} from {endpoint} registry index'
 
     @pytest.mark.e2e
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos', 'rhel10_bos_beta'])
     def test_positive_sync_kickstart_repo(
@@ -894,7 +885,6 @@ class TestCapsuleContentManagement:
         assert len(caps_pkgs)
         assert sat_pkgs == caps_pkgs
 
-    @pytest.mark.tier4
     @pytest.mark.e2e
     @pytest.mark.pit_client
     @pytest.mark.skip_if_not_set('capsule')
@@ -1030,7 +1020,6 @@ class TestCapsuleContentManagement:
             )
             assert result.status == 0
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_collection_repo(
         self,
@@ -1117,7 +1106,6 @@ class TestCapsuleContentManagement:
         assert 'foreman' in result.stdout
         assert 'operations' in result.stdout
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_file_repo(
         self, target_sat, module_capsule_configured, function_org, function_product, function_lce
@@ -1204,7 +1192,6 @@ class TestCapsuleContentManagement:
             caps_file = target_sat.checksum_by_url(f'{caps_repo_url}{file}')
             assert sat_file == caps_file
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_CV_to_multiple_LCEs(
         self, target_sat, module_capsule_configured, module_sca_manifest_org
@@ -1278,7 +1265,6 @@ class TestCapsuleContentManagement:
         cvv = cvv.read()
         assert len(cvv.environment) == 3
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_capsule_sync_status_persists(
         self, target_sat, module_capsule_configured, function_org, function_product, function_lce
@@ -1344,7 +1330,6 @@ class TestCapsuleContentManagement:
             datetime.strptime(sync_status['last_sync_time'], '%Y-%m-%d %H:%M:%S UTC') >= timestamp
         )
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_remove_capsule_orphans(
         self,

@@ -41,7 +41,6 @@ class TestOpenScap:
         scap_profile_ids = default_content['scap-content-profiles'][0]['id']
         return scap_id, scap_profile_ids
 
-    @pytest.mark.tier1
     def test_positive_list_default_content_with_admin(self, module_target_sat):
         """List the default scap content with admin account
 
@@ -69,7 +68,6 @@ class TestOpenScap:
         scap_contents = [content['title'] for content in module_target_sat.cli.Scapcontent.list()]
         assert f'Red Hat rhel{module_target_sat.os_version.major} default content' in scap_contents
 
-    @pytest.mark.tier1
     def test_negative_list_default_content_with_viewer_role(
         self, scap_content, default_viewer_role, module_target_sat
     ):
@@ -103,7 +101,6 @@ class TestOpenScap:
                 default_viewer_role.login, default_viewer_role.password
             ).info({'title': scap_content['title']})
 
-    @pytest.mark.tier1
     def test_positive_view_scap_content_info_admin(self, module_target_sat):
         """View info of scap content with admin account
 
@@ -132,7 +129,6 @@ class TestOpenScap:
         result = module_target_sat.cli.Scapcontent.info({'title': title})
         assert result['title'] == title
 
-    @pytest.mark.tier1
     def test_negative_info_scap_content(self, module_target_sat):
         """View info of scap content with invalid ID as parameter
 
@@ -159,7 +155,6 @@ class TestOpenScap:
             module_target_sat.cli.Scapcontent.info({'id': invalid_scap_id})
 
     @pytest.mark.parametrize('title', **parametrized(valid_data_list()))
-    @pytest.mark.tier1
     def test_positive_create_scap_content_with_valid_title(self, title, module_target_sat):
         """Create scap-content with valid title
 
@@ -190,7 +185,6 @@ class TestOpenScap:
         )
         assert scap_content['title'] == title
 
-    @pytest.mark.tier1
     def test_negative_create_scap_content_with_same_title(self, module_target_sat):
         """Create scap-content with same title
 
@@ -229,7 +223,6 @@ class TestOpenScap:
             )
 
     @pytest.mark.parametrize('title', **parametrized(invalid_names_list()))
-    @pytest.mark.tier1
     def test_negative_create_scap_content_with_invalid_title(self, title, module_target_sat):
         """Create scap-content with invalid title
 
@@ -259,7 +252,6 @@ class TestOpenScap:
             )
 
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    @pytest.mark.tier1
     def test_positive_create_scap_content_with_valid_originalfile_name(
         self, name, module_target_sat
     ):
@@ -292,7 +284,6 @@ class TestOpenScap:
         assert scap_content['original-filename'] == name
 
     @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-    @pytest.mark.tier1
     def test_negative_create_scap_content_with_invalid_originalfile_name(
         self,
         name,
@@ -328,7 +319,6 @@ class TestOpenScap:
             )
 
     @pytest.mark.parametrize('title', **parametrized(valid_data_list()))
-    @pytest.mark.tier1
     def test_negative_create_scap_content_without_dsfile(self, title, module_target_sat):
         """Create scap-content without scap data stream xml file
 
@@ -354,7 +344,6 @@ class TestOpenScap:
         with pytest.raises(CLIFactoryError):
             module_target_sat.cli_factory.scapcontent({'title': title})
 
-    @pytest.mark.tier1
     def test_positive_update_scap_content_with_newtitle(
         self,
         module_target_sat,
@@ -390,7 +379,6 @@ class TestOpenScap:
         result = module_target_sat.cli.Scapcontent.info({'title': new_title}, output_format='json')
         assert result['title'] == new_title
 
-    @pytest.mark.tier1
     def test_positive_delete_scap_content_with_id(self, module_target_sat):
         """Delete a scap content with id as parameter
 
@@ -419,7 +407,6 @@ class TestOpenScap:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.Scapcontent.info({'id': scap_content['id']})
 
-    @pytest.mark.tier1
     def test_positive_delete_scap_content_with_title(self, module_target_sat):
         """Delete a scap content with title as parameter
 
@@ -451,7 +438,6 @@ class TestOpenScap:
             module_target_sat.cli.Scapcontent.info({'title': scap_content['title']})
 
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    @pytest.mark.tier2
     def test_postive_create_scap_policy_with_valid_name(
         self, name, scap_content, module_target_sat
     ):
@@ -493,7 +479,6 @@ class TestOpenScap:
             module_target_sat.cli.Scappolicy.info({'name': scap_policy['name']})
 
     @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-    @pytest.mark.tier2
     def test_negative_create_scap_policy_with_invalid_name(
         self, name, scap_content, module_target_sat
     ):
@@ -530,7 +515,6 @@ class TestOpenScap:
                 }
             )
 
-    @pytest.mark.tier2
     def test_negative_create_scap_policy_without_content(self, scap_content, module_target_sat):
         """Create scap policy without scap content
 
@@ -561,7 +545,6 @@ class TestOpenScap:
                 }
             )
 
-    @pytest.mark.tier2
     def test_positive_associate_scap_policy_with_hostgroups(self, scap_content, module_target_sat):
         """Associate hostgroups to scap policy
 
@@ -636,7 +619,6 @@ class TestOpenScap:
         assert db_out.status == 0
         assert "(0 rows)" in db_out.stdout
 
-    @pytest.mark.tier2
     def test_positive_associate_scap_policy_with_hostgroup_via_ansible(
         self, scap_content, module_target_sat
     ):
@@ -679,7 +661,6 @@ class TestOpenScap:
 
     @pytest.mark.parametrize('deploy', **parametrized(['manual', 'ansible']))
     @pytest.mark.upgrade
-    @pytest.mark.tier2
     def test_positive_associate_scap_policy_with_tailoringfiles(
         self, deploy, scap_content, tailoring_file_path, module_target_sat
     ):
@@ -769,7 +750,6 @@ class TestOpenScap:
 
     @pytest.mark.parametrize('deploy', **parametrized(['manual', 'ansible']))
     @pytest.mark.upgrade
-    @pytest.mark.tier2
     @pytest.mark.e2e
     def test_positive_scap_policy_end_to_end(self, deploy, scap_content, module_target_sat):
         """List all scap policies and read info using id, name
@@ -832,7 +812,6 @@ class TestOpenScap:
             module_target_sat.cli.Scappolicy.info({'id': scap_policy['id']})
 
     @pytest.mark.upgrade
-    @pytest.mark.tier2
     def test_positive_update_scap_policy_with_hostgroup(self, scap_content, module_target_sat):
         """Update scap policy by addition of hostgroup
 
@@ -878,7 +857,6 @@ class TestOpenScap:
         # Assert if the deployment is updated
         assert scap_info['deployment-option'] == 'ansible'
 
-    @pytest.mark.tier2
     def test_positive_update_scap_policy_period(self, scap_content, module_target_sat):
         """Update scap policy by updating the period strategy
         from monthly to weekly
@@ -924,7 +902,6 @@ class TestOpenScap:
         assert scap_info['period'] == OSCAP_PERIOD['monthly'].lower()
         assert scap_info['day-of-month'] == '15'
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_update_scap_policy_with_content(self, scap_content, module_target_sat):
         """Update the scap policy by updating the scap content
@@ -971,7 +948,6 @@ class TestOpenScap:
         assert scap_info['scap-content-id'] == scap_id
         assert scap_info['scap-content-profile-id'] == scap_profile_id
 
-    @pytest.mark.tier2
     def test_positive_associate_scap_policy_with_single_server(
         self, scap_content, module_target_sat
     ):
@@ -1016,7 +992,6 @@ class TestOpenScap:
         assert host_name in [host['name'] for host in hosts]
 
     @pytest.mark.stubbed
-    @pytest.mark.tier4
     def test_positive_list_arf_reports(self):
         """List all arf-reports
 
@@ -1042,7 +1017,6 @@ class TestOpenScap:
 
     @pytest.mark.upgrade
     @pytest.mark.stubbed
-    @pytest.mark.tier4
     def test_positive_info_arf_report(self):
         """View information of arf-report
 
@@ -1068,7 +1042,6 @@ class TestOpenScap:
         """
 
     @pytest.mark.stubbed
-    @pytest.mark.tier4
     def test_positive_delete_arf_report(self):
         """Delete an arf-report
 

@@ -44,7 +44,6 @@ def module_repository(module_product, module_target_sat):
     return repo
 
 
-@pytest.mark.tier2
 def test_positive_search(session, module_org, module_product, module_repository):
     """Search for a docker image tag and reads details of it
 

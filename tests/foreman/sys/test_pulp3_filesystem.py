@@ -84,7 +84,6 @@ def test_pulp_service_definitions(target_sat):
     assert result.status == 0
 
 
-@pytest.mark.tier1
 def test_pulp_workers_status(target_sat):
     """Ensure pulpcore-workers are in active (running) state
 
@@ -101,7 +100,6 @@ def test_pulp_workers_status(target_sat):
     assert all('Active: active (running)' in r for r in result)
 
 
-@pytest.mark.tier1
 def test_pulp_status(target_sat):
     """Test pulp status via pulp-cli.
 

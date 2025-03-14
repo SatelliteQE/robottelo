@@ -25,8 +25,6 @@ from robottelo.logging import logger
 
 HAMMER_COMMANDS = json.loads(DataFile.HAMMER_COMMANDS_JSON.read_text())
 
-pytestmark = [pytest.mark.tier1]
-
 
 def fetch_command_info(command):
     """Fetch command info from expected commands info dictionary."""
