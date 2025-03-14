@@ -193,7 +193,7 @@ jobs:
           PROTECTION_PAYLOAD='{
             "required_status_checks": {
                 "strict": true,
-                "contexts": ["Code Quality (3.10)", "Code Quality (3.11)", "Code Quality (3.12)", "Code Quality (3.13)", "Enforcing cherrypick labels"]
+                "contexts": ["Code Quality (3.11)", "Code Quality (3.12)", "Code Quality (3.13)", "Enforcing cherrypick labels"]
             },
             "required_linear_history": true,
             "enforce_admins": null,
