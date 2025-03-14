@@ -8,7 +8,6 @@ All functions in this module will be treated as fixtures that apply the contenth
 from broker import Broker
 import pytest
 
-from robottelo import constants
 from robottelo.config import settings
 from robottelo.hosts import ContentHost, Satellite
 
