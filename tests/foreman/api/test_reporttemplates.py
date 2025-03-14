@@ -25,6 +25,7 @@ from robottelo.constants import (
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
+    FAKE_9_YUM_OUTDATED_PACKAGES,
     PRDS,
     REPOS,
     REPOSET,
@@ -582,6 +583,157 @@ def test_positive_applied_errata_by_search(
 
 
 @pytest.mark.tier2
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('N-2')
+def test_positive_applied_errata_for_specific_hosts(
+    mod_content_hosts,
+    module_target_sat,
+    module_org,
+    module_lce,
+):
+    """Generate an Applied Errata report by hostname, with unique erratum
+    applied to multiple hosts.
+
+    :id: 57025661-37cb-44bd-917a-a173605926ad
+
+    :setup: Two registered hosts, each with a different applicable erratum.
+
+    :steps:
+        1. Apply errata by empty search " " to each host.
+        2. Generate the Hosts Applied Errata report for both hosts.
+
+    :expectedresults:
+        1. Only a single errata is applied to each host, expected package updated.
+        2. Two reports are generated, one for each host.
+        3. Only the hostname specified is listed in the generated report.
+        4. In each report, only the single errata_id applied for that host is listed.
+
+    :CaseImportance: High
+
+    :customerscenario: true
+
+    :Verifies: SAT-30611
+
+    """
+    RHSA = {
+        'host': mod_content_hosts[0],
+        'errata_id': settings.repos.yum_9.errata[0],  # RHSA-2012:0055
+        'outdated_pkg': FAKE_9_YUM_OUTDATED_PACKAGES[6],  # walrus-0.71-1.noarch
+    }
+    RHBA = {
+        'host': mod_content_hosts[1],
+        'errata_id': settings.repos.yum_9.errata[-1],  # RHBA-2012:1030
+        'outdated_pkg': FAKE_9_YUM_OUTDATED_PACKAGES[7],  # kangaroo-0.1-1.noarch
+    }
+    setup = module_target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': settings.repos.yum_9.url,
+            'organization-id': module_org.id,
+            'lifecycle-environment-id': module_lce.id,
+        }
+    )
+    activation_key = module_target_sat.api.ActivationKey(id=setup['activationkey-id']).read()
+    # register both hosts and install their outdated package
+    for host_info in [RHSA, RHBA]:
+        chost = host_info['host']
+        result = chost.register(module_org, None, activation_key.name, module_target_sat)
+        assert f'The registered system name is: {chost.hostname}' in result.stdout
+        assert chost.subscribed
+        assert chost.execute(f'yum install -y {host_info["outdated_pkg"]}').status == 0
+
+    # now each erratum is applicable to one host,
+    # Katello: errata install by search, check each result
+    for host_info in [RHSA, RHBA]:
+        chost = host_info['host']
+        assert chost.applicable_errata_count == 1
+        assert chost.applicable_package_count == 1
+        # apply by empty search, " " (Select All), and passing the hostname
+        job_invoc = module_target_sat.api.JobInvocation().run(
+            data={
+                'feature': 'katello_errata_install_by_search',
+                'inputs': {'Errata search query': " "},
+                'targeting_type': 'static_query',
+                'search_query': f'name = {chost.hostname}',
+                'organization_id': module_org.id,
+            },
+            timeout=2500,
+        )
+        module_target_sat.wait_for_tasks(
+            search_query=(
+                f'label = Actions::RemoteExecution::RunHostsJob and id = {job_invoc["id"]}'
+            ),
+            search_rate=20,
+            poll_timeout=120,
+        )
+        job_invoc = module_target_sat.api.ForemanTask(id=job_invoc['id']).poll()  # Host(s) job
+        remote_action = module_target_sat.api.ForemanTask().search(  # install subtask
+            query={'search': f'action ~ "Install errata on {chost.hostname}"'}
+        )
+        assert chost.execute('subscription-manager refresh').status == 0
+        assert chost.applicable_errata_count == 0
+        assert chost.applicable_package_count == 0
+        # job yielded only a single task for one host, success
+        assert job_invoc['result'] == 'success'
+        assert job_invoc['output']['host_count'] == 1
+        assert job_invoc['output']['total_count'] == 1
+        assert job_invoc['output']['planned_count'] == 1
+        assert job_invoc['output']['success_count'] == 1
+        assert job_invoc['output']['failed_count'] == 0
+        # we only expect one sub-task, applied one errata to one host,
+        # updated the single outdated package
+        assert len(remote_action) == 1
+        remote_action = remote_action[0].poll()
+        assert remote_action['humanized']['action'] == 'Remote action:'
+        assert chost.hostname == remote_action['input']['host']['name']
+        assert host_info['outdated_pkg'] in remote_action['humanized']['output']
+
+    # after both applied to respective host,
+    # generate Hosts - Applied Errata report by hostname for both hosts
+    gen_reports = []
+    for host_info in [RHSA, RHBA]:
+        chost = host_info['host']
+        report_data = {
+            'organization_id': module_org.id,
+            'report_format': 'json',
+            'input_values': {
+                'Hosts filter': chost.hostname,
+                'Filter Errata Type': 'all',
+                'Include Last Reboot': 'no',
+                'Status': 'all',
+            },
+        }
+        report = (
+            module_target_sat.api.ReportTemplate()
+            .search(query={'search': 'name="Host - Applied Errata"'})[0]
+            .read()
+            .generate(data=report_data)
+        )
+        gen_reports.append(report)
+
+    # RHSA host's report has RHSA errata, and not RHBA
+    rhsa_report_errata = [errata['erratum_id'] for errata in gen_reports[0]]
+    assert RHSA['errata_id'] in rhsa_report_errata, (
+        f'Expected errata_id: "{RHSA["errata_id"]}" in generated report, but got:\n{gen_reports[0]}'
+    )
+    assert RHBA['errata_id'] not in rhsa_report_errata
+    # RHSA host's report has expected hostname, and not the other hostname
+    rhsa_report_hosts = [errata['hostname'] for errata in gen_reports[0]]
+    assert RHSA['host'].hostname in rhsa_report_hosts
+    assert RHBA['host'].hostname not in rhsa_report_hosts
+
+    # RHBA host's report has RHBA errata, and not RHSA
+    rhba_report_errata = [errata['erratum_id'] for errata in gen_reports[1]]
+    assert RHBA['errata_id'] in rhba_report_errata, (
+        f'Expected errata_id: "{RHBA["errata_id"]}" in generated report, but got:\n{gen_reports[1]}'
+    )
+    assert RHSA['errata_id'] not in rhba_report_errata
+    # RHBA host's report has expected hostname, and not the other hostname
+    rhba_report_hosts = [errata['hostname'] for errata in gen_reports[1]]
+    assert RHBA['host'].hostname in rhba_report_hosts
+    assert RHSA['host'].hostname not in rhba_report_hosts
+
+
+@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_positive_generate_nonblocking():
     """Generate an Applied Errata report
@@ -947,11 +1099,13 @@ def test_positive_installed_products(
         .read()
         .generate(data=input_data)
     )
+
     assert report, 'No report generated.'
     assert report[0]['Host Name'] == rhel_contenthost.hostname, 'Incorrect host was reported.'
     assert report[0]['Organization'] == org.name, 'Incorrect org was reported.'
-    assert report[0]['Lifecycle Environment'] == lce_name, 'Incorrect LCE was reported.'
-    assert report[0]['Content View'] == cv_name, 'Incorrect CV was reported.'
+    assert report[0]['Content View Environments'] == f'{lce_name}/{cv_name}', (
+        'Incorrect content view environment(s) reported.'
+    )
     assert report[0]['Role'] == sys_tags['role'], 'Incorrect role was reported.'
     assert report[0]['Usage'] == sys_tags['usage'], 'Incorrect usage was reported.'
 

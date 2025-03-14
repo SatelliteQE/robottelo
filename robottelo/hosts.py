@@ -1534,6 +1534,16 @@ class ContentHost(Host, ContentHostMixins):
         host.location = location
         host.update(['location'])
 
+    def get_yggdrasil_service_name(self):
+        return (
+            'yggdrasil'
+            if (
+                self.os_version.major > 9
+                or (self.os_version.major == 9 and self.os_version.minor > 5)
+            )
+            else 'yggdrasild'
+        )
+
 
 class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
@@ -2401,7 +2411,7 @@ class Satellite(Capsule, SatelliteMixins):
 
     def generate_inventory_report(self, org, disconnected='false'):
         """Function to perform inventory upload."""
-        generate_report_task = 'ForemanInventoryUpload::Async::UploadReportJob'
+        generate_report_task = 'ForemanInventoryUpload::Async::GenerateReportJob'
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         self.api.Organization(id=org.id).rh_cloud_generate_report(
             data={'disconnected': disconnected}
@@ -2447,6 +2457,11 @@ class Satellite(Capsule, SatelliteMixins):
             search_rate=5,
             max_tries=10,
         )
+
+    @property
+    def local_advisor_enabled(self):
+        """Return boolean indicating whether local Insights advisor engine is enabled."""
+        return self.api.RHCloud().advisor_engine_config()['use_local_advisor_engine']
 
 
 class SSOHost(Host):
@@ -2556,13 +2571,13 @@ class SSOHost(Host):
             group_name = gen_string('alphanumeric')
         update_user_group.name = group_name
         self.upload_sso_entity(update_user_group, "create_group")
-        result = self.execute(f"{self.kcadm} create groups -r {settings.sso.realm} -f create_group")
+        result = self.execute(f"{self.kcadm} create groups -r {self.realm} -f create_group")
         return result.stdout
 
     def delete_sso_group(self, group_name):
         """Delete the RHSSO group"""
         group_details = self.get_sso_groups_details(group_name)
-        self.execute(f"{self.kcadm} delete -r {settings.sso.realm} groups/{group_details['id']}")
+        self.execute(f"{self.kcadm} delete -r {self.realm} groups/{group_details['id']}")
 
     def update_client_configuration(self, json_content):
         """Update the client configuration"""

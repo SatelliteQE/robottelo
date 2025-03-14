@@ -102,6 +102,12 @@ VALIDATORS = dict(
             default='library/busybox',
         ),
         Validator(
+            'container.alternative_upstream_names',
+            must_exist=True,
+            is_type_of=list,
+            default=['hello-world', 'alpine'],
+        ),
+        Validator(
             'container.docker.repo_upstream_name',
             must_exist=True,
             is_type_of=str,
@@ -315,6 +321,12 @@ VALIDATORS = dict(
             'repos.swid_tools_repo',
             must_exist=True,
             is_type_of=str,
+        ),
+        Validator(
+            'repos.python.pypi.url',
+            must_exist=True,
+            is_type_of=str,
+            default='https://pypi.org/project/pytest',
         ),
     ],
     rhev=[

@@ -200,6 +200,20 @@ def katello_host_tools_tracer_host(rex_contenthost, target_sat):
     return rex_contenthost
 
 
+@pytest.fixture
+def rhel_contenthost_with_repos(request, target_sat):
+    """Install katello-host-tools-tracer, create custom
+    repositories on the host"""
+    with Broker(**host_conf(request), host_class=ContentHost) as host:
+        # create a custom, rhel version-specific OS repo
+        rhelver = request.param['rhel_version']
+        if rhelver > 7:
+            host.create_custom_repos(**settings.repos[f'rhel{rhelver}_os'])
+        else:
+            host.create_custom_repos(**{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']})
+        yield host
+
+
 @pytest.fixture(scope='module')
 def module_container_contenthost(request, module_target_sat, module_org, module_activation_key):
     """Fixture that installs docker on the content host"""
@@ -207,10 +221,11 @@ def module_container_contenthost(request, module_target_sat, module_org, module_
         "rhel_version": "8",
         "distro": "rhel",
         "no_containers": True,
+        "network": "ipv6" if settings.server.is_ipv6 else "ipv4",
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         host.register_to_cdn()
-        for client in constants.CONTAINER_CLIENTS:
+        for client in settings.container.clients:
             assert host.execute(f'yum -y install {client}').status == 0, (
                 f'{client} installation failed'
             )
@@ -231,6 +246,7 @@ def module_flatpak_contenthost(request):
         "rhel_version": "9",
         "distro": "rhel",
         "no_containers": True,
+        "network": "ipv6" if settings.server.is_ipv6 else "ipv4",
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         host.register_to_cdn()
@@ -267,6 +283,23 @@ def oracle_host(request, version):
         host_class=ContentHost,
         deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
     ) as host:
+        yield host
+
+
+@pytest.fixture
+def bootc_host():
+    """Fixture to check out boot-c host"""
+    with Broker(
+        workflow='deploy-bootc',
+        host_class=ContentHost,
+        deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
+    ) as host:
+        assert (
+            host.execute(
+                f"echo '{constants.DUMMY_BOOTC_FACTS}' > /etc/rhsm/facts/bootc.facts"
+            ).status
+            == 0
+        )
         yield host
 
 

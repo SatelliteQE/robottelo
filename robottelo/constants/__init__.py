@@ -215,6 +215,7 @@ REPO_TYPE = {
     'docker': "docker",
     'ansible_collection': "ansible_collection",
     'file': "file",
+    'python': 'python',
 }
 
 DOWNLOAD_POLICIES = {
@@ -933,6 +934,8 @@ FAKE_9_YUM_UPDATED_PACKAGES = [
     'walrus-5.21-1.noarch',
     'kangaroo-0.2-1.noarch',
 ]
+REAL_RHEL9_OUTDATED_PACKAGE_FILENAME = 'python3-gofer-2.12.5-7.1.el9sat.noarch'
+REAL_RHEL9_PACKAGE = 'python3-gofer'
 REAL_0_ERRATA_ID = 'RHBA-2021:1314'  # for rhst7 (update every GA day)
 REAL_1_ERRATA_ID = 'RHBA-2012:1076'  # for REAL_0_RH_PACKAGE
 REAL_2_ERRATA_ID = 'RHBA-2012:0707'  # for REAL_0_RH_PACKAGE
@@ -945,6 +948,7 @@ REAL_RHEL7_1_ERRATA_ID = 'RHBA-2017:0395'  # tcsh bug fix update
 REAL_RHEL8_1_ERRATA_ID = 'RHSA-2022:4867'  # for REAL_RHEL8_1_PACKAGE
 REAL_RHEL8_ERRATA_CVES = ['CVE-2021-27023', 'CVE-2021-27025']
 REAL_RHSCLIENT_ERRATA = 'RHSA-2023:5982'  # for RH Satellite Client 8
+REAL_RHEL9_ERRATA_ID = 'RHBA-2022:7243'
 FAKE_1_YUM_REPOS_COUNT = 32
 FAKE_3_YUM_REPOS_COUNT = 78
 FAKE_9_YUM_SECURITY_ERRATUM = [
@@ -1056,6 +1060,9 @@ PERMISSIONS = {
         'import_ansible_playbooks',
         'dispatch_cloud_requests',
         'control_organization_insights',
+        'destroy_snapshots',
+        'revert_snapshots',
+        'edit_snapshots',
     ],
     'AnsibleRole': ['view_ansible_roles', 'destroy_ansible_roles', 'import_ansible_roles'],
     'AnsibleVariable': [
@@ -1384,6 +1391,8 @@ PERMISSIONS = {
         'view_hosts',
         'forget_status_hosts',
         'saltrun_hosts',
+        'view_snapshots',
+        'create_snapshots',
     ],
     'Katello::ActivationKey': [
         'view_activation_keys',
@@ -2002,12 +2011,24 @@ FOREMAN_ANSIBLE_MODULES = [
     "compute_resource",
     "config_group",
     "content_credential",
+    "content_export_info",
+    "content_export_library",
+    "content_export_repository",
+    "content_export_version",
+    "content_import_info",
+    "content_import_library",
+    "content_import_repository",
+    "content_import_version",
     "content_upload",
     "content_view_filter",
+    "content_view_filter_info",
+    "content_view_filter_rule",
+    "content_view_filter_rule_info",
     "content_view_info",
     "content_view",
     "content_view_version_info",
     "content_view_version",
+    "discovery_rule",
     "domain_info",
     "domain",
     "external_usergroup",
@@ -2015,6 +2036,7 @@ FOREMAN_ANSIBLE_MODULES = [
     "hardware_model",
     "host_collection",
     "host_errata_info",
+    "hostgroup_info",
     "hostgroup",
     "host_info",
     "host_power",
@@ -2028,6 +2050,7 @@ FOREMAN_ANSIBLE_MODULES = [
     "location",
     "operatingsystem",
     "organization",
+    "organization_info",
     "os_default_template",
     "partition_table",
     "product",
@@ -2036,6 +2059,7 @@ FOREMAN_ANSIBLE_MODULES = [
     "puppet_environment",
     "realm",
     "redhat_manifest",
+    "registration_command",
     "repository_info",
     "repository",
     "repository_set_info",
@@ -2048,6 +2072,7 @@ FOREMAN_ANSIBLE_MODULES = [
     "setting_info",
     "setting",
     "smart_class_parameter",
+    "smart_class_parameter_override_value",
     "smart_proxy",
     "status_info",
     "subnet_info",
@@ -2058,6 +2083,8 @@ FOREMAN_ANSIBLE_MODULES = [
     "templates_import",
     "usergroup",
     "user",
+    "wait_for_task",
+    "webhook",
 ]
 
 FAM_TEST_PLAYBOOKS = [
@@ -2195,6 +2222,7 @@ RH_SAT_ROLES = [
     'domains',
     'hostgroups',
     'lifecycle_environments',
+    'locations',
     'manifest',
     'operatingsystems',
     'organizations',
@@ -2270,6 +2298,21 @@ DNF_RECOMMENDATION = (
 
 EXPIRED_MANIFEST = 'expired-manifest.zip'
 EXPIRED_MANIFEST_DATE = 'Fri Dec 03 2021'
+
+DUMMY_BOOTC_FACTS = """{
+  "bootc.booted.image": "quay.io/centos-bootc/centos-bootc:stream10",
+  "bootc.booted.version": "stream10.20241202.0",
+  "bootc.booted.digest": "sha256:54256a998f0c62e16f3927c82b570f90bd8449a52e03daabd5fd16d6419fd572",
+  "bootc.staged.image": null,
+  "bootc.staged.version": null,
+  "bootc.staged.digest": null,
+  "bootc.rollback.image": "quay.io/centos-bootc/centos-bootc:stream10",
+  "bootc.rollback.version": "stream10.20241107.0",
+  "bootc.rollback.digest": "sha256:9ed49e9b189f5dae5a01ea9abdcef0884616300b565d32061aea619f2e916be3",
+  "bootc.available.image": null,
+  "bootc.available.version": null,
+  "bootc.available.digest": null
+}"""
 
 
 # Data File Paths

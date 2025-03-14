@@ -450,7 +450,6 @@ def test_positive_katello_ca_crt_refresh(
     assert ca_cert_file == ca_file_after_refresh
 
 
-@pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_invalidate_users_tokens(
     target_sat, request, module_org, module_location, rhel_contenthost, module_activation_key

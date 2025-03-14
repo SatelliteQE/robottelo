@@ -20,17 +20,6 @@ from robottelo.constants import RHEL8_VER, RHEL9_VER
 from robottelo.utils import ohsnap
 
 
-def get_yggdrasil_service_name(rhel_contenthost):
-    return (
-        'yggdrasil'
-        if (
-            rhel_contenthost.os_version.major > 9
-            or (rhel_contenthost.os_version.major == 9 and rhel_contenthost.os_version.minor > 5)
-        )
-        else 'yggdrasild'
-    )
-
-
 @pytest.mark.e2e
 @pytest.mark.parametrize(
     'upgrade_path',
@@ -216,7 +205,7 @@ def test_positive_ygdrassil_client_after_leapp_upgrade(
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
-    service_name = get_yggdrasil_service_name(custom_leapp_host)
+    service_name = custom_leapp_host.get_yggdrasil_service_name()
     result = custom_leapp_host.execute(f'systemctl status {service_name}')
     assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
 
@@ -262,7 +251,7 @@ def test_positive_ygdrassil_client_after_leapp_upgrade(
     assert str(custom_leapp_host.os_version) == upgrade_path['target_version']
 
     # check mqtt still works after upgrade
-    service_name = get_yggdrasil_service_name(custom_leapp_host)
+    service_name = custom_leapp_host.get_yggdrasil_service_name()
     result = custom_leapp_host.execute(f'systemctl status {service_name}')
     assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
 

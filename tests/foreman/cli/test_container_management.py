@@ -332,7 +332,7 @@ class TestDockerClient:
         result = module_container_contenthost.execute(docker_pull_command)
         assert result.status == 0
 
-    def test_negative_pull_content_with_longer_name(
+    def test_positive_pull_content_with_longer_name(
         self, request, target_sat, module_container_contenthost, module_org
     ):
         """Verify that long name CV publishes when CV & docker repo both have a larger name.
@@ -397,7 +397,7 @@ class TestDockerClient:
 
         podman_pull_command = (
             f"podman pull --tls-verify=false {target_sat.hostname}/{module_org.label}"
-            f"-{lce['label']}-{cv['label']}-{product['label']}-{repo_name}".lower()
+            f"/{lce['label']}/{cv['label']}/{product['label']}/{repo_name}".lower()
         )
 
         # 4. Pull in docker image
