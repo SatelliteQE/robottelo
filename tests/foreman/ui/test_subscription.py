@@ -436,6 +436,7 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(
         'Type': False,
         'Consumed': False,
         'Entitlements': False,
+        'Product Host Count': False,
     }
     org = function_org
     with session:
@@ -446,7 +447,6 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(
         )
         headers = session.subscription.filter_columns(checkbox_dict)
         assert headers == ('Select all rows',)
-        assert len(checkbox_dict) == 9
         time.sleep(3)
         checkbox_dict.update((k, True) for k in checkbox_dict)
         col = session.subscription.filter_columns(checkbox_dict)
