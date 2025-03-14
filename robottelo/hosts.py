@@ -1267,7 +1267,6 @@ class ContentHost(Host, ContentHostMixins):
         hypervisor_user=None,
         subscription_name=None,
         exec_one_shot=False,
-        upload_manifest=True,
         extra_repos=None,
     ):
         """
@@ -1281,7 +1280,6 @@ class ContentHost(Host, ContentHostMixins):
         :param bool configure_ssh: configure the ssh key to allow host to connect to hypervisor
         :param str subscription_name: the subscription name to assign to virt-who hypervisor guests
         :param bool exec_one_shot: whether to run the virt-who one-shot command after startup
-        :param bool upload_manifest: whether to upload the organization manifest
         :param list extra_repos: (Optional) repositories dict options to setup additionally.
         """
 
@@ -1314,7 +1312,6 @@ class ContentHost(Host, ContentHostMixins):
             org['id'],
             lce['id'],
             repos,
-            upload_manifest=upload_manifest,
             rh_subscriptions=[constants.DEFAULT_SUBSCRIPTION_NAME],
         )
         activation_key = content_setup_data['activation_key']
