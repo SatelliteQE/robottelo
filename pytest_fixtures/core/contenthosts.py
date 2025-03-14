@@ -292,6 +292,7 @@ def bootc_host():
     with Broker(
         workflow='deploy-bootc',
         host_class=ContentHost,
+        target_template='tpl-bootc-rhel-10.0',
         deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
     ) as host:
         assert (
