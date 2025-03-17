@@ -153,7 +153,7 @@ def pytest_collection_modifyitems(items, config):
     snap_version = settings.server.version.get('snap', '')
 
     # Satellite Network Type on which tests are running on
-    satellite_network_type = 'ipv6' if settings.server.is_ipv6 else 'ipv4'
+    satellite_network_type = 'ipv6' if settings.server.is_ipv6 else 'ipv4'  # fix ipv6
 
     # split the option string and handle no option, single option, multiple
     # config.getoption(default) doesn't work like you think it does, hence or ''
