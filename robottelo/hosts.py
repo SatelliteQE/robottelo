@@ -633,6 +633,7 @@ class ContentHost(Host, ContentHostMixins):
         hostgroup=None,
         auth_username=None,
         auth_password=None,
+        download_utility=None,
     ):
         """Registers content host to the Satellite or Capsule server
         using a global registration template.
@@ -703,6 +704,8 @@ class ContentHost(Host, ContentHostMixins):
             options['ignore-subman-errors'] = str(ignore_subman_errors).lower()
         if force:
             options['force'] = str(force).lower()
+        if download_utility is not None:
+            options['download-utility'] = download_utility
 
         self._satellite = target.satellite
         if auth_username and auth_password:
