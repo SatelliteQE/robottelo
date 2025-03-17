@@ -2189,9 +2189,9 @@ def test_bootc_rex_job(target_sat, bootc_host, function_ak_with_cv, function_org
 
     :expectedresults: Host Details UI links to the proper template, which runs successfully for all templates
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent: Hosts-Content
 
-    :Verifies:SAT-27154
+    :Verifies:SAT-27154, SAT-27158
 
     :Team: Phoenix-subscriptions
     """
@@ -2225,10 +2225,7 @@ def test_bootc_rex_job(target_sat, bootc_host, function_ak_with_cv, function_org
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
         assert 'Successfully updated the system facts.' in task_status['humanized']['output']
-        assert (
-            'Queued for next boot: images.paas.redhat.com/bootc/rhel-bootc:latest-10.'
-            in task_status['humanized']['output']
-        )
+        assert f'Queued for next boot: {BOOTC_SWITCH_TARGET}' in task_status['humanized']['output']
         # bootc upgrade
         session.host_new.run_bootc_job(bootc_host.hostname, 'upgrade')
         task_result = target_sat.wait_for_tasks(
@@ -2239,10 +2236,7 @@ def test_bootc_rex_job(target_sat, bootc_host, function_ak_with_cv, function_org
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
         assert 'Successfully updated the system facts.' in task_status['humanized']['output']
-        assert (
-            'No changes in images.paas.redhat.com/bootc/rhel-bootc:latest-10.0'
-            in task_status['humanized']['output']
-        )
+        assert f'No changes in {BOOTC_SWITCH_TARGET}' in task_status['humanized']['output']
         # reboot the host, to ensure there is a rollback image
         bootc_host.execute('reboot')
         bootc_host.wait_for_connection()
