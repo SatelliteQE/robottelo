@@ -18,8 +18,14 @@ import re
 from fauxfactory import gen_string
 import pytest
 
-from robottelo import constants
 from robottelo.config import settings
+from robottelo.constants import (
+    CAPSULE_ANSWER_FILE,
+    CAPSULE_INSTALLER_CONFIG,
+    FAKE_0_YUM_REPO_PACKAGES_COUNT,
+    SATELLITE_ANSWER_FILE,
+    SATELLITE_INSTALLER_CONFIG,
+)
 from robottelo.content_info import get_repo_files_by_url
 from robottelo.hosts import Satellite
 
@@ -430,12 +436,21 @@ def test_positive_backup_restore(
 
     :customerscenario: true
 
-    :Verifies: SAT-23093, SAT-19933
+    :Verifies: SAT-23093, SAT-19933, SAT-25949
 
     :BZ: 2172540, 1978764, 1979045
     """
-    subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
     instance = get_instance_name(sat_maintain)
+    custom_answer_file = '/root/custom-answers.yaml'
+    answer_file = SATELLITE_ANSWER_FILE if instance == 'satellite' else CAPSULE_ANSWER_FILE
+    installer_config = (
+        SATELLITE_INSTALLER_CONFIG if instance == 'satellite' else CAPSULE_INSTALLER_CONFIG
+    )
+    result = sat_maintain.execute(
+        f'cp {answer_file} {custom_answer_file}; sed -i "s|{answer_file}|{custom_answer_file}|g" {installer_config}; satellite-installer'
+    )
+    assert result.status == 0
+    subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
     result = sat_maintain.cli.Backup.run_backup(
         backup_dir=subdir,
         backup_type=backup_type,
@@ -455,11 +470,10 @@ def test_positive_backup_restore(
     config_files = sat_maintain.execute(
         f"tar -tf {backup_dir}/config_files.tar.gz"
     ).stdout.splitlines()
-    # Check if certificate tar file is present in Capsule backup.
     if instance == 'capsule':
         assert f'root/{sat_maintain.hostname}-certs.tar' in config_files
-    # Check Ansible configuration file under /etc/ansible is present
     assert 'etc/ansible/ansible.cfg' in config_files
+    assert custom_answer_file[1:] in config_files
 
     # Run restore
     if not skip_pulp:
@@ -497,7 +511,7 @@ def test_positive_backup_restore(
             module_target_sat.hostname, module_capsule_configured.hostname
         )
         repo_files = get_repo_files_by_url(repo_path)
-        assert len(repo_files) == constants.FAKE_0_YUM_REPO_PACKAGES_COUNT
+        assert len(repo_files) == FAKE_0_YUM_REPO_PACKAGES_COUNT
 
     if not skip_pulp:
         assert int(sat_maintain.run('find /var/lib/pulp/media/artifact -type f | wc -l').stdout) > 0
