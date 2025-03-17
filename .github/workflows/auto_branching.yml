@@ -112,8 +112,8 @@ jobs:
             awk '!/@pytest\.mark\.stream/' "$file" > temp && mv temp "$file"
            done
 
-      - name: Update version in setup.py
-        run: sed -i "s/version=['\"][0-9.]*['\"]\+/version='${{ github.event.inputs.target_branch }}'/" setup.py
+      - name: Update version in pyproject.toml
+        run: sed -i "s/^version = \".*\"/version = \"${{ github.event.inputs.target_branch }}\"/" pyproject.toml
 
       - name: Update the Constants in __init__.py file
         run: |
@@ -132,7 +132,7 @@ jobs:
       - name: Commit changes
         run: |
           git config --local user.email Satellite-QE.satqe.com && git config --local user.name Satellite-QE
-          git add setup.py ./tests/foreman ./robottelo/* ./requirements.txt ./.github/*
+          git add pyproject.toml ./tests/foreman ./robottelo/* ./requirements.txt ./.github/*
           git commit -m "Changes for ${{ github.event.inputs.target_branch }} new branch"
           git push origin ${{steps.checkout-to-auto-branch.outputs.branch_name}}
 
@@ -149,7 +149,7 @@ jobs:
             - Airgun and Nailgun Requirements uses ${{ github.event.inputs.target_branch }} branch
             - Constants are using new version now
             - Stream tests removed
-            - Setup.py uses new version
+            - pyproject.toml uses new version
           "
           pr_number=$(gh pr create --title "$title" --body "$body" --base "${{ github.event.inputs.target_branch }}" | awk -F'/' '{print $NF}')
           echo "$pr_number"
@@ -271,7 +271,7 @@ jobs:
           git config --local user.name "GitHub Action"
           branch_name="auto-branching-${{ github.event.inputs.target_branch }}-$(date '+%s.%N')"
           git checkout -b "$branch_name"
-          git add setup.py ./tests/foreman ./robottelo/* ./requirements.txt ./.github/* ./conf/robottelo.yaml.template
+          git add pyproject.toml ./tests/foreman ./robottelo/* ./requirements.txt ./.github/* ./conf/robottelo.yaml.template
           git commit -m "Changes for new ${{ github.event.inputs.target_branch }} branch"
           git remote -vvv
           git push origin "$branch_name"
