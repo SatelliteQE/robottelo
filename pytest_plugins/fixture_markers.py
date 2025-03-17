@@ -1,6 +1,8 @@
 from inspect import getmembers, isfunction
 import re
 
+import pytest
+
 from robottelo.config import settings
 
 TARGET_FIXTURES = [
@@ -57,7 +59,6 @@ def pytest_generate_tests(metafunc):
                         if re.fullmatch(str(matcher[0]), str(setting_rhel_ver))
                     ]
                 )
-        network_params = ['ipv6' if settings.server.is_ipv6 else 'ipv4']
         rhel_params = []
         ids = []
         filtered_versions = set(list_params + match_params)
@@ -65,20 +66,47 @@ def pytest_generate_tests(metafunc):
         for ver in filtered_versions or settings.supportability.content_hosts.rhel.versions:
             rhel_params.append(dict(rhel_version=ver, no_containers=no_containers))
 
+        # Determine the default network type based on settings
+        if settings.content_host.attributes.network_type == 'dualstack':
+            network_params = ['ipv4', 'ipv6']
+        else:  # rely on network_type setting to be either ipv4 or ipv6
+            network_params = [settings.content_host.attributes.network_type]
+
+        # Check for the network marker
+        network_marker = metafunc.definition.get_closest_marker("network")
+
+        # If network marker is present, validate its arguments and use it to filter network types
+        if network_marker:
+            marker_network_types = network_marker.args[0] if network_marker.args else network_params
+            # Validate the network marker arguments
+            for nt in marker_network_types:
+                if nt not in ['ipv4', 'ipv6']:
+                    raise ValueError(
+                        f"Invalid network type '{nt}' in network marker "
+                        f"for test {metafunc.function.name}. Must be 'ipv4' or 'ipv6'."
+                    )
+            network_params = [nt for nt in marker_network_types if nt in network_params]
+            # do not parametrize if no network types are common, test
+            # should be skipped in pytest_collection_modifyitems
+
+        # Check whether server could connect with client looking up settings.server.network_type
+        if settings.server.network_type == 'ipv6':
+            network_params = [nt for nt in network_params if nt in ['ipv6', 'dualstack']]
+        elif settings.server.network_type == 'ipv4':
+            network_params = [nt for nt in network_params if nt in ['ipv4', 'dualstack']]
+        elif settings.server.network_type == 'dualstack':
+            network_params = [nt for nt in network_params if nt in ['ipv4', 'ipv6', 'dualstack']]
+
+        # Create combinations of rhel_params and network_params as dictionaries
         if rhel_params:
             rhel_params.sort(key=lambda r: str(r['rhel_version']))
             ids = [f'rhel{r["rhel_version"]}' for r in rhel_params]
-            network_marker = metafunc.definition.get_closest_marker("network")
-            if network_marker and settings.server.is_ipv6:
-                network_params = network_marker.args[0] if network_marker.args else ['ipv6']
-            elif network_marker and not settings.server.is_ipv6:
-                network_params = network_marker.args[0] if network_marker.args else ['ipv4']
-            # Create combinations of rhel_params and containers as dictionaries
             if network_params:
                 rhel_params = [
-                    {**rhel, 'network': cont} for rhel in rhel_params for cont in network_params
+                    {**rhel, 'network': net} for rhel in rhel_params for net in network_params
                 ]
                 ids = [f"rhel{param['rhel_version']}-{param['network']}" for param in rhel_params]
+
         if rhel_params:
             metafunc.parametrize(
                 content_host_fixture,
@@ -132,6 +160,25 @@ def pytest_collection_modifyitems(session, items, config):
                 client_property = ('ClientOS', str(settings.content_host.default_rhel_version))
             item.user_properties.append(client_property)
             item.add_marker('content_host')
+
+        if network_marker := item.get_closest_marker("network"):
+            marker_network_types = network_marker.args[0] if network_marker.args else []
+            # Skip the test if network_type setting is not set to ipv4 and network marker is set to ipv6
+            if (
+                'ipv6' in marker_network_types
+                and settings.content_host.attributes.network_type not in ['ipv6', 'dualstack']
+            ):
+                item.add_marker(
+                    pytest.mark.skip(reason=f"Skipping {item.name} due to network type mismatch")
+                )
+            # Skip the test if network_type setting is not set to ipv6 and network marker is set to ipv4
+            if (
+                'ipv4' in marker_network_types
+                and settings.content_host.attributes.network_type not in ['ipv4', 'dualstack']
+            ):
+                item.add_marker(
+                    pytest.mark.skip(reason=f"Skipping {item.name} due to network type mismatch")
+                )
 
 
 def pytest_addoption(parser):

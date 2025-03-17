@@ -37,6 +37,8 @@ def host_conf(request):
         deploy_kwargs = settings.content_host.get(_rhelver).to_dict().get('vm', {})
         if network := params.get('network'):
             deploy_kwargs.update({'deploy_network_type': network})
+    if network := params.get('network'):  # TODO(ogajduse) optimize multiple calls
+        conf.update({'net_type': network})
     conf.update(deploy_kwargs)
     return conf
 
