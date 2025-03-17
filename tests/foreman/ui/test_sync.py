@@ -74,6 +74,7 @@ def test_positive_sync_rh_repos(session, target_sat, module_sca_manifest_org):
 
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+@pytest.mark.stubbed
 def test_positive_sync_custom_ostree_repo(session, module_custom_product, module_target_sat):
     """Create custom ostree repository and sync it.
 
@@ -99,6 +100,7 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product, module
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.upgrade
+@pytest.mark.stubbed
 def test_positive_sync_rh_ostree_repo(session, target_sat, module_sca_manifest_org):
     """Sync CDN based ostree repository.
 
