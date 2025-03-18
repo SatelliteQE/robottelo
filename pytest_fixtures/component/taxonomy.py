@@ -72,6 +72,14 @@ def function_location_with_org(target_sat, function_org):
 
 
 @pytest.fixture(scope='module')
+def module_entitlement_manifest_org(module_org, module_entitlement_manifest, module_target_sat):
+    """Creates an organization and uploads an entitlement mode manifest generated with manifester"""
+    module_org.sca_disable()
+    module_target_sat.upload_manifest(module_org.id, module_entitlement_manifest.content)
+    return module_org
+
+
+@pytest.fixture(scope='module')
 def module_sca_manifest_org(module_org, module_sca_manifest, module_target_sat):
     """Creates an organization and uploads an SCA mode manifest generated with manifester"""
     module_target_sat.upload_manifest(module_org.id, module_sca_manifest.content)
@@ -121,27 +129,6 @@ def function_sca_manifest_org(function_org, function_sca_manifest, target_sat):
     """Creates an organization and uploads an SCA mode manifest generated with manifester"""
     target_sat.upload_manifest(function_org.id, function_sca_manifest.content)
     return function_org
-
-
-@pytest.fixture
-def function_els_sca_manifest_org(function_org, function_sca_els_manifest, target_sat):
-    """Creates an organization and uploads an SCA mode manifest generated with manifester"""
-    target_sat.upload_manifest(function_org.id, function_sca_els_manifest.content)
-    return function_org
-
-
-@pytest.fixture(scope='module')
-def module_els_sca_manifest_org(module_org, module_sca_els_manifest, module_target_sat):
-    """Creates an organization and uploads an SCA mode manifest generated with manifester"""
-    module_target_sat.upload_manifest(module_org.id, module_sca_els_manifest.content)
-    return module_org
-
-
-@pytest.fixture(scope='class')
-def class_els_sca_manifest_org(class_org, class_sca_els_manifest, class_target_sat):
-    """Creates an organization and uploads an SCA mode manifest generated with manifester"""
-    class_target_sat.upload_manifest(class_org.id, class_sca_els_manifest.content)
-    return class_org
 
 
 # Note: Manifester should not be used with the Satellite QE RHSM account until
