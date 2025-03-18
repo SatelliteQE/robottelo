@@ -45,26 +45,17 @@ def test_positive_sync_rh_repos(session, target_sat, module_sca_manifest_org):
 
     :expectedresults: Sync procedure for RedHat Repos is successful
     """
-    repos = (
-        target_sat.cli_factory.SatelliteCapsuleRepository(cdn=True),
-        target_sat.cli_factory.RHELCloudFormsTools(cdn=True),
-    )
-    distros = ['rhel6', 'rhel7']
-    repo_collections = [
-        target_sat.cli_factory.RepositoryCollection(distro=distro, repositories=[repo])
-        for distro, repo in zip(distros, repos, strict=True)
-    ]
-    for repo_collection in repo_collections:
-        repo_collection.setup(module_sca_manifest_org.id, synchronize=False)
-    repo_paths = [
-        (
-            repo.repo_data['product'],
-            repo.repo_data.get('releasever'),
-            repo.repo_data.get('arch'),
-            repo.repo_data['name'],
+    repo_paths = []
+    for key in ['rhsc8', 'rhsc9']:
+        target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch=DEFAULT_ARCHITECTURE,
+            org_id=module_sca_manifest_org.id,
+            reposet=REPOS[key]['reposet'],
+            product=REPOS[key]['product'],
+            repo=REPOS[key]['name'],
+            releasever=REPOS[key]['version'],
         )
-        for repo in repos
-    ]
+        repo_paths.append((REPOS[key]['product'], REPOS[key]['name']))
     with session:
         session.organization.select(org_name=module_sca_manifest_org.name)
         results = session.sync_status.synchronize(repo_paths)
