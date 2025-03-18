@@ -840,7 +840,6 @@ class CLIFactory:
         self,
         options=None,
         force_use_cdn=False,
-        force=False,
     ):
         """Wrapper above ``_setup_org_for_a_rh_repo`` to use custom downstream repo
         instead of CDN's 'Satellite Capsule', 'Satellite Tools'  and base OS repos if
