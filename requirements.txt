@@ -3,7 +3,7 @@
 betelgeuse==1.11.0
 broker[docker,podman,hussh]==0.6.5
 cryptography==43.0.3
-deepdiff==8.3.0
+deepdiff==8.4.2
 dynaconf[vault]==3.2.10
 fauxfactory==3.1.2
 jinja2==3.1.6
