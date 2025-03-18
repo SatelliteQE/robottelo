@@ -224,7 +224,6 @@ def test_positive_repo_count_for_composite_cv(session, module_target_sat, module
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_create_composite(
@@ -279,7 +278,6 @@ def test_positive_create_composite(
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_add_rh_content(
     session, module_target_sat, function_entitlement_manifest_org, target_sat
@@ -864,7 +862,6 @@ def test_positive_publish_with_custom_content(session, module_target_sat, module
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_publish_with_rh_content(
     session, module_target_sat, function_entitlement_manifest_org, target_sat
@@ -901,7 +898,6 @@ def test_positive_publish_with_rh_content(
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_publish_composite_with_custom_content(
@@ -1089,7 +1085,6 @@ def test_positive_promote_with_custom_content(session, module_target_sat, module
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_promote_with_rh_content(
     session, module_target_sat, function_entitlement_manifest_org, target_sat
@@ -1127,7 +1122,6 @@ def test_positive_promote_with_rh_content(
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_promote_composite_with_custom_content(
@@ -2141,7 +2135,6 @@ def test_positive_add_all_security_errata_by_date_range_filter(
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 def test_positive_edit_rh_custom_spin(session, module_target_sat, target_sat):
     """Edit content views for a custom rh spin.  For example, modify a filter.
@@ -2201,7 +2194,6 @@ def test_positive_edit_rh_custom_spin(session, module_target_sat, target_sat):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.upgrade
 @pytest.mark.tier2
 def test_positive_promote_with_rh_custom_spin(session, module_target_sat, target_sat):

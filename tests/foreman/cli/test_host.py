@@ -2063,7 +2063,7 @@ def test_negative_without_attach_with_lce(
     target_sat,
     rhel_contenthost,
     function_ak_with_cv,
-    function_org,
+    function_sca_manifest_org,
     function_lce,
     sca_enabled,
 ):
@@ -2079,16 +2079,16 @@ def test_negative_without_attach_with_lce(
     :parametrized: yes
     """
     if sca_enabled:
-        function_org.sca_enable()
+        function_sca_manifest_org.sca_enable()
     else:
-        function_org.sca_disable()
-    content_view = target_sat.api.ContentView(organization=function_org).create()
+        function_sca_manifest_org.sca_disable()
+    content_view = target_sat.api.ContentView(organization=function_sca_manifest_org).create()
     target_sat.cli_factory.setup_org_for_a_rh_repo(
         {
             'product': PRDS['rhel'],
             'repository-set': REPOSET['rhsclient7'],
             'repository': REPOS['rhsclient7']['name'],
-            'organization-id': function_org.id,
+            'organization-id': function_sca_manifest_org.id,
             'content-view-id': content_view.id,
             'lifecycle-environment-id': function_lce.id,
             'activationkey-id': function_ak_with_cv.id,
@@ -2098,7 +2098,9 @@ def test_negative_without_attach_with_lce(
     )
 
     # register client
-    result = rhel_contenthost.register(function_org, None, function_ak_with_cv.name, target_sat)
+    result = rhel_contenthost.register(
+        function_sca_manifest_org, None, function_ak_with_cv.name, target_sat
+    )
     assert result.status == 0
     assert rhel_contenthost.subscribed
     res = rhel_contenthost.enable_repo(REPOS['rhsclient7']['id'])

@@ -1928,7 +1928,7 @@ class TestRepository:
         }
 
     @pytest.mark.tier1
-    def test_negative_update_red_hat_repo(self, module_manifest_org, module_target_sat):
+    def test_negative_update_red_hat_repo(self, function_sca_manifest_org, module_target_sat):
         """Updates to Red Hat products fail.
 
         :id: d3ac0ea2-faab-4df4-be66-733e1b7ae6b4
@@ -1946,22 +1946,22 @@ class TestRepository:
         """
 
         rh_repo_set_id = module_target_sat.cli.RepositorySet.list(
-            {'organization-id': module_manifest_org.id}
+            {'organization-id': function_sca_manifest_org.id}
         )[0]['id']
 
         module_target_sat.cli.RepositorySet.enable(
             {
-                'organization-id': module_manifest_org.id,
+                'organization-id': function_sca_manifest_org.id,
                 'basearch': "x86_64",
                 'id': rh_repo_set_id,
             }
         )
         repo_list = module_target_sat.cli.Repository.list(
-            {'organization-id': module_manifest_org.id}
+            {'organization-id': function_sca_manifest_org.id}
         )
 
         rh_repo_id = module_target_sat.cli.Repository.list(
-            {'organization-id': module_manifest_org.id}
+            {'organization-id': function_sca_manifest_org.id}
         )[0]['id']
 
         module_target_sat.cli.Repository.update(
@@ -1971,7 +1971,7 @@ class TestRepository:
             }
         )
         repo_info = module_target_sat.cli.Repository.info(
-            {'organization-id': module_manifest_org.id, 'id': rh_repo_id}
+            {'organization-id': function_sca_manifest_org.id, 'id': rh_repo_id}
         )
         assert repo_info['url'] in [repo.get('url') for repo in repo_list]
 
