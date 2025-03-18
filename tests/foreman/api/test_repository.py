@@ -875,7 +875,7 @@ class TestRepository:
                     'upstream_password': creds['pass'],
                 }
                 for creds in datafactory.valid_http_credentials()
-                if not creds['http_valid']
+                if not creds['http_valid'] and creds.get('yum_compatible')
             ]
         ),
         indirect=True,
