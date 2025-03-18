@@ -52,7 +52,7 @@ class TestCapsuleContentManagement:
     """
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_uploaded_content_library_sync(
         self,
         module_capsule_configured,
@@ -113,7 +113,7 @@ class TestCapsuleContentManagement:
         assert caps_files[0] == RPM_TO_UPLOAD
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_checksum_sync(
         self, module_capsule_configured, function_org, function_product, function_lce, target_sat
     ):
@@ -313,7 +313,8 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.e2e
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
+    @pytest.mark.pit_client
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_capsule_sync(
         self,
         target_sat,
@@ -534,7 +535,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.build_sanity
     @pytest.mark.order(after="tests/foreman/installer/test_installer.py::test_capsule_installation")
-    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_on_demand_sync(
         self,
         target_sat,
@@ -619,7 +620,7 @@ class TestCapsuleContentManagement:
         assert package_md5 == published_package_md5
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_update_with_immediate_sync(
         self,
         target_sat,
@@ -720,7 +721,7 @@ class TestCapsuleContentManagement:
         assert len(caps_files) == packages_count
 
     @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_capsule_pub_url_accessible(self, module_capsule_configured):
         """Ensure capsule pub url is accessible
 

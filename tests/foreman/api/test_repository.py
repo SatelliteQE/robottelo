@@ -2093,7 +2093,6 @@ class TestDockerRepository:
 #     @pytest.mark.tier2
 #     @pytest.mark.skip_if_open("BZ:1625783")
 #     @pytest.mark.run_in_one_thread
-#     @pytest.mark.skip_if_not_set('fake_manifest')
 #     @pytest.mark.upgrade
 #     def test_positive_sync_rh_atomic(self, module_org):
 #         """Sync RH Atomic Ostree Repository.
