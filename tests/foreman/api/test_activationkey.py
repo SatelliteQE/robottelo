@@ -445,7 +445,7 @@ def test_positive_fetch_product_content(
     cvv.promote(data={'environment_ids': module_lce.id})
 
     ak = module_target_sat.api.ActivationKey(
-        content_view=cv, organization=module_org, environment=module_lce.name
+        content_view=cv.id, organization=module_org.id, environment=module_lce.id
     ).create()
     ak_content = ak.product_content()['results']
     assert {custom_repo.product.id, rh_repo.product.id} == {
