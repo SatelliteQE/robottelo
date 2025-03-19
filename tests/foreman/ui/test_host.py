@@ -2110,9 +2110,8 @@ def test_all_hosts_bulk_build_management(target_sat, function_org, function_loca
         )
 
 
-@pytest.mark.tier2
 def test_bootc_booted_container_images(target_sat, bootc_host, function_ak_with_cv, function_org):
-    """Create a bootc host, and read it's information via the Booted Container Images UI
+    """Create a bootc host, and read its information via the Booted Container Images UI
 
     :id: c15f02a2-05e0-447a-bbcc-aace08d40d1a
 
@@ -2143,7 +2142,6 @@ def test_bootc_booted_container_images(target_sat, bootc_host, function_ak_with_
         assert booted_container_image_info[1]['Hosts'] == '1'
 
 
-@pytest.mark.tier2
 def test_bootc_host_details(target_sat, bootc_host, function_ak_with_cv, function_org):
     """Create a bootc host, and read it's information via the Host Details UI
 
@@ -2183,7 +2181,7 @@ def test_bootc_host_details(target_sat, bootc_host, function_ak_with_cv, functio
 
 
 def test_bootc_rex_job(target_sat, bootc_host, function_ak_with_cv, function_org):
-    """Run all bootc rex job (switch, upgrade, rollback, status) through Host Detais UI
+    """Run all bootc rex job (switch, upgrade, rollback, status) through Host Details UI
 
     :id: ef92a5f7-8cc7-4849-822c-90ea68b10554
 
