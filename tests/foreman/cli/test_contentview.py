@@ -78,7 +78,6 @@ class TestContentView:
     """Content View CLI Tests"""
 
     @pytest.mark.parametrize('name', **parametrized(valid_names_list()))
-    @pytest.mark.tier1
     def test_positive_create_with_name(self, module_org, module_target_sat, name):
         """create content views with different names
 
@@ -96,7 +95,6 @@ class TestContentView:
         assert content_view['name'] == name.strip()
 
     @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-    @pytest.mark.tier1
     def test_negative_create_with_invalid_name(self, module_org, module_target_sat, name):
         """create content views with invalid names
 
@@ -114,7 +112,6 @@ class TestContentView:
                 {'name': name, 'organization-id': module_org.id}
             )
 
-    @pytest.mark.tier1
     def test_negative_create_with_org_name(self, module_target_sat):
         """Create content view with invalid org name
 
@@ -128,7 +125,6 @@ class TestContentView:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.ContentView.create({'organization-id': gen_string('alpha')})
 
-    @pytest.mark.tier2
     def test_positive_create_with_repo_id(self, module_org, module_product, module_target_sat):
         """Create content view providing repository id
 
@@ -149,7 +145,6 @@ class TestContentView:
         assert cv['yum-repositories'][0]['id'] == repo['id']
 
     @pytest.mark.parametrize('new_name', **parametrized(valid_names_list()))
-    @pytest.mark.tier1
     def test_positive_update_name_by_id(self, module_org, module_target_sat, new_name):
         """Find content view by its id and update its name afterwards
 
@@ -171,7 +166,6 @@ class TestContentView:
         assert cv['name'] == new_name.strip()
 
     @pytest.mark.parametrize('new_name', **parametrized(valid_names_list()))
-    @pytest.mark.tier1
     def test_positive_update_name_by_name(self, module_org, module_target_sat, new_name):
         """Find content view by its name and update it
 
@@ -193,7 +187,6 @@ class TestContentView:
         assert cv['name'] == new_name.strip()
 
     @pytest.mark.run_in_one_thread
-    @pytest.mark.tier2
     def test_positive_update_filter(self, repo_setup, module_target_sat):
         """Edit content views for a rh content, add a filter and update filter
 
@@ -237,7 +230,6 @@ class TestContentView:
         cvf = module_target_sat.cli.ContentView.filter.info({'id': cvf['filter-id']})
         assert cvf['rules'][0]['types'] == 'security'
 
-    @pytest.mark.tier1
     def test_positive_delete_by_id(self, module_org, module_target_sat):
         """delete content view by its id
 
@@ -252,7 +244,6 @@ class TestContentView:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.ContentView.info({'id': cv['id']})
 
-    @pytest.mark.tier1
     def test_positive_delete_by_name(self, module_org, module_target_sat):
         """delete content view by its name
 
@@ -271,7 +262,6 @@ class TestContentView:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.ContentView.info({'id': cv['id']})
 
-    @pytest.mark.tier2
     def test_positive_delete_version_by_name(self, module_org, module_target_sat):
         """Create content view and publish it. After that try to
         disassociate content view from 'Library' environment through
@@ -306,7 +296,6 @@ class TestContentView:
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         assert len(content_view['versions']) == 0
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_delete_version_by_id(self, module_org, module_product, module_target_sat):
         """Create content view and publish it. After that try to
@@ -354,7 +343,6 @@ class TestContentView:
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
         assert len(new_cv['versions']) == 0
 
-    @pytest.mark.tier2
     def test_negative_publish_during_repo_sync(
         self,
         module_cv,
@@ -427,7 +415,6 @@ class TestContentView:
         assert 'Pending tasks detected' in humanized
         assert repo_task_id in humanized
 
-    @pytest.mark.tier2
     def test_negative_delete_version_by_id(self, module_org, module_target_sat):
         """Create content view and publish it. Try to delete content
         view version while content view is still associated with lifecycle
@@ -454,7 +441,6 @@ class TestContentView:
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         assert len(content_view['versions']) == 1
 
-    @pytest.mark.tier3
     def test_positive_remove_lce_by_id_and_reassign_ak(self, module_org, module_target_sat):
         """Remove content view environment and re-assign activation key to
         another environment and content view
@@ -519,7 +505,6 @@ class TestContentView:
         destination_cv = module_target_sat.cli.ContentView.info({'id': destination_cv['id']})
         assert destination_cv['activation-keys'][0] == ac_key['name']
 
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_remove_lce_by_id_and_reassign_chost(self, module_org, module_target_sat):
         """Remove content view environment and re-assign content host to
@@ -589,7 +574,6 @@ class TestContentView:
         destination_cv = module_target_sat.cli.ContentView.info({'id': destination_cv['id']})
         assert destination_cv['content-host-count'] == '1'
 
-    @pytest.mark.tier1
     def test_positive_remove_version_by_id(self, module_org, module_target_sat):
         """Delete content view version using 'remove' command by id
 
@@ -615,7 +599,6 @@ class TestContentView:
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
         assert len(new_cv['versions']) == 0
 
-    @pytest.mark.tier1
     def test_positive_remove_version_by_name(self, module_org, module_target_sat):
         """Delete content view version using 'remove' command by name
 
@@ -642,7 +625,6 @@ class TestContentView:
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
         assert len(new_cv['versions']) == 0
 
-    @pytest.mark.tier1
     def test_positive_remove_repository_by_id(self, module_org, module_product, module_target_sat):
         """Remove associated repository from content view by id
 
@@ -672,7 +654,6 @@ class TestContentView:
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
         assert 'yum-repositories' not in new_cv
 
-    @pytest.mark.tier1
     def test_positive_remove_repository_by_name(
         self, module_org, module_product, module_target_sat
     ):
@@ -704,7 +685,6 @@ class TestContentView:
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
         assert 'yum-repositories' not in new_cv
 
-    @pytest.mark.tier2
     def test_positive_remove_version_by_id_from_composite(
         self, module_org, module_product, module_target_sat
     ):
@@ -757,7 +737,6 @@ class TestContentView:
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
         assert len(new_cv['versions']) == 0
 
-    @pytest.mark.tier2
     def test_positive_remove_component_by_name(self, module_org, module_product, module_target_sat):
         """Create a composite content view and remove component from it by name
 
@@ -809,7 +788,6 @@ class TestContentView:
         comp_cv = module_target_sat.cli.ContentView.info({'id': comp_cv['id']})
         assert 'components' not in comp_cv
 
-    @pytest.mark.tier3
     def test_positive_create_composite_with_component_ids(self, module_org, module_target_sat):
         """Create a composite content view with a component_ids option which
         ids are from different content views
@@ -844,7 +822,6 @@ class TestContentView:
 
         assert {comp['id'] for comp in comp_cv['components']} == set(component_ids)
 
-    @pytest.mark.tier3
     def test_negative_create_composite_with_component_ids(self, module_org, module_target_sat):
         """Attempt to create a composite content view with a component_ids
         option which ids are from the same content view
@@ -876,7 +853,6 @@ class TestContentView:
             )
         assert 'Failed to create ContentView with data:' in str(context)
 
-    @pytest.mark.tier3
     def test_positive_update_composite_with_component_ids(self, module_org, module_target_sat):
         """Update a composite content view with a component_ids option
 
@@ -908,7 +884,6 @@ class TestContentView:
         assert comp_cv['components'][0]['id'] == component_ids
 
     @pytest.mark.run_in_one_thread
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_add_rh_repo_by_id_and_create_filter(
         self, module_sca_manifest_org, module_rhel_content, module_target_sat
@@ -951,7 +926,6 @@ class TestContentView:
         )
 
     @pytest.mark.run_in_one_thread
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
@@ -1006,7 +980,6 @@ class TestContentView:
         )
         assert filter_info['rules'][0]['id'] == content_view_filter_rule['rule-id']
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('add_by_name', [True, False], ids=['name', 'id'])
     def test_positive_add_custom_repo_by(
         self, module_org, module_product, module_target_sat, add_by_name
@@ -1042,7 +1015,6 @@ class TestContentView:
         assert new_cv['yum-repositories'][0]['name'] == new_repo['name']
         assert new_cv['yum-repositories'][0]['id'] == new_repo['id']
 
-    @pytest.mark.tier2
     def test_negative_add_same_yum_repo_twice(self, module_org, module_product, module_target_sat):
         """attempt to associate the same repo multiple times within a
         content view
@@ -1076,7 +1048,6 @@ class TestContentView:
         assert len(new_cv['yum-repositories']) == repos_length
 
     @pytest.mark.run_in_one_thread
-    @pytest.mark.tier2
     def test_positive_promote_rh_content(
         self, module_sca_manifest_org, module_rhel_content, module_target_sat
     ):
@@ -1114,7 +1085,6 @@ class TestContentView:
         assert environment in new_cv['lifecycle-environments']
 
     @pytest.mark.run_in_one_thread
-    @pytest.mark.tier3
     def test_positive_promote_rh_and_custom_content(
         self, module_sca_manifest_org, module_rhel_content, module_target_sat
     ):
@@ -1177,7 +1147,6 @@ class TestContentView:
         assert environment in new_cv['lifecycle-environments']
 
     @pytest.mark.build_sanity
-    @pytest.mark.tier2
     def test_positive_promote_custom_content(self, module_org, module_product, module_target_sat):
         """attempt to promote a content view containing custom content
 
@@ -1221,7 +1190,6 @@ class TestContentView:
             'lifecycle-environments'
         ]
 
-    @pytest.mark.tier2
     def test_positive_promote_ccv(self, module_org, module_product, module_target_sat):
         """attempt to promote a content view containing custom content
 
@@ -1281,7 +1249,6 @@ class TestContentView:
             'lifecycle-environments'
         ]
 
-    @pytest.mark.tier2
     def test_negative_promote_default_cv(self, module_org, module_target_sat):
         """attempt to promote a default content view
 
@@ -1308,7 +1275,6 @@ class TestContentView:
                 {'id': cvv['id'], 'to-lifecycle-environment-id': environment['id']}
             )
 
-    @pytest.mark.tier2
     def test_negative_promote_with_invalid_lce(self, module_org, module_product, module_target_sat):
         """attempt to promote a content view using an invalid
         environment
@@ -1350,7 +1316,6 @@ class TestContentView:
 
     @pytest.mark.run_in_one_thread
     @pytest.mark.pit_server
-    @pytest.mark.tier3
     def test_positive_publish_rh_and_custom_content(
         self, module_sca_manifest_org, module_rhel_content, module_target_sat
     ):
@@ -1406,7 +1371,6 @@ class TestContentView:
         )
         assert new_cv['versions'][0]['version'] == '1.0'
 
-    @pytest.mark.tier2
     def test_positive_publish_custom_major_minor_cv_version(self, module_target_sat):
         """CV can published with custom major and minor versions
 
@@ -1439,7 +1403,6 @@ class TestContentView:
         assert cvv.split('.')[1] == str(minor)
 
     @pytest.mark.upgrade
-    @pytest.mark.tier3
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -1506,7 +1469,6 @@ class TestContentView:
         )
         assert len(module_streams) > 13
 
-    @pytest.mark.tier2
     def test_positive_republish_after_content_removed(
         self, module_org, module_product, module_target_sat
     ):
@@ -1577,7 +1539,6 @@ class TestContentView:
         assert len(new_cv['versions']) == 2
 
     @pytest.mark.run_in_one_thread
-    @pytest.mark.tier2
     def test_positive_republish_after_rh_content_removed(
         self, module_sca_manifest_org, module_rhel_content, module_target_sat
     ):
@@ -1625,7 +1586,6 @@ class TestContentView:
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
         assert len(new_cv['versions']) == 2
 
-    @pytest.mark.tier2
     def test_positive_publish_ccv(self, module_org, module_product, module_target_sat):
         """attempt to publish a composite content view containing custom
         content
@@ -1675,7 +1635,6 @@ class TestContentView:
         assert composite_cv['lifecycle-environments'][0]['name'] == constants.ENVIRONMENT
         assert composite_cv['versions'][0]['version'] == '1.0'
 
-    @pytest.mark.tier2
     def test_positive_auto_update_composite_to_latest_cv_version(
         self, module_org, module_target_sat
     ):
@@ -1746,7 +1705,6 @@ class TestContentView:
         assert components[0]['current-version'] == '2.0'
 
     @pytest.mark.run_in_one_thread
-    @pytest.mark.tier3
     def test_positive_subscribe_chost_by_id_using_rh_content(
         self, module_sca_manifest_org, module_rhel_content, module_target_sat
     ):
@@ -1795,7 +1753,6 @@ class TestContentView:
         assert content_view['content-host-count'] == '1'
 
     @pytest.mark.run_in_one_thread
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_subscribe_chost_by_id_using_rh_content_and_filters(
         self, module_sca_manifest_org, module_rhel_content, module_target_sat
@@ -1867,7 +1824,6 @@ class TestContentView:
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         assert content_view['content-host-count'] == '1'
 
-    @pytest.mark.tier3
     def test_positive_subscribe_chost_by_id_using_ccv(self, module_org, module_target_sat):
         """Attempt to subscribe content host to composite content view
 
@@ -1906,7 +1862,6 @@ class TestContentView:
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         assert content_view['content-host-count'] == '1'
 
-    @pytest.mark.tier3
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -2072,7 +2027,6 @@ class TestContentView:
         assert len(org_hosts) == 1
         assert org_hosts[0]['name'] == rhel_contenthost.hostname
 
-    @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_sub_host_with_restricted_user_perm_at_default_loc(
         self, module_org, rhel_contenthost, target_sat
@@ -2224,7 +2178,6 @@ class TestContentView:
         assert len(org_hosts) == 1
         assert org_hosts[0]['name'] == rhel_contenthost.hostname
 
-    @pytest.mark.tier1
     def test_positive_clone_by_name(self, module_org, module_target_sat):
         """Clone existing content view by name
 
@@ -2250,7 +2203,6 @@ class TestContentView:
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
         assert new_cv['name'] == cloned_cv_name
 
-    @pytest.mark.tier2
     def test_positive_clone_within_same_env(self, module_org, module_target_sat):
         """Attempt to create, publish and promote new content view based on
         existing view within the same environment as the original content view
@@ -2287,7 +2239,6 @@ class TestContentView:
         new_cv = module_target_sat.cli.ContentView.info({'id': new_cv['id']})
         assert {'id': lc_env['id'], 'name': lc_env['name']} in new_cv['lifecycle-environments']
 
-    @pytest.mark.tier2
     def test_positive_clone_with_diff_env(self, module_org, module_target_sat):
         """Attempt to create, publish and promote new content view based on
         existing view but promoted to a different environment
@@ -2330,7 +2281,6 @@ class TestContentView:
             'lifecycle-environments'
         ]
 
-    @pytest.mark.tier2
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -2404,7 +2354,6 @@ class TestContentView:
             content_view['id'], content_view_version['id'], sat=module_target_sat
         )
 
-    @pytest.mark.tier2
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -2497,7 +2446,6 @@ class TestContentView:
         }
         assert {lce_dev['name']} == content_view_version_lce_names
 
-    @pytest.mark.tier3
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -2618,7 +2566,6 @@ class TestContentView:
         )
 
     @pytest.mark.stubbed
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_remove_cv_version_from_env_with_host_registered(self):
         """Remove promoted content view version from environment that is used
@@ -2656,7 +2603,6 @@ class TestContentView:
         """
 
     @pytest.mark.stubbed
-    @pytest.mark.tier3
     def test_positive_delete_cv_multi_env_promoted_with_host_registered(self):
         """Delete published content view with version promoted to multiple
          environments, with one of the environments used in association of an
@@ -2695,7 +2641,6 @@ class TestContentView:
         """
 
     @pytest.mark.run_in_one_thread
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
@@ -2884,7 +2829,6 @@ class TestContentView:
             else:
                 assert content_view['name'] not in capsule_content_info_lce_cvs_names
 
-    @pytest.mark.tier2
     def test_negative_user_with_no_create_view_cv_permissions(self, module_org, module_target_sat):
         """Unauthorized users are not able to create/view content views
 
@@ -2916,7 +2860,6 @@ class TestContentView:
                     no_rights_user['login'], no_rights_user['password']
                 ).info({'id': con_view['id']})
 
-    @pytest.mark.tier2
     def test_negative_user_with_read_only_cv_permission(self, module_org, module_target_sat):
         """Read-only user is able to view content view
 
@@ -2991,7 +2934,6 @@ class TestContentView:
                 {'organization-id': module_org.id}
             )
 
-    @pytest.mark.tier2
     def test_positive_user_with_all_cv_permissions(self, module_org, module_target_sat):
         """A user with all content view permissions is able to create,
         read, modify, promote, publish content views
@@ -3059,7 +3001,6 @@ class TestContentView:
         cv = module_target_sat.cli.ContentView.info({'id': cv['id']})
         assert environment['id'] in [env['id'] for env in cv['lifecycle-environments']]
 
-    @pytest.mark.tier3
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -3122,7 +3063,6 @@ class TestContentView:
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         assert '1.1' in [cvv_['version'] for cvv_ in content_view['versions']]
 
-    @pytest.mark.tier2
     def test_ccv_inc_update_autopublish(self, module_org, module_product, module_target_sat):
         """A CCV containing a CV that has an incremental update applied should auto-publish
 
@@ -3209,7 +3149,6 @@ class TestContentView:
         )
         assert 'Auto Publish' in cvv[0]['description']
 
-    @pytest.mark.tier2
     def test_version_info_by_lce(self, module_org, module_target_sat):
         """Hammer version info can be passed the lce id/name argument without error
 
@@ -3254,7 +3193,6 @@ class TestContentView:
         )
         assert cvv_info['version'] == '1.0'
 
-    @pytest.mark.tier2
     def test_show_all_repo_ids(self, module_org, module_product, module_target_sat):
         """Hammer content-view list shows all repo ids
 
@@ -3294,7 +3232,6 @@ class TestContentView:
         list_info = module_target_sat.cli.ContentView.list({'name': cv.name})
         assert set(list_info[0]['repository-ids'].split(', ')) == set(id_list)
 
-    @pytest.mark.tier2
     def test_cv_version_purge(self, module_org, module_target_sat):
         """Hammer content-view purge correctly purges CV Versions, instead
         of just up to the per page value
@@ -3487,7 +3424,6 @@ class TestContentViewFileRepo:
         assert int(new_repo['content-counts']['files']) > 0
         return new_repo
 
-    @pytest.mark.tier3
     def test_positive_arbitrary_file_repo_addition(
         self, module_org, module_product, module_target_sat
     ):
@@ -3528,7 +3464,6 @@ class TestContentViewFileRepo:
         cv = module_target_sat.cli.ContentView.info({'id': cv['id']})
         assert cv['file-repositories'][0]['name'] == repo['name']
 
-    @pytest.mark.tier3
     def test_positive_arbitrary_file_repo_removal(
         self, module_org, module_product, module_target_sat
     ):
@@ -3567,7 +3502,6 @@ class TestContentViewFileRepo:
         cv_info = module_target_sat.cli.ContentView.info({'id': cv['id']})
         assert 'file-repositories' not in cv_info, 'No file repo should be listed'
 
-    @pytest.mark.tier3
     def test_positive_arbitrary_file_repo_promotion(
         self, module_org, module_product, module_target_sat
     ):
@@ -3622,7 +3556,6 @@ class TestContentViewFileRepo:
 
         assert repo['name'] in expected_repo
 
-    @pytest.mark.tier3
     def test_positive_inc_update_should_not_fail(self, module_org, module_target_sat):
         """Incremental update after removing a package should not give a 400 error code
 

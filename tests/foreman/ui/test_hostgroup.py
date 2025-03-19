@@ -20,7 +20,6 @@ from robottelo.constants import DEFAULT_CV, ENVIRONMENT
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 def test_positive_end_to_end(session, module_org, module_location, module_target_sat):
     """Perform end to end testing for host group component
 
@@ -67,7 +66,6 @@ def test_positive_end_to_end(session, module_org, module_location, module_target
         assert not module_target_sat.api.HostGroup().search(query={'search': f'name={new_name}'})
 
 
-@pytest.mark.tier2
 def test_negative_delete_with_discovery_rule(
     session, module_org, module_location, module_target_sat
 ):
@@ -99,7 +97,6 @@ def test_negative_delete_with_discovery_rule(
         assert session.hostgroup.search(hostgroup.name)[0]['Name'] == hostgroup.name
 
 
-@pytest.mark.tier2
 def test_create_with_config_group(module_puppet_org, module_puppet_loc, session_puppet_enabled_sat):
     """Create new host group with assigned config group to it
 
@@ -130,7 +127,6 @@ def test_create_with_config_group(module_puppet_org, module_puppet_loc, session_
         assert hostgroup_values['puppet_enc']['config_groups']['assigned'][0] == config_group.name
 
 
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_create_with_puppet_class(module_puppet_org, module_puppet_loc, session_puppet_enabled_sat):
     """Create new host group with assigned puppet class to it
@@ -195,7 +191,6 @@ def test_positive_create_new_host():
     pass
 
 
-@pytest.mark.tier2
 def test_positive_nested_host_groups(
     session, module_org, module_lce, module_published_cv, module_ak_cv_lce, target_sat
 ):
@@ -268,7 +263,6 @@ def test_positive_nested_host_groups(
         assert not target_sat.api.HostGroup().search(query={'search': f'name={child_hg_name}'})
 
 
-@pytest.mark.tier2
 def test_positive_clone_host_groups(
     session, module_org, module_lce, module_published_cv, module_ak_cv_lce, target_sat
 ):

@@ -99,7 +99,7 @@ def external_user_count(module_target_sat):
 def groups_teardown(module_target_sat):
     """teardown for groups created for external/remote groups"""
     yield
-    # tier down groups
+    # teardown groups
     for group_name in ('sat_users', 'sat_admins', EXTERNAL_GROUP_NAME):
         user_groups = module_target_sat.api.UserGroup().search(
             query={'search': f'name="{group_name}"'}

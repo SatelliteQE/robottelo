@@ -79,7 +79,6 @@ infoblox_plugin_opts = {
 }
 
 
-@pytest.mark.tier4
 @pytest.mark.parametrize(
     ('command_args', 'command_opts', 'rpm_command'),
     params,

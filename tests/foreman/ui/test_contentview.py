@@ -27,7 +27,6 @@ VERSION = 'Version 1.0'
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, module_target_sat, module_org, module_lce):
     """Create content view with yum repo, publish it and promote it to Library
@@ -57,7 +56,6 @@ def test_positive_end_to_end(session, module_target_sat, module_org, module_lce)
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 def test_positive_ccv_e2e(session, module_target_sat, module_org, module_lce):
     """Create several CVs, and a CCV. Associate some content with each, and then associate the CVs
     with the CCV - everything should work properly.
@@ -95,7 +93,6 @@ def test_positive_ccv_e2e(session, module_target_sat, module_org, module_lce):
         assert len(result) == 1
 
 
-@pytest.mark.tier2
 def test_positive_create_cv(session, target_sat):
     """Able to create cv and search for it
 
@@ -115,7 +112,6 @@ def test_positive_create_cv(session, target_sat):
         assert session.contentview_new.search(cv)[0]['Name'] == cv
 
 
-@pytest.mark.tier2
 def test_version_table_read(session, function_sca_manifest_org, target_sat):
     """Able to read CV version package details, which includes the Epoch tab
 
@@ -156,7 +152,6 @@ def test_version_table_read(session, function_sca_manifest_org, target_sat):
         assert response[0]['Arch'] == packages['results'][0]['arch']
 
 
-@pytest.mark.tier2
 def test_no_blank_page_on_language_switch(session, target_sat, module_org):
     """Able to view the new CV UI when the language is set to something other
     than English
@@ -187,7 +182,6 @@ def test_no_blank_page_on_language_switch(session, target_sat, module_org):
         assert session.contentview_new.read_french_lang_cv()
 
 
-@pytest.mark.tier2
 def test_file_cv_display(session, target_sat, module_org, module_product):
     """Content-> Files displays only the Content Views associated with that file
 
@@ -227,7 +221,6 @@ def test_file_cv_display(session, target_sat, module_org, module_product):
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier2
 def test_positive_delete_cv_promoted_to_multi_env(
     session,
     target_sat,

@@ -60,7 +60,6 @@ class TestTemplateSyncTestCase:
             f'[ -f example_template.erb ] || wget {FOREMAN_TEMPLATE_TEST_TEMPLATE}'
         )
 
-    @pytest.mark.tier2
     def test_positive_import_filtered_templates_from_git(
         self, module_org, module_location, module_target_sat
     ):
@@ -138,7 +137,6 @@ class TestTemplateSyncTestCase:
         )
         assert len(rtemplates) == 1
 
-    @pytest.mark.tier2
     def test_import_filtered_templates_from_git_with_negate(self, module_org, module_target_sat):
         """Assure templates with a given filter regex are NOT pulled from
         git repo.
@@ -190,7 +188,6 @@ class TestTemplateSyncTestCase:
         )
         assert len(rtemplates) == 1
 
-    @pytest.mark.tier2
     def test_import_template_with_puppet(self, parametrized_puppet_sat):
         """Importing puppet templates with enabled/disabled puppet module
 
@@ -228,7 +225,6 @@ class TestTemplateSyncTestCase:
         else:
             assert not_imported_count == 2
 
-    @pytest.mark.tier2
     def test_positive_import_and_associate(
         self,
         create_import_export_local_dir,
@@ -367,7 +363,6 @@ class TestTemplateSyncTestCase:
         assert ptemplate
         assert len(ptemplate[0].read().organization) == 1
 
-    @pytest.mark.tier2
     def test_positive_import_from_subdirectory(self, module_org, module_target_sat):
         """Assure templates are imported from specific repositories subdirectory
 
@@ -402,7 +397,6 @@ class TestTemplateSyncTestCase:
 
     # Export tests
 
-    @pytest.mark.tier2
     def test_positive_export_filtered_templates_to_localdir(
         self, module_org, create_import_export_local_dir, target_sat
     ):
@@ -439,7 +433,6 @@ class TestTemplateSyncTestCase:
             target_sat.execute(f'find {dir_path} -type f -name *ansible* | wc -l').stdout.strip()
         )
 
-    @pytest.mark.tier2
     def test_positive_export_filtered_templates_negate(
         self, module_org, create_import_export_local_dir, target_sat
     ):
@@ -474,7 +467,6 @@ class TestTemplateSyncTestCase:
         )
         assert target_sat.execute(f'find {dir_path} -type f | wc -l').stdout.strip() != '0'
 
-    @pytest.mark.tier2
     def test_positive_export_and_import_with_metadata(
         self, create_import_export_local_dir, module_org, module_location, target_sat
     ):
@@ -552,7 +544,6 @@ class TestTemplateSyncTestCase:
         assert result.status == 1
 
     # Take Templates out of Tech Preview Feature Tests
-    @pytest.mark.tier3
     @pytest.mark.parametrize('verbose', [True, False])
     def test_positive_import_json_output_verbose(self, module_org, verbose, module_target_sat):
         """Assert all the required fields displayed in import output when
@@ -603,7 +594,6 @@ class TestTemplateSyncTestCase:
         actual_fields = templates['message']['templates'][0].keys()
         assert sorted(actual_fields) == sorted(expected_fields)
 
-    @pytest.mark.tier2
     def test_positive_import_json_output_changed_key_true(
         self, create_import_export_local_dir, module_org, target_sat
     ):
@@ -639,7 +629,6 @@ class TestTemplateSyncTestCase:
         )
         assert bool(post_template['message']['templates'][0]['changed'])
 
-    @pytest.mark.tier2
     def test_positive_import_json_output_changed_key_false(
         self, create_import_export_local_dir, module_org, module_target_sat
     ):
@@ -673,7 +662,6 @@ class TestTemplateSyncTestCase:
         )
         assert not bool(post_template['message']['templates'][0]['changed'])
 
-    @pytest.mark.tier2
     def test_positive_import_json_output_name_key(
         self, create_import_export_local_dir, module_org, target_sat
     ):
@@ -704,7 +692,6 @@ class TestTemplateSyncTestCase:
         assert 'name' in template['message']['templates'][0]
         assert template_name == template['message']['templates'][0]['name']
 
-    @pytest.mark.tier2
     def test_positive_import_json_output_imported_key(
         self, create_import_export_local_dir, module_org, module_target_sat
     ):
@@ -731,7 +718,6 @@ class TestTemplateSyncTestCase:
         )
         assert bool(template['message']['templates'][0]['imported'])
 
-    @pytest.mark.tier2
     def test_positive_import_json_output_file_key(
         self, create_import_export_local_dir, module_org, module_target_sat
     ):
@@ -758,7 +744,6 @@ class TestTemplateSyncTestCase:
         )
         assert template['message']['templates'][0]['file'] == 'example_template.erb'
 
-    @pytest.mark.tier2
     def test_positive_import_json_output_corrupted_metadata(
         self, create_import_export_local_dir, module_org, target_sat
     ):
@@ -791,7 +776,6 @@ class TestTemplateSyncTestCase:
             template['message']['templates'][0]['additional_errors'] == 'Failed to parse metadata'
         )
 
-    @pytest.mark.tier2
     def test_positive_import_json_output_filtered_skip_message(
         self, create_import_export_local_dir, module_org, module_target_sat
     ):
@@ -827,7 +811,6 @@ class TestTemplateSyncTestCase:
             == "Skipping, 'name' filtered out based on 'filter' and 'negate' settings"
         )
 
-    @pytest.mark.tier2
     def test_positive_import_json_output_no_name_error(
         self, create_import_export_local_dir, module_org, target_sat
     ):
@@ -861,7 +844,6 @@ class TestTemplateSyncTestCase:
             == "No 'name' found in metadata"
         )
 
-    @pytest.mark.tier2
     def test_positive_import_json_output_no_model_error(
         self, create_import_export_local_dir, module_org, target_sat
     ):
@@ -895,7 +877,6 @@ class TestTemplateSyncTestCase:
             == "No 'model' found in metadata"
         )
 
-    @pytest.mark.tier2
     def test_positive_import_json_output_blank_model_error(
         self, create_import_export_local_dir, module_org, target_sat
     ):
@@ -929,7 +910,6 @@ class TestTemplateSyncTestCase:
             == "Template type  was not found, are you missing a plugin?"
         )
 
-    @pytest.mark.tier2
     def test_positive_export_json_output(
         self, create_import_export_local_dir, module_org, target_sat
     ):
@@ -988,7 +968,6 @@ class TestTemplateSyncTestCase:
             == 0
         )
 
-    @pytest.mark.tier3
     def test_positive_import_log_to_production(self, module_org, target_sat):
         """Assert template import logs are logged to production logs
 
@@ -1022,7 +1001,6 @@ class TestTemplateSyncTestCase:
             == 0
         )
 
-    @pytest.mark.tier3
     def test_positive_export_log_to_production(
         self, create_import_export_local_dir, module_org, target_sat
     ):
@@ -1062,7 +1040,6 @@ class TestTemplateSyncTestCase:
             == 0
         )
 
-    @pytest.mark.tier2
     @pytest.mark.skip_if_not_set('git')
     @pytest.mark.parametrize(
         ('url', 'git_repository', 'use_proxy', 'setup_http_proxy_without_global_settings'),
@@ -1184,7 +1161,6 @@ class TestTemplateSyncTestCase:
         git_count = [row['path'].endswith('.erb') for row in tree].count(True)
         assert len(output['message']['templates']) == git_count
 
-    @pytest.mark.tier2
     def test_positive_import_all_templates_from_repo(self, module_org, module_target_sat):
         """Assure all templates are imported if no filter is specified.
 
@@ -1216,7 +1192,6 @@ class TestTemplateSyncTestCase:
         git_count = [row['path'].endswith('.erb') for row in tree].count(True)
         assert len(output['message']['templates']) == git_count
 
-    @pytest.mark.tier2
     def test_negative_import_locked_template(self, module_org, module_target_sat):
         """Assure locked templates are not pulled from repository.
 
@@ -1265,7 +1240,6 @@ class TestTemplateSyncTestCase:
         ).read()
         assert git_content.decode('utf-8') == sat_content.template
 
-    @pytest.mark.tier2
     def test_positive_import_locked_template(self, module_org, module_target_sat):
         """Assure locked templates are pulled from repository while using force parameter.
 

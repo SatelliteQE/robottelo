@@ -33,7 +33,6 @@ def valid_timeout_values():
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier1
 @pytest.mark.upgrade
 @pytest.mark.parametrize('setting_update', ['login_text'], indirect=True)
 def test_positive_update_login_page_footer_text(setting_update):
@@ -54,7 +53,6 @@ def test_positive_update_login_page_footer_text(setting_update):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['login_text'], indirect=True)
 def test_positive_update_login_page_footer_text_without_value(setting_update):
     """Updates parameter "login_text" without any string (empty value)
@@ -71,7 +69,6 @@ def test_positive_update_login_page_footer_text_without_value(setting_update):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['login_text'], indirect=True)
 def test_positive_update_login_page_footer_text_with_long_string(setting_update):
     """Attempt to update parameter "Login_page_footer_text"
@@ -89,7 +86,6 @@ def test_positive_update_login_page_footer_text_with_long_string(setting_update)
     assert setting_update.value == login_text_value
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['discovery_hostname'], indirect=True)
 def test_negative_update_hostname_with_empty_fact(setting_update):
     """Update the Hostname_facts settings without any string(empty values)
@@ -106,7 +102,6 @@ def test_negative_update_hostname_with_empty_fact(setting_update):
         setting_update.update({'value'})
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['discovery_prefix'], indirect=True)
 def test_positive_update_hostname_prefix_without_value(setting_update):
     """Update the Hostname_prefix settings without any string(empty values)
@@ -124,7 +119,6 @@ def test_positive_update_hostname_prefix_without_value(setting_update):
         setting_update.update({'value'})
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('setting_update', ['discovery_prefix'], indirect=True)
 def test_positive_update_hostname_default_prefix(setting_update):
     """Update the default set prefix of hostname_prefix setting
@@ -146,7 +140,6 @@ def test_positive_update_hostname_default_prefix(setting_update):
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 def test_positive_update_hostname_default_facts():
     """Update the default set fact of hostname_facts setting with list of
     facts like: bios_vendor,uuid
@@ -160,7 +153,6 @@ def test_positive_update_hostname_default_facts():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 def test_negative_discover_host_with_invalid_prefix():
     """Update the hostname_prefix with invalid string like
     -mac, 1mac or ^%$
@@ -175,7 +167,6 @@ def test_negative_discover_host_with_invalid_prefix():
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier2
 @pytest.mark.parametrize('download_policy', ["immediate", "on_demand"])
 @pytest.mark.parametrize('setting_update', ['default_download_policy'], indirect=True)
 def test_positive_custom_repo_download_policy(setting_update, download_policy, target_sat):
@@ -207,7 +198,6 @@ def test_positive_custom_repo_download_policy(setting_update, download_policy, t
     prod.delete()
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('valid_value', **parametrized(valid_timeout_values()))
 @pytest.mark.parametrize('setting_update', ['sync_connect_timeout_v2'], indirect=True)
 def test_positive_update_sync_timeout(setting_update, valid_value):
@@ -228,7 +218,6 @@ def test_positive_update_sync_timeout(setting_update, valid_value):
     assert str(setting_update.value) == valid_value
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('invalid_value', ["-1", "3.1415", "2.71828e+11", "123456789", "0x3f77"])
 @pytest.mark.parametrize('setting_update', ['sync_connect_timeout_v2'], indirect=True)
 def test_negative_update_sync_timeout(setting_update, invalid_value):

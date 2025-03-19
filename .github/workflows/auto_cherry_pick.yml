@@ -37,6 +37,7 @@ jobs:
     needs: find-the-parent-prt-comment
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         label: ${{ github.event.pull_request.labels.*.name }}
 

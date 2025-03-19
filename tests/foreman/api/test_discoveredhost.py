@@ -170,7 +170,6 @@ class TestDiscoveredHost:
     @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
     @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
     @pytest.mark.rhel_ver_list([8, 9])
-    @pytest.mark.tier3
     def test_positive_provision_pxe_host(
         self,
         module_provisioning_rhel_content,
@@ -225,7 +224,6 @@ class TestDiscoveredHost:
     @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
     @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
     @pytest.mark.rhel_ver_list([8, 9])
-    @pytest.mark.tier3
     def test_positive_provision_pxe_less_host(
         self,
         module_discovery_sat,
@@ -269,7 +267,6 @@ class TestDiscoveredHost:
         assert_discovered_host_provisioned(shell, module_provisioning_rhel_content.ksrepo)
         request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
 
-    @pytest.mark.tier3
     def test_positive_auto_provision_pxe_host(
         self, module_discovery_hostgroup, module_target_sat, discovery_org, discovery_location
     ):
@@ -300,7 +297,6 @@ class TestDiscoveredHost:
         result = module_target_sat.api.DiscoveredHost(id=discovered_host['id']).auto_provision()
         assert f'provisioned with rule {rule.name}' in result['message']
 
-    @pytest.mark.tier3
     def test_positive_auto_provision_all(
         self, module_discovery_hostgroup, module_target_sat, discovery_org, discovery_location
     ):
@@ -335,7 +331,6 @@ class TestDiscoveredHost:
         assert '2 discovered hosts were provisioned' in result['message']
 
     @pytest.mark.stubbed
-    @pytest.mark.tier3
     def test_positive_refresh_facts_pxe_host(self, module_target_sat):
         """Refresh the facts of pxe based discovered hosts by adding a new NIC
 
@@ -358,7 +353,6 @@ class TestDiscoveredHost:
     @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
     @pytest.mark.parametrize('pxe_loader', ['uefi'], indirect=True)
     @pytest.mark.rhel_ver_match('9')
-    @pytest.mark.tier3
     def test_positive_reboot_pxe_host(
         self,
         module_provisioning_rhel_content,
@@ -401,7 +395,6 @@ class TestDiscoveredHost:
     @pytest.mark.on_premises_provisioning
     @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
     @pytest.mark.rhel_ver_match('9')
-    @pytest.mark.tier3
     def test_positive_reboot_all_pxe_hosts(
         self,
         module_provisioning_rhel_content,
@@ -484,7 +477,6 @@ class TestFakeDiscoveryTests:
             }
         )
 
-    @pytest.mark.tier2
     def test_positive_upload_facts(self, target_sat):
         """Upload fake facts to create a discovered host
 
@@ -507,7 +499,6 @@ class TestFakeDiscoveryTests:
         host_name = 'mac{}'.format(discovered_host['mac'].replace(':', ''))
         assert discovered_host['name'] == host_name
 
-    @pytest.mark.tier3
     def test_positive_delete_pxe_host(self, target_sat):
         """Delete a pxe-based discovered hosts
 

@@ -50,7 +50,6 @@ def module_prod(module_org, module_target_sat):
     return module_target_sat.api.Product(organization=module_org).create()
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_create_in_different_orgs(session, module_org, module_target_sat):
@@ -83,7 +82,6 @@ def test_positive_create_in_different_orgs(session, module_org, module_target_sa
             assert values['label'] == org.label
 
 
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_create_as_non_admin_user(module_org, test_name, target_sat):
     """Create a repository as a non admin user
@@ -134,7 +132,6 @@ def test_positive_create_as_non_admin_user(module_org, test_name, target_sat):
         assert session.repository.search(product.name, repo_name)[0]['Name'] == repo_name
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_create_yum_repo_same_url_different_orgs(session, module_prod, module_target_sat):
@@ -172,7 +169,6 @@ def test_positive_create_yum_repo_same_url_different_orgs(session, module_prod, 
         assert repo_packages_count == new_repo_packages_count
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_create_as_non_admin_user_with_cv_published(module_org, test_name, target_sat):
@@ -243,7 +239,6 @@ def test_positive_create_as_non_admin_user_with_cv_published(module_org, test_na
         assert session.repository.search(prod.name, repo.name)[0]['Name'] == repo.name
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('allow_repo_discovery')
@@ -289,7 +284,6 @@ def test_positive_discover_repo_via_new_and_existing_product(
         assert repo_name_1 in session.repository.search(product_name, repo_name_1)[0]['Name']
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_sync_yum_repo_and_verify_content_checksum(session, module_org, module_target_sat):
@@ -323,7 +317,6 @@ def test_positive_sync_yum_repo_and_verify_content_checksum(session, module_org,
         assert result['task']['result'] == 'success'
 
 
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_resync_custom_repo_after_invalid_update(session, module_org, module_target_sat):
     """Create Custom yum repo and sync it via the repos page. Then try to
@@ -355,7 +348,6 @@ def test_positive_resync_custom_repo_after_invalid_update(session, module_org, m
         assert result['result'] == 'success'
 
 
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_resynchronize_rpm_repo(session, module_prod, module_target_sat):
     """Check that repository content is resynced after packages were removed
@@ -388,7 +380,6 @@ def test_positive_resynchronize_rpm_repo(session, module_prod, module_target_sat
         assert int(repo_values['content_counts']['Packages']) >= 1
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod, module_target_sat):
@@ -452,7 +443,6 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod, m
         assert not session.repository.search(module_prod.name, new_repo_name)
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_end_to_end_custom_module_streams_crud(session, module_org, module_prod):
@@ -492,7 +482,6 @@ def test_positive_end_to_end_custom_module_streams_crud(session, module_org, mod
         assert not session.repository.search(module_prod.name, repo_name)
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_upstream_with_credentials(session, module_prod):
     """Create repository with upstream username and password update them and then clear them.
@@ -554,7 +543,6 @@ def test_positive_upstream_with_credentials(session, module_prod):
 
 
 # TODO: un-comment when OSTREE functionality is restored in Satellite 6.11
-# @pytest.mark.tier2
 # @pytest.mark.upgrade
 # @pytest.mark.skipif(
 #   (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
@@ -595,7 +583,6 @@ def test_positive_upstream_with_credentials(session, module_prod):
 #         assert not session.repository.search(module_prod.name, new_repo_name)
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_sync_ansible_collection_gallaxy_repo(session, module_prod):
     """Sync ansible collection repository from ansible gallaxy
@@ -629,7 +616,6 @@ def test_positive_sync_ansible_collection_gallaxy_repo(session, module_prod):
         assert result['result'] == 'success'
 
 
-@pytest.mark.tier2
 def test_positive_no_errors_on_repo_scan(target_sat, function_sca_manifest_org):
     """Scan repos for RHEL Server Extras, then check the production log
     for a specific error
@@ -653,7 +639,6 @@ def test_positive_no_errors_on_repo_scan(target_sat, function_sca_manifest_org):
         assert result.status == 1
 
 
-@pytest.mark.tier2
 def test_positive_reposet_disable(session, target_sat, function_sca_manifest_org):
     """Enable RH repo, sync it and then disable
 
@@ -692,7 +677,6 @@ def test_positive_reposet_disable(session, target_sat, function_sca_manifest_org
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier2
 def test_positive_reposet_disable_after_manifest_deleted(
     session, function_sca_manifest_org, target_sat
 ):
@@ -747,7 +731,6 @@ def test_positive_reposet_disable_after_manifest_deleted(
         )
 
 
-@pytest.mark.tier2
 def test_positive_delete_random_docker_repo(session, module_org, module_target_sat):
     """Create Docker-type repositories on multiple products and
     delete a random repository from a random product.
@@ -777,7 +760,6 @@ def test_positive_delete_random_docker_repo(session, module_org, module_target_s
             assert session.repository.search(product_name, repo_name)[0]['Name'] == repo_name
 
 
-@pytest.mark.tier2
 def test_positive_delete_rhel_repo(session, module_sca_manifest_org, target_sat):
     """Enable and sync a Red Hat Repository, and then delete it
 
@@ -823,7 +805,6 @@ def test_positive_delete_rhel_repo(session, module_sca_manifest_org, target_sat)
         )
 
 
-@pytest.mark.tier2
 def test_recommended_repos(session, module_sca_manifest_org):
     """list recommended repositories using On/Off 'Recommended Repositories' toggle.
 
@@ -854,7 +835,6 @@ def test_recommended_repos(session, module_sca_manifest_org):
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 def test_positive_upload_resigned_rpm():
     """Re-sign and re-upload an rpm that already exists in a repository.
 
@@ -881,7 +861,6 @@ def test_positive_upload_resigned_rpm():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 def test_positive_remove_srpm_change_checksum():
     """Re-sync a repository that has had an srpm removed and repodata checksum type changed from
     sha1 to sha256.
@@ -904,7 +883,6 @@ def test_positive_remove_srpm_change_checksum():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier1
 def test_positive_repo_discovery_change_ssl():
     """Verify that repository created via repo discovery has expected Verify SSL value.
 
@@ -928,7 +906,6 @@ def test_positive_repo_discovery_change_ssl():
     pass
 
 
-@pytest.mark.tier1
 def test_positive_remove_credentials(session, function_product, function_org, function_location):
     """User can remove the upstream_username and upstream_password from a repository in the UI.
 
@@ -971,7 +948,6 @@ def test_positive_remove_credentials(session, function_product, function_org, fu
         assert not repo_values['repo_content']['upstream_authorization']
 
 
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_sync_status_persists_after_task_delete(session, module_prod, module_org, target_sat):
     """Red Hat repositories displayed correctly on Sync Status page.
@@ -1029,7 +1005,6 @@ def test_sync_status_persists_after_task_delete(session, module_prod, module_org
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 def test_positive_sync_status_repo_display():
     """Red Hat repositories displayed correctly on Sync Status page.
 
@@ -1049,7 +1024,6 @@ def test_positive_sync_status_repo_display():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 def test_positive_search_enabled_kickstart_repos():
     """Red Hat Repositories should show enabled repositories list with search criteria
     'Enabled/Both' and type 'Kickstart'.
@@ -1073,7 +1047,6 @@ def test_positive_search_enabled_kickstart_repos():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 def test_positive_rpm_metadata_display():
     """RPM dependencies should display correctly in UI.
 
@@ -1102,7 +1075,6 @@ def test_positive_rpm_metadata_display():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 def test_positive_select_org_in_any_context():
     """When attempting to check Sync Status from 'Any Context' the user
     should be properly routed away from the 'Select An Organization' page
@@ -1127,7 +1099,6 @@ def test_positive_select_org_in_any_context():
     pass
 
 
-@pytest.mark.tier2
 def test_positive_sync_sha_repo(session, module_org, module_target_sat):
     """Sync repository with 'sha' checksum, which uses 'sha1' in particular actually
 
@@ -1154,7 +1125,6 @@ def test_positive_sync_sha_repo(session, module_org, module_target_sat):
         assert result['result'] == 'success'
 
 
-@pytest.mark.tier2
 def test_positive_able_to_disable_and_enable_rhel_repos(
     session, function_sca_manifest_org, target_sat
 ):
