@@ -107,7 +107,6 @@ def fixture_setup_rhc_satellite(
 
 
 @pytest.mark.e2e
-@pytest.mark.tier3
 @pytest.mark.pit_server
 def test_positive_configure_cloud_connector(
     session,

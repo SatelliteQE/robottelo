@@ -55,7 +55,6 @@ def module_sc_params(session_puppet_enabled_sat, module_puppet):
     return {'list': sc_params_list, 'ids': sc_params_ids_list}
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 @pytest.mark.skipif(

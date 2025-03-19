@@ -20,7 +20,6 @@ from robottelo.utils.datafactory import gen_string
 class TestTailoringFile:
     """Implements Tailoring Files tests in API."""
 
-    @pytest.mark.tier1
     @pytest.mark.e2e
     def test_positive_crud_tailoringfile(
         self, default_org, default_location, tailoring_file_path, target_sat

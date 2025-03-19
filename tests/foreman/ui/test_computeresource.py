@@ -47,7 +47,6 @@ def rhev_data():
     return ret
 
 
-@pytest.mark.tier2
 def test_positive_end_to_end(session, rhev_data, module_target_sat):
     """Perform end to end testing for compute resource RHEV.
 
@@ -90,7 +89,6 @@ def test_positive_end_to_end(session, rhev_data, module_target_sat):
         )
 
 
-@pytest.mark.tier2
 def test_positive_add_resource(session, rhev_data):
     """Create new RHEV Compute Resource using APIv4
 
@@ -122,7 +120,6 @@ def test_positive_add_resource(session, rhev_data):
         assert resource_values['name'] == name
 
 
-@pytest.mark.tier2
 def test_positive_edit_resource_description(session, rhev_data):
     """Edit RHEV Compute Resource with another description
 
@@ -155,7 +152,6 @@ def test_positive_edit_resource_description(session, rhev_data):
         assert resource_values['description'] == new_description
 
 
-@pytest.mark.tier2
 def test_positive_list_resource_vms(session, rhev_data):
     """List VMs for RHEV Compute Resource
 
@@ -184,7 +180,6 @@ def test_positive_list_resource_vms(session, rhev_data):
         assert vm['Name'].read() == rhev_data['vm_name']
 
 
-@pytest.mark.tier2
 @pytest.mark.run_in_one_thread
 def test_positive_resource_vm_power_management(session, rhev_data):
     """Read current RHEV Compute Resource virtual machine power status and
@@ -230,7 +225,6 @@ def test_positive_resource_vm_power_management(session, rhev_data):
         assert session.computeresource.vm_status(name, rhev_data['vm_name']) is not status
 
 
-@pytest.mark.tier3
 def test_positive_VM_import(session, module_org, module_location, rhev_data, module_target_sat):
     """Import an existing VM as a Host
 
@@ -319,7 +313,6 @@ def test_positive_VM_import(session, module_org, module_location, rhev_data, mod
     module_target_sat.api.Host(name=rhev_data['vm_name']).search()[0].delete()
 
 
-@pytest.mark.tier3
 def test_positive_update_organization(session, rhev_data, module_location, module_target_sat):
     """Update a rhev Compute Resource organization
 
@@ -368,7 +361,6 @@ def test_positive_update_organization(session, rhev_data, module_location, modul
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 def test_positive_image_end_to_end(session, rhev_data, target_sat):
     """Perform end to end testing for compute resource RHV component image.
 
@@ -427,7 +419,6 @@ def test_positive_image_end_to_end(session, rhev_data, target_sat):
         )
 
 
-@pytest.mark.tier2
 def test_positive_associate_with_custom_profile(session, rhev_data):
     """ "Associate custom default (3-Large) compute profile to RHV compute resource.
 
@@ -514,7 +505,6 @@ def test_positive_associate_with_custom_profile(session, rhev_data):
                 assert provided_value == expected_value
 
 
-@pytest.mark.tier3
 def test_positive_associate_with_custom_profile_with_template(session, rhev_data):
     """Associate custom default (3-Large) compute profile to rhev compute
      resource, with template

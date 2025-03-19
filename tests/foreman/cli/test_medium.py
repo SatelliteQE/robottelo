@@ -25,7 +25,6 @@ OSES = ['Archlinux', 'Debian', 'Gentoo', 'Redhat', 'Solaris', 'Suse', 'Windows']
 class TestMedium:
     """Test class for Medium CLI"""
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(valid_data_list().values()))
     def test_positive_crud_with_name(self, name, module_target_sat):
         """Check if Medium can be created, updated, deleted
@@ -49,7 +48,6 @@ class TestMedium:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.Medium.info({'id': medium['id']})
 
-    @pytest.mark.tier1
     def test_positive_create_with_location(self, module_target_sat):
         """Check if medium with location can be created
 
@@ -64,7 +62,6 @@ class TestMedium:
         medium = module_target_sat.cli_factory.make_medium({'location-ids': location['id']})
         assert location['name'] in medium['locations']
 
-    @pytest.mark.tier1
     def test_positive_create_with_organization_by_id(self, module_target_sat):
         """Check if medium with organization can be created
 
@@ -79,7 +76,6 @@ class TestMedium:
         medium = module_target_sat.cli_factory.make_medium({'organization-ids': org['id']})
         assert org['name'] in medium['organizations']
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_remove_os(self, module_target_sat):
         """Check if Medium can be associated with operating system and then removed from media

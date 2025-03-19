@@ -187,7 +187,6 @@ def loadbalancer_setup(
 
 
 @pytest.mark.e2e
-@pytest.mark.tier1
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_loadbalancer_install_package(
     loadbalancer_setup, setup_capsules, rhel_contenthost, module_org, module_location, request
@@ -253,7 +252,6 @@ def test_loadbalancer_install_package(
 
 
 @pytest.mark.rhel_ver_match('N-2')
-@pytest.mark.tier1
 def test_client_register_through_lb(
     loadbalancer_setup,
     rhel_contenthost,

@@ -12,10 +12,7 @@
 
 """
 
-import pytest
 
-
-@pytest.mark.tier2
 def test_positive_webpack5(target_sat):
     """Check whether Webpack 5 was used at packaging time
 

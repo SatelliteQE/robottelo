@@ -32,7 +32,6 @@ class TestArchitecture:
         """Shared architecture for tests"""
         return class_target_sat.cli_factory.make_architecture()
 
-    @pytest.mark.tier1
     def test_positive_CRUD(self, module_target_sat):
         """Create a new Architecture, update the name and delete the Architecture itself.
 
@@ -55,7 +54,6 @@ class TestArchitecture:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.Architecture.info({'id': architecture['id']})
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
     def test_negative_create_with_name(self, name, module_target_sat):
         """Don't create an Architecture with invalid data.
@@ -74,7 +72,6 @@ class TestArchitecture:
 
         assert 'Could not create the architecture:' in error.value.message
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
     def test_negative_update_name(self, class_architecture, new_name, module_target_sat):
         """Create Architecture then fail to update its name
@@ -98,7 +95,6 @@ class TestArchitecture:
         result = module_target_sat.cli.Architecture.info({'id': class_architecture['id']})
         assert class_architecture['name'] == result['name']
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('entity_id', **parametrized(invalid_id_list()))
     def test_negative_delete_by_id(self, entity_id, module_target_sat):
         """Delete architecture by invalid ID

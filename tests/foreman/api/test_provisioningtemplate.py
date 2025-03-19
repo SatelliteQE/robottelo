@@ -127,7 +127,6 @@ def tftpboot(module_org, module_target_sat):
 class TestProvisioningTemplate:
     """Tests for provisioning templates"""
 
-    @pytest.mark.tier1
     @pytest.mark.e2e
     @pytest.mark.upgrade
     def test_positive_end_to_end_crud(
@@ -208,7 +207,6 @@ class TestProvisioningTemplate:
         assert e3.value.response.status_code == 404
 
     @pytest.mark.e2e
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_build_pxe_default(self, tftpboot, module_target_sat):
         """Call the "build_pxe_default" path.

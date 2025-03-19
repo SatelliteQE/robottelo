@@ -80,7 +80,6 @@ Out [5]:
   'parameters': [],
   'attributes': [{'key': 'SnapVersion', 'value': '22.0'},
    {'key': 'SatelliteVersion', 'value': '6.11.0'},
-   {'key': '', 'value': 'tier2'},
    {'key': 'upgrade', 'value': 'None'},
    {'key': 'endpoint', 'value': 'ui'},
    {'key': 'importance', 'value': 'High'},

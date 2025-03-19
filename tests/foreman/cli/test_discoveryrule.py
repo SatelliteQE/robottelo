@@ -89,7 +89,6 @@ class TestDiscoveryRule:
             _create_discoveryrule, org=class_org, loc=class_location, hostgroup=class_hostgroup
         )
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
     def test_positive_create_with_name(self, name, discoveryrule_factory, target_sat):
         """Create Discovery Rule using different names
@@ -108,7 +107,6 @@ class TestDiscoveryRule:
         with pytest.raises(CLIReturnCodeError):
             target_sat.cli.DiscoveryRule.info({'id': rule.id})
 
-    @pytest.mark.tier1
     def test_positive_create_with_search(self, discoveryrule_factory):
         """Create Discovery Rule using different search queries
 
@@ -126,7 +124,6 @@ class TestDiscoveryRule:
         rule = discoveryrule_factory(options={'search': custom_query})
         assert rule.search == custom_query
 
-    @pytest.mark.tier2
     def test_positive_create_with_hostname(self, discoveryrule_factory):
         """Create Discovery Rule using valid hostname
 
@@ -140,7 +137,6 @@ class TestDiscoveryRule:
         rule = discoveryrule_factory(options={'hostname': host_name})
         assert rule['hostname-template'] == host_name
 
-    @pytest.mark.tier1
     def test_positive_create_and_update_with_org_loc_id(
         self, discoveryrule_factory, class_org, class_location, class_hostgroup, target_sat
     ):
@@ -182,7 +178,6 @@ class TestDiscoveryRule:
         assert new_loc.name == rule['locations'][0]['name']
         assert new_hostgroup.name == rule['host-group']['name']
 
-    @pytest.mark.tier2
     def test_positive_create_and_update_with_org_loc_name(
         self, discoveryrule_factory, class_org, class_location, class_hostgroup, target_sat
     ):
@@ -223,7 +218,6 @@ class TestDiscoveryRule:
         assert new_loc.name == rule['locations'][0]['name']
         assert new_hostgroup.name == rule['host-group']['name']
 
-    @pytest.mark.tier2
     def test_positive_create_with_hosts_limit(self, discoveryrule_factory):
         """Create Discovery Rule providing any number from range 1..100 for
         hosts limit option
@@ -238,7 +232,6 @@ class TestDiscoveryRule:
         rule = discoveryrule_factory(options={'hosts-limit': hosts_limit})
         assert rule['hosts-limit'] == hosts_limit
 
-    @pytest.mark.tier1
     def test_positive_create_and_update_with_priority(self, discoveryrule_factory, target_sat):
         """Create Discovery Rule providing any number from range 1..100 for
         priority option and update
@@ -261,7 +254,6 @@ class TestDiscoveryRule:
         rule = Box(target_sat.cli.DiscoveryRule.info({'id': rule.id}))
         assert rule.priority == str(rule_priority[0])
 
-    @pytest.mark.tier2
     def test_positive_create_disabled_rule(self, discoveryrule_factory):
         """Create Discovery Rule in disabled state
 
@@ -273,7 +265,6 @@ class TestDiscoveryRule:
         rule = discoveryrule_factory(options={'enabled': 'false'})
         assert rule.enabled == 'false'
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
     def test_negative_create_with_invalid_name(self, name, discoveryrule_factory):
         """Create Discovery Rule with invalid names
@@ -289,7 +280,6 @@ class TestDiscoveryRule:
         with pytest.raises(CLIFactoryError):
             discoveryrule_factory(options={'name': name})
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize('name', **parametrized(invalid_hostnames_list()))
     def test_negative_create_with_invalid_hostname(self, name, discoveryrule_factory):
         """Create Discovery Rule with invalid hostname
@@ -307,7 +297,6 @@ class TestDiscoveryRule:
         with pytest.raises(CLIFactoryError):
             discoveryrule_factory(options={'hostname': name})
 
-    @pytest.mark.tier3
     def test_negative_create_with_too_long_limit(self, discoveryrule_factory):
         """Create Discovery Rule with too long host limit value
 
@@ -321,7 +310,6 @@ class TestDiscoveryRule:
         with pytest.raises(CLIFactoryError):
             discoveryrule_factory(options={'hosts-limit': '9999999999'})
 
-    @pytest.mark.tier1
     def test_negative_create_with_same_name(self, discoveryrule_factory):
         """Create Discovery Rule with name that already exists
 
@@ -336,7 +324,6 @@ class TestDiscoveryRule:
         with pytest.raises(CLIFactoryError):
             discoveryrule_factory(options={'name': name})
 
-    @pytest.mark.tier3
     def test_positive_update_discovery_params(self, discoveryrule_factory, class_org, target_sat):
         """Update discovery rule parameters
 
@@ -371,7 +358,6 @@ class TestDiscoveryRule:
         assert rule['hostname-template'] == new_hostname
         assert rule['hosts-limit'] == new_limit
 
-    @pytest.mark.tier1
     def test_positive_update_disable_enable(self, discoveryrule_factory, target_sat):
         """Update discovery rule enabled state. (Disabled->Enabled)
 
@@ -387,7 +373,6 @@ class TestDiscoveryRule:
         rule = Box(target_sat.cli.DiscoveryRule.info({'id': rule.id}))
         assert rule.enabled == 'true'
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
     def test_negative_update_discovery_params(self, name, discoveryrule_factory, target_sat):
         """Update discovery rule name using invalid parameters
@@ -418,7 +403,6 @@ class TestDiscoveryRule:
                 }
             )
 
-    @pytest.mark.tier1
     def test_positive_delete(self, discoveryrule_factory, target_sat):
         """Delete existing Discovery Rule
 
@@ -479,7 +463,6 @@ class TestDiscoveryRuleRole:
             logger.exception(err)
             logger.error('Exception while deleting class scope user entity in teardown')
 
-    @pytest.mark.tier2
     def test_positive_crud_with_non_admin_user(
         self,
         class_org,
@@ -534,7 +517,6 @@ class TestDiscoveryRuleRole:
         with pytest.raises(CLIReturnCodeError):
             target_sat.cli.DiscoveryRule.info({'id': rule.id})
 
-    @pytest.mark.tier2
     def test_negative_delete_rule_with_non_admin_user(
         self,
         class_org,

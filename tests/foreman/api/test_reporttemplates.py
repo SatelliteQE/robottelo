@@ -86,7 +86,6 @@ def setup_content(module_sca_manifest_org, module_target_sat):
 # Tests for ``katello/api/v2/report_templates``.
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 def test_positive_CRUDL(name, target_sat):
     """Create, Read, Update, Delete, List
@@ -130,7 +129,6 @@ def test_positive_CRUDL(name, target_sat):
         rt = target_sat.api.ReportTemplate(id=rt.id).read()
 
 
-@pytest.mark.tier1
 def test_positive_generate_report_nofilter(target_sat):
     """Generate Host - Statuses report
 
@@ -157,7 +155,6 @@ def test_positive_generate_report_nofilter(target_sat):
     assert host_name in res
 
 
-@pytest.mark.tier2
 def test_positive_generate_report_filter(target_sat):
     """Generate Host - Statuses report
 
@@ -187,7 +184,6 @@ def test_positive_generate_report_filter(target_sat):
     assert host2_name in res
 
 
-@pytest.mark.tier2
 def test_positive_report_add_userinput(target_sat):
     """Add user input to template, use it in template, generate template
 
@@ -221,7 +217,6 @@ def test_positive_report_add_userinput(target_sat):
     assert f'value="{input_value}"' in res
 
 
-@pytest.mark.tier2
 def test_positive_lock_clone_nodelete_unlock_report(target_sat):
     """Lock report template. Check it can be cloned and can't be deleted or edited.
        Unlock. Check it can be deleted and edited.
@@ -295,7 +290,6 @@ def test_positive_lock_clone_nodelete_unlock_report(target_sat):
     )
 
 
-@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_positive_export_report():
     """Export report template
@@ -314,7 +308,6 @@ def test_positive_export_report():
     """
 
 
-@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_positive_generate_report_sanitized():
     """Generate report template where there are values in comma outputted which might
@@ -335,7 +328,6 @@ def test_positive_generate_report_sanitized():
     """
 
 
-@pytest.mark.tier2
 def test_negative_create_report_without_name(module_target_sat):
     """Try to create a report template with empty name
 
@@ -356,7 +348,6 @@ def test_negative_create_report_without_name(module_target_sat):
     assert "Name can't be blank" in report_response.value.response.text
 
 
-@pytest.mark.tier2
 @pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.no_containers
 def test_positive_applied_errata(
@@ -428,7 +419,6 @@ def test_positive_applied_errata(
     assert res[0]['issued']
 
 
-@pytest.mark.tier2
 @pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.no_containers
 def test_positive_applied_errata_report_with_invalid_errata(
@@ -505,7 +495,6 @@ def test_positive_applied_errata_report_with_invalid_errata(
     )
 
 
-@pytest.mark.tier2
 @pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.no_containers
 def test_positive_applied_errata_by_search(
@@ -582,7 +571,6 @@ def test_positive_applied_errata_by_search(
     assert res[0]['issued']
 
 
-@pytest.mark.tier2
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-2')
 def test_positive_applied_errata_for_specific_hosts(
@@ -733,7 +721,6 @@ def test_positive_applied_errata_for_specific_hosts(
     assert RHSA['host'].hostname not in rhba_report_hosts
 
 
-@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_positive_generate_nonblocking():
     """Generate an Applied Errata report
@@ -753,7 +740,6 @@ def test_positive_generate_nonblocking():
     """
 
 
-@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_positive_generate_email_compressed():
     """Generate an Applied Errata report, get it by e-mail, compressed
@@ -773,7 +759,6 @@ def test_positive_generate_email_compressed():
     """
 
 
-@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_positive_generate_email_uncompressed():
     """Generate an Applied Errata report, get it by e-mail, uncompressed
@@ -794,7 +779,6 @@ def test_positive_generate_email_uncompressed():
     """
 
 
-@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_negative_bad_email():
     """Report can't be generated when incorrectly formed mail specified
@@ -813,7 +797,6 @@ def test_negative_bad_email():
     """
 
 
-@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_positive_cleanup_task_running():
     """Report can't be generated when incorrectly formed mail specified
@@ -832,7 +815,6 @@ def test_positive_cleanup_task_running():
     """
 
 
-@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_negative_nonauthor_of_report_cant_download_it():
     """The resulting report should only be downloadable by
@@ -854,7 +836,6 @@ def test_negative_nonauthor_of_report_cant_download_it():
 
 
 @pytest.mark.no_containers
-@pytest.mark.tier3
 def test_positive_generate_job_report(setup_content, module_target_sat, content_hosts):
     """Generate a report using the Job - Invocation Report template.
 
@@ -915,7 +896,6 @@ def test_positive_generate_job_report(setup_content, module_target_sat, content_
     assert '/root' in res[1]['stdout']
 
 
-@pytest.mark.tier2
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-2')
 def test_positive_installable_errata(
@@ -1030,7 +1010,6 @@ def test_positive_installable_errata(
     assert installable_errata['Erratum'] == ERRATUM_ID
 
 
-@pytest.mark.tier2
 @pytest.mark.rhel_ver_match('[^6]')
 def test_positive_installed_products(
     target_sat,
