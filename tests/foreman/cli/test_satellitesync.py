@@ -251,7 +251,6 @@ def function_exporter_user(target_sat, function_org):
 class TestRepositoryExport:
     """Tests for exporting a repository via CLI"""
 
-    @pytest.mark.tier3
     def test_positive_export_version_custom_repo(
         self, target_sat, export_import_cleanup_module, module_org, module_synced_custom_repo
     ):
@@ -309,7 +308,6 @@ class TestRepositoryExport:
         )
         assert '2.0' in target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR)
 
-    @pytest.mark.tier3
     def test_positive_export_library_custom_repo(
         self,
         target_sat,
@@ -365,7 +363,6 @@ class TestRepositoryExport:
         ).incrementalLibrary({'organization-id': function_org.id})
         assert '2.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
@@ -418,7 +415,6 @@ class TestRepositoryExport:
         # Verify export directory is not empty
         assert target_sat.validate_pulp_filepath(function_sca_manifest_org, PULP_EXPORT_DIR) != ''
 
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_export_repository_docker(
         self, target_sat, export_import_cleanup_function, function_org, function_synced_docker_repo
@@ -453,7 +449,6 @@ class TestRepositoryExport:
         )
         assert '2.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_export_version_docker(
         self, target_sat, export_import_cleanup_function, function_org, function_synced_docker_repo
@@ -577,7 +572,6 @@ def _create_cv(cv_name, repo, module_org, sat, publish=True):
 class TestContentViewSync:
     """Implements Content View Export Import tests in CLI"""
 
-    @pytest.mark.tier3
     @pytest.mark.e2e
     def test_positive_export_import_cv_end_to_end(
         self,
@@ -660,7 +654,6 @@ class TestContentViewSync:
         )
 
     @pytest.mark.upgrade
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],
@@ -764,7 +757,6 @@ class TestContentViewSync:
         assert len(imported_packages)
         assert len(cv_packages) == len(imported_packages)
 
-    @pytest.mark.tier3
     def test_positive_export_import_filtered_cvv(
         self,
         class_export_entities,
@@ -856,7 +848,6 @@ class TestContentViewSync:
         assert len(imported_packages) == 1
         assert len(export_packages) == len(imported_packages)
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     def test_positive_export_import_promoted_cv(
         self,
@@ -930,7 +921,6 @@ class TestContentViewSync:
         lce = importing_cv_id['lifecycle-environments'][0]['name']
         assert lce == 'Library'
 
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.e2e
     @pytest.mark.parametrize(
@@ -1032,7 +1022,6 @@ class TestContentViewSync:
             'Exported and imported counts do not match'
         )
 
-    @pytest.mark.tier2
     def test_positive_export_cv_with_on_demand_repo(
         self, export_import_cleanup_module, target_sat, module_org
     ):
@@ -1139,7 +1128,6 @@ class TestContentViewSync:
         assert "Generated" in result
         assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) != ''
 
-    @pytest.mark.tier2
     def test_negative_import_same_cv_twice(
         self,
         target_sat,
@@ -1191,7 +1179,6 @@ class TestContentViewSync:
             f'delete {export_cv_name} 1.0 and try again.'
         ) in error.value.message
 
-    @pytest.mark.tier2
     def test_negative_import_invalid_path(self, module_org, module_target_sat):
         """Import cv that doesn't exist in path
 
@@ -1216,7 +1203,6 @@ class TestContentViewSync:
             '--metadata-file option'
         ) in error.value.message
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],
@@ -1309,7 +1295,6 @@ class TestContentViewSync:
             )
         assert 'content_view not found' in error.value.message, 'The imported CV should be gone'
 
-    @pytest.mark.tier3
     def test_postive_export_cv_with_mixed_content_repos(
         self,
         export_import_cleanup_function,
@@ -1377,7 +1362,6 @@ class TestContentViewSync:
         # Verify export directory is not empty
         assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) != ''
 
-    @pytest.mark.tier3
     def test_postive_export_import_cv_with_mixed_content_syncable(
         self,
         export_import_cleanup_function,
@@ -1463,7 +1447,6 @@ class TestContentViewSync:
         assert exported_packages == imported_packages, 'Imported RPMs do not match the export'
         assert exported_files == imported_files, 'Imported Files do not match the export'
 
-    @pytest.mark.tier3
     def test_postive_export_cv_syncable_with_permissions(
         self,
         request,
@@ -1534,7 +1517,6 @@ class TestContentViewSync:
             ]
         ), 'Unexpected permission for one or more exported files'
 
-    @pytest.mark.tier3
     def test_postive_export_import_cv_with_file_content(
         self,
         target_sat,
@@ -1606,7 +1588,6 @@ class TestContentViewSync:
         assert len(imported_files)
         assert len(exported_files) == len(imported_files)
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],
@@ -1707,7 +1688,6 @@ class TestContentViewSync:
         )['versions']
         assert len(importing_cvv) == 1
 
-    @pytest.mark.tier3
     def test_postive_export_import_ansible_collection_repo(
         self,
         target_sat,
@@ -1770,7 +1750,6 @@ class TestContentViewSync:
         assert len(import_product['content']) == 1
         assert import_product['content'][0]['content-type'] == "ansible_collection"
 
-    @pytest.mark.tier3
     def test_postive_export_import_repo_with_GPG(
         self,
         target_sat,
@@ -1837,7 +1816,6 @@ class TestContentViewSync:
         assert imported_gpg
         assert imported_gpg['content'] == gpg_key.content
 
-    @pytest.mark.tier3
     def test_postive_export_import_chunked_repo(
         self,
         target_sat,
@@ -1897,7 +1875,6 @@ class TestContentViewSync:
             'Unexpected package count after import'
         )
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],
@@ -1970,7 +1947,6 @@ class TestContentViewSync:
             'appropriate subscriptions before importing content.'
         ) in error.value.message
 
-    @pytest.mark.tier2
     def test_positive_import_content_for_disconnected_sat_with_existing_content(
         self,
         target_sat,
@@ -2046,7 +2022,6 @@ class TestContentViewSync:
         )['versions']
         assert len(importing_cvv) >= 1
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],
@@ -2135,7 +2110,6 @@ class TestContentViewSync:
                 f'{repomd_refs - drive_files}'
             )
 
-    @pytest.mark.tier3
     def test_postive_export_import_with_long_name(
         self,
         target_sat,
@@ -2235,7 +2209,6 @@ class TestContentViewSync:
         )
         assert exported_packages == imported_packages
 
-    @pytest.mark.tier3
     def test_postive_export_import_large_cv(
         self,
         request,
@@ -2308,7 +2281,6 @@ class TestInterSatelliteSync:
     """Implements InterSatellite Sync tests in CLI"""
 
     @pytest.mark.stubbed
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_reimport_repo(self):
         """Packages missing from upstream are removed from downstream on reimport.
@@ -2328,7 +2300,6 @@ class TestInterSatelliteSync:
 
         """
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],
@@ -2403,7 +2374,6 @@ class TestInterSatelliteSync:
             in error.value.message
         ), 'Unexpected error message'
 
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_export_import_incremental_yum_repo(
         self,
@@ -2488,7 +2458,6 @@ class TestInterSatelliteSync:
         export_cc['packages'] = str(int(export_cc['packages']) + 1)
         assert import_repo['content-counts'] == export_cc, 'Import counts do not match the export.'
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],
@@ -2579,7 +2548,6 @@ class TestInterSatelliteSync:
             'Not every import task succeeded'
         )
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],
@@ -2709,7 +2677,6 @@ class TestInterSatelliteSync:
         )
 
     @pytest.mark.e2e
-    @pytest.mark.tier3
     @pytest.mark.pit_server
     @pytest.mark.pit_client
     @pytest.mark.no_containers
@@ -2948,7 +2915,6 @@ def _set_downstream_org(
 class TestNetworkSync:
     """Implements Network Sync scenarios."""
 
-    @pytest.mark.tier2
     @pytest.mark.pit_server
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
@@ -3048,7 +3014,6 @@ class TestPodman:
         )
         assert result.status == 0
 
-    @pytest.mark.tier3
     def test_postive_export_import_podman_repo(
         self,
         target_sat,

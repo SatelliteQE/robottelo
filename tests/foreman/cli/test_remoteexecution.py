@@ -91,7 +91,6 @@ def assert_job_invocation_status(sat, invocation_command_id, client_hostname, st
 class TestRemoteExecution:
     """Implements job execution tests in CLI."""
 
-    @pytest.mark.tier3
     @pytest.mark.pit_client
     @pytest.mark.pit_server
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
@@ -134,7 +133,6 @@ class TestRemoteExecution:
         assert 'Exit' in out
         assert 'Internal Server Error' not in out
 
-    @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_negative_run_default_job_template(
         self, module_org, rex_contenthost, module_target_sat
@@ -177,7 +175,6 @@ class TestRemoteExecution:
         )
         assert 'Exit status: 23' in out
 
-    @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_timeout_to_kill(self, module_org, rex_contenthost, module_target_sat):
         """Use timeout to kill setting to cancel the job
@@ -222,7 +219,6 @@ class TestRemoteExecution:
         )
         assert 'Timeout for execution passed, trying to stop the job' in out
 
-    @pytest.mark.tier3
     @pytest.mark.pit_client
     @pytest.mark.pit_server
     @pytest.mark.rhel_ver_list([7, 8, 9])
@@ -329,7 +325,6 @@ class TestRemoteExecution:
         )
         assert 'Permission denied' in out
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'multi_global_param_update',
         [
@@ -423,7 +418,6 @@ class TestRemoteExecution:
             f'''stat -c '%G' /home/{username}/{filename}''',
         )
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'multi_setting_update',
         [
@@ -516,7 +510,6 @@ class TestRemoteExecution:
         # assert the file is in the effective user's group
         assert username == result.stdout.strip('\n')
 
-    @pytest.mark.tier3
     @pytest.mark.e2e
     @pytest.mark.rhel_ver_match('[^6].*')
     def test_positive_run_custom_job_template(self, rex_contenthost, module_org, target_sat):
@@ -547,7 +540,6 @@ class TestRemoteExecution:
         )
         assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
 
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_run_default_job_template_multiple_hosts(
@@ -585,7 +577,6 @@ class TestRemoteExecution:
         result = module_target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
         assert result['success'] == '2', output_msgs
 
-    @pytest.mark.tier3
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     @pytest.mark.skipif(
@@ -649,7 +640,6 @@ class TestRemoteExecution:
         result = client.run(f'rpm -q {" ".join(packages)}')
         assert result.status == len(packages)
 
-    @pytest.mark.tier3
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     @pytest.mark.skipif(
@@ -700,7 +690,6 @@ class TestRemoteExecution:
         result = client.run('dnf grouplist --installed')
         assert remove not in result.stdout
 
-    @pytest.mark.tier3
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     @pytest.mark.skipif(
@@ -738,7 +727,6 @@ class TestRemoteExecution:
         result = client.run(f'rpm -q {constants.FAKE_2_CUSTOM_PACKAGE}')
         assert result.status == 0
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize('feature', **parametrized(valid_feature_names()))
     def test_positive_match_feature_templates(self, target_sat, feature):
         """Verify the `feature` names match the correct templates
@@ -752,7 +740,6 @@ class TestRemoteExecution:
         result = target_sat.cli.RemoteExecutionFeature.info({'id': feature['label']})
         assert result['job-template-name'] == feature['jt_name']
 
-    @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_run_recurring_job_with_max_iterations(self, rex_contenthost, target_sat):
         """Run default job template multiple times with max iteration
@@ -783,7 +770,6 @@ class TestRemoteExecution:
         assert rec_logic['state'] == 'finished'
         assert rec_logic['iteration'] == '2'
 
-    @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_time_expressions(self, rex_contenthost, target_sat):
         """Test various expressions for extended cronline syntax
@@ -850,7 +836,6 @@ class TestRemoteExecution:
                 f'Job was not scheduled as expected using {exp[0]}'
             )
 
-    @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_run_scheduled_job_template(self, rex_contenthost, target_sat):
         """Schedule a job to be ran against a host
@@ -879,7 +864,6 @@ class TestRemoteExecution:
             f'resource_type = JobInvocation and resource_id = {invocation_command["id"]}'
         )
 
-    @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([8, 9])
     def test_recurring_with_unreachable_host(self, module_target_sat, rhel_contenthost):
         """Run a recurring task against a host that is not reachable and verify it gets rescheduled
@@ -985,7 +969,6 @@ class TestRexUsers:
         class_target_sat.cli.User.add_role({'login': rexinfra, 'role': 'Remote Execution Manager'})
         return (rexinfra, password)
 
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'infra_host',
@@ -1092,7 +1075,6 @@ class TestAsyncSSHProviderRex:
     """Tests related to remote execution via async ssh provider"""
 
     @pytest.mark.no_containers
-    @pytest.mark.tier3
     @pytest.mark.e2e
     @pytest.mark.upgrade
     def test_positive_run_job_on_host_registered_to_async_ssh_provider(
@@ -1151,7 +1133,6 @@ class TestAsyncSSHProviderRex:
 class TestPullProviderRex:
     """Tests related to remote execution via pull provider (mqtt)"""
 
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.no_containers
     @pytest.mark.parametrize(
@@ -1248,7 +1229,6 @@ class TestPullProviderRex:
         assert_job_invocation_result(module_target_sat, invocation_command['id'], client.hostname)
         result = module_target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
 
-    @pytest.mark.tier3
     @pytest.mark.no_containers
     @pytest.mark.parametrize(
         'setting_update',
@@ -1351,7 +1331,6 @@ class TestPullProviderRex:
                 }
             )
 
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.e2e
     @pytest.mark.pit_client
@@ -1484,7 +1463,6 @@ class TestPullProviderRex:
         )
         assert 'Permission denied' in out
 
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.no_containers
     def test_positive_run_pull_job_on_offline_host(
@@ -1561,7 +1539,6 @@ class TestPullProviderRex:
         sleep(60)
         assert_job_invocation_result(module_target_sat, invocation_command['id'], client.hostname)
 
-    @pytest.mark.tier3
     @pytest.mark.e2e
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])

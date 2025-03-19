@@ -64,7 +64,6 @@ def invalid_missing_attributes():
     ]
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_CRUD(module_target_sat):
     """Create, update and delete subnet
@@ -145,7 +144,6 @@ def test_positive_CRUD(module_target_sat):
         module_target_sat.cli.Subnet.info({'id': subnet['id']})
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('options', **parametrized(invalid_missing_attributes()))
 def test_negative_create_with_attributes(options, module_target_sat):
     """Create subnet with invalid or missing required attributes
@@ -162,7 +160,6 @@ def test_negative_create_with_attributes(options, module_target_sat):
         module_target_sat.cli_factory.make_subnet(options)
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.parametrize('pool', **parametrized(invalid_addr_pools()))
 def test_negative_create_with_address_pool(pool, module_target_sat):
@@ -186,7 +183,6 @@ def test_negative_create_with_address_pool(pool, module_target_sat):
         module_target_sat.cli_factory.make_subnet(options)
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('options', **parametrized(invalid_missing_attributes()))
 def test_negative_update_attributes(request, options, module_target_sat):
     """Update subnet with invalid or missing required attributes
@@ -210,7 +206,6 @@ def test_negative_update_attributes(request, options, module_target_sat):
         assert subnet[key] == result[key]
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('options', **parametrized(invalid_addr_pools()))
 def test_negative_update_address_pool(request, options, module_target_sat):
     """Update subnet with invalid address pool
@@ -238,7 +233,6 @@ def test_negative_update_address_pool(request, options, module_target_sat):
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 def test_positive_set_parameter_option_presence():
     """Presence of set parameter option in command
 
@@ -254,7 +248,6 @@ def test_positive_set_parameter_option_presence():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier1
 def test_positive_create_with_parameter():
     """Subnet with parameters can be created
 
@@ -272,7 +265,6 @@ def test_positive_create_with_parameter():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier1
 def test_positive_create_with_parameter_and_multiple_values():
     """Subnet parameters can be created with multiple values
 
@@ -292,7 +284,6 @@ def test_positive_create_with_parameter_and_multiple_values():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier1
 def test_positive_create_with_parameter_and_multiple_names():
     """Subnet parameters can be created with multiple names with valid
     separators
@@ -313,7 +304,6 @@ def test_positive_create_with_parameter_and_multiple_names():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier1
 def test_negative_create_with_parameter_and_invalid_separator():
     """Subnet parameters can not be created with multiple names with
     invalid separators
@@ -334,7 +324,6 @@ def test_negative_create_with_parameter_and_invalid_separator():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_create_with_multiple_parameters():
     """Subnet with more than one parameters
@@ -354,7 +343,6 @@ def test_positive_create_with_multiple_parameters():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier1
 def test_negative_create_with_duplicated_parameters():
     """Subnet with more than one parameters with duplicate names
 
@@ -374,7 +362,6 @@ def test_negative_create_with_duplicated_parameters():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_inherit_subnet_parmeters_in_host():
     """Host inherits parameters from subnet
@@ -396,7 +383,6 @@ def test_positive_inherit_subnet_parmeters_in_host():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_negative_inherit_subnet_parmeters_in_host():
     """Host does not inherits parameters from subnet for non primary
     interface
@@ -418,7 +404,6 @@ def test_negative_inherit_subnet_parmeters_in_host():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 def test_positive_subnet_parameters_override_from_host():
     """Subnet parameters values can be overridden from host
 
@@ -444,7 +429,6 @@ def test_positive_subnet_parameters_override_from_host():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_subnet_parameters_override_impact_on_subnet():
     """Override subnet parameter from host impact on subnet parameter
@@ -467,7 +451,6 @@ def test_positive_subnet_parameters_override_impact_on_subnet():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier1
 def test_positive_update_parameter():
     """Subnet parameter can be updated
 
@@ -486,7 +469,6 @@ def test_positive_update_parameter():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier1
 def test_negative_update_parameter():
     """Subnet parameter can not be updated with invalid names
 
@@ -505,7 +487,6 @@ def test_negative_update_parameter():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 def test_positive_update_subnet_parameter_host_impact():
     """Update in parameter name and value from subnet component updates
         the parameter in host inheriting that subnet
@@ -526,7 +507,6 @@ def test_positive_update_subnet_parameter_host_impact():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier1
 def test_positive_delete_subnet_parameter():
     """Subnet parameter can be deleted
 
@@ -544,7 +524,6 @@ def test_positive_delete_subnet_parameter():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_delete_multiple_parameters():
     """Multiple subnet parameters can be deleted at once
@@ -563,7 +542,6 @@ def test_positive_delete_multiple_parameters():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 def test_positive_delete_subnet_parameter_host_impact():
     """Deleting parameter from subnet component deletes the parameter in
         host inheriting that subnet
@@ -584,7 +562,6 @@ def test_positive_delete_subnet_parameter_host_impact():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 def test_positive_delete_subnet_parameter_overrided_host_impact():
     """Deleting parameter from subnet component doesnt deletes its
         overridden parameter in host inheriting that subnet

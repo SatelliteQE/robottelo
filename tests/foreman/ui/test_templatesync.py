@@ -31,7 +31,6 @@ def templates_loc(templates_org, module_target_sat):
 git = settings.git
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_import_templates(session, templates_org, templates_loc):
     """Import template(s) from external source to satellite
@@ -88,7 +87,6 @@ def test_positive_import_templates(session, templates_org, templates_loc):
         assert f'name: {import_template}' in pt['template']['template_editor']['editor']
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_export_templates(session, create_import_export_local_dir, target_sat):
     """Export the satellite templates to local directory
@@ -136,7 +134,6 @@ def test_positive_export_templates(session, create_import_export_local_dir, targ
     assert result.status == 0
 
 
-@pytest.mark.tier2
 @pytest.mark.skip_if_not_set('git')
 @pytest.mark.parametrize(
     'url',

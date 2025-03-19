@@ -17,7 +17,6 @@ import pytest
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, module_location, module_org, module_target_sat):
     """Perform end to end testing for compute profile component

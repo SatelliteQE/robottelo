@@ -13,12 +13,10 @@
 """
 
 from fauxfactory import gen_string
-import pytest
 
 from robottelo.constants import FAKE_FILE_NEW_NAME, REPOS, DataFile
 
 
-@pytest.mark.tier2
 def test_positive_create_cv(session, target_sat):
     """Able to create cv and search for it
 
@@ -38,7 +36,6 @@ def test_positive_create_cv(session, target_sat):
         assert session.contentview_new.search(cv)[0]['Name'] == cv
 
 
-@pytest.mark.tier2
 def test_version_table_read(session, function_sca_manifest_org, target_sat):
     """Able to read CV version package details, which includes the Epoch tab
 
@@ -79,7 +76,6 @@ def test_version_table_read(session, function_sca_manifest_org, target_sat):
         assert response[0]['Arch'] == packages['results'][0]['arch']
 
 
-@pytest.mark.tier2
 def test_no_blank_page_on_language_switch(session, target_sat, module_org):
     """Able to view the new CV UI when the language is set to something other
     than English
@@ -110,7 +106,6 @@ def test_no_blank_page_on_language_switch(session, target_sat, module_org):
         assert session.contentview_new.read_french_lang_cv()
 
 
-@pytest.mark.tier2
 def test_file_cv_display(session, target_sat, module_org, module_product):
     """Content-> Files displays only the Content Views associated with that file
 

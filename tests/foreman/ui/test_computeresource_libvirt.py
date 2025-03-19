@@ -30,7 +30,6 @@ pytestmark = [pytest.mark.skip_if_not_set('libvirt')]
 LIBVIRT_URL = LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
 
 
-@pytest.mark.tier2
 @pytest.mark.e2e
 def test_positive_end_to_end(session, module_target_sat, module_org, module_location):
     """Perform end to end testing for compute resource Libvirt component.
@@ -119,7 +118,6 @@ def test_positive_end_to_end(session, module_target_sat, module_org, module_loca
 
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
-@pytest.mark.tier4
 @pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 def test_positive_provision_end_to_end(

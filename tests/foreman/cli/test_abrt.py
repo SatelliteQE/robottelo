@@ -18,7 +18,6 @@ pytestmark = [pytest.mark.stubbed]
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier1
 def test_positive_create_report(self):
     """a crashed program and abrt reports are send
 
@@ -38,7 +37,6 @@ def test_positive_create_report(self):
     """
 
 
-@pytest.mark.tier2
 def test_positive_create_reports(self):
     """Counts are correct when abrt sends multiple reports
 
@@ -57,7 +55,6 @@ def test_positive_create_reports(self):
     """
 
 
-@pytest.mark.tier2
 def test_positive_update_timer(self):
     """Edit the smart-proxy-abrt timer
 
@@ -73,7 +70,6 @@ def test_positive_update_timer(self):
     """
 
 
-@pytest.mark.tier2
 def test_positive_identify_hostname(self):
     """Identifying the hostnames
 
@@ -89,7 +85,6 @@ def test_positive_identify_hostname(self):
     """
 
 
-@pytest.mark.tier2
 def test_positive_search_report(self):
     """Able to retrieve reports in CLI
 

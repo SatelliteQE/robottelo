@@ -23,7 +23,6 @@ def template_data():
     return DataFile.PARTITION_SCRIPT_DATA_FILE.read_text()
 
 
-@pytest.mark.tier2
 def test_positive_create_default_for_organization(session):
     """Create new partition table with enabled 'default' option. Check
     that newly created organization has that partition table assigned to it
@@ -50,7 +49,6 @@ def test_positive_create_default_for_organization(session):
         assert session.partitiontable.search(name)[0]['Name'] == name
 
 
-@pytest.mark.tier2
 def test_positive_create_custom_organization(session):
     """Create new partition table with disabled 'default' option. Check
     that newly created organization does not contain that partition table.
@@ -77,7 +75,6 @@ def test_positive_create_custom_organization(session):
         assert not session.partitiontable.search(name)
 
 
-@pytest.mark.tier2
 def test_positive_create_default_for_location(session):
     """Create new partition table with enabled 'default' option. Check
     that newly created location has that partition table assigned to it
@@ -104,7 +101,6 @@ def test_positive_create_default_for_location(session):
         assert session.partitiontable.search(name)[0]['Name'] == name
 
 
-@pytest.mark.tier2
 def test_positive_create_custom_location(session):
     """Create new partition table with disabled 'default' option. Check
     that newly created location does not contain that partition table.
@@ -131,7 +127,6 @@ def test_positive_create_custom_location(session):
         assert not session.partitiontable.search(name)
 
 
-@pytest.mark.tier2
 def test_positive_delete_with_lock_and_unlock(session):
     """Create new partition table and lock it, try delete unlock and retry
 
@@ -160,7 +155,6 @@ def test_positive_delete_with_lock_and_unlock(session):
         assert not session.partitiontable.search(name)
 
 
-@pytest.mark.tier2
 def test_positive_clone(session):
     """Create new partition table and clone it
 
@@ -193,7 +187,6 @@ def test_positive_clone(session):
         assert pt['template']['os_family_selection']['os_family'] == os_family
 
 
-@pytest.mark.tier2
 @pytest.mark.e2e
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, module_location, template_data):

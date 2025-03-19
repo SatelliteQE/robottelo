@@ -21,7 +21,6 @@ from robottelo.utils.installer import InstallerCommand
 pytestmark = [pytest.mark.destructive]
 
 
-@pytest.mark.tier1
 def test_positive_capsule_certs_generate_with_special_char(target_sat):
     """Verify capsule-certs-generate with special character in organization
 

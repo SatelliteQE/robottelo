@@ -349,7 +349,6 @@ def sat_non_default_install(module_sat_ready_rhels):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier1
 @pytest.mark.pit_server
 @pytest.mark.build_sanity
 def test_capsule_installation(
@@ -460,7 +459,6 @@ def test_capsule_installation(
 
 
 @pytest.mark.e2e
-@pytest.mark.tier1
 def test_foreman_rails_cache_store(sat_non_default_install):
     """Test foreman-rails-cache-store option
 
@@ -484,7 +482,6 @@ def test_foreman_rails_cache_store(sat_non_default_install):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier1
 def test_content_guarded_distributions_option(
     sat_default_install, sat_non_default_install, module_sca_manifest
 ):
@@ -543,7 +540,6 @@ def test_content_guarded_distributions_option(
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier1
 def test_positive_selinux_foreman_module(target_sat):
     """Check if SELinux foreman module is installed on Satellite
 
@@ -563,7 +559,6 @@ def test_positive_selinux_foreman_module(target_sat):
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier1
 @pytest.mark.parametrize('service', SATELLITE_SERVICES)
 def test_positive_check_installer_service_running(target_sat, service):
     """Check if a service is running
@@ -583,7 +578,6 @@ def test_positive_check_installer_service_running(target_sat, service):
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier1
 def test_positive_check_installer_hammer_ping(target_sat):
     """Check if hammer ping reports all services as ok
 
@@ -606,7 +600,6 @@ def test_positive_check_installer_hammer_ping(target_sat):
             assert 'ok' in line
 
 
-@pytest.mark.tier3
 def test_installer_cap_pub_directory_accessibility(capsule_configured):
     """Verify the public directory accessibility from capsule url after disabling it from the
     custom-hiera
@@ -693,7 +686,6 @@ def test_installer_capsule_with_enabled_ansible(module_capsule_configured_ansibl
     assert callbacks_enabled.stdout.strip('" \n') == downstream_callback
 
 
-@pytest.mark.tier1
 @pytest.mark.build_sanity
 @pytest.mark.first_sanity
 @pytest.mark.pit_server
