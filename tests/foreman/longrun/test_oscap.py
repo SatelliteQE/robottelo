@@ -265,19 +265,29 @@ def prepare_scap_client_and_prerequisites(
 
 @pytest.fixture
 def setup_pruned_content(target_sat, rex_contenthost, module_org):
-    # delete all policies because they may be using the scap content we want to delete
     content_name = 'Red Hat rhel9 default content'
     old_package = 'scap-security-guide-satellite-4.3.4-1.el9sat.noarch.rpm'
     new_package = 'scap-security-guide-satellite-4.3.5-1.el9sat.noarch.rpm'
+    # delete all policies because they may be using the scap content we want to delete
     policies = target_sat.cli.Scappolicy.list()
     for policy_id in [policy['id'] for policy in policies]:
         target_sat.cli.Scappolicy.delete({'id': policy_id})
-    target_sat.cli.Scapcontent.delete({'title': content_name})
+    tmp_content_name = gen_string("alpha")
+    # just doing
+    # target_sat.cli.Scapcontent.delete({'title': content_name})
+    # would break other tests that need full version of this content
+    target_sat.cli.Scapcontent.update({'title': content_name, 'new-title': tmp_content_name})
     target_sat.put(f'tests/foreman/data/{old_package}', '/root/')
     target_sat.put(f'tests/foreman/data/{new_package}', '/root/')
     target_sat.execute(f'yum install -y {old_package}')
     target_sat.cli.Scapcontent.bulk_upload({'type': 'default'})
-    return new_package
+    yield new_package
+    # delete all policies because they may be using the scap content we want to delete
+    policies = target_sat.cli.Scappolicy.list()
+    for policy_id in [policy['id'] for policy in policies]:
+        target_sat.cli.Scappolicy.delete({'id': policy_id})
+    target_sat.cli.Scapcontent.delete({'title': content_name})
+    target_sat.cli.Scapcontent.update({'title': tmp_content_name, 'new-title': content_name})
 
 
 def apply_policy_run_scan_get_arf(target_sat, contenthost):
