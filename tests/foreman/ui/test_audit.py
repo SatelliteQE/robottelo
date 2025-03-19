@@ -24,7 +24,6 @@ def module_org(module_target_sat):
 pytestmark = [pytest.mark.run_in_one_thread]
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_create_event(session, module_org, module_location, module_target_sat):
     """When new host is created, corresponding audit entry appear in the application
@@ -69,7 +68,6 @@ def test_positive_create_event(session, module_org, module_location, module_targ
         assert summary.get('Location') == module_location.name
 
 
-@pytest.mark.tier2
 def test_positive_audit_comment(session, module_org):
     """When new partition table with audit comment is created, that message can be seen in
     corresponding audit entry
@@ -102,7 +100,6 @@ def test_positive_audit_comment(session, module_org):
         assert values['comment'] == audit_comment
 
 
-@pytest.mark.tier2
 def test_positive_update_event(session, module_org, module_target_sat):
     """When existing content view is updated, corresponding audit entry appear
     in the application
@@ -134,7 +131,6 @@ def test_positive_update_event(session, module_org, module_target_sat):
         assert values['action_summary'][0]['column2'] == new_name
 
 
-@pytest.mark.tier2
 def test_positive_delete_event(session, module_org, module_target_sat):
     """When existing architecture is deleted, corresponding audit entry appear
     in the application
@@ -159,7 +155,6 @@ def test_positive_delete_event(session, module_org, module_target_sat):
         assert values['action_summary'][0]['column1'] == architecture.name
 
 
-@pytest.mark.tier2
 def test_positive_add_event(session, module_org, module_target_sat):
     """When content view is published and proper lifecycle environment added to it,
     corresponding audit entry appear in the application
@@ -187,7 +182,6 @@ def test_positive_add_event(session, module_org, module_target_sat):
         )
 
 
-@pytest.mark.tier2
 @pytest.mark.usefixtures('import_ansible_roles')
 def test_positive_add_remove_ansible_host_role_event(request, module_org, module_target_sat):
     """When an Ansible role is assigned/unassigned to/from a host, each event is logged in Audit.

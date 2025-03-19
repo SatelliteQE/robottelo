@@ -192,7 +192,6 @@ def test_positive_ansible_modules_installation(target_sat):
 
 @pytest.mark.e2e
 @pytest.mark.pit_server
-@pytest.mark.tier1
 def test_positive_import_run_roles(sync_roles, target_sat):
     """Import a FAM role and run the role on the Satellite
 

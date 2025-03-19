@@ -28,7 +28,6 @@ class TestTailoringFiles:
     """Implements Tailoring Files tests in CLI."""
 
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    @pytest.mark.tier1
     def test_positive_create(self, tailoring_file_path, name, module_target_sat):
         """Create new Tailoring Files using different values types as name
 
@@ -51,7 +50,6 @@ class TestTailoringFiles:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.TailoringFiles.info({'id': tailoring_file['id']})
 
-    @pytest.mark.tier1
     def test_positive_create_with_space(self, tailoring_file_path, module_target_sat):
         """Create tailoring files with space in name
 
@@ -71,7 +69,6 @@ class TestTailoringFiles:
         )
         assert tailoring_file['name'] == name
 
-    @pytest.mark.tier1
     def test_positive_get_info_of_tailoring_file(self, tailoring_file_path, module_target_sat):
         """Get information of tailoring file
 
@@ -96,7 +93,6 @@ class TestTailoringFiles:
         result = module_target_sat.cli.TailoringFiles.info({'name': name})
         assert result['name'] == name
 
-    @pytest.mark.tier1
     def test_positive_list_tailoring_file(self, tailoring_file_path, module_target_sat):
         """List all created tailoring files
 
@@ -120,7 +116,6 @@ class TestTailoringFiles:
         result = module_target_sat.cli.TailoringFiles.list()
         assert name in [tailoringfile['name'] for tailoringfile in result]
 
-    @pytest.mark.tier1
     def test_negative_create_with_invalid_file(self, target_sat):
         """Create Tailoring files with invalid file
 
@@ -142,7 +137,6 @@ class TestTailoringFiles:
             )
 
     @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-    @pytest.mark.tier1
     def test_negative_create_with_invalid_name(self, tailoring_file_path, name, module_target_sat):
         """Create Tailoring files with invalid name
 
@@ -164,7 +158,6 @@ class TestTailoringFiles:
             )
 
     @pytest.mark.stubbed
-    @pytest.mark.tier2
     def test_negative_associate_tailoring_file_with_different_scap(self):
         """Associate a tailoring file with different scap content
 
@@ -183,7 +176,6 @@ class TestTailoringFiles:
         :CaseImportance: Medium
         """
 
-    @pytest.mark.tier2
     def test_positive_download_tailoring_file(self, tailoring_file_path, target_sat):
         """Download the tailoring file from satellite
 
@@ -214,7 +206,6 @@ class TestTailoringFiles:
         assert result.status == 0
         assert file_path == result.stdout.strip()
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     def test_positive_delete_tailoring_file(self, tailoring_file_path, module_target_sat):
         """Delete tailoring file
@@ -238,7 +229,6 @@ class TestTailoringFiles:
             module_target_sat.cli.TailoringFiles.info({'id': tailoring_file['id']})
 
     @pytest.mark.stubbed
-    @pytest.mark.tier4
     @pytest.mark.upgrade
     def test_positive_oscap_run_with_tailoring_file_and_capsule(self):
         """End-to-End Oscap run with tailoring files and default capsule
@@ -263,7 +253,6 @@ class TestTailoringFiles:
         """
 
     @pytest.mark.stubbed
-    @pytest.mark.tier4
     @pytest.mark.upgrade
     def test_positive_oscap_run_with_tailoring_file_and_external_capsule(self):
         """End-to-End Oscap run with tailoring files and external capsule
@@ -288,7 +277,6 @@ class TestTailoringFiles:
         """
 
     @pytest.mark.stubbed
-    @pytest.mark.tier4
     @pytest.mark.upgrade
     def test_positive_fetch_tailoring_file_information_from_arfreports(self):
         """Fetch Tailoring file Information from Arf-reports

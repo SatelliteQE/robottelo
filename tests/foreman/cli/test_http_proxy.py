@@ -20,7 +20,6 @@ from robottelo.constants import FAKE_0_YUM_REPO_PACKAGES_COUNT
 from robottelo.exceptions import CLIReturnCodeError
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_create_update_delete(module_org, module_location, target_sat):
     """Create new http-proxy with attributes, update and delete it.
@@ -85,7 +84,6 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
         target_sat.cli.HttpProxy.info({'id': updated_http_proxy['id']})
 
 
-@pytest.mark.tier3
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
 @pytest.mark.parametrize(
@@ -134,7 +132,6 @@ def test_insights_client_registration_with_http_proxy(
     assert rhel_contenthost.execute('insights-client --unregister').status == 0
 
 
-@pytest.mark.tier2
 @pytest.mark.run_in_one_thread
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.skipif((not settings.http_proxy.UN_AUTH_PROXY_URL), reason='Missing un_auth_proxy_url')
@@ -184,7 +181,6 @@ def test_positive_set_content_default_http_proxy(block_fake_repo_access, target_
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_assign_http_proxy_to_products(module_org, module_target_sat):
     """Assign http_proxy to Products and perform product sync.

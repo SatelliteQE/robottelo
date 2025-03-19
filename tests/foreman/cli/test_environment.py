@@ -34,7 +34,6 @@ def module_locations(session_puppet_enabled_sat):
     )
 
 
-@pytest.mark.tier2
 def test_negative_list_with_parameters(
     module_puppet_org, module_locations, session_puppet_enabled_sat
 ):
@@ -72,7 +71,6 @@ def test_negative_list_with_parameters(
     assert len(results) == 0
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
 def test_negative_create_with_name(name, session_puppet_enabled_sat):
     """Don't create an Environment with invalid data.
@@ -87,7 +85,6 @@ def test_negative_create_with_name(name, session_puppet_enabled_sat):
         session_puppet_enabled_sat.cli.Environment.create({'name': name})
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 @pytest.mark.e2e
 def test_positive_CRUD_with_attributes(
@@ -161,7 +158,6 @@ def test_positive_CRUD_with_attributes(
         session_puppet_enabled_sat.cli.Environment.info({'id': environment['id']})
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('entity_id', **parametrized(invalid_id_list()))
 def test_negative_delete_by_id(entity_id, session_puppet_enabled_sat):
     """Create Environment then delete it by wrong ID
@@ -178,7 +174,6 @@ def test_negative_delete_by_id(entity_id, session_puppet_enabled_sat):
         session_puppet_enabled_sat.cli.Environment.delete({'id': entity_id})
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
 def test_negative_update_name(new_name, session_puppet_enabled_sat):
     """Update the Environment with invalid values
@@ -198,7 +193,6 @@ def test_negative_update_name(new_name, session_puppet_enabled_sat):
     assert environment['name'] == result['name']
 
 
-@pytest.mark.tier1
 @pytest.mark.skipif(
     not settings.robottelo.repos_hosting_url,
     reason='Missing repos_hosting_url',

@@ -36,7 +36,6 @@ def check_links(session):
 
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier2
 def test_positive_eol_banner_e2e(session, target_sat, test_name):
     """Check if the EOL banner is displayed correctly
 
