@@ -92,7 +92,6 @@ class TestScenarioPositiveGCEHostComputeResource:
         return googleclient.get_vm(name='{}'.format(self.fullhostname.replace('.', '-')))
 
     @pytest.mark.pre_upgrade
-    @pytest.mark.tier1
     def test_pre_create_gce_cr_and_host(
         self,
         class_host,

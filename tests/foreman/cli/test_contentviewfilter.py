@@ -46,7 +46,6 @@ def content_view(module_org, sync_repo, module_target_sat):
 class TestContentViewFilter:
     """Content View Filter CLI tests"""
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
     @pytest.mark.parametrize('filter_content_type', ['rpm', 'package_group', 'erratum', 'modulemd'])
     def test_positive_create_with_name_by_cv_id(
@@ -79,7 +78,6 @@ class TestContentViewFilter:
         assert cvf['name'] == name
         assert cvf['type'] == filter_content_type
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('filter_content_type', ['rpm', 'package_group', 'erratum', 'modulemd'])
     def test_positive_create_with_content_type_by_cv_id(
         self, filter_content_type, module_org, content_view, module_target_sat
@@ -110,7 +108,6 @@ class TestContentViewFilter:
         )
         assert cvf['type'] == filter_content_type
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('inclusion', ['true', 'false'])
     def test_positive_create_with_inclusion_by_cv_id(
         self, inclusion, module_org, content_view, module_target_sat
@@ -142,7 +139,6 @@ class TestContentViewFilter:
         )
         assert cvf['inclusion'] == inclusion
 
-    @pytest.mark.tier1
     def test_positive_create_with_description_by_cv_id(
         self, module_org, content_view, module_target_sat
     ):
@@ -173,7 +169,6 @@ class TestContentViewFilter:
         assert cvf['description'] == description
 
     @pytest.mark.run_in_one_thread
-    @pytest.mark.tier1
     def test_positive_create_with_default_taxonomies(
         self, module_org, module_location, content_view, module_target_sat
     ):
@@ -210,7 +205,6 @@ class TestContentViewFilter:
             Defaults.delete({'param-name': 'organization_id'})
             Defaults.delete({'param-name': 'location_id'})
 
-    @pytest.mark.tier1
     def test_positive_list_by_name_and_org(self, module_org, content_view, module_target_sat):
         """Create new content view filter and try to list it by its name and
         organization it belongs
@@ -240,7 +234,6 @@ class TestContentViewFilter:
         assert len(cv_filters) >= 1
         assert cvf_name in [cvf['name'] for cvf in cv_filters]
 
-    @pytest.mark.tier1
     def test_positive_create_by_cv_name(self, module_org, content_view, module_target_sat):
         """Create new content view filter and assign it to existing content
         view by name. Use organization id for reference
@@ -267,7 +260,6 @@ class TestContentViewFilter:
             {'content-view-id': content_view['id'], 'name': cvf_name}
         )
 
-    @pytest.mark.tier1
     def test_positive_create_by_org_name(self, module_org, content_view, module_target_sat):
         """Create new content view filter and assign it to existing content
         view by name. Use organization name for reference
@@ -292,7 +284,6 @@ class TestContentViewFilter:
             {'content-view-id': content_view['id'], 'name': cvf_name}
         )
 
-    @pytest.mark.tier1
     def test_positive_create_by_org_label(self, module_org, content_view, module_target_sat):
         """Create new content view filter and assign it to existing content
         view by name. Use organization label for reference
@@ -317,7 +308,6 @@ class TestContentViewFilter:
             {'content-view-id': content_view['id'], 'name': cvf_name}
         )
 
-    @pytest.mark.tier1
     def test_positive_create_with_repo_by_id(
         self, module_org, sync_repo, content_view, module_target_sat
     ):
@@ -350,7 +340,6 @@ class TestContentViewFilter:
         assert len(cvf['repositories']) == 1
         assert cvf['repositories'][0]['name'] == sync_repo['name']
 
-    @pytest.mark.tier1
     def test_positive_create_with_repo_by_name(
         self, module_org, module_product, sync_repo, content_view, module_target_sat
     ):
@@ -386,7 +375,6 @@ class TestContentViewFilter:
         assert len(cvf['repositories']) == 1
         assert cvf['repositories'][0]['name'] == sync_repo['name']
 
-    @pytest.mark.tier1
     def test_positive_create_with_original_pkgs(self, sync_repo, content_view, module_target_sat):
         """Create new content view filter and assign it to existing content
         view that has repository assigned to it. Enable 'original packages'
@@ -415,7 +403,6 @@ class TestContentViewFilter:
         )
         assert cvf['repositories'][0]['name'] == sync_repo['name']
 
-    @pytest.mark.tier2
     def test_positive_create_with_repos_yum_and_docker(
         self, module_org, module_product, sync_repo, content_view, module_target_sat
     ):
@@ -461,7 +448,6 @@ class TestContentViewFilter:
         for repo in cvf['repositories']:
             assert repo['id'] in repos
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
     def test_negative_create_with_invalid_name(
         self, name, module_org, content_view, module_target_sat
@@ -486,7 +472,6 @@ class TestContentViewFilter:
                 },
             )
 
-    @pytest.mark.tier1
     def test_negative_create_with_same_name(self, module_org, content_view, module_target_sat):
         """Try to create content view filter using same name twice
 
@@ -515,7 +500,6 @@ class TestContentViewFilter:
                 },
             )
 
-    @pytest.mark.tier1
     def test_negative_create_without_type(self, module_org, content_view, module_target_sat):
         """Try to create content view filter without providing required
         parameter 'type'
@@ -535,7 +519,6 @@ class TestContentViewFilter:
                 },
             )
 
-    @pytest.mark.tier1
     def test_negative_create_without_cv(self, module_target_sat):
         """Try to create content view filter without providing content
         view information which should be used as basis for filter
@@ -551,7 +534,6 @@ class TestContentViewFilter:
                 {'name': gen_string('utf8'), 'type': 'rpm'}
             )
 
-    @pytest.mark.tier1
     def test_negative_create_with_invalid_repo_id(
         self, module_org, content_view, module_target_sat
     ):
@@ -574,7 +556,6 @@ class TestContentViewFilter:
                 },
             )
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
     def test_positive_update_name(self, new_name, module_org, content_view, module_target_sat):
         """Create new content view filter and assign it to existing content
@@ -611,7 +592,6 @@ class TestContentViewFilter:
         )
         assert cvf['name'] == new_name
 
-    @pytest.mark.tier2
     def test_positive_update_repo_with_same_type(
         self, module_org, module_product, sync_repo, content_view, module_target_sat
     ):
@@ -663,7 +643,6 @@ class TestContentViewFilter:
         assert cvf['repositories'][0]['name'] != sync_repo['name']
         assert cvf['repositories'][0]['name'] == new_repo['name']
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_update_repo_with_different_type(
         self, module_org, module_product, sync_repo, content_view, module_target_sat
@@ -719,7 +698,6 @@ class TestContentViewFilter:
         assert cvf['repositories'][0]['name'] != sync_repo['name']
         assert cvf['repositories'][0]['name'] == docker_repo['name']
 
-    @pytest.mark.tier2
     def test_positive_update_inclusion(self, module_org, content_view, module_target_sat):
         """Create new content view filter and assign it to existing content
         view by id. Try to update that filter and assign opposite inclusion
@@ -757,7 +735,6 @@ class TestContentViewFilter:
         )
         assert cvf['inclusion'] == 'false'
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
     def test_negative_update_with_name(self, new_name, content_view, module_target_sat):
         """Try to update content view filter using invalid names only
@@ -787,7 +764,6 @@ class TestContentViewFilter:
                 {'content-view-id': content_view['id'], 'name': new_name}
             )
 
-    @pytest.mark.tier1
     def test_negative_update_with_non_existent_repo_id(
         self, sync_repo, content_view, module_target_sat
     ):
@@ -817,7 +793,6 @@ class TestContentViewFilter:
                 }
             )
 
-    @pytest.mark.tier1
     def test_negative_update_with_invalid_repo_id(
         self, module_org, module_product, sync_repo, content_view, module_target_sat
     ):
@@ -851,7 +826,6 @@ class TestContentViewFilter:
                 }
             )
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
     def test_positive_delete_by_name(self, name, module_org, content_view, module_target_sat):
         """Create new content view filter and assign it to existing content
@@ -885,7 +859,6 @@ class TestContentViewFilter:
                 {'content-view-id': content_view['id'], 'name': name}
             )
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     def test_positive_delete_by_id(self, module_org, content_view, module_target_sat):
         """Create new content view filter and assign it to existing content
@@ -915,7 +888,6 @@ class TestContentViewFilter:
                 {'content-view-id': content_view['id'], 'name': cvf_name}
             )
 
-    @pytest.mark.tier1
     def test_positive_delete_by_org_name(self, module_org, content_view, module_target_sat):
         """Create new content view filter and assign it to existing content
         view by id. Try to delete that filter using organization and content
@@ -951,7 +923,6 @@ class TestContentViewFilter:
                 {'content-view-id': content_view['id'], 'name': cvf_name}
             )
 
-    @pytest.mark.tier1
     def test_negative_delete_by_name(self, content_view, module_target_sat):
         """Try to delete non-existent filter using generated name
 
@@ -966,7 +937,6 @@ class TestContentViewFilter:
                 {'content-view-id': content_view['id'], 'name': gen_string('utf8')}
             )
 
-    @pytest.mark.tier2
     def test_positive_check_filters_applied(self, target_sat, module_org, content_view):
         """Ensure the applied filters are indicated and listed correctly in the CVV info.
 

@@ -13,10 +13,8 @@
 """
 
 from fauxfactory import gen_string, gen_url
-import pytest
 
 
-@pytest.mark.tier1
 def test_positive_end_to_end(session, target_sat):
     """Perform end to end testing for webhooks.
 

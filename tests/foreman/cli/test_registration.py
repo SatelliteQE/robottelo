@@ -25,8 +25,6 @@ from robottelo.constants import CLIENT_PORT
 from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = pytest.mark.tier1
-
 
 @pytest.mark.e2e
 @pytest.mark.no_containers
@@ -174,7 +172,6 @@ def test_upgrade_katello_ca_consumer_rpm(module_org, module_location, target_sat
 
 
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
-@pytest.mark.tier3
 def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost, target_sat):
     """Attempt to register a host twice to Satellite
 
@@ -195,7 +192,6 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost
 
 
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
-@pytest.mark.tier3
 def test_positive_force_register_twice(module_ak_with_cv, module_org, rhel_contenthost, target_sat):
     """Register a host twice to Satellite, with force=true
 
@@ -234,7 +230,6 @@ def test_positive_force_register_twice(module_ak_with_cv, module_org, rhel_conte
     )
 
 
-@pytest.mark.tier1
 def test_negative_global_registration_without_ak(module_target_sat):
     """Attempt to register a host without ActivationKey
 

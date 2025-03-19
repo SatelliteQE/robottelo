@@ -29,7 +29,6 @@ from robottelo.utils.datafactory import (
 
 
 @pytest.mark.e2e
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_CRUD_with_attributes(
     session_puppet_enabled_sat, module_puppet_org, module_puppet_loc
@@ -100,7 +99,6 @@ def test_positive_CRUD_with_attributes(
         environment.read()
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_environments_list()))
 def test_positive_create_with_name(name, session_puppet_enabled_sat):
     """Create an environment and provide a valid name.
@@ -115,7 +113,6 @@ def test_positive_create_with_name(name, session_puppet_enabled_sat):
     assert env.name == name
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
 def test_negative_create_with_too_long_name(name, session_puppet_enabled_sat):
     """Create an environment and provide an invalid name.
@@ -130,7 +127,6 @@ def test_negative_create_with_too_long_name(name, session_puppet_enabled_sat):
         session_puppet_enabled_sat.api.Environment(name=name).create()
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_environments_list()))
 def test_negative_create_with_invalid_characters(name, session_puppet_enabled_sat):
     """Create an environment and provide an illegal name.
@@ -145,7 +141,6 @@ def test_negative_create_with_invalid_characters(name, session_puppet_enabled_sa
         session_puppet_enabled_sat.api.Environment(name=name).create()
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('new_name', **parametrized(valid_environments_list()))
 def test_positive_update_name(module_puppet_environment, new_name, session_puppet_enabled_sat):
     """Create environment entity providing the initial name, then
@@ -163,7 +158,6 @@ def test_positive_update_name(module_puppet_environment, new_name, session_puppe
     assert env.name == new_name
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('new_name', **parametrized(invalid_names_list()))
 def test_negative_update_name(module_puppet_environment, new_name, session_puppet_enabled_sat):
     """Create environment entity providing the initial name, then
@@ -191,7 +185,6 @@ Satellite may assign to fields.
 """
 
 
-@pytest.mark.tier2
 def test_positive_update_loc(module_puppet_environment):
     """Update an environment. Inspect the server's response.
 
@@ -207,7 +200,6 @@ def test_positive_update_loc(module_puppet_environment):
     assert len(names & attributes) >= 1, f'None of {names} are in {attributes}'
 
 
-@pytest.mark.tier2
 def test_positive_update_org(module_puppet_environment):
     """Update an environment. Inspect the server's response.
 

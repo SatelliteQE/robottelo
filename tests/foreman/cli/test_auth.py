@@ -58,7 +58,6 @@ def non_admin_user(module_target_sat):
     return user
 
 
-@pytest.mark.tier1
 def test_positive_create_session(admin_user, target_sat):
     """Check if user stays authenticated with session enabled
 
@@ -96,7 +95,6 @@ def test_positive_create_session(admin_user, target_sat):
         target_sat.cli.Settings.set({'name': 'idle_timeout', 'value': f'{idle_timeout}'})
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_disable_session(admin_user, target_sat):
     """Check if user logs out when session is disabled
@@ -128,7 +126,6 @@ def test_positive_disable_session(admin_user, target_sat):
         target_sat.cli.Org.with_user().list()
 
 
-@pytest.mark.tier1
 def test_positive_log_out_from_session(admin_user, target_sat):
     """Check if session is terminated when user logs out
 
@@ -157,7 +154,6 @@ def test_positive_log_out_from_session(admin_user, target_sat):
         target_sat.cli.Org.with_user().list()
 
 
-@pytest.mark.tier1
 def test_positive_change_session(admin_user, non_admin_user, target_sat):
     """Change from existing session to a different session
 
@@ -187,7 +183,6 @@ def test_positive_change_session(admin_user, non_admin_user, target_sat):
     assert target_sat.cli.User.with_user().list()
 
 
-@pytest.mark.tier1
 def test_positive_session_survives_unauthenticated_call(admin_user, target_sat):
     """Check if session stays up after unauthenticated call
 
@@ -219,7 +214,6 @@ def test_positive_session_survives_unauthenticated_call(admin_user, target_sat):
     target_sat.cli.Org.with_user().list()
 
 
-@pytest.mark.tier1
 def test_positive_session_survives_failed_login(admin_user, non_admin_user, target_sat):
     """Check if session stays up after failed login attempt
 
@@ -257,7 +251,6 @@ def test_positive_session_survives_failed_login(admin_user, non_admin_user, targ
 
 
 @pytest.mark.e2e
-@pytest.mark.tier1
 def test_positive_session_preceeds_saved_credentials(admin_user, target_sat):
     """Check if enabled session is mutually exclusive with
     saved credentials in hammer config
@@ -296,7 +289,6 @@ def test_positive_session_preceeds_saved_credentials(admin_user, target_sat):
         target_sat.cli.Settings.set({'name': 'idle_timeout', 'value': f'{idle_timeout}'})
 
 
-@pytest.mark.tier1
 def test_negative_no_credentials(target_sat):
     """Attempt to execute command without authentication
 
@@ -314,7 +306,6 @@ def test_negative_no_credentials(target_sat):
         target_sat.cli.Org.with_user().list()
 
 
-@pytest.mark.tier1
 def test_negative_no_permissions(admin_user, non_admin_user, target_sat):
     """Attempt to execute command out of user's permissions
 

@@ -18,7 +18,6 @@ from robottelo.config import settings
 from robottelo.utils import ohsnap
 
 
-@pytest.mark.tier4
 def test_positive_find_capsule_upgrade_playbook(target_sat):
     """Check that Capsule Upgrade playbook is present on Satellite
 
@@ -35,7 +34,6 @@ def test_positive_find_capsule_upgrade_playbook(target_sat):
     assert len(templates) > 0
 
 
-@pytest.mark.tier4
 def test_positive_run_capsule_update_playbook(module_capsule_configured, target_sat):
     """Run Capsule Upgrade playbook against an External Capsule
 
@@ -80,7 +78,6 @@ def test_positive_run_capsule_update_playbook(module_capsule_configured, target_
     assert {'Dynflow', 'Script', 'Pulpcore', 'Logs'}.issubset(feature_set)
 
 
-@pytest.mark.tier3
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize(
@@ -213,7 +210,6 @@ def test_negative_time_to_pickup(
     assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
 
 
-@pytest.mark.tier3
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize(
