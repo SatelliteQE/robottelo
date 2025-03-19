@@ -109,6 +109,8 @@ class TestRemoteExecution:
 
         :customerscenario: true
 
+        :verifies: SAT-29062
+
         :parametrized: yes
         """
         client = rex_contenthost
@@ -133,6 +135,12 @@ class TestRemoteExecution:
         )
         assert 'Exit' in out
         assert 'Internal Server Error' not in out
+        #  SAT-29062
+        hour = search[0]['started-at'].split(" ")[1].split(":")[0]
+        search = module_target_sat.cli.Task.list_tasks(
+            {'search': f'started_at > {hour}:00 and started_at < {int(hour) + 1}:00'}
+        )
+        assert task['id'] in [t['id'] for t in search], "task not found in expected time range"
 
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_negative_run_default_job_template(
