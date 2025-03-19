@@ -452,9 +452,11 @@ class TestProvisioningTemplate:
         assert 'skipx' not in render
         assert 'chvt 6' in render
 
-    @pytest.mark.rhel_ver_match('[8]')
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    @pytest.mark.parametrize('aap_version', ['2.4', '2.5'])
     def test_positive_template_check_aap_snippet(
         self,
+        aap_version,
         module_sync_kickstart_content,
         module_target_sat,
         module_sca_manifest_org,
@@ -474,15 +476,17 @@ class TestProvisioningTemplate:
 
         :BZ: 2024175
 
+        :verifies: SAT-30761
+
         :customerscenario: true
         """
-        aap_fqdn = 'env-aap.example.com'
+        aap_api_url = f'https://env-aap.example.com{"/api/controller/v2" if aap_version == "2.5" else "/api/v2"}'
         template_id = gen_integer(1, 10)
         extra_vars_dict = '{"package_install": "zsh"}'
         config_key = gen_string('alpha')
         host_params = [
             {'name': 'ansible_tower_provisioning', 'value': 'true', 'parameter_type': 'boolean'},
-            {'name': 'ansible_tower_fqdn', 'value': aap_fqdn, 'parameter_type': 'string'},
+            {'name': 'ansible_tower_api_url', 'value': aap_api_url, 'parameter_type': 'string'},
             {'name': 'ansible_host_config_key', 'value': config_key, 'parameter_type': 'string'},
             {'name': 'ansible_job_template_id', 'value': template_id, 'parameter_type': 'integer'},
             {'name': 'ansible_extra_vars', 'value': extra_vars_dict, 'parameter_type': 'string'},
@@ -504,7 +508,7 @@ class TestProvisioningTemplate:
             host_parameters_attributes=host_params,
         ).create()
         render = host.read_template(data={'template_kind': 'provision'})['template']
-        assert f'https://{aap_fqdn}/api/v2/job_templates/{template_id}/callback/' in render
+        assert f'{aap_api_url}/job_templates/{template_id}/callback/' in render
         assert 'systemctl enable ansible-callback' in render
         assert f'"host_config_key":"{config_key}"' in render
         assert '{"package_install": "zsh"}' in render
