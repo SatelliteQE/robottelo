@@ -4,7 +4,6 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
-from robottelo.utils.manifest import clone
 
 
 @pytest.fixture(scope='session')
@@ -73,22 +72,6 @@ def function_location_with_org(target_sat, function_org):
 
 
 @pytest.fixture(scope='module')
-def module_manifest_org(module_target_sat):
-    org = module_target_sat.api.Organization().create()
-    with clone() as manifest:
-        module_target_sat.upload_manifest(org.id, manifest.content)
-    return org
-
-
-@pytest.fixture(scope='module')
-def module_org_with_manifest(module_org, module_target_sat):
-    """Upload manifest to organization."""
-    with clone() as manifest:
-        module_target_sat.upload_manifest(module_org.id, manifest.content)
-    return module_org
-
-
-@pytest.fixture(scope='module')
 def module_entitlement_manifest_org(module_org, module_entitlement_manifest, module_target_sat):
     """Creates an organization and uploads an entitlement mode manifest generated with manifester"""
     module_org.sca_disable()
@@ -146,16 +129,6 @@ def function_sca_manifest_org(function_org, function_sca_manifest, target_sat):
     """Creates an organization and uploads an SCA mode manifest generated with manifester"""
     target_sat.upload_manifest(function_org.id, function_sca_manifest.content)
     return function_org
-
-
-@pytest.fixture(scope='module')
-def module_gt_manifest_org(module_target_sat):
-    """Creates a new org and loads GT manifest in the new org"""
-    org = module_target_sat.api.Organization().create()
-    manifest = clone(org_environment_access=True, name='golden_ticket')
-    module_target_sat.upload_manifest(org.id, manifest.content, interface='CLI')
-    org.manifest_filename = manifest.filename
-    return org
 
 
 # Note: Manifester should not be used with the Satellite QE RHSM account until

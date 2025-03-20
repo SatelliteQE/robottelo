@@ -86,7 +86,7 @@ def test_positive_content_counts_for_mixed_cv(
         'ansible_collection': {'ansible-collections'},
     }
 
-    repos_collection.setup_content(function_org.id, function_lce.id, upload_manifest=False)
+    repos_collection.setup_content(function_org.id, function_lce.id)
     cv_id = repos_collection.setup_content_data['content_view']['id']
     cv = target_sat.cli.ContentView.info({'id': cv_id})
     cvv = target_sat.cli.ContentView.version_info({'id': cv['versions'][0]['id']})
