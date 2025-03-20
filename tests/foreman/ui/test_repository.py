@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from random import choice, randint, shuffle
 
 from navmazing import NavigationTriesExceeded
@@ -967,7 +967,7 @@ def test_sync_status_persists_after_task_delete(session, module_prod, module_org
     :expectedresults: Displayed Sync Status is still "Synced" after task deleted.
     """
     # make a note of time for later API wait_for_tasks, and include 4 mins margin of safety.
-    timestamp = (datetime.utcnow() - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
+    timestamp = (datetime.now(UTC) - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
     repo = target_sat.api.Repository(url=settings.repos.yum_1.url, product=module_prod).create()
     with session:
         result = session.sync_status.read()
