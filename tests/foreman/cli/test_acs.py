@@ -29,7 +29,6 @@ VAL_CANNOT_BE = 'cannot be'
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.pit_server
 @pytest.mark.parametrize('cnt_type', ['yum', 'file'])
 @pytest.mark.parametrize('acs_type', ['custom', 'simplified', 'rhui'])
@@ -119,7 +118,6 @@ def test_positive_CRUD_all_types(
     assert f'{ACS_NOT_FOUND} {new_acs["id"]}.' in context.value.message, 'ACS was not deleted'
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('acs_type', ['custom', 'simplified', 'rhui'])
 def test_negative_check_name_validation(module_target_sat, acs_type):
     """Check validation when name is not provided.
@@ -144,7 +142,6 @@ def test_negative_check_name_validation(module_target_sat, acs_type):
     assert f'Name {VAL_CANT_BLANK}' in context.value.message
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('acs_type', ['custom', 'rhui'])
 def test_negative_check_custom_rhui_validations(module_target_sat, acs_type, module_yum_repo):
     """Check validations for required and forbidden params specific to Custom and Rhui ACS.
@@ -193,7 +190,6 @@ def test_negative_check_custom_rhui_validations(module_target_sat, acs_type, mod
     )
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('cnt_type', ['yum', 'file'])
 def test_negative_check_simplified_validations(
     module_target_sat, cnt_type, module_yum_repo, module_file_repo

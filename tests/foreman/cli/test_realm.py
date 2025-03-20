@@ -20,7 +20,6 @@ import pytest
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 
 
-@pytest.mark.tier1
 def test_negative_create_name_only(module_target_sat):
     """Create a realm with just a name parameter
 
@@ -32,7 +31,6 @@ def test_negative_create_name_only(module_target_sat):
         module_target_sat.cli_factory.realm({'name': gen_string('alpha', random.randint(1, 30))})
 
 
-@pytest.mark.tier1
 def test_negative_create_invalid_proxy_id(module_target_sat):
     """Create a realm with an invalid proxy ID
 
@@ -50,7 +48,6 @@ def test_negative_create_invalid_proxy_id(module_target_sat):
         )
 
 
-@pytest.mark.tier1
 def test_negative_create_invalid_realm_type(module_target_sat):
     """Create a realm with an invalid type
 
@@ -69,7 +66,6 @@ def test_negative_create_invalid_realm_type(module_target_sat):
         )
 
 
-@pytest.mark.tier1
 def test_negative_create_invalid_location(module_target_sat):
     """Create a realm with an invalid location
 
@@ -88,7 +84,6 @@ def test_negative_create_invalid_location(module_target_sat):
         )
 
 
-@pytest.mark.tier1
 def test_negative_create_invalid_organization(module_target_sat):
     """Create a realm with an invalid organization
 
@@ -107,7 +102,6 @@ def test_negative_create_invalid_organization(module_target_sat):
         )
 
 
-@pytest.mark.tier2
 def test_negative_delete_nonexistent_realm_name(module_target_sat):
     """Delete a realm with a name that does not exist
 
@@ -119,7 +113,6 @@ def test_negative_delete_nonexistent_realm_name(module_target_sat):
         module_target_sat.cli.Realm.delete({'name': gen_string('alpha', random.randint(1, 30))})
 
 
-@pytest.mark.tier2
 def test_negative_delete_nonexistent_realm_id(module_target_sat):
     """Delete a realm with an ID that does not exist
 
@@ -131,7 +124,6 @@ def test_negative_delete_nonexistent_realm_id(module_target_sat):
         module_target_sat.cli.Realm.delete({'id': 0})
 
 
-@pytest.mark.tier2
 def test_negative_info_nonexistent_realm_name(module_target_sat):
     """Get info for a realm with a name that does not exist
 
@@ -143,7 +135,6 @@ def test_negative_info_nonexistent_realm_name(module_target_sat):
         module_target_sat.cli.Realm.info({'name': gen_string('alpha', random.randint(1, 30))})
 
 
-@pytest.mark.tier2
 def test_negative_info_nonexistent_realm_id(module_target_sat):
     """Get info for a realm with an ID that does not exist
 

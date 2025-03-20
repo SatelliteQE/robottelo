@@ -120,7 +120,6 @@ def get_rhel_lifecycle_support(rhel_version):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -245,7 +244,6 @@ def test_positive_end_to_end(
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -330,7 +328,6 @@ def test_positive_end_to_end_bulk_update(session, default_location, vm, target_s
         session.contenthost.delete(vm.hostname)
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -368,7 +365,6 @@ def test_negative_install_package(session, default_location, vm):
         assert result['overview']['job_status'] == 'Failed'
 
 
-@pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -406,7 +402,6 @@ def test_positive_remove_package(session, default_location, vm):
         assert not packages
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -443,7 +438,6 @@ def test_positive_upgrade_package(session, default_location, vm):
         assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -483,7 +477,6 @@ def test_positive_install_package_group(session, default_location, vm):
             assert packages[0]['Installed Package'] == package
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -520,7 +513,6 @@ def test_positive_remove_package_group(session, default_location, vm):
             assert not session.contenthost.search_package(vm.hostname, package)
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -563,7 +555,6 @@ def test_positive_search_errata_non_admin(
         }
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -624,7 +615,6 @@ def test_positive_ensure_errata_applicability_with_host_reregistered(session, de
         }
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -683,7 +673,6 @@ def test_positive_host_re_registration_with_host_rename(
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -775,7 +764,6 @@ def test_positive_check_ignore_facts_os_setting(
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -900,7 +888,6 @@ def test_module_stream_actions_on_content_host(
         assert module_stream[0]['Status'] == ''
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -965,7 +952,6 @@ def test_module_streams_customize_action(session, default_location, vm_module_st
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -1042,7 +1028,6 @@ def test_install_modular_errata(session, default_location, vm_module_streams):
         assert module_stream[0]['Name'] == module_name
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -1107,7 +1092,6 @@ def test_module_status_update_from_content_host_to_satellite(
         )
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -1191,7 +1175,6 @@ def test_module_status_update_without_force_upload_package_profile(
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -1265,7 +1248,6 @@ def test_module_stream_update_from_satellite(session, default_location, vm_modul
         )
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -1305,7 +1287,6 @@ def test_syspurpose_attributes_empty(session, default_location, vm_module_stream
             assert details[spname] == ''
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -1348,7 +1329,6 @@ def test_set_syspurpose_attributes_cli(session, default_location, vm_module_stre
             assert details[spname] == spdata[1]
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -1395,7 +1375,6 @@ def test_unset_syspurpose_attributes_cli(session, default_location, vm_module_st
             assert details[spname] == ''
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
     [
@@ -1438,7 +1417,6 @@ def test_syspurpose_bulk_action(session, default_location, vm):
             assert val in result.stdout
 
 
-@pytest.mark.tier3
 def test_pagination_multiple_hosts_multiple_pages(session, module_host_template, target_sat):
     """Create hosts to fill more than one page, sort on OS, check pagination.
 
@@ -1495,7 +1473,6 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template,
         assert int(total_items_found) >= host_num
 
 
-@pytest.mark.tier3
 def test_search_for_virt_who_hypervisors(session, default_location, module_target_sat):
     """
     Search the virt_who hypervisors with hypervisor=True or hypervisor=False.

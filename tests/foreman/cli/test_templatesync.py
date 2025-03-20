@@ -52,7 +52,6 @@ class TestTemplateSyncTestCase:
             f'[ -f example_template.erb ] || wget {FOREMAN_TEMPLATE_TEST_TEMPLATE}'
         )
 
-    @pytest.mark.tier2
     def test_positive_import_force_locked_template(
         self, module_org, create_import_export_local_dir, target_sat
     ):
@@ -105,7 +104,6 @@ class TestTemplateSyncTestCase:
             pytest.fail('The template is not imported for force test')
 
     @pytest.mark.e2e
-    @pytest.mark.tier2
     @pytest.mark.skip_if_not_set('git')
     @pytest.mark.parametrize(
         'url',
@@ -172,7 +170,6 @@ class TestTemplateSyncTestCase:
         decoded = base64.b64decode(git_file['content'])
         assert content != decoded
 
-    @pytest.mark.tier2
     @pytest.mark.skip_if_not_set('git')
     @pytest.mark.parametrize(
         'url',
@@ -229,7 +226,6 @@ class TestTemplateSyncTestCase:
         )
         assert exported_count == git_count
 
-    @pytest.mark.tier2
     def test_positive_export_filtered_templates_to_temp_dir(self, module_org, target_sat):
         """Assure templates can be exported to /tmp directory without right permissions
 

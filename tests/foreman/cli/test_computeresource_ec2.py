@@ -33,7 +33,6 @@ def aws(module_target_sat):
     return aws
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_create_ec2_with_custom_region(aws, module_target_sat):
     """Create a new ec2 compute resource with custom region

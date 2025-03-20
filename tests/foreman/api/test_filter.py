@@ -28,7 +28,6 @@ def module_perms(module_target_sat):
     )
 
 
-@pytest.mark.tier1
 def test_positive_create_with_permission(module_perms, module_target_sat):
     """Create a filter and assign it some permissions.
 
@@ -45,7 +44,6 @@ def test_positive_create_with_permission(module_perms, module_target_sat):
     assert filter_perms == perms
 
 
-@pytest.mark.tier1
 def test_positive_delete(module_perms, module_target_sat):
     """Create a filter and delete it afterwards.
 
@@ -61,7 +59,6 @@ def test_positive_delete(module_perms, module_target_sat):
         filter_.read()
 
 
-@pytest.mark.tier1
 def test_positive_delete_role(module_perms, module_target_sat):
     """Create a filter and delete the role it points at.
 

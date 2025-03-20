@@ -508,7 +508,6 @@ def _publish_and_wait(sat, org, cv, search_rate=1, max_tries=10):
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.no_containers
 @pytest.mark.e2e
@@ -655,7 +654,6 @@ def test_positive_install_in_hc(
         )
 
 
-@pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.no_containers
 @pytest.mark.e2e
@@ -939,7 +937,6 @@ def test_positive_install_multiple_in_host(
     )
 
 
-@pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_list_sorted_filtered(custom_repo, target_sat):
     """View, sort, and filter all errata specific to repository.
@@ -1065,7 +1062,6 @@ def setup_content_rhel8(
     return _result if return_result else None
 
 
-@pytest.mark.tier2
 def test_positive_get_count_for_host(
     setup_content_rhel8, activation_key, rhel8_contenthost, module_target_sat
 ):
@@ -1133,7 +1129,6 @@ def test_positive_get_count_for_host(
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier3
 def test_positive_get_applicable_for_host(
     setup_content_rhel8, activation_key, rhel8_contenthost, target_sat
 ):
@@ -1199,7 +1194,6 @@ def test_positive_get_applicable_for_host(
     assert REAL_RHEL8_1_ERRATA_ID in [errata['errata_id'] for errata in erratum]
 
 
-@pytest.mark.tier3
 def test_positive_get_diff_for_cv_envs(target_sat):
     """Generate a difference in errata between a set of environments
     for a content view
@@ -1253,7 +1247,6 @@ def test_positive_get_diff_for_cv_envs(target_sat):
     assert {cvv_id for cvv_id in cvv_ids} == set(both_cvvs_errata['comparison'])
 
 
-@pytest.mark.tier3
 def test_positive_incremental_update_required(
     module_sca_manifest_org,
     module_lce,
@@ -1370,7 +1363,6 @@ def rh_repo_module_manifest(module_sca_manifest_org, module_target_sat):
     return rh_repo
 
 
-@pytest.mark.tier3
 def test_positive_incremental_update_apply_to_envs_cvs(
     target_sat,
     module_sca_manifest_org,

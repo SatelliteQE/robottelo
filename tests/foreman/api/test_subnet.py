@@ -30,7 +30,6 @@ from robottelo.utils.datafactory import (
 )
 
 
-@pytest.mark.tier1
 def test_positive_create_with_parameter(target_sat):
     """Subnet can be created along with parameters
 
@@ -47,7 +46,6 @@ def test_positive_create_with_parameter(target_sat):
     assert subnet.subnet_parameters_attributes[0]['value'] == parameter[0]['value']
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(generate_strings_list()))
 def test_positive_add_parameter(name, target_sat):
     """Parameters can be created in subnet
@@ -72,7 +70,6 @@ def test_positive_add_parameter(name, target_sat):
     assert subnet_param.value == value
 
 
-@pytest.mark.tier1
 def test_positive_add_parameter_with_values_and_separator(target_sat):
     """Subnet parameters can be created with values separated by comma
 
@@ -97,7 +94,6 @@ def test_positive_add_parameter_with_values_and_separator(target_sat):
     assert subnet_param.value == values
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize(
     'separator', **parametrized({'comma': ',', 'slash': '/', 'dash': '-', 'pipe': '|'})
 )
@@ -126,7 +122,6 @@ def test_positive_create_with_parameter_and_valid_separator(separator, target_sa
     assert subnet_param.value == value
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list() + ['name with space']))
 def test_negative_create_with_parameter_and_invalid_separator(name, target_sat):
     """Subnet parameters can not be created with name with invalid
@@ -155,7 +150,6 @@ def test_negative_create_with_parameter_and_invalid_separator(name, target_sat):
         target_sat.api.Parameter(name=name, subnet=subnet.id).create()
 
 
-@pytest.mark.tier1
 def test_negative_create_with_duplicated_parameters(target_sat):
     """Attempt to create multiple parameters with same key name for the
     same subnet
@@ -183,7 +177,6 @@ def test_negative_create_with_duplicated_parameters(target_sat):
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_inherit_subnet_parmeters_in_host():
     """Host inherits parameters from subnet
 
@@ -209,7 +202,6 @@ def test_positive_inherit_subnet_parmeters_in_host():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 def test_positive_subnet_parameters_override_from_host():
     """Subnet parameters values can be overridden from host
 
@@ -234,7 +226,6 @@ def test_positive_subnet_parameters_override_from_host():
     """
 
 
-@pytest.mark.tier3
 def test_positive_subnet_parameters_override_impact_on_subnet(target_sat):
     """Override subnet parameter from host impact on subnet parameter
 
@@ -281,7 +272,6 @@ def test_positive_subnet_parameters_override_impact_on_subnet(target_sat):
     assert org_subnet.read().subnet_parameters_attributes[0]['value'] == parameter[0]['value']
 
 
-@pytest.mark.tier1
 def test_positive_update_parameter(target_sat):
     """Subnet parameter can be updated
 
@@ -306,7 +296,6 @@ def test_positive_update_parameter(target_sat):
     assert up_subnet.subnet_parameters_attributes[0]['value'] == update_parameter[0]['value']
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list() + ['name with space']))
 def test_negative_update_parameter(new_name, target_sat):
     """Subnet parameter can not be updated with invalid names
@@ -337,7 +326,6 @@ def test_negative_update_parameter(new_name, target_sat):
         sub_param.update(['name'])
 
 
-@pytest.mark.tier2
 def test_positive_update_subnet_parameter_host_impact(target_sat):
     """Update in parameter name and value from subnet component updates
     the parameter in host inheriting that subnet
@@ -378,7 +366,6 @@ def test_positive_update_subnet_parameter_host_impact(target_sat):
     )
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_delete_subnet_parameter(target_sat):
     """Subnet parameter can be deleted
@@ -400,7 +387,6 @@ def test_positive_delete_subnet_parameter(target_sat):
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 def test_positive_delete_subnet_parameter_host_impact():
     """Deleting parameter from subnet component deletes the parameter in
     host inheriting that subnet
@@ -424,7 +410,6 @@ def test_positive_delete_subnet_parameter_host_impact():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_delete_subnet_overridden_parameter_host_impact():
     """Deleting parameter from subnet component doesnt deletes its
@@ -450,7 +435,6 @@ def test_positive_delete_subnet_overridden_parameter_host_impact():
     """
 
 
-@pytest.mark.tier1
 def test_positive_list_parameters(target_sat):
     """Satellite lists all the subnet parameters
 
@@ -490,7 +474,6 @@ def test_positive_list_parameters(target_sat):
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_subnet_parameter_priority():
     """Higher priority hosts component parameter overrides subnet parameter
      with same name
@@ -519,7 +502,6 @@ def test_positive_subnet_parameter_priority():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_negative_component_overrides_subnet_parameter():
     """Lower priority hosts component parameter doesnt overrides subnet
     parameter with same name

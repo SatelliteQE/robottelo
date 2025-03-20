@@ -141,7 +141,6 @@ def test_positive_parse_package_name_url(
         session.browser.close_window()
 
 
-@pytest.mark.tier2
 def test_positive_search_in_repo(session, module_org, module_yum_repo):
     """Create product with yum repository assigned to it. Search for
     packages inside of it
@@ -161,7 +160,6 @@ def test_positive_search_in_repo(session, module_org, module_yum_repo):
         ].startswith('cheetah')
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_search_in_multiple_repos(session, module_org, module_yum_repo, module_yum_repo2):
     """Create product with two different yum repositories assigned to it.
@@ -191,7 +189,6 @@ def test_positive_search_in_multiple_repos(session, module_org, module_yum_repo,
         assert not session.package.search('name = tiger', repository=module_yum_repo2.name)
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_check_package_details(session, module_org, module_yum_repo):
     """Create product with yum repository assigned to it. Search for
@@ -219,7 +216,7 @@ def test_positive_check_package_details(session, module_org, module_yum_repo):
             'checksum_type': 'sha256',
             'source_rpm': 'gorilla-0.62-1.src.rpm',
             'build_host': 'smqe-ws15',
-            'build_time': 'March 15, 2012, 05:09 PM',
+            'build_time': 'March 15, 2012 at 05:09 PM',
         }
         all_package_details = session.package.read('gorilla', repository=module_yum_repo.name)[
             'details'
@@ -232,7 +229,6 @@ def test_positive_check_package_details(session, module_org, module_yum_repo):
         assert expected_package_details == package_details
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_check_custom_package_details(session, module_org, module_yum_repo):
     """Upload custom rpm package to repository. Search for package
@@ -259,7 +255,6 @@ def test_positive_check_custom_package_details(session, module_org, module_yum_r
         assert repo_details['filename'] == RPM_TO_UPLOAD
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_rh_repo_search_and_check_file_list(session, module_org, module_rh_repo):
     """Synchronize one of RH repos (for example Satellite Capsule). Search

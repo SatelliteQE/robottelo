@@ -16,7 +16,6 @@ import pytest
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 @pytest.mark.upgrade
 def test_dhcp_ip_range():
     """Check host get IP from Infoblox IP range while provisioning a host
@@ -33,7 +32,6 @@ def test_dhcp_ip_range():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 @pytest.mark.upgrade
 def test_dns_records():
     """Check DNS records are updated via infoblox DNS plugin

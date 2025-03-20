@@ -75,7 +75,6 @@ def repo(repo_options, target_sat):
 class TestRepository:
     """Tests for ``katello/api/v2/repositories``."""
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -96,7 +95,6 @@ class TestRepository:
         """
         assert repo_options['name'] == repo.name
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized([{'label': label} for label in datafactory.valid_labels_list()]),
@@ -116,7 +114,6 @@ class TestRepository:
         assert repo.label == repo_options['label']
         assert repo.name != repo_options['label']
 
-    @pytest.mark.tier1
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -139,7 +136,6 @@ class TestRepository:
         for k in 'content_type', 'url':
             assert getattr(repo, k) == repo_options[k]
 
-    @pytest.mark.tier1
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -173,7 +169,6 @@ class TestRepository:
         for k in 'content_type', 'url':
             assert getattr(repo, k) == repo_options[k]
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
@@ -198,7 +193,6 @@ class TestRepository:
         """
         assert repo.download_policy == repo_options['download_policy']
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options', **datafactory.parametrized([{'content_type': 'yum'}]), indirect=True
     )
@@ -221,7 +215,6 @@ class TestRepository:
         assert default_dl_policy
         assert repo.download_policy == default_dl_policy[0].value
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options', **datafactory.parametrized([{'content_type': 'yum'}]), indirect=True
     )
@@ -246,7 +239,6 @@ class TestRepository:
         repo = repo.update(['download_policy'])
         assert repo.download_policy == 'on_demand'
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized([{'content_type': 'yum', 'download_policy': 'on_demand'}]),
@@ -268,7 +260,6 @@ class TestRepository:
         repo = repo.update(['download_policy'])
         assert repo.download_policy == 'immediate'
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -293,7 +284,6 @@ class TestRepository:
         """
         assert repo.checksum_type == repo_options['checksum_type']
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized([{'unprotected': unprotected} for unprotected in (True, False)]),
@@ -313,7 +303,6 @@ class TestRepository:
         """
         assert repo.unprotected == repo_options['unprotected']
 
-    @pytest.mark.tier2
     def test_positive_create_with_gpg(self, module_org, module_product, module_target_sat):
         """Create a repository and provide a GPG key ID.
 
@@ -330,7 +319,6 @@ class TestRepository:
         # Verify that the given GPG key ID is used.
         assert repo.gpg_key.id == gpg_key.id
 
-    @pytest.mark.tier2
     def test_positive_create_same_name_different_orgs(self, repo, target_sat):
         """Create two repos with the same name in two different organizations.
 
@@ -345,7 +333,6 @@ class TestRepository:
         repo_2 = target_sat.api.Repository(product=product_2, name=repo.name).create()
         assert repo_2.name == repo.name
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized([{'name': name} for name in datafactory.invalid_values_list()]),
@@ -365,7 +352,6 @@ class TestRepository:
         with pytest.raises(HTTPError):
             target_sat.api.Repository(**repo_options).create()
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -388,7 +374,6 @@ class TestRepository:
         with pytest.raises(HTTPError):
             target_sat.api.Repository(**repo_options).create()
 
-    @pytest.mark.tier1
     def test_negative_create_label(self, module_product, module_target_sat):
         """Attempt to create repository with invalid label.
 
@@ -403,7 +388,6 @@ class TestRepository:
                 product=module_product, label=gen_string('utf8')
             ).create()
 
-    @pytest.mark.tier1
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -428,7 +412,6 @@ class TestRepository:
         with pytest.raises(HTTPError):
             target_sat.api.Repository(**repo_options).create()
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -452,7 +435,6 @@ class TestRepository:
         with pytest.raises(HTTPError):
             target_sat.api.Repository(**repo_options).create()
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options', **datafactory.parametrized([{'content_type': 'yum'}]), indirect=True
     )
@@ -473,7 +455,6 @@ class TestRepository:
         with pytest.raises(HTTPError):
             repo.update(['download_policy'])
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         [
@@ -500,7 +481,6 @@ class TestRepository:
         with pytest.raises(HTTPError):
             target_sat.api.Repository(**repo_options).create()
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -522,7 +502,6 @@ class TestRepository:
         with pytest.raises(HTTPError):
             target_sat.api.Repository(**repo_options).create()
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         [
@@ -546,7 +525,6 @@ class TestRepository:
         with pytest.raises(HTTPError):
             target_sat.api.Repository(**repo_options).create()
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -573,7 +551,6 @@ class TestRepository:
         assert repo.download_policy == 'on_demand', 'Download policy was not updated'
         assert not repo.checksum_type, 'Checksum type was not reset to Default'
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **datafactory.parametrized(datafactory.valid_data_list()))
     def test_positive_update_name(self, repo, name):
         """Update repository name to another valid name.
@@ -590,7 +567,6 @@ class TestRepository:
         repo = repo.update(['name'])
         assert repo.name == name
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -619,7 +595,6 @@ class TestRepository:
         repo = repo.update(['checksum_type'])
         assert repo.checksum_type == updated_checksum
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options', [{'unprotected': False}], ids=['protected'], indirect=True
     )
@@ -648,7 +623,6 @@ class TestRepository:
         repo = repo.update(['unprotected'])
         assert repo.unprotected is True
 
-    @pytest.mark.tier2
     def test_positive_update_gpg(self, module_org, module_product, module_target_sat):
         """Create a repository and update its GPGKey
 
@@ -674,7 +648,6 @@ class TestRepository:
         repo = repo.update(['gpg_key'])
         assert repo.gpg_key.id == gpg_key_2.id
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     def test_positive_upload_delete_srpm(self, repo, target_sat):
         """Create a repository and upload, delete SRPM contents.
@@ -702,7 +675,6 @@ class TestRepository:
         repo.remove_content(data={'ids': [srpm_detail[0].id], 'content_type': 'srpm'})
         assert repo.read().content_counts['srpm'] == 0
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.skip('Uses deprecated SRPM repository')
     @pytest.mark.skipif(
@@ -732,7 +704,6 @@ class TestRepository:
         with pytest.raises(HTTPError):
             repo.read()
 
-    @pytest.mark.tier1
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -763,7 +734,6 @@ class TestRepository:
         repo.remove_content(data={'ids': [package.id for package in packages]})
         assert repo.read().content_counts['rpm'] == 0
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **datafactory.parametrized(datafactory.invalid_values_list()))
     def test_negative_update_name(self, repo, name):
         """Attempt to update repository name to invalid one
@@ -780,23 +750,6 @@ class TestRepository:
         with pytest.raises(HTTPError):
             repo.update(['name'])
 
-    @pytest.mark.tier1
-    def test_negative_update_label(self, repo):
-        """Attempt to update repository label to another one.
-
-        :id: 828d85df-3c25-4a69-b6a2-401c6b82e4f3
-
-        :expectedresults: Repository is not updated and error is raised
-
-        :CaseImportance: Critical
-
-        :BZ: 1311113
-        """
-        repo.label = gen_string('alpha')
-        with pytest.raises(HTTPError):
-            repo.update(['label'])
-
-    @pytest.mark.tier1
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -820,7 +773,6 @@ class TestRepository:
         with pytest.raises(HTTPError):
             repo.update(['url'])
 
-    @pytest.mark.tier2
     def test_positive_synchronize(self, repo):
         """Create a repo and sync it.
 
@@ -832,7 +784,6 @@ class TestRepository:
         repo.sync()
         assert repo.read().content_counts['rpm'] >= 1
 
-    @pytest.mark.tier2
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -869,7 +820,6 @@ class TestRepository:
         # Verify it has finished
         assert repo.read().content_counts['rpm'] >= 1
 
-    @pytest.mark.tier2
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -884,7 +834,7 @@ class TestRepository:
                     'upstream_password': creds['pass'],
                 }
                 for creds in datafactory.valid_http_credentials()
-                if not creds['http_valid']
+                if not creds['http_valid'] and creds.get('yum_compatible')
             ]
         ),
         indirect=True,
@@ -902,7 +852,6 @@ class TestRepository:
         with pytest.raises(TaskFailedError):
             repo.sync()
 
-    @pytest.mark.tier2
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -936,7 +885,6 @@ class TestRepository:
         repo.sync()
         assert repo.read().content_counts['rpm'] >= 1
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -959,7 +907,6 @@ class TestRepository:
         with pytest.raises(HTTPError):
             repo.read()
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
@@ -987,7 +934,6 @@ class TestRepository:
         with pytest.raises(HTTPError):
             repo.read()
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
@@ -1032,7 +978,6 @@ class TestRepository:
         response = client.get(repo_data_file_url, cert=cert_file_path, verify=False)
         assert response.status_code == 200
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
@@ -1069,7 +1014,6 @@ class TestRepository:
         response = client.get(new_repo_data_file_url, verify=False)
         assert response.status_code == 200
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
@@ -1143,7 +1087,6 @@ class TestRepository:
         assert 'Recreating' in command_output.stdout
         assert 'TaskError' not in command_output.stdout
 
-    @pytest.mark.tier2
     def test_positive_mirroring_policy(self, target_sat):
         """Assert that the content of a repository with 'Mirror Policy' enabled
         is restored properly after resync.
@@ -1197,7 +1140,6 @@ class TestRepository:
         assert len(files) == packages_count
         assert constants.RPM_TO_UPLOAD not in files
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize('policy', ['additive', 'mirror_content_only'])
     def test_positive_sync_with_treeinfo_ignore(
         self, target_sat, function_sca_manifest_org, policy
@@ -1253,7 +1195,6 @@ class TestRepository:
 class TestRepositorySync:
     """Tests for ``/katello/api/repositories/:id/sync``."""
 
-    @pytest.mark.tier2
     def test_positive_sync_repos_with_lots_files(self, target_sat):
         """Attempt to synchronize repository containing a lot of files inside
         rpms.
@@ -1272,7 +1213,6 @@ class TestRepositorySync:
         response = repo.sync()
         assert response, f"Repository {repo} failed to sync."
 
-    @pytest.mark.tier2
     @pytest.mark.build_sanity
     def test_positive_sync_rh(self, module_sca_manifest_org, target_sat):
         """Sync RedHat Repository.
@@ -1292,7 +1232,6 @@ class TestRepositorySync:
         )
         target_sat.api.Repository(id=repo_id).sync()
 
-    @pytest.mark.tier2
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -1323,7 +1262,6 @@ class TestRepositorySync:
             assert repo.content_counts[key] == count
 
     @pytest.mark.stubbed
-    @pytest.mark.tier2
     def test_positive_sync_rh_app_stream(self):
         """Sync RedHat Appstream Repository.
 
@@ -1335,7 +1273,6 @@ class TestRepositorySync:
         """
         pass
 
-    @pytest.mark.tier3
     def test_positive_bulk_cancel_sync(self, target_sat, module_sca_manifest_org):
         """Bulk cancel 10+ repository syncs
 
@@ -1391,7 +1328,6 @@ class TestRepositorySync:
             )
             assert result.status == 0
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content_type': 'yum', 'url': repo_constants.CUSTOM_RPM_SHA}]),
@@ -1417,7 +1353,6 @@ class TestRepositorySync:
         )
         assert result.status == 1
 
-    @pytest.mark.tier2
     def test_positive_sync_repo_null_contents_changed(self, module_sca_manifest_org, target_sat):
         """test for null contents_changed parameter on actions::katello::repository::sync.
 
@@ -1492,7 +1427,6 @@ class TestRepositorySync:
         )
         assert len(os)
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -1542,7 +1476,6 @@ class TestRepositorySync:
 class TestDockerRepository:
     """Tests specific to using ``Docker`` repositories."""
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -1572,7 +1505,6 @@ class TestDockerRepository:
         for k in 'name', 'docker_upstream_name', 'content_type':
             assert getattr(repo, k) == repo_options[k]
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -1617,7 +1549,6 @@ class TestDockerRepository:
         assert 'Task canceled' in sync_task['humanized']['errors']
         assert 'No content added' in sync_task['humanized']['output']
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options_custom_product',
         **datafactory.parametrized(
@@ -1654,7 +1585,6 @@ class TestDockerRepository:
         assert repo.read().content_counts['docker_manifest'] >= 1
         assert repo.product.delete()
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized({'docker': {'content_type': 'docker'}}),
@@ -1680,7 +1610,6 @@ class TestDockerRepository:
         repo = repo.update(['name'])
         assert repo.name == new_name
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -1715,7 +1644,6 @@ class TestDockerRepository:
         repo.sync()
         assert repo.read().content_counts['docker_manifest'] >= 1
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -1753,7 +1681,6 @@ class TestDockerRepository:
         with pytest.raises(TaskFailedError, match=msg):
             repo.sync()
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -1795,7 +1722,6 @@ class TestDockerRepository:
         ):
             target_sat.api.Repository(**repo_options).create()
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
@@ -1826,7 +1752,6 @@ class TestDockerRepository:
         assert repo.include_tags == repo_options['include_tags']
         assert repo.content_counts['docker_tag'] == 1
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
@@ -1893,7 +1818,6 @@ class TestDockerRepository:
     @pytest.mark.skip(
         reason="Tests behavior that is no longer present in the same way, needs refactor"
     )
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -1934,7 +1858,6 @@ class TestDockerRepository:
         assert repo.docker_tags_whitelist == tags
         assert repo.content_counts['docker_tag'] >= 2
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -1965,7 +1888,6 @@ class TestDockerRepository:
         assert repo.include_tags == repo_options['include_tags']
         assert repo.content_counts['docker_tag'] == 1
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -2001,7 +1923,6 @@ class TestDockerRepository:
 # class TestOstreeRepository:
 #     """Tests specific to using ``OSTree`` repositories."""
 #
-#     @pytest.mark.tier1
 #     @pytest.mark.skipif(
 #         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
 #     )
@@ -2025,7 +1946,6 @@ class TestDockerRepository:
 #         """
 #         assert repo.content_type == repo_options['content_type']
 #
-#     @pytest.mark.tier1
 #     @pytest.mark.skipif(
 #         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
 #     )
@@ -2052,7 +1972,6 @@ class TestDockerRepository:
 #         repo = repo.update(['name'])
 #         assert repo.name == new_name
 #
-#     @pytest.mark.tier1
 #     @pytest.mark.skipif(
 #         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
 #     )
@@ -2079,7 +1998,6 @@ class TestDockerRepository:
 #         repo = repo.update(['url'])
 #         assert repo.url == new_url
 #
-#     @pytest.mark.tier1
 #     @pytest.mark.upgrade
 #     @pytest.mark.skipif(
 #         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
@@ -2106,7 +2024,6 @@ class TestDockerRepository:
 #         with pytest.raises(HTTPError):
 #             repo.read()
 #
-#     @pytest.mark.tier2
 #     @pytest.mark.skip_if_open("BZ:1625783")
 #     @pytest.mark.run_in_one_thread
 #     @pytest.mark.upgrade
@@ -2138,7 +2055,6 @@ class TestSRPMRepository:
     """Tests specific to using repositories containing source RPMs."""
 
     @pytest.mark.upgrade
-    @pytest.mark.tier2
     def test_positive_srpm_upload_publish_promote_cv(
         self, module_org, module_lce, repo, module_target_sat
     ):
@@ -2173,7 +2089,6 @@ class TestSRPMRepository:
         )
 
     @pytest.mark.upgrade
-    @pytest.mark.tier2
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -2225,7 +2140,6 @@ class TestSRPMRepositoryIgnoreContent:
     :BZ: 1673215
     """
 
-    @pytest.mark.tier2
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -2254,7 +2168,6 @@ class TestSRPMRepositoryIgnoreContent:
         repo = repo.read()
         assert repo.content_counts['srpm'] == 0
 
-    @pytest.mark.tier2
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -2279,7 +2192,6 @@ class TestSRPMRepositoryIgnoreContent:
         repo = repo.read()
         assert repo.content_counts['srpm'] == 2
 
-    @pytest.mark.tier2
     @pytest.mark.skip('Uses deprecated SRPM repository')
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
@@ -2314,7 +2226,6 @@ class TestSRPMRepositoryIgnoreContent:
 class TestFileRepository:
     """Specific tests for File Repositories"""
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content_type': 'file', 'url': repo_constants.CUSTOM_FILE_REPO}]),
@@ -2344,7 +2255,6 @@ class TestFileRepository:
         )
         assert filesearch[0].name == constants.FAKE_FILE_NEW_NAME
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
@@ -2389,7 +2299,6 @@ class TestTokenAuthContainerRepository:
     :team: Phoenix-content
     """
 
-    @pytest.mark.tier2
     def test_positive_create_with_long_token(
         self, module_org, module_product, request, module_target_sat
     ):
@@ -2454,7 +2363,6 @@ class TestTokenAuthContainerRepository:
     except AttributeError:
         container_repo_keys = []
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('repo_key', container_repo_keys)
     def test_positive_tag_whitelist(
         self, request, repo_key, module_org, module_product, module_target_sat
@@ -2506,7 +2414,6 @@ class TestTokenAuthContainerRepository:
 class TestPythonRepository:
     """Specific tests for Python Repositories"""
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(

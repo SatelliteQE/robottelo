@@ -307,7 +307,6 @@ def test_positive_update_counts(target_sat, module_capsule_configured):
     )
 
 
-@pytest.mark.tier4
 @pytest.mark.skip_if_not_set('capsule')
 def test_positive_exported_imported_content_sync(
     target_sat,

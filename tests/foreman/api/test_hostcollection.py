@@ -31,7 +31,6 @@ def fake_hosts(module_org, module_target_sat):
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_positive_create_with_name(module_org, name, module_target_sat):
     """Create host collections with different names.
 
@@ -50,7 +49,6 @@ def test_positive_create_with_name(module_org, name, module_target_sat):
     assert host_collection.name == name
 
 
-@pytest.mark.tier1
 def test_positive_list(module_org, module_target_sat):
     """Create new host collection and then retrieve list of all existing
     host collections
@@ -71,7 +69,6 @@ def test_positive_list(module_org, module_target_sat):
     assert len(hc_list) >= 1
 
 
-@pytest.mark.tier1
 def test_positive_list_for_organization(target_sat):
     """Create host collection for specific organization. Retrieve list of
     host collections for that organization
@@ -91,7 +88,6 @@ def test_positive_list_for_organization(target_sat):
 
 
 @pytest.mark.parametrize('desc', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_positive_create_with_description(module_org, desc, module_target_sat):
     """Create host collections with different descriptions.
 
@@ -110,7 +106,6 @@ def test_positive_create_with_description(module_org, desc, module_target_sat):
     assert host_collection.description == desc
 
 
-@pytest.mark.tier1
 def test_positive_create_with_limit(module_org, module_target_sat):
     """Create host collections with different limits.
 
@@ -130,7 +125,6 @@ def test_positive_create_with_limit(module_org, module_target_sat):
 
 
 @pytest.mark.parametrize("unlimited", [False, True])
-@pytest.mark.tier1
 def test_positive_create_with_unlimited_hosts(module_org, unlimited, module_target_sat):
     """Create host collection with different values of 'unlimited hosts'
     parameter.
@@ -152,7 +146,6 @@ def test_positive_create_with_unlimited_hosts(module_org, unlimited, module_targ
     assert host_collection.unlimited_hosts == unlimited
 
 
-@pytest.mark.tier1
 def test_positive_create_with_host(module_org, fake_hosts, module_target_sat):
     """Create a host collection that contains a host.
 
@@ -171,7 +164,6 @@ def test_positive_create_with_host(module_org, fake_hosts, module_target_sat):
     assert len(host_collection.host) == 1
 
 
-@pytest.mark.tier1
 def test_positive_create_with_hosts(module_org, fake_hosts, module_target_sat):
     """Create a host collection that contains hosts.
 
@@ -190,7 +182,6 @@ def test_positive_create_with_hosts(module_org, fake_hosts, module_target_sat):
     assert len(host_collection.host) == len(fake_hosts)
 
 
-@pytest.mark.tier2
 def test_positive_add_host(module_org, fake_hosts, module_target_sat):
     """Add a host to host collection.
 
@@ -207,7 +198,6 @@ def test_positive_add_host(module_org, fake_hosts, module_target_sat):
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier2
 def test_positive_add_hosts(module_org, fake_hosts, module_target_sat):
     """Add hosts to host collection.
 
@@ -224,7 +214,6 @@ def test_positive_add_hosts(module_org, fake_hosts, module_target_sat):
     assert len(host_collection.host) == len(fake_hosts)
 
 
-@pytest.mark.tier1
 def test_positive_read_host_ids(module_org, fake_hosts, module_target_sat):
     """Read a host collection and look at the ``host_ids`` field.
 
@@ -246,7 +235,6 @@ def test_positive_read_host_ids(module_org, fake_hosts, module_target_sat):
 
 
 @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_positive_update_name(module_org, new_name, module_target_sat):
     """Check if host collection name can be updated
 
@@ -264,7 +252,6 @@ def test_positive_update_name(module_org, new_name, module_target_sat):
 
 
 @pytest.mark.parametrize('new_desc', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_positive_update_description(module_org, new_desc, module_target_sat):
     """Check if host collection description can be updated
 
@@ -281,7 +268,6 @@ def test_positive_update_description(module_org, new_desc, module_target_sat):
     assert host_collection.update().description == new_desc
 
 
-@pytest.mark.tier1
 def test_positive_update_limit(module_org, module_target_sat):
     """Check if host collection limit can be updated
 
@@ -299,7 +285,6 @@ def test_positive_update_limit(module_org, module_target_sat):
         assert host_collection.update().max_hosts == limit
 
 
-@pytest.mark.tier1
 def test_positive_update_unlimited_hosts(module_org, module_target_sat):
     """Check if host collection 'unlimited hosts' parameter can be updated
 
@@ -323,7 +308,6 @@ def test_positive_update_unlimited_hosts(module_org, module_target_sat):
         assert host_collection.unlimited_hosts == unlimited
 
 
-@pytest.mark.tier1
 def test_positive_update_host(module_org, fake_hosts, module_target_sat):
     """Update host collection's host.
 
@@ -342,7 +326,6 @@ def test_positive_update_host(module_org, fake_hosts, module_target_sat):
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier1
 def test_positive_update_hosts(module_org, fake_hosts, module_target_sat):
     """Update host collection's hosts.
 
@@ -363,7 +346,6 @@ def test_positive_update_hosts(module_org, fake_hosts, module_target_sat):
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier1
 def test_positive_delete(module_org, module_target_sat):
     """Check if host collection can be deleted
 
@@ -380,7 +362,6 @@ def test_positive_delete(module_org, module_target_sat):
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-@pytest.mark.tier1
 def test_negative_create_with_invalid_name(module_org, name, module_target_sat):
     """Try to create host collections with different invalid names
 

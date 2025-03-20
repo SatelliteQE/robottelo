@@ -94,7 +94,6 @@ class TestDockerManifest:
     :team: Phoenix-content
     """
 
-    @pytest.mark.tier2
     def test_positive_read_docker_tags(self, repo, module_target_sat):
         """docker manifest displays tags information for a docker manifest
 
@@ -132,7 +131,6 @@ class TestDockerRepository:
     :team: Phoenix-content
     """
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(valid_docker_repository_names()))
     def test_positive_create_with_name(self, module_product, name, module_target_sat):
         """Create one Docker-type repository
@@ -151,7 +149,6 @@ class TestDockerRepository:
         assert repo['upstream-repository-name'] == settings.container.upstream_name
         assert repo['content-type'] == REPO_TYPE['docker']
 
-    @pytest.mark.tier2
     def test_positive_create_repos_using_same_product(
         self, module_org, module_product, module_target_sat
     ):
@@ -172,7 +169,6 @@ class TestDockerRepository:
         )
         assert repo_names.issubset({repo_['repo-name'] for repo_ in product['content']})
 
-    @pytest.mark.tier2
     def test_positive_create_repos_using_multiple_products(self, module_org, module_target_sat):
         """Create multiple Docker-type repositories on multiple
         products.
@@ -197,7 +193,6 @@ class TestDockerRepository:
             )
             assert repo_names == {repo_['repo-name'] for repo_ in product['content']}
 
-    @pytest.mark.tier1
     def test_positive_sync(self, repo, module_target_sat):
         """Create and sync a Docker-type repository
 
@@ -213,7 +208,6 @@ class TestDockerRepository:
         repo = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert int(repo['content-counts']['container-manifests']) > 0
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('new_name', **parametrized(valid_docker_repository_names()))
     def test_positive_update_name(self, repo, new_name, module_target_sat):
         """Create a Docker-type repository and update its name.
@@ -233,7 +227,6 @@ class TestDockerRepository:
         repo = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['name'] == new_name
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('new_upstream_name', **parametrized(valid_docker_upstream_names()))
     def test_positive_update_upstream_name(self, repo, new_upstream_name, module_target_sat):
         """Create a Docker-type repository and update its upstream name.
@@ -257,7 +250,6 @@ class TestDockerRepository:
         repo = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['upstream-repository-name'] == new_upstream_name
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('new_upstream_name', **parametrized(invalid_docker_upstream_names()))
     def test_negative_update_upstream_name(self, repo, new_upstream_name, module_target_sat):
         """Attempt to update upstream name for a Docker-type repository.
@@ -282,7 +274,6 @@ class TestDockerRepository:
             )
 
     @pytest.mark.skip_if_not_set('docker')
-    @pytest.mark.tier1
     def test_positive_create_with_long_upstream_name(self, module_product, module_target_sat):
         """Create a docker repository with upstream name longer than 30
         characters
@@ -306,7 +297,6 @@ class TestDockerRepository:
         assert repo['upstream-repository-name'] == settings.container.rh.upstream_name
 
     @pytest.mark.skip_if_not_set('docker')
-    @pytest.mark.tier1
     def test_positive_update_with_long_upstream_name(self, repo, module_target_sat):
         """Create a docker repository and update its upstream name with longer
         than 30 characters value
@@ -329,7 +319,6 @@ class TestDockerRepository:
         repo = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['upstream-repository-name'] == settings.container.rh.upstream_name
 
-    @pytest.mark.tier2
     def test_positive_update_url(self, repo, module_target_sat):
         """Create a Docker-type repository and update its URL.
 
@@ -343,7 +332,6 @@ class TestDockerRepository:
         repo = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['url'] == new_url
 
-    @pytest.mark.tier1
     def test_positive_delete_by_id(self, repo, module_target_sat):
         """Create and delete a Docker-type repository
 
@@ -358,7 +346,6 @@ class TestDockerRepository:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.Repository.info({'id': repo['id']})
 
-    @pytest.mark.tier2
     def test_positive_delete_random_repo_by_id(self, module_org, module_target_sat):
         """Create Docker-type repositories on multiple products and
         delete a random repository from a random product.
@@ -397,7 +384,6 @@ class TestDockerContentView:
     :team: Phoenix-content
     """
 
-    @pytest.mark.tier2
     def test_positive_add_docker_repos_by_id(self, module_org, module_product, module_target_sat):
         """Add multiple Docker-type repositories to a non-composite CV.
 
@@ -421,7 +407,6 @@ class TestDockerContentView:
             repo['id'] for repo in content_view['container-image-repositories']
         }
 
-    @pytest.mark.tier2
     def test_positive_publish_with_docker_repo_composite(
         self, content_view, module_org, module_target_sat
     ):
@@ -460,7 +445,6 @@ class TestDockerContentView:
         comp_content_view = module_target_sat.cli.ContentView.info({'id': comp_content_view['id']})
         assert len(comp_content_view['versions']) == 1
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_promote_multiple_with_docker_repo_composite(
         self, content_view, module_org, module_target_sat
@@ -517,7 +501,6 @@ class TestDockerContentView:
             cvv = module_target_sat.cli.ContentView.version_info({'id': cvv['id']})
             assert len(cvv['lifecycle-environments']) == expected_lces
 
-    @pytest.mark.tier2
     def test_positive_product_name_change_after_promotion(self, module_org, module_target_sat):
         """Promote content view with Docker repository to lifecycle environment.
         Change product name. Verify that repository name on product changed
@@ -602,7 +585,6 @@ class TestDockerContentView:
             == expected_name
         )
 
-    @pytest.mark.tier2
     def test_positive_repo_name_change_after_promotion(self, module_org, module_target_sat):
         """Promote content view with Docker repository to lifecycle environment.
         Change repository name. Verify that Docker repository name on product
@@ -683,7 +665,6 @@ class TestDockerContentView:
             == expected_name
         )
 
-    @pytest.mark.tier2
     def test_negative_set_non_unique_name_pattern_and_promote(self, module_org, module_target_sat):
         """Set registry name pattern to one that does not guarantee uniqueness.
         Try to promote content view with multiple Docker repositories to
@@ -718,7 +699,6 @@ class TestDockerContentView:
                 {'id': content_view['versions'][0]['id'], 'to-lifecycle-environment-id': lce['id']}
             )
 
-    @pytest.mark.tier2
     def test_negative_promote_and_set_non_unique_name_pattern(
         self, module_org, module_product, module_target_sat
     ):
@@ -770,7 +750,6 @@ class TestDockerActivationKey:
     :team: Phoenix-subscriptions
     """
 
-    @pytest.mark.tier2
     def test_positive_add_docker_repo_cv(
         self, module_org, module_lce, content_view_promote, module_target_sat
     ):
@@ -792,7 +771,6 @@ class TestDockerActivationKey:
         )
         assert activation_key['content-view'] == content_view_promote['content-view-name']
 
-    @pytest.mark.tier2
     def test_positive_remove_docker_repo_cv(
         self, module_org, module_lce, content_view_promote, module_target_sat
     ):
@@ -836,7 +814,6 @@ class TestDockerActivationKey:
         activation_key = module_target_sat.cli.ActivationKey.info({'id': activation_key['id']})
         assert activation_key['content-view'] != content_view_promote['content-view-name']
 
-    @pytest.mark.tier2
     def test_positive_add_docker_repo_ccv(
         self, module_org, module_lce, content_view_publish, module_target_sat
     ):
@@ -883,7 +860,6 @@ class TestDockerActivationKey:
         )
         assert activation_key['content-view'] == comp_content_view['name']
 
-    @pytest.mark.tier2
     def test_positive_remove_docker_repo_ccv(
         self, module_org, module_lce, content_view_publish, module_target_sat
     ):

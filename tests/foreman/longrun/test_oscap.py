@@ -252,7 +252,6 @@ def prepare_scap_client_and_prerequisites(
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
-@pytest.mark.tier4
 @pytest.mark.rhel_ver_match('[^6].*')
 @pytest.mark.pit_server
 @pytest.mark.pit_client
@@ -321,7 +320,6 @@ def test_positive_oscap_run_via_ansible(
 
 
 @pytest.mark.e2e
-@pytest.mark.tier4
 @pytest.mark.rhel_ver_list([8])
 def test_positive_oscap_remediation(
     module_org, default_proxy, content_view, lifecycle_env, target_sat, rex_contenthost
@@ -410,7 +408,6 @@ def test_positive_oscap_remediation(
 
 
 @pytest.mark.rhel_ver_list([7, 8, 9])
-@pytest.mark.tier4
 def test_positive_oscap_run_via_ansible_bz_1814988(
     module_org, default_proxy, lifecycle_env, target_sat, rex_contenthost
 ):
@@ -484,7 +481,6 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier4
 def test_positive_has_arf_report_summary_page():
     """OSCAP ARF Report now has summary page
 
@@ -502,7 +498,6 @@ def test_positive_has_arf_report_summary_page():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier4
 def test_positive_view_full_report_button():
     """'View full Report' button should exist for OSCAP Reports.
 
@@ -521,7 +516,6 @@ def test_positive_view_full_report_button():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier4
 def test_positive_download_xml_button():
     """'Download xml' button should exist for OSCAP Reports
     to be downloaded in xml format.
@@ -541,7 +535,6 @@ def test_positive_download_xml_button():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier4
 def test_positive_select_oscap_proxy():
     """Oscap-Proxy select box should exist while filling hosts
     and host-groups form.
@@ -559,7 +552,6 @@ def test_positive_select_oscap_proxy():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier4
 def test_positive_delete_multiple_arf_reports():
     """Multiple arf reports deletion should be possible.
 
@@ -579,7 +571,6 @@ def test_positive_delete_multiple_arf_reports():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier4
 def test_positive_reporting_emails_of_oscap_reports():
     """Email Reporting of oscap reports should be possible.
 

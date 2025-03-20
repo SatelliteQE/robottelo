@@ -40,7 +40,6 @@ def module_yum_repo(module_product, module_target_sat):
     return yum_repo
 
 
-@pytest.mark.tier2
 def test_positive_module_stream_details_search_in_repo(session, module_org, module_yum_repo):
     """Create product with yum repository assigned to it. Search for
     module_streams inside of it

@@ -24,7 +24,6 @@ from robottelo.utils.virtwho import (
 
 
 class TestVirtwhoConfigforLibvirt:
-    @pytest.mark.tier2
     @pytest.mark.parametrize('deploy_type_ui', ['id', 'script'], indirect=True)
     def test_positive_deploy_configure_by_id_script(
         self, module_sca_manifest_org, org_session, form_data_ui, deploy_type_ui, default_location
@@ -55,7 +54,6 @@ class TestVirtwhoConfigforLibvirt:
         # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in UI
         hypervisor_guest_mapping_newcontent_ui(org_session, hypervisor_name, guest_name)
 
-    @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
         self, module_sca_manifest_org, virtwho_config_ui, org_session, form_data_ui
     ):

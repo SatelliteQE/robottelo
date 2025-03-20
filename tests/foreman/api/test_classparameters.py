@@ -72,7 +72,6 @@ def module_puppet(session_puppet_enabled_sat):
     session_puppet_enabled_sat.destroy_custom_environment(env_name)
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 @pytest.mark.skipif(

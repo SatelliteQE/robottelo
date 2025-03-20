@@ -21,7 +21,6 @@ from robottelo.utils import ohsnap
 CAPSULE_TARGET_VERSION = f'6.{get_sat_version().minor}.z'
 
 
-@pytest.mark.tier4
 def test_positive_find_capsule_upgrade_playbook(target_sat):
     """Check that Capsule Upgrade playbook is present on Satellite
 
@@ -38,7 +37,6 @@ def test_positive_find_capsule_upgrade_playbook(target_sat):
     assert len(templates) > 0
 
 
-@pytest.mark.tier3
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize(
@@ -171,7 +169,6 @@ def test_negative_time_to_pickup(
     assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
 
 
-@pytest.mark.tier3
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize(

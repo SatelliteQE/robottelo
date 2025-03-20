@@ -160,7 +160,6 @@ def new_host_ui(target_sat):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_options):
     """Create a new Host with parameters, config group. Check host presence on
         the dashboard. Update name with 'new' prefix and delete.
@@ -224,7 +223,6 @@ def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_
         assert not target_sat.api.Host().search(query={'search': f'name="{new_host_name}"'})
 
 
-@pytest.mark.tier4
 def test_positive_read_from_details_page(session, module_host_template):
     """Create new Host and read all its content through details page
 
@@ -256,7 +254,6 @@ def test_positive_read_from_details_page(session, module_host_template):
         assert 'Admin User' in values['properties']['properties_table']['Owner']
 
 
-@pytest.mark.tier4
 def test_positive_read_from_edit_page(session, host_ui_options):
     """Create new Host and read all its content through edit page
 
@@ -300,7 +297,6 @@ def test_positive_read_from_edit_page(session, host_ui_options):
         assert values['additional_information']['enabled'] is True
 
 
-@pytest.mark.tier2
 def test_positive_assign_taxonomies(
     session, module_org, smart_proxy_location, target_sat, function_org, function_location_with_org
 ):
@@ -361,7 +357,6 @@ def test_positive_assign_taxonomies(
 
 
 @pytest.mark.skip_if_not_set('oscap')
-@pytest.mark.tier2
 def test_positive_assign_compliance_policy(
     session, scap_policy, second_scap_policy, target_sat, function_host
 ):
@@ -425,7 +420,6 @@ def test_positive_assign_compliance_policy(
 
 
 @pytest.mark.skipif((settings.ui.webdriver != 'chrome'), reason='Only tested on Chrome')
-@pytest.mark.tier3
 def test_positive_export(session, target_sat, function_org, function_location):
     """Create few hosts and export them via UI
 
@@ -453,7 +447,6 @@ def test_positive_export(session, target_sat, function_org, function_location):
 @pytest.mark.skipif(
     (settings.ui.webdriver != 'chrome'), reason='Currently only chrome is supported'
 )
-@pytest.mark.tier3
 def test_positive_export_selected_columns(target_sat, current_sat_location):
     """Select certain columns in the hosts table and check that they are exported in the CSV file.
 
@@ -511,7 +504,6 @@ def test_positive_export_selected_columns(target_sat, current_sat_location):
             )
 
 
-@pytest.mark.tier4
 def test_positive_create_with_inherited_params(
     session, target_sat, function_org, function_location_with_org
 ):
@@ -551,7 +543,6 @@ def test_positive_create_with_inherited_params(
         )
 
 
-@pytest.mark.tier4
 def test_negative_delete_primary_interface(session, host_ui_options):
     """Attempt to delete primary interface of a host
 
@@ -573,7 +564,6 @@ def test_negative_delete_primary_interface(session, host_ui_options):
         assert 'Interface Delete button is disabled' in str(context.value)
 
 
-@pytest.mark.tier2
 def test_positive_view_hosts_with_non_admin_user(
     test_name, module_org, smart_proxy_location, target_sat
 ):
@@ -613,7 +603,6 @@ def test_positive_view_hosts_with_non_admin_user(
         assert content_host['breadcrumb'] == created_host.name
 
 
-@pytest.mark.tier3
 def test_positive_remove_parameter_non_admin_user(
     test_name, module_org, smart_proxy_location, target_sat, expected_permissions
 ):
@@ -663,7 +652,6 @@ def test_positive_remove_parameter_non_admin_user(
         assert not values['parameters']['host_params']
 
 
-@pytest.mark.tier3
 def test_negative_remove_parameter_non_admin_user(
     test_name, module_org, smart_proxy_location, target_sat, expected_permissions
 ):
@@ -717,7 +705,6 @@ def test_negative_remove_parameter_non_admin_user(
         assert 'Remove Parameter' in str(context.value)
 
 
-@pytest.mark.tier3
 def test_positive_check_permissions_affect_create_procedure(
     test_name, smart_proxy_location, target_sat, function_org, function_role, expected_permissions
 ):
@@ -840,7 +827,6 @@ def test_positive_check_permissions_affect_create_procedure(
             assert create_values[tab_name][field_name] == host_field['expected_value']
 
 
-@pytest.mark.tier2
 def test_positive_search_by_parameter(session, module_org, smart_proxy_location, target_sat):
     """Search for the host by global parameter assigned to it
 
@@ -871,7 +857,6 @@ def test_positive_search_by_parameter(session, module_org, smart_proxy_location,
         assert values[0]['Name'] == param_host.name
 
 
-@pytest.mark.tier2
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.no_containers
 def test_positive_search_by_reported_data(
@@ -916,7 +901,6 @@ def test_positive_search_by_reported_data(
             )
 
 
-@pytest.mark.tier2
 @pytest.mark.usefixtures('function_host')
 def test_positive_search_by_configuration_status_alias(target_sat):
     """
@@ -954,7 +938,6 @@ def test_positive_search_by_configuration_status_alias(target_sat):
             )
 
 
-@pytest.mark.tier4
 def test_positive_search_by_parameter_with_different_values(
     session, module_org, smart_proxy_location, target_sat
 ):
@@ -987,7 +970,6 @@ def test_positive_search_by_parameter_with_different_values(
             assert values[0]['Name'] == host.name
 
 
-@pytest.mark.tier2
 def test_positive_search_by_parameter_with_prefix(
     session, smart_proxy_location, target_sat, function_org
 ):
@@ -1022,7 +1004,6 @@ def test_positive_search_by_parameter_with_prefix(
         assert {value['Name'] for value in values} == {param_host.name, additional_host.name}
 
 
-@pytest.mark.tier2
 def test_positive_search_by_parameter_with_operator(
     session, smart_proxy_location, target_sat, function_org
 ):
@@ -1061,7 +1042,6 @@ def test_positive_search_by_parameter_with_operator(
         assert {value['Name'] for value in values} == {param_host.name, additional_host.name}
 
 
-@pytest.mark.tier2
 def test_positive_search_with_org_and_loc_context(
     session, target_sat, function_org, function_location
 ):
@@ -1087,7 +1067,6 @@ def test_positive_search_with_org_and_loc_context(
         assert session.host.search(host.name)[0]['Name'] == host.name
 
 
-@pytest.mark.tier2
 def test_positive_search_by_org(session, smart_proxy_location, target_sat):
     """Search for host by specifying host's organization name
 
@@ -1107,7 +1086,6 @@ def test_positive_search_by_org(session, smart_proxy_location, target_sat):
         assert session.host.search(f'organization = "{org.name}"')[0]['Name'] == host.name
 
 
-@pytest.mark.tier2
 def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, module_host_template):
     """Create a host with hostgroup specified via CLI. Make sure host
     inherited hostgroup's lifecycle environment, content view and both
@@ -1180,7 +1158,6 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
         assert host.name in [host.name for host in matching_hosts]
 
 
-@pytest.mark.tier4
 @pytest.mark.upgrade
 def test_positive_bulk_delete_host(session, smart_proxy_location, target_sat, function_org):
     """Delete multiple hosts from the list
@@ -1218,7 +1195,6 @@ def test_positive_bulk_delete_host(session, smart_proxy_location, target_sat, fu
 
 
 # ------------------------------ NEW HOST UI DETAILS ----------------------------
-@pytest.mark.tier4
 def test_positive_read_details_page_from_new_ui(session, host_ui_options):
     """Create new Host and read all its content through details page
 
@@ -1242,7 +1218,6 @@ def test_positive_read_details_page_from_new_ui(session, host_ui_options):
         assert values['overview']['details']['details']['comment'] == 'Host with fake data'
 
 
-@pytest.mark.tier4
 def test_positive_manage_table_columns(
     target_sat, test_name, ui_hosts_columns_user, current_sat_org, current_sat_location
 ):
@@ -1289,7 +1264,6 @@ def test_positive_manage_table_columns(
             assert (column in displayed_columns) is is_displayed
 
 
-@pytest.mark.tier2
 def test_all_hosts_manage_columns(target_sat, new_host_ui):
     """Verify that the manage columns widget changes the columns appropriately
 
@@ -1324,7 +1298,6 @@ def test_all_hosts_manage_columns(target_sat, new_host_ui):
             assert (column in displayed_columns) is is_displayed
 
 
-@pytest.mark.tier4
 def test_positive_host_details_read_templates(
     session, target_sat, current_sat_org, current_sat_location
 ):
@@ -1358,7 +1331,6 @@ def test_positive_host_details_read_templates(
     assert set(api_templates) == set(ui_templates)
 
 
-@pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
@@ -1471,7 +1443,6 @@ def test_positive_update_delete_package(
         assert result.status != 0
 
 
-@pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
@@ -1551,7 +1522,6 @@ def test_positive_apply_erratum(
 
 
 @pytest.mark.e2e
-@pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
@@ -1661,7 +1631,6 @@ def module_puppet_enabled_proxy_with_loc(
     session_puppet_enabled_proxy.update(['location'])
 
 
-@pytest.mark.tier3
 def test_positive_inherit_puppet_env_from_host_group_when_action(
     session_puppet_enabled_sat, module_puppet_org, module_puppet_loc, module_puppet_environment
 ):
@@ -1711,7 +1680,6 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(
         assert values['host']['puppet_environment'] == module_puppet_environment.name
 
 
-@pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('module_puppet_enabled_proxy_with_loc')
 def test_positive_create_with_puppet_class(
@@ -1772,7 +1740,6 @@ def test_positive_create_with_puppet_class(
         )
 
 
-@pytest.mark.tier2
 def test_positive_inherit_puppet_env_from_host_group_when_create(
     session_puppet_enabled_sat, module_env_search, module_puppet_org, module_puppet_loc
 ):
@@ -1815,7 +1782,6 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(
         assert values['host']['inherit_puppet_environment'] is False
 
 
-@pytest.mark.tier3
 @pytest.mark.usefixtures('module_puppet_enabled_proxy_with_loc')
 def test_positive_set_multi_line_and_with_spaces_parameter_value(
     session_puppet_enabled_sat,
@@ -1885,7 +1851,6 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
 
 
 @pytest.mark.pit_client
-@pytest.mark.tier2
 @pytest.mark.rhel_ver_match('[^6].*')
 def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
     """Using the new Host UI,enable tracer and verify that the page reloads
@@ -1927,7 +1892,6 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
         assert tracer['title'] == "No applications to restart"
 
 
-@pytest.mark.tier2
 def test_all_hosts_delete(target_sat, function_org, function_location, new_host_ui):
     """Create a host and delete it through All Hosts UI
 
@@ -1957,7 +1921,6 @@ def test_all_hosts_delete(target_sat, function_org, function_location, new_host_
         session.all_hosts.manage_table_columns({header: True for header in stripped_headers})
 
 
-@pytest.mark.tier2
 def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_host_ui):
     """Create several hosts, and delete them via Bulk Actions in All Hosts UI
 
@@ -1977,7 +1940,6 @@ def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_
         assert session.all_hosts.bulk_delete_all()
 
 
-@pytest.mark.tier2
 def test_all_hosts_bulk_cve_reassign(
     target_sat, module_org, module_location, module_lce, module_cv, new_host_ui
 ):
@@ -2030,7 +1992,6 @@ def test_all_hosts_bulk_cve_reassign(
             assert row['Lifecycle environment'] == lce2.name
 
 
-@pytest.mark.tier2
 def test_all_hosts_redirect_button(target_sat):
     """Verify that the New UI button on the old Host page correctly redirects
     to the All Hosts UI
@@ -2048,7 +2009,6 @@ def test_all_hosts_redirect_button(target_sat):
         assert "/new/hosts" in url
 
 
-@pytest.mark.tier2
 def test_all_hosts_bulk_build_management(target_sat, function_org, function_location, new_host_ui):
     """Create several hosts, and manage them via Build Management in All Host UI
 
@@ -2236,7 +2196,6 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
         )
 
 
-@pytest.mark.tier3
 @pytest.mark.rhel_ver_match('8')
 def test_positive_page_redirect_after_update(target_sat, current_sat_location):
     """Check that page redirects correctly after editing a host without making any changes.
@@ -2262,7 +2221,6 @@ def test_positive_page_redirect_after_update(target_sat, current_sat_location):
         assert client.hostname in session.browser.url
 
 
-@pytest.mark.tier3
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('8')
 def test_host_status_honors_taxonomies(
@@ -2649,7 +2607,6 @@ def test_positive_manage_packages(
     indirect=True,
 )
 @pytest.mark.no_containers
-@pytest.mark.tier2
 @pytest.mark.rhel_ver_match('8')
 def test_all_hosts_manage_errata(
     session,

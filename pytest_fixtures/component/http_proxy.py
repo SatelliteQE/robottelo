@@ -11,9 +11,9 @@ def session_auth_proxy(session_target_sat):
 
 
 @pytest.fixture
-def setup_http_proxy(request, module_manifest_org, target_sat):
+def setup_http_proxy(request, module_sca_manifest_org, target_sat):
     """Create a new HTTP proxy and set related settings based on proxy"""
-    http_proxy = target_sat.api_factory.make_http_proxy(module_manifest_org, request.param)
+    http_proxy = target_sat.api_factory.make_http_proxy(module_sca_manifest_org, request.param)
     general_proxy = http_proxy.url if request.param is False else ''
     if request.param:
         general_proxy = (

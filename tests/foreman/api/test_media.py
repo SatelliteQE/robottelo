@@ -33,7 +33,6 @@ class TestMedia:
     def class_media(self, module_org, class_target_sat):
         return class_target_sat.api.Media(organization=[module_org]).create()
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         ('name', 'new_name'),
@@ -60,7 +59,6 @@ class TestMedia:
         with pytest.raises(HTTPError):
             media.read()
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('os_family', **parametrized(OPERATING_SYSTEMS))
     def test_positive_create_update_with_os_family(self, module_org, os_family, module_target_sat):
         """Create and update media with every OS family possible
@@ -78,7 +76,6 @@ class TestMedia:
         media.os_family = new_os_family
         assert media.update(['os_family']).os_family == new_os_family
 
-    @pytest.mark.tier2
     def test_positive_create_with_location(self, module_org, module_location, module_target_sat):
         """Create media entity assigned to non-default location
 
@@ -92,7 +89,6 @@ class TestMedia:
         ).create()
         assert media.location[0].read().name == module_location.name
 
-    @pytest.mark.tier2
     def test_positive_create_with_os(self, module_org, module_target_sat):
         """Create media entity assigned to operation system entity
 
@@ -107,7 +103,6 @@ class TestMedia:
         ).create()
         assert os.read().medium[0].read().name == media.name
 
-    @pytest.mark.tier2
     def test_positive_create_update_url(self, module_org, module_target_sat):
         """Create media entity providing the initial url path, then
         update that url to another valid one.
@@ -125,7 +120,6 @@ class TestMedia:
         media = module_target_sat.api.Media(id=media.id, path_=new_url).update(['path_'])
         assert media.path_ == new_url
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
     def test_negative_create_with_invalid_name(self, name, target_sat):
         """Try to create media entity providing an invalid name
@@ -141,7 +135,6 @@ class TestMedia:
         with pytest.raises(HTTPError):
             target_sat.api.Media(name=name).create()
 
-    @pytest.mark.tier1
     def test_negative_create_with_invalid_url(self, target_sat):
         """Try to create media entity providing an invalid URL
 
@@ -154,7 +147,6 @@ class TestMedia:
         with pytest.raises(HTTPError):
             target_sat.api.Media(path_='NON_EXISTENT_URL').create()
 
-    @pytest.mark.tier1
     def test_negative_create_with_invalid_os_family(self, target_sat):
         """Try to create media entity providing an invalid OS family
 
@@ -167,7 +159,6 @@ class TestMedia:
         with pytest.raises(HTTPError):
             target_sat.api.Media(os_family='NON_EXISTENT_OS').create()
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
     def test_negative_update_name(self, class_media, new_name, target_sat):
         """Create media entity providing the initial name, then try to
@@ -184,7 +175,6 @@ class TestMedia:
         with pytest.raises(HTTPError):
             target_sat.api.Media(id=class_media.id, name=new_name).update(['name'])
 
-    @pytest.mark.tier1
     def test_negative_update_url(self, class_media, target_sat):
         """Try to update media with invalid url.
 
@@ -197,7 +187,6 @@ class TestMedia:
         with pytest.raises(HTTPError):
             target_sat.api.Media(id=class_media.id, path_='NON_EXISTENT_URL').update(['path_'])
 
-    @pytest.mark.tier1
     def test_negative_update_os_family(self, class_media, target_sat):
         """Try to update media with invalid operation system.
 
