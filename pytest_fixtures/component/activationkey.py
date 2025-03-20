@@ -2,7 +2,6 @@
 import pytest
 
 from robottelo.cli.repository import Repository
-from robottelo.utils.manifest import clone
 
 
 @pytest.fixture(scope='module')
@@ -42,11 +41,11 @@ def function_ak_with_cv(function_lce, function_org, function_promoted_cv, target
 
 
 @pytest.fixture(scope='module')
-def module_ak_with_synced_repo(module_org, module_target_sat):
+def module_ak_with_synced_repo(module_sca_manifest_org, module_target_sat):
     """Prepare an activation key with synced repository for host registration"""
-    with clone(name='golden_ticket') as manifest:
-        module_target_sat.upload_manifest(module_org.id, manifest.content)
-    new_product = module_target_sat.cli_factory.make_product({'organization-id': module_org.id})
+    new_product = module_target_sat.cli_factory.make_product(
+        {'organization-id': module_sca_manifest_org.id}
+    )
     new_repo = module_target_sat.cli_factory.make_repository(
         {'product-id': new_product['id'], 'content-type': 'yum'}
     )
@@ -55,7 +54,7 @@ def module_ak_with_synced_repo(module_org, module_target_sat):
         {
             'lifecycle-environment': 'Library',
             'content-view': 'Default Organization View',
-            'organization-id': module_org.id,
+            'organization-id': module_sca_manifest_org.id,
             'auto-attach': False,
         }
     )

@@ -738,7 +738,6 @@ class RepositoryCollection:
         self,
         org_id,
         lce_id,
-        upload_manifest=False,
         download_policy='on_demand',
         rh_subscriptions=None,
         override=None,
@@ -748,8 +747,6 @@ class RepositoryCollection:
 
         :param org_id: The organization id
         :param lce_id: The lifecycle environment id
-        :param upload_manifest: Whether to upload the manifest (The manifest is
-            uploaded only if needed)
         :param download_policy: The repositories download policy
         :param rh_subscriptions: The RH subscriptions to be added to activation key
         :param override: Content override (True = enable, False = disable, None = no action)
@@ -758,13 +755,9 @@ class RepositoryCollection:
             raise RepositoryAlreadyCreated('Repositories already created can not setup content')
         if rh_subscriptions is None:
             rh_subscriptions = []
-        if self.need_subscription:
-            # upload manifest only when needed
-            if upload_manifest and not self.organization_has_manifest(org_id):
-                self.satellite.upload_manifest(org_id, interface='API')
-            if not rh_subscriptions:
-                # add the default subscription if no subscription provided
-                rh_subscriptions = [constants.DEFAULT_SUBSCRIPTION_NAME]
+        if self.need_subscription and not rh_subscriptions:
+            # add the default subscription if no subscription provided
+            rh_subscriptions = [constants.DEFAULT_SUBSCRIPTION_NAME]
         custom_product, repos_info = self.setup(org_id=org_id, download_policy=download_policy)
         content_view, lce = self.setup_content_view(org_id, lce_id)
         custom_product_name = custom_product['name'] if custom_product else None
