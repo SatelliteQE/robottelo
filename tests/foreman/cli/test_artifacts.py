@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 import random
 
 from box import Box
@@ -38,7 +38,7 @@ def module_synced_content(
     :return: Box with created instances and Repository sync time.
     """
     repo = module_target_sat.api.Repository(product=module_product, **request.param).create()
-    sync_time = datetime.utcnow().replace(microsecond=0)
+    sync_time = datetime.now(UTC).replace(microsecond=0)
     repo.sync()
 
     cv = module_target_sat.api.ContentView(organization=module_org, repository=[repo]).create()
