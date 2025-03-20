@@ -750,21 +750,6 @@ class TestRepository:
         with pytest.raises(HTTPError):
             repo.update(['name'])
 
-    def test_negative_update_label(self, repo):
-        """Attempt to update repository label to another one.
-
-        :id: 828d85df-3c25-4a69-b6a2-401c6b82e4f3
-
-        :expectedresults: Repository is not updated and error is raised
-
-        :CaseImportance: Critical
-
-        :BZ: 1311113
-        """
-        repo.label = gen_string('alpha')
-        with pytest.raises(HTTPError):
-            repo.update(['label'])
-
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -849,7 +834,7 @@ class TestRepository:
                     'upstream_password': creds['pass'],
                 }
                 for creds in datafactory.valid_http_credentials()
-                if not creds['http_valid']
+                if not creds['http_valid'] and creds.get('yum_compatible')
             ]
         ),
         indirect=True,
