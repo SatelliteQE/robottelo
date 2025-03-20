@@ -1,7 +1,7 @@
 from configparser import ConfigParser
 import contextlib
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import UTC, datetime
 from functools import cached_property, lru_cache
 import importlib
 import io
@@ -2314,7 +2314,7 @@ class Satellite(Capsule, SatelliteMixins):
     def generate_inventory_report(self, org):
         """Function to perform inventory upload."""
         generate_report_task = 'ForemanInventoryUpload::Async::UploadReportJob'
-        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
         self.api.Organization(id=org.id).rh_cloud_generate_report()
         wait_for(
             lambda: self.api.ForemanTask()

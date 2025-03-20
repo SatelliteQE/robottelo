@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from fauxfactory import gen_choice
 import pytest
@@ -160,7 +160,7 @@ def test_positive_search_scoped(session, request, target_sat):
     :CaseImportance: High
     """
     name = gen_string('alpha')
-    start_date = datetime.utcnow() + timedelta(days=10)
+    start_date = datetime.now(UTC) + timedelta(days=10)
     org = target_sat.api.Organization().create()
     sync_plan = target_sat.api.SyncPlan(
         name=name,

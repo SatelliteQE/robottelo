@@ -162,7 +162,7 @@ def pytest_collection_modifyitems(items, config):
     logger.info('Processing test items to add testimony token markers')
     for item in items:
         item.user_properties.append(
-            ("start_time", datetime.datetime.utcnow().strftime(FMT_XUNIT_TIME))
+            ("start_time", datetime.datetime.now(datetime.UTC).strftime(FMT_XUNIT_TIME))
         )
         if item.nodeid.startswith('tests/robottelo/') and 'test_junit' not in item.nodeid:
             # Unit test, no testimony markers
