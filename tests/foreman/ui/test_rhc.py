@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from fauxfactory import gen_string
 from manifester import Manifester
@@ -141,7 +141,7 @@ def test_positive_configure_cloud_connector(
     parameters = [{'name': 'source_display_name', 'value': gen_string('alpha')}]
     host.host_parameters_attributes = parameters
     host.update(['host_parameters_attributes'])
-    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+    timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
     with module_target_sat.ui_session() as session:
         session.organization.select(org_name=module_rhc_org.name)
         if session.cloudinventory.is_cloud_connector_configured():

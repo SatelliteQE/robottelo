@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 from wait_for import wait_for
@@ -77,7 +77,7 @@ def test_rhcloud_insights_e2e(
     with module_target_sat.ui_session() as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
-        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
         # Sync Insights recommendations
         session.cloudinsights.sync_hits()
         wait_for(
@@ -99,7 +99,7 @@ def test_rhcloud_insights_e2e(
         assert result['Hostname'] == rhel_insights_vm.hostname
         assert result['Recommendation'] == OPENSSH_RECOMMENDATION
         # Run remediation and verify job completion.
-        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.remediate(OPENSSH_RECOMMENDATION)
         wait_for(
             lambda: module_target_sat.api.ForemanTask()
@@ -112,7 +112,7 @@ def test_rhcloud_insights_e2e(
             handle_exception=True,
         )
         # Search for Insights recommendations again.
-        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
         wait_for(
             lambda: module_target_sat.api.ForemanTask()
@@ -258,7 +258,7 @@ def test_host_details_page(
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         # Sync insights recommendations
-        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
         wait_for(
             lambda: module_target_sat.api.ForemanTask()
