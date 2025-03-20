@@ -34,7 +34,6 @@ def function_spec_char_user(target_sat, session_auth_proxy):
     session_auth_proxy.remove_user(name)
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_create_update_delete(module_org, module_location, target_sat):
     """Create new http-proxy with attributes, update and delete it.
@@ -78,7 +77,6 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_assign_http_proxy_to_products_repositories(
     module_org, module_location, target_sat
@@ -201,7 +199,6 @@ def test_positive_assign_http_proxy_to_products_repositories(
         )
 
 
-@pytest.mark.tier1
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize('setting_update', ['content_default_http_proxy'], indirect=True)
 def test_set_default_http_proxy(module_org, module_location, setting_update, target_sat):
@@ -247,7 +244,6 @@ def test_set_default_http_proxy(module_org, module_location, setting_update, tar
         assert result['table'][0]['Value'] == "Empty"
 
 
-@pytest.mark.tier1
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize('setting_update', ['content_default_http_proxy'], indirect=True)
 def test_check_http_proxy_value_repository_details(
@@ -313,7 +309,6 @@ def test_check_http_proxy_value_repository_details(
         assert repo_values['repo_content']['http_proxy_policy'] == 'Global Default (None)'
 
 
-@pytest.mark.tier3
 @pytest.mark.run_in_one_thread
 def test_http_proxy_containing_special_characters(
     request,
@@ -398,7 +393,6 @@ def test_http_proxy_containing_special_characters(
         assert repo.content_counts['rpm'] > 0, 'Where is my content?!'
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')

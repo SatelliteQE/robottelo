@@ -92,7 +92,6 @@ def test_positive_crud_libvirt_cr(module_target_sat, module_org, module_location
     )
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 def test_positive_create_with_name_description(
     name, request, module_target_sat, module_org, module_location
@@ -119,7 +118,6 @@ def test_positive_create_with_name_description(
     assert compresource.description == name
 
 
-@pytest.mark.tier2
 def test_positive_create_with_orgs_and_locs(request, module_target_sat):
     """Create a compute resource with multiple organizations and locations
 
@@ -140,7 +138,6 @@ def test_positive_create_with_orgs_and_locs(request, module_target_sat):
     assert {loc.name for loc in locs} == {loc.read().name for loc in compresource.location}
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
 def test_negative_create_with_invalid_name(name, module_target_sat, module_org, module_location):
     """Attempt to create compute resources with invalid names
@@ -162,7 +159,6 @@ def test_negative_create_with_invalid_name(name, module_target_sat, module_org, 
         ).create()
 
 
-@pytest.mark.tier2
 def test_negative_create_with_same_name(request, module_target_sat, module_org, module_location):
     """Attempt to create a compute resource with already existing name
 
@@ -187,7 +183,6 @@ def test_negative_create_with_same_name(request, module_target_sat, module_org, 
         ).create()
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('url', **parametrized({'random': gen_string('alpha'), 'empty': ''}))
 def test_negative_create_with_url(module_target_sat, module_org, module_location, url):
     """Attempt to create compute resources with invalid url
@@ -206,7 +201,6 @@ def test_negative_create_with_url(module_target_sat, module_org, module_location
         ).create()
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
 def test_negative_update_invalid_name(
     request, module_target_sat, module_org, module_location, new_name
@@ -232,7 +226,6 @@ def test_negative_update_invalid_name(
     assert compresource.read().name == name
 
 
-@pytest.mark.tier2
 def test_negative_update_same_name(request, module_target_sat, module_org, module_location):
     """Attempt to update a compute resource with already existing name
 
@@ -257,7 +250,6 @@ def test_negative_update_same_name(request, module_target_sat, module_org, modul
     assert new_compresource.read().name != name
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('url', **parametrized({'random': gen_string('alpha'), 'empty': ''}))
 def test_negative_update_url(url, request, module_target_sat, module_org, module_location):
     """Attempt to update a compute resource with invalid url

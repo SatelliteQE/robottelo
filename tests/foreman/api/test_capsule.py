@@ -21,7 +21,6 @@ from robottelo.config import user_nailgun_config
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
-@pytest.mark.tier1
 def test_positive_update_capsule(request, pytestconfig, target_sat, module_capsule_configured):
     """Update various capsule properties
 
@@ -89,7 +88,6 @@ def test_positive_update_capsule(request, pytestconfig, target_sat, module_capsu
 
 
 @pytest.mark.skip_if_not_set('fake_capsules')
-@pytest.mark.tier1
 def test_negative_create_with_url(target_sat):
     """Capsule creation with random URL
 
@@ -104,7 +102,6 @@ def test_negative_create_with_url(target_sat):
 
 
 @pytest.mark.skip_if_not_set('fake_capsules')
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_delete(target_sat):
     """Capsule deletion
@@ -124,7 +121,6 @@ def test_positive_delete(target_sat):
 
 
 @pytest.mark.skip_if_not_set('fake_capsules')
-@pytest.mark.tier1
 def test_positive_update_url(request, target_sat):
     """Capsule url updated
 
@@ -147,7 +143,6 @@ def test_positive_update_url(request, target_sat):
 
 
 @pytest.mark.skip_if_not_set('fake_capsules')
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_import_puppet_classes(
     request,

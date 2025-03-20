@@ -15,7 +15,6 @@ from fauxfactory import gen_string
 import pytest
 
 
-@pytest.mark.tier1
 @pytest.mark.e2e
 @pytest.mark.upgrade
 def test_positive_parameter_precedence_impact(

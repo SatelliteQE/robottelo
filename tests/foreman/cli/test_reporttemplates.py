@@ -79,7 +79,6 @@ def local_ak(module_sca_manifest_org, local_environment, local_content_view, mod
     )
 
 
-@pytest.mark.tier2
 def test_positive_report_help(module_target_sat):
     """hammer level of help included in test:
      Base level hammer help includes report-templates,
@@ -124,7 +123,6 @@ def test_positive_report_help(module_target_sat):
     )
 
 
-@pytest.mark.tier1
 @pytest.mark.e2e
 def test_positive_end_to_end_crud_and_list(target_sat):
     """CRUD test + list test for report templates
@@ -203,7 +201,6 @@ def test_positive_end_to_end_crud_and_list(target_sat):
     ],
     ids=['v1', 'v2'],
 )
-@pytest.mark.tier2
 def test_positive_generate_report_check_for_injection(
     module_target_sat, module_org, module_location, content
 ):
@@ -240,7 +237,6 @@ def test_positive_generate_report_check_for_injection(
     )
 
 
-@pytest.mark.tier1
 def test_positive_generate_report_nofilter_and_with_filter(module_target_sat):
     """Generate Host Status report without filter and with filter
 
@@ -288,7 +284,6 @@ def test_positive_generate_report_nofilter_and_with_filter(module_target_sat):
     assert host2['name'] not in [item.split(',')[0] for item in result.splitlines()]
 
 
-@pytest.mark.tier2
 def test_positive_lock_and_unlock_report(module_target_sat):
     """Lock and unlock report template
 
@@ -321,7 +316,6 @@ def test_positive_lock_and_unlock_report(module_target_sat):
     assert result[0]['name'] == new_name
 
 
-@pytest.mark.tier2
 def test_positive_report_add_userinput(module_target_sat):
     """Add user input to template
 
@@ -345,7 +339,6 @@ def test_positive_report_add_userinput(module_target_sat):
     assert result['template-inputs'][0]['name'] == template_input['name']
 
 
-@pytest.mark.tier2
 def test_positive_dump_report(module_target_sat):
     """Export report template
 
@@ -368,7 +361,6 @@ def test_positive_dump_report(module_target_sat):
     assert content in result
 
 
-@pytest.mark.tier2
 def test_positive_clone_locked_report(module_target_sat):
     """Clone locked report template
 
@@ -399,7 +391,6 @@ def test_positive_clone_locked_report(module_target_sat):
     assert result_info['default'] == 'yes'
 
 
-@pytest.mark.tier2
 def test_positive_generate_report_sanitized(module_target_sat):
     """Generate report template where there are values in comma outputted
     which might brake CSV format
@@ -449,7 +440,6 @@ def test_positive_generate_report_sanitized(module_target_sat):
     assert f'{host["name"]},"{host["operating-system"]["operating-system"]["name"]}"' in result
 
 
-@pytest.mark.tier3
 @pytest.mark.stubbed
 def test_positive_applied_errata():
     """Generate an Applied Errata report, then generate it by using schedule --wait and then
@@ -475,7 +465,6 @@ def test_positive_applied_errata():
     """
 
 
-@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_positive_generate_email_compressed():
     """Generate an Applied Errata report, get it by e-mail, compressed
@@ -495,7 +484,6 @@ def test_positive_generate_email_compressed():
     """
 
 
-@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_positive_generate_email_uncompressed():
     """Generate an Applied Errata report, get it by e-mail, uncompressed
@@ -516,7 +504,6 @@ def test_positive_generate_email_uncompressed():
     """
 
 
-@pytest.mark.tier2
 def test_negative_create_report_without_name(module_target_sat):
     """Try to create a report template with empty name
 
@@ -536,7 +523,6 @@ def test_negative_create_report_without_name(module_target_sat):
         module_target_sat.cli_factory.report_template({'name': ''})
 
 
-@pytest.mark.tier2
 def test_negative_delete_locked_report(module_target_sat):
     """Try to delete a locked report template
 
@@ -561,7 +547,6 @@ def test_negative_delete_locked_report(module_target_sat):
         module_target_sat.cli.ReportTemplate.delete({'name': report_template['name']})
 
 
-@pytest.mark.tier2
 def test_negative_bad_email(module_target_sat):
     """Report can't be generated when incorrectly formed mail specified
 
@@ -586,7 +571,6 @@ def test_negative_bad_email(module_target_sat):
         )
 
 
-@pytest.mark.tier3
 def test_negative_nonauthor_of_report_cant_download_it(module_target_sat):
     """The resulting report should only be downloadable by
        the user that generated it or admin. Check.
@@ -690,7 +674,6 @@ def test_negative_nonauthor_of_report_cant_download_it(module_target_sat):
         ).report_data({'id': report_template['name'], 'job-id': job_id})
 
 
-@pytest.mark.tier2
 def test_positive_generate_with_name_and_org(module_target_sat):
     """Generate Host Status report, specifying template name and organization
 
@@ -723,7 +706,6 @@ def test_positive_generate_with_name_and_org(module_target_sat):
     assert host['name'] in [item.split(',')[0] for item in result.split('\n')]
 
 
-@pytest.mark.tier2
 def test_positive_generate_ansible_template(module_target_sat):
     """Report template named 'Ansible Inventory' (default name is specified in settings)
     must be present in Satellite 6.7 and later in order to provide enhanced functionality
@@ -785,7 +767,6 @@ def test_positive_generate_ansible_template(module_target_sat):
     assert host['name'] in [item.split(',')[1] for item in report_data.split('\n') if len(item) > 0]
 
 
-@pytest.mark.tier3
 def test_positive_generate_hostpkgcompare(
     module_sca_manifest_org, local_ak, local_content_view, local_environment, target_sat
 ):
@@ -895,7 +876,6 @@ def test_positive_generate_hostpkgcompare(
                 )
 
 
-@pytest.mark.tier3
 def test_negative_generate_hostpkgcompare_nonexistent_host(module_target_sat):
     """Try to generate 'Host - compare content hosts packages' report
     with nonexistent hosts inputs
@@ -925,7 +905,6 @@ def test_negative_generate_hostpkgcompare_nonexistent_host(module_target_sat):
 
 
 @pytest.mark.rhel_ver_list([7, 8, 9])
-@pytest.mark.tier3
 def test_positive_generate_installed_packages_report(
     module_sca_manifest_org,
     local_ak,

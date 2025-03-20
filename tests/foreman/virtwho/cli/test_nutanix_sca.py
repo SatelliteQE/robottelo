@@ -24,7 +24,6 @@ from robottelo.utils.virtwho import (
 
 
 class TestVirtWhoConfigforNutanix:
-    @pytest.mark.tier2
     @pytest.mark.parametrize('deploy_type_cli', ['id', 'script'], indirect=True)
     def test_positive_deploy_configure_by_id_script(
         self, module_sca_manifest_org, virtwho_config_cli, target_sat, deploy_type_cli
@@ -45,7 +44,6 @@ class TestVirtWhoConfigforNutanix:
         ]['status']
         assert virt_who_instance == 'OK'
 
-    @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
         self, module_sca_manifest_org, form_data_cli, virtwho_config_cli, target_sat
     ):
@@ -70,7 +68,6 @@ class TestVirtWhoConfigforNutanix:
             )
             assert get_configure_option('hypervisor_id', config_file) == value
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('deploy_type', ['id', 'script'])
     def test_positive_prism_central_deploy_configure_by_id_script(
         self, module_sca_manifest_org, target_sat, form_data_cli, deploy_type
@@ -115,7 +112,6 @@ class TestVirtWhoConfigforNutanix:
         ]['status']
         assert virt_who_instance == 'OK'
 
-    @pytest.mark.tier2
     def test_positive_prism_element_prism_central_option(
         self, module_sca_manifest_org, form_data_cli, virtwho_config_cli, target_sat
     ):

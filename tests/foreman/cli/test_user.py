@@ -60,7 +60,6 @@ class TestUser:
         return {role['id']: role for role in roles_helper()}
 
     @pytest.mark.parametrize('email', **parametrized(valid_emails_list()))
-    @pytest.mark.tier2
     def test_positive_CRUD(self, email, module_target_sat):
         """Create User with various parameters, updating and deleting
 
@@ -131,7 +130,6 @@ class TestUser:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.User.info({'login': user['login']})
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     def test_positive_CRUD_admin(self, target_sat):
         """Create an Admin user
@@ -157,7 +155,6 @@ class TestUser:
         with pytest.raises(CLIReturnCodeError):
             target_sat.cli.User.info({'id': user['id']})
 
-    @pytest.mark.tier1
     def test_positive_create_with_default_loc(self, target_sat):
         """Check if user with default location can be created
 
@@ -174,7 +171,6 @@ class TestUser:
         assert location['name'] in user['locations']
         assert location['name'] == user['default-location']
 
-    @pytest.mark.tier1
     def test_positive_create_with_defaut_org(self, module_target_sat):
         """Check if user with default organization can be created
 
@@ -192,7 +188,6 @@ class TestUser:
         assert org['name'] in user['organizations']
         assert org['name'] == user['default-organization']
 
-    @pytest.mark.tier2
     def test_positive_create_with_orgs_and_update(self, module_target_sat):
         """Create User associated to multiple Organizations, update them
 
@@ -215,7 +210,6 @@ class TestUser:
         for org in orgs:
             assert org['name'] in user['organizations']
 
-    @pytest.mark.tier1
     def test_negative_delete_internal_admin(self, module_target_sat):
         """Attempt to delete internal admin user
 
@@ -229,7 +223,6 @@ class TestUser:
             module_target_sat.cli.User.delete({'login': settings.server.admin_username})
         assert module_target_sat.cli.User.info({'login': settings.server.admin_username})
 
-    @pytest.mark.tier2
     def test_positive_last_login_for_new_user(self, module_target_sat):
         """Create new user with admin role and check last login updated for that user
 
@@ -267,7 +260,6 @@ class TestUser:
         )
         assert after_login_time > before_login_time
 
-    @pytest.mark.tier1
     def test_positive_update_all_locales(self, module_target_sat):
         """Update Language in My Account
 
@@ -286,7 +278,6 @@ class TestUser:
             module_target_sat.cli.User.update({'id': user['id'], 'locale': locale})
             assert locale == module_target_sat.cli.User.info({'id': user['id']})['locale']
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_add_and_delete_roles(self, module_roles, module_target_sat):
         """Add multiple roles to User, then delete them
@@ -339,7 +330,6 @@ class TestSshKeyInUser:
         """Create an user"""
         return module_target_sat.api.User().create()
 
-    @pytest.mark.tier1
     def test_positive_CRD_ssh_key(self, module_user, module_target_sat):
         """SSH Key can be added to a User, listed and deletd
 
@@ -366,7 +356,6 @@ class TestSshKeyInUser:
         result = module_target_sat.cli.User.ssh_keys_list({'user-id': module_user.id})
         assert ssh_name not in [i['name'] for i in result]
 
-    @pytest.mark.tier1
     def test_positive_create_ssh_key_super_admin_from_file(self, target_sat):
         """SSH Key can be added to Super Admin user from file
 
@@ -392,7 +381,6 @@ class TestSshKeyInUser:
 class TestPersonalAccessToken:
     """Implement personal access token for the users"""
 
-    @pytest.mark.tier2
     def test_personal_access_token_admin_user(self, target_sat):
         """Personal access token for admin user
 
@@ -425,7 +413,6 @@ class TestPersonalAccessToken:
         command_output = target_sat.execute(curl_command)
         assert f'Unable to authenticate user {user["login"]}' in command_output.stdout
 
-    @pytest.mark.tier2
     def test_positive_personal_access_token_user_with_role(self, target_sat):
         """Personal access token for user with a role
 
@@ -462,7 +449,6 @@ class TestPersonalAccessToken:
         )
         assert 'Access denied' in command_output.stdout
 
-    @pytest.mark.tier2
     def test_expired_personal_access_token(self, target_sat):
         """Personal access token expired for the user.
 
@@ -499,7 +485,6 @@ class TestPersonalAccessToken:
         )
         assert f'Unable to authenticate user {user["login"]}' in command_output.stdout
 
-    @pytest.mark.tier2
     def test_custom_personal_access_token_role(self, target_sat):
         """Personal access token for non admin user with custom role
 
@@ -547,7 +532,6 @@ class TestPersonalAccessToken:
         )
         assert f'Unable to authenticate user {user["login"]}' in command_output.stdout
 
-    @pytest.mark.tier2
     def test_negative_personal_access_token_invalid_date(self, target_sat):
         """Personal access token with invalid expire date.
 

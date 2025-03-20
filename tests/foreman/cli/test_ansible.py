@@ -149,7 +149,6 @@ class TestAnsibleCfgMgmt:
         )
 
     @pytest.mark.e2e
-    @pytest.mark.tier2
     def test_add_and_remove_ansible_role_hostgroup(self, target_sat):
         """
         Test add and remove functionality for ansible roles in hostgroup via CLI
@@ -193,7 +192,6 @@ class TestAnsibleCfgMgmt:
         )
         assert 'Ansible role has been disassociated.' in result[0]['message']
 
-    @pytest.mark.tier3
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_ansible_variables_installed_with_collection(
         self, request, target_sat, module_org, module_ak_with_cv, rhel_contenthost
@@ -259,7 +257,6 @@ class TestAnsibleCfgMgmt:
             target_sat.execute(f'rm -rf {path}/ansible_collections/')
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 class TestAnsibleREX:
     """Test class for remote execution via Ansible
@@ -628,7 +625,6 @@ class TestAnsibleREX:
         collection_path = client.execute('ls ~/ansible_collections').stdout
         assert 'oasis_roles' in collection_path
 
-    @pytest.mark.tier3
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     @pytest.mark.parametrize('auth_type', ['admin', 'non-admin'])

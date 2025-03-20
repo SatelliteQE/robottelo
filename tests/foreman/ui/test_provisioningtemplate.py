@@ -40,7 +40,6 @@ def clone_setup(target_sat, module_org, module_location):
     }
 
 
-@pytest.mark.tier2
 def test_positive_clone(module_org, module_location, target_sat, clone_setup):
     """Assure ability to clone a provisioning template
 
@@ -69,7 +68,6 @@ def test_positive_clone(module_org, module_location, target_sat, clone_setup):
         assert set(clone_setup['os_list']) == {f'{os.name} {os.major}' for os in assigned_oses}
 
 
-@pytest.mark.tier2
 def test_positive_clone_locked(target_sat):
     """Assure ability to clone a locked provisioning template
 
@@ -94,7 +92,6 @@ def test_positive_clone_locked(target_sat):
         ), f'Template {clone_name} expected to exist but is not included in the search'
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.e2e
 def test_positive_end_to_end(module_org, module_location, template_data, target_sat):
@@ -174,7 +171,6 @@ def test_positive_end_to_end(module_org, module_location, template_data, target_
         ), f'Provisioning template {new_name} expected to be removed but is included in the search'
 
 
-@pytest.mark.tier2
 def test_positive_verify_supported_templates_rhlogo(target_sat, module_org, module_location):
     """Verify presense of RH logo on supported provisioning template
 

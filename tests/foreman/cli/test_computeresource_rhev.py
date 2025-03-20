@@ -36,7 +36,6 @@ def rhev():
     return rhev
 
 
-@pytest.mark.tier1
 def test_positive_create_rhev_with_valid_name(rhev, module_target_sat):
     """Create Compute Resource of type Rhev with valid name
 
@@ -60,7 +59,6 @@ def test_positive_create_rhev_with_valid_name(rhev, module_target_sat):
     )
 
 
-@pytest.mark.tier1
 def test_positive_rhev_info(rhev, module_target_sat):
     """List the info of RHEV compute resource
 
@@ -86,7 +84,6 @@ def test_positive_rhev_info(rhev, module_target_sat):
     assert compute_resource['name'] == name
 
 
-@pytest.mark.tier1
 def test_positive_delete_by_name(rhev, module_target_sat):
     """Delete the RHEV compute resource by name
 
@@ -113,7 +110,6 @@ def test_positive_delete_by_name(rhev, module_target_sat):
     assert not result
 
 
-@pytest.mark.tier1
 def test_positive_delete_by_id(rhev, module_target_sat):
     """Delete the RHEV compute resource by id
 
@@ -140,7 +136,6 @@ def test_positive_delete_by_id(rhev, module_target_sat):
     assert not result
 
 
-@pytest.mark.tier2
 def test_negative_create_rhev_with_url(rhev, module_target_sat):
     """RHEV compute resource negative create with invalid values
 
@@ -162,7 +157,6 @@ def test_negative_create_rhev_with_url(rhev, module_target_sat):
         )
 
 
-@pytest.mark.tier2
 def test_negative_create_with_same_name(rhev, module_target_sat):
     """RHEV compute resource negative create with the same name
 
@@ -202,7 +196,6 @@ def test_negative_create_with_same_name(rhev, module_target_sat):
         )
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_update_name(rhev, module_target_sat):
     """RHEV compute resource positive update
@@ -235,7 +228,6 @@ def test_positive_update_name(rhev, module_target_sat):
     assert new_name == module_target_sat.cli.ComputeResource.info({'id': comp_res['id']})['name']
 
 
-@pytest.mark.tier2
 def test_positive_add_image_rhev_with_name(rhev, module_os, module_target_sat):
     """Add images to the RHEV compute resource
 
@@ -281,7 +273,6 @@ def test_positive_add_image_rhev_with_name(rhev, module_os, module_target_sat):
     assert result[0]['uuid'] == rhev.image_uuid
 
 
-@pytest.mark.tier2
 def test_negative_add_image_rhev_with_invalid_uuid(rhev, module_os, module_target_sat):
     """Attempt to add invalid image to the RHEV compute resource
 
@@ -323,7 +314,6 @@ def test_negative_add_image_rhev_with_invalid_uuid(rhev, module_os, module_targe
         )
 
 
-@pytest.mark.tier2
 def test_negative_add_image_rhev_with_invalid_name(rhev, module_os, module_target_sat):
     """Attempt to add invalid image name to the RHEV compute resource
 
@@ -370,7 +360,6 @@ def test_negative_add_image_rhev_with_invalid_name(rhev, module_os, module_targe
 
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
-@pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 def test_positive_provision_rhev_with_host_group(
@@ -511,7 +500,6 @@ def test_positive_provision_rhev_with_host_group(
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_provision_rhev_without_host_group(rhev):
     """Provision a host on RHEV compute resource without
@@ -536,7 +524,6 @@ def test_positive_provision_rhev_without_host_group(rhev):
 
 
 @pytest.mark.on_premises_provisioning
-@pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 def test_positive_provision_rhev_image_based_and_disassociate(

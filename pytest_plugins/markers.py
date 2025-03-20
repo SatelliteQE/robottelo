@@ -6,11 +6,6 @@ def pytest_configure(config):
     markers = [
         "deselect(reason=None): Mark test to be removed from collection.",
         "skip_if_open(issue): Skip test based on issue status.",
-        "tier1: Tier 1 tests",  # CRUD tests
-        "tier2: Tier 2 tests",  # Association tests
-        "tier3: Tier 3 tests",  # Systems integration tests
-        "tier4: Tier 4 tests",  # Long running tests
-        "tier5: Tier 5 tests",  # Deprecated component tests
         "destructive: Destructive tests",
         "upgrade: Upgrade tests",
         "e2e: End to end tests",

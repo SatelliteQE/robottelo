@@ -32,7 +32,6 @@ def create_insights_vulnerability(insights_vm):
 @pytest.mark.e2e
 @pytest.mark.pit_server
 @pytest.mark.pit_client
-@pytest.mark.tier3
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list(r'^[\d]+$')
 def test_rhcloud_insights_e2e(
@@ -211,7 +210,6 @@ def test_host_sorting_based_on_recommendation_count():
     """
 
 
-@pytest.mark.tier2
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([7, 8, 9])
 def test_host_details_page(

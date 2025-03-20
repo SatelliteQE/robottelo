@@ -111,7 +111,6 @@ def get_entities_for_unauthorized(all_entities, exclude_entities, max_num=10):
 class TestEntity:
     """Issue HTTP requests to various ``entity/`` paths."""
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'entity_cls',
         **parametrized(VALID_ENTITIES - STATUS_CODE_ENTITIES),
@@ -134,7 +133,6 @@ class TestEntity:
         assert response.status_code == http.client.OK
         assert 'application/json' in response.headers['content-type']
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'entity_cls',
         **parametrized(get_entities_for_unauthorized(VALID_ENTITIES, {entities.ActivationKey})),
@@ -154,7 +152,6 @@ class TestEntity:
         response = client.get(entity_cls().path(), auth=(), verify=False)
         assert response.status_code == http.client.UNAUTHORIZED
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'entity_cls',
         **parametrized(get_entities_for_unauthorized(VALID_ENTITIES, {entities.TemplateKind})),
@@ -177,7 +174,6 @@ class TestEntity:
         assert response.status_code == http.client.CREATED
         assert 'application/json' in response.headers['content-type']
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'entity_cls',
         **parametrized(get_entities_for_unauthorized(VALID_ENTITIES, {entities.TemplateKind})),
@@ -202,7 +198,6 @@ class TestEntity:
 class TestEntityId:
     """Issue HTTP requests to various ``entity/:id`` paths."""
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind}))
     def test_positive_get_status_code(self, entity_cls):
         """Create an entity and GET it.
@@ -221,7 +216,6 @@ class TestEntityId:
         assert response.status_code == http.client.OK
         assert 'application/json' in response.headers['content-type']
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind}))
     def test_positive_put_status_code(self, entity_cls):
         """Issue a PUT request and check the returned status code.
@@ -252,7 +246,6 @@ class TestEntityId:
         assert response.status_code == http.client.OK
         assert 'application/json' in response.headers['content-type']
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind}))
     def test_positive_delete_status_code(self, entity_cls):
         """Issue an HTTP DELETE request and check the returned status
@@ -290,7 +283,6 @@ class TestDoubleCheck:
     action to ensure that the intended action was accomplished.
     """
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind}))
     def test_positive_put_and_get_requests(self, entity_cls):
         """Update an entity, then read it back.
@@ -329,7 +321,6 @@ class TestDoubleCheck:
             assert key in entity_attrs
             assert value == entity_attrs[key]
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind}))
     def test_positive_post_and_get_requests(self, entity_cls):
         """Create an entity, then read it back.
@@ -353,7 +344,6 @@ class TestDoubleCheck:
             assert key in entity_attrs
             assert value == entity_attrs[key]
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind}))
     def test_positive_delete_and_get_requests(self, entity_cls):
         """Issue an HTTP DELETE request and GET the deleted entity.
@@ -378,7 +368,6 @@ class TestEntityRead:
     ``nailgun.entity_mixins.EntityReadMixin`` are working properly.
     """
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'entity_cls',
         **parametrized(
@@ -406,7 +395,6 @@ class TestEntityRead:
         entity_id = entity_cls().create_json()['id']
         assert isinstance(entity_cls(id=entity_id).read(), entity_cls)
 
-    @pytest.mark.tier1
     def test_positive_architecture_read(self, target_sat):
         """Create an arch that points to an OS, and read the arch.
 
@@ -423,7 +411,6 @@ class TestEntityRead:
         assert len(architecture.operatingsystem) == 1
         assert architecture.operatingsystem[0].id == os_id
 
-    @pytest.mark.tier1
     def test_positive_syncplan_read(self, target_sat):
         """Create a SyncPlan and read it back using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
@@ -441,7 +428,6 @@ class TestEntityRead:
             target_sat.api.SyncPlan(organization=org_id, id=syncplan_id).read(), entities.SyncPlan
         )
 
-    @pytest.mark.tier1
     def test_positive_osparameter_read(self, target_sat):
         """Create an OperatingSystemParameter and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
@@ -460,7 +446,6 @@ class TestEntityRead:
             target_sat.api.OperatingSystemParameter,
         )
 
-    @pytest.mark.tier1
     def test_positive_permission_read(self, target_sat):
         """Create an Permission entity and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
@@ -476,7 +461,6 @@ class TestEntityRead:
         assert perm.name
         assert perm.resource_type
 
-    @pytest.mark.tier1
     def test_positive_media_read(self, target_sat):
         """Create a media pointing at an OS and read the media.
 

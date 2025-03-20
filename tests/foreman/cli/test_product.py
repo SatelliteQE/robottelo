@@ -26,7 +26,6 @@ from robottelo.utils.datafactory import (
 )
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_CRUD(module_org, target_sat):
@@ -112,7 +111,6 @@ def test_positive_CRUD(module_org, target_sat):
         target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
 def test_negative_create_with_name(name, module_org, module_target_sat):
     """Check that only valid names can be used
@@ -129,7 +127,6 @@ def test_negative_create_with_name(name, module_org, module_target_sat):
         module_target_sat.cli_factory.make_product({'name': name, 'organization-id': module_org.id})
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize(
     'label', **parametrized([gen_string(e, 15) for e in ('latin1', 'utf8', 'html')])
 )
@@ -155,7 +152,6 @@ def test_negative_create_with_label(label, module_org, module_target_sat):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_product_list_with_default_settings(module_org, target_sat):
     """Listing product of an organization apart from default organization using hammer
@@ -211,7 +207,6 @@ def test_product_list_with_default_settings(module_org, target_sat):
         assert not [res for res in result if res['parameter'] == 'organization_id']
 
 
-@pytest.mark.tier2
 def test_positive_product_sync_state(module_org, module_target_sat):
     """hammer product info shows correct sync state.
 

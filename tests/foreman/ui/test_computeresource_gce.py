@@ -30,7 +30,6 @@ from robottelo.constants import (
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skip_if_not_set('http_proxy', 'gce')
 def test_positive_default_end_to_end_with_custom_profile(
@@ -142,7 +141,6 @@ def test_positive_default_end_to_end_with_custom_profile(
 
 
 @pytest.mark.e2e
-@pytest.mark.tier4
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('gce')
 @pytest.mark.parametrize('sat_gce', ['sat', 'puppet_sat'], indirect=True)
@@ -227,7 +225,6 @@ def test_positive_gce_provision_end_to_end(
 
 
 @pytest.mark.e2e
-@pytest.mark.tier4
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('gce')

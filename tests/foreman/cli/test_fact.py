@@ -18,8 +18,6 @@ import pytest
 from robottelo.config import settings
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = [pytest.mark.tier1]
-
 
 @pytest.mark.upgrade
 @pytest.mark.parametrize(

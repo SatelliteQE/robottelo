@@ -418,7 +418,6 @@ def cv_filter_cleanup(sat, filter_id, cv, org, lce):
     cv_publish_promote(sat, cv, org, lce)
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize('filter_by_hc', ['id', 'name'], ids=('hc_id', 'hc_name'))
 @pytest.mark.parametrize(
     'filter_by_org', ['id', 'name', 'title'], ids=('org_id', 'org_name', 'org_title')
@@ -482,7 +481,6 @@ def test_positive_install_by_host_collection_and_org(
         assert is_rpm_installed(host)
 
 
-@pytest.mark.tier3
 def test_negative_install_erratum_on_host_collection(
     module_sca_manifest_org, host_collection, module_target_sat
 ):
@@ -513,7 +511,6 @@ def test_negative_install_erratum_on_host_collection(
     assert 'Not supported. Use the remote execution equivalent' in error.value.stderr
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_list_affected_chosts(module_sca_manifest_org, errata_hosts, target_sat):
     """View a list of affected content hosts for an erratum.
@@ -544,7 +541,6 @@ def test_positive_list_affected_chosts(module_sca_manifest_org, errata_hosts, ta
     )
 
 
-@pytest.mark.tier3
 @pytest.mark.no_containers
 def test_install_errata_to_one_host(
     module_sca_manifest_org, errata_hosts, host_collection, target_sat
@@ -588,7 +584,6 @@ def test_install_errata_to_one_host(
     )
 
 
-@pytest.mark.tier3
 @pytest.mark.e2e
 def test_positive_list_affected_chosts_by_erratum_restrict_flag(
     target_sat,
@@ -732,7 +727,6 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
     assert errata['id'] in errata_ids, 'Errata not found in list of applicable errata'
 
 
-@pytest.mark.tier3
 def test_host_errata_search_commands(
     request,
     module_sca_manifest_org,
@@ -904,7 +898,6 @@ def test_host_errata_search_commands(
     assert errata_hosts[1].hostname not in result
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize('sort_by_date', ['issued', 'updated'], ids=('issued_date', 'updated_date'))
 @pytest.mark.parametrize(
     'filter_by_org',
@@ -941,7 +934,6 @@ def test_positive_list_filter_by_org_sort_by_date(
     )
 
 
-@pytest.mark.tier3
 def test_positive_list_filter_by_product_id(target_sat, products_with_repos):
     """Filter errata by product id
 
@@ -960,7 +952,6 @@ def test_positive_list_filter_by_product_id(target_sat, products_with_repos):
     check_errata(errata_ids)
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize('filter_by_product', ['id', 'name'], ids=('product_id', 'product_name'))
 @pytest.mark.parametrize(
     'filter_by_org', ['id', 'name', 'label'], ids=('org_id', 'org_name', 'org_label')
@@ -1003,7 +994,6 @@ def test_positive_list_filter_by_product_and_org(
     check_errata(errata_ids)
 
 
-@pytest.mark.tier3
 def test_negative_list_filter_by_product_name(products_with_repos, module_target_sat):
     """Attempt to Filter errata by product name
 
@@ -1025,7 +1015,6 @@ def test_negative_list_filter_by_product_name(products_with_repos, module_target
         )
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'filter_by_org', ['id', 'name', 'label'], ids=('org_id', 'org_name', 'org_label')
 )
@@ -1061,7 +1050,6 @@ def test_positive_list_filter_by_org(target_sat, products_with_repos, filter_by_
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier3
 def test_positive_list_filter_by_cve(module_sca_manifest_org, rh_repo_module_manifest, target_sat):
     """Filter errata by CVE
 
@@ -1108,7 +1096,6 @@ def test_positive_list_filter_by_cve(module_sca_manifest_org, rh_repo_module_man
         }
 
 
-@pytest.mark.tier3
 def test_positive_check_errata_dates(module_sca_manifest_org, module_target_sat):
     """Check for errata dates in `hammer erratum list`
 
@@ -1227,7 +1214,6 @@ def errata_host(
     return rhel_contenthost
 
 
-@pytest.mark.tier2
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('8')
 def test_apply_errata_using_default_content_view(errata_host, module_sca_manifest_org, target_sat):
@@ -1278,7 +1264,6 @@ def test_apply_errata_using_default_content_view(errata_host, module_sca_manifes
     assert len(erratum) == 0
 
 
-@pytest.mark.tier2
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('8')
 def test_update_applicable_package_using_default_content_view(errata_host, target_sat):
@@ -1337,7 +1322,6 @@ def test_update_applicable_package_using_default_content_view(errata_host, targe
     assert len(applicable_packages) == 0
 
 
-@pytest.mark.tier2
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('8')
 def test_downgrade_applicable_package_using_default_content_view(errata_host, target_sat):
@@ -1387,7 +1371,6 @@ def test_downgrade_applicable_package_using_default_content_view(errata_host, ta
     assert FAKE_2_CUSTOM_PACKAGE_NAME in applicable_packages[0]['filename']
 
 
-@pytest.mark.tier2
 @pytest.mark.rhel_ver_match('8')
 def test_install_applicable_package_to_registered_host(errata_host, target_sat):
     """Installing an older package to an already registered host should show the newer package
@@ -1434,7 +1417,6 @@ def test_install_applicable_package_to_registered_host(errata_host, target_sat):
     assert FAKE_2_CUSTOM_PACKAGE_NAME in applicable_packages[0]['filename']
 
 
-@pytest.mark.tier2
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('8')
 def test_downgrading_package_shows_errata_from_library(
@@ -1481,7 +1463,6 @@ def test_downgrading_package_shows_errata_from_library(
     assert settings.repos.yum_6.errata[2] in errata_ids
 
 
-@pytest.mark.tier2
 def test_errata_list_by_contentview_filter(module_sca_manifest_org, module_target_sat):
     """Hammer command to list errata should take filter ID into consideration.
 

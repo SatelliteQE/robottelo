@@ -19,7 +19,6 @@ from robottelo.config import robottelo_tmp_dir
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 def test_positive_maintenance_mode(request, sat_maintain, setup_sync_plan):
     """Test satellite-maintain maintenance-mode subcommand
 

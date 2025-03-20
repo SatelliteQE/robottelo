@@ -19,7 +19,6 @@ from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 
 
-@pytest.mark.tier1
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
@@ -81,7 +80,6 @@ def test_positive_vmware_cr_end_to_end(target_sat, module_org, module_location, 
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.parametrize('provision_method', ['build', 'bootdisk'])
 @pytest.mark.rhel_ver_match('[^6]')
-@pytest.mark.tier3
 def test_positive_provision_end_to_end(
     request,
     setting_update,
@@ -157,7 +155,6 @@ def test_positive_provision_end_to_end(
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios'], indirect=True)
 @pytest.mark.rhel_ver_match('[8]')
-@pytest.mark.tier3
 def test_positive_image_provision_end_to_end(
     request,
     setting_update,
