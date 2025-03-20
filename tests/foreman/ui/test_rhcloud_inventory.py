@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from wait_for import wait_for
@@ -86,7 +86,7 @@ def test_rhcloud_inventory_e2e(
     with module_target_sat.ui_session() as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
-        timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         # wait_for_tasks report generation task to finish.
         wait_for(
@@ -184,7 +184,7 @@ def test_rh_cloud_inventory_settings(
         session.cloudinventory.update({'obfuscate_hostnames': True})
         session.cloudinventory.update({'obfuscate_ips': True})
         session.cloudinventory.update({'exclude_packages': True})
-        timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         # wait_for_tasks report generation task to finish.
         wait_for(
@@ -238,7 +238,7 @@ def test_rh_cloud_inventory_settings(
         module_target_sat.update_setting('obfuscate_inventory_hostnames', True)
         module_target_sat.update_setting('obfuscate_inventory_ips', True)
         module_target_sat.update_setting('exclude_installed_packages', True)
-        timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         # wait_for_tasks report generation task to finish.
         wait_for(
@@ -330,7 +330,7 @@ def test_rhcloud_inventory_without_manifest(session, module_org, target_sat):
     """
     with session:
         session.organization.select(org_name=module_org.name)
-        timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(module_org.name)
         wait_for(
             lambda: target_sat.api.ForemanTask()

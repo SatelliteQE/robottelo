@@ -13,7 +13,7 @@
 """
 
 from calendar import monthrange
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from time import sleep
 
 from dateutil.relativedelta import FR, relativedelta
@@ -361,7 +361,7 @@ class TestRemoteExecution:
             ],
             [
                 '@hourly',
-                f'{(datetime.utcnow() + timedelta(hours=1)).strftime("%Y/%m/%d %H")}:00:00',
+                f'{(datetime.now(UTC) + timedelta(hours=1)).strftime("%Y/%m/%d %H")}:00:00',
             ],
             # last day of month
             [
