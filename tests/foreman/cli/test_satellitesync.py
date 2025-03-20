@@ -91,7 +91,7 @@ def function_import_org(target_sat):
 def function_import_org_with_manifest(target_sat, function_import_org):
     """Creates and sets an Organization with a brand-new manifest for content import."""
     with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
-        target_sat.upload_manifest(function_import_org.id, manifest)
+        target_sat.upload_manifest(function_import_org.id, manifest.content)
     return function_import_org
 
 
