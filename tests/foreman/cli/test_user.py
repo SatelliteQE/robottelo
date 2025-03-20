@@ -264,7 +264,7 @@ class TestUser:
         assert result_after_login[0]['last-login'] != ""
         after_login_time = datetime.datetime.strptime(
             result_after_login[0]['last-login'], "%Y/%m/%d %H:%M:%S"
-        )
+        ).replace(tzinfo=datetime.UTC)
         assert after_login_time > before_login_time
 
     @pytest.mark.tier1

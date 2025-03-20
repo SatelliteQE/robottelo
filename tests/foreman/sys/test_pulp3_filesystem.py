@@ -122,14 +122,14 @@ def test_pulp_status(target_sat):
     assert status['redis_connection']['connected']
 
     workers_beats = [
-        datetime.strptime(worker['last_heartbeat'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        datetime.strptime(worker['last_heartbeat'], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=UTC)
         for worker in status['online_workers']
     ]
     assert all((now - beat).seconds < 20 for beat in workers_beats), (
         'Some pulp workers seem to me dead!'
     )
     apps_beats = [
-        datetime.strptime(app['last_heartbeat'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        datetime.strptime(app['last_heartbeat'], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=UTC)
         for app in status['online_content_apps']
     ]
     assert all((now - beat).seconds < 20 for beat in apps_beats), (

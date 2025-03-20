@@ -1341,7 +1341,10 @@ class TestCapsuleContentManagement:
         # Check sync status again, and ensure last_sync_time is still correct
         sync_status = module_capsule_configured.nailgun_capsule.content_get_sync()
         assert (
-            datetime.strptime(sync_status['last_sync_time'], '%Y-%m-%d %H:%M:%S UTC') >= timestamp
+            datetime.strptime(sync_status['last_sync_time'], '%Y-%m-%d %H:%M:%S UTC').replace(
+                tzinfo=UTC
+            )
+            >= timestamp
         )
 
     @pytest.mark.tier4

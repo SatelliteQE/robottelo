@@ -10,7 +10,7 @@
 
 """
 
-from datetime import UTC, datetime
+from datetime import datetime
 
 from airgun.session import Session
 from fauxfactory import gen_string
@@ -289,9 +289,7 @@ class TestVirtwhoConfigforEsx:
         # 10 mins margin to check the Last Checkin time
         assert (
             abs(
-                datetime.strptime(checkin_time, "%B %d, %Y at %I:%M %p")
-                .replace(year=datetime.now(UTC).year)
-                .timestamp()
+                datetime.strptime(checkin_time, "%B %d, %Y at %I:%M %p").timestamp()
                 - time_now.timestamp()
             )
             <= 300

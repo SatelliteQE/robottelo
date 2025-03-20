@@ -313,7 +313,7 @@ class _SharedFunction:
                 pid = value['pid']
                 creation_datetime = datetime.datetime.strptime(
                     value['creation_datetime'], _DATETIME_FORMAT
-                )
+                ).replace(tzinfo=datetime.UTC)
 
                 if state in [_STATE_READY, _STATE_FAILED] and not self._has_result_expired(
                     creation_datetime
