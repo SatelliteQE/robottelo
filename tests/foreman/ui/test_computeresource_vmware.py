@@ -81,6 +81,27 @@ def get_vmware_datastore_summary_string(vmware, vmwareclient):
     return f'{settings.vmware.datastore} (free: {free_space}, prov: {prov}, total: {capacity})'
 
 
+@pytest.fixture
+def get_vmware_datastore_cluster_summary_string(vmware, vmwareclient):
+    """Return the datastore string summary for data_store_name
+
+    For "Local-Ironforge" datastore the string looks Like:
+
+        "Local-Ironforge (free: 1.66 TB, prov: 2.29 TB, total: 2.72 TB)"
+    """
+    data_store_summary = [
+        h
+        for h in vmwareclient.get_obj_list(vim.StoragePod)
+        if h.name == settings.vmware.datastore_cluster
+    ][0].summary
+    capacity = _get_normalized_size(data_store_summary.capacity)
+    free_space = _get_normalized_size(data_store_summary.freeSpace)
+    prov = _get_normalized_size(data_store_summary.capacity - data_store_summary.freeSpace)
+    return (
+        f'{settings.vmware.datastore_cluster} (free: {free_space}, prov: {prov}, total: {capacity})'
+    )
+
+
 @pytest.mark.e2e
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 def test_positive_cr_end_to_end(session, module_org, module_location, vmware, module_target_sat):
@@ -565,7 +586,7 @@ def test_positive_provision_end_to_end(
     vmwareclient,
     target_sat,
     module_provisioning_rhel_content,
-    get_vmware_datastore_summary_string,
+    get_vmware_datastore_cluster_summary_string,
 ):
     """Assign Ansible role to a Hostgroup and verify ansible role execution job is scheduled after a host is provisioned
 
@@ -589,16 +610,18 @@ def test_positive_provision_end_to_end(
     SELECTED_ROLE = 'theforeman.foreman_scap_client'
     host_name = gen_string('alpha').lower()
     guest_os_names = 'Red Hat Enterprise Linux 8 (64 bit)'
-    storage_data = {'storage': {'disks': [{'data_store': get_vmware_datastore_summary_string}]}}
+    storage_data = {
+        'storage': {'disks': [{'storage_pod': get_vmware_datastore_cluster_summary_string}]}
+    }
     network_data = {
         'network_interfaces': {
             'nic_type': VMWARE_CONSTANTS['network_interface_name'],
             'network': f'VLAN {settings.provisioning.vlan_id}',
         }
     }
+    proxy_id = target_sat.nailgun_smart_proxy.id
+    target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]})
     with target_sat.ui_session() as session:
-        session.ansibleroles.import_all_roles()
-        assert session.ansibleroles.import_all_roles() == session.ansibleroles.imported_roles_count
         session.location.select(module_location.name)
         session.organization.select(module_sca_manifest_org.name)
         session.hostgroup.assign_role_to_hostgroup(
@@ -638,7 +661,9 @@ def test_positive_provision_end_to_end(
             silent_failure=True,
             handle_exception=True,
         )
-        values = session.host_new.get_host_statuses(host_name)
+        values = session.host_new.get_host_statuses(
+            f'{host_name}.{module_vmware_hostgroup.domain.read().name}'
+        )
         assert values['Build']['Status'] == 'Installed'
         assert values['Execution']['Status'] == 'Last execution succeeded'
 
