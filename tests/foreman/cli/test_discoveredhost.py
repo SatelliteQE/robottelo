@@ -13,8 +13,6 @@
 import pytest
 from wait_for import wait_for
 
-from robottelo.utils.issue_handlers import is_open
-
 pytestmark = [pytest.mark.run_in_one_thread]
 
 
@@ -423,10 +421,8 @@ def test_positive_verify_updated_fdi_image(target_sat):
     target_sat.register_to_cdn()
     target_sat.execute('yum -y --disableplugin=foreman-protector install foreman-discovery-image')
 
-    if target_sat.os_version.major == 9:
-        version = '8.10' if is_open('SAT-27541') else str(target_sat.os_version)
-    elif target_sat.os_version.major == 8:
-        version = str(target_sat.os_version)
+    # For older zstreams, we still have this version of foreman-discovery-image
+    version = '8.10'
 
     result = target_sat.execute(f'grep "url=" {discovery_ks_path}')
     assert version in result.stdout
