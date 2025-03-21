@@ -1104,6 +1104,7 @@ def test_positive_installed_products(
     assert set(products) == set(report[0]['Products']), 'Reported products do not match.'
 
 
+@pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-2')
 def test_positive_applied_errata_by_install_date(
     module_rhel_contenthost,
