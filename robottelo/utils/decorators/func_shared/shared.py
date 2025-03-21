@@ -285,7 +285,7 @@ class _SharedFunction:
 
     def _has_result_expired(self, creation_datetime):
         expire_datetime = creation_datetime + datetime.timedelta(seconds=self._share_timeout)
-        return datetime.datetime.utcnow() >= expire_datetime
+        return datetime.datetime.now(datetime.UTC) >= expire_datetime
 
     def __call__(self):
         # this lock prevent any other process to run the function,
@@ -313,7 +313,7 @@ class _SharedFunction:
                 pid = value['pid']
                 creation_datetime = datetime.datetime.strptime(
                     value['creation_datetime'], _DATETIME_FORMAT
-                )
+                ).replace(tzinfo=datetime.UTC)
 
                 if state in [_STATE_READY, _STATE_FAILED] and not self._has_result_expired(
                     creation_datetime
@@ -324,7 +324,7 @@ class _SharedFunction:
 
             if call_function is True:
                 result, exp, traceback_text = self._call_function()
-                creation_datetime = datetime.datetime.utcnow().strftime(_DATETIME_FORMAT)
+                creation_datetime = datetime.datetime.now(datetime.UTC).strftime(_DATETIME_FORMAT)
                 if exp:
                     error = str(exp) or 'error occurred'
                     error_class_name = f'{exp.__class__.__module__}.{exp.__class__.__name__}'
