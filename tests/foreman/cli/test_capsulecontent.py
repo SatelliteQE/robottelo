@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 import random
 
 from box import Box
@@ -65,7 +65,7 @@ def module_synced_content(
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': [module_lce.id, module_lce_library.id]}
         )
-    sync_time = datetime.utcnow().replace(microsecond=0)
+    sync_time = datetime.now(UTC).replace(microsecond=0)
     module_target_sat.cli.Capsule.content_synchronize(
         {'id': module_capsule_configured.nailgun_capsule.id, 'organization-id': module_org.id}
     )
@@ -107,7 +107,7 @@ def module_capsule_artifact_cleanup(
             data={'environment_id': lce['id']}
         )
     # Run orphan cleanup for the capsule.
-    timestamp = datetime.utcnow().replace(microsecond=0)
+    timestamp = datetime.now(UTC).replace(microsecond=0)
     module_target_sat.execute(
         'foreman-rake katello:delete_orphaned_content RAILS_ENV=production '
         f'SMART_PROXY_ID={module_capsule_configured.nailgun_capsule.id}'
