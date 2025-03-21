@@ -47,7 +47,7 @@ def test_positive_sync_rh_repos(session, target_sat, module_entitlement_manifest
     :expectedresults: Sync procedure for RedHat Repos is successful
     """
     repo_paths = []
-    for key in ['rhsc8', 'rhsc9']:
+    for key in ['rhsc7', 'rhsc8']:
         target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
             org_id=module_entitlement_manifest_org.id,
