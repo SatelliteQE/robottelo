@@ -1769,6 +1769,7 @@ OSCAP_DEFAULT_CONTENT = {
     'rhel_firefox': 'Red Hat firefox default content',
 }
 
+# TODO some of these include versions that need to be updated here, come with a better solution
 OSCAP_PROFILE = {
     'c2s_rhel6': 'C2S for Red Hat Enterprise Linux 6',
     'dsrhel6': 'DISA STIG for Red Hat Enterprise Linux 6',
@@ -1787,8 +1788,8 @@ OSCAP_PROFILE = {
     'cbrhel6': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 6',
     'cbrhel7': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 7',
     'cbrhel8': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 8',
-    'cbrhel9': 'PCI-DSS v4.0 Control Baseline for Red Hat Enterprise Linux 9',
-    'cbrhel10': 'PCI-DSS v4.0 Control Baseline for Red Hat Enterprise Linux 10',
+    'cbrhel9': 'PCI-DSS v4.0.1 Control Baseline for Red Hat Enterprise Linux 9',
+    'cbrhel10': 'PCI-DSS v4.0.1 Control Baseline for Red Hat Enterprise Linux 10',
     'ppgpo': 'Protection Profile for General Purpose Operating Systems',
     'acscee': 'Australian Cyber Security Centre (ACSC) Essential Eight',
     'ospp7': 'OSPP - Protection Profile for General Purpose Operating Systems v4.2.1',
