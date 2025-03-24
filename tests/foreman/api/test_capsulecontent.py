@@ -13,7 +13,7 @@ interactions and use capsule.
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import re
 from time import sleep
 
@@ -125,7 +125,7 @@ class TestCapsuleContentManagement:
 
         assert repo.read().content_counts['rpm'] == 1
 
-        timestamp = datetime.utcnow().replace(microsecond=0)
+        timestamp = datetime.now(UTC).replace(microsecond=0)
         # Publish new version of the content view
         cv.publish()
         # query sync status as publish invokes sync, task succeeds
@@ -191,7 +191,7 @@ class TestCapsuleContentManagement:
         assert len(cv.version) == 1
 
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
         module_capsule_configured.wait_for_sync(start_time=timestamp)
 
@@ -224,7 +224,7 @@ class TestCapsuleContentManagement:
 
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -299,7 +299,7 @@ class TestCapsuleContentManagement:
         assert len(cv.version) == 1
 
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -319,7 +319,7 @@ class TestCapsuleContentManagement:
 
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -409,7 +409,7 @@ class TestCapsuleContentManagement:
         assert len(active_tasks) == 0
         # Promote content view to lifecycle environment,
         # invoking capsule sync task(s)
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -457,7 +457,7 @@ class TestCapsuleContentManagement:
         cvv = cv.version[-1].read()
         # Promote new content view version to lifecycle environment,
         # capsule sync task(s) invoked and succeed
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -479,7 +479,7 @@ class TestCapsuleContentManagement:
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
 
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -546,7 +546,7 @@ class TestCapsuleContentManagement:
             organization=module_sca_manifest_org, repository=[rh_repo]
         ).create()
         # Publish new version of the content view
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cv.publish()
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -627,7 +627,7 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -709,7 +709,7 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -737,7 +737,7 @@ class TestCapsuleContentManagement:
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -839,7 +839,7 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -941,7 +941,7 @@ class TestCapsuleContentManagement:
 
         # Promote the latest CV version into capsule's LCE
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -1063,7 +1063,7 @@ class TestCapsuleContentManagement:
         assert function_lce_library.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Sync the repo
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         repo.sync(timeout=600)
         repo = repo.read()
         assert repo.content_counts['ansible_collection'] == 2
@@ -1147,7 +1147,7 @@ class TestCapsuleContentManagement:
 
         # Promote the latest CV version into capsule's LCE
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -1245,13 +1245,13 @@ class TestCapsuleContentManagement:
         # Promote the CV to both Capsule's LCEs without waiting for Capsule sync task completion.
         cvv = cv.version[-1].read()
         assert len(cvv.environment) == 1
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': lce1.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': lce2.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -1298,7 +1298,7 @@ class TestCapsuleContentManagement:
         cv = cv.read()
 
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -1321,7 +1321,10 @@ class TestCapsuleContentManagement:
         # Check sync status again, and ensure last_sync_time is still correct
         sync_status = module_capsule_configured.nailgun_capsule.content_get_sync()
         assert (
-            datetime.strptime(sync_status['last_sync_time'], '%Y-%m-%d %H:%M:%S UTC') >= timestamp
+            datetime.strptime(sync_status['last_sync_time'], '%Y-%m-%d %H:%M:%S UTC').replace(
+                tzinfo=UTC
+            )
+            >= timestamp
         )
 
     @pytest.mark.tier4
@@ -1487,7 +1490,7 @@ class TestCapsuleContentManagement:
 
         # Promote the latest CV version into capsule's LCE
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -1728,7 +1731,7 @@ class TestCapsuleContentManagement:
         cv = cv.read()
 
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
