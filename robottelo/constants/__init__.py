@@ -397,7 +397,7 @@ REPOS = {
         'version': '6.8',
     },
     'rhs9': {
-        'id': 'satellite-6.16-for-rhel-8-x86_64-rpms',
+        'id': 'satellite-6.16-for-rhel-9-x86_64-rpms',
         'name': ('Red Hat Satellite 6.16 for RHEL 9 x86_64 RPMs'),
         'version': '6.16',
         'reposet': REPOSET['rhs9'],
