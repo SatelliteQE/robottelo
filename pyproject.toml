@@ -47,6 +47,7 @@ fixable = ["ALL"]
 select = [
     "B",  # bugbear
     # "C90", # mccabe
+    "DTZ003", # call-datetime-utcnow
     "E",  # pycodestyle
     "F",  # flake8
     "I", # isort

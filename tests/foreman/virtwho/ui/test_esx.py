@@ -643,9 +643,7 @@ class TestVirtwhoConfigforEsx:
         # 10 mins margin to check the Last Checkin time
         assert (
             abs(
-                datetime.strptime(checkin_time, "%B %d, %Y at %I:%M %p")
-                .replace(year=datetime.utcnow().year)
-                .timestamp()
+                datetime.strptime(checkin_time, "%B %d, %Y at %I:%M %p").timestamp()
                 - time_now.timestamp()
             )
             <= 300

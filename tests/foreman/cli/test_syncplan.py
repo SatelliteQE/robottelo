@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from time import sleep
 
 from fauxfactory import gen_string
@@ -351,7 +351,7 @@ def test_positive_info_with_assigned_product(module_org, module_target_sat):
         {
             'enabled': 'false',
             'organization-id': module_org.id,
-            'sync-date': datetime.utcnow().strftime(SYNC_DATE_FMT),
+            'sync-date': datetime.now(UTC).strftime(SYNC_DATE_FMT),
         }
     )
     for prod_name in [prod1, prod2]:
@@ -382,7 +382,7 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org, request,
         {
             'enabled': 'true',
             'organization-id': module_org.id,
-            'sync-date': datetime.utcnow().strftime(SYNC_DATE_FMT),
+            'sync-date': datetime.now(UTC).strftime(SYNC_DATE_FMT),
         }
     )
     sync_plan = target_sat.api.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
@@ -416,7 +416,7 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org, request,
             'enabled': 'true',
             'interval': 'hourly',
             'organization-id': module_org.id,
-            'sync-date': (datetime.utcnow() - timedelta(seconds=interval - delay)).strftime(
+            'sync-date': (datetime.now(UTC) - timedelta(seconds=interval - delay)).strftime(
                 SYNC_DATE_FMT
             ),
         }
@@ -464,13 +464,13 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org, reques
     product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
     repo = target_sat.cli_factory.make_repository({'product-id': product['id']})
     # if < 3 mins before the target event rather wait 3 mins for the next test window
-    if int(datetime.utcnow().strftime('%M')) % (cron_multiple) > int(guardtime / 60):
+    if int(datetime.now(UTC).strftime('%M')) % (cron_multiple) > int(guardtime / 60):
         sleep(guardtime)
     new_sync_plan = target_sat.cli_factory.sync_plan(
         {
             'enabled': 'true',
             'organization-id': module_org.id,
-            'sync-date': (datetime.utcnow().replace(second=0) + timedelta(seconds=delay)).strftime(
+            'sync-date': (datetime.now(UTC).replace(second=0) + timedelta(seconds=delay)).strftime(
                 SYNC_DATE_FMT
             ),
             'cron-expression': [f'*/{cron_multiple} * * * *'],
@@ -527,13 +527,13 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
         for _ in range(2)
     ]
     # if < 3 mins before the target event rather wait 3 mins for the next test window
-    if int(datetime.utcnow().strftime('%M')) % (cron_multiple) > int(guardtime / 60):
+    if int(datetime.now(UTC).strftime('%M')) % (cron_multiple) > int(guardtime / 60):
         sleep(guardtime)
     new_sync_plan = target_sat.cli_factory.sync_plan(
         {
             'enabled': 'true',
             'organization-id': module_org.id,
-            'sync-date': (datetime.utcnow().replace(second=0) + timedelta(seconds=delay)).strftime(
+            'sync-date': (datetime.now(UTC).replace(second=0) + timedelta(seconds=delay)).strftime(
                 SYNC_DATE_FMT
             ),
             'cron-expression': [f'*/{cron_multiple} * * * *'],
@@ -613,7 +613,7 @@ def test_positive_synchronize_rh_product_past_sync_date(
             'enabled': 'true',
             'interval': 'hourly',
             'organization-id': org.id,
-            'sync-date': (datetime.utcnow() - timedelta(seconds=interval - delay)).strftime(
+            'sync-date': (datetime.now(UTC) - timedelta(seconds=interval - delay)).strftime(
                 SYNC_DATE_FMT
             ),
         }
@@ -676,13 +676,13 @@ def test_positive_synchronize_rh_product_future_sync_date(
         {'name': REPOS['rhva6']['name'], 'product': product['name'], 'organization-id': org.id}
     )
     # if < 3 mins before the target event rather wait 3 mins for the next test window
-    if int(datetime.utcnow().strftime('%M')) % (cron_multiple) > int(guardtime / 60):
+    if int(datetime.now(UTC).strftime('%M')) % (cron_multiple) > int(guardtime / 60):
         sleep(guardtime)
     new_sync_plan = target_sat.cli_factory.sync_plan(
         {
             'enabled': 'true',
             'organization-id': org.id,
-            'sync-date': (datetime.utcnow().replace(second=0) + timedelta(seconds=delay)).strftime(
+            'sync-date': (datetime.now(UTC).replace(second=0) + timedelta(seconds=delay)).strftime(
                 SYNC_DATE_FMT
             ),
             'cron-expression': [f'*/{cron_multiple} * * * *'],
@@ -732,7 +732,7 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org, reque
     delay = 2 * 60
     product = target_sat.cli_factory.make_product({'organization-id': module_org.id})
     repo = target_sat.cli_factory.make_repository({'product-id': product['id']})
-    start_date = datetime.utcnow() - timedelta(weeks=1) + timedelta(seconds=delay)
+    start_date = datetime.now(UTC) - timedelta(weeks=1) + timedelta(seconds=delay)
     new_sync_plan = target_sat.cli_factory.sync_plan(
         {
             'enabled': 'true',
