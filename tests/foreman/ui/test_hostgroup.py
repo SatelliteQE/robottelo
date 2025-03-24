@@ -16,7 +16,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_CV, ENVIRONMENT
+from robottelo.constants import DEFAULT_CV, ENVIRONMENT, RESOURCE_DEFAULT
 
 
 @pytest.mark.e2e
@@ -338,3 +338,47 @@ def test_positive_clone_host_groups(
         assert target_sat.api.HostGroup().search(query={'search': f'name={clone_hg_name}'})
         session.hostgroup.delete(clone_hg_name)
         assert not target_sat.api.HostGroup().search(query={'search': f'name={clone_hg_name}'})
+
+
+def test_positive_nested_host_group_compute_resource(
+    module_target_sat, module_org, module_location, module_cr_libvirt
+):
+    """Verify that child host group can be created with option 'Deploy On = Bare Metal'
+    if the parent group has set different compute resource/Deploy On value.
+
+    :id: d3b5ed7a-083c-11f0-907b-000c29a0e355
+
+    :Verifies: SAT-20579
+
+    :steps:
+        1. Create a host group with deployment on Libvirt compute resource.
+        2. Create a nested host group and set the deployment on 'Bare Metal'.
+
+    :expectedresults:
+        Creation of nested host group with deployment on Bare Metal compute resource is successful.
+    """
+    parent_hg_name = gen_string('alpha')
+    child_hg_name = gen_string('alpha')
+    libvirt_cr_ui_name = f'{module_cr_libvirt.name} (Libvirt)'
+    cr_bare_metal = RESOURCE_DEFAULT
+
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+        session.hostgroup.create(
+            {
+                'host_group.name': parent_hg_name,
+                'host_group.deploy': libvirt_cr_ui_name,
+            }
+        )
+        parent_hostgroup_values = session.hostgroup.read(parent_hg_name)
+        assert parent_hostgroup_values['host_group']['deploy'] == libvirt_cr_ui_name
+        session.hostgroup.create(
+            {
+                'host_group.parent_name': parent_hg_name,
+                'host_group.name': child_hg_name,
+                'host_group.deploy': cr_bare_metal,
+            }
+        )
+        child_hostgroup_values = session.hostgroup.read(f'{parent_hg_name}/{child_hg_name}')
+        assert child_hostgroup_values['host_group']['deploy'] == cr_bare_metal
