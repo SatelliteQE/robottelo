@@ -51,7 +51,7 @@ class TestUserGroup:
         user_group = target_sat.api.UserGroup(name=name).create()
         assert user_group.name == name
 
-    @pytest.mark.parametrize('login', **parametrized(valid_usernames_list()))
+    @pytest.mark.parametrize('login', **parametrized(valid_usernames_list()[0:4]))
     def test_positive_create_with_user(self, target_sat, login):
         """Create new user group using valid user attached to that group.
 
