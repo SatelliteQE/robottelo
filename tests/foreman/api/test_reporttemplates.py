@@ -12,6 +12,7 @@
 
 """
 
+from datetime import datetime, timedelta
 import re
 
 from fauxfactory import gen_string
@@ -1106,3 +1107,116 @@ def test_positive_installed_products(
     assert len(products), 'No installed products to compare.'
 
     assert set(products) == set(report[0]['Products']), 'Reported products do not match.'
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('N-2')
+def test_positive_applied_errata_by_install_date(
+    module_rhel_contenthost,
+    module_target_sat,
+    module_org,
+    module_lce,
+):
+    """Generate two Applied Errata reports, for Today and Yesterday,
+        specifying the SINCE and UP-TO date fields, when the erratum
+        were installed (local time).
+
+    :id: 33f5abfd-16dd-4f2e-a9c2-c1ce3aaa33d6
+
+    :setup:
+        1. A registered host with outdated applicable packages installed.
+        2. Apply the applicable erratum (all of FAKE_9_YUM).
+
+    :steps:
+        1. Generate an Applied Errata report for 'Today' (Since: 5 minutes prior)
+        2. Generate an Applied Errata report for 'Yesterday' (Up to: 24 hours prior)
+
+    :expectedresults:
+        1. Today's report is generated with all applied erratum listed that were installed today.
+        2. Yesterday's report is generated and is empty, as no erratum were installed prior.
+
+    :CaseImportance: Medium
+
+    """
+    ERRATUM_IDS = [str(errata) for errata in settings.repos.yum_9.errata]
+    setup = module_target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': settings.repos.yum_9.url,
+            'organization-id': module_org.id,
+            'lifecycle-environment-id': module_lce.id,
+        }
+    )
+    activation_key = module_target_sat.api.ActivationKey(id=setup['activationkey-id']).read()
+    result = module_rhel_contenthost.register(
+        module_org, None, activation_key.name, module_target_sat
+    )
+    assert f'The registered system name is: {module_rhel_contenthost.hostname}' in result.stdout
+    assert module_rhel_contenthost.subscribed
+    module_rhel_contenthost.execute(r'subscription-manager repos --enable \*')
+    # Install all FAKE_9_YUM outdated pkgs
+    assert (
+        module_rhel_contenthost.execute(
+            f'yum install -y {" ".join(FAKE_9_YUM_OUTDATED_PACKAGES)}'
+        ).status
+        == 0
+    )
+    assert module_rhel_contenthost.execute('subscription-manager refresh').status == 0
+    assert module_rhel_contenthost.applicable_errata_count == len(ERRATUM_IDS)
+    # 'Since' time for today, local: set to 5 minutes prior to installs below
+    today_timestamp = (datetime.now() - timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M:%S')
+    # Apply all FAKE_9_YUM erratum
+    for _id in ERRATUM_IDS:
+        task_id = module_target_sat.api.JobInvocation().run(
+            data={
+                'feature': 'katello_errata_install',
+                'inputs': {'errata': _id},
+                'targeting_type': 'static_query',
+                'search_query': f'name = {module_rhel_contenthost.hostname}',
+                'organization_id': module_org.id,
+            },
+        )['id']
+        module_target_sat.wait_for_tasks(
+            search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
+            search_rate=20,
+            poll_timeout=2500,
+        )
+    assert module_rhel_contenthost.execute('subscription-manager refresh').status == 0
+    assert module_rhel_contenthost.applicable_errata_count == 0
+    rt = (
+        module_target_sat.api.ReportTemplate()
+        .search(query={'search': 'name="Host - Applied Errata"'})[0]
+        .read()
+    )
+    # Generate a report for Today and Yesterday
+    report_today = rt.generate(
+        data={
+            'organization_id': module_org.id,
+            'report_format': 'json',
+            'input_values': {
+                'Since': today_timestamp,
+                'Filter Errata Type': 'all',
+                'Include Last Reboot': 'no',
+                'Status': 'all',
+            },
+        }
+    )
+    assert len(report_today) == len(ERRATUM_IDS)
+    # Today's report: all ERRATUM_IDS are contained within
+    assert all(
+        errata_id in [entry['erratum_id'] for entry in report_today] for errata_id in ERRATUM_IDS
+    )
+    # Yesterday's report is empty
+    yesterday_timestamp = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
+    report_yesterday = rt.generate(
+        data={
+            'organization_id': module_org.id,
+            'report_format': 'json',
+            'input_values': {
+                'Up to': yesterday_timestamp,
+                'Filter Errata Type': 'all',
+                'Include Last Reboot': 'no',
+                'Status': 'all',
+            },
+        }
+    )
+    assert len(report_yesterday) == 0
