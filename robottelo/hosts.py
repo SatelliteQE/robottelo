@@ -399,7 +399,7 @@ class ContentHost(Host, ContentHostMixins):
                 wait_for(
                     self.connect,
                     fail_condition=lambda res: res is not None,
-                    timeout=300,
+                    timeout=400,
                     handle_exception=True,
                 )
             # really broad diaper here, but connection exceptions could be a ton of types
