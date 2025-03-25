@@ -157,7 +157,7 @@ class CapsuleInfo:
             return f'{self.url}/pulp/content/{org}/{lce}/{cv}/custom/{prod}/{repo}/'
         return f'{self.url}/pulp/content/{org}/Library/custom/{prod}/{repo}/'
 
-    def get_artifacts(self, since=None, tz='UTC'):
+    def get_artifacts(self, since=None):
         """Get paths of pulp artifact.
 
         :param str since: Creation time of artifact we are looking for.
@@ -166,7 +166,7 @@ class CapsuleInfo:
         """
         query = f'find {PULP_ARTIFACT_DIR} -type f'
         if since:
-            query = f'{query} -newermt "{since} {tz}"'
+            query = f'{query} -newermt "{since}"'
         return self.execute(query).stdout.splitlines()
 
     def get_artifact_info(self, checksum=None, path=None):
