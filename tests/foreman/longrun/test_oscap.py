@@ -196,7 +196,7 @@ def find_content_to_update(target_sat, module_org, distro, contenthost):
 
 
 def prepare_scap_client_and_prerequisites(
-    target_sat, contenthost, module_org, default_proxy, lifecycle_env
+    target_sat, contenthost, module_org, default_proxy, lifecycle_env, profile=None
 ):
     """prepare scap client and create scap prerequisites on satellite, we are sourcing
     content files from the content hosts, hence this function can not be a fixture
@@ -236,7 +236,8 @@ def prepare_scap_client_and_prerequisites(
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     rhel_repo = rhel_repos[distro]
-    profile = profiles[distro]
+    if profile is None:
+        profile = profiles[distro]
     if distro == 'rhel7':
         contenthost.create_custom_repos(**{distro: rhel_repo})
     else:
@@ -262,9 +263,124 @@ def prepare_scap_client_and_prerequisites(
     )
 
 
+@pytest.fixture
+def setup_pruned_content(target_sat, rex_contenthost, module_org):
+    content_name = 'Red Hat rhel9 default content'
+    old_package = 'scap-security-guide-satellite-4.3.4-1.el9sat.noarch.rpm'
+    new_package = 'scap-security-guide-satellite-4.3.5-1.el9sat.noarch.rpm'
+    # delete all policies because they may be using the scap content we want to delete
+    policies = target_sat.cli.Scappolicy.list()
+    for policy_id in [policy['id'] for policy in policies]:
+        target_sat.cli.Scappolicy.delete({'id': policy_id})
+    tmp_content_name = gen_string("alpha")
+    # just doing
+    # target_sat.cli.Scapcontent.delete({'title': content_name})
+    # would break other tests that need full version of this content
+    target_sat.cli.Scapcontent.update({'title': content_name, 'new-title': tmp_content_name})
+    target_sat.put(f'tests/foreman/data/{old_package}', '/root/')
+    target_sat.put(f'tests/foreman/data/{new_package}', '/root/')
+    target_sat.execute(f'yum install -y {old_package}')
+    target_sat.cli.Scapcontent.bulk_upload({'type': 'default'})
+    yield new_package
+    # delete all policies because they may be using the scap content we want to delete
+    policies = target_sat.cli.Scappolicy.list()
+    for policy_id in [policy['id'] for policy in policies]:
+        target_sat.cli.Scappolicy.delete({'id': policy_id})
+    target_sat.cli.Scapcontent.delete({'title': content_name})
+    target_sat.cli.Scapcontent.update({'title': tmp_content_name, 'new-title': content_name})
+
+
+def apply_policy_run_scan_get_arf(target_sat, contenthost):
+    # Apply policy
+    job_id = target_sat.cli.Host.ansible_roles_play({'name': contenthost.hostname.lower()})[0].get(
+        'id'
+    )
+    target_sat.wait_for_tasks(
+        f'resource_type = JobInvocation and resource_id = {job_id} and action ~ "hosts job"'
+    )
+    try:
+        result = target_sat.cli.JobInvocation.info({'id': job_id})['success']
+        assert result == '1'
+
+    except AssertionError as err:
+        output = ' '.join(
+            target_sat.cli.JobInvocation.get_output({'id': job_id, 'host': contenthost.hostname})
+        )
+        result = f'host output: {output}'
+        raise AssertionError(result) from err
+    result = contenthost.execute_foreman_scap_client()
+    arf_id = target_sat.cli.Arfreport.list({'search': f'host={contenthost.hostname.lower()}'})[0][
+        'id'
+    ]
+    result = target_sat.cli.Arfreport.downloadhtml({'id': arf_id, 'path': '/tmp'})
+    arf_report_path = result['message'].split(' ')[-1]
+    return target_sat.execute(f'cat {arf_report_path}').stdout
+
+
+@pytest.mark.tier4
+@pytest.mark.rhel_ver_match('9')
+def test_positive_oscap_update_default_content(
+    module_org,
+    default_proxy,
+    lifecycle_env,
+    target_sat,
+    rex_contenthost,
+    setup_pruned_content,
+):
+    """Update default scap package
+
+    :id: a89634fb-152e-4fb5-8e69-7222a5a8b49f
+
+    :setup:
+
+        0. have a contenthost
+        1. remove default rhel9 scap content
+        2. yum install the pruned rhel9 scap content from a newer package version
+        3. upload that content using hammer
+        4. set up a policy from that content
+        5. assign a policy to the host
+        6. assign the scap client role to the host
+        7. setup the host for scap scans by running ansible roles
+
+    :steps:
+
+        0. run a scap scan on the host, check the arf report contains one scan result
+        1. yum install the pruned rhel9 scap content with some change in test name, from an even newer package version
+        2. run ansible roles on the host again so it reflects changes
+        3. run a scap scan on the host
+
+    :expectedresults: the arf report contains the changed test name in results
+
+    :Verifies: SAT-27369
+
+    :customerscenario: true
+
+    :CaseImportance: High
+    """
+    contenthost = rex_contenthost
+    prepare_scap_client_and_prerequisites(
+        target_sat,
+        contenthost,
+        module_org,
+        default_proxy,
+        lifecycle_env,
+        profile='ANSSI-BP-028 (enhanced)',
+    )
+
+    arf_report = apply_policy_run_scan_get_arf(target_sat, contenthost)
+    assert 'Set Password Minimum Length in login.defs' in arf_report
+    assert 'FISH' not in arf_report
+
+    # install the newest package version that contains word "FISH"
+    target_sat.execute(f'yum install -y {setup_pruned_content}')
+    target_sat.cli.Scapcontent.bulk_upload({'type': 'default'})
+
+    arf_report = apply_policy_run_scan_get_arf(target_sat, contenthost)
+    assert 'FISH' in arf_report
+
+
 @pytest.mark.e2e
 @pytest.mark.upgrade
-@pytest.mark.tier4
 @pytest.mark.rhel_ver_match('[^6].*')
 @pytest.mark.pit_server
 @pytest.mark.pit_client
@@ -333,7 +449,6 @@ def test_positive_oscap_run_via_ansible(
 
 
 @pytest.mark.e2e
-@pytest.mark.tier4
 @pytest.mark.rhel_ver_list([8])
 def test_positive_oscap_remediation(
     module_org, default_proxy, content_view, lifecycle_env, target_sat, rex_contenthost
@@ -422,7 +537,6 @@ def test_positive_oscap_remediation(
 
 
 @pytest.mark.rhel_ver_list([7, 8, 9])
-@pytest.mark.tier4
 def test_positive_oscap_run_via_ansible_bz_1814988(
     module_org, default_proxy, lifecycle_env, target_sat, rex_contenthost
 ):
@@ -468,6 +582,10 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
         f'/usr/share/xml/scap/ssg/content/ssg-{distro}-ds.xml',
     )
 
+    # disable gpgcheck enabled by the above security policy
+    contenthost.run(
+        "sed -i 's/gpgcheck=1/gpgcheck=0/' /etc/yum.repos.d/foreman_registration1.repo "
+    )
     # Apply policy
     job_id = target_sat.cli.Host.ansible_roles_play({'name': contenthost.hostname.lower()})[0].get(
         'id'
@@ -492,7 +610,6 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier4
 def test_positive_has_arf_report_summary_page():
     """OSCAP ARF Report now has summary page
 
@@ -510,7 +627,6 @@ def test_positive_has_arf_report_summary_page():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier4
 def test_positive_view_full_report_button():
     """'View full Report' button should exist for OSCAP Reports.
 
@@ -529,7 +645,6 @@ def test_positive_view_full_report_button():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier4
 def test_positive_download_xml_button():
     """'Download xml' button should exist for OSCAP Reports
     to be downloaded in xml format.
@@ -549,7 +664,6 @@ def test_positive_download_xml_button():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier4
 def test_positive_select_oscap_proxy():
     """Oscap-Proxy select box should exist while filling hosts
     and host-groups form.
@@ -567,7 +681,6 @@ def test_positive_select_oscap_proxy():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier4
 def test_positive_delete_multiple_arf_reports():
     """Multiple arf reports deletion should be possible.
 
@@ -587,7 +700,6 @@ def test_positive_delete_multiple_arf_reports():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier4
 def test_positive_reporting_emails_of_oscap_reports():
     """Email Reporting of oscap reports should be possible.
 

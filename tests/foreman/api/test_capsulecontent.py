@@ -13,7 +13,7 @@ interactions and use capsule.
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import re
 from time import sleep
 
@@ -87,8 +87,7 @@ class TestCapsuleContentManagement:
     interactions and use capsule.
     """
 
-    @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_uploaded_content_library_sync(
         self,
         module_capsule_configured,
@@ -128,7 +127,7 @@ class TestCapsuleContentManagement:
 
         assert repo.read().content_counts['rpm'] == 1
 
-        timestamp = datetime.utcnow().replace(microsecond=0)
+        timestamp = datetime.now(UTC).replace(microsecond=0)
         # Publish new version of the content view
         cv.publish()
         # query sync status as publish invokes sync, task succeeds
@@ -148,8 +147,7 @@ class TestCapsuleContentManagement:
         assert len(caps_files) == 1
         assert caps_files[0] == RPM_TO_UPLOAD
 
-    @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_checksum_sync(
         self, module_capsule_configured, function_org, function_product, function_lce, target_sat
     ):
@@ -196,7 +194,7 @@ class TestCapsuleContentManagement:
         assert len(cv.version) == 1
 
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
         module_capsule_configured.wait_for_sync(start_time=timestamp)
 
@@ -229,7 +227,7 @@ class TestCapsuleContentManagement:
 
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -243,7 +241,6 @@ class TestCapsuleContentManagement:
         assert original_checksum not in checksum_types
 
     @pytest.mark.e2e
-    @pytest.mark.tier4
     @pytest.mark.pit_client
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_updated_repo(
@@ -304,7 +301,7 @@ class TestCapsuleContentManagement:
         assert len(cv.version) == 1
 
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -324,7 +321,7 @@ class TestCapsuleContentManagement:
 
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -352,9 +349,8 @@ class TestCapsuleContentManagement:
         assert len(caps_files) == 2
 
     @pytest.mark.e2e
-    @pytest.mark.tier4
     @pytest.mark.pit_client
-    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_capsule_sync(
         self,
         target_sat,
@@ -414,7 +410,7 @@ class TestCapsuleContentManagement:
         assert len(active_tasks) == 0
         # Promote content view to lifecycle environment,
         # invoking capsule sync task(s)
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -462,7 +458,7 @@ class TestCapsuleContentManagement:
         cvv = cv.version[-1].read()
         # Promote new content view version to lifecycle environment,
         # capsule sync task(s) invoked and succeed
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -484,7 +480,7 @@ class TestCapsuleContentManagement:
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
 
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -505,7 +501,6 @@ class TestCapsuleContentManagement:
         caps_files = get_repo_files_by_url(caps_repo_url)
         assert sat_files == caps_files
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_iso_library_sync(
         self, module_capsule_configured, module_sca_manifest_org, module_target_sat
@@ -551,7 +546,7 @@ class TestCapsuleContentManagement:
             organization=module_sca_manifest_org, repository=[rh_repo]
         ).create()
         # Publish new version of the content view
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cv.publish()
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -572,10 +567,9 @@ class TestCapsuleContentManagement:
         assert len(caps_isos) == 4
         assert set(sat_isos) == set(caps_isos)
 
-    @pytest.mark.tier4
     @pytest.mark.build_sanity
     @pytest.mark.order(after="tests/foreman/installer/test_installer.py::test_capsule_installation")
-    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_on_demand_sync(
         self,
         target_sat,
@@ -632,7 +626,7 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -659,8 +653,7 @@ class TestCapsuleContentManagement:
         # Assert checksums are matching
         assert package_md5 == published_package_md5
 
-    @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_update_with_immediate_sync(
         self,
         target_sat,
@@ -714,7 +707,7 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -742,7 +735,7 @@ class TestCapsuleContentManagement:
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -760,8 +753,7 @@ class TestCapsuleContentManagement:
         caps_files = get_repo_files_by_url(caps_repo_url)
         assert len(caps_files) == packages_count
 
-    @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_capsule_pub_url_accessible(self, module_capsule_configured):
         """Ensure capsule pub url is accessible
 
@@ -800,7 +792,6 @@ class TestCapsuleContentManagement:
         assert rq.ok, f'Expected 200 but got {rq.status_code} from {endpoint} registry index'
 
     @pytest.mark.e2e
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos', 'rhel10_bos_beta'])
     def test_positive_sync_kickstart_repo(
@@ -860,7 +851,7 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -894,7 +885,6 @@ class TestCapsuleContentManagement:
         assert len(caps_pkgs)
         assert sat_pkgs == caps_pkgs
 
-    @pytest.mark.tier4
     @pytest.mark.e2e
     @pytest.mark.pit_client
     @pytest.mark.skip_if_not_set('capsule')
@@ -964,7 +954,7 @@ class TestCapsuleContentManagement:
 
         # Promote the latest CV version into capsule's LCE
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -1030,7 +1020,6 @@ class TestCapsuleContentManagement:
             )
             assert result.status == 0
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_collection_repo(
         self,
@@ -1083,7 +1072,7 @@ class TestCapsuleContentManagement:
         assert function_lce_library.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Sync the repo
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         repo.sync(timeout=600)
         repo = repo.read()
         assert repo.content_counts['ansible_collection'] == 2
@@ -1117,7 +1106,6 @@ class TestCapsuleContentManagement:
         assert 'foreman' in result.stdout
         assert 'operations' in result.stdout
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_file_repo(
         self, target_sat, module_capsule_configured, function_org, function_product, function_lce
@@ -1167,7 +1155,7 @@ class TestCapsuleContentManagement:
 
         # Promote the latest CV version into capsule's LCE
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -1204,7 +1192,6 @@ class TestCapsuleContentManagement:
             caps_file = target_sat.checksum_by_url(f'{caps_repo_url}{file}')
             assert sat_file == caps_file
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_CV_to_multiple_LCEs(
         self, target_sat, module_capsule_configured, module_sca_manifest_org
@@ -1265,20 +1252,19 @@ class TestCapsuleContentManagement:
         # Promote the CV to both Capsule's LCEs without waiting for Capsule sync task completion.
         cvv = cv.version[-1].read()
         assert len(cvv.environment) == 1
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': lce1.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': lce2.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 3
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_capsule_sync_status_persists(
         self, target_sat, module_capsule_configured, function_org, function_product, function_lce
@@ -1318,7 +1304,7 @@ class TestCapsuleContentManagement:
         cv = cv.read()
 
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -1341,10 +1327,12 @@ class TestCapsuleContentManagement:
         # Check sync status again, and ensure last_sync_time is still correct
         sync_status = module_capsule_configured.nailgun_capsule.content_get_sync()
         assert (
-            datetime.strptime(sync_status['last_sync_time'], '%Y-%m-%d %H:%M:%S UTC') >= timestamp
+            datetime.strptime(sync_status['last_sync_time'], '%Y-%m-%d %H:%M:%S UTC').replace(
+                tzinfo=UTC
+            )
+            >= timestamp
         )
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_remove_capsule_orphans(
         self,
@@ -1497,7 +1485,7 @@ class TestCapsuleContentManagement:
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Sync a yum repo, publish and promote it to a CVE, sync the Capsule and wait for it.
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         repos_collection.setup_content(function_org.id, function_lce.id, override=True)
         module_capsule_configured.wait_for_sync(start_time=timestamp)
 
@@ -1628,7 +1616,7 @@ class TestCapsuleContentManagement:
 
         # Promote the latest CV version into capsule's LCE
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -1697,7 +1685,7 @@ class TestCapsuleContentManagement:
             'ansible_collection': {'ansible_collection'},
         }
 
-        repos_collection.setup_content(function_org.id, function_lce.id, upload_manifest=False)
+        repos_collection.setup_content(function_org.id, function_lce.id)
         cv_id = repos_collection.setup_content_data['content_view']['id']
         cv = target_sat.api.ContentView(id=cv_id).read()
 
@@ -1869,7 +1857,7 @@ class TestCapsuleContentManagement:
         cv = cv.read()
 
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)

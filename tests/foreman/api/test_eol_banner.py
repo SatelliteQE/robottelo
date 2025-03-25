@@ -22,7 +22,6 @@ from robottelo.constants import LIFECYCLE_METADATA_FILE
 from robottelo.logging import logger
 
 
-@pytest.mark.tier2
 def test_positive_check_eol_date(target_sat):
     """Check if the EOL date for the satellite version
 

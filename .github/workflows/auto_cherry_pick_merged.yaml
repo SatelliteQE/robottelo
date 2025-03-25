@@ -89,6 +89,7 @@ jobs:
     needs: [arrayconversion, get-parentPR-details]
     if: ${{ needs.arrayconversion.outputs.branches != '' }}
     strategy:
+      fail-fast: false
       matrix:
         branch: ${{ fromJson(needs.arrayconversion.outputs.branches) }}
     steps:

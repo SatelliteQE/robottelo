@@ -12,6 +12,8 @@
 
 """
 
+import base64
+
 from box import Box
 from fauxfactory import gen_integer, gen_string, gen_url
 import pytest
@@ -27,11 +29,11 @@ def function_spec_char_user(target_sat, session_auth_proxy):
     name = gen_string('alpha').lower()  # lower!
     passwd = gen_string('punctuation').replace("'", '')
     session_auth_proxy.add_user(name, passwd)
-    yield Box(name=name, passwd=passwd)
+    encoded = base64.b64encode(f'{name}:{passwd}'.encode()).decode('utf-8')
+    yield Box(name=name, passwd=passwd, b64=encoded)
     session_auth_proxy.remove_user(name)
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_create_update_delete(module_org, module_location, target_sat):
     """Create new http-proxy with attributes, update and delete it.
@@ -75,7 +77,6 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_assign_http_proxy_to_products_repositories(
     module_org, module_location, target_sat
@@ -198,7 +199,6 @@ def test_positive_assign_http_proxy_to_products_repositories(
         )
 
 
-@pytest.mark.tier1
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize('setting_update', ['content_default_http_proxy'], indirect=True)
 def test_set_default_http_proxy_no_global_default(
@@ -246,7 +246,6 @@ def test_set_default_http_proxy_no_global_default(
         assert result['table'][0]['Value'] == "Empty"
 
 
-@pytest.mark.tier1
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize('setting_update', ['content_default_http_proxy'], indirect=True)
 def test_positive_set_default_http_proxy(
@@ -301,7 +300,6 @@ def test_positive_set_default_http_proxy(
         assert result['table'][0]['Value'] == f'{http_proxy_name} ({http_proxy_url})'
 
 
-@pytest.mark.tier1
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize('setting_update', ['content_default_http_proxy'], indirect=True)
 def test_check_http_proxy_value_repository_details(
@@ -367,7 +365,6 @@ def test_check_http_proxy_value_repository_details(
         assert repo_values['repo_content']['http_proxy_policy'] == 'Global Default (None)'
 
 
-@pytest.mark.tier3
 @pytest.mark.run_in_one_thread
 def test_http_proxy_containing_special_characters(
     request,
@@ -405,7 +402,7 @@ def test_http_proxy_containing_special_characters(
     """
     # Check that no logs exist for the spec-char user at the proxy side yet.
     with pytest.raises(ProxyHostError):
-        session_auth_proxy.get_log(tail=100, grep=function_spec_char_user.name)
+        session_auth_proxy.get_log(tail=100, grep=function_spec_char_user.b64)
 
     # Create a proxy via UI using the spec-char user.
     proxy_name = gen_string('alpha')
@@ -438,7 +435,7 @@ def test_http_proxy_containing_special_characters(
             {'organization-id': module_sca_manifest_org.id}
         )
         assert session_auth_proxy.get_log(
-            tail=100, grep=f'CONNECT subscription.rhsm.redhat.com.*{function_spec_char_user.name}'
+            tail=100, grep=f'CONNECT subscription.rhsm.redhat.com.*{function_spec_char_user.b64}'
         ), 'RHSM connection not found in proxy log'
 
         # Enable and sync some RH repository, check it went through the proxy.
@@ -447,12 +444,11 @@ def test_http_proxy_containing_special_characters(
         )
         repo = target_sat.api.Repository(id=repo_id).read()
         assert session_auth_proxy.get_log(
-            tail=100, grep=f'CONNECT cdn.redhat.com.*{function_spec_char_user.name}'
+            tail=100, grep=f'CONNECT cdn.redhat.com.*{function_spec_char_user.b64}'
         ), 'CDN connection not found in proxy log'
         assert repo.content_counts['rpm'] > 0, 'Where is my content?!'
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')

@@ -1,7 +1,7 @@
 from configparser import ConfigParser
 import contextlib
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import UTC, datetime
 from functools import cached_property, lru_cache
 import importlib
 import io
@@ -634,6 +634,7 @@ class ContentHost(Host, ContentHostMixins):
         hostgroup=None,
         auth_username=None,
         auth_password=None,
+        download_utility=None,
     ):
         """Registers content host to the Satellite or Capsule server
         using a global registration template.
@@ -704,6 +705,8 @@ class ContentHost(Host, ContentHostMixins):
             options['ignore-subman-errors'] = str(ignore_subman_errors).lower()
         if force:
             options['force'] = str(force).lower()
+        if download_utility is not None:
+            options['download-utility'] = download_utility
 
         self._satellite = target.satellite
         if auth_username and auth_password:
@@ -1267,7 +1270,6 @@ class ContentHost(Host, ContentHostMixins):
         hypervisor_user=None,
         subscription_name=None,
         exec_one_shot=False,
-        upload_manifest=True,
         extra_repos=None,
     ):
         """
@@ -1281,7 +1283,6 @@ class ContentHost(Host, ContentHostMixins):
         :param bool configure_ssh: configure the ssh key to allow host to connect to hypervisor
         :param str subscription_name: the subscription name to assign to virt-who hypervisor guests
         :param bool exec_one_shot: whether to run the virt-who one-shot command after startup
-        :param bool upload_manifest: whether to upload the organization manifest
         :param list extra_repos: (Optional) repositories dict options to setup additionally.
         """
 
@@ -1314,7 +1315,6 @@ class ContentHost(Host, ContentHostMixins):
             org['id'],
             lce['id'],
             repos,
-            upload_manifest=upload_manifest,
             rh_subscriptions=[constants.DEFAULT_SUBSCRIPTION_NAME],
         )
         activation_key = content_setup_data['activation_key']
@@ -1533,6 +1533,16 @@ class ContentHost(Host, ContentHostMixins):
         host = self.nailgun_host.read()
         host.location = location
         host.update(['location'])
+
+    def get_yggdrasil_service_name(self):
+        return (
+            'yggdrasil'
+            if (
+                self.os_version.major > 9
+                or (self.os_version.major == 9 and self.os_version.minor > 5)
+            )
+            else 'yggdrasild'
+        )
 
 
 class Capsule(ContentHost, CapsuleMixins):
@@ -2401,8 +2411,8 @@ class Satellite(Capsule, SatelliteMixins):
 
     def generate_inventory_report(self, org, disconnected='false'):
         """Function to perform inventory upload."""
-        generate_report_task = 'ForemanInventoryUpload::Async::UploadReportJob'
-        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        generate_report_task = 'ForemanInventoryUpload::Async::GenerateReportJob'
+        timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
         self.api.Organization(id=org.id).rh_cloud_generate_report(
             data={'disconnected': disconnected}
         )
@@ -2434,7 +2444,7 @@ class Satellite(Capsule, SatelliteMixins):
 
     def run_orphan_cleanup(self, smart_proxy_id=None):
         """Run orphan cleanup task for all or given smart proxy."""
-        timestamp = datetime.utcnow().replace(microsecond=0)
+        timestamp = datetime.now(UTC).replace(microsecond=0)
         rake_command = 'foreman-rake katello:delete_orphaned_content RAILS_ENV=production'
         if smart_proxy_id:
             rake_command = f'{rake_command} SMART_PROXY_ID={smart_proxy_id}'
@@ -2447,6 +2457,11 @@ class Satellite(Capsule, SatelliteMixins):
             search_rate=5,
             max_tries=10,
         )
+
+    @property
+    def local_advisor_enabled(self):
+        """Return boolean indicating whether local Insights advisor engine is enabled."""
+        return self.api.RHCloud().advisor_engine_config()['use_local_advisor_engine']
 
 
 class SSOHost(Host):
@@ -2556,13 +2571,13 @@ class SSOHost(Host):
             group_name = gen_string('alphanumeric')
         update_user_group.name = group_name
         self.upload_sso_entity(update_user_group, "create_group")
-        result = self.execute(f"{self.kcadm} create groups -r {settings.sso.realm} -f create_group")
+        result = self.execute(f"{self.kcadm} create groups -r {self.realm} -f create_group")
         return result.stdout
 
     def delete_sso_group(self, group_name):
         """Delete the RHSSO group"""
         group_details = self.get_sso_groups_details(group_name)
-        self.execute(f"{self.kcadm} delete -r {settings.sso.realm} groups/{group_details['id']}")
+        self.execute(f"{self.kcadm} delete -r {self.realm} groups/{group_details['id']}")
 
     def update_client_configuration(self, json_content):
         """Update the client configuration"""

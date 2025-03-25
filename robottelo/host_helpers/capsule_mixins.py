@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import time
 
 from box import Box
@@ -92,7 +92,7 @@ class CapsuleInfo:
         sync_status = self.nailgun_capsule.content_get_sync(timeout=timeout, synchronous=True)
         # Current UTC time for start_time, if not provided
         if start_time is None:
-            start_time = datetime.utcnow().replace(microsecond=0)
+            start_time = datetime.now(UTC).replace(microsecond=0)
         # 1s margin of safety for rounding
         start_time = (
             (start_time - timedelta(seconds=1))

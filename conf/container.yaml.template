@@ -5,6 +5,9 @@ CONTAINER:
     - podman
   REGISTRY_HUB: https://mirror.gcr.io
   UPSTREAM_NAME: 'library/busybox'
+  ALTERNATIVE_UPSTREAM_NAMES:
+    - hello-world
+    - alpine
   DOCKER:
     REPO_UPSTREAM_NAME: 'openshift3/logging-elasticsearch'
   PULP:

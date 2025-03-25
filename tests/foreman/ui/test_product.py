@@ -32,7 +32,6 @@ def module_org(module_target_sat):
     return module_target_sat.api.Organization().create()
 
 
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_end_to_end(session, module_org, module_target_sat):
     """Perform end to end testing for product component
@@ -96,7 +95,6 @@ def test_positive_end_to_end(session, module_org, module_target_sat):
 
 
 @pytest.mark.parametrize('product_name', **parametrized(valid_data_list('ui')))
-@pytest.mark.tier2
 def test_positive_create_in_different_orgs(session, product_name, module_target_sat):
     """Create Product with same name but in different organizations
 
@@ -117,7 +115,6 @@ def test_positive_create_in_different_orgs(session, product_name, module_target_
             assert product_values['details']['description'] == org.name
 
 
-@pytest.mark.tier2
 def test_positive_product_create_with_create_sync_plan(session, module_org, module_target_sat):
     """Perform Sync Plan Create from Product Create Page
 
@@ -161,7 +158,6 @@ def test_positive_product_create_with_create_sync_plan(session, module_org, modu
         assert session.product.search(product_name)[0]['Name'] != product_name
 
 
-@pytest.mark.tier2
 def test_positive_bulk_action_advanced_sync(session, module_org, module_target_sat):
     """Advanced sync is available as a bulk action in the product.
 

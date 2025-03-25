@@ -29,7 +29,6 @@ from robottelo.utils.issue_handlers import is_open
 class TestRole:
     """Tests for ``api/v2/roles``."""
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         ('name', 'new_name'),
@@ -207,7 +206,6 @@ class TestCannedRole:
             user.delete()
         target_sat.cli.LDAPAuthSource.delete({'name': authsource_name})
 
-    @pytest.mark.tier1
     def test_positive_create_role_with_taxonomies(self, role_taxonomies, target_sat):
         """create role with taxonomies
 
@@ -229,7 +227,6 @@ class TestCannedRole:
         assert role_taxonomies['org'].id == role.organization[0].id
         assert role_taxonomies['loc'].id == role.location[0].id
 
-    @pytest.mark.tier1
     def test_positive_create_role_without_taxonomies(self, target_sat):
         """Create role without taxonomies
 
@@ -247,7 +244,6 @@ class TestCannedRole:
         assert not role.organization
         assert not role.location
 
-    @pytest.mark.tier1
     def test_positive_create_filter_without_override(self, role_taxonomies, target_sat):
         """Create filter in role w/o overriding it
 
@@ -280,7 +276,6 @@ class TestCannedRole:
         assert role_taxonomies['loc'].id == filtr.location[0].id
         assert not filtr.override
 
-    @pytest.mark.tier1
     def test_positive_create_non_overridable_filter(self, target_sat):
         """Create non overridable filter in role
 
@@ -306,7 +301,6 @@ class TestCannedRole:
         assert role.id == filtr.role.id
         assert not filtr.override
 
-    @pytest.mark.tier1
     def test_negative_override_non_overridable_filter(self, filter_taxonomies, target_sat):
         """Override non overridable filter
 
@@ -335,7 +329,6 @@ class TestCannedRole:
                 location=[filter_taxonomies['loc']],
             ).create()
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     def test_positive_create_overridable_filter(
         self, role_taxonomies, filter_taxonomies, target_sat
@@ -380,7 +373,6 @@ class TestCannedRole:
         assert role_taxonomies['org'].id != filtr.organization[0].id
         assert role_taxonomies['loc'].id != filtr.location[0].id
 
-    @pytest.mark.tier1
     def test_positive_update_role_taxonomies(self, role_taxonomies, filter_taxonomies, target_sat):
         """Update role taxonomies which applies to its non-overrided filters
 
@@ -415,7 +407,6 @@ class TestCannedRole:
         assert filter_taxonomies['org'].id == filtr.organization[0].id
         assert filter_taxonomies['loc'].id == filtr.location[0].id
 
-    @pytest.mark.tier1
     def test_negative_update_role_taxonomies(self, role_taxonomies, filter_taxonomies, target_sat):
         """Update role taxonomies which doesnt applies to its overrided filters
 
@@ -461,7 +452,6 @@ class TestCannedRole:
         assert org_new.id != filtr.organization[0].id
         assert loc_new.id != filtr.location[0].id
 
-    @pytest.mark.tier1
     def test_positive_disable_filter_override(self, role_taxonomies, filter_taxonomies, target_sat):
         """Unsetting override flag resets filter taxonomies
 
@@ -503,7 +493,6 @@ class TestCannedRole:
         assert filter_taxonomies['org'].id != filtr.organization[0].id
         assert filter_taxonomies['loc'].id != filtr.location[0].id
 
-    @pytest.mark.tier1
     def test_positive_create_org_admin_from_clone(self, target_sat):
         """Create Org Admin role which has access to most of the resources
         within organization
@@ -527,7 +516,6 @@ class TestCannedRole:
         orgadmin_filters = target_sat.api.Role(id=org_admin.id).read().filters
         assert len(default_filters) == len(orgadmin_filters)
 
-    @pytest.mark.tier1
     def test_positive_create_cloned_role_with_taxonomies(self, role_taxonomies, target_sat):
         """Taxonomies can be assigned to cloned role
 
@@ -552,7 +540,6 @@ class TestCannedRole:
         assert role_taxonomies['org'].id == org_admin.organization[0].id
         assert role_taxonomies['loc'].id == org_admin.location[0].id
 
-    @pytest.mark.tier3
     def test_negative_access_entities_from_org_admin(
         self, role_taxonomies, filter_taxonomies, target_sat
     ):
@@ -584,7 +571,6 @@ class TestCannedRole:
         with pytest.raises(HTTPError):
             target_sat.api.Domain(server_config=sc, id=domain.id).read()
 
-    @pytest.mark.tier3
     def test_negative_access_entities_from_user(
         self, role_taxonomies, filter_taxonomies, target_sat
     ):
@@ -616,7 +602,6 @@ class TestCannedRole:
         with pytest.raises(HTTPError):
             target_sat.api.Domain(server_config=sc, id=domain.id).read()
 
-    @pytest.mark.tier2
     def test_positive_override_cloned_role_filter(self, role_taxonomies, target_sat):
         """Cloned role filter overrides
 
@@ -650,7 +635,6 @@ class TestCannedRole:
         assert role_taxonomies['org'].id == filter_cloned.organization[0].id
         assert role_taxonomies['loc'].id == filter_cloned.location[0].id
 
-    @pytest.mark.tier2
     def test_positive_emptiness_of_filter_taxonomies_on_role_clone(
         self, role_taxonomies, filter_taxonomies, target_sat
     ):
@@ -693,7 +677,6 @@ class TestCannedRole:
         assert not filter_cloned.location
         assert filter_cloned.override
 
-    @pytest.mark.tier2
     def test_positive_clone_role_having_overridden_filter_with_taxonomies(
         self, role_taxonomies, filter_taxonomies, target_sat
     ):
@@ -740,7 +723,6 @@ class TestCannedRole:
         assert cloned_filter.unlimited
         assert cloned_filter.override
 
-    @pytest.mark.tier2
     def test_positive_clone_role_having_non_overridden_filter_with_taxonomies(
         self, role_taxonomies, target_sat
     ):
@@ -781,7 +763,6 @@ class TestCannedRole:
         assert not cloned_filter.unlimited
         assert not cloned_filter.override
 
-    @pytest.mark.tier2
     def test_positive_clone_role_having_unlimited_filter_with_taxonomies(
         self, role_taxonomies, target_sat
     ):
@@ -821,7 +802,6 @@ class TestCannedRole:
         assert not cloned_filter.unlimited
         assert not cloned_filter.override
 
-    @pytest.mark.tier2
     def test_positive_clone_role_having_overridden_filter_without_taxonomies(
         self, role_taxonomies, filter_taxonomies, target_sat
     ):  # noqa
@@ -861,7 +841,6 @@ class TestCannedRole:
         assert cloned_filter.unlimited
         assert cloned_filter.override
 
-    @pytest.mark.tier2
     def test_positive_clone_role_without_taxonomies_non_overided_filter(
         self, role_taxonomies, target_sat
     ):
@@ -900,7 +879,6 @@ class TestCannedRole:
         assert cloned_filter.unlimited
         assert not cloned_filter.override
 
-    @pytest.mark.tier2
     def test_positive_clone_role_without_taxonomies_unlimited_filter(
         self, role_taxonomies, target_sat
     ):
@@ -938,7 +916,6 @@ class TestCannedRole:
         assert cloned_filter.unlimited
         assert not cloned_filter.override
 
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_user_group_users_access_as_org_admin(self, role_taxonomies, target_sat):
         """Users in usergroup can have access to the resources in taxonomies if
@@ -1018,7 +995,6 @@ class TestCannedRole:
             assert domain.id in [dom.id for dom in target_sat.api.Domain(server_config=sc).search()]
             assert subnet.id in [sub.id for sub in target_sat.api.Subnet(server_config=sc).search()]
 
-    @pytest.mark.tier3
     def test_positive_user_group_users_access_contradict_as_org_admins(self):
         """Users in usergroup can/cannot have access to the resources in
         taxonomies depends on the taxonomies of Org Admin role is same/not_same
@@ -1044,7 +1020,6 @@ class TestCannedRole:
 
         """
 
-    @pytest.mark.tier2
     def test_negative_assign_org_admin_to_user_group(
         self, role_taxonomies, filter_taxonomies, target_sat
     ):
@@ -1083,7 +1058,6 @@ class TestCannedRole:
             with pytest.raises(HTTPError):
                 target_sat.api.Domain(server_config=sc, id=dom.id).read()
 
-    @pytest.mark.tier2
     def test_negative_assign_taxonomies_by_org_admin(
         self, role_taxonomies, filter_taxonomies, target_sat
     ):
@@ -1136,7 +1110,6 @@ class TestCannedRole:
         with pytest.raises(HTTPError):
             dom.update(['organization'])
 
-    @pytest.mark.tier1
     def test_positive_remove_org_admin_role(self, role_taxonomies, target_sat):
         """Super Admin user can remove Org Admin role
 
@@ -1170,7 +1143,6 @@ class TestCannedRole:
         user = target_sat.api.User(id=user.id).read()
         assert org_admin.id not in [role.id for role in user.role]
 
-    @pytest.mark.tier2
     def test_positive_taxonomies_control_to_superadmin_with_org_admin(
         self, role_taxonomies, target_sat
     ):
@@ -1212,7 +1184,6 @@ class TestCannedRole:
         except HTTPError as err:
             pytest.fail(str(err))
 
-    @pytest.mark.tier2
     def test_positive_taxonomies_control_to_superadmin_without_org_admin(
         self, role_taxonomies, target_sat
     ):
@@ -1263,7 +1234,6 @@ class TestCannedRole:
         except HTTPError as err:
             pytest.fail(str(err))
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     def test_negative_create_roles_by_org_admin(self, role_taxonomies, target_sat):
         """Org Admin doesn't have permissions to create new roles
@@ -1305,7 +1275,6 @@ class TestCannedRole:
                 location=[role_taxonomies['loc']],
             ).create()
 
-    @pytest.mark.tier1
     def test_negative_modify_roles_by_org_admin(self, role_taxonomies, target_sat):
         """Org Admin has no permissions to modify existing roles
 
@@ -1332,7 +1301,6 @@ class TestCannedRole:
         with pytest.raises(HTTPError):
             test_role.update(['organization', 'location'])
 
-    @pytest.mark.tier2
     def test_negative_admin_permissions_to_org_admin(self, role_taxonomies, target_sat):
         """Org Admin has no access to Super Admin user
 
@@ -1367,7 +1335,6 @@ class TestCannedRole:
         with pytest.raises(HTTPError):
             target_sat.api.User(server_config=sc, id=1).read()
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_create_user_by_org_admin(self, role_taxonomies, target_sat):
         """Org Admin can create new users
@@ -1421,7 +1388,6 @@ class TestCannedRole:
         assert user_login == user.login
         assert org_admin.id == user.role[0].id
 
-    @pytest.mark.tier2
     def test_positive_access_users_inside_org_admin_taxonomies(self, role_taxonomies, target_sat):
         """Org Admin can access users inside its taxonomies
 
@@ -1451,7 +1417,6 @@ class TestCannedRole:
         except HTTPError as err:
             pytest.fail(str(err))
 
-    @pytest.mark.tier2
     def test_negative_access_users_outside_org_admin_taxonomies(
         self, role_taxonomies, filter_taxonomies, target_sat
     ):
@@ -1481,7 +1446,6 @@ class TestCannedRole:
         with pytest.raises(HTTPError):
             target_sat.api.User(server_config=sc, id=test_user.id).read()
 
-    @pytest.mark.tier1
     def test_negative_create_taxonomies_by_org_admin(self, role_taxonomies, target_sat):
         """Org Admin cannot define/create organizations but can create
             locations
@@ -1525,7 +1489,6 @@ class TestCannedRole:
             assert loc_name == loc.name
 
     @pytest.mark.upgrade
-    @pytest.mark.tier1
     def test_positive_access_all_global_entities_by_org_admin(
         self, role_taxonomies, filter_taxonomies, target_sat
     ):
@@ -1576,7 +1539,6 @@ class TestCannedRole:
         except HTTPError as err:
             pytest.fail(str(err))
 
-    @pytest.mark.tier3
     def test_negative_access_entities_from_ldap_org_admin(
         self, role_taxonomies, create_ldap, target_sat
     ):
@@ -1621,7 +1583,6 @@ class TestCannedRole:
         with pytest.raises(HTTPError):
             target_sat.api.Domain(server_config=sc, id=domain.id).read()
 
-    @pytest.mark.tier3
     def test_negative_access_entities_from_ldap_user(
         self, role_taxonomies, create_ldap, module_location, module_org, target_sat
     ):
@@ -1664,7 +1625,6 @@ class TestCannedRole:
         with pytest.raises(HTTPError):
             target_sat.api.Domain(server_config=sc, id=domain.id).read()
 
-    @pytest.mark.tier3
     def test_positive_assign_org_admin_to_ldap_user_group(
         self, role_taxonomies, create_ldap, target_sat
     ):
@@ -1726,7 +1686,6 @@ class TestCannedRole:
             # Accessing the Domain resource
             target_sat.api.Domain(server_config=sc, id=domain.id).read()
 
-    @pytest.mark.tier3
     def test_negative_assign_org_admin_to_ldap_user_group(
         self, create_ldap, role_taxonomies, target_sat
     ):
@@ -1792,7 +1751,6 @@ class TestRoleSearchFilter:
     """
 
     @pytest.mark.stubbed
-    @pytest.mark.tier3
     def test_positive_role_lce_search(self):
         """Test role with search filter using lifecycle enviroment.
 
@@ -1816,7 +1774,6 @@ class TestRoleSearchFilter:
         """
 
     @pytest.mark.stubbed
-    @pytest.mark.tier3
     def test_negative_role_lce_search(self):
         """Test role with search filter using lifecycle environment.
 

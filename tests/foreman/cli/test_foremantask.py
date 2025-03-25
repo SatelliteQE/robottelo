@@ -16,7 +16,6 @@ import pytest
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_tasks_backup():
     """Check no tasks are backup by default when cleaning up tasks from the database and
     no /var/lib/foreman/tasks-backup created for backup tasks.

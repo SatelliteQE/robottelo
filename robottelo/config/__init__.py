@@ -21,30 +21,28 @@ def get_settings():
 
     :return: A validated Lazy settings object
     """
+    if getattr(builtins, "__sphinx_build__", False):
+        return None
+    settings = LazySettings(
+        envvar_prefix="ROBOTTELO",
+        core_loaders=["YAML"],
+        root_path=str(robottelo_root_dir),
+        settings_file="settings.yaml",
+        preload=["conf/*.yaml"],
+        includes=["settings.local.yaml", ".secrets.yaml", ".secrets_*.yaml"],
+        envless_mode=True,
+        lowercase_read=True,
+        load_dotenv=True,
+    )
+    settings.validators.register(**VALIDATORS)
     try:
-        if builtins.__sphinx_build__:
-            settings = None
-    except AttributeError:
-        settings = LazySettings(
-            envvar_prefix="ROBOTTELO",
-            core_loaders=["YAML"],
-            root_path=str(robottelo_root_dir),
-            settings_file="settings.yaml",
-            preload=["conf/*.yaml"],
-            includes=["settings.local.yaml", ".secrets.yaml", ".secrets_*.yaml"],
-            envless_mode=True,
-            lowercase_read=True,
-            load_dotenv=True,
-        )
-        settings.validators.register(**VALIDATORS)
-        try:
-            settings.validators.validate()
-        except ValidationError as err:
-            if settings.robottelo.settings.get('ignore_validation_errors'):
-                logger.warning(f'Dynaconf validation failed with\n{err}')
-            else:
-                raise err
-        return settings
+        settings.validators.validate()
+    except ValidationError as err:
+        if settings.robottelo.settings.get('ignore_validation_errors'):
+            logger.warning(f'Dynaconf validation failed with\n{err}')
+        else:
+            raise err
+    return settings
 
 
 settings = get_settings()

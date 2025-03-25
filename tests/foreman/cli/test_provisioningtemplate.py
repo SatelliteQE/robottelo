@@ -97,7 +97,6 @@ def test_positive_end_to_end_crud(
         module_target_sat.cli.Template.info({'id': template['id']})
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('role_name', ['Manager', 'Organization admin'])
 def test_positive_update_with_role(module_target_sat, module_location, module_org, role_name):
     """Create template providing the initial name, then update its name
@@ -137,7 +136,6 @@ def test_positive_update_with_role(module_target_sat, module_location, module_or
     assert new_name == template['name']
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_create_locked(module_target_sat):
     """Check that locked Template can be created
@@ -155,7 +153,6 @@ def test_positive_create_locked(module_target_sat):
     assert new_template['locked'] == 'yes'
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_add_remove_os_by_id(module_target_sat, module_os_with_minor):
     """Check if operating system can be added and removed to a template
@@ -179,7 +176,6 @@ def test_positive_add_remove_os_by_id(module_target_sat, module_os_with_minor):
     assert os_string not in new_template['operating-systems']
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_create_with_content(module_target_sat):
     """Check if Template can be created with specific content
@@ -198,7 +194,6 @@ def test_positive_create_with_content(module_target_sat):
     assert content in template_content
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_clone(module_target_sat):
     """Assure ability to clone a provisioning template

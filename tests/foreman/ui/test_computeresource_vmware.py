@@ -82,7 +82,6 @@ def get_vmware_datastore_summary_string(vmware, vmwareclient):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier1
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 def test_positive_cr_end_to_end(session, module_org, module_location, vmware, module_target_sat):
     """Perform end-to-end testing for compute resource VMware component.
@@ -154,7 +153,6 @@ def test_positive_cr_end_to_end(session, module_org, module_location, vmware, mo
         assert not session.computeresource.search(new_cr_name)
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 def test_positive_retrieve_virtual_machine_list(session, vmware):
     """List the virtual machine list from vmware compute resource
@@ -190,7 +188,6 @@ def test_positive_retrieve_virtual_machine_list(session, vmware):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 def test_positive_image_end_to_end(session, target_sat, vmware):
     """Perform end to end testing for compute resource VMware component image.
@@ -248,7 +245,6 @@ def test_positive_image_end_to_end(session, target_sat, vmware):
         )
 
 
-@pytest.mark.tier2
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 def test_positive_resource_vm_power_management(session, vmware):
@@ -294,7 +290,6 @@ def test_positive_resource_vm_power_management(session, vmware):
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
-@pytest.mark.tier2
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 def test_positive_vmware_custom_profile_end_to_end(
     session, vmware, request, target_sat, get_vmware_datastore_summary_string
@@ -425,7 +420,6 @@ def test_positive_vmware_custom_profile_end_to_end(
         assert not session.computeresource.search(cr_name)
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 def test_positive_virt_card(session, target_sat, module_location, module_org, vmware):
     """Check to see that the Virtualization card appears for an imported VM
@@ -558,7 +552,6 @@ def test_positive_virt_card(session, target_sat, module_location, module_org, vm
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
 @pytest.mark.parametrize('provision_method', ['build'])
 @pytest.mark.rhel_ver_match('[8]')
-@pytest.mark.tier3
 def test_positive_provision_end_to_end(
     request,
     module_sca_manifest_org,

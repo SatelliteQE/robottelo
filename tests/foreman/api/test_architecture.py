@@ -23,7 +23,6 @@ from robottelo.utils.datafactory import (
 )
 
 
-@pytest.mark.tier1
 def test_positive_CRUD(default_os, target_sat):
     """Create a new Architecture with several attributes, update the name
     and delete the Architecture itself.
@@ -53,7 +52,6 @@ def test_positive_CRUD(default_os, target_sat):
         arch.read()
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
 def test_negative_create_with_invalid_name(name, target_sat):
     """Create architecture providing an invalid initial name.
@@ -72,7 +70,6 @@ def test_negative_create_with_invalid_name(name, target_sat):
         target_sat.api.Architecture(name=name).create()
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
 def test_negative_update_with_invalid_name(name, module_architecture, module_target_sat):
     """Update architecture's name to an invalid name.

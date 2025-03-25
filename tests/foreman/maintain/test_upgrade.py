@@ -15,7 +15,7 @@
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import INSTALLER_CONFIG_FILE
+from robottelo.constants import SATELLITE_INSTALLER_CONFIG
 
 
 def last_y_stream_version(release):
@@ -101,7 +101,7 @@ def test_negative_pre_update_tuning_profile_check(request, custom_host):
     )
     # Change to correct tuning profile (default or medium)
     custom_host.execute(
-        f'sed -i "s/tuning: development/tuning: {profile}/g" {INSTALLER_CONFIG_FILE};'
+        f'sed -i "s/tuning: development/tuning: {profile}/g" {SATELLITE_INSTALLER_CONFIG};'
         f'satellite-installer'
     )
     # Check that the update check fails due to system requirements

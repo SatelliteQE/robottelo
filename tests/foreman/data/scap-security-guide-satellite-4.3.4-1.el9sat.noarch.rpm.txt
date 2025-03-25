@@ -1,0 +1,1 @@
+This is an artificially built SCAP content for testing purposes. It is intentionally an rpm with big version so it can be used for a long time. This content contains one policy "ANSSI-BP-028 (enhanced)" and within it one test "Set Password Minimum Length in login.defs" applicable to RHEL9.

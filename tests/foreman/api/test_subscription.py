@@ -69,7 +69,6 @@ def module_ak(module_sca_manifest_org, rh_repo, custom_repo, module_target_sat):
     ).create()
 
 
-@pytest.mark.tier1
 def test_positive_refresh(function_sca_manifest_org, request, target_sat):
     """Upload a manifest and refresh it afterwards.
 
@@ -86,7 +85,6 @@ def test_positive_refresh(function_sca_manifest_org, request, target_sat):
     assert sub.search()
 
 
-@pytest.mark.tier1
 def test_positive_create_after_refresh(
     function_sca_manifest_org, second_function_sca_manifest, target_sat
 ):
@@ -115,7 +113,6 @@ def test_positive_create_after_refresh(
         org_sub.delete_manifest(data={'organization_id': function_sca_manifest_org.id})
 
 
-@pytest.mark.tier1
 def test_positive_delete(function_sca_manifest_org, target_sat):
     """Delete an Uploaded manifest.
 
@@ -131,7 +128,6 @@ def test_positive_delete(function_sca_manifest_org, target_sat):
     assert len(sub.search()) == 0
 
 
-@pytest.mark.tier2
 def test_negative_upload(function_sca_manifest, target_sat):
     """Upload the same manifest to two organizations.
 
@@ -148,7 +144,6 @@ def test_negative_upload(function_sca_manifest, target_sat):
     assert len(target_sat.api.Subscription(organization=orgs[1]).search()) == 0
 
 
-@pytest.mark.tier2
 def test_positive_delete_manifest_as_another_user(function_org, function_sca_manifest, target_sat):
     """Verify that uploaded manifest if visible and deletable
         by a different user than the one who uploaded it
@@ -199,7 +194,6 @@ def test_positive_delete_manifest_as_another_user(function_org, function_sca_man
     assert len(target_sat.cli.Subscription.list({'organization-id': function_org.id})) == 0
 
 
-@pytest.mark.tier2
 @pytest.mark.e2e
 @pytest.mark.pit_client
 @pytest.mark.pit_server
@@ -267,7 +261,6 @@ def test_sca_end_to_end(
 
 
 @pytest.mark.rhel_ver_match('7')
-@pytest.mark.tier2
 def test_positive_candlepin_events_processed_by_stomp(
     function_org, target_sat, function_sca_manifest
 ):
@@ -385,7 +378,6 @@ def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel_conten
     assert rhel_contenthost.subscribed
 
 
-@pytest.mark.tier2
 @pytest.mark.rhel_ver_match('N-2')
 def test_positive_os_restriction_on_repos(
     target_sat,

@@ -48,7 +48,6 @@ def create_user(module_target_sat):
 class TestUser:
     """Tests for the ``users`` path."""
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('username', **parametrized(valid_usernames_list()))
     def test_positive_create_with_username(self, username, target_sat):
         """Create User for all variations of Username
@@ -64,7 +63,6 @@ class TestUser:
         user = target_sat.api.User(login=username).create()
         assert user.login == username
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'firstname', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
     )
@@ -84,7 +82,6 @@ class TestUser:
         user = target_sat.api.User(firstname=firstname).create()
         assert user.firstname == firstname
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'lastname', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
     )
@@ -104,7 +101,6 @@ class TestUser:
         user = target_sat.api.User(lastname=lastname).create()
         assert user.lastname == lastname
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('mail', **parametrized(valid_emails_list()))
     def test_positive_create_with_email(self, mail, target_sat):
         """Create User for all variations of Email
@@ -120,7 +116,6 @@ class TestUser:
         user = target_sat.api.User(mail=mail).create()
         assert user.mail == mail
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
     def test_positive_create_with_description(self, description, target_sat):
         """Create User for all variations of Description
@@ -136,7 +131,6 @@ class TestUser:
         user = target_sat.api.User(description=description).create()
         assert user.description == description
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'password', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
     )
@@ -154,7 +148,6 @@ class TestUser:
         user = target_sat.api.User(password=password).create()
         assert user is not None
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize('mail', **parametrized(valid_emails_list()))
     def test_positive_delete(self, mail, target_sat):
@@ -173,7 +166,6 @@ class TestUser:
         with pytest.raises(HTTPError):
             user.read()
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('login', **parametrized(valid_usernames_list()))
     def test_positive_update_username(self, create_user, login):
         """Update a user and provide new username.
@@ -190,7 +182,6 @@ class TestUser:
         user = create_user.update(['login'])
         assert user.login == login
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('login', **parametrized(invalid_usernames_list()))
     def test_negative_update_username(self, create_user, login):
         """Update a user and provide new login.
@@ -207,7 +198,6 @@ class TestUser:
         with pytest.raises(HTTPError):
             create_user.update(['login'])
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'firstname', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
     )
@@ -228,7 +218,6 @@ class TestUser:
         user = create_user.update(['firstname'])
         assert user.firstname == firstname
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'lastname', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
     )
@@ -249,7 +238,6 @@ class TestUser:
         user = create_user.update(['lastname'])
         assert user.lastname == lastname
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('mail', **parametrized(valid_emails_list()))
     def test_positive_update_email(self, create_user, mail):
         """Update a user and provide new email.
@@ -266,7 +254,6 @@ class TestUser:
         user = create_user.update(['mail'])
         assert user.mail == mail
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('mail', **parametrized(invalid_emails_list()))
     def test_negative_update_email(self, create_user, mail):
         """Update a user and provide new email.
@@ -283,7 +270,6 @@ class TestUser:
         with pytest.raises(HTTPError):
             create_user.update(['mail'])
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
     def test_positive_update_description(self, create_user, description):
         """Update a user and provide new email.
@@ -300,7 +286,6 @@ class TestUser:
         user = create_user.update(['description'])
         assert user.description == description
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('admin_enable', [True, False])
     def test_positive_update_admin(self, admin_enable, target_sat):
         """Update a user and provide the ``admin`` attribute.
@@ -317,7 +302,6 @@ class TestUser:
         user.admin = not admin_enable
         assert user.update().admin == (not admin_enable)
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('mail', **parametrized(invalid_emails_list()))
     def test_negative_create_with_invalid_email(self, mail, target_sat):
         """Create User with invalid Email Address
@@ -333,7 +317,6 @@ class TestUser:
         with pytest.raises(HTTPError):
             target_sat.api.User(mail=mail).create()
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('invalid_name', **parametrized(invalid_usernames_list()))
     def test_negative_create_with_invalid_username(self, invalid_name, target_sat):
         """Create User with invalid Username
@@ -349,7 +332,6 @@ class TestUser:
         with pytest.raises(HTTPError):
             target_sat.api.User(login=invalid_name).create()
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('invalid_name', **parametrized(invalid_names_list()))
     def test_negative_create_with_invalid_firstname(self, invalid_name, target_sat):
         """Create User with invalid Firstname
@@ -365,7 +347,6 @@ class TestUser:
         with pytest.raises(HTTPError):
             target_sat.api.User(firstname=invalid_name).create()
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('invalid_name', **parametrized(invalid_names_list()))
     def test_negative_create_with_invalid_lastname(self, invalid_name, target_sat):
         """Create User with invalid Lastname
@@ -381,7 +362,6 @@ class TestUser:
         with pytest.raises(HTTPError):
             target_sat.api.User(lastname=invalid_name).create()
 
-    @pytest.mark.tier1
     def test_negative_create_with_blank_authorized_by(self, target_sat):
         """Create User with blank authorized by
 
@@ -394,7 +374,6 @@ class TestUser:
         with pytest.raises(HTTPError):
             target_sat.api.User(auth_source='').create()
 
-    @pytest.mark.tier1
     def test_positive_table_preferences(self, module_target_sat):
         """Create a user, create their Table Preferences, read it
 
@@ -440,7 +419,6 @@ class TestUserRole:
         """Create two roles."""
         return [class_target_sat.api.Role().create() for _ in range(2)]
 
-    @pytest.mark.tier1
     @pytest.mark.build_sanity
     @pytest.mark.parametrize('number_of_roles', range(1, 3))
     def test_positive_create_with_role(self, make_roles, number_of_roles, class_target_sat):
@@ -461,7 +439,6 @@ class TestUserRole:
         assert len(user.role) == number_of_roles
         assert {role.id for role in user.role} == {role.id for role in chosen_roles}
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize('number_of_roles', range(1, 3))
     def test_positive_update(self, create_user, make_roles, number_of_roles):
@@ -493,7 +470,6 @@ class TestSshKeyInUser:
         data_keys = json.loads(DataFile.SSH_KEYS_JSON.read_bytes())
         return dict(user=user, data_keys=data_keys)
 
-    @pytest.mark.tier1
     def test_positive_CRD_ssh_key(self, class_target_sat):
         """SSH Key can be added to User
 
@@ -520,7 +496,6 @@ class TestSshKeyInUser:
         result = class_target_sat.api.SSHKey(user=user).search()
         assert len(result) == 0
 
-    @pytest.mark.tier1
     def test_negative_create_ssh_key(self, create_user, target_sat):
         """Invalid ssh key can not be added in User Template
 
@@ -549,7 +524,6 @@ class TestSshKeyInUser:
         assert re.search('Fingerprint could not be generated', context.value.response.text)
         assert re.search('Length could not be calculated', context.value.response.text)
 
-    @pytest.mark.tier1
     def test_negative_create_invalid_length_ssh_key(self, create_user, target_sat):
         """Attempt to add SSH key that has invalid length
 
@@ -573,7 +547,6 @@ class TestSshKeyInUser:
         assert re.search('Length could not be calculated', context.value.response.text)
         assert not re.search('Fingerprint could not be generated', context.value.response.text)
 
-    @pytest.mark.tier1
     def test_negative_create_ssh_key_with_invalid_name(self, create_user, target_sat):
         """Attempt to add SSH key that has invalid name length
 
@@ -595,7 +568,6 @@ class TestSshKeyInUser:
             ).create()
         assert re.search("Name is too long", context.value.response.text)
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     def test_positive_create_multiple_ssh_key_types(self, create_user, class_target_sat):
         """Multiple types of ssh keys can be added to user
@@ -620,7 +592,6 @@ class TestSshKeyInUser:
         user_sshkeys = class_target_sat.api.SSHKey(user=user).search()
         assert len(user_sshkeys) == 4
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_ssh_key_in_host_enc(self, class_target_sat):
         """SSH key appears in host ENC output
@@ -692,7 +663,6 @@ class TestActiveDirectoryUser:
         org.delete()
         loc.delete()
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.parametrize('username', **parametrized(valid_usernames_list()))
     def test_positive_create_in_ldap_mode(self, username, create_ldap, target_sat):
@@ -710,7 +680,6 @@ class TestActiveDirectoryUser:
         ).create()
         assert user.login == username
 
-    @pytest.mark.tier3
     def test_positive_ad_basic_no_roles(self, create_ldap, target_sat):
         """Login with LDAP Auth AD for user with no roles/rights
 
@@ -731,7 +700,6 @@ class TestActiveDirectoryUser:
         with pytest.raises(HTTPError):
             target_sat.api.Architecture(server_config=sc).search()
 
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_access_entities_from_ldap_org_admin(self, create_ldap, module_target_sat):
         """LDAP User can access resources within its taxonomies if assigned
@@ -841,7 +809,6 @@ class TestFreeIPAUser:
         for user in class_target_sat.api.User().search(query={'search': f'login={username}'}):
             user.delete()
 
-    @pytest.mark.tier3
     def test_positive_ipa_basic_no_roles(self, create_ldap, target_sat):
         """Login with LDAP Auth- FreeIPA for user with no roles/rights
 
@@ -862,7 +829,6 @@ class TestFreeIPAUser:
         with pytest.raises(HTTPError):
             target_sat.api.Architecture(server_config=sc).search()
 
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_access_entities_from_ipa_org_admin(self, create_ldap, target_sat):
         """LDAP FreeIPA User can access resources within its taxonomies if assigned
@@ -923,7 +889,6 @@ class TestFreeIPAUser:
 class TestPersonalAccessToken:
     """Implement personal access token for the users"""
 
-    @pytest.mark.tier2
     @pytest.mark.stubbed
     def test_personal_access_token_admin(self):
         """Personal access token for admin
@@ -942,7 +907,6 @@ class TestPersonalAccessToken:
         :CaseImportance: High
         """
 
-    @pytest.mark.tier2
     @pytest.mark.stubbed
     def test_positive_personal_access_token_user_with_role(self):
         """Personal access token for user with a role
@@ -964,7 +928,6 @@ class TestPersonalAccessToken:
         :CaseImportance: High
         """
 
-    @pytest.mark.tier2
     @pytest.mark.stubbed
     def test_expired_personal_access_token(self):
         """Personal access token expired for the user.

@@ -11,7 +11,7 @@ def session_auth_proxy(session_target_sat):
 
 
 @pytest.fixture
-def setup_http_proxy(request, module_manifest_org, target_sat):
+def setup_http_proxy(request, module_sca_manifest_org, target_sat):
     """Create a new HTTP proxy and set related settings based on proxy"""
     content_proxy = target_sat.api.Setting().search(
         query={'search': 'name=content_default_http_proxy'}
@@ -20,7 +20,7 @@ def setup_http_proxy(request, module_manifest_org, target_sat):
     general_proxy = target_sat.api.Setting().search(query={'search': 'name=http_proxy'})[0]
     general_proxy_value = '' if general_proxy.value is None else general_proxy.value
 
-    http_proxy = target_sat.api_factory.make_http_proxy(module_manifest_org, request.param)
+    http_proxy = target_sat.api_factory.make_http_proxy(module_sca_manifest_org, request.param)
     content_proxy = target_sat.api.Setting().search(
         query={'search': 'name=content_default_http_proxy'}
     )[0]
@@ -45,9 +45,9 @@ def setup_http_proxy(request, module_manifest_org, target_sat):
 
 
 @pytest.fixture
-def setup_http_proxy_without_global_settings(request, module_manifest_org, target_sat):
+def setup_http_proxy_without_global_settings(request, module_sca_manifest_org, target_sat):
     """Create a new HTTP proxy but don't set it as global or content proxy"""
-    http_proxy = target_sat.api_factory.make_http_proxy(module_manifest_org, request.param)
+    http_proxy = target_sat.api_factory.make_http_proxy(module_sca_manifest_org, request.param)
     yield http_proxy, request.param
     if http_proxy:
         http_proxy.delete()

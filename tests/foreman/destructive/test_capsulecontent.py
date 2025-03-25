@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from box import Box
 from fauxfactory import gen_alpha
@@ -23,7 +23,6 @@ from robottelo import constants
 pytestmark = [pytest.mark.destructive]
 
 
-@pytest.mark.tier4
 @pytest.mark.skip_if_not_set('capsule')
 def test_positive_sync_without_deadlock(
     target_sat,
@@ -109,7 +108,7 @@ def test_positive_sync_without_deadlock(
     )
     # timestamp: to check capsule task(s) began, exclude priors
     # within 120 seconds of end of repo_sync
-    timestamp = datetime.utcnow().replace(microsecond=0) - timedelta(seconds=120)
+    timestamp = datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=120)
     repo_to_capsule_task = target_sat.wait_for_tasks(
         search_query=(
             f'label=Actions::Katello::Repository::CapsuleSync and started_at >= {timestamp}'
@@ -141,7 +140,6 @@ def test_positive_sync_without_deadlock(
     assert f"'package_group': {repo.content_counts['package_group']}" in updated_content
 
 
-@pytest.mark.tier4
 @pytest.mark.skip_if_not_set('capsule')
 def test_positive_sync_without_deadlock_after_rpm_trim_changelog(
     target_sat,

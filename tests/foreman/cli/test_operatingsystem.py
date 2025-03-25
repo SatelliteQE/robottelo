@@ -140,7 +140,6 @@ class TestOperatingSystem:
         with pytest.raises(CLIReturnCodeError):
             target_sat.cli.OperatingSys.info({'id': os['id']})
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
     def test_positive_create_with_name(self, name, target_sat):
         """Create Operating System for all variations of name
@@ -156,7 +155,6 @@ class TestOperatingSystem:
         os = target_sat.cli_factory.make_os({'name': name})
         assert os['name'] == name
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
     def test_negative_create_with_name(self, name, target_sat):
         """Create Operating System using invalid names
@@ -172,7 +170,6 @@ class TestOperatingSystem:
         with pytest.raises(CLIReturnCodeError):
             target_sat.cli.OperatingSys.create({'name': name})
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
     def test_negative_update_name(self, new_name, target_sat):
         """Negative update of system name
@@ -191,7 +188,6 @@ class TestOperatingSystem:
         result = target_sat.cli.OperatingSys.info({'id': os['id']})
         assert result['name'] == os['name']
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('test_data', **parametrized(negative_delete_data()))
     def test_negative_delete_by_id(self, test_data, target_sat):
         """Delete Operating System using invalid data
@@ -213,7 +209,6 @@ class TestOperatingSystem:
         assert os['id'] == result['id']
         assert os['name'] == result['name']
 
-    @pytest.mark.tier2
     def test_positive_add_arch(self, target_sat):
         """Add Architecture to operating system
 
@@ -231,7 +226,6 @@ class TestOperatingSystem:
         assert len(os['architectures']) == 1
         assert architecture['name'] == os['architectures'][0]
 
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_add_template(self, target_sat):
         """Add provisioning template to operating system
@@ -253,7 +247,6 @@ class TestOperatingSystem:
         assert default_template_name in os['templates']
         assert provision_template_name in os['templates']
 
-    @pytest.mark.tier2
     def test_positive_add_ptable(self, target_sat):
         """Add partition table to operating system
 
@@ -273,7 +266,6 @@ class TestOperatingSystem:
         assert len(os['partition-tables']) == 1
         assert os['partition-tables'][0] == ptable_name
 
-    @pytest.mark.tier2
     def test_positive_update_parameters_attributes(self, target_sat):
         """Update os-parameters-attributes to operating system
 
@@ -299,7 +291,6 @@ class TestOperatingSystem:
         assert param_value == os['parameters'][0]['value']
 
 
-@pytest.mark.tier2
 def test_positive_os_list_with_default_organization_set(target_sat):
     """list operating systems when the default organization is set
 

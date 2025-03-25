@@ -25,7 +25,6 @@ def module_host_group(default_location, default_org, module_target_sat):
     ).create()
 
 
-@pytest.mark.tier2
 def test_positive_check_dashboard(
     session,
     module_host_group,
@@ -85,7 +84,7 @@ def test_positive_check_dashboard(
                 'deployment_options.deploy_by': 'ansible',
                 'policy_attributes.name': name,
                 'scap_content.scap_content_resource': oscap_content_title,
-                'scap_content.xccdf_profile': OSCAP_PROFILE['security7'],
+                'scap_content.xccdf_profile': OSCAP_PROFILE['ospp8+'],
                 'schedule.period': 'Weekly',
                 'schedule.period_selection.weekday': 'Friday',
                 'locations.resources.assigned': [default_location.name],
@@ -99,7 +98,6 @@ def test_positive_check_dashboard(
         # assert policy_details['HostBreakdownChart']['hosts_breakdown'] == '100%Not audited'
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_end_to_end(
     session,
@@ -124,7 +122,7 @@ def test_positive_end_to_end(
     description = gen_string('alpha')
     oscap_content_title = gen_string('alpha')
     tailoring_name = gen_string('alpha')
-    profile_type = OSCAP_PROFILE['security7']
+    profile_type = OSCAP_PROFILE['ospp8+']
     tailoring_type = OSCAP_PROFILE['tailoring_rhel7']
     # Upload oscap content file
     module_target_sat.api.ScapContents(

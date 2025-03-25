@@ -20,7 +20,6 @@ from robottelo.constants.repos import PULP_FIXTURE_ROOT, PULP_SUBPATHS_COMBINED
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.parametrize('cnt_type', ['yum', 'file'])
 @pytest.mark.parametrize('acs_type', ['custom', 'simplified', 'rhui'])
@@ -107,7 +106,6 @@ def test_positive_CRUD_all_types(
         module_target_sat.api.AlternateContentSource(id=new_acs.id).read()
 
 
-@pytest.mark.tier2
 def test_positive_run_bulk_actions(module_target_sat, module_yum_repo):
     """Perform bulk actions with an ACS.
 

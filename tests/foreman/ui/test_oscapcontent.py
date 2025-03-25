@@ -18,7 +18,6 @@ from robottelo.constants import DataFile
 from robottelo.utils.datafactory import gen_string
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_end_to_end(
     session, oscap_content_path, target_sat, default_org, default_location
@@ -65,7 +64,6 @@ def test_positive_end_to_end(
         assert not session.oscapcontent.search(new_title)
 
 
-@pytest.mark.tier1
 def test_negative_create_with_same_name(session, oscap_content_path, default_org, default_location):
     """Create OpenScap content with same name
 
@@ -100,7 +98,6 @@ def test_negative_create_with_same_name(session, oscap_content_path, default_org
         assert 'has already been taken' in str(context.value)
 
 
-@pytest.mark.tier1
 def test_external_disa_scap_content(session, default_org, default_location):
     """Create OpenScap content with external DISA SCAP content.
 

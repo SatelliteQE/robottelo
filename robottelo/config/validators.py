@@ -102,6 +102,12 @@ VALIDATORS = dict(
             default='library/busybox',
         ),
         Validator(
+            'container.alternative_upstream_names',
+            must_exist=True,
+            is_type_of=list,
+            default=['hello-world', 'alpine'],
+        ),
+        Validator(
             'container.docker.repo_upstream_name',
             must_exist=True,
             is_type_of=str,
@@ -162,11 +168,6 @@ VALIDATORS = dict(
     fake_capsules=[Validator('fake_capsules.port_range', must_exist=True)],
     # FIXME: we don't check if 'default' is defined
     # since that's YAML, could we change API and check for presence of at least one setting?
-    fake_manifest=[
-        Validator(
-            'fake_manifest.cert_url', 'fake_manifest.key_url', 'fake_manifest.url', must_exist=True
-        ),
-    ],
     gce=[
         Validator(
             'gce.cert_path',
@@ -315,6 +316,12 @@ VALIDATORS = dict(
             'repos.swid_tools_repo',
             must_exist=True,
             is_type_of=str,
+        ),
+        Validator(
+            'repos.python.pypi.url',
+            must_exist=True,
+            is_type_of=str,
+            default='https://pypi.org/project/pytest',
         ),
     ],
     rhev=[

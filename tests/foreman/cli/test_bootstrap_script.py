@@ -21,7 +21,6 @@ from robottelo.config import settings
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-@pytest.mark.tier1
 def test_positive_register(
     module_org,
     module_location,

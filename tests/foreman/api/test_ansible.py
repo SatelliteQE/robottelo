@@ -109,7 +109,6 @@ class TestAnsibleCfgMgmt:
         assert len(task_details[0].output['result']['created']) == playbooks_count
 
     @pytest.mark.e2e
-    @pytest.mark.tier2
     def test_add_and_remove_ansible_role_hostgroup(self, target_sat):
         """
         Test add and remove functionality for ansible roles in hostgroup via API
@@ -190,7 +189,6 @@ class TestAnsibleCfgMgmt:
         assert len(hg_nested_roles) == 0
 
     @pytest.mark.e2e
-    @pytest.mark.tier2
     def test_positive_ansible_roles_inherited_from_hostgroup(
         self, request, target_sat, module_org, module_location
     ):
@@ -281,7 +279,6 @@ class TestAnsibleCfgMgmt:
         assert ROLE_NAMES[1] == listroles_hg[0]['name']
 
     @pytest.mark.rhel_ver_match('[78]')
-    @pytest.mark.tier2
     def test_positive_read_facts_with_filter(
         self, request, target_sat, rex_contenthost, filtered_user, module_org, module_location
     ):
@@ -615,7 +612,6 @@ class TestAnsibleREX:
         assert [i['output'] for i in result if i['output'] == 'StandardError: Job execution failed']
         assert [i['output'] for i in result if i['output'] == 'Exit status: 120']
 
-    @pytest.mark.tier2
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_ansible_job_privilege_escalation(

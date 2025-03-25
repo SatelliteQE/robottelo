@@ -62,7 +62,6 @@ def assert_event_triggered(channel, event):
 
 
 class TestWebhook:
-    @pytest.mark.tier2
     def test_negative_invalid_event(self, target_sat):
         """Test negative webhook creation with an invalid event
 
@@ -75,7 +74,6 @@ class TestWebhook:
         with pytest.raises(HTTPError):
             target_sat.api.Webhooks(event='invalid_event').create()
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('event', WEBHOOK_EVENTS)
     def test_positive_valid_event(self, event, target_sat):
         """Test positive webhook creation with a valid event
@@ -89,7 +87,6 @@ class TestWebhook:
         hook = target_sat.api.Webhooks(event=event).create()
         assert event in hook.event
 
-    @pytest.mark.tier2
     def test_negative_invalid_method(self, target_sat):
         """Test negative webhook creation with an invalid HTTP method
 
@@ -102,7 +99,6 @@ class TestWebhook:
         with pytest.raises(HTTPError):
             target_sat.api.Webhooks(http_method='NONE').create()
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('method', **parametrized(WEBHOOK_METHODS))
     def test_positive_valid_method(self, method, target_sat):
         """Test positive webhook creation with a valid HTTP method
@@ -116,7 +112,6 @@ class TestWebhook:
         hook = target_sat.api.Webhooks(http_method=method).create()
         assert hook.http_method == method
 
-    @pytest.mark.tier1
     @pytest.mark.e2e
     def test_positive_end_to_end(self, target_sat):
         """Create a new webhook.
@@ -143,7 +138,6 @@ class TestWebhook:
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
-    @pytest.mark.tier2
     @pytest.mark.e2e
     @pytest.mark.parametrize('setting_update', ['safemode_render=False'], indirect=True)
     def test_positive_event_triggered(self, module_org, target_sat, setting_update):

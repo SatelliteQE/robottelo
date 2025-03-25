@@ -22,7 +22,6 @@ from robottelo.utils.datafactory import gen_string
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, module_location, module_target_sat):
     """Perform end to end testing for role component
@@ -95,7 +94,6 @@ def test_positive_end_to_end(session, module_org, module_location, module_target
         assert not session.role.search(cloned_role_name)
 
 
-@pytest.mark.tier2
 def test_positive_assign_cloned_role(session):
     """Clone role and assign it to user
 
@@ -130,7 +128,6 @@ def test_positive_assign_cloned_role(session):
         assert user['roles']['resources']['assigned'] == [cloned_role_name]
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_delete_cloned_builtin(session):
     """Delete cloned builtin role
@@ -154,7 +151,6 @@ def test_positive_delete_cloned_builtin(session):
         assert not session.role.search(cloned_role_name)
 
 
-@pytest.mark.tier2
 def test_positive_create_filter_without_override(
     session, module_org, module_location, test_name, module_target_sat
 ):
@@ -238,7 +234,6 @@ def test_positive_create_filter_without_override(
             session.architecture.create({'name': gen_string('alpha')})
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_create_non_overridable_filter(
     session, module_org, module_location, test_name, module_target_sat
@@ -303,7 +298,6 @@ def test_positive_create_non_overridable_filter(
             session.organization.create({'name': gen_string('alpha'), 'label': gen_string('alpha')})
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_create_overridable_filter(
     session, module_org, module_location, test_name, module_target_sat
@@ -415,7 +409,6 @@ def test_positive_create_overridable_filter(
         )
 
 
-@pytest.mark.tier2
 def test_positive_create_with_21_filters(session):
     """Make sure it's possible to create more than 20 filters inside single role
 
@@ -459,7 +452,6 @@ def test_positive_create_with_21_filters(session):
         assert assigned_filters == used_filters
 
 
-@pytest.mark.tier2
 def test_positive_create_with_sc_parameter_permission(session_puppet_enabled_sat):
     """Create role filter with few permissions for smart class parameters.
 
@@ -489,7 +481,6 @@ def test_positive_create_with_sc_parameter_permission(session_puppet_enabled_sat
         assert set(assigned_permissions) == set(permissions)
 
 
-@pytest.mark.tier2
 def test_positive_create_filter_admin_user_with_locs(test_name, module_target_sat):
     """Attempt to create a role filter by admin user, who has 6+ locations assigned.
 
@@ -527,7 +518,6 @@ def test_positive_create_filter_admin_user_with_locs(test_name, module_target_sa
         assert set(assigned_permissions[resource_type]) == set(permissions)
 
 
-@pytest.mark.tier2
 def test_positive_create_filter_admin_user_with_orgs(test_name, module_target_sat):
     """Attempt to create a role filter by admin user, who has 10 organizations assigned.
 

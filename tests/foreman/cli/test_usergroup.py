@@ -26,7 +26,6 @@ def function_user_group(target_sat):
     return target_sat.cli_factory.usergroup()
 
 
-@pytest.mark.tier1
 def test_positive_CRUD(module_target_sat):
     """Create new user group with valid elements that attached group.
        List the user group, update and delete it.
@@ -79,7 +78,6 @@ def test_positive_CRUD(module_target_sat):
         module_target_sat.cli.UserGroup.info({'name': user_group['name']})
 
 
-@pytest.mark.tier1
 def test_positive_create_with_multiple_elements(module_target_sat):
     """Create new user group using multiple users, roles and user
        groups attached to that group.
@@ -103,7 +101,6 @@ def test_positive_create_with_multiple_elements(module_target_sat):
     assert sorted(sub_user_groups) == sorted(ug['usergroup'] for ug in user_group['user-groups'])
 
 
-@pytest.mark.tier2
 def test_positive_add_and_remove_elements(module_target_sat):
     """Create new user group. Add and remove several element from the group.
 
@@ -147,7 +144,6 @@ def test_positive_add_and_remove_elements(module_target_sat):
     assert len(user_group['user-groups']) == 0
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_remove_user_assigned_to_usergroup(module_target_sat):
     """Create new user and assign it to user group. Then remove that user.
@@ -168,7 +164,6 @@ def test_positive_remove_user_assigned_to_usergroup(module_target_sat):
     assert user['login'] not in user_group['users']
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize("ldap_auth_source", ["AD"], indirect=True)
 def test_positive_automate_bz1426957(ldap_auth_source, function_user_group, target_sat):
     """Verify role is properly reflected on AD user.
@@ -208,7 +203,6 @@ def test_positive_automate_bz1426957(ldap_auth_source, function_user_group, targ
     target_sat.cli.LDAPAuthSource.delete({'id': ldap_auth_source[1].id})
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize("ldap_auth_source", ["AD"], indirect=True)
 def test_negative_automate_bz1437578(ldap_auth_source, function_user_group, module_target_sat):
     """Verify error message on usergroup create with 'Domain Users' on AD user.
@@ -221,7 +215,7 @@ def test_negative_automate_bz1437578(ldap_auth_source, function_user_group, modu
 
     :BZ: 1437578
     """
-    with pytest.raises(CLIReturnCodeError):
+    with pytest.raises(CLIReturnCodeError):  # noqa: PT012
         result = module_target_sat.cli.UserGroupExternal.create(
             {
                 'auth-source-id': ldap_auth_source[1].id,
@@ -229,10 +223,10 @@ def test_negative_automate_bz1437578(ldap_auth_source, function_user_group, modu
                 'name': 'Domain Users',
             }
         )
-    assert (
-        result == 'Could not create external user group: '
-        'Name is not found in the authentication source'
-        'Name Domain Users is a special group in AD.'
-        ' Unfortunately, we cannot obtain membership information'
-        ' from a LDAP search and therefore sync it.'
-    )
+        assert (
+            result == 'Could not create external user group: '
+            'Name is not found in the authentication source'
+            'Name Domain Users is a special group in AD.'
+            ' Unfortunately, we cannot obtain membership information'
+            ' from a LDAP search and therefore sync it.'
+        )

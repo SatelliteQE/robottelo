@@ -25,10 +25,6 @@ help:
 	@echo "  test-robottelo             to run internal robottelo tests"
 	@echo "  test-robottelo-coverage    to run internal robottelo tests with coverage report."
 	@echo "                             Requires pytest-cov"
-	@echo "  test-foreman-tier1         to run Foreman deployment tier1 tests"
-	@echo "  test-foreman-tier2         to run Foreman deployment tier2 tests"
-	@echo "  test-foreman-tier3         to run Foreman deployment tier3 tests"
-	@echo "  test-foreman-tier4         to run Foreman deployment tier4 tests"
 	@echo "  test-foreman-sys           to run Foreman deployment sys tests"
 	@echo "  test-foreman-api           to test a Foreman deployment API"
 	@echo "  test-foreman-api-threaded  to do the above with threading."
@@ -109,18 +105,6 @@ test-foreman-virtwho:
 test-foreman-endtoend:
 	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_ENDTOEND_TESTS_PATH)
 
-test-foreman-tier1:
-	$(PYTEST) $(PYTEST_XDIST_OPTS) -m 'not stubbed and tier1' $(FOREMAN_TIERS_TESTS_PATH)
-
-test-foreman-tier2:
-	$(PYTEST) $(PYTEST_XDIST_OPTS) -m 'not stubbed and tier2' $(FOREMAN_TIERS_TESTS_PATH)
-
-test-foreman-tier3:
-	$(PYTEST) $(PYTEST_XDIST_OPTS) -m 'not stubbed and tier3' $(FOREMAN_TIERS_TESTS_PATH)
-
-test-foreman-tier4:
-	$(PYTEST) $(PYTEST_XDIST_OPTS) -m 'not stubbed and tier4' $(join $(FOREMAN_TESTS_PATH), longrun)
-
 test-foreman-sys:
 	$(PYTEST) $(PYTEST_OPTS) -m 'not stubbed and destructive' $(FOREMAN_TESTS_PATH)
 
@@ -185,13 +169,11 @@ vault-logout:
 	@scripts/vault_login.py --logout
 
 
-
 # Special Targets -------------------------------------------------------------
 
 .PHONY: help docs docs-clean test-docstrings test-robottelo \
         test-robottelo-coverage test-foreman-api test-foreman-cli \
-        test-foreman-rhai test-foreman-tier1 \
-        test-foreman-tier2 test-foreman-tier3 test-foreman-tier4 \
+		test-foreman-rhai \
         test-foreman-sys test-foreman-ui test-foreman-ui-xvfb \
         test-foreman-virtwho test-foreman-ui \
         test-foreman-endtoend graph-entities logs-join \

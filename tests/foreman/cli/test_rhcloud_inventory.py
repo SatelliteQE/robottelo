@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 import time
 
 import pytest
@@ -25,7 +25,6 @@ inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
 generate_report_jobs = 'ForemanInventoryUpload::Async::GenerateAllReportsJob'
 
 
-@pytest.mark.tier3
 @pytest.mark.e2e
 def test_positive_inventory_generate_upload_cli(
     rhcloud_manifest_org, rhcloud_registered_hosts, module_target_sat
@@ -97,7 +96,6 @@ def test_positive_inventory_generate_upload_cli(
 @pytest.mark.e2e
 @pytest.mark.pit_server
 @pytest.mark.pit_client
-@pytest.mark.tier3
 def test_positive_inventory_recommendation_sync(
     rhcloud_manifest_org,
     rhcloud_registered_hosts,
@@ -122,7 +120,7 @@ def test_positive_inventory_recommendation_sync(
     """
     org = rhcloud_manifest_org
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_insights:sync'
-    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
     result = module_target_sat.execute(cmd)
     wait_for(
         lambda: module_target_sat.api.ForemanTask()
@@ -141,7 +139,6 @@ def test_positive_inventory_recommendation_sync(
 @pytest.mark.e2e
 @pytest.mark.pit_server
 @pytest.mark.pit_client
-@pytest.mark.tier3
 def test_positive_sync_inventory_status(
     rhcloud_manifest_org,
     rhcloud_registered_hosts,
@@ -168,7 +165,7 @@ def test_positive_sync_inventory_status(
     org = rhcloud_manifest_org
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
     success_msg = f"Synchronized inventory for organization '{org.name}'"
-    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
     result = module_target_sat.execute(cmd)
     assert result.status == 0
     assert success_msg in result.stdout
@@ -190,7 +187,6 @@ def test_positive_sync_inventory_status(
     assert task_output[0].output['host_statuses']['disconnect'] == 0
 
 
-@pytest.mark.tier3
 def test_positive_sync_inventory_status_missing_host_ip(
     rhcloud_manifest_org,
     rhcloud_registered_hosts,
@@ -218,7 +214,7 @@ def test_positive_sync_inventory_status_missing_host_ip(
     org = rhcloud_manifest_org
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
     success_msg = f"Synchronized inventory for organization '{org.name}'"
-    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
     rhcloud_host = module_target_sat.cli.Host.info({'name': rhcloud_registered_hosts[0].hostname})[
         'id'
     ]
@@ -329,7 +325,6 @@ def test_rhcloud_external_links():
     """
 
 
-@pytest.mark.tier3
 def test_positive_generate_all_reports_job(target_sat):
     """Generate all reports job via foreman-rake console:
 
@@ -354,7 +349,7 @@ def test_positive_generate_all_reports_job(target_sat):
             time.sleep(30)  # sleep to allow time for console to open
             sh.send(f'ForemanTasks.async_task({generate_report_jobs})')
             time.sleep(3)  # sleep for the cmd execution
-        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
         wait_for(
             lambda: target_sat.api.ForemanTask()
             .search(query={'search': f'{generate_report_jobs} and started_at >= "{timestamp}"'})[0]
@@ -405,3 +400,24 @@ def test_positive_register_insights_client_host(module_target_sat, rhel_insights
     output = rhel_insights_vm.execute(f'insights-client --ansible-host={rhel_insights_vm.hostname}')
     assert output.status == 0
     assert 'Ansible hostname updated' in output.stdout
+
+
+def test_positive_check_report_autosync_setting(target_sat):
+    """Verify that the Insights report autosync setting is enabled by default.
+
+    :id: 137dffe6-50a4-4327-8e93-79e128bee63b
+
+    :steps:
+        1. Check the Insights report autosync setting.
+
+    :expectedresults:
+        1. The Insights setting "Synchronize recommendations Automatically" should have value "true"
+
+    :Verifies: SAT-30227
+    """
+    assert (
+        target_sat.cli.Settings.list({'search': 'Synchronize recommendations Automatically'})[0][
+            'value'
+        ]
+        == 'true'
+    ), 'Setting is not enabled by default!'

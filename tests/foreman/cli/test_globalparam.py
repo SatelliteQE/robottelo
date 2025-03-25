@@ -17,8 +17,6 @@ from functools import partial
 from fauxfactory import gen_string
 import pytest
 
-pytestmark = [pytest.mark.tier1]
-
 
 @pytest.mark.upgrade
 def test_positive_list_delete_by_name(module_target_sat):

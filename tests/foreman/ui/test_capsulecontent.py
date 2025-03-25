@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -87,7 +87,7 @@ def test_positive_content_counts_for_mixed_cv(
         3. Update counts task can be triggered from the UI.
         4. After LCE removal content counts are not listed anymore.
     """
-    repos_collection.setup_content(function_org.id, function_lce.id, upload_manifest=False)
+    repos_collection.setup_content(function_org.id, function_lce.id)
     cv_id = repos_collection.setup_content_data['content_view']['id']
     cv = target_sat.api.ContentView(id=cv_id).read()
     cvv = cv.version[-1].read()
@@ -327,7 +327,7 @@ def test_positive_content_counts_granular_update(
         session.capsule.refresh_lce_counts(
             module_capsule_configured.hostname, lce_name=lce1.name, cv_name=cv1.name
         )
-        timestamp = (datetime.utcnow() - timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M')
+        timestamp = (datetime.now(UTC) - timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M')
         task = module_target_sat.api.ForemanTask().search(
             query={
                 'search': f'label=Actions::Katello::CapsuleContent::UpdateContentCounts and started_at>="{timestamp}"'
@@ -349,7 +349,7 @@ def test_positive_content_counts_granular_update(
 
         # 6. Refresh counts for the second LCE, check entity IDs in the Update task.
         session.capsule.refresh_lce_counts(module_capsule_configured.hostname, lce_name=lce2.name)
-        timestamp = (datetime.utcnow() - timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M')
+        timestamp = (datetime.now(UTC) - timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M')
         task = module_target_sat.api.ForemanTask().search(
             query={
                 'search': f'label=Actions::Katello::CapsuleContent::UpdateContentCounts and started_at>="{timestamp}"'

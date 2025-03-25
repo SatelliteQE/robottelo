@@ -29,7 +29,6 @@ key_content = DataFile.VALID_GPG_KEY_FILE.read_text()
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_positive_create_with_name(module_org, name, module_target_sat):
     """Create a GPG key with valid name.
 
@@ -45,7 +44,6 @@ def test_positive_create_with_name(module_org, name, module_target_sat):
     assert name == gpg_key.name
 
 
-@pytest.mark.tier1
 def test_positive_create_with_content(module_org, module_target_sat):
     """Create a GPG key with valid name and valid gpg key text.
 
@@ -60,7 +58,6 @@ def test_positive_create_with_content(module_org, module_target_sat):
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-@pytest.mark.tier1
 def test_negative_create_name(module_org, name, module_target_sat):
     """Attempt to create GPG key with invalid names only.
 
@@ -78,7 +75,6 @@ def test_negative_create_name(module_org, name, module_target_sat):
     assert 'Validation failed:' in error.value.response.text
 
 
-@pytest.mark.tier1
 def test_negative_create_with_same_name(module_org, module_target_sat):
     """Attempt to create a GPG key providing a name of already existent
     entity
@@ -97,7 +93,6 @@ def test_negative_create_with_same_name(module_org, module_target_sat):
     assert 'Validation failed:' in error.value.response.text
 
 
-@pytest.mark.tier1
 def test_negative_create_with_content(module_org, module_target_sat):
     """Attempt to create GPG key with empty content.
 
@@ -114,7 +109,6 @@ def test_negative_create_with_content(module_org, module_target_sat):
 
 
 @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_positive_update_name(module_org, new_name, module_target_sat):
     """Update GPG key name to another valid name.
 
@@ -132,7 +126,6 @@ def test_positive_update_name(module_org, new_name, module_target_sat):
     assert new_name == gpg_key.name
 
 
-@pytest.mark.tier1
 def test_positive_update_content(module_org, module_target_sat):
     """Update GPG key content text to another valid one.
 
@@ -152,7 +145,6 @@ def test_positive_update_content(module_org, module_target_sat):
 
 
 @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-@pytest.mark.tier1
 def test_negative_update_name(module_org, new_name, module_target_sat):
     """Attempt to update GPG key name to invalid one
 
@@ -172,7 +164,6 @@ def test_negative_update_name(module_org, new_name, module_target_sat):
     assert 'Validation failed:' in error.value.response.text
 
 
-@pytest.mark.tier1
 def test_negative_update_same_name(module_org, module_target_sat):
     """Attempt to update GPG key name to the name of existing GPG key
     entity
@@ -193,7 +184,6 @@ def test_negative_update_same_name(module_org, module_target_sat):
     assert 'Validation failed:' in error.value.response.text
 
 
-@pytest.mark.tier1
 def test_negative_update_content(module_org, module_target_sat):
     """Attempt to update GPG key content to invalid one
 
@@ -212,7 +202,6 @@ def test_negative_update_content(module_org, module_target_sat):
     assert 'Validation failed:' in error.value.response.text
 
 
-@pytest.mark.tier1
 def test_positive_delete(module_org, module_target_sat):
     """Create a GPG key with different names and then delete it.
 
@@ -228,7 +217,6 @@ def test_positive_delete(module_org, module_target_sat):
         gpg_key.read()
 
 
-@pytest.mark.tier3
 def test_positive_block_delete_key_in_use(module_org, target_sat):
     """Create a GPG key with valid content. Create a new product and
         associated repository, assigning the GPG key to both. Attempt to delete the

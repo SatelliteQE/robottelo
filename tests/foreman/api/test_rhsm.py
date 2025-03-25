@@ -24,7 +24,6 @@ import pytest
 from robottelo.config import get_credentials, get_url
 
 
-@pytest.mark.tier1
 @pytest.mark.pit_server
 def test_positive_path():
     """Check whether the path exists.
