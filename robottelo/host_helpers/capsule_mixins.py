@@ -161,7 +161,6 @@ class CapsuleInfo:
         """Get paths of pulp artifact.
 
         :param str since: Creation time of artifact we are looking for.
-        :param str tz: Time zone for `since` param.
         :return: A list of artifacts paths.
         """
         query = f'find {PULP_ARTIFACT_DIR} -type f'
