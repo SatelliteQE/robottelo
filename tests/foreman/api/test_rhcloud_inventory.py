@@ -333,7 +333,7 @@ def test_rhcloud_scheduled_insights_sync(
 
 @pytest.mark.no_containers
 @pytest.mark.run_in_one_thread
-@pytest.mark.rhel_ver_match('[8,9]')
+@pytest.mark.rhel_ver_list('[8,9]')
 @pytest.mark.tier3
 def test_rhcloud_compliance_policies(
     inventory_settings,
