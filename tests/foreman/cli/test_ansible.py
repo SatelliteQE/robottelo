@@ -758,6 +758,7 @@ class TestAnsibleREX:
 
 
 @pytest.mark.upgrade
+@pytest.mark.parametrize('aap_version', ['2.3', '2.5'], scope='class')
 class TestAnsibleAAPIntegration:
     """Test class for Satellite integration with Ansible Automation Controller
 
@@ -771,10 +772,10 @@ class TestAnsibleAAPIntegration:
         username=settings.server.admin_username,
         password=settings.server.admin_password,
         creds_name=settings.AAP_INTEGRATION.satellite_credentials,
-        aap_version='aap25',
+        aap_version='2.5',
     ):
         # Find the Satellite credentials in AAP and update it for target_sat.hostname and user credentials
-        api_base = '/api/v2/' if aap_version == 'aap23' else '/api/controller/v2/'
+        api_base = '/api/v2/' if aap_version == '2.3' else '/api/controller/v2/'
         creds_list = aap_client.get(
             f'{api_base}credentials/', query_parameters=f'name={creds_name}'
         ).json()
@@ -791,14 +792,16 @@ class TestAnsibleAAPIntegration:
         assert response.ok
 
     @pytest.fixture(scope='class')
-    def aap_client(self):
-        client = awxkit.api.client.Connection(f'https://{settings.AAP_INTEGRATION.AAP_FQDN}/')
+    def aap_client(self, aap_version):
+        # Retrieve credentials based on AAP/AWX version
+        fqdn = settings.AAP_INTEGRATION.get('AAP23_FQDN' if aap_version == '2.3' else 'AAP25_FQDN')
+        client = awxkit.api.client.Connection(f'https://{fqdn}/')
         client.login(settings.AAP_INTEGRATION.USERNAME, settings.AAP_INTEGRATION.PASSWORD)
+
         yield client
         client.logout()
 
     @pytest.mark.parametrize('auth_type', ['admin', 'non-admin'])
-    @pytest.mark.parametrize('aap_version', ['2.3', '2.5'])
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_ansible_dynamic_inventory(
         self,
@@ -828,7 +831,7 @@ class TestAnsibleAAPIntegration:
         :verifies: SAT-28613, SAT-30761
         """
         inventory_name = settings.AAP_INTEGRATION.satellite_inventory
-        api_base = '/api/v2/' if aap_version == 'aap23' else '/api/controller/v2/'
+        api_base = '/api/v2/' if aap_version == '2.3' else '/api/controller/v2/'
 
         password = settings.server.admin_password
         if auth_type == 'admin':
@@ -904,7 +907,6 @@ class TestAnsibleAAPIntegration:
         assert rhel_contenthost.hostname in [host['name'] for host in hosts_list['results']]
 
     @pytest.mark.on_premises_provisioning
-    @pytest.mark.parametrize('aap_version', ['2.3', '2.5'])
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_ansible_provisioning_callback(
         self,
@@ -943,9 +945,9 @@ class TestAnsibleAAPIntegration:
         host_mac_addr = provisioning_host.provisioning_nic_mac_addr
         sat = module_provisioning_sat.sat
         aap_fqdn = settings.AAP_INTEGRATION.get(
-            'AAP25_FQDN' if aap_version == '2.5' else 'AAP23_FQDN'
+            'AAP23_FQDN' if aap_version == '2.3' else 'AAP25_FQDN'
         )
-        api_base = '/api/v2/' if aap_version == 'aap23' else '/api/controller/v2/'
+        api_base = '/api/v2/' if aap_version == '2.3' else '/api/controller/v2/'
         aap_api_url = f'https://{aap_fqdn}{api_base}'
         job_template = settings.AAP_INTEGRATION.callback_job_template
         config_key = settings.AAP_INTEGRATION.host_config_key
