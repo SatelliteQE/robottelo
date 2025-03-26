@@ -771,10 +771,12 @@ class TestAnsibleAAPIntegration:
         username=settings.server.admin_username,
         password=settings.server.admin_password,
         creds_name=settings.AAP_INTEGRATION.satellite_credentials,
+        aap_version='aap25',
     ):
         # Find the Satellite credentials in AAP and update it for target_sat.hostname and user credentials
+        api_base = '/api/v2/' if aap_version == 'aap23' else '/api/controller/v2/'
         creds_list = aap_client.get(
-            '/api/v2/credentials/', query_parameters=f'name={creds_name}'
+            f'{api_base}credentials/', query_parameters=f'name={creds_name}'
         ).json()
         new_creds = {
             'inputs': {
@@ -784,7 +786,7 @@ class TestAnsibleAAPIntegration:
             }
         }
         response = aap_client.patch(
-            f'/api/v2/credentials/{creds_list["results"][0]["id"]}/', json=new_creds
+            f'{api_base}credentials/{creds_list["results"][0]["id"]}/', json=new_creds
         )
         assert response.ok
 
@@ -796,6 +798,7 @@ class TestAnsibleAAPIntegration:
         client.logout()
 
     @pytest.mark.parametrize('auth_type', ['admin', 'non-admin'])
+    @pytest.mark.parametrize('aap_version', ['2.3', '2.5'])
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_ansible_dynamic_inventory(
         self,
@@ -807,6 +810,7 @@ class TestAnsibleAAPIntegration:
         aap_client,
         rhel_contenthost,
         auth_type,
+        aap_version,
     ):
         """Verify AAP is able to pull a dynamic inventory of hosts from Satellite,
         with admin and non-admin user.
@@ -820,8 +824,11 @@ class TestAnsibleAAPIntegration:
             4. Verify registered hosts are added to Satellite inventory
 
         :expectedresults: All hosts managed by Satellite are added to Satellite inventory.
+
+        :verifies: SAT-28613, SAT-30761
         """
         inventory_name = settings.AAP_INTEGRATION.satellite_inventory
+        api_base = '/api/v2/' if aap_version == 'aap23' else '/api/controller/v2/'
 
         password = settings.server.admin_password
         if auth_type == 'admin':
@@ -863,23 +870,20 @@ class TestAnsibleAAPIntegration:
         )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
 
-        if is_open('SAT-28613') and auth_type == 'non-admin':
-            host = rhel_contenthost.nailgun_host
-            host.location = module_location
-            host.update(['location'])
-
         # Find the Satellite credentials in AAP and update it for target_sat.hostname and user credentials
-        self.update_sat_credentials_in_aap(aap_client, target_sat, username=login)
+        self.update_sat_credentials_in_aap(
+            aap_client, target_sat, username=login, aap_version=aap_version
+        )
 
         # Find the Satellite inventory in AAP and update it for target_sat and user credentials
         inv_list = aap_client.get(
-            '/api/v2/inventories/', query_parameters=f'name={inventory_name}'
+            f'{api_base}inventories/', query_parameters=f'name={inventory_name}'
         ).json()
         inv_source_list = aap_client.get(
-            f'/api/v2/inventories/{inv_list["results"][0]["id"]}/inventory_sources/'
+            f'{api_base}inventories/{inv_list["results"][0]["id"]}/inventory_sources/'
         ).json()
         sync_response = aap_client.post(
-            f'/api/v2/inventory_sources/{inv_source_list["results"][0]["id"]}/update/'
+            f'{api_base}inventory_sources/{inv_source_list["results"][0]["id"]}/update/'
         )
         assert sync_response.ok
         wait_for(
@@ -887,7 +891,7 @@ class TestAnsibleAAPIntegration:
             in [
                 host['name']
                 for host in aap_client.get(
-                    f'/api/v2/inventories/{inv_list["results"][0]["id"]}/hosts/'
+                    f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/'
                 ).json()['results']
             ],
             timeout=180,
@@ -895,16 +899,18 @@ class TestAnsibleAAPIntegration:
         )
         # Find the hosts in Satellite inventory in AAP and verify if target_sat is listed in inventory
         hosts_list = aap_client.get(
-            f'/api/v2/inventories/{inv_list["results"][0]["id"]}/hosts/'
+            f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/'
         ).json()
         assert rhel_contenthost.hostname in [host['name'] for host in hosts_list['results']]
 
     @pytest.mark.on_premises_provisioning
+    @pytest.mark.parametrize('aap_version', ['2.3', '2.5'])
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_ansible_provisioning_callback(
         self,
         request,
         aap_client,
+        aap_version,
         module_provisioning_sat,
         module_sca_manifest_org,
         module_location,
@@ -931,29 +937,35 @@ class TestAnsibleAAPIntegration:
         :expectedresults:
             1. All hosts managed by Satellite are added to Satellite inventory.
             2. Starting ansible-callback systemd service, starts a job_template execution in AAP
+
+        :verifies: SAT-30761
         """
         host_mac_addr = provisioning_host.provisioning_nic_mac_addr
         sat = module_provisioning_sat.sat
-        aap_fqdn = settings.AAP_INTEGRATION.AAP_FQDN
+        aap_fqdn = settings.AAP_INTEGRATION.get(
+            'AAP25_FQDN' if aap_version == '2.5' else 'AAP23_FQDN'
+        )
+        api_base = '/api/v2/' if aap_version == 'aap23' else '/api/controller/v2/'
+        aap_api_url = f'https://{aap_fqdn}{api_base}'
         job_template = settings.AAP_INTEGRATION.callback_job_template
         config_key = settings.AAP_INTEGRATION.host_config_key
         inventory_name = settings.AAP_INTEGRATION.satellite_inventory
         extra_vars_dict = '{"package_install": "tmux"}'
 
         # Find the Satellite credentials in AAP and update it for sat.hostname and user credentials
-        self.update_sat_credentials_in_aap(aap_client, sat)
+        self.update_sat_credentials_in_aap(aap_client, sat, aap_version=aap_version)
 
         # Find the Satellite inventory in AAP and update it for provisioning_sat and user credentials
         inv_list = aap_client.get(
-            '/api/v2/inventories/', query_parameters=f'name={inventory_name}'
+            f'{api_base}inventories/', query_parameters=f'name={inventory_name}'
         ).json()
         inv_source_list = aap_client.get(
-            f'/api/v2/inventories/{inv_list["results"][0]["id"]}/inventory_sources/'
+            f'{api_base}inventories/{inv_list["results"][0]["id"]}/inventory_sources/'
         ).json()
 
         # Find the provisioning callback job template id, which is required for provisioning
         jt_list = aap_client.get(
-            '/api/v2/job_templates/', query_parameters=f"name={job_template}"
+            f'{api_base}job_templates/', query_parameters=f"name={job_template}"
         ).json()
         template_id = jt_list['results'][0]['id']
 
@@ -961,7 +973,7 @@ class TestAnsibleAAPIntegration:
         existing_params = provisioning_hostgroup.group_parameters_attributes
         provisioning_hostgroup.group_parameters_attributes = [
             {'name': 'ansible_tower_provisioning', 'value': 'true', 'parameter_type': 'boolean'},
-            {'name': 'ansible_tower_fqdn', 'value': aap_fqdn, 'parameter_type': 'string'},
+            {'name': 'ansible_tower_api_url', 'value': aap_api_url, 'parameter_type': 'string'},
             {'name': 'ansible_host_config_key', 'value': config_key, 'parameter_type': 'string'},
             {'name': 'ansible_job_template_id', 'value': template_id, 'parameter_type': 'integer'},
             {'name': 'ansible_extra_vars', 'value': extra_vars_dict, 'parameter_type': 'string'},
@@ -1021,7 +1033,7 @@ class TestAnsibleAAPIntegration:
 
         # Sync the AAP inventory to add a provisioning host
         sync_response = aap_client.post(
-            f'/api/v2/inventory_sources/{inv_source_list["results"][0]["id"]}/update/'
+            f'{api_base}inventory_sources/{inv_source_list["results"][0]["id"]}/update/'
         )
         assert sync_response.ok
 
@@ -1030,7 +1042,7 @@ class TestAnsibleAAPIntegration:
             in [
                 host['name']
                 for host in aap_client.get(
-                    f'/api/v2/inventories/{inv_list["results"][0]["id"]}/hosts/'
+                    f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/'
                 ).json()['results']
             ],
             timeout=180,
@@ -1038,7 +1050,7 @@ class TestAnsibleAAPIntegration:
         )
         # Find the hosts in AAP inventory and verify if provisioning host is listed in inventory
         hosts_list = aap_client.get(
-            f'/api/v2/inventories/{inv_list["results"][0]["id"]}/hosts/'
+            f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/'
         ).json()
         assert hostname in [host['name'] for host in hosts_list['results']]
 
