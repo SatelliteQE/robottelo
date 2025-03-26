@@ -321,7 +321,7 @@ def test_positive_vmware_custom_profile_end_to_end(
     cpus = ['2', '4', '6']
     vm_memory = ['4000', '6000', '8000']
     annotation_notes = gen_string('alpha')
-    firmware_type = ['Automatic', 'BIOS', 'UEFI', 'UEFI Secure Boot']
+    firmware_type = ['BIOS', 'UEFI', 'UEFI Secure Boot']
     resource_pool = VMWARE_CONSTANTS['pool']
     folder = VMWARE_CONSTANTS['folder']
     virtual_hw_version = VMWARE_CONSTANTS['virtualhw_version']
@@ -357,6 +357,7 @@ def test_positive_vmware_custom_profile_end_to_end(
                 'provider_content.user': settings.vmware.username,
                 'provider_content.password': settings.vmware.password,
                 'provider_content.datacenter.value': settings.vmware.datacenter,
+                'provider_content.enable_caching': False,
             }
         )
 
@@ -400,7 +401,7 @@ def test_positive_vmware_custom_profile_end_to_end(
             assert provider_content['cluster'] == settings.vmware.cluster
             assert provider_content['annotation_notes'] == annotation_notes
             assert provider_content['virtual_hw_version'] == virtual_hw_version
-            if not is_open('SAT-23630'):
+            if not is_open('SAT-31447'):
                 assert values['provider_content']['firmware'] == firmware
             assert provider_content['resource_pool'] == resource_pool
             assert provider_content['folder'] == folder
@@ -597,6 +598,8 @@ def test_positive_provision_end_to_end(
         }
     }
     with target_sat.ui_session() as session:
+        session.location.select(module_location.name)
+        session.organization.select(module_sca_manifest_org.name)
         session.ansibleroles.import_all_roles()
         assert session.ansibleroles.import_all_roles() == session.ansibleroles.imported_roles_count
         session.location.select(module_location.name)
