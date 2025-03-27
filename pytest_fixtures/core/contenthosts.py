@@ -205,6 +205,11 @@ def rhel_contenthost_with_repos(request, target_sat):
     """Install katello-host-tools-tracer, create custom
     repositories on the host"""
     with Broker(**host_conf(request), host_class=ContentHost) as host:
+        # add IPv6 proxy for IPv6 communication
+        if settings.server.is_ipv6:
+            host.enable_ipv6_dnf_and_rhsm_proxy()
+            host.enable_ipv6_system_proxy()
+
         # create a custom, rhel version-specific OS repo
         rhelver = host.os_version.major
         if rhelver > 7:
