@@ -371,18 +371,22 @@ def test_cv_lce_order(session, module_target_sat, function_sca_manifest_org, mod
 
     :CaseImportance: High
     """
-    lce1 = module_target_sat.api.LifecycleEnvironment(
-        organization=function_sca_manifest_org
-    ).create()
-    lce2 = module_target_sat.api.LifecycleEnvironment(
-        organization=function_sca_manifest_org, prior=lce1
-    ).create()
-    lce3 = module_target_sat.api.LifecycleEnvironment(
-        organization=function_sca_manifest_org, prior=lce2
-    ).create()
-    lce4 = module_target_sat.api.LifecycleEnvironment(
-        organization=function_sca_manifest_org, prior=lce3
-    ).create()
+	# Create 4 LCEs prior one to each other
+	lces_list = []
+	for i in range(4):
+	    if i == 0:
+	        lces_list.append(
+	            module_target_sat.api.LifecycleEnvironment(
+	                organization=function_sca_manifest_org
+	            ).create()
+	        )
+	    else:
+	        lces_list.append(
+	            module_target_sat.api.LifecycleEnvironment(
+	                organization=function_sca_manifest_org,
+	                prior=lces_list[i-1]
+	            ).create()        
+	        )
     cv = module_target_sat.api.ContentView(organization=function_sca_manifest_org).create()
     with module_target_sat.ui_session() as session:
         session.organization.select(org_name=function_sca_manifest_org.name)
@@ -391,10 +395,10 @@ def test_cv_lce_order(session, module_target_sat, function_sca_manifest_org, mod
             promote=True,
             multi_promote=True,
             lce={
-                f"{lce1.name}": True,
-                f"{lce2.name}": True,
-                f"{lce3.name}": True,
-                f"{lce4.name}": True,
+                f"{lces_list[0].name}": True,
+                f"{lces_list[1].name}": True,
+                f"{lces_list[2].name}": True,
+                f"{lces_list[3].name}": True,
             },
         )
         # Stripping results string of the timestamp from the chips
@@ -403,4 +407,4 @@ def test_cv_lce_order(session, module_target_sat, function_sca_manifest_org, mod
             .replace('less than a minute ago', '')
             .replace('1 minute ago', '')
         )
-        assert formatted_lces == f"Library  {lce1.name}  {lce2.name}  {lce3.name}  {lce4.name} "
+        assert formatted_lces == f"Library  {'  '.join([lce.name for lce in lces_list])}"

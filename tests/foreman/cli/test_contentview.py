@@ -3359,40 +3359,31 @@ class TestContentView:
 
         :CaseImportance: High
         """
-        # Create 4 LCEs
-        lce1 = target_sat.cli_factory.make_lifecycle_environment(
-            {'organization-id': function_org.id}
-        )
-        lce2 = target_sat.cli_factory.make_lifecycle_environment(
-            {'organization-id': function_org.id, 'prior': lce1['name']}
-        )
-        lce3 = target_sat.cli_factory.make_lifecycle_environment(
-            {'organization-id': function_org.id, 'prior': lce2['name']}
-        )
-        lce4 = target_sat.cli_factory.make_lifecycle_environment(
-            {'organization-id': function_org.id, 'prior': lce3['name']}
-        )
+	# Create 4 LCEs prior one to each other
+	lces_list = []
+	for i in range(4):
+	    if i == 0:
+	        lces_list.append(
+	            target_sat.cli_factory.make_lifecycle_environment(
+	                {'organization-id': function_org.id}
+	            )
+	        )
+	    else:
+	        lces_list.append(
+	            target_sat.cli_factory.make_lifecycle_environment(
+	                {'organization-id': function_org.id, 'prior': lces_list[i-1].name}
+	            )
+	        )
         cv = target_sat.cli_factory.make_content_view({'organization-id': function_org.id})
         target_sat.cli.ContentView.publish({'id': cv['id']})
         cv_version = target_sat.cli.ContentView.info({'id': cv['id']})['versions'][0]
         # Promote the CV to all the LCEs, in order
-        target_sat.cli.ContentView.version_promote(
-            {'id': cv_version['id'], 'to-lifecycle-environment-id': lce1['id']}
-        )
-        target_sat.cli.ContentView.version_promote(
-            {'id': cv_version['id'], 'to-lifecycle-environment-id': lce2['id']}
-        )
-        target_sat.cli.ContentView.version_promote(
-            {'id': cv_version['id'], 'to-lifecycle-environment-id': lce3['id']}
-        )
-        target_sat.cli.ContentView.version_promote(
-            {'id': cv_version['id'], 'to-lifecycle-environment-id': lce4['id']}
-        )
+	for lce in lces_list:
+	    target_sat.cli.ContentView.version_promote(
+	        {'id': cv_version['id'], 'to-lifecycle-environment-id': lce['id']}
+	    )
         cvv = target_sat.cli.ContentView.version_list({'content-view-id': cv['id']})[0]
-        assert (
-            cvv['lifecycle-environments']
-            == f"Library, {lce1['name']}, {lce2['name']}, {lce3['name']}, {lce4['name']}"
-        )
+	assert cvv['lifecycle-environments'] == f"Library, {', '.join([lce['name'] for lce in lces_list])}"
 
 
 class TestContentViewFileRepo:
