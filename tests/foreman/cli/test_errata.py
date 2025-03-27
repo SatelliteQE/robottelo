@@ -1537,7 +1537,7 @@ def test_downgrade_applicable_package_using_default_content_view(errata_host, ta
 
 
 @pytest.mark.tier2
-def test_install_applicable_package_to_registerd_host(errata_host, target_sat):
+def test_install_applicable_package_to_registered_host(errata_host, target_sat):
     """Installing an older package to an already registered host should show the newer package
     and errata as applicable and installable.
 

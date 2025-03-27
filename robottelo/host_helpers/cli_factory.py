@@ -632,8 +632,13 @@ class CLIFactory:
             ) from err
         # Get the version id
         cv_info = self._satellite.cli.ContentView.info({'id': cv_id})
-        lce_promoted = cv_info['lifecycle-environments']
+        assert len(cv_info['versions']) > 0
+        cv_info['versions'].sort(key=lambda version: version['id'])
         cvv = cv_info['versions'][-1]
+        # get environments this version is promoted to
+        lce_promoted = self._satellite.cli.ContentView.version_info(
+            {'id': cvv['id'], 'content-view-id': cv_info['id']}
+        )['lifecycle-environments']
         # Promote version to next env
         try:
             if env_id not in [int(lce['id']) for lce in lce_promoted]:
