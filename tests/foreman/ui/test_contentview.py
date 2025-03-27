@@ -371,22 +371,21 @@ def test_cv_lce_order(session, module_target_sat, function_sca_manifest_org, mod
 
     :CaseImportance: High
     """
-	# Create 4 LCEs prior one to each other
-	lces_list = []
-	for i in range(4):
-	    if i == 0:
-	        lces_list.append(
-	            module_target_sat.api.LifecycleEnvironment(
-	                organization=function_sca_manifest_org
-	            ).create()
-	        )
-	    else:
-	        lces_list.append(
-	            module_target_sat.api.LifecycleEnvironment(
-	                organization=function_sca_manifest_org,
-	                prior=lces_list[i-1]
-	            ).create()        
-	        )
+    # Create 4 LCEs prior one to each other
+    lces_list = []
+    for i in range(4):
+        if i == 0:
+            lces_list.append(
+                module_target_sat.api.LifecycleEnvironment(
+                    organization=function_sca_manifest_org
+                ).create()
+            )
+        else:
+            lces_list.append(
+                module_target_sat.api.LifecycleEnvironment(
+                    organization=function_sca_manifest_org, prior=lces_list[i - 1]
+                ).create()
+            )
     cv = module_target_sat.api.ContentView(organization=function_sca_manifest_org).create()
     with module_target_sat.ui_session() as session:
         session.organization.select(org_name=function_sca_manifest_org.name)
@@ -407,4 +406,4 @@ def test_cv_lce_order(session, module_target_sat, function_sca_manifest_org, mod
             .replace('less than a minute ago', '')
             .replace('1 minute ago', '')
         )
-        assert formatted_lces == f"Library  {'  '.join([lce.name for lce in lces_list])}"
+        assert formatted_lces == f"Library  {'  '.join([lce.name for lce in lces_list])} "
