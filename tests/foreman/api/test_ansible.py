@@ -301,10 +301,7 @@ class TestAnsibleCfgMgmt:
         host.organization = module_org
         host.location = module_location
         host.update(['organization', 'location'])
-        request.addfinalizer(
-            user.delete
-        )  # Adding a temporary workaround until the issue 'SAT-18656' is resolved.
-
+        request.addfinalizer(user.delete())
         # gather ansible facts by running ansible roles on the host
         host.play_ansible_roles()
         if is_open('SAT-18656'):
