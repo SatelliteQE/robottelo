@@ -85,7 +85,7 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
+@pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.parametrize(
     'setup_http_proxy',
     [True, False],
