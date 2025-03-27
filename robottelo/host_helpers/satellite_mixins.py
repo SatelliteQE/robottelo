@@ -297,7 +297,8 @@ class SystemInfo:
             pre_ncat_procs = self.execute('pgrep ncat').stdout.splitlines()
             with self.session.shell() as channel:
                 # if ncat isn't backgrounded, it prevents the channel from closing
-                command = f'ncat -kl -p {newport} -c "ncat {self.hostname} {oldport}" &'
+                nwtype = '6' if self.ipv6 else ''
+                command = f'ncat -{nwtype}kl -p {newport} -c "ncat {self.hostname} {oldport}" &'
                 logger.debug(f'Creating tunnel: {command}')
                 channel.send(command)
 
