@@ -860,14 +860,18 @@ def test_positive_apply_for_all_hosts(
         hosts.
     """
     num_hosts = 4
-    distro = 'rhel10'
+    major_ver = [
+        ver for ver in settings.supportability.content_hosts.rhel.versions if isinstance(ver, int)
+    ][-1]
+    rhel_distro = 'rhel' + str(major_ver)
     # one custom repo on satellite, for all hosts to use
     custom_repo = target_sat.api.Repository(url=CUSTOM_REPO_URL, product=module_product).create()
     custom_repo.sync()
     module_cv.repository = [custom_repo]
     module_cv.update(['repository'])
+    # Checkout hosts of the newest distro supported
     with Broker(
-        nick=distro,
+        nick=rhel_distro,
         workflow='deploy-template',
         host_class=ContentHost,
         _count=num_hosts,
@@ -897,7 +901,9 @@ def test_positive_apply_for_all_hosts(
             assert client.applicable_package_count > 0
 
         with session:
-            timestamp = datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=1)
+            timestamp = datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=10).strftime(
+                '%Y-%m-%d %H:%M:%S'
+            )
             session.location.select(loc_name=DEFAULT_LOC)
             # for first errata, apply to all chosts at once,
             # from ContentTypes > Errata > info > ContentHosts tab
@@ -927,9 +933,7 @@ def test_positive_apply_for_all_hosts(
             assert len(install_tasks) == num_hosts
             # find single bulk applicability task for hosts
             applicability_task = target_sat.wait_for_tasks(
-                search_query=(
-                    f'Bulk generate applicability for hosts and started_at >= {timestamp}'
-                ),
+                search_query=(f'Bulk generate applicability for hosts and ended_at >= {timestamp}'),
                 search_rate=2,
                 max_tries=60,
             )
