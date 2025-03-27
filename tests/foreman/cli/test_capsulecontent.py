@@ -334,7 +334,6 @@ def test_positive_exported_imported_content_sync(
         'Actions::Katello::Repository::MetadataGenerate',
         'Actions::Katello::CapsuleContent::Sync',
         'Actions::Katello::ContentView::CapsuleSync',
-        'Actions::Katello::CapsuleContent::UpdateContentCounts',
     ]
     pending_tasks = target_sat.api.ForemanTask().search(
         query={'search': f'organization_id={org.id} and result=pending'}
