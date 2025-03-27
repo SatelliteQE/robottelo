@@ -24,8 +24,10 @@ from robottelo.utils import ohsnap
 @pytest.mark.parametrize(
     'upgrade_path',
     [
-        # {'source_version': RHEL7_VER, 'target_version': RHEL8_VER},
-        {'source_version': RHEL8_VER, 'target_version': RHEL9_VER},
+        {
+            'source_version': settings.leapp.source_rhel,
+            'target_version': settings.leapp.target_rhel,
+        },
     ],
     ids=lambda upgrade_path: f'{upgrade_path["source_version"]}'
     f'_to_{upgrade_path["target_version"]}',
@@ -57,6 +59,7 @@ def test_positive_leapp_upgrade_rhel(
     :expectedresults:
         1. Update RHEL OS major version to another major version
     """
+
     login = settings.server.admin_username
     password = settings.server.admin_password
     org = module_sca_manifest_org
