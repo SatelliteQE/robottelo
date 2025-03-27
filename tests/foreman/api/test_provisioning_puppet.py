@@ -18,6 +18,8 @@ import pytest
 import requests
 from wait_for import wait_for
 
+from robottelo.utils.issue_handlers import is_open
+
 
 @pytest.mark.e2e
 def test_positive_puppet_bootstrap(
@@ -132,6 +134,9 @@ def test_host_provisioning_with_external_puppetserver(
 
     :customerscenario: true
     """
+    if is_open('SAT-30237') and module_provisioning_rhel_content.os.major == '10':
+        pytest.skip('Skipping as puppet-agent packages are missing from EL10 client repo')
+
     puppet_env = 'production'
     host_mac_addr = provisioning_host.provisioning_nic_mac_addr
     sat = module_provisioning_sat.sat
