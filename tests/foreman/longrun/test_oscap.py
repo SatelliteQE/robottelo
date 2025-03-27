@@ -223,6 +223,10 @@ def prepare_scap_client_and_prerequisites(
         }
     )
 
+    # Adding IPv6 proxy for IPv6 communication
+    contenthost.enable_ipv6_dnf_and_rhsm_proxy()
+    contenthost.enable_ipv6_system_proxy()
+
     # Register a host
     result = contenthost.register(
         module_org,
