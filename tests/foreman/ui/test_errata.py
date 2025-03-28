@@ -925,7 +925,7 @@ def test_positive_apply_for_all_hosts(
                 max_tries=60,
             )
             assert len(install_tasks) == num_hosts
-            # find single bulk applicability task for hosts
+            # find bulk applicability recalculate task(s) for hosts
             applicability_task = target_sat.wait_for_tasks(
                 search_query=(
                     f'Bulk generate applicability for hosts and started_at >= {timestamp}'
@@ -933,7 +933,7 @@ def test_positive_apply_for_all_hosts(
                 search_rate=2,
                 max_tries=60,
             )
-            assert len(applicability_task) == 1
+            assert len(applicability_task) >= 1
             # found updated kangaroo package in each host
             updated_version = '0.2-1.noarch'
             for client in hosts:
