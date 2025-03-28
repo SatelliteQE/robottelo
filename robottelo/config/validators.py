@@ -336,10 +336,7 @@ VALIDATORS = dict(
         Validator('shared_function.redis_password', default=None),
     ],
     upgrade=[
-        Validator('upgrade.rhev_cap_host', must_exist=False)
-        | Validator('upgrade.capsule_hostname', must_exist=False),
-        Validator('upgrade.rhev_capsule_ak', must_exist=False)
-        | Validator('upgrade.capsule_ak', must_exist=False),
+        Validator('upgrade.capsule_ak', must_exist=True),
     ],
     vmware=[
         Validator(
