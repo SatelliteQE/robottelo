@@ -597,6 +597,8 @@ def test_positive_provision_end_to_end(
         }
     }
     with target_sat.ui_session() as session:
+        session.location.select(module_location.name)
+        session.organization.select(module_sca_manifest_org.name)
         session.ansibleroles.import_all_roles()
         assert session.ansibleroles.import_all_roles() == session.ansibleroles.imported_roles_count
         session.location.select(module_location.name)
