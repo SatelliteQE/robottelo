@@ -35,10 +35,19 @@ VALIDATORS = dict(
         Validator('server.ssh_username', default='root'),
         Validator('server.ssh_password', default=None),
         Validator('server.verify_ca', default=False),
+        Validator('server.network_type', default='ipv4', is_in=['ipv4', 'ipv6', 'dualstack']),
         Validator('server.is_ipv6', is_type_of=bool, default=False),
     ],
     content_host=[
         Validator('content_host.default_rhel_version', must_exist=True),
+        Validator('content_host.attributes', must_exist=True, is_type_of=dict),
+        # TODO(ogajduse): is_in from the enum, need to solve circular imports
+        Validator(
+            'content_host.attributes.network_type',
+            must_exist=True,
+            is_in=['ipv4', 'ipv6', 'dualstack'],
+            default='dualstack',
+        ),
     ],
     subscription=[
         Validator('subscription.rhn_username', must_exist=True),
