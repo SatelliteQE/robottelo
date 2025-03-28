@@ -351,3 +351,59 @@ def test_cv_publish_warning(session, target_sat, function_sca_manifest_org, modu
         assert not session.contentview_new.check_publish_banner(cv.name)
         cv.publish()
         assert session.contentview_new.check_publish_banner(cv.name)
+
+
+def test_cv_lce_order(session, module_target_sat, function_sca_manifest_org, module_lce):
+    """Verify that LCEs are displayed in Path order in the UI
+
+    :id: f6a7df48-d4ca-405f-8b31-bda4865e3329
+
+    :steps:
+        1. Create multiple LCEs in a specific path order.
+        2. Create and promote a CV to all the LCEs.
+        3. Check the UI for that CV Version.
+
+    :expectedresults: The LCEs are displayed in path order.
+
+    :Verifies: SAT-28538
+
+    :customerscenario: true
+
+    :CaseImportance: High
+    """
+    # Create 4 LCEs prior one to each other
+    lces_list = []
+    for i in range(4):
+        if i == 0:
+            lces_list.append(
+                module_target_sat.api.LifecycleEnvironment(
+                    organization=function_sca_manifest_org
+                ).create()
+            )
+        else:
+            lces_list.append(
+                module_target_sat.api.LifecycleEnvironment(
+                    organization=function_sca_manifest_org, prior=lces_list[i - 1]
+                ).create()
+            )
+    cv = module_target_sat.api.ContentView(organization=function_sca_manifest_org).create()
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=function_sca_manifest_org.name)
+        results = session.contentview_new.publish(
+            entity_name=cv.name,
+            promote=True,
+            multi_promote=True,
+            lce={
+                f"{lces_list[0].name}": True,
+                f"{lces_list[1].name}": True,
+                f"{lces_list[2].name}": True,
+                f"{lces_list[3].name}": True,
+            },
+        )
+        # Stripping results string of the timestamp from the chips
+        formatted_lces = (
+            results[0]['Environments']
+            .replace('less than a minute ago', '')
+            .replace('1 minute ago', '')
+        )
+        assert formatted_lces == f"Library  {'  '.join([lce.name for lce in lces_list])} "
