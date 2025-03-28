@@ -2472,18 +2472,15 @@ class SSOHost(Host):
         kwargs['ipv6'] = kwargs.get('ipv6', settings.server.is_ipv6)
         super().__init__(**kwargs)
 
+    def exec_kcadm(self, command):
+        return self.execute(
+            f'{self.kcadm} {command} --server {self.uri}/auth --realm {self.realm} --user {self.user} --password {self.password}'
+        )
+
     def get_sso_client_id(self):
         """getter method for fetching the client id and can be used other functions"""
         client_name = f'{self.satellite.hostname}-foreman-openidc'
-        self.execute(
-            f'{self.kcadm} config credentials '
-            f'--server {self.uri}/auth '
-            f'--realm {self.realm} '
-            f'--user {self.user} '
-            f'--password {self.password}'
-        )
-
-        result = self.execute(f'{self.kcadm} get clients --fields id,clientId')
+        result = self.exec_kcadm("get clients --fields id,clientId")
         result_json = json.loads(result.stdout)
         client_id = None
         for client in result_json:
@@ -2495,14 +2492,14 @@ class SSOHost(Host):
     @lru_cache
     def get_sso_user_details(self, username):
         """Getter method to receive the user id"""
-        result = self.execute(f"{self.kcadm} get users -r {self.realm} -q username={username}")
+        result = self.exec_kcadm(f"get users -r {self.realm} -q username={username}")
         result_json = json.loads(result.stdout)
         return result_json[0]
 
     @lru_cache
     def get_sso_groups_details(self, group_name):
         """Getter method to receive the group id"""
-        result = self.execute(f"{self.kcadm} get groups -r {self.realm}")
+        result = self.exec_kcadm(f"get groups -r {self.realm}")
         group_list = json.loads(result.stdout)
         query_group = [group for group in group_list if group['name'] == group_name]
         return query_group[0]
@@ -2523,9 +2520,8 @@ class SSOHost(Host):
     def create_mapper(self, json_content, client_id):
         """Helper method to create the RH-SSO Client Mapper"""
         self.upload_sso_entity(json_content, "mapper_file")
-        self.execute(
-            f'{self.kcadm} create clients/{client_id}/protocol-mappers/models -r '
-            f'{self.realm} -f {"mapper_file"}'
+        self.exec_kcadm(
+            f"create clients/{client_id}/protocol-mappers/models -r {self.realm} -f {'mapper_file'}"
         )
 
     def create_new_sso_user(self, username=None):
@@ -2539,11 +2535,10 @@ class SSOHost(Host):
         update_data_pass.value = self.password
         self.upload_sso_entity(update_data_user, "create_user")
         self.upload_sso_entity(update_data_pass, "reset_password")
-        self.execute(f"{self.kcadm} create users -r {self.realm} -f create_user")
+        self.exec_kcadm(f"create users -r {self.realm} -f create_user")
         user_details = self.get_sso_user_details(update_data_user.username)
-        self.execute(
-            f'{self.kcadm} update -r {self.realm} '
-            f'users/{user_details["id"]}/reset-password -f {"reset_password"}'
+        self.exec_kcadm(
+            f"update -r {self.realm} users/{user_details['id']}/reset-password -f {'reset_password'}"
         )
         return update_data_user
 
@@ -2557,12 +2552,12 @@ class SSOHost(Host):
             update_data_user['groupId'] = f"{group_details['id']}"
             self.upload_sso_entity(update_data_user, "update_user")
             group_path = f"users/{user_details['id']}/groups/{group_details['id']}"
-            self.execute(f"{self.kcadm} update -r {self.realm} {group_path} -f update_user")
+            self.exec_kcadm(f"update -r {self.realm} {group_path} -f update_user")
 
     def delete_sso_user(self, username):
         """Delete the RHSSO user"""
         user_details = self.get_sso_user_details(username)
-        self.execute(f"{self.kcadm} delete -r {self.realm} users/{user_details['id']}")
+        self.exec_kcadm(f"delete -r {self.realm} users/{user_details['id']}")
 
     def create_group(self, group_name=None):
         """Create the RHSSO group"""
@@ -2571,23 +2566,23 @@ class SSOHost(Host):
             group_name = gen_string('alphanumeric')
         update_user_group.name = group_name
         self.upload_sso_entity(update_user_group, "create_group")
-        result = self.execute(f"{self.kcadm} create groups -r {self.realm} -f create_group")
+        result = self.exec_kcadm(f"create groups -r {self.realm} -f create_group")
         return result.stdout
 
     def delete_sso_group(self, group_name):
         """Delete the RHSSO group"""
         group_details = self.get_sso_groups_details(group_name)
-        self.execute(f"{self.kcadm} delete -r {self.realm} groups/{group_details['id']}")
+        self.exec_kcadm(f"delete -r {self.realm} groups/{group_details['id']}")
 
     def update_client_configuration(self, json_content):
         """Update the client configuration"""
         client_id = self.get_sso_client_id()
         self.upload_sso_entity(json_content, "update_client_info")
         update_cmd = (
-            f"{self.kcadm} update clients/{client_id} "  # EOL space important
+            f"update clients/{client_id} "  # EOL space important
             "-f update_client_info -s enabled=true --merge"
         )
-        assert self.execute(update_cmd).status == 0
+        assert self.exec_kcadm(update_cmd).status == 0
 
     @cached_property
     def oidc_token_endpoint(self):
@@ -2637,7 +2632,7 @@ class RHBKHost(SSOHost):
         self.realm = settings.rhbk.realm
         self.user = settings.rhbk.rhbk_user
         self.password = settings.rhbk.rhbk_password
-        self.kcadm = RHBK_CLI
+        self.kcadm = f"{RHBK_CLI}"
         kwargs['hostname'] = kwargs.get('hostname', settings.rhbk.host_name)
         super().__init__(sat_obj, **kwargs)
 
@@ -2653,7 +2648,7 @@ class RHSSOHost(SSOHost):
         self.realm = settings.rhsso.realm
         self.user = settings.rhsso.rhsso_user
         self.password = settings.rhsso.rhsso_password
-        self.kcadm = KEY_CLOAK_CLI
+        self.kcadm = f"{KEY_CLOAK_CLI}"
         kwargs['hostname'] = kwargs.get('hostname', settings.rhsso.host_name)
         super().__init__(sat_obj, **kwargs)
 
