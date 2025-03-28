@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import time
 
 from box import Box
@@ -92,7 +92,7 @@ class CapsuleInfo:
         sync_status = self.nailgun_capsule.content_get_sync(timeout=timeout, synchronous=True)
         # Current UTC time for start_time, if not provided
         if start_time is None:
-            start_time = datetime.utcnow().replace(microsecond=0)
+            start_time = datetime.now(UTC).replace(microsecond=0)
         # 1s margin of safety for rounding
         start_time = (
             (start_time - timedelta(seconds=1))
@@ -157,16 +157,15 @@ class CapsuleInfo:
             return f'{self.url}/pulp/content/{org}/{lce}/{cv}/custom/{prod}/{repo}/'
         return f'{self.url}/pulp/content/{org}/Library/custom/{prod}/{repo}/'
 
-    def get_artifacts(self, since=None, tz='UTC'):
+    def get_artifacts(self, since=None):
         """Get paths of pulp artifact.
 
         :param str since: Creation time of artifact we are looking for.
-        :param str tz: Time zone for `since` param.
         :return: A list of artifacts paths.
         """
         query = f'find {PULP_ARTIFACT_DIR} -type f'
         if since:
-            query = f'{query} -newermt "{since} {tz}"'
+            query = f'{query} -newermt "{since}"'
         return self.execute(query).stdout.splitlines()
 
     def get_artifact_info(self, checksum=None, path=None):

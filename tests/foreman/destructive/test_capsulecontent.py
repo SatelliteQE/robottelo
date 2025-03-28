@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from box import Box
 from fauxfactory import gen_alpha
@@ -108,7 +108,7 @@ def test_positive_sync_without_deadlock(
     )
     # timestamp: to check capsule task(s) began, exclude priors
     # within 120 seconds of end of repo_sync
-    timestamp = datetime.utcnow().replace(microsecond=0) - timedelta(seconds=120)
+    timestamp = datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=120)
     repo_to_capsule_task = target_sat.wait_for_tasks(
         search_query=(
             f'label=Actions::Katello::Repository::CapsuleSync and started_at >= {timestamp}'

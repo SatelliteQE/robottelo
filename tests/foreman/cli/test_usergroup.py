@@ -215,7 +215,7 @@ def test_negative_automate_bz1437578(ldap_auth_source, function_user_group, modu
 
     :BZ: 1437578
     """
-    with pytest.raises(CLIReturnCodeError):
+    with pytest.raises(CLIReturnCodeError):  # noqa: PT012
         result = module_target_sat.cli.UserGroupExternal.create(
             {
                 'auth-source-id': ldap_auth_source[1].id,
@@ -223,10 +223,10 @@ def test_negative_automate_bz1437578(ldap_auth_source, function_user_group, modu
                 'name': 'Domain Users',
             }
         )
-    assert (
-        result == 'Could not create external user group: '
-        'Name is not found in the authentication source'
-        'Name Domain Users is a special group in AD.'
-        ' Unfortunately, we cannot obtain membership information'
-        ' from a LDAP search and therefore sync it.'
-    )
+        assert (
+            result == 'Could not create external user group: '
+            'Name is not found in the authentication source'
+            'Name Domain Users is a special group in AD.'
+            ' Unfortunately, we cannot obtain membership information'
+            ' from a LDAP search and therefore sync it.'
+        )

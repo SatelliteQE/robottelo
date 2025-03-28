@@ -2071,7 +2071,7 @@ def test_all_hosts_bulk_build_management(target_sat, function_org, function_loca
 
 
 def test_bootc_booted_container_images(target_sat, bootc_host, function_ak_with_cv, function_org):
-    """Create a bootc host, and read it's information via the Booted Container Images UI
+    """Create a bootc host, and read its information via the Booted Container Images UI
 
     :id: c15f02a2-05e0-447a-bbcc-aace08d40d1a
 
@@ -2100,6 +2100,120 @@ def test_bootc_booted_container_images(target_sat, bootc_host, function_ak_with_
             == bootc_dummy_info['bootc.booted.digest']
         )
         assert booted_container_image_info[1]['Hosts'] == '1'
+
+
+def test_bootc_host_details(target_sat, bootc_host, function_ak_with_cv, function_org):
+    """Create a bootc host, and read it's information via the Host Details UI
+
+    :id: 842356e9-8798-421d-aca6-0a1774c3f22b
+
+    :expectedresults: Host Details UI contains the proper information for a bootc host
+
+    :CaseComponent:Hosts-Content
+
+    :Verifies:SAT-27171
+
+    :Team: Phoenix-subscriptions
+    """
+    bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
+    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
+    assert bootc_host.subscribed
+
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        values = session.host_new.get_details(bootc_host.hostname, widget_names='details.bootc')
+        assert (
+            values['details']['bootc']['details']['running_image']
+            == bootc_dummy_info['bootc.booted.image']
+        )
+        assert (
+            values['details']['bootc']['details']['running_image_digest']
+            == bootc_dummy_info['bootc.booted.digest']
+        )
+        assert (
+            values['details']['bootc']['details']['rollback_image']
+            == bootc_dummy_info['bootc.rollback.image']
+        )
+        assert (
+            values['details']['bootc']['details']['rollback_image_digest']
+            == bootc_dummy_info['bootc.rollback.digest']
+        )
+
+
+def test_bootc_rex_job(target_sat, bootc_host, function_ak_with_cv, function_org):
+    """Run all bootc rex job (switch, upgrade, rollback, status) through Host Details UI
+
+    :id: ef92a5f7-8cc7-4849-822c-90ea68b10554
+
+    :expectedresults: Host Details UI links to the proper template, which runs successfully for all templates
+
+    :CaseComponent: Hosts-Content
+
+    :Verifies:SAT-27154, SAT-27158
+
+    :Team: Phoenix-subscriptions
+    """
+    BOOTC_SWITCH_TARGET = "images.paas.redhat.com/bootc/rhel-bootc:latest-10.0"
+    BOOTC_BASE_IMAGE = "localhost/tpl-bootc-rhel-10.0:latest"
+    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
+    assert bootc_host.subscribed
+
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        # bootc status
+        session.host_new.run_bootc_job(bootc_host.hostname, 'status')
+        task_result = target_sat.wait_for_tasks(
+            search_query=(f'Remote action: Run Bootc status on {bootc_host.hostname}'),
+            search_rate=2,
+            max_tries=30,
+        )
+        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
+        assert task_status['result'] == 'success'
+        assert f'image: {BOOTC_BASE_IMAGE}' in task_status['humanized']['output']
+        assert 'Successfully updated the system facts.' in task_status['humanized']['output']
+        # bootc switch
+        session.host_new.run_bootc_job(
+            bootc_host.hostname, 'switch', job_options=BOOTC_SWITCH_TARGET
+        )
+        task_result = target_sat.wait_for_tasks(
+            search_query=(f'Remote action: Run Bootc switch on {bootc_host.hostname}'),
+            search_rate=2,
+            max_tries=30,
+        )
+        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
+        assert task_status['result'] == 'success'
+        assert 'Successfully updated the system facts.' in task_status['humanized']['output']
+        assert f'Queued for next boot: {BOOTC_SWITCH_TARGET}' in task_status['humanized']['output']
+        # bootc upgrade
+        session.host_new.run_bootc_job(bootc_host.hostname, 'upgrade')
+        task_result = target_sat.wait_for_tasks(
+            search_query=(f'Remote action: Run Bootc upgrade on {bootc_host.hostname}'),
+            search_rate=2,
+            max_tries=30,
+        )
+        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
+        assert task_status['result'] == 'success'
+        assert 'Successfully updated the system facts.' in task_status['humanized']['output']
+        assert f'No changes in {BOOTC_SWITCH_TARGET}' in task_status['humanized']['output']
+        # reboot the host, to ensure there is a rollback image
+        bootc_host.execute('reboot')
+        bootc_host.wait_for_connection()
+        # bootc rollback
+        session.host_new.run_bootc_job(bootc_host.hostname, 'rollback')
+        task_result = target_sat.wait_for_tasks(
+            search_query=(f'Remote action: Run Bootc rollback on {bootc_host.hostname}'),
+            search_rate=2,
+            max_tries=30,
+        )
+        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
+        assert task_status['result'] == 'success'
+        assert 'Next boot: rollback deployment' in task_status['humanized']['output']
+        assert 'Successfully updated the system facts.' in task_status['humanized']['output']
+        # Check that the display in host details matches the task output
+        values = session.host_new.get_details(bootc_host.hostname, widget_names='details.bootc')
+        assert values
+        assert values['details']['bootc']['details']['running_image'] == BOOTC_SWITCH_TARGET
+        assert values['details']['bootc']['details']['rollback_image'] == BOOTC_BASE_IMAGE
 
 
 @pytest.fixture(scope='module')

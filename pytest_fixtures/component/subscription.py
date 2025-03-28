@@ -4,9 +4,9 @@ from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 
 
 @pytest.fixture(scope='module')
-def default_subscription(module_target_sat, module_org_with_manifest):
+def default_subscription(module_target_sat, module_sca_manifest_org):
     subscription = module_target_sat.api.Subscription(
-        organization=module_org_with_manifest.id
+        organization=module_sca_manifest_org.id
     ).search(query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'})
     assert len(subscription)
     return subscription[0]

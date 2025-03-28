@@ -98,10 +98,7 @@ class TestCapsuleSync:
             2. Activation key's environment id should be available in the content views environment
                 id's list
         """
-        ak_name = (
-            settings.upgrade.capsule_ak[settings.upgrade.os]
-            or settings.upgrade.custom_capsule_ak[settings.upgrade.os]
-        )
+        ak_name = settings.upgrade.capsule_ak[settings.upgrade.os]
         ak = target_sat.api.ActivationKey(organization=default_org).search(
             query={'search': f'name={ak_name}'}
         )[0]
@@ -213,10 +210,7 @@ class TestCapsuleSyncNewRepo:
 
         """
         request.addfinalizer(lambda: cleanup(target_sat, content_view, repo, product))
-        activation_key = (
-            settings.upgrade.capsule_ak[settings.upgrade.os]
-            or settings.upgrade.custom_capsule_ak[settings.upgrade.os]
-        )
+        activation_key = settings.upgrade.capsule_ak[settings.upgrade.os]
         ak = target_sat.api.ActivationKey(organization=default_org).search(
             query={'search': f'name={activation_key}'}
         )[0]

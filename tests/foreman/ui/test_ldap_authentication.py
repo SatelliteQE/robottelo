@@ -1273,7 +1273,7 @@ def test_verify_ldap_filters_ipa(
         ldapsession.task.read_all()
 
     # updating the authsource with filter
-    group_name = default_ipa_host.groups[0]
+    group_name = default_ipa_host.groups.admins
     ldap_data = f"(memberOf=cn={group_name},{default_ipa_host.group_base_dn})"
     session.ldapauthentication.update(auth_source_ipa.name, {'account.ldap_filter': ldap_data})
 

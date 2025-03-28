@@ -33,12 +33,12 @@ def module_product(module_org, module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def module_rhst_repo(module_target_sat, module_org_with_manifest, module_promoted_cv, module_lce):
+def module_rhst_repo(module_target_sat, module_sca_manifest_org, module_promoted_cv, module_lce):
     """Use module org with manifest, creates RH tools repo, syncs and returns RH repo id."""
     # enable rhel repo and return its ID
     rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=DEFAULT_ARCHITECTURE,
-        org_id=module_org_with_manifest.id,
+        org_id=module_sca_manifest_org.id,
         product=PRDS['rhel'],
         repo=REPOS['rhst7']['name'],
         reposet=REPOSET['rhst7'],

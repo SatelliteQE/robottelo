@@ -782,8 +782,7 @@ class TestAnsibleREX:
         """
         # Adding IPv6 proxy for IPv6 communication
         rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
-        if is_open('SAT-30807'):
-            rhel_contenthost.enable_ipv6_system_proxy()
+        rhel_contenthost.enable_ipv6_system_proxy()
         client = rhel_contenthost
         # Enable Ansible repository and Install ansible or ansible-core package
         client.register(module_org, None, module_ak_with_cv.name, target_sat)
