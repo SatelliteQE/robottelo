@@ -653,3 +653,99 @@ def test_positive_provision_end_to_end(
         # Verify if assigned role is executed on the host, and correct host passwd is set
         host = ContentHost(target_sat.api.Host().search(query={'host': host_name})[0].read().ip)
         assert host.execute('yum list installed rubygem-foreman_scap_client').status == 0
+
+
+@pytest.mark.on_premises_provisioning
+@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
+def test_positive_update_hostgroup_for_host(target_sat, vmware, module_location, module_org, module_architecture, module_lce, module_cv, module_domain, module_vmware_cr, module_vmware_hostgroup, get_vmware_datastore_summary_string):
+    """Using hammer to change the hostgroup of a host to a hostgroup that is mapped to a different compute profile tries to update the VM hardware
+
+        :id: 78935368-0ba7-11f0-be4c-6c240829b295
+
+        :steps:
+            1. Create two compute profiles (with different memory).
+            2. Create two hostgroups. Each using one of the compute profiles from 1.
+            3. Create host with one of the hostgroups.
+            4. Use hammer to update the host and change to the other hostgroup.
+
+        :expectedresults: Ideally, both tools to behave the same way (or at least have a flag to chose if the VM is to be updated or not).
+
+        :verifies: SAT-24282
+
+        :customerscenario: true
+        """
+    host_name = gen_string('alpha').lower()
+    compute_profile = ['1-Small', '2-Medium']
+    vm_memory = ['4000', '6000']
+    guest_os_names = 'Red Hat Enterprise Linux 8 (64 bit)'
+    storage_data = {'storage': {'disks': [{'data_store': get_vmware_datastore_summary_string}]}}
+    network_data = {
+        'network_interfaces': {
+            'nic_type': VMWARE_CONSTANTS['network_interface_name'],
+            'network': f'VLAN {settings.provisioning.vlan_id}',
+        }
+    }
+    hg_name = [gen_string('alpha') for hg in range(2)]
+    ptable = target_sat.api.PartitionTable(
+        organization=[module_org.id], location=[module_location]
+    ).create()
+    operatingsystem = target_sat.api.OperatingSystem(
+        architecture=[module_architecture], ptable=[ptable]
+    ).create()
+    medium = target_sat.api.Media(
+        organization=[module_org.id], location=[module_location], operatingsystem=[operatingsystem]
+    ).create()
+    subnet = target_sat.api.Subnet(
+        organization=[module_org.id], location=[module_location], domain=[module_domain]
+    ).create()
+    with target_sat.ui_session() as session:
+        for cp, memory in zip(compute_profile, vm_memory):
+            session.computeresource.update_computeprofile(
+                entity_name=module_vmware_cr.name,
+                compute_profile=cp,
+                values={
+                    'provider_content.memory': memory,
+                    'provider_content.cluster': settings.vmware.cluster,
+                    'provider_content.guest_os': guest_os_names,
+                    'provider_content.storage': [value for value in storage_data.values()],
+                    'provider_content.network_interfaces': [value for value in network_data.values()],
+                },
+            )
+        for hg, cp in zip(hg_name, compute_profile):
+            target_sat.api.HostGroup(
+                name=hg,
+                architecture=module_architecture.name,
+                operatingsystem=operatingsystem,
+                medium=medium,
+                ptable=ptable,
+                domain=module_domain.name,
+                subnet=subnet,
+                location=[module_location.id],
+                organization=[module_org],
+                compute_profile=cp,
+                compute_resource=module_vmware_cr.name,
+                lifecycle_environment=module_lce.name,
+                content_view=module_cv.name,
+                content_source=1,
+            ).create()
+        session.host.create(
+            {
+                'host.name': host_name,
+                'host.hostgroup': hg_name[0],
+                'host.inherit_deploy_option': False,
+                'host.deploy': module_vmware_cr.name + f' ({FOREMAN_PROVIDERS["vmware"]})',
+                'host.inherit_compute_profile_option': False,
+                'host.compute_profile': compute_profile[0],
+            }
+        )
+        wait_for(
+            lambda: session.host_new.get_host_statuses(host_name)['Build']['Status']
+                    != 'Pending installation',
+            timeout=1800,
+            delay=30,
+            fail_func=session.browser.refresh,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        values = session.host_new.get_host_statuses(host_name)
+        assert values['Build']['Status'] == 'Installed'
