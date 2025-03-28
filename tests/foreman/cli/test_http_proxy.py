@@ -85,7 +85,7 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match(r'^(?!6$)\d+$')
+@pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.parametrize(
     'setup_http_proxy',
     [True, False],
@@ -93,7 +93,7 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
     ids=['auth_http_proxy', 'unauth_http_proxy'],
 )
 def test_insights_client_registration_with_http_proxy(
-    module_target_sat,
+    module_target_sat_insights,
     setup_http_proxy,
     rhel_contenthost,
     rhcloud_activation_key,
@@ -121,7 +121,7 @@ def test_insights_client_registration_with_http_proxy(
     :customerscenario: true
     """
     rhel_contenthost.configure_insights_client(
-        module_target_sat,
+        module_target_sat_insights,
         rhcloud_activation_key,
         rhcloud_manifest_org,
         f"rhel{rhel_contenthost.os_version.major}",
