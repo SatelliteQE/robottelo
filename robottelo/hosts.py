@@ -400,6 +400,8 @@ class ContentHost(Host, ContentHostMixins):
                     self.connect,
                     fail_condition=lambda res: res is not None,
                     timeout=300,
+                    retries=2,
+                    delay=5,
                     handle_exception=True,
                 )
             # really broad diaper here, but connection exceptions could be a ton of types
