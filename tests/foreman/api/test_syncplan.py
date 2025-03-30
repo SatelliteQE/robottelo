@@ -16,7 +16,7 @@ API reference for sync plans can be found on your Satellite:
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from time import sleep
 
 from fauxfactory import gen_choice, gen_string
@@ -86,14 +86,14 @@ def validate_repo_content(repo, content_types, after_sync=True):
     for content in content_types:
         if after_sync:
             assert repo.last_sync is not None, 'Repository unexpectedly was not synced.'
-            assert (
-                repo.content_counts[content] > 0
-            ), 'Repository contains invalid number of content entities.'
+            assert repo.content_counts[content] > 0, (
+                'Repository contains invalid number of content entities.'
+            )
         else:
             assert repo.last_sync is None, 'Repository was unexpectedly synced.'
-            assert not repo.content_counts[
-                content
-            ], 'Repository contains invalid number of content entities.'
+            assert not repo.content_counts[content], (
+                'Repository contains invalid number of content entities.'
+            )
 
 
 @pytest.mark.tier1
@@ -618,7 +618,7 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org, request,
     validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
     # Create and Associate sync plan with product
     sync_plan = target_sat.api.SyncPlan(
-        organization=module_org, enabled=True, sync_date=datetime.utcnow().replace(second=0)
+        organization=module_org, enabled=True, sync_date=datetime.now(UTC).replace(second=0)
     ).create()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     sync_plan.add_products(data={'product_ids': [product.id]})
@@ -649,7 +649,7 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org, request,
         organization=module_org,
         enabled=True,
         interval='hourly',
-        sync_date=datetime.utcnow().replace(second=0) - timedelta(seconds=interval - delay),
+        sync_date=datetime.now(UTC).replace(second=0) - timedelta(seconds=interval - delay),
     ).create()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     sync_plan.add_products(data={'product_ids': [product.id]})
@@ -695,7 +695,7 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org, reques
     # Create and Associate sync plan with product
     # BZ:1695733 is closed WONTFIX so apply this workaround
     logger.info('Need to set seconds to zero because BZ#1695733')
-    sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
+    sync_date = datetime.now(UTC).replace(second=0) + timedelta(seconds=delay)
     sync_plan = target_sat.api.SyncPlan(
         organization=module_org, enabled=True, sync_date=sync_date
     ).create()
@@ -753,7 +753,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
     # Create and Associate sync plan with products
     # BZ:1695733 is closed WONTFIX so apply this workaround
     logger.info('Need to set seconds to zero because BZ#1695733')
-    sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
+    sync_date = datetime.now(UTC).replace(second=0) + timedelta(seconds=delay)
     sync_plan = target_sat.api.SyncPlan(
         organization=module_org, enabled=True, sync_date=sync_date
     ).create()
@@ -815,7 +815,7 @@ def test_positive_synchronize_rh_product_past_sync_date(
         organization=org,
         enabled=True,
         interval='hourly',
-        sync_date=datetime.utcnow() - timedelta(seconds=interval - delay),
+        sync_date=datetime.now(UTC) - timedelta(seconds=interval - delay),
     ).create()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     # Associate sync plan with product
@@ -875,7 +875,7 @@ def test_positive_synchronize_rh_product_future_sync_date(
     repo = target_sat.api.Repository(id=repo_id).read()
     # BZ:1695733 is closed WONTFIX so apply this workaround
     logger.info('Need to set seconds to zero because BZ#1695733')
-    sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
+    sync_date = datetime.now(UTC).replace(second=0) + timedelta(seconds=delay)
     sync_plan = target_sat.api.SyncPlan(
         organization=org, enabled=True, interval='hourly', sync_date=sync_date
     ).create()
@@ -920,7 +920,7 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org, reques
     delay = 2 * 60
     product = target_sat.api.Product(organization=module_org).create()
     repo = target_sat.api.Repository(product=product).create()
-    start_date = datetime.utcnow().replace(second=0) - timedelta(days=1) + timedelta(seconds=delay)
+    start_date = datetime.now(UTC).replace(second=0) - timedelta(days=1) + timedelta(seconds=delay)
     # Create and Associate sync plan with product
     sync_plan = target_sat.api.SyncPlan(
         organization=module_org, enabled=True, interval='daily', sync_date=start_date
@@ -963,7 +963,7 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org, reque
     delay = 2 * 60
     product = target_sat.api.Product(organization=module_org).create()
     repo = target_sat.api.Repository(product=product).create()
-    start_date = datetime.utcnow().replace(second=0) - timedelta(weeks=1) + timedelta(seconds=delay)
+    start_date = datetime.now(UTC).replace(second=0) - timedelta(weeks=1) + timedelta(seconds=delay)
     # Create and Associate sync plan with product
     sync_plan = target_sat.api.SyncPlan(
         organization=module_org, enabled=True, interval='weekly', sync_date=start_date

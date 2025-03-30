@@ -24,8 +24,7 @@ def pytest_report_header(config):
             scope = ''
         storage = settings.shared_function.storage
     messages.append(
-        f'shared_function enabled - {shared_function_enabled} - '
-        f'scope: {scope} - storage: {storage}'
+        f'shared_function enabled - {shared_function_enabled} - scope: {scope} - storage: {storage}'
     )
     return messages
 
@@ -41,11 +40,11 @@ def pytest_sessionstart(session):
         xml = session.config._store.get(xml_key, None)
         if xml:
             xml.add_global_property(
-                'start_time', datetime.datetime.utcnow().strftime(FMT_XUNIT_TIME)
+                'start_time', datetime.datetime.now(datetime.UTC).strftime(FMT_XUNIT_TIME)
             )
 
 
 @pytest.fixture(autouse=False, scope='session')
 def record_testsuite_timestamp_xml(record_testsuite_property):
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(datetime.UTC)
     record_testsuite_property('start_time', now.strftime(FMT_XUNIT_TIME))

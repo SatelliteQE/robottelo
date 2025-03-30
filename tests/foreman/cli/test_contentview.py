@@ -1465,7 +1465,7 @@ class TestContentView:
                 'content-type': 'docker',
                 'docker-upstream-name': 'quay/busybox',
                 'product-id': module_product.id,
-                'url': constants.CONTAINER_REGISTRY_HUB,
+                'url': settings.container.registry_hub,
             }
         )
         # Sync all three repos
@@ -2475,10 +2475,10 @@ class TestContentView:
         docker_repository = module_target_sat.cli_factory.make_repository(
             {
                 'content-type': 'docker',
-                'docker-upstream-name': constants.CONTAINER_UPSTREAM_NAME,
+                'docker-upstream-name': settings.container.upstream_name,
                 'name': gen_string('alpha', 20),
                 'product-id': docker_product['id'],
-                'url': constants.CONTAINER_REGISTRY_HUB,
+                'url': settings.container.registry_hub,
             }
         )
         module_target_sat.cli.Repository.synchronize({'id': docker_repository['id']})
@@ -2705,10 +2705,10 @@ class TestContentView:
         docker_repository = module_target_sat.cli_factory.make_repository(
             {
                 'content-type': 'docker',
-                'docker-upstream-name': constants.CONTAINER_UPSTREAM_NAME,
+                'docker-upstream-name': settings.container.upstream_name,
                 'name': gen_string('alpha', 20),
                 'product-id': docker_product['id'],
-                'url': constants.CONTAINER_REGISTRY_HUB,
+                'url': settings.container.registry_hub,
             }
         )
         module_target_sat.cli.Repository.synchronize({'id': docker_repository['id']})
@@ -3163,7 +3163,7 @@ class TestContentView:
         response = module_target_sat.cli.ContentView.purge({'id': content_view['id']})
         assert all(
             [
-                f"Version '{v+1}.0' of content view '{content_view.name}' deleted." in response
+                f"Version '{v + 1}.0' of content view '{content_view.name}' deleted." in response
                 for v in range(cv_count - 4)
             ]
         )
@@ -3486,10 +3486,10 @@ class TestContentViewFileRepo:
         repo = module_target_sat.cli_factory.make_repository(
             {
                 'content-type': 'docker',
-                'docker-upstream-name': constants.CONTAINER_UPSTREAM_NAME,
+                'docker-upstream-name': settings.container.upstream_name,
                 'name': gen_string('alpha', 20),
                 'product-id': module_product.id,
-                'url': constants.CONTAINER_REGISTRY_HUB,
+                'url': settings.container.registry_hub,
             }
         )
         module_target_sat.cli.Repository.synchronize({'id': repo['id']})
@@ -3538,6 +3538,6 @@ class TestContentViewFileRepo:
             )
         envs = module_target_sat.cli.ContentView.info({'id': ccv['id']})['lifecycle-environments']
         assert len(envs) == 3, f'Expected 3 LCEs (Library+2) but got: {envs}'
-        assert {lce1['id'], lce2['id']}.issubset(
-            [lce['id'] for lce in envs]
-        ), 'Expected LCEs not found in CCV envs'
+        assert {lce1['id'], lce2['id']}.issubset([lce['id'] for lce in envs]), (
+            'Expected LCEs not found in CCV envs'
+        )

@@ -141,9 +141,9 @@ def test_positive_end_to_end(module_org, module_location, template_data, target_
                 'locations.resources.assigned': [module_location.name],
             }
         )
-        assert target_sat.api.ProvisioningTemplate().search(
-            query={'search': f'name=={name}'}
-        ), f'Provisioning template {name} expected to exist but is not included in the search'
+        assert target_sat.api.ProvisioningTemplate().search(query={'search': f'name=={name}'}), (
+            f'Provisioning template {name} expected to exist but is not included in the search'
+        )
         pt = session.provisioningtemplate.read(name)
         assert pt['template']['name'] == name
         assert pt['template']['default'] is True
@@ -162,9 +162,9 @@ def test_positive_end_to_end(module_org, module_location, template_data, target_
         updated_pt = target_sat.api.ProvisioningTemplate().search(
             query={'search': f'name=={new_name}'}
         )
-        assert (
-            updated_pt
-        ), f'Provisioning template {new_name} expected to exist but is not included in the search'
+        assert updated_pt, (
+            f'Provisioning template {new_name} expected to exist but is not included in the search'
+        )
         updated_pt = updated_pt[0].read()
         assert updated_pt.snippet is True, 'Snippet attribute not updated for Provisioning Template'
         assert not updated_pt.template_kind, f'Snippet template is {updated_pt.template_kind}'

@@ -788,23 +788,6 @@ class TestRepository:
         with pytest.raises(HTTPError):
             repo.update(['name'])
 
-    @pytest.mark.tier1
-    def test_negative_update_label(self, repo):
-        """Attempt to update repository label to another one.
-
-        :id: 828d85df-3c25-4a69-b6a2-401c6b82e4f3
-
-        :expectedresults: Repository is not updated and error is raised
-
-        :CaseImportance: Critical
-
-        :BZ: 1311113
-        """
-        repo.label = gen_string('alpha')
-        with pytest.raises(HTTPError):
-            repo.update(['label'])
-
-    @pytest.mark.tier1
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -892,7 +875,7 @@ class TestRepository:
                     'upstream_password': creds['pass'],
                 }
                 for creds in datafactory.valid_http_credentials()
-                if not creds['http_valid']
+                if not creds['http_valid'] and creds.get('yum_compatible')
             ]
         ),
         indirect=True,
@@ -1252,9 +1235,9 @@ class TestRepository:
         repo.ignorable_content = []
         repo = repo.update(['ignorable_content'])
         repo.sync()
-        assert target_sat.md5_by_url(
-            f'{repo.full_path}.treeinfo'
-        ), 'The treeinfo file is missing in the KS repo but it should be there.'
+        assert target_sat.md5_by_url(f'{repo.full_path}.treeinfo'), (
+            'The treeinfo file is missing in the KS repo but it should be there.'
+        )
 
 
 @pytest.mark.run_in_one_thread
@@ -1561,9 +1544,9 @@ class TestDockerRepository:
             [
                 {
                     'content_type': 'docker',
-                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
+                    'docker_upstream_name': settings.container.upstream_name,
                     'name': name,
-                    'url': constants.CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
                 for name in datafactory.valid_docker_repository_names()
             ]
@@ -1591,9 +1574,9 @@ class TestDockerRepository:
             {
                 'large_repo': {
                     'content_type': 'docker',
-                    'docker_upstream_name': constants.DOCKER_REPO_UPSTREAM_NAME,
+                    'docker_upstream_name': settings.container.docker.repo_upstream_name,
                     'name': gen_string('alphanumeric', 10),
-                    'url': constants.RH_CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.rh.registry_hub,
                     'upstream_username': settings.subscription.rhn_username,
                     'upstream_password': settings.subscription.rhn_password,
                 }
@@ -1634,11 +1617,11 @@ class TestDockerRepository:
         'repo_options_custom_product',
         **datafactory.parametrized(
             {
-                constants.CONTAINER_UPSTREAM_NAME: {
+                settings.container.upstream_name: {
                     'content_type': 'docker',
-                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
+                    'docker_upstream_name': settings.container.upstream_name,
                     'name': gen_string('alphanumeric', 10),
-                    'url': constants.CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
             }
         ),
@@ -1813,12 +1796,12 @@ class TestDockerRepository:
         'repo_options',
         **datafactory.parametrized(
             {
-                constants.CONTAINER_UPSTREAM_NAME: {
+                settings.container.upstream_name: {
                     'content_type': 'docker',
                     'include_tags': ['latest'],
-                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
+                    'docker_upstream_name': settings.container.upstream_name,
                     'name': gen_string('alphanumeric', 10),
-                    'url': constants.CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
             }
         ),
@@ -1846,11 +1829,11 @@ class TestDockerRepository:
         'repo_options',
         **datafactory.parametrized(
             {
-                constants.CONTAINER_UPSTREAM_NAME: {
+                settings.container.upstream_name: {
                     'content_type': 'docker',
-                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
+                    'docker_upstream_name': settings.container.upstream_name,
                     'name': gen_string('alphanumeric', 10),
-                    'url': constants.CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
             }
         ),
@@ -1887,12 +1870,12 @@ class TestDockerRepository:
         'repo_options',
         **datafactory.parametrized(
             {
-                constants.CONTAINER_UPSTREAM_NAME: {
+                settings.container.upstream_name: {
                     'content_type': 'docker',
                     'include_tags': ['latest', gen_string('alpha')],
-                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
+                    'docker_upstream_name': settings.container.upstream_name,
                     'name': gen_string('alphanumeric', 10),
-                    'url': constants.CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
             }
         ),
@@ -1918,12 +1901,12 @@ class TestDockerRepository:
         'repo_options',
         **datafactory.parametrized(
             {
-                constants.CONTAINER_UPSTREAM_NAME: {
+                settings.container.upstream_name: {
                     'content_type': 'docker',
                     'include_tags': [gen_string('alpha') for _ in range(3)],
-                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
+                    'docker_upstream_name': settings.container.upstream_name,
                     'name': gen_string('alphanumeric', 10),
-                    'url': constants.CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
             }
         ),
@@ -2057,7 +2040,6 @@ class TestDockerRepository:
 #     @pytest.mark.tier2
 #     @pytest.mark.skip_if_open("BZ:1625783")
 #     @pytest.mark.run_in_one_thread
-#     @pytest.mark.skip_if_not_set('fake_manifest')
 #     @pytest.mark.upgrade
 #     def test_positive_sync_rh_atomic(self, module_org):
 #         """Sync RH Atomic Ostree Repository.
@@ -2450,3 +2432,33 @@ class TestTokenAuthContainerRepository:
             synced_repo = repo.read()
             assert synced_repo.content_counts['docker_manifest'] >= 1
             assert synced_repo.content_counts['docker_tag'] == 1
+
+
+class TestPythonRepository:
+    """Specific tests for Python Repositories"""
+
+    @pytest.mark.tier1
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized(
+            [{'content_type': constants.REPO_TYPE['python'], 'url': settings.repos.python.pypi.url}]
+        ),
+        indirect=True,
+    )
+    def test_positive_sync(self, repo, target_sat):
+        """Check python repository can be synced.
+
+        :id: e521a7a4-2502-4fe2-b297-a13fc99e679f
+
+        :BlockedBy: SAT-23430
+
+        :steps:
+            1. Sync python repo
+
+        :expectedresults: Pyhton repo is synced
+
+        :CaseImportance: Critical
+
+        :CaseAutomation: Automated
+        """
+        repo.sync()

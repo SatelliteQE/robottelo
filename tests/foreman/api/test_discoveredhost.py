@@ -106,8 +106,7 @@ def _assert_discovered_host(host, channel=None, user_config=None):
     try:
         facts_fdi = _wait_for_log(
             channel,
-            f'\\[I\\|app\\|[a-z0-9]+\\] Started POST '
-            f'"/api/v2/discovered_hosts/facts" for {fdi_ip}',
+            f'\\[I\\|app\\|[a-z0-9]+\\] Started POST "/api/v2/discovered_hosts/facts" for {fdi_ip}',
             timeout=60,
         )
     except TimedOutError as err:
@@ -199,10 +198,11 @@ class TestDiscoveredHost:
         """
         sat = module_discovery_sat.sat
         provisioning_host.power_control(ensure=False)
-        mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
+        mac = provisioning_host._broker_facts['provisioning_nic_mac_addr']
         wait_for(
             lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
             timeout=1500,
+            retries=2,
             delay=40,
         )
         discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
@@ -249,7 +249,7 @@ class TestDiscoveredHost:
         """
         sat = module_discovery_sat.sat
         pxeless_discovery_host.power_control(ensure=False)
-        mac = pxeless_discovery_host._broker_args['provisioning_nic_mac_addr']
+        mac = pxeless_discovery_host._broker_facts['provisioning_nic_mac_addr']
         wait_for(
             lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
             timeout=1500,
@@ -383,7 +383,7 @@ class TestDiscoveredHost:
         """
         sat = module_discovery_sat.sat
         provisioning_host.power_control(ensure=False)
-        mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
+        mac = provisioning_host._broker_facts['provisioning_nic_mac_addr']
         wait_for(
             lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
             timeout=1500,
@@ -422,13 +422,15 @@ class TestDiscoveredHost:
 
         :expectedresults: All discovered hosst should be rebooted successfully
 
+        :BlockedBy: SAT-30395
+
         :verifies: SAT-23279
 
         :CaseImportance: Medium
         """
         sat = module_discovery_sat.sat
         provisioning_host.power_control(ensure=False)
-        mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
+        mac = provisioning_host._broker_facts['provisioning_nic_mac_addr']
         wait_for(
             lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
             timeout=1500,

@@ -1,0 +1,18 @@
+---
+CONTAINER:
+  CLIENTS:
+    - docker
+    - podman
+  REGISTRY_HUB: https://mirror.gcr.io
+  UPSTREAM_NAME: 'library/busybox'
+  ALTERNATIVE_UPSTREAM_NAMES:
+    - hello-world
+    - alpine
+  DOCKER:
+    REPO_UPSTREAM_NAME: 'openshift3/logging-elasticsearch'
+  PULP:
+    REGISTRY_HUB: 'https://ghcr.io'
+  RH:
+    REGISTRY_HUB: 'https://registry.redhat.io/'
+    UPSTREAM_NAME: 'openshift3/ose-metrics-hawkular-openshift-agent'
+...

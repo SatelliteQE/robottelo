@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import re
 
 from broker import Broker
@@ -128,9 +128,9 @@ def cv_publish_promote(sat, org, cv, lce=None, needs_publish=True):
         'content-view': sat.api.ContentView(id=cv.id).read(),
         'content-view-version': sat.api.ContentViewVersion(id=cvv_id).read(),
     }
-    assert all(
-        entry for entry in _result.values()
-    ), f'One or more necessary components are missing: {_result}'
+    assert all(entry for entry in _result.values()), (
+        f'One or more necessary components are missing: {_result}'
+    )
     return _result
 
 
@@ -272,9 +272,9 @@ def registered_contenthost(
             # sync repository to satellite
             assert module_target_sat.api.Repository(id=repo.id).read()
             result = repo.sync()['humanized']
-            assert (
-                len(result['errors']) == 0
-            ), f'Failed to sync custom repository [id: {repo.id}]:\n{str(result["errors"])}'
+            assert len(result['errors']) == 0, (
+                f'Failed to sync custom repository [id: {repo.id}]:\n{str(result["errors"])}'
+            )
             # found index (repo) with matching name, grab sub-manager repo-id:
             assert repo.name in repo_ids_names['names']
             sub_man_repo_id = repo_ids_names['ids'][repo_ids_names['names'].index(repo.name)]
@@ -349,24 +349,24 @@ def test_end_to_end(
     assert client.subscribed
     custom_repo = module_cv.read().repository[0].read()
     # nothing applicable to start
-    assert (
-        0 == client.applicable_errata_count == client.applicable_package_count
-    ), f'Expected no applicable erratum or packages to start, on host: {hostname}'
+    assert 0 == client.applicable_errata_count == client.applicable_package_count, (
+        f'Expected no applicable erratum or packages to start, on host: {hostname}'
+    )
 
     # install outdated package version, making an errata applicable
     result = client.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
-    assert (
-        result.status == 0
-    ), f'Failed to install package {FAKE_1_CUSTOM_PACKAGE}.\n{result.stdout}'
+    assert result.status == 0, (
+        f'Failed to install package {FAKE_1_CUSTOM_PACKAGE}.\n{result.stdout}'
+    )
     # recalculate and assert app errata, after installing outdated pkg
     assert client.execute('subscription-manager repos').status == 0
     applicable_errata = client.applicable_errata_count
-    assert (
-        applicable_errata == 1
-    ), f'Expected 1 applicable errata: {CUSTOM_REPO_ERRATA_ID}, after setup. Got {applicable_errata}'
+    assert applicable_errata == 1, (
+        f'Expected 1 applicable errata: {CUSTOM_REPO_ERRATA_ID}, after setup. Got {applicable_errata}'
+    )
 
     with session:
-        datetime_utc_start = datetime.utcnow().replace(microsecond=0)
+        datetime_utc_start = datetime.now(UTC).replace(microsecond=0)
         # Check selection box function for BZ#1688636
         session.location.select(loc_name=DEFAULT_LOC)
         results = session.errata.search_content_hosts(
@@ -399,20 +399,20 @@ def test_end_to_end(
             None,
         )
         # assert custom repo found and product name
-        assert (
-            errata_repo
-        ), f'Could not find the errata repository in UI by name: {custom_repo.name}.'
+        assert errata_repo, (
+            f'Could not find the errata repository in UI by name: {custom_repo.name}.'
+        )
         assert errata_repo['Name'] == custom_repo.name
-        assert (
-            errata_repo['Product'] == module_product.name
-        ), 'The product name for the errata repository in UI does not match.'
+        assert errata_repo['Product'] == module_product.name, (
+            'The product name for the errata repository in UI does not match.'
+        )
         # Check all tabs of Errata Details page
-        assert (
-            not ERRATA_DETAILS.items() - errata['details'].items()
-        ), 'Errata details do not match expected values.'
-        assert parse(errata['details']['issued']) == parse(
-            ERRATA_DETAILS['issued']
-        ), 'Errata issued date in UI does not match.'
+        assert not ERRATA_DETAILS.items() - errata['details'].items(), (
+            'Errata details do not match expected values.'
+        )
+        assert parse(errata['details']['issued']) == parse(ERRATA_DETAILS['issued']), (
+            'Errata issued date in UI does not match.'
+        )
         assert parse(errata['details']['last_updated_on']) == parse(
             ERRATA_DETAILS['last_updated_on']
         ), 'Errata last updated date in UI does not match.'
@@ -438,16 +438,16 @@ def test_end_to_end(
             max_tries=60,
         )
         # should only be one task from this host after timestamp
-        assert (
-            len(results) == 1
-        ), f'Expected just one errata install task, but found {len(results)}.\nsearch_query: {install_query}'
+        assert len(results) == 1, (
+            f'Expected just one errata install task, but found {len(results)}.\nsearch_query: {install_query}'
+        )
         task_status = module_target_sat.api.ForemanTask(id=results[0].id).poll()
-        assert (
-            task_status['result'] == 'success'
-        ), f'Errata Installation task failed:\n{task_status}'
-        assert (
-            client.applicable_errata_count == 0
-        ), f'Unexpected applicable errata found after install of {CUSTOM_REPO_ERRATA_ID}.'
+        assert task_status['result'] == 'success', (
+            f'Errata Installation task failed:\n{task_status}'
+        )
+        assert client.applicable_errata_count == 0, (
+            f'Unexpected applicable errata found after install of {CUSTOM_REPO_ERRATA_ID}.'
+        )
         # UTC timing for install task and session
         _UTC_format = '%Y-%m-%d %H:%M:%S UTC'
         install_start = datetime.strptime(task_status['started_at'], _UTC_format)
@@ -464,9 +464,9 @@ def test_end_to_end(
         )
         results.sort(key=lambda res: res.id)
         task_status = module_target_sat.api.ForemanTask(id=results[-1].id).poll()
-        assert (
-            task_status['result'] == 'success'
-        ), f'Bulk Generate Errata Applicability task failed:\n{task_status}'
+        assert task_status['result'] == 'success', (
+            f'Bulk Generate Errata Applicability task failed:\n{task_status}'
+        )
         # UTC timing for generate applicability task
         bulk_gen_start = datetime.strptime(task_status['started_at'], _UTC_format)
         bulk_gen_end = datetime.strptime(task_status['ended_at'], _UTC_format)
@@ -699,14 +699,14 @@ def test_host_content_errata_tab_pagination(
             with pytest.raises(NoSuchElementException):
                 _items = pf4_pagination.total_items
             # assert nothing was found to update value
-            assert (
-                _items == -1
-            ), f'Found updated pagination total_items: {_items}, but expected to be empty.'
+            assert _items == -1, (
+                f'Found updated pagination total_items: {_items}, but expected to be empty.'
+            )
             # would get failure at pytest.raises if no matching exception
             _ex_raised = True
-        assert (
-            _ex_raised
-        ), 'Search for empty pagination did not raise expected `NoSuchElementException`.'
+        assert _ex_raised, (
+            'Search for empty pagination did not raise expected `NoSuchElementException`.'
+        )
 
 
 @pytest.mark.tier2
@@ -904,7 +904,7 @@ def test_positive_apply_for_all_hosts(
             assert client.applicable_package_count > 0
 
         with session:
-            timestamp = datetime.utcnow().replace(microsecond=0) - timedelta(seconds=1)
+            timestamp = datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=1)
             session.location.select(loc_name=DEFAULT_LOC)
             # for first errata, apply to all chosts at once,
             # from ContentTypes > Errata > info > ContentHosts tab
@@ -917,7 +917,7 @@ def test_positive_apply_for_all_hosts(
             # find single hosts job
             hosts_job = target_sat.wait_for_tasks(
                 search_query=(
-                    f'Run hosts job: Install errata {errata_id}' f' and started_at >= {timestamp}'
+                    f'Run hosts job: Install errata {errata_id} and started_at >= {timestamp}'
                 ),
                 search_rate=2,
                 max_tries=60,
@@ -926,8 +926,7 @@ def test_positive_apply_for_all_hosts(
             # find multiple install tasks, one for each host
             install_tasks = target_sat.wait_for_tasks(
                 search_query=(
-                    f'Remote action: Install errata {errata_id} on'
-                    f' and started_at >= {timestamp}'
+                    f'Remote action: Install errata {errata_id} on and started_at >= {timestamp}'
                 ),
                 search_rate=2,
                 max_tries=60,
@@ -936,7 +935,7 @@ def test_positive_apply_for_all_hosts(
             # bulk applicability tasks for hosts
             applicability_task = target_sat.wait_for_tasks(
                 search_query=(
-                    'Bulk generate applicability for hosts' f' and started_at >= {timestamp}'
+                    f'Bulk generate applicability for hosts and started_at >= {timestamp}'
                 ),
                 search_rate=2,
                 max_tries=60,
@@ -1390,18 +1389,18 @@ def test_positive_show_count_on_host_pages(session, module_org, registered_conte
                 )['content']['errata']['table']
             except Exception:
                 empty_table = True
-            assert (
-                not installable_errata
-            ), f'Found some installable {errata_type} errata, when none were expected.'
+            assert not installable_errata, (
+                f'Found some installable {errata_type} errata, when none were expected.'
+            )
             assert empty_table
         # legacy contenthost UI
         content_host_values = session.contenthost.search(hostname)
         assert content_host_values[0]['Name'] == hostname
         installable_errata = content_host_values[0]['Installable Updates']['errata']
         for errata_type in ('security', 'bug_fix', 'enhancement'):
-            assert (
-                int(installable_errata[errata_type]) == 0
-            ), f'Found some installable {errata_type} errata, when none were expected.'
+            assert int(installable_errata[errata_type]) == 0, (
+                f'Found some installable {errata_type} errata, when none were expected.'
+            )
 
         # install outdated packages, recalculate errata applicability
         pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
@@ -1423,9 +1422,9 @@ def test_positive_show_count_on_host_pages(session, module_org, registered_conte
                 entity_name=hostname,
                 type=errata_type,
             )['content']['errata']['table']
-            assert (
-                len(installable_errata) == 1
-            ), f'Expected only one {errata_type} errata to be installable.'
+            assert len(installable_errata) == 1, (
+                f'Expected only one {errata_type} errata to be installable.'
+            )
         # legacy contenthost UI
         content_host_values = session.contenthost.search(hostname)
         assert content_host_values[0]['Name'] == hostname
@@ -1433,9 +1432,9 @@ def test_positive_show_count_on_host_pages(session, module_org, registered_conte
         # erratum are installable
         assert int(installable_errata['security']) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
         for errata_type in ('bug_fix', 'enhancement'):
-            assert (
-                int(installable_errata[errata_type]) == 1
-            ), f'Expected only one {errata_type} errata to be installable.'
+            assert int(installable_errata[errata_type]) == 1, (
+                f'Expected only one {errata_type} errata to be installable.'
+            )
 
 
 @pytest.mark.tier3
@@ -1480,7 +1479,7 @@ def test_positive_check_errata_counts_by_type_on_host_details_page(
         assert int(len(read_errata['Content']['Errata']['pagination'])) == 0
 
         pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
-        install_timestamp = datetime.utcnow().replace(microsecond=0) - timedelta(seconds=1)
+        install_timestamp = datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=1)
         assert vm.execute(f'yum install -y {pkgs}').status == 0
 
         # applicability task(s) found and succeed

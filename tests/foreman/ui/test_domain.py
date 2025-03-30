@@ -42,9 +42,9 @@ def test_positive_set_parameter(session, valid_domain_name, param_value):
         session.domain.create({'domain.dns_domain': name, 'domain.full_name': name})
         session.domain.update(name, {'parameters.params': [new_param]})
         read_values = session.domain.read(name)
-    assert read_values['parameters']['params'] == [
-        new_param
-    ], "Current domain parameters do not match expected value"
+    assert read_values['parameters']['params'] == [new_param], (
+        "Current domain parameters do not match expected value"
+    )
 
 
 @pytest.mark.tier2

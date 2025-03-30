@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from fauxfactory import gen_string
 from manifester import Manifester
@@ -42,7 +42,7 @@ def module_rhc_org(module_target_sat):
     """Module level fixture for creating organization"""
     if settings.rh_cloud.crc_env == 'prod':
         org = module_target_sat.api.Organization(
-            name=settings.rh_cloud.organization or gen_string('alpha')
+            name=settings.rh_cloud.organization or 'satqe-rhc-org-' + gen_string('alpha')
         ).create()
     else:
         org = (
@@ -142,7 +142,7 @@ def test_positive_configure_cloud_connector(
     parameters = [{'name': 'source_display_name', 'value': gen_string('alpha')}]
     host.host_parameters_attributes = parameters
     host.update(['host_parameters_attributes'])
-    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+    timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
     with module_target_sat.ui_session() as session:
         session.organization.select(org_name=module_rhc_org.name)
         if session.cloudinventory.is_cloud_connector_configured():
@@ -154,9 +154,7 @@ def test_positive_configure_cloud_connector(
         session.cloudinventory.configure_cloud_connector()
     template_name = 'Configure Cloud Connector'
     module_target_sat.wait_for_tasks(
-        search_query=(
-            f'action = "Run hosts job: {template_name}"' f' and started_at >= "{timestamp}"'
-        ),
+        search_query=(f'action = "Run hosts job: {template_name}" and started_at >= "{timestamp}"'),
         search_rate=15,
         max_tries=10,
     )

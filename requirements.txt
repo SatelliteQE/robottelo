@@ -1,32 +1,32 @@
 # Version updates managed by dependabot
 
-apypie==0.5.0
+apypie==0.7.0
 betelgeuse==1.11.0
-broker[docker,podman,hussh]==0.5.7
+broker[docker,podman,hussh]==0.6.7
 cryptography==43.0.3
-deepdiff==8.0.1
-dynaconf[vault]==3.2.6
-fauxfactory==3.1.1
-jinja2==3.1.5
-manifester==0.2.8
-navmazing==1.2.2
+deepdiff==8.4.2
+dynaconf[vault]==3.2.10
+fauxfactory==3.1.2
+jinja2==3.1.6
+manifester==0.2.10
+navmazing==1.3.0
 productmd==1.43
 pyotp==2.9.0
-python-box==7.3.0
-pytest==8.3.4
+python-box==7.3.2
+pytest==8.3.5
 pytest-order==1.3.0
 pytest-services==2.2.1
 pytest-mock==3.14.0
-pytest-reportportal==5.4.7
+pytest-reportportal==5.5.0
 pytest-xdist==3.6.1
 pytest-fixturecollection==0.1.2
-pytest-ibutsu==2.2.4
+pytest-ibutsu==2.3.1
 PyYAML==6.0.2
 requests==2.32.3
 tenacity==9.0.0
 testimony==2.4.0
 wait-for==1.2.0
-wrapanapi==3.6.6
+wrapanapi==3.7.1
 
 # Get airgun, nailgun and upgrade from 6.15.z
 airgun @ git+https://github.com/SatelliteQE/airgun.git@6.15.z#egg=airgun

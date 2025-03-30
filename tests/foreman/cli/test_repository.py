@@ -22,8 +22,6 @@ from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
     CUSTOM_FILE_REPO_FILES_COUNT,
     CUSTOM_LOCAL_FOLDER,
     DOWNLOAD_POLICIES,
@@ -475,9 +473,9 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
+                    'docker-upstream-name': settings.container.upstream_name,
                     'name': valid_docker_repository_names()[0],
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
             ]
         ),
@@ -505,9 +503,9 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
+                    'docker-upstream-name': settings.container.upstream_name,
                     'name': name,
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
                 for name in valid_docker_repository_names()
             ]
@@ -794,9 +792,9 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
+                    'docker-upstream-name': settings.container.upstream_name,
                     'name': valid_docker_repository_names()[0],
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
             ]
         ),
@@ -841,9 +839,9 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
+                    'docker-upstream-name': settings.container.upstream_name,
                     'name': valid_docker_repository_names()[0],
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'url': settings.container.registry_hub,
                 }
             ]
         ),
@@ -875,8 +873,8 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'docker-upstream-name': settings.container.upstream_name,
+                    'url': settings.container.registry_hub,
                     'mirroring-policy': 'additive',
                 }
             ]
@@ -905,9 +903,9 @@ class TestRepository:
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo, sat=target_sat)
         # assert tags in repo['container-image-tags-filter']
-        assert (
-            int(repo['content-counts']['container-tags']) == tags_count
-        ), 'unexpected change of tags count'
+        assert int(repo['content-counts']['container-tags']) == tags_count, (
+            'unexpected change of tags count'
+        )
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
@@ -916,8 +914,8 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'docker-upstream-name': settings.container.upstream_name,
+                    'url': settings.container.registry_hub,
                     'mirroring-policy': 'mirror_content_only',
                 }
             ]
@@ -948,9 +946,9 @@ class TestRepository:
         repo = _validated_image_tags_count(repo=repo, sat=target_sat)
         if not is_open('SAT-26322'):
             assert tags in repo['included-container-image-tags']
-        assert (
-            int(repo['content-counts']['container-tags']) == len(tags.split(',')) < tags_count
-        ), 'unexpected change of tags count'
+        assert int(repo['content-counts']['container-tags']) == len(tags.split(',')) < tags_count, (
+            'unexpected change of tags count'
+        )
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
@@ -959,8 +957,8 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'docker-upstream-name': settings.container.upstream_name,
+                    'url': settings.container.registry_hub,
                     'include-tags': f"latest,{gen_string('alpha')}",
                 }
             ]
@@ -993,8 +991,8 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'docker-upstream-name': settings.container.upstream_name,
+                    'url': settings.container.registry_hub,
                     'include-tags': ",".join([gen_string('alpha') for _ in range(3)]),
                 }
             ]
@@ -1863,9 +1861,9 @@ class TestRepository:
         """
         module_target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = module_target_sat.cli.Repository.info({'id': repo['id']})
-        assert (
-            repo['content-counts']['module-streams'] == '7'
-        ), 'Module Streams not synced correctly'
+        assert repo['content-counts']['module-streams'] == '7', (
+            'Module Streams not synced correctly'
+        )
 
         # adding repo with same yum url should not change count.
         duplicate_repo = module_target_sat.cli_factory.make_repository(repo_options)
@@ -1882,9 +1880,9 @@ class TestRepository:
         )
         module_target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = module_target_sat.cli.Repository.info({'id': repo['id']})
-        assert (
-            repo['content-counts']['module-streams'] == '7'
-        ), 'Module Streams not synced correctly'
+        assert repo['content-counts']['module-streams'] == '7', (
+            'Module Streams not synced correctly'
+        )
 
         module_target_sat.cli.Repository.delete({'id': repo['id']})
         with pytest.raises(CLIReturnCodeError):
@@ -1930,7 +1928,7 @@ class TestRepository:
         }
 
     @pytest.mark.tier1
-    def test_negative_update_red_hat_repo(self, module_manifest_org, module_target_sat):
+    def test_negative_update_red_hat_repo(self, function_sca_manifest_org, module_target_sat):
         """Updates to Red Hat products fail.
 
         :id: d3ac0ea2-faab-4df4-be66-733e1b7ae6b4
@@ -1948,22 +1946,22 @@ class TestRepository:
         """
 
         rh_repo_set_id = module_target_sat.cli.RepositorySet.list(
-            {'organization-id': module_manifest_org.id}
+            {'organization-id': function_sca_manifest_org.id}
         )[0]['id']
 
         module_target_sat.cli.RepositorySet.enable(
             {
-                'organization-id': module_manifest_org.id,
+                'organization-id': function_sca_manifest_org.id,
                 'basearch': "x86_64",
                 'id': rh_repo_set_id,
             }
         )
         repo_list = module_target_sat.cli.Repository.list(
-            {'organization-id': module_manifest_org.id}
+            {'organization-id': function_sca_manifest_org.id}
         )
 
         rh_repo_id = module_target_sat.cli.Repository.list(
-            {'organization-id': module_manifest_org.id}
+            {'organization-id': function_sca_manifest_org.id}
         )[0]['id']
 
         module_target_sat.cli.Repository.update(
@@ -1973,7 +1971,7 @@ class TestRepository:
             }
         )
         repo_info = module_target_sat.cli.Repository.info(
-            {'organization-id': module_manifest_org.id, 'id': rh_repo_id}
+            {'organization-id': function_sca_manifest_org.id, 'id': rh_repo_id}
         )
         assert repo_info['url'] in [repo.get('url') for repo in repo_list]
 

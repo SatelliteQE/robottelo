@@ -198,6 +198,8 @@ ZOO_CUSTOM_GPG_KEY = "zoo_custom_gpgkey.txt"
 VALID_GPG_KEY_BETA_FILE = "valid_gpg_key_beta.txt"
 
 KEY_CLOAK_CLI = "/opt/rh/rh-sso7/root/usr/share/keycloak/bin/kcadm.sh"
+# this symlink needs to be created manually on the RHBK instance; default path is something version-specific like /opt/rhbk-24.0.6/bin/kcadm.sh
+RHBK_CLI = "/bin/kcadm.sh"
 
 RPM_TO_UPLOAD = "which-2.19-6.el6.x86_64.rpm"
 SRPM_TO_UPLOAD = "which-2.19-6.el6.src.rpm"
@@ -213,6 +215,7 @@ REPO_TYPE = {
     'docker': "docker",
     'ansible_collection': "ansible_collection",
     'file': "file",
+    'python': 'python',
 }
 
 DOWNLOAD_POLICIES = {
@@ -307,6 +310,23 @@ REPOSET = {
     'rhel7_optional': 'Red Hat Enterprise Linux 7 Server - Optional (RPMs)',
     'rhel7_sup': 'Red Hat Enterprise Linux 7 Server - Supplementary (RPMs)',
 }
+
+RECOMMENDED_REPOS = [
+    'rhel-9-for-x86_64-baseos-rpms',
+    'rhel-9-for-x86_64-appstream-rpms',
+    'rhel-8-for-x86_64-baseos-rpms',
+    'rhel-8-for-x86_64-appstream-rpms',
+    'rhel-8-for-x86_64-baseos-eus-rpms',
+    'rhel-8-for-x86_64-appstream-eus-rpms',
+    'satellite-client-6-for-rhel-9-x86_64-rpms',
+    'satellite-client-6-for-rhel-8-x86_64-rpms',
+]
+
+VERSIONED_REPOS = [
+    'satellite-capsule-{}-for-rhel-8-x86_64-rpms',
+    'satellite-maintenance-{}-for-rhel-8-x86_64-rpms',
+    'satellite-utils-{}-for-rhel-8-x86_64-rpms',
+]
 
 SM_OVERALL_STATUS = {
     'current': 'Overall Status: Current',
@@ -630,8 +650,7 @@ REPOS = {
     'rhscl7': {
         'id': 'rhel-server-rhscl-7-rpms',
         'name': (
-            'Red Hat Software Collections RPMs for Red Hat Enterprise'
-            ' Linux 7 Server x86_64 7Server'
+            'Red Hat Software Collections RPMs for Red Hat Enterprise Linux 7 Server x86_64 7Server'
         ),
         'releasever': '7Server',
         'version': '7',
@@ -697,12 +716,6 @@ FILTER_ERRATA_TYPE = {
 FILTER_ERRATA_DATE = {'updated': "updated", 'issued': "issued"}
 
 REPORT_TEMPLATE_FILE = 'report_template.txt'
-CONTAINER_REGISTRY_HUB = 'https://mirror.gcr.io'
-RH_CONTAINER_REGISTRY_HUB = 'https://registry.redhat.io/'
-CONTAINER_UPSTREAM_NAME = 'library/busybox'
-DOCKER_REPO_UPSTREAM_NAME = 'openshift3/logging-elasticsearch'
-CONTAINER_RH_REGISTRY_UPSTREAM_NAME = 'openshift3/ose-metrics-hawkular-openshift-agent'
-CONTAINER_CLIENTS = ['docker', 'podman']
 CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/lib/pulp/imports/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
@@ -1366,7 +1379,8 @@ PERMISSIONS_UI = {
         'create_hosts',
         'edit_hosts',
         'destroy_hosts',
-        'build_hosts' 'power_hosts',
+        'build_hosts',
+        'power_hosts',
         'console_hosts',
         'ipmi_boot_hosts',
         'forget_status_hosts',
@@ -1728,8 +1742,7 @@ FOREMAN_TEMPLATES_NOT_IMPORTED_COUNT = {
 FOREMAN_TEMPLATE_IMPORT_API_URL = 'http://api.github.com/repos/SatelliteQE/foreman_templates'
 
 FOREMAN_TEMPLATE_TEST_TEMPLATE = (
-    'https://raw.githubusercontent.com/SatelliteQE/foreman_templates/example/'
-    'example_template.erb'
+    'https://raw.githubusercontent.com/SatelliteQE/foreman_templates/example/example_template.erb'
 )
 
 FOREMAN_TEMPLATE_ROOT_DIR = '/usr/share/foreman_templates'

@@ -665,9 +665,9 @@ class TestHostGroupMissingAttr:
         """
         names = module_target_sat.api_factory.one_to_one_names('content_source')
         hostgroup_attrs = set(hostgroup.read_json().keys())
-        assert names.issubset(
-            hostgroup_attrs
-        ), f'{names.difference(hostgroup_attrs)} not found in {hostgroup_attrs}'
+        assert names.issubset(hostgroup_attrs), (
+            f'{names.difference(hostgroup_attrs)} not found in {hostgroup_attrs}'
+        )
 
     @pytest.mark.tier2
     def test_positive_get_cv(self, hostgroup, module_target_sat):
@@ -683,9 +683,9 @@ class TestHostGroupMissingAttr:
         """
         names = module_target_sat.api_factory.one_to_one_names('content_view')
         hostgroup_attrs = set(hostgroup.read_json().keys())
-        assert names.issubset(
-            hostgroup_attrs
-        ), f'{names.difference(hostgroup_attrs)} not found in {hostgroup_attrs}'
+        assert names.issubset(hostgroup_attrs), (
+            f'{names.difference(hostgroup_attrs)} not found in {hostgroup_attrs}'
+        )
 
     @pytest.mark.tier2
     def test_positive_get_lce(self, hostgroup, module_target_sat):
@@ -701,9 +701,9 @@ class TestHostGroupMissingAttr:
         """
         names = module_target_sat.api_factory.one_to_one_names('lifecycle_environment')
         hostgroup_attrs = set(hostgroup.read_json().keys())
-        assert names.issubset(
-            hostgroup_attrs
-        ), f'{names.difference(hostgroup_attrs)} not found in {hostgroup_attrs}'
+        assert names.issubset(hostgroup_attrs), (
+            f'{names.difference(hostgroup_attrs)} not found in {hostgroup_attrs}'
+        )
 
     @pytest.mark.tier2
     def test_positive_read_puppet_proxy_name(self, session_puppet_enabled_sat):

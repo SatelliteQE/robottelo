@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -156,7 +156,7 @@ def host(
     rhel7_contenthost_module.enable_repo(REPOS['rhst7']['id'])
     rhel7_contenthost_module.install_katello_host_tools()
     # make a note of time for later wait_for_tasks, and include 4 mins margin of safety.
-    timestamp = (datetime.utcnow() - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
+    timestamp = (datetime.now(UTC) - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
     # AK added custom repo for errata package, just install it.
     rhel7_contenthost_module.execute(f'yum install -y {FAKE_4_CUSTOM_PACKAGE}')
     rhel7_contenthost_module.execute('katello-package-upload')
@@ -260,7 +260,7 @@ def test_positive_incremental_update_time(module_target_sat, module_entitlement_
         {'organization-id': module_entitlement_manifest_org.id}
     )
     repo_sync_timestamp = (
-        datetime.utcnow().replace(microsecond=0) - timedelta(seconds=1)
+        datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=1)
     ).strftime('%Y-%m-%d %H:%M')
     # setup rh repositories, add to cv, begin sync
     for _repo in ['rhel8_bos', 'rhst8', 'rhsclient8']:
@@ -284,8 +284,7 @@ def test_positive_incremental_update_time(module_target_sat, module_entitlement_
     # wait for all repo sync tasks
     sync_tasks = module_target_sat.wait_for_tasks(
         search_query=(
-            'label = Actions::Katello::Repository::Sync'
-            f' and started_at >= "{repo_sync_timestamp}"'
+            f'label = Actions::Katello::Repository::Sync and started_at >= "{repo_sync_timestamp}"'
         ),
         search_rate=10,
         max_tries=200,
@@ -298,21 +297,21 @@ def test_positive_incremental_update_time(module_target_sat, module_entitlement_
 
     # update incremental version via hammer, using one errata.
     # expect: incr. "version-1.1" is created
-    update_start_time = datetime.utcnow()
+    update_start_time = datetime.now(UTC)
     result = module_target_sat.cli.ContentView.version_incremental_update(
         options={'content-view-version-id': cvv['id'], 'errata-ids': REAL_RHEL8_1_ERRATA_ID},
         output_format='base',
     )
     assert f'Content View: {cv.name} version 1.1' in result
-    update_duration = (datetime.utcnow() - update_start_time).total_seconds()
+    update_duration = (datetime.now(UTC) - update_start_time).total_seconds()
     logger.info(
         f'Update of incremental version-1.1, for CV id: {content_view["id"]},'
         f' took {update_duration} seconds.'
     )
     # publish the full CV, containing the added version-1.1
-    publish_start_time = datetime.utcnow()
+    publish_start_time = datetime.now(UTC)
     result = module_target_sat.cli.ContentView.publish({'id': cv['id']})
-    publish_duration = (datetime.utcnow() - publish_start_time).total_seconds()
+    publish_duration = (datetime.now(UTC) - publish_start_time).total_seconds()
     logger.info(f'Publish for CV id: {content_view["id"]}, took {publish_duration} seconds.')
     # Per BZs: expect update duration was quicker than publish duration,
     # if instead, update took longer, check that they were close,

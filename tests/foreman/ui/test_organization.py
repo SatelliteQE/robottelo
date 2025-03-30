@@ -16,7 +16,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ORG, INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
+from robottelo.constants import ANY_CONTEXT, DEFAULT_ORG, INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
 from robottelo.logging import logger
 
 CUSTOM_REPO_ERRATA_ID = settings.repos.yum_0.errata[0]
@@ -190,14 +190,13 @@ def test_positive_search_scoped(session):
 @pytest.mark.tier2
 def test_positive_create_with_all_users(session, module_target_sat):
     """Create organization and new user. Check 'all users' setting for
-    organization. Verify that user is assigned to organization and
-    vice versa organization is assigned to user
+    organization.
 
     :id: 6032be70-00a0-4ccd-ad01-391546074879
 
     :customerscenario: true
 
-    :expectedresults: Organization and user entities assigned to each other
+    :expectedresults: User is visible in selected org
 
     :verifies: SAT-25386
 
@@ -211,10 +210,12 @@ def test_positive_create_with_all_users(session, module_target_sat):
         assert user.login in org_values['users']['resources']['assigned']
         session.organization.search(org.name)
         session.organization.select(org_name=org.name)
+        session.location.select(loc_name=ANY_CONTEXT['location'])
         found_users = session.user.search(user.login)
         assert user.login in [user['Username'] for user in found_users]
-        user_values = session.user.read(user.login)
-        assert org.name in user_values['organizations']['resources']['assigned']
+        # SAT-25386 closed wontdo
+        # user_values = session.user.read(user.login)
+        # assert org.name in user_values['organizations']['resources']['assigned']
 
 
 @pytest.mark.skip_if_not_set('libvirt')
@@ -244,7 +245,6 @@ def test_positive_update_compresource(session, module_target_sat):
         assert resource_name in org_values['compute_resources']['resources']['unassigned']
 
 
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_delete_with_manifest_lces(session, target_sat, function_entitlement_manifest_org):

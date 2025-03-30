@@ -12,12 +12,14 @@
 
 """
 
+import base64
+
 from box import Box
 from fauxfactory import gen_integer, gen_string, gen_url
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DOCKER_REPO_UPSTREAM_NAME, REPO_TYPE, REPOS
+from robottelo.constants import REPO_TYPE, REPOS
 from robottelo.hosts import ProxyHostError
 
 
@@ -27,7 +29,8 @@ def function_spec_char_user(target_sat, session_auth_proxy):
     name = gen_string('alpha').lower()  # lower!
     passwd = gen_string('punctuation').replace("'", '')
     session_auth_proxy.add_user(name, passwd)
-    yield Box(name=name, passwd=passwd)
+    encoded = base64.b64encode(f'{name}:{passwd}'.encode()).decode('utf-8')
+    yield Box(name=name, passwd=passwd, b64=encoded)
     session_auth_proxy.remove_user(name)
 
 
@@ -348,7 +351,7 @@ def test_http_proxy_containing_special_characters(
     """
     # Check that no logs exist for the spec-char user at the proxy side yet.
     with pytest.raises(ProxyHostError):
-        session_auth_proxy.get_log(tail=100, grep=function_spec_char_user.name)
+        session_auth_proxy.get_log(tail=100, grep=function_spec_char_user.b64)
 
     # Create a proxy via UI using the spec-char user.
     proxy_name = gen_string('alpha')
@@ -381,7 +384,7 @@ def test_http_proxy_containing_special_characters(
             {'organization-id': module_sca_manifest_org.id}
         )
         assert session_auth_proxy.get_log(
-            tail=100, grep=f'CONNECT subscription.rhsm.redhat.com.*{function_spec_char_user.name}'
+            tail=100, grep=f'CONNECT subscription.rhsm.redhat.com.*{function_spec_char_user.b64}'
         ), 'RHSM connection not found in proxy log'
 
         # Enable and sync some RH repository, check it went through the proxy.
@@ -390,7 +393,7 @@ def test_http_proxy_containing_special_characters(
         )
         repo = target_sat.api.Repository(id=repo_id).read()
         assert session_auth_proxy.get_log(
-            tail=100, grep=f'CONNECT cdn.redhat.com.*{function_spec_char_user.name}'
+            tail=100, grep=f'CONNECT cdn.redhat.com.*{function_spec_char_user.b64}'
         ), 'CDN connection not found in proxy log'
         assert repo.content_counts['rpm'] > 0, 'Where is my content?!'
 
@@ -442,15 +445,17 @@ def test_positive_repo_discovery(setup_http_proxy, module_target_sat, module_org
                 'repo_type': 'Container Images',
                 'create_repo.product_type': 'New Product',
                 'create_repo.product_content.product_name': product_name,
-                'registry_search': DOCKER_REPO_UPSTREAM_NAME,
+                'registry_search': settings.container.docker.repo_upstream_name,
                 'name': gen_string('alphanumeric', 10),
                 'username': settings.subscription.rhn_username,
                 'password': settings.subscription.rhn_password,
-                'discovered_repos.repos': DOCKER_REPO_UPSTREAM_NAME,
+                'discovered_repos.repos': settings.container.docker.repo_upstream_name,
             }
         )
         assert session.product.search(product_name)[0]['Name'] == product_name
         assert (
-            DOCKER_REPO_UPSTREAM_NAME
-            in session.repository.search(product_name, DOCKER_REPO_UPSTREAM_NAME)[0]['Name']
+            settings.container.docker.repo_upstream_name
+            in session.repository.search(
+                product_name, settings.container.docker.repo_upstream_name
+            )[0]['Name']
         )

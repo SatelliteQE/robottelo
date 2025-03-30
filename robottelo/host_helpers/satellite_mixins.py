@@ -1,10 +1,10 @@
 import contextlib
 from functools import lru_cache
-import io
 import os
 import random
 import re
 
+from fauxfactory import gen_string
 import requests
 from wait_for import TimedOutError, wait_for
 
@@ -16,13 +16,12 @@ from robottelo.constants import (
     PUPPET_COMMON_INSTALLER_OPTS,
     PUPPET_SATELLITE_INSTALLER,
 )
-from robottelo.exceptions import CLIReturnCodeError
+from robottelo.exceptions import CLIReturnCodeError, NoManifestProvidedError
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
 from robottelo.host_helpers.ui_factory import UIFactory
 from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
-from robottelo.utils.manifest import clone
 
 
 class EnablePluginsSatellite:
@@ -139,34 +138,26 @@ class ContentInfo:
         """Upload a manifest using the requested interface.
 
         :type org_id: int
-        :type manifest: Manifester object or None
+        :type manifest: Manifester object
         :type interface: str
         :type timeout: int
 
         :return: the manifest upload result
 
         """
-        if not isinstance(manifest, bytes | io.BytesIO) and (
-            not hasattr(manifest, 'content') or manifest.content is None
-        ):
-            manifest = clone()
+        if manifest is None:
+            raise NoManifestProvidedError(
+                "A subscription manifest is required but was not provided."
+            )
         if timeout is None:
             # Set the timeout to 1500 seconds to align with the API timeout.
             timeout = 1500000
         if interface == 'CLI':
-            if hasattr(manifest, 'path'):
-                self.put(f'{manifest.path}', f'{manifest.name}')
-                result = self.cli.Subscription.upload(
-                    {'file': manifest.name, 'organization-id': org_id}, timeout=timeout
-                )
-            else:
-                self.put(manifest, manifest.filename)
-                result = self.cli.Subscription.upload(
-                    {'file': manifest.filename, 'organization-id': org_id}, timeout=timeout
-                )
+            self.put(f'{manifest.path}', f'{manifest.name}')
+            result = self.cli.Subscription.upload(
+                {'file': manifest.name, 'organization-id': org_id}, timeout=timeout
+            )
         else:
-            if not isinstance(manifest, bytes | io.BytesIO):
-                manifest = manifest.content
             result = self.api.Subscription().upload(
                 data={'organization_id': org_id}, files={'content': manifest}
             )
@@ -182,16 +173,18 @@ class ContentInfo:
         """
         return self.api.Organization(id=org_id).read().simple_content_access
 
-    def publish_content_view(self, org, repo_list):
+    def publish_content_view(self, org, repo_list, name=None):
         """This method publishes the content view for a given organization and repository list.
 
         :param str org: The name of the organization to which the content view belongs
         :param list or str repo_list:  A list of repositories or a single repository
+        :param str name: Name of the Content View to create. Defaults to random string.
 
         :return: A dictionary containing the details of the published content view.
         """
         repo = repo_list if isinstance(repo_list, list) else [repo_list]
-        content_view = self.api.ContentView(organization=org, repository=repo).create()
+        name = name or gen_string('alpha')
+        content_view = self.api.ContentView(organization=org, repository=repo, name=name).create()
         content_view.publish()
         return content_view.read()
 

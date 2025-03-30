@@ -11,7 +11,7 @@
 :CaseImportance: High
 """
 
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from operator import itemgetter
 import re
 
@@ -267,7 +267,7 @@ def start_and_wait_errata_recalculate(sat, host):
         sat.cli.Host.errata_recalculate({'host-id': host.nailgun_host.id})
         host.run('subscription-manager repos')
     # Note time check for later wait_for_tasks include 30s margin of safety
-    timestamp = (datetime.utcnow() - timedelta(seconds=30)).strftime(TIMESTAMP_FMT_S)
+    timestamp = (datetime.now(UTC) - timedelta(seconds=30)).strftime(TIMESTAMP_FMT_S)
     # Wait for upload profile event (in case Satellite system is slow)
     sat.wait_for_tasks(
         search_query=(
@@ -536,9 +536,9 @@ def test_positive_list_affected_chosts(module_sca_manifest_org, errata_hosts, ta
     )
     reported_hostnames = {item['name'] for item in result}
     hostnames = {host.hostname for host in errata_hosts}
-    assert hostnames.issubset(
-        reported_hostnames
-    ), 'One or more hostnames not found in list of applicable hosts'
+    assert hostnames.issubset(reported_hostnames), (
+        'One or more hostnames not found in list of applicable hosts'
+    )
 
 
 @pytest.mark.tier3
@@ -577,12 +577,12 @@ def test_install_errata_to_one_host(
     for host in errata_hosts:
         start_and_wait_errata_recalculate(target_sat, host)
 
-    assert not is_rpm_installed(
-        errata_hosts[0], rpm=errata['package_name']
-    ), 'Package should not be installed on host.'
-    assert is_rpm_installed(
-        errata_hosts[1], rpm=errata['package_name']
-    ), 'Package should be installed on host.'
+    assert not is_rpm_installed(errata_hosts[0], rpm=errata['package_name']), (
+        'Package should not be installed on host.'
+    )
+    assert is_rpm_installed(errata_hosts[1], rpm=errata['package_name']), (
+        'Package should be installed on host.'
+    )
 
 
 @pytest.mark.tier3
@@ -654,9 +654,9 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
         'per-page': PER_PAGE_LARGE,
     }
     errata_ids = get_errata_ids(target_sat, param)
-    assert set(REPO_WITH_ERRATA['errata_ids']).issubset(
-        errata_ids
-    ), 'Errata not found in list of installable errata'
+    assert set(REPO_WITH_ERRATA['errata_ids']).issubset(errata_ids), (
+        'Errata not found in list of installable errata'
+    )
 
     # Check list of applicable errata
     param = {
@@ -674,9 +674,9 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
         'per-page': PER_PAGE_LARGE,
     }
     errata_ids = get_errata_ids(target_sat, param)
-    assert set(REPO_WITH_ERRATA['errata_ids']).issubset(
-        errata_ids
-    ), 'Errata not found in list of applicable errata'
+    assert set(REPO_WITH_ERRATA['errata_ids']).issubset(errata_ids), (
+        'Errata not found in list of applicable errata'
+    )
 
     # Apply a filter and rule to the CV to hide the RPM, thus making erratum not installable
     # Make RPM exclude filter

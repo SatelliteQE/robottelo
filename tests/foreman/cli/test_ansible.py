@@ -629,7 +629,14 @@ class TestAnsibleREX:
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     @pytest.mark.parametrize('auth_type', ['admin', 'non-admin'])
     def test_positive_ansible_variables_imported_with_roles(
-        self, request, auth_type, target_sat, module_org, module_ak_with_cv, rhel_contenthost
+        self,
+        request,
+        auth_type,
+        target_sat,
+        module_org,
+        default_location,
+        module_ak_with_cv,
+        rhel_contenthost,
     ):
         """Verify that when Ansible roles are imported, their variables are imported simultaneously
 
@@ -658,6 +665,7 @@ class TestAnsibleREX:
                     'login': username,
                     'password': password,
                     'organization-ids': module_org.id,
+                    'location-ids': default_location.id,
                 }
             )
             target_sat.cli.User.add_role(

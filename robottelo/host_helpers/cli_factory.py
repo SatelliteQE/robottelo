@@ -31,7 +31,6 @@ from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.host_helpers.repository_mixins import initiate_repo_helpers
-from robottelo.utils.manifest import clone
 
 
 def create_object(cli_object, options, values=None, credentials=None, timeout=None):
@@ -636,7 +635,10 @@ class CLIFactory:
         assert len(cv_info['versions']) > 0
         cv_info['versions'].sort(key=lambda version: version['id'])
         cvv = cv_info['versions'][-1]
-        lce_promoted = cv_info['lifecycle-environments']
+        # get environments this version is promoted to
+        lce_promoted = self._satellite.cli.ContentView.version_info(
+            {'id': cvv['id'], 'content-view-id': cv_info['id']}
+        )['lifecycle-environments']
         # Promote version to next env
         try:
             if env_id not in [int(lce['id']) for lce in lce_promoted]:
@@ -727,11 +729,6 @@ class CLIFactory:
             env_id = self.make_lifecycle_environment({'organization-id': org_id})['id']
         else:
             env_id = options['lifecycle-environment-id']
-        # If manifest does not exist, clone and upload it
-        if len(self._satellite.cli.Subscription.exists({'organization-id': org_id})) == 0:
-            with clone() as manifest:
-                self._satellite.upload_manifest(org_id, manifest.content)
-        # Enable repo from Repository Set
         try:
             self._satellite.cli.RepositorySet.enable(
                 {
@@ -852,7 +849,6 @@ class CLIFactory:
     def setup_org_for_a_rh_repo(
         self,
         options=None,
-        force_manifest_upload=False,
         force_use_cdn=False,
         force=False,
     ):
@@ -885,30 +881,7 @@ class CLIFactory:
         if force_use_cdn or settings.robottelo.cdn or not custom_repo_url:
             return self._setup_org_for_a_rh_repo(options, force)
         options['url'] = custom_repo_url
-        result = self.setup_org_for_a_custom_repo(options)
-        if force_manifest_upload:
-            with clone() as manifest:
-                self._satellite.put(manifest.path, manifest.name)
-            try:
-                self._satellite.cli.Subscription.upload(
-                    {
-                        'file': manifest.name,
-                        'organization-id': result.get('organization-id'),
-                    }
-                )
-            except CLIReturnCodeError as err:
-                raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}') from err
-
-            # Add default subscription to activation-key, if SCA mode is disabled
-            if self._satellite.is_sca_mode_enabled(result['organization-id']) is False:
-                self.activationkey_add_subscription_to_repo(
-                    {
-                        'activationkey-id': result['activationkey-id'],
-                        'organization-id': result['organization-id'],
-                        'subscription': constants.DEFAULT_SUBSCRIPTION_NAME,
-                    }
-                )
-        return result
+        return self.setup_org_for_a_custom_repo(options)
 
     @staticmethod
     def _get_capsule_vm_distro_repos(distro):
@@ -1077,7 +1050,6 @@ class CLIFactory:
         org_id,
         lce_id=None,
         repos=None,
-        upload_manifest=True,
         download_policy='on_demand',
         rh_subscriptions=None,
         default_cv=False,
@@ -1088,7 +1060,6 @@ class CLIFactory:
         :param int lce_id: the lifecycle environment id
         :param list repos: a list of dict repositories options
         :param bool default_cv: whether to use the Default Organization CV
-        :param bool upload_manifest: whether to upload the organization manifest
         :param str download_policy: update the repositories with this download
             policy
         :param list rh_subscriptions: a list of RH subscription to attach to
@@ -1099,13 +1070,6 @@ class CLIFactory:
             repos = []
         if rh_subscriptions is None:
             rh_subscriptions = []
-
-        if upload_manifest:
-            # Upload the organization manifest
-            try:
-                self._satellite.upload_manifest(org_id, interface='CLI')
-            except CLIReturnCodeError as err:
-                raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}') from err
 
         custom_product, repos_info = self.setup_cdn_and_custom_repositories(
             org_id=org_id, repos=repos, download_policy=download_policy

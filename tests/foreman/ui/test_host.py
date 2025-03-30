@@ -34,7 +34,6 @@ from robottelo.constants import (
     FAKE_8_CUSTOM_PACKAGE_NAME,
     OSCAP_PERIOD,
     OSCAP_WEEKDAY,
-    PERMISSIONS,
     REPO_TYPE,
 )
 from robottelo.constants.repos import CUSTOM_FILE_REPO
@@ -613,7 +612,7 @@ def test_positive_view_hosts_with_non_admin_user(
 
 @pytest.mark.tier3
 def test_positive_remove_parameter_non_admin_user(
-    test_name, module_org, smart_proxy_location, target_sat
+    test_name, module_org, smart_proxy_location, target_sat, expected_permissions
 ):
     """Remove a host parameter as a non-admin user with enough permissions
 
@@ -630,8 +629,8 @@ def test_positive_remove_parameter_non_admin_user(
     target_sat.api_factory.create_role_permissions(
         role,
         {
-            'Parameter': PERMISSIONS['Parameter'],
-            'Host': PERMISSIONS['Host'],
+            'Parameter': expected_permissions['Parameter'],
+            'Host': expected_permissions['Host'],
             'Operatingsystem': ['view_operatingsystems'],
         },
     )
@@ -663,7 +662,7 @@ def test_positive_remove_parameter_non_admin_user(
 
 @pytest.mark.tier3
 def test_negative_remove_parameter_non_admin_user(
-    test_name, module_org, smart_proxy_location, target_sat
+    test_name, module_org, smart_proxy_location, target_sat, expected_permissions
 ):
     """Attempt to remove host parameter as a non-admin user with
     insufficient permissions
@@ -685,7 +684,7 @@ def test_negative_remove_parameter_non_admin_user(
         role,
         {
             'Parameter': ['view_params'],
-            'Host': PERMISSIONS['Host'],
+            'Host': expected_permissions['Host'],
             'Operatingsystem': ['view_operatingsystems'],
         },
     )
@@ -717,7 +716,7 @@ def test_negative_remove_parameter_non_admin_user(
 
 @pytest.mark.tier3
 def test_positive_check_permissions_affect_create_procedure(
-    test_name, smart_proxy_location, target_sat, function_org, function_role
+    test_name, smart_proxy_location, target_sat, function_org, function_role, expected_permissions
 ):
     """Verify whether user permissions affect what entities can be selected
     when host is created
@@ -788,7 +787,10 @@ def test_positive_check_permissions_affect_create_procedure(
     # Add permissions for Organization and Location
     target_sat.api_factory.create_role_permissions(
         function_role,
-        {'Organization': PERMISSIONS['Organization'], 'Location': PERMISSIONS['Location']},
+        {
+            'Organization': expected_permissions['Organization'],
+            'Location': expected_permissions['Location'],
+        },
     )
     # Create new user with a configured role
     user_password = gen_string('alpha')
@@ -944,9 +946,9 @@ def test_positive_search_by_configuration_status_alias(target_sat):
             for search_term in status_search_term.values():
                 search_string = f'{search_term}.{search_param}'
                 results[search_term] = [host['Name'] for host in session.host.search(search_string)]
-            assert (
-                results[status_search_term.name] == results[status_search_term.alias]
-            ), f'Different search results were found: {results}'
+            assert results[status_search_term.name] == results[status_search_term.alias], (
+                f'Different search results were found: {results}'
+            )
 
 
 @pytest.mark.tier4

@@ -89,7 +89,7 @@ def test_positive_end_to_end_register(
     """
     org = function_entitlement_manifest_org
     lce = target_sat.api.LifecycleEnvironment(organization=org).create()
-    repos_collection.setup_content(org.id, lce.id, upload_manifest=False)
+    repos_collection.setup_content(org.id, lce.id)
     ak_name = repos_collection.setup_content_data['activation_key']['name']
 
     repos_collection.setup_virtual_machine(rhel7_contenthost)
@@ -760,7 +760,7 @@ def test_positive_add_docker_repo_cv(session, module_org, module_target_sat):
     repo = module_target_sat.api.Repository(
         content_type=constants.REPO_TYPE['docker'],
         product=module_target_sat.api.Product(organization=module_org).create(),
-        url=constants.CONTAINER_REGISTRY_HUB,
+        url=settings.container.registry_hub,
     ).create()
     content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]
@@ -794,7 +794,7 @@ def test_positive_add_docker_repo_ccv(session, module_org, module_target_sat):
     repo = module_target_sat.api.Repository(
         content_type=constants.REPO_TYPE['docker'],
         product=module_target_sat.api.Product(organization=module_org).create(),
-        url=constants.CONTAINER_REGISTRY_HUB,
+        url=settings.container.registry_hub,
     ).create()
     content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]

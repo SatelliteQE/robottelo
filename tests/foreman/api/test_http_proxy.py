@@ -17,10 +17,6 @@ import pytest
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
-)
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
 
 
@@ -43,8 +39,8 @@ from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
             'YumRepository': {'url': settings.repos.module_stream_1.url},
             'FileRepository': {'url': CUSTOM_FILE_REPO},
             'DockerRepository': {
-                'url': CONTAINER_REGISTRY_HUB,
-                'upstream_name': CONTAINER_UPSTREAM_NAME,
+                'url': settings.container.registry_hub,
+                'upstream_name': settings.container.upstream_name,
             },
             'AnsibleRepository': {
                 'url': ANSIBLE_GALAXY,
@@ -104,17 +100,17 @@ def test_positive_end_to_end(
                 http_proxy_policy=policy,
                 http_proxy_id=setup_http_proxy[0].id if 'selected' in policy else None,
             ).update()
-            assert (
-                repo.http_proxy_policy == policy
-            ), f'Policy update failed for {repo.content_type} repo with {policy} HTTP policy'
+            assert repo.http_proxy_policy == policy, (
+                f'Policy update failed for {repo.content_type} repo with {policy} HTTP policy'
+            )
             assert (
                 repo.http_proxy_id == setup_http_proxy[0].id
                 if 'selected' in policy
                 else repo.http_proxy_id is None
             ), f'Proxy id update failed for {repo.content_type} repo with {policy} HTTP policy'
-            assert (
-                'success' in module_target_sat.api.Repository(id=repo.id).sync()['result']
-            ), f'Sync of a {repo.content_type} repo with {policy} HTTP policy failed'
+            assert 'success' in module_target_sat.api.Repository(id=repo.id).sync()['result'], (
+                f'Sync of a {repo.content_type} repo with {policy} HTTP policy failed'
+            )
 
     # Refresh manifest through HTTP proxy
     res = module_target_sat.api.Subscription().refresh_manifest(

@@ -107,8 +107,7 @@ def _assert_discovered_host(host, channel=None, user_config=None, sat=None):
     try:
         facts_fdi = _wait_for_log(
             channel,
-            f'\\[I\\|app\\|[a-z0-9]+\\] Started POST '
-            f'"/api/v2/discovered_hosts/facts" for {fdi_ip}',
+            f'\\[I\\|app\\|[a-z0-9]+\\] Started POST "/api/v2/discovered_hosts/facts" for {fdi_ip}',
             timeout=60,
         )
     except TimedOutError as err:
@@ -163,7 +162,7 @@ def discovery_settings(module_org, module_location, target_sat):
     target_sat.api.ProvisioningTemplate().build_pxe_default()
     # let's just modify the timeouts to speed things up
     target_sat.execute(
-        "sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g' " "/var/lib/tftpboot/pxelinux.cfg/default"
+        "sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g' /var/lib/tftpboot/pxelinux.cfg/default"
     )
     target_sat.execute(
         "sed -ie '/APPEND initrd/s/$/ fdi.countdown=1 fdi.ssh=1 fdi.rootpw=changeme/' "

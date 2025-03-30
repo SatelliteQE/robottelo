@@ -133,7 +133,7 @@ def test_host_provisioning_with_external_puppetserver(
     :customerscenario: true
     """
     puppet_env = 'production'
-    host_mac_addr = provisioning_host._broker_args['provisioning_nic_mac_addr']
+    host_mac_addr = provisioning_host._broker_facts['provisioning_nic_mac_addr']
     sat = module_provisioning_sat.sat
     host = sat.api.Host(
         hostgroup=provisioning_hostgroup,
@@ -187,17 +187,17 @@ def test_host_provisioning_with_external_puppetserver(
     # Perform version check
     host_os = host.operatingsystem.read()
     expected_rhel_version = Version(f'{host_os.major}.{host_os.minor}')
-    assert (
-        provisioning_host.os_version == expected_rhel_version
-    ), 'Different than the expected OS version was installed'
+    assert provisioning_host.os_version == expected_rhel_version, (
+        'Different than the expected OS version was installed'
+    )
 
     # assert that the host is subscribed and consumes subsctiption provided by the activation key
     assert provisioning_host.subscribed, 'Host is not subscribed'
 
     # Validate external Puppet server deployment with Satellite
-    assert (
-        provisioning_host.execute('rpm -q puppet-agent').status == 0
-    ), 'Puppet agent package is not installed'
+    assert provisioning_host.execute('rpm -q puppet-agent').status == 0, (
+        'Puppet agent package is not installed'
+    )
 
     assert (
         external_puppet_server.hostname

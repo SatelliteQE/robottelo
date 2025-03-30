@@ -16,8 +16,6 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
     PULP_EXPORT_DIR,
 )
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
@@ -31,8 +29,8 @@ from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
             'YumRepository': {'url': settings.repos.module_stream_1.url},
             'FileRepository': {'url': CUSTOM_FILE_REPO},
             'DockerRepository': {
-                'url': CONTAINER_REGISTRY_HUB,
-                'upstream_name': CONTAINER_UPSTREAM_NAME,
+                'url': settings.container.registry_hub,
+                'upstream_name': settings.container.upstream_name,
             },
             'AnsibleRepository': {
                 'url': ANSIBLE_GALAXY,
@@ -88,7 +86,7 @@ def test_positive_content_counts_for_mixed_cv(
         'ansible_collection': {'ansible-collections'},
     }
 
-    repos_collection.setup_content(function_org.id, function_lce.id, upload_manifest=False)
+    repos_collection.setup_content(function_org.id, function_lce.id)
     cv_id = repos_collection.setup_content_data['content_view']['id']
     cv = target_sat.cli.ContentView.info({'id': cv_id})
     cvv = target_sat.cli.ContentView.version_info({'id': cv['versions'][0]['id']})
@@ -115,9 +113,9 @@ def test_positive_content_counts_for_mixed_cv(
     assert len(lce_info['content-views']) == 1, 'Too many or few CVs listed'
     cv_info = lce_info['content-views']['1']
     assert cv_info['name']['name'] == cv['name'], 'Wrong CV name listed'
-    assert len(cv_info['repositories']) == len(
-        cvv['repositories']
-    ), 'Too many or few repositories listed'
+    assert len(cv_info['repositories']) == len(cvv['repositories']), (
+        'Too many or few repositories listed'
+    )
     cv_info_reponames = set([repo['repository-name'] for repo in cv_info['repositories'].values()])
     cvv_reponames = set([repo['name'] for repo in cvv['repositories']])
     assert cv_info_reponames == cvv_reponames, 'Wrong repo names listed'
@@ -336,7 +334,6 @@ def test_positive_exported_imported_content_sync(
         'Actions::Katello::Repository::MetadataGenerate',
         'Actions::Katello::CapsuleContent::Sync',
         'Actions::Katello::ContentView::CapsuleSync',
-        'Actions::Katello::CapsuleContent::UpdateContentCounts',
     ]
     pending_tasks = target_sat.api.ForemanTask().search(
         query={'search': f'organization_id={org.id} and result=pending'}

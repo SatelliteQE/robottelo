@@ -164,6 +164,8 @@ def test_positive_list_resource_vms(session, rhev_data):
     :parametrized: yes
 
     :expectedresults: VMs listed for provided compute resource
+
+    :BlockedBy: SAT-30627
     """
     name = gen_string('alpha')
     with session:
@@ -194,6 +196,8 @@ def test_positive_resource_vm_power_management(session, rhev_data):
 
     :expectedresults: virtual machine is powered on or powered off depending on
         its initial state
+
+    :BlockedBy: SAT-30627
     """
     name = gen_string('alpha')
     with session:
@@ -239,6 +243,8 @@ def test_positive_VM_import(session, module_org, module_location, rhev_data, mod
     :CaseImportance: Medium
 
     :BZ: 1636067
+
+    :BlockedBy: SAT-30627
     """
     # create entities for hostgroup
     default_loc_id = (

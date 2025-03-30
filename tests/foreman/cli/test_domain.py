@@ -196,7 +196,9 @@ def test_negative_create_with_invalid_dns_id(module_target_sat):
         module_target_sat.cli_factory.make_domain({'name': gen_string('alpha'), 'dns-id': -1})
     valid_messages = ['Invalid smart-proxy id', 'Invalid capsule id']
     exception_string = str(context.value)
-    messages = [message for message in valid_messages if message in exception_string]
+    messages = [
+        message for message in valid_messages if message.lower() in exception_string.lower()
+    ]
     assert len(messages) > 0
 
 

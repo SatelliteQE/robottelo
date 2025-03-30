@@ -251,7 +251,7 @@ class TestUser:
         result_before_login = module_target_sat.cli.User.list({'search': f'login = {login}'})
 
         # this is because satellite uses the UTC timezone
-        before_login_time = datetime.datetime.utcnow()
+        before_login_time = datetime.datetime.now(datetime.UTC)
         assert result_before_login[0]['login'] == login
         assert result_before_login[0]['last-login'] == ""
 
@@ -264,7 +264,7 @@ class TestUser:
         assert result_after_login[0]['last-login'] != ""
         after_login_time = datetime.datetime.strptime(
             result_after_login[0]['last-login'], "%Y/%m/%d %H:%M:%S"
-        )
+        ).replace(tzinfo=datetime.UTC)
         assert after_login_time > before_login_time
 
     @pytest.mark.tier1
@@ -480,7 +480,7 @@ class TestPersonalAccessToken:
         user = target_sat.cli_factory.user()
         target_sat.cli.User.add_role({'login': user['login'], 'role': 'Viewer'})
         token_name = gen_alphanumeric()
-        datetime_now = datetime.datetime.utcnow()
+        datetime_now = datetime.datetime.now(datetime.UTC)
         datetime_expire = datetime_now + datetime.timedelta(seconds=20)
         datetime_expire = datetime_expire.strftime("%Y-%m-%d %H:%M:%S")
         result = target_sat.cli.User.access_token(
@@ -579,7 +579,7 @@ class TestPersonalAccessToken:
                     },
                 )
         # check for past datetime
-        datetime_now = datetime.datetime.utcnow()
+        datetime_now = datetime.datetime.now(datetime.UTC)
         datetime_expire = datetime_now - datetime.timedelta(seconds=20)
         datetime_expire = datetime_expire.strftime("%Y-%m-%d %H:%M:%S")
         with pytest.raises(CLIReturnCodeError):

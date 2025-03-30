@@ -15,9 +15,6 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_RH_REGISTRY_UPSTREAM_NAME,
-    CONTAINER_UPSTREAM_NAME,
     REPO_TYPE,
 )
 from robottelo.exceptions import CLIReturnCodeError
@@ -36,18 +33,18 @@ def _repo(sat, product_id, name=None, upstream_name=None, url=None):
     :param str name: Name for the repository. If ``None`` then a random
         value will be generated.
     :param str upstream_name: A valid name of an existing upstream repository.
-        If ``None`` then defaults to CONTAINER_UPSTREAM_NAME constant.
+        If ``None`` then defaults to settings.container.upstream_name constant.
     :param str url: URL of repository. If ``None`` then defaults to
-        CONTAINER_REGISTRY_HUB constant.
+        settings.container.registry_hub constant.
     :return: A ``Repository`` object.
     """
     return sat.cli_factory.make_repository(
         {
             'content-type': REPO_TYPE['docker'],
-            'docker-upstream-name': upstream_name or CONTAINER_UPSTREAM_NAME,
+            'docker-upstream-name': upstream_name or settings.container.upstream_name,
             'name': name or gen_string('alpha', 5),
             'product-id': product_id,
-            'url': url or CONTAINER_REGISTRY_HUB,
+            'url': url or settings.container.registry_hub,
         }
     )
 
@@ -151,7 +148,7 @@ class TestDockerRepository:
         """
         repo = _repo(module_target_sat, module_product.id, name)
         assert repo['name'] == name
-        assert repo['upstream-repository-name'] == CONTAINER_UPSTREAM_NAME
+        assert repo['upstream-repository-name'] == settings.container.upstream_name
         assert repo['content-type'] == REPO_TYPE['docker']
 
     @pytest.mark.tier2
@@ -303,10 +300,10 @@ class TestDockerRepository:
         repo = _repo(
             module_target_sat,
             module_product.id,
-            upstream_name=CONTAINER_RH_REGISTRY_UPSTREAM_NAME,
+            upstream_name=settings.container.rh.upstream_name,
             url=settings.docker.external_registry_1,
         )
-        assert repo['upstream-repository-name'] == CONTAINER_RH_REGISTRY_UPSTREAM_NAME
+        assert repo['upstream-repository-name'] == settings.container.rh.upstream_name
 
     @pytest.mark.skip_if_not_set('docker')
     @pytest.mark.tier1
@@ -324,13 +321,13 @@ class TestDockerRepository:
         """
         module_target_sat.cli.Repository.update(
             {
-                'docker-upstream-name': CONTAINER_RH_REGISTRY_UPSTREAM_NAME,
+                'docker-upstream-name': settings.container.rh.upstream_name,
                 'id': repo['id'],
                 'url': settings.docker.external_registry_1,
             }
         )
         repo = module_target_sat.cli.Repository.info({'id': repo['id']})
-        assert repo['upstream-repository-name'] == CONTAINER_RH_REGISTRY_UPSTREAM_NAME
+        assert repo['upstream-repository-name'] == settings.container.rh.upstream_name
 
     @pytest.mark.tier2
     def test_positive_update_url(self, repo, module_target_sat):
@@ -533,7 +530,7 @@ class TestDockerContentView:
         """
         old_prod_name = gen_string('alpha', 5)
         new_prod_name = gen_string('alpha', 5)
-        docker_upstream_name = 'hello-world'
+        docker_upstream_name = settings.container.alternative_upstream_names[0]
         new_pattern = '<%= content_view.label %>/<%= product.name %>'
 
         lce = module_target_sat.cli_factory.make_lifecycle_environment(
@@ -618,7 +615,7 @@ class TestDockerContentView:
         """
         old_repo_name = gen_string('alpha', 5)
         new_repo_name = gen_string('alpha', 5)
-        docker_upstream_name = 'hello-world'
+        docker_upstream_name = settings.container.alternative_upstream_names[0]
         new_pattern = '<%= content_view.label %>/<%= repository.name %>'
 
         lce = module_target_sat.cli_factory.make_lifecycle_environment(
@@ -696,7 +693,7 @@ class TestDockerContentView:
 
         :expectedresults: Content view is not promoted
         """
-        docker_upstream_names = ['hello-world', 'alpine']
+        docker_upstream_names = settings.container.alternative_upstream_names
         new_pattern = '<%= organization.label %>'
 
         lce = module_target_sat.cli_factory.make_lifecycle_environment(
@@ -734,7 +731,7 @@ class TestDockerContentView:
 
         :expectedresults: Registry name pattern is not changed
         """
-        docker_upstream_names = ['hello-world', 'alpine']
+        docker_upstream_names = settings.container.alternative_upstream_names
         new_pattern = '<%= organization.label %>'
 
         content_view = module_target_sat.cli_factory.make_content_view(

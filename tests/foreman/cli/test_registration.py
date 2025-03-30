@@ -28,6 +28,7 @@ pytestmark = pytest.mark.tier1
 
 @pytest.mark.e2e
 @pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('8')
 def test_host_registration_end_to_end(
     module_sca_manifest_org,
     module_location,
@@ -42,10 +43,13 @@ def test_host_registration_end_to_end(
 
     :steps:
         1. Register host with global registration template to Satellite and Capsule
+        2. Check the host is registered and verify host owner name
 
-    :expectedresults: Host registered successfully
+    :expectedresults: Host registered successfully with valid owner name
 
     :verifies: SAT-14716
+
+    :BZ: 2156926, 2252768
 
     :customerscenario: true
     """
@@ -56,6 +60,14 @@ def test_host_registration_end_to_end(
 
     rc = 1 if rhel_contenthost.os_version.major == 6 else 0
     assert result.status == rc, f'Failed to register host: {result.stderr}'
+
+    owner_name = module_target_sat.cli.Host.info(
+        options={'name': rhel_contenthost.hostname, 'fields': 'Additional info/owner'}
+    )
+    # Verify host owner name set correctly
+    assert 'Admin User' in owner_name['additional-info']['owner'], (
+        f'Host owner name is incorrect: {owner_name["additional-info"]["owner"]}'
+    )
 
     # Verify server.hostname and server.port from subscription-manager config
     assert module_target_sat.hostname == rhel_contenthost.subscription_config['server']['hostname']
@@ -79,6 +91,14 @@ def test_host_registration_end_to_end(
     rc = 1 if rhel_contenthost.os_version.major == 6 else 0
     assert result.status == rc, f'Failed to register host: {result.stderr}'
 
+    owner_name = module_target_sat.cli.Host.info(
+        options={'name': rhel_contenthost.hostname, 'fields': 'Additional info/owner'}
+    )
+    # Verify capsule host owner name set correctly
+    assert 'Admin User' in owner_name['additional-info']['owner'], (
+        f'Host owner name is incorrect: {owner_name["additional-info"]["owner"]}'
+    )
+
     # Verify server.hostname and server.port from subscription-manager config
     assert (
         module_capsule_configured.hostname
@@ -87,9 +107,8 @@ def test_host_registration_end_to_end(
     assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
 
 
-def test_upgrade_katello_ca_consumer_rpm(
-    module_org, module_location, target_sat, rhel7_contenthost
-):
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_upgrade_katello_ca_consumer_rpm(module_org, module_location, target_sat, rhel_contenthost):
     """After updating the consumer cert the rhsm.conf file still points to Satellite host name
     and not Red Hat CDN for subscription.
 
@@ -115,11 +134,12 @@ def test_upgrade_katello_ca_consumer_rpm(
     consumer_cert_src = f'{consumer_cert_name}-1.0-1.src.rpm'
     new_consumer_cert_rpm = f'{consumer_cert_name}-1.0-2.noarch.rpm'
     spec_file = f'{consumer_cert_name}.spec'
-    vm = rhel7_contenthost
+    vm = rhel_contenthost
     # Install consumer cert and check server URL in /etc/rhsm/rhsm.conf
-    assert vm.execute(
+    result = vm.execute(
         f'rpm -Uvh "http://{target_sat.hostname}/pub/{consumer_cert_name}-1.0-1.noarch.rpm"'
     )
+    assert result.status == 0
     # Check server URL is not Red Hat CDN's "subscription.rhsm.redhat.com"
     assert vm.subscription_config['server']['hostname'] != 'subscription.rhsm.redhat.com'
     assert target_sat.hostname == vm.subscription_config['server']['hostname']

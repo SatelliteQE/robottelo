@@ -17,6 +17,7 @@ from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
     REPO_TYPE,
 )
+from robottelo.exceptions import APIResponseError
 from robottelo.host_helpers.repository_mixins import initiate_repo_helpers
 
 
@@ -206,14 +207,14 @@ class APIFactory:
                         query={'search': f'name="{name}"'}
                     )
                     if not result:
-                        raise self._satellite.api.APIResponseError(f'permission "{name}" not found')
+                        raise APIResponseError(f'permission "{name}" not found')
                     if len(result) > 1:
-                        raise self._satellite.api.APIResponseError(
+                        raise APIResponseError(
                             f'found more than one entity for permission "{name}"'
                         )
                     entity_permission = result[0]
                     if entity_permission.name != name:
-                        raise self._satellite.api.APIResponseError(
+                        raise APIResponseError(
                             'the returned permission is different from the'
                             f' requested one "{entity_permission.name} != {name}"'
                         )
@@ -229,9 +230,7 @@ class APIFactory:
                     query={'per_page': '350', 'search': f'resource_type="{resource_type}"'}
                 )
                 if not resource_type_permissions_entities:
-                    raise self._satellite.api.APIResponseError(
-                        f'resource type "{resource_type}" permissions not found'
-                    )
+                    raise APIResponseError(f'resource type "{resource_type}" permissions not found')
 
                 permissions_entities = [
                     entity
@@ -243,7 +242,7 @@ class APIFactory:
                 permissions_entities_names = {entity.name for entity in permissions_entities}
                 not_found_names = set(permissions_name).difference(permissions_entities_names)
                 if not_found_names:
-                    raise self._satellite.api.APIResponseError(
+                    raise APIResponseError(
                         f'permissions names entities not found "{not_found_names}"'
                     )
             self._satellite.api.Filter(

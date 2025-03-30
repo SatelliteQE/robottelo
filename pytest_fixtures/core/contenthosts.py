@@ -8,7 +8,6 @@ All functions in this module will be treated as fixtures that apply the contenth
 from broker import Broker
 import pytest
 
-from robottelo import constants
 from robottelo.config import settings
 from robottelo.hosts import ContentHost, Satellite
 
@@ -213,13 +212,13 @@ def module_container_contenthost(request, module_target_sat):
         host.register_to_cdn()
         # needed for docker commands to accept Satellite's cert
         host.install_katello_ca(module_target_sat)
-        for client in constants.CONTAINER_CLIENTS:
-            assert (
-                host.execute(f'yum -y install {client}').status == 0
-            ), f'{client} installation failed'
-        assert (
-            host.execute('systemctl enable --now podman').status == 0
-        ), 'Start of podman service failed'
+        for client in settings.container.clients:
+            assert host.execute(f'yum -y install {client}').status == 0, (
+                f'{client} installation failed'
+            )
+        assert host.execute('systemctl enable --now podman').status == 0, (
+            'Start of podman service failed'
+        )
         yield host
 
 

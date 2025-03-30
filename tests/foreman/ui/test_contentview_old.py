@@ -28,8 +28,6 @@ from robottelo import constants
 from robottelo.cli.contentview import ContentView
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
     DEFAULT_ARCHITECTURE,
     DEFAULT_CV,
     DEFAULT_PTABLE,
@@ -226,7 +224,6 @@ def test_positive_repo_count_for_composite_cv(session, module_target_sat, module
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_create_composite(
@@ -254,7 +251,7 @@ def test_positive_create_composite(
         'releasever': None,
     }
     docker_repo = target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=settings.container.registry_hub, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
 
     target_sat.api_factory.enable_sync_redhat_repo(rh_repo, org.id)
@@ -281,7 +278,6 @@ def test_positive_create_composite(
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_add_rh_content(
     session, module_target_sat, function_entitlement_manifest_org, target_sat
@@ -331,7 +327,7 @@ def test_positive_add_docker_repo(session, module_target_sat, module_org, module
         composite=False, organization=module_org
     ).create()
     repo = module_target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=settings.container.registry_hub, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     with session:
         session.contentview.add_docker_repo(content_view.name, repo.name)
@@ -356,7 +352,9 @@ def test_positive_add_docker_repos(session, module_target_sat, module_org, modul
     ).create()
     repos = [
         module_target_sat.api.Repository(
-            url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+            url=settings.container.registry_hub,
+            product=module_prod,
+            content_type=REPO_TYPE['docker'],
         ).create()
         for _ in range(randint(2, 3))
     ]
@@ -384,7 +382,7 @@ def test_positive_add_synced_docker_repo(session, module_target_sat, module_org,
         composite=False, organization=module_org
     ).create()
     repo = module_target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=settings.container.registry_hub, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     with session:
         result = session.sync_status.synchronize([(module_prod.name, repo.name)])
@@ -413,7 +411,7 @@ def test_positive_add_docker_repo_to_ccv(session, module_target_sat, module_org,
         composite=True, organization=module_org
     ).create()
     repo = module_target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=settings.container.registry_hub, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     with session:
         session.contentview.add_docker_repo(content_view.name, repo.name)
@@ -439,7 +437,9 @@ def test_positive_add_docker_repos_to_ccv(session, module_target_sat, module_org
     cvs = []
     for _ in range(randint(2, 3)):
         repo = module_target_sat.api.Repository(
-            url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+            url=settings.container.registry_hub,
+            product=module_prod,
+            content_type=REPO_TYPE['docker'],
         ).create()
         content_view = module_target_sat.api.ContentView(
             composite=False, organization=module_org, repository=[repo]
@@ -475,7 +475,7 @@ def test_positive_publish_with_docker_repo(session, module_target_sat, module_or
         composite=False, organization=module_org
     ).create()
     repo = module_target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=settings.container.registry_hub, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     with session:
         session.contentview.add_docker_repo(content_view.name, repo.name)
@@ -500,7 +500,7 @@ def test_positive_publish_with_docker_repo_composite(
     :CaseImportance: High
     """
     repo = module_target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=settings.container.registry_hub, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]
@@ -531,7 +531,7 @@ def test_positive_publish_multiple_with_docker_repo(
     :CaseImportance: Low
     """
     repo = module_target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=settings.container.registry_hub, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]
@@ -556,7 +556,7 @@ def test_positive_publish_multiple_with_docker_repo_composite(
     :CaseImportance: Low
     """
     repo = module_target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=settings.container.registry_hub, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]
@@ -586,7 +586,7 @@ def test_positive_promote_with_docker_repo(session, module_target_sat, module_or
     """
     lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
     repo = module_target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=settings.container.registry_hub, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]
@@ -613,7 +613,7 @@ def test_positive_promote_multiple_with_docker_repo(
     :CaseImportance: Low
     """
     repo = module_target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=settings.container.registry_hub, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]
@@ -641,7 +641,7 @@ def test_positive_promote_multiple_with_docker_repo_composite(
         is promoted to multiple lifecycle-environments.
     """
     repo = module_target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=settings.container.registry_hub, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     content_view = module_target_sat.api.ContentView(
         composite=False, organization=module_org, repository=[repo]
@@ -862,7 +862,6 @@ def test_positive_publish_with_custom_content(session, module_target_sat, module
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_publish_with_rh_content(
     session, module_target_sat, function_entitlement_manifest_org, target_sat
@@ -899,7 +898,6 @@ def test_positive_publish_with_rh_content(
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_publish_composite_with_custom_content(
@@ -933,10 +931,10 @@ def test_positive_publish_composite_with_custom_content(
     }
     # Create docker repos and sync
     docker_repo1 = target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB, product=product, content_type=REPO_TYPE['docker']
+        url=settings.container.registry_hub, product=product, content_type=REPO_TYPE['docker']
     ).create()
     docker_repo2 = target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB, product=product, content_type=REPO_TYPE['docker']
+        url=settings.container.registry_hub, product=product, content_type=REPO_TYPE['docker']
     ).create()
     docker_repo1.sync()
     docker_repo2.sync()
@@ -1087,7 +1085,6 @@ def test_positive_promote_with_custom_content(session, module_target_sat, module
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_promote_with_rh_content(
     session, module_target_sat, function_entitlement_manifest_org, target_sat
@@ -1125,7 +1122,6 @@ def test_positive_promote_with_rh_content(
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_promote_composite_with_custom_content(
@@ -1171,10 +1167,10 @@ def test_positive_promote_composite_with_custom_content(
         target_sat.api_factory.create_sync_custom_repo(repo_name=name, repo_url=url, org_id=org.id)
     # Create docker repo and sync
     docker_repo1 = target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB, product=product, content_type=REPO_TYPE['docker']
+        url=settings.container.registry_hub, product=product, content_type=REPO_TYPE['docker']
     ).create()
     docker_repo2 = target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB,
+        url=settings.container.registry_hub,
         product=product,
         content_type=REPO_TYPE['docker'],
         docker_upstream_name='quay/busybox',
@@ -1417,7 +1413,7 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(
     repo = target_sat.cli_factory.RepositoryCollection(
         repositories=[
             target_sat.cli_factory.DockerRepository(
-                url=CONTAINER_REGISTRY_HUB, upstream_name=CONTAINER_UPSTREAM_NAME
+                url=settings.container.registry_hub, upstream_name=settings.container.upstream_name
             )
         ]
     )
@@ -1453,8 +1449,8 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(
             'distro': 'rhel7',
             'YumRepository': {'url': settings.repos.yum_0.url},
             'DockerRepository': {
-                'url': CONTAINER_REGISTRY_HUB,
-                'upstream_name': CONTAINER_UPSTREAM_NAME,
+                'url': settings.container.registry_hub,
+                'upstream_name': settings.container.upstream_name,
             },
         }
     ],
@@ -2139,7 +2135,6 @@ def test_positive_add_all_security_errata_by_date_range_filter(
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 def test_positive_edit_rh_custom_spin(session, module_target_sat, target_sat):
     """Edit content views for a custom rh spin.  For example, modify a filter.
@@ -2199,7 +2194,6 @@ def test_positive_edit_rh_custom_spin(session, module_target_sat, target_sat):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.upgrade
 @pytest.mark.tier2
 def test_positive_promote_with_rh_custom_spin(session, module_target_sat, target_sat):
@@ -2682,7 +2676,7 @@ def test_positive_rh_mixed_content_end_to_end(
     """
     cv_name = gen_string('alpha')
     docker_repo = target_sat.api.Repository(
-        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=settings.container.registry_hub, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     rh_st_repo = {
         'name': REPOS['rhst7']['name'],

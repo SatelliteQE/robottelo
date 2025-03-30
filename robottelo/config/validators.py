@@ -85,6 +85,53 @@ VALIDATORS = dict(
         Validator('libvirt.libvirt_hostname', must_exist=True),
         Validator('libvirt.libvirt_image_dir', default='/var/lib/libvirt/images'),
     ],
+    container=[
+        Validator(
+            'container.clients', must_exist=True, is_type_of=list, default=['docker', 'podman']
+        ),
+        Validator(
+            'container.registry_hub',
+            must_exist=True,
+            is_type_of=str,
+            default='https://mirror.gcr.io',
+        ),
+        Validator(
+            'container.upstream_name',
+            must_exist=True,
+            is_type_of=str,
+            default='library/busybox',
+        ),
+        Validator(
+            'container.alternative_upstream_names',
+            must_exist=True,
+            is_type_of=list,
+            default=['hello-world', 'alpine'],
+        ),
+        Validator(
+            'container.docker.repo_upstream_name',
+            must_exist=True,
+            is_type_of=str,
+            default='openshift3/logging-elasticsearch',
+        ),
+        Validator(
+            'container.pulp.registry_hub',
+            must_exist=True,
+            is_type_of=str,
+            default='https://ghcr.io',
+        ),
+        Validator(
+            'container.rh.registry_hub',
+            must_exist=True,
+            is_type_of=str,
+            default='https://registry.redhat.io/',
+        ),
+        Validator(
+            'container.rh.upstream_name',
+            must_exist=True,
+            is_type_of=str,
+            default='openshift3/ose-metrics-hawkular-openshift-agent',
+        ),
+    ],
     container_repo=[
         Validator(
             'container_repo.registries.redhat.url',
@@ -121,11 +168,6 @@ VALIDATORS = dict(
     fake_capsules=[Validator('fake_capsules.port_range', must_exist=True)],
     # FIXME: we don't check if 'default' is defined
     # since that's YAML, could we change API and check for presence of at least one setting?
-    fake_manifest=[
-        Validator(
-            'fake_manifest.cert_url', 'fake_manifest.key_url', 'fake_manifest.url', must_exist=True
-        ),
-    ],
     gce=[
         Validator(
             'gce.cert_path',
@@ -275,6 +317,12 @@ VALIDATORS = dict(
             must_exist=True,
             is_type_of=str,
         ),
+        Validator(
+            'repos.python.pypi.url',
+            must_exist=True,
+            is_type_of=str,
+            default='https://pypi.org/project/pytest',
+        ),
     ],
     rhev=[
         Validator(
@@ -304,6 +352,18 @@ VALIDATORS = dict(
             must_exist=True,
         ),
     ],
+    rhbk=[
+        Validator(
+            'rhbk.host_name',
+            'rhbk.host_port',
+            'rhbk.host_url',
+            'rhbk.rhbk_user',
+            'rhbk.rhbk_password',
+            'rhbk.realm',
+            'rhbk.totp_secret',
+            must_exist=True,
+        ),
+    ],
     remotedb=[
         Validator(
             'remotedb.server',
@@ -322,13 +382,14 @@ VALIDATORS = dict(
     ],
     robottelo=[
         Validator('robottelo.settings.ignore_validation_errors', is_type_of=bool, default=False),
+        Validator('robottelo.rhel_source', default='ga', is_in=['ga', 'internal']),
         Validator(
             'robottelo.sat_non_ga_versions',
             is_type_of=list,
             default=[],
             cast=lambda x: list(map(str, x)),
         ),
-        Validator('robottelo.rhel_source', default='ga', is_in=['ga', 'internal']),
+        Validator('robottelo.shared_resource_wait', default=60, cast=float),
     ],
     shared_function=[
         Validator('shared_function.storage', is_in=('file', 'redis'), default='file'),
@@ -343,10 +404,7 @@ VALIDATORS = dict(
         Validator('shared_function.redis_password', default=None),
     ],
     upgrade=[
-        Validator('upgrade.rhev_cap_host', must_exist=False)
-        | Validator('upgrade.capsule_hostname', must_exist=False),
-        Validator('upgrade.rhev_capsule_ak', must_exist=False)
-        | Validator('upgrade.capsule_ak', must_exist=False),
+        Validator('upgrade.capsule_ak', must_exist=True),
     ],
     vmware=[
         Validator(

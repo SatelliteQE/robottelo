@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from random import randint, shuffle
 
 from navmazing import NavigationTriesExceeded
@@ -21,13 +21,14 @@ import pytest
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
     DOWNLOAD_POLICIES,
     INVALID_URL,
     PRDS,
+    RECOMMENDED_REPOS,
     REPO_TYPE,
     REPOS,
     REPOSET,
+    VERSIONED_REPOS,
     DataFile,
 )
 from robottelo.constants.repos import (
@@ -750,7 +751,7 @@ def test_positive_delete_random_docker_repo(session, module_org, module_target_s
     ]
     for product in products:
         repo = module_target_sat.api.Repository(
-            url=CONTAINER_REGISTRY_HUB, product=product, content_type=REPO_TYPE['docker']
+            url=settings.container.registry_hub, product=product, content_type=REPO_TYPE['docker']
         ).create()
         entities_list.append((product.name, repo.name))
     with session:
@@ -810,32 +811,31 @@ def test_positive_delete_rhel_repo(session, module_entitlement_manifest_org, tar
 
 
 @pytest.mark.tier2
-def test_positive_recommended_repos(session, module_entitlement_manifest_org):
-    """list recommended repositories using
-     On/Off 'Recommended Repositories' toggle.
+def test_recommended_repos(session, module_entitlement_manifest_org):
+    """list recommended repositories using On/Off 'Recommended Repositories' toggle.
 
     :id: 1ae197d5-88ba-4bb1-8ecf-4da5013403d7
 
     :expectedresults:
-
            1. Shows repositories as per On/Off 'Recommended Repositories'.
-           2. Check last Satellite version Capsule/Tools repos do not exist.
+           2. Check last Satellite version of versioned repos do not exist.
+           3. Check Client 2 repo is not displayed yet.
 
-    :BZ: 1776108
+    :Verifies: SAT-29446, SAT-29448
     """
     with session:
         session.organization.select(module_entitlement_manifest_org.name)
         rrepos_on = session.redhatrepository.read(recommended_repo='on')
-        assert REPOSET['rhel7'] in [repo['name'] for repo in rrepos_on]
         v = get_sat_version()
-        sat_version = f'{v.major}.{v.minor}'
-        cap_tool_repos = [
-            repo['name']
-            for repo in rrepos_on
-            if 'Tools' in repo['name'] or 'Capsule' in repo['name']
-        ]
-        cap_tools_repos = [repo for repo in cap_tool_repos if repo.split()[4] != sat_version]
-        assert not cap_tools_repos, 'Tools/Capsule repos do not match with Satellite version'
+
+        displayed_repos = [repo['label'] for repo in rrepos_on]
+        assert all(repo in displayed_repos for repo in RECOMMENDED_REPOS)
+        for repo in VERSIONED_REPOS:
+            assert repo.format(f'{v.major}.{v.minor}') in displayed_repos
+            assert repo.format(f'{v.major}.{v.minor - 1}') not in displayed_repos
+
+        assert not any('client-2' in label for label in displayed_repos)
+
         rrepos_off = session.redhatrepository.read(recommended_repo='off')
         assert len(rrepos_off) > len(rrepos_on)
 
@@ -978,7 +978,7 @@ def test_sync_status_persists_after_task_delete(session, module_prod, module_org
     :expectedresults: Displayed Sync Status is still "Synced" after task deleted.
     """
     # make a note of time for later API wait_for_tasks, and include 4 mins margin of safety.
-    timestamp = (datetime.utcnow() - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
+    timestamp = (datetime.now(UTC) - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
     repo = target_sat.api.Repository(url=settings.repos.yum_1.url, product=module_prod).create()
     with session:
         result = session.sync_status.read()
@@ -1177,7 +1177,7 @@ def test_positive_sync_sha_repo(session, module_org, module_target_sat):
 
 @pytest.mark.tier2
 def test_positive_able_to_disable_and_enable_rhel_repos(
-    session, module_org_with_manifest, target_sat
+    session, function_sca_manifest_org, target_sat
 ):
     """Upstream repo name changes shouldn't negatively affect a user's ability
     to enable or disable a repo
@@ -1195,14 +1195,14 @@ def test_positive_able_to_disable_and_enable_rhel_repos(
     # rhel7
     rhel7_repo = target_sat.cli_factory.RHELRepository()
     # enable rhel7 repo
-    rhel7_repo.create(module_org_with_manifest.id, synchronize=False)
+    rhel7_repo.create(function_sca_manifest_org.id, synchronize=False)
     rhel7_repo_name = rhel7_repo.data['repository']
     # reable rhel8_baseos repo
     target_sat.cli.RepositorySet.enable(
         {
             'basearch': constants.DEFAULT_ARCHITECTURE,
             'name': REPOSET['rhel8_bos'],
-            'organization-id': module_org_with_manifest.id,
+            'organization-id': function_sca_manifest_org.id,
             'product': PRDS['rhel8'],
             'releasever': REPOS['rhel8_bos']['releasever'],
         }
@@ -1210,7 +1210,7 @@ def test_positive_able_to_disable_and_enable_rhel_repos(
     rhel8_bos_info = target_sat.cli.RepositorySet.info(
         {
             'name': REPOSET['rhel8_bos'],
-            'organization-id': module_org_with_manifest.id,
+            'organization-id': function_sca_manifest_org.id,
             'product': PRDS['rhel8'],
         }
     )
