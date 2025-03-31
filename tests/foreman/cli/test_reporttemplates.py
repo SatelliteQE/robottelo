@@ -757,7 +757,7 @@ def test_positive_generate_ansible_template(module_target_sat):
 
     schedule = module_target_sat.cli.ReportTemplate.with_user(
         username=user['login'], password=password
-    ).schedule({'name': template_name})
+    ).schedule({'name': template_name, 'inputs': 'Content Attributes=yes'})
 
     job_id = schedule.split('Job ID: ', 1)[1].strip()
     report_data = module_target_sat.cli.ReportTemplate.with_user(
