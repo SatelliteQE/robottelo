@@ -75,4 +75,8 @@ def pytest_runtest_logstart(nodeid, location):
 def pytest_runtest_logreport(report):
     """Process the TestReport produced for each of the setup,
     call and teardown runtest phases of an item."""
+    # if the phase failed, log the traceback
+    if report.failed and hasattr(report, 'longrepr') and report.longrepr is not None:
+        logger.error('Test phase \'%s\' failed for test: %s', report.when, report.nodeid)
+        logger.error('Exception thrown:\n%s', report.longrepr)
     logger.info('Finished %s for test: %s, result: %s', report.when, report.nodeid, report.outcome)
