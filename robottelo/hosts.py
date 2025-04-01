@@ -381,6 +381,7 @@ class ContentHost(Host, ContentHostMixins):
                 'No workflow in broker.host_workflows for power control, '
                 'or VM operation not supported'
             ) from err
+        self.close()
         assert (
             # TODO read the kwarg name from settings too?
             Broker()
@@ -398,7 +399,9 @@ class ContentHost(Host, ContentHostMixins):
                 wait_for(
                     self.connect,
                     fail_condition=lambda res: res is not None,
-                    timeout=300,
+                    timeout=600,
+                    retries=3,
+                    delay=5,
                     handle_exception=True,
                 )
             # really broad diaper here, but connection exceptions could be a ton of types
