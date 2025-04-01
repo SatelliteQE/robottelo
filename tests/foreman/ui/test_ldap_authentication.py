@@ -13,6 +13,7 @@
 """
 
 import os
+from time import sleep
 
 from fauxfactory import gen_url
 from navmazing import NavigationTriesExceeded
@@ -787,6 +788,52 @@ def test_positive_login_user_password_otp(
         query={'search': f'login="{default_ipa_host.ipa_otp_username}"'}
     )
     assert users[0].login == default_ipa_host.ipa_otp_username
+
+
+def test_positive_login_user_update_last_login_time(
+    test_name, auth_source_ipa, ipa_data, ldap_tear_down, target_sat, module_org, module_location
+):
+    """Verify that after each user login, the last login time is updated.
+
+    :id: 704f4042-0b6b-11f0-8d64-000c29a0e355
+
+    :Verifies: SAT-29623
+
+    :setup: assure properly functioning server for authentication
+
+    :steps:
+        1. As an external user, log in & log out.
+        2. As an admin user, go to Administer->Users page and check the external user's 'Last login time' value.
+        3. Log out and wait one minute.
+        4. As an external user, log in & log out again.
+        5. As an admin user, check again the external user's 'Last login time' value.
+
+    :expectedresults:
+        step 2. It should show "{x} seconds ago". Not a bigger value, i.e., "... minutes ago".
+        step 5. It should also show "{x} seconds ago", which means the last login time was updated.
+    """
+    second_login_wait_interval = 60
+    last_login_relative_time = 'seconds ago'
+
+    with target_sat.ui_session(
+        test_name, user=ipa_data['ldap_user_name'], password=ipa_data['ldap_user_passwd']
+    ) as ldapsession:
+        ldapsession.login.logout()
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+        user_row = session.user.search(ipa_data['ldap_user_name'])[0]
+        assert user_row['Last login time'].endswith(last_login_relative_time)
+    sleep(second_login_wait_interval)
+    with target_sat.ui_session(
+        test_name, user=ipa_data['ldap_user_name'], password=ipa_data['ldap_user_passwd']
+    ) as ldapsession:
+        ldapsession.login.logout()
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+        user_row = session.user.search(ipa_data['ldap_user_name'])[0]
+        assert user_row['Last login time'].endswith(last_login_relative_time)
 
 
 def test_negative_login_user_with_invalid_password_otp(
