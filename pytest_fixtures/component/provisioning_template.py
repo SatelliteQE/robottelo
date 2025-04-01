@@ -100,4 +100,4 @@ def module_sync_kickstart_content(
     domain = module_target_sat.api.Domain(
         location=[module_location], organization=[module_sca_manifest_org]
     ).create()
-    return Box(rhel_ver=rhel_ver, os=os, domain=domain)
+    return Box(rhel_ver=rhel_ver, os=os, domain=domain, ksrepo=rh_repo)
