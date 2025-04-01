@@ -2461,6 +2461,23 @@ class Satellite(Capsule, SatelliteMixins):
             max_tries=10,
         )
 
+    def run_repos_refresh(self):
+        """Run repo refresh rake task"""
+        timestamp = datetime.now(UTC).replace(microsecond=0)
+        self.execute('foreman-rake katello:refresh_repos')
+        self.wait_for_tasks(
+            search_query=(
+                'label = Actions::Pulp3::Orchestration::Repository::RefreshRepos'
+                f' and started_at >= "{timestamp}"'
+            ),
+            search_rate=5,
+            max_tries=10,
+        )
+
+    def set_pulp_cli_safemode(self, safe):
+        """Set safemode for pulp cli"""
+        self.execute(f'sed -i "s/dry_run.*/dry_run = {str(safe).lower()}/g" /etc/pulp/cli.toml')
+
     @property
     def local_advisor_enabled(self):
         """Return boolean indicating whether local Insights advisor engine is enabled."""
