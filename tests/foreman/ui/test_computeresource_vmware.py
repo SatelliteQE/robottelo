@@ -655,25 +655,39 @@ def test_positive_provision_end_to_end(
         assert host.execute('yum list installed rubygem-foreman_scap_client').status == 0
 
 
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
-def test_positive_update_hostgroup_for_host(target_sat, vmware, module_location, module_org, module_architecture, module_lce, module_cv, module_domain, module_vmware_cr, module_vmware_hostgroup, get_vmware_datastore_summary_string):
-    """Using hammer to change the hostgroup of a host to a hostgroup that is mapped to a different compute profile tries to update the VM hardware
+def test_positive_update_hostgroup_for_host(
+    target_sat,
+    vmware,
+    module_location,
+    module_org,
+    module_architecture,
+    module_lce,
+    module_cv,
+    module_domain,
+    module_vmware_cr,
+    module_vmware_hostgroup,
+    get_vmware_datastore_summary_string,
+):
+    """Using hammer to change the hostgroup of a host to a hostgroup that is mapped to a different compute profile
 
-        :id: 78935368-0ba7-11f0-be4c-6c240829b295
+    :id: 78935368-0ba7-11f0-be4c-6c240829b295
 
-        :steps:
-            1. Create two compute profiles (with different memory).
-            2. Create two hostgroups. Each using one of the compute profiles from 1.
-            3. Create host with one of the hostgroups.
-            4. Use hammer to update the host and change to the other hostgroup.
+    :steps:
+        1. Create two compute profiles (with different memory).
+        2. Create two hostgroups. Each using one of the compute profiles from 1.
+        3. Create host with one of the hostgroups.
+        4. Use hammer to update the host and change to the other hostgroup.
 
-        :expectedresults: Ideally, both tools to behave the same way (or at least have a flag to chose if the VM is to be updated or not).
+    :expectedresults: Host's database entry will be updated for hostgroup.
 
-        :verifies: SAT-24282
+    :verifies: SAT-24282
 
-        :customerscenario: true
-        """
+    :customerscenario: true
+    """
     host_name = gen_string('alpha').lower()
     compute_profile = ['1-Small', '2-Medium']
     vm_memory = ['4000', '6000']
@@ -699,7 +713,7 @@ def test_positive_update_hostgroup_for_host(target_sat, vmware, module_location,
         organization=[module_org.id], location=[module_location], domain=[module_domain]
     ).create()
     with target_sat.ui_session() as session:
-        for cp, memory in zip(compute_profile, vm_memory):
+        for cp, memory in zip(compute_profile, vm_memory, strict=False):
             session.computeresource.update_computeprofile(
                 entity_name=module_vmware_cr.name,
                 compute_profile=cp,
@@ -708,10 +722,12 @@ def test_positive_update_hostgroup_for_host(target_sat, vmware, module_location,
                     'provider_content.cluster': settings.vmware.cluster,
                     'provider_content.guest_os': guest_os_names,
                     'provider_content.storage': [value for value in storage_data.values()],
-                    'provider_content.network_interfaces': [value for value in network_data.values()],
+                    'provider_content.network_interfaces': [
+                        value for value in network_data.values()
+                    ],
                 },
             )
-        for hg, cp in zip(hg_name, compute_profile):
+        for hg, cp in zip(hg_name, compute_profile, strict=False):
             target_sat.api.HostGroup(
                 name=hg,
                 architecture=module_architecture.name,
@@ -740,7 +756,7 @@ def test_positive_update_hostgroup_for_host(target_sat, vmware, module_location,
         )
         wait_for(
             lambda: session.host_new.get_host_statuses(host_name)['Build']['Status']
-                    != 'Pending installation',
+            != 'Pending installation',
             timeout=1800,
             delay=30,
             fail_func=session.browser.refresh,
@@ -749,3 +765,7 @@ def test_positive_update_hostgroup_for_host(target_sat, vmware, module_location,
         )
         values = session.host_new.get_host_statuses(host_name)
         assert values['Build']['Status'] == 'Installed'
+
+        host = target_sat.api.Host().search(query={'host': host_name})[0].read()
+        host.execute(f'hammer host update --name {host_name} --hostgroup {hg_name[1]}')
+        assert session.host_new.get_details(host_name, widget_names='overview') in hg_name[1]
