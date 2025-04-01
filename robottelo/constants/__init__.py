@@ -1075,6 +1075,7 @@ PERMISSIONS = {
         'destroy_snapshots',
         'revert_snapshots',
         'edit_snapshots',
+        'view_statistics',
     ],
     'AnsibleRole': ['view_ansible_roles', 'destroy_ansible_roles', 'import_ansible_roles'],
     'AnsibleVariable': [
@@ -1157,6 +1158,13 @@ PERMISSIONS = {
         'edit_salt_modules',
         'view_salt_modules',
         'destroy_salt_modules',
+    ],
+    'ForemanStatistics::Trend': [
+        'create_trends',
+        'view_trends',
+        'edit_trends',
+        'update_trends',
+        'destroy_trends',
     ],
     'ForemanTasks::RecurringLogic': [
         'create_recurring_logics',
