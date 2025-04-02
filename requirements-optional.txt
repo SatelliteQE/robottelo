@@ -1,5 +1,5 @@
 # For running tests and checking code quality using these modules.
-pytest-cov==6.0.0
+pytest-cov==6.1.0
 redis==5.2.1
 pre-commit==4.2.0
 ruff==0.11.2
