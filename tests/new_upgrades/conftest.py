@@ -3,6 +3,7 @@ This module is intended to be used for upgrade tests that have a single run stag
 """
 
 import datetime
+import os
 
 from box import Box
 from broker import Broker
@@ -63,9 +64,8 @@ def shared_checkout(shared_name):
         sat_instance = bx_inst.from_inventory(
             filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
             '@inv._broker_args.workflow == "deploy-satellite"'
-        )[0]
-        sat_instance.setup()
-    return sat_instance
+        )
+    return sat_instance[0]
 
 
 def shared_cap_checkout(shared_name):
@@ -84,12 +84,12 @@ def shared_cap_checkout(shared_name):
         cap_instance = cap_inst.from_inventory(
             filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
             '@inv._broker_args.workflow == "deploy-capsule"'
-        )[0]
-        cap_instance.setup()
-    return cap_instance
+        )
+    return cap_instance[0]
 
 
 def shared_checkin(sat_instance):
+    log(f'Running sat_instance.teardown() from worker {os.environ.get("PYTEST_XDIST_WORKER")} ')
     sat_instance.teardown()
     with SharedResource(
         resource_name=sat_instance.hostname + "_checkin",
