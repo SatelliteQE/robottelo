@@ -161,11 +161,29 @@ def rh_repo_module_manifest(module_sca_manifest_org, module_target_sat):
 
 @pytest.fixture(scope='module')
 def hosts(request):
-    """Deploy hosts via broker."""
-    num_hosts = getattr(request, 'param', 2)
-    with Broker(nick='rhel8', host_class=ContentHost, _count=num_hosts) as hosts:
+    """Deploy hosts via broker by distro and host count.
+    Parametrize with tuple, (str<distro>, int<num_hosts>), or just one, or neither.
+
+    Default: Robotello settings: Default RHEL Version, num_host of 2.
+    """
+    default_distro = 'rhel' + str(settings.content_host.default_rhel_version)
+    default_num_hosts = 2
+    # get any request
+    param = getattr(request, 'param', (None, None))
+    # get both params, or just one
+    match param:
+        case (str() as distro, int() as num_hosts):  # Tuple (both values provided)
+            pass
+        case str() as distro:  # Just distro (default num_hosts)
+            num_hosts = default_num_hosts
+        case int() as num_hosts:  # Just num_hosts (default distro)
+            distro = default_distro
+        case _:  # Default for both
+            distro, num_hosts = default_distro, default_num_hosts
+
+    with Broker(nick=distro, host_class=ContentHost, _count=num_hosts) as hosts:
         if not isinstance(hosts, list) or len(hosts) != num_hosts:
-            pytest.fail('Failed to provision the expected number of hosts.')
+            pytest.fail(f'Failed to provision the expected number of hosts for {distro}.')
         yield hosts
 
 
@@ -177,7 +195,12 @@ def register_hosts(
     module_ak,
     module_target_sat,
 ):
-    """Register hosts to Satellite"""
+    """Register hosts to Satellite
+
+    parametrize by fixture `hosts`, example:
+        @pytest.mark.parametrize('hosts', [('rhel10', 4)], indirect=True)
+    Default: 2nd newest supported RHEL version, 2 clients.
+    """
     for host in hosts:
         module_target_sat.cli_factory.setup_org_for_a_custom_repo(
             {
@@ -200,7 +223,12 @@ def register_hosts(
 
 @pytest.fixture
 def errata_hosts(register_hosts, target_sat):
-    """Ensure that rpm is installed on host."""
+    """Ensure that rpm is installed on host.
+
+    parametrize by fixture `hosts`, example:
+        @pytest.mark.parametrize('hosts', [('rhel10', 4)], indirect=True)
+    Default: 2nd newest supported RHEL version, 2 clients.
+    """
     for host in register_hosts:
         # Enable all custom and rh repositories.
         host.execute(r'subscription-manager repos --enable \*')
@@ -252,31 +280,32 @@ def host_collection(module_sca_manifest_org, module_ak_cv_lce, register_hosts, m
 def start_and_wait_errata_recalculate(sat, host):
     """Helper to find any in-progress errata applicability task and wait_for completion.
     Otherwise, schedule errata recalculation, wait for the task.
-    Find the successful completed task(s).
+    Poll the finished task(s).
 
     :param sat: Satellite instance to check for task(s)
     :param host: ContentHost instance to schedule errata recalculate
     """
-    # Find any in-progress task for this host
-    label = "label = Actions::Katello::Applicability::Hosts::BulkGenerate"
-    search = f'{label} and result = pending'
+    # Find any in-progress tasks for Host(s)
+    label = 'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
+    search = label + ' and result = pending'
     applicability_task_running = sat.cli.Task.list_tasks({'search': search})
     # No task in progress, invoke errata recalculate
     if len(applicability_task_running) == 0:
         sat.cli.Host.errata_recalculate({'host-id': host.nailgun_host.id})
         host.run('subscription-manager repos')
-    # Note time check for later wait_for_tasks include 20s margin of safety
+    # timestamp for install start includes 20s margin of safety
     timestamp = (datetime.now(UTC) - timedelta(seconds=20)).strftime(TIMESTAMP_FMT)
     # Wait for upload profile event (in case Satellite system is slow)
-    sat.wait_for_tasks(
-        search_query=f'{label} and started_at >= "{timestamp}"',
+    search = label + f' and started_at >= "{timestamp}"'
+    tasks = sat.wait_for_tasks(
+        search_query=search,
         search_rate=15,
         max_tries=10,
     )
-    # Find the successful finished task(s)
-    search = f'{label} and result = success and ended_at >= "{timestamp}"'
-    applicability_task_success = sat.cli.Task.list_tasks({'search': search})
-    assert applicability_task_success, f'No successful task found by search: {search}'
+    # Poll the finished task(s)
+    assert len(tasks) > 0, f'No task(s) found by search: {search}'
+    for task in tasks:
+        assert sat.api.ForemanTask(id=task.id).poll()
 
 
 def is_rpm_installed(host, rpm=None):

@@ -861,7 +861,7 @@ def test_positive_apply_for_all_hosts(
         hosts.
     """
     num_hosts = 4
-    rhel_distro = target_sat.api_factory.supported_rhel_versions(
+    rhel_distro = target_sat.api_factory.supported_rhel_ver(
         prefix='rhel',
         num=1,
     )
@@ -902,7 +902,7 @@ def test_positive_apply_for_all_hosts(
             assert client.applicable_package_count > 0
 
         with session:
-            timestamp = datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=10).strftime(
+            timestamp = (datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=10)).strftime(
                 TIMESTAMP_FMT
             )
             session.location.select(loc_name=DEFAULT_LOC)

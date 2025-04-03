@@ -1657,7 +1657,7 @@ def test_positive_filter_errata_type_other(
 
     """
     # newest version rhel
-    rhel_N = target_sat.api_factory.supported_rhel_versions(num=1)
+    rhel_N = target_sat.api_factory.supported_rhel_ver(num=1)
     # fetch a newly generated PGP key from address's response
     gpg_url = f'https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{rhel_N}'
     _response = requests.get(gpg_url, timeout=120, verify=True)
