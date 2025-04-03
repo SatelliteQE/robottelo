@@ -42,7 +42,9 @@ def _target_satellite_host(request, satellite_factory):
 @lru_cache
 def cached_capsule_cdn_register(hostname=None):
     cap = Capsule.get_host_by_hostname(hostname=hostname)
-    cap.enable_capsule_downstream_repos()
+    cap.register_to_cdn()
+    cap.setup_rhel_repos()
+    cap.setup_capsule_repos()
 
 
 @contextmanager
@@ -374,29 +376,8 @@ def installer_satellite(request):
     # register to cdn (also enables rhel repos from cdn)
     sat.register_to_cdn()
 
-    # setup source repositories
-    if settings.server.version.source == "ga":
-        # enable satellite repos
-        for repo in sat.SATELLITE_CDN_REPOS.values():
-            sat.enable_repo(repo, force=True)
-    elif settings.server.version.source == 'nightly':
-        sat.create_custom_repos(
-            satellite_repo=settings.repos.satellite_repo,
-            satmaintenance_repo=settings.repos.satmaintenance_repo,
-        )
-    else:
-        # get ohsnap repofile
-        sat.download_repofile(
-            product='satellite',
-            release=settings.server.version.release,
-            snap=settings.server.version.snap,
-        )
-
-    if settings.robottelo.rhel_source == "internal":
-        # disable rhel repos from cdn
-        sat.disable_repo("rhel-*")
-        # add internal rhel repos
-        sat.create_custom_repos(**settings.repos.get(f'rhel{sat.os_version.major}_os'))
+    sat.setup_rhel_repos()
+    sat.setup_satellite_repos()
 
     sat.setup_firewall()
     sat.install_satellite_or_capsule_package()
