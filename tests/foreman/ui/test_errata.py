@@ -46,6 +46,7 @@ from robottelo.constants import (
     REAL_RHEL8_1_ERRATA_ID,
     REAL_RHEL8_ERRATA_CVES,
     REAL_RHSCLIENT_ERRATA,
+    TIMESTAMP_FMT,
 )
 from robottelo.hosts import ContentHost
 from robottelo.utils.issue_handlers import is_open
@@ -856,14 +857,15 @@ def test_positive_apply_for_all_hosts(
         1. Go to Content -> Errata. Select an erratum -> Content Hosts tab.
         2. Select all Content Hosts and apply the erratum.
 
-    :expectedresults: Check that the erratum is applied in all the content
-        hosts.
+    :expectedresults:
+        1. Check invoked host tasks are successful.
+        2. Check that the erratum is applied in all the content hosts.
     """
     num_hosts = 4
-    major_ver = [
-        ver for ver in settings.supportability.content_hosts.rhel.versions if isinstance(ver, int)
-    ][-1]
-    rhel_distro = 'rhel' + str(major_ver)
+    rhel_distro = target_sat.api_factory.supported_rhel_ver(
+        prefix='rhel',
+        num=1,
+    )
     # one custom repo on satellite, for all hosts to use
     custom_repo = target_sat.api.Repository(url=CUSTOM_REPO_URL, product=module_product).create()
     custom_repo.sync()
@@ -901,8 +903,9 @@ def test_positive_apply_for_all_hosts(
             assert client.applicable_package_count > 0
 
         with session:
-            timestamp = datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=10).strftime(
-                '%Y-%m-%d %H:%M:%S'
+            # possible in-progress applicability task(s), 60s margin
+            timestamp = (datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=60)).strftime(
+                TIMESTAMP_FMT
             )
             session.location.select(loc_name=DEFAULT_LOC)
             # for first errata, apply to all chosts at once,
@@ -914,30 +917,33 @@ def test_positive_apply_for_all_hosts(
             )
             assert result['overview']['job_status'] == 'Success'
             # find single hosts job
+            # remote action tasks have lowercase errata_ids, ie: 'rhba-' not 'RHBA-'
             hosts_job = target_sat.wait_for_tasks(
                 search_query=(
-                    f'Run hosts job: Install errata {errata_id} and started_at >= {timestamp}'
+                    f'Run hosts job: Install errata {errata_id.lower()} and started_at >= "{timestamp}"'
                 ),
-                search_rate=2,
-                max_tries=60,
+                search_rate=5,
+                max_tries=20,
             )
             assert len(hosts_job) == 1
             # find multiple install tasks, one for each host
             install_tasks = target_sat.wait_for_tasks(
                 search_query=(
-                    f'Remote action: Install errata {errata_id} on and started_at >= {timestamp}'
+                    f'Remote action: Install errata {errata_id.lower()} and started_at >= "{timestamp}"'
                 ),
-                search_rate=2,
-                max_tries=60,
+                search_rate=5,
+                max_tries=20,
             )
             assert len(install_tasks) == num_hosts
-            # find single bulk applicability task for hosts
-            applicability_task = target_sat.wait_for_tasks(
-                search_query=(f'Bulk generate applicability for hosts and ended_at >= {timestamp}'),
-                search_rate=2,
-                max_tries=60,
+            # find bulk generate applicability task, and subtask for each host
+            applicability_tasks = target_sat.wait_for_tasks(
+                search_query=(
+                    f'Bulk generate applicability for hosts and started_at >= "{timestamp}"'
+                ),
+                search_rate=10,
+                max_tries=30,
             )
-            assert len(applicability_task) == 1
+            assert len(applicability_tasks) == num_hosts + 1
             # found updated kangaroo package in each host
             updated_version = '0.2-1.noarch'
             for client in hosts:
