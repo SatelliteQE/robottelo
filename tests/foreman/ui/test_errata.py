@@ -46,6 +46,7 @@ from robottelo.constants import (
     REAL_RHEL8_1_ERRATA_ID,
     REAL_RHEL8_ERRATA_CVES,
     REAL_RHSCLIENT_ERRATA,
+    TIMESTAMP_FMT,
 )
 from robottelo.hosts import ContentHost
 from robottelo.utils.issue_handlers import is_open
@@ -860,10 +861,10 @@ def test_positive_apply_for_all_hosts(
         hosts.
     """
     num_hosts = 4
-    major_ver = [
-        ver for ver in settings.supportability.content_hosts.rhel.versions if isinstance(ver, int)
-    ][-1]
-    rhel_distro = 'rhel' + str(major_ver)
+    rhel_distro = target_sat.api_factory.supported_rhel_versions(
+        prefix='rhel',
+        num=1,
+    )
     # one custom repo on satellite, for all hosts to use
     custom_repo = target_sat.api.Repository(url=CUSTOM_REPO_URL, product=module_product).create()
     custom_repo.sync()
@@ -902,7 +903,7 @@ def test_positive_apply_for_all_hosts(
 
         with session:
             timestamp = datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=10).strftime(
-                '%Y-%m-%d %H:%M:%S'
+                TIMESTAMP_FMT
             )
             session.location.select(loc_name=DEFAULT_LOC)
             # for first errata, apply to all chosts at once,

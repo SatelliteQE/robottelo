@@ -32,6 +32,7 @@ from robottelo.constants import (
     REAL_4_ERRATA_ID,
     REPOS,
     REPOSET,
+    TIMESTAMP_FMT,
 )
 from robottelo.exceptions import CLIReturnCodeError
 from robottelo.hosts import ContentHost
@@ -83,9 +84,6 @@ REPOS_WITH_ERRATA = (
         'errata_id': settings.repos.yum_3.errata[5],
     },
 )
-
-TIMESTAMP_FMT = '%Y-%m-%d %H:%M'
-TIMESTAMP_FMT_S = '%Y-%m-%d %H:%M:%S'
 
 PSUTIL_RPM = 'python2-psutil-5.6.7-1.el7.x86_64.rpm'
 
@@ -260,29 +258,23 @@ def start_and_wait_errata_recalculate(sat, host):
     :param host: ContentHost instance to schedule errata recalculate
     """
     # Find any in-progress task for this host
-    search = "label = Actions::Katello::Applicability::Hosts::BulkGenerate and result = pending"
+    label = "label = Actions::Katello::Applicability::Hosts::BulkGenerate"
+    search = f'{label} and result = pending'
     applicability_task_running = sat.cli.Task.list_tasks({'search': search})
     # No task in progress, invoke errata recalculate
     if len(applicability_task_running) == 0:
         sat.cli.Host.errata_recalculate({'host-id': host.nailgun_host.id})
         host.run('subscription-manager repos')
-    # Note time check for later wait_for_tasks include 30s margin of safety
-    timestamp = (datetime.now(UTC) - timedelta(seconds=30)).strftime(TIMESTAMP_FMT_S)
+    # Note time check for later wait_for_tasks include 20s margin of safety
+    timestamp = (datetime.now(UTC) - timedelta(seconds=20)).strftime(TIMESTAMP_FMT)
     # Wait for upload profile event (in case Satellite system is slow)
     sat.wait_for_tasks(
-        search_query=(
-            'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
-            f' and started_at >= "{timestamp}"'
-        ),
+        search_query=f'{label} and started_at >= "{timestamp}"',
         search_rate=15,
         max_tries=10,
     )
     # Find the successful finished task(s)
-    search = (
-        "label = Actions::Katello::Applicability::Hosts::BulkGenerate"
-        " and result = success"
-        f" and started_at >= '{timestamp}'"
-    )
+    search = f'{label} and result = success and ended_at >= "{timestamp}"'
     applicability_task_success = sat.cli.Task.list_tasks({'search': search})
     assert applicability_task_success, f'No successful task found by search: {search}'
 
