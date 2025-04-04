@@ -305,10 +305,10 @@ def sat_default_install(module_sat_ready_rhels):
         f'foreman-initial-admin-password {settings.server.admin_password}',
     ]
     sat = module_sat_ready_rhels.pop()
+    sat.enable_ipv6_dnf_and_rhsm_proxy()
     assert install_satellite(sat, installer_args).status == 0, (
         "Satellite installation failed (non-zero return code)"
     )
-    sat.enable_satellite_ipv6_http_proxy()
     return sat
 
 
@@ -320,11 +320,12 @@ def sat_fapolicyd_install(module_sat_ready_rhels):
         f'foreman-initial-admin-password {settings.server.admin_password}',
     ]
     sat = module_sat_ready_rhels.pop()
+    sat.enable_ipv6_dnf_and_rhsm_proxy()
     assert install_satellite(sat, installer_args, enable_fapolicyd=True).status == 0, (
         "Satellite installation failed (non-zero return code)"
     )
-    sat.enable_ipv6_dnf_and_rhsm_proxy()
-    sat.enable_satellite_http_proxy()
+    if settings.server.is_ipv6:
+        sat.enable_satellite_http_proxy()
     return sat
 
 
@@ -336,15 +337,14 @@ def sat_non_default_install(module_sat_ready_rhels):
         f'foreman-initial-admin-password {settings.server.admin_password}',
         'foreman-rails-cache-store type:file',
         'foreman-proxy-content-pulpcore-hide-guarded-distributions false',
-        'enable-foreman-plugin-discovery',
-        'foreman-proxy-plugin-discovery-install-images true',
     ]
     sat = module_sat_ready_rhels.pop()
+    sat.enable_ipv6_dnf_and_rhsm_proxy()
     assert install_satellite(sat, installer_args, enable_fapolicyd=True).status == 0, (
         "Satellite installation failed (non-zero return code)"
     )
-    sat.enable_satellite_ipv6_http_proxy()
-    sat.execute('dnf -y --disableplugin=foreman-protector install foreman-discovery-image')
+    if settings.server.is_ipv6:
+        sat.enable_satellite_http_proxy()
     return sat
 
 
@@ -724,7 +724,7 @@ def test_weak_dependency(sat_non_default_install, package):
     :id: c7988920-2f8c-4646-bde9-8823a3ca96bb
 
     :steps:
-        1. Use satellite with non-default setup (for 'nmap-ncat' enable foreman discovery plugin and install foreman-discovery-image)
+        1. Use satellite with non-default setup
         2. Attempt to remove the package
 
     :expectedresults:
