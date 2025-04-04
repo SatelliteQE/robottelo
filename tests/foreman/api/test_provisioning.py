@@ -142,6 +142,11 @@ def test_rhel_pxe_provisioning(
     host = host.read()
     assert host.build_status_label == 'Installed'
 
+    # The label checked above is generated dynamically and may not necessarily
+    # represent the exact value that is stored in the database
+    found = sat.api.Host().search(query={'search': f'name="{host.name}" and build_status = built'})
+    assert(len(found) == 1)
+
     # Change the hostname of the host as we know it already.
     # In the current infra environment we do not support
     # addressing hosts using FQDNs, falling back to IP.
