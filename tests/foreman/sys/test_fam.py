@@ -231,9 +231,18 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
     if ansible_module in FAM_TEST_LIBVIRT_PLAYBOOKS:
         module_target_sat.configure_libvirt_cr()
 
+    env = [
+        'NO_COLOR=1',
+        'PYTEST_DISABLE_PLUGIN_AUTOLOAD=1',
+        'ANSIBLE_HOST_PATTERN_MISMATCH=ignore',
+    ]
+
+    if settings.server.is_ipv6 and ansible_module in ['redhat_manifest']:
+        env.append(f'HTTPS_PROXY={settings.http_proxy.http_proxy_ipv6_url}')
+
     # Execute test_playbook
     result = module_target_sat.execute(
-        f'NO_COLOR=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ANSIBLE_HOST_PATTERN_MISMATCH=ignore make --directory {FAM_ROOT_DIR} livetest_{ansible_module} PYTHON_COMMAND="python3" PYTEST_COMMAND="pytest-3.12"',
+        f'{" ".join(env)} make --directory {FAM_ROOT_DIR} livetest_{ansible_module} PYTHON_COMMAND="python3" PYTEST_COMMAND="pytest-3.12"',
         timeout="30m",
     )
     assert result.status == 0, f"{result.status=}\n{result.stdout=}\n{result.stderr=}"
