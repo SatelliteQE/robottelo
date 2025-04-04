@@ -10,6 +10,7 @@ import pytest
 
 from robottelo import constants
 from robottelo.config import settings
+from robottelo.enums import HostNetworkType
 from robottelo.hosts import ContentHost, Satellite
 
 
@@ -37,6 +38,8 @@ def host_conf(request):
         deploy_kwargs = settings.content_host.get(_rhelver).to_dict().get('vm', {})
         if network := params.get('network'):
             deploy_kwargs.update({'deploy_network_type': network})
+    if network := params.get('network'):  # TODO(ogajduse) optimize multiple calls
+        conf.update({'net_type': network})
     conf.update(deploy_kwargs)
     return conf
 
@@ -206,7 +209,7 @@ def rhel_contenthost_with_repos(request, target_sat):
     repositories on the host"""
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         # add IPv6 proxy for IPv6 communication
-        if settings.server.is_ipv6:
+        if host.network_type == HostNetworkType.IPV6:
             host.enable_ipv6_dnf_and_rhsm_proxy()
             host.enable_ipv6_system_proxy()
 
