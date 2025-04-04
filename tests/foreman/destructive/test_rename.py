@@ -63,19 +63,19 @@ def test_positive_rename_satellite(module_org, module_product, module_target_sat
     username = settings.server.admin_username
     password = settings.server.admin_password
     old_hostname = module_target_sat.execute('hostname').stdout.strip()
-    new_hostname = f'new-{old_hostname}'
+    new_hostname = f'{old_hostname.split(".")[0]}-changed.{".".join(old_hostname.split(".")[1:])}'
     # create installation medium with hostname in path
     medium_path = f'http://{old_hostname}/testpath-{gen_string("alpha")}/os/'
     medium = module_target_sat.api.Media(organization=[module_org], path_=medium_path).create()
     repo = module_target_sat.api.Repository(product=module_product, name='testrepo').create()
     # create /etc/hosts entry to pass s-c-h validation
     sat_ip = module_target_sat.execute(
-        "ip addr show eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1"
+        "ip addr show scope global | awk '/inet6?/{print$2}' | cut -d/ -f1"
     ).stdout.strip()
     module_target_sat.execute(f'echo "{sat_ip} {old_hostname} {new_hostname}" >> /etc/hosts')
     result = module_target_sat.execute(
         f'satellite-change-hostname {new_hostname} -y -u {username} -p {password}',
-        timeout=1200000,
+        timeout='20m',
     )
     assert result.status == 0, 'unsuccessful rename'
     assert BCK_MSG in result.stdout
@@ -113,6 +113,7 @@ def test_positive_rename_satellite(module_org, module_product, module_target_sat
     )
 
     # check for any other occurences of old hostname
+    # TODO
     result = module_target_sat.execute(f'grep " {old_hostname}" --exclude-dir="promtail" /etc/* -r')
     assert result.status != 0, 'there are remaining instances of the old hostname'
 
