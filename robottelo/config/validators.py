@@ -1,6 +1,7 @@
 from dynaconf import Validator
 
 from robottelo.constants import AZURERM_VALID_REGIONS, VALID_GCE_ZONES
+from robottelo.enums import HostNetworkType
 
 VALIDATORS = dict(
     supportability=[
@@ -35,18 +36,19 @@ VALIDATORS = dict(
         Validator('server.ssh_username', default='root'),
         Validator('server.ssh_password', default=None),
         Validator('server.verify_ca', default=False),
-        Validator('server.network_type', default='ipv4', is_in=['ipv4', 'ipv6', 'dualstack']),
-        Validator('server.is_ipv6', is_type_of=bool, default=False),
+        # TODO(ogajduse): should we have a default value for network_type?
+        Validator('server.network_type', must_exist=True, is_in=HostNetworkType.list_values()),
+        Validator('server.is_ipv6', is_type_of=bool, must_exist=False),
     ],
     content_host=[
         Validator('content_host.default_rhel_version', must_exist=True),
         Validator('content_host.attributes', must_exist=True, is_type_of=dict),
-        # TODO(ogajduse): is_in from the enum, need to solve circular imports
         Validator(
             'content_host.attributes.network_type',
             must_exist=True,
-            is_in=['ipv4', 'ipv6', 'dualstack'],
-            default='dualstack',
+            is_in=HostNetworkType.list_values(),
+            # TODO(ogajduse): should we have a default value for network_type?
+            default=HostNetworkType.DUALSTACK.value,
         ),
     ],
     subscription=[
@@ -206,11 +208,11 @@ VALIDATORS = dict(
             'http_proxy.password',
             must_exist=True,
         ),
-        # validate http_proxy_ipv6_url only if server.is_ipv6 is True
+        # validate http_proxy_ipv6_url only if server.network_type is ipv6
         Validator(
             'http_proxy.http_proxy_ipv6_url',
             is_type_of=str,
-            when=Validator('server.is_ipv6', eq=True),
+            when=Validator('server.network_type', eq=HostNetworkType.IPV6.value),
         ),
     ],
     ipa=[

@@ -15,7 +15,7 @@
 from fauxfactory import gen_integer, gen_ipaddr, gen_string
 import pytest
 
-from robottelo.config import settings
+from robottelo.enums import HostNetworkType
 
 
 @pytest.fixture
@@ -194,7 +194,8 @@ def test_positive_list_host_based_on_rule_search_query(
 
     :BZ: 1731112
     """
-    ip_address = gen_ipaddr(ipv6=settings.server.is_ipv6)
+    # TODO(sganar): How should this test case look like for dualstack?
+    ip_address = gen_ipaddr(ipv6=target_sat.network_type == HostNetworkType.IPV6)
     cpu_count = gen_integer(2, 10)
     rule_name = gen_string('alpha')
     rule_search = f'cpu_count = {cpu_count}'
@@ -240,7 +241,11 @@ def test_positive_list_host_based_on_rule_search_query(
         values = session.discoveryrule.read_discovered_hosts(discovery_rule.name)
         assert values['searchbox'] == rule_search
         assert len(values['table']) == 1
-        assert values['table'][0]['IPv6' if settings.server.is_ipv6 else 'IPv4'] == ip_address
+        if target_sat.network_type in [HostNetworkType.IPV6, HostNetworkType.DUALSTACK]:
+            lookup = HostNetworkType.IPV6.formatted
+        else:
+            lookup = HostNetworkType.IPV4.formatted
+        assert values['table'][0][lookup] == ip_address
         assert values['table'][0]['CPUs'] == str(cpu_count)
         # auto provision the discovered host
         result = target_sat.api.DiscoveredHost(id=discovered_host['id']).auto_provision()
