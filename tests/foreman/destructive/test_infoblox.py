@@ -16,6 +16,7 @@ import requests
 from requests.exceptions import HTTPError
 
 from robottelo.config import settings
+from robottelo.enums import HostNetworkType
 from robottelo.utils.installer import InstallerCommand
 
 pytestmark = pytest.mark.destructive
@@ -175,7 +176,7 @@ def test_infoblox_end_to_end(
     assert f'current: "{settings.infoblox.hostname}"' in installer.stdout
 
     macaddress = gen_mac(multicast=False)
-    is_ipv6 = settings.server.is_ipv6
+    is_ipv6 = module_target_sat.network_type == HostNetworkType.IPV6
     # using the domain name as defined in Infoblox DNS
     domain = module_target_sat.api.Domain(
         name=settings.infoblox.domain,
@@ -186,7 +187,7 @@ def test_infoblox_end_to_end(
         location=[module_location],
         organization=[module_sca_manifest_org],
         network=settings.infoblox.network,
-        network_type='IPv6' if is_ipv6 else 'IPv4',
+        network_type='IPv6' if is_ipv6 else 'IPv4',  # TODO(sganar): What should we set here in case of dualstack?
         cidr=settings.infoblox.network_prefix,
         mask=settings.infoblox.netmask,
         from_=None if is_ipv6 else settings.infoblox.start_range,
