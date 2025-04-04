@@ -7,8 +7,11 @@ should be named `migration_<YYMMDD>_<description>` and accept two parameters: `s
 The functions should not return anything.
 """
 
+import warnings
+
 from packaging.version import Version
 
+from robottelo.enums import HostNetworkType
 from robottelo.logging import logger
 
 
@@ -47,3 +50,20 @@ def migration_241120_http_proxy_ipv6_url(settings, data):
         data.http_proxy = {}
         data.http_proxy.http_proxy_ipv6_url = settings.server.http_proxy_ipv6_url
         logger.info('Migrated SERVER.HTTP_PROXY_IPv6_URL to HTTP_PROXY.HTTP_PROXY_IPV6_URL')
+
+
+def migration_250404_network_type(settings, data):
+    """Migrates server.is_ipv6 to server.network_type"""
+    if hasattr(settings.server, 'is_ipv6') and not settings.server.get('network_type'):
+        warnings.warn(
+            'The SERVER.IS_IPV6 setting is deprecated. Use SERVER.NETWORK_TYPE instead.',
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        n_type = HostNetworkType.IPV6 if settings.server.is_ipv6 else HostNetworkType.IPV4
+        if not hasattr(data, 'server'):
+            data.server = {}
+        data.server.network_type = str(n_type)
+        # Remove the old setting
+        data.server.is_ipv6 = '@del'
+        logger.info('Migrated SERVER.IS_IPV6 to SERVER.NETWORK_TYPE')
