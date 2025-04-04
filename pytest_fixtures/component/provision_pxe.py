@@ -11,6 +11,7 @@ import pytest
 
 from robottelo import constants
 from robottelo.config import settings
+from robottelo.enums import HostNetworkType
 from robottelo.hosts import ContentHost
 
 
@@ -150,6 +151,7 @@ def module_provisioning_sat(
     provisioning_type = getattr(request, 'param', '')
     sat = module_target_sat
     provisioning_domain_name = f"{gen_string('alpha').lower()}.foo"
+    sat_ipv6 = sat.network_type == HostNetworkType.IPV6
 
     broker_data_out = Broker().execute(
         workflow=settings.provisioning.provisioning_sat_workflow,
@@ -167,19 +169,19 @@ def module_provisioning_sat(
     # we might need to set up Sat's DNS server as the primary one on the Sat host
     provisioning_upstream_dns_primary = (
         broker_data_out.provisioning_upstream_dns
-        if settings.server.is_ipv6
+        if sat_ipv6
         else broker_data_out.provisioning_upstream_dns.pop()
     )  # There should always be at least one upstream DNS
     provisioning_upstream_dns_secondary = (
         broker_data_out.provisioning_upstream_dns.pop()
-        if len(broker_data_out.provisioning_upstream_dns) and not settings.server.is_ipv6
+        if len(broker_data_out.provisioning_upstream_dns) and not sat_ipv6
         else None
     )
 
     domain = sat.api.Domain(
         location=[module_location],
         organization=[module_sca_manifest_org],
-        dns=None if settings.server.is_ipv6 else module_provisioning_capsule.id,
+        dns=None if sat_ipv6 else module_provisioning_capsule.id,
         name=provisioning_domain_name,
     ).create()
 
@@ -187,7 +189,10 @@ def module_provisioning_sat(
         location=[module_location],
         organization=[module_sca_manifest_org],
         network=str(provisioning_network.network_address),
-        network_type='IPv6' if settings.server.is_ipv6 else 'IPv4',
+        # TODO(sganar): Is this correct for dualstack?
+        network_type=sat.network_type.formatted
+        if sat.network_type == HostNetworkType.IPV4
+        else HostNetworkType.IPV6.formatted,
         vlanid=settings.provisioning.vlan_id,
         mask=str(provisioning_network.netmask),
         gateway=broker_data_out.provisioning_gw_ip,
@@ -196,11 +201,11 @@ def module_provisioning_sat(
         dns_primary=provisioning_upstream_dns_primary,
         dns_secondary=provisioning_upstream_dns_secondary,
         boot_mode='DHCP',
-        ipam='None' if settings.server.is_ipv6 else 'DHCP',
-        dhcp=None if settings.server.is_ipv6 else module_provisioning_capsule.id,
+        ipam='None' if sat_ipv6 else 'DHCP',
+        dhcp=None if sat_ipv6 else module_provisioning_capsule.id,
         tftp=module_provisioning_capsule.id,
         template=module_provisioning_capsule.id,
-        dns=None if settings.server.is_ipv6 else module_provisioning_capsule.id,
+        dns=None if sat_ipv6 else module_provisioning_capsule.id,
         httpboot=module_provisioning_capsule.id,
         discovery=module_provisioning_capsule.id,
         remote_execution_proxy=[module_provisioning_capsule.id],
@@ -221,7 +226,10 @@ def module_ssh_key_file():
 @pytest.fixture
 def provisioning_host(module_ssh_key_file, pxe_loader, module_provisioning_sat):
     """Fixture to check out blank VM"""
-    if pxe_loader.vm_firmware == 'bios' and settings.server.is_ipv6:
+    if (
+        pxe_loader.vm_firmware == 'bios'
+        and module_provisioning_sat.network_type == HostNetworkType.IPV6
+    ):
         pytest.skip('BIOS is not supported with IPv6')
     vlan_id = settings.provisioning.vlan_id
     cd_iso = (
@@ -239,14 +247,15 @@ def provisioning_host(module_ssh_key_file, pxe_loader, module_provisioning_sat):
     ) as prov_host:
         yield prov_host
         # Set host as non-blank to run teardown of the host
-        if not settings.server.is_ipv6:
+        if settings.server.network_type != HostNetworkType.IPV6:
             assert module_provisioning_sat.sat.execute('systemctl restart dhcpd').status == 0
         prov_host.blank = getattr(prov_host, 'blank', False)
 
 
 @pytest.fixture(scope='module')
 def configure_kea_dhcp6_server():
-    if settings.server.is_ipv6:
+    # TODO(sganar): How should we handle this fixture for dualstack?
+    if settings.server.network_type == HostNetworkType.IPV6:
         kea_host = Broker(
             workflow=settings.provisioning.provisioning_kea_workflow,
             artifacts='last',
@@ -272,6 +281,7 @@ def provisioning_hostgroup(
     module_provisioning_capsule,
     pxe_loader,
 ):
+    sat_ipv6 = module_provisioning_sat.network_type == HostNetworkType.IPV6
     return module_provisioning_sat.sat.api.HostGroup(
         organization=[module_sca_manifest_org],
         location=[module_location],
@@ -284,8 +294,8 @@ def provisioning_hostgroup(
         root_pass=settings.provisioning.host_root_password,
         operatingsystem=module_provisioning_rhel_content.os,
         ptable=default_partitiontable,
-        subnet=module_provisioning_sat.subnet if not settings.server.is_ipv6 else None,
-        subnet6=module_provisioning_sat.subnet if settings.server.is_ipv6 else None,
+        subnet=module_provisioning_sat.subnet if not sat_ipv6 else None,
+        subnet6=module_provisioning_sat.subnet if sat_ipv6 else None,
         pxe_loader=pxe_loader.pxe_loader,
         group_parameters_attributes=[
             {

@@ -51,11 +51,11 @@ from robottelo.constants import (
     SATELLITE_VERSION,
     SM_OVERALL_STATUS,
 )
+from robottelo.enums import HostNetworkType
 from robottelo.exceptions import CLIFactoryError, DownloadFileError, HostPingFailed
 from robottelo.host_helpers import (
     CapsuleMixins,
     ContentHostMixins,
-    HostNetworkType,
     SatelliteMixins,
 )
 from robottelo.logging import logger
@@ -77,7 +77,6 @@ def lru_sat_ready_rhel(rhel_ver):
     rhel_version = rhel_ver or settings.server.version.rhel_version
     deploy_args = settings.server.deploy_arguments | {
         'deploy_rhel_version': rhel_version,
-        'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',  # fix ipv6
         'deploy_flavor': settings.flavors.default,
         'workflow': settings.server.deploy_workflows.os,
     }
@@ -1644,6 +1643,13 @@ class Capsule(ContentHost, CapsuleMixins):
     upstream_rpm_name = 'foreman-proxy'
 
     @property
+    def network_type(self):
+        """Get the network type of the host"""
+        if not self._net_type:
+            self._net_type = HostNetworkType(settings.capsule.network_type)
+        return self._net_type
+
+    @property
     def nailgun_capsule(self):
         return self.satellite.api.Capsule().search(query={'search': f'name={self.hostname}'})[0]
 
@@ -2208,7 +2214,7 @@ class Satellite(Capsule, SatelliteMixins):
         )
         http_proxy = (
             f'HTTP_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
-            if settings.server.is_ipv6
+            if self.network_type == HostNetworkType.IPV6
             else ''
         )
         self.execute(
@@ -2814,9 +2820,6 @@ class IPAHost(Host):
     def __init__(self, sat_obj, **kwargs):
         self.satellite = sat_obj
         kwargs['hostname'] = kwargs.get('hostname', settings.ipa.hostname)
-        kwargs['ipv6'] = kwargs.get(
-            'ipv6', settings.server.is_ipv6
-        )  # fix ipv6 according to SSOHost
         # Allow the class to be constructed from kwargs
         kwargs['from_dict'] = True
         kwargs.update(
@@ -2938,9 +2941,6 @@ class ProxyHost(Host):
         self._conf_dir = '/etc/squid/'
         self._access_log = '/var/log/squid/access.log'
         kwargs['hostname'] = urlparse(url).hostname
-        kwargs['ipv6'] = kwargs.get(
-            'ipv6', settings.server.is_ipv6
-        )  # fix ipv6 according to SSOHost
         super().__init__(**kwargs)
 
     def add_user(self, name, passwd):

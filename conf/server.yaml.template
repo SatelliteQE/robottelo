@@ -15,8 +15,6 @@ SERVER:
     RHEL_VERSION: '9'
   # Network type on which the Satellite server deployed
   NETWORK_TYPE: ipv4  # could be one of ["ipv4", "ipv6", "dualstack"]
-  # If the Satellite server is IPv6 server
-  IS_IPV6: '@jinja {{ this.server.network_type == "ipv6" }}'
   # run-on-one - All xdist runners default to the first satellite
   # balance - xdist runners will be split between available satellites
   # on-demand - any xdist runner without a satellite will have a new one provisioned.

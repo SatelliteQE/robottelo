@@ -880,7 +880,7 @@ def test_positive_apply_for_all_hosts(
         workflow='deploy-template',
         host_class=ContentHost,
         _count=num_hosts,
-        deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
+        deploy_network_type=settings.content_host.attibutes.network_type,
     ) as hosts:
         if not isinstance(hosts, list) or len(hosts) != num_hosts:
             pytest.fail('Failed to provision the expected number of hosts.')

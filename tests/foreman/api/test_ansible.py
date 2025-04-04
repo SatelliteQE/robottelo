@@ -19,6 +19,7 @@ from wait_for import wait_for
 
 from robottelo.config import settings, user_nailgun_config
 from robottelo.hosts import ContentHost
+from robottelo.enums import HostNetworkType
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -84,7 +85,7 @@ class TestAnsibleCfgMgmt:
         """
         http_proxy = (
             f'HTTPS_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
-            if settings.server.is_ipv6
+            if target_sat.network_type == HostNetworkType.IPV6
             else ''
         )
         assert (

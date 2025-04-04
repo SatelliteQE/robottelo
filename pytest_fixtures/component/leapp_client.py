@@ -163,7 +163,7 @@ def custom_leapp_host(upgrade_path, module_target_sat, module_sca_manifest_org, 
         host_class=ContentHost,
         deploy_rhel_version=upgrade_path['source_version'],
         deploy_flavor=settings.flavors.default,
-        deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',  # fix ipv6
+        deploy_network_type=settings.content_host.attributes.network_type,
     ) as chost:
         result = chost.register(
             module_sca_manifest_org, None, function_leapp_ak.name, module_target_sat
