@@ -96,6 +96,8 @@ def test_rhel_pxe_provisioning(
 
     :BZ: 2105441, 1955861, 1784012
 
+    :Verifies:SAT-20739,SAT-27869
+
     :customerscenario: true
 
     :parametrized: yes
