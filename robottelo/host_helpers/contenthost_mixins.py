@@ -6,6 +6,7 @@ from tempfile import NamedTemporaryFile
 
 from robottelo import constants
 from robottelo.config import robottelo_tmp_dir, settings
+from robottelo.enums import HostNetworkType
 from robottelo.logging import logger
 from robottelo.utils.ohsnap import dogfood_repofile_url, dogfood_repository
 
@@ -109,11 +110,9 @@ class VersionedContent:
     def download_repofile(self, product=None, release=None, snap='', proxy=None):
         """Downloads the tools/client, capsule, or satellite repos on the machine"""
         product, release, v_major, _ = self._dogfood_helper(product, release)
-        if not proxy and settings.server.is_ipv6:
-            proxy = settings.http_proxy.http_proxy_ipv6_url
         url = dogfood_repofile_url(settings.ohsnap, product, release, v_major, snap, proxy=proxy)
         command = f'curl -o /etc/yum.repos.d/{product}.repo -L {url}'
-        if settings.server.is_ipv6:
+        if self.network_type == HostNetworkType.IPV6:
             command += f' -x {settings.http_proxy.http_proxy_ipv6_url}'
         self.execute(command)
 
