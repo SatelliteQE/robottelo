@@ -1315,13 +1315,20 @@ class TestPullProviderRex:
         result = client.execute(f'systemctl status {service_name}')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
 
+        # yggdrasil 0.4+ uses a separate service for configuration
+        worker_service = (
+            service_name
+            if service_name == "yggdrasild"
+            else "com.redhat.Yggdrasil1.Worker1.foreman"
+        )
+
         # create a new directory and set in in yggdrasil
         path = f'/{gen_string("alpha")}'
-        config_path_dir = f'/etc/systemd/system/{service_name}.service.d/'
+        config_path_dir = f'/etc/systemd/system/{worker_service}.service.d/'
         config_path = f'{config_path_dir}/override.conf'
         assert (
             client.execute(
-                f'mkdir {path} && mount -t tmpfs tmpfs {path} && mkdir {config_path_dir} && echo -e "[Service]\nEnvironment=FOREMAN_YGG_WORKER_WORKDIR={path}" > {config_path} && systemctl daemon-reload && systemctl restart {service_name}'
+                f'mkdir {path} && mount -t tmpfs tmpfs {path} && mkdir {config_path_dir} && echo -e "[Service]\nEnvironment=FOREMAN_YGG_WORKER_WORKDIR={path}" > {config_path} && systemctl daemon-reload && systemctl restart {worker_service}'
             ).status
             == 0
         )
