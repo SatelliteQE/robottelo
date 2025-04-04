@@ -198,7 +198,7 @@ def test_positive_export_filtered_templates_to_git(session, git_repository, git_
     :id: e4de338a-9ab9-492e-ac42-6cc2ebcd1792
 
     :steps:
-        1. Export only the templates matching with regex e.g: `^atomic.*` to git repo.
+        1. Export only the templates matching with regex e.g: `^provision.*` to git repo.
 
     :expectedresults:
         1. Assert matching templates are exported to git repo.
@@ -216,7 +216,7 @@ def test_positive_export_filtered_templates_to_git(session, git_repository, git_
             {
                 'sync_type': 'Export',
                 'template.metadata_export_mode': 'Keep',
-                'template.filter': 'atomic',
+                'template.filter': 'provision',
                 'template.repo': url,
                 'template.branch': git_branch,
                 'template.dirname': dirname,
@@ -234,4 +234,4 @@ def test_positive_export_filtered_templates_to_git(session, git_repository, git_
             auth=auth,
             params={"ref": git_branch},
         ).json()
-        assert len(git_count) == 1
+        assert len(git_count) > 0
