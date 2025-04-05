@@ -13,7 +13,7 @@
 """
 
 # For ease of use hc refers to host-collection throughout this document
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from time import sleep, time
 
 import pytest
@@ -37,6 +37,7 @@ from robottelo.constants import (
     REAL_RHEL8_1_PACKAGE_FILENAME,
     REPOS,
     REPOSET,
+    TIMESTAMP_FMT_DATE,
 )
 
 pytestmark = [
@@ -1656,11 +1657,7 @@ def test_positive_filter_errata_type_other(
 
     """
     # newest version rhel
-    rhel_N = next(
-        r
-        for r in reversed(settings.supportability.content_hosts.rhel.versions)
-        if 'fips' not in str(r)
-    )
+    rhel_N = target_sat.api_factory.supported_rhel_ver(num=1)
     # fetch a newly generated PGP key from address's response
     gpg_url = f'https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{rhel_N}'
     _response = requests.get(gpg_url, timeout=120, verify=True)
@@ -1699,7 +1696,7 @@ def test_positive_filter_errata_type_other(
         inclusion=True,
     ).create()
 
-    today_UTC = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    today_UTC = datetime.now(UTC).strftime(TIMESTAMP_FMT_DATE)
     # rule to filter erratum by date, only specify end_date
     errata_rule = target_sat.api.ContentViewFilterRule(
         content_view_filter=errata_filter,

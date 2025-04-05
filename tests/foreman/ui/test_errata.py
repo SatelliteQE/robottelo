@@ -46,6 +46,7 @@ from robottelo.constants import (
     REAL_RHEL8_1_ERRATA_ID,
     REAL_RHEL8_ERRATA_CVES,
     REAL_RHSCLIENT_ERRATA,
+    TIMESTAMP_FMT,
 )
 from robottelo.hosts import ContentHost
 from robottelo.utils.issue_handlers import is_open
@@ -860,14 +861,18 @@ def test_positive_apply_for_all_hosts(
         hosts.
     """
     num_hosts = 4
-    distro = 'rhel10'
+    rhel_distro = target_sat.api_factory.supported_rhel_ver(
+        prefix='rhel',
+        num=1,
+    )
     # one custom repo on satellite, for all hosts to use
     custom_repo = target_sat.api.Repository(url=CUSTOM_REPO_URL, product=module_product).create()
     custom_repo.sync()
     module_cv.repository = [custom_repo]
     module_cv.update(['repository'])
+    # Checkout hosts of the newest distro supported
     with Broker(
-        nick=distro,
+        nick=rhel_distro,
         workflow='deploy-template',
         host_class=ContentHost,
         _count=num_hosts,
@@ -897,7 +902,10 @@ def test_positive_apply_for_all_hosts(
             assert client.applicable_package_count > 0
 
         with session:
-            timestamp = datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=1)
+            # possible in-progress applicability task(s), 60s margin
+            timestamp = (datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=60)).strftime(
+                TIMESTAMP_FMT
+            )
             session.location.select(loc_name=DEFAULT_LOC)
             # for first errata, apply to all chosts at once,
             # from ContentTypes > Errata > info > ContentHosts tab
@@ -930,8 +938,8 @@ def test_positive_apply_for_all_hosts(
                 search_query=(
                     f'Bulk generate applicability for hosts and started_at >= {timestamp}'
                 ),
-                search_rate=2,
-                max_tries=60,
+                search_rate=10,
+                max_tries=20,
             )
             assert len(applicability_task) == 1
             # found updated kangaroo package in each host
