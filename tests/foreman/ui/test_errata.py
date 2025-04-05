@@ -902,7 +902,8 @@ def test_positive_apply_for_all_hosts(
             assert client.applicable_package_count > 0
 
         with session:
-            timestamp = (datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=10)).strftime(
+            # possible in-progress applicability task(s), 60s margin
+            timestamp = (datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=60)).strftime(
                 TIMESTAMP_FMT
             )
             session.location.select(loc_name=DEFAULT_LOC)
@@ -934,9 +935,11 @@ def test_positive_apply_for_all_hosts(
             assert len(install_tasks) == num_hosts
             # find single bulk applicability task for hosts
             applicability_task = target_sat.wait_for_tasks(
-                search_query=(f'Bulk generate applicability for hosts and ended_at >= {timestamp}'),
-                search_rate=2,
-                max_tries=60,
+                search_query=(
+                    f'Bulk generate applicability for hosts and started_at >= {timestamp}'
+                ),
+                search_rate=10,
+                max_tries=20,
             )
             assert len(applicability_task) == 1
             # found updated kangaroo package in each host
