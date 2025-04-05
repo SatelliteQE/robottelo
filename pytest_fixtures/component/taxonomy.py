@@ -225,3 +225,11 @@ def sca_manifest_for_upgrade():
     """Returns a manifest in sca mode. Used only for upgrade scenarios"""
     manifester = Manifester(manifest_category=settings.manifest.golden_ticket)
     return manifester.get_manifest(), manifester
+
+
+@pytest.fixture
+def func_future_dated_subscription_manifest(target_sat, function_org):
+    """Create and upload future date subscription manifest into org"""
+    with Manifester(manifest_category=settings.manifest.future_date_subscription) as manifest:
+        target_sat.upload_manifest(function_org.id, manifest.content)
+    return manifest

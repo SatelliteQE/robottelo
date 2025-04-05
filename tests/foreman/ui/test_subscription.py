@@ -15,9 +15,11 @@
 from datetime import datetime, timedelta
 from tempfile import mkstemp
 import time
+from zoneinfo import ZoneInfo
 
 from fauxfactory import gen_string
 import pytest
+from tzlocal import get_localzone_name
 
 from robottelo.config import settings
 from robottelo.constants import (
@@ -523,3 +525,42 @@ def test_positive_check_manifest_validity_notification(
         session.subscription.delete_manifest(
             ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound']
         )
+
+
+def test_positive_populate_future_date_subcription(
+    target_sat,
+    function_org,
+    func_future_dated_subscription_manifest,
+):
+    """Upload manifest which has future date subscription and verify future date subscription populated
+
+    :id: 87683cfc-8e65-4392-a437-ad5d88f5f618
+
+    :expectedresults:
+        1. Future date subscription should populate in Subscription table
+
+    :Verifies: SAT-29203
+
+    :customerscenario: true
+    """
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        assert session.subscription.has_manifest, 'Manifest not uploaded'
+
+        # Get current date time and convert into date
+        current_datetime = datetime.now(ZoneInfo(get_localzone_name()))
+        current_date = current_datetime.date()
+
+        # Get subscription Start Date and compare with current date
+        subscriptions = session.subscription.read_subscriptions()
+        if not any(
+            datetime.strptime(sub['Start Date'], '%Y-%m-%d %H:%M:%S %Z').date() > current_date
+            for sub in subscriptions
+        ):
+            raise AssertionError('Subscription start date is not in the future')
+
+        # Delete the manifest from Organization
+        session.subscription.delete_manifest(
+            ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound']
+        )
+        assert not session.subscription.has_manifest, 'Manifest was not deleted'
