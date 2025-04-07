@@ -163,6 +163,7 @@ def rh_repo_module_manifest(module_sca_manifest_org, module_target_sat):
 def hosts(request):
     """Deploy hosts via broker by distro and host count.
     Parametrize with tuple, (str<distro>, int<num_hosts>), or just one, or neither.
+    @pytest.mark.parametrize('hosts', [('rhel9', 2)], indirect=True)
 
     Default: Robotello settings: Default RHEL Version, num_host of 2.
     """
@@ -199,7 +200,7 @@ def register_hosts(
 
     parametrize by fixture `hosts`, example:
         @pytest.mark.parametrize('hosts', [('rhel10', 4)], indirect=True)
-    Default: 2nd newest supported RHEL version, 2 clients.
+    Default: DEFAULT Robottelo RHEL version, 2 clients.
     """
     for host in hosts:
         module_target_sat.cli_factory.setup_org_for_a_custom_repo(
@@ -227,7 +228,7 @@ def errata_hosts(register_hosts, target_sat):
 
     parametrize by fixture `hosts`, example:
         @pytest.mark.parametrize('hosts', [('rhel10', 4)], indirect=True)
-    Default: 2nd newest supported RHEL version, 2 clients.
+    Default: DEFAULT Robottelo RHEL version, 2 clients.
     """
     for host in register_hosts:
         # Enable all custom and rh repositories.

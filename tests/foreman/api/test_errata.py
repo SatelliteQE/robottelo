@@ -1218,7 +1218,11 @@ def test_positive_get_diff_for_cv_envs(target_sat):
     org = target_sat.api.Organization().create()
     env = target_sat.api.LifecycleEnvironment(organization=org).create()
     content_view = target_sat.api.ContentView(organization=org).create()
-    activation_key = target_sat.api.ActivationKey(environment=env, organization=org).create()
+    activation_key = target_sat.api.ActivationKey(
+        content_view=content_view.read(),
+        organization=org,
+        environment=env,
+    ).create()
     # Published content-view-version with repos will be created
     for repo_url in [settings.repos.yum_9.url, CUSTOM_REPO_URL]:
         target_sat.cli_factory.setup_org_for_a_custom_repo(

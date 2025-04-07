@@ -47,6 +47,7 @@ from robottelo.constants import (
     REAL_RHEL8_ERRATA_CVES,
     REAL_RHSCLIENT_ERRATA,
     TIMESTAMP_FMT,
+    TIMESTAMP_FMT_ZONE,
 )
 from robottelo.hosts import ContentHost
 from robottelo.utils.issue_handlers import is_open
@@ -364,7 +365,9 @@ def test_end_to_end(
     )
 
     with session:
-        datetime_utc_start = datetime.now(UTC).replace(microsecond=0)
+        # start times, one of which is timezone aware ('UTC') , and the other is not
+        datetime_utc_start = datetime.now(UTC).replace(microsecond=0).strftime(TIMESTAMP_FMT_ZONE)
+        datetime_start = datetime.now(UTC).replace(microsecond=0).strftime(TIMESTAMP_FMT)
         # Check selection box function for BZ#1688636
         session.location.select(loc_name=DEFAULT_LOC)
         results = session.errata.search_content_hosts(
@@ -427,8 +430,8 @@ def test_end_to_end(
             search=f"errata_id == {CUSTOM_REPO_ERRATA_ID}",
         )
         install_query = (
-            f'"Install errata errata_id == {CUSTOM_REPO_ERRATA_ID} on {hostname}"'
-            f' and started_at >= {datetime_utc_start - timedelta(seconds=1)}'
+            f'Install errata {CUSTOM_REPO_ERRATA_ID.lower()} on {hostname}'
+            f' and started_at >= "{datetime_start}"'
         )
         results = module_target_sat.wait_for_tasks(
             search_query=install_query,
@@ -447,9 +450,8 @@ def test_end_to_end(
             f'Unexpected applicable errata found after install of {CUSTOM_REPO_ERRATA_ID}.'
         )
         # UTC timing for install task and session
-        _UTC_format = '%Y-%m-%d %H:%M:%S UTC'
-        install_start = datetime.strptime(task_status['started_at'], _UTC_format)
-        install_end = datetime.strptime(task_status['ended_at'], _UTC_format)
+        install_start = datetime.strptime(task_status['started_at'], TIMESTAMP_FMT_ZONE)
+        install_end = datetime.strptime(task_status['ended_at'], TIMESTAMP_FMT_ZONE)
         # install task duration did not exceed 1 minute,
         #   duration since start of session did not exceed 10 minutes.
         assert (install_end - install_start).total_seconds() <= 60
@@ -466,8 +468,8 @@ def test_end_to_end(
             f'Bulk Generate Errata Applicability task failed:\n{task_status}'
         )
         # UTC timing for generate applicability task
-        bulk_gen_start = datetime.strptime(task_status['started_at'], _UTC_format)
-        bulk_gen_end = datetime.strptime(task_status['ended_at'], _UTC_format)
+        bulk_gen_start = datetime.strptime(task_status['started_at'], TIMESTAMP_FMT_ZONE)
+        bulk_gen_end = datetime.strptime(task_status['ended_at'], TIMESTAMP_FMT_ZONE)
         assert (bulk_gen_start - install_end).total_seconds() <= 30
         assert (bulk_gen_end - bulk_gen_start).total_seconds() <= 60
 
@@ -1560,7 +1562,8 @@ def test_positive_filtered_errata_status_installable_param(
     module_cv.version.sort(key=lambda version: version.id)
     errata = target_sat.api.Errata(content_view_version=module_cv.version[-1]).search(
         query={'search': f'errata_id="{CUSTOM_REPO_ERRATA_ID}"'}
-    )[0]
+    )
+    assert (errata := errata[0])
     target_sat.api.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
     module_cv = module_cv.read()
     # publish and promote the new version with Filter
