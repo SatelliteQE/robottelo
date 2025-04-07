@@ -1545,8 +1545,10 @@ def test_errata_list_by_contentview_filter(module_sca_manifest_org, module_targe
     assert errata_count != errata_count_cvf
 
 
-@pytest.mark.rhel_ver_match('N-2')
-def test_positive_verify_errata_recalculate_tasks(target_sat, errata_host):
+@pytest.mark.parametrize(
+    'hosts', [(f'rhel{settings.content_host.default_rhel_version}', 4)], indirect=True
+)
+def test_positive_verify_errata_recalculate_tasks(target_sat, errata_hosts):
     """Verify 'Actions::Katello::Applicability::Hosts::BulkGenerate' tasks proceed on 'worker-hosts-queue-1.service'
 
     :id: d5f89df2-b8fb-4aec-839d-b548b0aadc0c
@@ -1563,7 +1565,7 @@ def test_positive_verify_errata_recalculate_tasks(target_sat, errata_host):
 
     :BZ: 2249736
     """
-    # Recalculate errata command has triggered inside errata_host fixture
+    # Recalculate errata command has triggered inside errata_hosts fixture
 
     # get PID of 'worker-hosts-queue-1' from /var/log/messages
     message_log = target_sat.execute(

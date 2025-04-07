@@ -16,6 +16,7 @@ from datetime import UTC, datetime, timedelta
 import re
 
 from broker import Broker
+from dateutil import parser
 from dateutil.parser import parse
 from fauxfactory import gen_string
 import pytest
@@ -47,7 +48,6 @@ from robottelo.constants import (
     REAL_RHEL8_ERRATA_CVES,
     REAL_RHSCLIENT_ERRATA,
     TIMESTAMP_FMT,
-    TIMESTAMP_FMT_ZONE,
 )
 from robottelo.hosts import ContentHost
 from robottelo.utils.issue_handlers import is_open
@@ -365,9 +365,9 @@ def test_end_to_end(
     )
 
     with session:
-        # start times, one of which is timezone aware ('UTC') , and the other is not
-        datetime_utc_start = datetime.now(UTC).replace(microsecond=0).strftime(TIMESTAMP_FMT_ZONE)
-        datetime_start = datetime.now(UTC).replace(microsecond=0).strftime(TIMESTAMP_FMT)
+        # keep timestamp as datetime obj, so we can subtract later.
+        #   timezone-aware (UTC), as task's start/end times are also timezone-aware.
+        timestamp_start = datetime.now(UTC).replace(microsecond=0)
         # Check selection box function for BZ#1688636
         session.location.select(loc_name=DEFAULT_LOC)
         results = session.errata.search_content_hosts(
@@ -429,9 +429,10 @@ def test_end_to_end(
             entity_name=hostname,
             search=f"errata_id == {CUSTOM_REPO_ERRATA_ID}",
         )
+        # str timestamp to scope tasks, does not include timezone.
         install_query = (
             f'Install errata {CUSTOM_REPO_ERRATA_ID.lower()} on {hostname}'
-            f' and started_at >= "{datetime_start}"'
+            f' and started_at >= "{timestamp_start.strftime(TIMESTAMP_FMT)}"'
         )
         results = module_target_sat.wait_for_tasks(
             search_query=install_query,
@@ -450,12 +451,12 @@ def test_end_to_end(
             f'Unexpected applicable errata found after install of {CUSTOM_REPO_ERRATA_ID}.'
         )
         # UTC timing for install task and session
-        install_start = datetime.strptime(task_status['started_at'], TIMESTAMP_FMT_ZONE)
-        install_end = datetime.strptime(task_status['ended_at'], TIMESTAMP_FMT_ZONE)
+        install_start = parser.parse(task_status['started_at'])
+        install_end = parser.parse(task_status['ended_at'])
         # install task duration did not exceed 1 minute,
         #   duration since start of session did not exceed 10 minutes.
         assert (install_end - install_start).total_seconds() <= 60
-        assert (install_end - datetime_utc_start).total_seconds() <= 600
+        assert (install_end - timestamp_start).total_seconds() <= 600
         # Find bulk generate applicability task
         results = module_target_sat.wait_for_tasks(
             search_query=(f'Bulk generate applicability for host {hostname}'),
@@ -468,8 +469,8 @@ def test_end_to_end(
             f'Bulk Generate Errata Applicability task failed:\n{task_status}'
         )
         # UTC timing for generate applicability task
-        bulk_gen_start = datetime.strptime(task_status['started_at'], TIMESTAMP_FMT_ZONE)
-        bulk_gen_end = datetime.strptime(task_status['ended_at'], TIMESTAMP_FMT_ZONE)
+        bulk_gen_start = parser.parse(task_status['started_at'])
+        bulk_gen_end = parser.parse(task_status['ended_at'])
         assert (bulk_gen_start - install_end).total_seconds() <= 30
         assert (bulk_gen_end - bulk_gen_start).total_seconds() <= 60
 
@@ -865,8 +866,8 @@ def test_positive_apply_for_all_hosts(
     """
     num_hosts = 4
     rhel_distro = target_sat.api_factory.supported_rhel_ver(
-        prefix='rhel',
         num=1,
+        prefix='rhel',
     )
     # one custom repo on satellite, for all hosts to use
     custom_repo = target_sat.api.Repository(url=CUSTOM_REPO_URL, product=module_product).create()
@@ -1031,6 +1032,11 @@ def test_positive_filter_by_environment(
 
     :expectedresults: Content hosts can be filtered by Environment.
     """
+    # use newest supported version of RHEL (ie 'rhel10')
+    rhel_N = target_sat.api_factory.supported_rhel_ver(
+        num=1,
+        prefix='rhel',
+    )
     org = module_sca_manifest_org
     # one custom repo on satellite, for all hosts to use
     custom_repo = target_sat.api.Repository(url=CUSTOM_REPO_URL, product=module_product).create()
@@ -1039,7 +1045,7 @@ def test_positive_filter_by_environment(
     module_cv.update(['repository'])
 
     with Broker(
-        nick='rhel10', workflow='deploy-template', host_class=ContentHost, _count=3
+        nick=rhel_N, workflow='deploy-template', host_class=ContentHost, _count=3
     ) as clients:
         for client in clients:
             # register all hosts to the same AK, CV:
@@ -1519,9 +1525,9 @@ def test_positive_check_errata_counts_by_type_on_host_details_page(
 def test_positive_filtered_errata_status_installable_param(
     errata_status_installable,
     registered_contenthost,
+    module_target_sat,
     setting_update,
     module_org,
-    target_sat,
     module_lce,
     module_cv,
     session,
@@ -1553,22 +1559,26 @@ def test_positive_filtered_errata_status_installable_param(
     client = registered_contenthost
     assert client.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     assert client.execute('subscription-manager repos').status == 0
-    # Adding content view filter and content view filter rule to exclude errata,
+    # Adding content view filter and cv filter rule to exclude errata,
     # for the installed package above.
-    cv_filter = target_sat.api.ErratumContentViewFilter(
+    cv_filter = module_target_sat.api.ErratumContentViewFilter(
         content_view=module_cv, inclusion=False
     ).create()
     module_cv = module_cv.read()
-    module_cv.version.sort(key=lambda version: version.id)
-    errata = target_sat.api.Errata(content_view_version=module_cv.version[-1]).search(
+    assert module_cv.version
+    latest_version = module_cv.version[-1]
+    errata = module_target_sat.api.Errata(content_view_version=latest_version.read()).search(
         query={'search': f'errata_id="{CUSTOM_REPO_ERRATA_ID}"'}
     )
-    assert (errata := errata[0])
-    target_sat.api.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
+    assert len(errata) == 1
+    errata = errata[0]
+    module_target_sat.api.ContentViewFilterRule(
+        content_view_filter=cv_filter, errata=errata
+    ).create()
     module_cv = module_cv.read()
     # publish and promote the new version with Filter
     cv_publish_promote(
-        target_sat,
+        module_target_sat,
         module_org,
         module_cv,
         module_lce,
@@ -1646,6 +1656,11 @@ def test_content_host_errata_search_commands(
 
     :BZ: 1707335
     """
+    # use newest supported version of RHEL (ie 'rhel10')
+    rhel_N = target_sat.api_factory.supported_rhel_ver(
+        num=1,
+        prefix='rhel',
+    )
     content_view = target_sat.api.ContentView(organization=module_org).create()
     RHSA_repo = target_sat.api.Repository(
         url=settings.repos.yum_9.url, product=module_product
@@ -1663,7 +1678,7 @@ def test_content_host_errata_search_commands(
     # walrus-0.71-1.noarch (RHSA), kangaroo-0.1-1.noarch (RHBA)
     packages = [FAKE_1_CUSTOM_PACKAGE, FAKE_4_CUSTOM_PACKAGE]
     with Broker(
-        nick='rhel10', workflow='deploy-template', host_class=ContentHost, _count=2
+        nick=rhel_N, workflow='deploy-template', host_class=ContentHost, _count=2
     ) as clients:
         for (
             client,
