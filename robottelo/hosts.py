@@ -2339,11 +2339,32 @@ class Satellite(Capsule, SatelliteMixins):
         )
         assert (
             self.execute(
-                f'sed -i "{line_number}i nameserver {ad_data.nameserver}" /etc/resolv.conf'
+                f'sed -i "{line_number}i nameserver {ad_data.nameserver}\\nnameserver {ad_data.nameserver6}" /etc/resolv.conf'
             ).status
             == 0
         )
         assert self.execute('chattr +i /etc/resolv.conf').status == 0
+
+        # if this is an IPv6 machine, we'll probably get a hostname
+        # that is TOOOO LOOOONG for Active Directory which can only count to 15
+        hostname_changed = False
+        if settings.server.is_ipv6:
+            original_shortname = self.execute('hostname -s').stdout.strip()
+            if len(original_shortname) > 15:
+                hostname_changed = True
+                original_fqdn = self.execute('hostname').stdout.strip()
+                # domainname = original_fqdn[len(original_shortname)-1:]
+                domainname = settings.ldap.realm.lower()
+                new_shortname = original_shortname[-15:]
+                if new_shortname[0] == '-':
+                    new_shortname = new_shortname[1:]
+                if new_shortname[-1] == '-':
+                    new_shortname = new_shortname[:-1]
+                new_fqdn = f'{new_shortname}.{domainname}'
+                logger.info(f'{new_fqdn}')
+                # after we successfully add this computer to AD's DNS, we will have
+                # to run satellite-change-hostname
+                self.execute(f'hostnamectl set-hostname {new_fqdn}')
 
         # join the realm
         assert (
@@ -2364,20 +2385,6 @@ class Satellite(Capsule, SatelliteMixins):
             f'\neuid = {id_apache}'
         )
 
-        # register the satellite as client for external auth
-        assert self.execute(f'echo "{http_conf_content}" > /etc/gssproxy/00-http.conf').status == 0
-        token_command = (
-            'KRB5_KTNAME=FILE:/etc/httpd/conf/http.keytab net ads keytab add HTTP '
-            '-U administrator -d3 -s /etc/net-keytab.conf'
-        )
-        assert self.execute(f'echo {settings.ldap.password} | {token_command}').status == 0
-        assert self.execute('chown root.apache /etc/httpd/conf/http.keytab').status == 0
-        assert self.execute('chmod 640 /etc/httpd/conf/http.keytab').status == 0
-
-        # enable the foreman-ipa-authentication feature
-        result = self.install(InstallerCommand('foreman-ipa-authentication true'))
-        assert result.status == 0
-
         # add foreman ad_gp_map_service (BZ#2117523)
         line_number = int(
             self.execute(
@@ -2390,7 +2397,60 @@ class Satellite(Capsule, SatelliteMixins):
             ).status
             == 0
         )
+        # if this is an IPv6 only machine, also add
+        # a line that fixes: https://github.com/SSSD/sssd/issues/3057
+        if settings.server.is_ipv6:
+            assert (
+                self.execute(
+                    f'sed -i "{line_number + 1}i lookup_family_order = ipv6_only" /etc/sssd/sssd.conf'
+                ).status
+                == 0
+            )
+        # in any case, restart sssd
         assert self.execute('systemctl restart sssd.service').status == 0
+
+        # register the satellite as client for external auth
+        assert self.execute(f'echo "{http_conf_content}" > /etc/gssproxy/00-http.conf').status == 0
+        token_command = (
+            'KRB5_KTNAME=FILE:/etc/httpd/conf/http.keytab net ads keytab add HTTP '
+            '-U administrator -d3 -s /etc/net-keytab.conf'
+        )
+        assert self.execute(f'echo {settings.ldap.password} | {token_command}').status == 0
+        assert self.execute('chown root.apache /etc/httpd/conf/http.keytab').status == 0
+        assert self.execute('chmod 640 /etc/httpd/conf/http.keytab').status == 0
+
+        if hostname_changed:
+            # Wait for AD's DNS to actually show AAAA and PTR records we've added;
+            # it's apparently a hard task, AD's DNS takes up to an hour to be up to date
+            # --
+            # Note that for this to work, you need to create the zones manually in DNS and
+            # in zone's properties, you have to set Dynamic updates to Nonsecure and Secure
+            logger.info(
+                f'Waiting for AAAA and PTR records for {new_fqdn} to be available in AD\'s DNS'
+            )
+            wait_for(
+                lambda: self.execute(
+                    'dig +short AAAA $(hostname) && dig +short -x $(dig +short AAAA $(hostname))'
+                ),
+                fail_condition=lambda res: res.status != 0,
+                timeout=3800,
+            )
+            # after we have the necessary DNS record, set hostname back to the original one
+            # so we don't confuse satellite-change-hostname
+            self.execute(f'hostnamectl set-hostname {original_fqdn}')
+            # and now actually run satellite-change-hostname which should set the short hostname
+            # and setup Satellite correctly
+            logger.info(
+                f'Current hostname is {original_fqdn}, running: "satellite-change-hostname {new_fqdn} -u{settings.server.admin_username} -ppassword_redacted"'
+            )
+            self.execute(
+                f'satellite-change-hostname {new_fqdn} -y -u{settings.server.admin_username} -p{settings.server.admin_password}',
+                timeout='30m',
+            )
+
+        # enable the foreman-ipa-authentication feature
+        result = self.install(InstallerCommand('foreman-ipa-authentication true'))
+        assert result.status == 0
 
         # unset GssapiLocalName (BZ#1787630)
         assert (
@@ -2714,6 +2774,24 @@ class IPAHost(Host):
         )
         if result.status not in [0, 3]:
             raise SatelliteHostError('Failed to enable ipa client')
+
+        # if this is an IPv6 only machine, also add
+        # a line that fixes: https://github.com/SSSD/sssd/issues/3057
+        if settings.server.is_ipv6:
+            line_number = int(
+                self.satellite.execute(
+                    "awk -v search='domain/' '$0~search{print NR; exit}' /etc/sssd/sssd.conf"
+                ).stdout
+            )
+            assert (
+                self.satellite.execute(
+                    f'sed -i "{line_number + 1}i lookup_family_order = ipv6_only" /etc/sssd/sssd.conf'
+                ).status
+                == 0
+            )
+            # restart sssd
+            assert self.execute('systemctl restart sssd.service').status == 0
+
         result = self.satellite.install(InstallerCommand('foreman-ipa-authentication true'))
         assert result.status == 0, 'Installer failed to enable IPA authentication.'
         self.satellite.cli.Service.restart()
