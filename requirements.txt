@@ -1,6 +1,6 @@
 # Version updates managed by dependabot
 
-apypie==0.7.0
+apypie==0.7.1
 betelgeuse==1.11.0
 broker[docker,podman,hussh]==0.6.7
 cryptography==43.0.3
