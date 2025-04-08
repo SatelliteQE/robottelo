@@ -376,3 +376,112 @@ def test_rhcloud_inventory_disabled_local_insights(module_target_sat_insights):
         insights_view = session.cloudinsights.navigate_to(session.cloudinsights, 'All')
         with pytest.raises(Exception, match='not found in navigation tree'):
             insights_view.menu.select('Insights', 'Inventory Upload')
+
+
+@pytest.mark.pit_server
+@pytest.mark.pit_client
+@pytest.mark.run_in_one_thread
+def test_rhcloud_global_parameters(
+    inventory_settings,
+    rhcloud_manifest_org,
+    rhcloud_registered_hosts,
+    module_target_sat,
+):
+    """Verify that the host_registration_insights parameters are seperate from the
+        Satellite Inventory Plugin by setting host_registration_inventory_plugin to false and
+        generating a report
+
+    :id: c5b22117-2022-4014-9e1e-b7d26de2360e
+
+    :steps:
+        1. Configure Satellite and hosts for insights registration
+        2. Set the global parameter host_registration_insights_inventory to false
+        3. Generate and download insights report
+        4. Verify the report does not contain hosts(empty)
+        5. Set the global parameter host_registration_insights_inventory to true
+        6. Verify the report does contain the hosts
+
+
+    :customerscenario: true
+
+    :Verifies: SAT-27221
+
+    :expectedresults: Setting the host_registration_inventory_plugin should remove hosts from
+        the report
+    """
+    org = rhcloud_manifest_org
+    virtual_host, baremetal_host = rhcloud_registered_hosts
+    # Set the global parameter 'host_registration_insights_inventory' to false
+    insights_cp = (
+        module_target_sat.api.CommonParameter()
+        .search(query={'search': 'name=host_registration_insights_inventory'})[0]
+        .read()
+    )
+    module_target_sat.api.CommonParameter(id=insights_cp.id, value='false').update(['value'])
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        session.cloudinventory.generate_report(org.name)
+        # wait_for_tasks report generation task to finish
+        wait_for(
+            lambda: module_target_sat.api.ForemanTask()
+            .search(
+                query={
+                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                    f'and started_at >= "{timestamp}"'
+                }
+            )[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        report_path = session.cloudinventory.download_report(org.name)
+        inventory_data = session.cloudinventory.read(org.name)
+    # Verify that generated archive is valid
+    common_assertion(report_path, inventory_data, org, module_target_sat)
+    # Get report data for assertion
+    json_data = get_report_data(report_path)
+    # Verify that hostnames are not in report(empty)
+    assert json_data == {}
+    # Set the global parameter 'host_registration_insights_inventory' back to true
+    insights_cp = (
+        module_target_sat.api.CommonParameter()
+        .search(query={'search': 'name=host_registration_insights_inventory'})[0]
+        .read()
+    )
+    module_target_sat.api.CommonParameter(id=insights_cp.id, value='true').update(['value'])
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        session.cloudinventory.generate_report(org.name)
+        # wait_for_tasks report generation task to finish
+        wait_for(
+            lambda: module_target_sat.api.ForemanTask()
+            .search(
+                query={
+                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                    f'and started_at >= "{timestamp}"'
+                }
+            )[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        report_path = session.cloudinventory.download_report(org.name)
+        inventory_data = session.cloudinventory.read(org.name)
+    # Verify that generated archive is valid
+    common_assertion(report_path, inventory_data, org, module_target_sat)
+    # Get report data for assertion
+    json_data = get_report_data(report_path)
+    # Verify that hostnames are present in the report
+    hostnames = [host['fqdn'] for host in json_data['hosts']]
+    assert virtual_host.hostname in hostnames
+    assert baremetal_host.hostname in hostnames
