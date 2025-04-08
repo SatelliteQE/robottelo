@@ -24,10 +24,11 @@ from robottelo.config import settings
 from robottelo.content_info import get_repo_files_urls_by_url
 from robottelo.utils.shared_resource import SharedResource
 
+from remote_pdb import RemotePdb
 
 @pytest.fixture(scope='module')
 def capsule_sync_setup(
-    capsule_upgrade_shared_satellite, capsule_upgrade_shared_capsule, upgrade_action
+    capsule_upgrade_integrated_sat_cap, upgrade_action
 ):
     """Pre-upgrade scenario that creates and syncs repository with
     rpm in Satellite which will be synced in post upgrade scenario.
@@ -42,12 +43,9 @@ def capsule_sync_setup(
         2. Activation key's environment id should be available in the content views environment
             id's list
     """
-    target_sat = capsule_upgrade_shared_satellite
-    capsule = capsule_upgrade_shared_capsule
-    capsule.capsule_setup(sat_host=target_sat)
-    cap_smart_proxy = target_sat.api.SmartProxy().search(
-        query={'search': f'name = {capsule.hostname}'}
-    )[0]
+    target_sat = capsule_upgrade_integrated_sat_cap.satellite
+    capsule = capsule_upgrade_integrated_sat_cap.capsule
+    cap_smart_proxy = capsule_upgrade_integrated_sat_cap.cap_smart_proxy
     with (
         SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade,
         SharedResource(capsule.hostname, upgrade_action, target_sat=capsule) as cap_upgrade,
@@ -57,8 +55,9 @@ def capsule_sync_setup(
         cap_smart_proxy.organization = [org]
         cap_smart_proxy.update(['organization'])
         features = json.loads(capsule.get_features())
+        prior_lce_id = int(target_sat.cli.LifecycleEnvironment.list({'organization-id': org.id, 'search': 'Library',})[0]['id'])
         lce = target_sat.api.LifecycleEnvironment(
-            name=f'{test_name}_lce', organization=org, prior=2
+            name=f'{test_name}_lce', organization=org, prior=prior_lce_id
         ).create()
         capsule.nailgun_capsule.content_add_lifecycle_environment(data={'environment_id': lce.id})
         product = target_sat.api.Product(name=f'{test_name}_prod', organization=org).create()
@@ -70,7 +69,7 @@ def capsule_sync_setup(
         ).create()
         repo.sync()
         content_view = target_sat.publish_content_view(org, repo, f'{test_name}_content_view')
-        content_view.version[0].promote(data={'environment_ids': lce.id})
+        content_view.version[0].promote(data={'environment_ids': [lce.id]})
         content_view_env_id = [env.id for env in content_view.read().environment]
         ak = target_sat.api.ActivationKey(
             name=f'{test_name}_ak', organization=org.id, environment=lce, content_view=content_view
@@ -90,6 +89,7 @@ def capsule_sync_setup(
             }
         )
         sat_upgrade.ready()
+        target_sat._swap_nailgun(f"{settings.UPGRADE.TO_VERSION}.z")
         cap_upgrade.ready()
         target_sat._session = None
         capsule._session = None
@@ -208,16 +208,16 @@ def test_post_user_scenario_capsule_sync_yum_repo(capsule_sync_setup):
     product = capsule_sync_setup.product
     repo = target_sat.api.Repository(
         name='post_upgrade_sync_repo',
-        product=product,
+        product=product.id,
         content_type='yum',
         url=settings.repos.yum_2.url,
     ).create()
     repo.sync()
-    content_view = target_sat.publish_content_view(org, repo, 'post_upgrade_sync_content_view')
+    content_view = target_sat.publish_content_view(org.id, repo, 'post_upgrade_sync_content_view')
     content_view.version[0].promote(data={'environment_ids': lce.id})
     content_view_env_id = [env.id for env in content_view.read().environment]
     ak = target_sat.api.ActivationKey(
-        name='post_upgrade_sync_ak', organization=org.id, environment=lce, content_view=content_view
+        name='post_upgrade_sync_ak', organization=org.id, environment=lce.id, content_view=content_view
     ).create()
     ak_env = ak.environment.read()
     assert ak_env.id in content_view_env_id

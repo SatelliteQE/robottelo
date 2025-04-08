@@ -22,12 +22,16 @@ Example:
     ...     # Do post-upgrade cleanup steps if any
 """
 
+import datetime
 import json
+import os
 from pathlib import Path
 import time
 from uuid import uuid4
 
 from broker.helpers import FileLock
+
+from robottelo.config import settings
 
 
 class SharedResourceError(Exception):
@@ -68,6 +72,18 @@ class SharedResource:
         self.action_kwargs = action_kwargs
         self.is_recovering = False
 
+    def log(message, level="DEBUG"):
+        """Pytest has a limitation to use logging.logger from conftest.py
+        so we need to emulate the logger by std-out the output
+        """
+        now = datetime.datetime.now()
+        full_message = "{date} - SHARED_RESOURCE - {level} - {message}\n".format(
+            date=now.strftime("%Y-%m-%d %H:%M:%S"), level=level, message=message
+        )
+        print(full_message)  # noqa
+        with open(f'logs/robottelo_{os.environ.get("PYTEST_XDIST_WORKER")}.log', 'a') as log_file:
+            log_file.write(full_message)
+
     def _update_status(self, status):
         """Updates the status of the shared resource.
 
@@ -77,6 +93,7 @@ class SharedResource:
         with self.lock_file:
             curr_data = json.loads(self.resource_file.read_text())
             curr_data["statuses"][self.id] = status
+            self.log(f"Updating watcher status to {status}")
             self.resource_file.write_text(json.dumps(curr_data, indent=4))
 
     def _update_main_status(self, status):
@@ -113,6 +130,8 @@ class SharedResource:
             status (str): The status to wait for.
         """
         while not self._check_all_status(status):
+            if status == "done":
+                self.log("Main worker still waiting for all workers to report status 'done'.")
             time.sleep(1)
 
     def _wait_for_main_watcher(self):
@@ -120,12 +139,13 @@ class SharedResource:
         while True:
             curr_data = json.loads(self.resource_file.read_text())
             if curr_data["main_status"] != "done":
-                time.sleep(60)
+                time.sleep(settings.robottelo.shared_resource_wait)
             elif curr_data["main_status"] == "action_error":
                 self._try_take_over()
             elif curr_data["main_status"] == "error":
                 raise Exception(f"Error in main watcher: {curr_data['main_watcher']}")
             else:
+                self.log("Main status now done, breaking wait loop")
                 break
 
     def _try_take_over(self):
@@ -142,6 +162,8 @@ class SharedResource:
 
     def register(self):
         """Registers the current process as a watcher."""
+        xdist_worker_splay = (int(os.environ.get("PYTEST_XDIST_WORKER")[-1]) + 1) * 2
+        time.sleep(xdist_worker_splay)
         with self.lock_file:
             if self.resource_file.exists():
                 curr_data = json.loads(self.resource_file.read_text())
@@ -160,10 +182,13 @@ class SharedResource:
 
     def unregister(self):
         """Unregisters the current process as a watcher."""
+        self.log(f"Unregistering {os.environ.get('PYTEST_XDIST_WORKER')}")
         with self.lock_file:
             curr_data = json.loads(self.resource_file.read_text())
+            self.log("Removing watcher ID from resource file")
             curr_data["watchers"].remove(self.id)
             del curr_data["statuses"][self.id]
+            self.log("Writing new resource file")
             self.resource_file.write_text(json.dumps(curr_data, indent=4))
 
     def ready(self):
@@ -204,19 +229,25 @@ class SharedResource:
     def __exit__(self, exc_type, exc_value, traceback):
         """Marks the current process as done and updates the main watcher if needed."""
         if exc_type is FileNotFoundError:
+            self.log(
+                f'{os.environ.get("PYTEST_XDIST_WORKER")} did not find resource file. has it already been deleted?'
+            )
             raise exc_value
         if exc_type is None:
+            self.log('Setting status to done')
             self.done()
-            self.unregister()
             if self.is_main:
                 self._wait_for_status("done")
+                self.log("All workers done, removing resource file")
                 self.resource_file.unlink()
         else:
             self._update_status("error")
             if self.is_main:
                 if self._check_all_status("error"):
                     # All have failed, delete the file
+                    self.log("All workers FAILED, removing resource file")
                     self.resource_file.unlink()
                 else:
+                    self.log("Setting main status to ERROR")
                     self._update_main_status("error")
             raise exc_value
