@@ -404,6 +404,8 @@ def test_rhcloud_global_parameters(
 
     :customerscenario: true
 
+    :Verifies: SAT-27221
+
     :expectedresults: Setting the host_registration_inventory_plugin should remove hosts from
     the report
     """
