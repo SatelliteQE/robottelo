@@ -115,9 +115,8 @@ def shared_cap_checkout(shared_name):
         cap_instance = cap_inst.from_inventory(
             filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
             '@inv._broker_args.workflow == "deploy-capsule"'
-        )[0]
-        cap_instance.setup()
-    return cap_instance
+        )
+    return cap_instance[0]
 
 
 def shared_checkin(sat_instance):
