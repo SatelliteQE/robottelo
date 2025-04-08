@@ -309,7 +309,7 @@ def test_positive_vmware_custom_profile_end_to_end(
 
     :BZ: 1315277
 
-    :verifies: SAT-23630
+    :verifies: SAT-31447
     """
     cr_name = gen_string('alpha')
     guest_os_names = [
@@ -321,7 +321,11 @@ def test_positive_vmware_custom_profile_end_to_end(
     cpus = ['2', '4', '6']
     vm_memory = ['4000', '6000', '8000']
     annotation_notes = gen_string('alpha')
-    firmware_type = ['Automatic', 'BIOS', 'UEFI', 'UEFI Secure Boot']
+    firmware_type = [
+        'BIOS',
+        'UEFI',
+        'UEFI Secure Boot',
+    ]  # The 'Automatic' firmware option will be added later when the RHEL10 guest os (SAT-30299) becomes available.
     resource_pool = VMWARE_CONSTANTS['pool']
     folder = VMWARE_CONSTANTS['folder']
     virtual_hw_version = VMWARE_CONSTANTS['virtualhw_version']
@@ -348,6 +352,7 @@ def test_positive_vmware_custom_profile_end_to_end(
             'network': network,
         }
     }
+    caching = {'action': False} if is_open('SAT-32478') else {'action': True}
     with session:
         session.computeresource.create(
             {
@@ -357,6 +362,7 @@ def test_positive_vmware_custom_profile_end_to_end(
                 'provider_content.user': settings.vmware.username,
                 'provider_content.password': settings.vmware.password,
                 'provider_content.datacenter.value': settings.vmware.datacenter,
+                'provider_content.enable_caching': caching['action'],
             }
         )
 
@@ -400,7 +406,7 @@ def test_positive_vmware_custom_profile_end_to_end(
             assert provider_content['cluster'] == settings.vmware.cluster
             assert provider_content['annotation_notes'] == annotation_notes
             assert provider_content['virtual_hw_version'] == virtual_hw_version
-            if not is_open('SAT-23630'):
+            if not is_open('SAT-31447'):
                 assert values['provider_content']['firmware'] == firmware
             assert provider_content['resource_pool'] == resource_pool
             assert provider_content['folder'] == folder
