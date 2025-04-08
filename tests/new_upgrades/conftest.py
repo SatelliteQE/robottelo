@@ -4,6 +4,7 @@ This module is intended to be used for upgrade tests that have a single run stag
 
 import datetime
 
+from box import Box
 from broker import Broker
 import pytest
 
@@ -62,9 +63,8 @@ def shared_checkout(shared_name):
         sat_instance = bx_inst.from_inventory(
             filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
             '@inv._broker_args.workflow == "deploy-satellite"'
-        )[0]
-        sat_instance.setup()
-    return sat_instance
+        )
+    return sat_instance[0]
 
 
 def shared_cap_checkout(shared_name):
@@ -83,9 +83,8 @@ def shared_cap_checkout(shared_name):
         cap_instance = cap_inst.from_inventory(
             filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
             '@inv._broker_args.workflow == "deploy-capsule"'
-        )[0]
-        cap_instance.setup()
-    return cap_instance
+        )
+    return cap_instance[0]
 
 
 def shared_checkin(sat_instance):
@@ -146,7 +145,7 @@ def errata_upgrade_shared_satellite():
         test_duration.ready()
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def capsule_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.capsule_upgrades."""
     sat_instance = shared_checkout("capsule_upgrade")
@@ -157,7 +156,7 @@ def capsule_upgrade_shared_satellite():
         test_duration.ready()
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='session')
 def capsule_upgrade_shared_capsule():
     """Mark tests using this fixture with pytest.mark.capsule_upgrades."""
     cap_instance = shared_cap_checkout("capsule_upgrade")
@@ -166,3 +165,31 @@ def capsule_upgrade_shared_capsule():
     ) as test_duration:
         yield cap_instance
         test_duration.ready()
+
+
+@pytest.fixture(scope='session')
+def capsule_upgrade_integrated_sat_cap(
+    capsule_upgrade_shared_satellite, capsule_upgrade_shared_capsule
+):
+    """Return a Satellite and Capsule that have been set up"""
+    setup_data = Box(
+        {
+            "satellite": None,
+            "capsule": None,
+            "cap_smart_proxy": None,
+        }
+    )
+    with SharedResource(
+        "capsule_setup",
+        action=capsule_upgrade_shared_capsule.capsule_setup,
+        sat_host=capsule_upgrade_shared_satellite,
+    ) as cap_setup:
+        cap_setup.ready()
+    cap_smart_proxy = capsule_upgrade_shared_satellite.api.SmartProxy().search(
+        query={'search': f'name = {capsule_upgrade_shared_capsule.hostname}'}
+    )[0]
+    cap_smart_proxy.organization = []
+    setup_data.satellite = capsule_upgrade_shared_satellite
+    setup_data.capsule = capsule_upgrade_shared_capsule
+    setup_data.cap_smart_proxy = cap_smart_proxy
+    return setup_data
