@@ -388,8 +388,8 @@ def test_rhcloud_global_parameters(
     module_target_sat,
 ):
     """Verify that the host_registration_insights parameters are seperate from the
-    Satellite Inventory Plugin by setting host_registration_inventory_plugin to false and
-    generating a report
+        Satellite Inventory Plugin by setting host_registration_inventory_plugin to false and
+        generating a report
 
     :id: c5b22117-2022-4014-9e1e-b7d26de2360e
 
@@ -407,7 +407,7 @@ def test_rhcloud_global_parameters(
     :Verifies: SAT-27221
 
     :expectedresults: Setting the host_registration_inventory_plugin should remove hosts from
-    the report
+        the report
     """
     org = rhcloud_manifest_org
     virtual_host, baremetal_host = rhcloud_registered_hosts
