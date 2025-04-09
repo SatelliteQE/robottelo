@@ -313,7 +313,7 @@ def test_positive_vmware_custom_profile_end_to_end(
 
     :BZ: 1315277
 
-    :verifies: SAT-23630
+    :verifies: SAT-31447
     """
     cr_name = gen_string('alpha')
     guest_os_names = [
@@ -404,7 +404,7 @@ def test_positive_vmware_custom_profile_end_to_end(
             assert provider_content['cluster'] == settings.vmware.cluster
             assert provider_content['annotation_notes'] == annotation_notes
             assert provider_content['virtual_hw_version'] == virtual_hw_version
-            if not is_open('SAT-23630'):
+            if not is_open('SAT-31447'):
                 assert values['provider_content']['firmware'] == firmware
             assert provider_content['resource_pool'] == resource_pool
             assert provider_content['folder'] == folder
