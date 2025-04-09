@@ -2353,7 +2353,6 @@ class Satellite(Capsule, SatelliteMixins):
             if len(original_shortname) > 15:
                 hostname_changed = True
                 original_fqdn = self.execute('hostname').stdout.strip()
-                # domainname = original_fqdn[len(original_shortname)-1:]
                 domainname = settings.ldap.realm.lower()
                 new_shortname = original_shortname[-15:]
                 if new_shortname[0] == '-':
@@ -2361,8 +2360,8 @@ class Satellite(Capsule, SatelliteMixins):
                 if new_shortname[-1] == '-':
                     new_shortname = new_shortname[:-1]
                 new_fqdn = f'{new_shortname}.{domainname}'
-                logger.info(f'{new_fqdn}')
-                # after we successfully add this computer to AD's DNS, we will have
+                logger.info(f'Setting hostname to {new_fqdn} temporarily')
+                # after we successfully add this host to AD's DNS, we will have
                 # to run satellite-change-hostname
                 self.execute(f'hostnamectl set-hostname {new_fqdn}')
 
