@@ -2124,7 +2124,7 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
 
     :CaseComponent:Hosts-Content
 
-    :Team: Phoenix-content
+    :Team: Phoenix-subscriptions
     """
 
     module_target_sat, org, lce, capsule, content_view, loc, ak = change_content_source_prep
