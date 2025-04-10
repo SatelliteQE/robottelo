@@ -13,7 +13,7 @@
 """
 
 # For ease of use hc refers to host-collection throughout this document
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from time import sleep, time
 
 import pytest
@@ -37,6 +37,7 @@ from robottelo.constants import (
     REAL_RHEL8_1_PACKAGE_FILENAME,
     REPOS,
     REPOSET,
+    TIMESTAMP_FMT_DATE,
 )
 
 pytestmark = [
@@ -1197,7 +1198,9 @@ def test_positive_get_applicable_for_host(
     assert REAL_RHEL8_1_ERRATA_ID in [errata['errata_id'] for errata in erratum]
 
 
-def test_positive_get_diff_for_cv_envs(target_sat):
+def test_positive_get_diff_for_cv_envs(
+    module_target_sat, module_sca_manifest_org, module_cv, module_lce, activation_key
+):
     """Generate a difference in errata between a set of environments
     for a content view
 
@@ -1214,30 +1217,33 @@ def test_positive_get_diff_for_cv_envs(target_sat):
         for a content view is retrieved.
 
     """
-    org = target_sat.api.Organization().create()
-    env = target_sat.api.LifecycleEnvironment(organization=org).create()
-    content_view = target_sat.api.ContentView(organization=org).create()
-    activation_key = target_sat.api.ActivationKey(environment=env, organization=org).create()
+    org = module_sca_manifest_org
     # Published content-view-version with repos will be created
     for repo_url in [settings.repos.yum_9.url, CUSTOM_REPO_URL]:
-        target_sat.cli_factory.setup_org_for_a_custom_repo(
+        module_target_sat.cli_factory.setup_org_for_a_custom_repo(
             {
                 'url': repo_url,
                 'organization-id': org.id,
-                'content-view-id': content_view.id,
-                'lifecycle-environment-id': env.id,
+                'content-view-id': module_cv.id,
+                'lifecycle-environment-id': module_lce.id,
                 'activationkey-id': activation_key.id,
             }
         )
-    new_env = target_sat.api.LifecycleEnvironment(organization=org, prior=env).create()
+    new_env = module_target_sat.api.LifecycleEnvironment(
+        organization=org, prior=module_lce
+    ).create()
     # no need to publish a new version, just promote newest
     cv_publish_promote(
-        sat=target_sat, org=org, cv=content_view, lce=[env, new_env], needs_publish=False
+        sat=module_target_sat,
+        org=org,
+        cv=module_cv,
+        lce=[module_lce, new_env],
+        needs_publish=False,
     )
-    content_view = target_sat.api.ContentView(id=content_view.id).read()
+    module_cv = module_target_sat.api.ContentView(id=module_cv.id).read()
     # Get last two versions by id to compare
-    cvv_ids = sorted(cvv.id for cvv in content_view.version)[-2:]
-    result = target_sat.api.Errata().compare(
+    cvv_ids = sorted(cvv.id for cvv in module_cv.version)[-2:]
+    result = module_target_sat.api.Errata().compare(
         data={'content_view_version_ids': [cvv_id for cvv_id in cvv_ids], 'per_page': '9999'}
     )
     cvv2_only_errata = next(
@@ -1613,7 +1619,7 @@ def test_positive_incremental_update_apply_to_envs_cvs(
 
 def test_positive_filter_errata_type_other(
     module_sca_manifest_org,
-    target_sat,
+    module_target_sat,
     module_cv,
 ):
     """
@@ -1624,7 +1630,7 @@ def test_positive_filter_errata_type_other(
     :id: 062bb1a5-814c-4573-bedc-aaa4e2ef557a
 
     :setup:
-        1. Fetch the latest supported RHEL major version in supportability.yaml (ie: 10)
+        1. Fetch the latest supported RHEL major version in supportability.yaml ('10')
         2. GET request to EPEL's PGP-key generator (dl.fedoraproject.org/pub/epel/)
         3. Create GPG-key on satellite from URL's response.
         4. Create custom product using the GPG-key.
@@ -1656,11 +1662,7 @@ def test_positive_filter_errata_type_other(
 
     """
     # newest version rhel
-    rhel_N = next(
-        r
-        for r in reversed(settings.supportability.content_hosts.rhel.versions)
-        if 'fips' not in str(r)
-    )
+    rhel_N = module_target_sat.api_factory.supported_rhel_ver(num=1)
     # fetch a newly generated PGP key from address's response
     gpg_url = f'https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{rhel_N}'
     _response = requests.get(gpg_url, timeout=120, verify=True)
@@ -1670,18 +1672,20 @@ def test_positive_filter_errata_type_other(
         raise ValueError('Fetched content was not a valid credential')
 
     # create GPG key on satellite and associated product
-    gpg_key = target_sat.api.GPGKey(
+    gpg_key = module_target_sat.api.GPGKey(
         organization=module_sca_manifest_org.id,
         content=_response.text,
     ).create()
-    epel_product = target_sat.api.Product(
+    epel_product = module_target_sat.api.Product(
         organization=module_sca_manifest_org,
         gpg_key=gpg_key,
     ).create()
 
-    # create and sync custom EPEL repo
+    # if RHEL 10 only, change '10' to '10.0', to match URL for EPEL repo
+    rhel_N = str(float(rhel_N)) if rhel_N == '10' else rhel_N
     epel_url = f'https://dl.fedoraproject.org/pub/epel/{rhel_N}/Everything/x86_64/'
-    epel_repo = target_sat.api.Repository(
+    # create and sync custom EPEL repo
+    epel_repo = module_target_sat.api.Repository(
         product=epel_product,
         url=epel_url,
     ).create()
@@ -1693,21 +1697,21 @@ def test_positive_filter_errata_type_other(
     module_cv = module_cv.read()
 
     # create errata filter
-    errata_filter = target_sat.api.ErratumContentViewFilter(
+    errata_filter = module_target_sat.api.ErratumContentViewFilter(
         content_view=module_cv,
         name='errata-filter',
         inclusion=True,
     ).create()
 
-    today_UTC = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    today_UTC = datetime.now(UTC).strftime(TIMESTAMP_FMT_DATE)
     # rule to filter erratum by date, only specify end_date
-    errata_rule = target_sat.api.ContentViewFilterRule(
+    errata_rule = module_target_sat.api.ContentViewFilterRule(
         content_view_filter=errata_filter,
         end_date=today_UTC,
     ).create()
 
     # hammer update the Erratum filter rule, flag 'allow-other-types' set to True <<<
-    target_sat.cli.ContentViewFilterRule.update(
+    module_target_sat.cli.ContentViewFilterRule.update(
         {
             'id': errata_rule.id,
             'allow-other-types': 'true',
@@ -1715,9 +1719,8 @@ def test_positive_filter_errata_type_other(
         }
     )
     module_cv = module_cv.read()
-
     # create rpm filter
-    target_sat.api.RPMContentViewFilter(
+    module_target_sat.api.RPMContentViewFilter(
         content_view=module_cv,
         name='rpm-filter',
         inclusion=True,
@@ -1729,7 +1732,7 @@ def test_positive_filter_errata_type_other(
     module_cv = module_cv.read()
 
     version_1 = module_cv.version[-1].read()  # unfiltered
-    version_2 = module_cv.version[0].read()  # filtered
+    version_2 = module_cv.version[-2].read()  # filtered
     # errata and package counts match between the filtered and unfiltered versions
     assert version_1.errata_counts == version_2.errata_counts
     assert version_1.package_count == version_2.package_count
