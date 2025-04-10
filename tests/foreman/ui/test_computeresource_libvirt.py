@@ -211,3 +211,57 @@ def test_positive_provision_end_to_end(
 
         session.host.delete(name)
         assert not sat.api.Host().search(query={'search': f'name="{name}"'})
+
+
+@pytest.mark.stubbed
+def test_positive_image_end_to_end():
+    """Perform end to end testing for compute resource libvirt component image.
+
+    :id: de2e901d-f29c-4636-992e-40c4143fe0df
+
+    :expectedresults: All expected CRUD actions finished successfully.
+
+    :CaseImportance: High
+
+    :CaseAutomation: NotAutomated
+    """
+
+
+@pytest.mark.stubbed
+def test_positive_associate_with_custom_profile():
+    """Associate custom default (3-Large) compute profile to libvirt compute resource.
+
+    :id: 1fe93d88-a7e5-4f83-89c0-84fab1871cc7
+
+    :steps:
+        1. Create a compute resource of type libvirt.
+        2. Select the created libvirt CR.
+        3. Click Compute Profile tab.
+        4. Edit (3-Large) with valid configurations and submit.
+
+    :expectedresults: The Compute Resource created and associated to compute profile (3-Large)
+        with provided values.
+
+    :CaseAutomation: NotAutomated
+    """
+
+
+@pytest.mark.stubbed
+def test_positive_associate_with_custom_profile_with_template():
+    """Associate custom default (3-Large) compute profile to libvirt compute
+     resource, with template
+
+    :id: 270af58f-9072-4ebd-800a-f497bb97ee23
+
+    :steps:
+        1. Create a compute resource of type libvirt.
+        2 Select the created rhev CR.
+        3. Click Compute Profile tab.
+        4. Edit (3-Large) with valid configuration and template and submit.
+
+    :expectedresults: The Compute Resource created and opened successfully
+
+    :CaseImportance: Medium
+
+    :CaseAutomation: NotAutomated
+    """
