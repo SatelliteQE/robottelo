@@ -94,7 +94,7 @@ VALIDATORS = dict(
     ],
     libvirt=[
         Validator('libvirt.libvirt_hostname', must_exist=True),
-        Validator('libvirt.libvirt_image_dir', default='/var/lib/libvirt/images'),
+        Validator('libvirt.libvirt_image_path', default='/var/lib/libvirt/images/rhel8.qcow2'),
     ],
     container=[
         Validator(
