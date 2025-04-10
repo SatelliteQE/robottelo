@@ -267,6 +267,7 @@ def deploy_type_cli(
     request,
     org_module,
     form_data_cli,
+    register_sat_and_enable_aps_repo,
     virtwho_config_cli,
     target_sat,
     default_location,
@@ -300,6 +301,7 @@ def deploy_type_api(
     request,
     org_module,
     form_data_api,
+    register_sat_and_enable_aps_repo,
     virtwho_config_api,
     target_sat,
 ):
@@ -327,6 +329,7 @@ def deploy_type_ui(
     org_module,
     form_data_ui,
     org_session,
+    register_sat_and_enable_aps_repo,
     virtwho_config_ui,
     target_sat,
 ):
@@ -353,10 +356,10 @@ def delete_host(form_data_api, target_sat):
         target_sat.api.Host(id=results[0].read_json()['id']).delete()
 
 
-@pytest.fixture
-def register_sat_and_enable_aps_repo(target_sat):
+@pytest.fixture(scope='module')
+def register_sat_and_enable_aps_repo(module_target_sat):
     """Register Satellite to CDN and Enable rhel aps repos"""
-    target_sat.register_to_cdn()
-    target_sat.enable_repo(REPOS[f'rhel{target_sat.os_version.major}_aps']['id'])
+    module_target_sat.register_to_cdn()
+    module_target_sat.enable_repo(REPOS[f'rhel{module_target_sat.os_version.major}_aps']['id'])
     yield
-    target_sat.unregister()
+    module_target_sat.unregister()
