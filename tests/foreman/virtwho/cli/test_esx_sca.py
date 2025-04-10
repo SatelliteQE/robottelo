@@ -46,7 +46,11 @@ class TestVirtWhoConfigforEsx:
         indirect=True,
     )
     def test_positive_deploy_configure_by_id_script_name_locationid_organizationtitle(
-        self, module_sca_manifest_org, target_sat, virtwho_config_cli, deploy_type_cli
+        self,
+        module_sca_manifest_org,
+        target_sat,
+        virtwho_config_cli,
+        deploy_type_cli,
     ):
         """Verify "hammer virt-who-config deploy & fetch"
 
@@ -673,7 +677,7 @@ class TestVirtWhoConfigforEsx:
 
 @pytest.mark.parametrize('deploy_type_cli', ['id'], indirect=True)
 def test_positive_change_system_puropse_SLA_for_hypervisor(
-    target_sat, register_sat_and_enable_aps_repo, virtwho_config_cli, deploy_type_cli
+    target_sat, virtwho_config_cli, deploy_type_cli
 ):
     """Verify that system purpose SLA attribute set successfully and does not throw any error
 

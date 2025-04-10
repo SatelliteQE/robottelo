@@ -26,7 +26,12 @@ from robottelo.utils.virtwho import (
 class TestVirtwhoConfigforLibvirt:
     @pytest.mark.parametrize('deploy_type_ui', ['id', 'script'], indirect=True)
     def test_positive_deploy_configure_by_id_script(
-        self, module_sca_manifest_org, org_session, form_data_ui, deploy_type_ui, default_location
+        self,
+        module_sca_manifest_org,
+        org_session,
+        form_data_ui,
+        deploy_type_ui,
+        default_location,
     ):
         """Verify configure created and deployed with id.
 

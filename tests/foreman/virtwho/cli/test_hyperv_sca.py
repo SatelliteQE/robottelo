@@ -25,7 +25,11 @@ from robottelo.utils.virtwho import (
 class TestVirtWhoConfigforHyperv:
     @pytest.mark.parametrize('deploy_type_cli', ['id', 'script'], indirect=True)
     def test_positive_deploy_configure_by_id_script(
-        self, module_sca_manifest_org, virtwho_config_cli, target_sat, deploy_type_cli
+        self,
+        module_sca_manifest_org,
+        virtwho_config_cli,
+        target_sat,
+        deploy_type_cli,
     ):
         """Verify " hammer virt-who-config deploy & fetch"
 
