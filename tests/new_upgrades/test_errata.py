@@ -204,7 +204,7 @@ def generate_errata_for_client_setup(
         yield test_data
 
 
-@pytest.mark.rhel_ver_list([7, 8, 9, 10])
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 @pytest.mark.no_containers
 @pytest.mark.errata_upgrade
 def test_post_scenario_errata_count_installation(generate_errata_for_client_setup):
