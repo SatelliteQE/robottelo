@@ -1656,7 +1656,7 @@ def test_positive_filter_errata_type_other(
 
     :BZ: 2160804
 
-    :verifies: SAT-20365
+    :Verifies: SAT-20365
 
     :customerscenario: true
 

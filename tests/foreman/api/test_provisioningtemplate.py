@@ -476,7 +476,7 @@ class TestProvisioningTemplate:
 
         :BZ: 2024175
 
-        :verifies: SAT-30761
+        :Verifies: SAT-30761
 
         :customerscenario: true
         """
