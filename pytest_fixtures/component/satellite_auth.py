@@ -67,6 +67,7 @@ def ad_data():
                 'ldap_hostname': getattr(settings.ldap.hostname, version),
                 'workgroup': getattr(settings.ldap.workgroup, version),
                 'nameserver': getattr(settings.ldap.nameserver, version),
+                'nameserver6': getattr(settings.ldap.nameserver6, version),
             }
         else:
             raise Exception(
