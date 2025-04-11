@@ -778,7 +778,7 @@ class TestAnsibleREX:
 
         :expectedresults: The Ansible collection is successfully installed on the host
 
-        :verifies: SAT-30807
+        :Verifies: SAT-30807
         """
         # Adding IPv6 proxy for IPv6 communication
         rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
