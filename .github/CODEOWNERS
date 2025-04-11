@@ -8,7 +8,9 @@
 
 /conf/ @SatelliteQE/robottelo-tier-2-reviewers
 
-/pytest_fixtures/ @SatelliteQE/robottelo-tier-2-reviewers
+/pytest_fixtures/component/ @SatelliteQE/robottelo-tier-1-reviewers
+
+/pytest_fixtures/core/ @SatelliteQE/robottelo-tier-2-reviewers
 
 /pytest_plugins/ @SatelliteQE/robottelo-tier-2-reviewers
 
