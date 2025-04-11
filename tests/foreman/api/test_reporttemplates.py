@@ -1163,7 +1163,7 @@ def test_positive_applied_errata_by_install_date(
     assert module_rhel_contenthost.execute('subscription-manager refresh').status == 0
     assert module_rhel_contenthost.applicable_errata_count == len(ERRATUM_IDS)
     # 'Since' time for today (UTC): set to 5 minutes prior to installs below
-    today_utc = (datetime.now(UTC) - timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M:%S')
+    today_utc = (datetime.now(UTC) - timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M:%S %Z')
     # Apply all FAKE_9_YUM erratum
     for _id in ERRATUM_IDS:
         task_id = module_target_sat.api.JobInvocation().run(
@@ -1206,7 +1206,7 @@ def test_positive_applied_errata_by_install_date(
         errata_id in [entry['erratum_id'] for entry in report_today] for errata_id in ERRATUM_IDS
     )
     # Yesterday's report is empty
-    yesterday_utc = (datetime.now(UTC) - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
+    yesterday_utc = (datetime.now(UTC) - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S %Z')
     report_yesterday = rt.generate(
         data={
             'organization_id': module_org.id,
