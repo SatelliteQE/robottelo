@@ -239,6 +239,7 @@ VALIDATORS = dict(
             'ldap.grpbasedn',
             'ldap.hostname',
             'ldap.nameserver',
+            'ldap.nameserver6',
             'ldap.realm',
             'ldap.username',
             'ldap.password',
