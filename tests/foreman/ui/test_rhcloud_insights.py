@@ -93,10 +93,11 @@ def test_rhcloud_insights_e2e(
 
     :CaseAutomation: Automated
     """
-    job_query = (
+    org_name = rhcloud_manifest_org.name
+    api_query = (
         f'Remote action: Insights remediations for selected issues on {rhel_insights_vm.hostname}'
     )
-    org_name = rhcloud_manifest_org.name
+    ui_query = f'hostname = "{rhel_insights_vm.hostname}" and title = "{OPENSSH_RECOMMENDATION}"'
 
     # Prepare misconfigured machine and upload data to Insights
     create_insights_vulnerability(rhel_insights_vm)
@@ -106,14 +107,20 @@ def test_rhcloud_insights_e2e(
     if not local_advisor_enabled:
         sync_recommendations(module_target_sat_insights, org_name=org_name, loc_name=DEFAULT_LOC)
 
+    # Verify that we can see the rule hit via insights-client
+    result = rhel_insights_vm.execute('insights-client --diagnosis')
+    assert result.status == 0
+    assert 'OPENSSH_HARDENING_CONFIG_PERMS' in result.stdout
+
+    # Verify insights-client can update to latest version available from server
+    assert rhel_insights_vm.execute('insights-client --version').status == 0
+
     with module_target_sat_insights.ui_session() as session:
         session.organization.select(org_name=org_name)
         session.location.select(loc_name=DEFAULT_LOC)
 
         # Search for the recommendation.
-        result = session.cloudinsights.search(
-            f'hostname= "{rhel_insights_vm.hostname}" and title = "{OPENSSH_RECOMMENDATION}"'
-        )[0]
+        result = session.cloudinsights.search(ui_query)[0]
         assert result['Hostname'] == rhel_insights_vm.hostname
         assert result['Recommendation'] == OPENSSH_RECOMMENDATION
 
@@ -124,7 +131,7 @@ def test_rhcloud_insights_e2e(
     # Wait for the remediation task to complete.
     wait_for(
         lambda: module_target_sat_insights.api.ForemanTask()
-        .search(query={'search': f'{job_query} and started_at >= "{timestamp}"'})[0]
+        .search(query={'search': f'{api_query} and started_at >= "{timestamp}"'})[0]
         .result
         == 'success',
         timeout=400,
@@ -142,9 +149,102 @@ def test_rhcloud_insights_e2e(
         session.location.select(loc_name=DEFAULT_LOC)
 
         # Verify that the recommendation is not listed anymore.
-        assert not session.cloudinsights.search(
-            f'hostname= "{rhel_insights_vm.hostname}" and title = "{OPENSSH_RECOMMENDATION}"'
+        assert not session.cloudinsights.search(ui_query)
+
+
+@pytest.mark.e2e
+@pytest.mark.pit_server
+@pytest.mark.pit_client
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_list([10])
+@pytest.mark.parametrize(
+    "module_target_sat_insights", [True, False], ids=["hosted", "local"], indirect=True
+)
+def test_rhcloud_insights_remediate_multiple_hosts(
+    rhel_insights_vms,
+    rhcloud_manifest_org,
+    module_target_sat_insights,
+):
+    """Get rule hits data for multiple Hosts from hosted or local Insights Advisor, verify results are displayed in Satellite, and run remediations for all Hosts simultaneously.
+
+    :id: 33463576-ccc0-4200-a5c0-6e7ffc9a03f7
+
+    :steps:
+        1. Prepare misconfigured machines and upload data to hosted or local Insights Advisor.
+        2. In Satellite UI, go to Insights > Recommendations.
+        3. Run remediation for "OpenSSH config permissions" recommendation against Hosts.
+        4. Verify that the remediation jobs completed successfully.
+        5. Refresh the Insights recommendations (re-sync if using hosted Advisor).
+        6. Search for previously remediated issues.
+    :expectedresults:
+        1. Insights recommendations related to "OpenSSH config permissions" issue are listed
+            for misconfigured machines.
+        2. Remediation jobs finished successfully.
+        3. Insights recommendations related to "OpenSSH config permissions" issue are not listed.
+
+    :CaseImportance: Critical
+
+    :parametrized: yes
+
+    :CaseAutomation: Automated
+    """
+    org_name = rhcloud_manifest_org.name
+    hostnames = [host.hostname for host in rhel_insights_vms]
+    # Query on (hostname_a OR hostname_b)
+    api_query = (
+        f'Remote action: Insights remediations for selected issues on ({"|".join(hostnames)})'
+    )
+    ui_query = f'hostname ^ ({",".join(hostnames)}) and title = "{OPENSSH_RECOMMENDATION}"'
+
+    # Prepare misconfigured machine and upload data to Insights
+    for vm in rhel_insights_vms:
+        create_insights_vulnerability(vm)
+
+    # Sync the recommendations (hosted Insights only).
+    local_advisor_enabled = module_target_sat_insights.local_advisor_enabled
+    if not local_advisor_enabled:
+        sync_recommendations(module_target_sat_insights, org_name=org_name, loc_name=DEFAULT_LOC)
+
+    with module_target_sat_insights.ui_session() as session:
+        session.organization.select(org_name=org_name)
+        session.location.select(loc_name=DEFAULT_LOC)
+
+        # Search for the recommendations.
+        results = session.cloudinsights.search(ui_query)
+        assert all(result['Hostname'] in hostnames for result in results)
+        assert all(result['Recommendation'] == OPENSSH_RECOMMENDATION for result in results)
+
+        # Run the remediation for all hosts matching this rule
+        timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
+        session.cloudinsights.remediate(OPENSSH_RECOMMENDATION)
+
+    def verify_tasks():
+        tasks = module_target_sat_insights.api.ForemanTask().search(
+            query={'search': f'{api_query} and start_at >= "{timestamp}"'}
         )
+        return len(tasks) == len(rhel_insights_vms) and all(
+            task.result == 'success' for task in tasks
+        )
+
+    # Wait for the remediation tasks to complete.
+    wait_for(
+        lambda: verify_tasks(),
+        timeout=400,
+        delay=15,
+        silent_failure=True,
+        handle_exception=True,
+    )
+
+    # Re-sync the recommendations (hosted Insights only).
+    if not local_advisor_enabled:
+        sync_recommendations(module_target_sat_insights, org_name=org_name, loc_name=DEFAULT_LOC)
+
+    with module_target_sat_insights.ui_session() as session:
+        session.organization.select(org_name=org_name)
+        session.location.select(loc_name=DEFAULT_LOC)
+
+        # Verify that the recommendations are not listed anymore.
+        assert not session.cloudinsights.search(ui_query)
 
 
 @pytest.mark.stubbed
@@ -226,7 +326,7 @@ def test_host_sorting_based_on_recommendation_count():
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.rhel_ver_list(r'^[\d]+$')
 @pytest.mark.parametrize(
     "module_target_sat_insights", [True, False], ids=["hosted", "local"], indirect=True
 )
