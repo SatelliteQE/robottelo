@@ -1512,14 +1512,7 @@ class ContentHost(Host, ContentHostMixins):
         host.update(['location'])
 
     def get_yggdrasil_service_name(self):
-        return (
-            'yggdrasil'
-            if (
-                self.os_version.major > 9
-                or (self.os_version.major == 9 and self.os_version.minor > 5)
-            )
-            else 'yggdrasild'
-        )
+        return 'yggdrasil' if (self.os_version.major > 9) else 'yggdrasild'
 
 
 class Capsule(ContentHost, CapsuleMixins):
