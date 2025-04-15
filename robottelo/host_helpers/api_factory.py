@@ -310,13 +310,13 @@ class APIFactory:
         return os
 
     def supported_rhel_ver(self, num=3, fips=False, prefix=''):
-        """Return: a list of (str), most recent supported RHEL major versions.
-            or a single str, if param `num` is set to 1.
-        :param num: Default 3. Pass a positive int for the number of versions to return,
-            or pass 'All' to return every supported version.
-        :param fips: Default False. If True, include -fips versions.
-        :param prefix: Default empty ''. Add a prefix string to the versions.
-            ie 'rhel' or 'rhel-'
+        """Return a list (str), of most recent supported RHEL versions.
+            or return a single str version, if param `num` is set to 1.
+        param num: Default 3. Pass a positive int for the number of versions to return.
+            or pass 'All' to return list of every supported version.
+        param fips: Default False. If True, include -fips versions.
+        param prefix: Default empty ''. Add a prefix string to the versions.
+            example: 'rhel' or 'rhel-'
         """
         if isinstance(num, int) and num <= 0:
             return []
