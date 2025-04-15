@@ -187,7 +187,9 @@ def test_infoblox_end_to_end(
         location=[module_location],
         organization=[module_sca_manifest_org],
         network=settings.infoblox.network,
-        network_type='IPv6' if is_ipv6 else 'IPv4',  # TODO(sganar): What should we set here in case of dualstack?
+        network_type='IPv6'
+        if is_ipv6
+        else 'IPv4',  # TODO(sganar): What should we set here in case of dualstack?
         cidr=settings.infoblox.network_prefix,
         mask=settings.infoblox.netmask,
         from_=None if is_ipv6 else settings.infoblox.start_range,
