@@ -4,12 +4,10 @@ This module provides standardized enumerations for various types, statuses,
 and configurations used in Robottelo tests and utilities.
 """
 
-from enum import Enum
-
-# TODO: change double quotes to single quotes bcs of consistency
+from enum import StrEnum
 
 
-class HostNetworkType(Enum):
+class HostNetworkType(StrEnum):
     """
     Enumeration of host network addressing types.
 
@@ -32,7 +30,7 @@ class HostNetworkType(Enum):
         """
         if self.value == 'dualstack':
             raise ValueError(f'Formatted property not supported for {self.name}')
-        if self.value in (self.IVP4):
+        if self.value in (self.IPV4, self.IPV6):
             return self.value.replace('ipv', 'IPv')
         raise ValueError(f'Invalid network type: {self.value}')
 
