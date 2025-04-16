@@ -1,7 +1,6 @@
 """Utility module to handle the shared ssh connection."""
 
 from robottelo.cli import hammer
-from robottelo.enums import HostNetworkType
 
 
 def get_client(
@@ -9,7 +8,7 @@ def get_client(
     username=None,
     password=None,
     port=22,
-    ipv6=None,
+    net_type=None,
 ):
     """Returns a host object that provides an ssh connection
 
@@ -25,7 +24,7 @@ def get_client(
         password=password or settings.server.ssh_password,
         port=port or settings.server.ssh_client.port,
         # TODO(ogajduse): we better ger rid of the ssh module entirely
-        ipv6=ipv6 or settings.server.network_type == HostNetworkType.IPV6,
+        net_type=net_type or settings.server.network_type,
     )
 
 
@@ -37,7 +36,7 @@ def command(
     password=None,
     timeout=None,
     port=22,
-    ipv6=None,
+    net_type=None,
 ):
     """Executes SSH command(s) on remote hostname.
 
@@ -53,7 +52,7 @@ def command(
         username=username,
         password=password,
         port=port,
-        ipv6=ipv6,
+        net_type=net_type,
     )
     result = client.execute(cmd, timeout=timeout)
 
