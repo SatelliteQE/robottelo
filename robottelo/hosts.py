@@ -151,6 +151,7 @@ class ContentHost(Host, ContentHostMixins):
             # key file based authentication
             kwargs.update({'key_filename': auth})
         self._satellite = kwargs.get('satellite')
+        # TODO(ogajduse): what should be the default net_type? Should there be a default at all?
         self._net_type = HostNetworkType(kwargs.pop('net_type', None))
         self.blank = kwargs.get('blank', False)
         super().__init__(hostname=hostname, **kwargs)
