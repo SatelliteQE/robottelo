@@ -13,12 +13,14 @@
 """
 
 from datetime import UTC, datetime
+import time
 
 import pytest
 from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG, DNF_RECOMMENDATION, OPENSSH_RECOMMENDATION
+from robottelo.logging import logger
 
 
 def create_insights_vulnerability(insights_vm):
@@ -40,7 +42,7 @@ def sync_recommendations(satellite, org_name=DEFAULT_ORG, loc_name=DEFAULT_LOC):
         timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
 
-    wait_for(
+    result = wait_for(
         lambda: satellite.api.ForemanTask()
         .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
         .result
@@ -50,6 +52,7 @@ def sync_recommendations(satellite, org_name=DEFAULT_ORG, loc_name=DEFAULT_LOC):
         silent_failure=True,
         handle_exception=True,
     )
+    logger.info(f"tpapaioa sync_recommendations wait_for Insights full sync, result = {result}")
 
 
 @pytest.mark.e2e
@@ -113,7 +116,8 @@ def test_rhcloud_insights_e2e(
     assert 'OPENSSH_HARDENING_CONFIG_PERMS' in result.stdout
 
     # Verify insights-client can update to latest version available from server
-    assert rhel_insights_vm.execute('insights-client --version').status == 0
+    result = rhel_insights_vm.execute('insights-client --version')
+    assert result.status == 0
 
     with module_target_sat_insights.ui_session() as session:
         session.organization.select(org_name=org_name)
@@ -129,7 +133,7 @@ def test_rhcloud_insights_e2e(
         session.cloudinsights.remediate(OPENSSH_RECOMMENDATION)
 
     # Wait for the remediation task to complete.
-    wait_for(
+    result = wait_for(
         lambda: module_target_sat_insights.api.ForemanTask()
         .search(query={'search': f'{api_query} and started_at >= "{timestamp}"'})[0]
         .result
@@ -139,6 +143,7 @@ def test_rhcloud_insights_e2e(
         silent_failure=True,
         handle_exception=True,
     )
+    logger.info(f"tpapaioa wait_for result: {result}")
 
     # Re-sync the recommendations (hosted Insights only).
     if not local_advisor_enabled:
@@ -211,12 +216,23 @@ def test_rhcloud_insights_remediate_multiple_hosts(
 
         # Search for the recommendations.
         results = session.cloudinsights.search(ui_query)
+
+        assert len(results) == len(rhel_insights_vms)
         assert all(result['Hostname'] in hostnames for result in results)
         assert all(result['Recommendation'] == OPENSSH_RECOMMENDATION for result in results)
 
         # Run the remediation for all hosts matching this rule
         timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
-        session.cloudinsights.remediate(OPENSSH_RECOMMENDATION)
+
+        # session.cloudinsights.remediate(OPENSSH_RECOMMENDATION)
+        view = session.cloudinsights.navigate_to(session.cloudinsights, 'All')
+        result = view.search(OPENSSH_RECOMMENDATION)
+        logger.info(f"tpapaioa result from search: {result}")
+
+        view.select_all.fill(True)
+        view.select_all_hits.click()
+        view.remediate.click()
+        view.remediation_window.remediate.click()
 
     def verify_tasks():
         tasks = module_target_sat_insights.api.ForemanTask().search(
@@ -227,24 +243,45 @@ def test_rhcloud_insights_remediate_multiple_hosts(
         )
 
     # Wait for the remediation tasks to complete.
-    wait_for(
+    result = wait_for(
         lambda: verify_tasks(),
         timeout=400,
         delay=15,
         silent_failure=True,
         handle_exception=True,
     )
+    logger.info(f"tpapaioa result of wait_for: {result}")
 
     # Re-sync the recommendations (hosted Insights only).
     if not local_advisor_enabled:
         sync_recommendations(module_target_sat_insights, org_name=org_name, loc_name=DEFAULT_LOC)
+
+    result = []
 
     with module_target_sat_insights.ui_session() as session:
         session.organization.select(org_name=org_name)
         session.location.select(loc_name=DEFAULT_LOC)
 
         # Verify that the recommendations are not listed anymore.
-        assert not session.cloudinsights.search(ui_query)
+
+        # assert not session.cloudinsights.search(ui_query)
+        result = session.cloudinsights.search(ui_query)
+
+    if result:
+        logger.info("tpapaioa recommendations still shown 1")
+        time.sleep(300)
+
+        # Try again
+        with module_target_sat_insights.ui_session() as session:
+            session.organization.select(org_name=org_name)
+            session.location.select(loc_name=DEFAULT_LOC)
+            result = session.cloudinsights.search(ui_query)
+
+        if result:
+            logger.info("tpapaioa recommendations still shown 2")
+            time.sleep(1200)
+
+    assert not result, "recommendations still shown"
 
 
 @pytest.mark.stubbed
