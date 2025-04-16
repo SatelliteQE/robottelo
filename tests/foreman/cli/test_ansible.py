@@ -873,7 +873,6 @@ class TestAnsibleAAPIntegration:
             force=True,
         )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
-
         # Find the Satellite credentials in AAP and update it for target_sat.hostname and user credentials
         self.update_sat_credentials_in_aap(
             aap_client, target_sat, username=login, aap_version=aap_version
@@ -895,7 +894,7 @@ class TestAnsibleAAPIntegration:
             in [
                 host['name']
                 for host in aap_client.get(
-                    f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/'
+                    f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/?search={rhel_contenthost.hostname}'
                 ).json()['results']
             ],
             timeout=180,
@@ -903,7 +902,7 @@ class TestAnsibleAAPIntegration:
         )
         # Find the hosts in Satellite inventory in AAP and verify if target_sat is listed in inventory
         hosts_list = aap_client.get(
-            f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/'
+            f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/?search={rhel_contenthost.hostname}'
         ).json()
         assert rhel_contenthost.hostname in [host['name'] for host in hosts_list['results']]
 
@@ -1047,7 +1046,7 @@ class TestAnsibleAAPIntegration:
             in [
                 host['name']
                 for host in aap_client.get(
-                    f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/'
+                    f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/?search={hostname}'
                 ).json()['results']
             ],
             timeout=180,
@@ -1055,7 +1054,7 @@ class TestAnsibleAAPIntegration:
         )
         # Find the hosts in AAP inventory and verify if provisioning host is listed in inventory
         hosts_list = aap_client.get(
-            f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/'
+            f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/?search={hostname}'
         ).json()
         assert hostname in [host['name'] for host in hosts_list['results']]
 
