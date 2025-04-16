@@ -853,7 +853,6 @@ class TestAnsibleREX:
         :expectedresults: Scheduled Job appears in the Job Invocation list at the appointed time
         """
 
-    @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     @pytest.mark.parametrize('setting_update', ['ansible_verbosity'], indirect=True)
     def test_positive_ansible_job_with_verbose_stdout(
@@ -864,7 +863,7 @@ class TestAnsibleREX:
         module_location,
         module_ak_with_cv,
         setting_update,
-        registered_hosts,
+        rex_contenthosts,
     ):
         """Verify ansible_verbosity setting and dynflow console output for expected hosts
 
@@ -899,7 +898,7 @@ class TestAnsibleREX:
         nc.update(['organization', 'location'])
         target_sat.api.AnsibleRoles().sync(data={'proxy_id': nc.id, 'role_names': SELECTED_ROLE})
         vm_hostnames = []
-        for vm in registered_hosts:
+        for vm in rex_contenthosts:
             rhel_ver = vm.os_version.major
             rhel_repo_urls = getattr(settings.repos, f'rhel{rhel_ver}_os', None)
             vm.create_custom_repos(**rhel_repo_urls)
