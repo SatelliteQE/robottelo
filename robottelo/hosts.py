@@ -2622,12 +2622,6 @@ class SSOHost(Host):
 
     def __init__(self, sat_obj, **kwargs):
         self.satellite = sat_obj
-
-        # TODO(ogajduse) handle the condition more properly
-        if kwargs.get('net_type') == HostNetworkType.IPV6.value:
-            kwargs['ipv6'] = True
-        else:
-            kwargs['ipv6'] = settings.server.network_type
         super().__init__(**kwargs)
 
     def get_sso_client_id(self):
