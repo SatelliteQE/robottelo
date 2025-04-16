@@ -1,4 +1,6 @@
 content_host:
+  attributes:
+    network_type: dualstack  # could be one of ["ipv4", "ipv6", "dualstack"]
   default_rhel_version: 9
   rhel6:
     vm:
