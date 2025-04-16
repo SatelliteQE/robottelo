@@ -13,12 +13,14 @@
 """
 
 from datetime import UTC, datetime
+import time
 
 import pytest
 from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG, DNF_RECOMMENDATION, OPENSSH_RECOMMENDATION
+from robottelo.logging import logger
 
 
 def create_insights_vulnerability(insights_vm):
@@ -113,7 +115,8 @@ def test_rhcloud_insights_e2e(
     assert 'OPENSSH_HARDENING_CONFIG_PERMS' in result.stdout
 
     # Verify insights-client can update to latest version available from server
-    assert rhel_insights_vm.execute('insights-client --version').status == 0
+    result = rhel_insights_vm.execute('insights-client --version')
+    assert result.status == 0
 
     with module_target_sat_insights.ui_session() as session:
         session.organization.select(org_name=org_name)
@@ -190,17 +193,20 @@ def test_rhcloud_insights_remediate_multiple_hosts(
     """
     org_name = rhcloud_manifest_org.name
     hostnames = [host.hostname for host in rhel_insights_vms]
-    # Query on (hostname_a OR hostname_b)
-    api_query = (
+
+    # Query for searching the available recommendations in UI
+    UI_QUERY = f'hostname ^ ({",".join(hostnames)}) and title = "{OPENSSH_RECOMMENDATION}"'
+
+    # Query for searching the scheduled remediation tasks in API
+    TASK_QUERY = (
         f'Remote action: Insights remediations for selected issues on ({"|".join(hostnames)})'
     )
-    ui_query = f'hostname ^ ({",".join(hostnames)}) and title = "{OPENSSH_RECOMMENDATION}"'
 
-    # Prepare misconfigured machine and upload data to Insights
+    # Prepare the misconfigured hosts and upload Insights data
     for vm in rhel_insights_vms:
         create_insights_vulnerability(vm)
 
-    # Sync the recommendations (hosted Insights only).
+    # Sync the recommendations (hosted Insights only)
     local_advisor_enabled = module_target_sat_insights.local_advisor_enabled
     if not local_advisor_enabled:
         sync_recommendations(module_target_sat_insights, org_name=org_name, loc_name=DEFAULT_LOC)
@@ -209,18 +215,29 @@ def test_rhcloud_insights_remediate_multiple_hosts(
         session.organization.select(org_name=org_name)
         session.location.select(loc_name=DEFAULT_LOC)
 
-        # Search for the recommendations.
-        results = session.cloudinsights.search(ui_query)
+        # Search for the recommendations
+        results = session.cloudinsights.search(UI_QUERY)
+
+        assert len(results) == len(rhel_insights_vms)
         assert all(result['Hostname'] in hostnames for result in results)
         assert all(result['Recommendation'] == OPENSSH_RECOMMENDATION for result in results)
 
         # Run the remediation for all hosts matching this rule
         timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
-        session.cloudinsights.remediate(OPENSSH_RECOMMENDATION)
+
+        # session.cloudinsights.remediate(OPENSSH_RECOMMENDATION)
+        view = session.cloudinsights.navigate_to(session.cloudinsights, 'All')
+        result = view.search(OPENSSH_RECOMMENDATION)
+        logger.info(f"tpapaioa result from search: {result}")
+
+        view.select_all.fill(True)
+        view.select_all_hits.click()
+        view.remediate.click()
+        view.remediation_window.remediate.click()
 
     def verify_tasks():
         tasks = module_target_sat_insights.api.ForemanTask().search(
-            query={'search': f'{api_query} and start_at >= "{timestamp}"'}
+            query={'search': f'{TASK_QUERY} and start_at >= "{timestamp}"'}
         )
         return len(tasks) == len(rhel_insights_vms) and all(
             task.result == 'success' for task in tasks
@@ -239,12 +256,15 @@ def test_rhcloud_insights_remediate_multiple_hosts(
     if not local_advisor_enabled:
         sync_recommendations(module_target_sat_insights, org_name=org_name, loc_name=DEFAULT_LOC)
 
+
+    time.sleep(300) # tpapaioa
+
     with module_target_sat_insights.ui_session() as session:
         session.organization.select(org_name=org_name)
         session.location.select(loc_name=DEFAULT_LOC)
 
         # Verify that the recommendations are not listed anymore.
-        assert not session.cloudinsights.search(ui_query)
+        assert not session.cloudinsights.search(UI_QUERY)
 
 
 @pytest.mark.stubbed
