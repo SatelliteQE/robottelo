@@ -38,7 +38,7 @@ VALIDATORS = dict(
         Validator('server.verify_ca', default=False),
         # TODO(ogajduse): should we have a default value for network_type?
         Validator('server.network_type', must_exist=True, is_in=HostNetworkType.list_values()),
-        Validator('server.is_ipv6', is_type_of=bool, must_exist=False),
+        # Validator('server.is_ipv6', is_type_of=bool, must_exist=False),  # TODO(ogajduse): uncomment
     ],
     content_host=[
         Validator('content_host.default_rhel_version', must_exist=True),
