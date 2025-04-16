@@ -151,8 +151,10 @@ class ContentHost(Host, ContentHostMixins):
             # key file based authentication
             kwargs.update({'key_filename': auth})
         self._satellite = kwargs.get('satellite')
-        # TODO(ogajduse): what should be the default net_type? Should there be a default at all?
-        self._net_type = HostNetworkType(kwargs.pop('net_type', None))
+        self._net_type = HostNetworkType(
+            # TODO(ogajduse): should we get instead of pop to propagate the attr to inventory?
+            kwargs.pop('net_type', settings.content_host.attributes.network_type)
+        )
         self.blank = kwargs.get('blank', False)
         super().__init__(hostname=hostname, **kwargs)
 
@@ -919,13 +921,13 @@ class ContentHost(Host, ContentHostMixins):
 
     def enable_ipv6_rhsm_proxy(self):
         """Execute procedures for enabling rhsm IPv6 HTTP Proxy"""
-        if self.network_type in [HostNetworkType.IPV6, HostNetworkType.DUALSTACK]:
+        if self.network_type == HostNetworkType.IPV6:
             url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)
 
     def enable_ipv6_dnf_proxy(self):
         """Execute procedures for enabling dnf IPv6 HTTP Proxy"""
-        if self.network_type in [HostNetworkType.IPV6, HostNetworkType.DUALSTACK]:
+        if self.network_type == HostNetworkType.IPV6:
             url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
             self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
 
@@ -1643,6 +1645,10 @@ class Capsule(ContentHost, CapsuleMixins):
     product_rpm_name = 'satellite-capsule'
     upstream_rpm_name = 'foreman-proxy'
 
+    def __init__(self, hostname, **kwargs):
+        kwargs.setdefault('net_type', settings.capsule.network_type)
+        super().__init__(hostname=hostname, **kwargs)
+
     @property
     def network_type(self):
         """Get the network type of the host"""
@@ -1897,6 +1903,7 @@ class Satellite(Capsule, SatelliteMixins):
         hostname = hostname or settings.server.hostname  # instance attr set by broker.Host
         self.omitting_credentials = False
         self.port = kwargs.get('port', settings.server.port)
+        kwargs.setdefault('net_type', settings.server.network_type)
         super().__init__(hostname=hostname, **kwargs)
         # create dummy classes for later population
         self._api = type('api', (), {'_configured': False})
