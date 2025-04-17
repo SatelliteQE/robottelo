@@ -828,6 +828,8 @@ class TestAnsibleAAPIntegration:
         :expectedresults: All hosts managed by Satellite are added to Satellite inventory.
 
         :verifies: SAT-28613, SAT-30761
+
+        :customerscenario: true
         """
         inventory_name = settings.AAP_INTEGRATION.satellite_inventory
         api_base = '/api/v2/' if aap_version == '2.3' else '/api/controller/v2/'
@@ -940,6 +942,8 @@ class TestAnsibleAAPIntegration:
             2. Starting ansible-callback systemd service, starts a job_template execution in AAP
 
         :verifies: SAT-30761
+
+        :customerscenario: true
         """
         host_mac_addr = provisioning_host.provisioning_nic_mac_addr
         sat = module_provisioning_sat.sat
