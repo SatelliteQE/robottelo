@@ -84,7 +84,8 @@ def test_positive_provision_pxe_host(
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
         timeout=1500,
-        delay=20,
+        retries=2,
+        delay=40,
     )
     discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
     discovered_host.hostgroup = provisioning_hostgroup
@@ -166,7 +167,8 @@ def test_positive_custom_provision_pxe_host(
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
         timeout=1500,
-        delay=20,
+        retries=2,
+        delay=40,
     )
     discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
     discovered_host.hostgroup = provisioning_hostgroup
@@ -320,7 +322,8 @@ def test_positive_auto_provision_host_with_rule(
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
         timeout=1500,
-        delay=20,
+        retries=2,
+        delay=40,
     )
     discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
     discovered_host.hostgroup = provisioning_hostgroup
