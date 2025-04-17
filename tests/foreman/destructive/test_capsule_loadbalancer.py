@@ -13,11 +13,13 @@
 """
 
 import pytest
+from wait_for import wait_for
 from wrapanapi import VmState
 
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import CLIENT_PORT, DataFile
+from robottelo.utils.datafactory import gen_string
 from robottelo.utils.installer import InstallerCommand
 
 pytestmark = [pytest.mark.no_containers, pytest.mark.destructive]
@@ -41,7 +43,18 @@ def content_for_client(module_target_sat, module_sca_manifest_org, module_lce, m
         repo = module_target_sat.api.Repository(id=synced_repo_id).read()
         rh_repos.append(repo)
 
-    module_cv.repository = rh_repos
+    product = gen_string('alpha')
+    container_repo_id = module_target_sat.api_factory.create_sync_custom_repo(
+        module_sca_manifest_org.id,
+        repo_type='docker',
+        repo_url=settings.container.registry_hub,
+        docker_upstream_name=settings.container.upstream_name,
+        product_name=product,
+    )
+    container_repo = module_target_sat.api.Repository(id=container_repo_id).read()
+    path = f'{module_sca_manifest_org.label}/{module_lce.label}/{module_cv.label}/{product}/{container_repo.label}'.lower()
+
+    module_cv.repository = rh_repos + [container_repo]
     module_cv.update(['repository'])
     module_cv.publish()
     module_cv = module_cv.read()
@@ -54,7 +67,7 @@ def content_for_client(module_target_sat, module_sca_manifest_org, module_lce, m
         organization=module_sca_manifest_org,
     ).create()
 
-    return {'client_ak': ak, 'client_lce': module_lce}
+    return {'client_ak': ak, 'client_lce': module_lce, 'container_path': path}
 
 
 @pytest.fixture(scope='module')
@@ -249,6 +262,79 @@ def test_loadbalancer_install_package(
     # Try package installation again
     result = rhel_contenthost.execute('yum install -y tree')
     assert result.status == 0
+
+
+@pytest.mark.e2e
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_loadbalancer_container(
+    loadbalancer_setup, setup_capsules, rhel_contenthost, module_org, module_location, request
+):
+    """Search and pull container images on a content host regardless the capsule availability
+
+    :id: 99539bc0-3dd2-49ab-9a43-9cb5cfd9fdce
+
+    :steps:
+        1. Register a host via setup AK and install podman.
+        2. Podman login to the load balancer.
+        3. Try to search and pull container image when only one of the Capsules is running.
+
+    :expectedresults:
+        1. Content host can podman login to the load balancer.
+        2. Content host can search and pull a container image from any available Capsule.
+
+    """
+    lb = loadbalancer_setup["setup_haproxy"]["haproxy"].hostname
+    c1 = loadbalancer_setup['setup_capsules']['capsule_1']
+    c2 = loadbalancer_setup['setup_capsules']['capsule_2']
+
+    # Register a host via setup AK and install podman.
+    result = rhel_contenthost.register(
+        org=module_org,
+        loc=module_location,
+        activation_keys=loadbalancer_setup['content_for_client']['client_ak'].name,
+        target=c1,
+        force=True,
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    result = rhel_contenthost.execute('yum install -y podman')
+    assert result.status == 0
+
+    # Podman login to the load balancer.
+    assert (
+        rhel_contenthost.execute(
+            f'podman login -u {settings.server.admin_username} '
+            f'-p {settings.server.admin_password} {lb}'
+        ).status
+        == 0
+    )
+
+    @request.addfinalizer
+    def _finalize():
+        rhel_contenthost.execute(f'podman logout {lb}')
+        c1.power_control(state=VmState.RUNNING, ensure=True)
+        c2.power_control(state=VmState.RUNNING, ensure=True)
+
+    # Try to search and pull container image when only one of the Capsules is running.
+    path = loadbalancer_setup['content_for_client']['container_path']
+
+    c1.power_control(state=VmState.STOPPED, ensure=True)
+    wait_for(  # provide a few seconds to the HA proxy to recognize new situation
+        lambda: path in rhel_contenthost.execute(f'podman search {lb}/{path}').stdout,
+        timeout=30,
+        delay=5,
+    )
+    assert rhel_contenthost.execute(f'podman pull {lb}/{path}').status == 0
+    assert rhel_contenthost.execute('podman rmi -a').status == 0
+
+    c1.power_control(state=VmState.RUNNING, ensure=True)
+    c2.power_control(state=VmState.STOPPED, ensure=True)
+    wait_for(  # provide a few seconds to the HA proxy to recognize new situation
+        lambda: path in rhel_contenthost.execute(f'podman search {lb}/{path}').stdout,
+        timeout=30,
+        delay=5,
+    )
+    assert rhel_contenthost.execute(f'podman pull {lb}/{path}').status == 0
+    assert rhel_contenthost.execute('podman rmi -a').status == 0
 
 
 @pytest.mark.rhel_ver_match('N-2')
