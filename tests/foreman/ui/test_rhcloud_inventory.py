@@ -487,7 +487,7 @@ def test_rhcloud_global_parameters(
     assert baremetal_host.hostname in hostnames
 
 
-def test_subscription_connection_settings_ui_behavior(module_target_sat):
+def test_subscription_connection_settings_ui_behavior(request, module_target_sat):
     """Verify that the RH Cloud Inventory UI
     reflects the subscription_connection_enabled setting
 
@@ -497,9 +497,8 @@ def test_subscription_connection_settings_ui_behavior(module_target_sat):
         1. Set the subscription_connection_enabled setting to true
         2. Check that all the RH inventory settings, auto_upload and manual_upload descriptions,
             cloud_connector and sync_status buttons are displayed in the UI
-        3. Set the setting to false
-        4. Set the subscription_connection_enabled setting to false
-        5. Verify that auto_update switch, auto_upload and manual_upload descriptions
+        3. Set the subscription_connection_enabled setting to false
+        4. Verify that auto_update switch, auto_upload and manual_upload descriptions
             and configure_cloud_connector and sync_all buttons are NOT displayed in the UI
 
     :expectedresults:
@@ -513,6 +512,13 @@ def test_subscription_connection_settings_ui_behavior(module_target_sat):
         initital_subs_conn_setting = module_target_sat.cli.Settings.list(
             {'search': 'subscription_connection_enabled'}
         )[0]['value']
+
+        @request.addfinalizer
+        def _finalize():
+            # Set the subscription_connection_enabled back to its initial state
+            module_target_sat.cli.Settings.set(
+                {'name': 'subscription_connection_enabled', 'value': initital_subs_conn_setting}
+            )
 
         # Check the initial state of the RH inventory settings when subscription_connection_enabled is set to true
         module_target_sat.cli.Settings.set(
@@ -555,9 +561,4 @@ def test_subscription_connection_settings_ui_behavior(module_target_sat):
         )
         assert not displayed_descriptions['manual_upload_desc'], (
             'Manual upload description should not be displayed!'
-        )
-
-        # Set the subscription_connection_enabled back to its initial state
-        module_target_sat.cli.Settings.set(
-            {'name': 'subscription_connection_enabled', 'value': initital_subs_conn_setting}
         )
