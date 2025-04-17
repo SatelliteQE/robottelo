@@ -278,7 +278,7 @@ class TestAnsibleCfgMgmt:
         assert ROLE_NAMES[0] not in [role['name'] for role in listroles_hg]
         assert ROLE_NAMES[1] == listroles_hg[0]['name']
 
-    @pytest.mark.rhel_ver_match('[78]')
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_read_facts_with_filter(
         self, request, target_sat, rex_contenthost, filtered_user, module_org, module_location
     ):
@@ -301,18 +301,19 @@ class TestAnsibleCfgMgmt:
         host.organization = module_org
         host.location = module_location
         host.update(['organization', 'location'])
-        request.addfinalizer(
-            user.delete
-        )  # Adding a temporary workaround until the issue 'SAT-18656' is resolved.
+        if is_open('SAT-18656'):
+
+            @request.addfinalizer
+            def _finalize():
+                target_sat.cli.Host.disassociate({'name': rex_contenthost.hostname})
 
         # gather ansible facts by running ansible roles on the host
         host.play_ansible_roles()
-        if is_open('SAT-18656'):
-            wait_for(
-                lambda: len(rex_contenthost.nailgun_host.get_facts()) > 0,
-                timeout=30,
-                delay=2,
-            )
+        wait_for(
+            lambda: len(rex_contenthost.nailgun_host.get_facts()) > 0,
+            timeout=30,
+            delay=2,
+        )
         user_cfg = user_nailgun_config(user.login, password)
         # get facts through API
         user_facts = (
