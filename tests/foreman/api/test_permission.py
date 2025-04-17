@@ -83,7 +83,7 @@ class TestPermission:
             if resource_type is None:
                 continue
             perm_group = target_sat.api.Permission().search(
-                query={'search': f'resource_type="{resource_type}"'}
+                query={'search': f'resource_type="{resource_type}"', 'per_page': 'all'}
             )
             permissions = {perm.name for perm in perm_group}
             expected_permissions = set(self.permissions[resource_type])
