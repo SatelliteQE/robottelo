@@ -17,7 +17,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from wait_for import wait_for
 
-from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
 from robottelo.utils.io import (
     get_local_file_data,
     get_remote_report_checksum,
@@ -485,3 +485,79 @@ def test_rhcloud_global_parameters(
     hostnames = [host['fqdn'] for host in json_data['hosts']]
     assert virtual_host.hostname in hostnames
     assert baremetal_host.hostname in hostnames
+
+
+def test_subscription_connection_settings_ui_behavior(module_target_sat):
+    """Verify that the RH Cloud Inventory UI
+    reflects the subscription_connection_enabled setting
+
+    :id: 9b8648b5-0ffb-49c1-a19e-04a7a8ce896f
+
+    :steps:
+        1. Set the subscription_connection_enabled setting to true
+        2. Check that all the RH inventory settings, auto_upload and manual_upload descriptions,
+            cloud_connector and sync_status buttons are displayed in the UI
+        3. Set the setting to false
+        4. Set the subscription_connection_enabled setting to false
+        5. Verify that auto_update switch, auto_upload and manual_upload descriptions
+            and configure_cloud_connector and sync_all buttons are NOT displayed in the UI
+
+    :expectedresults:
+        1. The subscription_connection_enabled setting is reflected in the UI
+    """
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=DEFAULT_ORG)
+        session.location.select(loc_name=DEFAULT_LOC)
+
+        # Get the initial state of subscription_connection_enabled setting
+        initital_subs_conn_setting = module_target_sat.cli.Settings.list(
+            {'search': 'subscription_connection_enabled'}
+        )[0]['value']
+
+        # Check the initial state of the RH inventory settings when subscription_connection_enabled is set to true
+        module_target_sat.cli.Settings.set(
+            {'name': 'subscription_connection_enabled', 'value': 'true'}
+        )
+        displayed_settings_options = session.cloudinventory.get_displayed_settings_options()
+        displayed_buttons = session.cloudinventory.get_displayed_buttons()
+        displayed_descriptions = session.cloudinventory.get_displayed_descriptions()
+
+        assert displayed_settings_options['auto_update'], 'Auto update switch should be displayed!'
+        assert displayed_buttons['cloud_connector'], 'Cloud connector button should be displayed!'
+        assert displayed_buttons['sync_status'], 'Sync status button should be displayed!'
+        assert displayed_descriptions['auto_upload_desc'], (
+            'Auto upload description should be displayed!'
+        )
+        assert displayed_descriptions['manual_upload_desc'], (
+            'Manual upload description should be displayed!'
+        )
+
+        # Set the subscription_connection_enabled to false
+        module_target_sat.cli.Settings.set(
+            {'name': 'subscription_connection_enabled', 'value': 'false'}
+        )
+        session.browser.refresh()
+
+        # Check that the auto_update setting and cloud_connector and sync_status buttons are not displayed
+        displayed_settings_options = session.cloudinventory.get_displayed_settings_options()
+        displayed_buttons = session.cloudinventory.get_displayed_buttons()
+        displayed_descriptions = session.cloudinventory.get_displayed_descriptions()
+
+        assert not displayed_settings_options['auto_update'], (
+            'Auto update switch should not be displayed!'
+        )
+        assert not displayed_buttons['cloud_connector'], (
+            'Cloud connector button should not be displayed!'
+        )
+        assert not displayed_buttons['sync_status'], 'Sync status button should not be displayed!'
+        assert not displayed_descriptions['auto_upload_desc'], (
+            'Auto upload description should not be displayed!'
+        )
+        assert not displayed_descriptions['manual_upload_desc'], (
+            'Manual upload description should not be displayed!'
+        )
+
+        # Set the subscription_connection_enabled back to its initial state
+        module_target_sat.cli.Settings.set(
+            {'name': 'subscription_connection_enabled', 'value': initital_subs_conn_setting}
+        )
