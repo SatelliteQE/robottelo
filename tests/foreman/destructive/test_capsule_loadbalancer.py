@@ -51,10 +51,10 @@ def content_for_client(module_target_sat, module_sca_manifest_org, module_lce, m
         docker_upstream_name=settings.container.upstream_name,
         product_name=product,
     )
-    contaier_repo = module_target_sat.api.Repository(id=container_repo_id).read()
-    path = f'{module_sca_manifest_org.label}/{module_lce.label}/{module_cv.label}/{product}/{contaier_repo.label}'.lower()
+    container_repo = module_target_sat.api.Repository(id=container_repo_id).read()
+    path = f'{module_sca_manifest_org.label}/{module_lce.label}/{module_cv.label}/{product}/{container_repo.label}'.lower()
 
-    module_cv.repository = rh_repos + [contaier_repo]
+    module_cv.repository = rh_repos + [container_repo]
     module_cv.update(['repository'])
     module_cv.publish()
     module_cv = module_cv.read()
