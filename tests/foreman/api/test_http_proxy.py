@@ -374,7 +374,6 @@ def test_refresh_updates_remotes_proxy(module_target_sat, module_org, module_pro
     :customerscenario: true
     """
     sat = module_target_sat
-    sat.set_pulp_cli_safemode(False)
 
     http_proxy = sat.api.HTTPProxy(
         name=gen_string('alpha', 15),
@@ -400,7 +399,7 @@ def test_refresh_updates_remotes_proxy(module_target_sat, module_org, module_pro
 
     # Set fake value to proxy_url, ensure it's written.
     fake_proxy_url = 'http://my.proxy.com:3128'
-    sat.execute(f'pulp rpm remote update --href "{href}" --proxy-url "{fake_proxy_url}"')
+    sat.execute(f'pulp --force rpm remote update --href "{href}" --proxy-url "{fake_proxy_url}"')
     remote = json.loads(sat.execute(f'pulp rpm remote show --href "{href}"').stdout)
     assert remote['proxy_url'] == fake_proxy_url
 
