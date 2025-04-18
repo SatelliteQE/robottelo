@@ -10,6 +10,7 @@ import pytest
 
 from robottelo import constants
 from robottelo.config import settings
+from robottelo.enums import HostNetworkType
 from robottelo.hosts import ContentHost, Satellite
 
 
@@ -19,7 +20,9 @@ def host_conf(request):
     if hasattr(request, 'param'):
         params = request.param
     distro = params.get('distro', 'rhel')
+    network = params.get('network')
     _rhelver = f"{distro}{params.get('rhel_version', settings.content_host.default_rhel_version)}"
+
     # check to see if no-containers is passed as an argument to pytest
     deploy_kwargs = {}
     if not any(
@@ -30,13 +33,16 @@ def host_conf(request):
         ]
     ):
         deploy_kwargs = settings.content_host.get(_rhelver).to_dict().get('container', {})
-        if deploy_kwargs and (network := params.get('network')):
+        if deploy_kwargs and network:
             deploy_kwargs.update({'Container': network})
     # if we're not using containers or a container isn't available, use a VM
     if not deploy_kwargs:
         deploy_kwargs = settings.content_host.get(_rhelver).to_dict().get('vm', {})
-        if network := params.get('network'):
+        if network:
             deploy_kwargs.update({'deploy_network_type': network})
+    if network:
+        # pass the network type to the deploy kwargs, so the host class can use it
+        deploy_kwargs.update({'net_type': network})
     conf.update(deploy_kwargs)
     return conf
 
@@ -206,7 +212,7 @@ def rhel_contenthost_with_repos(request, target_sat):
     repositories on the host"""
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         # add IPv6 proxy for IPv6 communication
-        if settings.server.is_ipv6:
+        if host.network_type == HostNetworkType.IPV6:
             host.enable_ipv6_dnf_and_rhsm_proxy()
             host.enable_ipv6_system_proxy()
 
