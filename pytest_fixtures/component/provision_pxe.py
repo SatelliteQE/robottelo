@@ -208,6 +208,7 @@ def module_provisioning_sat(
     subnet = sat.api.Subnet(
         location=[module_location],
         organization=[module_sca_manifest_org],
+        vlanid=settings.provisioning.vlan_id,
         network=str(provisioning_network.network_address),
         network_type='IPv6' if settings.server.is_ipv6 else 'IPv4',
         mask=str(provisioning_network.netmask),
