@@ -1,0 +1,17 @@
+LEAPP:
+  #Source RHEL Version of client
+  SOURCE_RHEL: '8.10'
+  #Target RHEL Version of client
+  TARGET_RHEL: '9.5'
+  #Leapp Version(GA/EUS/E4S,AUS)
+  LEAPP_VER: 'GA'
+  #Leapp brew build name for non-ga leapp version
+  LEAPP_BREW_BUILD_NAME:
+  #Leapp brew build url for non-ga leapp version
+  LEAPP_BREW_BUILD_URL:
+  #Leapp repo brew build name for non-ga leapp version
+  LEAPP_REPO_BREW_BUILD_NAME:
+  #Leapp repo brew build url for non-ga leapp version
+  LEAPP_REPO_BREW_BUILD_URL:
+
+

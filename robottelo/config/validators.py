@@ -424,4 +424,12 @@ VALIDATORS = dict(
             must_exist=True,
         ),
     ],
+    leapp=[
+        Validator(
+            'leapp.source_rhel',
+            'leapp.target_rhel',
+            'leapp.leapp_ver',
+            must_exist=True,
+        ),
+    ],
 )
