@@ -246,7 +246,7 @@ def test_positive_content_counts_granular_update(
 
     :parametrized: yes
 
-    :verifies: SAT-28338
+    :Verifies: SAT-28338
 
     :BlockedBy: SAT-29679
 
@@ -377,7 +377,7 @@ def test_hide_reclaim_space_warning(module_target_sat, setting_update):
 
     :parametrized: yes
 
-    :verifies: SAT-18549
+    :Verifies: SAT-18549
 
     :customerscenario: true
 

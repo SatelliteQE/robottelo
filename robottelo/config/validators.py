@@ -232,6 +232,8 @@ VALIDATORS = dict(
         Validator('jira.comment_visibility', default="Red Hat Employee"),
         Validator('jira.enable_comment', default=False),
         Validator('jira.issue_status', default=["Testing", "Release Pending"]),
+        Validator('jira.cache_file', default='jira_status_cache.json'),
+        Validator('jira.cache_ttl_days', default=7, is_type_of=int),
     ],
     ldap=[
         Validator(

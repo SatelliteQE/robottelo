@@ -8,3 +8,5 @@ JIRA:
   ENABLE_COMMENT: false
   # Comment only if jira is in one of the following state
   ISSUE_STATUS: ["Testing", "Release Pending"]
+  CACHE_FILE: jira_status_cache.json
+  CACHE_TTL_DAYS: 7

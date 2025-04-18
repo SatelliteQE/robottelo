@@ -600,7 +600,7 @@ class TestAnsibleREX:
 
         :expectedresults: Ansible collection can be installed on content host via REX.
 
-        :verifies: SAT-30807
+        :Verifies: SAT-30807
         """
         client = rhel_contenthost
         # Adding IPv6 proxy for IPv6 communication
@@ -665,7 +665,7 @@ class TestAnsibleREX:
             1. Verify variables associated to role are also imported along with roles
             2. Verify custom role is successfully assigned and running on a host
 
-        :verifies: SAT-28198
+        :Verifies: SAT-28198
         """
         username = settings.server.admin_username
         password = settings.server.admin_password
@@ -827,7 +827,7 @@ class TestAnsibleAAPIntegration:
 
         :expectedresults: All hosts managed by Satellite are added to Satellite inventory.
 
-        :verifies: SAT-28613, SAT-30761
+        :Verifies: SAT-28613, SAT-30761
 
         :customerscenario: true
         """
@@ -941,7 +941,7 @@ class TestAnsibleAAPIntegration:
             1. All hosts managed by Satellite are added to Satellite inventory.
             2. Starting ansible-callback systemd service, starts a job_template execution in AAP
 
-        :verifies: SAT-30761
+        :Verifies: SAT-30761
 
         :customerscenario: true
         """

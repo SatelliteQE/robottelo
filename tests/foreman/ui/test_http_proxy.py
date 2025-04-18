@@ -42,7 +42,7 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
 
     :expectedresults: All expected CRUD actions finished successfully
 
-    :verifies: SAT-30220
+    :Verifies: SAT-30220
 
     :customerscenario: true
     """
@@ -277,7 +277,7 @@ def test_positive_set_default_http_proxy(
     :expectedresults: Creating Http Proxy with option "Default content HTTP proxy",
         updates setting "Default HTTP Proxy" succesfully.
 
-    :verifies: SAT-5118, SAT-28860
+    :Verifies: SAT-5118, SAT-28860
 
     :customerscenario: true
     """
