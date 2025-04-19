@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import re
 
 from fauxfactory import gen_string
@@ -1119,7 +1119,7 @@ def test_positive_applied_errata_by_install_date(
 ):
     """Generate two Applied Errata reports, for Today and Yesterday,
         specifying the SINCE and UP-TO date fields, when the erratum
-        were installed (local time).
+        were installed (UTC for CI testing).
 
     :id: 33f5abfd-16dd-4f2e-a9c2-c1ce3aaa33d6
 
@@ -1162,8 +1162,8 @@ def test_positive_applied_errata_by_install_date(
     )
     assert module_rhel_contenthost.execute('subscription-manager refresh').status == 0
     assert module_rhel_contenthost.applicable_errata_count == len(ERRATUM_IDS)
-    # 'Since' time for today, local: set to 5 minutes prior to installs below
-    today_timestamp = (datetime.now() - timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M:%S')
+    # 'Since' time for today (UTC): set to 5 minutes prior to installs below
+    today_utc = (datetime.now(UTC) - timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M:%S')
     # Apply all FAKE_9_YUM erratum
     for _id in ERRATUM_IDS:
         task_id = module_target_sat.api.JobInvocation().run(
@@ -1187,13 +1187,13 @@ def test_positive_applied_errata_by_install_date(
         .search(query={'search': 'name="Host - Applied Errata"'})[0]
         .read()
     )
-    # Generate a report for Today and Yesterday
+    # Generate a report for Today and Yesterday (UTC)
     report_today = rt.generate(
         data={
             'organization_id': module_org.id,
             'report_format': 'json',
             'input_values': {
-                'Since': today_timestamp,
+                'Since': today_utc,
                 'Filter Errata Type': 'all',
                 'Include Last Reboot': 'no',
                 'Status': 'all',
@@ -1206,13 +1206,13 @@ def test_positive_applied_errata_by_install_date(
         errata_id in [entry['erratum_id'] for entry in report_today] for errata_id in ERRATUM_IDS
     )
     # Yesterday's report is empty
-    yesterday_timestamp = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
+    yesterday_utc = (datetime.now(UTC) - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
     report_yesterday = rt.generate(
         data={
             'organization_id': module_org.id,
             'report_format': 'json',
             'input_values': {
-                'Up to': yesterday_timestamp,
+                'Up to': yesterday_utc,
                 'Filter Errata Type': 'all',
                 'Include Last Reboot': 'no',
                 'Status': 'all',
