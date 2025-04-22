@@ -520,9 +520,8 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
 
         subscription_setting = setting_update == 'subscription_connection_enabled=true'
 
-        if setting_update == 'subscription_connection_enabled=true':
-            assert displayed_settings_options['auto_update'] is subscription_setting
-            assert displayed_buttons['cloud_connector'] is subscription_setting
-            assert displayed_buttons['sync_status'] is subscription_setting
-            assert displayed_descriptions['auto_upload_desc'] is subscription_setting
-            assert displayed_descriptions['manual_upload_desc'] is subscription_setting
+        assert displayed_settings_options['auto_update'] is subscription_setting
+        assert displayed_buttons['cloud_connector'] is subscription_setting
+        assert displayed_buttons['sync_status'] is subscription_setting
+        assert displayed_descriptions['auto_upload_desc'] is subscription_setting
+        assert displayed_descriptions['manual_upload_desc'] is subscription_setting
