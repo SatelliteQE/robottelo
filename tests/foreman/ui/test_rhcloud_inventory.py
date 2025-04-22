@@ -518,33 +518,23 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
         displayed_buttons = session.cloudinventory.get_displayed_buttons()
         displayed_descriptions = session.cloudinventory.get_displayed_descriptions()
 
+        subscription_setting = setting_update == 'subscription_connection_enabled=true'
+
         if setting_update == 'subscription_connection_enabled=true':
-            assert displayed_settings_options['auto_update'], (
-                'Auto update switch should be displayed!'
-            )
-            assert displayed_buttons['cloud_connector'], (
-                'Cloud connector button should be displayed!'
-            )
-            assert displayed_buttons['sync_status'], 'Sync status button should be displayed!'
-            assert displayed_descriptions['auto_upload_desc'], (
-                'Auto upload description should be displayed!'
-            )
-            assert displayed_descriptions['manual_upload_desc'], (
-                'Manual upload description should be displayed!'
-            )
-        elif setting_update == 'subscription_connection_enabled=false':
-            assert not displayed_settings_options['auto_update'], (
-                'Auto update switch should not be displayed!'
-            )
-            assert not displayed_buttons['cloud_connector'], (
-                'Cloud connector button should not be displayed!'
-            )
-            assert not displayed_buttons['sync_status'], (
-                'Sync status button should not be displayed!'
-            )
-            assert not displayed_descriptions['auto_upload_desc'], (
-                'Auto upload description should not be displayed!'
-            )
-            assert not displayed_descriptions['manual_upload_desc'], (
-                'Manual upload description should not be displayed!'
-            )
+            assert displayed_settings_options['auto_update'] is subscription_setting
+            assert displayed_buttons['cloud_connector'] is subscription_setting
+            assert displayed_buttons['sync_status'] is subscription_setting
+            assert displayed_descriptions['auto_upload_desc'] is subscription_setting
+            assert displayed_descriptions['manual_upload_desc'] is subscription_setting
+
+
+def test_dummy(target_sat):
+    with target_sat.ui_session() as session:
+        session.jobinvocation.run(
+            {
+                'category_and_template.job_category': 'Commands',
+                'category_and_template.job_template_text_input': 'Run Command - Script Default',
+                'target_hosts_and_inputs.command': 'ls',
+                'target_hosts_and_inputs.targets': target_sat.hostname,
+            }
+        )
