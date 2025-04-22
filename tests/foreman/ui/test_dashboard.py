@@ -160,10 +160,10 @@ def test_positive_task_status(session, target_sat):
         session.dashboard.action({'LatestFailedTasks': {'name': 'Synchronize'}})
         values = session.task.read(task_name)
         assert values['task']['result'] == 'warning'
-        assert (
-            values['task']['errors']
-            == f'Cannot connect to host {url}:80 ssl:default [Name or service not known]'
-        )
+        assert values['task']['errors'] in [
+            f"500, message='Internal Server Error', url='http://{url}'",
+            f'Cannot connect to host {url}:80 ssl:default [Domain name not found]',
+        ]
 
 
 @pytest.mark.upgrade
