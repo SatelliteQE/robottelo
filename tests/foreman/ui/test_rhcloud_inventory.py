@@ -487,7 +487,13 @@ def test_rhcloud_global_parameters(
     assert baremetal_host.hostname in hostnames
 
 
-def test_subscription_connection_settings_ui_behavior(request, module_target_sat):
+@pytest.mark.usefixtures('setting_update')
+@pytest.mark.parametrize(
+    'setting_update',
+    ['subscription_connection_enabled=true', 'subscription_connection_enabled=false'],
+    indirect=True,
+)
+def test_subscription_connection_settings_ui_behavior(request, module_target_sat, setting_update):
     """Verify that the RH Cloud Inventory UI
     reflects the subscription_connection_enabled setting
 
@@ -508,57 +514,37 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
         session.organization.select(org_name=DEFAULT_ORG)
         session.location.select(loc_name=DEFAULT_LOC)
 
-        # Get the initial state of subscription_connection_enabled setting
-        initital_subs_conn_setting = module_target_sat.cli.Settings.list(
-            {'search': 'subscription_connection_enabled'}
-        )[0]['value']
+        displayed_settings_options = session.cloudinventory.get_displayed_settings_options()
+        displayed_buttons = session.cloudinventory.get_displayed_buttons()
+        displayed_descriptions = session.cloudinventory.get_displayed_descriptions()
 
-        @request.addfinalizer
-        def _finalize():
-            # Set the subscription_connection_enabled back to its initial state
-            module_target_sat.cli.Settings.set(
-                {'name': 'subscription_connection_enabled', 'value': initital_subs_conn_setting}
+        if setting_update == 'subscription_connection_enabled=true':
+            assert displayed_settings_options['auto_update'], (
+                'Auto update switch should be displayed!'
             )
-
-        # Check the initial state of the RH inventory settings when subscription_connection_enabled is set to true
-        module_target_sat.cli.Settings.set(
-            {'name': 'subscription_connection_enabled', 'value': 'true'}
-        )
-        displayed_settings_options = session.cloudinventory.get_displayed_settings_options()
-        displayed_buttons = session.cloudinventory.get_displayed_buttons()
-        displayed_descriptions = session.cloudinventory.get_displayed_descriptions()
-
-        assert displayed_settings_options['auto_update'], 'Auto update switch should be displayed!'
-        assert displayed_buttons['cloud_connector'], 'Cloud connector button should be displayed!'
-        assert displayed_buttons['sync_status'], 'Sync status button should be displayed!'
-        assert displayed_descriptions['auto_upload_desc'], (
-            'Auto upload description should be displayed!'
-        )
-        assert displayed_descriptions['manual_upload_desc'], (
-            'Manual upload description should be displayed!'
-        )
-
-        # Set the subscription_connection_enabled to false
-        module_target_sat.cli.Settings.set(
-            {'name': 'subscription_connection_enabled', 'value': 'false'}
-        )
-        session.browser.refresh()
-
-        # Check that the auto_update setting and cloud_connector and sync_status buttons are not displayed
-        displayed_settings_options = session.cloudinventory.get_displayed_settings_options()
-        displayed_buttons = session.cloudinventory.get_displayed_buttons()
-        displayed_descriptions = session.cloudinventory.get_displayed_descriptions()
-
-        assert not displayed_settings_options['auto_update'], (
-            'Auto update switch should not be displayed!'
-        )
-        assert not displayed_buttons['cloud_connector'], (
-            'Cloud connector button should not be displayed!'
-        )
-        assert not displayed_buttons['sync_status'], 'Sync status button should not be displayed!'
-        assert not displayed_descriptions['auto_upload_desc'], (
-            'Auto upload description should not be displayed!'
-        )
-        assert not displayed_descriptions['manual_upload_desc'], (
-            'Manual upload description should not be displayed!'
-        )
+            assert displayed_buttons['cloud_connector'], (
+                'Cloud connector button should be displayed!'
+            )
+            assert displayed_buttons['sync_status'], 'Sync status button should be displayed!'
+            assert displayed_descriptions['auto_upload_desc'], (
+                'Auto upload description should be displayed!'
+            )
+            assert displayed_descriptions['manual_upload_desc'], (
+                'Manual upload description should be displayed!'
+            )
+        elif setting_update == 'subscription_connection_enabled=false':
+            assert not displayed_settings_options['auto_update'], (
+                'Auto update switch should not be displayed!'
+            )
+            assert not displayed_buttons['cloud_connector'], (
+                'Cloud connector button should not be displayed!'
+            )
+            assert not displayed_buttons['sync_status'], (
+                'Sync status button should not be displayed!'
+            )
+            assert not displayed_descriptions['auto_upload_desc'], (
+                'Auto upload description should not be displayed!'
+            )
+            assert not displayed_descriptions['manual_upload_desc'], (
+                'Manual upload description should not be displayed!'
+            )
