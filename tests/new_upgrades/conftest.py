@@ -3,14 +3,29 @@ This module is intended to be used for upgrade tests that have a single run stag
 """
 
 import datetime
+<<<<<<< HEAD
 import os
+=======
+import json
+from tempfile import mkstemp
+>>>>>>> fc18726c6 (Convert host upgrade scenario to new format)
 
 from box import Box
 from broker import Broker
 import pytest
+from wrapanapi.systems.google import GoogleCloudSystem
 
 from robottelo.config import settings
+<<<<<<< HEAD
 from robottelo.hosts import Capsule, Satellite
+=======
+from robottelo.constants import (
+    GCE_RHEL_CLOUD_PROJECTS,
+    GCE_TARGET_RHEL_IMAGE_NAME,
+)
+from robottelo.exceptions import GCECertNotFoundError
+from robottelo.hosts import Satellite
+>>>>>>> fc18726c6 (Convert host upgrade scenario to new format)
 from robottelo.utils.shared_resource import SharedResource
 
 pre_upgrade_failed_tests = []
@@ -137,6 +152,7 @@ def search_upgrade_shared_satellite():
 
 
 @pytest.fixture
+<<<<<<< HEAD
 def hostgroup_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.hostgroup_upgrades."""
     sat_instance = shared_checkout("hostgroup_upgrade")
@@ -233,6 +249,8 @@ def capsule_upgrade_integrated_sat_cap(
 
 
 @pytest.fixture
+=======
+>>>>>>> fc18726c6 (Convert host upgrade scenario to new format)
 def puppet_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.puppet_upgrades"""
     sat_instance = shared_checkout("puppet_upgrade")
@@ -243,7 +261,11 @@ def puppet_upgrade_shared_satellite():
             action_is_recoverable=True,
         ) as enable_puppet,
         SharedResource(
+<<<<<<< HEAD
             "puppet_upgrade_satellite",
+=======
+            "puppet_upgrade_tests",
+>>>>>>> fc18726c6 (Convert host upgrade scenario to new format)
             shared_checkin,
             sat_instance=sat_instance,
             action_is_recoverable=True,
@@ -254,6 +276,7 @@ def puppet_upgrade_shared_satellite():
         test_duration.ready()
 
 
+<<<<<<< HEAD
 @pytest.fixture
 def puppet_upgrade_shared_capsule():
     """Mark tests using this fixture with pytest.mark.puppet_upgrades"""
@@ -299,3 +322,60 @@ def puppet_upgrade_integrated_sat_cap(
     setup_data.satellite = puppet_upgrade_shared_satellite
     setup_data.capsule = puppet_upgrade_shared_capsule
     return setup_data
+=======
+# GCE Provisioning Fixtures
+
+
+@pytest.fixture
+def shared_googleclient(shared_gce_cert):
+    gceclient = GoogleCloudSystem(
+        project=shared_gce_cert['project_id'],
+        zone=settings.gce.zone,
+        file_path=shared_gce_cert['local_path'],
+        file_type='json',
+    )
+    yield gceclient
+    gceclient.disconnect()
+
+
+@pytest.fixture
+def shared_gce_domain(sat_gce_org, sat_gce_loc, gce_cert, sat_gce):
+    domain_name = f'{settings.gce.zone}.c.{gce_cert["project_id"]}.internal'
+    domain = sat_gce.api.Domain().search(query={'search': f'name={domain_name}'})
+    if domain:
+        domain = domain[0]
+        domain.organization = [sat_gce_org]
+        domain.location = [sat_gce_loc]
+        domain.update(['organization', 'location'])
+    if not domain:
+        domain = sat_gce.api.Domain(
+            name=domain_name, location=[sat_gce_loc], organization=[sat_gce_org]
+        ).create()
+    return domain
+
+
+@pytest.fixture
+def shared_gce_latest_rhel_uuid(shared_googleclient):
+    templates = shared_googleclient.find_templates(
+        include_public=True,
+        public_projects=GCE_RHEL_CLOUD_PROJECTS,
+        filter_expr=f'name:{GCE_TARGET_RHEL_IMAGE_NAME}*',
+    )
+    latest_template_name = max(tpl.name for tpl in templates)
+    return next(tpl for tpl in templates if tpl.name == latest_template_name).uuid
+
+
+@pytest.fixture
+def shared_gce_cert(puppet_upgrade_shared_satellite):
+    _, gce_cert_file = mkstemp(suffix='.json')
+    cert = json.loads(settings.gce.cert)
+    cert['local_path'] = gce_cert_file
+    with open(gce_cert_file, 'w') as f:
+        json.dump(cert, f)
+    puppet_upgrade_shared_satellite.put(gce_cert_file, settings.gce.cert_path)
+    if puppet_upgrade_shared_satellite.execute(f'[ -f {settings.gce.cert_path} ]').status != 0:
+        raise GCECertNotFoundError(
+            f"The GCE certificate in path {settings.gce.cert_path} is not found in satellite."
+        )
+    return cert
+>>>>>>> fc18726c6 (Convert host upgrade scenario to new format)
