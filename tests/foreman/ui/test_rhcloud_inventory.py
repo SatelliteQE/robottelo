@@ -518,7 +518,7 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
         displayed_buttons = session.cloudinventory.get_displayed_buttons()
         displayed_descriptions = session.cloudinventory.get_displayed_descriptions()
 
-        subscription_setting = setting_update == 'subscription_connection_enabled=true'
+        subscription_setting = setting_update.value == 'true'
 
         assert displayed_settings_options['auto_update'] is subscription_setting
         assert displayed_buttons['cloud_connector'] is subscription_setting
