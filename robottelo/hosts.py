@@ -151,10 +151,10 @@ class ContentHost(Host, ContentHostMixins):
             # key file based authentication
             kwargs.update({'key_filename': auth})
         self._satellite = kwargs.get('satellite')
-        self._net_type = HostNetworkType(
-            # TODO(ogajduse): should we get instead of pop to propagate the attr to inventory?
-            kwargs.pop('net_type', settings.content_host.attributes.network_type)
-        )
+        if not self._net_type:
+            self._net_type = HostNetworkType(
+                kwargs.get('net_type', settings.content_host.attributes.network_type)
+            )
         self.blank = kwargs.get('blank', False)
         super().__init__(hostname=hostname, **kwargs)
 
