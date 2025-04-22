@@ -526,15 +526,3 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
             assert displayed_buttons['sync_status'] is subscription_setting
             assert displayed_descriptions['auto_upload_desc'] is subscription_setting
             assert displayed_descriptions['manual_upload_desc'] is subscription_setting
-
-
-def test_dummy(target_sat):
-    with target_sat.ui_session() as session:
-        session.jobinvocation.run(
-            {
-                'category_and_template.job_category': 'Commands',
-                'category_and_template.job_template_text_input': 'Run Command - Script Default',
-                'target_hosts_and_inputs.command': 'ls',
-                'target_hosts_and_inputs.targets': target_sat.hostname,
-            }
-        )
