@@ -284,6 +284,7 @@ def test_positive_provision_end_to_end(
     setting_update,
     module_provisioning_rhel_content,
     module_libvirt_provisioning_sat,
+    configure_secureboot_provisioning,
     module_sca_manifest_org,
     module_location,
     module_ssh_key_file,

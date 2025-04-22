@@ -3,6 +3,8 @@ from functools import lru_cache
 import os
 import random
 import re
+from urllib.parse import urljoin
+from urllib.request import urlopen
 
 from broker.hosts import Host
 from fauxfactory import gen_string
@@ -379,6 +381,41 @@ class ProvisioningSetup:
             assert self.execute('systemctl restart dhcpd').status == 0
             # Workaround BZ: 2207698
             assert self.cli.Service.restart().status == 0
+
+    def get_secureboot_packages_with_version(self, server_url, prefix):
+        """Find the package URL that ends with a version number in the repository/file server.
+
+        :param: str server_url: The base URL of the repository/file server.
+        :param: str prefix: prefix of the package/file you're looking for (e.g. 'grub2-efi-x64').
+
+        :return: URL of the package with a version number at the end found in the repository
+        """
+        # Ensure the server URL ends with '/'
+        if not server_url.endswith('/'):
+            server_url += '/'
+
+        # Fetch the HTML directory listing
+        with urlopen(server_url) as response:
+            html = response.read().decode()
+
+        # Use regex to find all href links in the directory listing
+        files = re.findall(r'href="([^"]+)"', html)
+
+        # Filter the files that start with the given prefix and have a version pattern (like grub2-efi-x64-2.12-13.el10.x86_64.rpm)
+        versioned_files = [
+            f
+            for f in files
+            if f.startswith(prefix) and re.search(r'[\d\.\-]+(?:\.el\d+)?\.x86_64\.rpm$', f)
+        ]
+
+        if not versioned_files:
+            raise Exception(f'No matching files found with prefix and version: {prefix}')
+
+        # Return the first matching file (it should have a version number at the end)
+        selected_package = versioned_files[0]
+
+        # Join the base server URL with the matched file name (if needed)
+        return urljoin(server_url, selected_package)
 
 
 class Factories:
