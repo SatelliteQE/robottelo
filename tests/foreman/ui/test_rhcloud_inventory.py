@@ -17,7 +17,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from wait_for import wait_for
 
-from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
 from robottelo.utils.io import (
     get_local_file_data,
     get_remote_report_checksum,
@@ -485,3 +485,43 @@ def test_rhcloud_global_parameters(
     hostnames = [host['fqdn'] for host in json_data['hosts']]
     assert virtual_host.hostname in hostnames
     assert baremetal_host.hostname in hostnames
+
+
+@pytest.mark.usefixtures('setting_update')
+@pytest.mark.parametrize(
+    'setting_update',
+    ['subscription_connection_enabled=true', 'subscription_connection_enabled=false'],
+    indirect=True,
+)
+def test_subscription_connection_settings_ui_behavior(request, module_target_sat, setting_update):
+    """Verify that the RH Cloud Inventory UI
+    reflects the subscription_connection_enabled setting
+
+    :id: 9b8648b5-0ffb-49c1-a19e-04a7a8ce896f
+
+    :steps:
+        1. Set the subscription_connection_enabled setting to true
+        2. Check that all the RH inventory settings, auto_upload and manual_upload descriptions,
+            cloud_connector and sync_status buttons are displayed in the UI
+        3. Set the subscription_connection_enabled setting to false
+        4. Verify that auto_update switch, auto_upload and manual_upload descriptions
+            and configure_cloud_connector and sync_all buttons are NOT displayed in the UI
+
+    :expectedresults:
+        1. The subscription_connection_enabled setting is reflected in the UI
+    """
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=DEFAULT_ORG)
+        session.location.select(loc_name=DEFAULT_LOC)
+
+        displayed_settings_options = session.cloudinventory.get_displayed_settings_options()
+        displayed_buttons = session.cloudinventory.get_displayed_buttons()
+        displayed_descriptions = session.cloudinventory.get_displayed_descriptions()
+
+        subscription_setting = setting_update.value == 'true'
+
+        assert displayed_settings_options['auto_update'] is subscription_setting
+        assert displayed_buttons['cloud_connector'] is subscription_setting
+        assert displayed_buttons['sync_status'] is subscription_setting
+        assert displayed_descriptions['auto_upload_desc'] is subscription_setting
+        assert displayed_descriptions['manual_upload_desc'] is subscription_setting
