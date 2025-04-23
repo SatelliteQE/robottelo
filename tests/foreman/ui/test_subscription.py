@@ -266,8 +266,7 @@ def test_positive_access_manifest_as_another_admin_user(
             'RHELAnsibleEngineRepository': {'cdn': True},
             'SatelliteToolsRepository': {},
             'YumRepository': [
-                {'url': settings.repos.yum_1.url},
-                {'url': settings.repos.yum_6.url},
+                {'url': settings.repos.yum_1.url}
             ],
         },
     ],
