@@ -2091,12 +2091,12 @@ class TestPodman:
     def test_negative_login_without_pass(
         self, request, module_capsule_configured, module_container_contenthost
     ):
-        """Ensure the podman login fails with appropriate message when password is omit.
+        """Ensure the interactive podman login fails with appropriate message when password is omit.
 
         :id: a2ef15e0-e95e-49ea-8378-b5fbe4e350b3
 
         :steps:
-            1. Try podman login to a Capsule without any password provided.
+            1. Try interactive podman login to a Capsule without any password provided.
 
         :expectedresults: Login fails with appropriate error message.
 
@@ -2110,14 +2110,11 @@ class TestPodman:
                 f'podman logout {module_capsule_configured.hostname}'
             )
         )
-        with module_container_contenthost.session.shell() as sh:
-            sh.send(f'podman login --tls-verify=false {module_capsule_configured.hostname}')
-            sleep(3)
-            sh.send('')
-            sleep(3)
-            sh.send('')
-            sleep(3)
-        res = sh.result
-        assert res.status != 0
+        cmd = (
+            f"""expect -c 'spawn podman login --tls-verify=false {module_capsule_configured.hostname}; """
+            """expect "Username:"; send "\n"; expect "Password:"; send "\n"; expect eof'"""
+        )
+        res = module_container_contenthost.execute(cmd)
+        assert res.status == 0  # expect cmd succeeded
         assert 'login succeeded' not in res.stdout.lower()
-        assert 'invalid username/password' in res.stderr.lower()
+        assert 'invalid username/password' in res.stdout.lower()
