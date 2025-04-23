@@ -302,7 +302,6 @@ tests/foreman/cli/test_abrt.py @SatelliteQE/team-platform
 tests/foreman/cli/test_bootstrap_script.py @SatelliteQE/team-platform
 tests/foreman/cli/test_capsule.py @SatelliteQE/team-platform
 tests/foreman/cli/test_installer.py @SatelliteQE/team-platform
-tests/foreman/destructive/test_capsule.py @SatelliteQE/team-platform
 tests/foreman/destructive/test_capsule_loadbalancer.py @SatelliteQE/team-platform
 tests/foreman/destructive/test_clone.py @SatelliteQE/team-platform
 tests/foreman/destructive/test_fm_upgrade.py @SatelliteQE/team-platform
