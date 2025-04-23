@@ -65,7 +65,12 @@ def test_positive_end_to_end_crud(session, module_org, module_target_sat):
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
     'repos_collection',
-    [{'SatelliteToolsRepository': {}, 'distro': 'rhel7'}],
+    [
+        {
+            'distro': 'rhel7',
+            'YumRepository': {'url': settings.repos.yum_1.url},
+        }
+    ],
     indirect=True,
 )
 def test_positive_end_to_end_register(

@@ -258,8 +258,23 @@ def test_positive_access_manifest_as_another_admin_user(
         assert not session.subscription.has_manifest
 
 
+@pytest.mark.parametrize(
+    'repos_collection',
+    [
+        {
+            'distro': 'rhel7',
+            'RHELAnsibleEngineRepository': {'cdn': True},
+            'SatelliteToolsRepository': {},
+            'YumRepository': [
+                {'url': settings.repos.yum_1.url},
+                {'url': settings.repos.yum_6.url},
+            ],
+        },
+    ],
+    indirect=True,
+)
 def test_positive_view_vdc_subscription_products(
-    session, rhel7_contenthost, target_sat, function_sca_manifest_org
+    session, rhel7_contenthost, target_sat, function_sca_manifest_org, repos_collection
 ):
     """Ensure that Virtual Datacenters subscription provided products is
     not empty and that a consumed product exist in content products.
@@ -293,10 +308,6 @@ def test_positive_view_vdc_subscription_products(
     """
     org = function_sca_manifest_org
     lce = target_sat.api.LifecycleEnvironment(organization=org).create()
-    repos_collection = target_sat.cli_factory.RepositoryCollection(
-        distro='rhel7',
-        repositories=[target_sat.cli_factory.RHELAnsibleEngineRepository(cdn=True)],
-    )
     product_name = repos_collection.rh_repos[0].data['product']
     repos_collection.setup_content(org.id, lce.id, rh_subscriptions=[DEFAULT_SUBSCRIPTION_NAME])
     rhel7_contenthost.contenthost_setup(
