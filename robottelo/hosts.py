@@ -2428,7 +2428,7 @@ class Satellite(Capsule, SatelliteMixins):
         # if this is an IPv6 machine, we'll probably get a hostname
         # that is TOOOO LOOOONG for Active Directory which can only count to 15
         hostname_changed = False
-        if settings.server.is_ipv6:
+        if self.network_type == HostNetworkType.IPV6:
             original_shortname = self.execute('hostname -s').stdout.strip()
             if len(original_shortname) > 15:
                 hostname_changed = True
@@ -2478,7 +2478,7 @@ class Satellite(Capsule, SatelliteMixins):
         )
         # if this is an IPv6 only machine, also add
         # a line that fixes: https://github.com/SSSD/sssd/issues/3057
-        if settings.server.is_ipv6:
+        if self.network_type == HostNetworkType.IPV6:
             assert (
                 self.execute(
                     f'sed -i "{line_number + 1}i lookup_family_order = ipv6_only" /etc/sssd/sssd.conf'
@@ -2871,7 +2871,7 @@ class IPAHost(Host):
 
         # if this is an IPv6 only machine, also add
         # a line that fixes: https://github.com/SSSD/sssd/issues/3057
-        if settings.server.is_ipv6:
+        if self.satellite.network_type == HostNetworkType.IPV6:
             line_number = int(
                 self.satellite.execute(
                     "awk -v search='domain/' '$0~search{print NR; exit}' /etc/sssd/sssd.conf"
