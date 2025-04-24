@@ -10,7 +10,7 @@ import pytest
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.enums import HostNetworkType
+from robottelo.enums import NetworkType
 from robottelo.hosts import ContentHost, Satellite
 
 
@@ -200,7 +200,7 @@ def rhel_contenthost_with_repos(request, target_sat):
     repositories on the host"""
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         # add IPv6 proxy for IPv6 communication
-        if host.network_type == HostNetworkType.IPV6:
+        if host.network_type == NetworkType.IPV6:
             host.enable_ipv6_dnf_and_rhsm_proxy()
             host.enable_ipv6_system_proxy()
 
@@ -221,7 +221,7 @@ def module_container_contenthost(request, module_target_sat, module_org, module_
         "distro": "rhel",
         "no_containers": True,
         # TODO(vsedmik): Check whether this is valid for dualstack scenaro
-        "network": "ipv6" if module_target_sat.network_type == HostNetworkType.IPV6 else "ipv4",
+        "network": "ipv6" if module_target_sat.network_type == NetworkType.IPV6 else "ipv4",
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         host.register_to_cdn()
@@ -246,7 +246,7 @@ def module_flatpak_contenthost(request):
         "distro": "rhel",
         "no_containers": True,
         # TODO(vsedmik): Check whether this is valid for dualstack scenaro
-        "network": "ipv6" if settings.server.network_type == HostNetworkType.IPV6 else "ipv4",
+        "network": "ipv6" if settings.server.network_type == NetworkType.IPV6 else "ipv4",
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         host.register_to_cdn()
@@ -267,9 +267,7 @@ def centos_host(request, version):
         **host_conf(request),
         host_class=ContentHost,
         # TODO(shwsingh): Check whether this is valid for dualstack scenaro
-        deploy_network_type='ipv6'
-        if settings.server.network_type == HostNetworkType.IPV6
-        else 'ipv4',
+        deploy_network_type='ipv6' if settings.server.network_type == NetworkType.IPV6 else 'ipv4',
     ) as host:
         yield host
 
@@ -285,9 +283,7 @@ def oracle_host(request, version):
         **host_conf(request),
         host_class=ContentHost,
         # TODO(shwsingh): Check whether this is valid for dualstack scenaro
-        deploy_network_type='ipv6'
-        if settings.server.network_type == HostNetworkType.IPV6
-        else 'ipv4',
+        deploy_network_type='ipv6' if settings.server.network_type == NetworkType.IPV6 else 'ipv4',
     ) as host:
         yield host
 
@@ -300,9 +296,7 @@ def bootc_host():
         host_class=ContentHost,
         target_template='tpl-bootc-rhel-10.0',
         # TODO(sbible): Check whether this is valid for dualstack scenaro
-        deploy_network_type='ipv6'
-        if settings.server.network_type == HostNetworkType.IPV6
-        else 'ipv4',
+        deploy_network_type='ipv6' if settings.server.network_type == NetworkType.IPV6 else 'ipv4',
     ) as host:
         assert (
             host.execute(

@@ -11,7 +11,7 @@ import warnings
 
 from packaging.version import Version
 
-from robottelo.enums import HostNetworkType
+from robottelo.enums import NetworkType
 from robottelo.logging import logger
 
 
@@ -60,7 +60,7 @@ def migration_250404_network_type(settings, data):
             DeprecationWarning,
             stacklevel=2,
         )
-        n_type = HostNetworkType.IPV6 if settings.server.is_ipv6 else HostNetworkType.IPV4
+        n_type = NetworkType.IPV6 if settings.server.is_ipv6 else NetworkType.IPV4
         if not hasattr(data, 'server'):
             data.server = {}
         data.server.network_type = str(n_type)

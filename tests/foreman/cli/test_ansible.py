@@ -21,7 +21,7 @@ from robottelo.config import (
     robottelo_tmp_dir,
     settings,
 )
-from robottelo.enums import HostNetworkType
+from robottelo.enums import NetworkType
 from robottelo.exceptions import CLIFactoryError
 from robottelo.utils.issue_handlers import is_open
 
@@ -236,7 +236,7 @@ class TestAnsibleCfgMgmt:
         for path in ['/etc/ansible/collections', '/usr/share/ansible/collections']:
             http_proxy = (
                 f'HTTPS_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
-                if target_sat.network_type == HostNetworkType.IPV6
+                if target_sat.network_type == NetworkType.IPV6
                 else ''
             )
             assert (
