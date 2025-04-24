@@ -19,7 +19,7 @@ from robottelo.constants import (
     PUPPET_COMMON_INSTALLER_OPTS,
     PUPPET_SATELLITE_INSTALLER,
 )
-from robottelo.enums import HostNetworkType
+from robottelo.enums import NetworkType
 from robottelo.exceptions import CLIReturnCodeError, NoManifestProvidedError
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
@@ -300,7 +300,7 @@ class SystemInfo:
             pre_ncat_procs = self.execute('pgrep ncat').stdout.splitlines()
             with self.session.shell() as channel:
                 # if ncat isn't backgrounded, it prevents the channel from closing
-                nwtype = '6' if self.network_type == HostNetworkType.IPV6 else ''
+                nwtype = '6' if self.network_type == NetworkType.IPV6 else ''
                 command = f'ncat -{nwtype}kl -p {newport} -c "ncat {self.hostname} {oldport}" &'
                 logger.debug(f'Creating tunnel: {command}')
                 channel.send(command)
@@ -376,7 +376,7 @@ class ProvisioningSetup:
             assert not self.api.Host().search(query={'search': f'name={hostname}'})
         # Workaround SAT-28381
         if (
-            self.network_type != HostNetworkType.IPV6
+            self.network_type != NetworkType.IPV6
         ):  # TODO(sganar): What should we do in case of dualstack?
             assert self.execute('cat /dev/null > /var/lib/dhcpd/dhcpd.leases').status == 0
             assert self.execute('systemctl restart dhcpd').status == 0

@@ -19,7 +19,7 @@ import yaml
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE, FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
-from robottelo.enums import HostNetworkType
+from robottelo.enums import NetworkType
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.ohsnap import dogfood_repository
@@ -318,7 +318,7 @@ def sat_fapolicyd_install(module_sat_ready_rhels):
         "Satellite installation failed (non-zero return code)"
     )
     # TODO(jpathan): Check whether this is valid for dualstack
-    if settings.server.network_type == HostNetworkType.IPV6:
+    if settings.server.network_type == NetworkType.IPV6:
         sat.enable_satellite_http_proxy()
     return sat
 
@@ -338,7 +338,7 @@ def sat_non_default_install(module_sat_ready_rhels):
         "Satellite installation failed (non-zero return code)"
     )
     # TODO(jpathan): Check whether this is valid for dualstack
-    if settings.server.network_type == HostNetworkType.IPV6:
+    if settings.server.network_type == NetworkType.IPV6:
         sat.enable_satellite_http_proxy()
     return sat
 
