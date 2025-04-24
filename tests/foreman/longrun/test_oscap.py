@@ -418,7 +418,7 @@ def test_positive_oscap_run_via_ansible(
 
     :BZ: 1716307, 1992229
 
-    :Verifies: SAT-19389, SAT-24988, SAT-19491
+    :Verifies: SAT-19389, SAT-24988, SAT-19491, SAT-28826
 
     :customerscenario: true
 
@@ -428,6 +428,15 @@ def test_positive_oscap_run_via_ansible(
     prepare_scap_client_and_prerequisites(
         target_sat, contenthost, module_org, default_proxy, lifecycle_env
     )
+
+    # check smart_proxy_openscap setup (SAT-28826)
+    cronline = (
+        '*/30 * * * * foreman-proxy smart-proxy-openscap-send >> /var/log/foreman-proxy/cron.log'
+    )
+    result = target_sat.execute('cat /etc/cron.d/rubygem-smart_proxy_openscap')
+    assert cronline in result.stdout, 'smart_proxy_openscap cron not found'
+    result = target_sat.execute('sudo -u foreman-proxy smart-proxy-openscap-send')
+    assert result.status == 0
 
     # Apply policy
     job_id = target_sat.cli.Host.ansible_roles_play({'name': contenthost.hostname.lower()})[0].get(
