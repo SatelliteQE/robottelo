@@ -22,7 +22,6 @@ from robottelo.constants import (
     FAKE_0_CUSTOM_PACKAGE_NAME,
     FAKE_4_CUSTOM_PACKAGE_NAME,
     LABELLED_REPOS,
-    PULP_CONTAINER_REGISTRY_HUB,
 )
 from robottelo.hosts import ContentHost
 from robottelo.utils.shared_resource import SharedResource
@@ -163,7 +162,7 @@ def container_repo_sync_setup(content_upgrade_shared_satellite, upgrade_action):
                 content_type='docker',
                 docker_upstream_name=item['upstream_name'],
                 product=product,
-                url=PULP_CONTAINER_REGISTRY_HUB,
+                url=settings.container.pulp.registry_hub,
             ).create()
             repo.sync()
             repo = repo.read()
@@ -200,26 +199,26 @@ def test_container_repo_sync(container_repo_sync_setup):
                 else target_sat.api.Repository(id=repo.id).docker_manifest_lists()['results']
             )
 
-            assert all(
-                [CONTAINER_MANIFEST_LABELS.issubset(m.keys()) for m in entity_data]
-            ), f'Some expected key is missing in the repository {entity_type}s'
+            assert all([CONTAINER_MANIFEST_LABELS.issubset(m.keys()) for m in entity_data]), (
+                f'Some expected key is missing in the repository {entity_type}s'
+            )
             expected_values = next(
                 (i for i in LABELLED_REPOS if i['upstream_name'] == repo.docker_upstream_name), None
             )
             assert expected_values, f'{repo.docker_upstream_name} not found in {LABELLED_REPOS}'
             expected_values = expected_values[entity_type]
-            assert (
-                len(entity_data) == repo.content_counts[f'docker_{entity_type}']
-            ), f'{entity_type}s count does not match the repository content counts'
-            assert (
-                len(entity_data) == expected_values['count']
-            ), f'{entity_type}s count does not meet the expectation'
-            assert all(
-                [m['is_bootable'] == expected_values['bootable'] for m in entity_data]
-            ), 'Unexpected is_bootable flag'
-            assert all(
-                [m['is_flatpak'] == expected_values['flatpak'] for m in entity_data]
-            ), 'Unexpected is_flatpak flag'
+            assert len(entity_data) == repo.content_counts[f'docker_{entity_type}'], (
+                f'{entity_type}s count does not match the repository content counts'
+            )
+            assert len(entity_data) == expected_values['count'], (
+                f'{entity_type}s count does not meet the expectation'
+            )
+            assert all([m['is_bootable'] == expected_values['bootable'] for m in entity_data]), (
+                'Unexpected is_bootable flag'
+            )
+            assert all([m['is_flatpak'] == expected_values['flatpak'] for m in entity_data]), (
+                'Unexpected is_flatpak flag'
+            )
             assert all(
                 [len(m['labels']) == expected_values['labels_count'] for m in entity_data]
             ), 'Unexpected lables count'

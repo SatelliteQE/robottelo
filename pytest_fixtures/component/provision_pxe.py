@@ -12,7 +12,6 @@ import pytest
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
@@ -39,11 +38,7 @@ def module_provisioning_rhel_content(
     repo_names = []
     if int(rhel_ver) <= 7:
         repo_names.append(f'rhel{rhel_ver}')
-    # Provision using RHEL10 Beta repos until its GA
-    elif int(rhel_ver) == 10:
-        repo_names.append(f'rhel{rhel_ver}_bos_beta')
-        repo_names.append(f'rhel{rhel_ver}_aps_beta')
-    else:
+    elif int(rhel_ver) < 10:
         repo_names.append(f'rhel{rhel_ver}_bos')
         repo_names.append(f'rhel{rhel_ver}_aps')
     rh_repos = []
@@ -52,49 +47,67 @@ def module_provisioning_rhel_content(
     content_view = sat.api.ContentView(organization=module_sca_manifest_org).create()
 
     # Custom Content for Client repo
-    if is_open('SAT-27193') and int(rhel_ver) != 10:
+    custom_product = sat.api.Product(
+        organization=module_sca_manifest_org, name=f'rhel{rhel_ver}_{gen_string("alpha")}'
+    ).create()
+    client_repo = sat.api.Repository(
+        organization=module_sca_manifest_org,
+        product=custom_product,
+        content_type='yum',
+        url=settings.repos.SATCLIENT_REPO[f'rhel{rhel_ver}'],
+    ).create()
+    task = client_repo.sync(synchronous=False)
+    tasks.append(task)
+    content_view.repository = [client_repo]
+
+    if int(rhel_ver) < 10:
+        for name in repo_names:
+            rh_kickstart_repo_id = sat.api_factory.enable_rhrepo_and_fetchid(
+                basearch=constants.DEFAULT_ARCHITECTURE,
+                org_id=module_sca_manifest_org.id,
+                product=constants.REPOS['kickstart'][name]['product'],
+                repo=constants.REPOS['kickstart'][name]['name'],
+                reposet=constants.REPOS['kickstart'][name]['reposet'],
+                releasever=constants.REPOS['kickstart'][name]['version'],
+            )
+            # do not sync content repos for discovery based provisioning.
+            if module_provisioning_sat.provisioning_type != 'discovery':
+                rh_repo_id = sat.api_factory.enable_rhrepo_and_fetchid(
+                    basearch=constants.DEFAULT_ARCHITECTURE,
+                    org_id=module_sca_manifest_org.id,
+                    product=constants.REPOS[name]['product'],
+                    repo=constants.REPOS[name]['name'],
+                    reposet=constants.REPOS[name]['reposet'],
+                    releasever=constants.REPOS[name]['releasever'],
+                )
+
+            # Sync step because repo is not synced by default
+            for repo_id in [rh_kickstart_repo_id, rh_repo_id]:
+                if repo_id:
+                    rh_repo = sat.api.Repository(id=repo_id).read()
+                    task = rh_repo.sync(synchronous=False)
+                    tasks.append(task)
+                    rh_repos.append(rh_repo)
+                    content_view.repository.append(rh_repo)
+                    content_view.update(['repository'])
+    else:
+        # Use custom Content for RHEL10 until SAT-29721 is resolved
         custom_product = sat.api.Product(
             organization=module_sca_manifest_org, name=f'rhel{rhel_ver}_{gen_string("alpha")}'
         ).create()
-        client_repo = sat.api.Repository(
-            organization=module_sca_manifest_org,
-            product=custom_product,
-            content_type='yum',
-            url=settings.repos.SATCLIENT_REPO[f'rhel{rhel_ver}'],
-        ).create()
-        task = client_repo.sync(synchronous=False)
-        tasks.append(task)
-        content_view.repository = [client_repo]
+        for repo in settings.repos.rhel10_os.values():
+            rh_repo = sat.api.Repository(
+                organization=module_sca_manifest_org,
+                product=custom_product,
+                content_type='yum',
+                url=repo,
+            ).create()
+            task = rh_repo.sync(synchronous=False)
+            tasks.append(task)
+            rh_repos.append(rh_repo)
+            content_view.repository.append(rh_repo)
+            content_view.update(['repository'])
 
-    for name in repo_names:
-        rh_kickstart_repo_id = sat.api_factory.enable_rhrepo_and_fetchid(
-            basearch=constants.DEFAULT_ARCHITECTURE,
-            org_id=module_sca_manifest_org.id,
-            product=constants.REPOS['kickstart'][name]['product'],
-            repo=constants.REPOS['kickstart'][name]['name'],
-            reposet=constants.REPOS['kickstart'][name]['reposet'],
-            releasever=constants.REPOS['kickstart'][name]['version'],
-        )
-        # do not sync content repos for discovery based provisioning.
-        if module_provisioning_sat.provisioning_type != 'discovery':
-            rh_repo_id = sat.api_factory.enable_rhrepo_and_fetchid(
-                basearch=constants.DEFAULT_ARCHITECTURE,
-                org_id=module_sca_manifest_org.id,
-                product=constants.REPOS[name]['product'],
-                repo=constants.REPOS[name]['name'],
-                reposet=constants.REPOS[name]['reposet'],
-                releasever=constants.REPOS[name]['releasever'],
-            )
-
-        # Sync step because repo is not synced by default
-        for repo_id in [rh_kickstart_repo_id, rh_repo_id]:
-            if repo_id:
-                rh_repo = sat.api.Repository(id=repo_id).read()
-                task = rh_repo.sync(synchronous=False)
-                tasks.append(task)
-                rh_repos.append(rh_repo)
-                content_view.repository.append(rh_repo)
-                content_view.update(['repository'])
     for task in tasks:
         sat.wait_for_tasks(
             search_query=(f'id = {task["id"]}'),
@@ -105,7 +118,7 @@ def module_provisioning_rhel_content(
     rhel_xy = Version(
         constants.REPOS['kickstart'][f'rhel{rhel_ver}']['version']
         if rhel_ver == 7
-        else constants.REPOS['kickstart'][f'rhel{rhel_ver}_bos_beta']['version']
+        else constants.RHEL10_VER
         if rhel_ver == 10
         else constants.REPOS['kickstart'][f'rhel{rhel_ver}_bos']['version']
     )
@@ -116,6 +129,7 @@ def module_provisioning_rhel_content(
     os = o_systems[0].read()
     # return only the first kickstart repo - RHEL X KS or RHEL X BaseOS KS
     ksrepo = rh_repos[0]
+
     publish = content_view.publish()
     task_status = sat.wait_for_tasks(
         search_query=(f'Actions::Katello::ContentView::Publish and id = {publish["id"]}'),
@@ -133,14 +147,11 @@ def module_provisioning_rhel_content(
     ).create()
 
     # Ensure client repo is enabled in the activation key
-    if is_open('SAT-27193') and int(rhel_ver) != 10:
-        content = ak.product_content(data={'content_access_mode_all': '1'})['results']
-        client_repo_label = [repo['label'] for repo in content if repo['name'] == client_repo.name][
-            0
-        ]
-        ak.content_override(
-            data={'content_overrides': [{'content_label': client_repo_label, 'value': '1'}]}
-        )
+    content = ak.product_content(data={'content_access_mode_all': '1'})['results']
+    client_repo_label = [repo['label'] for repo in content if repo['name'] == client_repo.name][0]
+    ak.content_override(
+        data={'content_overrides': [{'content_label': client_repo_label, 'value': '1'}]}
+    )
     return Box(os=os, ak=ak, ksrepo=ksrepo, cv=content_view)
 
 
@@ -172,23 +183,25 @@ def module_provisioning_sat(
     )
 
     broker_data_out = Box(**broker_data_out['data_out'])
-    provisioning_interface = ipaddress.ip_interface(broker_data_out.provisioning_addr_ipv4)
+    provisioning_interface = ipaddress.ip_interface(broker_data_out.provisioning_addr_ip)
     provisioning_network = provisioning_interface.network
     # TODO: investigate DNS setup issue on Satellite,
     # we might need to set up Sat's DNS server as the primary one on the Sat host
     provisioning_upstream_dns_primary = (
-        broker_data_out.provisioning_upstream_dns.pop()
+        broker_data_out.provisioning_upstream_dns
+        if settings.server.is_ipv6
+        else broker_data_out.provisioning_upstream_dns.pop()
     )  # There should always be at least one upstream DNS
     provisioning_upstream_dns_secondary = (
         broker_data_out.provisioning_upstream_dns.pop()
-        if len(broker_data_out.provisioning_upstream_dns)
+        if len(broker_data_out.provisioning_upstream_dns) and not settings.server.is_ipv6
         else None
     )
 
     domain = sat.api.Domain(
         location=[module_location],
         organization=[module_sca_manifest_org],
-        dns=module_provisioning_capsule.id,
+        dns=None if settings.server.is_ipv6 else module_provisioning_capsule.id,
         name=provisioning_domain_name,
     ).create()
 
@@ -196,18 +209,19 @@ def module_provisioning_sat(
         location=[module_location],
         organization=[module_sca_manifest_org],
         network=str(provisioning_network.network_address),
+        network_type='IPv6' if settings.server.is_ipv6 else 'IPv4',
         mask=str(provisioning_network.netmask),
-        gateway=broker_data_out.provisioning_gw_ipv4,
+        gateway=broker_data_out.provisioning_gw_ip,
         from_=broker_data_out.provisioning_host_range_start,
         to=broker_data_out.provisioning_host_range_end,
         dns_primary=provisioning_upstream_dns_primary,
         dns_secondary=provisioning_upstream_dns_secondary,
         boot_mode='DHCP',
-        ipam='DHCP',
-        dhcp=module_provisioning_capsule.id,
+        ipam='None' if settings.server.is_ipv6 else 'DHCP',
+        dhcp=None if settings.server.is_ipv6 else module_provisioning_capsule.id,
         tftp=module_provisioning_capsule.id,
         template=module_provisioning_capsule.id,
-        dns=module_provisioning_capsule.id,
+        dns=None if settings.server.is_ipv6 else module_provisioning_capsule.id,
         httpboot=module_provisioning_capsule.id,
         discovery=module_provisioning_capsule.id,
         remote_execution_proxy=[module_provisioning_capsule.id],
@@ -229,6 +243,8 @@ def module_ssh_key_file():
 @pytest.fixture
 def provisioning_host(module_ssh_key_file, pxe_loader, module_provisioning_sat):
     """Fixture to check out blank VM"""
+    if pxe_loader.vm_firmware == 'bios' and settings.server.is_ipv6:
+        pytest.skip('BIOS is not supported with IPv6')
     vlan_id = settings.provisioning.vlan_id
     cd_iso = (
         ""  # TODO: Make this an optional fixture parameter (update vm_firmware when adding this)
@@ -245,8 +261,25 @@ def provisioning_host(module_ssh_key_file, pxe_loader, module_provisioning_sat):
     ) as prov_host:
         yield prov_host
         # Set host as non-blank to run teardown of the host
-        assert module_provisioning_sat.sat.execute('systemctl restart dhcpd').status == 0
+        if not settings.server.is_ipv6:
+            assert module_provisioning_sat.sat.execute('systemctl restart dhcpd').status == 0
         prov_host.blank = getattr(prov_host, 'blank', False)
+
+
+@pytest.fixture(scope='module')
+def configure_kea_dhcp6_server():
+    if settings.server.is_ipv6:
+        kea_host = Broker(
+            workflow=settings.provisioning.provisioning_kea_workflow,
+            artifacts='last',
+            host_class=ContentHost,
+            blank=True,
+            target_vlan_id=settings.provisioning.vlan_id,
+        ).execute()
+        yield kea_host
+        Broker(workflow='remove-vm', source_vm=kea_host.name).execute()
+    else:
+        yield None
 
 
 @pytest.fixture
@@ -273,7 +306,8 @@ def provisioning_hostgroup(
         root_pass=settings.provisioning.host_root_password,
         operatingsystem=module_provisioning_rhel_content.os,
         ptable=default_partitiontable,
-        subnet=module_provisioning_sat.subnet,
+        subnet=module_provisioning_sat.subnet if not settings.server.is_ipv6 else None,
+        subnet6=module_provisioning_sat.subnet if settings.server.is_ipv6 else None,
         pxe_loader=pxe_loader.pxe_loader,
         group_parameters_attributes=[
             {
@@ -299,7 +333,7 @@ def pxe_loader(request):
         'uefi': {'vm_firmware': 'uefi', 'pxe_loader': 'Grub2 UEFI'},
         'ipxe': {'vm_firmware': 'bios', 'pxe_loader': 'iPXE Embedded'},
         'http_uefi': {'vm_firmware': 'uefi', 'pxe_loader': 'Grub2 UEFI HTTP'},
-        'secureboot': {'vm_firmware': 'uefi_secureboot', 'pxe_loader': 'Grub2 UEFI SecureBoot'},
+        'secureboot': {'vm_firmware': 'uefi_secure_boot', 'pxe_loader': 'Grub2 UEFI SecureBoot'},
     }
     return Box(PXE_LOADER_MAP[getattr(request, 'param', 'uefi')])
 
@@ -309,7 +343,7 @@ def pxeless_discovery_host(provisioning_host, module_discovery_sat, pxe_loader):
     """Fixture for returning a pxe-less discovery host for provisioning"""
     sat = module_discovery_sat.sat
     image_name = f"{gen_string('alpha')}-{module_discovery_sat.iso}"
-    mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
+    mac = provisioning_host.provisioning_nic_mac_addr
     # Remaster and upload discovery image to automatically input values
     result = sat.execute(
         'cd /var/www/html/pub && '

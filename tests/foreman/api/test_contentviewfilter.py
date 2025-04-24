@@ -23,7 +23,6 @@ import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import settings
-from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.utils.datafactory import (
     parametrized,
     valid_data_list,
@@ -63,7 +62,6 @@ def content_view_module_stream(module_org, sync_repo_module_stream, module_targe
 class TestContentViewFilter:
     """Tests for content view filters."""
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
     def test_positive_create_erratum_with_name(self, name, content_view, target_sat):
         """Create new erratum content filter using different inputs as a name
@@ -80,7 +78,6 @@ class TestContentViewFilter:
         assert cvf.name == name
         assert cvf.type == 'erratum'
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
     def test_positive_create_pkg_group_with_name(self, name, content_view, target_sat):
         """Create new package group content filter using different inputs as a name
@@ -101,7 +98,6 @@ class TestContentViewFilter:
         assert cvf.name == name
         assert cvf.type == 'package_group'
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
     def test_positive_create_rpm_with_name(self, name, content_view, target_sat):
         """Create new RPM content filter using different inputs as a name
@@ -119,7 +115,6 @@ class TestContentViewFilter:
         assert cvf.name == name
         assert cvf.type == 'rpm'
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('inclusion', [True, False])
     def test_positive_create_with_inclusion(self, inclusion, content_view, target_sat):
         """Create new content view filter with different inclusion values
@@ -137,7 +132,6 @@ class TestContentViewFilter:
         ).create()
         assert cvf.inclusion == inclusion
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
     def test_positive_create_with_description(self, description, content_view, target_sat):
         """Create new content filter using different inputs as a description
@@ -157,7 +151,6 @@ class TestContentViewFilter:
         ).create()
         assert cvf.description == description
 
-    @pytest.mark.tier2
     def test_positive_create_with_repo(self, content_view, sync_repo, target_sat):
         """Create new content filter with repository assigned
 
@@ -174,7 +167,6 @@ class TestContentViewFilter:
         ).create()
         assert cvf.repository[0].id == sync_repo.id
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('original_packages', [True, False])
     def test_positive_create_with_original_packages(
         self, original_packages, content_view, sync_repo, target_sat
@@ -199,7 +191,6 @@ class TestContentViewFilter:
         ).create()
         assert cvf.original_packages == original_packages
 
-    @pytest.mark.tier2
     def test_positive_create_with_docker_repos(
         self, module_product, sync_repo, content_view, module_target_sat
     ):
@@ -217,7 +208,7 @@ class TestContentViewFilter:
             content_type='docker',
             docker_upstream_name='busybox',
             product=module_product.id,
-            url=CONTAINER_REGISTRY_HUB,
+            url=settings.container.registry_hub,
         ).create()
         content_view.repository = [sync_repo, docker_repository]
         content_view.update(['repository'])
@@ -231,7 +222,6 @@ class TestContentViewFilter:
         for repo in cvf.repository:
             assert repo.id in (sync_repo.id, docker_repository.id)
 
-    @pytest.mark.tier2
     def test_negative_create_without_cv(self, target_sat):
         """Try to create content view filter without providing content
         view
@@ -245,7 +235,6 @@ class TestContentViewFilter:
         with pytest.raises(HTTPError):
             target_sat.api.RPMContentViewFilter(content_view=None).create()
 
-    @pytest.mark.tier2
     def test_negative_create_with_invalid_repo_id(self, content_view, target_sat):
         """Try to create content view filter using incorrect repository
         id
@@ -262,7 +251,6 @@ class TestContentViewFilter:
                 repository=[gen_integer(10000, 99999)],
             ).create()
 
-    @pytest.mark.tier2
     def test_positive_delete_by_id(self, content_view, target_sat):
         """Delete content view filter
 
@@ -277,7 +265,6 @@ class TestContentViewFilter:
         with pytest.raises(HTTPError):
             cvf.read()
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
     def test_positive_update_name(self, name, content_view, target_sat):
         """Update content view filter with new name
@@ -294,7 +281,6 @@ class TestContentViewFilter:
         cvf.name = name
         assert cvf.update(['name']).name == name
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
     def test_positive_update_description(self, description, content_view, target_sat):
         """Update content view filter with new description
@@ -313,7 +299,6 @@ class TestContentViewFilter:
         cvf = cvf.update(['description'])
         assert cvf.description == description
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('inclusion', [True, False])
     def test_positive_update_inclusion(self, inclusion, content_view, target_sat):
         """Update content view filter with new inclusion value
@@ -331,7 +316,6 @@ class TestContentViewFilter:
         cvf = cvf.update(['inclusion'])
         assert cvf.inclusion == inclusion
 
-    @pytest.mark.tier2
     def test_positive_update_repo(self, module_product, sync_repo, content_view, target_sat):
         """Update content view filter with new repository
 
@@ -355,7 +339,6 @@ class TestContentViewFilter:
         assert len(cvf.repository) == 1
         assert cvf.repository[0].id == new_repo.id
 
-    @pytest.mark.tier2
     def test_positive_update_repos(self, module_product, sync_repo, content_view, target_sat):
         """Update content view filter with multiple repositories
 
@@ -382,7 +365,6 @@ class TestContentViewFilter:
         cvf = cvf.update(['repository'])
         assert {repo.id for repo in cvf.repository} == {repo.id for repo in repos}
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('original_packages', [True, False])
     def test_positive_update_original_packages(
         self, original_packages, sync_repo, content_view, target_sat
@@ -406,7 +388,6 @@ class TestContentViewFilter:
         cvf = cvf.update(['original_packages'])
         assert cvf.original_packages == original_packages
 
-    @pytest.mark.tier2
     def test_positive_update_repo_with_docker(
         self, module_product, sync_repo, content_view, target_sat
     ):
@@ -428,7 +409,7 @@ class TestContentViewFilter:
             content_type='docker',
             docker_upstream_name='busybox',
             product=module_product.id,
-            url=CONTAINER_REGISTRY_HUB,
+            url=settings.container.registry_hub,
         ).create()
         content_view.repository = [sync_repo, docker_repository]
         content_view = content_view.update(['repository'])
@@ -438,7 +419,6 @@ class TestContentViewFilter:
         for repo in cvf.repository:
             assert repo.id in (sync_repo.id, docker_repository.id)
 
-    @pytest.mark.tier2
     def test_negative_update_same_name(self, content_view, target_sat):
         """Try to update content view filter's name to already used one
 
@@ -455,7 +435,6 @@ class TestContentViewFilter:
         with pytest.raises(HTTPError):
             cvf.update(['name'])
 
-    @pytest.mark.tier2
     def test_negative_update_cv_by_id(self, content_view, target_sat):
         """Try to update content view filter using incorrect content
         view ID
@@ -470,7 +449,6 @@ class TestContentViewFilter:
         with pytest.raises(HTTPError):
             cvf.update(['content_view'])
 
-    @pytest.mark.tier2
     def test_negative_update_repo_by_id(self, sync_repo, content_view, target_sat):
         """Try to update content view filter using incorrect repository
         ID
@@ -488,7 +466,6 @@ class TestContentViewFilter:
         with pytest.raises(HTTPError):
             cvf.update(['repository'])
 
-    @pytest.mark.tier2
     def test_negative_update_repo(self, module_product, sync_repo, content_view, target_sat):
         """Try to update content view filter with new repository which doesn't
         belong to filter's content view
@@ -510,7 +487,6 @@ class TestContentViewFilter:
         with pytest.raises(HTTPError):
             cvf.update(['repository'])
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'filter_type', ['erratum', 'package_group', 'rpm', 'modulemd', 'docker']
     )
@@ -557,7 +533,6 @@ class TestContentViewFilter:
 class TestContentViewFilterSearch:
     """Tests that search through content view filters."""
 
-    @pytest.mark.tier1
     def test_positive_search_erratum(self, content_view, target_sat):
         """Search for an erratum content view filter's rules.
 
@@ -572,7 +547,6 @@ class TestContentViewFilterSearch:
         cv_filter = target_sat.api.ErratumContentViewFilter(content_view=content_view).create()
         target_sat.api.ContentViewFilterRule(content_view_filter=cv_filter).search()
 
-    @pytest.mark.tier1
     def test_positive_search_package_group(self, content_view, target_sat):
         """Search for an package group content view filter's rules.
 
@@ -585,7 +559,6 @@ class TestContentViewFilterSearch:
         cv_filter = target_sat.api.PackageGroupContentViewFilter(content_view=content_view).create()
         target_sat.api.ContentViewFilterRule(content_view_filter=cv_filter).search()
 
-    @pytest.mark.tier1
     def test_positive_search_rpm(self, content_view, target_sat):
         """Search for an rpm content view filter's rules.
 
@@ -605,7 +578,6 @@ class TestContentViewFilterRule:
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
-    @pytest.mark.tier2
     def test_positive_promote_module_stream_filter(
         self, module_org, content_view_module_stream, target_sat
     ):
@@ -653,7 +625,6 @@ class TestContentViewFilterRule:
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
-    @pytest.mark.tier2
     def test_positive_include_exclude_module_stream_filter(
         self, content_view_module_stream, target_sat
     ):
@@ -712,7 +683,6 @@ class TestContentViewFilterRule:
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
-    @pytest.mark.tier2
     def test_positive_multi_level_filters(self, content_view_module_stream, target_sat):
         """Verify promotion of Content View and Verify count after applying
         multi_filters (errata and module stream)
@@ -754,7 +724,6 @@ class TestContentViewFilterRule:
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
-    @pytest.mark.tier2
     def test_positive_dependency_solving_module_stream_filter(
         self, content_view_module_stream, target_sat
     ):

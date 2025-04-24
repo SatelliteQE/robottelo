@@ -17,14 +17,13 @@ import uuid
 from fauxfactory import gen_ipaddr, gen_mac, gen_string
 import pytest
 from requests import HTTPError
+from wait_for import wait_for
 
 from robottelo import constants
 from robottelo.config import (
     settings,
     user_nailgun_config,
 )
-
-pytestmark = pytest.mark.tier1
 
 
 @pytest.mark.e2e
@@ -87,7 +86,6 @@ def test_host_registration_end_to_end(
     assert rhel_contenthost.subscription_config['server']['port'] == constants.CLIENT_PORT
 
 
-@pytest.mark.tier3
 @pytest.mark.pit_client
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 def test_positive_allow_reregistration_when_dmi_uuid_changed(
@@ -216,7 +214,6 @@ def test_positive_rex_interface_for_global_registration(
             assert interface['mac'] == mac_address
 
 
-@pytest.mark.tier1
 def test_negative_global_registration_without_ak(module_target_sat):
     """Attempt to register a host without ActivationKey
 
@@ -447,3 +444,89 @@ def test_positive_katello_ca_crt_refresh(
     # check if the certificate file is refreshed
     ca_file_after_refresh = len(str(rhel_contenthost.execute(f'cat {katello_ca_crt_path}')))
     assert ca_cert_file == ca_file_after_refresh
+
+
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_positive_invalidate_users_tokens(
+    target_sat, request, module_org, module_location, rhel_contenthost, module_activation_key
+):
+    """Verify invalidating single and multiple users tokens.
+
+    :id: ee45cd69-d993-494c-8a14-c977096c1f52
+
+    :steps:
+        1. Create an admin user and a non-admin user with "edit_users" and "register_hosts" permission.
+        2. Generate a token with admin user and register a host with it, it should be successful.
+        3. Invalidate the token and try to use the generated token again to register the host, it should fail.
+        4. Invalidate tokens for multiple users with "invalidate-multiple" command, it should invalidate all the tokens for provided users.
+        5. Repeat Steps 2,3 and 4 with non-admin user and it should work the same way.
+
+    :expectedresults: Host registration will not be possible after/with invalidated tokens.
+
+    :CaseImportance: Critical
+
+    :Verifies: SAT-30383
+    """
+    password = settings.server.admin_password
+
+    # Admin User
+    admin_user = target_sat.api.User().search(
+        query={'search': f'login={settings.server.admin_username}'}
+    )[0]
+
+    # Non-Admin user with "edit_users" permission and "Register hosts" role
+    roles = [target_sat.api.Role().create()]
+    host_register_role = target_sat.api.Role().search(query={'search': 'name="Register hosts"'})[0]
+    roles.append(host_register_role)
+    user_permissions = {
+        'User': ['edit_users'],
+    }
+    target_sat.api_factory.create_role_permissions(roles[0], user_permissions)
+
+    non_admin_user = target_sat.api.User(
+        login=gen_string('alpha'),
+        password=password,
+        organization=[module_org],
+        location=[module_location],
+        role=roles,
+    ).create()
+
+    # delete the users
+    @request.addfinalizer
+    def _finalize():
+        wait_for(lambda: target_sat.api.Host(name=rhel_contenthost.hostname).search()[0].delete())
+        non_admin_user.delete()
+
+    # Generate token and verify token invalidation
+    for usertype in (admin_user, non_admin_user):
+        user = admin_user if usertype.admin else non_admin_user
+        user_cfg = user_nailgun_config(user.login, password)
+
+        cmd = target_sat.api.RegistrationCommand(
+            server_config=user_cfg,
+            organization=module_org,
+            location=module_location,
+            activation_keys=[module_activation_key.name],
+            insecure=True,
+        ).create()
+        result = rhel_contenthost.execute(cmd.strip('\n'))
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+        # Invalidate JWTs for a single user
+        result = target_sat.api.RegistrationTokens(
+            server_config=user_cfg, user=user.id
+        ).invalidate()
+        assert 'Successfully invalidated registration tokens' in result['message']
+        assert user.login in result['user']
+
+        rhel_contenthost.unregister()
+        # Re-register the host with invalidated token
+        result = rhel_contenthost.execute(cmd.strip('\n'))
+        assert result.status == 1
+        assert 'ERROR: unauthorized' in result.stdout
+
+        # Invalidate JWTs for multiple users
+        result = target_sat.api.RegistrationTokens(server_config=user_cfg).invalidate_multiple(
+            search=f'id ^ ({admin_user.id, non_admin_user.id})'
+        )
+        assert 'Successfully invalidated registration tokens' in result['message']

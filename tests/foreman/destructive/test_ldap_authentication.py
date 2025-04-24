@@ -99,7 +99,7 @@ def external_user_count(module_target_sat):
 def groups_teardown(module_target_sat):
     """teardown for groups created for external/remote groups"""
     yield
-    # tier down groups
+    # teardown groups
     for group_name in ('sat_users', 'sat_admins', EXTERNAL_GROUP_NAME):
         user_groups = module_target_sat.api.UserGroup().search(
             query={'search': f'name="{group_name}"'}
@@ -113,7 +113,7 @@ def rhsso_groups_teardown(module_target_sat, default_sso_host):
     """Teardown the rhsso groups"""
     yield
     for group_name in ('sat_users', 'sat_admins'):
-        default_sso_host.delete_rhsso_group(group_name)
+        default_sso_host.delete_sso_group(group_name)
 
 
 @pytest.fixture
@@ -365,8 +365,8 @@ def test_external_new_user_login_and_check_count_rhsso(
     :expectedresults: New User created in RHSSO server should able to get log-in
         and correct count shown for external users
     """
-    client_id = default_sso_host.get_rhsso_client_id()
-    user_details = default_sso_host.create_new_rhsso_user(client_id)
+    client_id = default_sso_host.get_sso_client_id()
+    user_details = default_sso_host.create_new_sso_user(client_id)
     login_details = {
         'username': user_details['username'],
         'password': settings.rhsso.rhsso_password,
@@ -379,7 +379,7 @@ def test_external_new_user_login_and_check_count_rhsso(
     updated_count = len([user for user in users if user.auth_source_name == 'External'])
     assert updated_count == external_user_count + 1
     # checking delete user can't login anymore
-    default_sso_host.delete_rhsso_user(user_details['username'])
+    default_sso_host.delete_sso_user(user_details['username'])
     with module_target_sat.ui_session(login=False) as rhsso_session:
         with pytest.raises(NavigationTriesExceeded) as error:
             rhsso_session.rhsso_login.login(login_details)
@@ -422,7 +422,7 @@ def test_login_failure_rhsso_user_if_internal_user_exist(
         login=username,
         password=settings.rhsso.rhsso_password,
     ).create()
-    external_rhsso_user = default_sso_host.create_new_rhsso_user(username=username)
+    external_rhsso_user = default_sso_host.create_new_sso_user(username=username)
     login_details = {
         'username': external_rhsso_user['username'],
         'password': settings.rhsso.rhsso_password,
@@ -459,7 +459,7 @@ def test_user_permissions_rhsso_user_after_group_delete(
     :expectedresults: external rhsso user's permissions should get revoked after external rhsso
         group deletion.
     """
-    default_sso_host.get_rhsso_client_id()
+    default_sso_host.get_sso_client_id()
     username = settings.rhsso.rhsso_user
     location_name = gen_string('alpha')
     login_details = {
@@ -469,7 +469,7 @@ def test_user_permissions_rhsso_user_after_group_delete(
 
     group_name = gen_string('alpha')
     default_sso_host.create_group(group_name=group_name)
-    default_sso_host.update_rhsso_user(username, group_name=group_name)
+    default_sso_host.update_sso_user(username, group_name=group_name)
 
     # creating satellite external group
     user_group = module_target_sat.cli_factory.usergroup({'admin': 1, 'name': group_name})
@@ -491,7 +491,7 @@ def test_user_permissions_rhsso_user_after_group_delete(
         assert login_details['username'] in current_user
 
     # delete the rhsso group and verify the rhsso-user permissions
-    default_sso_host.delete_rhsso_group(group_name=group_name)
+    default_sso_host.delete_sso_group(group_name=group_name)
     with module_target_sat.ui_session(login=False) as rhsso_session:
         rhsso_session.rhsso_login.login(login_details)
         with pytest.raises(NavigationTriesExceeded) as error:
@@ -527,7 +527,7 @@ def test_user_permissions_rhsso_user_multiple_group(
     :expectedresults: external rhsso user have highest level of permissions from among the
         multiple groups.
     """
-    default_sso_host.get_rhsso_client_id()
+    default_sso_host.get_sso_client_id()
     username = settings.rhsso.rhsso_user
     location_name = gen_string('alpha')
     login_details = {
@@ -548,7 +548,7 @@ def test_user_permissions_rhsso_user_multiple_group(
     for group_name, argument in zip(group_names, arguments, strict=True):
         # adding/creating rhsso groups
         default_sso_host.create_group(group_name=group_name)
-        default_sso_host.update_rhsso_user(username, group_name=group_name)
+        default_sso_host.update_sso_user(username, group_name=group_name)
         argument['name'] = group_name
 
         # creating satellite external groups

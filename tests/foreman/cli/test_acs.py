@@ -29,10 +29,16 @@ VAL_CANNOT_BE = 'cannot be'
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.pit_server
-@pytest.mark.parametrize('cnt_type', ['yum', 'file'])
-@pytest.mark.parametrize('acs_type', ['custom', 'simplified', 'rhui'])
+@pytest.mark.parametrize(
+    ('acs_type', 'cnt_type'),
+    [
+        (acs, cnt)
+        for acs in ['custom', 'simplified', 'rhui']
+        for cnt in ['yum', 'file']
+        if not (acs == 'rhui' and cnt == 'file')  # invalid combination: 'rhui-file'
+    ],
+)
 def test_positive_CRUD_all_types(
     request, module_target_sat, acs_type, cnt_type, module_yum_repo, module_file_repo
 ):
@@ -56,8 +62,6 @@ def test_positive_CRUD_all_types(
         4. ACS can be refreshed.
         5. ACS can be deleted.
     """
-    if 'rhui' in request.node.name and 'file' in request.node.name:
-        pytest.skip('unsupported parametrize combination')
 
     # Create
     params = {
@@ -88,9 +92,9 @@ def test_positive_CRUD_all_types(
     list = module_target_sat.cli.ACS.list({'search': f'name={new_acs["name"]}'})
     assert len(list) == 1
     assert list[0]['id'] == new_acs['id'], 'the listed id of ACS does not match the created one'
-    assert (
-        list[0]['type'] == new_acs['alternate-content-source-type']
-    ), 'the listed type of ACS does not match the created one'
+    assert list[0]['type'] == new_acs['alternate-content-source-type'], (
+        'the listed type of ACS does not match the created one'
+    )
 
     # Read
     acs_info = module_target_sat.cli.ACS.info({'id': new_acs['id']})
@@ -119,7 +123,6 @@ def test_positive_CRUD_all_types(
     assert f'{ACS_NOT_FOUND} {new_acs["id"]}.' in context.value.message, 'ACS was not deleted'
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('acs_type', ['custom', 'simplified', 'rhui'])
 def test_negative_check_name_validation(module_target_sat, acs_type):
     """Check validation when name is not provided.
@@ -144,7 +147,6 @@ def test_negative_check_name_validation(module_target_sat, acs_type):
     assert f'Name {VAL_CANT_BLANK}' in context.value.message
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('acs_type', ['custom', 'rhui'])
 def test_negative_check_custom_rhui_validations(module_target_sat, acs_type, module_yum_repo):
     """Check validations for required and forbidden params specific to Custom and Rhui ACS.
@@ -190,7 +192,6 @@ def test_negative_check_custom_rhui_validations(module_target_sat, acs_type, mod
     assert f'Product ids {VAL_CANNOT_BE} set' in context.value.message
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('cnt_type', ['yum', 'file'])
 def test_negative_check_simplified_validations(
     module_target_sat, cnt_type, module_yum_repo, module_file_repo

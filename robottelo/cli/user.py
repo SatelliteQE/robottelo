@@ -132,3 +132,15 @@ class User(Base):
         """
         cls.command_sub = 'mail-notification add'
         return cls.execute(cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def invalidate(cls, options=None):
+        """Invalidate JWTs for a single user"""
+        cls.command_sub = 'registration-tokens invalidate'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def invalidate_multiple(cls, options=None):
+        """Invalidate JWTs for multiple users"""
+        cls.command_sub = 'registration-tokens invalidate-multiple'
+        return cls.execute(cls._construct_command(options))

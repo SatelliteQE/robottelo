@@ -20,10 +20,16 @@ from robottelo.constants.repos import PULP_FIXTURE_ROOT, PULP_SUBPATHS_COMBINED
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.parametrize('cnt_type', ['yum', 'file'])
-@pytest.mark.parametrize('acs_type', ['custom', 'simplified', 'rhui'])
+@pytest.mark.parametrize(
+    ('acs_type', 'cnt_type'),
+    [
+        (acs, cnt)
+        for acs in ['custom', 'simplified', 'rhui']
+        for cnt in ['yum', 'file']
+        if not (acs == 'rhui' and cnt == 'file')  # invalid combination: 'rhui-file'
+    ],
+)
 def test_positive_CRUD_all_types(
     request, module_target_sat, acs_type, cnt_type, module_yum_repo, module_file_repo
 ):
@@ -47,8 +53,6 @@ def test_positive_CRUD_all_types(
         4. ACS can be refreshed.
         5. ACS can be deleted.
     """
-    if 'rhui' in request.node.name and 'file' in request.node.name:
-        pytest.skip('unsupported parametrize combination')
 
     # Create
     params = {
@@ -107,7 +111,6 @@ def test_positive_CRUD_all_types(
         module_target_sat.api.AlternateContentSource(id=new_acs.id).read()
 
 
-@pytest.mark.tier2
 def test_positive_run_bulk_actions(module_target_sat, module_yum_repo):
     """Perform bulk actions with an ACS.
 

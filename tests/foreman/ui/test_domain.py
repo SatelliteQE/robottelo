@@ -23,7 +23,6 @@ def valid_domain_name():
     return list(valid_domain_names(interface='ui').values())[0]
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize(
     'param_value', [gen_string('alpha', 255), ''], ids=['long_value', 'blank_value']
 )
@@ -42,12 +41,11 @@ def test_positive_set_parameter(session, valid_domain_name, param_value):
         session.domain.create({'domain.dns_domain': name, 'domain.full_name': name})
         session.domain.update(name, {'parameters.params': [new_param]})
         read_values = session.domain.read(name)
-    assert read_values['parameters']['params'] == [
-        new_param
-    ], "Current domain parameters do not match expected value"
+    assert read_values['parameters']['params'] == [new_param], (
+        "Current domain parameters do not match expected value"
+    )
 
 
-@pytest.mark.tier2
 def test_negative_set_parameter(session, valid_domain_name):
     """Set a parameter in a domain with 256 chars in name and value.
 
@@ -68,7 +66,6 @@ def test_negative_set_parameter(session, valid_domain_name):
         assert 'Name is too long' in str(context.value)
 
 
-@pytest.mark.tier2
 def test_negative_set_parameter_same(session, valid_domain_name):
     """Again set the same parameter for domain with name and value.
 
@@ -89,7 +86,6 @@ def test_negative_set_parameter_same(session, valid_domain_name):
         assert 'Name has already been taken' in str(context.value)
 
 
-@pytest.mark.tier2
 def test_positive_remove_parameter(session, valid_domain_name):
     """Remove a selected domain parameter
 
@@ -111,7 +107,6 @@ def test_positive_remove_parameter(session, valid_domain_name):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(
     session, module_org, module_location, valid_domain_name, module_target_sat

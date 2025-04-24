@@ -60,7 +60,6 @@ def acs_setup(class_target_sat, class_sca_manifest_org):
     return class_target_sat, class_sca_manifest_org
 
 
-@pytest.mark.tier2
 def test_acs_subpath_not_required(acs_setup):
     """
     This test verifies that the subpath field isn't mandatory for ACS creation.

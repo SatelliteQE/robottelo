@@ -14,6 +14,7 @@
 
 import copy
 import csv
+import json
 import os
 import re
 import time
@@ -29,6 +30,7 @@ from robottelo.constants import (
     ANY_CONTEXT,
     DEFAULT_CV,
     DEFAULT_LOC,
+    DUMMY_BOOTC_FACTS,
     ENVIRONMENT,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_7_CUSTOM_PACKAGE,
@@ -36,7 +38,6 @@ from robottelo.constants import (
     FAKE_8_CUSTOM_PACKAGE_NAME,
     OSCAP_PERIOD,
     OSCAP_WEEKDAY,
-    PERMISSIONS,
     REPO_TYPE,
     ROLES,
 )
@@ -161,7 +162,6 @@ def new_host_ui(target_sat):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_options):
     """Create a new Host with parameters, config group. Check host presence on
         the dashboard. Update name with 'new' prefix and delete.
@@ -225,7 +225,6 @@ def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_
         assert not target_sat.api.Host().search(query={'search': f'name="{new_host_name}"'})
 
 
-@pytest.mark.tier4
 def test_positive_read_from_details_page(session, module_host_template):
     """Create new Host and read all its content through details page
 
@@ -293,7 +292,6 @@ def test_read_host_with_ics_domain(
         assert values['details']['system_properties']['sys_properties']['name'] == host_name
 
 
-@pytest.mark.tier4
 def test_positive_read_from_edit_page(session, host_ui_options):
     """Create new Host and read all its content through edit page
 
@@ -334,7 +332,6 @@ def test_positive_read_from_edit_page(session, host_ui_options):
         assert values['additional_information']['enabled'] is True
 
 
-@pytest.mark.tier2
 def test_positive_assign_taxonomies(
     session, module_org, smart_proxy_location, target_sat, function_org, function_location_with_org
 ):
@@ -395,7 +392,6 @@ def test_positive_assign_taxonomies(
 
 
 @pytest.mark.skip_if_not_set('oscap')
-@pytest.mark.tier2
 def test_positive_assign_compliance_policy(
     session, scap_policy, second_scap_policy, target_sat, function_host
 ):
@@ -459,7 +455,6 @@ def test_positive_assign_compliance_policy(
 
 
 @pytest.mark.skipif((settings.ui.webdriver != 'chrome'), reason='Only tested on Chrome')
-@pytest.mark.tier3
 def test_positive_export(session, target_sat, function_org, function_location):
     """Create few hosts and export them via UI
 
@@ -487,7 +482,6 @@ def test_positive_export(session, target_sat, function_org, function_location):
 @pytest.mark.skipif(
     (settings.ui.webdriver != 'chrome'), reason='Currently only chrome is supported'
 )
-@pytest.mark.tier3
 def test_positive_export_selected_columns(target_sat, current_sat_location):
     """Select certain columns in the hosts table and check that they are exported in the CSV file.
 
@@ -545,7 +539,6 @@ def test_positive_export_selected_columns(target_sat, current_sat_location):
             )
 
 
-@pytest.mark.tier4
 def test_positive_create_with_inherited_params(
     session, target_sat, function_org, function_location_with_org
 ):
@@ -585,7 +578,6 @@ def test_positive_create_with_inherited_params(
         )
 
 
-@pytest.mark.tier4
 def test_negative_delete_primary_interface(session, host_ui_options):
     """Attempt to delete primary interface of a host
 
@@ -607,7 +599,6 @@ def test_negative_delete_primary_interface(session, host_ui_options):
         assert 'Interface Delete button is disabled' in str(context.value)
 
 
-@pytest.mark.tier2
 def test_positive_view_hosts_with_non_admin_user(
     test_name, module_org, smart_proxy_location, target_sat
 ):
@@ -647,9 +638,8 @@ def test_positive_view_hosts_with_non_admin_user(
         assert content_host['breadcrumb'] == created_host.name
 
 
-@pytest.mark.tier3
 def test_positive_remove_parameter_non_admin_user(
-    test_name, module_org, smart_proxy_location, target_sat
+    test_name, module_org, smart_proxy_location, target_sat, expected_permissions
 ):
     """Remove a host parameter as a non-admin user with enough permissions
 
@@ -666,8 +656,8 @@ def test_positive_remove_parameter_non_admin_user(
     target_sat.api_factory.create_role_permissions(
         role,
         {
-            'Parameter': PERMISSIONS['Parameter'],
-            'Host': PERMISSIONS['Host'],
+            'Parameter': expected_permissions['Parameter'],
+            'Host': expected_permissions['Host'],
             'Operatingsystem': ['view_operatingsystems'],
         },
     )
@@ -697,9 +687,8 @@ def test_positive_remove_parameter_non_admin_user(
         assert not values['parameters']['host_params']
 
 
-@pytest.mark.tier3
 def test_negative_remove_parameter_non_admin_user(
-    test_name, module_org, smart_proxy_location, target_sat
+    test_name, module_org, smart_proxy_location, target_sat, expected_permissions
 ):
     """Attempt to remove host parameter as a non-admin user with
     insufficient permissions
@@ -721,7 +710,7 @@ def test_negative_remove_parameter_non_admin_user(
         role,
         {
             'Parameter': ['view_params'],
-            'Host': PERMISSIONS['Host'],
+            'Host': expected_permissions['Host'],
             'Operatingsystem': ['view_operatingsystems'],
         },
     )
@@ -751,9 +740,8 @@ def test_negative_remove_parameter_non_admin_user(
         assert 'Remove Parameter' in str(context.value)
 
 
-@pytest.mark.tier3
 def test_positive_check_permissions_affect_create_procedure(
-    test_name, smart_proxy_location, target_sat, function_org, function_role
+    test_name, smart_proxy_location, target_sat, function_org, function_role, expected_permissions
 ):
     """Verify whether user permissions affect what entities can be selected
     when host is created
@@ -824,7 +812,10 @@ def test_positive_check_permissions_affect_create_procedure(
     # Add permissions for Organization and Location
     target_sat.api_factory.create_role_permissions(
         function_role,
-        {'Organization': PERMISSIONS['Organization'], 'Location': PERMISSIONS['Location']},
+        {
+            'Organization': expected_permissions['Organization'],
+            'Location': expected_permissions['Location'],
+        },
     )
     # Create new user with a configured role
     user_password = gen_string('alpha')
@@ -871,7 +862,6 @@ def test_positive_check_permissions_affect_create_procedure(
             assert create_values[tab_name][field_name] == host_field['expected_value']
 
 
-@pytest.mark.tier2
 def test_positive_search_by_parameter(session, module_org, smart_proxy_location, target_sat):
     """Search for the host by global parameter assigned to it
 
@@ -902,7 +892,6 @@ def test_positive_search_by_parameter(session, module_org, smart_proxy_location,
         assert values[0]['Name'] == param_host.name
 
 
-@pytest.mark.tier2
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.no_containers
 def test_positive_search_by_reported_data(
@@ -947,7 +936,6 @@ def test_positive_search_by_reported_data(
             )
 
 
-@pytest.mark.tier2
 @pytest.mark.usefixtures('function_host')
 def test_positive_search_by_configuration_status_alias(target_sat):
     """
@@ -980,12 +968,11 @@ def test_positive_search_by_configuration_status_alias(target_sat):
             for search_term in status_search_term.values():
                 search_string = f'{search_term}.{search_param}'
                 results[search_term] = [host['Name'] for host in session.host.search(search_string)]
-            assert (
-                results[status_search_term.name] == results[status_search_term.alias]
-            ), f'Different search results were found: {results}'
+            assert results[status_search_term.name] == results[status_search_term.alias], (
+                f'Different search results were found: {results}'
+            )
 
 
-@pytest.mark.tier4
 def test_positive_search_by_parameter_with_different_values(
     session, module_org, smart_proxy_location, target_sat
 ):
@@ -1018,7 +1005,6 @@ def test_positive_search_by_parameter_with_different_values(
             assert values[0]['Name'] == host.name
 
 
-@pytest.mark.tier2
 def test_positive_search_by_parameter_with_prefix(
     session, smart_proxy_location, target_sat, function_org
 ):
@@ -1053,7 +1039,6 @@ def test_positive_search_by_parameter_with_prefix(
         assert {value['Name'] for value in values} == {param_host.name, additional_host.name}
 
 
-@pytest.mark.tier2
 def test_positive_search_by_parameter_with_operator(
     session, smart_proxy_location, target_sat, function_org
 ):
@@ -1092,7 +1077,6 @@ def test_positive_search_by_parameter_with_operator(
         assert {value['Name'] for value in values} == {param_host.name, additional_host.name}
 
 
-@pytest.mark.tier2
 def test_positive_search_with_org_and_loc_context(
     session, target_sat, function_org, function_location
 ):
@@ -1118,7 +1102,6 @@ def test_positive_search_with_org_and_loc_context(
         assert session.host.search(host.name)[0]['Name'] == host.name
 
 
-@pytest.mark.tier2
 def test_positive_search_by_org(session, smart_proxy_location, target_sat):
     """Search for host by specifying host's organization name
 
@@ -1138,7 +1121,6 @@ def test_positive_search_by_org(session, smart_proxy_location, target_sat):
         assert session.host.search(f'organization = "{org.name}"')[0]['Name'] == host.name
 
 
-@pytest.mark.tier2
 def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, module_host_template):
     """Create a host with hostgroup specified via CLI. Make sure host
     inherited hostgroup's lifecycle environment, content view and both
@@ -1211,7 +1193,6 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
         assert host.name in [host.name for host in matching_hosts]
 
 
-@pytest.mark.tier4
 @pytest.mark.upgrade
 def test_positive_bulk_delete_host(session, smart_proxy_location, target_sat, function_org):
     """Delete multiple hosts from the list
@@ -1249,7 +1230,6 @@ def test_positive_bulk_delete_host(session, smart_proxy_location, target_sat, fu
 
 
 # ------------------------------ NEW HOST UI DETAILS ----------------------------
-@pytest.mark.tier4
 def test_positive_read_details_page_from_new_ui(session, host_ui_options):
     """Create new Host and read all its content through details page
 
@@ -1273,7 +1253,6 @@ def test_positive_read_details_page_from_new_ui(session, host_ui_options):
         assert values['overview']['details']['details']['comment'] == 'Host with fake data'
 
 
-@pytest.mark.tier4
 def test_positive_manage_table_columns(
     target_sat, test_name, ui_hosts_columns_user, current_sat_org, current_sat_location
 ):
@@ -1320,7 +1299,6 @@ def test_positive_manage_table_columns(
             assert (column in displayed_columns) is is_displayed
 
 
-@pytest.mark.tier2
 def test_all_hosts_manage_columns(target_sat, new_host_ui):
     """Verify that the manage columns widget changes the columns appropriately
 
@@ -1355,7 +1333,6 @@ def test_all_hosts_manage_columns(target_sat, new_host_ui):
             assert (column in displayed_columns) is is_displayed
 
 
-@pytest.mark.tier4
 def test_positive_host_details_read_templates(
     session, target_sat, current_sat_org, current_sat_location
 ):
@@ -1389,7 +1366,6 @@ def test_positive_host_details_read_templates(
     assert set(api_templates) == set(ui_templates)
 
 
-@pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
@@ -1502,7 +1478,6 @@ def test_positive_update_delete_package(
         assert result.status != 0
 
 
-@pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
@@ -1582,7 +1557,6 @@ def test_positive_apply_erratum(
 
 
 @pytest.mark.e2e
-@pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
@@ -1692,7 +1666,6 @@ def module_puppet_enabled_proxy_with_loc(
     session_puppet_enabled_proxy.update(['location'])
 
 
-@pytest.mark.tier3
 def test_positive_inherit_puppet_env_from_host_group_when_action(
     session_puppet_enabled_sat, module_puppet_org, module_puppet_loc, module_puppet_environment
 ):
@@ -1742,7 +1715,6 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(
         assert values['host']['puppet_environment'] == module_puppet_environment.name
 
 
-@pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('module_puppet_enabled_proxy_with_loc')
 def test_positive_create_with_puppet_class(
@@ -1803,7 +1775,6 @@ def test_positive_create_with_puppet_class(
         )
 
 
-@pytest.mark.tier2
 def test_positive_inherit_puppet_env_from_host_group_when_create(
     session_puppet_enabled_sat, module_env_search, module_puppet_org, module_puppet_loc
 ):
@@ -1846,7 +1817,6 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(
         assert values['host']['inherit_puppet_environment'] is False
 
 
-@pytest.mark.tier3
 @pytest.mark.usefixtures('module_puppet_enabled_proxy_with_loc')
 def test_positive_set_multi_line_and_with_spaces_parameter_value(
     session_puppet_enabled_sat,
@@ -1916,7 +1886,6 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
 
 
 @pytest.mark.pit_client
-@pytest.mark.tier2
 @pytest.mark.rhel_ver_match('[^6].*')
 def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
     """Using the new Host UI,enable tracer and verify that the page reloads
@@ -1958,7 +1927,6 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
         assert tracer['title'] == "No applications to restart"
 
 
-@pytest.mark.tier2
 def test_all_hosts_delete(target_sat, function_org, function_location, new_host_ui):
     """Create a host and delete it through All Hosts UI
 
@@ -1988,7 +1956,6 @@ def test_all_hosts_delete(target_sat, function_org, function_location, new_host_
         session.all_hosts.manage_table_columns({header: True for header in stripped_headers})
 
 
-@pytest.mark.tier2
 def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_host_ui):
     """Create several hosts, and delete them via Bulk Actions in All Hosts UI
 
@@ -2008,7 +1975,6 @@ def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_
         assert session.all_hosts.bulk_delete_all()
 
 
-@pytest.mark.tier2
 def test_all_hosts_bulk_cve_reassign(
     target_sat, module_org, module_location, module_lce, module_cv, new_host_ui
 ):
@@ -2061,7 +2027,6 @@ def test_all_hosts_bulk_cve_reassign(
             assert row['Lifecycle environment'] == lce2.name
 
 
-@pytest.mark.tier2
 def test_all_hosts_redirect_button(target_sat):
     """Verify that the New UI button on the old Host page correctly redirects
     to the All Hosts UI
@@ -2079,7 +2044,6 @@ def test_all_hosts_redirect_button(target_sat):
         assert "/new/hosts" in url
 
 
-@pytest.mark.tier2
 def test_all_hosts_bulk_build_management(target_sat, function_org, function_location, new_host_ui):
     """Create several hosts, and manage them via Build Management in All Host UI
 
@@ -2104,6 +2068,152 @@ def test_all_hosts_bulk_build_management(target_sat, function_org, function_loca
         assert 'Rebuilt configuration for 3 hosts' in session.all_hosts.build_management(
             rebuild=True
         )
+
+
+def test_bootc_booted_container_images(target_sat, bootc_host, function_ak_with_cv, function_org):
+    """Create a bootc host, and read its information via the Booted Container Images UI
+
+    :id: c15f02a2-05e0-447a-bbcc-aace08d40d1a
+
+    :expectedresults: Booted Container Images contains the correct information for a given booted image
+
+    :CaseComponent:Hosts-Content
+
+    :Verifies:SAT-27163
+
+    :Team: Phoenix-subscriptions
+    """
+    bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
+    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
+    assert bootc_host.subscribed
+
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        booted_container_image_info = session.bootc.read(bootc_dummy_info['bootc.booted.image'])
+        assert (
+            booted_container_image_info[0]['Image name'] == bootc_dummy_info['bootc.booted.image']
+        )
+        assert booted_container_image_info[0]['Image digests'] == '1'
+        assert booted_container_image_info[0]['Hosts'] == '1'
+        assert (
+            booted_container_image_info[1]['Image digest']
+            == bootc_dummy_info['bootc.booted.digest']
+        )
+        assert booted_container_image_info[1]['Hosts'] == '1'
+
+
+def test_bootc_host_details(target_sat, bootc_host, function_ak_with_cv, function_org):
+    """Create a bootc host, and read it's information via the Host Details UI
+
+    :id: 842356e9-8798-421d-aca6-0a1774c3f22b
+
+    :expectedresults: Host Details UI contains the proper information for a bootc host
+
+    :CaseComponent:Hosts-Content
+
+    :Verifies:SAT-27171
+
+    :Team: Phoenix-subscriptions
+    """
+    bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
+    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
+    assert bootc_host.subscribed
+
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        values = session.host_new.get_details(bootc_host.hostname, widget_names='details.bootc')
+        assert (
+            values['details']['bootc']['details']['running_image']
+            == bootc_dummy_info['bootc.booted.image']
+        )
+        assert (
+            values['details']['bootc']['details']['running_image_digest']
+            == bootc_dummy_info['bootc.booted.digest']
+        )
+        assert (
+            values['details']['bootc']['details']['rollback_image']
+            == bootc_dummy_info['bootc.rollback.image']
+        )
+        assert (
+            values['details']['bootc']['details']['rollback_image_digest']
+            == bootc_dummy_info['bootc.rollback.digest']
+        )
+
+
+def test_bootc_rex_job(target_sat, bootc_host, function_ak_with_cv, function_org):
+    """Run all bootc rex job (switch, upgrade, rollback, status) through Host Details UI
+
+    :id: ef92a5f7-8cc7-4849-822c-90ea68b10554
+
+    :expectedresults: Host Details UI links to the proper template, which runs successfully for all templates
+
+    :CaseComponent: Hosts-Content
+
+    :Verifies:SAT-27154, SAT-27158
+
+    :Team: Phoenix-subscriptions
+    """
+    BOOTC_SWITCH_TARGET = "images.paas.redhat.com/bootc/rhel-bootc:latest-10.0"
+    BOOTC_BASE_IMAGE = "localhost/tpl-bootc-rhel-10.0:latest"
+    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
+    assert bootc_host.subscribed
+
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        # bootc status
+        session.host_new.run_bootc_job(bootc_host.hostname, 'status')
+        task_result = target_sat.wait_for_tasks(
+            search_query=(f'Remote action: Run Bootc status on {bootc_host.hostname}'),
+            search_rate=2,
+            max_tries=30,
+        )
+        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
+        assert task_status['result'] == 'success'
+        assert f'image: {BOOTC_BASE_IMAGE}' in task_status['humanized']['output']
+        assert 'Successfully updated the system facts.' in task_status['humanized']['output']
+        # bootc switch
+        session.host_new.run_bootc_job(
+            bootc_host.hostname, 'switch', job_options=BOOTC_SWITCH_TARGET
+        )
+        task_result = target_sat.wait_for_tasks(
+            search_query=(f'Remote action: Run Bootc switch on {bootc_host.hostname}'),
+            search_rate=2,
+            max_tries=30,
+        )
+        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
+        assert task_status['result'] == 'success'
+        assert 'Successfully updated the system facts.' in task_status['humanized']['output']
+        assert f'Queued for next boot: {BOOTC_SWITCH_TARGET}' in task_status['humanized']['output']
+        # bootc upgrade
+        session.host_new.run_bootc_job(bootc_host.hostname, 'upgrade')
+        task_result = target_sat.wait_for_tasks(
+            search_query=(f'Remote action: Run Bootc upgrade on {bootc_host.hostname}'),
+            search_rate=2,
+            max_tries=30,
+        )
+        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
+        assert task_status['result'] == 'success'
+        assert 'Successfully updated the system facts.' in task_status['humanized']['output']
+        assert f'No changes in {BOOTC_SWITCH_TARGET}' in task_status['humanized']['output']
+        # reboot the host, to ensure there is a rollback image
+        bootc_host.execute('reboot')
+        bootc_host.wait_for_connection()
+        # bootc rollback
+        session.host_new.run_bootc_job(bootc_host.hostname, 'rollback')
+        task_result = target_sat.wait_for_tasks(
+            search_query=(f'Remote action: Run Bootc rollback on {bootc_host.hostname}'),
+            search_rate=2,
+            max_tries=30,
+        )
+        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
+        assert task_status['result'] == 'success'
+        assert 'Next boot: rollback deployment' in task_status['humanized']['output']
+        assert 'Successfully updated the system facts.' in task_status['humanized']['output']
+        # Check that the display in host details matches the task output
+        values = session.host_new.get_details(bootc_host.hostname, widget_names='details.bootc')
+        assert values
+        assert values['details']['bootc']['details']['running_image'] == BOOTC_SWITCH_TARGET
+        assert values['details']['bootc']['details']['rollback_image'] == BOOTC_BASE_IMAGE
 
 
 @pytest.fixture(scope='module')
@@ -2195,7 +2305,7 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
 
     :CaseComponent:Hosts-Content
 
-    :Team: Phoenix-content
+    :Team: Phoenix-subscriptions
     """
 
     module_target_sat, org, lce, capsule, content_view, loc, ak = change_content_source_prep
@@ -2267,7 +2377,6 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
         )
 
 
-@pytest.mark.tier3
 @pytest.mark.rhel_ver_match('8')
 def test_positive_page_redirect_after_update(target_sat, current_sat_location):
     """Check that page redirects correctly after editing a host without making any changes.
@@ -2293,7 +2402,6 @@ def test_positive_page_redirect_after_update(target_sat, current_sat_location):
         assert client.hostname in session.browser.url
 
 
-@pytest.mark.tier3
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('8')
 def test_host_status_honors_taxonomies(
@@ -2544,19 +2652,19 @@ def test_positive_manage_packages(
                     ).status
                     == 0
                 ), 'Wanted packages are not available!'
-                assert (
-                    host.run(f'dnf install {" ".join(packages_to_upgrade)} -y').status == 0
-                ), 'Could not install wanted packages!'
-                assert (
-                    host.run(f'dnf downgrade {" ".join(packages_to_upgrade)} -y').status == 0
-                ), 'Packages were not downgraded!'
+                assert host.run(f'dnf install {" ".join(packages_to_upgrade)} -y').status == 0, (
+                    'Could not install wanted packages!'
+                )
+                assert host.run(f'dnf downgrade {" ".join(packages_to_upgrade)} -y').status == 0, (
+                    'Packages were not downgraded!'
+                )
 
         elif used_action == 'remove':
             # Installing packages so they can be removed in the next step
             for host in hosts_to_test:
-                assert (
-                    host.run(f'dnf install {" ".join(packages_to_remove)} -y').status == 0
-                ), 'Could not install wanted packages!'
+                assert host.run(f'dnf install {" ".join(packages_to_remove)} -y').status == 0, (
+                    'Could not install wanted packages!'
+                )
 
         # Run airgun entity which performs Package management action based on the flags set above
         session.all_hosts.manage_packages(
@@ -2604,9 +2712,9 @@ def test_positive_manage_packages(
         if used_action == 'install':
             for host in hosts_to_test:
                 # Check that all the wanted packages are installed
-                assert (
-                    host.run(f'rpm -q {" ".join(packages_to_install)}').status == 0
-                ), 'Some of the wanted packages is not installed!'
+                assert host.run(f'rpm -q {" ".join(packages_to_install)}').status == 0, (
+                    'Some of the wanted packages is not installed!'
+                )
 
                 # Get versions of installed packages
                 installed_packages = host.run(
@@ -2659,9 +2767,9 @@ def test_positive_manage_packages(
     def _cleanup():
         for host in hosts_to_test:
             time.sleep(5)
-            assert (
-                host.run(f'dnf remove {" ".join(packages)} -y').status == 0
-            ), 'Could not remove installed packages in a finalizer!'
+            assert host.run(f'dnf remove {" ".join(packages)} -y').status == 0, (
+                'Could not remove installed packages in a finalizer!'
+            )
 
 
 @pytest.mark.parametrize('errata_to_install', ['1', '2'])
@@ -2680,7 +2788,6 @@ def test_positive_manage_packages(
     indirect=True,
 )
 @pytest.mark.no_containers
-@pytest.mark.tier2
 @pytest.mark.rhel_ver_match('8')
 def test_all_hosts_manage_errata(
     session,

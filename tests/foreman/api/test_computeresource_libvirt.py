@@ -19,9 +19,11 @@ http://www.katello.org/docs/api/apidoc/compute_resources.html
 from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
+from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import (
     invalid_values_list,
     parametrized,
@@ -92,7 +94,6 @@ def test_positive_crud_libvirt_cr(module_target_sat, module_org, module_location
     )
 
 
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 def test_positive_create_with_name_description(
     name, request, module_target_sat, module_org, module_location
@@ -119,7 +120,6 @@ def test_positive_create_with_name_description(
     assert compresource.description == name
 
 
-@pytest.mark.tier2
 def test_positive_create_with_orgs_and_locs(request, module_target_sat):
     """Create a compute resource with multiple organizations and locations
 
@@ -140,7 +140,6 @@ def test_positive_create_with_orgs_and_locs(request, module_target_sat):
     assert {loc.name for loc in locs} == {loc.read().name for loc in compresource.location}
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
 def test_negative_create_with_invalid_name(name, module_target_sat, module_org, module_location):
     """Attempt to create compute resources with invalid names
@@ -162,7 +161,6 @@ def test_negative_create_with_invalid_name(name, module_target_sat, module_org, 
         ).create()
 
 
-@pytest.mark.tier2
 def test_negative_create_with_same_name(request, module_target_sat, module_org, module_location):
     """Attempt to create a compute resource with already existing name
 
@@ -187,7 +185,6 @@ def test_negative_create_with_same_name(request, module_target_sat, module_org, 
         ).create()
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('url', **parametrized({'random': gen_string('alpha'), 'empty': ''}))
 def test_negative_create_with_url(module_target_sat, module_org, module_location, url):
     """Attempt to create compute resources with invalid url
@@ -206,7 +203,6 @@ def test_negative_create_with_url(module_target_sat, module_org, module_location
         ).create()
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
 def test_negative_update_invalid_name(
     request, module_target_sat, module_org, module_location, new_name
@@ -232,7 +228,6 @@ def test_negative_update_invalid_name(
     assert compresource.read().name == name
 
 
-@pytest.mark.tier2
 def test_negative_update_same_name(request, module_target_sat, module_org, module_location):
     """Attempt to update a compute resource with already existing name
 
@@ -257,7 +252,6 @@ def test_negative_update_same_name(request, module_target_sat, module_org, modul
     assert new_compresource.read().name != name
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('url', **parametrized({'random': gen_string('alpha'), 'empty': ''}))
 def test_negative_update_url(url, request, module_target_sat, module_org, module_location):
     """Attempt to update a compute resource with invalid url
@@ -278,3 +272,113 @@ def test_negative_update_url(url, request, module_target_sat, module_org, module
     with pytest.raises(HTTPError):
         compresource.update(['url'])
     assert compresource.read().url != url
+
+
+@pytest.mark.e2e
+@pytest.mark.on_premises_provisioning
+@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
+@pytest.mark.rhel_ver_list('[9, 10]')
+def test_positive_provision_end_to_end(
+    request,
+    setting_update,
+    module_provisioning_rhel_content,
+    module_libvirt_provisioning_sat,
+    module_sca_manifest_org,
+    module_location,
+    module_ssh_key_file,
+    pxe_loader,
+    provisioning_hostgroup,
+):
+    """Provision a host on Libvirt compute resource with the help of hostgroup.
+
+    :id: 6985e7c0-d258-4fc4-833b-e680804b55e9
+
+    :steps:
+        1. Configure provisioning setup.
+        2. Create Libvirt CR
+        3. Configure host group setup.
+        4. Create a host on Libvirt compute resource using the Hostgroup
+        5. Verify created host on Libvirt.
+
+    :expectedresults: Host is provisioned succesfully with hostgroup
+
+    :Verifies: SAT-25808
+    """
+    sat = module_libvirt_provisioning_sat.sat
+    cr_name = gen_string('alpha')
+    host_name = gen_string('alpha').lower()
+    libvirt_cr = sat.api.LibvirtComputeResource(
+        name=cr_name,
+        provider=FOREMAN_PROVIDERS['libvirt'],
+        display_type='VNC',
+        organization=[module_sca_manifest_org],
+        location=[module_location],
+        url=LIBVIRT_URL,
+    ).create()
+    request.addfinalizer(libvirt_cr.delete)
+    assert libvirt_cr.name == cr_name
+
+    host = sat.api.Host(
+        hostgroup=provisioning_hostgroup,
+        organization=module_sca_manifest_org,
+        location=module_location,
+        name=host_name,
+        compute_resource=libvirt_cr,
+        compute_attributes={
+            'cpus': 1,
+            'memory': 6442450944,
+            'firmware': pxe_loader.vm_firmware,
+            'start': '1',
+            'volumes_attributes': {
+                '0': {
+                    'capacity': '10G',
+                },
+            },
+        },
+        interfaces_attributes={
+            '0': {
+                'type': 'interface',
+                'primary': True,
+                'managed': True,
+                'compute_attributes': {
+                    'compute_type': 'bridge',
+                    'bridge': f'br-{settings.provisioning.vlan_id}',
+                },
+            }
+        },
+        provision_method='build',
+        host_parameters_attributes=[
+            {'name': 'remote_execution_connect_by_ip', 'value': 'true', 'parameter_type': 'boolean'}
+        ],
+        build=True,
+    ).create(create_missing=False)
+    request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
+    assert host.name == f'{host_name}.{module_libvirt_provisioning_sat.domain.name}'
+    # Check on Libvirt, if VM exists
+    result = sat.execute(
+        f'su foreman -s /bin/bash -c "virsh -c {LIBVIRT_URL} list --state-running"'
+    )
+    assert host_name in result.stdout
+    # check the build status
+    wait_for(
+        lambda: host.read().build_status_label != 'Pending installation',
+        timeout=1500,
+        delay=10,
+    )
+    assert host.read().build_status_label == 'Installed'
+
+    # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
+    if pxe_loader.vm_firmware == 'uefi_secure_boot':
+        provisioning_host = ContentHost(host.ip, auth=module_ssh_key_file)
+        # Wait for the host to be rebooted and SSH daemon to be started.
+        provisioning_host.wait_for_connection()
+        # Enable Root Login
+        if int(host.operatingsystem.read().major) >= 9:
+            assert (
+                provisioning_host.execute(
+                    'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
+                ).status
+                == 0
+            )
+        assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout

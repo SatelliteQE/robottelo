@@ -278,8 +278,7 @@ class TestParseHelp:
                     'shortname': None,
                     'value': None,
                     'help': (
-                        'Set the current environment context for the request.'
-                        ' Name/Id can be used'
+                        'Set the current environment context for the request. Name/Id can be used'
                     ),
                 },
                 {
@@ -287,8 +286,7 @@ class TestParseHelp:
                     'shortname': None,
                     'value': None,
                     'help': (
-                        'Set the current environment context for the request.'
-                        ' Name/Id can be used'
+                        'Set the current environment context for the request. Name/Id can be used'
                     ),
                 },
             ],
@@ -460,7 +458,7 @@ class TestParseInfo:
                 '    Last Checkin: 2019-12-13 00:00:00 UTC',
                 '    Release Version:',
                 '    Autoheal: true',
-                '    Registered To: tier3',
+                '    Registered To: keziah',
                 '    Registered At: 2019-12-13 00:00:00 UTC',
                 '    Registered by Activation Keys:',
                 '     1) ak1',
@@ -523,7 +521,7 @@ class TestParseInfo:
                 'last-checkin': '2019-12-13 00:00:00 UTC',
                 'release-version': '',
                 'autoheal': 'true',
-                'registered-to': 'tier3',
+                'registered-to': 'keziah',
                 'registered-at': '2019-12-13 00:00:00 UTC',
                 'registered-by-activation-keys': ['ak1'],
                 'system-purpose': {

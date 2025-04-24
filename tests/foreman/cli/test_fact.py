@@ -18,8 +18,6 @@ import pytest
 from robottelo.config import settings
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = [pytest.mark.tier1]
-
 
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
@@ -29,7 +27,7 @@ pytestmark = [pytest.mark.tier1]
         'os::family',
         'system_uptime::seconds',
         'memory::system::total',
-        'networking::ip',
+        'networking::ip6' if settings.server.is_ipv6 else 'networking::ip',
     ],
 )
 def test_positive_list_by_name(fact, module_target_sat):
@@ -135,9 +133,9 @@ def test_positive_facts_end_to_end(
         expected_values['net::interface::eth1::mac_address'] = mac_address.lower()
     for fact, expected_value in expected_values.items():
         actual_value = facts_dict.get(fact)
-        assert (
-            actual_value == expected_value
-        ), f'Assertion failed: {fact} (expected: {expected_value}, actual: {actual_value})'
+        assert actual_value == expected_value, (
+            f'Assertion failed: {fact} (expected: {expected_value}, actual: {actual_value})'
+        )
 
 
 @pytest.mark.rhel_ver_match('N-1')
@@ -189,9 +187,9 @@ def test_positive_custom_facts_and_clean_orphaned_facts(
     }
     for fact, expected_value in expected_values.items():
         actual_value = facts_dict.get(fact)
-        assert (
-            actual_value == expected_value
-        ), f'Assertion failed: {fact} (expected: {expected_value}, actual: {actual_value})'
+        assert actual_value == expected_value, (
+            f'Assertion failed: {fact} (expected: {expected_value}, actual: {actual_value})'
+        )
 
     # Cleanup orphaned facts
     result = module_target_sat.execute('foreman-rake facts:clean')

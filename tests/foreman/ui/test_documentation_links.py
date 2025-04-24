@@ -92,4 +92,6 @@ def test_positive_documentation_links(target_sat):
                 if requests.get(link, verify=False).status_code != 200:
                     pages_with_broken_links[page].append(link)
                     logger.info(f"Following link on {page} page seems broken: \n {link}")
-        assert not pages_with_broken_links, f"There are Satellite pages with broken documentation links. \n {print(pages_with_broken_links)}"
+        assert not pages_with_broken_links, (
+            f"There are Satellite pages with broken documentation links. \n {print(pages_with_broken_links)}"
+        )

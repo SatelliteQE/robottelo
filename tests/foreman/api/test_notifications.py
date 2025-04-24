@@ -275,7 +275,6 @@ def failed_repo_sync_task(target_sat, fake_yum_repo):
     return task_status
 
 
-@pytest.mark.tier3
 @pytest.mark.usefixtures(
     'admin_user_with_localhost_email',
     'reschedule_long_running_tasks_notification',
@@ -313,9 +312,9 @@ def test_positive_notification_for_long_running_tasks(long_running_task, root_ma
 
     for email in root_mailbox_copy:
         if task_id in email.as_string():
-            assert 'Tasks pending since' in email.get(
-                'Subject'
-            ), f'Notification e-mail has wrong subject: {email.get("Subject")}'
+            assert 'Tasks pending since' in email.get('Subject'), (
+                f'Notification e-mail has wrong subject: {email.get("Subject")}'
+            )
             for mime_body in email.get_payload():
                 body_text = mime_body.as_string()
                 assert 'Tasks lingering in states running, paused since' in body_text
@@ -327,7 +326,6 @@ def test_positive_notification_for_long_running_tasks(long_running_task, root_ma
                 assert not findall(r'_\("[\w\s]*"\)', body_text), 'Untranslated strings found.'
 
 
-@pytest.mark.tier3
 @pytest.mark.usefixtures(
     'sysadmin_user_with_subscription_reposync_fail',
     'wait_for_failed_repo_sync_mail',
@@ -357,16 +355,15 @@ def test_positive_notification_failed_repo_sync(failed_repo_sync_task, root_mail
     product_name = failed_repo_sync_task['input']['product']['name']
     for email in root_mailbox_copy:
         if task_id in email.as_string():
-            assert f'Repository {repo_name} failed to synchronize' in email.get(
-                'Subject'
-            ), f'Notification e-mail has wrong subject: {email.get("Subject")}'
+            assert f'Repository {repo_name} failed to synchronize' in email.get('Subject'), (
+                f'Notification e-mail has wrong subject: {email.get("Subject")}'
+            )
             for mime_body in email.get_payload():
                 body_text = mime_body.as_string()
                 assert product_name in body_text
                 assert f'/foreman_tasks/tasks/{task_id}' in body_text
 
 
-@pytest.mark.tier1
 def test_positive_notification_recipients(target_sat):
     """Check that endpoint `/notification_recipients` works and returns correct data structure.
 
@@ -395,7 +392,6 @@ def test_positive_notification_recipients(target_sat):
         assert set(notification_keys) == set(notification.keys())
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'admin_user_with_custom_settings',
     [
@@ -435,6 +431,6 @@ def test_negative_no_notification_for_long_running_tasks(
     assert task_id
 
     for email in root_mailbox_copy:
-        assert (
-            task_id not in email.as_string()
-        ), f'Unexpected notification e-mail with long-running task ID {task_id} found in user mailbox!'
+        assert task_id not in email.as_string(), (
+            f'Unexpected notification e-mail with long-running task ID {task_id} found in user mailbox!'
+        )

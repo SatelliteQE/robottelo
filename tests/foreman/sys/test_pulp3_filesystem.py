@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 import json
 
 import pytest
@@ -84,7 +84,6 @@ def test_pulp_service_definitions(target_sat):
     assert result.status == 0
 
 
-@pytest.mark.tier1
 def test_pulp_workers_status(target_sat):
     """Ensure pulpcore-workers are in active (running) state
 
@@ -101,7 +100,6 @@ def test_pulp_workers_status(target_sat):
     assert all('Active: active (running)' in r for r in result)
 
 
-@pytest.mark.tier1
 def test_pulp_status(target_sat):
     """Test pulp status via pulp-cli.
 
@@ -115,23 +113,23 @@ def test_pulp_status(target_sat):
         2. The pulp components are alive according to provided status.
     """
     result = target_sat.execute('pulp status')
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     assert not result.status
     status = json.loads(result.stdout)
     assert status['database_connection']['connected']
     assert status['redis_connection']['connected']
 
     workers_beats = [
-        datetime.strptime(worker['last_heartbeat'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        datetime.strptime(worker['last_heartbeat'], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=UTC)
         for worker in status['online_workers']
     ]
-    assert all(
-        (now - beat).seconds < 20 for beat in workers_beats
-    ), 'Some pulp workers seem to me dead!'
+    assert all((now - beat).seconds < 20 for beat in workers_beats), (
+        'Some pulp workers seem to me dead!'
+    )
     apps_beats = [
-        datetime.strptime(app['last_heartbeat'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        datetime.strptime(app['last_heartbeat'], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=UTC)
         for app in status['online_content_apps']
     ]
-    assert all(
-        (now - beat).seconds < 20 for beat in apps_beats
-    ), 'Some content apps seem to me dead!'
+    assert all((now - beat).seconds < 20 for beat in apps_beats), (
+        'Some content apps seem to me dead!'
+    )

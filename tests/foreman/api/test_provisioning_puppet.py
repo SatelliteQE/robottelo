@@ -18,6 +18,8 @@ import pytest
 import requests
 from wait_for import wait_for
 
+from robottelo.utils.issue_handlers import is_open
+
 
 @pytest.mark.e2e
 def test_positive_puppet_bootstrap(
@@ -132,8 +134,11 @@ def test_host_provisioning_with_external_puppetserver(
 
     :customerscenario: true
     """
+    if is_open('SAT-30237') and module_provisioning_rhel_content.os.major == '10':
+        pytest.skip('Skipping as puppet-agent packages are missing from EL10 client repo')
+
     puppet_env = 'production'
-    host_mac_addr = provisioning_host._broker_args['provisioning_nic_mac_addr']
+    host_mac_addr = provisioning_host.provisioning_nic_mac_addr
     sat = module_provisioning_sat.sat
     host = sat.api.Host(
         hostgroup=provisioning_hostgroup,
@@ -187,17 +192,17 @@ def test_host_provisioning_with_external_puppetserver(
     # Perform version check
     host_os = host.operatingsystem.read()
     expected_rhel_version = Version(f'{host_os.major}.{host_os.minor}')
-    assert (
-        provisioning_host.os_version == expected_rhel_version
-    ), 'Different than the expected OS version was installed'
+    assert provisioning_host.os_version == expected_rhel_version, (
+        'Different than the expected OS version was installed'
+    )
 
     # assert that the host is subscribed and consumes subsctiption provided by the activation key
     assert provisioning_host.subscribed, 'Host is not subscribed'
 
     # Validate external Puppet server deployment with Satellite
-    assert (
-        provisioning_host.execute('rpm -q puppet-agent').status == 0
-    ), 'Puppet agent package is not installed'
+    assert provisioning_host.execute('rpm -q puppet-agent').status == 0, (
+        'Puppet agent package is not installed'
+    )
 
     assert (
         external_puppet_server.hostname

@@ -23,7 +23,6 @@ pytestmark = [
     pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     ),
-    pytest.mark.tier3,
     pytest.mark.stubbed,
 ]
 

@@ -24,13 +24,13 @@ from robottelo.constants import (
     FOREMAN_PROVIDERS,
     LIBVIRT_RESOURCE_URL,
 )
+from robottelo.hosts import ContentHost
 
 pytestmark = [pytest.mark.skip_if_not_set('libvirt')]
 
 LIBVIRT_URL = LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
 
 
-@pytest.mark.tier2
 @pytest.mark.e2e
 def test_positive_end_to_end(session, module_target_sat, module_org, module_location):
     """Perform end to end testing for compute resource Libvirt component.
@@ -119,11 +119,12 @@ def test_positive_end_to_end(session, module_target_sat, module_org, module_loca
 
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
-@pytest.mark.tier4
-@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
+@pytest.mark.rhel_ver_match('[8]')
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
 def test_positive_provision_end_to_end(
     request,
+    pxe_loader,
     setting_update,
     module_sca_manifest_org,
     module_location,
@@ -141,7 +142,7 @@ def test_positive_provision_end_to_end(
 
     :BZ: 1243223, 2236693
 
-    :Verifies: SAT-22491
+    :Verifies: SAT-22491, SAT-25808
 
     :parametrized: yes
     """
@@ -154,6 +155,13 @@ def test_positive_provision_end_to_end(
         location=[module_location],
         organization=[module_sca_manifest_org],
     ).create()
+
+    existing_params = provisioning_hostgroup.group_parameters_attributes
+    provisioning_hostgroup.group_parameters_attributes = [
+        {'name': 'remote_execution_connect_by_ip', 'value': 'true', 'parameter_type': 'boolean'},
+    ] + existing_params
+    provisioning_hostgroup.update(['group_parameters_attributes'])
+
     with sat.ui_session() as session:
         session.organization.select(module_sca_manifest_org.name)
         session.location.select(module_location.name)
@@ -182,17 +190,24 @@ def test_positive_provision_end_to_end(
         assert hostname in result.stdout
         # Wait for provisioning to complete and report status back to Satellite
         wait_for(
-            lambda: session.host.get_details(name)['properties']['properties_table']['Build']
-            != 'Pending installation clear',
+            lambda: session.host_new.get_host_statuses(name)['Build']['Status']
+            != 'Pending installation',
             timeout=1800,
             delay=30,
             fail_func=session.browser.refresh,
             silent_failure=True,
             handle_exception=True,
         )
-        assert (
-            session.host.get_details(name)['properties']['properties_table']['Build']
-            == 'Installed clear'
-        )
+        values = session.host_new.get_host_statuses(name)
+        assert values['Build']['Status'] == 'Installed'
+
+        # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
+        if pxe_loader.vm_firmware == 'uefi_secure_boot':
+            host = sat.api.Host().search(query={'host': hostname})[0].read()
+            provisioning_host = ContentHost(host.ip)
+            # Wait for the host to be rebooted and SSH daemon to be started.
+            provisioning_host.wait_for_connection()
+            assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
+
         session.host.delete(name)
         assert not sat.api.Host().search(query={'search': f'name="{name}"'})

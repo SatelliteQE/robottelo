@@ -19,6 +19,7 @@ import requests
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE, REPOS
+from robottelo.utils.issue_handlers import is_open
 
 
 def create_repo(sat, org, repo_url, ssl_cert=None):
@@ -50,27 +51,29 @@ def update_cv(sat, cv, lce, repos):
 
 
 @pytest.fixture(scope='module')
-def ssl_cert(module_target_sat, module_sca_manifest_org):
+def ssl_cert(module_target_sat, module_els_sca_manifest_org):
     """Create credetial with SSL cert for Oracle Linux"""
     res = requests.get(settings.repos.convert2rhel.ssl_cert_oracle)
     res.raise_for_status()
     return module_target_sat.api.ContentCredential(
-        content=res.text, organization=module_sca_manifest_org, content_type='cert'
+        content=res.text, organization=module_els_sca_manifest_org, content_type='cert'
     ).create()
 
 
 @pytest.fixture
-def activation_key_rhel(module_target_sat, module_sca_manifest_org, module_lce, module_promoted_cv):
+def activation_key_rhel(
+    module_target_sat, module_els_sca_manifest_org, module_lce, module_promoted_cv
+):
     """Create activation key that will be used after conversion for registration"""
     return module_target_sat.api.ActivationKey(
-        organization=module_sca_manifest_org,
+        organization=module_els_sca_manifest_org,
         content_view=module_promoted_cv,
         environment=module_lce,
     ).create()
 
 
 @pytest.fixture(scope='module')
-def enable_rhel_subscriptions(module_target_sat, module_sca_manifest_org, version):
+def enable_rhel_subscriptions(module_target_sat, module_els_sca_manifest_org, version):
     """Enable and sync RHEL rpms repos"""
     major = version.split('.')[0]
     minor = ''
@@ -78,14 +81,14 @@ def enable_rhel_subscriptions(module_target_sat, module_sca_manifest_org, versio
         repo_names = ['rhel8_bos', 'rhel8_aps']
         minor = version[1:]
     else:
-        repo_names = ['rhel7']
+        repo_names = ['rhel7_els']
 
     rh_repos = []
     tasks = []
     for name in repo_names:
         rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
-            org_id=module_sca_manifest_org.id,
+            org_id=module_els_sca_manifest_org.id,
             product=REPOS[name]['product'],
             repo=REPOS[name]['name'] + minor,
             reposet=REPOS[name]['reposet'],
@@ -112,7 +115,7 @@ def enable_rhel_subscriptions(module_target_sat, module_sca_manifest_org, versio
 def centos(
     module_target_sat,
     centos_host,
-    module_sca_manifest_org,
+    module_els_sca_manifest_org,
     smart_proxy_location,
     module_promoted_cv,
     module_lce,
@@ -121,14 +124,15 @@ def centos(
 ):
     """Deploy and register Centos host"""
     major = version.split('.')[0]
+    centos_host.enable_ipv6_dnf_proxy()
     assert centos_host.execute('yum -y update').status == 0
     repo_url = settings.repos.convert2rhel.convert_to_rhel_repo.format(major)
-    repo = create_repo(module_target_sat, module_sca_manifest_org, repo_url)
+    repo = create_repo(module_target_sat, module_els_sca_manifest_org, repo_url)
     cv = update_cv(
         module_target_sat, module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo]
     )
     ak = module_target_sat.api.ActivationKey(
-        organization=module_sca_manifest_org,
+        organization=module_els_sca_manifest_org,
         content_view=cv,
         environment=module_lce,
     ).create()
@@ -140,7 +144,7 @@ def centos(
     # Register CentOS host with Satellite
     result = centos_host.api_register(
         module_target_sat,
-        organization=module_sca_manifest_org,
+        organization=module_els_sca_manifest_org,
         activation_keys=[ak.name],
         location=smart_proxy_location,
     )
@@ -158,7 +162,7 @@ def centos(
 def oracle(
     module_target_sat,
     oracle_host,
-    module_sca_manifest_org,
+    module_els_sca_manifest_org,
     smart_proxy_location,
     module_promoted_cv,
     module_lce,
@@ -168,6 +172,7 @@ def oracle(
 ):
     """Deploy and register Oracle host"""
     major = version.split('.')[0]
+    oracle_host.enable_ipv6_dnf_proxy()
     # disable rhn-client-tools because it obsoletes the subscription manager package
     oracle_host.execute('echo "exclude=rhn-client-tools" >> /etc/yum.conf')
     # Install and set correct RHEL compatible kernel and using non-UEK kernel, based on C2R docs
@@ -195,12 +200,12 @@ def oracle(
         oracle_host.power_control(state='reboot')
 
     repo_url = settings.repos.convert2rhel.convert_to_rhel_repo.format(major)
-    repo = create_repo(module_target_sat, module_sca_manifest_org, repo_url, ssl_cert)
+    repo = create_repo(module_target_sat, module_els_sca_manifest_org, repo_url, ssl_cert)
     cv = update_cv(
         module_target_sat, module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo]
     )
     ak = module_target_sat.api.ActivationKey(
-        organization=module_sca_manifest_org,
+        organization=module_els_sca_manifest_org,
         content_view=cv,
         environment=module_lce,
     ).create()
@@ -215,7 +220,7 @@ def oracle(
     # Register Oracle host with Satellite
     result = oracle_host.api_register(
         module_target_sat,
-        organization=module_sca_manifest_org,
+        organization=module_els_sca_manifest_org,
         activation_keys=[ak.name],
         location=smart_proxy_location,
         repo=ubi_url,
@@ -252,9 +257,8 @@ def test_convert2rhel_oracle_with_pre_conversion_template_check(
 
     :parametrized: yes
 
-    :Verifies: SAT-24654, SAT-24655
+    :Verifies: SAT-24654, SAT-24655, SAT-26076
     """
-    target_os_name = 'Red Hat'
     major = version.split('.')[0]
     assert oracle.execute('yum -y update').status == 0
 
@@ -280,6 +284,9 @@ def test_convert2rhel_oracle_with_pre_conversion_template_check(
             'job_template_id': template_id,
             'targeting_type': 'static_query',
             'search_query': f'name = {oracle.hostname}',
+            'inputs': {
+                'ELS': 'yes' if major <= '7' else 'no',
+            },
         },
     )
     # wait for job to complete
@@ -301,6 +308,7 @@ def test_convert2rhel_oracle_with_pre_conversion_template_check(
             'inputs': {
                 'Activation Key': activation_key_rhel.id,
                 'Restart': 'yes',
+                'ELS': 'yes' if major <= '7' else 'no',
             },
             'targeting_type': 'static_query',
             'search_query': f'name = {oracle.hostname}',
@@ -328,6 +336,8 @@ def test_convert2rhel_oracle_with_pre_conversion_template_check(
     assert host_content['facts']['conversions::success'] == 'true'
     convert2rhel_facts = json.loads(oracle.execute('cat /etc/rhsm/facts/convert2rhel.facts').stdout)
     assert convert2rhel_facts['conversions.env.CONVERT2RHEL_THROUGH_FOREMAN'] == '1'
+    # https://issues.redhat.com/browse/RHELC-1737
+    target_os_name = 'Oracle Linux Server' if is_open('RHELC-1737') else 'Red Hat'
     assert target_os_name in convert2rhel_facts['conversions.target_os.name']
     assert convert2rhel_facts['conversions.success'] is True
 
@@ -351,9 +361,8 @@ def test_convert2rhel_centos_with_pre_conversion_template_check(
 
     :parametrized: yes
 
-    :Verifies: SAT-24654, SAT-24655
+    :Verifies: SAT-24654, SAT-24655, SAT-26076
     """
-    target_os_name = 'Red Hat'
     host_content = module_target_sat.api.Host(id=centos.hostname).read_json()
     major = version.split('.')[0]
     assert host_content['operatingsystem_name'] == f'CentOS {major}'
@@ -370,6 +379,9 @@ def test_convert2rhel_centos_with_pre_conversion_template_check(
             'job_template_id': template_id,
             'targeting_type': 'static_query',
             'search_query': f'name = {centos.hostname}',
+            'inputs': {
+                'ELS': 'yes' if major <= '7' else 'no',
+            },
         },
     )
     # wait for job to complete
@@ -392,6 +404,7 @@ def test_convert2rhel_centos_with_pre_conversion_template_check(
             'inputs': {
                 'Activation Key': activation_key_rhel.id,
                 'Restart': 'yes',
+                'ELS': 'yes' if major <= '7' else 'no',
             },
             'targeting_type': 'static_query',
             'search_query': f'name = {centos.hostname}',
@@ -422,5 +435,7 @@ def test_convert2rhel_centos_with_pre_conversion_template_check(
     assert host_content['facts']['conversions::success'] == 'true'
     convert2rhel_facts = json.loads(centos.execute('cat /etc/rhsm/facts/convert2rhel.facts').stdout)
     assert convert2rhel_facts['conversions.env.CONVERT2RHEL_THROUGH_FOREMAN'] == '1'
+    # https://issues.redhat.com/browse/RHELC-1737
+    target_os_name = 'CentOS Linux' if is_open('RHELC-1737') else 'Red Hat'
     assert target_os_name in convert2rhel_facts['conversions.target_os.name']
     assert convert2rhel_facts['conversions.success'] is True

@@ -16,7 +16,7 @@ API reference for sync plans can be found on your Satellite:
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from time import sleep
 
 from fauxfactory import gen_choice, gen_string
@@ -86,17 +86,16 @@ def validate_repo_content(repo, content_types, after_sync=True):
     for content in content_types:
         if after_sync:
             assert repo.last_sync is not None, 'Repository unexpectedly was not synced.'
-            assert (
-                repo.content_counts[content] > 0
-            ), 'Repository contains invalid number of content entities.'
+            assert repo.content_counts[content] > 0, (
+                'Repository contains invalid number of content entities.'
+            )
         else:
             assert repo.last_sync is None, 'Repository was unexpectedly synced.'
-            assert not repo.content_counts[
-                content
-            ], 'Repository contains invalid number of content entities.'
+            assert not repo.content_counts[content], (
+                'Repository contains invalid number of content entities.'
+            )
 
 
-@pytest.mark.tier1
 def test_positive_get_routes(target_sat):
     """Issue an HTTP GET response to both available routes.
 
@@ -127,7 +126,6 @@ def test_positive_get_routes(target_sat):
 
 
 @pytest.mark.parametrize("enabled", [False, True])
-@pytest.mark.tier1
 def test_positive_create_enabled_disabled(module_org, enabled, request, target_sat):
     """Create sync plan with different 'enabled' field values.
 
@@ -147,7 +145,6 @@ def test_positive_create_enabled_disabled(module_org, enabled, request, target_s
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_positive_create_with_name(module_org, name, module_target_sat):
     """Create a sync plan with a random name.
 
@@ -167,7 +164,6 @@ def test_positive_create_with_name(module_org, name, module_target_sat):
 
 
 @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_positive_create_with_description(module_org, description, module_target_sat):
     """Create a sync plan with a random description.
 
@@ -188,7 +184,6 @@ def test_positive_create_with_description(module_org, description, module_target
 
 
 @pytest.mark.parametrize('interval', **parametrized(valid_sync_interval()))
-@pytest.mark.tier1
 def test_positive_create_with_interval(module_org, interval, module_target_sat):
     """Create a sync plan with a random interval.
 
@@ -211,7 +206,6 @@ def test_positive_create_with_interval(module_org, interval, module_target_sat):
 
 
 @pytest.mark.parametrize('sync_delta', **parametrized(sync_date_deltas))
-@pytest.mark.tier1
 def test_positive_create_with_sync_date(module_org, sync_delta, target_sat):
     """Create a sync plan and update its sync date.
 
@@ -232,7 +226,6 @@ def test_positive_create_with_sync_date(module_org, sync_delta, target_sat):
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-@pytest.mark.tier1
 def test_negative_create_with_invalid_name(module_org, name, module_target_sat):
     """Create a sync plan with an invalid name.
 
@@ -250,7 +243,6 @@ def test_negative_create_with_invalid_name(module_org, name, module_target_sat):
 
 
 @pytest.mark.parametrize('interval', **parametrized(invalid_values_list()))
-@pytest.mark.tier1
 def test_negative_create_with_invalid_interval(module_org, interval, module_target_sat):
     """Create a sync plan with invalid interval specified.
 
@@ -267,7 +259,6 @@ def test_negative_create_with_invalid_interval(module_org, interval, module_targ
         module_target_sat.api.SyncPlan(interval=interval, organization=module_org).create()
 
 
-@pytest.mark.tier1
 def test_negative_create_with_empty_interval(module_org, module_target_sat):
     """Create a sync plan with no interval specified.
 
@@ -286,7 +277,6 @@ def test_negative_create_with_empty_interval(module_org, module_target_sat):
 
 
 @pytest.mark.parametrize("enabled", [False, True])
-@pytest.mark.tier1
 def test_positive_update_enabled(module_org, enabled, request, target_sat):
     """Create sync plan and update it with opposite 'enabled' value.
 
@@ -307,7 +297,6 @@ def test_positive_update_enabled(module_org, enabled, request, target_sat):
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-@pytest.mark.tier1
 def test_positive_update_name(module_org, name, module_target_sat):
     """Create a sync plan and update its name.
 
@@ -328,7 +317,6 @@ def test_positive_update_name(module_org, name, module_target_sat):
 
 
 @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
-@pytest.mark.tier2
 def test_positive_update_description(module_org, description, module_target_sat):
     """Create a sync plan and update its description.
 
@@ -349,7 +337,6 @@ def test_positive_update_description(module_org, description, module_target_sat)
 
 
 @pytest.mark.parametrize('interval', **parametrized(valid_sync_interval()))
-@pytest.mark.tier1
 def test_positive_update_interval(module_org, interval, module_target_sat):
     """Create a sync plan and update its interval.
 
@@ -381,7 +368,6 @@ def test_positive_update_interval(module_org, interval, module_target_sat):
 
 
 @pytest.mark.parametrize('interval', **parametrized(valid_sync_interval()))
-@pytest.mark.tier1
 def test_positive_update_interval_custom_cron(module_org, interval, module_target_sat):
     """Create a sync plan and update its interval to custom cron.
 
@@ -410,7 +396,6 @@ def test_positive_update_interval_custom_cron(module_org, interval, module_targe
 
 
 @pytest.mark.parametrize('sync_delta', **parametrized(sync_date_deltas))
-@pytest.mark.tier1
 def test_positive_update_sync_date(module_org, sync_delta, target_sat):
     """Updated sync plan's sync date.
 
@@ -433,7 +418,6 @@ def test_positive_update_sync_date(module_org, sync_delta, target_sat):
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-@pytest.mark.tier1
 def test_negative_update_name(module_org, name, module_target_sat):
     """Try to update a sync plan with an invalid name.
 
@@ -453,7 +437,6 @@ def test_negative_update_name(module_org, name, module_target_sat):
 
 
 @pytest.mark.parametrize('interval', **parametrized(invalid_values_list()))
-@pytest.mark.tier1
 def test_negative_update_interval(module_org, interval, module_target_sat):
     """Try to update a sync plan with invalid interval.
 
@@ -472,7 +455,6 @@ def test_negative_update_interval(module_org, interval, module_target_sat):
         sync_plan.update(['interval'])
 
 
-@pytest.mark.tier2
 def test_positive_add_product(module_org, target_sat):
     """Create a sync plan and add one product to it.
 
@@ -492,7 +474,6 @@ def test_positive_add_product(module_org, target_sat):
     assert sync_plan.product[0].id == product.id
 
 
-@pytest.mark.tier2
 def test_positive_add_products(module_org, target_sat):
     """Create a sync plan and add two products to it.
 
@@ -510,7 +491,6 @@ def test_positive_add_products(module_org, target_sat):
     assert {product.id for product in products} == {product.id for product in sync_plan.product}
 
 
-@pytest.mark.tier2
 def test_positive_remove_product(module_org, target_sat):
     """Create a sync plan with two products and then remove one
     product from it.
@@ -533,7 +513,6 @@ def test_positive_remove_product(module_org, target_sat):
     assert sync_plan.product[0].id == products[1].id
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_remove_products(module_org, target_sat):
     """Create a sync plan with two products and then remove both
@@ -553,7 +532,6 @@ def test_positive_remove_products(module_org, target_sat):
     assert len(sync_plan.read().product) == 0
 
 
-@pytest.mark.tier2
 def test_positive_repeatedly_add_remove(module_org, request, target_sat):
     """Repeatedly add and remove a product from a sync plan.
 
@@ -575,7 +553,6 @@ def test_positive_repeatedly_add_remove(module_org, request, target_sat):
         assert len(sync_plan.read().product) == 0
 
 
-@pytest.mark.tier2
 def test_positive_add_remove_products_custom_cron(module_org, request, target_sat):
     """Create a sync plan with two products having custom cron interval
     and then remove both products from it.
@@ -599,7 +576,6 @@ def test_positive_add_remove_products_custom_cron(module_org, request, target_sa
     assert len(sync_plan.read().product) == 0
 
 
-@pytest.mark.tier4
 def test_negative_synchronize_custom_product_past_sync_date(module_org, request, target_sat):
     """Verify product won't get synced immediately after adding association
     with a sync plan which has already been started
@@ -618,7 +594,7 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org, request,
     validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
     # Create and Associate sync plan with product
     sync_plan = target_sat.api.SyncPlan(
-        organization=module_org, enabled=True, sync_date=datetime.utcnow().replace(second=0)
+        organization=module_org, enabled=True, sync_date=datetime.now(UTC).replace(second=0)
     ).create()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     sync_plan.add_products(data={'product_ids': [product.id]})
@@ -628,7 +604,6 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org, request,
     validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
 
 
-@pytest.mark.tier4
 def test_positive_synchronize_custom_product_past_sync_date(module_org, request, target_sat):
     """Create a sync plan with past datetime as a sync date, add a
     custom product and verify the product gets synchronized on the next
@@ -649,7 +624,7 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org, request,
         organization=module_org,
         enabled=True,
         interval='hourly',
-        sync_date=datetime.utcnow().replace(second=0) - timedelta(seconds=interval - delay),
+        sync_date=datetime.now(UTC).replace(second=0) - timedelta(seconds=interval - delay),
     ).create()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     sync_plan.add_products(data={'product_ids': [product.id]})
@@ -674,7 +649,6 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org, request,
     validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
 
 
-@pytest.mark.tier4
 def test_positive_synchronize_custom_product_future_sync_date(module_org, request, target_sat):
     """Create a sync plan with sync date in a future and sync one custom
     product with it automatically.
@@ -695,7 +669,7 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org, reques
     # Create and Associate sync plan with product
     # BZ:1695733 is closed WONTFIX so apply this workaround
     logger.info('Need to set seconds to zero because BZ#1695733')
-    sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
+    sync_date = datetime.now(UTC).replace(second=0) + timedelta(seconds=delay)
     sync_plan = target_sat.api.SyncPlan(
         organization=module_org, enabled=True, sync_date=sync_date
     ).create()
@@ -722,7 +696,6 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org, reques
     validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
 
 
-@pytest.mark.tier4
 @pytest.mark.upgrade
 def test_positive_synchronize_custom_products_future_sync_date(module_org, request, target_sat):
     """Create a sync plan with sync date in a future and sync multiple
@@ -753,7 +726,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
     # Create and Associate sync plan with products
     # BZ:1695733 is closed WONTFIX so apply this workaround
     logger.info('Need to set seconds to zero because BZ#1695733')
-    sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
+    sync_date = datetime.now(UTC).replace(second=0) + timedelta(seconds=delay)
     sync_plan = target_sat.api.SyncPlan(
         organization=module_org, enabled=True, sync_date=sync_date
     ).create()
@@ -782,7 +755,6 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org, reque
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier4
 def test_positive_synchronize_rh_product_past_sync_date(
     request, function_sca_manifest_org, target_sat
 ):
@@ -815,7 +787,7 @@ def test_positive_synchronize_rh_product_past_sync_date(
         organization=org,
         enabled=True,
         interval='hourly',
-        sync_date=datetime.utcnow() - timedelta(seconds=interval - delay),
+        sync_date=datetime.now(UTC) - timedelta(seconds=interval - delay),
     ).create()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
     # Associate sync plan with product
@@ -849,7 +821,6 @@ def test_positive_synchronize_rh_product_past_sync_date(
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier4
 @pytest.mark.upgrade
 def test_positive_synchronize_rh_product_future_sync_date(
     request, function_sca_manifest_org, target_sat
@@ -875,7 +846,7 @@ def test_positive_synchronize_rh_product_future_sync_date(
     repo = target_sat.api.Repository(id=repo_id).read()
     # BZ:1695733 is closed WONTFIX so apply this workaround
     logger.info('Need to set seconds to zero because BZ#1695733')
-    sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
+    sync_date = datetime.now(UTC).replace(second=0) + timedelta(seconds=delay)
     sync_plan = target_sat.api.SyncPlan(
         organization=org, enabled=True, interval='hourly', sync_date=sync_date
     ).create()
@@ -907,7 +878,6 @@ def test_positive_synchronize_rh_product_future_sync_date(
     validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
 
 
-@pytest.mark.tier3
 def test_positive_synchronize_custom_product_daily_recurrence(module_org, request, target_sat):
     """Create a daily sync plan with current datetime as a sync date,
     add a custom product and verify the product gets synchronized on
@@ -920,7 +890,7 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org, reques
     delay = 2 * 60
     product = target_sat.api.Product(organization=module_org).create()
     repo = target_sat.api.Repository(product=product).create()
-    start_date = datetime.utcnow().replace(second=0) - timedelta(days=1) + timedelta(seconds=delay)
+    start_date = datetime.now(UTC).replace(second=0) - timedelta(days=1) + timedelta(seconds=delay)
     # Create and Associate sync plan with product
     sync_plan = target_sat.api.SyncPlan(
         organization=module_org, enabled=True, interval='daily', sync_date=start_date
@@ -948,7 +918,6 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org, reques
     validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
 
 
-@pytest.mark.tier3
 def test_positive_synchronize_custom_product_weekly_recurrence(module_org, request, target_sat):
     """Create a weekly sync plan with a past datetime as a sync date,
     add a custom product and verify the product gets synchronized on
@@ -963,7 +932,7 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org, reque
     delay = 2 * 60
     product = target_sat.api.Product(organization=module_org).create()
     repo = target_sat.api.Repository(product=product).create()
-    start_date = datetime.utcnow().replace(second=0) - timedelta(weeks=1) + timedelta(seconds=delay)
+    start_date = datetime.now(UTC).replace(second=0) - timedelta(weeks=1) + timedelta(seconds=delay)
     # Create and Associate sync plan with product
     sync_plan = target_sat.api.SyncPlan(
         organization=module_org, enabled=True, interval='weekly', sync_date=start_date
@@ -991,7 +960,6 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org, reque
     validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
 
 
-@pytest.mark.tier2
 def test_positive_delete_one_product(module_org, target_sat):
     """Create a sync plan with one product and delete it.
 
@@ -1009,7 +977,6 @@ def test_positive_delete_one_product(module_org, target_sat):
         sync_plan.read()
 
 
-@pytest.mark.tier2
 def test_positive_delete_products(module_org, target_sat):
     """Create a sync plan with two products and delete them.
 
@@ -1027,7 +994,6 @@ def test_positive_delete_products(module_org, target_sat):
         sync_plan.read()
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_delete_synced_product_custom_cron(module_org, module_target_sat):
     """Create a sync plan with custom cron with one synced

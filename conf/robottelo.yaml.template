@@ -15,7 +15,7 @@ ROBOTTELO:
   RUN_ONE_DATAPOINT: false
   # Satellite version supported by this branch
   # UNDR version is used for some URL composition
-  SATELLITE_VERSION: "6.17"
+  SATELLITE_VERSION: "6.18"
   # Update non-ga versions with each release
   SAT_NON_GA_VERSIONS:
     - '6.16'
@@ -31,3 +31,4 @@ ROBOTTELO:
     IGNORE_VALIDATION_ERRORS: false
   # Stage docs url
   STAGE_DOCS_URL: https://docs.redhat.com
+  SHARED_RESOURCE_WAIT: 2

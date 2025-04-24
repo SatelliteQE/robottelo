@@ -13,7 +13,7 @@ interactions and use capsule.
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import re
 from time import sleep
 
@@ -26,9 +26,6 @@ from requests.exceptions import HTTPError
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_CLIENTS,
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
     ENVIRONMENT,
     FAKE_1_YUM_REPOS_COUNT,
     FAKE_3_YUM_REPO_RPMS,
@@ -36,13 +33,12 @@ from robottelo.constants import (
     FAKE_FILE_LARGE_COUNT,
     FAKE_FILE_LARGE_URL,
     FAKE_FILE_NEW_NAME,
+    FLATPAK_ENDPOINTS,
     KICKSTART_CONTENT,
     PRDS,
     PULP_ARTIFACT_DIR,
-    PULPCORE_FLATPAK_ENDPOINT,
     REPOS,
     REPOSET,
-    RH_CONTAINER_REGISTRY_HUB,
     RPM_TO_UPLOAD,
     DataFile,
 )
@@ -91,8 +87,7 @@ class TestCapsuleContentManagement:
     interactions and use capsule.
     """
 
-    @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_uploaded_content_library_sync(
         self,
         module_capsule_configured,
@@ -132,7 +127,7 @@ class TestCapsuleContentManagement:
 
         assert repo.read().content_counts['rpm'] == 1
 
-        timestamp = datetime.utcnow().replace(microsecond=0)
+        timestamp = datetime.now(UTC).replace(microsecond=0)
         # Publish new version of the content view
         cv.publish()
         # query sync status as publish invokes sync, task succeeds
@@ -152,8 +147,7 @@ class TestCapsuleContentManagement:
         assert len(caps_files) == 1
         assert caps_files[0] == RPM_TO_UPLOAD
 
-    @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_checksum_sync(
         self, module_capsule_configured, function_org, function_product, function_lce, target_sat
     ):
@@ -200,7 +194,7 @@ class TestCapsuleContentManagement:
         assert len(cv.version) == 1
 
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
         module_capsule_configured.wait_for_sync(start_time=timestamp)
 
@@ -233,7 +227,7 @@ class TestCapsuleContentManagement:
 
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -247,7 +241,6 @@ class TestCapsuleContentManagement:
         assert original_checksum not in checksum_types
 
     @pytest.mark.e2e
-    @pytest.mark.tier4
     @pytest.mark.pit_client
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_updated_repo(
@@ -308,7 +301,7 @@ class TestCapsuleContentManagement:
         assert len(cv.version) == 1
 
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -328,7 +321,7 @@ class TestCapsuleContentManagement:
 
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -356,9 +349,8 @@ class TestCapsuleContentManagement:
         assert len(caps_files) == 2
 
     @pytest.mark.e2e
-    @pytest.mark.tier4
     @pytest.mark.pit_client
-    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_capsule_sync(
         self,
         target_sat,
@@ -418,7 +410,7 @@ class TestCapsuleContentManagement:
         assert len(active_tasks) == 0
         # Promote content view to lifecycle environment,
         # invoking capsule sync task(s)
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -466,7 +458,7 @@ class TestCapsuleContentManagement:
         cvv = cv.version[-1].read()
         # Promote new content view version to lifecycle environment,
         # capsule sync task(s) invoked and succeed
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -488,7 +480,7 @@ class TestCapsuleContentManagement:
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
 
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -509,7 +501,6 @@ class TestCapsuleContentManagement:
         caps_files = get_repo_files_by_url(caps_repo_url)
         assert sat_files == caps_files
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_iso_library_sync(
         self, module_capsule_configured, module_sca_manifest_org, module_target_sat
@@ -555,7 +546,7 @@ class TestCapsuleContentManagement:
             organization=module_sca_manifest_org, repository=[rh_repo]
         ).create()
         # Publish new version of the content view
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cv.publish()
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -576,10 +567,9 @@ class TestCapsuleContentManagement:
         assert len(caps_isos) == 4
         assert set(sat_isos) == set(caps_isos)
 
-    @pytest.mark.tier4
     @pytest.mark.build_sanity
     @pytest.mark.order(after="tests/foreman/installer/test_installer.py::test_capsule_installation")
-    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_on_demand_sync(
         self,
         target_sat,
@@ -636,7 +626,7 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -663,8 +653,7 @@ class TestCapsuleContentManagement:
         # Assert checksums are matching
         assert package_md5 == published_package_md5
 
-    @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_update_with_immediate_sync(
         self,
         target_sat,
@@ -718,7 +707,7 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -746,7 +735,7 @@ class TestCapsuleContentManagement:
         cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -764,8 +753,7 @@ class TestCapsuleContentManagement:
         caps_files = get_repo_files_by_url(caps_repo_url)
         assert len(caps_files) == packages_count
 
-    @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule')
     def test_positive_capsule_pub_url_accessible(self, module_capsule_configured):
         """Ensure capsule pub url is accessible
 
@@ -777,37 +765,35 @@ class TestCapsuleContentManagement:
 
         :BZ: 1463810, 2122780
         """
-        https_pub_url = f'https://{module_capsule_configured.ip_addr}/pub'
-        http_pub_url = f'http://{module_capsule_configured.ip_addr}/pub'
+        https_pub_url = f'https://{module_capsule_configured.hostname}/pub'
+        http_pub_url = f'http://{module_capsule_configured.hostname}/pub'
         for url in [http_pub_url, https_pub_url]:
             response = client.get(url, verify=False)
-
-            assert response.status_code == 200
-
-            # check that one of the files is in the content
+            assert response.ok
             assert b'katello-server-ca.crt' in response.content
 
     @pytest.mark.upgrade
-    def test_flatpak_pulpcore_enpoint(self, target_sat, module_capsule_configured):
-        """Ensure the Capsules's flatpak pulpcore endpoint is up after install or upgrade.
+    @pytest.mark.parametrize('endpoint', ['pulpcore'])
+    def test_flatpak_endpoint(self, target_sat, module_capsule_configured, endpoint):
+        """Ensure the Capsules's local flatpak index endpoint is up after install or upgrade.
 
         :id: 5676fbbb-75be-4660-a09e-65cafdfb221a
 
+        :parametrized: yes
+
         :steps:
-            1. Hit Capsule's pulpcore_registry endpoint.
+            1. Hit Capsule's local flatpak index endpoint per parameter.
 
         :expectedresults:
             1. HTTP 200
         """
-        rq = requests.get(
-            PULPCORE_FLATPAK_ENDPOINT.format(module_capsule_configured.hostname), verify=False
-        )
-        assert rq.ok, f'Expected 200 but got {rq.status_code} from pulpcore registry index'
+        ep = FLATPAK_ENDPOINTS[endpoint].format(module_capsule_configured.hostname)
+        rq = requests.get(ep, verify=settings.server.verify_ca)
+        assert rq.ok, f'Expected 200 but got {rq.status_code} from {endpoint} registry index'
 
     @pytest.mark.e2e
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
-    @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos'])
+    @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos', 'rhel10_bos_beta'])
     def test_positive_sync_kickstart_repo(
         self, target_sat, module_capsule_configured, function_sca_manifest_org, distro
     ):
@@ -865,24 +851,24 @@ class TestCapsuleContentManagement:
 
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
-
         # Check for kickstart content on SAT and CAPS
-        tail = (
-            f'rhel/server/7/{REPOS["kickstart"][distro]["version"]}/x86_64/kickstart'
-            if distro == 'rhel7'
-            else f'{distro.split("_")[0]}/{REPOS["kickstart"][distro]["version"]}/x86_64/baseos/kickstart'  # noqa:E501
-        )
+        tail = None
+        if distro == 'rhel7':
+            tail = f'rhel/server/7/{REPOS["kickstart"][distro]["version"]}/x86_64/kickstart'
+        elif 'beta' in distro:
+            tail = f'{distro.split("_")[0]}/{REPOS["kickstart"][distro]["version"]}/beta/x86_64/baseos/kickstart'
+        else:
+            tail = f'{distro.split("_")[0]}/{REPOS["kickstart"][distro]["version"]}/x86_64/baseos/kickstart'  # noqa:E501
         url_base = (
             f'pulp/content/{function_sca_manifest_org.label}/{lce.label}/{cv.label}/'
             f'content/dist/{tail}'
         )
-
         # Check kickstart specific files
         for file in KICKSTART_CONTENT:
             sat_file = target_sat.checksum_by_url(f'{target_sat.url}/{url_base}/{file}')
@@ -899,7 +885,6 @@ class TestCapsuleContentManagement:
         assert len(caps_pkgs)
         assert sat_pkgs == caps_pkgs
 
-    @pytest.mark.tier4
     @pytest.mark.e2e
     @pytest.mark.pit_client
     @pytest.mark.skip_if_not_set('capsule')
@@ -969,7 +954,7 @@ class TestCapsuleContentManagement:
 
         # Promote the latest CV version into capsule's LCE
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -978,14 +963,11 @@ class TestCapsuleContentManagement:
 
         # Pull the images from capsule to the content host
         repo_paths = [
-            (
-                f'{function_org.label.lower()}-{function_lce.label.lower()}-{cv.label.lower()}-'
-                f'{function_product.label.lower()}-{repo.label.lower()}'
-            )
+            f'{function_org.label}/{function_lce.label}/{cv.label}/{function_product.label}/{repo.label}'.lower()
             for repo in repos
         ]
 
-        for con_client in CONTAINER_CLIENTS:
+        for con_client in settings.container.clients:
             result = module_container_contenthost.execute(
                 f'{con_client} login -u {settings.server.admin_username}'
                 f' -p {settings.server.admin_password} {module_capsule_configured.hostname}'
@@ -1038,7 +1020,6 @@ class TestCapsuleContentManagement:
             )
             assert result.status == 0
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_collection_repo(
         self,
@@ -1091,7 +1072,7 @@ class TestCapsuleContentManagement:
         assert function_lce_library.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Sync the repo
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         repo.sync(timeout=600)
         repo = repo.read()
         assert repo.content_counts['ansible_collection'] == 2
@@ -1125,7 +1106,6 @@ class TestCapsuleContentManagement:
         assert 'foreman' in result.stdout
         assert 'operations' in result.stdout
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_file_repo(
         self, target_sat, module_capsule_configured, function_org, function_product, function_lce
@@ -1175,7 +1155,7 @@ class TestCapsuleContentManagement:
 
         # Promote the latest CV version into capsule's LCE
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -1212,7 +1192,6 @@ class TestCapsuleContentManagement:
             caps_file = target_sat.checksum_by_url(f'{caps_repo_url}{file}')
             assert sat_file == caps_file
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_CV_to_multiple_LCEs(
         self, target_sat, module_capsule_configured, module_sca_manifest_org
@@ -1273,20 +1252,19 @@ class TestCapsuleContentManagement:
         # Promote the CV to both Capsule's LCEs without waiting for Capsule sync task completion.
         cvv = cv.version[-1].read()
         assert len(cvv.environment) == 1
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': lce1.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': lce2.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 3
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_capsule_sync_status_persists(
         self, target_sat, module_capsule_configured, function_org, function_product, function_lce
@@ -1326,7 +1304,7 @@ class TestCapsuleContentManagement:
         cv = cv.read()
 
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -1349,10 +1327,12 @@ class TestCapsuleContentManagement:
         # Check sync status again, and ensure last_sync_time is still correct
         sync_status = module_capsule_configured.nailgun_capsule.content_get_sync()
         assert (
-            datetime.strptime(sync_status['last_sync_time'], '%Y-%m-%d %H:%M:%S UTC') >= timestamp
+            datetime.strptime(sync_status['last_sync_time'], '%Y-%m-%d %H:%M:%S UTC').replace(
+                tzinfo=UTC
+            )
+            >= timestamp
         )
 
-    @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_remove_capsule_orphans(
         self,
@@ -1453,13 +1433,13 @@ class TestCapsuleContentManagement:
         'repos_collection',
         [
             {
-                'distro': 'rhel9',
+                'distro': 'rhel10',
                 'YumRepository': {'url': settings.repos.yum_0.url},
             }
         ],
         indirect=True,
     )
-    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    @pytest.mark.rhel_ver_match('N-0')
     def test_complete_sync_fixes_metadata(
         self,
         module_target_sat,
@@ -1505,7 +1485,7 @@ class TestCapsuleContentManagement:
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Sync a yum repo, publish and promote it to a CVE, sync the Capsule and wait for it.
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         repos_collection.setup_content(function_org.id, function_lce.id, override=True)
         module_capsule_configured.wait_for_sync(start_time=timestamp)
 
@@ -1559,9 +1539,9 @@ class TestCapsuleContentManagement:
         host = module_target_sat.api.Host().search(
             query={'search': f'name="{rhel_contenthost.hostname}"'}
         )[0]
-        assert (
-            nc.id == host.content_facet_attributes['content_source_id']
-        ), 'Expected to see the Capsule as the content source'
+        assert nc.id == host.content_facet_attributes['content_source_id'], (
+            'Expected to see the Capsule as the content source'
+        )
 
         result = rhel_contenthost.execute('dnf repolist')
         assert result.status == 0
@@ -1613,7 +1593,7 @@ class TestCapsuleContentManagement:
                 content_type='docker',
                 docker_upstream_name=ups_name,
                 product=function_product,
-                url=RH_CONTAINER_REGISTRY_HUB,
+                url=settings.container.rh.registry_hub,
                 upstream_username=settings.subscription.rhn_username,
                 upstream_password=settings.subscription.rhn_password,
             ).create()
@@ -1636,7 +1616,7 @@ class TestCapsuleContentManagement:
 
         # Promote the latest CV version into capsule's LCE
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -1651,8 +1631,8 @@ class TestCapsuleContentManagement:
                 'YumRepository': {'url': settings.repos.module_stream_1.url},
                 'FileRepository': {'url': CUSTOM_FILE_REPO},
                 'DockerRepository': {
-                    'url': CONTAINER_REGISTRY_HUB,
-                    'upstream_name': CONTAINER_UPSTREAM_NAME,
+                    'url': settings.container.registry_hub,
+                    'upstream_name': settings.container.upstream_name,
                 },
                 'AnsibleRepository': {
                     'url': ANSIBLE_GALAXY,
@@ -1705,7 +1685,7 @@ class TestCapsuleContentManagement:
             'ansible_collection': {'ansible_collection'},
         }
 
-        repos_collection.setup_content(function_org.id, function_lce.id, upload_manifest=False)
+        repos_collection.setup_content(function_org.id, function_lce.id)
         cv_id = repos_collection.setup_content_data['content_view']['id']
         cv = target_sat.api.ContentView(id=cv_id).read()
 
@@ -1760,9 +1740,9 @@ class TestCapsuleContentManagement:
         # Every "environment repo" (the one promoted to an LCE and synced to the Capsule)
         # is shown in the content_counts, so we get N-times more for every shared lce.
         shared_lces = {env.id for env in cvv.environment} & {env['id'] for env in capsule_lces}
-        assert len(caps_counts['repositories']) == len(cvv.repository) * len(
-            shared_lces
-        ), 'Repositories count does not match.'
+        assert len(caps_counts['repositories']) == len(cvv.repository) * len(shared_lces), (
+            'Repositories count does not match.'
+        )
 
         # Read the environment repos from Satellite side and compare the counts with Capsule.
         sat_repos = [
@@ -1815,9 +1795,9 @@ class TestCapsuleContentManagement:
         assert 'success' in task['result']
 
         counts = module_capsule_configured.nailgun_capsule.content_counts()
-        assert (
-            counts is None or len(counts['content_view_versions']) == 0
-        ), f"No content counts expected, but got:\n{counts['content_view_versions']}."
+        assert counts is None or len(counts['content_view_versions']) == 0, (
+            f"No content counts expected, but got:\n{counts['content_view_versions']}."
+        )
 
     @pytest.mark.parametrize('module_autosync_setting', [True], indirect=True)
     @pytest.mark.parametrize(
@@ -1877,7 +1857,7 @@ class TestCapsuleContentManagement:
         cv = cv.read()
 
         cvv = cv.version[-1].read()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
         module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -1931,6 +1911,7 @@ class TestCapsuleContentManagement:
         target_sat,
         module_capsule_configured,
         default_org,
+        default_location,
         default_non_admin_user,
     ):
         """Try to list and read Capsules with a non-admin user with and without permissions.
@@ -1942,8 +1923,9 @@ class TestCapsuleContentManagement:
             2. Non-admin user without any roles/permissions.
 
         :steps:
-            1. Using the non-admin user try to list all or particular Capsule.
-            2. Add Viewer role to the user and try again.
+            1. Assign the capsule to the default org/loc so it can be searched and found.
+            2. Using the non-admin user try to list all or particular Capsule.
+            3. Add Viewer role to the user and try again.
 
         :expectedresults:
             1. Read should fail without Viewer role.
@@ -1953,6 +1935,12 @@ class TestCapsuleContentManagement:
 
         :customerscenario: true
         """
+        # Assign the capsule to the default org/loc so it can be searched and found.
+        nc = module_capsule_configured.nailgun_smart_proxy
+        target_sat.api.SmartProxy(
+            id=nc.id, organization=[default_org], location=[default_location]
+        ).update(['organization', 'location'])
+
         # Using the non-admin user try to list all or particular Capsule
         user = default_non_admin_user
         sc = ServerConfig(
@@ -2020,9 +2008,9 @@ class TestCapsuleContentManagement:
         # Trigger the reclaim space task via API, check it succeeds
         task = module_capsule_configured.nailgun_capsule.content_reclaim_space()
         assert task, 'No task was created for reclaim space.'
-        assert (
-            'Actions::Pulp3::CapsuleContent::ReclaimSpace' in task['label']
-        ), 'Unexpected task triggered'
+        assert 'Actions::Pulp3::CapsuleContent::ReclaimSpace' in task['label'], (
+            'Unexpected task triggered'
+        )
         assert 'success' in task['result'], 'Reclaim task did not succeed'
 
         # Check the apidoc references the correct endpoint

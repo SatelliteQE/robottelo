@@ -30,7 +30,6 @@ class TestAnsibleCfgMgmt:
     :CaseComponent: Ansible-ConfigurationManagement
     """
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize('auth_type', ['admin', 'non-admin'])
     def test_positive_create_delete_variable_with_overrides(
         self, request, function_org, target_sat, auth_type
@@ -104,7 +103,6 @@ class TestAnsibleCfgMgmt:
             session.ansiblevariables.delete(key)
             assert not session.ansiblevariables.search(key)
 
-    @pytest.mark.tier2
     def test_positive_host_role_information(self, target_sat, function_host):
         """Assign Ansible Role to a Host and verify that the information
         in the new UI is displayed correctly
@@ -260,7 +258,6 @@ class TestAnsibleCfgMgmt:
             assert new_value not in reset_variable_value
             assert default_value in reset_variable_value
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize('setting_update', ['ansible_roles_to_ignore'], indirect=True)
     def test_positive_ansible_roles_ignore_list(self, target_sat, setting_update):
         """Verify that the ignore list setting prevents selected roles from being available for import
@@ -279,12 +276,11 @@ class TestAnsibleCfgMgmt:
         assert setting_update.value == SELECTED_ROLE
         with target_sat.ui_session() as session:
             roles = session.ansibleroles.read_all()
-            assert all(
-                item not in roles for item in SELECTED_ROLE
-            ), 'Roles from ignore list are available for import'
+            assert all(item not in roles for item in SELECTED_ROLE), (
+                'Roles from ignore list are available for import'
+            )
 
     @pytest.mark.stubbed
-    @pytest.mark.tier3
     def test_positive_set_ansible_role_order_per_host(self):
         """Verify that role run order can be set and this order is respected when roles are run
 
@@ -303,7 +299,6 @@ class TestAnsibleCfgMgmt:
         """
 
     @pytest.mark.stubbed
-    @pytest.mark.tier3
     def test_positive_set_ansible_role_order_per_hostgroup(self):
         """Verify that role run order can be set and that this order is respected when roles are run
 
@@ -323,7 +318,6 @@ class TestAnsibleCfgMgmt:
         :CaseAutomation: NotAutomated
         """
 
-    @pytest.mark.tier2
     def test_positive_assign_and_remove_ansible_role_to_host(self, target_sat, function_host):
         """Add and remove the role(s) of a Host
 
@@ -370,7 +364,6 @@ class TestAnsibleCfgMgmt:
                 == 'No roles assigned directly to the host'
             )
 
-    @pytest.mark.tier2
     def test_positive_assign_and_remove_ansible_role_to_hostgroup(
         self,
         target_sat,
@@ -427,7 +420,6 @@ class TestAnsibleCfgMgmt:
             session.hostgroup.delete(name)
             assert not target_sat.api.HostGroup().search(query={'search': f'name={name}'})
 
-    @pytest.mark.tier3
     def test_positive_non_admin_user_access_with_usergroup(
         self,
         request,
@@ -559,7 +551,7 @@ class TestAnsibleCfgMgmt:
             )
             notice_log = session.configreport.search(rhel_contenthost.hostname)
             assert f'notice Install the {package_name} package' in notice_log['permission_denied']
-            assert f'Installed: rubygem-{package_name}' in notice_log['permission_denied']
+            assert f'Installed: {package_name}_bash' in notice_log['permission_denied']
 
 
 class TestAnsibleREX:
@@ -568,7 +560,6 @@ class TestAnsibleREX:
     :CaseComponent: Ansible-RemoteExecution
     """
 
-    @pytest.mark.tier2
     @pytest.mark.pit_server
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('[^6]')
@@ -752,7 +743,6 @@ class TestAnsibleREX:
             assert len(session.configreport.read()['table']) == 0
 
     @pytest.mark.stubbed
-    @pytest.mark.tier3
     def test_positive_ansible_job_check_mode(self):
         """Run a job on a host with enable_roles_check_mode parameter enabled
 
@@ -787,9 +777,12 @@ class TestAnsibleREX:
             6. Click "Submit"
 
         :expectedresults: The Ansible collection is successfully installed on the host
+
+        :verifies: SAT-30807
         """
         # Adding IPv6 proxy for IPv6 communication
         rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
+        rhel_contenthost.enable_ipv6_system_proxy()
         client = rhel_contenthost
         # Enable Ansible repository and Install ansible or ansible-core package
         client.register(module_org, None, module_ak_with_cv.name, target_sat)
@@ -823,7 +816,6 @@ class TestAnsibleREX:
             assert 'oasis_roles' in collection_path
 
     @pytest.mark.stubbed
-    @pytest.mark.tier2
     def test_positive_schedule_recurring_host_job(self):
         """Using the new Host UI, schedule a recurring job on a Host
 
@@ -843,7 +835,6 @@ class TestAnsibleREX:
         """
 
     @pytest.mark.stubbed
-    @pytest.mark.tier2
     def test_positive_schedule_recurring_hostgroup_job(self):
         """Using the new recurring job scheduler, schedule a recurring job on a Hostgroup
 

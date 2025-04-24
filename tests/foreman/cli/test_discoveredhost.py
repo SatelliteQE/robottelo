@@ -50,11 +50,11 @@ def test_rhel_pxe_discovery_provisioning(
     """
     sat = module_discovery_sat.sat
     provisioning_host.power_control(ensure=False)
-    mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
-
+    mac = provisioning_host.provisioning_nic_mac_addr
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
         timeout=1500,
+        retries=2,
         delay=40,
     )
     discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
@@ -110,7 +110,7 @@ def test_rhel_pxeless_discovery_provisioning(
     """
     sat = module_discovery_sat.sat
     pxeless_discovery_host.power_control(ensure=False)
-    mac = pxeless_discovery_host._broker_args['provisioning_nic_mac_addr']
+    mac = pxeless_discovery_host.provisioning_nic_mac_addr
 
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
@@ -145,7 +145,6 @@ def test_rhel_pxeless_discovery_provisioning(
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_provision_pxeless_bios_syslinux():
     """Provision and discover the pxe-less BIOS host from cli using SYSLINUX
     loader
@@ -183,7 +182,6 @@ def test_positive_provision_pxeless_bios_syslinux():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_provision_pxe_host_with_bios_syslinux():
     """Provision the pxe-based BIOS discovered host from cli using SYSLINUX
     loader
@@ -234,7 +232,6 @@ def test_positive_provision_pxe_host_with_bios_syslinux():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_delete():
     """Delete the selected discovered host
 
@@ -249,7 +246,6 @@ def test_positive_delete():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_refresh_facts_pxe_host():
     """Refresh the facts of pxe based discovered hosts by adding a new NIC
 
@@ -266,7 +262,6 @@ def test_positive_refresh_facts_pxe_host():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_refresh_facts_of_pxeless_host():
     """Refresh the facts of pxeless discovered hosts by adding a new NIC
 
@@ -283,7 +278,6 @@ def test_positive_refresh_facts_of_pxeless_host():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_reboot_pxe_host():
     """Reboot pxe based discovered hosts
 
@@ -300,7 +294,6 @@ def test_positive_reboot_pxe_host():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_reboot_pxeless_host():
     """Reboot pxe-less discovered hosts
 
@@ -317,7 +310,6 @@ def test_positive_reboot_pxeless_host():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_auto_provision_pxe_host():
     """Discover a pxe based host and auto-provision it with
     discovery rule and by enabling auto-provision flag
@@ -333,7 +325,6 @@ def test_positive_auto_provision_pxe_host():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_auto_provision_pxeless_host():
     """Discover a pxe-less host and auto-provision it with
     discovery rule and by enabling auto-provision flag
@@ -349,7 +340,6 @@ def test_positive_auto_provision_pxeless_host():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_assign_discovery_manager_role():
     """Assign 'Discovery_Manager' role to a normal user
 
@@ -365,7 +355,6 @@ def test_positive_assign_discovery_manager_role():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_assign_discovery_role():
     """Assign 'Discovery" role to a normal user
 
@@ -381,7 +370,6 @@ def test_positive_assign_discovery_role():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_update_discover_hostname_settings():
     """Update the hostname_prefix and Hostname_facts settings and
     discover a host.
@@ -397,7 +385,6 @@ def test_positive_update_discover_hostname_settings():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_list_facts():
     """Check if defined facts of a discovered host are
     correctly displayed under host's facts
@@ -416,7 +403,6 @@ def test_positive_list_facts():
     """
 
 
-@pytest.mark.tier1
 def test_positive_verify_updated_fdi_image(target_sat):
     """Verify foreman-discovery-image is built on latest up-to-date RHEL
 

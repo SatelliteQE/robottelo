@@ -94,13 +94,6 @@ def rhel8_contenthost_module(request):
         yield host
 
 
-@pytest.fixture(params=[{'rhel_version': 6}])
-def rhel6_contenthost(request):
-    """A function-level fixture that provides a rhel6 content host object"""
-    with Broker(**host_conf(request), host_class=ContentHost) as host:
-        yield host
-
-
 @pytest.fixture(params=[{'rhel_version': '9'}])
 def rhel9_contenthost(request):
     """A fixture that provides a rhel9 content host object"""
@@ -207,6 +200,25 @@ def katello_host_tools_tracer_host(rex_contenthost, target_sat):
     return rex_contenthost
 
 
+@pytest.fixture
+def rhel_contenthost_with_repos(request, target_sat):
+    """Install katello-host-tools-tracer, create custom
+    repositories on the host"""
+    with Broker(**host_conf(request), host_class=ContentHost) as host:
+        # add IPv6 proxy for IPv6 communication
+        if settings.server.is_ipv6:
+            host.enable_ipv6_dnf_and_rhsm_proxy()
+            host.enable_ipv6_system_proxy()
+
+        # create a custom, rhel version-specific OS repo
+        rhelver = host.os_version.major
+        if rhelver > 7:
+            host.create_custom_repos(**settings.repos[f'rhel{rhelver}_os'])
+        else:
+            host.create_custom_repos(**{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']})
+        yield host
+
+
 @pytest.fixture(scope='module')
 def module_container_contenthost(request, module_target_sat, module_org, module_activation_key):
     """Fixture that installs docker on the content host"""
@@ -214,21 +226,38 @@ def module_container_contenthost(request, module_target_sat, module_org, module_
         "rhel_version": "8",
         "distro": "rhel",
         "no_containers": True,
+        "network": "ipv6" if settings.server.is_ipv6 else "ipv4",
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         host.register_to_cdn()
-        for client in constants.CONTAINER_CLIENTS:
-            assert (
-                host.execute(f'yum -y install {client}').status == 0
-            ), f'{client} installation failed'
-        assert (
-            host.execute('systemctl enable --now podman').status == 0
-        ), 'Start of podman service failed'
+        for client in settings.container.clients:
+            assert host.execute(f'yum -y install {client}').status == 0, (
+                f'{client} installation failed'
+            )
+        assert host.execute('systemctl enable --now podman').status == 0, (
+            'Start of podman service failed'
+        )
         host.unregister()
         assert (
             host.register(module_org, None, module_activation_key.name, module_target_sat).status
             == 0
         )
+        yield host
+
+
+@pytest.fixture(scope='module')
+def module_flatpak_contenthost(request):
+    request.param = {
+        "rhel_version": "9",
+        "distro": "rhel",
+        "no_containers": True,
+        "network": "ipv6" if settings.server.is_ipv6 else "ipv4",
+    }
+    with Broker(**host_conf(request), host_class=ContentHost) as host:
+        host.register_to_cdn()
+        res = host.execute('dnf -y install podman flatpak dbus-x11')
+        assert res.status == 0, f'Initial installation failed: {res.stderr}'
+        host.unregister()
         yield host
 
 
@@ -239,7 +268,11 @@ def centos_host(request, version):
         "distro": "centos",
         "no_containers": True,
     }
-    with Broker(**host_conf(request), host_class=ContentHost) as host:
+    with Broker(
+        **host_conf(request),
+        host_class=ContentHost,
+        deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
+    ) as host:
         yield host
 
 
@@ -250,7 +283,29 @@ def oracle_host(request, version):
         "distro": "oracle",
         "no_containers": True,
     }
-    with Broker(**host_conf(request), host_class=ContentHost) as host:
+    with Broker(
+        **host_conf(request),
+        host_class=ContentHost,
+        deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
+    ) as host:
+        yield host
+
+
+@pytest.fixture
+def bootc_host():
+    """Fixture to check out boot-c host"""
+    with Broker(
+        workflow='deploy-bootc',
+        host_class=ContentHost,
+        target_template='tpl-bootc-rhel-10.0',
+        deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
+    ) as host:
+        assert (
+            host.execute(
+                f"echo '{constants.DUMMY_BOOTC_FACTS}' > /etc/rhsm/facts/bootc.facts"
+            ).status
+            == 0
+        )
         yield host
 
 

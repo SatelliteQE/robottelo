@@ -33,17 +33,21 @@ git = settings.git
 
 @pytest.mark.skip_if_not_set('git')
 @pytest.mark.parametrize(
-    'setup_http_proxy_without_global_settings',
-    [True, False],
-    indirect=True,
-    ids=['auth_http_proxy', 'unauth_http_proxy'],
+    ('setup_http_proxy_without_global_settings', 'use_proxy'),
+    [
+        (True, True),
+        (False, True),
+        (True, False),
+    ],
+    ids=[
+        'auth_http_proxy-use_proxy',
+        'unauth_http_proxy-use_proxy',
+        'auth_http_proxy-do_not_use_proxy',
+    ],
+    indirect=[
+        'setup_http_proxy_without_global_settings',
+    ],
 )
-@pytest.mark.parametrize(
-    'use_proxy',
-    [True, False],
-    ids=['use_proxy', 'do_not_use_proxy'],
-)
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_import_templates(
     session,
@@ -125,7 +129,6 @@ def test_positive_import_templates(
     assert f'name: {import_template}' in pt['template']['template_editor']['editor']
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_export_templates(session, create_import_export_local_dir, target_sat):
     """Export the satellite templates to local directory
@@ -173,7 +176,6 @@ def test_positive_export_templates(session, create_import_export_local_dir, targ
     assert result.status == 0
 
 
-@pytest.mark.tier2
 @pytest.mark.skip_if_not_set('git')
 @pytest.mark.parametrize(
     'url',

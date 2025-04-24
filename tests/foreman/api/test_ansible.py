@@ -80,9 +80,17 @@ class TestAnsibleCfgMgmt:
 
         :customerscenario: true
         """
-        target_sat.execute(
-            "ansible-galaxy collection install -p /usr/share/ansible/collections "
-            "xprazak2.forklift_collection"
+        http_proxy = (
+            f'HTTPS_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
+            if settings.server.is_ipv6
+            else ''
+        )
+        assert (
+            target_sat.execute(
+                f'{http_proxy}ansible-galaxy collection install -p /usr/share/ansible/collections '
+                'xprazak2.forklift_collection'
+            ).status
+            == 0
         )
         proxy_id = target_sat.nailgun_smart_proxy.id
         playbook_fetch = target_sat.api.AnsiblePlaybooks().fetch(data={'proxy_id': proxy_id})
@@ -101,7 +109,6 @@ class TestAnsibleCfgMgmt:
         assert len(task_details[0].output['result']['created']) == playbooks_count
 
     @pytest.mark.e2e
-    @pytest.mark.tier2
     def test_add_and_remove_ansible_role_hostgroup(self, target_sat):
         """
         Test add and remove functionality for ansible roles in hostgroup via API
@@ -182,7 +189,6 @@ class TestAnsibleCfgMgmt:
         assert len(hg_nested_roles) == 0
 
     @pytest.mark.e2e
-    @pytest.mark.tier2
     def test_positive_ansible_roles_inherited_from_hostgroup(
         self, request, target_sat, module_org, module_location
     ):
@@ -272,10 +278,9 @@ class TestAnsibleCfgMgmt:
         assert ROLE_NAMES[0] not in [role['name'] for role in listroles_hg]
         assert ROLE_NAMES[1] == listroles_hg[0]['name']
 
-    @pytest.mark.rhel_ver_match('[78]')
-    @pytest.mark.tier2
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_read_facts_with_filter(
-        self, target_sat, rex_contenthost, filtered_user, module_org, module_location
+        self, request, target_sat, rex_contenthost, filtered_user, module_org, module_location
     ):
         """Read host's Ansible facts as a user with a role that has host filter
 
@@ -296,15 +301,19 @@ class TestAnsibleCfgMgmt:
         host.organization = module_org
         host.location = module_location
         host.update(['organization', 'location'])
+        if is_open('SAT-18656'):
+
+            @request.addfinalizer
+            def _finalize():
+                target_sat.cli.Host.disassociate({'name': rex_contenthost.hostname})
 
         # gather ansible facts by running ansible roles on the host
         host.play_ansible_roles()
-        if is_open('SAT-18656'):
-            wait_for(
-                lambda: len(rex_contenthost.nailgun_host.get_facts()) > 0,
-                timeout=30,
-                delay=2,
-            )
+        wait_for(
+            lambda: len(rex_contenthost.nailgun_host.get_facts()) > 0,
+            timeout=30,
+            delay=2,
+        )
         user_cfg = user_nailgun_config(user.login, password)
         # get facts through API
         user_facts = (
@@ -474,7 +483,7 @@ class TestAnsibleREX:
         assert result.status_label == 'failed'
 
     @pytest.mark.no_containers
-    @pytest.mark.rhel_ver_match('[^6]')
+    @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')  # all major versions, excluding fips
     def test_positive_ansible_localhost_job_on_host(
         self, target_sat, module_org, module_location, module_ak_with_synced_repo, rhel_contenthost
     ):
@@ -604,7 +613,6 @@ class TestAnsibleREX:
         assert [i['output'] for i in result if i['output'] == 'StandardError: Job execution failed']
         assert [i['output'] for i in result if i['output'] == 'Exit status: 120']
 
-    @pytest.mark.tier2
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_ansible_job_privilege_escalation(

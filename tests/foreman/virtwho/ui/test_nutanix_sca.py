@@ -28,7 +28,6 @@ from robottelo.utils.virtwho import (
 
 
 class TestVirtwhoConfigforNutanix:
-    @pytest.mark.tier2
     @pytest.mark.parametrize('deploy_type_ui', ['id', 'script'], indirect=True)
     def test_positive_deploy_configure_by_id_script(
         self, module_sca_manifest_org, org_session, form_data_ui, deploy_type_ui, default_location
@@ -59,7 +58,6 @@ class TestVirtwhoConfigforNutanix:
         # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in UI
         hypervisor_guest_mapping_newcontent_ui(org_session, hypervisor_name, guest_name)
 
-    @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
         self, module_sca_manifest_org, virtwho_config_ui, org_session, form_data_ui
     ):
@@ -90,7 +88,6 @@ class TestVirtwhoConfigforNutanix:
             )
             assert get_configure_option('hypervisor_id', config_file) == value
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('deploy_type', ['id', 'script'])
     def test_positive_prism_central_deploy_configure_by_id_script(
         self, module_sca_manifest_org, org_session, form_data_ui, deploy_type
@@ -139,7 +136,6 @@ class TestVirtwhoConfigforNutanix:
             org_session.virtwho_configure.delete(name)
             assert not org_session.virtwho_configure.search(name)
 
-    @pytest.mark.tier2
     def test_positive_prism_central_prism_flavor_option(
         self, module_sca_manifest_org, virtwho_config_ui, org_session, form_data_ui
     ):
@@ -169,7 +165,6 @@ class TestVirtwhoConfigforNutanix:
         )
         assert get_configure_option('prism_central', config_file) == 'true'
 
-    @pytest.mark.tier2
     def test_positive_ahv_internal_debug_option(
         self, module_sca_manifest_org, virtwho_config_ui, org_session, form_data_ui
     ):

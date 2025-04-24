@@ -27,8 +27,6 @@ from robottelo.constants import (
 )
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = pytest.mark.tier1
-
 
 def test_positive_verify_default_values_for_global_registration(
     module_target_sat,
@@ -66,7 +64,6 @@ def test_positive_verify_default_values_for_global_registration(
     assert cmd['advanced']['force'] is False
 
 
-@pytest.mark.tier2
 def test_positive_org_loc_change_for_registration(
     module_activation_key,
     module_sca_manifest_org,
@@ -136,7 +133,6 @@ def test_negative_global_registration_without_ak(
 @pytest.mark.e2e
 @pytest.mark.no_containers
 @pytest.mark.pit_client
-@pytest.mark.tier3
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 def test_positive_global_registration_end_to_end(
     module_activation_key,
@@ -279,7 +275,6 @@ def test_positive_global_registration_end_to_end(
             assert interface_result.execution
 
 
-@pytest.mark.tier2
 def test_global_registration_form_populate(
     function_sca_manifest_org,
     function_activation_key,
@@ -364,7 +359,6 @@ def test_global_registration_form_populate(
         assert new_ak.name in cmd['general']['activation_keys']
 
 
-@pytest.mark.tier2
 @pytest.mark.pit_client
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.no_containers
@@ -433,7 +427,6 @@ def test_global_registration_with_gpg_repo_and_default_package(
     assert repo_url in result.stdout
 
 
-@pytest.mark.tier3
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_global_re_registration_host_with_force_ignore_error_options(
     module_activation_key, rhel_contenthost, module_target_sat, module_org
@@ -474,7 +467,6 @@ def test_global_re_registration_host_with_force_ignore_error_options(
     assert result.status == 0
 
 
-@pytest.mark.tier2
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_global_registration_token_restriction(
     module_activation_key, rhel_contenthost, module_target_sat, module_org
@@ -572,7 +564,6 @@ def test_positive_host_registration_with_non_admin_user(
         assert rhel_contenthost.subscription_config['server']['port'] == constants.CLIENT_PORT
 
 
-@pytest.mark.tier2
 def test_positive_global_registration_form(
     module_activation_key, module_org, smart_proxy_location, default_os, target_sat
 ):
@@ -634,7 +625,6 @@ def test_positive_global_registration_form(
         assert pair in cmd
 
 
-@pytest.mark.tier2
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_global_registration_with_capsule_host(
     capsule_configured,
@@ -731,7 +721,6 @@ def test_global_registration_with_capsule_host(
     assert module_org.name in result.stdout
 
 
-@pytest.mark.tier2
 @pytest.mark.rhel_ver_match('[^6].*')
 def test_subscription_manager_install_from_repository(
     module_activation_key, module_os, rhel_contenthost, target_sat, module_org
@@ -787,3 +776,82 @@ def test_subscription_manager_install_from_repository(
     result = client.execute('yum repolist')
     assert repo_name in result.stdout
     assert result.status == 0
+
+
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_registering_with_title_using_global_registration_parameter(
+    module_target_sat,
+    rhel_contenthost,
+    module_sca_manifest_org,
+    module_location,
+    module_activation_key,
+    default_os,
+):
+    """Verify after updating the curl command that the parameter with the name host is registered successfully. Also, verify that the host is successfully registered with setup_insights=true and does not remain in build mode.
+
+    :id: 60061546-c3b2-11ef-b570-6c240829b295
+
+    :expectedresults:
+        1. The host is successfully registering using the label/name instead of the ID, and this applies to the following parameters:
+            1. Organization
+            2. Location
+            3. Host group
+            4. Operating System
+        2. No options should leave the host in build mode at the end of successful registration, specifically not insights configuration/setup.
+
+    :steps:
+        1. Generate a curl command which should have setup_insights=true in it
+        2. Before registering the host, update the command
+        3. Register host with the updated command
+
+    :Verifies: SAT-28832, SAT-26417
+
+    :customerscenario: true
+
+    """
+    rhel_ver = rhel_contenthost.os_version.major
+    repo_url = getattr(settings.repos, f'rhel{rhel_ver}_os', None)
+    rhel_contenthost.create_custom_repos(**repo_url)
+    hostgroup = module_target_sat.api.HostGroup(
+        organization=[module_sca_manifest_org], location=[module_location]
+    ).create()
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_sca_manifest_org.name)
+        session.location.select(module_location.name)
+        cmd = session.host.get_register_command(
+            {
+                'general.operating_system': default_os.title,
+                'general.host_group': hostgroup.name,
+                'general.activation_keys': module_activation_key.name,
+                'advanced.setup_insights': 'Yes (override)',
+                'general.insecure': True,
+            }
+        )
+        result = cmd[cmd.find('hostgroup_id=') : cmd.find('&update_packages=')]
+        if ' ' in default_os.title:
+            new_os_title = default_os.title.replace(' ', '+')
+        new_data = f'hostgroup={hostgroup.name}&location={module_location.name}&operatingsystem={new_os_title}&organization={module_sca_manifest_org.name}'
+        updated_cmd = cmd.replace(result, new_data)
+        assert new_data in updated_cmd
+        result = rhel_contenthost.execute(updated_cmd)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        assert (
+            f'Host {[rhel_contenthost.hostname]} successfully configured, but failed to set built status.'
+            not in result.stdout
+        )
+        status = session.host_new.get_host_statuses(rhel_contenthost.hostname)
+        assert status['Build']['Status'] == 'Installed'
+        assert status['Insights']['Status'] == 'Reporting'
+        facts = session.host_new.get_host_facts(rhel_contenthost.hostname, 'insights_client')
+        for fact in facts:
+            assert (
+                fact['Name'] == 'insights_clienthostname'
+                if fact['Name'] == 'insights_clienthostname'
+                else 'incorrect name'
+            )
+            assert (
+                fact['Value'] == rhel_contenthost.hostname
+                if fact['Value'] == rhel_contenthost.hostname
+                else 'incorrect value'
+            )
+        assert 'Successfully updated the system facts' in result.stdout

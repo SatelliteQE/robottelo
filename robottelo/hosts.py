@@ -1,7 +1,7 @@
 from configparser import ConfigParser
 import contextlib
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import UTC, datetime
 from functools import cached_property, lru_cache
 import importlib
 import io
@@ -42,6 +42,7 @@ from robottelo.constants import (
     CUSTOM_PUPPET_MODULE_REPOS_VERSION,
     HAMMER_CONFIG,
     KEY_CLOAK_CLI,
+    RHBK_CLI,
     RHSSO_NEW_GROUP,
     RHSSO_NEW_USER,
     RHSSO_RESET_PASSWORD,
@@ -206,7 +207,7 @@ class ContentHost(Host, ContentHostMixins):
     @property
     def subscribed(self):
         """Boolean representation of a content host's subscription status"""
-        return 'Status: Unknown' not in self.execute('subscription-manager status').stdout
+        return 'Overall Status: Unknown' not in self.execute('subscription-manager status').stdout
 
     @property
     def identity(self):
@@ -381,6 +382,7 @@ class ContentHost(Host, ContentHostMixins):
                 'No workflow in broker.host_workflows for power control, '
                 'or VM operation not supported'
             ) from err
+        self.close()
         assert (
             # TODO read the kwarg name from settings too?
             Broker()
@@ -398,7 +400,9 @@ class ContentHost(Host, ContentHostMixins):
                 wait_for(
                     self.connect,
                     fail_condition=lambda res: res is not None,
-                    timeout=300,
+                    timeout=600,
+                    retries=3,
+                    delay=5,
                     handle_exception=True,
                 )
             # really broad diaper here, but connection exceptions could be a ton of types
@@ -475,7 +479,7 @@ class ContentHost(Host, ContentHostMixins):
             downstream_repo = settings.repos.sattools_repo['rhel7']
         elif repo == constants.REPOS['rhst8']['id']:
             downstream_repo = settings.repos.sattools_repo['rhel8']
-        elif repo in (constants.REPOS['rhsc7']['id'], constants.REPOS['rhsc8']['id']):
+        elif repo in (constants.REPOS['rhsc8']['id'], constants.REPOS['rhsc9']['id']):
             downstream_repo = settings.repos.capsule_repo
         if force or settings.robottelo.cdn or not downstream_repo:
             return self.execute(f'subscription-manager repos --enable {repo}')
@@ -564,7 +568,7 @@ class ContentHost(Host, ContentHostMixins):
 
         """
         for name, url in kwargs.items():
-            content = f'[{name}]\n' f'name={name}\n' f'baseurl={url}\n' 'enabled=1\n' 'gpgcheck=0'
+            content = f'[{name}]\nname={name}\nbaseurl={url}\nenabled=1\ngpgcheck=0'
             self.execute(f'echo "{content}" > /etc/yum.repos.d/{name}.repo')
 
     def get_base_url_for_older_rhel_minor(self):
@@ -633,6 +637,7 @@ class ContentHost(Host, ContentHostMixins):
         hostgroup=None,
         auth_username=None,
         auth_password=None,
+        download_utility=None,
     ):
         """Registers content host to the Satellite or Capsule server
         using a global registration template.
@@ -703,6 +708,8 @@ class ContentHost(Host, ContentHostMixins):
             options['ignore-subman-errors'] = str(ignore_subman_errors).lower()
         if force:
             options['force'] = str(force).lower()
+        if download_utility is not None:
+            options['download-utility'] = download_utility
 
         self._satellite = target.satellite
         if auth_username and auth_password:
@@ -868,7 +875,10 @@ class ContentHost(Host, ContentHostMixins):
         cmd = f"echo -e 'proxy = {scheme}://{hostname}"
         if port:
             cmd += f':{port}'
-        cmd += "' >> /etc/dnf/dnf.conf"
+        if self.execute('test -f /etc/dnf/dnf.conf').status == 0:
+            cmd += "' >> /etc/dnf/dnf.conf"
+        else:
+            cmd += "' >> /etc/yum.conf"
         logger.info(f'Configuring {hostname} HTTP proxy for dnf.')
         self.execute(cmd)
 
@@ -883,6 +893,13 @@ class ContentHost(Host, ContentHostMixins):
         if self.ipv6:
             url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
             self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
+
+    def enable_ipv6_system_proxy(self):
+        """Execute procedures for enabling IPv6 HTTP Proxy on system"""
+        if self.ipv6:
+            self.execute(
+                f'echo "export HTTPS_PROXY={settings.http_proxy.http_proxy_ipv6_url}" >> ~/.bashrc'
+            )
 
     def disable_rhsm_proxy(self):
         """Disables HTTP proxy for subscription manager"""
@@ -1256,7 +1273,6 @@ class ContentHost(Host, ContentHostMixins):
         hypervisor_user=None,
         subscription_name=None,
         exec_one_shot=False,
-        upload_manifest=True,
         extra_repos=None,
     ):
         """
@@ -1270,7 +1286,6 @@ class ContentHost(Host, ContentHostMixins):
         :param bool configure_ssh: configure the ssh key to allow host to connect to hypervisor
         :param str subscription_name: the subscription name to assign to virt-who hypervisor guests
         :param bool exec_one_shot: whether to run the virt-who one-shot command after startup
-        :param bool upload_manifest: whether to upload the organization manifest
         :param list extra_repos: (Optional) repositories dict options to setup additionally.
         """
 
@@ -1303,7 +1318,6 @@ class ContentHost(Host, ContentHostMixins):
             org['id'],
             lce['id'],
             repos,
-            upload_manifest=upload_manifest,
             rh_subscriptions=[constants.DEFAULT_SUBSCRIPTION_NAME],
         )
         activation_key = content_setup_data['activation_key']
@@ -1523,6 +1537,9 @@ class ContentHost(Host, ContentHostMixins):
         host.location = location
         host.update(['location'])
 
+    def get_yggdrasil_service_name(self):
+        return 'yggdrasil' if (self.os_version.major > 9) else 'yggdrasild'
+
 
 class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
@@ -1652,24 +1669,35 @@ class Capsule(ContentHost, CapsuleMixins):
         """Prepare the host and run the capsule installer"""
         self._satellite = sat_host or Satellite()
 
-        # Register capsule host to CDN and enable repos
-        result = self.register_contenthost(
-            org=None,
-            lce=None,
-            username=settings.subscription.rhn_username,
-            password=settings.subscription.rhn_password,
-            auto_attach=True,
-        )
-        if result.status:
-            raise CapsuleHostError(f'Capsule CDN registration failed\n{result.stderr}')
-
-        for repo in getattr(constants, f"OHSNAP_RHEL{self.os_version.major}_REPOS"):
-            result = self.enable_repo(repo, force=True)
+        if settings.robottelo.rhel_source == "ga":
+            # Register capsule host to CDN and enable repos
+            result = self.register_contenthost(
+                org=None,
+                lce=None,
+                username=settings.subscription.rhn_username,
+                password=settings.subscription.rhn_password,
+                auto_attach=True,
+            )
             if result.status:
-                raise CapsuleHostError(f'Repo enable at capsule host failed\n{result.stdout}')
+                raise CapsuleHostError(f'Capsule CDN registration failed\n{result.stderr}')
+
+            for repo in getattr(constants, f"OHSNAP_RHEL{self.os_version.major}_REPOS"):
+                result = self.enable_repo(repo, force=True)
+                if result.status:
+                    raise CapsuleHostError(f'Repo enable at capsule host failed\n{result.stdout}')
+        elif settings.robottelo.rhel_source == "internal":
+            # add internal rhel repos
+            self.create_custom_repos(**settings.repos.get(f'rhel{self.os_version.major}_os'))
 
         # Update system, firewall services and check capsule is already installed from template
-        self.execute('yum -y update', timeout=0)
+        # Setups firewall on Capsule
+        self.execute('dnf -y update', timeout=0)
+        assert (
+            self.execute(
+                "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
+            ).status
+            == 0
+        ), "firewalld is not present and can't be installed"
         self.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
         self.execute('firewall-cmd --runtime-to-permanent')
         result = self.execute('rpm -q satellite-capsule')
@@ -2026,6 +2054,12 @@ class Satellite(Capsule, SatelliteMixins):
         # Setups firewall on Satellite
         assert (
             self.execute(
+                "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
+            ).status
+            == 0
+        ), "firewalld is not present and can't be installed"
+        assert (
+            self.execute(
                 command='firewall-cmd --add-port="53/udp" --add-port="53/tcp" --add-port="67/udp" '
                 '--add-port="69/udp" --add-port="80/tcp" --add-port="443/tcp" '
                 '--add-port="5647/tcp" --add-port="8000/tcp" --add-port="9090/tcp" '
@@ -2097,8 +2131,13 @@ class Satellite(Capsule, SatelliteMixins):
             f'curl -O {settings.robottelo.repos_hosting_url}{CUSTOM_PUPPET_MODULE_REPOS_PATH}'
             f'{custom_puppet_module_repo}',
         )
+        http_proxy = (
+            f'HTTP_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
+            if settings.server.is_ipv6
+            else ''
+        )
         self.execute(
-            f'puppet module install {custom_puppet_module_repo} '
+            f'{http_proxy}puppet module install {custom_puppet_module_repo} '
             f'--target-dir /etc/puppetlabs/code/environments/{env_name}/modules/'
         )
         smart_proxy = (
@@ -2293,11 +2332,31 @@ class Satellite(Capsule, SatelliteMixins):
         )
         assert (
             self.execute(
-                f'sed -i "{line_number}i nameserver {ad_data.nameserver}" /etc/resolv.conf'
+                f'sed -i "{line_number}i nameserver {ad_data.nameserver}\\nnameserver {ad_data.nameserver6}" /etc/resolv.conf'
             ).status
             == 0
         )
         assert self.execute('chattr +i /etc/resolv.conf').status == 0
+
+        # if this is an IPv6 machine, we'll probably get a hostname
+        # that is TOOOO LOOOONG for Active Directory which can only count to 15
+        hostname_changed = False
+        if settings.server.is_ipv6:
+            original_shortname = self.execute('hostname -s').stdout.strip()
+            if len(original_shortname) > 15:
+                hostname_changed = True
+                original_fqdn = self.execute('hostname').stdout.strip()
+                domainname = settings.ldap.realm.lower()
+                new_shortname = original_shortname[-15:]
+                if new_shortname[0] == '-':
+                    new_shortname = new_shortname[1:]
+                if new_shortname[-1] == '-':
+                    new_shortname = new_shortname[:-1]
+                new_fqdn = f'{new_shortname}.{domainname}'
+                logger.info(f'Setting hostname to {new_fqdn} temporarily')
+                # after we successfully add this host to AD's DNS, we will have
+                # to run satellite-change-hostname
+                self.execute(f'hostnamectl set-hostname {new_fqdn}')
 
         # join the realm
         assert (
@@ -2318,20 +2377,6 @@ class Satellite(Capsule, SatelliteMixins):
             f'\neuid = {id_apache}'
         )
 
-        # register the satellite as client for external auth
-        assert self.execute(f'echo "{http_conf_content}" > /etc/gssproxy/00-http.conf').status == 0
-        token_command = (
-            'KRB5_KTNAME=FILE:/etc/httpd/conf/http.keytab net ads keytab add HTTP '
-            '-U administrator -d3 -s /etc/net-keytab.conf'
-        )
-        assert self.execute(f'echo {settings.ldap.password} | {token_command}').status == 0
-        assert self.execute('chown root.apache /etc/httpd/conf/http.keytab').status == 0
-        assert self.execute('chmod 640 /etc/httpd/conf/http.keytab').status == 0
-
-        # enable the foreman-ipa-authentication feature
-        result = self.install(InstallerCommand('foreman-ipa-authentication true'))
-        assert result.status == 0
-
         # add foreman ad_gp_map_service (BZ#2117523)
         line_number = int(
             self.execute(
@@ -2344,7 +2389,60 @@ class Satellite(Capsule, SatelliteMixins):
             ).status
             == 0
         )
+        # if this is an IPv6 only machine, also add
+        # a line that fixes: https://github.com/SSSD/sssd/issues/3057
+        if settings.server.is_ipv6:
+            assert (
+                self.execute(
+                    f'sed -i "{line_number + 1}i lookup_family_order = ipv6_only" /etc/sssd/sssd.conf'
+                ).status
+                == 0
+            )
+        # in any case, restart sssd
         assert self.execute('systemctl restart sssd.service').status == 0
+
+        # register the satellite as client for external auth
+        assert self.execute(f'echo "{http_conf_content}" > /etc/gssproxy/00-http.conf').status == 0
+        token_command = (
+            'KRB5_KTNAME=FILE:/etc/httpd/conf/http.keytab net ads keytab add HTTP '
+            '-U administrator -d3 -s /etc/net-keytab.conf'
+        )
+        assert self.execute(f'echo {settings.ldap.password} | {token_command}').status == 0
+        assert self.execute('chown root.apache /etc/httpd/conf/http.keytab').status == 0
+        assert self.execute('chmod 640 /etc/httpd/conf/http.keytab').status == 0
+
+        if hostname_changed:
+            # Wait for AD's DNS to actually show AAAA and PTR records we've added;
+            # it's apparently a hard task, AD's DNS takes up to an hour to be up to date
+            # --
+            # Note that for this to work, you need to create the zones manually in DNS and
+            # in zone's properties, you have to set Dynamic updates to Nonsecure and Secure
+            logger.info(
+                f'Waiting for AAAA and PTR records for {new_fqdn} to be available in AD\'s DNS'
+            )
+            wait_for(
+                lambda: self.execute(
+                    'dig +short AAAA $(hostname) && dig +short -x $(dig +short AAAA $(hostname))'
+                ),
+                fail_condition=lambda res: res.status != 0,
+                timeout=3800,
+            )
+            # after we have the necessary DNS record, set hostname back to the original one
+            # so we don't confuse satellite-change-hostname
+            self.execute(f'hostnamectl set-hostname {original_fqdn}')
+            # and now actually run satellite-change-hostname which should set the short hostname
+            # and setup Satellite correctly
+            logger.info(
+                f'Current hostname is {original_fqdn}, running: "satellite-change-hostname {new_fqdn} -u{settings.server.admin_username} -ppassword_redacted"'
+            )
+            self.execute(
+                f'satellite-change-hostname {new_fqdn} -y -u{settings.server.admin_username} -p{settings.server.admin_password}',
+                timeout='30m',
+            )
+
+        # enable the foreman-ipa-authentication feature
+        result = self.install(InstallerCommand('foreman-ipa-authentication true'))
+        assert result.status == 0
 
         # unset GssapiLocalName (BZ#1787630)
         assert (
@@ -2368,8 +2466,8 @@ class Satellite(Capsule, SatelliteMixins):
 
     def generate_inventory_report(self, org, disconnected='false'):
         """Function to perform inventory upload."""
-        generate_report_task = 'ForemanInventoryUpload::Async::UploadReportJob'
-        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        generate_report_task = 'ForemanInventoryUpload::Async::GenerateReportJob'
+        timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
         self.api.Organization(id=org.id).rh_cloud_generate_report(
             data={'disconnected': disconnected}
         )
@@ -2401,7 +2499,7 @@ class Satellite(Capsule, SatelliteMixins):
 
     def run_orphan_cleanup(self, smart_proxy_id=None):
         """Run orphan cleanup task for all or given smart proxy."""
-        timestamp = datetime.utcnow().replace(microsecond=0)
+        timestamp = datetime.now(UTC).replace(microsecond=0)
         rake_command = 'foreman-rake katello:delete_orphaned_content RAILS_ENV=production'
         if smart_proxy_id:
             rake_command = f'{rake_command} SMART_PROXY_ID={smart_proxy_id}'
@@ -2415,28 +2513,32 @@ class Satellite(Capsule, SatelliteMixins):
             max_tries=10,
         )
 
+    @property
+    def local_advisor_enabled(self):
+        """Return boolean indicating whether local Insights advisor engine is enabled."""
+        return self.api.RHCloud().advisor_engine_config()['use_local_advisor_engine']
+
 
 class SSOHost(Host):
-    """Class for RHSSO functions and setup"""
+    """Class for SSO functions and setup"""
 
     def __init__(self, sat_obj, **kwargs):
         self.satellite = sat_obj
-        kwargs['hostname'] = kwargs.get('hostname', settings.rhsso.host_name)
         kwargs['ipv6'] = kwargs.get('ipv6', settings.server.is_ipv6)
         super().__init__(**kwargs)
 
-    def get_rhsso_client_id(self):
+    def get_sso_client_id(self):
         """getter method for fetching the client id and can be used other functions"""
         client_name = f'{self.satellite.hostname}-foreman-openidc'
         self.execute(
-            f'{KEY_CLOAK_CLI} config credentials '
-            f'--server {settings.rhsso.host_url.replace("https://", "http://")}/auth '
-            f'--realm {settings.rhsso.realm} '
-            f'--user {settings.rhsso.rhsso_user} '
-            f'--password {settings.rhsso.rhsso_password}'
+            f'{self.kcadm} config credentials '
+            f'--server {self.uri}/auth '
+            f'--realm {self.realm} '
+            f'--user {self.user} '
+            f'--password {self.password}'
         )
 
-        result = self.execute(f'{KEY_CLOAK_CLI} get clients --fields id,clientId')
+        result = self.execute(f'{self.kcadm} get clients --fields id,clientId')
         result_json = json.loads(result.stdout)
         client_id = None
         for client in result_json:
@@ -2446,23 +2548,21 @@ class SSOHost(Host):
         return client_id
 
     @lru_cache
-    def get_rhsso_user_details(self, username):
+    def get_sso_user_details(self, username):
         """Getter method to receive the user id"""
-        result = self.execute(
-            f"{KEY_CLOAK_CLI} get users -r {settings.rhsso.realm} -q username={username}"
-        )
+        result = self.execute(f"{self.kcadm} get users -r {self.realm} -q username={username}")
         result_json = json.loads(result.stdout)
         return result_json[0]
 
     @lru_cache
-    def get_rhsso_groups_details(self, group_name):
+    def get_sso_groups_details(self, group_name):
         """Getter method to receive the group id"""
-        result = self.execute(f"{KEY_CLOAK_CLI} get groups -r {settings.rhsso.realm}")
+        result = self.execute(f"{self.kcadm} get groups -r {self.realm}")
         group_list = json.loads(result.stdout)
         query_group = [group for group in group_list if group['name'] == group_name]
         return query_group[0]
 
-    def upload_rhsso_entity(self, json_content, entity_name):
+    def upload_sso_entity(self, json_content, entity_name):
         """Helper method to upload the RHSSO entity file on RHSSO Server.
         Overwrites already existing file with the same name.
         """
@@ -2477,13 +2577,13 @@ class SSOHost(Host):
 
     def create_mapper(self, json_content, client_id):
         """Helper method to create the RH-SSO Client Mapper"""
-        self.upload_rhsso_entity(json_content, "mapper_file")
+        self.upload_sso_entity(json_content, "mapper_file")
         self.execute(
-            f'{KEY_CLOAK_CLI} create clients/{client_id}/protocol-mappers/models -r '
-            f'{settings.rhsso.realm} -f {"mapper_file"}'
+            f'{self.kcadm} create clients/{client_id}/protocol-mappers/models -r '
+            f'{self.realm} -f {"mapper_file"}'
         )
 
-    def create_new_rhsso_user(self, username=None):
+    def create_new_sso_user(self, username=None):
         """create new user in RHSSO instance and set the password"""
         update_data_user = Box(RHSSO_NEW_USER)
         update_data_pass = Box(RHSSO_RESET_PASSWORD)
@@ -2491,35 +2591,33 @@ class SSOHost(Host):
             username = gen_string('alphanumeric')
         update_data_user.username = username
         update_data_user.email = username + random.choice(valid_emails_list())
-        update_data_pass.value = settings.rhsso.rhsso_password
-        self.upload_rhsso_entity(update_data_user, "create_user")
-        self.upload_rhsso_entity(update_data_pass, "reset_password")
-        self.execute(f"{KEY_CLOAK_CLI} create users -r {settings.rhsso.realm} -f create_user")
-        user_details = self.get_rhsso_user_details(update_data_user.username)
+        update_data_pass.value = self.password
+        self.upload_sso_entity(update_data_user, "create_user")
+        self.upload_sso_entity(update_data_pass, "reset_password")
+        self.execute(f"{self.kcadm} create users -r {self.realm} -f create_user")
+        user_details = self.get_sso_user_details(update_data_user.username)
         self.execute(
-            f'{KEY_CLOAK_CLI} update -r {settings.rhsso.realm} '
+            f'{self.kcadm} update -r {self.realm} '
             f'users/{user_details["id"]}/reset-password -f {"reset_password"}'
         )
         return update_data_user
 
-    def update_rhsso_user(self, username, group_name=None):
+    def update_sso_user(self, username, group_name=None):
         update_data_user = Box(RHSSO_USER_UPDATE)
-        user_details = self.get_rhsso_user_details(username)
-        update_data_user.realm = settings.rhsso.realm
+        user_details = self.get_sso_user_details(username)
+        update_data_user.realm = self.realm
         update_data_user.userId = f"{user_details['id']}"
         if group_name:
-            group_details = self.get_rhsso_groups_details(group_name=group_name)
+            group_details = self.get_sso_groups_details(group_name=group_name)
             update_data_user['groupId'] = f"{group_details['id']}"
-            self.upload_rhsso_entity(update_data_user, "update_user")
+            self.upload_sso_entity(update_data_user, "update_user")
             group_path = f"users/{user_details['id']}/groups/{group_details['id']}"
-            self.execute(
-                f"{KEY_CLOAK_CLI} update -r {settings.rhsso.realm} {group_path} -f update_user"
-            )
+            self.execute(f"{self.kcadm} update -r {self.realm} {group_path} -f update_user")
 
-    def delete_rhsso_user(self, username):
+    def delete_sso_user(self, username):
         """Delete the RHSSO user"""
-        user_details = self.get_rhsso_user_details(username)
-        self.execute(f"{KEY_CLOAK_CLI} delete -r {settings.rhsso.realm} users/{user_details['id']}")
+        user_details = self.get_sso_user_details(username)
+        self.execute(f"{self.kcadm} delete -r {self.realm} users/{user_details['id']}")
 
     def create_group(self, group_name=None):
         """Create the RHSSO group"""
@@ -2527,25 +2625,21 @@ class SSOHost(Host):
         if not group_name:
             group_name = gen_string('alphanumeric')
         update_user_group.name = group_name
-        self.upload_rhsso_entity(update_user_group, "create_group")
-        result = self.execute(
-            f"{KEY_CLOAK_CLI} create groups -r {settings.rhsso.realm} -f create_group"
-        )
+        self.upload_sso_entity(update_user_group, "create_group")
+        result = self.execute(f"{self.kcadm} create groups -r {self.realm} -f create_group")
         return result.stdout
 
-    def delete_rhsso_group(self, group_name):
+    def delete_sso_group(self, group_name):
         """Delete the RHSSO group"""
-        group_details = self.get_rhsso_groups_details(group_name)
-        self.execute(
-            f"{KEY_CLOAK_CLI} delete -r {settings.rhsso.realm} groups/{group_details['id']}"
-        )
+        group_details = self.get_sso_groups_details(group_name)
+        self.execute(f"{self.kcadm} delete -r {self.realm} groups/{group_details['id']}")
 
     def update_client_configuration(self, json_content):
         """Update the client configuration"""
-        client_id = self.get_rhsso_client_id()
-        self.upload_rhsso_entity(json_content, "update_client_info")
+        client_id = self.get_sso_client_id()
+        self.upload_sso_entity(json_content, "update_client_info")
         update_cmd = (
-            f"{KEY_CLOAK_CLI} update clients/{client_id} "  # EOL space important
+            f"{self.kcadm} update clients/{client_id} "  # EOL space important
             "-f update_client_info -s enabled=true --merge"
         )
         assert self.execute(update_cmd).status == 0
@@ -2554,8 +2648,8 @@ class SSOHost(Host):
     def oidc_token_endpoint(self):
         """getter oidc token endpoint"""
         return (
-            f"https://{settings.rhsso.host_name}/auth/realms/"
-            f"{settings.rhsso.realm}/protocol/openid-connect/token"
+            f"https://{self.host_name}:{self.host_port}/auth/realms/"
+            f"{self.realm}/protocol/openid-connect/token"
         )
 
     def get_oidc_client_id(self):
@@ -2565,16 +2659,13 @@ class SSOHost(Host):
     @cached_property
     def oidc_authorization_endpoint(self):
         """getter for the oidc authorization endpoint"""
-        return (
-            f"https://{settings.rhsso.host_name}/auth/realms/"
-            f"{settings.rhsso.realm}/protocol/openid-connect/auth"
-        )
+        return f"https://{self.host_name}/auth/realms/{self.realm}/protocol/openid-connect/auth"
 
     def get_two_factor_token_rh_sso_url(self):
         """getter for the two factor token rh_sso url"""
         return (
-            f"https://{settings.rhsso.host_name}/auth/realms/"
-            f"{settings.rhsso.realm}/protocol/openid-connect/"
+            f"https://{self.host_name}/auth/realms/"
+            f"{self.realm}/protocol/openid-connect/"
             f"auth?response_type=code&client_id={self.satellite.hostname}-foreman-openidc&"
             "redirect_uri=urn:ietf:wg:oauth:2.0:oob&scope=openid"
         )
@@ -2588,6 +2679,38 @@ class SSOHost(Host):
             ]
         }
         self.update_client_configuration(client_config)
+
+
+class RHBKHost(SSOHost):
+    """Class for RHBK functions and setup"""
+
+    def __init__(self, sat_obj, **kwargs):
+        self.host_url = settings.rhbk.host_url
+        self.uri = self.host_url
+        self.host_name = settings.rhbk.host_name
+        self.host_port = settings.rhbk.host_port
+        self.realm = settings.rhbk.realm
+        self.user = settings.rhbk.rhbk_user
+        self.password = settings.rhbk.rhbk_password
+        self.kcadm = RHBK_CLI
+        kwargs['hostname'] = kwargs.get('hostname', settings.rhbk.host_name)
+        super().__init__(sat_obj, **kwargs)
+
+
+class RHSSOHost(SSOHost):
+    """Class for RHSSO functions and setup"""
+
+    def __init__(self, sat_obj, **kwargs):
+        self.host_url = settings.rhsso.host_url
+        self.uri = self.host_url.replace("https://", "http://")
+        self.host_name = settings.rhsso.host_name
+        self.host_port = 443
+        self.realm = settings.rhsso.realm
+        self.user = settings.rhsso.rhsso_user
+        self.password = settings.rhsso.rhsso_password
+        self.kcadm = KEY_CLOAK_CLI
+        kwargs['hostname'] = kwargs.get('hostname', settings.rhsso.host_name)
+        super().__init__(sat_obj, **kwargs)
 
 
 class IPAHost(Host):
@@ -2643,6 +2766,24 @@ class IPAHost(Host):
         )
         if result.status not in [0, 3]:
             raise SatelliteHostError('Failed to enable ipa client')
+
+        # if this is an IPv6 only machine, also add
+        # a line that fixes: https://github.com/SSSD/sssd/issues/3057
+        if settings.server.is_ipv6:
+            line_number = int(
+                self.satellite.execute(
+                    "awk -v search='domain/' '$0~search{print NR; exit}' /etc/sssd/sssd.conf"
+                ).stdout
+            )
+            assert (
+                self.satellite.execute(
+                    f'sed -i "{line_number + 1}i lookup_family_order = ipv6_only" /etc/sssd/sssd.conf'
+                ).status
+                == 0
+            )
+            # restart sssd
+            assert self.execute('systemctl restart sssd.service').status == 0
+
         result = self.satellite.install(InstallerCommand('foreman-ipa-authentication true'))
         assert result.status == 0, 'Installer failed to enable IPA authentication.'
         self.satellite.cli.Service.restart()

@@ -38,11 +38,15 @@ from robottelo.utils.virtwho import (
 
 @pytest.mark.usefixtures('delete_host')
 class TestVirtwhoConfigforEsx:
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.parametrize('deploy_type_ui', ['id', 'script'], indirect=True)
     def test_positive_deploy_configure_by_id_script(
-        self, module_sca_manifest_org, org_session, form_data_ui, deploy_type_ui, default_location
+        self,
+        module_sca_manifest_org,
+        org_session,
+        form_data_ui,
+        deploy_type_ui,
+        default_location,
     ):
         """Verify configure created and deployed with id.
 
@@ -70,7 +74,6 @@ class TestVirtwhoConfigforEsx:
         # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in UI
         hypervisor_guest_mapping_newcontent_ui(org_session, hypervisor_name, guest_name)
 
-    @pytest.mark.tier2
     def test_positive_debug_option(
         self, module_sca_manifest_org, virtwho_config_ui, org_session, form_data_ui
     ):
@@ -99,7 +102,6 @@ class TestVirtwhoConfigforEsx:
         )
         assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == '0'
 
-    @pytest.mark.tier2
     def test_positive_interval_option(
         self, module_sca_manifest_org, virtwho_config_ui, org_session, form_data_ui
     ):
@@ -135,7 +137,6 @@ class TestVirtwhoConfigforEsx:
             )
             assert get_configure_option('interval', ETC_VIRTWHO_CONFIG) == value
 
-    @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
         self, module_sca_manifest_org, virtwho_config_ui, org_session, form_data_ui
     ):
@@ -163,7 +164,6 @@ class TestVirtwhoConfigforEsx:
             )
             assert get_configure_option('hypervisor_id', config_file) == value
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('filter_type', ['whitelist', 'blacklist'])
     @pytest.mark.parametrize('option_type', ['edit', 'create'])
     def test_positive_filtering_option(
@@ -255,7 +255,6 @@ class TestVirtwhoConfigforEsx:
                     assert regex == get_configure_option('exclude_hosts', config_file)
                     assert regex == get_configure_option('exclude_host_parents', config_file)
 
-    @pytest.mark.tier2
     def test_positive_last_checkin_status(
         self,
         module_sca_manifest_org,
@@ -289,15 +288,12 @@ class TestVirtwhoConfigforEsx:
         # 10 mins margin to check the Last Checkin time
         assert (
             abs(
-                datetime.strptime(checkin_time, "%B %d, %Y at %I:%M %p")
-                .replace(year=datetime.utcnow().year)
-                .timestamp()
+                datetime.strptime(checkin_time, "%B %d, %Y at %I:%M %p").timestamp()
                 - time_now.timestamp()
             )
             <= 300
         )
 
-    @pytest.mark.tier2
     def test_positive_remove_env_option(
         self, module_sca_manifest_org, virtwho_config_ui, form_data_ui, target_sat, org_session
     ):
@@ -335,7 +331,6 @@ class TestVirtwhoConfigforEsx:
         result = target_sat.execute(f'grep "{env_warning}" /var/log/messages')
         assert result.status == 1
 
-    @pytest.mark.tier2
     def test_positive_virtwho_roles(self, org_session):
         """Verify the default roles for virtwho configure
 
@@ -368,7 +363,6 @@ class TestVirtwhoConfigforEsx:
                 assigned_permissions = org_session.filter.read_permissions(role_name)
                 assert sorted(assigned_permissions) == sorted(role_filters)
 
-    @pytest.mark.tier2
     def test_positive_delete_configure(self, module_sca_manifest_org, org_session, form_data_ui):
         """Verify when a config is deleted the associated user is deleted.
 
@@ -400,7 +394,6 @@ class TestVirtwhoConfigforEsx:
             restart_virtwho_service()
             assert get_virtwho_status() == 'logerror'
 
-    @pytest.mark.tier2
     def test_positive_virtwho_reporter_role(
         self, module_sca_manifest_org, org_session, test_name, form_data_ui
     ):
@@ -458,7 +451,6 @@ class TestVirtwhoConfigforEsx:
             org_session.user.delete(username)
             assert not org_session.user.search(username)
 
-    @pytest.mark.tier2
     def test_positive_virtwho_viewer_role(
         self, module_sca_manifest_org, org_session, test_name, form_data_ui
     ):
@@ -522,7 +514,6 @@ class TestVirtwhoConfigforEsx:
             org_session.user.delete(username)
             assert not org_session.user.search(username)
 
-    @pytest.mark.tier2
     def test_positive_virtwho_manager_role(
         self, module_sca_manifest_org, org_session, test_name, form_data_ui
     ):
@@ -586,7 +577,6 @@ class TestVirtwhoConfigforEsx:
             org_session.user.delete(username)
             assert not org_session.user.search(username)
 
-    @pytest.mark.tier2
     def test_positive_deploy_configure_hypervisor_password_with_special_characters(
         self, module_sca_manifest_org, form_data_ui, target_sat, org_session
     ):
@@ -638,7 +628,6 @@ class TestVirtwhoConfigforEsx:
             org_session.virtwho_configure.delete(name)
             assert not org_session.virtwho_configure.search(name)
 
-    @pytest.mark.tier2
     def test_positive_hypervisor_password_option(
         self, module_sca_manifest_org, virtwho_config_ui, org_session, form_data_ui
     ):

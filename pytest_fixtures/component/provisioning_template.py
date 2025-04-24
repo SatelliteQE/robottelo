@@ -62,13 +62,16 @@ def module_sync_kickstart_content(
     This fixture sets up kickstart repositories for a specific RHEL version
     that is specified in `request.param`.
     """
-    repo_names = []
     tasks = []
     rhel_ver = request.param['rhel_version']
-    if int(rhel_ver) <= 7:
-        repo_names.append(f'rhel{rhel_ver}')
+    if rhel_ver <= 7:
+        repo_name = f'rhel{rhel_ver}'
+    # Using RHEL10 Beta repos until its GA
+    elif int(rhel_ver) == 10:
+        repo_name = f'rhel{rhel_ver}_bos_beta'
     else:
-        repo_names.append(f'rhel{rhel_ver}_bos')
+        repo_name = f'rhel{rhel_ver}_bos'
+    repo_names = [repo_name]
     for name in repo_names:
         rh_kickstart_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=constants.DEFAULT_ARCHITECTURE,
@@ -88,11 +91,7 @@ def module_sync_kickstart_content(
         )
         task_status = module_target_sat.api.ForemanTask(id=task['id']).poll()
         assert task_status['result'] == 'success'
-    rhel_xy = Version(
-        constants.REPOS['kickstart'][f'rhel{rhel_ver}']['version']
-        if rhel_ver == 7
-        else constants.REPOS['kickstart'][f'rhel{rhel_ver}_bos']['version']
-    )
+    rhel_xy = Version(constants.REPOS['kickstart'][repo_name]['version'])
     o_systems = module_target_sat.api.OperatingSystem().search(
         query={'search': f'family=Redhat and major={rhel_xy.major} and minor={rhel_xy.minor}'}
     )

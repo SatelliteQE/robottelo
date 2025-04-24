@@ -27,7 +27,6 @@ VERSION = 'Version 1.0'
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, module_target_sat, module_org, module_lce):
     """Create content view with yum repo, publish it and promote it to Library
@@ -57,7 +56,6 @@ def test_positive_end_to_end(session, module_target_sat, module_org, module_lce)
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 def test_positive_ccv_e2e(session, module_target_sat, module_org, module_lce):
     """Create several CVs, and a CCV. Associate some content with each, and then associate the CVs
     with the CCV - everything should work properly.
@@ -95,7 +93,6 @@ def test_positive_ccv_e2e(session, module_target_sat, module_org, module_lce):
         assert len(result) == 1
 
 
-@pytest.mark.tier2
 def test_positive_create_cv(session, target_sat):
     """Able to create cv and search for it
 
@@ -115,7 +112,6 @@ def test_positive_create_cv(session, target_sat):
         assert session.contentview_new.search(cv)[0]['Name'] == cv
 
 
-@pytest.mark.tier2
 def test_version_table_read(session, function_sca_manifest_org, target_sat):
     """Able to read CV version package details, which includes the Epoch tab
 
@@ -156,7 +152,6 @@ def test_version_table_read(session, function_sca_manifest_org, target_sat):
         assert response[0]['Arch'] == packages['results'][0]['arch']
 
 
-@pytest.mark.tier2
 def test_no_blank_page_on_language_switch(session, target_sat, module_org):
     """Able to view the new CV UI when the language is set to something other
     than English
@@ -187,7 +182,6 @@ def test_no_blank_page_on_language_switch(session, target_sat, module_org):
         assert session.contentview_new.read_french_lang_cv()
 
 
-@pytest.mark.tier2
 def test_file_cv_display(session, target_sat, module_org, module_product):
     """Content-> Files displays only the Content Views associated with that file
 
@@ -227,7 +221,6 @@ def test_file_cv_display(session, target_sat, module_org, module_product):
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier2
 def test_positive_delete_cv_promoted_to_multi_env(
     session,
     target_sat,
@@ -325,3 +318,36 @@ def test_positive_delete_cv_promoted_to_multi_env(
         assert cv['name'] not in str(lce_values['content_views']['resources'])
         library_values = session.lifecycleenvironment.read('Library')
         assert cv['name'] not in str(library_values['content_views']['resources'])
+
+
+@pytest.mark.upgrade
+def test_cv_publish_warning(session, target_sat, function_sca_manifest_org, module_lce):
+    """Verify that the publish warning banner accurately reflects the state of a given CV
+
+    :id: 5d6187bf-2f36-46cd-bdfe-dfbda244af39
+
+    :steps:
+        1. Create and sync yum repository on satellite, add to a new content view.
+        2. Check the publish wizard, and verify that the publish warning banner is visible
+        3. Publish the CV
+        4. Check the publish wizard again for the CV and verify the warning isn't visible
+
+    :expectedresults: The publish warning banner accurately reflects the status of the CV
+
+    :Verifies: SAT-28271
+
+    :customerscenario: true
+
+    :CaseImportance: High
+    """
+    rh_repo_id = target_sat.api_factory.enable_sync_redhat_repo(
+        REPOS['rhae2.9_el8'], function_sca_manifest_org.id
+    )
+    rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
+    cv = target_sat.api.ContentView(organization=function_sca_manifest_org).create()
+    cv = target_sat.api.ContentView(id=cv.id, repository=[rh_repo]).update(["repository"])
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=function_sca_manifest_org.name)
+        assert not session.contentview_new.check_publish_banner(cv.name)
+        cv.publish()
+        assert session.contentview_new.check_publish_banner(cv.name)

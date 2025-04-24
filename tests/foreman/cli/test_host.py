@@ -12,6 +12,7 @@
 
 """
 
+import json
 from random import choice
 import re
 
@@ -23,6 +24,7 @@ import yaml
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
+    DUMMY_BOOTC_FACTS,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
@@ -286,7 +288,6 @@ def test_positive_search_all_field_sets(module_target_sat):
 
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.cli_host_subscription
-@pytest.mark.tier3
 def test_positive_host_list_with_cv_and_lce(
     target_sat,
     rhel_contenthost,
@@ -335,7 +336,6 @@ def test_positive_host_list_with_cv_and_lce(
 # -------------------------- CREATE SCENARIOS -------------------------
 @pytest.mark.e2e
 @pytest.mark.cli_host_create
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_create_and_delete(target_sat, module_lce_library, module_published_cv):
     """A host can be created and deleted
@@ -395,7 +395,6 @@ def test_positive_create_and_delete(target_sat, module_lce_library, module_publi
 
 @pytest.mark.e2e
 @pytest.mark.cli_host_create
-@pytest.mark.tier1
 def test_positive_crud_interface_by_id(target_sat, default_location, default_org):
     """New network interface can be added to existing host, listed and removed.
 
@@ -460,7 +459,6 @@ def test_positive_crud_interface_by_id(target_sat, default_location, default_org
 
 
 @pytest.mark.cli_host_create
-@pytest.mark.tier2
 def test_negative_create_with_content_source(
     module_lce_library, module_org, module_published_cv, module_target_sat
 ):
@@ -486,7 +484,6 @@ def test_negative_create_with_content_source(
 
 
 @pytest.mark.cli_host_create
-@pytest.mark.tier2
 def test_negative_update_content_source(
     module_default_proxy, module_lce_library, module_org, module_published_cv, module_target_sat
 ):
@@ -520,7 +517,6 @@ def test_negative_update_content_source(
 
 
 @pytest.mark.cli_host_create
-@pytest.mark.tier1
 def test_positive_create_with_lce_and_cv(
     module_lce, module_org, module_promoted_cv, module_target_sat
 ):
@@ -556,7 +552,6 @@ def test_positive_create_with_lce_and_cv(
 
 
 @pytest.mark.cli_host_create
-@pytest.mark.tier2
 def test_positive_create_with_openscap_proxy_id(
     module_default_proxy, module_org, module_target_sat
 ):
@@ -575,7 +570,6 @@ def test_positive_create_with_openscap_proxy_id(
 
 
 @pytest.mark.cli_host_create
-@pytest.mark.tier1
 def test_negative_create_with_name(
     module_lce_library, module_org, module_published_cv, module_target_sat
 ):
@@ -600,7 +594,6 @@ def test_negative_create_with_name(
 
 
 @pytest.mark.cli_host_create
-@pytest.mark.tier1
 def test_negative_create_with_unpublished_cv(module_lce, module_org, module_cv, module_target_sat):
     """Check if host can be created using unpublished cv
 
@@ -609,6 +602,8 @@ def test_negative_create_with_unpublished_cv(module_lce, module_org, module_cv, 
     :expectedresults: Host is not created using new unpublished cv
 
     :CaseImportance: Critical
+
+    :BlockedBy: SAT-30848
     """
     with pytest.raises(CLIFactoryError):
         module_target_sat.cli_factory.make_fake_host(
@@ -621,7 +616,6 @@ def test_negative_create_with_unpublished_cv(module_lce, module_org, module_cv, 
 
 
 @pytest.mark.cli_host_create
-@pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_katello_and_openscap_loaded(target_sat):
     """Verify that command line arguments from both Katello
@@ -642,13 +636,12 @@ def test_positive_katello_and_openscap_loaded(target_sat):
     """
     help_output = target_sat.cli.Host.execute('host update --help')
     for arg in ['lifecycle-environment[-id]', 'openscap-proxy-id']:
-        assert any(
-            f'--{arg}' in line for line in help_output.split('\n')
-        ), f'--{arg} not supported by update subcommand'
+        assert any(f'--{arg}' in line for line in help_output.split('\n')), (
+            f'--{arg} not supported by update subcommand'
+        )
 
 
 @pytest.mark.cli_host_create
-@pytest.mark.tier3
 def test_positive_list_and_unregister(
     module_ak_with_cv, module_lce, module_org, rhel7_contenthost, target_sat
 ):
@@ -673,7 +666,6 @@ def test_positive_list_and_unregister(
 
 
 @pytest.mark.cli_host_create
-@pytest.mark.tier3
 def test_positive_list_by_last_checkin(
     module_org, rhel7_contenthost, target_sat, module_ak_with_cv
 ):
@@ -700,7 +692,6 @@ def test_positive_list_by_last_checkin(
 
 
 @pytest.mark.cli_host_create
-@pytest.mark.tier3
 def test_positive_list_infrastructure_hosts(
     module_org, rhel7_contenthost, target_sat, module_ak_with_cv
 ):
@@ -731,7 +722,6 @@ def test_positive_list_infrastructure_hosts(
 
 
 @pytest.mark.cli_host_create
-@pytest.mark.tier2
 def test_positive_create_inherit_lce_cv(
     target_sat, module_published_cv, module_lce_library, module_org
 ):
@@ -768,7 +758,6 @@ def test_positive_create_inherit_lce_cv(
 
 
 @pytest.mark.cli_host_create
-@pytest.mark.tier3
 def test_positive_create_inherit_nested_hostgroup(target_sat):
     """Create two nested host groups with the same name, but different
     parents. Then create host using any from these hostgroups title
@@ -824,7 +813,6 @@ def test_positive_create_inherit_nested_hostgroup(target_sat):
 
 
 @pytest.mark.cli_host_create
-@pytest.mark.tier3
 def test_positive_list_with_nested_hostgroup(target_sat):
     """Create parent and nested host groups. Then create host using nested
     hostgroup and then find created host using list command
@@ -897,7 +885,6 @@ def test_positive_list_with_nested_hostgroup(target_sat):
 
 @pytest.mark.cli_host_create
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_negative_create_with_incompatible_pxe_loader():
     """Try to create host with a known OS and incompatible PXE loader
 
@@ -928,7 +915,6 @@ def test_negative_create_with_incompatible_pxe_loader():
 # -------------------------- UPDATE SCENARIOS -------------------------
 @pytest.mark.e2e
 @pytest.mark.cli_host_update
-@pytest.mark.tier1
 def test_positive_update_parameters_by_name(
     target_sat, function_host, module_architecture, module_location
 ):
@@ -991,7 +977,6 @@ def test_positive_update_parameters_by_name(
     assert host['operating-system']['medium']['name'] == new_medium.name
 
 
-@pytest.mark.tier1
 @pytest.mark.cli_host_update
 def test_negative_update_name(function_host, target_sat):
     """A host can not be updated with invalid or empty name
@@ -1009,7 +994,6 @@ def test_negative_update_name(function_host, target_sat):
     assert '{}.{}'.format(new_name, host['network']['domain']).lower() != host['name']
 
 
-@pytest.mark.tier1
 @pytest.mark.cli_host_update
 def test_negative_update_mac(function_host, target_sat):
     """A host can not be updated with invalid or empty MAC address
@@ -1027,7 +1011,6 @@ def test_negative_update_mac(function_host, target_sat):
     assert host['network']['mac'] != new_mac
 
 
-@pytest.mark.tier2
 @pytest.mark.cli_host_update
 def test_negative_update_arch(function_host, module_architecture, target_sat):
     """A host can not be updated with a architecture, which does not
@@ -1045,7 +1028,6 @@ def test_negative_update_arch(function_host, module_architecture, target_sat):
     assert host['operating-system']['architecture'] != module_architecture.name
 
 
-@pytest.mark.tier2
 @pytest.mark.cli_host_update
 def test_negative_update_os(target_sat, function_host, module_architecture):
     """A host can not be updated with a operating system, which is
@@ -1076,7 +1058,6 @@ def test_negative_update_os(target_sat, function_host, module_architecture):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier2
 @pytest.mark.cli_host_update
 def test_hammer_host_info_output(target_sat, module_user):
     """Verify re-add of 'owner-id' in `hammer host info` output
@@ -1118,7 +1099,6 @@ def test_hammer_host_info_output(target_sat, module_user):
 
 
 @pytest.mark.cli_host_parameter
-@pytest.mark.tier1
 def test_positive_parameter_crud(function_host, target_sat):
     """Add, update and remove host parameter with valid name.
 
@@ -1150,7 +1130,6 @@ def test_positive_parameter_crud(function_host, target_sat):
 
 # -------------------------- HOST PARAMETER SCENARIOS -------------------------
 @pytest.mark.cli_host_parameter
-@pytest.mark.tier1
 def test_negative_add_parameter(function_host, target_sat):
     """Try to add host parameter with different invalid names.
 
@@ -1175,7 +1154,6 @@ def test_negative_add_parameter(function_host, target_sat):
 
 
 @pytest.mark.cli_host_parameter
-@pytest.mark.tier2
 def test_negative_view_parameter_by_non_admin_user(target_sat, function_host, function_user):
     """Attempt to view parameters with non admin user without Parameter
      permissions
@@ -1221,7 +1199,6 @@ def test_negative_view_parameter_by_non_admin_user(target_sat, function_host, fu
 
 
 @pytest.mark.cli_host_parameter
-@pytest.mark.tier2
 def test_positive_view_parameter_by_non_admin_user(target_sat, function_host, function_user):
     """Attempt to view parameters with non admin user that has
     Parameter::vew_params permission
@@ -1271,7 +1248,6 @@ def test_positive_view_parameter_by_non_admin_user(target_sat, function_host, fu
 
 
 @pytest.mark.cli_host_parameter
-@pytest.mark.tier2
 def test_negative_edit_parameter_by_non_admin_user(target_sat, function_host, function_user):
     """Attempt to edit parameter with non admin user that has
     Parameter::vew_params permission
@@ -1326,7 +1302,6 @@ def test_negative_edit_parameter_by_non_admin_user(target_sat, function_host, fu
 
 
 @pytest.mark.cli_host_parameter
-@pytest.mark.tier2
 def test_positive_set_multi_line_and_with_spaces_parameter_value(function_host, target_sat):
     """Check that host parameter value with multi-line and spaces is
     correctly restored from yaml format
@@ -1374,7 +1349,6 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(function_host, 
 
 # -------------------------- HOST PROVISION SCENARIOS -------------------------
 @pytest.mark.stubbed
-@pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_provision_baremetal_with_bios_syslinux():
     """Provision RHEL system on a new BIOS BM Host with SYSLINUX loader
@@ -1411,7 +1385,6 @@ def test_positive_provision_baremetal_with_bios_syslinux():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_provision_baremetal_with_uefi_syslinux():
     """Provision RHEL system on a new UEFI BM Host with SYSLINUX loader
     from provided MAC address
@@ -1447,7 +1420,6 @@ def test_positive_provision_baremetal_with_uefi_syslinux():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_provision_baremetal_with_uefi_grub():
     """Provision a RHEL system on a new UEFI BM Host with GRUB loader from
     a provided MAC address
@@ -1486,7 +1458,6 @@ def test_positive_provision_baremetal_with_uefi_grub():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_provision_baremetal_with_uefi_grub2():
     """Provision a RHEL7+ system on a new UEFI BM Host with GRUB2 loader
@@ -1527,7 +1498,6 @@ def test_positive_provision_baremetal_with_uefi_grub2():
 
 
 @pytest.mark.stubbed
-@pytest.mark.tier3
 def test_positive_provision_baremetal_with_uefi_secureboot():
     """Provision RHEL7+ on a new SecureBoot-enabled UEFI BM Host from
     provided MAC address
@@ -1617,7 +1587,6 @@ def yum_security_plugin(katello_host_tools_host):
 @pytest.mark.e2e
 @pytest.mark.cli_katello_host_tools
 @pytest.mark.rhel_ver_match('[^6].*')
-@pytest.mark.tier3
 def test_positive_report_package_installed_removed(
     katello_host_tools_host, setup_custom_repo, target_sat
 ):
@@ -1663,7 +1632,6 @@ def test_positive_report_package_installed_removed(
 
 @pytest.mark.cli_katello_host_tools
 @pytest.mark.rhel_ver_match('[^6].*')
-@pytest.mark.tier3
 def test_positive_package_applicability(katello_host_tools_host, setup_custom_repo, target_sat):
     """Ensure packages applicability is functioning properly
 
@@ -1727,7 +1695,6 @@ def test_positive_package_applicability(katello_host_tools_host, setup_custom_re
 @pytest.mark.rhel_ver_match('[^6].*')
 @pytest.mark.pit_client
 @pytest.mark.pit_server
-@pytest.mark.tier3
 def test_positive_erratum_applicability(
     katello_host_tools_host, setup_custom_repo, yum_security_plugin, target_sat
 ):
@@ -1795,7 +1762,6 @@ def test_positive_erratum_applicability(
 
 @pytest.mark.cli_katello_host_tools
 @pytest.mark.rhel_ver_match('[^6].*')
-@pytest.mark.tier3
 def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_repo, target_sat):
     """Apply security erratum to a host
 
@@ -1829,7 +1795,6 @@ def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_r
 
 
 @pytest.mark.cli_katello_host_tools
-@pytest.mark.tier3
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('[^6].*')
 def test_positive_install_package_via_rex(
@@ -1867,7 +1832,6 @@ def test_positive_install_package_via_rex(
 # -------------------------- HOST SUBSCRIPTION SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.rhel_ver_match('9')
 @pytest.mark.cli_host_subscription
-@pytest.mark.tier3
 def test_positive_register(
     module_org,
     module_promoted_cv,
@@ -1923,12 +1887,11 @@ def test_positive_register(
 
 @pytest.mark.rhel_ver_match('9')
 @pytest.mark.cli_host_subscription
-@pytest.mark.tier3
 def test_positive_without_attach_with_lce(
     target_sat,
     rhel_contenthost,
     function_ak_with_cv,
-    function_org,
+    function_sca_manifest_org,
     function_lce,
 ):
     """Attempt to enable a repository of a subscription that was not
@@ -1942,13 +1905,13 @@ def test_positive_without_attach_with_lce(
 
     :parametrized: yes
     """
-    content_view = target_sat.api.ContentView(organization=function_org).create()
+    content_view = target_sat.api.ContentView(organization=function_sca_manifest_org).create()
     target_sat.cli_factory.setup_org_for_a_rh_repo(
         {
             'product': PRDS['rhel'],
             'repository-set': REPOSET['rhsclient7'],
             'repository': REPOS['rhsclient7']['name'],
-            'organization-id': function_org.id,
+            'organization-id': function_sca_manifest_org.id,
             'content-view-id': content_view.id,
             'lifecycle-environment-id': function_lce.id,
             'activationkey-id': function_ak_with_cv.id,
@@ -1958,7 +1921,9 @@ def test_positive_without_attach_with_lce(
     )
 
     # register client
-    result = rhel_contenthost.register(function_org, None, function_ak_with_cv.name, target_sat)
+    result = rhel_contenthost.register(
+        function_sca_manifest_org, None, function_ak_with_cv.name, target_sat
+    )
     assert result.status == 0
     assert rhel_contenthost.subscribed
     res = rhel_contenthost.enable_repo(REPOS['rhsclient7']['id'])
@@ -1970,7 +1935,6 @@ def test_positive_without_attach_with_lce(
 @pytest.mark.pit_client
 @pytest.mark.pit_server
 @pytest.mark.cli_host_subscription
-@pytest.mark.tier3
 @pytest.mark.e2e
 def test_syspurpose_end_to_end(
     target_sat,
@@ -2039,6 +2003,35 @@ def test_syspurpose_end_to_end(
         )
 
 
+@pytest.mark.e2e
+def test_positive_bootc_cli_actions(target_sat, bootc_host, function_ak_with_cv, function_org):
+    """Register a bootc host and validate CLI information
+
+    :id: d9557843-4cc7-4e70-a035-7b2c4008dd5e
+
+    :expectedresults: Upon registering a Bootc host, the facts are attached to the host, and are accurate. Hammer host bootc also returns proper info.
+
+    :CaseComponent:Hosts-Content
+
+    :Verifies:SAT-27168, SAT-27170, SAT-30211
+
+    :CaseImportance: Critical
+    """
+    bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
+    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
+    assert bootc_host.subscribed
+    bootc_info = target_sat.cli.Host.info({'name': bootc_host.hostname})['bootc-image-information']
+    assert bootc_info['running-image'] == bootc_dummy_info['bootc.booted.image']
+    assert bootc_info['running-image-digest'] == bootc_dummy_info['bootc.booted.digest']
+    assert bootc_info['rollback-image'] == bootc_dummy_info['bootc.rollback.image']
+    assert bootc_info['rollback-image-digest'] == bootc_dummy_info['bootc.rollback.digest']
+    # Verify hammer host bootc images
+    booted_images_info = target_sat.cli.Host.bootc_images()[0]
+    assert booted_images_info['running-image'] == bootc_dummy_info['bootc.booted.image']
+    assert booted_images_info['running-image-digest'] == bootc_dummy_info['bootc.booted.digest']
+    assert int(booted_images_info['host-count']) > 0
+
+
 # -------------------------- MULTI-CV SCENARIOS -------------------------
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('[^7]')
@@ -2087,9 +2080,9 @@ def test_negative_multi_cv_registration(
 
     # Register the host with subscription-manager, passing multiple environments
     res = rhel_contenthost.register_contenthost(module_org.label, lce=None, environments=env_names)
-    assert (
-        res.status == 70
-    ), f'Expecting error "Registering to multiple environments is not enabled"; instead got: {res.stderr}'
+    assert res.status == 70, (
+        f'Expecting error "Registering to multiple environments is not enabled"; instead got: {res.stderr}'
+    )
 
 
 @pytest.mark.rhel_ver_match('[^7]')
@@ -2163,9 +2156,9 @@ def test_positive_multi_cv_registration(
 
     # Confirm that the host is registered to both environments
     host = session_multicv_sat.cli.Host.info({'name': rhel_contenthost.hostname})
-    assert (
-        len(host['content-information']['content-view-environments']) == 2
-    ), "Expected host to be registered to both environments"
+    assert len(host['content-information']['content-view-environments']) == 2, (
+        "Expected host to be registered to both environments"
+    )
 
 
 @pytest.mark.rhel_ver_match('[^7]')
@@ -2228,9 +2221,9 @@ def test_positive_multi_cv_assignment(
 
     # Confirm that the host is registered to both environments
     host = session_multicv_sat.cli.Host.info({'name': rhel_contenthost.hostname})
-    assert (
-        len(host['content-information']['content-view-environments']) == 2
-    ), "Expected host to be registered to both environments"
+    assert len(host['content-information']['content-view-environments']) == 2, (
+        "Expected host to be registered to both environments"
+    )
 
 
 @pytest.mark.rhel_ver_match('[^7]')
@@ -2315,16 +2308,15 @@ def test_positive_multi_cv_host_repo_availability(
     host = session_multicv_sat.cli.Host.info({'name': rhel_contenthost.hostname})
     repos = rhel_contenthost.subscription_manager_list_repos()
     # Confirm that the host is registered to both environments
-    assert (
-        len(host['content-information']['content-view-environments']) == 2
-    ), "Expected host to be registered to both environments"
+    assert len(host['content-information']['content-view-environments']) == 2, (
+        "Expected host to be registered to both environments"
+    )
     # Confirm that the host sees repositories from both content view environments
     assert repo_a.label in repos.stdout
     assert repo_b.label in repos.stdout
 
 
 # -------------------------- HOST ERRATA SUBCOMMAND SCENARIOS -------------------------
-@pytest.mark.tier1
 def test_positive_errata_list_of_sat_server(target_sat):
     """Check if errata list doesn't raise exception. Check BZ for details.
 
@@ -2342,7 +2334,6 @@ def test_positive_errata_list_of_sat_server(target_sat):
 
 
 # -------------------------- HOST ENC SUBCOMMAND SCENARIOS -------------------------
-@pytest.mark.tier1
 def test_positive_dump_enc_yaml(target_sat):
     """Dump host's ENC YAML. Check BZ for details.
 
@@ -2364,7 +2355,6 @@ def test_positive_dump_enc_yaml(target_sat):
 
 # -------------------------- HOST TRACE SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.pit_client
-@pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6].*')
 def test_positive_tracer_list_and_resolve(tracer_host, target_sat):
     """Install tracer on client, downgrade the service, check from the satellite
@@ -2408,14 +2398,13 @@ def test_positive_tracer_list_and_resolve(tracer_host, target_sat):
 
     # verify on the host end, that the service was really restarted
     service_ver_log_new = tracer_host.execute(f'cat /var/log/{package}/service.log')
-    assert (
-        service_ver_log_new != service_ver_log_old
-    ), f'The service {package} did not seem to be restarted'
+    assert service_ver_log_new != service_ver_log_old, (
+        f'The service {package} did not seem to be restarted'
+    )
 
 
 # ---------------------------- PUPPET ENABLED IN INSTALLER TESTS -----------------------
 @pytest.mark.cli_puppet_enabled
-@pytest.mark.tier1
 def test_positive_host_with_puppet(
     session_puppet_enabled_sat,
     session_puppet_enabled_proxy,
@@ -2501,7 +2490,6 @@ def function_host_content_source(
     return res
 
 
-@pytest.mark.tier2
 @pytest.mark.cli_puppet_enabled
 def test_positive_list_scparams(
     session_puppet_enabled_sat,
@@ -2548,7 +2536,6 @@ def test_positive_list_scparams(
 
 
 @pytest.mark.cli_puppet_enabled
-@pytest.mark.tier1
 def test_positive_create_with_puppet_class_name(
     session_puppet_enabled_sat,
     session_puppet_enabled_proxy,
@@ -2583,7 +2570,6 @@ def test_positive_create_with_puppet_class_name(
 
 
 @pytest.mark.cli_puppet_enabled
-@pytest.mark.tier2
 def test_positive_update_host_owner_and_verify_puppet_class_name(
     session_puppet_enabled_sat,
     session_puppet_enabled_proxy,
@@ -2635,7 +2621,6 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
 
 @pytest.mark.cli_puppet_enabled
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier2
 @pytest.mark.rhel_ver_match('[9]')
 @pytest.mark.no_containers
 def test_positive_create_and_update_with_content_source(
@@ -2704,7 +2689,6 @@ def test_positive_create_and_update_with_content_source(
 
 
 @pytest.mark.cli_host_create
-@pytest.mark.tier2
 def test_positive_create_host_with_lifecycle_environment_name(
     module_lce,
     module_org,
@@ -2812,3 +2796,46 @@ def test_host_registration_with_capsule_using_content_coherence(
     assert 'Validation failed' not in result.stderr, f'Error is: {result.stderr}'
     if rhel_contenthost.os_version.major != 7:
         assert 'HTTP error code 422' not in result.stderr, f'Error is: {result.stderr}'
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('9')
+@pytest.mark.cli_host_subscription
+def test_positive_reregister_rhel(
+    target_sat,
+    rhel_contenthost,
+    function_ak_with_cv,
+    function_org,
+):
+    """Reregister a Host after consumer certs have been removed
+
+    :id: 23d1ddba-256f-43a9-bd25-797f6a66942d
+
+    :steps:
+        1. Register a Host
+        2. Remove consumer certs from Host
+        3. Attempt to reregister the Host
+
+    :expectedresults: Host is reregisterd with no errors
+
+    :Verifies: SAT-27875
+
+    :customerscenario: true
+    """
+    # register client
+    result = rhel_contenthost.register(function_org, None, function_ak_with_cv.name, target_sat)
+    assert result.status == 0
+    assert rhel_contenthost.subscribed
+    # remove local consumer certs
+    rhel_contenthost.execute('rm -rf /etc/pki/consumer/*')
+    status = rhel_contenthost.execute("subscription-manager status")
+    assert "Overall Status: Unknown" in status.stdout
+    # reregister host with force
+    reregister = rhel_contenthost.register(
+        function_org, None, function_ak_with_cv.name, target_sat, force=True
+    )
+    assert reregister.status == 0
+    assert rhel_contenthost.subscribed
+    certs = rhel_contenthost.execute("ls /etc/pki/consumer").stdout
+    assert 'cert.pem' in certs
+    assert 'key.pem' in certs

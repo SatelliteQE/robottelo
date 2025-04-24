@@ -14,11 +14,10 @@
 
 import pytest
 
-pytestmark = [pytest.mark.tier1, pytest.mark.upgrade]
-
 
 @pytest.mark.e2e
 @pytest.mark.build_sanity
+@pytest.mark.upgrade
 def test_positive_ping(target_sat):
     """Check if all services are running
 
@@ -37,6 +36,6 @@ def test_positive_ping(target_sat):
     #    …
     # }, 'status': 'ok'}
     services = response['services']
-    assert all(
-        [service['status'] == 'ok' for service in services.values()]
-    ), 'Not all services seem to be up and running!'
+    assert all([service['status'] == 'ok' for service in services.values()]), (
+        'Not all services seem to be up and running!'
+    )

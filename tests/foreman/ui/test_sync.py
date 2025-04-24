@@ -17,12 +17,11 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import (
-    DOCKER_REPO_UPSTREAM_NAME,
+    DEFAULT_ARCHITECTURE,
     PRDS,
     REPO_TYPE,
     REPOS,
     REPOSET,
-    RH_CONTAINER_REGISTRY_HUB,
 )
 from robottelo.constants.repos import FEDORA_OSTREE_REPO
 
@@ -38,8 +37,6 @@ def module_custom_product(module_org, module_target_sat):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_sync_rh_repos(session, target_sat, module_sca_manifest_org):
     """Create Content RedHat Sync with two repos.
@@ -48,26 +45,17 @@ def test_positive_sync_rh_repos(session, target_sat, module_sca_manifest_org):
 
     :expectedresults: Sync procedure for RedHat Repos is successful
     """
-    repos = (
-        target_sat.cli_factory.SatelliteCapsuleRepository(cdn=True),
-        target_sat.cli_factory.RHELCloudFormsTools(cdn=True),
-    )
-    distros = ['rhel6', 'rhel7']
-    repo_collections = [
-        target_sat.cli_factory.RepositoryCollection(distro=distro, repositories=[repo])
-        for distro, repo in zip(distros, repos, strict=True)
-    ]
-    for repo_collection in repo_collections:
-        repo_collection.setup(module_sca_manifest_org.id, synchronize=False)
-    repo_paths = [
-        (
-            repo.repo_data['product'],
-            repo.repo_data.get('releasever'),
-            repo.repo_data.get('arch'),
-            repo.repo_data['name'],
+    repo_paths = []
+    for key in ['rhsc8', 'rhsc9']:
+        target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch=DEFAULT_ARCHITECTURE,
+            org_id=module_sca_manifest_org.id,
+            reposet=REPOS[key]['reposet'],
+            product=REPOS[key]['product'],
+            repo=REPOS[key]['name'],
+            releasever=REPOS[key]['version'],
         )
-        for repo in repos
-    ]
+        repo_paths.append((REPOS[key]['product'], REPOS[key]['name']))
     with session:
         session.organization.select(org_name=module_sca_manifest_org.name)
         results = session.sync_status.synchronize(repo_paths)
@@ -75,9 +63,9 @@ def test_positive_sync_rh_repos(session, target_sat, module_sca_manifest_org):
         assert all([result == 'Syncing Complete.' for result in results])
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+@pytest.mark.stubbed
 def test_positive_sync_custom_ostree_repo(session, module_custom_product, module_target_sat):
     """Create custom ostree repository and sync it.
 
@@ -102,9 +90,8 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product, module
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('fake_manifest')
-@pytest.mark.tier2
 @pytest.mark.upgrade
+@pytest.mark.stubbed
 def test_positive_sync_rh_ostree_repo(session, target_sat, module_sca_manifest_org):
     """Sync CDN based ostree repository.
 
@@ -135,7 +122,6 @@ def test_positive_sync_rh_ostree_repo(session, target_sat, module_sca_manifest_o
         assert results[0] == 'Syncing Complete.'
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_sync_docker_via_sync_status(session, module_org, module_target_sat):
     """Create custom docker repo and sync it via the sync status page.
@@ -153,8 +139,8 @@ def test_positive_sync_docker_via_sync_status(session, module_org, module_target
             {
                 'name': repo_name,
                 'repo_type': REPO_TYPE['docker'],
-                'repo_content.upstream_url': RH_CONTAINER_REGISTRY_HUB,
-                'repo_content.upstream_repo_name': DOCKER_REPO_UPSTREAM_NAME,
+                'repo_content.upstream_url': settings.container.rh.registry_hub,
+                'repo_content.upstream_repo_name': settings.container.docker.repo_upstream_name,
                 'repo_content.upstream_username': settings.subscription.rhn_username,
                 'repo_content.upstream_password': settings.subscription.rhn_password,
             },
@@ -162,3 +148,77 @@ def test_positive_sync_docker_via_sync_status(session, module_org, module_target
         assert session.repository.search(product.name, repo_name)[0]['Name'] == repo_name
         result = session.sync_status.synchronize([(product.name, repo_name)])
         assert result[0] == 'Syncing Complete.'
+
+
+def test_sync_active_only(target_sat, function_sca_manifest_org):
+    """Ensure the Active Only check-box works as expected.
+
+    :id: ebffc8d4-c3c3-40fe-a1f5-85148886cc35
+
+    :steps:
+        1. Create two repositories.
+        2. Ensure none of them is displayed when Active Only is selected, both otherwise.
+        3. Start syncing one of them asynchronously.
+        4. Ensure only the syncing repository is displayed when Active Only is selected.
+        5. Wait until the sync finish.
+        6. Ensure none of the repos is displayed when Active Only is selected, both otherwise.
+
+    :expectedresults: Only the repos under active sync are displayed when Active Only is selected.
+
+    :Verifies: SAT-30291
+
+    :customerscenario: true
+
+    """
+    # Create two repositories.
+    for key in ['rhel9_aps', 'rhel9_bos']:
+        prod, ver, arch, name = (
+            REPOS['kickstart'][key]['product'],
+            REPOS['kickstart'][key]['version'],
+            'noarch',
+            REPOS['kickstart'][key]['name'],
+        )
+        rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch=DEFAULT_ARCHITECTURE,
+            org_id=function_sca_manifest_org.id,
+            reposet=REPOS['kickstart'][key]['reposet'],
+            product=prod,
+            repo=name,
+            releasever=ver,
+        )
+        repo = target_sat.api.Repository(id=rh_repo_id).read()
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=function_sca_manifest_org.name)
+
+        # Ensure none of them is displayed when Active Only is selected, both otherwise.
+        res = session.sync_status.read(active_only=True)
+        assert len(res['table']) == 0
+        res = session.sync_status.read(active_only=False)
+        assert len(res['table'][prod][ver][arch]) == 2
+        assert name in res['table'][prod][ver][arch]
+
+        # Start syncing one of them asynchronously.
+        res = session.sync_status.synchronize([(prod, ver, arch, name)], synchronous=False)
+
+        # Ensure only the syncing repository is displayed when Active Only is selected.
+        res = session.sync_status.read(active_only=True)
+        assert len(res['table'][prod][ver][arch]) == 1
+        assert name in res['table'][prod][ver][arch]
+
+        # Wait until the sync finish.
+        target_sat.wait_for_tasks(
+            search_query='Actions::Katello::Repository::Sync'
+            f' and organization_id = {function_sca_manifest_org.id}'
+            f' and resource_id = {repo.id}'
+            ' and resource_type = Katello::Repository',
+            max_tries=12,
+            search_rate=10,
+        )
+        session.browser.refresh()
+
+        # Ensure none of the repos is displayed when Active Only is selected, both otherwise.
+        res = session.sync_status.read(active_only=True)
+        assert len(res['table']) == 0
+        res = session.sync_status.read(active_only=False)
+        assert len(res['table'][prod][ver][arch]) == 2

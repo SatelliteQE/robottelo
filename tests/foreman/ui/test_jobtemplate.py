@@ -17,7 +17,6 @@ import pytest
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 def test_positive_end_to_end(session, module_org, module_location, target_sat):
     """Perform end to end testing for Job Template component.
 
@@ -221,7 +220,6 @@ def test_positive_end_to_end(session, module_org, module_location, target_sat):
     ],
     ids=['v1', 'v2'],
 )
-@pytest.mark.tier2
 def test_positive_preview_template_check_for_injection(
     module_target_sat, module_org, module_location, rhel_contenthost, module_ak_with_cv, content
 ):

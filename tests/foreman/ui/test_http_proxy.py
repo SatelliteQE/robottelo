@@ -12,12 +12,14 @@
 
 """
 
+import base64
+
 from box import Box
 from fauxfactory import gen_integer, gen_string, gen_url
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DOCKER_REPO_UPSTREAM_NAME, REPO_TYPE, REPOS
+from robottelo.constants import REPO_TYPE, REPOS
 from robottelo.hosts import ProxyHostError
 
 
@@ -27,18 +29,22 @@ def function_spec_char_user(target_sat, session_auth_proxy):
     name = gen_string('alpha').lower()  # lower!
     passwd = gen_string('punctuation').replace("'", '')
     session_auth_proxy.add_user(name, passwd)
-    yield Box(name=name, passwd=passwd)
+    encoded = base64.b64encode(f'{name}:{passwd}'.encode()).decode('utf-8')
+    yield Box(name=name, passwd=passwd, b64=encoded)
     session_auth_proxy.remove_user(name)
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_create_update_delete(module_org, module_location, target_sat):
-    """Create new http-proxy with attributes, update and delete it.
+    """Create new http-proxy with attributes, update, test connection and delete it.
 
     :id: 0c7cdf3d-778f-427a-9a2f-42ad7c23aa15
 
     :expectedresults: All expected CRUD actions finished successfully
+
+    :verifies: SAT-30220
+
+    :customerscenario: true
     """
     http_proxy_name = gen_string('alpha', 15)
     updated_proxy_name = gen_string('alpha', 15)
@@ -66,16 +72,23 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
         assert http_proxy_values['http_proxy']['username'] == username
         assert module_location.name in http_proxy_values['locations']['resources']['assigned']
         assert module_org.name in http_proxy_values['organizations']['resources']['assigned']
-        # Update http_proxy with new name
-        session.http_proxy.update(http_proxy_name, {'http_proxy.name': updated_proxy_name})
+        # Update http_proxy with new name and real url
+        session.http_proxy.update(
+            http_proxy_name,
+            {
+                'http_proxy.name': updated_proxy_name,
+                'http_proxy.url': settings.http_proxy.un_auth_proxy_url,
+            },
+        )
         assert session.http_proxy.search(updated_proxy_name)[0]['Name'] == updated_proxy_name
+        # Test connection
+        session.http_proxy.test_connection(updated_proxy_name)
         # Delete http_proxy
         session.http_proxy.delete(updated_proxy_name)
         assert not target_sat.api.HTTPProxy().search(query={'search': f'name={updated_proxy_name}'})
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_assign_http_proxy_to_products_repositories(
     module_org, module_location, target_sat
@@ -128,11 +141,11 @@ def test_positive_assign_http_proxy_to_products_repositories(
                 'name': repo_a1_name,
                 'repo_type': REPO_TYPE['yum'],
                 'repo_content.upstream_url': settings.repos.yum_0.url,
-                'repo_content.http_proxy_policy': 'No HTTP Proxy',
+                'repo_content.http_proxy_policy': 'No HTTP proxy',
             },
         )
         repo_a1_values = session.repository.read(product_a.name, repo_a1_name)
-        assert repo_a1_values['repo_content']['http_proxy_policy'] == 'No HTTP Proxy'
+        assert repo_a1_values['repo_content']['http_proxy_policy'] == 'No HTTP proxy'
         repo_a2_name = gen_string('alpha')
         session.repository.create(
             product_a.name,
@@ -140,12 +153,12 @@ def test_positive_assign_http_proxy_to_products_repositories(
                 'name': repo_a2_name,
                 'repo_type': REPO_TYPE['yum'],
                 'repo_content.upstream_url': settings.repos.yum_1.url,
-                'repo_content.http_proxy_policy': 'Use specific HTTP Proxy',
+                'repo_content.http_proxy_policy': 'Use specific HTTP proxy',
                 'repo_content.proxy_policy.http_proxy': http_proxy_a.name,
             },
         )
         repo_a2_values = session.repository.read(product_a.name, repo_a2_name)
-        expected_policy = f'Use specific HTTP Proxy ({http_proxy_a.name})'
+        expected_policy = f'Use specific HTTP proxy ({http_proxy_a.name})'
         assert repo_a2_values['repo_content']['http_proxy_policy'] == expected_policy
         repo_b1_name = gen_string('alpha')
         session.repository.create(
@@ -166,7 +179,7 @@ def test_positive_assign_http_proxy_to_products_repositories(
                 'name': repo_b2_name,
                 'repo_type': REPO_TYPE['yum'],
                 'repo_content.upstream_url': settings.repos.yum_1.url,
-                'repo_content.http_proxy_policy': 'No HTTP Proxy',
+                'repo_content.http_proxy_policy': 'No HTTP proxy',
             },
         )
         # Set the HTTP proxy through bulk action for both products
@@ -174,12 +187,12 @@ def test_positive_assign_http_proxy_to_products_repositories(
         session.product.manage_http_proxy(
             [product_a.name, product_b.name],
             {
-                'http_proxy_policy': 'Use specific HTTP Proxy',
+                'http_proxy_policy': 'Use specific HTTP proxy',
                 'proxy_policy.http_proxy': http_proxy_b.name,
             },
         )
         # Verify that Http Proxy is updated for all repos of product_a and product_b.
-        proxy_policy = 'Use specific HTTP Proxy ({})'
+        proxy_policy = 'Use specific HTTP proxy ({})'
         repo_a1_values = session.repository.read(product_a.name, repo_a1_name)
         assert repo_a1_values['repo_content']['http_proxy_policy'] == proxy_policy.format(
             http_proxy_b.name
@@ -198,10 +211,11 @@ def test_positive_assign_http_proxy_to_products_repositories(
         )
 
 
-@pytest.mark.tier1
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize('setting_update', ['content_default_http_proxy'], indirect=True)
-def test_set_default_http_proxy(module_org, module_location, setting_update, target_sat):
+def test_set_default_http_proxy_no_global_default(
+    module_org, module_location, setting_update, target_sat
+):
     """Setting "Default HTTP proxy" to "no global default".
 
     :id: e93733e1-5c05-4b7f-89e4-253b9ce55a5a
@@ -244,7 +258,60 @@ def test_set_default_http_proxy(module_org, module_location, setting_update, tar
         assert result['table'][0]['Value'] == "Empty"
 
 
-@pytest.mark.tier1
+@pytest.mark.run_in_one_thread
+@pytest.mark.parametrize('setting_update', ['content_default_http_proxy'], indirect=True)
+def test_positive_set_default_http_proxy(
+    request, module_org, module_location, setting_update, target_sat
+):
+    """Setting "Default HTTP proxy" when new HTTP proxy is created.
+
+    :id: e93733e1-5c05-4b7f-89e4-253b9ce55a5b
+
+    :steps:
+        1. Navigate to Infrastructure > Http Proxies
+        2. Create a Http Proxy and set "Default content HTTP proxy"
+        3. Navigate to Administer > Settings > Content tab
+        4. Verify the "Default HTTP Proxy" setting with created above.
+        5. Update "Default HTTP Proxy" to "no global default".
+
+    :expectedresults: Creating Http Proxy with option "Default content HTTP proxy",
+        updates setting "Default HTTP Proxy" succesfully.
+
+    :verifies: SAT-5118, SAT-28860
+
+    :customerscenario: true
+    """
+    property_name = setting_update.name
+    http_proxy_name = gen_string('alpha', 15)
+    http_proxy_url = settings.http_proxy.un_auth_proxy_url
+
+    with target_sat.ui_session() as session:
+        session.http_proxy.create(
+            {
+                'http_proxy.name': http_proxy_name,
+                'http_proxy.url': http_proxy_url,
+                'http_proxy.content_default_http_proxy': 'true',
+                'locations.resources.assigned': [module_location.name],
+                'organizations.resources.assigned': [module_org.name],
+            }
+        )
+
+        # Teardown
+        @request.addfinalizer
+        def _finalize():
+            target_sat.api.HTTPProxy().search(query={'search': f'name={http_proxy_name}'})[
+                0
+            ].delete()
+            default_proxy = target_sat.api.Setting().search(
+                query={'search': 'name=content_default_http_proxy'}
+            )[0]
+            assert default_proxy.value != http_proxy_name
+            assert not default_proxy.value
+
+        result = session.settings.read(f'name = {property_name}')
+        assert result['table'][0]['Value'] == f'{http_proxy_name} ({http_proxy_url})'
+
+
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize('setting_update', ['content_default_http_proxy'], indirect=True)
 def test_check_http_proxy_value_repository_details(
@@ -310,7 +377,6 @@ def test_check_http_proxy_value_repository_details(
         assert repo_values['repo_content']['http_proxy_policy'] == 'Global Default (None)'
 
 
-@pytest.mark.tier3
 @pytest.mark.run_in_one_thread
 def test_http_proxy_containing_special_characters(
     request,
@@ -348,7 +414,7 @@ def test_http_proxy_containing_special_characters(
     """
     # Check that no logs exist for the spec-char user at the proxy side yet.
     with pytest.raises(ProxyHostError):
-        session_auth_proxy.get_log(tail=100, grep=function_spec_char_user.name)
+        session_auth_proxy.get_log(tail=100, grep=function_spec_char_user.b64)
 
     # Create a proxy via UI using the spec-char user.
     proxy_name = gen_string('alpha')
@@ -381,7 +447,7 @@ def test_http_proxy_containing_special_characters(
             {'organization-id': module_sca_manifest_org.id}
         )
         assert session_auth_proxy.get_log(
-            tail=100, grep=f'CONNECT subscription.rhsm.redhat.com.*{function_spec_char_user.name}'
+            tail=100, grep=f'CONNECT subscription.rhsm.redhat.com.*{function_spec_char_user.b64}'
         ), 'RHSM connection not found in proxy log'
 
         # Enable and sync some RH repository, check it went through the proxy.
@@ -390,12 +456,11 @@ def test_http_proxy_containing_special_characters(
         )
         repo = target_sat.api.Repository(id=repo_id).read()
         assert session_auth_proxy.get_log(
-            tail=100, grep=f'CONNECT cdn.redhat.com.*{function_spec_char_user.name}'
+            tail=100, grep=f'CONNECT cdn.redhat.com.*{function_spec_char_user.b64}'
         ), 'CDN connection not found in proxy log'
         assert repo.content_counts['rpm'] > 0, 'Where is my content?!'
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
@@ -442,15 +507,17 @@ def test_positive_repo_discovery(setup_http_proxy, module_target_sat, module_org
                 'repo_type': 'Container Images',
                 'create_repo.product_type': 'New Product',
                 'create_repo.product_content.product_name': product_name,
-                'registry_search': DOCKER_REPO_UPSTREAM_NAME,
+                'registry_search': settings.container.docker.repo_upstream_name,
                 'name': gen_string('alphanumeric', 10),
                 'username': settings.subscription.rhn_username,
                 'password': settings.subscription.rhn_password,
-                'discovered_repos.repos': DOCKER_REPO_UPSTREAM_NAME,
+                'discovered_repos.repos': settings.container.docker.repo_upstream_name,
             }
         )
         assert session.product.search(product_name)[0]['Name'] == product_name
         assert (
-            DOCKER_REPO_UPSTREAM_NAME
-            in session.repository.search(product_name, DOCKER_REPO_UPSTREAM_NAME)[0]['Name']
+            settings.container.docker.repo_upstream_name
+            in session.repository.search(
+                product_name, settings.container.docker.repo_upstream_name
+            )[0]['Name']
         )

@@ -18,7 +18,6 @@ pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.mark.skip_if_not_set('fake_capsules')
-@pytest.mark.tier1
 def test_positive_import_puppet_classes(session_puppet_enabled_sat, puppet_proxy_port_range):
     """Import puppet classes from proxy
 

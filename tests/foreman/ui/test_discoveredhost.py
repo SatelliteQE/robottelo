@@ -47,7 +47,6 @@ def _is_host_reachable(host, retries=12, iteration_sleep=5, expect_reachable=Tru
     return bool(result.status)
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
@@ -81,7 +80,7 @@ def test_positive_provision_pxe_host(
     """
     sat = module_discovery_sat.sat
     provisioning_host.power_control(ensure=False)
-    mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
+    mac = provisioning_host.provisioning_nic_mac_addr
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
         timeout=1500,
@@ -128,7 +127,6 @@ def test_positive_provision_pxe_host(
         assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
@@ -164,7 +162,7 @@ def test_positive_custom_provision_pxe_host(
     """
     sat = module_discovery_sat.sat
     provisioning_host.power_control(ensure=False)
-    mac = provisioning_host._broker_args['provisioning_nic_mac_addr']
+    mac = provisioning_host.provisioning_nic_mac_addr
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
         timeout=1500,
@@ -248,7 +246,6 @@ def test_positive_custom_provision_pxe_host(
         assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
 
 
-@pytest.mark.tier3
 def test_positive_update_name(
     session, discovery_org, discovery_location, module_discovery_hostgroup, discovered_host
 ):
@@ -286,7 +283,6 @@ def test_positive_update_name(
         assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
@@ -320,7 +316,7 @@ def test_positive_auto_provision_host_with_rule(
     """
     sat = module_discovery_sat.sat
     pxeless_discovery_host.power_control(ensure=False)
-    mac = pxeless_discovery_host._broker_args['provisioning_nic_mac_addr']
+    mac = pxeless_discovery_host.provisioning_nic_mac_addr
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
         timeout=1500,
@@ -360,7 +356,6 @@ def test_positive_auto_provision_host_with_rule(
         assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
 
 
-@pytest.mark.tier3
 def test_positive_delete(session, discovery_org, discovery_location, discovered_host):
     """Delete the selected discovered host
 
@@ -380,7 +375,6 @@ def test_positive_delete(session, discovery_org, discovery_location, discovered_
         assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
 
 
-@pytest.mark.tier3
 def test_positive_update_default_taxonomies(session, discovery_org, discovery_location, target_sat):
     """Change the default organization and location of more than one
     discovered hosts from 'Select Action' drop down

@@ -11,7 +11,7 @@
 :CaseImportance: High
 """
 
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from operator import itemgetter
 import re
 
@@ -32,6 +32,7 @@ from robottelo.constants import (
     REAL_4_ERRATA_ID,
     REPOS,
     REPOSET,
+    TIMESTAMP_FMT,
 )
 from robottelo.exceptions import CLIReturnCodeError
 from robottelo.hosts import ContentHost
@@ -83,9 +84,6 @@ REPOS_WITH_ERRATA = (
         'errata_id': settings.repos.yum_3.errata[5],
     },
 )
-
-TIMESTAMP_FMT = '%Y-%m-%d %H:%M'
-TIMESTAMP_FMT_S = '%Y-%m-%d %H:%M:%S'
 
 PSUTIL_RPM = 'python2-psutil-5.6.7-1.el7.x86_64.rpm'
 
@@ -163,11 +161,30 @@ def rh_repo_module_manifest(module_sca_manifest_org, module_target_sat):
 
 @pytest.fixture(scope='module')
 def hosts(request):
-    """Deploy hosts via broker."""
-    num_hosts = getattr(request, 'param', 2)
-    with Broker(nick='rhel8', host_class=ContentHost, _count=num_hosts) as hosts:
+    """Deploy hosts via broker by distro and host count.
+    Parametrize with tuple, (str<distro>, int<num_hosts>), or just one, or neither.
+    @pytest.mark.parametrize('hosts', [('rhel9', 2)], indirect=True)
+
+    Default: Robotello settings: Default RHEL Version, num_host of 2.
+    """
+    default_distro = 'rhel' + str(settings.content_host.default_rhel_version)
+    default_num_hosts = 2
+    # get any request
+    param = getattr(request, 'param', (None, None))
+    # get both params, or just one
+    match param:
+        case (str() as distro, int() as num_hosts):  # Tuple (both values provided)
+            pass
+        case str() as distro:  # Just distro (default num_hosts)
+            num_hosts = default_num_hosts
+        case int() as num_hosts:  # Just num_hosts (default distro)
+            distro = default_distro
+        case _:  # Default for both
+            distro, num_hosts = default_distro, default_num_hosts
+
+    with Broker(nick=distro, host_class=ContentHost, _count=num_hosts) as hosts:
         if not isinstance(hosts, list) or len(hosts) != num_hosts:
-            pytest.fail('Failed to provision the expected number of hosts.')
+            pytest.fail(f'Failed to provision the expected number of hosts for {distro}.')
         yield hosts
 
 
@@ -179,7 +196,12 @@ def register_hosts(
     module_ak,
     module_target_sat,
 ):
-    """Register hosts to Satellite"""
+    """Register hosts to Satellite
+
+    parametrize by fixture `hosts`, example:
+        @pytest.mark.parametrize('hosts', [('rhel10', 4)], indirect=True)
+    Default: DEFAULT Robottelo RHEL version, 2 clients.
+    """
     for host in hosts:
         module_target_sat.cli_factory.setup_org_for_a_custom_repo(
             {
@@ -202,7 +224,12 @@ def register_hosts(
 
 @pytest.fixture
 def errata_hosts(register_hosts, target_sat):
-    """Ensure that rpm is installed on host."""
+    """Ensure that rpm is installed on host.
+
+    parametrize by fixture `hosts`, example:
+        @pytest.mark.parametrize('hosts', [('rhel10', 4)], indirect=True)
+    Default: DEFAULT Robottelo RHEL version, 2 clients.
+    """
     for host in register_hosts:
         # Enable all custom and rh repositories.
         host.execute(r'subscription-manager repos --enable \*')
@@ -254,37 +281,32 @@ def host_collection(module_sca_manifest_org, module_ak_cv_lce, register_hosts, m
 def start_and_wait_errata_recalculate(sat, host):
     """Helper to find any in-progress errata applicability task and wait_for completion.
     Otherwise, schedule errata recalculation, wait for the task.
-    Find the successful completed task(s).
+    Poll the finished task(s).
 
     :param sat: Satellite instance to check for task(s)
     :param host: ContentHost instance to schedule errata recalculate
     """
-    # Find any in-progress task for this host
-    search = "label = Actions::Katello::Applicability::Hosts::BulkGenerate and result = pending"
+    # Find any in-progress tasks for Host(s)
+    label = 'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
+    search = label + ' and result = pending'
     applicability_task_running = sat.cli.Task.list_tasks({'search': search})
     # No task in progress, invoke errata recalculate
     if len(applicability_task_running) == 0:
         sat.cli.Host.errata_recalculate({'host-id': host.nailgun_host.id})
         host.run('subscription-manager repos')
-    # Note time check for later wait_for_tasks include 30s margin of safety
-    timestamp = (datetime.utcnow() - timedelta(seconds=30)).strftime(TIMESTAMP_FMT_S)
+    # timestamp for install start includes 20s margin of safety
+    timestamp = (datetime.now(UTC) - timedelta(seconds=20)).strftime(TIMESTAMP_FMT)
     # Wait for upload profile event (in case Satellite system is slow)
-    sat.wait_for_tasks(
-        search_query=(
-            'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
-            f' and started_at >= "{timestamp}"'
-        ),
+    search = label + f' and started_at >= "{timestamp}"'
+    tasks = sat.wait_for_tasks(
+        search_query=search,
         search_rate=15,
         max_tries=10,
     )
-    # Find the successful finished task(s)
-    search = (
-        "label = Actions::Katello::Applicability::Hosts::BulkGenerate"
-        " and result = success"
-        f" and started_at >= '{timestamp}'"
-    )
-    applicability_task_success = sat.cli.Task.list_tasks({'search': search})
-    assert applicability_task_success, f'No successful task found by search: {search}'
+    # Poll the finished task(s)
+    assert len(tasks) > 0, f'No task(s) found by search: {search}'
+    for task in tasks:
+        assert sat.api.ForemanTask(id=task.id).poll()
 
 
 def is_rpm_installed(host, rpm=None):
@@ -418,7 +440,6 @@ def cv_filter_cleanup(sat, filter_id, cv, org, lce):
     cv_publish_promote(sat, cv, org, lce)
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize('filter_by_hc', ['id', 'name'], ids=('hc_id', 'hc_name'))
 @pytest.mark.parametrize(
     'filter_by_org', ['id', 'name', 'title'], ids=('org_id', 'org_name', 'org_title')
@@ -482,7 +503,6 @@ def test_positive_install_by_host_collection_and_org(
         assert is_rpm_installed(host)
 
 
-@pytest.mark.tier3
 def test_negative_install_erratum_on_host_collection(
     module_sca_manifest_org, host_collection, module_target_sat
 ):
@@ -513,7 +533,6 @@ def test_negative_install_erratum_on_host_collection(
     assert 'Not supported. Use the remote execution equivalent' in error.value.stderr
 
 
-@pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_list_affected_chosts(module_sca_manifest_org, errata_hosts, target_sat):
     """View a list of affected content hosts for an erratum.
@@ -539,12 +558,11 @@ def test_positive_list_affected_chosts(module_sca_manifest_org, errata_hosts, ta
     )
     reported_hostnames = {item['name'] for item in result}
     hostnames = {host.hostname for host in errata_hosts}
-    assert hostnames.issubset(
-        reported_hostnames
-    ), 'One or more hostnames not found in list of applicable hosts'
+    assert hostnames.issubset(reported_hostnames), (
+        'One or more hostnames not found in list of applicable hosts'
+    )
 
 
-@pytest.mark.tier3
 @pytest.mark.no_containers
 def test_install_errata_to_one_host(
     module_sca_manifest_org, errata_hosts, host_collection, target_sat
@@ -580,15 +598,14 @@ def test_install_errata_to_one_host(
     for host in errata_hosts:
         start_and_wait_errata_recalculate(target_sat, host)
 
-    assert not is_rpm_installed(
-        errata_hosts[0], rpm=errata['package_name']
-    ), 'Package should not be installed on host.'
-    assert is_rpm_installed(
-        errata_hosts[1], rpm=errata['package_name']
-    ), 'Package should be installed on host.'
+    assert not is_rpm_installed(errata_hosts[0], rpm=errata['package_name']), (
+        'Package should not be installed on host.'
+    )
+    assert is_rpm_installed(errata_hosts[1], rpm=errata['package_name']), (
+        'Package should be installed on host.'
+    )
 
 
-@pytest.mark.tier3
 @pytest.mark.e2e
 def test_positive_list_affected_chosts_by_erratum_restrict_flag(
     target_sat,
@@ -657,9 +674,9 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
         'per-page': PER_PAGE_LARGE,
     }
     errata_ids = get_errata_ids(target_sat, param)
-    assert set(REPO_WITH_ERRATA['errata_ids']).issubset(
-        errata_ids
-    ), 'Errata not found in list of installable errata'
+    assert set(REPO_WITH_ERRATA['errata_ids']).issubset(errata_ids), (
+        'Errata not found in list of installable errata'
+    )
 
     # Check list of applicable errata
     param = {
@@ -677,9 +694,9 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
         'per-page': PER_PAGE_LARGE,
     }
     errata_ids = get_errata_ids(target_sat, param)
-    assert set(REPO_WITH_ERRATA['errata_ids']).issubset(
-        errata_ids
-    ), 'Errata not found in list of applicable errata'
+    assert set(REPO_WITH_ERRATA['errata_ids']).issubset(errata_ids), (
+        'Errata not found in list of applicable errata'
+    )
 
     # Apply a filter and rule to the CV to hide the RPM, thus making erratum not installable
     # Make RPM exclude filter
@@ -732,7 +749,6 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
     assert errata['id'] in errata_ids, 'Errata not found in list of applicable errata'
 
 
-@pytest.mark.tier3
 def test_host_errata_search_commands(
     request,
     module_sca_manifest_org,
@@ -904,7 +920,6 @@ def test_host_errata_search_commands(
     assert errata_hosts[1].hostname not in result
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize('sort_by_date', ['issued', 'updated'], ids=('issued_date', 'updated_date'))
 @pytest.mark.parametrize(
     'filter_by_org',
@@ -941,7 +956,6 @@ def test_positive_list_filter_by_org_sort_by_date(
     )
 
 
-@pytest.mark.tier3
 def test_positive_list_filter_by_product_id(target_sat, products_with_repos):
     """Filter errata by product id
 
@@ -960,7 +974,6 @@ def test_positive_list_filter_by_product_id(target_sat, products_with_repos):
     check_errata(errata_ids)
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize('filter_by_product', ['id', 'name'], ids=('product_id', 'product_name'))
 @pytest.mark.parametrize(
     'filter_by_org', ['id', 'name', 'label'], ids=('org_id', 'org_name', 'org_label')
@@ -1003,7 +1016,6 @@ def test_positive_list_filter_by_product_and_org(
     check_errata(errata_ids)
 
 
-@pytest.mark.tier3
 def test_negative_list_filter_by_product_name(products_with_repos, module_target_sat):
     """Attempt to Filter errata by product name
 
@@ -1025,7 +1037,6 @@ def test_negative_list_filter_by_product_name(products_with_repos, module_target
         )
 
 
-@pytest.mark.tier3
 @pytest.mark.parametrize(
     'filter_by_org', ['id', 'name', 'label'], ids=('org_id', 'org_name', 'org_label')
 )
@@ -1061,7 +1072,6 @@ def test_positive_list_filter_by_org(target_sat, products_with_repos, filter_by_
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier3
 def test_positive_list_filter_by_cve(module_sca_manifest_org, rh_repo_module_manifest, target_sat):
     """Filter errata by CVE
 
@@ -1108,7 +1118,6 @@ def test_positive_list_filter_by_cve(module_sca_manifest_org, rh_repo_module_man
         }
 
 
-@pytest.mark.tier3
 def test_positive_check_errata_dates(module_sca_manifest_org, module_target_sat):
     """Check for errata dates in `hammer erratum list`
 
@@ -1228,7 +1237,6 @@ def errata_host(
     return rhel_contenthost
 
 
-@pytest.mark.tier2
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-1')  # Newest major RHEL version (N), and the one prior.
 def test_apply_errata_using_default_content_view(errata_host, module_sca_manifest_org, target_sat):
@@ -1279,7 +1287,6 @@ def test_apply_errata_using_default_content_view(errata_host, module_sca_manifes
     assert len(erratum) == 0
 
 
-@pytest.mark.tier2
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-1')
 def test_update_applicable_package_using_default_content_view(errata_host, target_sat):
@@ -1338,7 +1345,6 @@ def test_update_applicable_package_using_default_content_view(errata_host, targe
     assert len(applicable_packages) == 0
 
 
-@pytest.mark.tier2
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-1')
 def test_downgrade_applicable_package_using_default_content_view(errata_host, target_sat):
@@ -1388,7 +1394,6 @@ def test_downgrade_applicable_package_using_default_content_view(errata_host, ta
     assert FAKE_2_CUSTOM_PACKAGE_NAME in applicable_packages[0]['filename']
 
 
-@pytest.mark.tier2
 @pytest.mark.rhel_ver_match('N-2')
 def test_install_applicable_package_to_registered_host(errata_host, target_sat):
     """Installing an older package to an already registered host should show the newer package
@@ -1435,7 +1440,6 @@ def test_install_applicable_package_to_registered_host(errata_host, target_sat):
     assert FAKE_2_CUSTOM_PACKAGE_NAME in applicable_packages[0]['filename']
 
 
-@pytest.mark.tier2
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-2')
 def test_downgrading_package_shows_errata_from_library(
@@ -1482,7 +1486,6 @@ def test_downgrading_package_shows_errata_from_library(
     assert settings.repos.yum_6.errata[2] in errata_ids
 
 
-@pytest.mark.tier2
 def test_errata_list_by_contentview_filter(module_sca_manifest_org, module_target_sat):
     """Hammer command to list errata should take filter ID into consideration.
 
@@ -1542,8 +1545,10 @@ def test_errata_list_by_contentview_filter(module_sca_manifest_org, module_targe
     assert errata_count != errata_count_cvf
 
 
-@pytest.mark.rhel_ver_match('N-2')
-def test_positive_verify_errata_recalculate_tasks(target_sat, errata_host):
+@pytest.mark.parametrize(
+    'hosts', [(f'rhel{settings.content_host.default_rhel_version}', 4)], indirect=True
+)
+def test_positive_verify_errata_recalculate_tasks(target_sat, errata_hosts):
     """Verify 'Actions::Katello::Applicability::Hosts::BulkGenerate' tasks proceed on 'worker-hosts-queue-1.service'
 
     :id: d5f89df2-b8fb-4aec-839d-b548b0aadc0c
@@ -1560,7 +1565,7 @@ def test_positive_verify_errata_recalculate_tasks(target_sat, errata_host):
 
     :BZ: 2249736
     """
-    # Recalculate errata command has triggered inside errata_host fixture
+    # Recalculate errata command has triggered inside errata_hosts fixture
 
     # get PID of 'worker-hosts-queue-1' from /var/log/messages
     message_log = target_sat.execute(

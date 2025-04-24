@@ -88,7 +88,7 @@ def external_user_count(target_sat):
 def groups_teardown(target_sat):
     """teardown for groups created for external/remote groups"""
     yield
-    # tier down groups
+    # teardown groups
     for group_name in ('sat_users', 'sat_admins', EXTERNAL_GROUP_NAME):
         user_groups = target_sat.api.UserGroup().search(query={'search': f'name="{group_name}"'})
         if user_groups:
@@ -120,7 +120,6 @@ def generate_otp(secret):
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
-@pytest.mark.tier2
 def test_positive_end_to_end(session, ldap_auth_source, ldap_tear_down):
     """Perform end to end testing for LDAP authentication component
 
@@ -159,7 +158,6 @@ def test_positive_end_to_end(session, ldap_auth_source, ldap_tear_down):
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_create_org_and_loc(session, ldap_auth_source, ldap_tear_down, target_sat):
     """Create LDAP auth_source with org and loc assigned.
@@ -220,7 +218,6 @@ def test_positive_create_org_and_loc(session, ldap_auth_source, ldap_tear_down, 
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
-@pytest.mark.tier2
 def test_positive_add_katello_role(
     test_name, session, ldap_usergroup_name, ldap_auth_source, ldap_tear_down, target_sat
 ):
@@ -271,7 +268,6 @@ def test_positive_add_katello_role(
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
 @pytest.mark.upgrade
-@pytest.mark.tier2
 def test_positive_update_external_roles(
     test_name, session, ldap_usergroup_name, ldap_auth_source, ldap_tear_down, target_sat
 ):
@@ -339,7 +335,6 @@ def test_positive_update_external_roles(
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_delete_external_roles(
     test_name, session, ldap_usergroup_name, ldap_tear_down, ldap_auth_source, target_sat
@@ -405,7 +400,6 @@ def test_positive_delete_external_roles(
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
-@pytest.mark.tier2
 def test_positive_update_external_user_roles(
     test_name, session, ldap_usergroup_name, ldap_tear_down, ldap_auth_source, target_sat
 ):
@@ -480,7 +474,6 @@ def test_positive_update_external_user_roles(
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
-@pytest.mark.tier2
 def test_positive_add_admin_role_with_org_loc(
     test_name,
     session,
@@ -541,7 +534,6 @@ def test_positive_add_admin_role_with_org_loc(
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD_2019', 'IPA'], indirect=True)
-@pytest.mark.tier2
 def test_positive_add_foreman_role_with_org_loc(
     test_name,
     session,
@@ -609,7 +601,6 @@ def test_positive_add_foreman_role_with_org_loc(
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
-@pytest.mark.tier2
 def test_positive_add_katello_role_with_org(
     test_name,
     session,
@@ -680,7 +671,6 @@ def test_positive_add_katello_role_with_org(
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_create_user_in_ldap_mode(session, ldap_auth_source, ldap_tear_down):
     """Create User in ldap mode
@@ -704,7 +694,6 @@ def test_positive_create_user_in_ldap_mode(session, ldap_auth_source, ldap_tear_
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
-@pytest.mark.tier2
 def test_positive_login_user_no_roles(test_name, ldap_tear_down, ldap_auth_source, target_sat):
     """Login with LDAP Auth for user with no roles/rights
 
@@ -729,7 +718,6 @@ def test_positive_login_user_no_roles(test_name, ldap_tear_down, ldap_auth_sourc
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_login_user_basic_roles(
     test_name, session, ldap_tear_down, ldap_auth_source, target_sat
@@ -769,7 +757,6 @@ def test_positive_login_user_basic_roles(
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier2
 def test_positive_login_user_password_otp(
     auth_source_ipa, default_ipa_host, test_name, ldap_tear_down, target_sat
 ):
@@ -802,7 +789,6 @@ def test_positive_login_user_password_otp(
     assert users[0].login == default_ipa_host.ipa_otp_username
 
 
-@pytest.mark.tier2
 def test_negative_login_user_with_invalid_password_otp(
     auth_source_ipa, default_ipa_host, test_name, ldap_tear_down, target_sat
 ):
@@ -831,7 +817,6 @@ def test_negative_login_user_with_invalid_password_otp(
 
 
 @pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA", "OPENLDAP"], indirect=True)
-@pytest.mark.tier2
 def test_positive_test_connection_functionality(session, ldap_auth_source):
     """Verify for a positive test connection response
 
@@ -851,7 +836,6 @@ def test_positive_test_connection_functionality(session, ldap_auth_source):
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
-@pytest.mark.tier2
 def test_negative_login_with_incorrect_password(test_name, ldap_auth_source, target_sat):
     """Attempt to login in Satellite an user with the wrong password
 
@@ -877,7 +861,6 @@ def test_negative_login_with_incorrect_password(test_name, ldap_auth_source, tar
         assert error.typename == 'NavigationTriesExceeded'
 
 
-@pytest.mark.tier2
 def test_negative_login_with_disable_user(
     default_ipa_host, auth_source_ipa, ldap_tear_down, target_sat
 ):
@@ -899,7 +882,6 @@ def test_negative_login_with_disable_user(
         assert error.typename == 'NavigationTriesExceeded'
 
 
-@pytest.mark.tier2
 def test_email_of_the_user_should_be_copied(
     session, default_ipa_host, auth_source_ipa, ldap_tear_down, target_sat
 ):
@@ -931,7 +913,6 @@ def test_email_of_the_user_should_be_copied(
         assert user_value['user']['mail'] == result
 
 
-@pytest.mark.tier2
 def test_deleted_idm_user_should_not_be_able_to_login(
     target_sat, default_ipa_host, auth_source_ipa, ldap_tear_down
 ):
@@ -959,7 +940,6 @@ def test_deleted_idm_user_should_not_be_able_to_login(
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
-@pytest.mark.tier2
 def test_onthefly_functionality(session, ldap_auth_source, ldap_tear_down, target_sat):
     """User will not be created automatically in Satellite if onthefly is
     disabled
@@ -1044,7 +1024,6 @@ def test_timeout_and_cac_card_ejection():
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
-@pytest.mark.tier2
 def test_login_failure_if_internal_user_exist(
     session, test_name, ldap_auth_source, module_org, module_location, ldap_tear_down, target_sat
 ):
@@ -1085,7 +1064,6 @@ def test_login_failure_if_internal_user_exist(
         target_sat.api.User(id=user.id).delete()
 
 
-@pytest.mark.tier2
 def test_userlist_with_external_admin(
     session,
     auth_source_ipa,
@@ -1170,7 +1148,6 @@ def test_userlist_with_external_admin(
         assert remote_admin_session.user.search(idm_users_user)[0]['Username'] == idm_users_user
 
 
-@pytest.mark.tier2
 def test_positive_group_sync_open_ldap_authsource(
     test_name,
     session,
@@ -1220,7 +1197,6 @@ def test_positive_group_sync_open_ldap_authsource(
         assert user_name.capitalize() in current_user
 
 
-@pytest.mark.tier2
 def test_verify_group_permissions(
     session,
     auth_source_ipa,
@@ -1273,7 +1249,6 @@ def test_verify_group_permissions(
         assert location.name == location_name
 
 
-@pytest.mark.tier2
 def test_verify_ldap_filters_ipa(
     session, ipa_add_user, auth_source_ipa, default_ipa_host, ldap_tear_down, target_sat
 ):
@@ -1298,7 +1273,7 @@ def test_verify_ldap_filters_ipa(
         ldapsession.task.read_all()
 
     # updating the authsource with filter
-    group_name = default_ipa_host.groups[0]
+    group_name = default_ipa_host.groups.admins
     ldap_data = f"(memberOf=cn={group_name},{default_ipa_host.group_base_dn})"
     session.ldapauthentication.update(auth_source_ipa.name, {'account.ldap_filter': ldap_data})
 

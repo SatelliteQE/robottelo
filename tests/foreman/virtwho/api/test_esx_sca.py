@@ -25,11 +25,14 @@ from robottelo.utils.virtwho import (
 
 
 class TestVirtWhoConfigforEsx:
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.parametrize('deploy_type_api', ['id', 'script'], indirect=True)
     def test_positive_deploy_configure_by_id_script(
-        self, module_sca_manifest_org, target_sat, virtwho_config_api, deploy_type_api
+        self,
+        module_sca_manifest_org,
+        target_sat,
+        virtwho_config_api,
+        deploy_type_api,
     ):
         """Verify "POST /foreman_virt_who_configure/api/v2/configs"
 
@@ -47,7 +50,6 @@ class TestVirtWhoConfigforEsx:
         )
         assert virt_who_instance == 'ok'
 
-    @pytest.mark.tier2
     def test_positive_debug_option(
         self, module_sca_manifest_org, form_data_api, virtwho_config_api, target_sat
     ):
@@ -71,7 +73,6 @@ class TestVirtWhoConfigforEsx:
             )
             assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == value
 
-    @pytest.mark.tier2
     def test_positive_interval_option(
         self, module_sca_manifest_org, form_data_api, virtwho_config_api, target_sat
     ):
@@ -104,7 +105,6 @@ class TestVirtWhoConfigforEsx:
             )
             assert get_configure_option('interval', ETC_VIRTWHO_CONFIG) == value
 
-    @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
         self, module_sca_manifest_org, form_data_api, virtwho_config_api, target_sat
     ):
@@ -128,7 +128,6 @@ class TestVirtWhoConfigforEsx:
             )
             assert get_configure_option('hypervisor_id', config_file) == value
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('filter_type', ['whitelist', 'blacklist'])
     @pytest.mark.parametrize('option_type', ['edit', 'create'])
     def test_positive_filter_option(
@@ -227,7 +226,6 @@ class TestVirtWhoConfigforEsx:
                 assert result.blacklist == regex
                 assert result.exclude_host_parents == regex
 
-    @pytest.mark.tier2
     def test_positive_proxy_option(
         self, module_sca_manifest_org, default_location, form_data_api, target_sat
     ):
@@ -302,7 +300,6 @@ class TestVirtWhoConfigforEsx:
             query={'search': f"name={form_data_api['name']}"}
         )
 
-    @pytest.mark.tier2
     def test_positive_configure_organization_list(
         self, module_sca_manifest_org, form_data_api, virtwho_config_api, target_sat
     ):
@@ -323,7 +320,6 @@ class TestVirtWhoConfigforEsx:
         search_result = virtwho_config_api.get_organization_configs(data={'per_page': '1000'})
         assert [item for item in search_result['results'] if item['name'] == form_data_api['name']]
 
-    @pytest.mark.tier2
     def test_positive_deploy_configure_hypervisor_password_with_special_characters(
         self, module_sca_manifest_org, form_data_api, target_sat
     ):
@@ -374,7 +370,6 @@ class TestVirtWhoConfigforEsx:
             query={'search': f"name={form_data_api['name']}"}
         )
 
-    @pytest.mark.tier2
     def test_positive_remove_env_option(
         self, module_sca_manifest_org, form_data_api, virtwho_config_api, target_sat
     ):

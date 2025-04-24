@@ -175,9 +175,9 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         assert pkg_install.status == 0, 'Failed to install packages'
         host = target_sat.api.Host().search(query={'search': f'activation_key={ak.name}'})[0]
         assert host.id == rhel_contenthost.nailgun_host.id, 'Host not found in Satellite'
-        assert (
-            rhel_contenthost.applicable_errata_count > 1
-        ), f'No applicable errata found for host {host.name}'
+        assert rhel_contenthost.applicable_errata_count > 1, (
+            f'No applicable errata found for host {host.name}'
+        )
         erratum_list = target_sat.api.Errata(repository=custom_yum_repo).search(
             query={'order': 'updated ASC', 'per_page': 1000}
         )
@@ -271,6 +271,6 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         assert pkg_check.status == 0, 'Package check failed. One or more packages were not updated'
         errata_check = rhel_client.execute('dnf updateinfo list')
         for errata in settings.repos.yum_9.errata:
-            assert (
-                errata not in errata_check.stdout
-            ), 'Errata check failed. One or more errata were not applied'
+            assert errata not in errata_check.stdout, (
+                'Errata check failed. One or more errata were not applied'
+            )

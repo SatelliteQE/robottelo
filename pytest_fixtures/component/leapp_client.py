@@ -2,15 +2,11 @@ from broker import Broker
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import PRDS
+from robottelo.constants import PRDS, RHEL7_VER, RHEL8_VER, RHEL9_VER
 from robottelo.hosts import ContentHost
 from robottelo.logging import logger
 
 synced_repos = pytest.StashKey[dict]
-
-RHEL7_VER = '7.9'
-RHEL8_VER = '8.10'
-RHEL9_VER = '9.5'
 
 RHEL_REPOS = {
     'rhel7_server': {
@@ -188,6 +184,7 @@ def precondition_check_upgrade_and_install_leapp_tool(custom_leapp_host):
     assert custom_leapp_host.run('yum install leapp-upgrade -y').status == 0
     if custom_leapp_host.run('needs-restarting -r').status == 1:
         custom_leapp_host.power_control(state='reboot', ensure=True)
+        custom_leapp_host.wait_for_connection(timeout=300)
 
     # Fixing known inhibitors for source rhel version 8
     if custom_leapp_host.os_version.major == 8:

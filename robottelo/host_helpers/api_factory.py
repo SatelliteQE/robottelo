@@ -17,6 +17,7 @@ from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
     REPO_TYPE,
 )
+from robottelo.exceptions import APIResponseError
 from robottelo.host_helpers.repository_mixins import initiate_repo_helpers
 
 
@@ -38,6 +39,7 @@ class APIFactory:
                 name=gen_string('alpha', 15),
                 url=settings.http_proxy.un_auth_proxy_url,
                 organization=[org.id],
+                content_default_http_proxy=True,
             ).create()
         if http_proxy_type:
             return self._satellite.api.HTTPProxy(
@@ -46,6 +48,7 @@ class APIFactory:
                 username=settings.http_proxy.username,
                 password=settings.http_proxy.password,
                 organization=[org.id],
+                content_default_http_proxy=True,
             ).create()
         return None
 
@@ -206,14 +209,14 @@ class APIFactory:
                         query={'search': f'name="{name}"'}
                     )
                     if not result:
-                        raise self._satellite.api.APIResponseError(f'permission "{name}" not found')
+                        raise APIResponseError(f'permission "{name}" not found')
                     if len(result) > 1:
-                        raise self._satellite.api.APIResponseError(
+                        raise APIResponseError(
                             f'found more than one entity for permission "{name}"'
                         )
                     entity_permission = result[0]
                     if entity_permission.name != name:
-                        raise self._satellite.api.APIResponseError(
+                        raise APIResponseError(
                             'the returned permission is different from the'
                             f' requested one "{entity_permission.name} != {name}"'
                         )
@@ -229,9 +232,7 @@ class APIFactory:
                     query={'per_page': '350', 'search': f'resource_type="{resource_type}"'}
                 )
                 if not resource_type_permissions_entities:
-                    raise self._satellite.api.APIResponseError(
-                        f'resource type "{resource_type}" permissions not found'
-                    )
+                    raise APIResponseError(f'resource type "{resource_type}" permissions not found')
 
                 permissions_entities = [
                     entity
@@ -243,7 +244,7 @@ class APIFactory:
                 permissions_entities_names = {entity.name for entity in permissions_entities}
                 not_found_names = set(permissions_name).difference(permissions_entities_names)
                 if not_found_names:
-                    raise self._satellite.api.APIResponseError(
+                    raise APIResponseError(
                         f'permissions names entities not found "{not_found_names}"'
                     )
             self._satellite.api.Filter(
@@ -309,6 +310,35 @@ class APIFactory:
                 name=os_name, major=os_version_major, minor=os_version_minor
             ).create()
         return os
+
+    def supported_rhel_ver(self, num=3, fips=False, prefix=''):
+        """
+        Return: a list of (str), most recent supported RHEL major versions.
+            or a single str, if param `num` is set to 1.
+
+        :param num: Default 3. Pass a positive int for the number of versions to return,
+            or pass 'All' to return every supported version.
+        :param fips: Default False. If True, include -fips versions.
+        :param prefix: Default empty ''. Add a prefix string to the versions,
+            ie: 'rhel' or 'rhel-'
+        """
+        if isinstance(num, int) and num <= 0:
+            return []
+        supported_rhels = settings.supportability.content_hosts.rhel.versions
+        filtered_versions = (
+            [prefix + str(ver) for ver in supported_rhels]  # include fips
+            if fips is True
+            else [  # only include ints, major versions
+                prefix + str(ver) for ver in supported_rhels if isinstance(ver, int)
+            ]
+        )
+        return (
+            filtered_versions  # entire list, if 'All' is met
+            if num == 'All'
+            else filtered_versions[-num:]  # else: list, num entries from tail, if len != 1
+            if num != 1
+            else filtered_versions[-num:][0]  # else: single str, if len == 1
+        )
 
     @contextmanager
     def satellite_setting(self, key_val: str):

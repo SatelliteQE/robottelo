@@ -39,7 +39,6 @@ from robottelo.utils.virtwho import (
 
 
 class TestVirtWhoConfigforEsx:
-    @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'deploy_type_cli',
@@ -47,7 +46,11 @@ class TestVirtWhoConfigforEsx:
         indirect=True,
     )
     def test_positive_deploy_configure_by_id_script_name_locationid_organizationtitle(
-        self, module_sca_manifest_org, target_sat, virtwho_config_cli, deploy_type_cli
+        self,
+        module_sca_manifest_org,
+        target_sat,
+        virtwho_config_cli,
+        deploy_type_cli,
     ):
         """Verify "hammer virt-who-config deploy & fetch"
 
@@ -65,7 +68,6 @@ class TestVirtWhoConfigforEsx:
         ]['status']
         assert virt_who_instance == 'OK'
 
-    @pytest.mark.tier2
     def test_positive_hypervisor_id_option(
         self, module_sca_manifest_org, form_data_cli, virtwho_config_cli, target_sat
     ):
@@ -90,7 +92,6 @@ class TestVirtWhoConfigforEsx:
             )
             assert get_configure_option('hypervisor_id', config_file) == value
 
-    @pytest.mark.tier2
     def test_positive_debug_option(
         self, module_sca_manifest_org, form_data_cli, virtwho_config_cli, target_sat
     ):
@@ -112,7 +113,6 @@ class TestVirtWhoConfigforEsx:
             )
             assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == value
 
-    @pytest.mark.tier2
     def test_positive_name_option(
         self, module_sca_manifest_org, form_data_cli, virtwho_config_cli, target_sat
     ):
@@ -135,7 +135,6 @@ class TestVirtWhoConfigforEsx:
             {'id': virtwho_config_cli['id'], 'new-name': form_data_cli['name']}
         )
 
-    @pytest.mark.tier2
     def test_positive_interval_option(
         self, module_sca_manifest_org, form_data_cli, virtwho_config_cli, target_sat
     ):
@@ -165,7 +164,6 @@ class TestVirtWhoConfigforEsx:
             )
             assert get_configure_option('interval', ETC_VIRTWHO_CONFIG) == value
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize('filter_type', ['whitelist', 'blacklist'])
     @pytest.mark.parametrize('option_type', ['edit', 'create'])
     def test_positive_filter_option(
@@ -257,7 +255,6 @@ class TestVirtWhoConfigforEsx:
                 assert get_configure_option('exclude_hosts', config_file) == regex
                 assert get_configure_option('exclude_host_parents', config_file) == regex
 
-    @pytest.mark.tier2
     def test_positive_proxy_option(
         self,
         module_sca_manifest_org,
@@ -342,7 +339,6 @@ class TestVirtWhoConfigforEsx:
         assert get_configure_option('https_proxy', ETC_VIRTWHO_CONFIG) == https_proxy_url
         assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == no_proxy
 
-    @pytest.mark.tier2
     def test_positive_rhsm_option(
         self, module_sca_manifest_org, form_data_cli, virtwho_config_cli, target_sat
     ):
@@ -366,7 +362,6 @@ class TestVirtWhoConfigforEsx:
         assert get_configure_option('rhsm_hostname', config_file) == target_sat.hostname
         assert get_configure_option('rhsm_prefix', config_file) == '/rhsm'
 
-    @pytest.mark.tier2
     def test_positive_post_hypervisors(self, function_org, target_sat):
         """Post large json file to /rhsm/hypervisors"
 
@@ -392,7 +387,6 @@ class TestVirtWhoConfigforEsx:
             else:
                 assert result.status_code == 200
 
-    @pytest.mark.tier2
     def test_positive_foreman_packages_protection(
         self, module_sca_manifest_org, form_data_cli, virtwho_config_cli, target_sat
     ):
@@ -420,7 +414,6 @@ class TestVirtWhoConfigforEsx:
         ]['status']
         assert virt_who_instance == 'OK'
 
-    @pytest.mark.tier2
     def test_positive_deploy_configure_hypervisor_password_with_special_characters(
         self, module_sca_manifest_org, form_data_cli, target_sat
     ):
@@ -472,7 +465,6 @@ class TestVirtWhoConfigforEsx:
         target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config_cli['name']})
         assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data_cli['name']))
 
-    @pytest.mark.tier2
     def test_positive_remove_env_option(
         self, module_sca_manifest_org, form_data_cli, virtwho_config_cli, target_sat
     ):
@@ -510,7 +502,6 @@ class TestVirtWhoConfigforEsx:
         result = target_sat.execute(f'grep "{env_warning}" /var/log/messages')
         assert result.status == 1
 
-    @pytest.mark.tier2
     def test_positive_rhsm_username_option(
         self, module_sca_manifest_org, form_data_cli, target_sat
     ):
@@ -599,7 +590,6 @@ class TestVirtWhoConfigforEsx:
                 restart_virtwho_service()
                 assert not check_message_in_rhsm_log(messages[1])
 
-    @pytest.mark.tier2
     def test_positive_post_hypervisors_with_fake_different_org_simultaneous(
         self, module_sca_manifest_org, form_data_cli, target_sat
     ):
@@ -683,3 +673,36 @@ class TestVirtWhoConfigforEsx:
         for item in task:
             assert "Job blocked by the following existing jobs" not in item['task-errors']
             assert "success" in item['result']
+
+
+@pytest.mark.parametrize('deploy_type_cli', ['id'], indirect=True)
+def test_positive_change_system_puropse_SLA_for_hypervisor(
+    target_sat, virtwho_config_cli, deploy_type_cli
+):
+    """Verify that system purpose SLA attribute set successfully and does not throw any error
+
+    :id: a4c88d9f-35b7-4073-a43c-ab613f4ce583
+
+    :setup:
+        Setup virt-who hypervisor
+
+    :steps:
+        Set up system purpose attribute for SLA
+
+    :expectedresults:
+        system purpose SLA attribute set without any error
+
+    :verifies: SAT-28552
+
+    :customerscenario: true
+
+    :CaseImportance: Medium
+    """
+    SLA_service_level = gen_string('alpha', 5)
+    host_id = target_sat.cli.Host.info({'name': deploy_type_cli[1]})['id']
+    output = target_sat.cli.Host.update({'id': host_id, 'service-level': SLA_service_level})
+    assert output[0]['message'] == 'Host updated.'
+    host_service_level = target_sat.cli.Host.info({'name': deploy_type_cli[1]})[
+        'subscription-information'
+    ]['system-purpose']['service-level']
+    assert SLA_service_level == host_service_level

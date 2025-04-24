@@ -25,7 +25,6 @@ from robottelo import constants
 from robottelo.config import (
     get_credentials,
     get_url,
-    setting_is_set,
     settings,
     user_nailgun_config,
 )
@@ -46,6 +45,11 @@ API_PATHS = {
         '/katello/api/activation_keys/:id/releases',
         '/katello/api/activation_keys/:id/remove_subscriptions',
     ),
+    'advisor_engine': (
+        '/api/advisor_engine/host_details',
+        '/api/advisor_engine/upload_hits',
+    ),
+    'advisor_engine_config': ('/api/rh_cloud/advisor_engine_config',),
     'alternate_content_sources': (
         '/katello/api/alternate_content_sources',
         '/katello/api/alternate_content_sources/:id',
@@ -71,6 +75,7 @@ API_PATHS = {
     ),
     'ansible_override_values': (
         '/ansible/api/ansible_override_values',
+        '/ansible/api/ansible_override_values/:id',
         '/ansible/api/ansible_override_values/:id',
     ),
     'ansible_playbooks': (
@@ -258,6 +263,7 @@ API_PATHS = {
         '/katello/api/content_views/:composite_content_view_id/content_view_components/add',
         '/katello/api/content_views/:composite_content_view_id/content_view_components/remove',
     ),
+    'content_view_environments': ('/katello/api/content_view_environments',),
     'content_view_filter_rules': (
         '/katello/api/content_view_filters/:content_view_filter_id/rules',
         '/katello/api/content_view_filters/:content_view_filter_id/rules',
@@ -363,6 +369,19 @@ API_PATHS = {
         '/api/filters/:id',
         '/api/filters/:id',
     ),
+    'flatpak_remote_repositories': (
+        '/katello/api/organizations/:organization_id/flatpak_remote_repositories',
+        '/katello/api/flatpak_remote_repositories/:id',
+        '/katello/api/flatpak_remote_repositories/:id/mirror',
+    ),
+    'flatpak_remotes': (
+        '/katello/api/organizations/:organization_id/flatpak_remotes',
+        '/katello/api/flatpak_remotes/:id',
+        '/katello/api/flatpak_remotes',
+        '/katello/api/flatpak_remotes/:id',
+        '/katello/api/flatpak_remotes/:id',
+        '/katello/api/flatpak_remotes/:id/scan',
+    ),
     'foreign_input_sets': (
         '/api/templates/:template_id/foreign_input_sets',
         '/api/templates/:template_id/foreign_input_sets',
@@ -389,6 +408,7 @@ API_PATHS = {
     ),
     'home': ('/api', '/api/status'),
     'host_autocomplete': (),
+    'host_bootc_images': ('/api/hosts/bootc_images',),
     'host_collections': (
         '/katello/api/host_collections',
         '/katello/api/host_collections',
@@ -488,7 +508,12 @@ API_PATHS = {
         '/api/hosts/:host_id/errata/:id',
         '/api/hosts/:host_id/errata/applicability',
     ),
-    'host_packages': ('/api/hosts/:host_id/packages',),
+    'host_packages': (
+        '/api/hosts/:host_id/packages',
+        '/api/host_packages/:id',
+        '/api/host_packages/compare',
+        '/api/host_packages/installed_packages',
+    ),
     'http_proxies': (
         '/api/http_proxies',
         '/api/http_proxies',
@@ -527,6 +552,7 @@ API_PATHS = {
         '/api/job_invocations',
         '/api/job_invocations/:id',
         '/api/job_invocations/:id/cancel',
+        '/api/job_invocations/:id/hosts',
         '/api/job_invocations/:id/hosts/:host_id',
         '/api/job_invocations/:id/hosts/:host_id/raw',
         '/api/job_invocations/:id/rerun',
@@ -715,6 +741,10 @@ API_PATHS = {
     'simple_content_access': (),
     'registration': ('/api/register', '/api/register'),
     'registration_commands': ('/api/registration_commands',),
+    'registration_tokens': (
+        '/api/users/:user_id/registration_tokens',
+        '/api/registration_tokens',
+    ),
     'report_templates': (
         '/api/report_templates',
         '/api/report_templates/:id',
@@ -918,7 +948,7 @@ def filtered_api_paths():
 class TestAvailableURLs:
     """Tests for ``api/v2``."""
 
-    pytestmark = [pytest.mark.tier1, pytest.mark.upgrade]
+    pytestmark = pytest.mark.upgrade
 
     @pytest.fixture(scope='class')
     def api_url(self):
@@ -980,11 +1010,7 @@ class TestAvailableURLs:
 class TestEndToEnd:
     """End-to-end tests using the ``API`` path."""
 
-    pytestmark = [pytest.mark.tier1, pytest.mark.upgrade]
-
-    @pytest.fixture(scope='class')
-    def fake_manifest_is_set(self):
-        return setting_is_set('fake_manifest')
+    pytestmark = pytest.mark.upgrade
 
     def test_positive_find_default_org(self, class_target_sat):
         """Check if 'Default Organization' is present
@@ -1025,7 +1051,6 @@ class TestEndToEnd:
         assert results[0].login == 'admin'
 
     @pytest.mark.skip_if_not_set('libvirt')
-    @pytest.mark.tier4
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     @pytest.mark.e2e

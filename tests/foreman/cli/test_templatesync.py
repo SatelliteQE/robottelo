@@ -21,7 +21,6 @@ from robottelo.constants import (
     FOREMAN_TEMPLATE_IMPORT_URL,
     FOREMAN_TEMPLATE_TEST_TEMPLATE,
 )
-from robottelo.utils.issue_handlers import is_open
 
 git = settings.git
 
@@ -53,7 +52,6 @@ class TestTemplateSyncTestCase:
             f'[ -f example_template.erb ] || wget {FOREMAN_TEMPLATE_TEST_TEMPLATE}'
         )
 
-    @pytest.mark.tier2
     def test_positive_import_force_locked_template(
         self, module_org, create_import_export_local_dir, target_sat
     ):
@@ -106,26 +104,35 @@ class TestTemplateSyncTestCase:
             pytest.fail('The template is not imported for force test')
 
     @pytest.mark.skip_if_not_set('git')
+    # TODO: add Github ssh key setup for ssh version of this test
     @pytest.mark.parametrize(
-        'url',
+        ('url', 'use_proxy_global', 'setup_http_proxy_global'),
         [
-            'https://github.com/theforeman/community-templates.git',
-            'ssh://git@github.com/theforeman/community-templates.git',
+            (
+                'https://github.com/theforeman/community-templates.git',
+                True,
+                True,
+            ),
+            (
+                'https://github.com/theforeman/community-templates.git',
+                True,
+                False,
+            ),
+            (
+                'https://github.com/theforeman/community-templates.git',
+                False,
+                True,
+            ),
         ],
-        ids=['http', 'ssh'],
+        ids=[
+            'use_proxy_global-auth_http_proxy_global-http',
+            'use_proxy_global-unauth_http_proxy_global-http',
+            'do_not_use_proxy_global-auth_http_proxy_global-http',
+        ],
+        indirect=[
+            'setup_http_proxy_global',
+        ],
     )
-    @pytest.mark.parametrize(
-        'setup_http_proxy_global',
-        [True, False],
-        indirect=True,
-        ids=['auth_http_proxy_global', 'unauth_http_proxy_global'],
-    )
-    @pytest.mark.parametrize(
-        'use_proxy_global',
-        [True, False],
-        ids=['use_proxy_global', 'do_not_use_proxy_global'],
-    )
-    @pytest.mark.tier2
     def test_positive_import_dir_filtered(
         self,
         module_org,
@@ -150,15 +157,7 @@ class TestTemplateSyncTestCase:
 
         :CaseImportance: Medium
         """
-        # TODO remove this
-        if is_open('SAT-28933') and 'ssh' in url:
-            pytest.skip("Temporary skip of SSH tests")
-        proxy, param = setup_http_proxy_global
-        if not use_proxy_global and not param:
-            # only do-not-use one kind of proxy
-            pytest.skip(
-                "Invalid parameter combination. DO NOT USE PROXY scenario should only be tested once."
-            )
+        proxy, _ = setup_http_proxy_global
         pt_name = 'FreeBSD default fake'
         if target_sat.cli.PartitionTable.list({'search': f'name=\\"{pt_name}\\"'}):
             target_sat.cli.PartitionTable.update({'name': pt_name, 'locked': 0})
@@ -189,7 +188,6 @@ class TestTemplateSyncTestCase:
         assert pt_name == pt[0]['name']
 
     @pytest.mark.e2e
-    @pytest.mark.tier2
     @pytest.mark.skip_if_not_set('git')
     @pytest.mark.parametrize(
         'url',
@@ -255,7 +253,6 @@ class TestTemplateSyncTestCase:
         decoded = base64.b64decode(git_file['content'])
         assert content != decoded
 
-    @pytest.mark.tier2
     @pytest.mark.skip_if_not_set('git')
     @pytest.mark.parametrize(
         'url',
@@ -312,7 +309,6 @@ class TestTemplateSyncTestCase:
         )
         assert exported_count == git_count
 
-    @pytest.mark.tier2
     def test_positive_export_filtered_templates_to_temp_dir(self, module_org, target_sat):
         """Assure templates can be exported to /tmp directory without right permissions
 

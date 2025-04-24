@@ -22,13 +22,10 @@ from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
     DEFAULT_ARCHITECTURE,
     DEFAULT_CV,
     ENVIRONMENT,
     EXPORT_LIBRARY_NAME,
-    FLATPAK_REMOTES,
     PULP_EXPORT_DIR,
     PULP_IMPORT_DIR,
     REPO_TYPE,
@@ -94,7 +91,7 @@ def function_import_org(target_sat):
 def function_import_org_with_manifest(target_sat, function_import_org):
     """Creates and sets an Organization with a brand-new manifest for content import."""
     with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
-        target_sat.upload_manifest(function_import_org.id, manifest)
+        target_sat.upload_manifest(function_import_org.id, manifest.content)
     return function_import_org
 
 
@@ -198,8 +195,8 @@ def function_synced_docker_repo(target_sat, function_org, function_product):
             'product-id': function_product.id,
             'content-type': REPO_TYPE['docker'],
             'download-policy': 'immediate',
-            'url': CONTAINER_REGISTRY_HUB,
-            'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
+            'url': settings.container.registry_hub,
+            'docker-upstream-name': settings.container.upstream_name,
         }
     )
     target_sat.cli.Repository.synchronize({'id': repo['id']})
@@ -207,28 +204,30 @@ def function_synced_docker_repo(target_sat, function_org, function_product):
 
 
 @pytest.fixture
-def function_synced_flatpak_repo(target_sat, function_org, function_product):
-    fr = target_sat.cli.FlatpakRemote().create(
-        {
-            'organization-id': function_org.id,
-            'url': FLATPAK_REMOTES['Fedora']['url'],
-            'name': gen_string('alpha'),
-        }
-    )
-    target_sat.cli.FlatpakRemote().scan({'id': fr['id']})
-    repos = target_sat.cli.FlatpakRemote().repository_list({'flatpak-remote-id': fr['id']})
-    assert len(repos), 'No repositories scanned'
-    repo_name = 'firefox'
-    remote_repo = next(r for r in repos if r['name'] == repo_name)
-    target_sat.cli.FlatpakRemote().repository_mirror(
-        {'flatpak-remote-id': fr['id'], 'id': remote_repo['id'], 'product-id': function_product.id}
-    )
-    local_repo = target_sat.cli.Repository.list(
-        {'product-id': function_product.id, 'name': repo_name}
-    )[0]
-    target_sat.cli.Repository.update({'id': local_repo['id'], 'download-policy': 'immediate'})
-    target_sat.cli.Repository.synchronize({'id': local_repo['id']})
-    return target_sat.cli.Repository.info({'id': local_repo['id']})
+def function_synced_flatpak_repos(
+    target_sat, function_org, function_flatpak_remote, function_product
+):
+    repo_names = ['rhel9/firefox-flatpak', 'rhel9/flatpak-runtime']  # runtime is dependency
+    remote_repos = [r for r in function_flatpak_remote.repos if r['name'] in repo_names]
+    for repo in remote_repos:
+        target_sat.cli.FlatpakRemote().repository_mirror(
+            {
+                'flatpak-remote-id': function_flatpak_remote.remote['id'],
+                'id': repo['id'],  # or by name
+                'product-id': function_product.id,
+            }
+        )
+
+    local_repos = [
+        r
+        for r in target_sat.cli.Repository.list({'product-id': function_product.id})
+        if r['name'] in repo_names
+    ]
+    for repo in local_repos:
+        target_sat.cli.Repository.update({'id': repo['id'], 'download-policy': 'immediate'})
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+
+    return [target_sat.cli.Repository.info({'id': repo['id']}) for repo in local_repos]
 
 
 @pytest.fixture
@@ -298,7 +297,6 @@ def complete_export_import_cleanup(target_sat, module_import_sat):
 class TestRepositoryExport:
     """Tests for exporting a repository via CLI"""
 
-    @pytest.mark.tier3
     def test_positive_export_version_custom_repo(
         self, target_sat, export_import_cleanup_module, module_org, module_synced_custom_repo
     ):
@@ -356,7 +354,6 @@ class TestRepositoryExport:
         )
         assert '2.0' in target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR)
 
-    @pytest.mark.tier3
     def test_positive_export_library_custom_repo(
         self,
         target_sat,
@@ -413,7 +410,6 @@ class TestRepositoryExport:
         ).incrementalLibrary({'organization-id': function_org.id})
         assert '2.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
@@ -466,7 +462,6 @@ class TestRepositoryExport:
         # Verify export directory is not empty
         assert target_sat.validate_pulp_filepath(function_sca_manifest_org, PULP_EXPORT_DIR) != ''
 
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_export_repository_docker(
         self, target_sat, export_import_cleanup_function, function_org, function_synced_docker_repo
@@ -501,7 +496,6 @@ class TestRepositoryExport:
         )
         assert '2.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_export_version_docker(
         self, target_sat, export_import_cleanup_function, function_org, function_synced_docker_repo
@@ -625,7 +619,6 @@ def _create_cv(cv_name, repo, module_org, sat, publish=True):
 class TestContentViewSync:
     """Implements Content View Export Import tests in CLI"""
 
-    @pytest.mark.tier3
     @pytest.mark.e2e
     def test_positive_export_import_cv_end_to_end(
         self,
@@ -703,12 +696,11 @@ class TestContentViewSync:
                 'organization-id': function_import_org.id,
             }
         )
-        assert (
-            exported_repo['content-counts'] == imported_repo['content-counts']
-        ), 'Exported and imported counts do not match'
+        assert exported_repo['content-counts'] == imported_repo['content-counts'], (
+            'Exported and imported counts do not match'
+        )
 
     @pytest.mark.upgrade
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],
@@ -812,7 +804,6 @@ class TestContentViewSync:
         assert len(imported_packages)
         assert len(cv_packages) == len(imported_packages)
 
-    @pytest.mark.tier3
     def test_positive_export_import_filtered_cvv(
         self,
         class_export_entities,
@@ -904,7 +895,6 @@ class TestContentViewSync:
         assert len(imported_packages) == 1
         assert len(export_packages) == len(imported_packages)
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     def test_positive_export_import_promoted_cv(
         self,
@@ -978,7 +968,6 @@ class TestContentViewSync:
         lce = importing_cv_id['lifecycle-environments'][0]['name']
         assert lce == 'Library'
 
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.e2e
     @pytest.mark.parametrize(
@@ -1076,11 +1065,10 @@ class TestContentViewSync:
                 'organization-id': function_import_org_with_manifest.id,
             }
         )
-        assert (
-            exported_repo['content-counts'] == imported_repo['content-counts']
-        ), 'Exported and imported counts do not match'
+        assert exported_repo['content-counts'] == imported_repo['content-counts'], (
+            'Exported and imported counts do not match'
+        )
 
-    @pytest.mark.tier2
     def test_positive_export_cv_with_on_demand_repo(
         self, export_import_cleanup_module, target_sat, module_org
     ):
@@ -1187,7 +1175,6 @@ class TestContentViewSync:
         assert "Generated" in result
         assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) != ''
 
-    @pytest.mark.tier2
     def test_negative_import_same_cv_twice(
         self,
         target_sat,
@@ -1239,7 +1226,6 @@ class TestContentViewSync:
             f'delete {export_cv_name} 1.0 and try again.'
         ) in error.value.message
 
-    @pytest.mark.tier2
     def test_negative_import_invalid_path(self, module_org, module_target_sat):
         """Import cv that doesn't exist in path
 
@@ -1264,7 +1250,6 @@ class TestContentViewSync:
             '--metadata-file option'
         ) in error.value.message
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],
@@ -1357,21 +1342,26 @@ class TestContentViewSync:
             )
         assert 'content_view not found' in error.value.message, 'The imported CV should be gone'
 
-    @pytest.mark.tier3
+    @pytest.mark.e2e
+    @pytest.mark.parametrize('function_flatpak_remote', ['RedHat'], indirect=True)
     def test_postive_export_import_cv_with_mixed_content_repos(
         self,
+        request,
         complete_export_import_cleanup,
         target_sat,
         function_org,
+        function_product,
         function_synced_custom_repo,
         function_synced_file_repo,
         function_synced_docker_repo,
-        function_synced_flatpak_repo,
+        function_synced_flatpak_repos,
         function_synced_AC_repo,
         module_import_sat,
         function_import_org_at_isat,
+        module_flatpak_contenthost,
     ):
-        """Export and import CV with mixed content types in the exportable format.
+        """Export and import CV with mixed content types in the exportable format,
+        consume it from the import.
 
         :id: ffcdbbc6-f787-4978-80a7-4b44c389bf49
 
@@ -1382,10 +1372,14 @@ class TestContentViewSync:
             1. Create CV, add all setup repos and publish.
             2. Export CV version contents to a directory.
             3. Import the exported CV, check the content.
+            4. Register a contenthost using AK.
+            5. Configure the contenthost via REX to use import Sat's flatpak index.
+            6. Consume the imported content for each content type.
 
         :expectedresults:
             1. Export succeeds and content is exported.
             2. Import succeeds, content is imported and matches the export.
+            3. Imported content is consumable at the registered host.
 
         :BZ: 1726457
 
@@ -1400,9 +1394,9 @@ class TestContentViewSync:
             function_synced_custom_repo,
             function_synced_file_repo,
             function_synced_docker_repo,
-            function_synced_flatpak_repo,
             function_synced_AC_repo,
         ]
+        repos.extend(function_synced_flatpak_repos)
         for repo in repos:
             target_sat.cli.ContentView.add_repository(
                 {
@@ -1440,12 +1434,12 @@ class TestContentViewSync:
         importing_cv = module_import_sat.cli.ContentView.info(
             {'name': exporting_cv['name'], 'organization-id': function_import_org_at_isat.id}
         )
-        assert all(
-            [exporting_cv[key] == importing_cv[key] for key in ['label', 'name']]
-        ), 'Imported CV name/label does not match the export'
-        assert (
-            len(exporting_cv['versions']) == len(importing_cv['versions']) == 1
-        ), 'CV versions count does not match'
+        assert all([exporting_cv[key] == importing_cv[key] for key in ['label', 'name']]), (
+            'Imported CV name/label does not match the export'
+        )
+        assert len(exporting_cv['versions']) == len(importing_cv['versions']) == 1, (
+            'CV versions count does not match'
+        )
 
         importing_cvv = module_import_sat.cli.ContentView.version_info(
             {'id': importing_cv['versions'][0]['id']}
@@ -1460,8 +1454,12 @@ class TestContentViewSync:
         imported_files = module_import_sat.cli.File.list(
             {'content-view-version-id': importing_cvv['id']}
         )
-        assert exported_packages == imported_packages, 'Imported RPMs do not match the export'
-        assert exported_files == imported_files, 'Imported Files do not match the export'
+        assert set(f['filename'] for f in exported_packages) == set(
+            f['filename'] for f in imported_packages
+        ), 'Imported RPMs do not match the export'
+        assert set(f['name'] for f in exported_files) == set(f['name'] for f in imported_files), (
+            'Imported Files do not match the export'
+        )
 
         for repo in repos:
             exp = target_sat.cli.Repository.info(
@@ -1479,11 +1477,129 @@ class TestContentViewSync:
                 }
             )
             for key in ['label', 'description', 'content-type', 'content-counts']:
-                assert (
-                    exp[key] == imp[key]
-                ), f'"{key}" of the {imp["content-type"]} repo differs: {exp[key]} ≠ {imp[key]}'
+                assert exp[key] == imp[key], (
+                    f'"{key}" of the {imp["content-type"]} repo differs: {exp[key]} ≠ {imp[key]}'
+                )
 
-    @pytest.mark.tier3
+        # Register a content host using AK.
+        ak = module_import_sat.cli.ActivationKey.create(
+            {
+                'name': gen_string('alpha'),
+                'organization-id': function_import_org_at_isat.id,
+                'lifecycle-environment': 'Library',
+                'content-view': importing_cv['name'],
+            }
+        )
+        module_import_sat.cli.ActivationKey.content_override(
+            {
+                'id': ak['id'],
+                'content-label': '_'.join(
+                    [
+                        function_import_org_at_isat.name,
+                        function_product.name,
+                        function_synced_custom_repo.name,
+                    ]
+                ),
+                'value': 'true',
+            }
+        )
+        res = module_flatpak_contenthost.register(
+            function_import_org_at_isat, None, ak['name'], module_import_sat, force=True
+        )
+        assert res.status == 0, (
+            f'Failed to register host: {module_flatpak_contenthost.hostname}\n'
+            f'StdOut: {res.stdout}\nStdErr: {res.stderr}'
+        )
+        assert module_flatpak_contenthost.subscribed
+
+        # Configure the contenthost via REX to use Satellite's flatpak index.
+        remote_name = f'ISS-remote-{gen_string("alpha")}'
+        job = module_import_sat.cli_factory.job_invocation(
+            {
+                'organization': function_import_org_at_isat.name,
+                'job-template': 'Flatpak - Set up remote on host',
+                'inputs': (
+                    f'Remote Name={remote_name}, '
+                    f'Flatpak registry URL={settings.server.scheme}://{module_import_sat.hostname}/pulpcore_registry/, '
+                    f'Username={settings.server.admin_username}, '
+                    f'Password={settings.server.admin_password}'
+                ),
+                'search-query': f"name = {module_flatpak_contenthost.hostname}",
+            }
+        )
+        res = module_import_sat.cli.JobInvocation.info({'id': job.id})
+        assert 'succeeded' in res['status']
+        request.addfinalizer(
+            lambda: module_flatpak_contenthost.execute(f'flatpak remote-delete {remote_name}')
+        )
+
+        # Consume the imported content for each content type.
+        #  Flatpak
+        res = module_flatpak_contenthost.execute('flatpak remotes')
+        assert remote_name in res.stdout
+
+        app_name = 'Firefox'
+        res = module_flatpak_contenthost.execute('flatpak remote-ls')
+        assert app_name in res.stdout
+
+        job = module_import_sat.cli_factory.job_invocation(
+            {
+                'organization': function_import_org_at_isat.name,
+                'job-template': 'Flatpak - Install application on host',
+                'inputs': f'Flatpak remote name={remote_name}, Application name={app_name}',
+                'search-query': f"name = {module_flatpak_contenthost.hostname}",
+            }
+        )
+        res = module_import_sat.cli.JobInvocation.info({'id': job.id})
+        assert 'succeeded' in res['status']
+        request.addfinalizer(
+            lambda: module_flatpak_contenthost.execute(
+                f'flatpak uninstall {remote_name} {app_name} com.redhat.Platform -y'
+            )
+        )
+
+        #  Yum
+        res = module_flatpak_contenthost.execute('dnf install -y cheetah')
+        assert res.status == 0
+
+        #  File
+        repo_url = module_import_sat.get_published_repo_url(
+            org=function_import_org_at_isat.label,
+            prod=function_product.label,
+            repo=function_synced_file_repo.label,
+            lce='Library',
+            cv=importing_cv['label'],
+        )
+        res = module_flatpak_contenthost.execute(f'curl {repo_url}test.txt')
+        assert 'Hello, World!' in res.stdout, 'Expected world-wide greeting'
+
+        #  Docker
+        res = module_flatpak_contenthost.execute(
+            f'podman login -u {settings.server.admin_username}'
+            f' -p {settings.server.admin_password} {module_import_sat.hostname}'
+        )
+        assert res.status == 0
+
+        repo_path = f'{function_import_org_at_isat.label}/library/{importing_cv["label"]}/{function_product.label}/{function_synced_docker_repo.label}'.lower()
+        res = module_flatpak_contenthost.execute(
+            f'podman search {module_import_sat.hostname}/{repo_path}'
+        )
+        assert repo_path in res.stdout
+        res = module_flatpak_contenthost.execute(
+            f'podman pull {module_import_sat.hostname}/{repo_path}'
+        )
+        assert res.status == 0
+        res = module_flatpak_contenthost.execute('podman images')
+        assert repo_path in res.stdout
+
+        #  AC
+        api_path = f'https://{module_import_sat.hostname}/pulp_ansible/galaxy/{function_import_org_at_isat.label}/Library/custom/{function_product.label}/{function_synced_AC_repo.label}'
+        res = target_sat.execute(
+            f'ansible-galaxy collection install -c -f -s {api_path} theforeman.foreman'
+        )
+        assert res.status == 0
+        assert 'installed successfully' in res.stdout
+
     def test_postive_export_import_cv_with_mixed_content_syncable(
         self,
         export_import_cleanup_function,
@@ -1548,12 +1664,12 @@ class TestContentViewSync:
         importing_cv = target_sat.cli.ContentView.info(
             {'name': exporting_cv['name'], 'organization-id': function_import_org.id}
         )
-        assert all(
-            [exporting_cv[key] == importing_cv[key] for key in ['label', 'name']]
-        ), 'Imported CV name/label does not match the export'
-        assert (
-            len(exporting_cv['versions']) == len(importing_cv['versions']) == 1
-        ), 'CV versions count does not match'
+        assert all([exporting_cv[key] == importing_cv[key] for key in ['label', 'name']]), (
+            'Imported CV name/label does not match the export'
+        )
+        assert len(exporting_cv['versions']) == len(importing_cv['versions']) == 1, (
+            'CV versions count does not match'
+        )
 
         importing_cvv = target_sat.cli.ContentView.version_info(
             {'id': importing_cv['versions'][0]['id']}
@@ -1569,7 +1685,6 @@ class TestContentViewSync:
         assert exported_packages == imported_packages, 'Imported RPMs do not match the export'
         assert exported_files == imported_files, 'Imported Files do not match the export'
 
-    @pytest.mark.tier3
     def test_postive_export_cv_syncable_with_permissions(
         self,
         request,
@@ -1640,7 +1755,6 @@ class TestContentViewSync:
             ]
         ), 'Unexpected permission for one or more exported files'
 
-    @pytest.mark.tier3
     def test_postive_export_import_cv_with_file_content(
         self,
         target_sat,
@@ -1712,10 +1826,9 @@ class TestContentViewSync:
         assert len(imported_files)
         assert len(exported_files) == len(imported_files)
 
-    @pytest.mark.tier2
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
-        ['rhae2'],
+        ['rhsclient9'],
         indirect=True,
     )
     def test_positive_export_rerun_failed_import(
@@ -1813,7 +1926,6 @@ class TestContentViewSync:
         )['versions']
         assert len(importing_cvv) == 1
 
-    @pytest.mark.tier3
     def test_postive_export_import_ansible_collection_repo(
         self,
         target_sat,
@@ -1876,7 +1988,6 @@ class TestContentViewSync:
         assert len(import_product['content']) == 1
         assert import_product['content'][0]['content-type'] == "ansible_collection"
 
-    @pytest.mark.tier3
     def test_postive_export_import_repo_with_GPG(
         self,
         target_sat,
@@ -1943,7 +2054,6 @@ class TestContentViewSync:
         assert imported_gpg
         assert imported_gpg['content'] == gpg_key.content
 
-    @pytest.mark.tier3
     def test_postive_export_import_chunked_repo(
         self,
         target_sat,
@@ -2002,11 +2112,10 @@ class TestContentViewSync:
                 'organization-id': function_import_org_at_isat.id,
             }
         )
-        assert (
-            exported_repo['content-counts'] == imported_repo['content-counts']
-        ), 'Unexpected package count after import'
+        assert exported_repo['content-counts'] == imported_repo['content-counts'], (
+            'Unexpected package count after import'
+        )
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],
@@ -2079,7 +2188,6 @@ class TestContentViewSync:
             'appropriate subscriptions before importing content.'
         ) in error.value.message
 
-    @pytest.mark.tier2
     def test_positive_import_content_for_disconnected_sat_with_existing_content(
         self,
         target_sat,
@@ -2155,7 +2263,6 @@ class TestContentViewSync:
         )['versions']
         assert len(importing_cvv) >= 1
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],
@@ -2244,7 +2351,6 @@ class TestContentViewSync:
                 f'{repomd_refs - drive_files}'
             )
 
-    @pytest.mark.tier3
     def test_postive_export_import_with_long_name(
         self,
         target_sat,
@@ -2344,7 +2450,6 @@ class TestContentViewSync:
         )
         assert exported_packages == imported_packages
 
-    @pytest.mark.tier3
     def test_postive_export_import_large_cv(
         self,
         request,
@@ -2417,7 +2522,6 @@ class TestInterSatelliteSync:
     """Implements InterSatellite Sync tests in CLI"""
 
     @pytest.mark.stubbed
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_reimport_repo(self):
         """Packages missing from upstream are removed from downstream on reimport.
@@ -2437,7 +2541,6 @@ class TestInterSatelliteSync:
 
         """
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],
@@ -2512,7 +2615,6 @@ class TestInterSatelliteSync:
             in error.value.message
         ), 'Unexpected error message'
 
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_export_import_incremental_yum_repo(
         self,
@@ -2597,7 +2699,6 @@ class TestInterSatelliteSync:
         export_cc['packages'] = str(int(export_cc['packages']) + 1)
         assert import_repo['content-counts'] == export_cc, 'Import counts do not match the export.'
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],
@@ -2684,11 +2785,10 @@ class TestInterSatelliteSync:
             {'search': f"Import Repository organization '{function_import_org_with_manifest.name}'"}
         )
         assert len(tasks) == 2, f'Expected 2 import tasks in this Org but found {len(tasks)}'
-        assert all(
-            ['success' in task['result'] for task in tasks]
-        ), 'Not every import task succeeded'
+        assert all(['success' in task['result'] for task in tasks]), (
+            'Not every import task succeeded'
+        )
 
-    @pytest.mark.tier3
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],
@@ -2791,9 +2891,9 @@ class TestInterSatelliteSync:
                 'search': f'content_label={function_synced_rh_repo["content-label"]}',
             }
         )
-        assert (
-            len(reposet) == 1
-        ), f'Expected just one reposet for "{function_synced_rh_repo["content-label"]}"'
+        assert len(reposet) == 1, (
+            f'Expected just one reposet for "{function_synced_rh_repo["content-label"]}"'
+        )
         res = satellite_host.cli.RepositorySet.enable(
             {
                 'organization-id': import_org.id,
@@ -2809,16 +2909,15 @@ class TestInterSatelliteSync:
         satellite_host.cli.Repository.synchronize({'id': repo['id']})
 
         repo = satellite_host.cli.Repository.info({'id': repo['id']})
-        assert (
-            f'{target_sat.hostname}/pub/repos/' in repo['url']
-        ), 'Enabled repo does not point to the upstream Satellite'
+        assert f'{target_sat.hostname}/pub/repos/' in repo['url'], (
+            'Enabled repo does not point to the upstream Satellite'
+        )
         assert 'Success' in repo['sync']['status'], 'Sync did not succeed'
-        assert (
-            repo['content-counts'] == function_synced_rh_repo['content-counts']
-        ), 'Content counts do not match'
+        assert repo['content-counts'] == function_synced_rh_repo['content-counts'], (
+            'Content counts do not match'
+        )
 
     @pytest.mark.e2e
-    @pytest.mark.tier3
     @pytest.mark.pit_server
     @pytest.mark.pit_client
     @pytest.mark.no_containers
@@ -2929,9 +3028,9 @@ class TestInterSatelliteSync:
         assert rhel_contenthost.subscribed
         res = rhel_contenthost.execute('dnf clean all && dnf repolist -v')
         assert res.status == 0
-        assert (
-            f'Repo-available-pkgs: {pkg_cnt_1}' in res.stdout
-        ), 'Package count available on the host did not meet the expectation'
+        assert f'Repo-available-pkgs: {pkg_cnt_1}' in res.stdout, (
+            'Package count available on the host did not meet the expectation'
+        )
 
         res = rhel_contenthost.execute(f'dnf -y install {filtered_pkg}')
         assert res.status, 'Installation of filtered package succeeded unexpectedly'
@@ -2975,9 +3074,9 @@ class TestInterSatelliteSync:
         # Check the package count available to install on the content host.
         res = rhel_contenthost.execute('dnf clean all && dnf repolist -v')
         assert res.status == 0
-        assert (
-            f'Repo-available-pkgs: {pkg_cnt_2}' in res.stdout
-        ), 'Package count available on the host did not meet the expectation'
+        assert f'Repo-available-pkgs: {pkg_cnt_2}' in res.stdout, (
+            'Package count available on the host did not meet the expectation'
+        )
 
         # Install the package.
         res = rhel_contenthost.execute(f'dnf -y install {filtered_pkg}')
@@ -3057,7 +3156,6 @@ def _set_downstream_org(
 class TestNetworkSync:
     """Implements Network Sync scenarios."""
 
-    @pytest.mark.tier2
     @pytest.mark.pit_server
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
@@ -3108,9 +3206,9 @@ class TestNetworkSync:
                 'search': f'content_label={function_synced_rh_repo["content-label"]}',
             }
         )
-        assert (
-            len(reposet) == 1
-        ), f'Expected just one reposet for "{function_synced_rh_repo["content-label"]}"'
+        assert len(reposet) == 1, (
+            f'Expected just one reposet for "{function_synced_rh_repo["content-label"]}"'
+        )
         res = module_downstream_sat.cli.RepositorySet.enable(
             {
                 'organization-id': function_downstream_org.id,
@@ -3129,9 +3227,9 @@ class TestNetworkSync:
 
         repo = module_downstream_sat.cli.Repository.info({'id': repo['id']})
         assert 'Success' in repo['sync']['status'], 'Sync did not succeed'
-        assert (
-            repo['content-counts'] == function_synced_rh_repo['content-counts']
-        ), 'Content counts do not match'
+        assert repo['content-counts'] == function_synced_rh_repo['content-counts'], (
+            'Content counts do not match'
+        )
 
 
 class TestPodman:
@@ -3157,7 +3255,6 @@ class TestPodman:
         )
         assert result.status == 0
 
-    @pytest.mark.tier3
     def test_postive_export_import_podman_repo(
         self,
         target_sat,

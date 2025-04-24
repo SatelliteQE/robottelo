@@ -35,7 +35,6 @@ def common_assertion(report_path):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier3
 @pytest.mark.e2e
 def test_rhcloud_inventory_api_e2e(
     inventory_settings,
@@ -119,7 +118,6 @@ def test_rhcloud_inventory_api_e2e(
 
 
 @pytest.mark.e2e
-@pytest.mark.tier3
 def test_rhcloud_inventory_api_hosts_synchronization(
     rhcloud_manifest_org,
     rhcloud_registered_hosts,
@@ -216,7 +214,6 @@ def test_inventory_upload_with_http_proxy():
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.tier2
 @pytest.mark.e2e
 def test_include_parameter_tags_setting(
     inventory_settings,
@@ -292,7 +289,6 @@ def test_include_parameter_tags_setting(
 
 
 @pytest.mark.e2e
-@pytest.mark.tier3
 def test_rhcloud_scheduled_insights_sync(
     rhcloud_manifest_org,
     rhcloud_registered_hosts,
@@ -333,3 +329,39 @@ def test_rhcloud_scheduled_insights_sync(
     )
     assert 'success' in result.stdout
     assert result.status == 0
+
+
+@pytest.mark.no_containers
+@pytest.mark.run_in_one_thread
+@pytest.mark.rhel_ver_list('[8,9]')
+def test_rhcloud_compliance_policies(
+    inventory_settings,
+    rhcloud_manifest_org,
+    rhcloud_registered_hosts,
+    module_target_sat,
+):
+    """Verify that the branch_id parameter was removed from insights-client requests
+    and that compliance polcies are working
+
+    :id: 21cf98a4-e5fa-4191-8fc0-e98f0e7d4f24
+
+    :steps:
+        1. Prepare machine and vm's for insights
+        2. install necessary packages for compliance policies
+        3. Trigger 'insights-client --compliance-policies' command
+        4. Assert job succeeds
+
+    :expectedresults:
+        1. Trigering the 'insights-client --compliance-policies' command succueeds with
+        no parameter errors
+
+    :Verifies: SAT-18902
+
+    :CaseAutomation: Automated
+
+    :customerscenario: true
+    """
+    virtual_host, baremetal_host = rhcloud_registered_hosts
+    virtual_host.execute("dnf install -y openscap openscap-scanner scap-security-guide")
+    results = virtual_host.execute('insights-client --compliance-policies')
+    assert results.status == 0

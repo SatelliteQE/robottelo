@@ -12,6 +12,8 @@
 
 """
 
+import json
+
 import pytest
 from requests.exceptions import HTTPError
 
@@ -85,7 +87,7 @@ def test_negative_invalid_repo_fails_publish(
     assert 'Remove the invalid repository before publishing again' in context.value.response.text
 
 
-def test_positive_disable_rh_repo_with_basearch(module_target_sat, module_sca_manifest_org):
+def test_positive_disable_rh_repo_with_basearch(module_target_sat, function_sca_manifest_org):
     """Verify that users can disable Red Hat Repositories with basearch
 
     :id: dd3b63b7-1dbf-4d8a-ab66-348de0ad7cf3
@@ -106,7 +108,7 @@ def test_positive_disable_rh_repo_with_basearch(module_target_sat, module_sca_ma
     """
     rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=DEFAULT_ARCHITECTURE,
-        org_id=module_sca_manifest_org.id,
+        org_id=function_sca_manifest_org.id,
         product=REPOS['kickstart']['rhel8_aps']['product'],
         repo=REPOS['kickstart']['rhel8_aps']['name'],
         reposet=REPOS['kickstart']['rhel8_aps']['reposet'],
@@ -119,7 +121,7 @@ def test_positive_disable_rh_repo_with_basearch(module_target_sat, module_sca_ma
             'basearch': DEFAULT_ARCHITECTURE,
             'name': REPOSET['kickstart']['rhel8_bos'],
             'product-id': repo.product.id,
-            'organization-id': module_sca_manifest_org.id,
+            'organization-id': function_sca_manifest_org.id,
             'releasever': REPOS['kickstart']['rhel8_aps']['version'],
             'repository-id': rh_repo_id,
         }
@@ -194,16 +196,16 @@ def test_purge_pulp_tasks(module_target_sat, module_org, module_repository, sett
     :customerscenario: true
 
     """
-    cmd = 'pulp task list --limit 99999 | jq length'
-    original_ptc = int(module_target_sat.execute(cmd).stdout)
+    cmd = 'pulp task list --limit 99999'
+    original_ptc = len(json.loads(module_target_sat.execute(cmd).stdout))
     module_target_sat.run_orphan_cleanup(smart_proxy_id=1)
-    new_ptc = int(module_target_sat.execute(cmd).stdout)
+    new_ptc = len(json.loads(module_target_sat.execute(cmd).stdout))
     assert new_ptc > original_ptc, 'Pulp tasks were unexpectedly purged'
 
     setting_update.value = 0
     setting_update.update({'value'})
 
-    original_ptc = int(module_target_sat.execute(cmd).stdout)
+    original_ptc = len(json.loads(module_target_sat.execute(cmd).stdout))
     module_target_sat.run_orphan_cleanup(smart_proxy_id=1)
-    new_ptc = int(module_target_sat.execute(cmd).stdout)
+    new_ptc = len(json.loads(module_target_sat.execute(cmd).stdout))
     assert new_ptc < original_ptc, 'Pulp tasks were not purged'

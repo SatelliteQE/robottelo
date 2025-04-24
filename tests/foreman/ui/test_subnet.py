@@ -28,7 +28,6 @@ def module_dom(module_target_sat, module_org, module_location):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, module_target_sat, module_dom):
     """Perform end to end testing for subnet component in ipv6 network
@@ -75,6 +74,6 @@ def test_positive_end_to_end(session, module_target_sat, module_dom):
         sn.domain = []
         sn.update(['domain'])
         session.subnet.delete(new_name)
-        assert not module_target_sat.api.Subnet().search(
-            query={'search': f'name={new_name}'}
-        ), 'The subnet was supposed to be deleted'
+        assert not module_target_sat.api.Subnet().search(query={'search': f'name={new_name}'}), (
+            'The subnet was supposed to be deleted'
+        )

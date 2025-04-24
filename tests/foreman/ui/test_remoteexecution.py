@@ -20,13 +20,13 @@ from inflection import camelize
 import pytest
 from wait_for import wait_for
 
+from robottelo.constants import ANY_CONTEXT
 from robottelo.utils.datafactory import (
     gen_string,
     valid_hostgroups_list_short,
 )
 
 
-@pytest.mark.tier4
 def test_positive_hostgroups_full_nested_names(
     module_org,
     smart_proxy_location,
@@ -151,7 +151,6 @@ def test_positive_run_default_job_template(
         assert job_name in [job['Name'] for job in success_jobs]
 
 
-@pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
 def test_rex_through_host_details(session, target_sat, rex_contenthost, module_org):
     """Run remote execution using the new host details page
@@ -190,7 +189,6 @@ def test_rex_through_host_details(session, target_sat, rex_contenthost, module_o
         assert recent_jobs['recent_jobs']['finished']['table'][0]['column2'] == "succeeded"
 
 
-@pytest.mark.tier4
 @pytest.mark.rhel_ver_match('8')
 @pytest.mark.parametrize(
     'ui_user', [{'admin': True}, {'admin': False}], indirect=True, ids=['adminuser', 'nonadminuser']
@@ -254,7 +252,6 @@ def test_positive_run_custom_job_template(
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier3
 @pytest.mark.rhel_ver_list([8])
 def test_positive_run_job_template_multiple_hosts(
     session, module_org, target_sat, rex_contenthosts
@@ -303,7 +300,6 @@ def test_positive_run_job_template_multiple_hosts(
 
 
 @pytest.mark.rhel_ver_match('8')
-@pytest.mark.tier3
 def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_contenthost):
     """Schedule a job to be ran against a host by ip
 
@@ -393,11 +389,10 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_cont
         assert job_status['overview']['hosts_table'][0]['Status'] == 'Succeeded'
 
 
-@pytest.mark.tier2
 @pytest.mark.rhel_ver_list('8')
 @pytest.mark.usefixtures('setting_update')
 @pytest.mark.parametrize('setting_update', ['lab_features=true'], indirect=True)
-def test_positive_check_job_invocation_details_page(target_sat, module_org, rex_contenthost):
+def test_positive_check_job_invocation_details_page(target_sat, rex_contenthost):
     """
     Run a remote job and check the job invocations detail page for correct values.
 
@@ -410,11 +405,12 @@ def test_positive_check_job_invocation_details_page(target_sat, module_org, rex_
     :expectedresults:
         1. It should report the job name in the title.
         2. It should report the correct numbers in Succeeded, Failed, In Progres and Cancelled fields.
-        3. It should report the correct template name that was used.
+        3. It should report correct information, like, template name that was used, host search query,
+            organization, location and command.
 
     :CaseImportance: High
 
-    :Verifies: SAT-18427
+    :Verifies: SAT-18427, SAT-26605
 
     :parametrized: yes
     """
@@ -424,6 +420,7 @@ def test_positive_check_job_invocation_details_page(target_sat, module_org, rex_
     command = f'echo {correlation_id}'
     job_name = f'Run {command}'
     template_name = 'Run Command - Script Default'
+    host_search_query = f'name = {client.hostname}'
     jobs_succeeded = 1
     total_hosts = 1
 
@@ -434,12 +431,13 @@ def test_positive_check_job_invocation_details_page(target_sat, module_org, rex_
         synchronous=False,
         data={
             'job_template_id': template_id,
-            'organization': module_org.name,
+            'organization': ANY_CONTEXT['org'],
+            'location': ANY_CONTEXT['location'],
             'inputs': {
                 'command': command,
             },
             'targeting_type': 'static_query',
-            'search_query': f'name = {client.hostname}',
+            'search_query': host_search_query,
         },
     )
     target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
@@ -456,5 +454,9 @@ def test_positive_check_job_invocation_details_page(target_sat, module_org, rex_
         assert status['status']['Succeeded'] == jobs_succeeded
         assert status['status']['Failed'] == 0
         assert status['status']['In Progress'] == 0
-        assert status['status']['Canceled'] == 0
+        assert status['status']['Cancelled'] == 0
         assert status['overview']['Template'] == template_name
+        assert status['target_hosts']['search_query'] == host_search_query
+        assert status['target_hosts']['data']['Organization'] == ANY_CONTEXT['org']
+        assert status['target_hosts']['data']['Location'] == ANY_CONTEXT['location']
+        assert status['user_inputs']['data']['command'] == command

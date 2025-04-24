@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from fauxfactory import gen_choice
 import pytest
@@ -35,17 +35,16 @@ def validate_repo_content(repo, content_types, after_sync=True):
     for content in content_types:
         if after_sync:
             assert repo.last_sync, 'Repository was not synced.'
-            assert (
-                repo.content_counts[content] > 0
-            ), 'Repository contains invalid number of content entities.'
+            assert repo.content_counts[content] > 0, (
+                'Repository contains invalid number of content entities.'
+            )
         else:
             assert not repo.last_sync, 'Repository was unexpectedly synced.'
-            assert (
-                repo.content_counts[content] == 0
-            ), 'Repository contains invalid number of content entities.'
+            assert repo.content_counts[content] == 0, (
+                'Repository contains invalid number of content entities.'
+            )
 
 
-@pytest.mark.tier2
 def test_positive_end_to_end(session, module_org, target_sat):
     """Perform end to end scenario for sync plan component
 
@@ -100,7 +99,6 @@ def test_positive_end_to_end(session, module_org, target_sat):
         assert plan_name not in session.syncplan.search(plan_name)
 
 
-@pytest.mark.tier2
 def test_positive_end_to_end_custom_cron(session):
     """Perform end to end scenario for sync plan component with custom cron
 
@@ -144,7 +142,6 @@ def test_positive_end_to_end_custom_cron(session):
         assert plan_name not in session.syncplan.search(plan_name)
 
 
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_search_scoped(session, request, target_sat):
     """Test scoped search for different sync plan parameters
@@ -160,7 +157,7 @@ def test_positive_search_scoped(session, request, target_sat):
     :CaseImportance: High
     """
     name = gen_string('alpha')
-    start_date = datetime.utcnow() + timedelta(days=10)
+    start_date = datetime.now(UTC) + timedelta(days=10)
     org = target_sat.api.Organization().create()
     sync_plan = target_sat.api.SyncPlan(
         name=name,
@@ -179,7 +176,6 @@ def test_positive_search_scoped(session, request, target_sat):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier3
 def test_positive_synchronize_custom_product_custom_cron_real_time(session, module_org, target_sat):
     """Create a sync plan with real datetime as a sync date,
     add a custom product and verify the product gets synchronized
@@ -242,7 +238,6 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(session, modu
         assert plan_name not in session.syncplan.search(plan_name)
 
 
-@pytest.mark.tier3
 def test_positive_synchronize_custom_product_custom_cron_past_sync_date(
     session, module_org, target_sat
 ):

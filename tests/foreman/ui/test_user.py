@@ -17,11 +17,11 @@ import random
 from fauxfactory import gen_email, gen_string
 import pytest
 
+from robottelo.config import user_nailgun_config
 from robottelo.constants import DEFAULT_ORG, PERMISSIONS, ROLES
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.pit_server
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, target_sat, test_name, module_org, module_location):
@@ -96,7 +96,6 @@ def test_positive_end_to_end(session, target_sat, test_name, module_org, module_
         assert not deletehostsession.user.search(new_name)
 
 
-@pytest.mark.tier2
 def test_positive_create_with_multiple_roles(session, target_sat):
     """Create User with multiple roles
 
@@ -126,7 +125,6 @@ def test_positive_create_with_multiple_roles(session, target_sat):
         assert set(user['roles']['resources']['assigned']) == {role1, role2}
 
 
-@pytest.mark.tier2
 def test_positive_create_with_all_roles(session):
     """Create User and assign all available roles to it
 
@@ -151,7 +149,6 @@ def test_positive_create_with_all_roles(session):
         assert set(user['roles']['resources']['assigned']) == set(ROLES)
 
 
-@pytest.mark.tier2
 def test_positive_create_with_multiple_orgs(session, target_sat):
     """Create User associated to multiple Orgs
 
@@ -185,7 +182,6 @@ def test_positive_create_with_multiple_orgs(session, target_sat):
         }
 
 
-@pytest.mark.tier2
 def test_positive_update_with_multiple_roles(session, target_sat):
     """Update User with multiple roles
 
@@ -211,7 +207,6 @@ def test_positive_update_with_multiple_roles(session, target_sat):
         assert set(user['roles']['resources']['assigned']) == set(role_names)
 
 
-@pytest.mark.tier2
 def test_positive_update_with_all_roles(session):
     """Update User with all roles
 
@@ -236,7 +231,6 @@ def test_positive_update_with_all_roles(session):
         assert set(user['roles']['resources']['assigned']) == set(ROLES)
 
 
-@pytest.mark.tier2
 def test_positive_update_orgs(session, target_sat):
     """Assign a User to multiple Orgs
 
@@ -263,7 +257,6 @@ def test_positive_update_orgs(session, target_sat):
         assert set(user['organizations']['resources']['assigned']) == set(org_names)
 
 
-@pytest.mark.tier2
 def test_positive_create_product_with_limited_user_permission(
     session, target_sat, test_name, module_org, module_location
 ):
@@ -307,7 +300,94 @@ def test_positive_create_product_with_limited_user_permission(
         assert newsession.product.search(product_name)[0]['Name'] == product_name
 
 
-@pytest.mark.tier2
+@pytest.mark.rhel_ver_match('8')
+def test_positive_invalidate_jwt(
+    session, module_target_sat, module_org, module_location, rhel_contenthost, module_activation_key
+):
+    """Perform an end-to-end testing for jwt
+
+    :id: be328fd7-b640-4080-9373-25f96ba2aef6
+
+    :steps:
+            1. Create an admin user and a non-admin user with "edit_users" and "view_users" permissions.
+            2. Generate a token for the user to register the host.
+            3. Login to UI with admin user and navigate to Administer -> Users and invalidate the token for the non-admin user from the dropdown.
+            4. Try to use the previously generated token to register the host and verify that the token is invalid for registration.
+            5. Repeat the steps 2,3,and 4 with non_admin user and verify the same as in Step 4.
+
+
+    :expectedresults: Tokens which are invalidated cannot be used for registration.
+
+    :Verifies: 	SAT-27537, SAT-27538, SAT-27539
+
+    :CaseImportance: High
+    """
+    password = gen_string('alpha')
+    roles = [module_target_sat.api.Role().create()]
+    user_permissions = {
+        'User': ['view_users', 'edit_users'],
+    }
+    module_target_sat.api_factory.create_role_permissions(roles[0], user_permissions)
+    # Create an admin user and invalidate token using that user
+    admin_user = module_target_sat.api.User(
+        location=[module_location],
+        organization=[module_org],
+        password=password,
+        login=gen_string('alpha'),
+        admin=True,
+    ).create()
+    # Create a non-admin user with (edit_users and view_users) permissions and invalidate token using that user
+    non_admin_user = module_target_sat.api.User(
+        role=roles,
+        location=[module_location],
+        organization=[module_org],
+        password=password,
+        login=gen_string('alpha'),
+    ).create()
+    login_details = {
+        'username': non_admin_user.login,
+        'password': password,
+    }
+    role = module_target_sat.cli.Role.info({'name': 'Register hosts'})
+    module_target_sat.cli.User.add_role({'id': non_admin_user.id, 'role-id': role['id']})
+    # Login with admin user and invalidate non_admin token and verify the token is invalid for registration after invalidating it.
+    with module_target_sat.ui_session(user=admin_user.login, password=password) as session:
+        session.organization.select(module_org.name)
+        session.location.select(module_location.name)
+        user_cfg = user_nailgun_config(non_admin_user.login, password)
+        command = module_target_sat.api.RegistrationCommand(
+            server_config=user_cfg,
+            organization=module_org,
+            location=module_location,
+            activation_keys=[module_activation_key.name],
+            force=True,
+        ).create()
+        result = rhel_contenthost.execute(command.strip('\n'))
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        session.user.invalidate_jwt(non_admin_user.login)
+        result = rhel_contenthost.execute(command.strip('\n'))
+        assert result.status == 1, f'Failed to register host: {result.stderr}'
+        assert "ERROR: unauthorized" in result.stdout
+        result = session.login.logout()
+
+        # Login with non-admin user and invalidate admin token and verify the token is invalid for registration after invalidating it.
+        session.login.login(login_details)
+        user_cfg = user_nailgun_config(admin_user.login, password)
+        command = module_target_sat.api.RegistrationCommand(
+            server_config=user_cfg,
+            organization=module_org,
+            location=module_location,
+            activation_keys=[module_activation_key.name],
+            force=True,
+        ).create()
+        result = rhel_contenthost.execute(command.strip('\n'))
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        session.user.invalidate_jwt(admin_user.login)
+        result = rhel_contenthost.execute(command.strip('\n'))
+        assert result.status == 1, f'Failed to register host: {result.stderr}'
+        assert "ERROR: unauthorized" in result.stdout
+
+
 @pytest.mark.stubbed
 def test_personal_access_token_admin():
     """Personal access token for admin
@@ -327,7 +407,6 @@ def test_personal_access_token_admin():
     """
 
 
-@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_positive_personal_access_token_user_with_role():
     """Personal access token for user with a role
@@ -350,7 +429,6 @@ def test_positive_personal_access_token_user_with_role():
     """
 
 
-@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_expired_personal_access_token():
     """Personal access token expired for the user.

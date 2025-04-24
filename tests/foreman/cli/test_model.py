@@ -32,7 +32,6 @@ class TestModel:
         """Shared model for tests"""
         return target_sat.cli_factory.make_model()
 
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         ('name', 'new_name'),
@@ -60,7 +59,6 @@ class TestModel:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.Model.info({'id': model['id']})
 
-    @pytest.mark.tier1
     def test_positive_create_with_vendor_class(self, module_target_sat):
         """Check if Model can be created with specific vendor class
 
@@ -74,7 +72,6 @@ class TestModel:
         model = module_target_sat.cli_factory.make_model({'vendor-class': vendor_class})
         assert model['vendor-class'] == vendor_class
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
     def test_negative_create_with_name(self, name, module_target_sat):
         """Don't create an Model with invalid data.
@@ -90,7 +87,6 @@ class TestModel:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.Model.create({'name': name})
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
     def test_negative_update_name(self, class_model, new_name, module_target_sat):
         """Fail to update shared model name
@@ -108,7 +104,6 @@ class TestModel:
         result = module_target_sat.cli.Model.info({'id': class_model['id']})
         assert class_model['name'] == result['name']
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize('entity_id', **parametrized(invalid_id_list()))
     def test_negative_delete_by_id(self, entity_id, module_target_sat):
         """Delete model by wrong ID

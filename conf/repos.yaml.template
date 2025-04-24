@@ -44,6 +44,7 @@ REPOS:
     RHEL7: replace-with-rhel7-http-link
     RHEL8: replace-with-rhel8-http-link
     RHEL9: replace-with-rhel9-http-link
+    RHEL10: replace-with-rhel10-http-link
   # Downstream Satellite-maintain repo
   SATMAINTENANCE_REPO: replace-with-sat-maintain-repo
   # Software Collection Repo
@@ -197,3 +198,7 @@ REPOS:
   GR_YUM_REPO:
     URL:
     GPG_URL:
+
+  PYTHON:
+    PYPI:
+      URL: 'https://pypi.org/project/pytest'

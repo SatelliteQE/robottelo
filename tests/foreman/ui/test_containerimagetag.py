@@ -14,9 +14,8 @@
 
 import pytest
 
+from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
     DEFAULT_CV,
     ENVIRONMENT,
     REPO_TYPE,
@@ -37,15 +36,14 @@ def module_product(module_org, module_target_sat):
 def module_repository(module_product, module_target_sat):
     repo = module_target_sat.api.Repository(
         content_type=REPO_TYPE['docker'],
-        docker_upstream_name=CONTAINER_UPSTREAM_NAME,
+        docker_upstream_name=settings.container.upstream_name,
         product=module_product,
-        url=CONTAINER_REGISTRY_HUB,
+        url=settings.container.registry_hub,
     ).create()
     repo.sync(timeout=1440)
     return repo
 
 
-@pytest.mark.tier2
 def test_positive_search(session, module_org, module_product, module_repository):
     """Search for a docker image tag and reads details of it
 

@@ -187,7 +187,6 @@ def loadbalancer_setup(
 
 
 @pytest.mark.e2e
-@pytest.mark.tier1
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_loadbalancer_install_package(
     loadbalancer_setup, setup_capsules, rhel_contenthost, module_org, module_location, request
@@ -252,8 +251,7 @@ def test_loadbalancer_install_package(
     assert result.status == 0
 
 
-@pytest.mark.rhel_ver_match('[^6]')
-@pytest.mark.tier1
+@pytest.mark.rhel_ver_match('N-2')
 def test_client_register_through_lb(
     loadbalancer_setup,
     rhel_contenthost,
@@ -290,12 +288,17 @@ def test_client_register_through_lb(
         in rhel_contenthost.subscription_config['server']['hostname']
     )
     assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
-    assert loadbalancer_setup['module_target_sat'].cli.Host.info(
+    host_info = loadbalancer_setup['module_target_sat'].cli.Host.info(
         {'name': rhel_contenthost.hostname}, output_format='json'
-    )['content-information']['content-source']['name'] in [
+    )
+    assert host_info['content-information']['content-source']['name'] in [
         setup_capsules['capsule_1'].hostname,
         setup_capsules['capsule_2'].hostname,
     ], 'Unexpected Content Source is set or missing'
+    assert (
+        host_info['subscription-information']['registered-to']
+        == loadbalancer_setup['setup_haproxy']['haproxy'].hostname
+    ), 'Unexpected registration server'
 
     # Host registration by Second Capsule through Loadbalancer
     result = rhel_contenthost.register(

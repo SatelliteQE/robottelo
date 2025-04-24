@@ -14,7 +14,8 @@ from robottelo.constants import (
     LDAP_ATTR,
     LDAP_SERVER_TYPE,
 )
-from robottelo.hosts import IPAHost, SSOHost
+from robottelo.hosts import IPAHost, RHBKHost, RHSSOHost
+from robottelo.logging import logger
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.installer import InstallerCommand
 
@@ -22,9 +23,13 @@ LOGGEDOUT = 'Logged out.'
 
 
 @pytest.fixture(scope='module')
-def default_sso_host(module_target_sat):
+def default_sso_host(request, module_target_sat):
     """Returns default sso host"""
-    return SSOHost(module_target_sat)
+    if hasattr(request, 'param') and request.param:
+        logger.info("Using RHBK host for SSO")
+        return RHBKHost(module_target_sat)
+    logger.info("Using RHSSO host for SSO")
+    return RHSSOHost(module_target_sat)
 
 
 @pytest.fixture(scope='module')
@@ -62,6 +67,7 @@ def ad_data():
                 'ldap_hostname': getattr(settings.ldap.hostname, version),
                 'workgroup': getattr(settings.ldap.workgroup, version),
                 'nameserver': getattr(settings.ldap.nameserver, version),
+                'nameserver6': getattr(settings.ldap.nameserver6, version),
             }
         else:
             raise Exception(
@@ -287,9 +293,18 @@ def auth_data(request, ad_data, ipa_data):
 
 
 @pytest.fixture(scope='module')
-def enroll_configure_rhsso_external_auth(module_target_sat):
+def enroll_configure_rhsso_external_auth(request, module_target_sat):
     """Enroll the Satellite6 Server to an RHSSO Server."""
-    module_target_sat.register_to_cdn()
+    if hasattr(request, 'param') and request.param:
+        uri = f'https://{settings.rhbk.host_name}:{settings.rhbk.host_port}'
+        password = settings.rhbk.rhbk_password
+        realm = settings.rhbk.realm
+    else:
+        uri = f'https://{settings.rhsso.host_name}:443'
+        password = settings.rhsso.rhsso_password
+        realm = settings.rhsso.realm
+    if settings.robottelo.rhel_source == "ga":
+        module_target_sat.register_to_cdn()
     # keycloak-httpd-client-install needs lxml but it's not an rpm dependency + is not documented
     assert (
         module_target_sat.execute(
@@ -301,18 +316,18 @@ def enroll_configure_rhsso_external_auth(module_target_sat):
     # if target directory not given it is installing in /usr/local/lib64
     assert (
         module_target_sat.execute(
-            f'openssl s_client -connect {settings.rhsso.host_name}:443 -showcerts </dev/null 2>/dev/null| '
+            f'openssl s_client -connect {uri} -showcerts </dev/null 2>/dev/null| '
             f'sed "/BEGIN CERTIFICATE/,/END CERTIFICATE/!d" > {CERT_PATH}/rh-sso.crt'
         ).status
         == 0
     )
     assert (
         module_target_sat.execute(
-            f'echo {settings.rhsso.rhsso_password} | keycloak-httpd-client-install \
+            f'echo {password} | keycloak-httpd-client-install \
                 --app-name foreman-openidc \
-                --keycloak-server-url {settings.rhsso.host_url} \
+                --keycloak-server-url {uri} \
                 --keycloak-admin-username "admin" \
-                --keycloak-realm "{settings.rhsso.realm}" \
+                --keycloak-realm "{realm}" \
                 --keycloak-admin-realm master \
                 --keycloak-auth-role root-admin -t openidc -l /users/extlogin --force'
         ).status
@@ -322,7 +337,7 @@ def enroll_configure_rhsso_external_auth(module_target_sat):
         module_target_sat.execute(
             f'satellite-installer --foreman-keycloak true '
             f"--foreman-keycloak-app-name 'foreman-openidc' "
-            f"--foreman-keycloak-realm '{settings.rhsso.realm}' ",
+            f"--foreman-keycloak-realm '{realm}' ",
             timeout=1000000,
         ).status
         == 0
@@ -335,7 +350,7 @@ def enable_external_auth_rhsso(
     enroll_configure_rhsso_external_auth, default_sso_host, module_target_sat
 ):
     """register the satellite with RH-SSO Server for single sign-on"""
-    client_id = default_sso_host.get_rhsso_client_id()
+    client_id = default_sso_host.get_sso_client_id()
     default_sso_host.create_mapper(GROUP_MEMBERSHIP_MAPPER, client_id)
     audience_mapper = copy.deepcopy(AUDIENCE_MAPPER)
     audience_mapper['config']['included.client.audience'] = audience_mapper['config'][
@@ -379,17 +394,22 @@ def configure_realm(module_target_sat, default_ipa_host):
 
 
 @pytest.fixture(scope="module")
-def rhsso_setting_setup(module_target_sat):
+def rhsso_setting_setup(request, module_target_sat):
     """Update the RHSSO setting and revert it in cleanup"""
+    if hasattr(request, 'param') and request.param:
+        uri = f'{settings.rhbk.host_url}'
+        realm = settings.rhbk.realm
+    else:
+        uri = settings.rhsso.host_url
+        realm = settings.rhsso.realm
     rhhso_settings = {
         'authorize_login_delegation': True,
         'authorize_login_delegation_auth_source_user_autocreate': 'External',
         'login_delegation_logout_url': f'https://{module_target_sat.hostname}/users/extlogout',
         'oidc_algorithm': 'RS256',
         'oidc_audience': [f'{module_target_sat.hostname}-foreman-openidc'],
-        'oidc_issuer': f'{settings.rhsso.host_url}/auth/realms/{settings.rhsso.realm}',
-        'oidc_jwks_url': f'{settings.rhsso.host_url}/auth/realms'
-        f'/{settings.rhsso.realm}/protocol/openid-connect/certs',
+        'oidc_issuer': f'{uri}/auth/realms/{realm}',
+        'oidc_jwks_url': f'{uri}/auth/realms/{realm}/protocol/openid-connect/certs',
     }
     for setting_name, setting_value in rhhso_settings.items():
         # replace entietes field with targetsat.api

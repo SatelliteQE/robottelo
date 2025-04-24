@@ -19,7 +19,7 @@ pytestmark = pytest.mark.destructive
 
 @pytest.mark.include_capsule
 def test_negative_ipv6_update_check(sat_maintain):
-    """Ensure update check fails when ipv6.disable=1 in boot options
+    """Ensure update check and satellite-installer fails when ipv6.disable=1 in boot options
 
     :id: 7b3e017f-443a-4204-99be-e39fa04c89f6
 
@@ -29,12 +29,13 @@ def test_negative_ipv6_update_check(sat_maintain):
         1. Add ipv6.disable to grub boot options
         2. Reboot
         3. Run update check
+        4. Run satellite-installer
 
     :customerscenario: true
 
-    :verifies: SAT-24811
+    :verifies: SAT-24811, SAT-26758
 
-    :expectedresults: Update check fails due to ipv6.disable=1 in boot options
+    :expectedresults: Update check and satellite-installer fails due to ipv6.disable=1 in boot options
     """
     result = sat_maintain.execute('grubby --args="ipv6.disable=1" --update-kernel=ALL')
     assert result.status == 0
@@ -50,6 +51,12 @@ def test_negative_ipv6_update_check(sat_maintain):
     )
     assert result.status != 0
     assert (
-        'The kernel contains ipv6.disable=1 which is known to break installation and upgrade, remove and reboot before continuining.'
+        'The kernel contains ipv6.disable=1 which is known to break installation and upgrade, remove and reboot before continuing.'
         in result.stdout
     )
+    result = sat_maintain.execute('satellite-installer')
+    assert (
+        'The kernel contains ipv6.disable=1 which is known to break installation and upgrade.\nRemove and reboot before continuining.\n'
+        in result.stderr
+    )
+    assert result.status != 0

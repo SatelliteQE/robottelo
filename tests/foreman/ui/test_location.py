@@ -20,7 +20,6 @@ from robottelo.constants import ANY_CONTEXT, INSTALL_MEDIUM_URL, LIBVIRT_RESOURC
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, target_sat):
     """Perform end to end testing for location component
@@ -103,18 +102,15 @@ def test_positive_end_to_end(session, target_sat):
         assert not session.location.search(location_name)
 
 
-@pytest.mark.tier2
-def test_positive_update_with_all_users(session, target_sat):
-    """Create location and do not add user to it. Check and uncheck
-    'all users' setting. Verify that for both operation expected location
-    is assigned to user. Then add user to location and retry.
+def test_positive_create_with_all_users(session, target_sat):
+    """Create location and do not add user to it. Check
+    'all users' setting.
 
     :id: 6596962b-8fd0-4a82-bf54-fa6a31147311
 
     :customerscenario: true
 
-    :expectedresults: Location entity is assigned to user after checkbox
-        was enabled and then disabled afterwards
+    :expectedresults: User is visible in selected location
 
     :BZ: 1479736
 
@@ -128,25 +124,13 @@ def test_positive_update_with_all_users(session, target_sat):
         session.organization.select(org_name=ANY_CONTEXT['org'])
         session.location.select(loc_name=loc.name)
         session.location.update(loc.name, {'users.all_users': True})
-        user_values = session.user.read(user.login)
-        assert loc.name in user_values['locations']['resources']['assigned']
-        session.location.update(loc.name, {'users.all_users': False})
-        user_values = session.user.read(user.login)
-        assert loc.name in user_values['locations']['resources']['unassigned']
-        session.location.update(loc.name, {'users.resources.assigned': [user.login]})
-        loc_values = session.location.read(loc.name)
-        user_values = session.user.read(user.login)
-        assert loc_values['users']['resources']['assigned'][0] == user.login
-        assert user_values['locations']['resources']['assigned'][0] == loc.name
-        session.location.update(loc.name, {'users.all_users': True})
-        user_values = session.user.read(user.login)
-        assert loc.name in user_values['locations']['resources']['assigned']
-        session.location.update(loc.name, {'users.all_users': False})
-        user_values = session.user.read(user.login)
-        assert loc.name in user_values['locations']['resources']['unassigned']
+        found_users = session.user.search(user.login)
+        assert user.login in [user['Username'] for user in found_users]
+        # SAT-25386 closed wontdo
+        # user_values = session.user.read(user.login)
+        # assert loc.name in user_values['locations']['resources']['assigned']
 
 
-@pytest.mark.tier2
 def test_positive_add_org_hostgroup_template(session, target_sat):
     """Add a organization, hostgroup, provisioning template by using
        the location name
@@ -188,7 +172,6 @@ def test_positive_add_org_hostgroup_template(session, target_sat):
 
 
 @pytest.mark.skip_if_not_set('libvirt')
-@pytest.mark.tier2
 def test_positive_update_compresource(session, target_sat):
     """Add/Remove compute resource from/to location
 

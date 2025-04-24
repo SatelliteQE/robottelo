@@ -6,8 +6,8 @@ from box import Box
 from nailgun import entities
 
 # This should be updated after each version branch
-SATELLITE_VERSION = "6.17"
-SATELLITE_OS_VERSION = "8"
+SATELLITE_VERSION = "6.18"
+SATELLITE_OS_VERSION = "9"
 
 # Default system ports
 HTTPS_PORT = '443'
@@ -33,12 +33,12 @@ LOCALES = (
 
 
 DISTRO_DEFAULT = 'rhel7'
-DISTROS_SUPPORTED = ['rhel6', 'rhel7', 'rhel8', 'rhel9']
+DISTROS_SUPPORTED = ['rhel7', 'rhel8', 'rhel9', 'rhel10']
 DISTROS_MAJOR_VERSION = {
-    'rhel6': 6,
     'rhel7': 7,
     'rhel8': 8,
     'rhel9': 9,
+    'rhel10': 10,
 }
 MAJOR_VERSION_DISTRO = {value: key for key, value in DISTROS_MAJOR_VERSION.items()}
 
@@ -198,6 +198,8 @@ ZOO_CUSTOM_GPG_KEY = "zoo_custom_gpgkey.txt"
 VALID_GPG_KEY_BETA_FILE = "valid_gpg_key_beta.txt"
 
 KEY_CLOAK_CLI = "/opt/rh/rh-sso7/root/usr/share/keycloak/bin/kcadm.sh"
+# this symlink needs to be created manually on the RHBK instance; default path is something version-specific like /opt/rhbk-24.0.6/bin/kcadm.sh
+RHBK_CLI = "/bin/kcadm.sh"
 
 RPM_TO_UPLOAD = "which-2.19-6.el6.x86_64.rpm"
 SRPM_TO_UPLOAD = "which-2.19-6.el6.src.rpm"
@@ -213,6 +215,7 @@ REPO_TYPE = {
     'docker': "docker",
     'ansible_collection': "ansible_collection",
     'file': "file",
+    'python': 'python',
 }
 
 DOWNLOAD_POLICIES = {
@@ -272,17 +275,20 @@ PRDS = {
     'rhel8': 'Red Hat Enterprise Linux for x86_64',
     'rhel9': 'Red Hat Enterprise Linux for x86_64',
     'rhel10_beta': 'Red Hat Enterprise Linux for x86_64 Beta',
+    'rhel_els': 'Red Hat Enterprise Linux Server - Extended Life Cycle Support',
 }
 
 REPOSET = {
     'rhct6': 'Red Hat CloudForms Tools for RHEL 6 (RPMs)',
     'rhel6': 'Red Hat Enterprise Linux 6 Server (RPMs)',
     'rhel7': 'Red Hat Enterprise Linux 7 Server (RPMs)',
+    'rhel7_els': 'Red Hat Enterprise Linux 7 Server - Extended Life Cycle Support (RPMs)',
     'rhva6': ('Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'),
     'rhs7': 'Red Hat Satellite 6.11 (for RHEL 7 Server) (RPMs)',
     'rhs8': 'Red Hat Satellite 6.13 for RHEL 8 x86_64 (RPMs)',
-    'rhsc7': 'Red Hat Satellite Capsule 6.11 (for RHEL 7 Server) (RPMs)',
-    'rhsc8': 'Red Hat Satellite Capsule 6.13 for RHEL 8 x86_64 (RPMs)',
+    'rhs9': 'Red Hat Satellite 6.16 for RHEL 9 x86_64 (RPMs)',
+    'rhsc8': 'Red Hat Satellite Capsule 6.16 for RHEL 8 x86_64 (RPMs)',
+    'rhsc9': 'Red Hat Satellite Capsule 6.16 for RHEL 9 x86_64 (RPMs)',
     'rhsc7_iso': 'Red Hat Satellite Capsule 6.4 (for RHEL 7 Server) (ISOs)',
     'rhsclient7': 'Red Hat Satellite Client 6 (for RHEL 7 Server) (RPMs)',
     'rhsclient8': 'Red Hat Satellite Client 6 for RHEL 8 x86_64 (RPMs)',
@@ -319,25 +325,27 @@ REPOSET = {
 }
 
 RECOMMENDED_REPOS = [
+    'rhel-10-for-x86_64-baseos-rpms',
+    'rhel-10-for-x86_64-appstream-rpms',
+    'rhel-10-for-x86_64-baseos-eus-rpms',
+    'rhel-10-for-x86_64-appstream-eus-rpms',
     'rhel-9-for-x86_64-baseos-rpms',
     'rhel-9-for-x86_64-appstream-rpms',
-    'rhel-9-for-x86_64-baseos-eus-rpms',  # 6.17+
-    'rhel-9-for-x86_64-appstream-eus-rpms',  # 6.17+
+    'rhel-9-for-x86_64-baseos-eus-rpms',
+    'rhel-9-for-x86_64-appstream-eus-rpms',
     'rhel-8-for-x86_64-baseos-rpms',
     'rhel-8-for-x86_64-appstream-rpms',
     'rhel-8-for-x86_64-baseos-eus-rpms',
     'rhel-8-for-x86_64-appstream-eus-rpms',
+    'satellite-client-6-for-rhel-10-x86_64-rpms',
     'satellite-client-6-for-rhel-9-x86_64-rpms',
     'satellite-client-6-for-rhel-8-x86_64-rpms',
 ]
 
 VERSIONED_REPOS = [
-    'satellite-capsule-{}-for-rhel-8-x86_64-rpms',
-    'satellite-maintenance-{}-for-rhel-8-x86_64-rpms',
-    'satellite-utils-{}-for-rhel-8-x86_64-rpms',
-    'satellite-capsule-{}-for-rhel-9-x86_64-rpms',  # 6.16+
-    'satellite-maintenance-{}-for-rhel-9-x86_64-rpms',  # 6.16+
-    'satellite-utils-{}-for-rhel-9-x86_64-rpms',  # 6.16+
+    'satellite-capsule-{}-for-rhel-9-x86_64-rpms',
+    'satellite-maintenance-{}-for-rhel-9-x86_64-rpms',
+    'satellite-utils-{}-for-rhel-9-x86_64-rpms',
 ]
 
 SM_OVERALL_STATUS = {
@@ -363,6 +371,20 @@ REPOS = {
         'version': '7.9',
         'basearch': 'x86_64',
     },
+    'rhel7_els': {
+        'id': 'rhel-7-server-els-rpms',
+        'name': 'Red Hat Enterprise Linux 7 Server - Extended Life Cycle Support RPMs x86_64',
+        'releasever': '7Server',
+        'arch': 'x86_64',
+        'distro': 'rhel7',
+        'reposet': REPOSET['rhel7_els'],
+        'product': PRDS['rhel_els'],
+        'major_version': 7,
+        'distro_repository': True,
+        'key': 'rhel',
+        'version': '7.9',
+        'basearch': 'x86_64',
+    },
     'rhel6': {
         'id': 'rhel-6-server-rpms',
         'name': 'Red Hat Enterprise Linux 6 Server RPMs x86_64 6Server',
@@ -375,6 +397,15 @@ REPOS = {
         'distro_repository': True,
         'key': 'rhel',
         'version': '6.8',
+    },
+    'rhs9': {
+        'id': 'satellite-6.16-for-rhel-9-x86_64-rpms',
+        'name': ('Red Hat Satellite 6.16 for RHEL 9 x86_64 RPMs'),
+        'version': '6.16',
+        'reposet': REPOSET['rhs9'],
+        'product': PRDS['rhs'],
+        'distro': 'rhel9',
+        'key': 'rhs',
     },
     'rhs8': {
         'id': 'satellite-6.13-for-rhel-8-x86_64-rpms',
@@ -395,21 +426,21 @@ REPOS = {
         'key': 'rhs',
     },
     'rhsc8': {
-        'id': 'satellite-capsule-6.13-for-rhel-8-x86_64-rpms',
-        'name': ('Red Hat Satellite Capsule 6.13 for RHEL 8 x86_64 RPMs'),
-        'version': '6.13',
+        'id': 'satellite-capsule-6.16-for-rhel-8-x86_64-rpms',
+        'name': ('Red Hat Satellite Capsule 6.16 for RHEL 8 x86_64 RPMs'),
+        'version': '6.16',
         'reposet': REPOSET['rhsc8'],
         'product': PRDS['rhsc'],
         'distro': 'rhel8',
         'key': 'rhsc',
     },
-    'rhsc7': {
-        'id': 'rhel-7-server-satellite-capsule-6.11-rpms',
-        'name': ('Red Hat Satellite Capsule 6.11 for RHEL 7 Server RPMs x86_64'),
-        'version': '6.11',
-        'reposet': REPOSET['rhsc7'],
+    'rhsc9': {
+        'id': 'satellite-capsule-6.16-for-rhel-9-x86_64-rpms',
+        'name': ('Red Hat Satellite Capsule 6.16 for RHEL 9 x86_64 RPMs'),
+        'version': '6.16',
+        'reposet': REPOSET['rhsc9'],
         'product': PRDS['rhsc'],
-        'distro': 'rhel7',
+        'distro': 'rhel9',
         'key': 'rhsc',
     },
     'rhsc7_iso': {
@@ -701,8 +732,7 @@ REPOS = {
     'rhscl7': {
         'id': 'rhel-server-rhscl-7-rpms',
         'name': (
-            'Red Hat Software Collections RPMs for Red Hat Enterprise'
-            ' Linux 7 Server x86_64 7Server'
+            'Red Hat Software Collections RPMs for Red Hat Enterprise Linux 7 Server x86_64 7Server'
         ),
         'releasever': '7Server',
         'version': '7',
@@ -712,6 +742,12 @@ REPOS = {
         'key': 'rhscl7',
     },
 }
+
+# RHEL versions for LEAPP testing
+RHEL7_VER = '7.9'
+RHEL8_VER = '8.10'
+RHEL9_VER = '9.5'
+RHEL10_VER = '10.1'  # EL10 pre-release version
 
 BULK_REPO_LIST = [
     REPOS['rhel7_optional'],
@@ -739,6 +775,10 @@ DEFAULT_OS_SEARCH_QUERY = 'name="RedHat" AND (major="6" OR major="7" OR major="8
 
 VDC_SUBSCRIPTION_NAME = 'Red Hat Enterprise Linux for Virtual Datacenters, Premium'
 
+TIMESTAMP_FMT_ZONE = '%Y-%m-%d %H:%M:%S %Z'  # timezone-aware format (by code: UTC, EST, etc)
+TIMESTAMP_FMT = '%Y-%m-%d %H:%M:%S'
+TIMESTAMP_FMT_DATE = '%Y-%m-%d'
+TIMESTAMP_FMT_TIME = '%H:%M:%S'
 TIMEZONES = [
     '(GMT+00:00) UTC',
     '(GMT-10:00) Hawaii',
@@ -769,12 +809,7 @@ FILTER_ERRATA_TYPE = {
 FILTER_ERRATA_DATE = {'updated': "updated", 'issued': "issued"}
 
 REPORT_TEMPLATE_FILE = 'report_template.txt'
-CONTAINER_REGISTRY_HUB = 'https://mirror.gcr.io'
-RH_CONTAINER_REGISTRY_HUB = 'https://registry.redhat.io/'
-PULP_CONTAINER_REGISTRY_HUB = 'https://ghcr.io'
-CONTAINER_UPSTREAM_NAME = 'library/busybox'
-DOCKER_REPO_UPSTREAM_NAME = 'openshift3/logging-elasticsearch'
-CONTAINER_RH_REGISTRY_UPSTREAM_NAME = 'openshift3/ose-metrics-hawkular-openshift-agent'
+
 BOOTABLE_REPO = {
     'upstream_name': 'pulp/bootc-labeled',
     'manifest': {
@@ -815,20 +850,19 @@ CONTAINER_MANIFEST_LABELS = {'annotations', 'labels', 'is_bootable', 'is_flatpak
 FLATPAK_REMOTES = {
     'Fedora': {
         'url': 'https://registry.fedoraproject.org',
-        'index_url': 'https://registry.fedoraproject.org/index/static?label:org.flatpak.ref:exists=1&tag=latest',
         'authenticated': False,
     },
     'RedHat': {
         'url': 'https://flatpaks.redhat.io/rhel/',
-        'index_url': 'https://flatpaks.redhat.io/rhel/index/static?label:org.flatpak.ref:exists=1&tag=latest',
         'authenticated': True,
     },
 }
-PULPCORE_FLATPAK_ENDPOINT = (
-    'https://{}/pulpcore_registry/index/static?label:org.flatpak.ref:exists=1'
-)
+FLATPAK_INDEX_SUFFIX = 'index/static?label:org.flatpak.ref:exists=1&tag=latest'
+FLATPAK_ENDPOINTS = {
+    'pulpcore': 'https://{}/pulpcore_registry/' + FLATPAK_INDEX_SUFFIX,
+    'katello': 'https://{}/' + FLATPAK_INDEX_SUFFIX,
+}
 
-CONTAINER_CLIENTS = ['docker', 'podman']
 CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/lib/pulp/imports/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
@@ -916,6 +950,8 @@ FAKE_9_YUM_UPDATED_PACKAGES = [
     'walrus-5.21-1.noarch',
     'kangaroo-0.2-1.noarch',
 ]
+REAL_RHEL9_OUTDATED_PACKAGE_FILENAME = 'python3-gofer-2.12.5-7.1.el9sat.noarch'
+REAL_RHEL9_PACKAGE = 'python3-gofer'
 REAL_0_ERRATA_ID = 'RHBA-2021:1314'  # for rhst7 (update every GA day)
 REAL_1_ERRATA_ID = 'RHBA-2012:1076'  # for REAL_0_RH_PACKAGE
 REAL_2_ERRATA_ID = 'RHBA-2012:0707'  # for REAL_0_RH_PACKAGE
@@ -928,6 +964,7 @@ REAL_RHEL7_1_ERRATA_ID = 'RHBA-2017:0395'  # tcsh bug fix update
 REAL_RHEL8_1_ERRATA_ID = 'RHSA-2022:4867'  # for REAL_RHEL8_1_PACKAGE
 REAL_RHEL8_ERRATA_CVES = ['CVE-2021-27023', 'CVE-2021-27025']
 REAL_RHSCLIENT_ERRATA = 'RHSA-2023:5982'  # for RH Satellite Client 8
+REAL_RHEL9_ERRATA_ID = 'RHBA-2022:7243'
 FAKE_1_YUM_REPOS_COUNT = 32
 FAKE_3_YUM_REPOS_COUNT = 78
 FAKE_9_YUM_SECURITY_ERRATUM = [
@@ -1039,6 +1076,7 @@ PERMISSIONS = {
         'import_ansible_playbooks',
         'dispatch_cloud_requests',
         'control_organization_insights',
+        'view_statistics',
     ],
     'AnsibleRole': ['view_ansible_roles', 'destroy_ansible_roles', 'import_ansible_roles'],
     'AnsibleVariable': [
@@ -1121,6 +1159,13 @@ PERMISSIONS = {
         'edit_salt_modules',
         'view_salt_modules',
         'destroy_salt_modules',
+    ],
+    'ForemanStatistics::Trend': [
+        'create_trends',
+        'view_trends',
+        'edit_trends',
+        'update_trends',
+        'destroy_trends',
     ],
     'ForemanTasks::RecurringLogic': [
         'create_recurring_logics',
@@ -1367,6 +1412,11 @@ PERMISSIONS = {
         'view_hosts',
         'forget_status_hosts',
         'saltrun_hosts',
+        'view_snapshots',
+        'create_snapshots',
+        'edit_snapshots',
+        'revert_snapshots',
+        'destroy_snapshots',
     ],
     'Katello::ActivationKey': [
         'view_activation_keys',
@@ -1532,7 +1582,8 @@ PERMISSIONS_UI = {
         'create_hosts',
         'edit_hosts',
         'destroy_hosts',
-        'build_hosts' 'power_hosts',
+        'build_hosts',
+        'power_hosts',
         'console_hosts',
         'ipmi_boot_hosts',
         'forget_status_hosts',
@@ -1738,15 +1789,18 @@ OSCAP_DEFAULT_CONTENT = {
     'rhel7_content': 'Red Hat rhel7 default content',
     'rhel8_content': 'Red Hat rhel8 default content',
     'rhel9_content': 'Red Hat rhel9 default content',
+    'rhel10_content': 'Red Hat rhel10 default content',
     'rhel_firefox': 'Red Hat firefox default content',
 }
 
+# TODO some of these include versions that need to be updated here, come with a better solution
 OSCAP_PROFILE = {
     'c2s_rhel6': 'C2S for Red Hat Enterprise Linux 6',
     'dsrhel6': 'DISA STIG for Red Hat Enterprise Linux 6',
     'dsrhel7': 'DISA STIG for Red Hat Enterprise Linux 7',
     'dsrhel8': 'DISA STIG for Red Hat Enterprise Linux 8',
     'dsrhel9': 'DISA STIG for Red Hat Enterprise Linux 9',
+    'dsrhel10': 'DISA STIG for Red Hat Enterprise Linux 10',
     'esp': 'Example Server Profile',
     'rhccp': 'Red Hat Corporate Profile for Certified Cloud Providers (RH CCP)',
     'firefox': 'Mozilla Firefox STIG',
@@ -1758,11 +1812,12 @@ OSCAP_PROFILE = {
     'cbrhel6': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 6',
     'cbrhel7': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 7',
     'cbrhel8': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 8',
-    'cbrhel9': 'PCI-DSS v4.0 Control Baseline for Red Hat Enterprise Linux 9',
+    'cbrhel9': 'PCI-DSS v4.0.1 Control Baseline for Red Hat Enterprise Linux 9',
+    'cbrhel10': 'PCI-DSS v4.0.1 Control Baseline for Red Hat Enterprise Linux 10',
     'ppgpo': 'Protection Profile for General Purpose Operating Systems',
     'acscee': 'Australian Cyber Security Centre (ACSC) Essential Eight',
     'ospp7': 'OSPP - Protection Profile for General Purpose Operating Systems v4.2.1',
-    'ospp8': 'Protection Profile for General Purpose Operating Systems',
+    'ospp8+': 'Protection Profile for General Purpose Operating Systems',
     'usgcb': 'United States Government Configuration Baseline (USGCB)',
     'pcidss6': 'PCI-DSS v3 Control Baseline for Red Hat Enterprise Linux 6',
     'pcidss7': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 7',
@@ -1875,7 +1930,8 @@ VMWARE_CONSTANTS = {
 HAMMER_CONFIG = "~/.hammer/cli.modules.d/foreman.yml"
 HAMMER_SESSIONS = "~/.hammer/sessions"
 
-INSTALLER_CONFIG_FILE = '/etc/foreman-installer/scenarios.d/satellite.yaml'
+SATELLITE_INSTALLER_CONFIG = '/etc/foreman-installer/scenarios.d/satellite.yaml'
+CAPSULE_INSTALLER_CONFIG = '/etc/foreman-installer/scenarios.d/capsule.yaml'
 SATELLITE_ANSWER_FILE = "/etc/foreman-installer/scenarios.d/satellite-answers.yaml"
 CAPSULE_ANSWER_FILE = "/etc/foreman-installer/scenarios.d/capsule-answers.yaml"
 MAINTAIN_HAMMER_YML = "/etc/foreman-maintain/foreman-maintain-hammer.yml"
@@ -1894,8 +1950,7 @@ FOREMAN_TEMPLATES_NOT_IMPORTED_COUNT = {
 FOREMAN_TEMPLATE_IMPORT_API_URL = 'http://api.github.com/repos/SatelliteQE/foreman_templates'
 
 FOREMAN_TEMPLATE_TEST_TEMPLATE = (
-    'https://raw.githubusercontent.com/SatelliteQE/foreman_templates/example/'
-    'example_template.erb'
+    'https://raw.githubusercontent.com/SatelliteQE/foreman_templates/example/example_template.erb'
 )
 
 FOREMAN_TEMPLATE_ROOT_DIR = '/usr/share/foreman_templates'
@@ -1982,12 +2037,24 @@ FOREMAN_ANSIBLE_MODULES = [
     "compute_resource",
     "config_group",
     "content_credential",
+    "content_export_info",
+    "content_export_library",
+    "content_export_repository",
+    "content_export_version",
+    "content_import_info",
+    "content_import_library",
+    "content_import_repository",
+    "content_import_version",
     "content_upload",
     "content_view_filter",
+    "content_view_filter_info",
+    "content_view_filter_rule",
+    "content_view_filter_rule_info",
     "content_view_info",
     "content_view",
     "content_view_version_info",
     "content_view_version",
+    "discovery_rule",
     "domain_info",
     "domain",
     "external_usergroup",
@@ -1995,6 +2062,7 @@ FOREMAN_ANSIBLE_MODULES = [
     "hardware_model",
     "host_collection",
     "host_errata_info",
+    "hostgroup_info",
     "hostgroup",
     "host_info",
     "host_power",
@@ -2008,6 +2076,7 @@ FOREMAN_ANSIBLE_MODULES = [
     "location",
     "operatingsystem",
     "organization",
+    "organization_info",
     "os_default_template",
     "partition_table",
     "product",
@@ -2016,6 +2085,7 @@ FOREMAN_ANSIBLE_MODULES = [
     "puppet_environment",
     "realm",
     "redhat_manifest",
+    "registration_command",
     "repository_info",
     "repository",
     "repository_set_info",
@@ -2028,6 +2098,7 @@ FOREMAN_ANSIBLE_MODULES = [
     "setting_info",
     "setting",
     "smart_class_parameter",
+    "smart_class_parameter_override_value",
     "smart_proxy",
     "status_info",
     "subnet_info",
@@ -2038,6 +2109,8 @@ FOREMAN_ANSIBLE_MODULES = [
     "templates_import",
     "usergroup",
     "user",
+    "wait_for_task",
+    "webhook",
 ]
 
 FAM_TEST_PLAYBOOKS = [
@@ -2060,6 +2133,10 @@ FAM_TEST_PLAYBOOKS = [
     "content_export_library",
     "content_export_repository",
     "content_export_version",
+    "content_import_info",
+    "content_import_library",
+    "content_import_repository",
+    "content_import_version",
     "content_rhel_role",
     "content_upload",
     "content_view_filter_info",
@@ -2175,6 +2252,7 @@ RH_SAT_ROLES = [
     'domains',
     'hostgroups',
     'lifecycle_environments',
+    'locations',
     'manifest',
     'operatingsystems',
     'organizations',
@@ -2251,6 +2329,21 @@ DNF_RECOMMENDATION = (
 EXPIRED_MANIFEST = 'expired-manifest.zip'
 EXPIRED_MANIFEST_DATE = 'Fri Dec 03 2021'
 
+DUMMY_BOOTC_FACTS = """{
+  "bootc.booted.image": "quay.io/centos-bootc/centos-bootc:stream10",
+  "bootc.booted.version": "stream10.20241202.0",
+  "bootc.booted.digest": "sha256:54256a998f0c62e16f3927c82b570f90bd8449a52e03daabd5fd16d6419fd572",
+  "bootc.staged.image": null,
+  "bootc.staged.version": null,
+  "bootc.staged.digest": null,
+  "bootc.rollback.image": "quay.io/centos-bootc/centos-bootc:stream10",
+  "bootc.rollback.version": "stream10.20241107.0",
+  "bootc.rollback.digest": "sha256:9ed49e9b189f5dae5a01ea9abdcef0884616300b565d32061aea619f2e916be3",
+  "bootc.available.image": null,
+  "bootc.available.version": null,
+  "bootc.available.digest": null
+}"""
+
 
 # Data File Paths
 class DataFile(Box):
@@ -2272,3 +2365,4 @@ class DataFile(Box):
     OS_TEMPLATE_DATA_FILE = DATA_DIR.joinpath(OS_TEMPLATE_DATA_FILE)
     FAKE_3_YUM_REPO_RPMS_ANT = DATA_DIR.joinpath(FAKE_3_YUM_REPO_RPMS[0])
     EXPIRED_MANIFEST_FILE = DATA_DIR.joinpath(EXPIRED_MANIFEST)
+    USAGE_REPORT_ITEMS = DATA_DIR.joinpath('usage_report.yml')

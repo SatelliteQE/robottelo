@@ -16,8 +16,6 @@ from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
     REPO_TYPE,
 )
 from robottelo.logging import logger
@@ -30,18 +28,18 @@ def _repo(sat, product_id, name=None, upstream_name=None, url=None):
     :param str name: Name for the repository. If ``None`` then a random
         value will be generated.
     :param str upstream_name: A valid name of an existing upstream repository.
-        If ``None`` then defaults to CONTAINER_UPSTREAM_NAME constant.
+        If ``None`` then defaults to settings.container.upstream_name constant.
     :param str url: URL of repository. If ``None`` then defaults to
-        CONTAINER_REGISTRY_HUB constant.
+        settings.container.registry_hub constant.
     :return: A ``Repository`` object.
     """
     return sat.cli_factory.make_repository(
         {
             'content-type': REPO_TYPE['docker'],
-            'docker-upstream-name': upstream_name or CONTAINER_UPSTREAM_NAME,
+            'docker-upstream-name': upstream_name or settings.container.upstream_name,
             'name': name or gen_string('alpha', 5),
             'product-id': product_id,
-            'url': url or CONTAINER_REGISTRY_HUB,
+            'url': url or settings.container.registry_hub,
         }
     )
 
@@ -53,7 +51,6 @@ class TestDockerClient:
     :CaseImportance: Medium
     """
 
-    @pytest.mark.tier3
     def test_positive_pull_image(
         self, request, module_org, module_container_contenthost, target_sat
     ):
@@ -110,7 +107,6 @@ class TestDockerClient:
             module_container_contenthost.execute(f'docker rmi {repo["published-at"]}')
 
     @pytest.mark.skip_if_not_set('docker')
-    @pytest.mark.tier3
     @pytest.mark.e2e
     def test_positive_container_admin_end_to_end_search(
         self, request, module_org, module_container_contenthost, target_sat
@@ -149,7 +145,7 @@ class TestDockerClient:
         # create lifecycle environment and promote content view to it
         lce = target_sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
         product = target_sat.cli_factory.make_product_wait({'organization-id': module_org.id})
-        repo = _repo(target_sat, product['id'], upstream_name=CONTAINER_UPSTREAM_NAME)
+        repo = _repo(target_sat, product['id'], upstream_name=settings.container.upstream_name)
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         content_view = target_sat.cli_factory.make_content_view(
             {'composite': False, 'organization-id': module_org.id}
@@ -172,11 +168,13 @@ class TestDockerClient:
         )
         docker_repo_uri = (
             f'{target_sat.hostname}/{pattern_prefix}-{content_view["label"]}/'
-            f'{CONTAINER_UPSTREAM_NAME}'
+            f'{settings.container.upstream_name}'
         ).lower()
 
         # 3. Try to search for docker images on Satellite
-        remote_search_command = f'docker search {target_sat.hostname}/{CONTAINER_UPSTREAM_NAME}'
+        remote_search_command = (
+            f'docker search {target_sat.hostname}/{settings.container.upstream_name}'
+        )
         result = module_container_contenthost.execute(remote_search_command)
         assert result.status == 0
         assert docker_repo_uri not in result.stdout
@@ -220,7 +218,6 @@ class TestDockerClient:
         assert docker_repo_uri in result.stdout
 
     @pytest.mark.skip_if_not_set('docker')
-    @pytest.mark.tier3
     @pytest.mark.e2e
     def test_positive_container_admin_end_to_end_pull(
         self, request, module_org, module_container_contenthost, target_sat
@@ -250,7 +247,7 @@ class TestDockerClient:
         :parametrized: yes
         """
         pattern_prefix = gen_string('alpha', 5)
-        docker_upstream_name = CONTAINER_UPSTREAM_NAME
+        docker_upstream_name = settings.container.upstream_name
         registry_name_pattern = (
             f'{pattern_prefix}-<%= content_view.label %>/<%= repository.docker_upstream_name %>'
         )
@@ -282,8 +279,7 @@ class TestDockerClient:
             }
         )
         docker_repo_uri = (
-            f'{target_sat.hostname}/{pattern_prefix}-{content_view["label"]}/'
-            f'{docker_upstream_name}'
+            f'{target_sat.hostname}/{pattern_prefix}-{content_view["label"]}/{docker_upstream_name}'
         ).lower()
 
         # 3. Try to pull in docker image from Satellite
@@ -333,7 +329,7 @@ class TestDockerClient:
         result = module_container_contenthost.execute(docker_pull_command)
         assert result.status == 0
 
-    def test_negative_pull_content_with_longer_name(
+    def test_positive_pull_content_with_longer_name(
         self, request, target_sat, module_container_contenthost, module_org
     ):
         """Verify that long name CV publishes when CV & docker repo both have a larger name.
@@ -371,7 +367,10 @@ class TestDockerClient:
         )
 
         repo = _repo(
-            target_sat, product['id'], name=repo_name, upstream_name=CONTAINER_UPSTREAM_NAME
+            target_sat,
+            product['id'],
+            name=repo_name,
+            upstream_name=settings.container.upstream_name,
         )
 
         # 2. Sync the repos
@@ -395,7 +394,7 @@ class TestDockerClient:
 
         podman_pull_command = (
             f"podman pull --tls-verify=false {target_sat.hostname}/{module_org.label}"
-            f"-{lce['label']}-{cv['label']}-{product['label']}-{repo_name}".lower()
+            f"/{lce['label']}/{cv['label']}/{product['label']}/{repo_name}".lower()
         )
 
         # 4. Pull in docker image

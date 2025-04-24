@@ -79,6 +79,12 @@ class Host(Base):
         return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
+    def bootc_images(cls, options=None):
+        """List booted bootc container images for hosts"""
+        cls.command_sub = 'bootc images'
+        return cls.execute(cls._construct_command(options), output_format='csv')
+
+    @classmethod
     def disassociate(cls, options):
         """Disassociate the host from a CR."""
         cls.command_sub = 'disassociate'

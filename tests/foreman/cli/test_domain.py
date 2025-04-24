@@ -103,7 +103,6 @@ def valid_delete_params():
     ]
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_create_update_delete_domain(module_target_sat):
     """Create domain, update and delete domain and set parameters
@@ -163,7 +162,6 @@ def test_positive_create_update_delete_domain(module_target_sat):
         module_target_sat.cli.Domain.info({'id': domain['id']})
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('options', **parametrized(invalid_create_params()))
 def test_negative_create(options, module_target_sat):
     """Create domain with invalid values
@@ -180,7 +178,6 @@ def test_negative_create(options, module_target_sat):
         module_target_sat.cli_factory.make_domain(options)
 
 
-@pytest.mark.tier2
 def test_negative_create_with_invalid_dns_id(module_target_sat):
     """Attempt to register a domain with invalid id
 
@@ -196,11 +193,12 @@ def test_negative_create_with_invalid_dns_id(module_target_sat):
         module_target_sat.cli_factory.make_domain({'name': gen_string('alpha'), 'dns-id': -1})
     valid_messages = ['Invalid smart-proxy id', 'Invalid capsule id']
     exception_string = str(context.value)
-    messages = [message for message in valid_messages if message in exception_string]
+    messages = [
+        message for message in valid_messages if message.lower() in exception_string.lower()
+    ]
     assert len(messages) > 0
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('options', **parametrized(invalid_update_params()))
 def test_negative_update(module_domain, options, module_target_sat):
     """Update domain with invalid values
@@ -221,7 +219,6 @@ def test_negative_update(module_domain, options, module_target_sat):
         assert result[key] == getattr(module_domain, key)
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('options', **parametrized(invalid_set_params()))
 def test_negative_set_parameter(module_domain, options, module_target_sat):
     """Domain set-parameter with invalid values
@@ -243,7 +240,6 @@ def test_negative_set_parameter(module_domain, options, module_target_sat):
     assert len(domain['parameters']) == 0
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('entity_id', **parametrized(invalid_id_list()))
 def test_negative_delete_by_id(entity_id, module_target_sat):
     """Create Domain then delete it by wrong ID

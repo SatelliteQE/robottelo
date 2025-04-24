@@ -30,7 +30,6 @@ def run_puppet_agent(session_puppet_enabled_sat):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier1
 def test_positive_CRD_satellite(run_puppet_agent, session_puppet_enabled_sat):
     """Test puppet-agent creates a report for satellite when its run, read and delete by its ID
 

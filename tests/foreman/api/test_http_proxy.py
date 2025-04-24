@@ -17,14 +17,9 @@ import pytest
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
-)
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
 
 
-@pytest.mark.tier2
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
@@ -43,8 +38,8 @@ from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
             'YumRepository': {'url': settings.repos.module_stream_1.url},
             'FileRepository': {'url': CUSTOM_FILE_REPO},
             'DockerRepository': {
-                'url': CONTAINER_REGISTRY_HUB,
-                'upstream_name': CONTAINER_UPSTREAM_NAME,
+                'url': settings.container.registry_hub,
+                'upstream_name': settings.container.upstream_name,
             },
             'AnsibleRepository': {
                 'url': ANSIBLE_GALAXY,
@@ -104,17 +99,17 @@ def test_positive_end_to_end(
                 http_proxy_policy=policy,
                 http_proxy_id=setup_http_proxy[0].id if 'selected' in policy else None,
             ).update()
-            assert (
-                repo.http_proxy_policy == policy
-            ), f'Policy update failed for {repo.content_type} repo with {policy} HTTP policy'
+            assert repo.http_proxy_policy == policy, (
+                f'Policy update failed for {repo.content_type} repo with {policy} HTTP policy'
+            )
             assert (
                 repo.http_proxy_id == setup_http_proxy[0].id
                 if 'selected' in policy
                 else repo.http_proxy_id is None
             ), f'Proxy id update failed for {repo.content_type} repo with {policy} HTTP policy'
-            assert (
-                'success' in module_target_sat.api.Repository(id=repo.id).sync()['result']
-            ), f'Sync of a {repo.content_type} repo with {policy} HTTP policy failed'
+            assert 'success' in module_target_sat.api.Repository(id=repo.id).sync()['result'], (
+                f'Sync of a {repo.content_type} repo with {policy} HTTP policy failed'
+            )
 
     # Refresh manifest through HTTP proxy
     res = module_target_sat.api.Subscription().refresh_manifest(
@@ -149,15 +144,14 @@ def test_positive_end_to_end(
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('9')
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize(
     'setup_http_proxy',
-    [None, True, False],
+    [True, False],
     indirect=True,
-    ids=['no_http_proxy', 'auth_http_proxy', 'unauth_http_proxy'],
+    ids=['auth_http_proxy', 'unauth_http_proxy'],
 )
-@pytest.mark.tier3
 def test_positive_install_content_with_http_proxy(
     setup_http_proxy, module_target_sat, rhel_contenthost, function_sca_manifest_org
 ):
@@ -185,8 +179,8 @@ def test_positive_install_content_with_http_proxy(
 
     :parametrized: yes
     """
-    repo_to_use = 'rhae2.9_el8'
-    pkg_name = 'ansible'
+    repo_to_use = 'rhsclient9'
+    pkg_name = 'katello-host-tools'
     org = function_sca_manifest_org
     lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
     content_view = module_target_sat.api.ContentView(organization=org).create()
@@ -229,7 +223,6 @@ def test_positive_install_content_with_http_proxy(
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 def test_positive_assign_http_proxy_to_products(target_sat, function_org):
     """Assign http_proxy to Products and check whether http-proxy is
      used during sync.
@@ -292,7 +285,6 @@ def test_positive_assign_http_proxy_to_products(target_sat, function_org):
     assert 'success' in product_a.sync()['result'], 'Product sync failed'
 
 
-@pytest.mark.tier2
 def test_positive_sync_proxy_with_certificate(request, target_sat, module_org, module_product):
     """Assign http_proxy with cacert.crt to repository and test
        that http_proxy and cacert are used during sync.

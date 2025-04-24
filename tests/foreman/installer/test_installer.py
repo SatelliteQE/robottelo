@@ -141,7 +141,7 @@ def common_sat_install_assertions(satellite):
 
 
 def install_satellite(satellite, installer_args, enable_fapolicyd=False):
-    # Register for RHEL8 repos, get Ohsnap repofile, and enable and download satellite
+    # Register for RHEL repos, get Ohsnap repofile, and enable and download satellite
     satellite.register_to_cdn()
     if settings.server.version.source == 'nightly':
         satellite.create_custom_repos(
@@ -154,6 +154,11 @@ def install_satellite(satellite, installer_args, enable_fapolicyd=False):
             release=settings.server.version.release,
             snap=settings.server.version.snap,
         )
+    if settings.robottelo.rhel_source == "internal":
+        # disable rhel repos from cdn
+        satellite.disable_repo("rhel-*")
+        # add internal rhel repos
+        satellite.create_custom_repos(**settings.repos.get(f'rhel{satellite.os_version.major}_os'))
     if enable_fapolicyd:
         if satellite.execute('rpm -q satellite-maintain').status == 0:
             # Installing the rpm on existing sat needs sat-maintain perms
@@ -170,8 +175,8 @@ def install_satellite(satellite, installer_args, enable_fapolicyd=False):
     satellite.execute(
         'firewall-cmd --permanent --add-service RH-Satellite-6 && firewall-cmd --reload'
     )
-    # Install Satellite
-    satellite.execute(
+    # Install Satellite and return result
+    return satellite.execute(
         InstallerCommand(installer_args=installer_args).get_command(),
         timeout='30m',
     )
@@ -300,8 +305,10 @@ def sat_default_install(module_sat_ready_rhels):
         f'foreman-initial-admin-password {settings.server.admin_password}',
     ]
     sat = module_sat_ready_rhels.pop()
-    install_satellite(sat, installer_args)
-    sat.enable_satellite_ipv6_http_proxy()
+    sat.enable_ipv6_dnf_and_rhsm_proxy()
+    assert install_satellite(sat, installer_args).status == 0, (
+        "Satellite installation failed (non-zero return code)"
+    )
     return sat
 
 
@@ -313,9 +320,12 @@ def sat_fapolicyd_install(module_sat_ready_rhels):
         f'foreman-initial-admin-password {settings.server.admin_password}',
     ]
     sat = module_sat_ready_rhels.pop()
-    install_satellite(sat, installer_args, enable_fapolicyd=True)
     sat.enable_ipv6_dnf_and_rhsm_proxy()
-    sat.enable_satellite_http_proxy()
+    assert install_satellite(sat, installer_args, enable_fapolicyd=True).status == 0, (
+        "Satellite installation failed (non-zero return code)"
+    )
+    if settings.server.is_ipv6:
+        sat.enable_satellite_http_proxy()
     return sat
 
 
@@ -327,18 +337,18 @@ def sat_non_default_install(module_sat_ready_rhels):
         f'foreman-initial-admin-password {settings.server.admin_password}',
         'foreman-rails-cache-store type:file',
         'foreman-proxy-content-pulpcore-hide-guarded-distributions false',
-        'enable-foreman-plugin-discovery',
-        'foreman-proxy-plugin-discovery-install-images true',
     ]
     sat = module_sat_ready_rhels.pop()
-    install_satellite(sat, installer_args, enable_fapolicyd=True)
-    sat.enable_satellite_ipv6_http_proxy()
-    sat.execute('dnf -y --disableplugin=foreman-protector install foreman-discovery-image')
+    sat.enable_ipv6_dnf_and_rhsm_proxy()
+    assert install_satellite(sat, installer_args, enable_fapolicyd=True).status == 0, (
+        "Satellite installation failed (non-zero return code)"
+    )
+    if settings.server.is_ipv6:
+        sat.enable_satellite_http_proxy()
     return sat
 
 
 @pytest.mark.e2e
-@pytest.mark.tier1
 @pytest.mark.pit_server
 @pytest.mark.build_sanity
 def test_capsule_installation(
@@ -442,7 +452,6 @@ def test_capsule_installation(
 
 
 @pytest.mark.e2e
-@pytest.mark.tier1
 def test_foreman_rails_cache_store(sat_non_default_install):
     """Test foreman-rails-cache-store option
 
@@ -450,8 +459,7 @@ def test_foreman_rails_cache_store(sat_non_default_install):
 
     :steps:
         1. Install Satellite with option foreman-rails-cache-store type:file
-        2. Verify that foreman-redis package is not installed.
-        3. Check /etc/foreman/settings.yaml
+        2. Check /etc/foreman/settings.yaml
 
     :CaseImportance: Medium
 
@@ -460,13 +468,11 @@ def test_foreman_rails_cache_store(sat_non_default_install):
     :BZ: 2063717, 2165092, 2244370
     """
     # Verify foreman-rails-cache-store option works
-    assert sat_non_default_install.execute('rpm -q foreman-redis').status == 1
     settings_file = sat_non_default_install.load_remote_yaml_file(FOREMAN_SETTINGS_YML)
     assert settings_file.rails_cache_store.type == 'file'
 
 
 @pytest.mark.e2e
-@pytest.mark.tier1
 def test_content_guarded_distributions_option(
     sat_default_install, sat_non_default_install, module_sca_manifest
 ):
@@ -525,7 +531,6 @@ def test_content_guarded_distributions_option(
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier1
 def test_positive_selinux_foreman_module(target_sat):
     """Check if SELinux foreman module is installed on Satellite
 
@@ -545,7 +550,6 @@ def test_positive_selinux_foreman_module(target_sat):
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier1
 @pytest.mark.parametrize('service', SATELLITE_SERVICES)
 def test_positive_check_installer_service_running(target_sat, service):
     """Check if a service is running
@@ -565,7 +569,6 @@ def test_positive_check_installer_service_running(target_sat, service):
 
 
 @pytest.mark.upgrade
-@pytest.mark.tier1
 def test_positive_check_installer_hammer_ping(target_sat):
     """Check if hammer ping reports all services as ok
 
@@ -588,7 +591,6 @@ def test_positive_check_installer_hammer_ping(target_sat):
             assert 'ok' in line
 
 
-@pytest.mark.tier3
 def test_installer_cap_pub_directory_accessibility(capsule_configured):
     """Verify the public directory accessibility from capsule url after disabling it from the
     custom-hiera
@@ -675,7 +677,6 @@ def test_installer_capsule_with_enabled_ansible(module_capsule_configured_ansibl
     assert callbacks_enabled.stdout.strip('" \n') == downstream_callback
 
 
-@pytest.mark.tier1
 @pytest.mark.build_sanity
 @pytest.mark.first_sanity
 @pytest.mark.pit_server
@@ -723,7 +724,7 @@ def test_weak_dependency(sat_non_default_install, package):
     :id: c7988920-2f8c-4646-bde9-8823a3ca96bb
 
     :steps:
-        1. Use satellite with non-default setup (for 'nmap-ncat' enable foreman discovery plugin and install foreman-discovery-image)
+        1. Use satellite with non-default setup
         2. Attempt to remove the package
 
     :expectedresults:

@@ -29,6 +29,8 @@ from uuid import uuid4
 
 from broker.helpers import FileLock
 
+from robottelo.config import settings
+
 
 class SharedResourceError(Exception):
     """An exception class for SharedResource errors."""
@@ -120,7 +122,7 @@ class SharedResource:
         while True:
             curr_data = json.loads(self.resource_file.read_text())
             if curr_data["main_status"] != "done":
-                time.sleep(60)
+                time.sleep(settings.robottelo.shared_resource_wait)
             elif curr_data["main_status"] == "action_error":
                 self._try_take_over()
             elif curr_data["main_status"] == "error":

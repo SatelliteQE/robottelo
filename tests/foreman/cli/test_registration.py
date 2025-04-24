@@ -18,13 +18,12 @@ from tempfile import mkstemp
 
 from fauxfactory import gen_mac, gen_string
 import pytest
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import CLIENT_PORT
 from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.issue_handlers import is_open
-
-pytestmark = pytest.mark.tier1
 
 
 @pytest.mark.e2e
@@ -64,7 +63,7 @@ def test_host_registration_end_to_end(
     )
     # Verify host owner name set correctly
     assert 'Admin User' in owner_name['additional-info']['owner']['name'], (
-        f'Host owner name is incorrect: ' f'{owner_name["additional-info"]["owner"]["name"]}'
+        f'Host owner name is incorrect: {owner_name["additional-info"]["owner"]["name"]}'
     )
 
     # Verify server.hostname and server.port from subscription-manager config
@@ -94,7 +93,7 @@ def test_host_registration_end_to_end(
     )
     # Verify capsule host owner name set correctly
     assert 'Admin User' in owner_name['additional-info']['owner']['name'], (
-        f'Host owner name is incorrect: ' f'{owner_name["additional-info"]["owner"]["name"]}'
+        f'Host owner name is incorrect: {owner_name["additional-info"]["owner"]["name"]}'
     )
 
     # Verify server.hostname and server.port from subscription-manager config
@@ -105,9 +104,8 @@ def test_host_registration_end_to_end(
     assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
 
 
-def test_upgrade_katello_ca_consumer_rpm(
-    module_org, module_location, target_sat, rhel7_contenthost
-):
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_upgrade_katello_ca_consumer_rpm(module_org, module_location, target_sat, rhel_contenthost):
     """After updating the consumer cert the rhsm.conf file still points to Satellite host name
     and not Red Hat CDN for subscription.
 
@@ -130,16 +128,17 @@ def test_upgrade_katello_ca_consumer_rpm(
     :BZ: 1791503
     """
     # Adding IPv6 proxy for IPv6 communication
-    rhel7_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
+    rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
     consumer_cert_name = f'katello-ca-consumer-{target_sat.hostname}'
     consumer_cert_src = f'{consumer_cert_name}-1.0-1.src.rpm'
     new_consumer_cert_rpm = f'{consumer_cert_name}-1.0-2.noarch.rpm'
     spec_file = f'{consumer_cert_name}.spec'
-    vm = rhel7_contenthost
+    vm = rhel_contenthost
     # Install consumer cert and check server URL in /etc/rhsm/rhsm.conf
-    assert vm.execute(
+    result = vm.execute(
         f'rpm -Uvh "http://{target_sat.hostname}/pub/{consumer_cert_name}-1.0-1.noarch.rpm"'
     )
+    assert result.status == 0
     # Check server URL is not Red Hat CDN's "subscription.rhsm.redhat.com"
     assert vm.subscription_config['server']['hostname'] != 'subscription.rhsm.redhat.com'
     assert target_sat.hostname == vm.subscription_config['server']['hostname']
@@ -173,7 +172,6 @@ def test_upgrade_katello_ca_consumer_rpm(
 
 
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
-@pytest.mark.tier3
 def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost, target_sat):
     """Attempt to register a host twice to Satellite
 
@@ -194,7 +192,6 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost
 
 
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
-@pytest.mark.tier3
 def test_positive_force_register_twice(module_ak_with_cv, module_org, rhel_contenthost, target_sat):
     """Register a host twice to Satellite, with force=true
 
@@ -233,7 +230,6 @@ def test_positive_force_register_twice(module_ak_with_cv, module_org, rhel_conte
     )
 
 
-@pytest.mark.tier1
 def test_negative_global_registration_without_ak(module_target_sat):
     """Attempt to register a host without ActivationKey
 
@@ -338,6 +334,39 @@ def test_positive_global_registration_with_gpg_repo(
         assert rhel_contenthost.execute('dnf install -y bear').status == 0
 
 
+@pytest.mark.upgrade
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.parametrize('download_utility', ['wget', 'curl'])
+def test_positive_register_download_utility(
+    module_sca_manifest_org,
+    module_location,
+    module_activation_key,
+    module_target_sat,
+    rhel_contenthost,
+    download_utility,
+):
+    """Verify host registration command gets generated and host is registered successfully with all supported download utilities.
+
+    :id: 80c3204a-7923-4c70-b7c1-7b368c61d4b8
+
+    :steps:
+        1. Register host with global registration template using different download utilities.
+
+    :expectedresults: Host is successfully registered.
+    """
+    org = module_sca_manifest_org
+    result = rhel_contenthost.register(
+        org,
+        module_location,
+        module_activation_key.name,
+        module_target_sat,
+        download_utility=download_utility,
+    )
+    assert result.status == 0
+    assert rhel_contenthost.subscribed
+
+
 @pytest.mark.parametrize('setting_update', ['default_location_subscribed_hosts'], indirect=True)
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_verify_default_location_for_registered_host(
@@ -400,3 +429,146 @@ def test_positive_verify_default_location_for_registered_host(
         query={"search": f'name={rhel_contenthost.hostname}'}
     )[0]
     assert host.location.read().name == module_location.name
+
+
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_positive_invalidate_users_tokens(
+    module_target_sat, rhel_contenthost, module_activation_key, module_org, request
+):
+    """Verify invalidating single and multiple users tokens.
+
+    :id: 5db602d4-9c57-4b70-8d46-5323044824e0
+
+    :steps:
+        1. Create an admin user and a non-admin user with "edit_users" and "register_hosts" permission.
+        2. Generate a token with admin user and register a host with it, it should be successful.
+        3. Invalidate the token and try to use the generated token again to register the host, it should fail.
+        4. Invalidate tokens for multiple users with "invalidate-multiple" command, it should invalidate all the tokens for provided users.
+        5. Repeat Steps 2,3 and 4 with non-admin user and it should work the same way.
+
+    :expectedresults: Host registration will not be possible after/with invalidated tokens.
+
+    :CaseImportance: Critical
+
+    :Verifies: SAT-30385
+    """
+    password = settings.server.admin_password
+    admin_user = module_target_sat.api.User().search(
+        query={'search': f'login={settings.server.admin_username}'}
+    )[0]
+
+    # Non-Admin user with "edit_users" permission and "Register hosts" role
+    non_admin_user = module_target_sat.api.User(
+        login=gen_string('alpha'), password=password, organization=[module_org]
+    ).create()
+    role = module_target_sat.cli_factory.make_role({'organization-id': module_org.id})
+    module_target_sat.cli_factory.add_role_permissions(
+        role.id,
+        resource_permissions={'User': {'permissions': ['edit_users']}},
+    )
+    module_target_sat.cli.User.add_role({'id': non_admin_user.id, 'role-id': role.id})
+    module_target_sat.cli.User.add_role({'id': non_admin_user.id, 'role': 'Register hosts'})
+
+    # delete the host and the user
+    @request.addfinalizer
+    def _finalize():
+        wait_for(lambda: module_target_sat.cli.Host.delete({'name': rhel_contenthost.hostname}))
+        module_target_sat.cli.User.delete({'login': non_admin_user.login})
+
+    # Generate token and verify token invalidation
+    for usertype in (admin_user, non_admin_user):
+        user = admin_user if usertype.admin else non_admin_user
+        cmd = module_target_sat.cli.HostRegistration.with_user(
+            user.login, password
+        ).generate_command(
+            options={
+                'activation-keys': module_activation_key.name,
+                'insecure': 'true',
+                'organization-id': module_org.id,
+            }
+        )
+        result = rhel_contenthost.execute(cmd.strip('\n'))
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+        # Invalidate JWTs for a single user
+        result = module_target_sat.cli.User.with_user(user.login, password).invalidate(
+            options={
+                'user-id': user.id,
+            }
+        )
+        assert f'Successfully invalidated registration tokens for {user.login}' in result
+
+        rhel_contenthost.unregister()
+        # Re-register the host with invalidated token
+        result = rhel_contenthost.execute(cmd.strip('\n'))
+        assert result.status == 1
+        assert 'ERROR: unauthorized' in result.stdout
+
+        # Invalidate JWTs for multiple users
+        result = module_target_sat.cli.User.with_user(user.login, password).invalidate_multiple(
+            options={'search': f"id ^ ({admin_user.id}, {non_admin_user.id})"}
+        )
+        assert 'Successfully invalidated registration tokens' in result
+
+
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_negative_users_permission_for_invalidating_tokens(
+    module_target_sat, rhel_contenthost, module_activation_key, module_org
+):
+    """Verify invalidating single and multiple users tokens require "edit_users" permission for non_admin user.
+
+    :id: 6592e106-29c8-4360-8ebb-8db0c45ca616
+
+    :steps:
+        1. Create an admin user and a non-admin user with "register_hosts" permission.
+        2. Generate a token with non_admin user and register a host with it, it should be successful.
+        3. Try to invalidate the token with non_admin user, it should fail.
+        4. Repeat Step 3 with invalidate_multiple command and it should fail too.
+
+    :expectedresults: Tokens invalidation fail for non_admin user without "edit_users" permission.
+
+    :Verifies: SAT-30385
+    """
+    password = settings.server.admin_password
+    admin_user = module_target_sat.api.User().search(
+        query={'search': f'login={settings.server.admin_username}'}
+    )[0]
+
+    # Non-Admin user with "Register hosts" role
+    non_admin_user = module_target_sat.cli_factory.user(
+        {
+            'login': gen_string('alpha'),
+            'password': password,
+            'organization-ids': module_org.id,
+            'roles': ['Register hosts'],
+        }
+    )
+
+    # Generate token and verify token invalidation
+    cmd = module_target_sat.cli.HostRegistration.with_user(
+        non_admin_user.login, password
+    ).generate_command(
+        options={
+            'activation-keys': module_activation_key.name,
+            'insecure': 'true',
+            'organization-id': module_org.id,
+        }
+    )
+    result = rhel_contenthost.execute(cmd.strip('\n'))
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+    # Try invalidating JWTs for a single user
+    with pytest.raises(CLIReturnCodeError) as context:
+        module_target_sat.cli.User.with_user(non_admin_user.login, password).invalidate(
+            options={
+                'user-id': admin_user.id,
+            }
+        )
+    assert "Missing one of the required permissions: edit_users" in str(context.value)
+
+    # Try invalidating JWTs  for multiple users
+    with pytest.raises(CLIReturnCodeError) as context:
+        module_target_sat.cli.User.with_user(non_admin_user.login, password).invalidate_multiple(
+            options={'search': f"id ^ ({admin_user.id}, {non_admin_user.id})"}
+        )
+    assert "Missing one of the required permissions: edit_users" in str(context.value)

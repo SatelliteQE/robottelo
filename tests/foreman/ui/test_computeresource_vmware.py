@@ -82,7 +82,6 @@ def get_vmware_datastore_summary_string(vmware, vmwareclient):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier1
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 def test_positive_cr_end_to_end(session, module_org, module_location, vmware, module_target_sat):
     """Perform end-to-end testing for compute resource VMware component.
@@ -154,7 +153,6 @@ def test_positive_cr_end_to_end(session, module_org, module_location, vmware, mo
         assert not session.computeresource.search(new_cr_name)
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 def test_positive_retrieve_virtual_machine_list(session, vmware):
     """List the virtual machine list from vmware compute resource
@@ -190,7 +188,6 @@ def test_positive_retrieve_virtual_machine_list(session, vmware):
 
 
 @pytest.mark.e2e
-@pytest.mark.tier2
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 def test_positive_image_end_to_end(session, target_sat, vmware):
     """Perform end to end testing for compute resource VMware component image.
@@ -248,7 +245,6 @@ def test_positive_image_end_to_end(session, target_sat, vmware):
         )
 
 
-@pytest.mark.tier2
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 def test_positive_resource_vm_power_management(session, vmware):
@@ -294,7 +290,6 @@ def test_positive_resource_vm_power_management(session, vmware):
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
-@pytest.mark.tier2
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 def test_positive_vmware_custom_profile_end_to_end(
     session, vmware, request, target_sat, get_vmware_datastore_summary_string
@@ -326,7 +321,7 @@ def test_positive_vmware_custom_profile_end_to_end(
     cpus = ['2', '4', '6']
     vm_memory = ['4000', '6000', '8000']
     annotation_notes = gen_string('alpha')
-    firmware_type = ['Automatic', 'BIOS', 'EFI']
+    firmware_type = ['Automatic', 'BIOS', 'UEFI', 'UEFI Secure Boot']
     resource_pool = VMWARE_CONSTANTS['pool']
     folder = VMWARE_CONSTANTS['folder']
     virtual_hw_version = VMWARE_CONSTANTS['virtualhw_version']
@@ -425,7 +420,6 @@ def test_positive_vmware_custom_profile_end_to_end(
         assert not session.computeresource.search(cr_name)
 
 
-@pytest.mark.tier2
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 def test_positive_virt_card(session, target_sat, module_location, module_org, vmware):
     """Check to see that the Virtualization card appears for an imported VM
@@ -554,15 +548,10 @@ def test_positive_virt_card(session, target_sat, module_location, module_org, vm
 
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
-@pytest.mark.parametrize(
-    'setting_update',
-    ['remote_execution_connect_by_ip=True', 'destroy_vm_on_host_delete=True'],
-    indirect=True,
-)
-@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
+@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
 @pytest.mark.parametrize('provision_method', ['build'])
 @pytest.mark.rhel_ver_match('[8]')
-@pytest.mark.tier3
 def test_positive_provision_end_to_end(
     request,
     module_sca_manifest_org,
@@ -593,7 +582,7 @@ def test_positive_provision_end_to_end(
 
     :BZ: 2025523
 
-    :Verifies: SAT-24780
+    :Verifies: SAT-24780, SAT-25810
 
     :customerscenario: true
     """
@@ -652,6 +641,14 @@ def test_positive_provision_end_to_end(
         values = session.host_new.get_host_statuses(host_name)
         assert values['Build']['Status'] == 'Installed'
         assert values['Execution']['Status'] == 'Last execution succeeded'
+
+        # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
+        if pxe_loader.vm_firmware == 'uefi_secure_boot':
+            host = target_sat.api.Host().search(query={'host': host_name})[0].read()
+            provisioning_host = ContentHost(host.ip)
+            # Wait for the host to be rebooted and SSH daemon to be started.
+            provisioning_host.wait_for_connection()
+            assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
 
         # Verify if assigned role is executed on the host, and correct host passwd is set
         host = ContentHost(target_sat.api.Host().search(query={'host': host_name})[0].read().ip)

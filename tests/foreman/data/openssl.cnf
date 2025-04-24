@@ -57,8 +57,8 @@ authorityKeyIdentifier                  = keyid:always,issuer:always
 [ v3_req ]
 basicConstraints                        = CA:FALSE
 subjectKeyIdentifier                    = hash
-keyUsage                                = nonRepudiation, digitalSignature, keyEncipherment
-extendedKeyUsage                        = serverAuth, clientAuth, codeSigning, emailProtection
+keyUsage                                = digitalSignature, keyEncipherment
+extendedKeyUsage                        = serverAuth, clientAuth
 subjectAltName                          = @alt_names
 
 [ alt_names ]

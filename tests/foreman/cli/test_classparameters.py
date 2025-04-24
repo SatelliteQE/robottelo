@@ -55,7 +55,6 @@ def module_sc_params(session_puppet_enabled_sat, module_puppet):
     return {'list': sc_params_list, 'ids': sc_params_ids_list}
 
 
-@pytest.mark.tier1
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 @pytest.mark.skipif(
@@ -122,9 +121,9 @@ class TestSmartClassParameters:
             assert len(sc_params) > 0, f"Failed to list parameters for query: {query}"
             assert sc_param_id in [scp['id'] for scp in sc_params]
             # Check that only unique results are returned
-            assert len(sc_params) == len(
-                {scp['id'] for scp in sc_params}
-            ), f'Not only unique results returned for query: {query}'
+            assert len(sc_params) == len({scp['id'] for scp in sc_params}), (
+                f'Not only unique results returned for query: {query}'
+            )
 
     def test_positive_list_with_non_admin_user(self, session_puppet_enabled_sat, module_puppet):
         """List all the parameters for specific puppet class by id.

@@ -17,9 +17,9 @@ from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.hosts import ContentHost
 
 
-@pytest.mark.tier1
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
@@ -78,10 +78,9 @@ def test_positive_vmware_cr_end_to_end(target_sat, module_org, module_location, 
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
-@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
 @pytest.mark.parametrize('provision_method', ['build', 'bootdisk'])
-@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
-@pytest.mark.tier3
+@pytest.mark.rhel_ver_match('[7]')
 def test_positive_provision_end_to_end(
     request,
     setting_update,
@@ -101,7 +100,6 @@ def test_positive_provision_end_to_end(
     :id: ff9963fc-a2a7-4392-aa9a-190d5d1c8357
 
     :steps:
-
         1. Configure provisioning setup.
         2. Create VMware CR
         3. Configure host group setup.
@@ -110,7 +108,9 @@ def test_positive_provision_end_to_end(
 
     :expectedresults: Host is provisioned succesfully with hostgroup
 
-    :CaseAutomation: Automated
+    :Verifies: SAT-25810
+
+    :customerscenario: true
     """
     sat = module_provisioning_sat.sat
     hostname = gen_string('alpha').lower()
@@ -126,7 +126,7 @@ def test_positive_provision_end_to_end(
             'compute-attributes': f'cluster={settings.vmware.cluster},'
             f'path=/Datacenters/{settings.vmware.datacenter}/vm/,'
             'scsi_controller_type=VirtualLsiLogicController,'
-            'guest_id=rhel8_64Guest,firmware=automatic,'
+            f'guest_id=rhel7_64Guest,firmware={pxe_loader.vm_firmware},'
             'cpus=1,memory_mb=6000, start=1',
             'interface': f'compute_type=VirtualVmxnet3,'
             f'compute_network=VLAN {settings.provisioning.vlan_id}',
@@ -150,6 +150,13 @@ def test_positive_provision_end_to_end(
     host_info = sat.cli.Host.info({'id': host['id']})
     assert host_info['status']['build-status'] == 'Installed'
 
+    # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
+    if pxe_loader.vm_firmware == 'uefi_secure_boot':
+        provisioning_host = ContentHost(host_info['network']['ipv4-address'])
+        # Wait for the host to be rebooted and SSH daemon to be started.
+        provisioning_host.wait_for_connection()
+        assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
+
 
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
@@ -157,7 +164,6 @@ def test_positive_provision_end_to_end(
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios'], indirect=True)
 @pytest.mark.rhel_ver_match('[8]')
-@pytest.mark.tier3
 def test_positive_image_provision_end_to_end(
     request,
     setting_update,
@@ -190,10 +196,6 @@ def test_positive_image_provision_end_to_end(
     """
     sat = module_provisioning_sat.sat
     hostname = gen_string('alpha').lower()
-    module_vmware_hostgroup.group_parameters_attributes = [
-        {'name': 'package_upgrade', 'value': 'false', 'parameter_type': 'boolean'}
-    ]
-    module_vmware_hostgroup.update(['group_parameters_attributes'])
     host = sat.cli.Host.create(
         {
             'name': hostname,
@@ -204,7 +206,7 @@ def test_positive_image_provision_end_to_end(
             'image': module_vmware_image.name,
             'ip': None,
             'mac': None,
-            'parameters': 'name=package_upgrade,' 'type=boolean,' 'value=false',
+            'parameters': 'name=package_upgrade,type=boolean,value=false',
             'compute-attributes': f'cluster={settings.vmware.cluster},'
             f'path=/Datacenters/{settings.vmware.datacenter}/vm/,'
             'scsi_controller_type=VirtualLsiLogicController,'
@@ -241,6 +243,6 @@ def test_positive_image_provision_end_to_end(
         f'-o UserKnownHostsFile=/dev/null root@{host_ip} cat /etc/redhat-release'
     )
     assert host_ssh_os.status == 0
-    assert (
-        expected_rhel_version in host_ssh_os.stdout
-    ), f'The installed OS version differs from the expected version {expected_rhel_version}'
+    assert expected_rhel_version in host_ssh_os.stdout, (
+        f'The installed OS version differs from the expected version {expected_rhel_version}'
+    )

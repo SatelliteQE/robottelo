@@ -192,7 +192,6 @@ def test_positive_generate_capsule_certs_using_relative_path(cert_setup_destruct
     assert satellite.execute('test -e root/capsule_cert/capsule_certs_Rel.tar')
 
 
-@pytest.mark.tier1
 def test_positive_validate_capsule_certificate(capsule_certs_teardown):
     """Check that Capsules cert handles additional proxy names.
 
@@ -216,8 +215,7 @@ def test_positive_validate_capsule_certificate(capsule_certs_teardown):
 
     # extract the cert from the tar file
     result = target_sat.execute(
-        f'tar -xf {file_setup["tmp_dir"]}/capsule_certs.tar '
-        f'--directory {file_setup["tmp_dir"]}/ '
+        f'tar -xf {file_setup["tmp_dir"]}/capsule_certs.tar --directory {file_setup["tmp_dir"]}/ '
     )
     assert result.status == 0, 'Extraction to working directory failed.'
 

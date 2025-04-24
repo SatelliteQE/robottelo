@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 import random
 
 from box import Box
@@ -20,12 +20,12 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CONTAINER_REGISTRY_HUB,
-    CONTAINER_UPSTREAM_NAME,
+    FAKE_0_CUSTOM_PACKAGE_NAME,
     PULP_EXPORT_DIR,
 )
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
 from robottelo.content_info import get_repo_files_urls_by_url
+from robottelo.utils.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')
@@ -67,7 +67,7 @@ def module_synced_content(
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': [module_lce.id, module_lce_library.id]}
         )
-    sync_time = datetime.utcnow().replace(microsecond=0)
+    sync_time = datetime.now(UTC).replace(microsecond=0)
     module_target_sat.cli.Capsule.content_synchronize(
         {'id': module_capsule_configured.nailgun_capsule.id, 'organization-id': module_org.id}
     )
@@ -109,7 +109,7 @@ def module_capsule_artifact_cleanup(
             data={'environment_id': lce['id']}
         )
     # Run orphan cleanup for the capsule.
-    timestamp = datetime.utcnow().replace(microsecond=0)
+    timestamp = datetime.now(UTC).replace(microsecond=0)
     module_target_sat.execute(
         'foreman-rake katello:delete_orphaned_content RAILS_ENV=production '
         f'SMART_PROXY_ID={module_capsule_configured.nailgun_capsule.id}'
@@ -124,6 +124,32 @@ def module_capsule_artifact_cleanup(
     )
 
 
+def _dictionarize_counts(data):
+    """From CLI content counts usually come as a dict with several nested dicts using numbers as
+    keys which is not practical for assertions. This helper refactors the dict with entity names
+    for keys and grabs just the content counts.
+    """
+    refactored_data = {}
+
+    for lce_value in data['lifecycle-environments'].values():
+        lce_name = lce_value['name']
+        cvs_dict = {}
+
+        for cv_value in lce_value['content-views'].values():
+            cv_name = cv_value['name']['name']
+            repo_dict = {}
+
+            for repo_value in cv_value['repositories'].values():
+                repo_name = repo_value['repository-name']
+                repo_dict[repo_name] = repo_value['content-counts']
+
+            cvs_dict[cv_name] = repo_dict
+
+        refactored_data[lce_name] = cvs_dict
+
+    return refactored_data
+
+
 @pytest.mark.parametrize(
     'repos_collection',
     [
@@ -132,8 +158,8 @@ def module_capsule_artifact_cleanup(
             'YumRepository': {'url': settings.repos.module_stream_1.url},
             'FileRepository': {'url': CUSTOM_FILE_REPO},
             'DockerRepository': {
-                'url': CONTAINER_REGISTRY_HUB,
-                'upstream_name': CONTAINER_UPSTREAM_NAME,
+                'url': settings.container.registry_hub,
+                'upstream_name': settings.container.upstream_name,
             },
             'AnsibleRepository': {
                 'url': ANSIBLE_GALAXY,
@@ -188,7 +214,7 @@ def test_positive_content_counts_for_mixed_cv(
         'ansible_collection': {'ansible-collections'},
     }
 
-    repos_collection.setup_content(function_org.id, function_lce.id, upload_manifest=False)
+    repos_collection.setup_content(function_org.id, function_lce.id)
     cv_id = repos_collection.setup_content_data['content_view']['id']
     cv = target_sat.cli.ContentView.info({'id': cv_id})
     cvv = target_sat.cli.ContentView.version_info({'id': cv['versions'][0]['id']})
@@ -215,9 +241,9 @@ def test_positive_content_counts_for_mixed_cv(
     assert len(lce_info['content-views']) == 1, 'Too many or few CVs listed'
     cv_info = lce_info['content-views']['1']
     assert cv_info['name']['name'] == cv['name'], 'Wrong CV name listed'
-    assert len(cv_info['repositories']) == len(
-        cvv['repositories']
-    ), 'Too many or few repositories listed'
+    assert len(cv_info['repositories']) == len(cvv['repositories']), (
+        'Too many or few repositories listed'
+    )
     cv_info_reponames = set([repo['repository-name'] for repo in cv_info['repositories'].values()])
     cvv_reponames = set([repo['name'] for repo in cvv['repositories']])
     assert cv_info_reponames == cvv_reponames, 'Wrong repo names listed'
@@ -309,7 +335,191 @@ def test_positive_update_counts(target_sat, module_capsule_configured):
     )
 
 
-@pytest.mark.tier4
+@pytest.mark.parametrize('setting_update', ['automatic_content_count_updates=True'], indirect=True)
+def test_positive_content_counts_granularity(
+    request,
+    module_target_sat,
+    module_capsule_configured,
+    setting_update,
+    function_org,
+    function_product,
+):
+    """Verify the Capsule content counts are updated separately for each content view when it is
+    promoted to the Capsule's LCEs.
+
+    :id: 14f9dbba-6d12-4faa-b33f-7ba1f328f8b6
+
+    :parametrized: yes
+
+    :verifies: SAT-28337
+
+    :setup:
+        1. Satellite with registered external Capsule.
+
+    :steps:
+        1. Create two LCEs, assign them to the Capsule.
+        2. Create and sync a repo, publish it in two CVs, promote both CVs to both LCEs.
+        3. Ensure full counts were calculated for both CVs, both LCEs.
+        4. Disable automatic content counts update.
+        5. Create a filter for both CVs to change the counts of next version.
+        6. Publish new version of both CVs and promote to both LCEs.
+           After capsule sync completes we should have changes in all publictions.
+        7. Ensure the counts were invalidated in both CVs, both LCEs.
+        8. Enable automatic content counts update.
+        9. Publish new version of the first CV, promote it to the first LCE.
+        10. Ensure counts of the first CV were updated in the first LCE only, nothing else.
+        11. Promote the first CV to the second LCE.
+        12. Ensure counts for the first CV were updated in the second LCE, no changes for second CV.
+
+    :expectedresults:
+        1. Content counts are updated only for particular CVs promoted to particular LCEs.
+    """
+    wait_query = (
+        'label = Actions::Katello::ContentView::CapsuleSync OR '
+        'Actions::Katello::CapsuleContent::UpdateContentCounts '
+        'AND started_at >= "{}"'
+    )
+
+    # Create two LCEs, assign them to the Capsule.
+    lce1 = module_target_sat.api.LifecycleEnvironment(organization=function_org).create()
+    lce2 = module_target_sat.api.LifecycleEnvironment(
+        organization=function_org, prior=lce1
+    ).create()
+    module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+        data={'environment_id': [lce1.id, lce2.id]}
+    )
+
+    # Create and sync a repo, publish it in two CVs, promote both CVs to both LCEs.
+    repo = module_target_sat.api.Repository(
+        product=function_product,
+    ).create()
+    repo.sync()
+    repo = repo.read()
+    cvs = []
+    for _ in range(2):
+        cv = module_target_sat.api.ContentView(
+            organization=function_org, repository=[repo]
+        ).create()
+        cv.publish()
+        cv = cv.read()
+        cv.version[0].promote(data={'environment_ids': [lce1.id, lce2.id]})
+        cvs.append(cv.read())
+    cv1, cv2 = cvs
+    module_target_sat.wait_for_tasks(
+        search_query=wait_query.format(datetime.now(UTC).replace(microsecond=0)),
+        search_rate=5,
+        max_tries=5,
+    )
+
+    # Ensure full counts were calculated for both CVs, both LCEs.
+    info = module_target_sat.cli.Capsule.content_info(
+        {'id': module_capsule_configured.nailgun_capsule.id, 'organization-id': function_org.id}
+    )
+    info = _dictionarize_counts(info)
+
+    for lce in [lce1, lce2]:
+        for cv in cvs:
+            assert int(info[lce.name][cv.name][repo.name]['packages']) == repo.content_counts['rpm']
+            assert (
+                int(info[lce.name][cv.name][repo.name]['package-groups'])
+                == repo.content_counts['package_group']
+            )
+            assert (
+                int(info[lce.name][cv.name][repo.name]['errata']) == repo.content_counts['erratum']
+            )
+
+    # Disable automatic content counts update.
+    setting_update.value = False
+    setting_update = setting_update.update({'value'})
+
+    # Create a filter for both CVs to change the counts of next version.
+    for cv in cvs:
+        cvf = module_target_sat.cli_factory.make_content_view_filter(
+            {
+                'content-view-id': cv.id,
+                'inclusion': 'true',
+                'type': 'rpm',
+            },
+        )
+        module_target_sat.cli_factory.content_view_filter_rule(
+            {
+                'content-view-filter-id': cvf['filter-id'],
+                'name': FAKE_0_CUSTOM_PACKAGE_NAME,
+            }
+        )
+
+    # Publish new version of both CVs and promote to both LCEs.
+    # After capsule sync completes we should have changes in all publictions.
+    for cv in cvs:
+        cv.publish()
+        cv = cv.read()
+        cv.version[0].promote(data={'environment_ids': [lce1.id, lce2.id]})
+        cv = cv.read()
+    module_target_sat.wait_for_tasks(
+        search_query=wait_query.format(datetime.now(UTC).replace(microsecond=0)),
+        search_rate=5,
+        max_tries=5,
+    )
+
+    # Ensure the counts were invalidated in both CVs, both LCEs.
+    info = module_target_sat.cli.Capsule.content_info(
+        {'id': module_capsule_configured.nailgun_capsule.id, 'organization-id': function_org.id}
+    )
+    info = _dictionarize_counts(info)
+    assert all(info[lce.name][cv.name][repo.name] == {} for cv in cvs for lce in [lce1, lce2])
+
+    # Enable automatic content counts update.
+    setting_update.value = True
+    setting_update = setting_update.update({'value'})
+
+    # Publish new version of the first CV, promote it to the first LCE.
+    cv1.publish()
+    cv1 = cv1.read()
+    cv1.version[0].promote(data={'environment_ids': lce1.id})
+    cv1 = cv1.read()
+    module_target_sat.wait_for_tasks(
+        search_query=wait_query.format(datetime.now(UTC).replace(microsecond=0)),
+        search_rate=5,
+        max_tries=5,
+    )
+
+    # Ensure counts of the first CV were updated in the first LCE only, nothing else.
+    info = module_target_sat.cli.Capsule.content_info(
+        {'id': module_capsule_configured.nailgun_capsule.id, 'organization-id': function_org.id}
+    )
+    info = _dictionarize_counts(info)
+
+    assert int(info[lce1.name][cv1.name][repo.name]['packages']) == 1
+    assert int(info[lce1.name][cv1.name][repo.name]['package-groups']) == 1
+    assert int(info[lce1.name][cv1.name][repo.name]['errata']) == 1
+    assert all(
+        info[lce.name][cv.name][repo.name] == {}
+        for cv in cvs
+        for lce in [lce1, lce2]
+        if (cv.name != cv1.name or lce.name != lce1.name)
+    )
+
+    # Promote the first CV to the second LCE.
+    cv1.version[0].promote(data={'environment_ids': lce2.id})
+    cv1 = cv1.read()
+    module_target_sat.wait_for_tasks(
+        search_query=wait_query.format(datetime.now(UTC).replace(microsecond=0)),
+        search_rate=5,
+        max_tries=5,
+    )
+
+    # Ensure counts for the first CV were updated in the second LCE, no changes for second CV.
+    info = module_target_sat.cli.Capsule.content_info(
+        {'id': module_capsule_configured.nailgun_capsule.id, 'organization-id': function_org.id}
+    )
+    info = _dictionarize_counts(info)
+
+    assert int(info[lce2.name][cv1.name][repo.name]['packages']) == 1
+    assert int(info[lce2.name][cv1.name][repo.name]['package-groups']) == 1
+    assert int(info[lce2.name][cv1.name][repo.name]['errata']) == 1
+    assert all(info[lce.name][cv2.name][repo.name] == {} for lce in [lce1, lce2])
+
+
 @pytest.mark.skip_if_not_set('capsule')
 def test_positive_exported_imported_content_sync(
     target_sat,
@@ -435,7 +645,6 @@ def test_positive_exported_imported_content_sync(
         'Actions::Katello::Repository::MetadataGenerate',
         'Actions::Katello::CapsuleContent::Sync',
         'Actions::Katello::ContentView::CapsuleSync',
-        'Actions::Katello::CapsuleContent::UpdateContentCounts',
     ]
     pending_tasks = target_sat.api.ForemanTask().search(
         query={'search': f'organization_id={org.id} and result=pending'}
@@ -455,8 +664,8 @@ def test_positive_exported_imported_content_sync(
         {'content_type': 'file', 'url': CUSTOM_FILE_REPO},
         {
             'content_type': 'docker',
-            'docker_upstream_name': CONTAINER_UPSTREAM_NAME,
-            'url': CONTAINER_REGISTRY_HUB,
+            'docker_upstream_name': settings.container.upstream_name,
+            'url': settings.container.registry_hub,
         },
         {
             'content_type': 'ansible_collection',
@@ -546,9 +755,9 @@ def test_positive_repair_artifacts(
             f'truncate -s {random.randrange(1, ai.size)} {ai.path}'
         )
         assert res.status == 0, f'Artifact truncation failed: {res.stderr}'
-        assert (
-            module_capsule_configured.get_artifact_info(path=ai.path) != ai
-        ), 'Artifact corruption failed'
+        assert module_capsule_configured.get_artifact_info(path=ai.path) != ai, (
+            'Artifact corruption failed'
+        )
     else:
         raise ValueError(f'Unsupported damage type: {damage_type}')
 
@@ -567,6 +776,142 @@ def test_positive_repair_artifacts(
     assert fixed_ai == ai, f'Artifact restoration failed: {fixed_ai} != {ai}'
 
     if module_synced_content.repos[0].content_type in ['yum', 'file']:
-        assert (
-            module_target_sat.checksum_by_url(url, sum_type='sha256sum') == ai.sum
-        ), 'Published file is unaccessible or corrupted'
+        assert module_target_sat.checksum_by_url(url, sum_type='sha256sum') == ai.sum, (
+            'Published file is unaccessible or corrupted'
+        )
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize('function_flatpak_remote', ['RedHat'], indirect=True)
+@pytest.mark.parametrize('setting_update', ['foreman_proxy_content_auto_sync=True'], indirect=True)
+def test_sync_consume_flatpak_repo_via_library(
+    request,
+    module_target_sat,
+    module_capsule_configured,
+    setting_update,
+    module_flatpak_contenthost,
+    function_org,
+    function_product,
+    function_lce_library,
+    function_flatpak_remote,
+):
+    """Verify flatpak repository workflow via capsule end to end.
+
+    :id: 8871b695-18fd-45a8-bb40-664c384996a0
+
+    :parametrized: yes
+
+    :setup:
+        1. Registered external capsule.
+        2. Flatpak remote created and scanned.
+
+    :steps:
+        1. Associate the organization and its Library to the capsule.
+        2. Mirror a flatpak repository and sync it, verify the capsule was synced.
+        3. Create an AK with the library/default_org_view.
+        4. Register a content host using the AK via Capsule.
+        5. Configure the contenthost via REX to use Capsule's flatpak index.
+        6. Install flatpak app from the repo via REX on the contenthost.
+        7. Ensure the app has been installed successfully.
+
+    :expectedresults:
+        1. Entire workflow works and allows user to install a flatpak app at the registered
+           contenthost.
+
+    """
+    sat, caps, host = module_target_sat, module_capsule_configured, module_flatpak_contenthost
+
+    # Associate the organization and its Library to the capsule.
+    res = sat.cli.Capsule.update(
+        {'name': module_capsule_configured.hostname, 'organization-ids': function_org.id}
+    )
+    assert 'proxy updated' in str(res)
+
+    caps.nailgun_capsule.content_add_lifecycle_environment(
+        data={'environment_id': function_lce_library.id}
+    )
+    res = caps.nailgun_capsule.content_lifecycle_environments()
+    assert len(res['results']) >= 1
+    assert function_lce_library.id in [capsule_lce['id'] for capsule_lce in res['results']]
+
+    # Mirror a flatpak repository and sync it, verify the capsule was synced.
+    repo_names = ['rhel9/firefox-flatpak', 'rhel9/flatpak-runtime']  # runtime is dependency
+    remote_repos = [r for r in function_flatpak_remote.repos if r['name'] in repo_names]
+    for repo in remote_repos:
+        sat.cli.FlatpakRemote().repository_mirror(
+            {
+                'flatpak-remote-id': function_flatpak_remote.remote['id'],
+                'id': repo['id'],  # or by name
+                'product-id': function_product.id,
+            }
+        )
+
+    local_repos = sat.cli.Repository.list({'product-id': function_product.id})
+    assert set([r['name'] for r in local_repos]) == set(repo_names)
+
+    timestamp = datetime.now(UTC)
+    for repo in local_repos:
+        sat.cli.Repository.synchronize({'id': repo['id']})
+    module_capsule_configured.wait_for_sync(start_time=timestamp)
+
+    # Create an AK with the library/default_org_view.
+    ak_lib = sat.cli.ActivationKey.create(
+        {
+            'name': gen_string('alpha'),
+            'organization-id': function_org.id,
+            'lifecycle-environment': 'Library',
+            'content-view': 'Default Organization View',
+        }
+    )
+
+    # Register a content host using the AK via Capsule.
+    res = host.register(function_org, None, ak_lib['name'], caps, force=True)
+    assert res.status == 0, (
+        f'Failed to register host: {host.hostname}\nStdOut: {res.stdout}\nStdErr: {res.stderr}'
+    )
+    assert host.subscribed
+
+    # Configure the contenthost via REX to use Capsule's flatpak index.
+    remote_name = f'CAPS-remote-{gen_string("alpha")}'
+    job = module_target_sat.cli_factory.job_invocation(
+        {
+            'organization': function_org.name,
+            'job-template': 'Flatpak - Set up remote on host',
+            'inputs': (
+                f'Remote Name={remote_name}, '
+                f'Flatpak registry URL={settings.server.scheme}://{caps.hostname}/pulpcore_registry/, '
+                f'Username={settings.server.admin_username}, '
+                f'Password={settings.server.admin_password}'
+            ),
+            'search-query': f"name = {host.hostname}",
+        }
+    )
+    res = module_target_sat.cli.JobInvocation.info({'id': job.id})
+    assert 'succeeded' in res['status']
+    request.addfinalizer(lambda: host.execute(f'flatpak remote-delete {remote_name}'))
+
+    # Install flatpak app from the repo via REX on the contenthost.
+    res = host.execute('flatpak remotes')
+    assert remote_name in res.stdout
+
+    app_name = 'Firefox'  # or 'org.mozilla.Firefox'
+    res = host.execute('flatpak remote-ls')
+    assert app_name in res.stdout
+
+    job = module_target_sat.cli_factory.job_invocation(
+        {
+            'organization': function_org.name,
+            'job-template': 'Flatpak - Install application on host',
+            'inputs': f'Flatpak remote name={remote_name}, Application name={app_name}',
+            'search-query': f"name = {host.hostname}",
+        }
+    )
+    res = module_target_sat.cli.JobInvocation.info({'id': job.id})
+    assert 'succeeded' in res['status']
+    request.addfinalizer(
+        lambda: host.execute(f'flatpak uninstall {remote_name} {app_name} com.redhat.Platform -y')
+    )
+
+    # Ensure the app has been installed successfully.
+    res = host.execute('flatpak list')
+    assert app_name in res.stdout

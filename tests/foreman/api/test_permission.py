@@ -35,61 +35,15 @@ class TestPermission:
     """Tests for the ``permissions`` path."""
 
     @pytest.fixture(scope='class', autouse=True)
-    def create_permissions(self, class_target_sat):
+    def create_permissions(self, expected_permissions):
         # workaround for setting class variables
         cls = type(self)
-        cls.permissions = PERMISSIONS.copy()
-
-        rpm_packages = class_target_sat.execute('rpm -qa').stdout
-        if 'rubygem-foreman_rh_cloud' not in rpm_packages:
-            cls.permissions.pop('InsightsHit')
-            cls.permissions[None].remove('generate_foreman_rh_cloud')
-            cls.permissions[None].remove('view_foreman_rh_cloud')
-            cls.permissions[None].remove('dispatch_cloud_requests')
-            cls.permissions[None].remove('control_organization_insights')
-        if 'rubygem-foreman_bootdisk' not in rpm_packages:
-            cls.permissions[None].remove('download_bootdisk')
-        if 'rubygem-foreman_virt_who_configure' not in rpm_packages:
-            cls.permissions.pop('ForemanVirtWhoConfigure::Config')
-        if 'rubygem-foreman_openscap' not in rpm_packages:
-            cls.permissions.pop('ForemanOpenscap::Policy')
-            cls.permissions.pop('ForemanOpenscap::ScapContent')
-            cls.permissions[None].remove('destroy_arf_reports')
-            cls.permissions[None].remove('view_arf_reports')
-            cls.permissions[None].remove('create_arf_reports')
-        if 'rubygem-foreman_remote_execution' not in rpm_packages:
-            cls.permissions.pop('JobInvocation')
-            cls.permissions.pop('JobTemplate')
-            cls.permissions.pop('RemoteExecutionFeature')
-            cls.permissions.pop('TemplateInvocation')
-        if 'rubygem-foreman_puppet' not in rpm_packages:
-            cls.permissions.pop('ForemanPuppet::ConfigGroup')
-            cls.permissions.pop('ForemanPuppet::Environment')
-            cls.permissions.pop('ForemanPuppet::HostClass')
-            cls.permissions.pop('ForemanPuppet::Puppetclass')
-            cls.permissions.pop('ForemanPuppet::PuppetclassLookupKey')
-        if 'rubygem-foreman_scc_manager' not in rpm_packages:
-            cls.permissions.pop('SccAccount')
-            cls.permissions.pop('SccProduct')
-        if 'rubygem-foreman_salt' not in rpm_packages:
-            cls.permissions['Host'].remove('saltrun_hosts')
-            cls.permissions['SmartProxy'].remove('destroy_smart_proxies_salt_autosign')
-            cls.permissions['SmartProxy'].remove('view_smart_proxies_salt_autosign')
-            cls.permissions['SmartProxy'].remove('destroy_smart_proxies_salt_keys')
-            cls.permissions['SmartProxy'].remove('view_smart_proxies_salt_keys')
-            cls.permissions['SmartProxy'].remove('edit_smart_proxies_salt_keys')
-            cls.permissions['SmartProxy'].remove('auth_smart_proxies_salt_autosign')
-            cls.permissions['SmartProxy'].remove('create_smart_proxies_salt_autosign')
-            cls.permissions.pop('ForemanSalt::SaltVariable')
-            cls.permissions.pop('ForemanSalt::SaltEnvironment')
-            cls.permissions.pop('ForemanSalt::SaltModule')
-
+        cls.permissions = expected_permissions
         #: e.g. ['Architecture', 'Audit', 'AuthSourceLdap', …]
-        cls.permission_resource_types = list(cls.permissions.keys())
+        cls.permission_resource_types = list(expected_permissions.keys())
         #: e.g. ['view_architectures', 'create_architectures', …]
-        cls.permission_names = list(chain.from_iterable(cls.permissions.values()))
+        cls.permission_names = list(chain.from_iterable(expected_permissions.values()))
 
-    @pytest.mark.tier1
     def test_positive_search_by_name(self, target_sat):
         """Search for a permission by name.
 
@@ -114,7 +68,6 @@ class TestPermission:
         if failures:
             pytest.fail(json.dumps(failures, indent=True, sort_keys=True))
 
-    @pytest.mark.tier1
     def test_positive_search_by_resource_type(self, target_sat):
         """Search for permissions by resource type.
 
@@ -130,7 +83,7 @@ class TestPermission:
             if resource_type is None:
                 continue
             perm_group = target_sat.api.Permission().search(
-                query={'search': f'resource_type="{resource_type}"'}
+                query={'search': f'resource_type="{resource_type}"', 'per_page': 'all'}
             )
             permissions = {perm.name for perm in perm_group}
             expected_permissions = set(self.permissions[resource_type])
@@ -147,7 +100,6 @@ class TestPermission:
         if failures:
             pytest.fail(json.dumps(failures, indent=True, sort_keys=True))
 
-    @pytest.mark.tier1
     def test_positive_search(self, target_sat):
         """search with no parameters return all permissions
 
@@ -285,7 +237,6 @@ class TestUserRole:
                 entity.location = location
         return entity
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'entity_cls',
         **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),
@@ -318,7 +269,6 @@ class TestUserRole:
         new_entity = new_entity.create_json()
         entity_cls(id=new_entity['id']).read()  # As admin user.
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'entity_cls',
         **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),
@@ -345,7 +295,6 @@ class TestUserRole:
         entity_cls(self.cfg, id=new_entity.id).read()
 
     @pytest.mark.upgrade
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'entity_cls',
         **parametrized(
@@ -375,7 +324,6 @@ class TestUserRole:
         with pytest.raises(HTTPError):
             new_entity.read()  # As admin user
 
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'entity_cls',
         **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),

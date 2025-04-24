@@ -46,9 +46,30 @@ def sync_roles(target_sat):
 @pytest.fixture(scope='module')
 def install_import_ansible_role(module_target_sat):
     """Installs and imports the thulium_drake.motd role used in the luna_hostgroup test playbook"""
-    module_target_sat.execute(
-        'ansible-galaxy role install thulium_drake.motd -p /usr/share/ansible/roles'
+
+    def create_fake_role(module_target_sat, role_name, role_metadata):
+        base_dir = '/usr/share/ansible/roles'
+        role_dir = f'{base_dir}/{role_name}'
+        meta_dir = f'{role_dir}/meta'
+        tasks_dir = f'{role_dir}/tasks'
+        module_target_sat.execute(f'mkdir -p {meta_dir} {tasks_dir}')
+        module_target_sat.put(
+            yaml.safe_dump(role_metadata),
+            f'{meta_dir}/main.yml',
+            temp_file=True,
+        )
+        module_target_sat.put(
+            '# NOOP',
+            f'{tasks_dir}/main.yml',
+            temp_file=True,
+        )
+
+    create_fake_role(
+        module_target_sat,
+        'thulium_drake.motd',
+        {'galaxy_info': {'author': 'thulium_drake', 'role_name': 'motd'}},
     )
+
     proxy_id = module_target_sat.nailgun_smart_proxy.id
     module_target_sat.api.AnsibleRoles().sync(
         data={'proxy_id': proxy_id, 'role_names': 'thulium_drake.motd'}
@@ -89,6 +110,21 @@ def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_rol
     # is present in all relevant branches
     module_target_sat.execute(
         f"sed -i '/test_crud/ s/pytest/$(PYTEST_COMMAND)/' {FAM_ROOT_DIR}/Makefile"
+    )
+
+    # Edit inventory configurations
+    module_target_sat.execute(
+        f"sed -i '/url/ s#http.*#https://localhost#' {FAM_ROOT_DIR}/tests/inventory/*.foreman.yml {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
+    )
+    module_target_sat.execute(
+        f"sed -i '/inventory_use_container/ s#true#false#' {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
+    )
+
+    # Edit content_import tests
+    # They need to extract data on the Foreman/Satellite machine and use "hosts: foreman" for that
+    # As we're running locally, we can use "hosts: localhost" instead
+    module_target_sat.execute(
+        f"sed -i '/hosts:/ s/foreman/localhost/' {FAM_ROOT_DIR}/tests/test_playbooks/content_import_*.yml"
     )
 
     # Upload manifest to test playbooks directory
@@ -158,12 +194,17 @@ def test_positive_ansible_modules_installation(target_sat):
         doc_name = result.stdout.split('\n')[1].lstrip()[:-1]
         assert doc_name == module_name
     # check installed modules against the expected list
-    assert FOREMAN_ANSIBLE_MODULES.sort() == installed_modules.sort()
+    assert sorted(FOREMAN_ANSIBLE_MODULES) == sorted(installed_modules)
+
+    # check installed modules are tested
+    untested_modules = set(installed_modules) - set(FAM_TEST_PLAYBOOKS)
+    assert untested_modules == set(), (
+        f'The following modules have no tests: {", ".join(untested_modules)}'
+    )
 
 
 @pytest.mark.e2e
 @pytest.mark.pit_server
-@pytest.mark.tier1
 def test_positive_import_run_roles(sync_roles, target_sat):
     """Import a FAM role and run the role on the Satellite
 
@@ -186,12 +227,42 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
 
     :expectedresults: All modules and roles run successfully
     """
+    # Skip oVirt/RHV tests on IPv6 setups
+    if settings.server.is_ipv6 and ansible_module in ['compute_profile_ovirt']:
+        pytest.skip("oVirt/RHV is not properly set up in IPv6 environment")
+
     # Setup provisioning resources
     if ansible_module in FAM_TEST_LIBVIRT_PLAYBOOKS:
         module_target_sat.configure_libvirt_cr()
 
+    env = [
+        'NO_COLOR=1',
+        'PYTEST_DISABLE_PLUGIN_AUTOLOAD=1',
+        'ANSIBLE_HOST_PATTERN_MISMATCH=ignore',
+    ]
+
+    if settings.server.is_ipv6 and ansible_module in ['redhat_manifest']:
+        env.append(f'HTTPS_PROXY={settings.http_proxy.http_proxy_ipv6_url}')
+
     # Execute test_playbook
     result = module_target_sat.execute(
-        f'NO_COLOR=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 make --directory {FAM_ROOT_DIR} livetest_{ansible_module} PYTHON_COMMAND="python3" PYTEST_COMMAND="pytest-3.11"'
+        f'{" ".join(env)} make --directory {FAM_ROOT_DIR} livetest_{ansible_module} PYTHON_COMMAND="python3" PYTEST_COMMAND="pytest-3.12"',
+        timeout="30m",
+    )
+    assert result.status == 0, f"{result.status=}\n{result.stdout=}\n{result.stderr=}"
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize('ansible_module', ['inventory_plugin', 'inventory_plugin_ansible'])
+def test_positive_run_inventory(module_target_sat, setup_fam, ansible_module):
+    """Run FAM inventory on the Satellite
+
+    :id: 6160216d-c460-437c-b440-1d283efbac70
+
+    :expectedresults: All inventories run successfully
+    """
+    # Execute test_playbook
+    result = module_target_sat.execute(
+        f'cd {FAM_ROOT_DIR} && NO_COLOR=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest-3.12 tests/test_crud.py::test_inventory[{ansible_module}]'
     )
     assert result.status == 0, f"{result.status=}\n{result.stdout=}\n{result.stderr=}"

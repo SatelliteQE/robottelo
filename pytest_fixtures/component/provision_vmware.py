@@ -72,6 +72,11 @@ def module_vmware_hostgroup(
         subnet=module_provisioning_sat.subnet,
         pxe_loader=pxe_loader.pxe_loader,
         group_parameters_attributes=[
+            {
+                'name': 'remote_execution_connect_by_ip',
+                'parameter_type': 'boolean',
+                'value': 'true',
+            },
             # assign AK in order the hosts to be subscribed
             {
                 'name': 'kt_activation_keys',
@@ -116,7 +121,7 @@ def module_vmware_image(
 def provisioning_vmware_host(pxe_loader, vmwareclient, module_ssh_key_file):
     """Fixture to check out blank VM on VMware"""
     vm_boot_firmware = 'efi' if pxe_loader.vm_firmware.startswith('uefi') else 'bios'
-    vm_secure_boot = 'true' if pxe_loader.vm_firmware == 'uefi_secureboot' else 'false'
+    vm_secure_boot = 'true' if pxe_loader.vm_firmware == 'uefi_secure_boot' else 'false'
     vlan_id = settings.provisioning.vlan_id
     with Broker(
         workflow='deploy-blank-vm-vcenter',
