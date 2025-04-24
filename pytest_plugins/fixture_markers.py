@@ -63,6 +63,15 @@ def pytest_generate_tests(metafunc):
         filtered_versions = set(list_params + match_params)
         # default to all supported versions if no filters were found
         for ver in filtered_versions or settings.supportability.content_hosts.rhel.versions:
+            # Skipping RHEL7 client with RHEL9 and above fips-enabled satellite due to incompatibility
+            if (
+                not (
+                    settings.server.version.rhel_version == '7'
+                    or settings.server.version.rhel_version == '8'
+                )
+                and str(ver) == '7_fips'
+            ):
+                continue
             rhel_params.append(dict(rhel_version=ver, no_containers=no_containers))
 
         if rhel_params:
