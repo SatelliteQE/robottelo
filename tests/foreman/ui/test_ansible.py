@@ -796,7 +796,7 @@ class TestAnsibleREX:
             session.jobinvocation.run(
                 {
                     'category_and_template.job_category': 'Ansible Galaxy',
-                    'category_and_template.job_template': 'Ansible Collection - Install from Galaxy',
+                    'category_and_template.job_template_text_input': 'Ansible Collection - Install from Galaxy',
                     'target_hosts_and_inputs.targetting_type': 'Hosts',
                     'target_hosts_and_inputs.targets': client.hostname,
                     'target_hosts_and_inputs.ansible_collections_list': collections_names,
