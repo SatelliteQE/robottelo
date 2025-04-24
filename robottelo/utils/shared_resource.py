@@ -162,8 +162,6 @@ class SharedResource:
 
     def register(self):
         """Registers the current process as a watcher."""
-        xdist_worker_splay = (int(os.environ.get("PYTEST_XDIST_WORKER")[-1]) + 1) * 2
-        time.sleep(xdist_worker_splay)
         with self.lock_file:
             if self.resource_file.exists():
                 curr_data = json.loads(self.resource_file.read_text())
