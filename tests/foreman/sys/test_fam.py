@@ -25,7 +25,7 @@ from robottelo.constants import (
     FOREMAN_ANSIBLE_MODULES,
     RH_SAT_ROLES,
 )
-from robottelo.enums import HostNetworkType
+from robottelo.enums import NetworkType
 
 
 @pytest.fixture
@@ -229,7 +229,7 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
     :expectedresults: All modules and roles run successfully
     """
     # Skip oVirt/RHV tests on IPv6 setups
-    if module_target_sat.network_type == HostNetworkType.IPV6 and ansible_module in [
+    if module_target_sat.network_type == NetworkType.IPV6 and ansible_module in [
         'compute_profile_ovirt'
     ]:
         pytest.skip("oVirt/RHV is not properly set up in IPv6 environment")
@@ -244,9 +244,7 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
         'ANSIBLE_HOST_PATTERN_MISMATCH=ignore',
     ]
 
-    if module_target_sat.network_type == HostNetworkType.IPV6 and ansible_module in [
-        'redhat_manifest'
-    ]:
+    if module_target_sat.network_type == NetworkType.IPV6 and ansible_module in ['redhat_manifest']:
         env.append(f'HTTPS_PROXY={settings.http_proxy.http_proxy_ipv6_url}')
 
     # Execute test_playbook

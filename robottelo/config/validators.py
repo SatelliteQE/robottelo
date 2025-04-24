@@ -1,7 +1,7 @@
 from dynaconf import Validator
 
 from robottelo.constants import AZURERM_VALID_REGIONS, VALID_GCE_ZONES
-from robottelo.enums import HostNetworkType
+from robottelo.enums import NetworkType
 
 VALIDATORS = dict(
     supportability=[
@@ -37,7 +37,7 @@ VALIDATORS = dict(
         Validator('server.ssh_password', default=None),
         Validator('server.verify_ca', default=False),
         # TODO(ogajduse): should we have a default value for network_type?
-        Validator('server.network_type', must_exist=True, is_in=HostNetworkType.list_values()),
+        Validator('server.network_type', must_exist=True, is_in=NetworkType.list_values()),
         # Validator('server.is_ipv6', is_type_of=bool, must_exist=False),  # TODO(ogajduse): uncomment
     ],
     content_host=[
@@ -46,9 +46,9 @@ VALIDATORS = dict(
         Validator(
             'content_host.attributes.network_type',
             must_exist=True,
-            is_in=HostNetworkType.list_values(),
+            is_in=NetworkType.list_values(),
             # TODO(ogajduse): should we have a default value for network_type?
-            default=HostNetworkType.DUALSTACK.value,
+            default=NetworkType.DUALSTACK.value,
         ),
     ],
     subscription=[
@@ -212,7 +212,7 @@ VALIDATORS = dict(
         Validator(
             'http_proxy.http_proxy_ipv6_url',
             is_type_of=str,
-            when=Validator('server.network_type', eq=HostNetworkType.IPV6.value),
+            when=Validator('server.network_type', eq=NetworkType.IPV6.value),
         ),
     ],
     ipa=[

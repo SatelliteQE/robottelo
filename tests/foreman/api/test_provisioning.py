@@ -20,7 +20,7 @@ from wait_for import TimedOutError, wait_for
 from wrapanapi.systems.virtualcenter import VMWareVirtualMachine
 
 from robottelo.config import settings
-from robottelo.enums import HostNetworkType
+from robottelo.enums import NetworkType
 from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
@@ -106,13 +106,13 @@ def test_rhel_pxe_provisioning(
     # TODO(sganar) does the following also apply to dualstack?
     if (
         pxe_loader.vm_firmware == 'bios'
-        and module_provisioning_sat.network_type == HostNetworkType.IPV6
+        and module_provisioning_sat.network_type == NetworkType.IPV6
     ):
         pytest.skip('Test cannot be run on BIOS as its not supported')
     host_mac_addr = provisioning_host.provisioning_nic_mac_addr
     sat = module_provisioning_sat.sat
     # Configure the grubx64.efi image to setup the interface and use TFTP to load the configuration
-    if module_provisioning_sat.network_type == HostNetworkType.IPV6:
+    if module_provisioning_sat.network_type == NetworkType.IPV6:
         sat.execute("echo -e 'net_bootp6\nset root=tftp\nset prefix=(tftp)/grub2' > pre.cfg")
         sat.execute(
             'grub2-mkimage -c pre.cfg -o /var/lib/tftpboot/grub2/grubx64.efi -p /grub2/ -O x86_64-efi efinet efi_netfs efienv efifwsetup efi_gop tftp net normal chain configfile loadenv procfs romfs'
@@ -159,7 +159,7 @@ def test_rhel_pxe_provisioning(
     # Change the hostname of the host as we know it already.
     # In the current infra environment we do not support
     # addressing hosts using FQDNs, falling back to IP.
-    if is_open('SAT-30601') and module_provisioning_sat.network_type != HostNetworkType.IPV6:
+    if is_open('SAT-30601') and module_provisioning_sat.network_type != NetworkType.IPV6:
         provisioning_host.hostname = host.ip
         # Host is not blank anymore
         provisioning_host.blank = False
