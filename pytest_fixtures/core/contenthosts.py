@@ -220,7 +220,8 @@ def module_container_contenthost(request, module_target_sat, module_org, module_
         "rhel_version": "8",
         "distro": "rhel",
         "no_containers": True,
-        "network": "ipv6" if settings.server.is_ipv6 else "ipv4",
+        # TODO(vsedmik): Check whether this is valid for dualstack scenaro
+        "network": "ipv6" if module_target_sat.network_type == HostNetworkType.IPV6 else "ipv4",
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         host.register_to_cdn()
@@ -244,7 +245,8 @@ def module_flatpak_contenthost(request):
         "rhel_version": "9",
         "distro": "rhel",
         "no_containers": True,
-        "network": "ipv6" if settings.server.is_ipv6 else "ipv4",
+        # TODO(vsedmik): Check whether this is valid for dualstack scenaro
+        "network": "ipv6" if settings.server.network_type == HostNetworkType.IPV6 else "ipv4",
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         host.register_to_cdn()
@@ -264,7 +266,10 @@ def centos_host(request, version):
     with Broker(
         **host_conf(request),
         host_class=ContentHost,
-        deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
+        # TODO(shwsingh): Check whether this is valid for dualstack scenaro
+        deploy_network_type='ipv6'
+        if settings.server.network_type == HostNetworkType.IPV6
+        else 'ipv4',
     ) as host:
         yield host
 
@@ -279,7 +284,10 @@ def oracle_host(request, version):
     with Broker(
         **host_conf(request),
         host_class=ContentHost,
-        deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
+        # TODO(shwsingh): Check whether this is valid for dualstack scenaro
+        deploy_network_type='ipv6'
+        if settings.server.network_type == HostNetworkType.IPV6
+        else 'ipv4',
     ) as host:
         yield host
 
@@ -291,7 +299,10 @@ def bootc_host():
         workflow='deploy-bootc',
         host_class=ContentHost,
         target_template='tpl-bootc-rhel-10.0',
-        deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
+        # TODO(sbible): Check whether this is valid for dualstack scenaro
+        deploy_network_type='ipv6'
+        if settings.server.network_type == HostNetworkType.IPV6
+        else 'ipv4',
     ) as host:
         assert (
             host.execute(
