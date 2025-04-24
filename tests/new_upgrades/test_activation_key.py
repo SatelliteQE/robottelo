@@ -95,6 +95,7 @@ def test_ak_upgrade_scenario(ak_upgrade_setup):
     :BlockedBy: SAT-28048, SAT-28990
     """
     target_sat = ak_upgrade_setup.target_sat
+    target_sat._swap_nailgun(f"{settings.UPGRADE.TO_VERSION}.z")
     org = target_sat.api.Organization().search(
         query={'search': f'name={ak_upgrade_setup.org.name}'}
     )[0]
@@ -103,9 +104,6 @@ def test_ak_upgrade_scenario(ak_upgrade_setup):
     )[0]
     cv = target_sat.api.ContentView(organization=org.id).search(
         query={'search': f'name={ak_upgrade_setup.cv.name}'}
-    )[0]
-    custom_repo = target_sat.api.Repository(organization=org.id).search(
-        query={'search': f'name={ak_upgrade_setup.repo.name}'}
     )[0]
     assert f'{ak_upgrade_setup.test_name}_ak' == ak.name
     assert f'{ak_upgrade_setup.test_name}_cv' == cv.name
@@ -134,10 +132,3 @@ def test_ak_upgrade_scenario(ak_upgrade_setup):
     ak.delete()
     with pytest.raises(HTTPError):
         target_sat.api.ActivationKey(id=ak.id).read()
-    for cv_object in [cv2, cv]:
-        cv_contents = cv_object.read_json()
-        cv_object.delete_from_environment(cv_contents['environments'][0]['id'])
-        cv_object.delete(cv_object.organization.id)
-    custom_repo.delete()
-    custom_repo2.delete()
-    org.delete()
