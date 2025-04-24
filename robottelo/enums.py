@@ -7,7 +7,7 @@ and configurations used in Robottelo tests and utilities.
 from enum import StrEnum
 
 
-class HostNetworkType(StrEnum):
+class NetworkType(StrEnum):
     """
     Enumeration of host network addressing types.
 
@@ -48,7 +48,7 @@ class HostNetworkType(StrEnum):
         Implements equality comparison between enum members and strings.
 
         This allows direct comparison of enum members with their string values:
-        HostNetworkType.IPV4 == 'ipv4'  # True
+        NetworkType.IPV4 == 'ipv4'  # True
 
         :param other: The object to compare with
         :return: True if equal, False otherwise
