@@ -1046,9 +1046,19 @@ class TestAnsibleAAPIntegration:
             f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/'
         ).json()
         assert hostname in [host['name'] for host in hosts_list['results']]
-
         assert provisioning_host.execute('systemctl start ansible-callback').status == 0
-
+        jobs = aap_client.get(
+            f'{api_base}job_templates/{template_id}/jobs/?launch_type=callback&order_by=-created'
+        ).json()['results'][0]
+        # when the callback service is started, the job sometimes starts with pending or waiting state before going to the running state
+        filtered_job = jobs['id'] if jobs['status'] in ('running', 'pending', 'waiting') else None
+        wait_for(
+            lambda: aap_client.get(f'{api_base}jobs/?id={filtered_job}').json()['results'][0][
+                'status'
+            ]
+            == 'successful',
+            timeout=120,
+        )
         # Verify user rocket and package tmux is installed via ansible-callback on provisioning host
         assert provisioning_host.execute('cat /etc/passwd | grep rocket').status == 0
         assert provisioning_host.execute('dnf list installed tmux').status == 0
