@@ -2091,7 +2091,8 @@ class TestPodman:
     def test_negative_login_without_pass(
         self, request, module_capsule_configured, module_container_contenthost
     ):
-        """Ensure the interactive podman login fails with appropriate message when password is omit.
+        """Ensure the interactive podman login fails with appropriate message
+        when password is omitted.
 
         :id: a2ef15e0-e95e-49ea-8378-b5fbe4e350b3
 

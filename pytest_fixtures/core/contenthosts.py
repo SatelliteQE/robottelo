@@ -234,12 +234,8 @@ def module_container_contenthost(request, module_target_sat, module_org, module_
             assert host.execute(f'yum -y install {client}').status == 0, (
                 f'{client} installation failed'
             )
-        assert host.execute('systemctl enable --now podman').status == 0, (
-            'Start of podman service failed'
-        )
-        assert host.execute('yum -y install expect').status == 0, (
-            'Expect installation failed unexpectedly'
-        )
+        assert host.execute('systemctl enable --now podman').status == 0
+        assert host.execute('yum -y install expect').status == 0
         host.unregister()
         assert (
             host.register(module_org, None, module_activation_key.name, module_target_sat).status
