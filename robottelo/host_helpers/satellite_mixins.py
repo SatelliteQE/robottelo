@@ -356,12 +356,10 @@ class ProvisioningSetup:
         # Install libvirt-client, and verify foreman user is able to communicate with Libvirt server
         self.register_to_cdn()
         self.execute('dnf -y --disableplugin=foreman-protector install libvirt-client')
-        assert (
-            self.execute(
-                f'su foreman -s /bin/bash -c "virsh -c qemu+ssh://root@{server_fqdn}/system list"'
-            ).status
-            == 0
+        result = self.execute(
+            f'su foreman -s /bin/bash -c "virsh -c qemu+ssh://root@{server_fqdn}/system list"'
         )
+        assert result.status == 0, f"{result.status=}\n{result.stdout=}\n{result.stderr=}"
 
     def provisioning_cleanup(self, hostname, interface='API'):
         if interface == 'CLI':
