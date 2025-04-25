@@ -2087,3 +2087,35 @@ class TestPodman:
             f'podman push --creds {settings.server.admin_username}:{settings.server.admin_password} {large_image_id} {module_capsule_configured.hostname}/{IMAGE_NAME_TAG}'
         )
         assert 'Pushing content is unsupported' in result.stderr
+
+    def test_negative_login_without_pass(
+        self, request, module_capsule_configured, module_container_contenthost
+    ):
+        """Ensure the interactive podman login fails with appropriate message
+        when password is omitted.
+
+        :id: a2ef15e0-e95e-49ea-8378-b5fbe4e350b3
+
+        :steps:
+            1. Try interactive podman login to a Capsule without any password provided.
+
+        :expectedresults: Login fails with appropriate error message.
+
+        :customerscenario: true
+
+        :verifies: SAT-25333
+
+        """
+        request.addfinalizer(
+            lambda: module_container_contenthost.execute(
+                f'podman logout {module_capsule_configured.hostname}'
+            )
+        )
+        cmd = (
+            f"""expect -c 'spawn podman login --tls-verify=false {module_capsule_configured.hostname}; """
+            """expect "Username:"; send "\n"; expect "Password:"; send "\n"; expect eof'"""
+        )
+        res = module_container_contenthost.execute(cmd)
+        assert res.status == 0  # expect cmd succeeded
+        assert 'login succeeded' not in res.stdout.lower()
+        assert 'invalid username/password' in res.stdout.lower()
