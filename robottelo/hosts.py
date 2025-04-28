@@ -1648,13 +1648,6 @@ class Capsule(ContentHost, CapsuleMixins):
         super().__init__(hostname=hostname, **kwargs)
 
     @property
-    def network_type(self):
-        """Get the network type of the host"""
-        if not self._net_type:
-            self._net_type = NetworkType(settings.capsule.network_type)
-        return self._net_type
-
-    @property
     def nailgun_capsule(self):
         return self.satellite.api.Capsule().search(query={'search': f'name={self.hostname}'})[0]
 
@@ -2002,13 +1995,6 @@ class Satellite(Capsule, SatelliteMixins):
                         pass
         self._cli._configured = True
         return self._cli
-
-    @property
-    def network_type(self):
-        """Get the network type of the host"""
-        if not self._net_type:
-            self._net_type = NetworkType(settings.server.network_type)
-        return self._net_type
 
     @contextmanager
     def omit_credentials(self):
