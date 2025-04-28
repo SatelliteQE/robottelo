@@ -103,7 +103,6 @@ def test_rhel_pxe_provisioning(
 
     :parametrized: yes
     """
-    # TODO(sganar) does the following also apply to dualstack?
     if (
         pxe_loader.vm_firmware == 'bios'
         and module_provisioning_sat.network_type == NetworkType.IPV6
@@ -159,7 +158,7 @@ def test_rhel_pxe_provisioning(
     # Change the hostname of the host as we know it already.
     # In the current infra environment we do not support
     # addressing hosts using FQDNs, falling back to IP.
-    if is_open('SAT-30601') and module_provisioning_sat.network_type != NetworkType.IPV6:
+    if is_open('SAT-30601') and module_provisioning_sat.network_type == NetworkType.IPV4:
         provisioning_host.hostname = host.ip
         # Host is not blank anymore
         provisioning_host.blank = False

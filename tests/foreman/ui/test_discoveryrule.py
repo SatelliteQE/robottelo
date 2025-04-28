@@ -194,7 +194,6 @@ def test_positive_list_host_based_on_rule_search_query(
 
     :BZ: 1731112
     """
-    # TODO(sganar): How should this test case look like for dualstack?
     ip_address = gen_ipaddr(ipv6=target_sat.network_type == NetworkType.IPV6)
     cpu_count = gen_integer(2, 10)
     rule_name = gen_string('alpha')
