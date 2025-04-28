@@ -41,7 +41,7 @@ VALIDATORS = dict(
             is_in=NetworkType.list_values(),
             default=NetworkType.IPV4.value,
         ),
-        # Validator('server.is_ipv6', is_type_of=bool, must_exist=False),  # TODO(ogajduse): uncomment
+        Validator('server.is_ipv6', is_type_of=bool, must_exist=False),
     ],
     content_host=[
         Validator('content_host.default_rhel_version', must_exist=True),
@@ -50,8 +50,7 @@ VALIDATORS = dict(
             'content_host.attributes.network_type',
             must_exist=True,
             is_in=NetworkType.list_values(),
-            # TODO(ogajduse): should we have a default value for network_type?
-            default=NetworkType.DUALSTACK.value,
+            default=NetworkType.IPV4.value,
         ),
     ],
     subscription=[
