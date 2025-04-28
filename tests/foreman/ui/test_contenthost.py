@@ -1502,3 +1502,34 @@ def test_search_for_virt_who_hypervisors(session, default_location, module_targe
         # Search with hypervisor=false gives the correct result.
         content_hosts = [host['Name'] for host in session.contenthost.search('hypervisor = false')]
         assert hypervisor_display_name not in content_hosts
+
+
+def test_content_hosts_bool_in_query(target_sat):
+    """
+    Test that the 'true'/'false' string is also
+    interpreted as a boolean true/false as it is happening for 't'/'f' string
+
+    :id: 1daa297d-aa16-4211-9b1b-23e63c09b0e1
+
+    :verifies: SAT-22655
+    """
+    search_queries = {
+        'True': [
+            'params.host_registration_insights = true',
+            'params.host_registration_insights = t',
+        ],
+        'False': [
+            'params.host_registration_insights = false',
+            'params.host_registration_insights = f',
+        ],
+    }
+
+    with target_sat.ui_session() as session:
+        for query_type, queries in search_queries.items():
+            for query in queries:
+                session.contenthost.search(query)
+                result = session.contenthost.read_all()
+                if query_type == 'True':
+                    assert result['table'][0]['Name'] == target_sat.hostname
+                elif query_type == 'False':
+                    assert not result['table']
