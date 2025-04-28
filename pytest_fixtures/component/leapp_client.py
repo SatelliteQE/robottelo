@@ -163,8 +163,6 @@ def custom_leapp_host(upgrade_path, module_target_sat, module_sca_manifest_org, 
         host_class=ContentHost,
         deploy_rhel_version=upgrade_path['source_version'],
         deploy_flavor=settings.flavors.default,
-        # TODO(shwsingh): Check whether this is valid for dualstack scenaro. Ideally, we should
-        # parametrize this fixture by fixture_markers plugin
         deploy_network_type=settings.content_host.attributes.network_type,
     ) as chost:
         result = chost.register(

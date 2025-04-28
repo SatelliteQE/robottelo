@@ -189,8 +189,7 @@ def module_provisioning_sat(
         location=[module_location],
         organization=[module_sca_manifest_org],
         network=str(provisioning_network.network_address),
-        # TODO(sganar): Is this correct for dualstack?
-        network_type=sat.network_type.formatted
+        network_type=NetworkType.IPV4.formatted
         if sat.network_type == NetworkType.IPV4
         else NetworkType.IPV6.formatted,
         vlanid=settings.provisioning.vlan_id,
@@ -247,14 +246,13 @@ def provisioning_host(module_ssh_key_file, pxe_loader, module_provisioning_sat):
     ) as prov_host:
         yield prov_host
         # Set host as non-blank to run teardown of the host
-        if settings.server.network_type != NetworkType.IPV6:
+        if settings.server.network_type == NetworkType.IPV4:
             assert module_provisioning_sat.sat.execute('systemctl restart dhcpd').status == 0
         prov_host.blank = getattr(prov_host, 'blank', False)
 
 
 @pytest.fixture(scope='module')
 def configure_kea_dhcp6_server():
-    # TODO(sganar): How should we handle this fixture for dualstack?
     if settings.server.network_type == NetworkType.IPV6:
         kea_host = Broker(
             workflow=settings.provisioning.provisioning_kea_workflow,
