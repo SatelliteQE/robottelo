@@ -1531,13 +1531,5 @@ def test_content_hosts_bool_in_query(target_sat):
                 result = session.contenthost.read_all()
                 if query_type == 'True':
                     assert result['table'][0]['Name'] == target_sat.hostname
-                elif query_type == 'False':
-                    # If there is something in the table
-                    if result['table']:
-                        # Search through the table
-                        for item in result['table']:
-                            # If we find our host in the table, fail the test
-                            assert item['Name'] != target_sat.hostname
-                    # If the table is empty, it means that the search is correct
-                    else:
-                        assert not result['table']
+                elif query_type == 'False' and result['table']:
+                    assert all(item['Name'] != target_sat.hostname for item in result['table'])
