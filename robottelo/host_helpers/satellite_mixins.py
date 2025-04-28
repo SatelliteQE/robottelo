@@ -348,7 +348,7 @@ class ProvisioningSetup:
         """
         # Geneate SSH key-pair for foreman user and copy public key to libvirt server
         self.execute('sudo -u foreman ssh-keygen -q -t rsa -f ~foreman/.ssh/id_rsa -N "" <<< y')
-        self.execute(f'ssh-keyscan -t ecdsa {server_fqdn} >> ~foreman/.ssh/known_hosts')
+        self.execute('echo "StrictHostKeyChecking accept-new" >> ~foreman/.ssh/config')
         self.execute(
             f'sshpass -p {settings.server.ssh_password} ssh-copy-id -o StrictHostKeyChecking=no '
             f'-i ~foreman/.ssh/id_rsa root@{server_fqdn}'
