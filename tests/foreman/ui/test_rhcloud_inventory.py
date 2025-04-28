@@ -502,10 +502,10 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
     :steps:
         1. Set the subscription_connection_enabled setting to true
         2. Check that all the RH inventory settings, auto_upload and manual_upload descriptions,
-            cloud_connector and sync_status buttons are displayed in the UI
+            cloud_connector, uploading tab and sync_status buttons are displayed in the UI
         3. Set the subscription_connection_enabled setting to false
-        4. Verify that auto_update switch, auto_upload and manual_upload descriptions
-            and configure_cloud_connector and sync_all buttons are NOT displayed in the UI
+        4. Verify that auto_update switch, auto_upload and manual_upload descriptions, uploading tab,
+            configure_cloud_connector and sync_all buttons are NOT displayed in the UI
 
     :expectedresults:
         1. The subscription_connection_enabled setting is reflected in the UI
@@ -517,6 +517,7 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
         displayed_settings_options = session.cloudinventory.get_displayed_settings_options()
         displayed_buttons = session.cloudinventory.get_displayed_buttons()
         displayed_descriptions = session.cloudinventory.get_displayed_descriptions()
+        displayed_inventory_tabs = session.cloudinventory.get_displayed_inventory_tabs()
 
         subscription_setting = setting_update.value == 'true'
 
@@ -525,3 +526,4 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
         assert displayed_buttons['sync_status'] is subscription_setting
         assert displayed_descriptions['auto_upload_desc'] is subscription_setting
         assert displayed_descriptions['manual_upload_desc'] is subscription_setting
+        assert displayed_inventory_tabs['uploading'] is subscription_setting
