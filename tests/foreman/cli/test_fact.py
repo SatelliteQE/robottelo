@@ -28,7 +28,6 @@ from robottelo.utils.issue_handlers import is_open
         'os::family',
         'system_uptime::seconds',
         'memory::system::total',
-        # TODO(gtalreja): How should we handle dualstack here?
         'networking::ip6' if settings.server.network_type == NetworkType.IPV6 else 'networking::ip',
     ],
 )

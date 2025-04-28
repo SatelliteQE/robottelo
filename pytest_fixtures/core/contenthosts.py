@@ -266,8 +266,7 @@ def centos_host(request, version):
     with Broker(
         **host_conf(request),
         host_class=ContentHost,
-        # TODO(shwsingh): Check whether this is valid for dualstack scenaro
-        deploy_network_type='ipv6' if settings.server.network_type == NetworkType.IPV6 else 'ipv4',
+        deploy_network_type=settings.content_host.attributes.network_type,
     ) as host:
         yield host
 
