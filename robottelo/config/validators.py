@@ -36,8 +36,11 @@ VALIDATORS = dict(
         Validator('server.ssh_username', default='root'),
         Validator('server.ssh_password', default=None),
         Validator('server.verify_ca', default=False),
-        # TODO(ogajduse): should we have a default value for network_type?
-        Validator('server.network_type', must_exist=True, is_in=NetworkType.list_values()),
+        Validator(
+            'server.network_type',
+            is_in=NetworkType.list_values(),
+            default=NetworkType.IPV4.value,
+        ),
         # Validator('server.is_ipv6', is_type_of=bool, must_exist=False),  # TODO(ogajduse): uncomment
     ],
     content_host=[
