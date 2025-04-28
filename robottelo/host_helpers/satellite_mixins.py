@@ -348,7 +348,7 @@ class ProvisioningSetup:
         """
         # Geneate SSH key-pair for foreman user and copy public key to libvirt server
         self.execute('sudo -u foreman ssh-keygen -q -t rsa -f ~foreman/.ssh/id_rsa -N "" <<< y')
-        self.execute(f'ssh-keyscan -t ecdsa {server_fqdn} >> ~foreman/.ssh/known_hosts')
+        self.execute('echo "StrictHostKeyChecking accept-new" >> ~foreman/.ssh/config')
         self.execute(
             f'sshpass -p {settings.server.ssh_password} ssh-copy-id -o StrictHostKeyChecking=no '
             f'-i ~foreman/.ssh/id_rsa root@{server_fqdn}'
@@ -356,12 +356,10 @@ class ProvisioningSetup:
         # Install libvirt-client, and verify foreman user is able to communicate with Libvirt server
         self.register_to_cdn()
         self.execute('dnf -y --disableplugin=foreman-protector install libvirt-client')
-        assert (
-            self.execute(
-                f'su foreman -s /bin/bash -c "virsh -c qemu+ssh://root@{server_fqdn}/system list"'
-            ).status
-            == 0
+        result = self.execute(
+            f'su foreman -s /bin/bash -c "virsh -c qemu+ssh://root@{server_fqdn}/system list"'
         )
+        assert result.status == 0, f"{result.status=}\n{result.stdout=}\n{result.stderr=}"
 
     def provisioning_cleanup(self, hostname, interface='API'):
         if interface == 'CLI':
