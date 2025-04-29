@@ -41,7 +41,7 @@ class TestOpenScap:
         scap_profile_ids = default_content['scap-content-profiles'][0]['id']
         return scap_id, scap_profile_ids
 
-    def test_positive_list_default_content_with_admin(self, module_target_sat):
+    def test_positive_list_default_content_with_admin(self, satellite_host):
         """List the default scap content with admin account
 
         :id: 32c41c22-6aef-424e-8e69-a65c00f1c811
@@ -57,16 +57,27 @@ class TestOpenScap:
             1. Login to shell from admin account.
             2. Execute the scap-content command with list as sub-command.
 
-        :expectedresults: Default scap-content are listed.
+        :expectedresults: Default scap-content are listed. They should already be populated on a fresh Satellite instance from Broker.
 
         :BZ: 1749692
+
+        :verifies: SAT-30938
 
         :customerscenario: true
 
         :CaseImportance: Medium
         """
-        scap_contents = [content['title'] for content in module_target_sat.cli.Scapcontent.list()]
-        assert f'Red Hat rhel{module_target_sat.os_version.major} default content' in scap_contents
+        scap_contents = [content['title'] for content in satellite_host.cli.Scapcontent.list()]
+        for rhel_version in range(6, 11):
+            assert f'Red Hat rhel{rhel_version} default content' in scap_contents
+        res = satellite_host.execute("rpm -q scap-security-guide-satellite")
+        assert res.status == 0
+        res = satellite_host.execute("rpm -ql scap-security-guide-satellite")
+        for rhel_version in range(6, 11):
+            assert (
+                f'/usr/share/xml/scap/ssg/content/satellite/ssg-rhel{rhel_version}-ds.xml'
+                in res.stdout
+            )
 
     def test_negative_list_default_content_with_viewer_role(
         self, scap_content, default_viewer_role, module_target_sat
