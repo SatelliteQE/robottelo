@@ -317,7 +317,6 @@ def sat_fapolicyd_install(module_sat_ready_rhels):
     assert install_satellite(sat, installer_args, enable_fapolicyd=True).status == 0, (
         "Satellite installation failed (non-zero return code)"
     )
-    # TODO(jpathan): Check whether this is valid for dualstack
     if settings.server.network_type == NetworkType.IPV6:
         sat.enable_satellite_http_proxy()
     return sat
@@ -337,7 +336,6 @@ def sat_non_default_install(module_sat_ready_rhels):
     assert install_satellite(sat, installer_args, enable_fapolicyd=True).status == 0, (
         "Satellite installation failed (non-zero return code)"
     )
-    # TODO(jpathan): Check whether this is valid for dualstack
     if settings.server.network_type == NetworkType.IPV6:
         sat.enable_satellite_http_proxy()
     return sat

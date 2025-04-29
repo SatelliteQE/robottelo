@@ -38,7 +38,7 @@ VALIDATORS = dict(
         Validator('server.verify_ca', default=False),
         Validator(
             'server.network_type',
-            is_in=NetworkType.list_values(),
+            cast=NetworkType,
             default=NetworkType.IPV4.value,
         ),
         Validator('server.is_ipv6', is_type_of=bool, must_exist=False),
@@ -47,7 +47,7 @@ VALIDATORS = dict(
         Validator('content_host.default_rhel_version', must_exist=True),
         Validator(
             'content_host.network_type',
-            is_in=NetworkType.list_values(),
+            cast=NetworkType,
             default=NetworkType.IPV4.value,
         ),
     ],

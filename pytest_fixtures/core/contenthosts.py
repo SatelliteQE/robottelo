@@ -220,7 +220,6 @@ def module_container_contenthost(request, module_target_sat, module_org, module_
         "rhel_version": "8",
         "distro": "rhel",
         "no_containers": True,
-        # TODO(vsedmik): Check whether this is valid for dualstack scenaro
         "network": "ipv6" if module_target_sat.network_type == NetworkType.IPV6 else "ipv4",
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
@@ -245,7 +244,6 @@ def module_flatpak_contenthost(request):
         "rhel_version": "9",
         "distro": "rhel",
         "no_containers": True,
-        # TODO(vsedmik): Check whether this is valid for dualstack scenaro
         "network": "ipv6" if settings.server.network_type == NetworkType.IPV6 else "ipv4",
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
