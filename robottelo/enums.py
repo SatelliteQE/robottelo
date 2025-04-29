@@ -33,13 +33,3 @@ class NetworkType(StrEnum):
         if self.value in (self.IPV4, self.IPV6):
             return self.value.replace('ipv', 'IPv')
         raise ValueError(f'Invalid network type: {self.value}')
-
-    @classmethod
-    def list_values(cls):
-        """
-        Return a set of all enum values.
-
-        :returns: A set containing all the string values of the enum members.
-        :rtype: set
-        """
-        return {nt.value for nt in cls}

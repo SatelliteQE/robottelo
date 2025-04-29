@@ -44,8 +44,3 @@ class TestNetworkType:
         assert NetworkType.IPV4 == NetworkType.IPV4
         assert NetworkType.IPV4 != NetworkType.IPV6
         assert NetworkType.IPV6 != NetworkType.DUALSTACK
-
-    def test_list_values(self):
-        """Test the list_values class method."""
-        expected = {'ipv4', 'ipv6', 'dualstack'}
-        assert NetworkType.list_values() == expected
