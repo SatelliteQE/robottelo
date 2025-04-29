@@ -45,10 +45,8 @@ VALIDATORS = dict(
     ],
     content_host=[
         Validator('content_host.default_rhel_version', must_exist=True),
-        Validator('content_host.attributes', must_exist=True, is_type_of=dict),
         Validator(
-            'content_host.attributes.network_type',
-            must_exist=True,
+            'content_host.network_type',
             is_in=NetworkType.list_values(),
             default=NetworkType.IPV4.value,
         ),

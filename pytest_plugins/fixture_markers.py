@@ -67,10 +67,10 @@ def pytest_generate_tests(metafunc):
             rhel_params.append(dict(rhel_version=ver, no_containers=no_containers))
 
         # Determine the default network type based on settings
-        if settings.content_host.attributes.network_type == 'dualstack':
+        if settings.content_host.network_type == 'dualstack':
             network_params = ['ipv4', 'ipv6']
         else:  # rely on network_type setting to be either ipv4 or ipv6
-            network_params = [settings.content_host.attributes.network_type]
+            network_params = [settings.content_host.network_type]
 
         # Check for the network marker
         network_marker = metafunc.definition.get_closest_marker("network")
@@ -164,18 +164,18 @@ def pytest_collection_modifyitems(session, items, config):
         if network_marker := item.get_closest_marker("network"):
             marker_network_types = network_marker.args[0] if network_marker.args else []
             # Skip the test if network_type setting is not set to ipv4 and network marker is set to ipv6
-            if (
-                'ipv6' in marker_network_types
-                and settings.content_host.attributes.network_type not in ['ipv6', 'dualstack']
-            ):
+            if 'ipv6' in marker_network_types and settings.content_host.network_type not in [
+                'ipv6',
+                'dualstack',
+            ]:
                 item.add_marker(
                     pytest.mark.skip(reason=f"Skipping {item.name} due to network type mismatch")
                 )
             # Skip the test if network_type setting is not set to ipv6 and network marker is set to ipv4
-            if (
-                'ipv4' in marker_network_types
-                and settings.content_host.attributes.network_type not in ['ipv4', 'dualstack']
-            ):
+            if 'ipv4' in marker_network_types and settings.content_host.network_type not in [
+                'ipv4',
+                'dualstack',
+            ]:
                 item.add_marker(
                     pytest.mark.skip(reason=f"Skipping {item.name} due to network type mismatch")
                 )
