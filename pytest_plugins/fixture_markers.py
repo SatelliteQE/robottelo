@@ -4,6 +4,7 @@ import re
 import pytest
 
 from robottelo.config import settings
+from robottelo.enums import NetworkType
 
 TARGET_FIXTURES = [
     'rhel_contenthost',
@@ -67,8 +68,8 @@ def pytest_generate_tests(metafunc):
             rhel_params.append(dict(rhel_version=ver, no_containers=no_containers))
 
         # Determine the default network type based on settings
-        if settings.content_host.network_type == 'dualstack':
-            network_params = ['ipv4', 'ipv6']
+        if settings.content_host.network_type == NetworkType.DUALSTACK:
+            network_params = [NetworkType.IPV4, NetworkType.IPV6]
         else:  # rely on network_type setting to be either ipv4 or ipv6
             network_params = [settings.content_host.network_type]
 
@@ -80,22 +81,31 @@ def pytest_generate_tests(metafunc):
             marker_network_types = network_marker.args[0] if network_marker.args else network_params
             # Validate the network marker arguments
             for nt in marker_network_types:
-                if nt not in ['ipv4', 'ipv6']:
+                if nt not in [NetworkType.IPV4, NetworkType.IPV6]:
                     raise ValueError(
                         f"Invalid network type '{nt}' in network marker "
-                        f"for test {metafunc.function.name}. Must be 'ipv4' or 'ipv6'."
+                        f"for test {metafunc.function.name}. "
+                        f"Must be '{NetworkType.IPV4.value}' or '{NetworkType.IPV6.value}'."
                     )
             network_params = [nt for nt in marker_network_types if nt in network_params]
             # do not parametrize if no network types are common, test
             # should be skipped in pytest_collection_modifyitems
 
         # Check whether server could connect with client looking up settings.server.network_type
-        if settings.server.network_type == 'ipv6':
-            network_params = [nt for nt in network_params if nt in ['ipv6', 'dualstack']]
-        elif settings.server.network_type == 'ipv4':
-            network_params = [nt for nt in network_params if nt in ['ipv4', 'dualstack']]
-        elif settings.server.network_type == 'dualstack':
-            network_params = [nt for nt in network_params if nt in ['ipv4', 'ipv6', 'dualstack']]
+        if settings.server.network_type == NetworkType.IPV6:
+            network_params = [
+                nt for nt in network_params if nt in [NetworkType.IPV6, NetworkType.DUALSTACK]
+            ]
+        elif settings.server.network_type == NetworkType.IPV4:
+            network_params = [
+                nt for nt in network_params if nt in [NetworkType.IPV4, NetworkType.DUALSTACK]
+            ]
+        elif settings.server.network_type == NetworkType.DUALSTACK:
+            network_params = [
+                nt
+                for nt in network_params
+                if nt in [NetworkType.IPV4, NetworkType.IPV6, NetworkType.DUALSTACK]
+            ]
 
         # Create combinations of rhel_params and network_params as dictionaries
         if rhel_params:
