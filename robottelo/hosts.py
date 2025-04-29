@@ -159,7 +159,7 @@ class ContentHost(Host, ContentHostMixins):
     @property
     def network_type(self):
         if not self._net_type:
-            self._net_type = NetworkType(settings.content_host.attributes.network_type)
+            self._net_type = NetworkType(settings.content_host.network_type)
         return self._net_type
 
     @classmethod
