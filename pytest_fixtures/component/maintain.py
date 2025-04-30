@@ -5,6 +5,7 @@ import pytest
 
 from robottelo import constants
 from robottelo.config import settings
+from robottelo.constants import DEFAULT_ORG
 from robottelo.exceptions import SatelliteHostError
 from robottelo.hosts import Capsule, Satellite
 from robottelo.logging import logger
@@ -72,7 +73,9 @@ def setup_backup_tests(request, sat_maintain):
 @pytest.fixture(scope='module')
 def module_synced_repos(module_capsule_configured, module_sca_manifest, module_stash):
     if not module_stash[synced_repos]:
-        org = module_capsule_configured.satellite.api.Organization().create()
+        org = module_capsule_configured.satellite.api.Organization().search(
+            query={'search': f'name="{DEFAULT_ORG}"'}
+        )[0]
         module_capsule_configured.satellite.upload_manifest(org.id, module_sca_manifest.content)
         # sync custom repo
         cust_prod = module_capsule_configured.satellite.api.Product(organization=org).create()
