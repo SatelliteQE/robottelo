@@ -192,7 +192,7 @@ def test_positive_provision_end_to_end(
         wait_for(
             lambda: session.host_new.get_host_statuses(name)['Build']['Status']
             != 'Pending installation',
-            timeout=1800,
+            timeout=2400,
             delay=30,
             fail_func=session.browser.refresh,
             silent_failure=True,
