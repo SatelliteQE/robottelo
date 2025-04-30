@@ -766,7 +766,7 @@ def test_subscription_manager_install_from_repository(
                 'general.insecure': True,
                 'advanced.force': True,
                 'advanced.install_packages': 'subscription-manager',
-                'advanced.repository': repo_url,
+                'advanced.repository_add': repo_url,
             }
         )
 
