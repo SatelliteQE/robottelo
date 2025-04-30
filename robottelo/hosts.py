@@ -1153,8 +1153,12 @@ class ContentHost(Host, ContentHostMixins):
             self.create_custom_repos(**{rhel_distro: rhel_repo})
 
         # Ensure insights-client rpm is installed
-        if self.execute('yum install -y insights-client').status != 0:
-            raise ContentHostError('Unable to install insights-client rpm')
+        result = self.execute('yum install -y insights-client')
+        if result.status != 0:
+            logger.info(f'Unable to install insights-client rpm: {result.stdout}\n{result.stderr}')
+            raise ContentHostError(
+                f'Unable to install insights-client rpm: {result.stdout}\n{result.stderr}'
+            )
         # attempt to register host
         if register:
             if not activation_key:
