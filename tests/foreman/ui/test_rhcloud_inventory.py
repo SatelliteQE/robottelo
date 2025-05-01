@@ -25,9 +25,37 @@ from robottelo.utils.io import (
 )
 
 
+<<<<<<< HEAD
 def common_assertion(
     report_path, inventory_data, org, satellite, subscription_connection_enabled=True
 ):
+=======
+@pytest.fixture(scope='module', autouse=True)
+def data_collection_default(module_target_sat):
+    settings_object = module_target_sat.api.Setting().search(
+        query={'search': 'name=insights_minimal_data_collection'}
+    )[0]
+    data_collection_value = settings_object.value
+    settings_object.value = 'No'
+    settings_object.update({'value'})
+    yield
+    settings_object.value = data_collection_value
+    settings_object.update({'value'})
+
+
+@pytest.fixture
+def data_collection_minimal(module_target_sat):
+    settings_object = module_target_sat.api.Setting().search(
+        query={'search': 'name=insights_minimal_data_collection'}
+    )[0]
+    settings_object.value = 'Yes'
+    settings_object.update({'value'})
+    yield
+    settings_object.value = 'No'
+    settings_object.update({'value'})
+
+def common_assertion(report_path, inventory_data, org, satellite):
+>>>>>>> 72ed9d2f8 (Add functionality for minimal report)
     """Function to perform common assertions"""
     local_file_data = get_local_file_data(report_path)
     upload_success_msg = (
@@ -549,4 +577,90 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
             displayed_inventory_data['generating']['restart'] == 'Generate and upload report'
             if subscription_setting
             else 'Generate report'
+        )
+
+
+@pytest.mark.no_containers
+@pytest.mark.run_in_one_thread
+def test_rh_cloud_minimal_report(
+    module_target_sat,
+    inventory_settings,
+    rhcloud_manifest_org,
+    rhcloud_registered_hosts,
+    data_collection_minimal,
+):
+    """Verify that the `Minimal data collection' report contains the proper fields
+
+    :id: e9bd1b9f-705f-47de-8495-49618e019e8a
+
+    :customerscenario: true
+
+    :steps:
+
+        1. Prepare machine and upload its data to Insights
+        2. Go to Insights > Inventory upload > enable “Minimal data collection” setting
+        3. Generate report after enabling the setting
+        4. Check if hostnames are obfuscated in generated report
+        5. Check if ipv4 addresses are obfuscated in generated reports
+        6. Check if account, subscription_manager_id, insights_id, and installed_products fields are in report
+
+
+    :expectedresults:
+        1. Obfuscated host names are not in reports generated.
+        2. Obfuscated host ipv4 addresses are not in generated reports.
+        3. Account, subscription_manager_id, insights_id, and installed_products fields are in report
+
+    :Verifies: SAT-31467
+    """
+    org = rhcloud_manifest_org
+    virtual_host, baremetal_host = rhcloud_registered_hosts
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        session.cloudinventory.update(
+            {
+                'data_collection': 'Minimal data collectionOnly send the minimum required data to Red Hat cloud, and obfuscate wherever possible'
+            }
+        )
+        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        session.cloudinventory.generate_report(org.name)
+        # wait_for_tasks report generation task to finish.
+        wait_for(
+            lambda: module_target_sat.api.ForemanTask()
+            .search(
+                query={
+                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                    f'and started_at >= "{timestamp}"'
+                }
+            )[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        report_path = session.cloudinventory.download_report(org.name)
+        inventory_data = session.cloudinventory.read(org.name)
+        # Verify that generated archive is valid.
+        common_assertion(report_path, inventory_data, org, module_target_sat)
+        # Get report data for assertion
+        json_data = get_report_data(report_path)
+        # Verify that hostnames are obfuscated from the report.
+        host_data = [item for item in json_data['hosts']]
+        hostnames = [item['fqdn'] for item in host_data if 'fqdn' in item]
+        assert virtual_host.hostname not in hostnames, f"'hostname' found in: {hostnames}"
+        assert baremetal_host.hostname not in hostnames, f"'hostname' found in: {hostnames}"
+        # Verify that ip addresses are obfuscated from the report.
+        ip_address = [item['ip_addresses'] for item in host_data if 'ip_addresses' in item]
+        assert not ip_address, f"'ip_addresses' found in: {ip_address}"
+        # Verify that installed_products are found in report
+        system_profile = [item.get('system_profile', {}) for item in host_data]
+        assert all('installed_products' in item for item in system_profile), (
+            "'installed_products' is missing in one or more entries"
+        )
+        # Verify that proper fields are found in report
+        required_fields = ['account', 'subscription_manager_id', 'insights_id']
+        assert all(all(key in item for key in required_fields) for item in host_data), (
+            "Not all required keys are present in every dictionary"
         )
