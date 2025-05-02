@@ -122,3 +122,14 @@ def errata_upgrade_shared_satellite():
     ) as test_duration:
         yield sat_instance
         test_duration.ready()
+
+
+@pytest.fixture
+def fdi_upgrade_shared_satellite():
+    """Mark tests using this fixture with pytest.mark.discovery_upgrades."""
+    sat_instance = shared_checkout("fdi_upgrade")
+    with SharedResource(
+        "fdi_upgrade_tests", shared_checkin, sat_instance=sat_instance
+    ) as test_duration:
+        yield sat_instance
+        test_duration.ready()
