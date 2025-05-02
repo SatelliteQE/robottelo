@@ -122,3 +122,25 @@ def errata_upgrade_shared_satellite():
     ) as test_duration:
         yield sat_instance
         test_duration.ready()
+
+
+@pytest.fixture
+def puppet_upgrade_shared_satellite():
+    """Mark tests using this fixture with pytest.mark.puppet_upgrades"""
+    sat_instance = shared_checkout("puppet_upgrade")
+    with (
+        SharedResource(
+            "puppet_upgrade_enable_puppet",
+            action=sat_instance.enable_puppet_satellite,
+            action_is_recoverable=True,
+        ) as enable_puppet,
+        SharedResource(
+            "puppet_upgrade_tests",
+            shared_checkin,
+            sat_instance=sat_instance,
+            action_is_recoverable=True,
+        ) as test_duration,
+    ):
+        enable_puppet.ready()
+        yield sat_instance
+        test_duration.ready()
