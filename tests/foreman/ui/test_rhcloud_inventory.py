@@ -54,6 +54,7 @@ def data_collection_minimal(module_target_sat):
     settings_object.value = 'No'
     settings_object.update({'value'})
 
+
 def common_assertion(report_path, inventory_data, org, satellite):
 >>>>>>> 72ed9d2f8 (Add functionality for minimal report)
     """Function to perform common assertions"""
@@ -609,6 +610,7 @@ def test_rh_cloud_minimal_report(
         1. Obfuscated host names are not in reports generated.
         2. Obfuscated host ipv4 addresses are not in generated reports.
         3. Account, subscription_manager_id, insights_id, and installed_products fields are in report
+
 
     :Verifies: SAT-31467
     """

@@ -10,14 +10,16 @@
 
 """
 
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 
 from airgun.session import Session
 from fauxfactory import gen_string
 import pytest
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.utils.datafactory import valid_emails_list
+from robottelo.utils.io import get_report_data
 from robottelo.utils.virtwho import (
     ETC_VIRTWHO_CONFIG,
     add_configure_option,
@@ -657,3 +659,61 @@ class TestVirtwhoConfigforEsx:
         org_session.virtwho_configure.edit(name, {'hypervisor_password': gen_string('alpha')})
         results = org_session.virtwho_configure.read(name)
         assert 'encrypted_password=$cr_password' in results['deploy']['script']
+
+    @pytest.mark.upgrade
+    @pytest.mark.parametrize('deploy_type_ui', ['id', 'script'], indirect=True)
+    def test_positive_minimal_report_hypervisor(
+        self, module_sca_manifest_org, org_session, form_data_ui, deploy_type_ui, module_target_sat
+    ):
+        """Verify that the `Minimal data collection' report contains the proper fields for a configured hypervisor
+
+        :id: 75fc7cc1-af73-4877-b443-d8298dccabdf
+
+        :steps:
+            1. Go to Insights > Inventory upload > enable “Minimal data collection” setting
+            2. Generate report after enabling the setting
+            3. Check if hostnames are obfuscated in generated report
+            4. Check if hosts ipv4 addresses are obfuscated in generated reports
+            6. Check if hypervisor_type and hypervisor_version fields are in report
+
+        :CaseImportance: High
+        """
+        hypervisor_name, guest_name = deploy_type_ui
+        # Check virt-who config status
+        assert org_session.virtwho_configure.search(form_data_ui['name'])[0]['Status'] == 'ok'
+
+        org_session.cloudinventory.update(
+            {
+                'data_collection': 'Minimal data collectionOnly send the minimum required data to Red Hat cloud, and obfuscate wherever possible'
+            }
+        )
+
+        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        org_session.cloudinventory.generate_report(module_sca_manifest_org.name)
+        # wait_for_tasks report generation task to finish.
+        wait_for(
+            lambda: module_target_sat.api.ForemanTask()
+            .search(
+                query={
+                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                    f'and started_at >= "{timestamp}"'
+                }
+            )[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        report_path = org_session.cloudinventory.download_report(module_sca_manifest_org.name)
+
+        json_data = get_report_data(report_path)
+
+        host_data = [item for item in json_data['hosts']]
+        hostnames = [item['fqdn'] for item in host_data if 'fqdn' in item]
+
+        assert guest_name not in hostnames, f"'hostname' found in: {hostnames}"
+        assert any(
+            'hypervisor_type' in item and 'hypervisor_version' in item for item in host_data
+        ), "'hypervisor_type' and 'hypervisor_version' not found"
