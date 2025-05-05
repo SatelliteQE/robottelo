@@ -42,9 +42,9 @@ def expected_permissions(session_target_sat):
     if 'rubygem-foreman_snapshot_management' not in rpm_packages:
         permissions['Host'].remove('view_snapshots')
         permissions['Host'].remove('create_snapshots')
-        permissions[None].remove('destroy_snapshots')
-        permissions[None].remove('revert_snapshots')
-        permissions[None].remove('edit_snapshots')
+        permissions['Host'].remove('destroy_snapshots')
+        permissions['Host'].remove('revert_snapshots')
+        permissions['Host'].remove('edit_snapshots')
     if 'gem-foreman_salt' not in rpm_packages:
         permissions['Host'].remove('saltrun_hosts')
         permissions['SmartProxy'].remove('destroy_smart_proxies_salt_autosign')
