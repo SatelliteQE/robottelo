@@ -25,7 +25,9 @@ from robottelo.utils.io import (
 )
 
 
-def common_assertion(report_path, inventory_data, org, satellite):
+def common_assertion(
+    report_path, inventory_data, org, satellite, subscription_connection_enabled=True
+):
     """Function to perform common assertions"""
     local_file_data = get_local_file_data(report_path)
     upload_success_msg = (
@@ -34,12 +36,14 @@ def common_assertion(report_path, inventory_data, org, satellite):
     upload_error_messages = ['NSS error', 'Permission denied']
 
     assert 'Successfully generated' in inventory_data['generating']['terminal']
-    assert upload_success_msg in inventory_data['uploading']['terminal']
-    assert 'x-rh-insights-request-id' in inventory_data['uploading']['terminal'].lower()
-    for error_msg in upload_error_messages:
-        assert error_msg not in inventory_data['uploading']['terminal']
+    if subscription_connection_enabled:
+        assert upload_success_msg in inventory_data['uploading']['terminal']
+        assert 'x-rh-insights-request-id' in inventory_data['uploading']['terminal'].lower()
+        for error_msg in upload_error_messages:
+            assert error_msg not in inventory_data['uploading']['terminal']
+        # There is no uploaded report with subscription_connection_enabled set to false
+        assert local_file_data['checksum'] == get_remote_report_checksum(satellite, org.id)
 
-    assert local_file_data['checksum'] == get_remote_report_checksum(satellite, org.id)
     assert local_file_data['size'] > 0
     assert local_file_data['extractable']
     assert local_file_data['json_files_parsable']
@@ -55,15 +59,25 @@ def common_assertion(report_path, inventory_data, org, satellite):
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.run_in_one_thread
+@pytest.mark.usefixtures('setting_update')
+@pytest.mark.parametrize(
+    'setting_update',
+    ['subscription_connection_enabled=true', 'subscription_connection_enabled=false'],
+    indirect=True,
+)
 def test_rhcloud_inventory_e2e(
     inventory_settings,
     rhcloud_manifest_org,
     rhcloud_registered_hosts,
     module_target_sat,
+    setting_update,
 ):
-    """Generate report and verify its basic properties
+    """Generate report and verify its basic properties,
+    also test with subscription_connection_enabled setting set to true and false.
 
     :id: 833bd61d-d6e7-4575-887a-9e0729d0fa76
+
+    :parametrized: yes
 
     :customerscenario: true
 
@@ -82,6 +96,7 @@ def test_rhcloud_inventory_e2e(
 
     :BZ: 1807829, 1926100
     """
+    subscription_setting = setting_update.value == 'true'
     org = rhcloud_manifest_org
     virtual_host, baremetal_host = rhcloud_registered_hosts
     with module_target_sat.ui_session() as session:
@@ -108,7 +123,7 @@ def test_rhcloud_inventory_e2e(
         report_path = session.cloudinventory.download_report(org.name)
         inventory_data = session.cloudinventory.read(org.name)
     # Verify that generated archive is valid.
-    common_assertion(report_path, inventory_data, org, module_target_sat)
+    common_assertion(report_path, inventory_data, org, module_target_sat, subscription_setting)
     # Get report data for assertion
     json_data = get_report_data(report_path)
     # Verify that hostnames are present in the report.
@@ -498,6 +513,8 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
     reflects the subscription_connection_enabled setting
 
     :id: 9b8648b5-0ffb-49c1-a19e-04a7a8ce896f
+
+    :parametrized: yes
 
     :steps:
         1. Set the subscription_connection_enabled setting to true
