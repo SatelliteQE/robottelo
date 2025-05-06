@@ -17,7 +17,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_CV
+from robottelo.constants import DEFAULT_CV, REPOS
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
 
 
@@ -367,6 +367,84 @@ def test_positive_content_counts_granular_update(
             for cv in cvs
         )
         assert details['content'][lce1.name][cv2.name]['expanded_repo_details'][1] == empty_counts
+
+
+def test_partially_synced_library(
+    module_target_sat, module_capsule_configured, function_sca_manifest_org, function_lce_library
+):
+    """Verify that partially synced Library shows the correct information on the Content tab
+
+    :id: 7f053fe8-00b8-4811-b880-5c60b0bf73c3
+
+    :parametrized: yes
+
+    :verifies: SAT-21841
+
+    :setup:
+        1. Satellite with registered external Capsule.
+        2. Function scoped Organization with manifest.
+
+    :steps:
+        1. Assign the Org's Library to the Capsule.
+        2. Enable two RH repos, sync only one of them.
+        3. Wait until the Capsule is synced and content counts calculated.
+        4. Ensure the correct content counts are shown for both repositories.
+
+    :expectedresults:
+        1. Correct content counts are shown for the synced repository.
+        2. No content counts are shown for the unsynced repository.
+
+    """
+    # 1. Assign the Org's Library to the Capsule.
+    module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+        data={'environment_id': [function_lce_library.id]}
+    )
+
+    # 2. Enable two RH repos, sync only one of them.
+    rh_repos = []
+    for distro in ['rhel8_bos', 'rhel9_bos']:
+        repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=function_sca_manifest_org.id,
+            product=REPOS['kickstart'][distro]['product'],
+            reposet=REPOS['kickstart'][distro]['reposet'],
+            repo=REPOS['kickstart'][distro]['name'],
+            releasever=REPOS['kickstart'][distro]['version'],
+        )
+        repo = module_target_sat.api.Repository(id=repo_id).read()
+        rh_repos.append(repo)
+    rh_repos[0].sync()
+
+    # 3. Wait until the Capsule is synced and content counts calculated.
+    wait_query = (
+        'label = Actions::Katello::CapsuleContent::Sync OR '
+        'Actions::Katello::CapsuleContent::UpdateContentCounts'
+    )
+    module_target_sat.wait_for_tasks(
+        search_query=wait_query, search_rate=5, max_tries=5, poll_rate=10, poll_timeout=300
+    )
+
+    # 4. Ensure the correct content counts are shown for both repositories.
+    with module_target_sat.ui_session() as session:
+        session.capsule.edit(
+            module_capsule_configured.hostname, add_organizations=[function_sca_manifest_org.name]
+        )
+        session.organization.select(org_name=function_sca_manifest_org.name)
+
+        details = session.capsule.read_details(module_capsule_configured.hostname)
+
+        # Get the content counts from Satellite side and compare them with Capsule.
+        sat_repos = [module_target_sat.api.Repository(id=repo.id).read() for repo in rh_repos]
+        caps_repos = details['content']['Library'][DEFAULT_CV]['expanded_repo_details'][1:]
+
+        for s_repo in sat_repos:
+            c_repo = next(r for r in caps_repos if r[0] == s_repo.name)
+            assert c_repo, 'Repository not listed in the Capsule content tab'
+            if s_repo.last_sync:
+                assert f'{s_repo.content_counts["rpm"]} Packages' in c_repo
+                assert f'{s_repo.content_counts["package_group"]} Package groups' in c_repo
+            else:  # we expect 'N/A's for unsynced repo
+                assert all(cnt == 'N/A' for cnt in c_repo[1:])
 
 
 @pytest.mark.parametrize('setting_update', ['hide_reclaim_space_warning=False'], indirect=True)
