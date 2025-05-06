@@ -528,7 +528,7 @@ class TestAnsibleCfgMgmt:
             )
             notice_log = session.configreport.search(rhel_contenthost.hostname)
             assert f'notice Install the {package_name} package' in notice_log['permission_denied']
-            assert f'Installed: rubygem-{package_name}' in notice_log['permission_denied']
+            assert f'Installed: {package_name}_bash' in notice_log['permission_denied']
 
 
 class TestAnsibleREX:
