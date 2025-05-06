@@ -597,13 +597,8 @@ def test_rhel_pxe_provisioning_fips_enabled(
     )
 
     # Verify FIPS is enabled on host after provisioning is completed sucessfully
-    if int(host_os.major) >= 8:
-        result = provisioning_host.execute('fips-mode-setup --check')
-        fips_status = 'FIPS mode is disabled' if is_open('SAT-20386') else 'FIPS mode is enabled'
-        assert fips_status in result.stdout
-    else:
-        result = provisioning_host.execute('cat /proc/sys/crypto/fips_enabled')
-        assert (0 if is_open('SAT-20386') else 1) == int(result.stdout)
+    result = provisioning_host.execute('cat /proc/sys/crypto/fips_enabled')
+    assert (0 if is_open('SAT-20386') else 1) == int(result.stdout)
 
     # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
     # Add workaround for SAT-32007 and SAT-32006
