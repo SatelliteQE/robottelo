@@ -514,6 +514,7 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
         session.organization.select(org_name=DEFAULT_ORG)
         session.location.select(loc_name=DEFAULT_LOC)
 
+        displayed_inventory_data = session.cloudinventory.read_org(DEFAULT_ORG)
         displayed_settings_options = session.cloudinventory.get_displayed_settings_options()
         displayed_buttons = session.cloudinventory.get_displayed_buttons()
         displayed_descriptions = session.cloudinventory.get_displayed_descriptions()
@@ -527,3 +528,8 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
         assert displayed_descriptions['auto_upload_desc'] is subscription_setting
         assert displayed_descriptions['manual_upload_desc'] is subscription_setting
         assert displayed_inventory_tabs['uploading'] is subscription_setting
+        assert (
+            displayed_inventory_data['generating']['restart'] == 'Generate and upload report'
+            if subscription_setting
+            else 'Generate report'
+        )
