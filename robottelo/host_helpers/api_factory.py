@@ -309,6 +309,33 @@ class APIFactory:
             ).create()
         return os
 
+    def supported_rhel_ver(self, num=3, fips=False, prefix=''):
+        """Return a list (str), of most recent supported RHEL versions.
+            or return a single str version, if param `num` is set to 1.
+        param num: Default 3. Pass a positive int for the number of versions to return.
+            or pass 'All' to return list of every supported version.
+        param fips: Default False. If True, include -fips versions.
+        param prefix: Default empty ''. Add a prefix string to the versions.
+            example: 'rhel' or 'rhel-'
+        """
+        if isinstance(num, int) and num <= 0:
+            return []
+        supported_rhels = settings.supportability.content_hosts.rhel.versions
+        filtered_versions = (
+            [prefix + str(ver) for ver in supported_rhels]  # include fips
+            if fips is True
+            else [  # only include ints, major versions
+                prefix + str(ver) for ver in supported_rhels if isinstance(ver, int)
+            ]
+        )
+        return (
+            filtered_versions  # entire list, if 'All' is met
+            if num == 'All'
+            else filtered_versions[-num:]  # else: list, num entries from tail, if len != 1
+            if num != 1
+            else filtered_versions[-num:][0]  # else: single str, if len == 1
+        )
+
     @contextmanager
     def satellite_setting(self, key_val: str):
         """Context Manager to update the satellite setting and revert on exit
