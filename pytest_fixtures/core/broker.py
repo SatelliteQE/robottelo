@@ -96,6 +96,16 @@ def module_discovery_sat(
     discovery_org.value = module_sca_manifest_org.name
     discovery_org.update(['value'])
 
+    # Verify the settings are updated
+    assert (
+        sat.api.Setting().search(query={'search': 'name=discovery_location'})[0].value
+        == module_location.name
+    )
+    assert (
+        sat.api.Setting().search(query={'search': 'name=discovery_organization'})[0].value
+        == module_sca_manifest_org.name
+    )
+
     # Enable flag to auto provision discovered hosts via discovery rules
     discovery_auto = sat.api.Setting().search(query={'search': 'name=discovery_auto'})[0]
     discovery_auto.value = 'true'
