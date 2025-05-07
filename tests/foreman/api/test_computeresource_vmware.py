@@ -196,7 +196,6 @@ def test_positive_provision_vmware_pxe_discovery(
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
         timeout=1500,
-        retries=2,
         delay=40,
     )
     discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]

@@ -210,6 +210,7 @@ def module_provisioning_sat(
         organization=[module_sca_manifest_org],
         network=str(provisioning_network.network_address),
         network_type='IPv6' if settings.server.is_ipv6 else 'IPv4',
+        vlanid=settings.provisioning.vlan_id,
         mask=str(provisioning_network.netmask),
         gateway=broker_data_out.provisioning_gw_ip,
         from_=broker_data_out.provisioning_host_range_start,
@@ -227,7 +228,6 @@ def module_provisioning_sat(
         remote_execution_proxy=[module_provisioning_capsule.id],
         domain=[domain.id],
     ).create()
-
     return Box(sat=sat, domain=domain, subnet=subnet, provisioning_type=provisioning_type)
 
 
