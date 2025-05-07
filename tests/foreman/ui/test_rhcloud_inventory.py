@@ -561,6 +561,7 @@ def test_rh_cloud_minimal_report(
     inventory_settings,
     rhcloud_manifest_org,
     rhcloud_registered_hosts,
+    data_collection_minimal,
 ):
     """Verify that the `Minimal data collection' report contains the proper fields
 
@@ -574,9 +575,8 @@ def test_rh_cloud_minimal_report(
         2. Go to Insights > Inventory upload > enable “Minimal data collection” setting
         3. Generate report after enabling the setting
         4. Check if hostnames are obfuscated in generated report
-        5. Check if hosts ipv4 addresses are obfuscated in generated reports
-        6. Check if packages are excluded from generated reports
-        9. Check if account, subscription_manager_id, insights_id, and installed_products fields are in report
+        5. Check if ipv4 addresses are obfuscated in generated reports
+        6. Check if account, subscription_manager_id, insights_id, and installed_products fields are in report
 
 
     :expectedresults:
@@ -584,8 +584,7 @@ def test_rh_cloud_minimal_report(
         2. Obfuscated host ipv4 addresses are not in generated reports.
         3. Account, subscription_manager_id, insights_id, and installed_products fields are in report
 
-
-    :CaseAutomation: Automated
+    :Verifies: SAT-31467
     """
     org = rhcloud_manifest_org
     virtual_host, baremetal_host = rhcloud_registered_hosts
@@ -626,10 +625,15 @@ def test_rh_cloud_minimal_report(
         hostnames = [item['fqdn'] for item in host_data if 'fqdn' in item]
         assert virtual_host.hostname not in hostnames, f"'hostname' found in: {hostnames}"
         assert baremetal_host.hostname not in hostnames, f"'hostname' found in: {hostnames}"
+        # Verify that ip addresses are obfuscated from the report.
+        ip_address = [item['ip_addresses'] for item in host_data if 'ip_addresses' in item]
+        assert not ip_address, f"'ip_addresses' found in: {ip_address}"
+        # Verify that installed_products are found in report
         system_profile = [item.get('system_profile', {}) for item in host_data]
         assert all('installed_products' in item for item in system_profile), (
             "'installed_products' is missing in one or more entries"
         )
+        # Verify that proper fields are found in report
         required_fields = ['account', 'subscription_manager_id', 'insights_id']
         assert all(all(key in item for key in required_fields) for item in host_data), (
             "Not all required keys are present in every dictionary"

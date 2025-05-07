@@ -660,7 +660,6 @@ class TestVirtwhoConfigforEsx:
         results = org_session.virtwho_configure.read(name)
         assert 'encrypted_password=$cr_password' in results['deploy']['script']
 
-    @pytest.mark.upgrade
     @pytest.mark.parametrize('deploy_type_ui', ['id', 'script'], indirect=True)
     def test_positive_minimal_report_hypervisor(
         self, module_sca_manifest_org, org_session, form_data_ui, deploy_type_ui, module_target_sat
@@ -673,15 +672,14 @@ class TestVirtwhoConfigforEsx:
             1. Go to Insights > Inventory upload > enable “Minimal data collection” setting
             2. Generate report after enabling the setting
             3. Check if hostnames are obfuscated in generated report
-            4. Check if hosts ipv4 addresses are obfuscated in generated reports
+            4. Check if ipv4 addresses are obfuscated in generated reports
             6. Check if hypervisor_type and hypervisor_version fields are in report
 
-        :CaseImportance: High
+        :Verifies: SAT-31467
         """
         hypervisor_name, guest_name = deploy_type_ui
         # Check virt-who config status
         assert org_session.virtwho_configure.search(form_data_ui['name'])[0]['Status'] == 'ok'
-
         org_session.cloudinventory.update(
             {
                 'data_collection': 'Minimal data collectionOnly send the minimum required data to Red Hat cloud, and obfuscate wherever possible'
@@ -706,14 +704,17 @@ class TestVirtwhoConfigforEsx:
             silent_failure=True,
             handle_exception=True,
         )
+        # download report
         report_path = org_session.cloudinventory.download_report(module_sca_manifest_org.name)
-
         json_data = get_report_data(report_path)
-
         host_data = [item for item in json_data['hosts']]
+        # Verify that guest hostname is not in report
         hostnames = [item['fqdn'] for item in host_data if 'fqdn' in item]
-
         assert guest_name not in hostnames, f"'hostname' found in: {hostnames}"
+        # Verify that ip addresses are obfuscated from the report.
+        ip_address = [item['ip_addresses'] for item in host_data if 'ip_addresses' in item]
+        assert not ip_address, f"'ip_addresses' found in: {ip_address}"
+        # Verify that hypervisor_type and hypervisor_version are in report
         assert any(
             'hypervisor_type' in item and 'hypervisor_version' in item for item in host_data
         ), "'hypervisor_type' and 'hypervisor_version' not found"
