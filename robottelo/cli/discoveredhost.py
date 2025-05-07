@@ -57,3 +57,9 @@ class DiscoveredHost(Base):
         """Refresh facts associated with discovered host"""
         cls.command_sub = 'refresh-facts'
         return cls.execute(cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def list(cls, options=None):
+        """List all the discovered host"""
+        cls.command_sub = 'list'
+        return cls.execute(cls._construct_command(options), output_format='csv')
