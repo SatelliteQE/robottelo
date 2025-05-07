@@ -27,6 +27,7 @@ from robottelo.utils.io import (
 
 @pytest.fixture(scope='module', autouse=True)
 def data_collection_default(module_target_sat):
+    """Module scoped fixture to set default data collection setting to 'No'"""
     settings_object = module_target_sat.api.Setting().search(
         query={'search': 'name=insights_minimal_data_collection'}
     )[0]
@@ -40,6 +41,7 @@ def data_collection_default(module_target_sat):
 
 @pytest.fixture
 def data_collection_minimal(module_target_sat):
+    """Fixture to set minimal data collection setting to 'Yes'"""
     settings_object = module_target_sat.api.Setting().search(
         query={'search': 'name=insights_minimal_data_collection'}
     )[0]
