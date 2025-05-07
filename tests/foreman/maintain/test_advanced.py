@@ -298,7 +298,7 @@ def test_positive_satellite_repositories_setup(sat_maintain):
     """
     sat_version = ".".join(sat_maintain.version.split('.')[0:2])
     result = sat_maintain.cli.Advanced.run_repositories_setup(options={'version': sat_version})
-    if sat_version not in settings.robottelo.sat_non_ga_versions:
+    if float(sat_version) not in settings.robottelo.sat_non_ga_versions:
         assert result.status == 0
         assert 'FAIL' not in result.stdout
         result = sat_maintain.execute('yum repolist')
@@ -331,7 +331,7 @@ def test_positive_capsule_repositories_setup(sat_maintain):
     """
     sat_version = ".".join(sat_maintain.version.split('.')[0:2])
     result = sat_maintain.cli.Advanced.run_repositories_setup(options={'version': sat_version})
-    if sat_version not in settings.robottelo.sat_non_ga_versions:
+    if float(sat_version) not in settings.robottelo.sat_non_ga_versions:
         assert result.status == 0
         assert 'FAIL' not in result.stdout
         result = sat_maintain.execute('yum repolist')

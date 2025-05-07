@@ -84,7 +84,7 @@ def test_positive_documentation_links(target_sat):
         for page in pages:
             for link in all_links[page]:
                 # Test stage docs url for Non-GA'ed Satellite
-                if sat_version in settings.robottelo.sat_non_ga_versions:
+                if float(sat_version) in settings.robottelo.sat_non_ga_versions:
                     link = link.replace(
                         'https://docs.redhat.com', settings.robottelo.stage_docs_url
                     )
