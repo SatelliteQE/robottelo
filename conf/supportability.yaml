@@ -2,4 +2,4 @@ supportability:
   content_hosts:
     default_os_name: "RedHat"
     rhel:
-      versions: [7,'7_fips', 8, '8_fips', 9, '9_fips', 10,]
+      versions: [7, '7_fips', 8, '8_fips', 9, '9_fips', 10,]
