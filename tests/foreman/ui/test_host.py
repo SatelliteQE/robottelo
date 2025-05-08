@@ -14,6 +14,7 @@
 
 import copy
 import csv
+from datetime import UTC, datetime, timedelta
 import json
 import os
 import re
@@ -1910,21 +1911,18 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
     )
     with target_sat.ui_session() as session:
         session.organization.select(host['organization_name'])
-        tracer = session.host_new.get_tracer(tracer_install_host.hostname)
-        assert tracer['title'] == "Traces are not enabled"
+        tracer_title = session.host_new.get_tracer_tab_title(tracer_install_host.hostname)
+        assert tracer_title == "Traces are not enabled"
         session.host_new.enable_tracer(tracer_install_host.hostname)
-        tracer = session.host_new.get_tracer(tracer_install_host.hostname)
-        assert tracer['title'] == "Traces are being enabled"
-        wait_for(
-            lambda: session.host_new.get_tracer(tracer_install_host.hostname)['title']
-            != "Traces are being enabled",
-            timeout=1800,
-            delay=5,
-            silent_failure=True,
-            handle_exception=True,
+        timestamp = (datetime.now(UTC) - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
+        target_sat.wait_for_tasks(
+            search_query='action = "Run hosts job: Install package(s) katello-host-tools-tracer"'
+            f' and started_at >= "{timestamp}"',
+            search_rate=15,
+            max_tries=10,
         )
-        tracer = session.host_new.get_tracer(tracer_install_host.hostname)
-        assert tracer['title'] == "No applications to restart"
+        tracer_title = session.host_new.get_tracer_tab_title(tracer_install_host.hostname)
+        assert tracer_title == "No applications to restart"
 
 
 def test_all_hosts_delete(target_sat, function_org, function_location, new_host_ui):
