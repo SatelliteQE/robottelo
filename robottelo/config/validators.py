@@ -2,6 +2,14 @@ from dynaconf import Validator
 
 from robottelo.constants import AZURERM_VALID_REGIONS, VALID_GCE_ZONES
 
+DEFAULT_NETWORK_TYPE = 'ipv4'
+
+
+def network_type_default(settings, validator):
+    """Set default value for server.is_ipv6 based on server.network_type"""
+    return hasattr(settings.server, 'network_type') and settings.server.network_type == 'ipv6'
+
+
 VALIDATORS = dict(
     supportability=[
         Validator('supportability.content_hosts.rhel.versions', must_exist=True, is_type_of=list),
@@ -35,7 +43,12 @@ VALIDATORS = dict(
         Validator('server.ssh_username', default='root'),
         Validator('server.ssh_password', default=None),
         Validator('server.verify_ca', default=False),
-        Validator('server.is_ipv6', is_type_of=bool, default=False),
+        Validator(
+            'server.network_type',
+            default=DEFAULT_NETWORK_TYPE,
+            is_in=['ipv4', 'ipv6'],
+        ),
+        Validator('server.is_ipv6', is_type_of=bool, default=network_type_default),
     ],
     content_host=[
         Validator('content_host.default_rhel_version', must_exist=True),
@@ -197,11 +210,11 @@ VALIDATORS = dict(
             'http_proxy.password',
             must_exist=True,
         ),
-        # validate http_proxy_ipv6_url only if server.is_ipv6 is True
+        # validate http_proxy_ipv6_url only if server.network_type is IPV6
         Validator(
             'http_proxy.http_proxy_ipv6_url',
             is_type_of=str,
-            when=Validator('server.is_ipv6', eq=True),
+            when=Validator('server.network_type', eq='ipv6'),
         ),
     ],
     ipa=[
