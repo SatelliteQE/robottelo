@@ -613,7 +613,6 @@ def test_rh_cloud_minimal_report(
         2. Obfuscated host ipv4 addresses are not in generated reports.
         3. Account, subscription_manager_id, insights_id, and installed_products fields are in report
 
-
     :Verifies: SAT-31467
     """
     org = rhcloud_manifest_org
