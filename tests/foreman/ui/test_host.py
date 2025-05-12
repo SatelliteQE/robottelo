@@ -1914,7 +1914,7 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
         tracer_title = session.host_new.get_tracer_tab_title(tracer_install_host.hostname)
         assert tracer_title == "Traces are not enabled"
         session.host_new.enable_tracer(tracer_install_host.hostname)
-        timestamp = (datetime.now(UTC) - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
+        timestamp = (datetime.now(UTC) - timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M')
         target_sat.wait_for_tasks(
             search_query='action = "Run hosts job: Install package(s) katello-host-tools-tracer"'
             f' and started_at >= "{timestamp}"',
