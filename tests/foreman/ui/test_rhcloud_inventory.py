@@ -25,11 +25,6 @@ from robottelo.utils.io import (
 )
 
 
-<<<<<<< HEAD
-def common_assertion(
-    report_path, inventory_data, org, satellite, subscription_connection_enabled=True
-):
-=======
 @pytest.fixture(scope='module', autouse=True)
 def data_collection_default(module_target_sat):
     """Module scoped fixture to set default data collection setting to 'No'"""
@@ -57,8 +52,9 @@ def data_collection_minimal(module_target_sat):
     settings_object.update({'value'})
 
 
-def common_assertion(report_path, inventory_data, org, satellite):
->>>>>>> 72ed9d2f8 (Add functionality for minimal report)
+def common_assertion(
+    report_path, inventory_data, org, satellite, subscription_connection_enabled=True
+):
     """Function to perform common assertions"""
     local_file_data = get_local_file_data(report_path)
     upload_success_msg = (
