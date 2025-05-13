@@ -193,6 +193,7 @@ tests/foreman/ui/test_settings.py @SatelliteQE/team-rocket
 tests/foreman/ui/test_smartclassparameter.py @SatelliteQE/team-rocket
 tests/foreman/ui/test_subnet.py @SatelliteQE/team-rocket
 tests/new_upgrades/test_discovery.py @SatelliteQE/team-rocket
+tests/new_upgrades/test_puppet.py @SatelliteQE/team-rocket
 tests/upgrades/test_classparameter.py @SatelliteQE/team-rocket
 tests/upgrades/test_discovery.py @SatelliteQE/team-rocket
 tests/upgrades/test_provisioningtemplate.py @SatelliteQE/team-rocket
