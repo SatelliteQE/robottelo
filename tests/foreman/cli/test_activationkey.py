@@ -1683,3 +1683,98 @@ def test_positive_ak_with_custom_product_on_rhel6(
     ak = target_sat.api.ActivationKey(id=entities_ids['activationkey-id']).read()
     result = rhel6_contenthost.register(module_org.label, module_location, ak.name, target_sat)
     assert 'The system has been registered with ID' in result.stdout
+
+
+@pytest.mark.rhel_ver_match('7')
+@pytest.mark.pit_client
+@pytest.mark.pit_server
+@pytest.mark.cli_host_subscription
+@pytest.mark.tier3
+@pytest.mark.e2e
+def test_syspurpose_end_to_end(
+    target_sat,
+    module_org,
+    module_promoted_cv,
+    module_lce,
+    module_rhst_repo,
+    default_subscription,
+    rhel_contenthost,
+):
+    """Create a host with system purpose values set by activation key.
+
+    :id: b88e9b6c-2348-49ce-b5e9-a2b9f0abed3f
+
+    :expectedresults: host is registered and system purpose values are correct.
+
+    :CaseImportance: Critical
+
+    :parametrized: yes
+    """
+    # Create an activation key with test values
+    purpose_addons = "test-addon1, test-addon2"
+    activation_key = target_sat.api.ActivationKey(
+        content_view=module_promoted_cv,
+        environment=module_lce,
+        organization=module_org,
+        purpose_addons=[purpose_addons],
+        purpose_role="test-role",
+        purpose_usage="test-usage",
+        service_level="Self-Support",
+    ).create()
+    target_sat.cli.ActivationKey.add_subscription(
+        {
+            'organization-id': module_org.id,
+            'id': activation_key.id,
+            'subscription-id': default_subscription.id,
+        }
+    )
+    # Register a host using the activation key
+    res = rhel_contenthost.register(module_org, None, activation_key.name, target_sat)
+    assert res.status == 0, f'Failed to register host: {res.stderr}'
+    assert rhel_contenthost.subscribed
+    rhel_contenthost.run('subscription-manager attach --auto')
+    rhel_contenthost.enable_repo(module_rhst_repo)
+    host = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
+    # Assert system purpose values are set in the host as expected
+    assert host['subscription-information']['system-purpose']['purpose-addons'] == purpose_addons
+    assert host['subscription-information']['system-purpose']['purpose-role'] == "test-role"
+    assert host['subscription-information']['system-purpose']['purpose-usage'] == "test-usage"
+    assert host['subscription-information']['system-purpose']['service-level'] == "Self-Support"
+    # Change system purpose values in the host
+    target_sat.cli.Host.update(
+        {
+            'purpose-addons': "test-addon3",
+            'purpose-role': "test-role2",
+            'purpose-usage': "test-usage2",
+            'service-level': "Self-Support2",
+            'id': host['id'],
+        }
+    )
+    host = target_sat.cli.Host.info({'id': host['id']})
+    # Assert system purpose values have been updated in the host as expected
+    assert host['subscription-information']['system-purpose']['purpose-addons'] == "test-addon3"
+    assert host['subscription-information']['system-purpose']['purpose-role'] == "test-role2"
+    assert host['subscription-information']['system-purpose']['purpose-usage'] == "test-usage2"
+    assert host['subscription-information']['system-purpose']['service-level'] == "Self-Support2"
+    host_subscriptions = target_sat.cli.ActivationKey.subscriptions(
+        {
+            'organization-id': module_org.id,
+            'id': activation_key.id,
+            'host-id': host['id'],
+        },
+        output_format='json',
+    )
+    assert len(host_subscriptions) > 0
+    assert host_subscriptions[0]['name'] == default_subscription.name
+    # Unregister host
+    target_sat.cli.Host.subscription_unregister({'host': rhel_contenthost.hostname})
+    with pytest.raises(CLIReturnCodeError):
+        # raise error that the host was not registered by
+        # subscription-manager register
+        target_sat.cli.ActivationKey.subscriptions(
+            {
+                'organization-id': module_org.id,
+                'id': activation_key.id,
+                'host-id': host['id'],
+            }
+        )
