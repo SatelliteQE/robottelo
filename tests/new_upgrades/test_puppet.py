@@ -41,7 +41,7 @@ def puppet_upgrade_setup(puppet_upgrade_integrated_sat_cap, upgrade_action):
         yield test_data
 
 
-@pytest.mark.capsule_upgrades
+@pytest.mark.puppet_upgrades
 def test_post_puppet_active(puppet_upgrade_setup):
     """Test that puppet remains active after the upgrade on both,
     Satellite and Capsule.
@@ -73,7 +73,7 @@ def test_post_puppet_active(puppet_upgrade_setup):
         assert 'active (running)' in result.stdout
 
 
-@pytest.mark.post_upgrade
+@pytest.mark.puppet_upgrades
 def test_post_puppet_reporting(puppet_upgrade_setup):
     """Test that puppet is reporting to Satellite after the upgrade.
 
