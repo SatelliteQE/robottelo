@@ -95,3 +95,39 @@ def test_positive_documentation_links(target_sat):
         assert not pages_with_broken_links, (
             f"There are Satellite pages with broken documentation links. \n {print(pages_with_broken_links)}"
         )
+
+
+@pytest.mark.e2e
+def test_positive_upgrade_links(target_sat):
+    """Verify that Satellite Upgrade links are present and working.
+
+    :id: 1535c21d-2b75-450d-af63-55d268f8479e
+
+    :Steps:
+
+        1. Gather documentation links present on Administer -> Satellite Upgrade page
+        2. Verify the links are working (returns 200).
+
+    :expectedresults: All the Upgrade links present on Satellite are working
+
+    :Verifies: SAT-20700
+    """
+    with target_sat.ui_session() as session:
+        links = session.upgrade.documentation_links()
+        # in the future, this should link to a higher version than the current Satellite
+        if settings.server.version.release == 'stream':
+            x, y, _ = str(target_sat.version).split('.')
+            version = f'{x}.{int(y) - 1}'
+        else:
+            version = '.'.join(str(settings.server.version.release).split('.')[0:2])
+        assert (
+            f"https://docs.redhat.com/en/documentation/red_hat_satellite/{version}#Upgrade" in links
+        )
+        assert (
+            'https://access.redhat.com/login?redirectTo=https%3A%2F%2Faccess.redhat.com%2Flabs%2Fsatelliteupgradehelper%2F'
+            in links
+        )
+        assert (
+            'https://access.redhat.com/products/red-hat-satellite#get-support' in links
+            or 'https://access.redhat.com/products/red-hat-satellite/#get-support' in links
+        )
