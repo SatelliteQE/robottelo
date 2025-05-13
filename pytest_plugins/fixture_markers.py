@@ -69,7 +69,7 @@ def pytest_generate_tests(metafunc):
 
         # Determine the default network type based on settings
         if settings.content_host.network_type == NetworkType.DUALSTACK:
-            network_params = [NetworkType.IPV4, NetworkType.IPV6]
+            network_params = [NetworkType.IPV4.value, NetworkType.IPV6.value]
         else:  # rely on network_type setting to be either ipv4 or ipv6
             network_params = [settings.content_host.network_type]
 

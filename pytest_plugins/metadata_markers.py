@@ -225,7 +225,12 @@ def pytest_collection_modifyitems(items, config):
         item.user_properties.append(("SnapVersion", snap_version))
 
         # Network Type user property
-        item.user_properties.append(("SatelliteNetworkType", settings.server.network_type))
+        # Note:
+        # We must convert the network type to a string
+        # because the network type is a class object
+        # and execnet/xdist will not serialize it
+        # properly when running in parallel
+        item.user_properties.append(("SatelliteNetworkType", str(settings.server.network_type)))
 
         # exit early if no filters were passed
         if importance or component or team:
