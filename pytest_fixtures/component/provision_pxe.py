@@ -189,9 +189,7 @@ def module_provisioning_sat(
         location=[module_location],
         organization=[module_sca_manifest_org],
         network=str(provisioning_network.network_address),
-        network_type=NetworkType.IPV4.formatted
-        if sat.network_type == NetworkType.IPV4
-        else NetworkType.IPV6.formatted,
+        network_type='IPv6' if provisioning_network.version == 6 else 'IPv4',
         vlanid=settings.provisioning.vlan_id,
         mask=str(provisioning_network.netmask),
         gateway=broker_data_out.provisioning_gw_ip,
@@ -200,10 +198,8 @@ def module_provisioning_sat(
         dns_primary=provisioning_upstream_dns_primary,
         dns_secondary=provisioning_upstream_dns_secondary,
         boot_mode='DHCP',
-        ipam='None' if sat_ipv6 else 'DHCP',
-        dhcp=None if sat_ipv6 else module_provisioning_capsule.id,
-        tftp=module_provisioning_capsule.id,
-        template=module_provisioning_capsule.id,
+        ipam='None' if provisioning_network.version == 6 else 'DHCP',
+        dhcp=None if provisioning_network.version == 6 else module_provisioning_capsule.id,
         dns=None if sat_ipv6 else module_provisioning_capsule.id,
         httpboot=module_provisioning_capsule.id,
         discovery=module_provisioning_capsule.id,
