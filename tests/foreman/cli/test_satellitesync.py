@@ -91,7 +91,7 @@ def function_import_org(target_sat):
 def function_import_org_with_manifest(target_sat, function_import_org):
     """Creates and sets an Organization with a brand-new manifest for content import."""
     with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
-        target_sat.upload_manifest(function_import_org.id, manifest)
+        target_sat.upload_manifest(function_import_org.id, manifest.content)
     return function_import_org
 
 
@@ -1546,9 +1546,13 @@ class TestContentViewSync:
             {
                 'organization': function_import_org_at_isat.name,
                 'job-template': 'Flatpak - Install application on host',
-                'inputs': f'Flatpak remote name={remote_name}, Application name={app_name}',
+                'inputs': (
+                    f'Flatpak remote name={remote_name}, Application name={app_name}, '
+                    'Launch a session bus instance=true'
+                ),
                 'search-query': f"name = {module_flatpak_contenthost.hostname}",
-            }
+            },
+            timeout='800s',
         )
         res = module_import_sat.cli.JobInvocation.info({'id': job.id})
         assert 'succeeded' in res['status']
@@ -1828,7 +1832,7 @@ class TestContentViewSync:
 
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
-        ['rhae2'],
+        ['rhsclient9'],
         indirect=True,
     )
     def test_positive_export_rerun_failed_import(

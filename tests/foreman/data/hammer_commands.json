@@ -12636,43 +12636,49 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "VALUE/NUMBER      Name/Id of associated product",
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER             Name/Id of associated product",
               "name": "product",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER      Name/Id of associated product",
+              "help": "VALUE/NUMBER             Name/Id of associated product",
               "name": "product-id",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER   Name/Id of associated repository",
+              "help": "VALUE/NUMBER          Name/Id of associated repository",
               "name": "repository",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER   Name/Id of associated repository",
+              "help": "VALUE/NUMBER          Name/Id of associated repository",
               "name": "repository-id",
               "shortname": null,
               "value": null
@@ -12727,20 +12733,26 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
               "shortname": null,
               "value": "VALUE"
             },
@@ -12812,20 +12824,26 @@
                   "value": null
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-id",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-label",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Organization name/label/title/id to search by",
+                  "name": "organization-title",
                   "shortname": null,
                   "value": "VALUE"
                 },
@@ -12861,20 +12879,26 @@
                   "value": "LIST"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-id",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-label",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Organization name/label/title/id to search by",
+                  "name": "organization-title",
                   "shortname": null,
                   "value": "VALUE"
                 },
@@ -12922,20 +12946,26 @@
                   "value": "NUMBER"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-id",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-label",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Organization name/label/title/id to search by",
+                  "name": "organization-title",
                   "shortname": null,
                   "value": "VALUE"
                 },
@@ -13001,20 +13031,26 @@
                   "value": null
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-id",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-label",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Organization name/label/title/id to search by",
+                  "name": "organization-title",
                   "shortname": null,
                   "value": "VALUE"
                 },
@@ -13052,20 +13088,26 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
               "shortname": null,
               "value": "VALUE"
             },
@@ -13192,20 +13234,26 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
               "shortname": null,
               "value": "VALUE"
             },
@@ -13235,13 +13283,13 @@
               "name": "add-repository",
               "options": [
                 {
-                  "help": "VALUE/NUMBER Name/Id of associated content view",
+                  "help": "VALUE/NUMBER        Name/Id of associated content view",
                   "name": "content-view",
                   "shortname": null,
                   "value": null
                 },
                 {
-                  "help": "VALUE/NUMBER Name/Id of associated content view",
+                  "help": "VALUE/NUMBER        Name/Id of associated content view",
                   "name": "content-view-id",
                   "shortname": null,
                   "value": null
@@ -13259,43 +13307,49 @@
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-id",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-label",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "VALUE/NUMBER      Name/Id of associated product",
+                  "help": "Organization name/label/title/id to search by",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "VALUE/NUMBER             Name/Id of associated product",
                   "name": "product",
                   "shortname": null,
                   "value": null
                 },
                 {
-                  "help": "VALUE/NUMBER      Name/Id of associated product",
+                  "help": "VALUE/NUMBER             Name/Id of associated product",
                   "name": "product-id",
                   "shortname": null,
                   "value": null
                 },
                 {
-                  "help": "VALUE/NUMBER   Name/Id of associated repository",
+                  "help": "VALUE/NUMBER          Name/Id of associated repository",
                   "name": "repository",
                   "shortname": null,
                   "value": null
                 },
                 {
-                  "help": "VALUE/NUMBER   Name/Id of associated repository",
+                  "help": "VALUE/NUMBER          Name/Id of associated repository",
                   "name": "repository-id",
                   "shortname": null,
                   "value": null
@@ -13314,13 +13368,13 @@
               "name": "create",
               "options": [
                 {
-                  "help": "VALUE/NUMBER  Content view identifier",
+                  "help": "VALUE/NUMBER        Content view identifier",
                   "name": "content-view",
                   "shortname": null,
                   "value": null
                 },
                 {
-                  "help": "VALUE/NUMBER  Content view identifier",
+                  "help": "VALUE/NUMBER        Content view identifier",
                   "name": "content-view-id",
                   "shortname": null,
                   "value": null
@@ -13344,20 +13398,26 @@
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-id",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-label",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Organization name/label/title/id to search by",
+                  "name": "organization-title",
                   "shortname": null,
                   "value": "VALUE"
                 },
@@ -13374,13 +13434,13 @@
                   "value": "BOOLEAN"
                 },
                 {
-                  "help": "VALUE/NUMBER       Name/Id of associated product",
+                  "help": "VALUE/NUMBER             Name/Id of associated product",
                   "name": "product",
                   "shortname": null,
                   "value": null
                 },
                 {
-                  "help": "VALUE/NUMBER       Name/Id of associated product",
+                  "help": "VALUE/NUMBER             Name/Id of associated product",
                   "name": "product-id",
                   "shortname": null,
                   "value": null
@@ -13417,13 +13477,13 @@
               "name": "delete",
               "options": [
                 {
-                  "help": "VALUE/NUMBER Name/Id of associated content view",
+                  "help": "VALUE/NUMBER        Name/Id of associated content view",
                   "name": "content-view",
                   "shortname": null,
                   "value": null
                 },
                 {
-                  "help": "VALUE/NUMBER Name/Id of associated content view",
+                  "help": "VALUE/NUMBER        Name/Id of associated content view",
                   "name": "content-view-id",
                   "shortname": null,
                   "value": null
@@ -13441,20 +13501,26 @@
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-id",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-label",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Organization name/label/title/id to search by",
+                  "name": "organization-title",
                   "shortname": null,
                   "value": "VALUE"
                 },
@@ -13472,13 +13538,13 @@
               "name": "info",
               "options": [
                 {
-                  "help": "VALUE/NUMBER Name/Id of associated content view",
+                  "help": "VALUE/NUMBER        Name/Id of associated content view",
                   "name": "content-view",
                   "shortname": null,
                   "value": null
                 },
                 {
-                  "help": "VALUE/NUMBER Name/Id of associated content view",
+                  "help": "VALUE/NUMBER        Name/Id of associated content view",
                   "name": "content-view-id",
                   "shortname": null,
                   "value": null
@@ -13502,20 +13568,26 @@
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-id",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-label",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Organization name/label/title/id to search by",
+                  "name": "organization-title",
                   "shortname": null,
                   "value": "VALUE"
                 },
@@ -13533,13 +13605,13 @@
               "name": "list",
               "options": [
                 {
-                  "help": "VALUE/NUMBER Content view identifier",
+                  "help": "VALUE/NUMBER        Content view identifier",
                   "name": "content-view",
                   "shortname": null,
                   "value": null
                 },
                 {
-                  "help": "VALUE/NUMBER Content view identifier",
+                  "help": "VALUE/NUMBER        Content view identifier",
                   "name": "content-view-id",
                   "shortname": null,
                   "value": null
@@ -13569,20 +13641,26 @@
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-id",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-label",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Organization name/label/title/id to search by",
+                  "name": "organization-title",
                   "shortname": null,
                   "value": "VALUE"
                 },
@@ -13624,13 +13702,13 @@
               "name": "remove-repository",
               "options": [
                 {
-                  "help": "VALUE/NUMBER Name/Id of associated content view",
+                  "help": "VALUE/NUMBER        Name/Id of associated content view",
                   "name": "content-view",
                   "shortname": null,
                   "value": null
                 },
                 {
-                  "help": "VALUE/NUMBER Name/Id of associated content view",
+                  "help": "VALUE/NUMBER        Name/Id of associated content view",
                   "name": "content-view-id",
                   "shortname": null,
                   "value": null
@@ -13648,43 +13726,49 @@
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-id",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-label",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "VALUE/NUMBER      Name/Id of associated product",
+                  "help": "Organization name/label/title/id to search by",
+                  "name": "organization-title",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "VALUE/NUMBER             Name/Id of associated product",
                   "name": "product",
                   "shortname": null,
                   "value": null
                 },
                 {
-                  "help": "VALUE/NUMBER      Name/Id of associated product",
+                  "help": "VALUE/NUMBER             Name/Id of associated product",
                   "name": "product-id",
                   "shortname": null,
                   "value": null
                 },
                 {
-                  "help": "VALUE/NUMBER   Name/Id of associated repository",
+                  "help": "VALUE/NUMBER          Name/Id of associated repository",
                   "name": "repository",
                   "shortname": null,
                   "value": null
                 },
                 {
-                  "help": "VALUE/NUMBER   Name/Id of associated repository",
+                  "help": "VALUE/NUMBER          Name/Id of associated repository",
                   "name": "repository-id",
                   "shortname": null,
                   "value": null
@@ -13805,20 +13889,26 @@
                       "value": "VALUE"
                     },
                     {
-                      "help": "Organization name/label/id to search by",
+                      "help": "Organization name/label/title/id to search by",
                       "name": "organization",
                       "shortname": null,
                       "value": "VALUE"
                     },
                     {
-                      "help": "Organization name/label/id to search by",
+                      "help": "Organization name/label/title/id to search by",
                       "name": "organization-id",
                       "shortname": null,
                       "value": "VALUE"
                     },
                     {
-                      "help": "Organization name/label/id to search by",
+                      "help": "Organization name/label/title/id to search by",
                       "name": "organization-label",
+                      "shortname": null,
+                      "value": "VALUE"
+                    },
+                    {
+                      "help": "Organization name/label/title/id to search by",
+                      "name": "organization-title",
                       "shortname": null,
                       "value": "VALUE"
                     },
@@ -13896,20 +13986,26 @@
                       "value": "VALUE"
                     },
                     {
-                      "help": "Organization name/label/id to search by",
+                      "help": "Organization name/label/title/id to search by",
                       "name": "organization",
                       "shortname": null,
                       "value": "VALUE"
                     },
                     {
-                      "help": "Organization name/label/id to search by",
+                      "help": "Organization name/label/title/id to search by",
                       "name": "organization-id",
                       "shortname": null,
                       "value": "VALUE"
                     },
                     {
-                      "help": "Organization name/label/id to search by",
+                      "help": "Organization name/label/title/id to search by",
                       "name": "organization-label",
+                      "shortname": null,
+                      "value": "VALUE"
+                    },
+                    {
+                      "help": "Organization name/label/title/id to search by",
+                      "name": "organization-title",
                       "shortname": null,
                       "value": "VALUE"
                     },
@@ -13969,20 +14065,26 @@
                       "value": "VALUE"
                     },
                     {
-                      "help": "Organization name/label/id to search by",
+                      "help": "Organization name/label/title/id to search by",
                       "name": "organization",
                       "shortname": null,
                       "value": "VALUE"
                     },
                     {
-                      "help": "Organization name/label/id to search by",
+                      "help": "Organization name/label/title/id to search by",
                       "name": "organization-id",
                       "shortname": null,
                       "value": "VALUE"
                     },
                     {
-                      "help": "Organization name/label/id to search by",
+                      "help": "Organization name/label/title/id to search by",
                       "name": "organization-label",
+                      "shortname": null,
+                      "value": "VALUE"
+                    },
+                    {
+                      "help": "Organization name/label/title/id to search by",
+                      "name": "organization-title",
                       "shortname": null,
                       "value": "VALUE"
                     },
@@ -14054,20 +14156,26 @@
                       "value": "VALUE"
                     },
                     {
-                      "help": "Organization name/label/id to search by",
+                      "help": "Organization name/label/title/id to search by",
                       "name": "organization",
                       "shortname": null,
                       "value": "VALUE"
                     },
                     {
-                      "help": "Organization name/label/id to search by",
+                      "help": "Organization name/label/title/id to search by",
                       "name": "organization-id",
                       "shortname": null,
                       "value": "VALUE"
                     },
                     {
-                      "help": "Organization name/label/id to search by",
+                      "help": "Organization name/label/title/id to search by",
                       "name": "organization-label",
+                      "shortname": null,
+                      "value": "VALUE"
+                    },
+                    {
+                      "help": "Organization name/label/title/id to search by",
+                      "name": "organization-title",
                       "shortname": null,
                       "value": "VALUE"
                     },
@@ -14181,20 +14289,26 @@
                       "value": "VALUE"
                     },
                     {
-                      "help": "Organization name/label/id to search by",
+                      "help": "Organization name/label/title/id to search by",
                       "name": "organization",
                       "shortname": null,
                       "value": "VALUE"
                     },
                     {
-                      "help": "Organization name/label/id to search by",
+                      "help": "Organization name/label/title/id to search by",
                       "name": "organization-id",
                       "shortname": null,
                       "value": "VALUE"
                     },
                     {
-                      "help": "Organization name/label/id to search by",
+                      "help": "Organization name/label/title/id to search by",
                       "name": "organization-label",
+                      "shortname": null,
+                      "value": "VALUE"
+                    },
+                    {
+                      "help": "Organization name/label/title/id to search by",
+                      "name": "organization-title",
                       "shortname": null,
                       "value": "VALUE"
                     },
@@ -14232,13 +14346,13 @@
               "name": "update",
               "options": [
                 {
-                  "help": "VALUE/NUMBER  Name/Id of associated content view",
+                  "help": "VALUE/NUMBER        Name/Id of associated content view",
                   "name": "content-view",
                   "shortname": null,
                   "value": null
                 },
                 {
-                  "help": "VALUE/NUMBER  Name/Id of associated content view",
+                  "help": "VALUE/NUMBER        Name/Id of associated content view",
                   "name": "content-view-id",
                   "shortname": null,
                   "value": null
@@ -14274,20 +14388,26 @@
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-id",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-label",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Organization name/label/title/id to search by",
+                  "name": "organization-title",
                   "shortname": null,
                   "value": "VALUE"
                 },
@@ -14349,20 +14469,26 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
               "shortname": null,
               "value": "VALUE"
             },
@@ -14573,20 +14699,26 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
               "shortname": null,
               "value": "VALUE"
             },
@@ -14640,20 +14772,26 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
               "shortname": null,
               "value": "VALUE"
             },
@@ -14743,20 +14881,26 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
               "shortname": null,
               "value": "VALUE"
             },
@@ -14828,20 +14972,26 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
               "shortname": null,
               "value": "VALUE"
             },
@@ -14871,43 +15021,49 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "VALUE/NUMBER      Name/Id of associated product",
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER             Name/Id of associated product",
               "name": "product",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER      Name/Id of associated product",
+              "help": "VALUE/NUMBER             Name/Id of associated product",
               "name": "product-id",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER   Name/Id of associated repository",
+              "help": "VALUE/NUMBER          Name/Id of associated repository",
               "name": "repository",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER   Name/Id of associated repository",
+              "help": "VALUE/NUMBER          Name/Id of associated repository",
               "name": "repository-id",
               "shortname": null,
               "value": null
@@ -14962,20 +15118,26 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
               "shortname": null,
               "value": "VALUE"
             },
@@ -15035,20 +15197,26 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
               "shortname": null,
               "value": "VALUE"
             },
@@ -19091,7 +19259,7 @@
           "value": null
         },
         {
-          "help": "HTTP proxy policy for template sync.           Use only when synchronizing templates through the HTTP or the HTTPS protocol. If you choose 'selected', provide the `http_proxy_id` parameter. Possible value(s): 'global', 'none', 'selected'",
+          "help": "HTTP proxy policy for template sync. Use only when synchronizing templates through the HTTP or the HTTPS protocol. If you choose 'selected', provide the `http_proxy_id` parameter. Possible value(s): 'global', 'none', 'selected'",
           "name": "http-proxy-policy",
           "shortname": null,
           "value": "ENUM"
@@ -20261,20 +20429,26 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
               "shortname": null,
               "value": "VALUE"
             },
@@ -20310,25 +20484,25 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization title to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-title",
               "shortname": null,
               "value": "VALUE"
@@ -20371,25 +20545,25 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization title to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-title",
               "shortname": null,
               "value": "VALUE"
@@ -20704,20 +20878,26 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
               "shortname": null,
               "value": "VALUE"
             },
@@ -20759,20 +20939,26 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
               "shortname": null,
               "value": "VALUE"
             },
@@ -22885,20 +23071,26 @@
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-id",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-label",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Organization name/label/title/id to search by",
+                  "name": "organization-title",
                   "shortname": null,
                   "value": "VALUE"
                 },
@@ -25042,20 +25234,26 @@
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-id",
                   "shortname": null,
                   "value": "VALUE"
                 },
                 {
-                  "help": "Organization name/label/id to search by",
+                  "help": "Organization name/label/title/id to search by",
                   "name": "organization-label",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Organization name/label/title/id to search by",
+                  "name": "organization-title",
                   "shortname": null,
                   "value": "VALUE"
                 },
@@ -43254,20 +43452,26 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
               "shortname": null,
               "value": "VALUE"
             },
@@ -43623,31 +43827,37 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "VALUE/NUMBER      Name/Id of associated product",
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER             Name/Id of associated product",
               "name": "product",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER      Name/Id of associated product",
+              "help": "VALUE/NUMBER             Name/Id of associated product",
               "name": "product-id",
               "shortname": null,
               "value": null
@@ -43690,31 +43900,37 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "VALUE/NUMBER      Name/Id of associated product",
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER             Name/Id of associated product",
               "name": "product",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER      Name/Id of associated product",
+              "help": "VALUE/NUMBER             Name/Id of associated product",
               "name": "product-id",
               "shortname": null,
               "value": null
@@ -43763,31 +43979,37 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "VALUE/NUMBER      Name/Id of associated product",
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER             Name/Id of associated product",
               "name": "product",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER      Name/Id of associated product",
+              "help": "VALUE/NUMBER             Name/Id of associated product",
               "name": "product-id",
               "shortname": null,
               "value": null
@@ -44114,20 +44336,26 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
               "shortname": null,
               "value": "VALUE"
             },
@@ -44338,31 +44566,37 @@
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-id",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "Organization name/label/id to search by",
+              "help": "Organization name/label/title/id to search by",
               "name": "organization-label",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "VALUE/NUMBER      Name/Id of associated product",
+              "help": "Organization name/label/title/id to search by",
+              "name": "organization-title",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER             Name/Id of associated product",
               "name": "product",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER      Name/Id of associated product",
+              "help": "VALUE/NUMBER             Name/Id of associated product",
               "name": "product-id",
               "shortname": null,
               "value": null

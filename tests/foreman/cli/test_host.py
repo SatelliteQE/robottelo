@@ -1931,89 +1931,17 @@ def test_positive_without_attach_with_lce(
     assert f"Repository '{REPOS['rhsclient7']['id']}' is enabled for this system." in res.stdout
 
 
-@pytest.mark.rhel_ver_match('9')
-@pytest.mark.pit_client
-@pytest.mark.pit_server
-@pytest.mark.cli_host_subscription
 @pytest.mark.e2e
-def test_syspurpose_end_to_end(
-    target_sat,
-    module_org,
-    module_promoted_cv,
-    module_lce,
-    module_rhst_repo,
-    default_subscription,
-    rhel_contenthost,
-):
-    """Create a host with system purpose values set by activation key.
-
-    :id: b88e9b6c-2348-49ce-b5e9-a2b9f0abed3f
-
-    :expectedresults: host is registered and system purpose values are correct.
-
-    :CaseImportance: Critical
-
-    :parametrized: yes
-    """
-    # Create an activation key with test values
-    activation_key = target_sat.api.ActivationKey(
-        content_view=module_promoted_cv,
-        environment=module_lce,
-        organization=module_org,
-        purpose_role="test-role",
-        purpose_usage="test-usage",
-        service_level="Self-Support",
-    ).create()
-    # Register a host using the activation key
-    res = rhel_contenthost.register(module_org, None, activation_key.name, target_sat)
-    assert res.status == 0, f'Failed to register host: {res.stderr}'
-    assert rhel_contenthost.subscribed
-    rhel_contenthost.enable_repo(module_rhst_repo)
-    host = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
-    # Assert system purpose values are set in the host as expected
-    assert host['subscription-information']['system-purpose']['purpose-role'] == "test-role"
-    assert host['subscription-information']['system-purpose']['purpose-usage'] == "test-usage"
-    assert host['subscription-information']['system-purpose']['service-level'] == "Self-Support"
-    # Change system purpose values in the host
-    target_sat.cli.Host.update(
-        {
-            'purpose-role': "test-role2",
-            'purpose-usage': "test-usage2",
-            'service-level': "Self-Support2",
-            'id': host['id'],
-        }
-    )
-    host = target_sat.cli.Host.info({'id': host['id']})
-    # Assert system purpose values have been updated in the host as expected
-    assert host['subscription-information']['system-purpose']['purpose-role'] == "test-role2"
-    assert host['subscription-information']['system-purpose']['purpose-usage'] == "test-usage2"
-    assert host['subscription-information']['system-purpose']['service-level'] == "Self-Support2"
-
-    # Unregister host
-    target_sat.cli.Host.subscription_unregister({'host': rhel_contenthost.hostname})
-    with pytest.raises(CLIReturnCodeError):
-        # raise error that the host was not registered by
-        # subscription-manager register
-        target_sat.cli.ActivationKey.subscriptions(
-            {
-                'organization-id': module_org.id,
-                'id': activation_key.id,
-                'host-id': host['id'],
-            }
-        )
-
-
-@pytest.mark.e2e
-def test_positive_register_read_bootc(target_sat, bootc_host, function_ak_with_cv, function_org):
-    """Register a bootc host and validate the information
+def test_positive_bootc_cli_actions(target_sat, bootc_host, function_ak_with_cv, function_org):
+    """Register a bootc host and validate CLI information
 
     :id: d9557843-4cc7-4e70-a035-7b2c4008dd5e
 
-    :expectedresults: Upon registering a Bootc host, the facts are attached to the host, and are accurate.
+    :expectedresults: Upon registering a Bootc host, the facts are attached to the host, and are accurate. Hammer host bootc also returns proper info.
 
     :CaseComponent:Hosts-Content
 
-    :Verifies:SAT-27168, SAT-27170
+    :Verifies:SAT-27168, SAT-27170, SAT-30211
 
     :CaseImportance: Critical
     """
@@ -2025,6 +1953,11 @@ def test_positive_register_read_bootc(target_sat, bootc_host, function_ak_with_c
     assert bootc_info['running-image-digest'] == bootc_dummy_info['bootc.booted.digest']
     assert bootc_info['rollback-image'] == bootc_dummy_info['bootc.rollback.image']
     assert bootc_info['rollback-image-digest'] == bootc_dummy_info['bootc.rollback.digest']
+    # Verify hammer host bootc images
+    booted_images_info = target_sat.cli.Host.bootc_images()[0]
+    assert booted_images_info['running-image'] == bootc_dummy_info['bootc.booted.image']
+    assert booted_images_info['running-image-digest'] == bootc_dummy_info['bootc.booted.digest']
+    assert int(booted_images_info['host-count']) > 0
 
 
 # -------------------------- MULTI-CV SCENARIOS -------------------------

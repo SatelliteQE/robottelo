@@ -365,3 +365,65 @@ def test_positive_available_repositories_endpoint(module_sca_manifest_org, targe
     assert 'Actions::Katello::RepositorySet::ScanCdn' in results
     assert 'result: success' in results
     assert 'Failed at scanning for repository' not in results
+
+
+def test_unprotected_status_repo_create_and_update(
+    module_sca_manifest_org, module_product, target_sat
+):
+    """Test that we can create two new yum-type repositories, with unprotected and protected status respectively.
+    Then update the protection status of both repositories to the opposite of what they were created with.
+
+    :id: 57a1abff-f387-44a8-b85a-d24e7ae7438d
+
+    :setup:
+        1. Create a yum type repo with 'Unprotected' status set to yes (True).
+        2. Create another yum repo and set 'Unprotected' status to no (False).
+        3. Sync both repositories.
+
+    :steps: GET Actions::Pulp3::Repository::UpdateCVRepositoryCertGuard
+        1. Change the Unprotected (True) repository to Protected (False).
+        2. Switch the protection status of the other repository.
+        3. Sync both repositories again.
+
+    :expectedresults:
+        1. Can create and update repositories that are Unprotected or not.
+        2. Can update the protection status of the repositories to either option, without error.
+        3. Successful repo sync after changing the protection status.
+
+    :Verifies: SAT-32622
+
+    """
+    # Create unprotected and protected yum repositories with same URL
+    unprotected_repo = target_sat.api.Repository(
+        content_type='yum',
+        url=settings.repos.yum_0.url,
+        product=module_product,
+        unprotected=True,
+    ).create()
+    protected_repo = target_sat.api.Repository(
+        content_type='yum',
+        url=settings.repos.yum_0.url,
+        product=module_product,
+        unprotected=False,
+    ).create()
+    assert unprotected_repo.read().unprotected is True
+    assert protected_repo.read().unprotected is False
+
+    # Sync both repos, check 'Unprotected' option remains the same
+    unprotected_repo.sync()
+    protected_repo.sync()
+    assert unprotected_repo.read().unprotected is True
+    assert protected_repo.read().unprotected is False
+    # Change protection status of both repos
+    unprotected_repo = unprotected_repo.read()
+    unprotected_repo.unprotected = False
+    unprotected_repo.update(['unprotected'])
+    protected_repo = protected_repo.read()
+    protected_repo.unprotected = True
+    protected_repo.update(['unprotected'])
+    # can sync after updating protection status
+    unprotected_repo.sync()
+    protected_repo.sync()
+    # 'Unprotected' option remains the same after another sync
+    assert unprotected_repo.read().unprotected is False
+    assert protected_repo.read().unprotected is True

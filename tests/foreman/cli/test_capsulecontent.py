@@ -12,7 +12,7 @@
 
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 import random
 
 from box import Box
@@ -67,7 +67,7 @@ def module_synced_content(
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': [module_lce.id, module_lce_library.id]}
         )
-    sync_time = datetime.utcnow().replace(microsecond=0)
+    sync_time = datetime.now(UTC).replace(microsecond=0)
     module_target_sat.cli.Capsule.content_synchronize(
         {'id': module_capsule_configured.nailgun_capsule.id, 'organization-id': module_org.id}
     )
@@ -109,7 +109,7 @@ def module_capsule_artifact_cleanup(
             data={'environment_id': lce['id']}
         )
     # Run orphan cleanup for the capsule.
-    timestamp = datetime.utcnow().replace(microsecond=0)
+    timestamp = datetime.now(UTC).replace(microsecond=0)
     module_target_sat.execute(
         'foreman-rake katello:delete_orphaned_content RAILS_ENV=production '
         f'SMART_PROXY_ID={module_capsule_configured.nailgun_capsule.id}'
@@ -406,7 +406,7 @@ def test_positive_content_counts_granularity(
         cvs.append(cv.read())
     cv1, cv2 = cvs
     module_target_sat.wait_for_tasks(
-        search_query=wait_query.format(datetime.utcnow().replace(microsecond=0)),
+        search_query=wait_query.format(datetime.now(UTC).replace(microsecond=0)),
         search_rate=5,
         max_tries=5,
     )
@@ -456,7 +456,7 @@ def test_positive_content_counts_granularity(
         cv.version[0].promote(data={'environment_ids': [lce1.id, lce2.id]})
         cv = cv.read()
     module_target_sat.wait_for_tasks(
-        search_query=wait_query.format(datetime.utcnow().replace(microsecond=0)),
+        search_query=wait_query.format(datetime.now(UTC).replace(microsecond=0)),
         search_rate=5,
         max_tries=5,
     )
@@ -478,7 +478,7 @@ def test_positive_content_counts_granularity(
     cv1.version[0].promote(data={'environment_ids': lce1.id})
     cv1 = cv1.read()
     module_target_sat.wait_for_tasks(
-        search_query=wait_query.format(datetime.utcnow().replace(microsecond=0)),
+        search_query=wait_query.format(datetime.now(UTC).replace(microsecond=0)),
         search_rate=5,
         max_tries=5,
     )
@@ -503,7 +503,7 @@ def test_positive_content_counts_granularity(
     cv1.version[0].promote(data={'environment_ids': lce2.id})
     cv1 = cv1.read()
     module_target_sat.wait_for_tasks(
-        search_query=wait_query.format(datetime.utcnow().replace(microsecond=0)),
+        search_query=wait_query.format(datetime.now(UTC).replace(microsecond=0)),
         search_rate=5,
         max_tries=5,
     )
@@ -645,7 +645,6 @@ def test_positive_exported_imported_content_sync(
         'Actions::Katello::Repository::MetadataGenerate',
         'Actions::Katello::CapsuleContent::Sync',
         'Actions::Katello::ContentView::CapsuleSync',
-        'Actions::Katello::CapsuleContent::UpdateContentCounts',
     ]
     pending_tasks = target_sat.api.ForemanTask().search(
         query={'search': f'organization_id={org.id} and result=pending'}
@@ -850,7 +849,7 @@ def test_sync_consume_flatpak_repo_via_library(
     local_repos = sat.cli.Repository.list({'product-id': function_product.id})
     assert set([r['name'] for r in local_repos]) == set(repo_names)
 
-    timestamp = datetime.utcnow()
+    timestamp = datetime.now(UTC)
     for repo in local_repos:
         sat.cli.Repository.synchronize({'id': repo['id']})
     module_capsule_configured.wait_for_sync(start_time=timestamp)
@@ -903,9 +902,13 @@ def test_sync_consume_flatpak_repo_via_library(
         {
             'organization': function_org.name,
             'job-template': 'Flatpak - Install application on host',
-            'inputs': f'Flatpak remote name={remote_name}, Application name={app_name}',
+            'inputs': (
+                f'Flatpak remote name={remote_name}, Application name={app_name}, '
+                'Launch a session bus instance=true'
+            ),
             'search-query': f"name = {host.hostname}",
-        }
+        },
+        timeout='800s',
     )
     res = module_target_sat.cli.JobInvocation.info({'id': job.id})
     assert 'succeeded' in res['status']

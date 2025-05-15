@@ -46,7 +46,11 @@ class TestVirtWhoConfigforEsx:
         indirect=True,
     )
     def test_positive_deploy_configure_by_id_script_name_locationid_organizationtitle(
-        self, module_sca_manifest_org, target_sat, virtwho_config_cli, deploy_type_cli
+        self,
+        module_sca_manifest_org,
+        target_sat,
+        virtwho_config_cli,
+        deploy_type_cli,
     ):
         """Verify "hammer virt-who-config deploy & fetch"
 
@@ -669,3 +673,36 @@ class TestVirtWhoConfigforEsx:
         for item in task:
             assert "Job blocked by the following existing jobs" not in item['task-errors']
             assert "success" in item['result']
+
+
+@pytest.mark.parametrize('deploy_type_cli', ['id'], indirect=True)
+def test_positive_change_system_puropse_SLA_for_hypervisor(
+    target_sat, virtwho_config_cli, deploy_type_cli
+):
+    """Verify that system purpose SLA attribute set successfully and does not throw any error
+
+    :id: a4c88d9f-35b7-4073-a43c-ab613f4ce583
+
+    :setup:
+        Setup virt-who hypervisor
+
+    :steps:
+        Set up system purpose attribute for SLA
+
+    :expectedresults:
+        system purpose SLA attribute set without any error
+
+    :verifies: SAT-28552
+
+    :customerscenario: true
+
+    :CaseImportance: Medium
+    """
+    SLA_service_level = gen_string('alpha', 5)
+    host_id = target_sat.cli.Host.info({'name': deploy_type_cli[1]})['id']
+    output = target_sat.cli.Host.update({'id': host_id, 'service-level': SLA_service_level})
+    assert output[0]['message'] == 'Host updated.'
+    host_service_level = target_sat.cli.Host.info({'name': deploy_type_cli[1]})[
+        'subscription-information'
+    ]['system-purpose']['service-level']
+    assert SLA_service_level == host_service_level

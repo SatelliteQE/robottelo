@@ -96,6 +96,8 @@ def test_rhel_pxe_provisioning(
 
     :BZ: 2105441, 1955861, 1784012
 
+    :Verifies:SAT-20739,SAT-27869
+
     :customerscenario: true
 
     :parametrized: yes
@@ -142,6 +144,13 @@ def test_rhel_pxe_provisioning(
     host = host.read()
     assert host.build_status_label == 'Installed'
 
+    # The label checked above is generated dynamically and may not necessarily
+    # represent the exact value that is stored in the database
+    assert (
+        len(sat.api.Host().search(query={'search': f'name="{host.name}" and build_status = built'}))
+        == 1
+    )
+
     # Change the hostname of the host as we know it already.
     # In the current infra environment we do not support
     # addressing hosts using FQDNs, falling back to IP.
@@ -179,6 +188,11 @@ def test_rhel_pxe_provisioning(
         assert provisioning_host.execute('test -s /mnt/sysimage/root/install.post.log').status == 1
 
         # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
+        # Add workaround for SAT-32007 and SAT-32006
+        if is_open('SAT-32007') and is_open('SAT-32006'):
+            assert (
+                sat.execute('cat /dev/null > /usr/share/foreman-proxy/.ssh/known_hosts').status == 0
+            )
         template_id = (
             sat.api.JobTemplate()
             .search(query={'search': 'name="Run Command - Script Default"'})[0]
@@ -317,6 +331,9 @@ def test_rhel_ipxe_provisioning(
     )
 
     # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
+    # Add workaround for SAT-32007 and SAT-32006
+    if is_open('SAT-32007') and is_open('SAT-32006'):
+        assert sat.execute('cat /dev/null > /usr/share/foreman-proxy/.ssh/known_hosts').status == 0
     template_id = (
         sat.api.JobTemplate().search(query={'search': 'name="Run Command - Script Default"'})[0].id
     )
@@ -446,6 +463,9 @@ def test_rhel_httpboot_provisioning(
     )
 
     # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
+    # Add workaround for SAT-32007 and SAT-32006
+    if is_open('SAT-32007') and is_open('SAT-32006'):
+        assert sat.execute('cat /dev/null > /usr/share/foreman-proxy/.ssh/known_hosts').status == 0
     template_id = (
         sat.api.JobTemplate().search(query={'search': 'name="Run Command - Script Default"'})[0].id
     )
@@ -577,15 +597,13 @@ def test_rhel_pxe_provisioning_fips_enabled(
     )
 
     # Verify FIPS is enabled on host after provisioning is completed sucessfully
-    if int(host_os.major) >= 8:
-        result = provisioning_host.execute('fips-mode-setup --check')
-        fips_status = 'FIPS mode is disabled' if is_open('SAT-20386') else 'FIPS mode is enabled'
-        assert fips_status in result.stdout
-    else:
-        result = provisioning_host.execute('cat /proc/sys/crypto/fips_enabled')
-        assert (0 if is_open('SAT-20386') else 1) == int(result.stdout)
+    result = provisioning_host.execute('cat /proc/sys/crypto/fips_enabled')
+    assert (0 if is_open('SAT-20386') else 1) == int(result.stdout)
 
     # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
+    # Add workaround for SAT-32007 and SAT-32006
+    if is_open('SAT-32007') and is_open('SAT-32006'):
+        assert sat.execute('cat /dev/null > /usr/share/foreman-proxy/.ssh/known_hosts').status == 0
     template_id = (
         sat.api.JobTemplate().search(query={'search': 'name="Run Command - Script Default"'})[0].id
     )
@@ -817,6 +835,9 @@ def test_capsule_pxe_provisioning(
     )
 
     # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
+    # Add workaround for SAT-32007 and SAT-32006
+    if is_open('SAT-32007') and is_open('SAT-32006'):
+        assert sat.execute('cat /dev/null > /usr/share/foreman-proxy/.ssh/known_hosts').status == 0
     template_id = (
         sat.api.JobTemplate().search(query={'search': 'name="Run Command - Script Default"'})[0].id
     )

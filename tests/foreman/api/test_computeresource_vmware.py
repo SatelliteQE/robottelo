@@ -32,6 +32,7 @@ def test_positive_provision_end_to_end(
     setting_update,
     module_provisioning_rhel_content,
     module_provisioning_sat,
+    configure_secureboot_provisioning,
     module_sca_manifest_org,
     module_location,
     module_ssh_key_file,
@@ -195,7 +196,6 @@ def test_positive_provision_vmware_pxe_discovery(
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
         timeout=1500,
-        retries=2,
         delay=40,
     )
     discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]

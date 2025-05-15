@@ -210,6 +210,7 @@ def module_provisioning_sat(
         organization=[module_sca_manifest_org],
         network=str(provisioning_network.network_address),
         network_type='IPv6' if settings.server.is_ipv6 else 'IPv4',
+        vlanid=settings.provisioning.vlan_id,
         mask=str(provisioning_network.netmask),
         gateway=broker_data_out.provisioning_gw_ip,
         from_=broker_data_out.provisioning_host_range_start,
@@ -227,7 +228,6 @@ def module_provisioning_sat(
         remote_execution_proxy=[module_provisioning_capsule.id],
         domain=[domain.id],
     ).create()
-
     return Box(sat=sat, domain=domain, subnet=subnet, provisioning_type=provisioning_type)
 
 
@@ -369,3 +369,41 @@ def pxeless_discovery_host(provisioning_host, module_discovery_sat, pxe_loader):
     ).execute()
     yield provisioning_host
     Broker(workflow='remove-disk-image', remove_disk_image_name=image_name).execute()
+
+
+@pytest.fixture
+def configure_secureboot_provisioning(
+    request, pxe_loader, module_provisioning_sat, module_provisioning_rhel_content
+):
+    """Fixture for configuring Secureboot pxe_loader for provisioning, when hosts RHEL version > Satellites RHEL version"""
+    rhel_ver = module_provisioning_rhel_content.os.major
+    sat = module_provisioning_sat.sat
+    if (
+        int(rhel_ver) > sat.os_version.major
+        and pxe_loader.vm_firmware == 'uefi_secure_boot'
+        and not settings.server.is_ipv6
+    ):
+        # Set the path for the shim and GRUB2 binaries for the OS of host
+        bootloader_path = '/var/lib/tftpboot/bootloader-universe/pxegrub2/redhat/default/x86_64'
+
+        # Create the directory to store the shim and GRUB2 binaries for the OS of host
+        sat.execute(f'install -o foreman-proxy -g foreman-proxy -d {bootloader_path}')
+
+        # Fetch and Download SB packages, and extract Shim/Grub2 binaries
+        for prefix in ['grub2-efi-x64', 'shim-x64']:
+            url = sat.get_secureboot_packages_with_version(
+                f'{settings.repos.get(f"rhel{rhel_ver}_os").baseos}/Packages', prefix
+            )
+            sat.execute(f'curl -o /tmp/{prefix}.rpm {url}')
+            sat.execute(f'rpm2cpio /tmp/{prefix}.rpm | cpio -idv --directory /tmp')
+
+        # Make the shim and GRUB2 binaries available for host provisioning:
+        sat.execute(f'cp /tmp/boot/efi/EFI/redhat/grubx64.efi {bootloader_path}/grubx64.efi')
+        sat.execute(f'cp /tmp/boot/efi/EFI/redhat/shimx64.efi {bootloader_path}/shimx64.efi')
+        sat.execute(f'ln -sr {bootloader_path}/grubx64.efi {bootloader_path}/boot.efi')
+        sat.execute(f'ln -sr {bootloader_path}/shimx64.efi {bootloader_path}/boot-sb.efi')
+        sat.execute(f'chmod 644 {bootloader_path}/grubx64.efi {bootloader_path}/shimx64.efi')
+        yield
+        sat.execute(f'rm -rf {bootloader_path}')
+    else:
+        yield None

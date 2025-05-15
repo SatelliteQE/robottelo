@@ -6,7 +6,9 @@
 
 /conf/ @SatelliteQE/robottelo-tier-2-reviewers
 
-/pytest_fixtures/ @SatelliteQE/robottelo-tier-2-reviewers
+/pytest_fixtures/component/ @SatelliteQE/robottelo-tier-1-reviewers
+
+/pytest_fixtures/core/ @SatelliteQE/robottelo-tier-2-reviewers
 
 /pytest_plugins/ @SatelliteQE/robottelo-tier-2-reviewers
 
@@ -99,8 +101,10 @@ tests/foreman/ui/test_subscription.py @SatelliteQE/team-phoenix
 tests/foreman/ui/test_sync.py @SatelliteQE/team-phoenix
 tests/foreman/ui/test_syncplan.py @SatelliteQE/team-phoenix
 tests/foreman/virtwho/ @SatelliteQE/team-phoenix
-tests/new_upgrades/test_repository.py @SatelliteQE/team-phoenix
 tests/new_upgrades/test_contentview.py @SatelliteQE/team-phoenix
+tests/new_upgrades/test_activation_key @SatelliteQE/team-phoenix
+tests/new_upgrades/test_errata.py @SatelliteQE/team-phoenix
+tests/new_upgrades/test_repository.py @SatelliteQE/team-phoenix
 tests/upgrades/test_activation_key.py @SatelliteQE/team-phoenix
 tests/upgrades/test_client.py @SatelliteQE/team-phoenix
 tests/upgrades/test_contentview.py @SatelliteQE/team-phoenix
@@ -188,6 +192,7 @@ tests/foreman/ui/test_registration.py @SatelliteQE/team-rocket
 tests/foreman/ui/test_settings.py @SatelliteQE/team-rocket
 tests/foreman/ui/test_smartclassparameter.py @SatelliteQE/team-rocket
 tests/foreman/ui/test_subnet.py @SatelliteQE/team-rocket
+tests/new_upgrades/test_discovery.py @SatelliteQE/team-rocket
 tests/upgrades/test_classparameter.py @SatelliteQE/team-rocket
 tests/upgrades/test_discovery.py @SatelliteQE/team-rocket
 tests/upgrades/test_provisioningtemplate.py @SatelliteQE/team-rocket
@@ -289,6 +294,11 @@ tests/foreman/ui/test_user.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_usergroup.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_webhook.py @SatelliteQE/team-endeavour
 tests/new_upgrades/test_bookmarks.py @SatelliteQE/team-endeavour
+tests/new_upgrades/test_hostgroup.py @SatelliteQE/team-endeavour
+<<<<<<< HEAD
+=======
+tests/new_upgrades/test_remoteexecution.py @SatelliteQE/team-endeavour
+>>>>>>> dfe512883 (Update CODEOWNERS)
 tests/upgrades/test_bookmarks.py @SatelliteQE/team-endeavour
 tests/upgrades/test_host.py @SatelliteQE/team-endeavour
 tests/upgrades/test_hostgroup.py @SatelliteQE/team-endeavour

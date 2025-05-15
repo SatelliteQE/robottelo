@@ -12,12 +12,12 @@
 
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from wait_for import wait_for
 
-from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
 from robottelo.utils.io import (
     get_local_file_data,
     get_remote_report_checksum,
@@ -25,7 +25,9 @@ from robottelo.utils.io import (
 )
 
 
-def common_assertion(report_path, inventory_data, org, satellite):
+def common_assertion(
+    report_path, inventory_data, org, satellite, subscription_connection_enabled=True
+):
     """Function to perform common assertions"""
     local_file_data = get_local_file_data(report_path)
     upload_success_msg = (
@@ -34,12 +36,14 @@ def common_assertion(report_path, inventory_data, org, satellite):
     upload_error_messages = ['NSS error', 'Permission denied']
 
     assert 'Successfully generated' in inventory_data['generating']['terminal']
-    assert upload_success_msg in inventory_data['uploading']['terminal']
-    assert 'x-rh-insights-request-id' in inventory_data['uploading']['terminal'].lower()
-    for error_msg in upload_error_messages:
-        assert error_msg not in inventory_data['uploading']['terminal']
+    if subscription_connection_enabled:
+        assert upload_success_msg in inventory_data['uploading']['terminal']
+        assert 'x-rh-insights-request-id' in inventory_data['uploading']['terminal'].lower()
+        for error_msg in upload_error_messages:
+            assert error_msg not in inventory_data['uploading']['terminal']
+        # There is no uploaded report with subscription_connection_enabled set to false
+        assert local_file_data['checksum'] == get_remote_report_checksum(satellite, org.id)
 
-    assert local_file_data['checksum'] == get_remote_report_checksum(satellite, org.id)
     assert local_file_data['size'] > 0
     assert local_file_data['extractable']
     assert local_file_data['json_files_parsable']
@@ -55,15 +59,25 @@ def common_assertion(report_path, inventory_data, org, satellite):
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.run_in_one_thread
+@pytest.mark.usefixtures('setting_update')
+@pytest.mark.parametrize(
+    'setting_update',
+    ['subscription_connection_enabled=true', 'subscription_connection_enabled=false'],
+    indirect=True,
+)
 def test_rhcloud_inventory_e2e(
     inventory_settings,
     rhcloud_manifest_org,
     rhcloud_registered_hosts,
     module_target_sat,
+    setting_update,
 ):
-    """Generate report and verify its basic properties
+    """Generate report and verify its basic properties,
+    also test with subscription_connection_enabled setting set to true and false.
 
     :id: 833bd61d-d6e7-4575-887a-9e0729d0fa76
+
+    :parametrized: yes
 
     :customerscenario: true
 
@@ -82,12 +96,13 @@ def test_rhcloud_inventory_e2e(
 
     :BZ: 1807829, 1926100
     """
+    subscription_setting = setting_update.value == 'true'
     org = rhcloud_manifest_org
     virtual_host, baremetal_host = rhcloud_registered_hosts
     with module_target_sat.ui_session() as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
-        timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         # wait_for_tasks report generation task to finish.
         wait_for(
@@ -108,7 +123,7 @@ def test_rhcloud_inventory_e2e(
         report_path = session.cloudinventory.download_report(org.name)
         inventory_data = session.cloudinventory.read(org.name)
     # Verify that generated archive is valid.
-    common_assertion(report_path, inventory_data, org, module_target_sat)
+    common_assertion(report_path, inventory_data, org, module_target_sat, subscription_setting)
     # Get report data for assertion
     json_data = get_report_data(report_path)
     # Verify that hostnames are present in the report.
@@ -184,7 +199,7 @@ def test_rh_cloud_inventory_settings(
         session.cloudinventory.update({'obfuscate_hostnames': True})
         session.cloudinventory.update({'obfuscate_ips': True})
         session.cloudinventory.update({'exclude_packages': True})
-        timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         # wait_for_tasks report generation task to finish.
         wait_for(
@@ -238,7 +253,7 @@ def test_rh_cloud_inventory_settings(
         module_target_sat.update_setting('obfuscate_inventory_hostnames', True)
         module_target_sat.update_setting('obfuscate_inventory_ips', True)
         module_target_sat.update_setting('exclude_installed_packages', True)
-        timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         # wait_for_tasks report generation task to finish.
         wait_for(
@@ -329,7 +344,7 @@ def test_rhcloud_inventory_without_manifest(session, module_org, target_sat):
     """
     with session:
         session.organization.select(org_name=module_org.name)
-        timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(module_org.name)
         wait_for(
             lambda: target_sat.api.ForemanTask()
@@ -376,3 +391,162 @@ def test_rhcloud_inventory_disabled_local_insights(module_target_sat_insights):
         insights_view = session.cloudinsights.navigate_to(session.cloudinsights, 'All')
         with pytest.raises(Exception, match='not found in navigation tree'):
             insights_view.menu.select('Insights', 'Inventory Upload')
+
+
+@pytest.mark.pit_server
+@pytest.mark.pit_client
+@pytest.mark.run_in_one_thread
+def test_rhcloud_global_parameters(
+    inventory_settings,
+    rhcloud_manifest_org,
+    rhcloud_registered_hosts,
+    module_target_sat,
+):
+    """Verify that the host_registration_insights parameters are seperate from the
+        Satellite Inventory Plugin by setting host_registration_inventory_plugin to false and
+        generating a report
+
+    :id: c5b22117-2022-4014-9e1e-b7d26de2360e
+
+    :steps:
+        1. Configure Satellite and hosts for insights registration
+        2. Set the global parameter host_registration_insights_inventory to false
+        3. Generate and download insights report
+        4. Verify the report does not contain hosts(empty)
+        5. Set the global parameter host_registration_insights_inventory to true
+        6. Verify the report does contain the hosts
+
+
+    :customerscenario: true
+
+    :Verifies: SAT-27221
+
+    :expectedresults: Setting the host_registration_inventory_plugin should remove hosts from
+        the report
+    """
+    org = rhcloud_manifest_org
+    virtual_host, baremetal_host = rhcloud_registered_hosts
+    # Set the global parameter 'host_registration_insights_inventory' to false
+    insights_cp = (
+        module_target_sat.api.CommonParameter()
+        .search(query={'search': 'name=host_registration_insights_inventory'})[0]
+        .read()
+    )
+    module_target_sat.api.CommonParameter(id=insights_cp.id, value='false').update(['value'])
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        session.cloudinventory.generate_report(org.name)
+        # wait_for_tasks report generation task to finish
+        wait_for(
+            lambda: module_target_sat.api.ForemanTask()
+            .search(
+                query={
+                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                    f'and started_at >= "{timestamp}"'
+                }
+            )[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        report_path = session.cloudinventory.download_report(org.name)
+        inventory_data = session.cloudinventory.read(org.name)
+    # Verify that generated archive is valid
+    common_assertion(report_path, inventory_data, org, module_target_sat)
+    # Get report data for assertion
+    json_data = get_report_data(report_path)
+    # Verify that hostnames are not in report(empty)
+    assert json_data == {}
+    # Set the global parameter 'host_registration_insights_inventory' back to true
+    insights_cp = (
+        module_target_sat.api.CommonParameter()
+        .search(query={'search': 'name=host_registration_insights_inventory'})[0]
+        .read()
+    )
+    module_target_sat.api.CommonParameter(id=insights_cp.id, value='true').update(['value'])
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        session.cloudinventory.generate_report(org.name)
+        # wait_for_tasks report generation task to finish
+        wait_for(
+            lambda: module_target_sat.api.ForemanTask()
+            .search(
+                query={
+                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                    f'and started_at >= "{timestamp}"'
+                }
+            )[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        report_path = session.cloudinventory.download_report(org.name)
+        inventory_data = session.cloudinventory.read(org.name)
+    # Verify that generated archive is valid
+    common_assertion(report_path, inventory_data, org, module_target_sat)
+    # Get report data for assertion
+    json_data = get_report_data(report_path)
+    # Verify that hostnames are present in the report
+    hostnames = [host['fqdn'] for host in json_data['hosts']]
+    assert virtual_host.hostname in hostnames
+    assert baremetal_host.hostname in hostnames
+
+
+@pytest.mark.usefixtures('setting_update')
+@pytest.mark.parametrize(
+    'setting_update',
+    ['subscription_connection_enabled=true', 'subscription_connection_enabled=false'],
+    indirect=True,
+)
+def test_subscription_connection_settings_ui_behavior(request, module_target_sat, setting_update):
+    """Verify that the RH Cloud Inventory UI
+    reflects the subscription_connection_enabled setting
+
+    :id: 9b8648b5-0ffb-49c1-a19e-04a7a8ce896f
+
+    :parametrized: yes
+
+    :steps:
+        1. Set the subscription_connection_enabled setting to true
+        2. Check that all the RH inventory settings, auto_upload and manual_upload descriptions,
+            cloud_connector, uploading tab and sync_status buttons are displayed in the UI
+        3. Set the subscription_connection_enabled setting to false
+        4. Verify that auto_update switch, auto_upload and manual_upload descriptions, uploading tab,
+            configure_cloud_connector and sync_all buttons are NOT displayed in the UI
+
+    :expectedresults:
+        1. The subscription_connection_enabled setting is reflected in the UI
+    """
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=DEFAULT_ORG)
+        session.location.select(loc_name=DEFAULT_LOC)
+
+        displayed_inventory_data = session.cloudinventory.read_org(DEFAULT_ORG)
+        displayed_settings_options = session.cloudinventory.get_displayed_settings_options()
+        displayed_buttons = session.cloudinventory.get_displayed_buttons()
+        displayed_descriptions = session.cloudinventory.get_displayed_descriptions()
+        displayed_inventory_tabs = session.cloudinventory.get_displayed_inventory_tabs()
+
+        subscription_setting = setting_update.value == 'true'
+
+        assert displayed_settings_options['auto_update'] is subscription_setting
+        assert displayed_buttons['cloud_connector'] is subscription_setting
+        assert displayed_buttons['sync_status'] is subscription_setting
+        assert displayed_descriptions['auto_upload_desc'] is subscription_setting
+        assert displayed_descriptions['manual_upload_desc'] is subscription_setting
+        assert displayed_inventory_tabs['uploading'] is subscription_setting
+        assert (
+            displayed_inventory_data['generating']['restart'] == 'Generate and upload report'
+            if subscription_setting
+            else 'Generate report'
+        )

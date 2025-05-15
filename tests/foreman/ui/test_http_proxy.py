@@ -36,11 +36,15 @@ def function_spec_char_user(target_sat, session_auth_proxy):
 
 @pytest.mark.upgrade
 def test_positive_create_update_delete(module_org, module_location, target_sat):
-    """Create new http-proxy with attributes, update and delete it.
+    """Create new http-proxy with attributes, update, test connection and delete it.
 
     :id: 0c7cdf3d-778f-427a-9a2f-42ad7c23aa15
 
     :expectedresults: All expected CRUD actions finished successfully
+
+    :verifies: SAT-30220
+
+    :customerscenario: true
     """
     http_proxy_name = gen_string('alpha', 15)
     updated_proxy_name = gen_string('alpha', 15)
@@ -68,9 +72,17 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
         assert http_proxy_values['http_proxy']['username'] == username
         assert module_location.name in http_proxy_values['locations']['resources']['assigned']
         assert module_org.name in http_proxy_values['organizations']['resources']['assigned']
-        # Update http_proxy with new name
-        session.http_proxy.update(http_proxy_name, {'http_proxy.name': updated_proxy_name})
+        # Update http_proxy with new name and real url
+        session.http_proxy.update(
+            http_proxy_name,
+            {
+                'http_proxy.name': updated_proxy_name,
+                'http_proxy.url': settings.http_proxy.un_auth_proxy_url,
+            },
+        )
         assert session.http_proxy.search(updated_proxy_name)[0]['Name'] == updated_proxy_name
+        # Test connection
+        session.http_proxy.test_connection(updated_proxy_name)
         # Delete http_proxy
         session.http_proxy.delete(updated_proxy_name)
         assert not target_sat.api.HTTPProxy().search(query={'search': f'name={updated_proxy_name}'})
@@ -129,11 +141,11 @@ def test_positive_assign_http_proxy_to_products_repositories(
                 'name': repo_a1_name,
                 'repo_type': REPO_TYPE['yum'],
                 'repo_content.upstream_url': settings.repos.yum_0.url,
-                'repo_content.http_proxy_policy': 'No HTTP Proxy',
+                'repo_content.http_proxy_policy': 'No HTTP proxy',
             },
         )
         repo_a1_values = session.repository.read(product_a.name, repo_a1_name)
-        assert repo_a1_values['repo_content']['http_proxy_policy'] == 'No HTTP Proxy'
+        assert repo_a1_values['repo_content']['http_proxy_policy'] == 'No HTTP proxy'
         repo_a2_name = gen_string('alpha')
         session.repository.create(
             product_a.name,
@@ -141,12 +153,12 @@ def test_positive_assign_http_proxy_to_products_repositories(
                 'name': repo_a2_name,
                 'repo_type': REPO_TYPE['yum'],
                 'repo_content.upstream_url': settings.repos.yum_1.url,
-                'repo_content.http_proxy_policy': 'Use specific HTTP Proxy',
+                'repo_content.http_proxy_policy': 'Use specific HTTP proxy',
                 'repo_content.proxy_policy.http_proxy': http_proxy_a.name,
             },
         )
         repo_a2_values = session.repository.read(product_a.name, repo_a2_name)
-        expected_policy = f'Use specific HTTP Proxy ({http_proxy_a.name})'
+        expected_policy = f'Use specific HTTP proxy ({http_proxy_a.name})'
         assert repo_a2_values['repo_content']['http_proxy_policy'] == expected_policy
         repo_b1_name = gen_string('alpha')
         session.repository.create(
@@ -167,7 +179,7 @@ def test_positive_assign_http_proxy_to_products_repositories(
                 'name': repo_b2_name,
                 'repo_type': REPO_TYPE['yum'],
                 'repo_content.upstream_url': settings.repos.yum_1.url,
-                'repo_content.http_proxy_policy': 'No HTTP Proxy',
+                'repo_content.http_proxy_policy': 'No HTTP proxy',
             },
         )
         # Set the HTTP proxy through bulk action for both products
@@ -175,12 +187,12 @@ def test_positive_assign_http_proxy_to_products_repositories(
         session.product.manage_http_proxy(
             [product_a.name, product_b.name],
             {
-                'http_proxy_policy': 'Use specific HTTP Proxy',
+                'http_proxy_policy': 'Use specific HTTP proxy',
                 'proxy_policy.http_proxy': http_proxy_b.name,
             },
         )
         # Verify that Http Proxy is updated for all repos of product_a and product_b.
-        proxy_policy = 'Use specific HTTP Proxy ({})'
+        proxy_policy = 'Use specific HTTP proxy ({})'
         repo_a1_values = session.repository.read(product_a.name, repo_a1_name)
         assert repo_a1_values['repo_content']['http_proxy_policy'] == proxy_policy.format(
             http_proxy_b.name

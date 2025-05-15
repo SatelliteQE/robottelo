@@ -12,11 +12,13 @@
 
 """
 
+from broker import Broker
 from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
 
 from robottelo.config import settings, user_nailgun_config
+from robottelo.hosts import ContentHost
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -278,7 +280,7 @@ class TestAnsibleCfgMgmt:
         assert ROLE_NAMES[0] not in [role['name'] for role in listroles_hg]
         assert ROLE_NAMES[1] == listroles_hg[0]['name']
 
-    @pytest.mark.rhel_ver_match('[78]')
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_read_facts_with_filter(
         self, request, target_sat, rex_contenthost, filtered_user, module_org, module_location
     ):
@@ -301,18 +303,19 @@ class TestAnsibleCfgMgmt:
         host.organization = module_org
         host.location = module_location
         host.update(['organization', 'location'])
-        request.addfinalizer(
-            user.delete
-        )  # Adding a temporary workaround until the issue 'SAT-18656' is resolved.
+        if is_open('SAT-18656'):
+
+            @request.addfinalizer
+            def _finalize():
+                target_sat.cli.Host.disassociate({'name': rex_contenthost.hostname})
 
         # gather ansible facts by running ansible roles on the host
         host.play_ansible_roles()
-        if is_open('SAT-18656'):
-            wait_for(
-                lambda: len(rex_contenthost.nailgun_host.get_facts()) > 0,
-                timeout=30,
-                delay=2,
-            )
+        wait_for(
+            lambda: len(rex_contenthost.nailgun_host.get_facts()) > 0,
+            timeout=30,
+            delay=2,
+        )
         user_cfg = user_nailgun_config(user.login, password)
         # get facts through API
         user_facts = (
@@ -404,14 +407,10 @@ class TestAnsibleREX:
         host_roles = target_host.list_ansible_roles()
         assert len(host_roles) == 0
 
-    @pytest.mark.no_containers
     def test_positive_ansible_job_on_multiple_host(
         self,
         target_sat,
         module_org,
-        rhel9_contenthost,
-        rhel8_contenthost,
-        rhel7_contenthost,
         module_location,
         module_ak_with_synced_repo,
     ):
@@ -434,52 +433,72 @@ class TestAnsibleREX:
 
         :BZ: 2167396, 2190464, 2184117
         """
-        hosts = [rhel9_contenthost, rhel8_contenthost, rhel7_contenthost]
-        SELECTED_ROLE = 'RedHatInsights.insights-client'
-        for host in hosts:
-            result = host.register(
-                module_org, module_location, module_ak_with_synced_repo.name, target_sat
-            )
-            assert result.status == 0, f'Failed to register host: {result.stderr}'
-            proxy_id = target_sat.nailgun_smart_proxy.id
-            target_host = host.nailgun_host
-            target_sat.api.AnsibleRoles().sync(
-                data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]}
-            )
-            role_id = (
-                target_sat.api.AnsibleRoles()
-                .search(query={'search': f'name={SELECTED_ROLE}'})[0]
+        with Broker.multi_manager(
+            rhel9={
+                'host_class': ContentHost,
+                'workflow': settings.server.deploy_workflows.os,
+                'deploy_rhel_version': '9',
+                'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
+            },
+            rhel8={
+                'host_class': ContentHost,
+                'workflow': settings.server.deploy_workflows.os,
+                'deploy_rhel_version': '8',
+                'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
+            },
+            rhel7={
+                'host_class': ContentHost,
+                'workflow': settings.server.deploy_workflows.os,
+                'deploy_rhel_version': '7',
+                'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
+            },
+        ) as multi_hosts:
+            hosts = [multi_hosts['rhel9'][0], multi_hosts['rhel8'][0], multi_hosts['rhel7'][0]]
+            SELECTED_ROLE = 'RedHatInsights.insights-client'
+            for host in hosts:
+                result = host.register(
+                    module_org, module_location, module_ak_with_synced_repo.name, target_sat
+                )
+                assert result.status == 0, f'Failed to register host: {result.stderr}'
+                proxy_id = target_sat.nailgun_smart_proxy.id
+                target_host = host.nailgun_host
+                target_sat.api.AnsibleRoles().sync(
+                    data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]}
+                )
+                role_id = (
+                    target_sat.api.AnsibleRoles()
+                    .search(query={'search': f'name={SELECTED_ROLE}'})[0]
+                    .id
+                )
+                target_sat.api.Host(id=target_host.id).add_ansible_role(
+                    data={'ansible_role_id': role_id}
+                )
+                host_roles = target_host.list_ansible_roles()
+                assert host_roles[0]['name'] == SELECTED_ROLE
+
+            template_id = (
+                target_sat.api.JobTemplate()
+                .search(query={'search': 'name="Ansible Roles - Ansible Default"'})[0]
                 .id
             )
-            target_sat.api.Host(id=target_host.id).add_ansible_role(
-                data={'ansible_role_id': role_id}
+            job = target_sat.api.JobInvocation().run(
+                synchronous=False,
+                data={
+                    'job_template_id': template_id,
+                    'targeting_type': 'static_query',
+                    'search_query': f'name ^ ({hosts[0].hostname} && {hosts[1].hostname} '
+                    f'&& {hosts[2].hostname})',
+                },
             )
-            host_roles = target_host.list_ansible_roles()
-            assert host_roles[0]['name'] == SELECTED_ROLE
-
-        template_id = (
-            target_sat.api.JobTemplate()
-            .search(query={'search': 'name="Ansible Roles - Ansible Default"'})[0]
-            .id
-        )
-        job = target_sat.api.JobInvocation().run(
-            synchronous=False,
-            data={
-                'job_template_id': template_id,
-                'targeting_type': 'static_query',
-                'search_query': f'name ^ ({hosts[0].hostname} && {hosts[1].hostname} '
-                f'&& {hosts[2].hostname})',
-            },
-        )
-        target_sat.wait_for_tasks(
-            f'resource_type = JobInvocation and resource_id = {job["id"]}',
-            poll_timeout=1000,
-            must_succeed=False,
-        )
-        result = target_sat.api.JobInvocation(id=job['id']).read()
-        assert result.succeeded == 2  # SELECTED_ROLE working on rhel8/rhel9 clients
-        assert result.failed == 1  # SELECTED_ROLE failing  on rhel7 client
-        assert result.status_label == 'failed'
+            target_sat.wait_for_tasks(
+                f'resource_type = JobInvocation and resource_id = {job["id"]}',
+                poll_timeout=1000,
+                must_succeed=False,
+            )
+            result = target_sat.api.JobInvocation(id=job['id']).read()
+            assert result.succeeded == 2  # SELECTED_ROLE working on rhel8/rhel9 clients
+            assert result.failed == 1  # SELECTED_ROLE failing  on rhel7 client
+            assert result.status_label == 'failed'
 
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')  # all major versions, excluding fips

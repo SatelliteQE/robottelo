@@ -13,7 +13,7 @@
 """
 
 from calendar import monthrange
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import random
 from time import sleep
 
@@ -109,6 +109,8 @@ class TestRemoteExecution:
 
         :customerscenario: true
 
+        :verifies: SAT-29062
+
         :parametrized: yes
         """
         client = rex_contenthost
@@ -133,6 +135,12 @@ class TestRemoteExecution:
         )
         assert 'Exit' in out
         assert 'Internal Server Error' not in out
+        #  SAT-29062
+        hour = search[0]['started-at'].split(" ")[1].split(":")[0]
+        search = module_target_sat.cli.Task.list_tasks(
+            {'search': f'started_at > {hour}:00 and started_at < {int(hour) + 1}:00'}
+        )
+        assert task['id'] in [t['id'] for t in search], "task not found in expected time range"
 
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_negative_run_default_job_template(
@@ -821,7 +829,7 @@ class TestRemoteExecution:
             ],
             [
                 '@hourly',
-                f'{(datetime.utcnow() + timedelta(hours=1)).strftime("%Y/%m/%d %H")}:00:00',
+                f'{(datetime.now(UTC) + timedelta(hours=1)).strftime("%Y/%m/%d %H")}:00:00',
             ],
             # last day of month
             [
@@ -1307,13 +1315,20 @@ class TestPullProviderRex:
         result = client.execute(f'systemctl status {service_name}')
         assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
 
+        # yggdrasil 0.4+ uses a separate service for configuration
+        worker_service = (
+            service_name
+            if service_name == "yggdrasild"
+            else "com.redhat.Yggdrasil1.Worker1.foreman"
+        )
+
         # create a new directory and set in in yggdrasil
         path = f'/{gen_string("alpha")}'
-        config_path_dir = f'/etc/systemd/system/{service_name}.service.d/'
+        config_path_dir = f'/etc/systemd/system/{worker_service}.service.d/'
         config_path = f'{config_path_dir}/override.conf'
         assert (
             client.execute(
-                f'mkdir {path} && mount -t tmpfs tmpfs {path} && mkdir {config_path_dir} && echo -e "[Service]\nEnvironment=FOREMAN_YGG_WORKER_WORKDIR={path}" > {config_path} && systemctl daemon-reload && systemctl restart {service_name}'
+                f'mkdir {path} && mount -t tmpfs tmpfs {path} && mkdir {config_path_dir} && echo -e "[Service]\nEnvironment=FOREMAN_YGG_WORKER_WORKDIR={path}" > {config_path} && systemctl daemon-reload && systemctl restart {worker_service}'
             ).status
             == 0
         )

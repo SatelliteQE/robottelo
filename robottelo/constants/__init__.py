@@ -286,6 +286,7 @@ REPOSET = {
     'rhva6': ('Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'),
     'rhs7': 'Red Hat Satellite 6.11 (for RHEL 7 Server) (RPMs)',
     'rhs8': 'Red Hat Satellite 6.13 for RHEL 8 x86_64 (RPMs)',
+    'rhs9': 'Red Hat Satellite 6.16 for RHEL 9 x86_64 (RPMs)',
     'rhsc8': 'Red Hat Satellite Capsule 6.16 for RHEL 8 x86_64 (RPMs)',
     'rhsc9': 'Red Hat Satellite Capsule 6.16 for RHEL 9 x86_64 (RPMs)',
     'rhsc7_iso': 'Red Hat Satellite Capsule 6.4 (for RHEL 7 Server) (ISOs)',
@@ -324,25 +325,27 @@ REPOSET = {
 }
 
 RECOMMENDED_REPOS = [
+    'rhel-10-for-x86_64-baseos-rpms',
+    'rhel-10-for-x86_64-appstream-rpms',
+    'rhel-10-for-x86_64-baseos-eus-rpms',
+    'rhel-10-for-x86_64-appstream-eus-rpms',
     'rhel-9-for-x86_64-baseos-rpms',
     'rhel-9-for-x86_64-appstream-rpms',
-    'rhel-9-for-x86_64-baseos-eus-rpms',  # 6.17+
-    'rhel-9-for-x86_64-appstream-eus-rpms',  # 6.17+
+    'rhel-9-for-x86_64-baseos-eus-rpms',
+    'rhel-9-for-x86_64-appstream-eus-rpms',
     'rhel-8-for-x86_64-baseos-rpms',
     'rhel-8-for-x86_64-appstream-rpms',
     'rhel-8-for-x86_64-baseos-eus-rpms',
     'rhel-8-for-x86_64-appstream-eus-rpms',
+    'satellite-client-6-for-rhel-10-x86_64-rpms',
     'satellite-client-6-for-rhel-9-x86_64-rpms',
     'satellite-client-6-for-rhel-8-x86_64-rpms',
 ]
 
 VERSIONED_REPOS = [
-    'satellite-capsule-{}-for-rhel-8-x86_64-rpms',
-    'satellite-maintenance-{}-for-rhel-8-x86_64-rpms',
-    'satellite-utils-{}-for-rhel-8-x86_64-rpms',
-    'satellite-capsule-{}-for-rhel-9-x86_64-rpms',  # 6.16+
-    'satellite-maintenance-{}-for-rhel-9-x86_64-rpms',  # 6.16+
-    'satellite-utils-{}-for-rhel-9-x86_64-rpms',  # 6.16+
+    'satellite-capsule-{}-for-rhel-9-x86_64-rpms',
+    'satellite-maintenance-{}-for-rhel-9-x86_64-rpms',
+    'satellite-utils-{}-for-rhel-9-x86_64-rpms',
 ]
 
 SM_OVERALL_STATUS = {
@@ -394,6 +397,15 @@ REPOS = {
         'distro_repository': True,
         'key': 'rhel',
         'version': '6.8',
+    },
+    'rhs9': {
+        'id': 'satellite-6.16-for-rhel-9-x86_64-rpms',
+        'name': ('Red Hat Satellite 6.16 for RHEL 9 x86_64 RPMs'),
+        'version': '6.16',
+        'reposet': REPOSET['rhs9'],
+        'product': PRDS['rhs'],
+        'distro': 'rhel9',
+        'key': 'rhs',
     },
     'rhs8': {
         'id': 'satellite-6.13-for-rhel-8-x86_64-rpms',
@@ -763,6 +775,10 @@ DEFAULT_OS_SEARCH_QUERY = 'name="RedHat" AND (major="6" OR major="7" OR major="8
 
 VDC_SUBSCRIPTION_NAME = 'Red Hat Enterprise Linux for Virtual Datacenters, Premium'
 
+TIMESTAMP_FMT_ZONE = '%Y-%m-%d %H:%M:%S %Z'  # timezone-aware format (by code: UTC, EST, etc)
+TIMESTAMP_FMT = '%Y-%m-%d %H:%M:%S'
+TIMESTAMP_FMT_DATE = '%Y-%m-%d'
+TIMESTAMP_FMT_TIME = '%H:%M:%S'
 TIMEZONES = [
     '(GMT+00:00) UTC',
     '(GMT-10:00) Hawaii',
@@ -1060,9 +1076,8 @@ PERMISSIONS = {
         'import_ansible_playbooks',
         'dispatch_cloud_requests',
         'control_organization_insights',
-        'destroy_snapshots',
-        'revert_snapshots',
-        'edit_snapshots',
+        'view_statistics',
+        'upload_monitoring_results',
     ],
     'AnsibleRole': ['view_ansible_roles', 'destroy_ansible_roles', 'import_ansible_roles'],
     'AnsibleVariable': [
@@ -1145,6 +1160,13 @@ PERMISSIONS = {
         'edit_salt_modules',
         'view_salt_modules',
         'destroy_salt_modules',
+    ],
+    'ForemanStatistics::Trend': [
+        'create_trends',
+        'view_trends',
+        'edit_trends',
+        'update_trends',
+        'destroy_trends',
     ],
     'ForemanTasks::RecurringLogic': [
         'create_recurring_logics',
@@ -1307,6 +1329,7 @@ PERMISSIONS = {
         'lock_report_templates',
     ],
     'Role': ['view_roles', 'create_roles', 'edit_roles', 'destroy_roles'],
+    'Report': ['create_reports'],
     'SccAccount': [
         "delete_scc_accounts",
         "edit_scc_accounts",
@@ -1393,6 +1416,11 @@ PERMISSIONS = {
         'saltrun_hosts',
         'view_snapshots',
         'create_snapshots',
+        'edit_snapshots',
+        'revert_snapshots',
+        'destroy_snapshots',
+        'view_monitoring_results',
+        'manage_downtime_hosts',
     ],
     'Katello::ActivationKey': [
         'view_activation_keys',
@@ -1769,6 +1797,7 @@ OSCAP_DEFAULT_CONTENT = {
     'rhel_firefox': 'Red Hat firefox default content',
 }
 
+# TODO some of these include versions that need to be updated here, come with a better solution
 OSCAP_PROFILE = {
     'c2s_rhel6': 'C2S for Red Hat Enterprise Linux 6',
     'dsrhel6': 'DISA STIG for Red Hat Enterprise Linux 6',
@@ -1787,8 +1816,8 @@ OSCAP_PROFILE = {
     'cbrhel6': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 6',
     'cbrhel7': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 7',
     'cbrhel8': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 8',
-    'cbrhel9': 'PCI-DSS v4.0 Control Baseline for Red Hat Enterprise Linux 9',
-    'cbrhel10': 'PCI-DSS v4.0 Control Baseline for Red Hat Enterprise Linux 10',
+    'cbrhel9': 'PCI-DSS v4.0.1 Control Baseline for Red Hat Enterprise Linux 9',
+    'cbrhel10': 'PCI-DSS v4.0.1 Control Baseline for Red Hat Enterprise Linux 10',
     'ppgpo': 'Protection Profile for General Purpose Operating Systems',
     'acscee': 'Australian Cyber Security Centre (ACSC) Essential Eight',
     'ospp7': 'OSPP - Protection Profile for General Purpose Operating Systems v4.2.1',

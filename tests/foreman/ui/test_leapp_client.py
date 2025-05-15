@@ -60,7 +60,7 @@ def test_leapp_preupgrade_report(
         session.jobinvocation.run(
             {
                 'category_and_template.job_category': 'Leapp - Preupgrade',
-                'category_and_template.job_template': 'Run preupgrade via Leapp',
+                'category_and_template.job_template_text_input': 'Run preupgrade via Leapp',
                 'target_hosts_and_inputs.targetting_type': 'Hosts',
                 'target_hosts_and_inputs.targets': hostname,
             }

@@ -12,7 +12,8 @@
 
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
+import json
 import time
 
 import pytest
@@ -120,7 +121,7 @@ def test_positive_inventory_recommendation_sync(
     """
     org = rhcloud_manifest_org
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_insights:sync'
-    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
     result = module_target_sat.execute(cmd)
     wait_for(
         lambda: module_target_sat.api.ForemanTask()
@@ -165,7 +166,7 @@ def test_positive_sync_inventory_status(
     org = rhcloud_manifest_org
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
     success_msg = f"Synchronized inventory for organization '{org.name}'"
-    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
     result = module_target_sat.execute(cmd)
     assert result.status == 0
     assert success_msg in result.stdout
@@ -214,7 +215,7 @@ def test_positive_sync_inventory_status_missing_host_ip(
     org = rhcloud_manifest_org
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
     success_msg = f"Synchronized inventory for organization '{org.name}'"
-    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
     rhcloud_host = module_target_sat.cli.Host.info({'name': rhcloud_registered_hosts[0].hostname})[
         'id'
     ]
@@ -253,6 +254,65 @@ def test_positive_sync_inventory_status_missing_host_ip(
             break
     assert host_status['host_statuses']['sync'] == 2
     assert host_status['host_statuses']['disconnect'] == 0
+
+
+def test_positive_sync_inventory_status_cli(
+    rhcloud_manifest_org,
+    module_target_sat,
+    rhcloud_registered_hosts,
+):
+    """Sync inventory status via hammer:
+
+    :id: cb1e883f-04d2-4564-bbcb-6a0087cabef4
+
+    :steps:
+
+        0. Create a VM and register to insights within org having manifest.
+        1. Sync inventory status for specific organization.
+            # hammer insights inventory sync --organization_id=1
+
+    :expectedresults: Inventory status is successfully synced for satellite hosts.
+    """
+    org = rhcloud_manifest_org
+    result = module_target_sat.cli.Insights.inventory_sync({'organization-id': org.id})
+    success_msg = "Inventory sync task started successfully"
+    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
+
+    assert success_msg in result
+    # Check task details
+    wait_for(
+        lambda: module_target_sat.api.ForemanTask()
+        .search(query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'})[0]
+        .result
+        == 'success',
+        timeout=400,
+        delay=15,
+        silent_failure=True,
+        handle_exception=True,
+    )
+    task_output = module_target_sat.api.ForemanTask().search(
+        query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'}
+    )
+    assert task_output[0].output['host_statuses']['sync'] == 2
+    assert task_output[0].output['host_statuses']['disconnect'] == 0
+
+
+def test_positive_cloud_connector_enable_cli(module_target_sat):
+    """Cloud-connector enable via hammer:
+
+    :id: 7f9e9918-f5b4-48bd-b316-328c3951fa42
+
+    :steps:
+
+        0. Create a VM and register to insights within org having manifest.
+        1. Enable cloud connector.
+            # hammer insights cloud-connector enable
+
+    :expectedresults: Cloud connector enablement starts successfully.
+    """
+    result = module_target_sat.cli.Insights.cloud_connector_enable({})
+    success_msg = "Cloud connector enable task started"
+    assert success_msg in result
 
 
 @pytest.mark.stubbed
@@ -349,7 +409,7 @@ def test_positive_generate_all_reports_job(target_sat):
             time.sleep(30)  # sleep to allow time for console to open
             sh.send(f'ForemanTasks.async_task({generate_report_jobs})')
             time.sleep(3)  # sleep for the cmd execution
-        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+        timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
         wait_for(
             lambda: target_sat.api.ForemanTask()
             .search(query={'search': f'{generate_report_jobs} and started_at >= "{timestamp}"'})[0]
@@ -366,6 +426,84 @@ def test_positive_generate_all_reports_job(target_sat):
         assert task_output[0].result == "success"
     finally:
         target_sat.update_setting('allow_auto_inventory_upload', True)
+
+
+def test_positive_generate_reports_job_cli(
+    rhcloud_manifest_org, module_target_sat, rhcloud_registered_hosts
+):
+    """Generate reports job via cli:
+
+    :id: 2f3e2e38-fd76-45b0-bf75-07fc12e5a118
+
+    :steps:
+        1. Execute hammer insights inventory generate-report.
+
+    :expectedresults: Reports generation works as expected.
+    """
+    org = rhcloud_manifest_org
+    generate_report(org, module_target_sat, disconnected=False)
+
+    result = module_target_sat.api.Organization(id=org.id).rh_cloud_fetch_last_upload_log()
+    expected = 'Connected to cert.cloud.redhat.com'
+    assert expected in result['output']
+
+
+def test_positive_generate_reports_job_cli_disconnected(
+    rhcloud_manifest_org,
+    module_target_sat,
+    rhcloud_registered_hosts,
+):
+    """Generate reports job via cli:
+
+    :id: 7540edce-1d4e-4a67-adb6-116729e9bfeb
+
+    :steps:
+        1. Execute hammer insights inventory generate-report.
+
+    :expectedresults: Reports generation works as expected.
+    """
+    org = rhcloud_manifest_org
+    generate_report(org, module_target_sat, disconnected=True)
+
+    result = module_target_sat.api.Organization(id=org.id).rh_cloud_fetch_last_upload_log()
+    expected = 'Upload canceled because connection to Insights is not enabled or the --no-upload option was passed.'
+    assert expected == result['output']
+
+
+def test_positive_download_reports_job_cli_disconnected(
+    rhcloud_manifest_org, module_target_sat, rhcloud_registered_hosts
+):
+    """Download generated report job via cli:
+
+    :id: a9e4bfdb-6d7c-4f8c-ae57-a81442926ddc
+
+    :steps:
+        1. Generate a report
+        2. Execute hammer insights inventory download-report.
+
+    :expectedresults: Reports download works as expected.
+    """
+    org = rhcloud_manifest_org
+    generate_report(org, module_target_sat, disconnected=True)
+    report_path = f'/tmp/report_for_{org.id}.tar.xz'
+    result = module_target_sat.cli.Insights.inventory_download_report(
+        {
+            'organization-id': org.id,
+            'path': "/tmp",
+        }
+    )
+    time.sleep(5)
+    success_msg = f"The response has been saved to {report_path}"
+    assert success_msg in result
+    command = f'''rm -rf /tmp/report && \
+mkdir -p /tmp/report && \
+tar xf /tmp/report_for_{org.id}.tar.xz --directory /tmp/report && \
+cat $(ls /tmp/report/*.json | grep -v meta)'''
+
+    result = module_target_sat.execute(command)
+    assert result.status == 0
+    report_data = json.loads(result.stdout)
+    assert len(report_data['hosts']) >= len(rhcloud_registered_hosts)
 
 
 @pytest.mark.rhel_ver_match('N-2')
@@ -421,3 +559,36 @@ def test_positive_check_report_autosync_setting(target_sat):
         ]
         == 'true'
     ), 'Setting is not enabled by default!'
+
+
+def generate_report(rhcloud_manifest_org, module_target_sat, disconnected=False):
+    """Download generated report job via cli"""
+    org = rhcloud_manifest_org
+    params = {'organization-id': org.id}
+    if disconnected:
+        params['no-upload'] = True
+
+    result = module_target_sat.cli.Insights.inventory_generate_report(params)
+    success_msg = "Report generation started successfully"
+    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
+    assert success_msg in result
+    # Check task details
+    generate_job_name = 'ForemanInventoryUpload::Async::GenerateReportJob'
+    wait_for(
+        lambda: module_target_sat.api.ForemanTask()
+        .search(query={'search': f'{generate_job_name} and started_at >= "{timestamp}"'})[0]
+        .result
+        == 'success',
+        timeout=400,
+        delay=15,
+        silent_failure=True,
+        handle_exception=True,
+    )
+    task_output = module_target_sat.api.ForemanTask().search(
+        query={'search': f'{generate_job_name} and started_at >= "{timestamp}"'}
+    )
+    assert task_output[0].result == "success"
+
+    report_log = module_target_sat.api.Organization(id=org.id).rh_cloud_fetch_last_report_log()
+    expected = f'Successfully generated /var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz for organization id {org.id}'
+    assert expected in report_log['output']

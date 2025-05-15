@@ -6,6 +6,21 @@ from robottelo.constants import CAPSULE_REGISTRATION_OPTS
 from robottelo.hosts import SatelliteHostError
 
 
+def enable_insights(host, satellite, org, activation_key):
+    """Configure remote execution and insights-client on a host"""
+    host.configure_rex(satellite=satellite, org=org, register=False)
+    host.configure_insights_client(
+        satellite=satellite,
+        activation_key=activation_key,
+        org=org,
+        rhel_distro=f"rhel{host.os_version.major}",
+    )
+    # Sync inventory if using hosted Insights
+    if not satellite.local_advisor_enabled:
+        satellite.generate_inventory_report(org)
+        satellite.sync_inventory_status(org)
+
+
 @pytest.fixture(scope='module')
 def module_target_sat_insights(request, module_target_sat, satellite_factory):
     """A module-level fixture to provide a Satellite configured for Insights.
@@ -18,27 +33,39 @@ def module_target_sat_insights(request, module_target_sat, satellite_factory):
     satellite = module_target_sat if hosted_insights else satellite_factory()
 
     if not hosted_insights:
-        image_url = getattr(settings.rh_cloud, 'iop_advisor_image', '')
-        script = getattr(settings.rh_cloud, 'iop_setup_script', '').splitlines()
+        iop_settings = settings.rh_cloud.iop_advisor_engine
+        script = (iop_settings.setup_script or '').splitlines()
 
-        # Configure installer to use downstream image.
-        if image_url:
-            satellite.execute(
-                f'echo "iop_advisor_engine::image: {image_url!r}" >> /etc/foreman-installer/custom-hiera.yaml'
+        # Log in to container registry
+        if iop_settings.registry and iop_settings.username and iop_settings.token:
+            cmd_result = satellite.execute(
+                f'podman login -u {iop_settings.username!r} -p {iop_settings.token!r} {iop_settings.registry}'
             )
+            if cmd_result.status != 0:
+                raise SatelliteHostError(
+                    f'Error logging in to container registry: {cmd_result.stdout}'
+                )
 
+        # Configure installer to use downstream image, then pull the image
+        if iop_settings.registry and iop_settings.image_path:
+            satellite.execute(
+                f"""echo "iop_advisor_engine::image: '{iop_settings.registry}/{iop_settings.image_path}'" >> /etc/foreman-installer/custom-hiera.yaml"""
+            )
+            satellite.execute(f'podman pull {iop_settings.registry}/{iop_settings.image_path}')
+
+        # Run satellite-installer to set up and start the iop-advisor-engine service
         cmd_result = satellite.execute(
             'satellite-installer --foreman-plugin-rh-cloud-enable-iop-advisor-engine true'
         )
         if cmd_result.status != 0:
             raise SatelliteHostError(f'Error installing advisor engine: {cmd_result.stdout}')
 
-        # Perform post-steps, such as generate custom rule content.
+        # Perform any post-install steps, such as custom rule content generation
         for cmd in script:
             cmd_result = satellite.execute(cmd)
             if cmd_result.status != 0:
                 raise SatelliteHostError(
-                    f'Error during post-install of advisor engine: {cmd_result.stdout}'
+                    f'Error during post-install setup of advisor engine: {cmd_result.stdout}'
                 )
 
     yield satellite
@@ -96,20 +123,25 @@ def rhel_insights_vm(
     rhel_contenthost,
 ):
     """A function-level fixture to create rhel content host registered with insights."""
-    rhel_contenthost.configure_rex(
-        satellite=module_target_sat_insights, org=rhcloud_manifest_org, register=False
+    enable_insights(
+        rhel_contenthost, module_target_sat_insights, rhcloud_manifest_org, rhcloud_activation_key
     )
-    rhel_contenthost.configure_insights_client(
-        satellite=module_target_sat_insights,
-        activation_key=rhcloud_activation_key,
-        org=rhcloud_manifest_org,
-        rhel_distro=f"rhel{rhel_contenthost.os_version.major}",
-    )
-    # Sync inventory if using hosted Insights
-    if not module_target_sat_insights.local_advisor_enabled:
-        module_target_sat_insights.generate_inventory_report(rhcloud_manifest_org)
-        module_target_sat_insights.sync_inventory_status(rhcloud_manifest_org)
     return rhel_contenthost
+
+
+@pytest.fixture
+def rhel_insights_vms(
+    module_target_sat_insights,
+    rhcloud_activation_key,
+    rhcloud_manifest_org,
+    content_hosts,
+):
+    """A function-level fixture to create rhel content hosts registered with insights."""
+    for content_host in content_hosts:
+        enable_insights(
+            content_host, module_target_sat_insights, rhcloud_manifest_org, rhcloud_activation_key
+        )
+    return content_hosts
 
 
 @pytest.fixture

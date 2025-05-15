@@ -3,6 +3,8 @@ from functools import lru_cache
 import os
 import random
 import re
+from urllib.parse import urljoin
+from urllib.request import urlopen
 
 from broker.hosts import Host
 from fauxfactory import gen_string
@@ -297,7 +299,8 @@ class SystemInfo:
             pre_ncat_procs = self.execute('pgrep ncat').stdout.splitlines()
             with self.session.shell() as channel:
                 # if ncat isn't backgrounded, it prevents the channel from closing
-                command = f'ncat -kl -p {newport} -c "ncat {self.hostname} {oldport}" &'
+                nwtype = '6' if self.ipv6 else ''
+                command = f'ncat -{nwtype}kl -p {newport} -c "ncat {self.hostname} {oldport}" &'
                 logger.debug(f'Creating tunnel: {command}')
                 channel.send(command)
 
@@ -347,7 +350,7 @@ class ProvisioningSetup:
         """
         # Geneate SSH key-pair for foreman user and copy public key to libvirt server
         self.execute('sudo -u foreman ssh-keygen -q -t rsa -f ~foreman/.ssh/id_rsa -N "" <<< y')
-        self.execute(f'ssh-keyscan -t ecdsa {server_fqdn} >> ~foreman/.ssh/known_hosts')
+        self.execute('echo "StrictHostKeyChecking accept-new" >> ~foreman/.ssh/config')
         self.execute(
             f'sshpass -p {settings.server.ssh_password} ssh-copy-id -o StrictHostKeyChecking=no '
             f'-i ~foreman/.ssh/id_rsa root@{server_fqdn}'
@@ -355,12 +358,10 @@ class ProvisioningSetup:
         # Install libvirt-client, and verify foreman user is able to communicate with Libvirt server
         self.register_to_cdn()
         self.execute('dnf -y --disableplugin=foreman-protector install libvirt-client')
-        assert (
-            self.execute(
-                f'su foreman -s /bin/bash -c "virsh -c qemu+ssh://root@{server_fqdn}/system list"'
-            ).status
-            == 0
+        result = self.execute(
+            f'su foreman -s /bin/bash -c "virsh -c qemu+ssh://root@{server_fqdn}/system list"'
         )
+        assert result.status == 0, f"{result.status=}\n{result.stdout=}\n{result.stderr=}"
 
     def provisioning_cleanup(self, hostname, interface='API'):
         if interface == 'CLI':
@@ -378,6 +379,41 @@ class ProvisioningSetup:
             assert self.execute('systemctl restart dhcpd').status == 0
             # Workaround BZ: 2207698
             assert self.cli.Service.restart().status == 0
+
+    def get_secureboot_packages_with_version(self, server_url, prefix):
+        """Find the package URL that ends with a version number in the repository/file server.
+
+        :param: str server_url: The base URL of the repository/file server.
+        :param: str prefix: prefix of the package/file you're looking for (e.g. 'grub2-efi-x64').
+
+        :return: URL of the package with a version number at the end found in the repository
+        """
+        # Ensure the server URL ends with '/'
+        if not server_url.endswith('/'):
+            server_url += '/'
+
+        # Fetch the HTML directory listing
+        with urlopen(server_url) as response:
+            html = response.read().decode()
+
+        # Use regex to find all href links in the directory listing
+        files = re.findall(r'href="([^"]+)"', html)
+
+        # Filter the files that start with the given prefix and have a version pattern (like grub2-efi-x64-2.12-13.el10.x86_64.rpm)
+        versioned_files = [
+            f
+            for f in files
+            if f.startswith(prefix) and re.search(r'[\d\.\-]+(?:\.el\d+)?\.x86_64\.rpm$', f)
+        ]
+
+        if not versioned_files:
+            raise Exception(f'No matching files found with prefix and version: {prefix}')
+
+        # Return the first matching file (it should have a version number at the end)
+        selected_package = versioned_files[0]
+
+        # Join the base server URL with the matched file name (if needed)
+        return urljoin(server_url, selected_package)
 
 
 class Factories:

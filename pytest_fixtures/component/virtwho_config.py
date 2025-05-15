@@ -1,6 +1,7 @@
 import pytest
 
 from robottelo.config import settings
+from robottelo.constants import REPOS
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.virtwho import (
     deploy_configure_by_command,
@@ -266,6 +267,7 @@ def deploy_type_cli(
     request,
     org_module,
     form_data_cli,
+    register_sat_and_enable_aps_repo,
     virtwho_config_cli,
     target_sat,
     default_location,
@@ -299,6 +301,7 @@ def deploy_type_api(
     request,
     org_module,
     form_data_api,
+    register_sat_and_enable_aps_repo,
     virtwho_config_api,
     target_sat,
 ):
@@ -326,6 +329,7 @@ def deploy_type_ui(
     org_module,
     form_data_ui,
     org_session,
+    register_sat_and_enable_aps_repo,
     virtwho_config_ui,
     target_sat,
 ):
@@ -350,3 +354,12 @@ def delete_host(form_data_api, target_sat):
     results = target_sat.api.Host().search(query={'search': guest_name})
     if results:
         target_sat.api.Host(id=results[0].read_json()['id']).delete()
+
+
+@pytest.fixture(scope='module')
+def register_sat_and_enable_aps_repo(module_target_sat):
+    """Register Satellite to CDN and Enable rhel aps repos"""
+    module_target_sat.register_to_cdn()
+    module_target_sat.enable_repo(REPOS[f'rhel{module_target_sat.os_version.major}_aps']['id'])
+    yield
+    module_target_sat.unregister()

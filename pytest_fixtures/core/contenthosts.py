@@ -118,18 +118,6 @@ def mod_content_hosts(request):
 
 
 @pytest.fixture
-def registered_hosts(request, target_sat, module_org, module_ak_with_cv):
-    """Fixture that registers content hosts to Satellite, based on rh_cloud setup"""
-    with Broker(**host_conf(request), host_class=ContentHost, _count=2) as hosts:
-        for vm in hosts:
-            repo = settings.repos['SATCLIENT_REPO'][f'RHEL{vm.os_version.major}']
-            vm.register(
-                module_org, None, module_ak_with_cv.name, target_sat, repo_data=f'repo={repo}'
-            )
-        yield hosts
-
-
-@pytest.fixture
 def katello_host_tools_host(target_sat, module_org, rhel_contenthost):
     """Register content host to Satellite and install katello-host-tools on the host."""
     repo = settings.repos['SATCLIENT_REPO'][f'RHEL{rhel_contenthost.os_version.major}']
@@ -205,6 +193,11 @@ def rhel_contenthost_with_repos(request, target_sat):
     """Install katello-host-tools-tracer, create custom
     repositories on the host"""
     with Broker(**host_conf(request), host_class=ContentHost) as host:
+        # add IPv6 proxy for IPv6 communication
+        if settings.server.is_ipv6:
+            host.enable_ipv6_dnf_and_rhsm_proxy()
+            host.enable_ipv6_system_proxy()
+
         # create a custom, rhel version-specific OS repo
         rhelver = host.os_version.major
         if rhelver > 7:
@@ -229,9 +222,8 @@ def module_container_contenthost(request, module_target_sat, module_org, module_
             assert host.execute(f'yum -y install {client}').status == 0, (
                 f'{client} installation failed'
             )
-        assert host.execute('systemctl enable --now podman').status == 0, (
-            'Start of podman service failed'
-        )
+        assert host.execute('systemctl enable --now podman').status == 0
+        assert host.execute('yum -y install expect').status == 0
         host.unregister()
         assert (
             host.register(module_org, None, module_activation_key.name, module_target_sat).status
@@ -292,6 +284,7 @@ def bootc_host():
     with Broker(
         workflow='deploy-bootc',
         host_class=ContentHost,
+        target_template='tpl-bootc-rhel-10.0',
         deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
     ) as host:
         assert (
