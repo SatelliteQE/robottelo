@@ -392,7 +392,6 @@ def test_cv_lce_order(session, module_target_sat, function_sca_manifest_org, mod
         results = session.contentview_new.publish(
             entity_name=cv.name,
             promote=True,
-            multi_promote=True,
             lce={
                 f"{lces_list[0].name}": True,
                 f"{lces_list[1].name}": True,
