@@ -336,9 +336,13 @@ def test_sync_consume_flatpak_repo_via_library(
         {
             'organization': function_org.name,
             'job-template': 'Flatpak - Install application on host',
-            'inputs': f'Flatpak remote name={remote_name}, Application name={app_name}',
+            'inputs': (
+                f'Flatpak remote name={remote_name}, Application name={app_name}, '
+                'Launch a session bus instance=true'
+            ),
             'search-query': f"name = {host.hostname}",
-        }
+        },
+        timeout='800s',
     )
     res = module_target_sat.cli.JobInvocation.info({'id': job.id})
     assert 'succeeded' in res['status']
@@ -481,7 +485,14 @@ def test_sync_consume_flatpak_repo_via_cv(
     }
     cv1_app = 'Inkscape'
     job = module_target_sat.cli_factory.job_invocation(
-        opts | {'inputs': f'Flatpak remote name={remote_name}, Application name={cv1_app}'}
+        opts
+        | {
+            'inputs': (
+                f'Flatpak remote name={remote_name}, Application name={cv1_app}, '
+                'Launch a session bus instance=true'
+            )
+        },
+        timeout='800s',
     )
     res = module_target_sat.cli.JobInvocation.info({'id': job.id})
     assert 'succeeded' in res['status']
@@ -495,7 +506,14 @@ def test_sync_consume_flatpak_repo_via_cv(
     cv2_app = 'Firefox'
     with pytest.raises(CLIFactoryError) as error:
         sat.cli_factory.job_invocation(
-            opts | {'inputs': f'Flatpak remote name={remote_name}, Application name={cv2_app}'}
+            opts
+            | {
+                'inputs': (
+                    f'Flatpak remote name={remote_name}, Application name={cv2_app}, '
+                    'Launch a session bus instance=true'
+                )
+            },
+            timeout='800s',
         )
     assert 'A sub task failed' in error.value.args[0]
     res = host.execute('flatpak list')
