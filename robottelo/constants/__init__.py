@@ -992,6 +992,7 @@ PERMISSIONS = {
         'dispatch_cloud_requests',
         'control_organization_insights',
         'view_statistics',
+        'upload_monitoring_results',
     ],
     'AnsibleRole': ['view_ansible_roles', 'destroy_ansible_roles', 'import_ansible_roles'],
     'AnsibleVariable': [
@@ -1326,6 +1327,8 @@ PERMISSIONS = {
         'edit_snapshots',
         'revert_snapshots',
         'destroy_snapshots',
+        'view_monitoring_results',
+        'manage_downtime_hosts',
     ],
     'Katello::ActivationKey': [
         'view_activation_keys',
