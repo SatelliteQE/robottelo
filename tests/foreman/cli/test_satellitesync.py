@@ -1546,9 +1546,13 @@ class TestContentViewSync:
             {
                 'organization': function_import_org_at_isat.name,
                 'job-template': 'Flatpak - Install application on host',
-                'inputs': f'Flatpak remote name={remote_name}, Application name={app_name}',
+                'inputs': (
+                    f'Flatpak remote name={remote_name}, Application name={app_name}, '
+                    'Launch a session bus instance=true'
+                ),
                 'search-query': f"name = {module_flatpak_contenthost.hostname}",
-            }
+            },
+            timeout='800s',
         )
         res = module_import_sat.cli.JobInvocation.info({'id': job.id})
         assert 'succeeded' in res['status']
