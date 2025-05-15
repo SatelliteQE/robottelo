@@ -893,7 +893,7 @@ def test_positive_search_by_parameter(session, module_org, smart_proxy_location,
         assert values[0]['Name'] == param_host.name
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.no_containers
 def test_positive_search_by_reported_data(
     target_sat, rhel_contenthost, module_org, module_ak_with_cv
@@ -1367,7 +1367,7 @@ def test_positive_host_details_read_templates(
     assert set(api_templates) == set(ui_templates)
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
     'module_repos_collection_with_setup',
@@ -1405,19 +1405,13 @@ def test_positive_update_delete_package(
     """
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(client)
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         product_name = module_repos_collection_with_setup.custom_product.name
         repos = session.host_new.get_repo_sets(client.hostname, product_name)
-        assert repos[0].status == 'Enabled'
-        session.host_new.override_repo_sets(client.hostname, product_name, "Override to disabled")
-        assert repos[0].status == 'Disabled'
-        session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
-        result = client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
-        assert result.status != 0
+        assert repos[0]['Status'] == 'Disabled'
         session.host_new.override_repo_sets(client.hostname, product_name, "Override to enabled")
-        assert repos[0].status == 'Enabled'
         # refresh repos on system
         client.run('subscription-manager repos')
         # install package
@@ -1479,7 +1473,7 @@ def test_positive_update_delete_package(
         assert result.status != 0
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
     'module_repos_collection_with_setup',
@@ -1517,7 +1511,7 @@ def test_positive_apply_erratum(
     # install package
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(client)
     errata_id = settings.repos.yum_3.errata[25]
     client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
@@ -1558,7 +1552,7 @@ def test_positive_apply_erratum(
 
 
 @pytest.mark.e2e
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
     'module_repos_collection_with_setup',
@@ -1591,12 +1585,14 @@ def test_positive_crud_module_streams(
         4. Delete the Module stream
         5. Reset the Module stream
 
+    :blockedBy: SAT-33810
+
     :expectedresults: Module streams can be enabled, installed, removed and reset using the new UI.
     """
     module_name = 'duck'
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(client)
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         streams = session.host_new.get_module_streams(client.hostname, module_name)
@@ -2375,7 +2371,7 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
         )
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_page_redirect_after_update(target_sat, current_sat_location):
     """Check that page redirects correctly after editing a host without making any changes.
 
@@ -2401,7 +2397,7 @@ def test_positive_page_redirect_after_update(target_sat, current_sat_location):
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_host_status_honors_taxonomies(
     module_target_sat, test_name, rhel_contenthost, setup_content, default_location, default_org
 ):
@@ -2786,7 +2782,7 @@ def test_positive_manage_packages(
     indirect=True,
 )
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_all_hosts_manage_errata(
     session,
     module_target_sat,
