@@ -1237,6 +1237,7 @@ PERMISSIONS = {
         'lock_report_templates',
     ],
     'Role': ['view_roles', 'create_roles', 'edit_roles', 'destroy_roles'],
+    'Report': ['create_reports'],
     'SccAccount': [
         "delete_scc_accounts",
         "edit_scc_accounts",
