@@ -57,6 +57,7 @@ def expected_permissions(session_target_sat):
         permissions.pop('ForemanSalt::SaltVariable')
         permissions.pop('ForemanSalt::SaltEnvironment')
         permissions.pop('ForemanSalt::SaltModule')
+        permissions.pop('Report')
     if 'rubygem-foreman_statistics' not in rpm_packages:
         permissions.pop('ForemanStatistics::Trend')
         permissions[None].remove('view_statistics')
