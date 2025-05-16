@@ -538,16 +538,16 @@ REPOS = {
         },
         'rhel9_bos': {
             'id': 'rhel-9-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.5',
-            'version': '9.5',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.6',
+            'version': '9.6',
             'reposet': REPOSET['kickstart']['rhel9_bos'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
         'rhel9_aps': {
             'id': 'rhel-9-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.5',
-            'version': '9.5',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.6',
+            'version': '9.6',
             'reposet': REPOSET['kickstart']['rhel9_aps'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
@@ -640,6 +640,11 @@ REPOS = {
         'key': 'rhscl7',
     },
 }
+
+# RHEL versions for LEAPP testing
+RHEL7_VER = '7.9'
+RHEL8_VER = '8.10'
+RHEL9_VER = '9.6'
 
 BULK_REPO_LIST = [
     REPOS['rhel7_optional'],
