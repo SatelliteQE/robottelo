@@ -32,6 +32,7 @@ from robottelo.constants import (
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_3_YUM_OUTDATED_PACKAGES,
     FAKE_4_CUSTOM_PACKAGE,
+    FAKE_4_CUSTOM_PACKAGE_NAME,
     FAKE_5_CUSTOM_PACKAGE,
     FAKE_9_YUM_OUTDATED_PACKAGES,
     FAKE_9_YUM_SECURITY_ERRATUM,
@@ -834,13 +835,21 @@ def test_positive_list_permission(
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.no_containers
+@pytest.mark.parametrize(
+    'registered_contenthosts',
+    [  # One test param for each RHEL major version supported
+        pytest.param(
+            {'rhel': rhel_ver, 'count': 4},
+            id=f'4reg_chosts_rhel{rhel_ver}',
+        )
+        for rhel_ver in constants.DISTROS_MAJOR_VERSION.values()
+    ],
+    indirect=True,
+)
 def test_positive_apply_for_all_hosts(
+    registered_contenthosts,
     module_sca_manifest_org,
-    module_product,
     target_sat,
-    module_lce,
-    module_cv,
-    module_ak,
     session,
 ):
     """Apply an erratum for all content hosts
@@ -864,115 +873,84 @@ def test_positive_apply_for_all_hosts(
         1. Check invoked host tasks are successful.
         2. Check that the erratum is applied in all the content hosts.
     """
-    num_hosts = 4
-    rhel_distro = target_sat.api_factory.supported_rhel_ver(
-        num=1,
-        prefix='rhel',
-    )
-    # one custom repo on satellite, for all hosts to use
-    custom_repo = target_sat.api.Repository(url=CUSTOM_REPO_URL, product=module_product).create()
-    custom_repo.sync()
-    module_cv.repository = [custom_repo]
-    module_cv.update(['repository'])
-    # Checkout hosts of the newest distro supported
-    with Broker(
-        nick=rhel_distro,
-        workflow='deploy-template',
-        host_class=ContentHost,
-        _count=num_hosts,
-        # TODO(@SatelliteQE/team-phoenix): this is best effort for dualstack. This host deployment
-        # should be a part of a fixture
-        deploy_network_type=settings.content_host.network_type,
-    ) as hosts:
-        if not isinstance(hosts, list) or len(hosts) != num_hosts:
-            pytest.fail('Failed to provision the expected number of hosts.')
-        for client in hosts:
-            # setup/register all hosts to same ak, content-view, and the one custom repo
-            setup = target_sat.api_factory.register_host_and_needed_setup(
-                organization=module_sca_manifest_org,
-                client=client,
-                activation_key=module_ak,
-                environment=module_lce,
-                content_view=module_cv,
-                enable_repos=True,
+    num_hosts = len(registered_contenthosts)
+    for client in registered_contenthosts:
+        # no applicable errata or pkgs to start
+        assert client.applicable_errata_count == 0
+        assert client.applicable_package_count == 0
+        # install all outdated YUM_9 packages
+        pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
+        assert client.execute(f'yum install -y {pkgs}').status == 0
+        # update and check applicability changed
+        assert client.execute('subscription-manager repos').status == 0
+        assert client.applicable_errata_count > 0
+        assert client.applicable_package_count > 0
+
+    with session:
+        now = datetime.now(UTC).replace(microsecond=0)
+        # possible in-progress applicability task(s), 20s margin
+        timestamp = (now - timedelta(seconds=20)).strftime(TIMESTAMP_FMT)
+        session.location.select(loc_name=DEFAULT_LOC)
+        # for first errata, apply to all chosts at once,
+        # from ContentTypes > Errata > info > ContentHosts tab
+        errata_id = settings.repos.yum_9.errata[4]  # RHBA-2012:1030
+        result = session.errata.install(
+            entity_name=errata_id,
+            host_names='All',
+        )
+        assert result['overview']['job_status'] == 'Success'
+        # find single hosts job
+        # remote action tasks have lowercase errata_ids, ie: 'rhba-' not 'RHBA-'
+        hosts_job = target_sat.wait_for_tasks(
+            search_query=(
+                f'Run hosts job: Install errata {errata_id.lower()} and started_at >= "{timestamp}"'
+            ),
+            search_rate=5,
+            max_tries=20,
+        )
+        assert len(hosts_job) == 1
+        # find multiple errata install tasks, one for each host
+        install_tasks = target_sat.wait_for_tasks(
+            search_query=(
+                f'Remote action: Install errata {errata_id.lower()} and started_at >= "{timestamp}"'
+            ),
+            search_rate=5,
+            max_tries=20,
+        )
+        assert len(install_tasks) == num_hosts
+        # wait for applicability task(s) for hosts
+        target_sat.wait_for_tasks(
+            search_query=(f'Bulk generate applicability for hosts and started_at >= "{timestamp}"'),
+            search_rate=10,
+            max_tries=30,
+        )
+        # found updated kangaroo package in each host
+        updated_version = '0.2-1.noarch'
+        for client in registered_contenthosts:
+            updated_pkg = session.host_new.get_packages(
+                entity_name=client.hostname,
+                search=FAKE_4_CUSTOM_PACKAGE_NAME,
             )
-            assert setup['result'] != 'error', f'{setup["message"]}'
-            assert (client := setup['client'])
-            assert client.subscribed
-            # install all outdated packages
-            pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
-            assert client.execute(f'yum install -y {pkgs}').status == 0
-            # update and check applicability
+            assert len(updated_pkg['table']) == 1
+            assert updated_pkg['table'][0]['Installed version'] == updated_version
+
+        # for second errata, install in each chost and check, one at a time.
+        # from Legacy Chost UI > Details > Errata tab
+        for client in registered_contenthosts:
+            # apply RHSA-2012:0055 to chost
+            status = session.contenthost.install_errata(
+                client.hostname, CUSTOM_REPO_ERRATA_ID, install_via='rex'
+            )
+            assert status['overview']['job_status'] == 'Success'
+            assert status['overview']['job_status_progress'] == '100%'
+            # check updated package in chost details
             assert client.execute('subscription-manager repos').status == 0
-            assert client.applicable_errata_count > 0
-            assert client.applicable_package_count > 0
-
-        with session:
-            # possible in-progress applicability task(s), 60s margin
-            timestamp = (datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=60)).strftime(
-                TIMESTAMP_FMT
+            packages_rows = session.contenthost.search_package(
+                client.hostname,
+                FAKE_1_CUSTOM_PACKAGE_NAME,
             )
-            session.location.select(loc_name=DEFAULT_LOC)
-            # for first errata, apply to all chosts at once,
-            # from ContentTypes > Errata > info > ContentHosts tab
-            errata_id = settings.repos.yum_9.errata[4]  # RHBA-2012:1030
-            result = session.errata.install(
-                entity_name=errata_id,
-                host_names='All',
-            )
-            assert result['overview']['job_status'] == 'Success'
-            # find single hosts job
-            # remote action tasks have lowercase errata_ids, ie: 'rhba-' not 'RHBA-'
-            hosts_job = target_sat.wait_for_tasks(
-                search_query=(
-                    f'Run hosts job: Install errata {errata_id.lower()} and started_at >= "{timestamp}"'
-                ),
-                search_rate=5,
-                max_tries=20,
-            )
-            assert len(hosts_job) == 1
-            # find multiple install tasks, one for each host
-            install_tasks = target_sat.wait_for_tasks(
-                search_query=(
-                    f'Remote action: Install errata {errata_id.lower()} and started_at >= "{timestamp}"'
-                ),
-                search_rate=5,
-                max_tries=20,
-            )
-            assert len(install_tasks) == num_hosts
-            # find bulk generate applicability task, and subtask for each host
-            applicability_tasks = target_sat.wait_for_tasks(
-                search_query=(
-                    f'Bulk generate applicability for hosts and started_at >= "{timestamp}"'
-                ),
-                search_rate=10,
-                max_tries=30,
-            )
-            assert len(applicability_tasks) == num_hosts + 1
-            # found updated kangaroo package in each host
-            updated_version = '0.2-1.noarch'
-            for client in hosts:
-                updated_pkg = session.host_new.get_packages(
-                    entity_name=client.hostname, search='kangaroo'
-                )
-                assert len(updated_pkg['table']) == 1
-                assert updated_pkg['table'][0]['Installed version'] == updated_version
-
-            # for second errata, install in each chost and check, one at a time.
-            # from Legacy Chost UI > details > Errata tab
-            for client in hosts:
-                status = session.contenthost.install_errata(
-                    client.hostname, CUSTOM_REPO_ERRATA_ID, install_via='rex'
-                )
-                assert status['overview']['job_status'] == 'Success'
-                assert status['overview']['job_status_progress'] == '100%'
-                # check updated package in chost details
-                assert client.execute('subscription-manager repos').status == 0
-                packages_rows = session.contenthost.search_package(
-                    client.hostname, FAKE_2_CUSTOM_PACKAGE
-                )
-                # updated walrus package found for each host
-                assert packages_rows[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
+            # updated walrus package found for each host
+            assert packages_rows[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
 
 
 @pytest.mark.upgrade

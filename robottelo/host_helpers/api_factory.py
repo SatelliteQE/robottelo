@@ -616,6 +616,11 @@ class APIFactory:
             len(entities['ContentView'].version) == 0
             or entities['ContentView'].needs_publish is True
         ):
+            # wait for pending task(s) in this CV, then publish
+            self._satellite.wait_for_tasks(
+                search_query=f'{entities["ContentView"].name}',
+                poll_timeout=120,
+            )
             entities['ContentView'].publish()
             # read updated entitites after modifying CV
             entities = {k: v.read() for k, v in entities.items()}
