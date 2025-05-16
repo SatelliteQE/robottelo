@@ -69,8 +69,14 @@ def function_leapp_cv(module_target_sat, module_sca_manifest_org, leapp_repos, m
     function_leapp_cv = module_target_sat.api.ContentView(
         organization=module_sca_manifest_org
     ).create()
-    function_leapp_cv.repository = leapp_repos
-    function_leapp_cv = function_leapp_cv.update(['repository'])
+    for repo in leapp_repos:
+        module_target_sat.cli.ContentView.add_repository(
+            {
+                'id': function_leapp_cv.id,
+                'organization-id': module_sca_manifest_org.id,
+                'repository-id': repo.id,
+            }
+        )
     function_leapp_cv.publish()
     cvv = function_leapp_cv.read().version[0]
     cvv.promote(data={'environment_ids': module_leapp_lce.id, 'force': True})
@@ -106,11 +112,12 @@ def leapp_repos(
     for rh_repo_key in RHEL_REPOS:
         release_version = RHEL_REPOS[rh_repo_key]['releasever']
         if release_version in str(source) or release_version in target:
+            # if release_version in target:
             prod = 'rhel' if 'rhel7' in rh_repo_key else rh_repo_key.split('_')[0]
             repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
                 basearch=default_architecture.name,
                 org_id=module_sca_manifest_org.id,
-                product=PRDS[prod],
+                product=PRDS['rhel10_beta'] if release_version == '10' else PRDS[prod],
                 repo=RHEL_REPOS[rh_repo_key]['name'],
                 reposet=RHEL_REPOS[rh_repo_key]['reposet'],
                 releasever=release_version,
@@ -122,6 +129,42 @@ def leapp_repos(
             else:
                 module_stash[synced_repos][rh_repo_key] = True
                 rh_repo.sync(timeout=1800)
+    if settings.leapp.leapp_ver != 'GA':
+        leapp_brew_name = settings.leapp.leapp_brew_build_name
+        leapp_brew_url = settings.leapp.leapp_brew_build_url
+        leapp_repo_brew_name = settings.leapp.leapp_repo_brew_build_name
+        leapp_repo_brew_url = settings.leapp.leapp_repo_brew_build_url
+        tasks = []
+        product = module_target_sat.api.Product(
+            name='custom_product_leapp', organization=module_sca_manifest_org
+        ).create()
+        leapp = module_target_sat.api.Repository(
+            organization=module_sca_manifest_org,
+            content_type='yum',
+            name=leapp_brew_name,
+            product=product,
+            url=leapp_brew_url,
+        ).create()
+        task = leapp.sync(synchronous=False)
+        all_repos.append(leapp)
+        leapp_repo = module_target_sat.api.Repository(
+            organization=module_sca_manifest_org,
+            content_type='yum',
+            name=leapp_repo_brew_name,
+            product=product,
+            url=leapp_repo_brew_url,
+        ).create()
+        all_repos.append(leapp)
+        task = leapp_repo.sync(synchronous=False)
+        tasks.append(task)
+        for task in tasks:
+            module_target_sat.wait_for_tasks(
+                search_query=(f'id = {task["id"]}'),
+                poll_timeout=1500,
+            )
+            task_status = module_target_sat.api.ForemanTask(id=task['id']).poll()
+            assert task_status['result'] == 'success'
+
     return all_repos
 
 
