@@ -992,6 +992,7 @@ PERMISSIONS = {
         'dispatch_cloud_requests',
         'control_organization_insights',
         'view_statistics',
+        'upload_monitoring_results',
     ],
     'AnsibleRole': ['view_ansible_roles', 'destroy_ansible_roles', 'import_ansible_roles'],
     'AnsibleVariable': [
@@ -1237,6 +1238,7 @@ PERMISSIONS = {
         'lock_report_templates',
     ],
     'Role': ['view_roles', 'create_roles', 'edit_roles', 'destroy_roles'],
+    'Report': ['create_reports'],
     'SccAccount': [
         "delete_scc_accounts",
         "edit_scc_accounts",
@@ -1326,6 +1328,8 @@ PERMISSIONS = {
         'edit_snapshots',
         'revert_snapshots',
         'destroy_snapshots',
+        'view_monitoring_results',
+        'manage_downtime_hosts',
     ],
     'Katello::ActivationKey': [
         'view_activation_keys',

@@ -94,7 +94,9 @@ def content_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.content_upgrades."""
     sat_instance = shared_checkout("content_upgrade")
     with SharedResource(
-        "content_upgrade_tests", shared_checkin, sat_instance=sat_instance
+        "content_upgrade_tests",
+        shared_checkin,
+        sat_instance=sat_instance,
     ) as test_duration:
         yield sat_instance
         test_duration.ready()
@@ -105,7 +107,22 @@ def search_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.search_upgrades."""
     sat_instance = shared_checkout("search_upgrade")
     with SharedResource(
-        "search_upgrade_tests", shared_checkin, sat_instance=sat_instance
+        "search_upgrade_tests",
+        shared_checkin,
+        sat_instance=sat_instance,
+    ) as test_duration:
+        yield sat_instance
+        test_duration.ready()
+
+
+@pytest.fixture
+def hostgroup_upgrade_shared_satellite():
+    """Mark tests using this fixture with pytest.mark.hostgroup_upgrades."""
+    sat_instance = shared_checkout("hostgroup_upgrade")
+    with SharedResource(
+        "hostgroup_upgrade_tests",
+        shared_checkin,
+        sat_instance=sat_instance,
     ) as test_duration:
         yield sat_instance
         test_duration.ready()
@@ -129,7 +146,9 @@ def fdi_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.discovery_upgrades."""
     sat_instance = shared_checkout("fdi_upgrade")
     with SharedResource(
-        "fdi_upgrade_tests", shared_checkin, sat_instance=sat_instance
+        "fdi_upgrade_tests",
+        shared_checkin,
+        sat_instance=sat_instance,
     ) as test_duration:
         yield sat_instance
         test_duration.ready()
