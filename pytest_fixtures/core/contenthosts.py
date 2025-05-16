@@ -350,3 +350,73 @@ def custom_host(request):
     deploy_args['workflow'] = 'deploy-rhel'
     with Broker(**deploy_args, host_class=Satellite) as host:
         yield host
+
+
+@pytest.fixture
+def registered_contenthosts(request, target_sat, module_org, module_ak, module_cv, module_product):
+    """Create and register multiple contenthosts to satellite.
+    Parametrize int `count` (num of registered hosts), default: 2.
+        by passing a request containing param 'count'.
+    Parametrize int `rhel` (deploy_rhel_version), default: DEFAULT_RHEL_VERSION.
+        by passing a request containing param 'distro'.
+    Parametrize str `workflow` (used for checkout), default: 'deploy-template'.
+        by passing a request containing param 'workflow'.
+
+    Note: Does NOT make use of markers.rhel_ver_match,
+        or markers.rhel_ver_list, leads to duplicate parametrization.
+    Three custom repositories will be synced & enabled; YUM_0, YUM_6, YUM_9.
+    Add, enable, and sync any other repos to CV/AK, following fixture setup.
+    """
+    _config = host_conf(request)
+    param = getattr(request, 'param', {})
+    count = param.get('count', 2)
+    _config['workflow'] = param.get('workflow', 'deploy-template')
+    _config['deploy_rhel_version'] = str(
+        param.get('rhel', settings.content_host.default_rhel_version)
+    )
+    repositories = {
+        'yum_0': settings.repos.yum_0.url,
+        'yum_6': settings.repos.yum_6.url,
+        'yum_9': settings.repos.yum_9.url,
+    }
+    # Create each yum repo, sync, and read() into above dictionary
+    for repo, url in repositories.items():
+        r = target_sat.api.Repository(
+            product=module_product,
+            name=repo,
+            url=url,
+        ).create()
+        r.sync()
+        repositories[repo] = r.read()
+    # Add all repos to CV, update, needs_publish should be True
+    module_cv.repository = [repo for repo in repositories.values()]
+    module_cv.update(['repository'])
+    module_cv = module_cv.read()
+    assert module_cv.needs_publish
+
+    # Checkout Broker host(s) via requested distro and count, or defaults.
+    with Broker(
+        **_config,
+        _count=count,
+        host_class=ContentHost,
+        deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
+    ) as brokers:
+        for chost in brokers:
+            # Add CV and 'Library' to AK, publish a Version if needs_publish.
+            # Register the client, override custom repositories to Enabled.
+            setup = target_sat.api_factory.register_host_and_needed_setup(
+                activation_key=module_ak,
+                organization=module_org,
+                content_view=module_cv,
+                environment='Library',
+                enable_repos=True,
+                client=chost,
+            )
+            assert setup['result'] != 'error', f'{setup["message"]}'
+            module_cv = setup['content_view'].read()
+            # sync the repositories to each client
+            for repo in repositories.values():
+                repo.read().sync()
+            # subscription-manager reports no error
+            assert target_sat.execute('subscription-manager repos').status == 0
+        yield brokers
