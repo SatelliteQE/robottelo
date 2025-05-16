@@ -351,7 +351,7 @@ def test_positive_content_counts_granularity(
 
     :parametrized: yes
 
-    :verifies: SAT-28337
+    :Verifies: SAT-28337
 
     :setup:
         1. Satellite with registered external Capsule.
@@ -717,7 +717,7 @@ def test_positive_repair_artifacts(
         2. All variants of verify_checksum task are able to repair all types of damage for all
            supported content types.
 
-    :verifies: SAT-16330
+    :Verifies: SAT-16330
 
     :customerscenario: true
 

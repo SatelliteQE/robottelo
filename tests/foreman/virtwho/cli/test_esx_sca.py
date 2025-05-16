@@ -692,7 +692,7 @@ def test_positive_change_system_puropse_SLA_for_hypervisor(
     :expectedresults:
         system purpose SLA attribute set without any error
 
-    :verifies: SAT-28552
+    :Verifies: SAT-28552
 
     :customerscenario: true
 
