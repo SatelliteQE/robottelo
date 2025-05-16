@@ -64,13 +64,17 @@ def version_cv_export_import_setup(content_upgrade_shared_satellite, upgrade_act
 @pytest.mark.content_upgrades
 def test_post_version_cv_export_import(version_cv_export_import_setup):
     """After upgrade, content view version import and export works on the existing content
-     view(that we created before the upgrade).
-    :id: postupgrade-f19e4928-94db-4df6-8ce8-b5e4afe34258
+     view (that we created before the upgrade).
+
+    :id: f19e4928-94db-4df6-8ce8-b5e4afe34258
+
     :parametrized: yes
+
     :steps:
         1: Export the existing content-view version.
-        2: Import the existing content-view version.
-        3: Delete the imported and exported content-vew, product, repo and organization.
+        2: Import the exported content-view version.
+        3: Delete the imported and exported content views from the LCE.
+
     :expectedresults: After upgrade,
         1: Content view created before upgrade should be imported and exported successfully.
         2: Imported and Exported content view should be deleted successfully
