@@ -46,25 +46,6 @@ def default_role_permission_setup(search_upgrade_shared_satellite, upgrade_actio
         yield test_data
 
 
-@pytest.mark.search_upgrades
-def test_default_role_added_permission(default_role_permission_setup):
-    """The new permission in 'Default role' is intact post upgrade
-
-    :id: e4a-96b3-4033-b562-3130fc43a4bc
-
-    :expectedresults: The added permission in existing 'Default role' is
-        intact post upgrade
-    """
-    target_sat = default_role_permission_setup.satellite
-    default_role = target_sat.api.Role().search(query={'search': 'name="Default role"'})[0]
-    subnet_filter = target_sat.api.Filter().search(
-        query={'search': f'role_id={default_role.id} and permission="view_subnets"'}
-    )
-    assert subnet_filter
-    # Teardown
-    subnet_filter[0].delete()
-
-
 @pytest.fixture
 def default_role_permission_with_filter_setup(search_upgrade_shared_satellite, upgrade_action):
     """New permission with filter is added to Default Role
@@ -90,6 +71,25 @@ def default_role_permission_with_filter_setup(search_upgrade_shared_satellite, u
         sat_upgrade.ready()
         target_sat._session = None
         yield test_data
+
+
+@pytest.mark.search_upgrades
+def test_default_role_added_permission(default_role_permission_setup):
+    """The new permission in 'Default role' is intact post upgrade
+
+    :id: e4a-96b3-4033-b562-3130fc43a4bc
+
+    :expectedresults: The added permission in existing 'Default role' is
+        intact post upgrade
+    """
+    target_sat = default_role_permission_setup.satellite
+    default_role = target_sat.api.Role().search(query={'search': 'name="Default role"'})[0]
+    subnet_filter = target_sat.api.Filter().search(
+        query={'search': f'role_id={default_role.id} and permission="view_subnets"'}
+    )
+    assert subnet_filter
+    # Teardown
+    subnet_filter[0].delete()
 
 
 @pytest.mark.search_upgrades
