@@ -1514,6 +1514,68 @@ class ContentHost(Host, ContentHostMixins):
     def get_yggdrasil_service_name(self):
         return 'yggdrasil' if (self.os_version.major > 9) else 'yggdrasild'
 
+    def setup_rhel_repos(self):
+        """Setup RHEL repositories on host
+        requires registered host if ga source has to be enabled
+        """
+        if settings.robottelo.rhel_source == "internal":
+            # disable cdn repos which may have been enabled during registration
+            self.disable_repo("rhel-*")
+            # add internal rhel repos
+            self.create_custom_repos(**settings.repos.get(f'rhel{self.os_version.major}_os'))
+        else:
+            # enable cdn repos
+            for repo in getattr(constants, f"OHSNAP_RHEL{self.os_version.major}_REPOS"):
+                result = self.enable_repo(repo, force=True)
+                if result.status:
+                    raise ContentHostError(f'Enabling RHEL repos on host failed\n{result.stdout}')
+
+    def setup_satellite_repos(self):
+        """Setup Satellite repositories on host
+        requires registered host if ga source has to be enabled
+        """
+        # setup source repositories
+        if settings.server.version.source == "ga":
+            # enable cdn repos
+            for repo in self.SATELLITE_CDN_REPOS.values():
+                result = self.enable_repo(repo, force=True)
+                if result.status:
+                    raise ContentHostError(
+                        f'Enabling Satellite repos on host failed\n{result.stdout}'
+                    )
+
+        elif settings.server.version.source == 'nightly':
+            self.create_custom_repos(
+                satellite_repo=settings.repos.satellite_repo,
+                satmaintenance_repo=settings.repos.satmaintenance_repo,
+            )
+        else:
+            # get ohsnap repofile
+            self.download_repofile(
+                product='satellite',
+                release=settings.server.version.release,
+                snap=settings.server.version.snap,
+            )
+
+    def setup_capsule_repos(self):
+        """Setup Capsule repositories on host
+        requires registered host if ga source has to be enabled
+        """
+        if settings.capsule.version.source == "ga":
+            # enable cdn repos
+            for repo in self.SATELLITE_CDN_REPOS.values():
+                result = self.enable_repo(repo, force=True)
+                if result.status:
+                    raise ContentHostError(
+                        f'Enabling Capsule repos on host failed\n{result.stdout}'
+                    )
+        else:
+            self.download_repofile(
+                product='capsule',
+                release=settings.capsule.version.release,
+                snap=settings.capsule.version.snap,
+            )
+
 
 class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
@@ -1624,44 +1686,13 @@ class Capsule(ContentHost, CapsuleMixins):
         """Get capsule features"""
         return requests.get(f'https://{self.hostname}:9090/features', verify=False).text
 
-    def enable_capsule_downstream_repos(self):
-        """Enable CDN repos and capsule downstream repos on Capsule Host"""
-        # CDN Repos
-        self.register_to_cdn()
-        for repo in getattr(constants, f"OHSNAP_RHEL{self.os_version.major}_REPOS"):
-            result = self.enable_repo(repo, force=True)
-            if result.status:
-                raise CapsuleHostError(f'Repo enable at capsule host failed\n{result.stdout}')
-        # Downstream Capsule specific Repos
-        self.download_repofile(
-            product='capsule',
-            release=settings.capsule.version.release,
-            snap=settings.capsule.version.snap,
-        )
-
     def capsule_setup(self, sat_host=None, capsule_cert_opts=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
         self._satellite = sat_host or Satellite()
 
-        if settings.robottelo.rhel_source == "ga":
-            # Register capsule host to CDN and enable repos
-            result = self.register_contenthost(
-                org=None,
-                lce=None,
-                username=settings.subscription.rhn_username,
-                password=settings.subscription.rhn_password,
-                auto_attach=True,
-            )
-            if result.status:
-                raise CapsuleHostError(f'Capsule CDN registration failed\n{result.stderr}')
-
-            for repo in getattr(constants, f"OHSNAP_RHEL{self.os_version.major}_REPOS"):
-                result = self.enable_repo(repo, force=True)
-                if result.status:
-                    raise CapsuleHostError(f'Repo enable at capsule host failed\n{result.stdout}')
-        elif settings.robottelo.rhel_source == "internal":
-            # add internal rhel repos
-            self.create_custom_repos(**settings.repos.get(f'rhel{self.os_version.major}_os'))
+        self.register_to_cdn()
+        self.setup_rhel_repos()
+        self.setup_capsule_repos()
 
         # Update system, firewall services and check capsule is already installed from template
         # Setups firewall on Capsule
