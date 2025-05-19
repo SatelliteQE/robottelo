@@ -895,19 +895,19 @@ class ContentHost(Host, ContentHostMixins):
 
     def enable_ipv6_rhsm_proxy(self):
         """Execute procedures for enabling rhsm IPv6 HTTP Proxy"""
-        if self.network_type == NetworkType.IPV6:
+        if not self.network_type.has_ipv4:
             url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)
 
     def enable_ipv6_dnf_proxy(self):
         """Execute procedures for enabling dnf IPv6 HTTP Proxy"""
-        if self.network_type == NetworkType.IPV6:
+        if not self.network_type.has_ipv4:
             url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
             self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
 
     def enable_ipv6_system_proxy(self):
         """Execute procedures for enabling IPv6 HTTP Proxy on system"""
-        if self.network_type == NetworkType.IPV6:
+        if not self.network_type.has_ipv4:
             self.execute(
                 f'echo "export HTTPS_PROXY={settings.http_proxy.http_proxy_ipv6_url}" >> ~/.bashrc'
             )
@@ -922,7 +922,7 @@ class ContentHost(Host, ContentHostMixins):
 
     def enable_ipv6_dnf_and_rhsm_proxy(self):
         """Execute procedures for enabling rhsm and dnf IPv6 HTTP Proxy"""
-        if self.network_type == NetworkType.IPV6:
+        if not self.network_type.has_ipv4:
             self.enable_ipv6_rhsm_proxy()
             self.enable_ipv6_dnf_proxy()
 
@@ -1503,7 +1503,7 @@ class ContentHost(Host, ContentHostMixins):
         self.reset_rhsm()
 
         # Enabling proxy for IPv6
-        if self.network_type == NetworkType.IPV6:
+        if not self.network_type.has_ipv4:
             url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)
             self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
@@ -2009,7 +2009,7 @@ class Satellite(Capsule, SatelliteMixins):
         """
         http_proxy_name = 'IPv4 HTTP Proxy for Content sync'
         http_proxy_url = settings.http_proxy.un_auth_proxy_url
-        if self.network_type == NetworkType.IPV6:
+        if not self.network_type.has_ipv4:
             http_proxy_name = 'IPv6 HTTP Proxy for Content sync'
             http_proxy_url = settings.http_proxy.http_proxy_ipv6_url
         if not self.cli.HttpProxy.exists(search=('name', http_proxy_name)):
@@ -2057,7 +2057,7 @@ class Satellite(Capsule, SatelliteMixins):
 
     def enable_satellite_ipv6_http_proxy(self):
         """Execute procedures for setting ipv6 HTTP Proxy in Satellite settings, rhsm and dnf."""
-        if self.network_type == NetworkType.IPV6:
+        if not self.network_type.has_ipv4:
             self.enable_satellite_http_proxy()
             self.enable_ipv6_dnf_and_rhsm_proxy()
 
@@ -2149,7 +2149,7 @@ class Satellite(Capsule, SatelliteMixins):
         )
         http_proxy = (
             f'HTTP_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
-            if self.network_type == NetworkType.IPV6
+            if not self.network_type.has_ipv4
             else ''
         )
         self.execute(
