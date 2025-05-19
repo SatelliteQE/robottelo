@@ -20,6 +20,14 @@ class NetworkType(StrEnum):
     DUALSTACK = 'dualstack'
 
     @property
+    def has_ipv4(self):
+        return self in (self.IPV4, self.DUALSTACK)
+
+    @property
+    def has_ipv6(self):
+        return self in (self.IPV6, self.DUALSTACK)
+
+    @property
     def formatted(self):
         """
         Returns the properly formatted version of the network type (e.g., 'IPv4', 'IPv6')

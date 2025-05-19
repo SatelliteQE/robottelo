@@ -208,11 +208,11 @@ VALIDATORS = dict(
             'http_proxy.password',
             must_exist=True,
         ),
-        # validate http_proxy_ipv6_url only if server.network_type is ipv6
+        # validate http_proxy_ipv6_url only if server.network_type does not have ipv4
         Validator(
             'http_proxy.http_proxy_ipv6_url',
             is_type_of=str,
-            when=Validator('server.network_type', eq=NetworkType.IPV6.value),
+            when=Validator('server.network_type', condition=lambda v: not v.has_ipv4),
         ),
     ],
     ipa=[

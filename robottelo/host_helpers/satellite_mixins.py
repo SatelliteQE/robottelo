@@ -375,7 +375,7 @@ class ProvisioningSetup:
                 host[0].delete()
             assert not self.api.Host().search(query={'search': f'name={hostname}'})
         # Workaround SAT-28381
-        if self.network_type != NetworkType.IPV6:
+        if self.network_type == NetworkType.IPV4:
             assert self.execute('cat /dev/null > /var/lib/dhcpd/dhcpd.leases').status == 0
             assert self.execute('systemctl restart dhcpd').status == 0
             # Workaround BZ: 2207698
