@@ -141,24 +141,10 @@ def common_sat_install_assertions(satellite):
 
 
 def install_satellite(satellite, installer_args, enable_fapolicyd=False):
-    # Register for RHEL repos, get Ohsnap repofile, and enable and download satellite
+    # Enable RHEL and Satellite repos
     satellite.register_to_cdn()
-    if settings.server.version.source == 'nightly':
-        satellite.create_custom_repos(
-            satellite_repo=settings.repos.satellite_repo,
-            satmaintenance_repo=settings.repos.satmaintenance_repo,
-        )
-    else:
-        satellite.download_repofile(
-            product='satellite',
-            release=settings.server.version.release,
-            snap=settings.server.version.snap,
-        )
-    if settings.robottelo.rhel_source == "internal":
-        # disable rhel repos from cdn
-        satellite.disable_repo("rhel-*")
-        # add internal rhel repos
-        satellite.create_custom_repos(**settings.repos.get(f'rhel{satellite.os_version.major}_os'))
+    satellite.setup_rhel_repos()
+    satellite.setup_satellite_repos()
     if enable_fapolicyd:
         if satellite.execute('rpm -q satellite-maintain').status == 0:
             # Installing the rpm on existing sat needs sat-maintain perms
@@ -172,6 +158,12 @@ def install_satellite(satellite, installer_args, enable_fapolicyd=False):
         assert satellite.execute('rpm -q foreman-proxy-fapolicyd').status == 0
         assert satellite.execute('systemctl is-active fapolicyd').status == 0
     # Configure Satellite firewall to open communication
+    assert (
+        satellite.execute(
+            "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
+        ).status
+        == 0
+    ), "firewalld is not present and can't be installed"
     satellite.execute(
         'firewall-cmd --permanent --add-service RH-Satellite-6 && firewall-cmd --reload'
     )
@@ -182,12 +174,12 @@ def install_satellite(satellite, installer_args, enable_fapolicyd=False):
     )
 
 
-def setup_capsule_repos(satellite, capsule_host, org, ak):
+def sync_capsule_repos(satellite, capsule_host, org, ak):
     """
-    Enables repositories that are necessary to install capsule
+    On Satellite enable and synchronize content required for Capsule installation.
     1. Enable RHEL repositories based on configuration
     2. Enable capsule repositories based on configuration
-    3. Synchonize repositories
+    3. Synchronize repositories
     """
     # List of sync tasks - all repos will be synced asynchronously
     sync_tasks = []
@@ -395,9 +387,10 @@ def test_capsule_installation(
     # Create capsule certs and activation key
     file, _, cmd_args = sat_fapolicyd_install.capsule_certs_generate(cap_ready_rhel)
     sat_fapolicyd_install.session.remote_copy(file, cap_ready_rhel)
+
     ak = sat_fapolicyd_install.api.ActivationKey(organization=org, environment=org.library).create()
 
-    setup_capsule_repos(sat_fapolicyd_install, cap_ready_rhel, org, ak)
+    sync_capsule_repos(sat_fapolicyd_install, cap_ready_rhel, org, ak)
 
     cap_ready_rhel.register(org, None, ak.name, sat_fapolicyd_install)
 
@@ -443,6 +436,12 @@ def test_capsule_installation(
     assert len(result.stdout) == 0
 
     # Enabling firewall
+    assert (
+        cap_ready_rhel.execute(
+            "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
+        ).status
+        == 0
+    ), "firewalld is not present and can't be installed"
     cap_ready_rhel.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
     cap_ready_rhel.execute('firewall-cmd --runtime-to-permanent')
 
