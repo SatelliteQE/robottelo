@@ -104,6 +104,7 @@ tests/new_upgrades/test_contentview.py @SatelliteQE/team-phoenix
 tests/new_upgrades/test_activation_key @SatelliteQE/team-phoenix
 tests/new_upgrades/test_errata.py @SatelliteQE/team-phoenix
 tests/new_upgrades/test_repository.py @SatelliteQE/team-phoenix
+tests/new_upgrades/test_satellitesync.py @SatelliteQE/team-phoenix
 tests/upgrades/test_activation_key.py @SatelliteQE/team-phoenix
 tests/upgrades/test_client.py @SatelliteQE/team-phoenix
 tests/upgrades/test_contentview.py @SatelliteQE/team-phoenix
@@ -192,6 +193,7 @@ tests/foreman/ui/test_settings.py @SatelliteQE/team-rocket
 tests/foreman/ui/test_smartclassparameter.py @SatelliteQE/team-rocket
 tests/foreman/ui/test_subnet.py @SatelliteQE/team-rocket
 tests/new_upgrades/test_discovery.py @SatelliteQE/team-rocket
+tests/new_upgrades/test_puppet.py @SatelliteQE/team-rocket
 tests/upgrades/test_classparameter.py @SatelliteQE/team-rocket
 tests/upgrades/test_discovery.py @SatelliteQE/team-rocket
 tests/upgrades/test_provisioningtemplate.py @SatelliteQE/team-rocket
