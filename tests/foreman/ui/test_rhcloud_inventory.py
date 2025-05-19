@@ -39,7 +39,7 @@ def data_collection_default(module_target_sat):
     settings_object.update({'value'})
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture
 def data_collection_minimal(module_target_sat):
     """Fixture to set minimal data collection setting to 'Yes'"""
     settings_object = module_target_sat.api.Setting().search(
