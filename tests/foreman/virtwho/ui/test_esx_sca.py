@@ -675,6 +675,9 @@ class TestVirtwhoConfigforEsx:
             4. Check if ipv4 addresses are obfuscated in generated reports
             6. Check if hypervisor_type and hypervisor_version fields are in report
 
+
+        :CaseImportance: High
+
         :Verifies: SAT-31467
         """
         hypervisor_name, guest_name = deploy_type_ui
