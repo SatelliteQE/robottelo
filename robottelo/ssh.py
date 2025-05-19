@@ -23,7 +23,7 @@ def get_client(
         username=username or settings.server.ssh_username,
         password=password or settings.server.ssh_password,
         port=port or settings.server.ssh_client.port,
-        # TODO(ogajduse): we better ger rid of the ssh module entirely
+        # TODO(ogajduse): we better get rid of the ssh module entirely
         net_type=net_type or settings.server.network_type,
     )
 
