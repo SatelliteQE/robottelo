@@ -200,7 +200,7 @@ def rhel_contenthost_with_repos(request, target_sat):
     repositories on the host"""
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         # add IPv6 proxy for IPv6 communication
-        if host.network_type == NetworkType.IPV6:
+        if not host.network_type.has_ipv6:
             host.enable_ipv6_dnf_and_rhsm_proxy()
             host.enable_ipv6_system_proxy()
 

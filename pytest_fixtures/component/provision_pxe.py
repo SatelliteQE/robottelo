@@ -363,7 +363,7 @@ def configure_secureboot_provisioning(
     if (
         int(rhel_ver) > sat.os_version.major
         and pxe_loader.vm_firmware == 'uefi_secure_boot'
-        and not settings.server.is_ipv6
+        and module_provisioning_sat.network_type != NetworkType.IPV6
     ):
         # Set the path for the shim and GRUB2 binaries for the OS of host
         bootloader_path = '/var/lib/tftpboot/bootloader-universe/pxegrub2/redhat/default/x86_64'

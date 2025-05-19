@@ -44,3 +44,15 @@ class TestNetworkType:
         assert NetworkType.IPV4 == NetworkType.IPV4
         assert NetworkType.IPV4 != NetworkType.IPV6
         assert NetworkType.IPV6 != NetworkType.DUALSTACK
+
+    def test_has_ipv4_property(self):
+        """Test the has_ipv4 property for all network types."""
+        assert NetworkType.IPV4.has_ipv4 is True
+        assert NetworkType.IPV6.has_ipv4 is False
+        assert NetworkType.DUALSTACK.has_ipv4 is True
+
+    def test_has_ipv6_property(self):
+        """Test the has_ipv6 property for all network types."""
+        assert NetworkType.IPV4.has_ipv6 is False
+        assert NetworkType.IPV6.has_ipv6 is True
+        assert NetworkType.DUALSTACK.has_ipv6 is True

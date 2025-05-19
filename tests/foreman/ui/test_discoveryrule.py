@@ -194,7 +194,7 @@ def test_positive_list_host_based_on_rule_search_query(
 
     :BZ: 1731112
     """
-    ip_address = gen_ipaddr(ipv6=target_sat.network_type == NetworkType.IPV6)
+    ip_address = gen_ipaddr(ipv6=target_sat.network_type.has_ipv6)
     cpu_count = gen_integer(2, 10)
     rule_name = gen_string('alpha')
     rule_search = f'cpu_count = {cpu_count}'
@@ -240,7 +240,7 @@ def test_positive_list_host_based_on_rule_search_query(
         values = session.discoveryrule.read_discovered_hosts(discovery_rule.name)
         assert values['searchbox'] == rule_search
         assert len(values['table']) == 1
-        if target_sat.network_type in [NetworkType.IPV6, NetworkType.DUALSTACK]:
+        if not target_sat.network_type.has_ipv4:
             lookup = NetworkType.IPV6.formatted
         else:
             lookup = NetworkType.IPV4.formatted
