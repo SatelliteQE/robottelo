@@ -36,6 +36,8 @@ def expected_permissions(session_target_sat):
         permissions.pop('ForemanPuppet::HostClass')
         permissions.pop('ForemanPuppet::Puppetclass')
         permissions.pop('ForemanPuppet::PuppetclassLookupKey')
+    if 'rubygem-foreman_resource_quota' not in rpm_packages:
+        permissions.pop('ForemanResourceQuota::ResourceQuota')
     if 'rubygem-foreman_scc_manager' not in rpm_packages:
         permissions.pop('SccAccount')
         permissions.pop('SccProduct')
