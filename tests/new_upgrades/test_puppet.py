@@ -66,8 +66,7 @@ def test_post_puppet_active(puppet_upgrade_setup):
         assert 'puppet' in result
         assert 'puppetca' in result
 
-        result = server.execute('rpm -q puppetserver')
-        assert result.status == 0
+        assert server.execute('rpm -q puppetserver').status == 0
 
         result = server.execute('systemctl status puppetserver')
         assert 'active (running)' in result.stdout
@@ -90,8 +89,7 @@ def test_post_puppet_reporting(puppet_upgrade_setup):
     """
     satellite = puppet_upgrade_setup.satellite
     capsule = puppet_upgrade_setup.capsule
-    result = capsule.execute('puppet agent -t')
-    assert result.status == 0
+    assert capsule.execute('puppet agent -t').status == 0
 
     result = satellite.cli.ConfigReport.list({'search': f'host={capsule.hostname},origin=Puppet'})
     assert len(result)
