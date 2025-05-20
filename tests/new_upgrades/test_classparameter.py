@@ -56,7 +56,7 @@ def _validate_value(data, sc_param):
         assert sc_param.default_value == data['value']
 
 
-@pytest.fixture(params=[1, 2, 3, 4, 5, 6, 7, 8, 9])
+@pytest.fixture(params=list(range(1, 10)))
 def puppet_class_parameter_data_and_type_setup(
     puppet_upgrade_shared_satellite, upgrade_action, request
 ):
