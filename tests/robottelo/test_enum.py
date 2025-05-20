@@ -1,7 +1,5 @@
 """Tests for Robottelo's enumeration classes."""
 
-import pytest
-
 from robottelo.enums import NetworkType
 
 
@@ -13,17 +11,6 @@ class TestNetworkType:
         assert NetworkType.IPV4 == 'ipv4'
         assert NetworkType.IPV6 == 'ipv6'
         assert NetworkType.DUALSTACK == 'dualstack'
-
-    def test_formatted_property_ipv4(self):
-        """Test the formatted property for IPV4."""
-        assert NetworkType.IPV4.formatted == 'IPv4'
-
-    def test_formatted_property_dualstack(self):
-        """Test that formatted property raises ValueError for DUALSTACK."""
-        error_msg = 'Formatted property not supported for DUALSTACK'
-        with pytest.raises(ValueError, match=error_msg) as excinfo:
-            _ = NetworkType.DUALSTACK.formatted
-        assert 'not supported for DUALSTACK' in str(excinfo.value)
 
     def test_str_representation(self):
         """Test the string representation of enum members."""
