@@ -1057,6 +1057,12 @@ PERMISSIONS = {
         'edit_filters',
         'destroy_filters',
     ],
+    'ForemanResourceQuota::ResourceQuota': [
+        "destroy_resource_quotas",
+        "create_resource_quotas",
+        "view_resource_quotas",
+        "edit_resource_quotas",
+    ],
     'ForemanSalt::SaltVariable': [
         'edit_salt_variables',
         'destroy_salt_variables',
