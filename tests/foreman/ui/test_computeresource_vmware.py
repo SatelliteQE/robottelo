@@ -309,7 +309,7 @@ def test_positive_vmware_custom_profile_end_to_end(
 
     :BZ: 1315277
 
-    :verifies: SAT-31447
+    :Verifies: SAT-31447
     """
     cr_name = gen_string('alpha')
     guest_os_names = [

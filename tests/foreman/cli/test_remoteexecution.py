@@ -143,7 +143,7 @@ class TestRemoteExecution:
 
         :expectedresults: Verify the job exits as expected
 
-        :verifies: SAT-28435
+        :Verifies: SAT-28435
 
         :parametrized: yes
         """
@@ -229,7 +229,7 @@ class TestRemoteExecution:
 
         :BZ: 1451675, 1804685
 
-        :verifies: SAT-22554
+        :Verifies: SAT-22554
 
         :expectedresults: Verify the job was successfully run under the
             effective user identity on host, make sure the password is
@@ -349,7 +349,7 @@ class TestRemoteExecution:
 
         :id: 0adaf5a2-930a-4050-863b-62456234ce8c
 
-        :verifies: SAT-28443
+        :Verifies: SAT-28443
 
         :steps:
             1. set global parameters for rex

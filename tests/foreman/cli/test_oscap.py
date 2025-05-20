@@ -61,7 +61,7 @@ class TestOpenScap:
 
         :BZ: 1749692
 
-        :verifies: SAT-30938
+        :Verifies: SAT-30938
 
         :customerscenario: true
 

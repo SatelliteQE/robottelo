@@ -316,7 +316,7 @@ def test_end_to_end(
 
     :parametrized: yes
 
-    :verifies: SAT-23414, SAT-7998
+    :Verifies: SAT-23414, SAT-7998
 
     :customerscenario: true
     """

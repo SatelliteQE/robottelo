@@ -1441,7 +1441,7 @@ class TestCapsuleContentManagement:
 
         :parametrized: yes
 
-        :verifies: SAT-28575
+        :Verifies: SAT-28575
 
         :customerscenario: true
 
@@ -1821,7 +1821,7 @@ class TestCapsuleContentManagement:
 
         :BlockedBy: SAT-25503
 
-        :verifies: SAT-26453
+        :Verifies: SAT-26453
 
         :customerscenario: true
         """
