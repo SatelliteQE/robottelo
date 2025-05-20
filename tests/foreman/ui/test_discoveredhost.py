@@ -74,7 +74,7 @@ def test_positive_provision_pxe_host(
 
     :BZ: 1728306, 1731112
 
-    :verifies: SAT-22452
+    :Verifies: SAT-22452
 
     :CaseImportance: High
     """
@@ -154,7 +154,7 @@ def test_positive_custom_provision_pxe_host(
 
     :BZ: 2025523
 
-    :verifies: SAT-22452, SAT-20098, SAT-23860
+    :Verifies: SAT-22452, SAT-20098, SAT-23860
 
     :customerscenario: true
 
