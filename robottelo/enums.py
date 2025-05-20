@@ -26,18 +26,3 @@ class NetworkType(StrEnum):
     @property
     def has_ipv6(self):
         return self in (self.IPV6, self.DUALSTACK)
-
-    @property
-    def formatted(self):
-        """
-        Returns the properly formatted version of the network type (e.g., 'IPv4', 'IPv6')
-
-        :returns: The formatted network type as a string.
-        :rtype: str
-        :raises ValueError: If called on DUALSTACK
-        """
-        if self.value == 'dualstack':
-            raise ValueError(f'Formatted property not supported for {self.name}')
-        if self.value in (self.IPV4, self.IPV6):
-            return self.value.replace('ipv', 'IPv')
-        raise ValueError(f'Invalid network type: {self.value}')

@@ -15,8 +15,6 @@
 from fauxfactory import gen_integer, gen_ipaddr, gen_string
 import pytest
 
-from robottelo.enums import NetworkType
-
 
 @pytest.fixture
 def module_discovery_env(module_org, module_location, module_target_sat):
@@ -240,10 +238,7 @@ def test_positive_list_host_based_on_rule_search_query(
         values = session.discoveryrule.read_discovered_hosts(discovery_rule.name)
         assert values['searchbox'] == rule_search
         assert len(values['table']) == 1
-        if not target_sat.network_type.has_ipv4:
-            lookup = NetworkType.IPV6.formatted
-        else:
-            lookup = NetworkType.IPV4.formatted
+        lookup = "IPv6" if not target_sat.network_type.has_ipv4 else "IPv4"
         assert values['table'][0][lookup] == ip_address
         assert values['table'][0]['CPUs'] == str(cpu_count)
         # auto provision the discovered host
