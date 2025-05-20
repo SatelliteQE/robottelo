@@ -3,12 +3,9 @@ This module is intended to be used for upgrade tests that have a single run stag
 """
 
 import datetime
-<<<<<<< HEAD
-import os
-=======
 import json
+import os
 from tempfile import mkstemp
->>>>>>> fc18726c6 (Convert host upgrade scenario to new format)
 
 from box import Box
 from broker import Broker
@@ -16,16 +13,12 @@ import pytest
 from wrapanapi.systems.google import GoogleCloudSystem
 
 from robottelo.config import settings
-<<<<<<< HEAD
-from robottelo.hosts import Capsule, Satellite
-=======
 from robottelo.constants import (
     GCE_RHEL_CLOUD_PROJECTS,
     GCE_TARGET_RHEL_IMAGE_NAME,
 )
 from robottelo.exceptions import GCECertNotFoundError
-from robottelo.hosts import Satellite
->>>>>>> fc18726c6 (Convert host upgrade scenario to new format)
+from robottelo.hosts import Capsule, Satellite
 from robottelo.utils.shared_resource import SharedResource
 
 pre_upgrade_failed_tests = []
@@ -152,7 +145,6 @@ def search_upgrade_shared_satellite():
 
 
 @pytest.fixture
-<<<<<<< HEAD
 def hostgroup_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.hostgroup_upgrades."""
     sat_instance = shared_checkout("hostgroup_upgrade")
@@ -209,7 +201,7 @@ def capsule_upgrade_shared_satellite():
         test_duration.ready()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture
 def capsule_upgrade_shared_capsule():
     """Mark tests using this fixture with pytest.mark.capsule_upgrades."""
     cap_instance = shared_cap_checkout("capsule_upgrade")
@@ -220,7 +212,7 @@ def capsule_upgrade_shared_capsule():
         test_duration.ready()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture
 def capsule_upgrade_integrated_sat_cap(
     capsule_upgrade_shared_satellite, capsule_upgrade_shared_capsule
 ):
@@ -249,8 +241,6 @@ def capsule_upgrade_integrated_sat_cap(
 
 
 @pytest.fixture
-=======
->>>>>>> fc18726c6 (Convert host upgrade scenario to new format)
 def puppet_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.puppet_upgrades"""
     sat_instance = shared_checkout("puppet_upgrade")
@@ -261,11 +251,7 @@ def puppet_upgrade_shared_satellite():
             action_is_recoverable=True,
         ) as enable_puppet,
         SharedResource(
-<<<<<<< HEAD
             "puppet_upgrade_satellite",
-=======
-            "puppet_upgrade_tests",
->>>>>>> fc18726c6 (Convert host upgrade scenario to new format)
             shared_checkin,
             sat_instance=sat_instance,
             action_is_recoverable=True,
@@ -276,7 +262,6 @@ def puppet_upgrade_shared_satellite():
         test_duration.ready()
 
 
-<<<<<<< HEAD
 @pytest.fixture
 def puppet_upgrade_shared_capsule():
     """Mark tests using this fixture with pytest.mark.puppet_upgrades"""
@@ -322,7 +307,8 @@ def puppet_upgrade_integrated_sat_cap(
     setup_data.satellite = puppet_upgrade_shared_satellite
     setup_data.capsule = puppet_upgrade_shared_capsule
     return setup_data
-=======
+
+
 # GCE Provisioning Fixtures
 
 
@@ -378,4 +364,3 @@ def shared_gce_cert(puppet_upgrade_shared_satellite):
             f"The GCE certificate in path {settings.gce.cert_path} is not found in satellite."
         )
     return cert
->>>>>>> fc18726c6 (Convert host upgrade scenario to new format)
