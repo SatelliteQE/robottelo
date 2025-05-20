@@ -60,7 +60,7 @@ def test_positive_provision_end_to_end(
 
     :customerscenario: true
 
-    :verifies: SAT-18721
+    :Verifies: SAT-18721
     """
     sat = module_provisioning_sat.sat
     name = gen_string('alpha').lower()

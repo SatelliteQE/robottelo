@@ -32,7 +32,7 @@ def test_negative_ipv6_update_check(sat_maintain):
 
     :customerscenario: true
 
-    :verifies: SAT-24811
+    :Verifies: SAT-24811
 
     :expectedresults: Update check fails due to ipv6.disable=1 in boot options
     """

@@ -651,7 +651,7 @@ class TestAnsibleREX:
             1. Verify variables associated to role are also imported along with roles
             2. Verify custom role is successfully assigned and running on a host
 
-        :verifies: SAT-28198
+        :Verifies: SAT-28198
         """
         username = settings.server.admin_username
         password = settings.server.admin_password
