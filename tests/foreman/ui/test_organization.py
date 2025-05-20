@@ -198,7 +198,7 @@ def test_positive_create_with_all_users(session, module_target_sat):
 
     :expectedresults: User is visible in selected org
 
-    :verifies: SAT-25386
+    :Verifies: SAT-25386
 
     :BlockedBy: SAT-25386
     """

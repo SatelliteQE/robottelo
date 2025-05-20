@@ -422,7 +422,7 @@ class TestDiscoveredHost:
 
         :expectedresults: All discovered hosst should be rebooted successfully
 
-        :verifies: SAT-23279
+        :Verifies: SAT-23279
 
         :CaseImportance: Medium
         """

@@ -256,7 +256,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
 
     :expectedresults: REX job should be success and ARF report should be sent to satellite
 
-    :verifies: SAT-19505
+    :Verifies: SAT-19505
     """
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')
