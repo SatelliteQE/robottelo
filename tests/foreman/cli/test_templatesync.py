@@ -11,6 +11,7 @@
 """
 
 import base64
+from time import sleep
 
 from fauxfactory import gen_string
 import pytest
@@ -300,14 +301,16 @@ class TestTemplateSyncTestCase:
             }
         ).split('\n')
         exported_count = ['Exported: true' in row.strip() for row in output].count(True)
+        assert exported_count > 0, 'No templates exported'
         path = f'{dirname}/provisioning_templates/snippet'
         auth = (git.username, git.password)
         api_url = f'http://{git.hostname}:{git.http_port}'
         api_url = f'{api_url}/api/v1/repos/{git.username}/{git_repository["name"]}/contents'
-        git_count = len(
-            requests.get(f'{api_url}/{path}', auth=auth, params={'ref': git_branch}).json()
-        )
-        assert exported_count == git_count
+        sleep(10)
+        response = requests.get(f'{api_url}/{path}', auth=auth, params={'ref': git_branch})
+        response.raise_for_status()
+        git_count = len(response.json())
+        assert exported_count == git_count, f'Unexpected response: {response.json()}'
 
     def test_positive_export_filtered_templates_to_temp_dir(self, module_org, target_sat):
         """Assure templates can be exported to /tmp directory without right permissions
