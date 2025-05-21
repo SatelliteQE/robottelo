@@ -618,7 +618,7 @@ def test_rh_cloud_minimal_report(
         session.location.select(loc_name=DEFAULT_LOC)
         session.cloudinventory.update(
             {
-                'data_collection': 'Minimal data collectionOnly send the minimum required data to Red Hat cloud, and obfuscate wherever possible'
+                'data_collection': 'Minimal data collectionOnly send the minimum required data to Red Hat cloud, obfuscation settings are disabled'
             }
         )
         timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
