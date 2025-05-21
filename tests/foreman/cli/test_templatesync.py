@@ -48,9 +48,14 @@ class TestTemplateSyncTestCase:
             pytest.fail('The foreman templates git url is not accessible')
 
         # Download the Test Template in test running folder
-        module_target_sat.execute(
-            f'[ -f example_template.erb ] || wget {FOREMAN_TEMPLATE_TEST_TEMPLATE}'
-        )
+        if settings.server.is_ipv6:
+            module_target_sat.execute(
+                f'[ -f example_template.erb ] || wget -e use_proxy=yes -e https_proxy={settings.http_proxy.http_proxy_ipv6_url} {FOREMAN_TEMPLATE_TEST_TEMPLATE}'
+            )
+        else:
+            module_target_sat.execute(
+                f'[ -f example_template.erb ] || wget {FOREMAN_TEMPLATE_TEST_TEMPLATE}'
+            )
 
     def test_positive_import_force_locked_template(
         self, module_org, create_import_export_local_dir, target_sat
