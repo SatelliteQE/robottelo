@@ -84,7 +84,7 @@ class TestAnsibleCfgMgmt:
         """
         http_proxy = (
             f'HTTPS_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
-            if settings.server.is_ipv6
+            if not target_sat.network_type.has_ipv4
             else ''
         )
         assert (
@@ -438,19 +438,19 @@ class TestAnsibleREX:
                 'host_class': ContentHost,
                 'workflow': settings.server.deploy_workflows.os,
                 'deploy_rhel_version': '9',
-                'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
+                'deploy_network_type': settings.server.network_type,
             },
             rhel8={
                 'host_class': ContentHost,
                 'workflow': settings.server.deploy_workflows.os,
                 'deploy_rhel_version': '8',
-                'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
+                'deploy_network_type': settings.server.network_type,
             },
             rhel7={
                 'host_class': ContentHost,
                 'workflow': settings.server.deploy_workflows.os,
                 'deploy_rhel_version': '7',
-                'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
+                'deploy_network_type': settings.server.network_type,
             },
         ) as multi_hosts:
             hosts = [multi_hosts['rhel9'][0], multi_hosts['rhel8'][0], multi_hosts['rhel7'][0]]
