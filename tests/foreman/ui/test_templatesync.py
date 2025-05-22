@@ -84,11 +84,6 @@ def test_positive_import_templates(
     :CaseImportance: Critical
     """
     proxy, param = setup_http_proxy_without_global_settings
-    if not use_proxy and not param:
-        # only do-not-use one kind of proxy
-        pytest.skip(
-            "Invalid parameter combination. DO NOT USE PROXY scenario should only be tested once."
-        )
     import_template = 'Alterator default PXELinux'
     branch = 'automation'
     prefix_name = gen_string('alpha', 8)
