@@ -58,6 +58,7 @@ pytest_plugins = [
     'pytest_fixtures.component.permissions',
     'pytest_fixtures.component.provision_azure',
     'pytest_fixtures.component.provision_gce',
+    'pytest_fixtures.component.provision_ec2',
     'pytest_fixtures.component.provision_libvirt',
     'pytest_fixtures.component.provision_pxe',
     'pytest_fixtures.component.provision_capsule_pxe',
