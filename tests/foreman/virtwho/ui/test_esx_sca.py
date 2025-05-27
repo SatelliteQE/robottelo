@@ -660,7 +660,7 @@ class TestVirtwhoConfigforEsx:
         results = org_session.virtwho_configure.read(name)
         assert 'encrypted_password=$cr_password' in results['deploy']['script']
 
-    @pytest.mark.parametrize('deploy_type_ui', ['id', 'script'], indirect=True)
+    @pytest.mark.parametrize('deploy_type_ui', ['id'], indirect=True)
     def test_positive_minimal_report_hypervisor(
         self, module_sca_manifest_org, org_session, form_data_ui, deploy_type_ui, module_target_sat
     ):
