@@ -685,7 +685,7 @@ class TestVirtwhoConfigforEsx:
         assert org_session.virtwho_configure.search(form_data_ui['name'])[0]['Status'] == 'ok'
         org_session.cloudinventory.update(
             {
-                'data_collection': 'Minimal data collectionOnly send the minimum required data to Red Hat cloud, and obfuscate wherever possible'
+                'data_collection': 'Minimal data collectionOnly send the minimum required data to Red Hat cloud, obfuscation settings are disabled'
             }
         )
 
