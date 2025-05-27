@@ -588,7 +588,7 @@ def test_rh_cloud_minimal_report(
     rhcloud_registered_hosts,
     data_collection_minimal,
 ):
-    """Verify that the `Minimal data collection' report contains the proper fields
+    """Verify that the Minimal data collection report contains the proper fields
 
     :id: e9bd1b9f-705f-47de-8495-49618e019e8a
 

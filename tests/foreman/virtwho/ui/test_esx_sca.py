@@ -664,7 +664,7 @@ class TestVirtwhoConfigforEsx:
     def test_positive_minimal_report_hypervisor(
         self, module_sca_manifest_org, org_session, form_data_ui, deploy_type_ui, module_target_sat
     ):
-        """Verify that the `Minimal data collection' report contains the proper fields for a configured hypervisor
+        """Verify that the Minimal data collection report contains the proper fields for a configured hypervisor
 
         :id: 75fc7cc1-af73-4877-b443-d8298dccabdf
 
