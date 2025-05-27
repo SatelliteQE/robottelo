@@ -37,6 +37,7 @@ from robottelo.config import (
     settings,
 )
 from robottelo.constants import (
+    CONTAINER_CERTS_PATH,
     CUSTOM_PUPPET_MODULE_REPOS,
     CUSTOM_PUPPET_MODULE_REPOS_PATH,
     CUSTOM_PUPPET_MODULE_REPOS_VERSION,
@@ -185,7 +186,7 @@ class ContentHost(Host, ContentHostMixins):
             return None
         return hosts[0]
 
-    def _delete_host_record(self):
+    def delete_host_record(self):
         """Delete the Host record of this host from Satellite."""
         if h_record := self._sat_host_record:
             logger.debug('Deleting host record for %s from Satellite', self.hostname)
@@ -356,7 +357,7 @@ class ContentHost(Host, ContentHostMixins):
                 return
             self.unregister()
             if type(self) is not Satellite:  # do not delete Satellite's host record
-                self._delete_host_record()
+                self.delete_host_record()
 
         logger.debug('END: tearing down host %s', self)
 
@@ -824,6 +825,29 @@ class ContentHost(Host, ContentHostMixins):
 
         """
         return self.execute('subscription-manager unregister')
+
+    def configure_podman_cert_auth(self, sat):
+        """Configure podman cert-based authentication.
+        Host needs to be registered to the Satellite."""
+        assert self.subscribed
+        pki_path = '/etc/pki/entitlement/'
+        certs_path = f'{CONTAINER_CERTS_PATH}{sat.hostname}/'
+        self.execute(f'mkdir {certs_path}')
+        key = self.execute(f'ls {pki_path}*-key.pem | head -n1').stdout.strip()
+        assert key
+        cert = self.execute(f'ls {pki_path}*.pem | grep -v -- "-key.pem" | head -n1').stdout.strip()
+        assert cert
+        assert self.execute(f'ln -sf {key} {certs_path}client.key').status == 0
+        assert self.execute(f'ln -sf {cert} {certs_path}client.cert').status == 0
+        assert (
+            self.execute(f'ln -s /etc/pki/tls/certs/ca-bundle.crt {certs_path}ca-bundle.crt').status
+            == 0
+        )
+
+    def reset_podman_cert_auth(self, sat=None):
+        """Reset podman cert-based authentication for given Satellite or for all"""
+        trail = sat.hostname if sat else '*'
+        self.execute(f'rm -rf {CONTAINER_CERTS_PATH}{trail}')
 
     def get(self, remote_path, local_path=None):
         """Get a remote file from the broker virtual machine."""
