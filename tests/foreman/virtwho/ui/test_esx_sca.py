@@ -671,9 +671,9 @@ class TestVirtwhoConfigforEsx:
         :steps:
             1. Go to Insights > Inventory upload > enable “Minimal data collection” setting
             2. Generate report after enabling the setting
-            3. Check if hostnames are obfuscated in generated report
-            4. Check if ipv4 addresses are obfuscated in generated reports
-            6. Check if hypervisor_type and hypervisor_version fields are in report
+            3. Check if hostnames are NOT in generated report
+            4. Check if ipv4 addresses are NOT in generated report
+            6. Check if hypervisor_type and hypervisor_version fields are IN report
 
 
         :CaseImportance: High
@@ -691,7 +691,7 @@ class TestVirtwhoConfigforEsx:
 
         timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         org_session.cloudinventory.generate_report(module_sca_manifest_org.name)
-        # wait_for_tasks report generation task to finish.
+        # wait_for_tasks report generation task to finish
         wait_for(
             lambda: module_target_sat.api.ForemanTask()
             .search(
@@ -711,13 +711,13 @@ class TestVirtwhoConfigforEsx:
         report_path = org_session.cloudinventory.download_report(module_sca_manifest_org.name)
         json_data = get_report_data(report_path)
         host_data = [item for item in json_data['hosts']]
-        # Verify that guest hostname is not in report
+        # Verify that guest hostname is NOT in report
         hostnames = [item['fqdn'] for item in host_data if 'fqdn' in item]
         assert guest_name not in hostnames, f"'hostname' found in: {hostnames}"
-        # Verify that ip addresses are obfuscated from the report.
+        # Verify that ip addresses are NOT in report
         ip_address = [item['ip_addresses'] for item in host_data if 'ip_addresses' in item]
         assert not ip_address, f"'ip_addresses' found in: {ip_address}"
-        # Verify that hypervisor_type and hypervisor_version are in report
+        # Verify that hypervisor_type and hypervisor_version are IN report
         assert any(
             'hypervisor_type' in item and 'hypervisor_version' in item for item in host_data
         ), "'hypervisor_type' and 'hypervisor_version' not found"
