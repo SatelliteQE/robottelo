@@ -1688,11 +1688,13 @@ class Capsule(ContentHost, CapsuleMixins):
 
     def capsule_setup(self, sat_host=None, capsule_cert_opts=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
-        self._satellite = sat_host or Satellite()
 
         self.register_to_cdn()
         self.setup_rhel_repos()
         self.setup_capsule_repos()
+
+        # After capsule registration to cdn, it should be initialized with the Satellite.
+        self._satellite = sat_host or Satellite()
 
         # Update system, firewall services and check capsule is already installed from template
         # Setups firewall on Capsule
