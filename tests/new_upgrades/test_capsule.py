@@ -25,7 +25,7 @@ from robottelo.content_info import get_repo_files_urls_by_url
 from robottelo.utils.shared_resource import SharedResource
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def capsule_sync_setup(capsule_upgrade_integrated_sat_cap, upgrade_action):
     """Pre-upgrade scenario that creates and syncs repository with
     rpm in Satellite which will be synced in post upgrade scenario.
