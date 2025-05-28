@@ -158,7 +158,7 @@ class ContentHost(Host, ContentHostMixins):
 
     @property
     def network_type(self):
-        if not self._net_type:
+        if not hasattr(self, '_net_type'):
             self._net_type = NetworkType(settings.content_host.network_type)
         return self._net_type
 
