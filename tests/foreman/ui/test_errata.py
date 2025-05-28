@@ -46,6 +46,7 @@ from robottelo.constants import (
     REAL_RHEL8_1_ERRATA_ID,
     REAL_RHEL8_ERRATA_CVES,
     REAL_RHSCLIENT_ERRATA,
+    TIMESTAMP_FMT,
 )
 from robottelo.hosts import ContentHost
 from robottelo.utils.issue_handlers import is_open
@@ -291,7 +292,7 @@ def registered_contenthost(
 
 
 @pytest.mark.e2e
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match('N-3')  # Newest major RHEL version (N), and three prior.
 @pytest.mark.parametrize('registered_contenthost', [[CUSTOM_REPO_URL]], indirect=True)
 @pytest.mark.no_containers
 def test_end_to_end(
@@ -363,7 +364,9 @@ def test_end_to_end(
     )
 
     with session:
-        datetime_utc_start = datetime.now(UTC).replace(microsecond=0)
+        # keep timestamp as datetime obj, so we can subtract later.
+        #   timezone-aware (UTC), as task's start/end times are also timezone-aware.
+        timestamp_start = datetime.now(UTC).replace(microsecond=0)
         # Check selection box function for BZ#1688636
         session.location.select(loc_name=DEFAULT_LOC)
         results = session.errata.search_content_hosts(
@@ -425,9 +428,10 @@ def test_end_to_end(
             entity_name=hostname,
             search=f"errata_id == {CUSTOM_REPO_ERRATA_ID}",
         )
+        # str timestamp to scope tasks, does not include timezone.
         install_query = (
-            f'"Install errata errata_id == {CUSTOM_REPO_ERRATA_ID} on {hostname}"'
-            f' and started_at >= {datetime_utc_start - timedelta(seconds=1)}'
+            f'Install errata {CUSTOM_REPO_ERRATA_ID.lower()} on {hostname}'
+            f' and started_at >= "{timestamp_start.strftime(TIMESTAMP_FMT)}"'
         )
         results = module_target_sat.wait_for_tasks(
             search_query=install_query,
@@ -446,13 +450,12 @@ def test_end_to_end(
             f'Unexpected applicable errata found after install of {CUSTOM_REPO_ERRATA_ID}.'
         )
         # UTC timing for install task and session
-        _UTC_format = '%Y-%m-%d %H:%M:%S UTC'
-        install_start = datetime.strptime(task_status['started_at'], _UTC_format)
-        install_end = datetime.strptime(task_status['ended_at'], _UTC_format)
+        install_start = parse(task_status['started_at'])
+        install_end = parse(task_status['ended_at'])
         # install task duration did not exceed 1 minute,
         #   duration since start of session did not exceed 10 minutes.
         assert (install_end - install_start).total_seconds() <= 60
-        assert (install_end - datetime_utc_start).total_seconds() <= 600
+        assert (install_end - timestamp_start).total_seconds() <= 600
         # Find bulk generate applicability task
         results = module_target_sat.wait_for_tasks(
             search_query=(f'Bulk generate applicability for host {hostname}'),
@@ -465,8 +468,8 @@ def test_end_to_end(
             f'Bulk Generate Errata Applicability task failed:\n{task_status}'
         )
         # UTC timing for generate applicability task
-        bulk_gen_start = datetime.strptime(task_status['started_at'], _UTC_format)
-        bulk_gen_end = datetime.strptime(task_status['ended_at'], _UTC_format)
+        bulk_gen_start = parse(task_status['started_at'])
+        bulk_gen_end = parse(task_status['ended_at'])
         assert (bulk_gen_start - install_end).total_seconds() <= 30
         assert (bulk_gen_end - bulk_gen_start).total_seconds() <= 60
 
