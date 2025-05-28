@@ -34,7 +34,7 @@ def host_conf(request):
     ):
         deploy_kwargs = settings.content_host.get(_rhelver).to_dict().get('container', {})
         if deploy_kwargs and network:
-            deploy_kwargs.update({'Container': network})
+            deploy_kwargs.update({'Container': str(network)})
     # if we're not using containers or a container isn't available, use a VM
     if not deploy_kwargs:
         deploy_kwargs = settings.content_host.get(_rhelver).to_dict().get('vm', {})
