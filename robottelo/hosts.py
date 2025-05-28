@@ -134,6 +134,8 @@ class ProxyHostError(Exception):
 class ContentHost(Host, ContentHostMixins):
     run = Host.execute
     default_timeout = settings.server.ssh_client.command_timeout
+    # Extend the keep_keys tuple from the parent class
+    keep_keys = (*Host.keep_keys, 'net_type', 'blank')
 
     def __init__(self, hostname, auth=None, **kwargs):
         """ContentHost object with optional ssh connection
