@@ -673,7 +673,7 @@ class TestVirtwhoConfigforEsx:
             2. Generate report after enabling the setting
             3. Check if hostnames are NOT in generated report
             4. Check if ipv4 addresses are NOT in generated report
-            6. Check if hypervisor_type and hypervisor_version fields are IN report
+            5. Check if hypervisor_type and hypervisor_version fields are IN report
 
 
         :CaseImportance: High
@@ -713,7 +713,7 @@ class TestVirtwhoConfigforEsx:
         host_data = [item for item in json_data['hosts']]
         # Verify that guest hostname is NOT in report
         hostnames = [item['fqdn'] for item in host_data if 'fqdn' in item]
-        assert guest_name not in hostnames, f"'hostname' found in: {hostnames}"
+        assert guest_name not in hostnames, f"'guest hostname' found in: {hostnames}"
         # Verify that ip addresses are NOT in report
         ip_address = [item['ip_addresses'] for item in host_data if 'ip_addresses' in item]
         assert not ip_address, f"'ip_addresses' found in: {ip_address}"
