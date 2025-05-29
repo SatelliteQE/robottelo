@@ -10,7 +10,7 @@ from broker import Broker
 import pytest
 
 from robottelo.config import settings
-from robottelo.hosts import Capsule, Satellite
+from robottelo.hosts import Satellite, Capsule
 from robottelo.utils.shared_resource import SharedResource
 
 
