@@ -13,17 +13,6 @@ from robottelo.config import settings
 from robottelo.hosts import Capsule, Satellite
 from robottelo.utils.shared_resource import SharedResource
 
-pre_upgrade_failed_tests = []
-
-
-PRE_UPGRADE_TESTS_FILE_OPTION = 'pre_upgrade_tests_file'
-PRE_UPGRADE_TESTS_FILE_PATH = '/var/tmp/robottelo_pre_upgrade_failed_tests.json'
-PRE_UPGRADE = False
-POST_UPGRADE = False
-PRE_UPGRADE_MARK = 'pre_upgrade'
-POST_UPGRADE_MARK = 'post_upgrade'
-TEST_NODE_ID_NAME = '__pytest_node_id'
-
 
 def log(message, level="DEBUG"):
     """Pytest has a limitation to use logging.logger from conftest.py
@@ -41,7 +30,14 @@ def log(message, level="DEBUG"):
 def pytest_configure(config):
     """Register custom markers to avoid warnings."""
     markers = [
-        "content_upgrades: Upgrade tests that run under .",
+        "content_upgrades: Content upgrade tests that use SharedResource.",
+        "search_upgrades: Search upgrade tests that use SharedResource.",
+        "hostgroup_upgrades: Host group upgrade tests that use SharedResource.",
+        "errata_upgrades: Errata upgrade tests that use SharedResource.",
+        "perf_tuning_upgrades: Performance tuning upgrade tests that use SharedResource.",
+        "discovery_upgrades: Discovery upgrade tests that use SharedResource.",
+        "capsule_upgrades: Capsule upgrade tests that use SharedResource.",
+        "puppet_upgrades: Puppet upgrade tests that use SharedResource.",
     ]
     for marker in markers:
         config.addinivalue_line("markers", marker)
@@ -182,7 +178,7 @@ def perf_tuning_upgrade_shared_satellite():
         test_duration.ready()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture
 def capsule_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.capsule_upgrades."""
     sat_instance = shared_checkout("capsule_upgrade")
@@ -193,7 +189,7 @@ def capsule_upgrade_shared_satellite():
         test_duration.ready()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture
 def capsule_upgrade_shared_capsule():
     """Mark tests using this fixture with pytest.mark.capsule_upgrades."""
     cap_instance = shared_cap_checkout("capsule_upgrade")
@@ -204,7 +200,7 @@ def capsule_upgrade_shared_capsule():
         test_duration.ready()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture
 def capsule_upgrade_integrated_sat_cap(
     capsule_upgrade_shared_satellite, capsule_upgrade_shared_capsule
 ):
