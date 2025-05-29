@@ -12,7 +12,6 @@ import pytest
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
@@ -39,10 +38,6 @@ def module_provisioning_rhel_content(
     repo_names = []
     if int(rhel_ver) <= 7:
         repo_names.append(f'rhel{rhel_ver}')
-    # Provision using RHEL10 Beta repos until its GA
-    elif int(rhel_ver) == 10:
-        repo_names.append(f'rhel{rhel_ver}_bos_beta')
-        repo_names.append(f'rhel{rhel_ver}_aps_beta')
     else:
         repo_names.append(f'rhel{rhel_ver}_bos')
         repo_names.append(f'rhel{rhel_ver}_aps')
@@ -52,19 +47,18 @@ def module_provisioning_rhel_content(
     content_view = sat.api.ContentView(organization=module_sca_manifest_org).create()
 
     # Custom Content for Client repo
-    if is_open('SAT-27193') and int(rhel_ver) != 10:
-        custom_product = sat.api.Product(
-            organization=module_sca_manifest_org, name=f'rhel{rhel_ver}_{gen_string("alpha")}'
-        ).create()
-        client_repo = sat.api.Repository(
-            organization=module_sca_manifest_org,
-            product=custom_product,
-            content_type='yum',
-            url=settings.repos.SATCLIENT_REPO[f'rhel{rhel_ver}'],
-        ).create()
-        task = client_repo.sync(synchronous=False)
-        tasks.append(task)
-        content_view.repository = [client_repo]
+    custom_product = sat.api.Product(
+        organization=module_sca_manifest_org, name=f'rhel{rhel_ver}_{gen_string("alpha")}'
+    ).create()
+    client_repo = sat.api.Repository(
+        organization=module_sca_manifest_org,
+        product=custom_product,
+        content_type='yum',
+        url=settings.repos.SATCLIENT_REPO[f'rhel{rhel_ver}'],
+    ).create()
+    task = client_repo.sync(synchronous=False)
+    tasks.append(task)
+    content_view.repository = [client_repo]
 
     for name in repo_names:
         rh_kickstart_repo_id = sat.api_factory.enable_rhrepo_and_fetchid(
@@ -105,8 +99,6 @@ def module_provisioning_rhel_content(
     rhel_xy = Version(
         constants.REPOS['kickstart'][f'rhel{rhel_ver}']['version']
         if rhel_ver == 7
-        else constants.REPOS['kickstart'][f'rhel{rhel_ver}_bos_beta']['version']
-        if rhel_ver == 10
         else constants.REPOS['kickstart'][f'rhel{rhel_ver}_bos']['version']
     )
     o_systems = sat.api.OperatingSystem().search(
@@ -133,14 +125,11 @@ def module_provisioning_rhel_content(
     ).create()
 
     # Ensure client repo is enabled in the activation key
-    if is_open('SAT-27193') and int(rhel_ver) != 10:
-        content = ak.product_content(data={'content_access_mode_all': '1'})['results']
-        client_repo_label = [repo['label'] for repo in content if repo['name'] == client_repo.name][
-            0
-        ]
-        ak.content_override(
-            data={'content_overrides': [{'content_label': client_repo_label, 'value': '1'}]}
-        )
+    content = ak.product_content(data={'content_access_mode_all': '1'})['results']
+    client_repo_label = [repo['label'] for repo in content if repo['name'] == client_repo.name][0]
+    ak.content_override(
+        data={'content_overrides': [{'content_label': client_repo_label, 'value': '1'}]}
+    )
     return Box(os=os, ak=ak, ksrepo=ksrepo, cv=content_view)
 
 
