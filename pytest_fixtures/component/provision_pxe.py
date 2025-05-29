@@ -12,6 +12,7 @@ import pytest
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
+from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
@@ -38,7 +39,11 @@ def module_provisioning_rhel_content(
     repo_names = []
     if int(rhel_ver) <= 7:
         repo_names.append(f'rhel{rhel_ver}')
-    elif int(rhel_ver) < 10:
+    # Provision using RHEL10 Beta repos until its GA
+    elif int(rhel_ver) == 10:
+        repo_names.append(f'rhel{rhel_ver}_bos_beta')
+        repo_names.append(f'rhel{rhel_ver}_aps_beta')
+    else:
         repo_names.append(f'rhel{rhel_ver}_bos')
         repo_names.append(f'rhel{rhel_ver}_aps')
     rh_repos = []
@@ -47,67 +52,49 @@ def module_provisioning_rhel_content(
     content_view = sat.api.ContentView(organization=module_sca_manifest_org).create()
 
     # Custom Content for Client repo
-    custom_product = sat.api.Product(
-        organization=module_sca_manifest_org, name=f'rhel{rhel_ver}_{gen_string("alpha")}'
-    ).create()
-    client_repo = sat.api.Repository(
-        organization=module_sca_manifest_org,
-        product=custom_product,
-        content_type='yum',
-        url=settings.repos.SATCLIENT_REPO[f'rhel{rhel_ver}'],
-    ).create()
-    task = client_repo.sync(synchronous=False)
-    tasks.append(task)
-    content_view.repository = [client_repo]
-
-    if int(rhel_ver) < 10:
-        for name in repo_names:
-            rh_kickstart_repo_id = sat.api_factory.enable_rhrepo_and_fetchid(
-                basearch=constants.DEFAULT_ARCHITECTURE,
-                org_id=module_sca_manifest_org.id,
-                product=constants.REPOS['kickstart'][name]['product'],
-                repo=constants.REPOS['kickstart'][name]['name'],
-                reposet=constants.REPOS['kickstart'][name]['reposet'],
-                releasever=constants.REPOS['kickstart'][name]['version'],
-            )
-            # do not sync content repos for discovery based provisioning.
-            if module_provisioning_sat.provisioning_type != 'discovery':
-                rh_repo_id = sat.api_factory.enable_rhrepo_and_fetchid(
-                    basearch=constants.DEFAULT_ARCHITECTURE,
-                    org_id=module_sca_manifest_org.id,
-                    product=constants.REPOS[name]['product'],
-                    repo=constants.REPOS[name]['name'],
-                    reposet=constants.REPOS[name]['reposet'],
-                    releasever=constants.REPOS[name]['releasever'],
-                )
-
-            # Sync step because repo is not synced by default
-            for repo_id in [rh_kickstart_repo_id, rh_repo_id]:
-                if repo_id:
-                    rh_repo = sat.api.Repository(id=repo_id).read()
-                    task = rh_repo.sync(synchronous=False)
-                    tasks.append(task)
-                    rh_repos.append(rh_repo)
-                    content_view.repository.append(rh_repo)
-                    content_view.update(['repository'])
-    else:
-        # Use custom Content for RHEL10 until SAT-29721 is resolved
+    if is_open('SAT-27193') and int(rhel_ver) != 10:
         custom_product = sat.api.Product(
             organization=module_sca_manifest_org, name=f'rhel{rhel_ver}_{gen_string("alpha")}'
         ).create()
-        for repo in settings.repos.rhel10_os.values():
-            rh_repo = sat.api.Repository(
-                organization=module_sca_manifest_org,
-                product=custom_product,
-                content_type='yum',
-                url=repo,
-            ).create()
-            task = rh_repo.sync(synchronous=False)
-            tasks.append(task)
-            rh_repos.append(rh_repo)
-            content_view.repository.append(rh_repo)
-            content_view.update(['repository'])
+        client_repo = sat.api.Repository(
+            organization=module_sca_manifest_org,
+            product=custom_product,
+            content_type='yum',
+            url=settings.repos.SATCLIENT_REPO[f'rhel{rhel_ver}'],
+        ).create()
+        task = client_repo.sync(synchronous=False)
+        tasks.append(task)
+        content_view.repository = [client_repo]
 
+    for name in repo_names:
+        rh_kickstart_repo_id = sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch=constants.DEFAULT_ARCHITECTURE,
+            org_id=module_sca_manifest_org.id,
+            product=constants.REPOS['kickstart'][name]['product'],
+            repo=constants.REPOS['kickstart'][name]['name'],
+            reposet=constants.REPOS['kickstart'][name]['reposet'],
+            releasever=constants.REPOS['kickstart'][name]['version'],
+        )
+        # do not sync content repos for discovery based provisioning.
+        if module_provisioning_sat.provisioning_type != 'discovery':
+            rh_repo_id = sat.api_factory.enable_rhrepo_and_fetchid(
+                basearch=constants.DEFAULT_ARCHITECTURE,
+                org_id=module_sca_manifest_org.id,
+                product=constants.REPOS[name]['product'],
+                repo=constants.REPOS[name]['name'],
+                reposet=constants.REPOS[name]['reposet'],
+                releasever=constants.REPOS[name]['releasever'],
+            )
+
+        # Sync step because repo is not synced by default
+        for repo_id in [rh_kickstart_repo_id, rh_repo_id]:
+            if repo_id:
+                rh_repo = sat.api.Repository(id=repo_id).read()
+                task = rh_repo.sync(synchronous=False)
+                tasks.append(task)
+                rh_repos.append(rh_repo)
+                content_view.repository.append(rh_repo)
+                content_view.update(['repository'])
     for task in tasks:
         sat.wait_for_tasks(
             search_query=(f'id = {task["id"]}'),
@@ -118,7 +105,7 @@ def module_provisioning_rhel_content(
     rhel_xy = Version(
         constants.REPOS['kickstart'][f'rhel{rhel_ver}']['version']
         if rhel_ver == 7
-        else constants.RHEL10_VER
+        else constants.REPOS['kickstart'][f'rhel{rhel_ver}_bos_beta']['version']
         if rhel_ver == 10
         else constants.REPOS['kickstart'][f'rhel{rhel_ver}_bos']['version']
     )
@@ -129,7 +116,6 @@ def module_provisioning_rhel_content(
     os = o_systems[0].read()
     # return only the first kickstart repo - RHEL X KS or RHEL X BaseOS KS
     ksrepo = rh_repos[0]
-
     publish = content_view.publish()
     task_status = sat.wait_for_tasks(
         search_query=(f'Actions::Katello::ContentView::Publish and id = {publish["id"]}'),
@@ -147,11 +133,14 @@ def module_provisioning_rhel_content(
     ).create()
 
     # Ensure client repo is enabled in the activation key
-    content = ak.product_content(data={'content_access_mode_all': '1'})['results']
-    client_repo_label = [repo['label'] for repo in content if repo['name'] == client_repo.name][0]
-    ak.content_override(
-        data={'content_overrides': [{'content_label': client_repo_label, 'value': '1'}]}
-    )
+    if is_open('SAT-27193') and int(rhel_ver) != 10:
+        content = ak.product_content(data={'content_access_mode_all': '1'})['results']
+        client_repo_label = [repo['label'] for repo in content if repo['name'] == client_repo.name][
+            0
+        ]
+        ak.content_override(
+            data={'content_overrides': [{'content_label': client_repo_label, 'value': '1'}]}
+        )
     return Box(os=os, ak=ak, ksrepo=ksrepo, cv=content_view)
 
 
