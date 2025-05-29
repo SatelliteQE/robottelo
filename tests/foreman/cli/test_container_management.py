@@ -410,3 +410,94 @@ class TestDockerClient:
         )
 
         assert module_container_contenthost.execute(podman_pull_command).status == 0
+
+    def test_podman_cert_auth(
+        self, request, module_target_sat, module_org, module_container_contenthost
+    ):
+        """Verify the podman search and pull works with cert-based
+        authentication without need for login.
+
+        :id: 7b1a457c-ae67-4a76-9f67-9074ea7f858a
+
+        :Verifies: SAT-33255
+
+        :steps:
+            1. Create and sync a docker repo.
+            2. Create a CV with the repo, publish and promote it to a LCE.
+            3. Create activation key for the LCE/CV and register a content host.
+            4. Configure podman certs for authentication.
+            5. Try podman search all, ensure Library and repo images are not listed.
+            6. Try podman search/pull for Library images, ensure it fails.
+            7. Try podman search/pull for the LCE/CV, ensure it works.
+
+        :expectedresults:
+            1. Podman search/pull is restricted for Library (or any LCE missing in AK).
+            2. Podman search/pull works for environments included in AK.
+
+        """
+        sat, host = module_target_sat, module_container_contenthost
+
+        # 1. Create and sync a docker repo.
+        product = sat.cli_factory.make_product_wait({'organization-id': module_org.id})
+        repo = _repo(sat, product['id'], upstream_name='quay/busybox', url='https://quay.io')
+        sat.cli.Repository.synchronize({'id': repo['id']})
+
+        # 2. Create a CV with the repo, publish and promote it to a LCE.
+        cv = sat.cli_factory.make_content_view(
+            {'organization-id': module_org.id, 'repository-ids': [repo['id']]}
+        )
+        sat.cli.ContentView.publish({'id': cv['id']})
+        cv = sat.cli.ContentView.info({'id': cv['id']})
+        lce = sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
+        sat.cli.ContentView.version_promote(
+            {'id': cv['versions'][0]['id'], 'to-lifecycle-environment-id': lce['id']}
+        )
+
+        # 3. Create activation key for the LCE/CV and register a content host.
+        ak = sat.cli.ActivationKey.create(
+            {
+                'name': gen_string('alpha'),
+                'organization-id': module_org.id,
+                'lifecycle-environment-id': lce['id'],
+                'content-view-id': cv['id'],
+            }
+        )
+        res = host.register(module_org, None, ak['name'], sat, force=True)
+        assert res.status == 0
+        assert host.subscribed
+
+        @request.addfinalizer
+        def _finalize():
+            host.unregister()
+            host.delete_host_record()
+
+        # 4. Configure podman certs for authentication.
+        host.configure_podman_cert_auth(sat)
+        request.addfinalizer(lambda: host.reset_podman_cert_auth(sat))
+
+        # 5. Try podman search all, ensure Library and repo images are not listed.
+        org_prefix = f'{sat.hostname}/{module_org.label}'
+        lib_path = f'{org_prefix}/library'.lower()
+        repo_path = f'{org_prefix}/{product.label}/{repo.label}'.lower()
+        cv_path = f'{org_prefix}/{lce.label}/{cv["label"]}/{product.label}/{repo.label}'.lower()
+
+        finds = host.execute(f'podman search {sat.hostname}/').stdout
+        assert lib_path not in finds
+        assert repo_path not in finds
+        assert cv_path in finds
+        paths = [f.strip() for f in finds.split('\n') if 'NAME' not in f and len(f)]
+        assert len(paths) == 1
+
+        # 6. Try podman search/pull for Library images, ensure it fails.
+        for path in [lib_path, repo_path]:
+            assert host.execute(f'podman search {path}').stdout == ''
+            assert host.execute(f'podman pull {path}').status
+
+        # 7. Try podman search/pull for the LCE/CV, ensure it works.
+        res = host.execute(f'podman search {cv_path}')
+        assert cv_path in res.stdout
+        res = host.execute(f'podman pull {cv_path}')
+        assert res.status == 0
+        request.addfinalizer(lambda: host.execute(f'podman rmi {cv_path}'))
+        res = host.execute('podman images')
+        assert cv_path in res.stdout

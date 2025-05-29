@@ -868,6 +868,7 @@ CUSTOM_LOCAL_FILE = '/var/lib/pulp/imports/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
 CERT_PATH = "/etc/pki/ca-trust/source/anchors/"
+CONTAINER_CERTS_PATH = "/etc/containers/certs.d/"
 CERT_DATA = {
     'capsule_hostname': 'capsule.example.com',
     'ca_bundle_file_name': 'cacert.crt',
