@@ -95,6 +95,39 @@ def test_positive_inventory_generate_upload_cli(
 
 
 @pytest.mark.e2e
+@pytest.mark.rhel_ver_match('N-0')
+@pytest.mark.parametrize(
+    'module_target_sat_insights', [True, False], ids=['hosted', 'local'], indirect=True
+)
+def test_positive_insights_with_http_proxy(
+    module_target_sat_insights,
+    rhcloud_manifest_org,
+    rhel_insights_vm,
+):
+    """Tests Insights client connectivity with http proxy enabled on Satellite.
+
+    :id: a59fef9a-ecb7-479c-825a-e875ff6d3c6c
+
+    :steps:
+
+        0. Create a host.
+        1. Configure http proxy on Satellite.
+        2. Register host to Insights in org with manifest.
+
+    :expectedresults: Insights client uploads data to iop-advisor-engine successfully
+
+    :CaseAutomation: Automated
+    """
+    http_proxy = module_target_sat_insights.enable_satellite_http_proxy()
+    result = rhel_insights_vm.execute('insights-client')
+    assert result.status == 0
+
+    module_target_sat_insights.disable_satellite_http_proxy(http_proxy)
+    result = rhel_insights_vm.execute('insights-client')
+    assert result.status == 0
+
+
+@pytest.mark.e2e
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 def test_positive_inventory_recommendation_sync(
