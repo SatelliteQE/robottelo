@@ -21,7 +21,7 @@ def ohsnap_response_hook(r, *args, **kwargs):
     r.raise_for_status()
 
 
-def ohsnap_repo_url(ohsnap, request_type, product, release, os_release, snap='', proxy=None):
+def ohsnap_repo_url(ohsnap, request_type, product, release, os_release, snap=''):
     """Returns a URL pointing to Ohsnap "repo_file" or "repositories" API endpoint"""
     if request_type not in ['repo_file', 'repositories']:
         raise InvalidArgumentError('Type must be one of "repo_file" or "repositories"')
@@ -46,8 +46,6 @@ def ohsnap_repo_url(ohsnap, request_type, product, release, os_release, snap='',
                 'url': f'{ohsnap.host}/api/streams',
                 'hooks': {'response': ohsnap_response_hook},
             }
-            if proxy:
-                request_query['proxies'] = {'http': proxy}
             res, _ = wait_for(
                 lambda: requests.get(**request_query),
                 handle_exception=True,
@@ -72,8 +70,8 @@ def ohsnap_repo_url(ohsnap, request_type, product, release, os_release, snap='',
     )
 
 
-def dogfood_repofile_url(ohsnap, product, release, os_release, snap='', proxy=None):
-    return ohsnap_repo_url(ohsnap, 'repo_file', product, release, os_release, snap, proxy)
+def dogfood_repofile_url(ohsnap, product, release, os_release, snap=''):
+    return ohsnap_repo_url(ohsnap, 'repo_file', product, release, os_release, snap)
 
 
 def dogfood_repository(
