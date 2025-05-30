@@ -232,3 +232,72 @@ def capsule_upgrade_integrated_sat_cap(
     setup_data.capsule = capsule_upgrade_shared_capsule
     setup_data.cap_smart_proxy = cap_smart_proxy
     return setup_data
+
+
+@pytest.fixture
+def puppet_upgrade_shared_satellite():
+    """Mark tests using this fixture with pytest.mark.puppet_upgrades"""
+    sat_instance = shared_checkout("puppet_upgrade")
+    with (
+        SharedResource(
+            "puppet_upgrade_enable_puppet",
+            action=sat_instance.enable_puppet_satellite,
+            action_is_recoverable=True,
+        ) as enable_puppet,
+        SharedResource(
+            "puppet_upgrade_satellite",
+            shared_checkin,
+            sat_instance=sat_instance,
+            action_is_recoverable=True,
+        ) as test_duration,
+    ):
+        enable_puppet.ready()
+        yield sat_instance
+        test_duration.ready()
+
+
+@pytest.fixture
+def puppet_upgrade_shared_capsule():
+    """Mark tests using this fixture with pytest.mark.puppet_upgrades"""
+    cap_instance = shared_cap_checkout("puppet_upgrade")
+    with (
+        SharedResource(
+            "puppet_upgrade_capsule",
+            shared_checkin,
+            sat_instance=cap_instance,
+            action_is_recoverable=True,
+        ) as test_duration,
+    ):
+        yield cap_instance
+        test_duration.ready()
+
+
+@pytest.fixture
+def puppet_upgrade_integrated_sat_cap(
+    puppet_upgrade_shared_satellite, puppet_upgrade_shared_capsule
+):
+    """Return a Satellite and Capsule that have been set up"""
+    setup_data = Box(
+        {
+            "satellite": None,
+            "capsule": None,
+        }
+    )
+    with (
+        SharedResource(
+            "capsule_setup",
+            action=puppet_upgrade_shared_capsule.capsule_setup,
+            sat_host=puppet_upgrade_shared_satellite,
+        ) as cap_setup,
+        SharedResource(
+            "puppet_upgrade_enable_puppet_capsule",
+            action=puppet_upgrade_shared_capsule.enable_puppet_capsule,
+            action_is_recoverable=True,
+            satellite=puppet_upgrade_shared_satellite,
+        ) as enable_puppet,
+    ):
+        cap_setup.ready()
+        enable_puppet.ready()
+    setup_data.satellite = puppet_upgrade_shared_satellite
+    setup_data.capsule = puppet_upgrade_shared_capsule
+    return setup_data
