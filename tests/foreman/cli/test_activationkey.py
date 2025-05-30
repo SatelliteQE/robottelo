@@ -1689,6 +1689,8 @@ def test_syspurpose_end_to_end(
 
     :parametrized: yes
     """
+    # Turn off sca mode
+    module_org.sca_disable()
     # Create an activation key with test values
     purpose_addons = "test-addon1, test-addon2"
     activation_key = target_sat.api.ActivationKey(
