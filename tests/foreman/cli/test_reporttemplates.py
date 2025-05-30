@@ -962,3 +962,43 @@ def test_positive_generate_installed_packages_report(
     )
     assert client.hostname in result_html
     assert FAKE_1_CUSTOM_PACKAGE in result_html
+
+
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_positive_generate_with_no_rex_interface(
+    module_org,
+    rex_contenthost,
+    target_sat,
+):
+    """Generate an report using the 'Ansible - Ansible Inventory' report template
+
+    :id: ee77f0d8-0279-4707-8f36-c7ca51f8c373
+
+    :steps:
+        1. Disable remote execution on the host interface
+        2. Generate report
+
+    :expectedresults: report successfully generated
+
+    :Verifies: SAT-33189
+
+    :customerscenario: true
+    """
+    host = target_sat.cli.Host.info({'name': rex_contenthost.hostname})
+    for host_interface in host['network-interfaces'].values():
+        result = target_sat.cli.HostInterface.update(
+            {
+                'host-id': host['id'],
+                'id': host_interface['id'],
+                'execution': 'false',
+            }
+        )
+        assert 'interface updated' in result[0]['message'].lower()
+    result_html = target_sat.cli.ReportTemplate.generate(
+        {
+            'organization': module_org.name,
+            'name': 'Ansible - Ansible Inventory',
+            'report-format': 'html',
+        }
+    )
+    assert rex_contenthost.hostname in result_html
