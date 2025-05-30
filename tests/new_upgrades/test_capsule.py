@@ -181,8 +181,8 @@ def test_post_user_scenario_capsule_sync(capsule_sync_setup):
         assert pkg in sat_files, f'{pkg=} is not in the {repo=} on satellite'
         assert pkg in cap_files, f'{pkg=} is not in the {repo=} on capsule'
 
-    sat_files_md5 = [target_sat.checksum_by_url(url) for url in sat_files_urls]
-    cap_files_md5 = [target_sat.checksum_by_url(url) for url in cap_files_urls]
+    sat_files_md5 = [target_sat.md5_by_url(url) for url in sat_files_urls]
+    cap_files_md5 = [target_sat.md5_by_url(url) for url in cap_files_urls]
     assert sat_files_md5 == cap_files_md5, 'satellite and capsule rpm md5sums are differrent'
 
 
@@ -262,6 +262,6 @@ def test_post_user_scenario_capsule_sync_yum_repo(capsule_sync_setup):
         assert pkg in sat_files, f'{pkg=} is not in the {repo=} on satellite'
         assert pkg in cap_files, f'{pkg=} is not in the {repo=} on capsule'
 
-    sat_files_md5 = [target_sat.checksum_by_url(url) for url in sat_files_urls]
-    cap_files_md5 = [target_sat.checksum_by_url(url) for url in cap_files_urls]
+    sat_files_md5 = [target_sat.md5_by_url(url) for url in sat_files_urls]
+    cap_files_md5 = [target_sat.md5_by_url(url) for url in cap_files_urls]
     assert sat_files_md5 == cap_files_md5, 'satellite and capsule rpm md5sums are differrent'
