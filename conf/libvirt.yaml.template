@@ -3,7 +3,7 @@ LIBVIRT:
   LIBVIRT_HOSTNAME:  # libvirt.example.com
   # Path on the Libvirt host, where the virtual images will be stored.
   # The default libvirt image dir will be used i.e., "/var/lib/libvirt/images/".
-  LIBVIRT_IMAGE_DIR: /var/lib/libvirt/images
+  LIBVIRT_IMAGE_PATH: /var/lib/libvirt/images/rhel8.qcow2
   # For discovery ISO
   # Discovery ISO name is required for PXE-less discovery tests. ISO's are
   # rebuilt with extra kernel options for unattended pxe-less discovery
