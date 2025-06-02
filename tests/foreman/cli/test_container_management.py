@@ -411,8 +411,10 @@ class TestDockerClient:
 
         assert module_container_contenthost.execute(podman_pull_command).status == 0
 
+    @pytest.mark.e2e
+    @pytest.mark.parametrize('gr_certs_setup', [False, True], ids=['GR-setup', 'manual-setup'])
     def test_podman_cert_auth(
-        self, request, module_target_sat, module_org, module_container_contenthost
+        self, request, module_target_sat, module_org, module_container_contenthost, gr_certs_setup
     ):
         """Verify the podman search and pull works with cert-based
         authentication without need for login.
@@ -425,7 +427,7 @@ class TestDockerClient:
             1. Create and sync a docker repo.
             2. Create a CV with the repo, publish and promote it to a LCE.
             3. Create activation key for the LCE/CV and register a content host.
-            4. Configure podman certs for authentication.
+            4. Configure podman certs for authentication (manual setup only).
             5. Try podman search all, ensure Library and repo images are not listed.
             6. Try podman search/pull for Library images, ensure it fails.
             7. Try podman search/pull for the LCE/CV, ensure it works.
@@ -462,7 +464,9 @@ class TestDockerClient:
                 'content-view-id': cv['id'],
             }
         )
-        res = host.register(module_org, None, ak['name'], sat, force=True)
+        res = host.register(
+            module_org, None, ak['name'], sat, force=True, setup_container_certs=gr_certs_setup
+        )
         assert res.status == 0
         assert host.subscribed
 
@@ -471,9 +475,10 @@ class TestDockerClient:
             host.unregister()
             host.delete_host_record()
 
-        # 4. Configure podman certs for authentication.
-        host.configure_podman_cert_auth(sat)
-        request.addfinalizer(lambda: host.reset_podman_cert_auth(sat))
+        # 4. Configure podman certs for authentication (manual setup only).
+        if not gr_certs_setup:
+            host.configure_podman_cert_auth(sat)
+            request.addfinalizer(lambda: host.reset_podman_cert_auth(sat))
 
         # 5. Try podman search all, ensure Library and repo images are not listed.
         org_prefix = f'{sat.hostname}/{module_org.label}'

@@ -652,6 +652,7 @@ class ContentHost(Host, ContentHostMixins):
         auth_username=None,
         auth_password=None,
         download_utility=None,
+        setup_container_certs=None,
     ):
         """Registers content host to the Satellite or Capsule server
         using a global registration template.
@@ -674,6 +675,7 @@ class ContentHost(Host, ContentHostMixins):
         :param hostgroup: hostgroup to register with
         :param auth_username: username required if non-admin user
         :param auth_password: password required if non-admin user
+        :param setup_container_certs: Use certificates for container registry authentication.
         :return: SSHCommandResult instance filled with the result of the registration
         """
         options = {
@@ -724,6 +726,8 @@ class ContentHost(Host, ContentHostMixins):
             options['force'] = str(force).lower()
         if download_utility is not None:
             options['download-utility'] = download_utility
+        if setup_container_certs:
+            options['setup-container-registry-certs'] = str(setup_container_certs).lower()
 
         self._satellite = target.satellite
         if auth_username and auth_password:
