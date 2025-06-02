@@ -50,8 +50,13 @@ from robottelo.constants import (
     SATELLITE_VERSION,
     SM_OVERALL_STATUS,
 )
+from robottelo.enums import NetworkType
 from robottelo.exceptions import CLIFactoryError, DownloadFileError, HostPingFailed
-from robottelo.host_helpers import CapsuleMixins, ContentHostMixins, SatelliteMixins
+from robottelo.host_helpers import (
+    CapsuleMixins,
+    ContentHostMixins,
+    SatelliteMixins,
+)
 from robottelo.logging import logger
 from robottelo.utils import validate_ssh_pub_key
 from robottelo.utils.datafactory import valid_emails_list
@@ -71,7 +76,6 @@ def lru_sat_ready_rhel(rhel_ver):
     rhel_version = rhel_ver or settings.server.version.rhel_version
     deploy_args = settings.server.deploy_arguments | {
         'deploy_rhel_version': rhel_version,
-        'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
         'deploy_flavor': settings.flavors.default,
         'workflow': settings.server.deploy_workflows.os,
     }
@@ -129,6 +133,8 @@ class ProxyHostError(Exception):
 class ContentHost(Host, ContentHostMixins):
     run = Host.execute
     default_timeout = settings.server.ssh_client.command_timeout
+    # Extend the keep_keys tuple from the parent class
+    keep_keys = (*Host.keep_keys, 'net_type', 'blank')
 
     def __init__(self, hostname, auth=None, **kwargs):
         """ContentHost object with optional ssh connection
@@ -146,9 +152,16 @@ class ContentHost(Host, ContentHostMixins):
             # key file based authentication
             kwargs.update({'key_filename': auth})
         self._satellite = kwargs.get('satellite')
-        self.ipv6 = kwargs.get('ipv6', settings.server.is_ipv6)
+        if nt := kwargs.get('net_type'):
+            self._net_type = NetworkType(nt)
         self.blank = kwargs.get('blank', False)
         super().__init__(hostname=hostname, **kwargs)
+
+    @property
+    def network_type(self):
+        if not hasattr(self, '_net_type'):
+            self._net_type = NetworkType(settings.content_host.network_type)
+        return self._net_type
 
     @classmethod
     def get_hosts_from_inventory(cls, filter):
@@ -884,19 +897,19 @@ class ContentHost(Host, ContentHostMixins):
 
     def enable_ipv6_rhsm_proxy(self):
         """Execute procedures for enabling rhsm IPv6 HTTP Proxy"""
-        if self.ipv6:
+        if not self.network_type.has_ipv4:
             url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)
 
     def enable_ipv6_dnf_proxy(self):
         """Execute procedures for enabling dnf IPv6 HTTP Proxy"""
-        if self.ipv6:
+        if not self.network_type.has_ipv4:
             url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
             self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
 
     def enable_ipv6_system_proxy(self):
         """Execute procedures for enabling IPv6 HTTP Proxy on system"""
-        if self.ipv6:
+        if not self.network_type.has_ipv4:
             self.execute(
                 f'echo "export HTTPS_PROXY={settings.http_proxy.http_proxy_ipv6_url}" >> ~/.bashrc'
             )
@@ -911,7 +924,7 @@ class ContentHost(Host, ContentHostMixins):
 
     def enable_ipv6_dnf_and_rhsm_proxy(self):
         """Execute procedures for enabling rhsm and dnf IPv6 HTTP Proxy"""
-        if self.ipv6:
+        if not self.network_type.has_ipv4:
             self.enable_ipv6_rhsm_proxy()
             self.enable_ipv6_dnf_proxy()
 
@@ -1039,7 +1052,7 @@ class ContentHost(Host, ContentHostMixins):
         # sat6 under the capsule --> certifcates or on capsule via cli "puppetserver
         # ca list", so that we sign it.
         self.execute('/opt/puppetlabs/bin/puppet agent -t')
-        proxy_host = Host(hostname=proxy_hostname, ipv6=self.ipv6)
+        proxy_host = Host(hostname=proxy_hostname, ipv6=self.network_type == NetworkType.IPV6)
         proxy_host.execute(f'puppetserver ca sign --certname {cert_name}')
 
         if run_puppet_agent:
@@ -1492,7 +1505,7 @@ class ContentHost(Host, ContentHostMixins):
         self.reset_rhsm()
 
         # Enabling proxy for IPv6
-        if self.ipv6:
+        if not self.network_type.has_ipv4:
             url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)
             self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
@@ -1607,6 +1620,10 @@ class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
     product_rpm_name = 'satellite-capsule'
     upstream_rpm_name = 'foreman-proxy'
+
+    def __init__(self, hostname, **kwargs):
+        kwargs.setdefault('net_type', settings.capsule.network_type)
+        super().__init__(hostname=hostname, **kwargs)
 
     @property
     def nailgun_capsule(self):
@@ -1855,6 +1872,7 @@ class Satellite(Capsule, SatelliteMixins):
         hostname = hostname or settings.server.hostname  # instance attr set by broker.Host
         self.omitting_credentials = False
         self.port = kwargs.get('port', settings.server.port)
+        kwargs.setdefault('net_type', settings.server.network_type)
         super().__init__(hostname=hostname, **kwargs)
         # create dummy classes for later population
         self._api = type('api', (), {'_configured': False})
@@ -2026,7 +2044,7 @@ class Satellite(Capsule, SatelliteMixins):
         """
         http_proxy_name = 'IPv4 HTTP Proxy for Content sync'
         http_proxy_url = settings.http_proxy.un_auth_proxy_url
-        if self.ipv6:
+        if not self.network_type.has_ipv4:
             http_proxy_name = 'IPv6 HTTP Proxy for Content sync'
             http_proxy_url = settings.http_proxy.http_proxy_ipv6_url
         if not self.cli.HttpProxy.exists(search=('name', http_proxy_name)):
@@ -2074,7 +2092,7 @@ class Satellite(Capsule, SatelliteMixins):
 
     def enable_satellite_ipv6_http_proxy(self):
         """Execute procedures for setting ipv6 HTTP Proxy in Satellite settings, rhsm and dnf."""
-        if self.ipv6:
+        if not self.network_type.has_ipv4:
             self.enable_satellite_http_proxy()
             self.enable_ipv6_dnf_and_rhsm_proxy()
 
@@ -2166,7 +2184,7 @@ class Satellite(Capsule, SatelliteMixins):
         )
         http_proxy = (
             f'HTTP_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
-            if settings.server.is_ipv6
+            if not self.network_type.has_ipv4
             else ''
         )
         self.execute(
@@ -2374,7 +2392,7 @@ class Satellite(Capsule, SatelliteMixins):
         # if this is an IPv6 machine, we'll probably get a hostname
         # that is TOOOO LOOOONG for Active Directory which can only count to 15
         hostname_changed = False
-        if settings.server.is_ipv6:
+        if self.network_type == NetworkType.IPV6:
             original_shortname = self.execute('hostname -s').stdout.strip()
             if len(original_shortname) > 15:
                 hostname_changed = True
@@ -2424,7 +2442,7 @@ class Satellite(Capsule, SatelliteMixins):
         )
         # if this is an IPv6 only machine, also add
         # a line that fixes: https://github.com/SSSD/sssd/issues/3057
-        if settings.server.is_ipv6:
+        if self.network_type == NetworkType.IPV6:
             assert (
                 self.execute(
                     f'sed -i "{line_number + 1}i lookup_family_order = ipv6_only" /etc/sssd/sssd.conf'
@@ -2574,7 +2592,6 @@ class SSOHost(Host):
 
     def __init__(self, sat_obj, **kwargs):
         self.satellite = sat_obj
-        kwargs['ipv6'] = kwargs.get('ipv6', settings.server.is_ipv6)
         super().__init__(**kwargs)
 
     def get_sso_client_id(self):
@@ -2767,7 +2784,6 @@ class IPAHost(Host):
     def __init__(self, sat_obj, **kwargs):
         self.satellite = sat_obj
         kwargs['hostname'] = kwargs.get('hostname', settings.ipa.hostname)
-        kwargs['ipv6'] = kwargs.get('ipv6', settings.server.is_ipv6)
         # Allow the class to be constructed from kwargs
         kwargs['from_dict'] = True
         kwargs.update(
@@ -2819,7 +2835,7 @@ class IPAHost(Host):
 
         # if this is an IPv6 only machine, also add
         # a line that fixes: https://github.com/SSSD/sssd/issues/3057
-        if settings.server.is_ipv6:
+        if self.satellite.network_type == NetworkType.IPV6:
             line_number = int(
                 self.satellite.execute(
                     "awk -v search='domain/' '$0~search{print NR; exit}' /etc/sssd/sssd.conf"
@@ -2889,7 +2905,6 @@ class ProxyHost(Host):
         self._conf_dir = '/etc/squid/'
         self._access_log = '/var/log/squid/access.log'
         kwargs['hostname'] = urlparse(url).hostname
-        kwargs['ipv6'] = kwargs.get('ipv6', settings.server.is_ipv6)
         super().__init__(**kwargs)
 
     def add_user(self, name, passwd):

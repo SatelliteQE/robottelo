@@ -58,7 +58,7 @@ class TestTemplateSyncTestCase:
         # Download the Test Template in test running folder
         proxy_options = (
             f"-e use_proxy=yes -e https_proxy={settings.http_proxy.http_proxy_ipv6_url}"
-            if settings.server.is_ipv6
+            if not module_target_sat.network_type.has_ipv4
             else ""
         )
         module_target_sat.execute(
