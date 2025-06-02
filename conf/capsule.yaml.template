@@ -11,10 +11,13 @@ CAPSULE:
     SOURCE: "internal"
     # The base os rhel version where the capsule installed
     # RHEL_VERSION:
+  # Network type on which the Satellite Capsule server is deployed
+  # could be one of ["ipv4", "ipv6", "dualstack"]
+  NETWORK_TYPE: '@jinja {{ this.server.network_type }}'
   # The Ansible Tower workflow used to deploy a capsule
   DEPLOY_WORKFLOWS:
     PRODUCT: deploy-capsule  # workflow to deploy OS with product running on top of it
     OS: deploy-rhel  # workflow to deploy OS that is ready to run the product
   # Dictionary of arguments which should be passed along to the deploy workflow
   DEPLOY_ARGUMENTS:
-    deploy_network_type: '@jinja {{"ipv6" if this.server.is_ipv6 else "ipv4"}}'
+    deploy_network_type: '@format {this.capsule.network_type}'
