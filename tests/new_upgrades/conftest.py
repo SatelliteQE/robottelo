@@ -29,7 +29,14 @@ def log(message, level="DEBUG"):
 def pytest_configure(config):
     """Register custom markers to avoid warnings."""
     markers = [
-        "content_upgrades: Upgrade tests that run under .",
+        "content_upgrades: Content upgrade tests that use SharedResource.",
+        "search_upgrades: Search upgrade tests that use SharedResource.",
+        "hostgroup_upgrades: Host group upgrade tests that use SharedResource.",
+        "errata_upgrades: Errata upgrade tests that use SharedResource.",
+        "perf_tuning_upgrades: Performance tuning upgrade tests that use SharedResource.",
+        "discovery_upgrades: Discovery upgrade tests that use SharedResource.",
+        "capsule_upgrades: Capsule upgrade tests that use SharedResource.",
+        "puppet_upgrades: Puppet upgrade tests that use SharedResource.",
     ]
     for marker in markers:
         config.addinivalue_line("markers", marker)
