@@ -50,8 +50,13 @@ from robottelo.constants import (
     SATELLITE_VERSION,
     SM_OVERALL_STATUS,
 )
+from robottelo.enums import NetworkType
 from robottelo.exceptions import CLIFactoryError, DownloadFileError, HostPingFailed
-from robottelo.host_helpers import CapsuleMixins, ContentHostMixins, SatelliteMixins
+from robottelo.host_helpers import (
+    CapsuleMixins,
+    ContentHostMixins,
+    SatelliteMixins,
+)
 from robottelo.logging import logger
 from robottelo.utils import validate_ssh_pub_key
 from robottelo.utils.datafactory import valid_emails_list
@@ -71,7 +76,6 @@ def lru_sat_ready_rhel(rhel_ver):
     rhel_version = rhel_ver or settings.server.version.rhel_version
     deploy_args = settings.server.deploy_arguments | {
         'deploy_rhel_version': rhel_version,
-        'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
         'deploy_flavor': settings.flavors.default,
         'workflow': settings.server.deploy_workflows.os,
     }
@@ -129,6 +133,8 @@ class ProxyHostError(Exception):
 class ContentHost(Host, ContentHostMixins):
     run = Host.execute
     default_timeout = settings.server.ssh_client.command_timeout
+    # Extend the keep_keys tuple from the parent class
+    keep_keys = (*Host.keep_keys, 'net_type', 'blank')
 
     def __init__(self, hostname, auth=None, **kwargs):
         """ContentHost object with optional ssh connection
@@ -146,8 +152,16 @@ class ContentHost(Host, ContentHostMixins):
             # key file based authentication
             kwargs.update({'key_filename': auth})
         self._satellite = kwargs.get('satellite')
+        if nt := kwargs.get('net_type'):
+            self._net_type = NetworkType(nt)
         self.blank = kwargs.get('blank', False)
         super().__init__(hostname=hostname, **kwargs)
+
+    @property
+    def network_type(self):
+        if not hasattr(self, '_net_type'):
+            self._net_type = NetworkType(settings.content_host.network_type)
+        return self._net_type
 
     @classmethod
     def get_hosts_from_inventory(cls, filter):
@@ -885,7 +899,7 @@ class ContentHost(Host, ContentHostMixins):
 
     def enable_ipv6_dnf_and_rhsm_proxy(self):
         """Execute procedures for enabling rhsm and dnf IPv6 HTTP Proxy"""
-        if self.ipv6:
+        if not self.network_type.has_ipv4:
             url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)
             self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
@@ -1466,7 +1480,7 @@ class ContentHost(Host, ContentHostMixins):
         self.reset_rhsm()
 
         # Enabling proxy for IPv6
-        if self.ipv6:
+        if not self.network_type.has_ipv4:
             url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)
             self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
@@ -1581,6 +1595,10 @@ class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
     product_rpm_name = 'satellite-capsule'
     upstream_rpm_name = 'foreman-proxy'
+
+    def __init__(self, hostname, **kwargs):
+        kwargs.setdefault('net_type', settings.capsule.network_type)
+        super().__init__(hostname=hostname, **kwargs)
 
     @property
     def nailgun_capsule(self):
@@ -1829,6 +1847,7 @@ class Satellite(Capsule, SatelliteMixins):
         hostname = hostname or settings.server.hostname  # instance attr set by broker.Host
         self.omitting_credentials = False
         self.port = kwargs.get('port', settings.server.port)
+        kwargs.setdefault('net_type', settings.server.network_type)
         super().__init__(hostname=hostname, **kwargs)
         # create dummy classes for later population
         self._api = type('api', (), {'_configured': False})
@@ -2000,7 +2019,7 @@ class Satellite(Capsule, SatelliteMixins):
         """
         http_proxy_name = 'IPv4 HTTP Proxy for Content sync'
         http_proxy_url = settings.http_proxy.un_auth_proxy_url
-        if self.ipv6:
+        if not self.network_type.has_ipv4:
             http_proxy_name = 'IPv6 HTTP Proxy for Content sync'
             http_proxy_url = settings.http_proxy.http_proxy_ipv6_url
         if not self.cli.HttpProxy.exists(search=('name', http_proxy_name)):
@@ -2048,7 +2067,7 @@ class Satellite(Capsule, SatelliteMixins):
 
     def enable_satellite_ipv6_http_proxy(self):
         """Execute procedures for setting ipv6 HTTP Proxy in Satellite settings, rhsm and dnf."""
-        if self.ipv6:
+        if not self.network_type.has_ipv4:
             self.enable_satellite_http_proxy()
             self.enable_ipv6_dnf_and_rhsm_proxy()
 
@@ -2140,7 +2159,7 @@ class Satellite(Capsule, SatelliteMixins):
         )
         http_proxy = (
             f'HTTP_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
-            if settings.server.is_ipv6
+            if not self.network_type.has_ipv4
             else ''
         )
         self.execute(
@@ -2467,7 +2486,6 @@ class SSOHost(Host):
 
     def __init__(self, sat_obj, **kwargs):
         self.satellite = sat_obj
-        kwargs['ipv6'] = kwargs.get('ipv6', settings.server.is_ipv6)
         super().__init__(**kwargs)
 
     def get_sso_client_id(self):
