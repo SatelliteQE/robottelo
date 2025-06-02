@@ -13,8 +13,8 @@ SERVER:
     SOURCE: "internal"
     # The RHEL Base OS Version(x.y) where the Satellite is installed
     RHEL_VERSION: '8'
-  # If the the satellite server is IPv6 server
-  IS_IPV6: False
+  # Network type on which the Satellite server deployed
+  NETWORK_TYPE: ipv4  # could be one of ["ipv4", "ipv6", "dualstack"]
   # run-on-one - All xdist runners default to the first satellite
   # balance - xdist runners will be split between available satellites
   # on-demand - any xdist runner without a satellite will have a new one provisioned.
@@ -34,7 +34,7 @@ SERVER:
     OS: deploy-rhel  # workflow to deploy OS that is ready to run the product
   # Dictionary of arguments which should be passed along to the deploy workflow
   # DEPLOY_ARGUMENTS:
-  #  deploy_network_type: '@jinja {{"ipv6" if this.server.is_ipv6 else "ipv4"}}'
+  #  deploy_network_type: '@format { this.server.network_type }'
   # HTTP scheme when building the server URL
   # Suggested values for "scheme" are "http" and "https".
   SCHEME: https
