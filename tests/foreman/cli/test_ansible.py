@@ -235,7 +235,7 @@ class TestAnsibleCfgMgmt:
         for path in ['/etc/ansible/collections', '/usr/share/ansible/collections']:
             http_proxy = (
                 f'HTTPS_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
-                if settings.server.is_ipv6
+                if not target_sat.network_type.has_ipv4
                 else ''
             )
             assert (

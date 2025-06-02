@@ -16,6 +16,7 @@ from fauxfactory import gen_ipaddr, gen_mac, gen_string
 import pytest
 
 from robottelo.config import settings
+from robottelo.enums import NetworkType
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -27,7 +28,7 @@ from robottelo.utils.issue_handlers import is_open
         'os::family',
         'system_uptime::seconds',
         'memory::system::total',
-        'networking::ip6' if settings.server.is_ipv6 else 'networking::ip',
+        'networking::ip6' if settings.server.network_type == NetworkType.IPV6 else 'networking::ip',
     ],
 )
 def test_positive_list_by_name(fact, module_target_sat):
