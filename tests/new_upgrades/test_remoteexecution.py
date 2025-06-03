@@ -39,6 +39,7 @@ def remote_execution_external_capsule_setup(
 
     """
     target_sat = capsule_upgrade_integrated_sat_cap.satellite
+    rhel_contenthost._satellite = target_sat
     capsule = capsule_upgrade_integrated_sat_cap.capsule
     cap_smart_proxy = capsule_upgrade_integrated_sat_cap.cap_smart_proxy
     with (
