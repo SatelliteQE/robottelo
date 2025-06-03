@@ -421,7 +421,9 @@ class TestDockerClient:
 
         :id: 7b1a457c-ae67-4a76-9f67-9074ea7f858a
 
-        :Verifies: SAT-33255
+        :parametrized: yes
+
+        :Verifies: SAT-33254, SAT-33255
 
         :steps:
             1. Create and sync a docker repo.
