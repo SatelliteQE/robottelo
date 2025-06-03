@@ -8,7 +8,7 @@ def get_client(
     username=None,
     password=None,
     port=22,
-    ipv6=None,
+    net_type=None,
 ):
     """Returns a host object that provides an ssh connection
 
@@ -23,7 +23,8 @@ def get_client(
         username=username or settings.server.ssh_username,
         password=password or settings.server.ssh_password,
         port=port or settings.server.ssh_client.port,
-        ipv6=ipv6 or settings.server.is_ipv6,
+        # TODO(ogajduse): we better get rid of the ssh module entirely
+        net_type=net_type or settings.server.network_type,
     )
 
 
@@ -35,7 +36,7 @@ def command(
     password=None,
     timeout=None,
     port=22,
-    ipv6=None,
+    net_type=None,
 ):
     """Executes SSH command(s) on remote hostname.
 
@@ -51,7 +52,7 @@ def command(
         username=username,
         password=password,
         port=port,
-        ipv6=ipv6,
+        net_type=net_type,
     )
     result = client.execute(cmd, timeout=timeout)
 
