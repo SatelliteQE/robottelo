@@ -94,6 +94,7 @@ def vm(
     return module_rhel_contenthost
 
 
+@pytest.mark.skip_if_open('SAT-31619')
 @pytest.mark.pit_client
 @pytest.mark.pit_server
 @pytest.mark.rhel_ver_match('9')
@@ -135,6 +136,7 @@ def test_positive_list_installable_updates(vm, module_target_sat):
     assert REAL_RHEL9_PACKAGE in applicable_packages[0]['filename']
 
 
+@pytest.mark.skip_if_open('SAT-31619')
 @pytest.mark.upgrade
 @pytest.mark.pit_client
 @pytest.mark.pit_server
