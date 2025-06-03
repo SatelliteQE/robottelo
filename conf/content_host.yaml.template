@@ -1,5 +1,7 @@
 content_host:
   default_rhel_version: 7
+  attributes:
+    network_type: dualstack  # could be one of ["ipv4", "ipv6", "dualstack"]
   rhel6:
     vm:
       workflow: deploy-base-rhel
