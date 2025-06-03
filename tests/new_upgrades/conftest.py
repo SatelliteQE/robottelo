@@ -4,8 +4,8 @@ This module is intended to be used for upgrade tests that have a single run stag
 
 import datetime
 import json
-from tempfile import mkstemp
 import os
+from tempfile import mkstemp
 
 from box import Box
 from broker import Broker
@@ -70,26 +70,6 @@ def shared_checkout(shared_name):
             '@inv._broker_args.workflow == "deploy-satellite"'
         )
     return sat_instance[0]
-
-
-def shared_cap_checkout(shared_name):
-    cap_inst = Broker(
-        workflow=settings.CAPSULE.deploy_workflows.product,
-        deploy_sat_version=settings.UPGRADE.FROM_VERSION,
-        host_class=Capsule,
-        upgrade_group=f'{shared_name}_shared_checkout',
-    )
-    with SharedResource(
-        resource_name=f'{shared_name}_cap_checkout',
-        action=cap_inst.checkout,
-        action_validator=lambda result: isinstance(result, Capsule),
-    ) as cap_checkout:
-        cap_checkout.ready()
-        cap_instance = cap_inst.from_inventory(
-            filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
-            '@inv._broker_args.workflow == "deploy-capsule"'
-        )
-    return cap_instance[0]
 
 
 def shared_cap_checkout(shared_name):
