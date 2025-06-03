@@ -307,7 +307,7 @@ def get_deploy_args(request):
     rhel_version = get_sat_rhel_version()
     deploy_args = {
         'deploy_rhel_version': rhel_version.base_version,
-        'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
+        'deploy_network_type': settings.server.network_type,
         'deploy_flavor': settings.flavors.default,
         'workflow': settings.server.deploy_workflows.os,
     }
@@ -342,7 +342,6 @@ def cap_ready_rhel():
     rhel_version = Version(settings.capsule.version.rhel_version)
     deploy_args = settings.capsule.deploy_arguments | {
         'deploy_rhel_version': rhel_version.base_version,
-        'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
         'deploy_flavor': settings.flavors.default,
         'workflow': settings.capsule.deploy_workflows.os,
     }
