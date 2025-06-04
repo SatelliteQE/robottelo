@@ -398,7 +398,7 @@ def test_global_registration_with_gpg_repo_and_default_package(
                 'general.activation_keys': module_activation_key.name,
                 'general.insecure': True,
                 'advanced.force': True,
-                'advanced.install_packages': 'mlocate zsh',
+                'advanced.install_packages': 'vim-enhanced zsh',
                 'advanced.repository': repo_url,
                 'advanced.repository_gpg_key_url': repo_gpg_url,
             }
@@ -408,7 +408,7 @@ def test_global_registration_with_gpg_repo_and_default_package(
     # syncing it to the satellite would take too long
     rhelver = client.os_version.major
     if rhelver > 7:
-        repos = {f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']['baseos']}
+        repos = settings.repos[f'rhel{rhelver}_os']
     else:
         repos = {
             'rhel7_os': settings.repos['rhel7_os'],
@@ -418,9 +418,9 @@ def test_global_registration_with_gpg_repo_and_default_package(
     # run curl
     result = client.execute(cmd)
     assert result.status == 0
-    result = client.execute('yum list installed | grep mlocate')
+    result = client.execute('dnf list installed | grep -E "vim-enhanced|zsh"')
     assert result.status == 0
-    assert 'mlocate' in result.stdout
+    assert all(pkg in result.stdout for pkg in ['vim-enhanced', 'zsh'])
     result = client.execute('yum -v repolist')
     assert result.status == 0
     assert repo_name in result.stdout
