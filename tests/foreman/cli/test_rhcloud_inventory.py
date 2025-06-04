@@ -18,7 +18,8 @@ import time
 import pytest
 from wait_for import wait_for
 
-from robottelo.config import robottelo_tmp_dir
+from robottelo.config import robottelo_tmp_dir, settings
+from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.io import get_local_file_data, get_remote_report_checksum
 
 inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
@@ -421,3 +422,124 @@ def test_positive_check_report_autosync_setting(target_sat):
         ]
         == 'true'
     ), 'Setting is not enabled by default!'
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('N-0')
+def test_positive_install_iop_custom_certs(
+    certs_data,
+    sat_ready_rhel,
+    module_sca_manifest,
+    rhel_contenthost,
+):
+    """Install Satellite + IoP with custom SSL certs.
+
+    :id: 9528fc93-822d-461e-af84-283dfdc0043f
+
+    :steps:
+
+        1. Generate the custom certs on RHEL machine
+        2. Install Satellite and IoP with custom certs
+        3. Assert success return code from satellite-installer
+        4. Assert all services are running
+        5. Register client to Satellite and upload insights-client data
+        6. Assert success return code from insights-client
+
+    :expectedresults: Satellite should be installed using the custom certs.
+
+    :CaseAutomation: Automated
+    """
+    satellite = sat_ready_rhel
+    host = rhel_contenthost
+    iop_settings = settings.rh_cloud.iop_advisor_engine
+
+    # Set IPv6 system proxy on Satellite, to reach container registry
+    satellite.enable_ipv6_system_proxy()
+
+    # Set IPv6 dnf proxy on Content Host, to install insights-client from non-Satellite source
+    host.enable_ipv6_dnf_proxy()
+
+    # Install satellite packages
+    satellite.download_repofile(
+        product='satellite',
+        release=settings.server.version.release,
+        snap=settings.server.version.snap,
+    )
+    satellite.register_to_cdn()
+    satellite.execute('dnf -y update')
+    satellite.execute('dnf -y install podman')
+    satellite.install_satellite_or_capsule_package()
+
+    # Set up firewall
+    result = satellite.execute(
+        "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
+    )
+    assert result.status == 0, "firewalld is not present and can't be installed"
+
+    result = satellite.execute(
+        command='firewall-cmd --add-port="53/udp" --add-port="53/tcp" --add-port="67/udp" '
+        '--add-port="69/udp" --add-port="80/tcp" --add-port="443/tcp" '
+        '--add-port="5647/tcp" --add-port="8000/tcp" --add-port="9090/tcp" '
+        '--add-port="8140/tcp"'
+    )
+    assert result.status == 0
+
+    result = satellite.execute(command='firewall-cmd --runtime-to-permanent')
+    assert result.status == 0
+
+    # Log in to container registry
+    result = satellite.execute(
+        f'podman login -u {iop_settings.username!r} -p {iop_settings.token!r} {iop_settings.registry}'
+    )
+    assert result.status == 0, f'Error logging in to container registry: {result.stdout}'
+
+    # Configure installer to use image if not the default, then pull the image
+    satellite.execute(
+        f"""echo "iop_advisor_engine::image: '{iop_settings.registry}/{iop_settings.image_path}'" >> /etc/foreman-installer/custom-hiera.yaml"""
+    )
+    satellite.execute(f'podman pull {iop_settings.registry}/{iop_settings.image_path}')
+
+    command = InstallerCommand(
+        'certs-update-server',
+        'certs-update-server-ca',
+        scenario='satellite',
+        certs_server_cert=f'/root/{certs_data["cert_file_name"]}',
+        certs_server_key=f'/root/{certs_data["key_file_name"]}',
+        certs_server_ca_cert=f'/root/{certs_data["ca_bundle_file_name"]}',
+        foreman_initial_admin_password=settings.server.admin_password,
+        foreman_plugin_rh_cloud_enable_iop_advisor_engine='true',
+    ).get_command()
+
+    result = satellite.execute(command, timeout='30m')
+    assert result.status == 0
+
+    result = satellite.execute('hammer ping')
+    assert result.stdout.count('Status:') == result.stdout.count(' ok')
+
+    # Assert all services are running
+    result = satellite.execute('satellite-maintain health check --label services-up -y')
+    assert result.status == 0, 'Not all services are running'
+
+    org = satellite.api.Organization().create()
+    satellite.upload_manifest(org.id, module_sca_manifest.content)
+
+    activation_key = satellite.api.ActivationKey(
+        content_view=org.default_content_view,
+        organization=org,
+        environment=satellite.api.LifecycleEnvironment(id=org.library.id),
+        service_level='Self-Support',
+        purpose_usage='test-usage',
+        purpose_role='test-role',
+        auto_attach=False,
+    ).create()
+
+    host.configure_rex(satellite=satellite, org=org, register=False)
+    host.configure_insights_client(
+        satellite=satellite,
+        activation_key=activation_key,
+        org=org,
+        rhel_distro=f"rhel{host.os_version.major}",
+    )
+
+    result = host.execute('insights-client')
+    assert result.status == 0, 'insights-client upload failed'
