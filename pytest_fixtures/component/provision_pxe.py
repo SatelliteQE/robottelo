@@ -223,7 +223,7 @@ def provisioning_host(module_ssh_key_file, pxe_loader, module_provisioning_sat):
     """Fixture to check out blank VM"""
     if (
         pxe_loader.vm_firmware == 'bios'
-        and module_provisioning_sat.network_type == NetworkType.IPV6
+        and module_provisioning_sat.sat.network_type == NetworkType.IPV6
     ):
         pytest.skip('BIOS is not supported with IPv6')
     vlan_id = settings.provisioning.vlan_id
@@ -275,7 +275,7 @@ def provisioning_hostgroup(
     module_provisioning_capsule,
     pxe_loader,
 ):
-    sat_ipv6 = module_provisioning_sat.network_type == NetworkType.IPV6
+    sat_ipv6 = module_provisioning_sat.sat.network_type == NetworkType.IPV6
     return module_provisioning_sat.sat.api.HostGroup(
         organization=[module_sca_manifest_org],
         location=[module_location],
@@ -363,7 +363,7 @@ def configure_secureboot_provisioning(
     if (
         int(rhel_ver) > sat.os_version.major
         and pxe_loader.vm_firmware == 'uefi_secure_boot'
-        and module_provisioning_sat.network_type != NetworkType.IPV6
+        and module_provisioning_sat.sat.network_type != NetworkType.IPV6
     ):
         # Set the path for the shim and GRUB2 binaries for the OS of host
         bootloader_path = '/var/lib/tftpboot/bootloader-universe/pxegrub2/redhat/default/x86_64'
