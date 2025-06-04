@@ -782,6 +782,7 @@ def test_positive_repair_artifacts(
 
 
 @pytest.mark.e2e
+@pytest.mark.rhel_ver_match('9')
 @pytest.mark.parametrize('function_flatpak_remote', ['RedHat'], indirect=True)
 @pytest.mark.parametrize('setting_update', ['foreman_proxy_content_auto_sync=True'], indirect=True)
 def test_sync_consume_flatpak_repo_via_library(

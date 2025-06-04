@@ -1343,6 +1343,7 @@ class TestContentViewSync:
         assert 'content_view not found' in error.value.message, 'The imported CV should be gone'
 
     @pytest.mark.e2e
+    @pytest.mark.rhel_ver_match('9')
     @pytest.mark.parametrize('function_flatpak_remote', ['RedHat'], indirect=True)
     def test_postive_export_import_cv_with_mixed_content_repos(
         self,
