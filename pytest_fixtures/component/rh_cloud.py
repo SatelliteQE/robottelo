@@ -36,6 +36,9 @@ def module_target_sat_insights(request, module_target_sat, satellite_factory):
         iop_settings = settings.rh_cloud.iop_advisor_engine
         script = (iop_settings.setup_script or '').splitlines()
 
+        # Use HTTPS_PROXY to reach container registry for IPv6
+        satellite.enable_ipv6_system_proxy()
+
         # Log in to container registry
         if iop_settings.registry and iop_settings.username and iop_settings.token:
             cmd_result = satellite.execute(

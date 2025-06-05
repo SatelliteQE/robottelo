@@ -50,7 +50,7 @@ def test_positive_eol_banner_e2e(session, target_sat, test_name):
         5. Check non-admin users can't see error banner
         6. Dismiss banner
 
-    :verifies: SAT-29427
+    :Verifies: SAT-29427
 
     :expectedresults: Banner shows up when it should
     """

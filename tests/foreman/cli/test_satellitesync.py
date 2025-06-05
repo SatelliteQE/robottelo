@@ -1546,9 +1546,13 @@ class TestContentViewSync:
             {
                 'organization': function_import_org_at_isat.name,
                 'job-template': 'Flatpak - Install application on host',
-                'inputs': f'Flatpak remote name={remote_name}, Application name={app_name}',
+                'inputs': (
+                    f'Flatpak remote name={remote_name}, Application name={app_name}, '
+                    'Launch a session bus instance=true'
+                ),
                 'search-query': f"name = {module_flatpak_contenthost.hostname}",
-            }
+            },
+            timeout='800s',
         )
         res = module_import_sat.cli.JobInvocation.info({'id': job.id})
         assert 'succeeded' in res['status']
@@ -2922,31 +2926,25 @@ class TestInterSatelliteSync:
     @pytest.mark.pit_client
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-    @pytest.mark.parametrize(
-        'function_synced_rh_repo',
-        ['rhsclient9'],
-        indirect=True,
-    )
     def test_positive_export_import_consume_incremental_yum_repo(
         self,
         target_sat,
         export_import_cleanup_function,
         config_export_import_settings,
-        function_sca_manifest_org,
-        function_import_org_with_manifest,
-        function_synced_rh_repo,
+        function_org,
+        function_import_org,
+        function_synced_custom_repo,
         rhel_contenthost,
     ):
-        """Export and import RH yum repo incrementally and consume it on a content host.
+        """Export and import custom repo incrementally and consume it on a content host.
 
         :id: f5515168-c3c9-4351-9f83-ba6265689db3
 
         :setup:
-            1. Enabled and synced RH yum repository (RH Satellite Client for this case).
-            2. An unregistered RHEL8 host.
+            1. Enabled and synced custom yum repository.
 
         :steps:
-            1. Create a CV with the RH yum repository.
+            1. Create a CV with the yum repository.
             2. Add exclude RPM filter to filter out one package, publish version 1 and export it.
             3. On the importing side import version 1, check the package count.
             4. Create an AK with the imported CV, register the content host and check
@@ -2967,13 +2965,13 @@ class TestInterSatelliteSync:
         # Create a CV with the RH yum repository.
         exp_cv = target_sat.cli_factory.make_content_view(
             {
-                'organization-id': function_sca_manifest_org.id,
-                'repository-ids': [function_synced_rh_repo['id']],
+                'organization-id': function_org.id,
+                'repository-ids': [function_synced_custom_repo['id']],
             }
         )
 
         # Add exclude RPM filter to filter out one package, publish version 1 and export it.
-        filtered_pkg = 'katello-host-tools'
+        filtered_pkg = 'dog'
         cvf = target_sat.cli_factory.make_content_view_filter(
             {'content-view-id': exp_cv['id'], 'type': 'rpm'}
         )
@@ -2986,17 +2984,15 @@ class TestInterSatelliteSync:
         cvv_1 = exp_cv['versions'][0]
         pkg_cnt_1 = target_sat.api.ContentViewVersion(id=cvv_1['id']).read().package_count
         export_1 = target_sat.cli.ContentExport.completeVersion({'id': cvv_1['id']})
-        assert '1.0' in target_sat.validate_pulp_filepath(
-            function_sca_manifest_org, PULP_EXPORT_DIR
-        )
+        assert '1.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
         # On the importing side import version 1, check the package count.
-        import_path1 = target_sat.move_pulp_archive(function_sca_manifest_org, export_1['message'])
+        import_path1 = target_sat.move_pulp_archive(function_org, export_1['message'])
         target_sat.cli.ContentImport.version(
-            {'organization-id': function_import_org_with_manifest.id, 'path': import_path1}
+            {'organization-id': function_import_org.id, 'path': import_path1}
         )
         imp_cv = target_sat.cli.ContentView.info(
-            {'name': exp_cv['name'], 'organization-id': function_import_org_with_manifest.id}
+            {'name': exp_cv['name'], 'organization-id': function_import_org.id}
         )
         assert len(imp_cv['versions']) == 1
         imp_cvv = imp_cv['versions'][0]
@@ -3008,19 +3004,24 @@ class TestInterSatelliteSync:
             {
                 'content-view': exp_cv['name'],
                 'lifecycle-environment': ENVIRONMENT,
-                'organization-id': function_import_org_with_manifest.id,
+                'organization-id': function_import_org.id,
             }
         )
+        repo_content_label = target_sat.cli.Repository.info(
+            {
+                'name': function_synced_custom_repo['name'],
+                'product': function_synced_custom_repo['product']['name'],
+                'organization-id': function_import_org.id,
+            }
+        )['content-label']
         target_sat.cli.ActivationKey.content_override(
             {
                 'id': ak.id,
-                'content-label': function_synced_rh_repo['content-label'],
+                'content-label': repo_content_label,
                 'value': 'true',
             }
         )
-        res = rhel_contenthost.register(
-            function_import_org_with_manifest, None, ak.name, target_sat
-        )
+        res = rhel_contenthost.register(function_import_org, None, ak.name, target_sat)
         assert res.status == 0, (
             f'Failed to register host: {rhel_contenthost.hostname}\n'
             f'StdOut: {res.stdout}\nStdErr: {res.stderr}'
@@ -3051,24 +3052,33 @@ class TestInterSatelliteSync:
         pkg_cnt_2 = target_sat.api.ContentViewVersion(id=cvv_2['id']).read().package_count
         assert pkg_cnt_2 > pkg_cnt_1
         export_2 = target_sat.cli.ContentExport.incrementalVersion({'id': cvv_2['id']})
-        assert '2.0' in target_sat.validate_pulp_filepath(
-            function_sca_manifest_org, PULP_EXPORT_DIR
-        )
+        assert '2.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
         # Import version 2, check the package count.
-        import_path2 = target_sat.move_pulp_archive(function_sca_manifest_org, export_2['message'])
+        import_path2 = target_sat.move_pulp_archive(function_org, export_2['message'])
         target_sat.cli.ContentImport.version(
-            {'organization-id': function_import_org_with_manifest.id, 'path': import_path2}
+            {'organization-id': function_import_org.id, 'path': import_path2}
         )
         imp_cv = target_sat.cli.ContentView.info(
-            {'name': exp_cv['name'], 'organization-id': function_import_org_with_manifest.id}
+            {'name': exp_cv['name'], 'organization-id': function_import_org.id}
         )
         assert len(imp_cv['versions']) == 2
         imp_cvv = max(imp_cv['versions'], key=lambda x: int(x['id']))
+
+        # Get actual package count from export organization
+        package_count = int(
+            target_sat.cli.Repository.info(
+                {
+                    'name': function_synced_custom_repo['name'],
+                    'product': function_synced_custom_repo['product']['name'],
+                    'organization-id': function_org.id,
+                }
+            )['content-counts']['packages']
+        )
         assert (
             target_sat.api.ContentViewVersion(id=imp_cvv['id']).read().package_count
             == pkg_cnt_2
-            == int(function_synced_rh_repo['content-counts']['packages'])
+            == package_count
         ), 'Unexpected package count after second import'
 
         # Check the package count available to install on the content host.
