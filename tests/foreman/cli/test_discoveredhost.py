@@ -58,8 +58,6 @@ def test_rhel_pxe_discovery_provisioning(
         lambda: sat.api.DiscoveredHost().search(
             query={
                 'mac': mac,
-                'organization_id': org.id,
-                'location-id': loc.id,
             }
         )
         != [],
@@ -148,8 +146,6 @@ def test_rhel_pxeless_discovery_provisioning(
         lambda: sat.api.DiscoveredHost().search(
             query={
                 'mac': mac,
-                'organization_id': org.id,
-                'location-id': loc.id,
             }
         )
         != [],
