@@ -317,7 +317,7 @@ def test_end_to_end(
 
     :parametrized: yes
 
-    :verifies: SAT-23414, SAT-7998
+    :Verifies: SAT-23414, SAT-7998
 
     :customerscenario: true
     """
@@ -880,7 +880,9 @@ def test_positive_apply_for_all_hosts(
         workflow='deploy-template',
         host_class=ContentHost,
         _count=num_hosts,
-        deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
+        # TODO(@SatelliteQE/team-phoenix): this is best effort for dualstack. This host deployment
+        # should be a part of a fixture
+        deploy_network_type=settings.content_host.network_type,
     ) as hosts:
         if not isinstance(hosts, list) or len(hosts) != num_hosts:
             pytest.fail('Failed to provision the expected number of hosts.')

@@ -351,7 +351,7 @@ def test_positive_content_counts_granularity(
 
     :parametrized: yes
 
-    :verifies: SAT-28337
+    :Verifies: SAT-28337
 
     :setup:
         1. Satellite with registered external Capsule.
@@ -717,7 +717,7 @@ def test_positive_repair_artifacts(
         2. All variants of verify_checksum task are able to repair all types of damage for all
            supported content types.
 
-    :verifies: SAT-16330
+    :Verifies: SAT-16330
 
     :customerscenario: true
 
@@ -902,9 +902,13 @@ def test_sync_consume_flatpak_repo_via_library(
         {
             'organization': function_org.name,
             'job-template': 'Flatpak - Install application on host',
-            'inputs': f'Flatpak remote name={remote_name}, Application name={app_name}',
+            'inputs': (
+                f'Flatpak remote name={remote_name}, Application name={app_name}, '
+                'Launch a session bus instance=true'
+            ),
             'search-query': f"name = {host.hostname}",
-        }
+        },
+        timeout='800s',
     )
     res = module_target_sat.cli.JobInvocation.info({'id': job.id})
     assert 'succeeded' in res['status']

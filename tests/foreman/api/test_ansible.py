@@ -17,7 +17,7 @@ from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
 
-from robottelo.config import settings, user_nailgun_config
+from robottelo.config import robottelo_tmp_dir, settings, user_nailgun_config
 from robottelo.hosts import ContentHost
 from robottelo.utils.issue_handlers import is_open
 
@@ -84,7 +84,7 @@ class TestAnsibleCfgMgmt:
         """
         http_proxy = (
             f'HTTPS_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
-            if settings.server.is_ipv6
+            if not target_sat.network_type.has_ipv4
             else ''
         )
         assert (
@@ -438,19 +438,19 @@ class TestAnsibleREX:
                 'host_class': ContentHost,
                 'workflow': settings.server.deploy_workflows.os,
                 'deploy_rhel_version': '9',
-                'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
+                'deploy_network_type': settings.server.network_type,
             },
             rhel8={
                 'host_class': ContentHost,
                 'workflow': settings.server.deploy_workflows.os,
                 'deploy_rhel_version': '8',
-                'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
+                'deploy_network_type': settings.server.network_type,
             },
             rhel7={
                 'host_class': ContentHost,
                 'workflow': settings.server.deploy_workflows.os,
                 'deploy_rhel_version': '7',
-                'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
+                'deploy_network_type': settings.server.network_type,
             },
         ) as multi_hosts:
             hosts = [multi_hosts['rhel9'][0], multi_hosts['rhel8'][0], multi_hosts['rhel7'][0]]
@@ -784,3 +784,127 @@ class TestAnsibleREX:
         assert [i['output'] for i in result if termination_msg in i['output']]
         assert [i['output'] for i in result if i['output'] == 'StandardError: Job execution failed']
         assert [i['output'] for i in result if i['output'] == 'Exit status: 4']
+
+    @pytest.mark.no_containers
+    @pytest.mark.parametrize('ansible_check_mode', ['True', 'False'], ids=['enabled', 'disabled'])
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    def test_positive_ansible_job_with_check_mode(
+        self,
+        request,
+        target_sat,
+        module_org,
+        module_location,
+        module_ak_with_synced_repo,
+        rhel_contenthost,
+        ansible_check_mode,
+    ):
+        """Verify the Ansible REX job runs with check mode enabled,
+        to see what changes it would make without applying them.
+
+        :id: a082f599-fbf7-4779-aa18-5139e2bce999
+
+        :steps:
+            1. Register a content host with satellite
+            2. Clone the "Ansible Roles - Ansible Default" Job Template.
+            3. Enable "Ansible Check Mode Enabled" on the cloned Job Template.
+            4. Create a custom role to validate ansible check mode, and assign it to the host
+            5. Schedule a Job on host and select the cloned Job Category and Job Template.
+            6. Validate REX job runs in check mode to preview changes without applying them.
+
+        :expectedresults: Ansible REX job works without any errors and,
+            when ansible_check_mode_enabled it previews changes without applying them.
+
+        :verifies: SAT-32223
+        """
+        data = """---
+        - name: Inform if running in check mode
+          debug:
+            msg: "Check mode is enabled. No changes will be applied."
+          when: ansible_check_mode
+
+        - name: Inform if running in normal (non-check) mode
+          debug:
+            msg: "Check mode is not enabled. Changes will be applied."
+          when: not ansible_check_mode
+
+        - name: Attempt to create a test file (only in non-check mode)
+          file:
+            path: /tmp/check_mode_test_file
+            state: touch
+          when: not ansible_check_mode
+
+        - name: Note on file creation task behavior when in check mode
+          debug:
+            msg: "File creation task is conditionally skipped or executed based on check mode."
+          when: ansible_check_mode
+        """
+        role_name = gen_string('alpha')
+        role_task_file = f'{robottelo_tmp_dir}/playbook.yml'
+        with open(role_task_file, 'w') as f:
+            f.write(data)
+        target_sat.put(role_task_file, f'/etc/ansible/roles/{role_name}/tasks/main.yml')
+
+        # Register contenthost and assign the custom role
+        result = rhel_contenthost.register(
+            module_org, module_location, module_ak_with_synced_repo.name, target_sat
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+        proxy_id = target_sat.nailgun_smart_proxy.id
+        target_host = rhel_contenthost.nailgun_host
+        target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': [role_name]})
+        role_id = target_sat.api.AnsibleRoles().search(query={'search': f'name={role_name}'})[0].id
+        target_sat.api.Host(id=target_host.id).add_ansible_role(data={'ansible_role_id': role_id})
+        host_roles = target_host.list_ansible_roles()
+        assert host_roles[0]['name'] == role_name
+
+        ## Clone the template and update it to enable Ansible Check Mode
+        default_template_name = 'Ansible Roles - Ansible Default'
+        template = target_sat.api.JobTemplate().search(
+            query={'search': f'name="{default_template_name}"'}
+        )[0]
+
+        if ansible_check_mode == 'True':
+            cloned_template_name = gen_string('alpha')
+            # TODO: Using UI as workaround to clone a JobTemplate until SAT-34617 is fixed.
+            # og_template.clone(data={'name': cloned_template_name})
+            with target_sat.ui_session() as session:
+                session.organization.select(org_name=module_org.name)
+                session.location.select(loc_name=module_location.name)
+                session.jobtemplate.clone(
+                    default_template_name, {'template.name': cloned_template_name}
+                )
+            template = target_sat.api.JobTemplate().search(
+                query={'search': f'name="{cloned_template_name}"'}
+            )[0]
+            request.addfinalizer(template.delete)
+            template.ansible_check_mode = True
+            template.update(['ansible_check_mode'])
+
+        # run ansible-playbook with ansible_check_mode_enabled
+        job = target_sat.api.JobInvocation().run(
+            synchronous=False,
+            data={
+                'job_template_id': template.id,
+                'targeting_type': 'static_query',
+                'search_query': f'name = {rhel_contenthost.hostname}',
+                'execution_timeout_interval': '30',
+            },
+        )
+        target_sat.wait_for_tasks(
+            f'resource_type = JobInvocation and resource_id = {job["id"]}',
+            poll_timeout=1000,
+            must_succeed=False,
+        )
+        result = target_sat.api.JobInvocation(id=job['id']).read()
+        assert result.pending == 0
+        assert result.succeeded == 1
+        assert result.status_label == 'succeeded'
+
+        result = target_sat.api.JobInvocation(id=job['id']).outputs()['outputs'][0]['output']
+        check_mode_msg = (
+            'Check mode is enabled' if ansible_check_mode == 'True' else 'Check mode is not enabled'
+        )
+        assert [i['output'] for i in result if check_mode_msg in i['output']]
+        check_file_present = rhel_contenthost.execute('test -f /tmp/check_mode_test_file')
+        assert check_file_present.status == (1 if ansible_check_mode == 'True' else 0)

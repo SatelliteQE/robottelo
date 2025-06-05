@@ -15,7 +15,7 @@
 import pytest
 
 from robottelo import constants
-from robottelo.constants import REPO_TYPE
+from robottelo.constants import REPO_TYPE, DataFile
 from robottelo.constants.repos import CUSTOM_FILE_REPO
 from robottelo.utils.datafactory import gen_string
 
@@ -31,9 +31,10 @@ def acs_setup(class_target_sat, class_sca_manifest_org):
     This fixture creates all the necessary data for the test to run.
     It creates an organization, content credentials, product and repositories.
     """
+    cert_content = DataFile.VALID_CERT_FILE.read_text()
     class_target_sat.api.ContentCredential(
         name=ssl_name,
-        content=gen_string('alpha'),
+        content=cert_content,
         organization=class_sca_manifest_org.id,
         content_type="cert",
     ).create()

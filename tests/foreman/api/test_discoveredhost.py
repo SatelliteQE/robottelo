@@ -416,7 +416,7 @@ class TestDiscoveredHost:
 
         :BlockedBy: SAT-30395
 
-        :verifies: SAT-23279
+        :Verifies: SAT-23279
 
         :CaseImportance: Medium
         """
