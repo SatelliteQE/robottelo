@@ -177,7 +177,7 @@ def test_positive_global_registration_end_to_end(
         module_target_sat.api.CommonParameter(id=rex_cp.id, value=1).update(['value'])
 
     # rex interface
-    iface = 'eth0'
+    iface = 'enp3s0' if rhel_contenthost.os_version.major >= 10 else 'eth0'
     # fill in the global registration form
     with module_target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
