@@ -44,6 +44,7 @@ DOWNSTREAM_MODULES = {
     'foreman::cli',
     'foreman::cli::ansible',
     'foreman::cli::azure',
+    'foreman::cli::bootdisk',
     'foreman::cli::google',
     'foreman::cli::katello',
     'foreman::cli::kubevirt',
