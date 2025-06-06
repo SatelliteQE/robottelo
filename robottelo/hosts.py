@@ -2427,7 +2427,7 @@ class Satellite(Capsule, SatelliteMixins):
         assert self.execute(f'echo "{keytab_content}" > /etc/net-keytab.conf').status == 0
 
         # gather the apache id
-        id_apache = str(self.execute('id -u apache')).strip()
+        id_apache = str(self.execute('id -u apache').stdout).strip()
         http_conf_content = (
             f'[service/HTTP]\nmechs = krb5\ncred_store = keytab:/etc/krb5.keytab'
             f'\ncred_store = ccache:/var/lib/gssproxy/clients/krb5cc_%U'
@@ -2461,7 +2461,7 @@ class Satellite(Capsule, SatelliteMixins):
         # register the satellite as client for external auth
         assert self.execute(f'echo "{http_conf_content}" > /etc/gssproxy/00-http.conf').status == 0
         token_command = (
-            'KRB5_KTNAME=FILE:/etc/httpd/conf/http.keytab net ads keytab add HTTP '
+            'KRB5_KTNAME=FILE:/etc/httpd/conf/http.keytab net ads keytab create HTTP '
             '-U administrator -d3 -s /etc/net-keytab.conf'
         )
         assert self.execute(f'echo {settings.ldap.password} | {token_command}').status == 0
