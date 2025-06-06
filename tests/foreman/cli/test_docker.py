@@ -251,6 +251,8 @@ class TestDockerRepository:
         )
         repo = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['upstream-repository-name'] == new_upstream_name
+        repo_from_list = module_target_sat.cli.Repository.list({'id': repo['id'], 'fields': 'Upstream repository name'})[0]
+        assert repo_from_list['upstream-repository-name'] == new_upstream_name
 
     @pytest.mark.parametrize('new_upstream_name', **parametrized(invalid_docker_upstream_names()))
     def test_negative_update_upstream_name(self, repo, new_upstream_name, module_target_sat):
