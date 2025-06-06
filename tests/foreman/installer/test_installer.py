@@ -54,7 +54,6 @@ DOWNSTREAM_MODULES = {
     'foreman::compute::ec2',
     'foreman::compute::libvirt',
     'foreman::compute::openstack',
-    'foreman::compute::ovirt',
     'foreman::compute::vmware',
     'foreman::plugin::ansible',
     'foreman::plugin::azure',
