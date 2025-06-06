@@ -17,6 +17,7 @@ TARGET_FIXTURES = [
     'module_sync_kickstart_content',
     'rex_contenthost',
     'rex_contenthosts',
+    'module_flatpak_contenthost',
 ]
 
 

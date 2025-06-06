@@ -240,12 +240,8 @@ def module_container_contenthost(request, module_target_sat, module_org, module_
 
 @pytest.fixture(scope='module')
 def module_flatpak_contenthost(request):
-    request.param = {
-        "rhel_version": "9",
-        "distro": "rhel",
-        "no_containers": True,
-        "network": "ipv6" if settings.server.network_type == NetworkType.IPV6 else "ipv4",
-    }
+    assert request.param['rhel_version'] > 8, 'Unsupported RHEL version'
+    request.param['no_containers'] = True
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         host.register_to_cdn()
         res = host.execute('dnf -y install podman flatpak dbus-x11')
