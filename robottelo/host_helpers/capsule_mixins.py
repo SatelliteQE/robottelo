@@ -11,6 +11,7 @@ from robottelo.constants import (
     PUPPET_CAPSULE_INSTALLER,
     PUPPET_COMMON_INSTALLER_OPTS,
 )
+from robottelo.enums import NetworkType
 from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
 
@@ -199,26 +200,46 @@ class CapsuleInfo:
             f'sshpass -p "{settings.server.ssh_password}" scp -o StrictHostKeyChecking=no root@{proxy_hostname}:{log_path} {old_log}'
         )
         # make sure the system can't communicate with the git directly, without proxy
-        assert (
-            self.execute(
-                f'firewall-cmd --permanent --direct --add-rule ipv4 filter OUTPUT 1 -d $(dig +short A {hostname}) -j REJECT && firewall-cmd --reload'
-            ).status
-            == 0
-        )
+        result = self.execute(f'dig +short AAAA {hostname}').stdout.strip()
+        if len(result) > 0:
+            assert (
+                self.execute(
+                    f'firewall-cmd --permanent --direct --add-rule ipv6 filter OUTPUT 1 -d {result} -j REJECT && firewall-cmd --reload'
+                ).status
+                == 0
+            )
+        result = self.execute(f'dig +short A {hostname}').stdout.strip()
+        if len(result) > 0:
+            assert (
+                self.execute(
+                    f'firewall-cmd --permanent --direct --add-rule ipv4 filter OUTPUT 1 -d ${result} -j REJECT && firewall-cmd --reload'
+                ).status
+                == 0
+            )
         assert self.execute(f'ping -c 2 {hostname}').status != 0
         return old_log
 
     def restore_host_check_log(self, proxy_hostname, hostname, old_log):
         """For testing of HTTP Proxy, call after running the thing that should use Proxy."""
         log_path = '/var/log/squid/access.log'
-        self.execute(
-            f'firewall-cmd --permanent --direct --remove-rule ipv4 filter OUTPUT 1 -d $(dig +short A {hostname}) -j REJECT && firewall-cmd --reload'
-        )
+        result = self.execute(f'dig +short AAAA {hostname}').stdout.strip()
+        if len(result) > 0:
+            self.execute(
+                f'firewall-cmd --permanent --direct --remove-rule ipv6 filter OUTPUT 1 -d {result} -j REJECT && firewall-cmd --reload'
+            )
+        result = self.execute(f'dig +short A {hostname}').stdout.strip()
+        if len(result) > 0:
+            self.execute(
+                f'firewall-cmd --permanent --direct --remove-rule ipv4 filter OUTPUT 1 -d {result} -j REJECT && firewall-cmd --reload'
+            )
+
         new_log = ssh.command('echo /tmp/$RANDOM').stdout.strip()
         ssh.command(
             f'sshpass -p "{settings.server.ssh_password}" scp -o StrictHostKeyChecking=no root@{proxy_hostname}:{log_path} {new_log}'
         )
         diff = ssh.command(f'diff {old_log} {new_log}').stdout
-        satellite_ip = ssh.command('dig A +short $(hostname)').stdout.strip()
+        satellite_ip = ssh.command(
+            f'dig {"AAAA" if settings.server.network_type == NetworkType.IPV6 else "A"} +short $(hostname)'
+        ).stdout.strip()
         # assert that proxy has been used
         assert satellite_ip in diff
