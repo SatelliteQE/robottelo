@@ -47,7 +47,7 @@ def test_host_registration_end_to_end(
 
     :expectedresults: Host registered successfully with valid owner name
 
-    :verifies: SAT-14716
+    :Verifies: SAT-14716
 
     :BZ: 2156926, 2252768
 

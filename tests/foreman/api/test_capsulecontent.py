@@ -1710,7 +1710,7 @@ class TestCapsuleContentManagement:
 
         :BlockedBy: SAT-25503
 
-        :verifies: SAT-25503
+        :Verifies: SAT-25503
 
         :customerscenario: true
         """
