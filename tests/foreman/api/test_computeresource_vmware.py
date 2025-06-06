@@ -65,6 +65,9 @@ def test_positive_provision_end_to_end(
 
     :BZ: 2186114
     """
+    if provision_method == 'bootdisk' and pxe_loader.vm_firmware == 'uefi_secure_boot':
+        pytest.skip('Bootdisk + Secureboot provisioning is not yet supported')
+
     sat = module_provisioning_sat.sat
     name = gen_string('alpha').lower()
 
