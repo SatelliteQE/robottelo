@@ -116,7 +116,7 @@ def test_positive_create_with_all_users(session, target_sat):
 
     :BZ: 1479736
 
-    :verifies: SAT-25386
+    :Verifies: SAT-25386
 
     :BlockedBy: SAT-25386
     """

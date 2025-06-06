@@ -1647,7 +1647,7 @@ def test_errata_list_by_contentview_filter(module_entitlement_manifest_org, modu
 
     :customerscenario: true
 
-    :verifies: SAT-7987
+    :Verifies: SAT-7987
     """
     product = module_target_sat.api.Product(organization=module_entitlement_manifest_org).create()
     repo = module_target_sat.cli_factory.make_repository(

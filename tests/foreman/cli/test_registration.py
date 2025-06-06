@@ -43,7 +43,7 @@ def test_host_registration_end_to_end(
 
     :expectedresults: Host registered successfully
 
-    :verifies: SAT-14716
+    :Verifies: SAT-14716
 
     :customerscenario: true
     """
