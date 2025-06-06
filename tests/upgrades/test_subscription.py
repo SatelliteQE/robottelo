@@ -80,6 +80,8 @@ class TestSubscriptionAutoAttach:
     upgrade.
     """
 
+    IP_Version = settings.server.network_type
+
     @pytest.mark.rhel_ver_list([7, 8, 9])
     @pytest.mark.no_containers
     @pytest.mark.pre_upgrade
@@ -142,7 +144,9 @@ class TestSubscriptionAutoAttach:
         )
 
     @pytest.mark.parametrize(
-        'pre_upgrade_data', ['rhel7-ipv4', 'rhel8-ipv4', 'rhel9-ipv4'], indirect=True
+        'pre_upgrade_data',
+        [f'rhel7-{IP_Version}', f'rhel8-{IP_Version}', f'rhel9-{IP_Version}'],
+        indirect=True,
     )
     @pytest.mark.post_upgrade(depend_on=test_pre_subscription_scenario_auto_attach)
     @pytest.mark.manifester
