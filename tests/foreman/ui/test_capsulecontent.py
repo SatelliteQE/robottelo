@@ -242,7 +242,7 @@ def test_hide_reclaim_space_warning(module_target_sat, setting_update):
 
     :parametrized: yes
 
-    :verifies: SAT-18549
+    :Verifies: SAT-18549
 
     :customerscenario: true
 

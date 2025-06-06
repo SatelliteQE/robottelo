@@ -63,7 +63,7 @@ def test_positive_provision_end_to_end(
 
     :BZ: 2186114
 
-    :verifies: SAT-18721
+    :Verifies: SAT-18721
     """
     sat = module_provisioning_sat.sat
     name = gen_string('alpha').lower()

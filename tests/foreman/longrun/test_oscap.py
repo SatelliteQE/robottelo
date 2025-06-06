@@ -436,7 +436,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
 
     :BlockedBy: SAT-19505
 
-    :verifies: SAT-19505
+    :Verifies: SAT-19505
     """
     contenthost = rex_contenthost
     os_version = contenthost.os_version.major
