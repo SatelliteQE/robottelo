@@ -572,3 +572,36 @@ def test_positive_show_unsupported_templates(request, target_sat, module_org, mo
         target_sat.update_setting('show_unsupported_templates', default_value)
         template = session.provisioningtemplate.search(f'name={pt.name}')
         assert template[0]['Name'] == pt.name
+
+
+def test_negative_register_page_access_to_non_admin(request, module_target_sat):
+    """Check non admin users can't access Hosts -> Register tab
+
+    :id: 89aff060-3308-11f0-bfec-6c240829b295
+
+    :customerscenario: true
+
+    :Verifies: SAT-31655
+
+    :steps:
+
+        1. Login with non admin user
+        2. Navigate to /hosts/register in url
+        3. Check message permission denied is present
+
+    :expectedresults: Hosts -> Register tab should not be available to non admin users
+    """
+    login = gen_string('alpha')
+    password = gen_string('alpha')
+    user = module_target_sat.api.User(admin=False, login=login, password=password).create()
+    request.addfinalizer(user.delete)
+
+    with module_target_sat.ui_session(
+        user=login, password=password, url='/hosts/register'
+    ) as session:
+        result = session.host.permission_denied()
+        assert (
+            result == 'Permission Denied You are not authorized to perform this action. '
+            'Please request one of the required permissions listed below '
+            'from a Satellite administrator: register_hosts'
+        )
