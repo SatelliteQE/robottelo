@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: Registration
+:CaseComponent: Conversionsappliance
 
 :CaseImportance: Critical
 
