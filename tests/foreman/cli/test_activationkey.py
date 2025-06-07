@@ -1689,6 +1689,8 @@ def test_syspurpose_end_to_end(
 
     :parametrized: yes
     """
+    # Turn off sca mode
+    module_org.sca_disable()
     # Create an activation key with test values
     purpose_addons = "test-addon1, test-addon2"
     activation_key = target_sat.api.ActivationKey(
@@ -1745,8 +1747,8 @@ def test_syspurpose_end_to_end(
     )
     assert len(host_subscriptions) > 0
     assert host_subscriptions[0]['name'] == default_subscription.name
-    # Unregister host
-    target_sat.cli.Host.subscription_unregister({'host': rhel_contenthost.hostname})
+
+    rhel_contenthost.unregister()
     with pytest.raises(CLIReturnCodeError):
         # raise error that the host was not registered by
         # subscription-manager register
