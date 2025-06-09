@@ -116,6 +116,7 @@ def generate_errata_for_client_setup(
         3. All the expected errata are ready-to-be-applied on the client
     """
     target_sat = errata_upgrade_shared_satellite
+    rhel_contenthost._satellite = target_sat
     with SharedResource(
         target_sat.hostname, upgrade_action, target_sat=target_sat, action_is_recoverable=True
     ) as sat_upgrade:
