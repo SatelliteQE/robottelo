@@ -983,6 +983,7 @@ class TestRexUsers:
         rex_contenthost,
         class_rexmanager_user,
         class_rexinfra_user,
+        default_location,
         target_sat,
         infra_host,
         module_org,
@@ -1010,6 +1011,9 @@ class TestRexUsers:
         infra_host.add_rex_key(satellite=target_sat)
         target_sat.cli.Host.update(
             {'name': infra_host.hostname, 'new-organization-id': module_org.id}
+        )
+        target_sat.cli.Host.update(
+            {'name': infra_host.hostname, 'new-location-id': default_location.id}
         )
 
         # run job as admin
