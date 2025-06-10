@@ -226,6 +226,7 @@ def test_flatpak_endpoint(target_sat, endpoint):
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
+@pytest.mark.rhel_ver_match('9')
 @pytest.mark.parametrize('function_flatpak_remote', ['RedHat'], indirect=True)
 def test_sync_consume_flatpak_repo_via_library(
     request,
@@ -357,6 +358,7 @@ def test_sync_consume_flatpak_repo_via_library(
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
+@pytest.mark.rhel_ver_match('9')
 @pytest.mark.parametrize('function_flatpak_remote', ['RedHat'], indirect=True)
 def test_sync_consume_flatpak_repo_via_cv(
     request,

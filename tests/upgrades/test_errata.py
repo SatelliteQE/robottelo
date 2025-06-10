@@ -99,6 +99,8 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         5. Check if the Errata Count in Satellite after the upgrade.
     """
 
+    network_type = settings.server.network_type
+
     @pytest.mark.rhel_ver_list([7, 8, 9])
     @pytest.mark.no_containers
     @pytest.mark.pre_upgrade
@@ -196,7 +198,9 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         )
 
     @pytest.mark.parametrize(
-        'pre_upgrade_data', ['rhel7-ipv4', 'rhel8-ipv4', 'rhel9-ipv4'], indirect=True
+        'pre_upgrade_data',
+        [f'rhel7-{network_type}', f'rhel8-{network_type}', f'rhel9-{network_type}'],
+        indirect=True,
     )
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_generate_errata_for_client)
     def test_post_scenario_errata_count_installation(self, target_sat, pre_upgrade_data):

@@ -54,7 +54,6 @@ DOWNSTREAM_MODULES = {
     'foreman::compute::ec2',
     'foreman::compute::libvirt',
     'foreman::compute::openstack',
-    'foreman::compute::ovirt',
     'foreman::compute::vmware',
     'foreman::plugin::ansible',
     'foreman::plugin::azure',
@@ -316,7 +315,7 @@ def sat_fapolicyd_install(module_sat_ready_rhels):
     assert install_satellite(sat, installer_args, enable_fapolicyd=True).status == 0, (
         "Satellite installation failed (non-zero return code)"
     )
-    if settings.server.is_ipv6:
+    if not settings.server.network_type.has_ipv4:
         sat.enable_satellite_http_proxy()
     return sat
 
@@ -335,7 +334,7 @@ def sat_non_default_install(module_sat_ready_rhels):
     assert install_satellite(sat, installer_args, enable_fapolicyd=True).status == 0, (
         "Satellite installation failed (non-zero return code)"
     )
-    if settings.server.is_ipv6:
+    if not settings.server.network_type.has_ipv4:
         sat.enable_satellite_http_proxy()
     return sat
 
@@ -678,7 +677,7 @@ def test_installer_capsule_with_enabled_ansible(module_capsule_configured_ansibl
 @pytest.mark.build_sanity
 @pytest.mark.first_sanity
 @pytest.mark.pit_server
-def test_satellite_installation(installer_satellite):
+def test_satellite_installation(pytestconfig, installer_satellite):
     """Run a basic Satellite installation
 
     :id: 661206f3-2eec-403c-af26-3c5cadcd5766
@@ -706,12 +705,15 @@ def test_satellite_installation(installer_satellite):
     assert installer_satellite.execute('rpm -q foreman-redis').status == 0
     settings_file = installer_satellite.load_remote_yaml_file(FOREMAN_SETTINGS_YML)
     assert settings_file.rails_cache_store.type == 'redis'
-    # Parse satellite installer modules
-    cat_cmd = installer_satellite.execute(
-        'cat /etc/foreman-installer/scenarios.d/satellite-answers.yaml'
-    )
-    sat_answers = yaml.safe_load(cat_cmd.stdout)
-    assert set(sat_answers) == DOWNSTREAM_MODULES
+
+    # Do not test DOWNSTREAM_MODULES at sanity time
+    if 'build_sanity' not in pytestconfig.option.markexpr:
+        # Parse satellite installer modules
+        cat_cmd = installer_satellite.execute(
+            'cat /etc/foreman-installer/scenarios.d/satellite-answers.yaml'
+        )
+        sat_answers = yaml.safe_load(cat_cmd.stdout)
+        assert set(sat_answers) == DOWNSTREAM_MODULES
 
 
 @pytest.mark.pit_server

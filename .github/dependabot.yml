@@ -15,7 +15,6 @@ updates:
       - "CherryPick"
       - "dependencies"
       - "6.15.z"
-      - "6.14.z"
     ignore:
       - dependency-name: "cryptography"
         update-types: ["version-update:semver-minor"]
@@ -31,4 +30,3 @@ updates:
       - "CherryPick"
       - "dependencies"
       - "6.15.z"
-      - "6.14.z"
