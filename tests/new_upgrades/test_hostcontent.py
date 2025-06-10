@@ -45,6 +45,7 @@ def db_seed_host_mismatch_setup(
     :customerscenario: true
     """
     target_sat = content_upgrade_shared_satellite
+    rhel_contenthost._satellite = target_sat
     with SharedResource(
         content_upgrade_shared_satellite.hostname, upgrade_action, target_sat=target_sat
     ) as sat_upgrade:
@@ -94,7 +95,7 @@ def db_seed_host_mismatch_setup(
 @pytest.mark.content_upgrades
 def test_post_db_seed_host_mismatch(db_seed_host_mismatch_setup):
     """
-    :id: postupgrade-28861b9f-8abd-4efc-bfd5-40b7e825a941
+    :id: 28861b9f-8abd-4efc-bfd5-40b7e825a941
 
     :steps:
         1. After the upgrade finishes ensure the content host data is unchanged
