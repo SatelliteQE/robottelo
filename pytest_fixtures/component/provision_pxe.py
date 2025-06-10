@@ -200,6 +200,8 @@ def module_provisioning_sat(
         boot_mode='DHCP',
         ipam='None' if provisioning_network.version == 6 else 'DHCP',
         dhcp=None if provisioning_network.version == 6 else module_provisioning_capsule.id,
+        tftp=module_provisioning_capsule.id,
+        template=module_provisioning_capsule.id,
         dns=None if sat_ipv6 else module_provisioning_capsule.id,
         httpboot=module_provisioning_capsule.id,
         discovery=module_provisioning_capsule.id,
