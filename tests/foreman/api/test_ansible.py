@@ -308,6 +308,9 @@ class TestAnsibleCfgMgmt:
             @request.addfinalizer
             def _finalize():
                 target_sat.cli.Host.disassociate({'name': rex_contenthost.hostname})
+                assert rex_contenthost.execute('subscription-manager unregister').status == 0
+                assert rex_contenthost.execute('subscription-manager clean').status == 0
+                target_sat.cli.Host.delete({'name': rex_contenthost.hostname})
 
         # gather ansible facts by running ansible roles on the host
         host.play_ansible_roles()
