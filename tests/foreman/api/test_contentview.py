@@ -831,26 +831,27 @@ class TestContentViewPublishPromote:
 
         :setup:
             1. Composite ContentView with 3 regular ContentViews added.
-            2. Each regular ContentView, has a single repo added, updated to latest version True.
-            3. Publish v1.0 for each of the regular ContentViews (empty).
-            4. Publish v2.0 for a single ContentView, with an erratum exclusion filter applied.
+            2. Publish v1.0 for each of the regular ContentViews (empty).
+            3. Add a unique fake repo to each ContentView, set 'Updated to Latest Version' to True.
+            4. Publish v2.0 for a single ContentView, with an erratum Exclusion Filter applied.
             5. Publish v2.0 for another ContentView, with no filter applied.
             6. Publish v1.0 of the Composite ContentView.
-            7. Publish the unfiltered ContentView again, v3.0.
-            8. Invoke incremental update, on the Filtered ContentView, v2.1, to add the filtered erratum.
+            7. Publish the Unfiltered ContentView again, v3.0.
+            8. Invoke incremental update, on the Filtered ContentView, v2.0->2.1, adding the filtered erratum.
             9. Composite components updated, expected Versions are present (see ExpectedResults).
             10. Publish the CompositeCV one final time.
 
-            Note: child_cvs[0] is Filtered, child_cvs[1] is Unfiltered, child_cvs[2] is a control.
+            Note: child_cvs[0] is Unfiltered, child_cvs[1] is Filtered, child_cvs[2] is a control.
 
         :steps: `$ hammer content-view version incremental-update`
+            GET
             1. Invoke the Incremental Update on a child CV, specifying erratum that was previously filtered out.
             2. flag --propagate-all-composites set to True (inc. updates the CompositeCV too)
 
         :expectedresults:
             8. Incrementally Updated Filtered ContentView to v2.1, Composite updated to v1.1.
-            9. CompositeCV contains all the newest CV Versions, except the Filtered-CV v3.0 (only expect v2.0).
-            10. After final publish, CompositeCV now contains the Filtered-CV v3.0.
+            9. CompositeCV contains all the newest CV Versions, except the Unfiltered-CV v3.0 (only expect v2.0).
+            10. After final publish, CompositeCV now contains the Unfiltered-CV v3.0.
 
         :Verifies: SAT-26559
 
@@ -860,11 +861,11 @@ class TestContentViewPublishPromote:
         ERRATUM_ID = settings.repos.yum_9.errata[0]  # RHSA-2012:0055
         # 3 custom repos created and synced in fixture fake_yum_repos
         composite_cv = target_sat.api.ContentView(
-            composite=True,
-            auto_publish=False,
             organization=module_org,
+            auto_publish=False,
+            composite=True,
         ).create()
-        # create and add 3 new child CVs to CCV, each will publish an empty v1.0
+        # create and add 3 new child CVs to Composite, each will publish an empty v1.0
         self.add_content_views_to_composite(target_sat, composite_cv, module_org, cv_amount=3)
         composite_cv = composite_cv.read()
         child_cvs = []
@@ -872,8 +873,8 @@ class TestContentViewPublishPromote:
             # read child CV from component
             _component = composite_cv.content_view_component[_i].read()
             _cv = _component.read().content_view.read()
-            # only using repo FAKE_YUM_9
-            _cv.repository = [fake_yum_repos[-1]]
+            # one unique fake repo for each CV
+            _cv.repository = [fake_yum_repos[-_i]]
             _cv.update(['repository'])
             # each composite component auto-update to latest version
             _component.latest = True
@@ -883,43 +884,49 @@ class TestContentViewPublishPromote:
 
         # Erratum exclusion filter for one of the child-CVs
         cv_filter = target_sat.api.ErratumContentViewFilter(
-            content_view=child_cvs[0],
+            content_view=child_cvs[1],
             inclusion=False,
         ).create()
         erratum = target_sat.api.Errata().search(query={'search': f'errata_id="{ERRATUM_ID}"'})[0]
         target_sat.api.ContentViewFilterRule(content_view_filter=cv_filter, errata=erratum).create()
-        child_cvs = [_cv.read() for _cv in child_cvs]
-        child_cvs[0].publish()  # publish 2.0 with erratum filter
-        child_cvs[1].publish()  # publish 2.0 without erratum filter
-        composite_cv = composite_cv.read()
-        # Publish 1.0 of Composite with content/filter from the two prior CVs added
-        composite_cv.publish()
-        # Publish the unfiltered CV again, after composite, v3.0
-        child_cvs[1].publish()
-        child_cvs = [_cv.read() for _cv in child_cvs]
-        composite_cv = composite_cv.read()
 
-        # Invoke the Incremental Update, on child-CVV that is Filtered
-        inc_update = target_sat.cli.ContentView.version_incremental_update(
-            options={
-                'content-view-version-id': child_cvs[0].version[0].id,
-                'propagate-all-composites': 'true',
-                'errata-ids': ERRATUM_ID,
-            },
-            output_format='base',
+        child_cvs = [_cv.read() for _cv in child_cvs]
+        child_cvs[0].publish()  # v2.0 unfiltered
+        child_cvs[1].publish()  # v2.0 w/ erratum filter
+        composite_cv = composite_cv.read()
+        # Publish v1.0 of Composite with content/filter from the two prior CVs added
+        composite_cv.publish()
+        # Publish v3.0 of Unfiltered CV again, after composite.
+        child_cvs[0].publish()
+        child_cvs = [_cv.read() for _cv in child_cvs]
+        composite_cv = composite_cv.read()
+        # Invoke the Incremental Update, on the latest Filtered child-CVV,
+        # Specify the filtered erratum to add back, propagate composites as well.
+        result = target_sat.api.ContentViewVersion().incremental_update(
+            data={
+                'content_view_version_environments': [
+                    {
+                        'content_view_version_id': child_cvs[1].version[0].id,
+                        'environment_ids': [module_org.library.id],
+                    }
+                ],
+                'add_content': {'errata_ids': [ERRATUM_ID]},
+                'propagate-all-composites': True,
+            }
         )
         # Updated expected Version and added erratum
-        assert f'{child_cvs[0].name} version 2.1' in inc_update
-        assert ERRATUM_ID in inc_update
-
+        assert f'{child_cvs[1].name} version 2.1' in result['humanized']['output']
+        assert ERRATUM_ID in result['output']['changed_content'][0]['added_units']['erratum']
+        # Promote the new Incremental v2.1 to Library
+        child_cvs[1].read().version[0].promote(data={'environment_ids': module_org.library.id})
         child_cvs = [_cv.read() for _cv in child_cvs]
         composite_cv = composite_cv.read()
-        # Expect CompositeCV v1.0 -> v1.1 (option: propogate-all-composites)
+        # Expect CompositeCV v1.0 -> v1.1 (option: propagate-all-composites)
         assert composite_cv.version[0].read().version == '1.1'
+        # Expect Unfiltered CV is v3.0
+        assert child_cvs[0].version[0].read().version == '3.0'
         # Expect Incrementally Updated CV (filtered) is v2.1
-        assert child_cvs[0].version[0].read().version == '2.1'
-        # Expect unfiltered CV is v3.0
-        assert child_cvs[1].version[0].read().version == '3.0'
+        assert child_cvs[1].version[0].read().version == '2.1'
         # Expect control CV only has its first published version (empty)
         assert child_cvs[2].version[0].read().version == '1.0'
 
@@ -930,11 +937,11 @@ class TestContentViewPublishPromote:
             # match CV-id from Component (CVV)
             cv_id = comp.content_view.id
             if cv_id == child_cvs[0].id:
-                # Incrementally Updated, filtered CV
-                assert comp.version == '2.1'
-            if cv_id == child_cvs[1].id:
                 # Unfiltered CV, no updates
                 assert comp.version == '2.0'
+            if cv_id == child_cvs[1].id:
+                # Incrementally Updated, filtered CV
+                assert comp.version == '2.1'
             if cv_id == child_cvs[2].id:
                 # Control CV, single empty version
                 assert comp.version == '1.0'
@@ -944,20 +951,20 @@ class TestContentViewPublishPromote:
         composite_cv = composite_cv.read()
         assert composite_cv.version[0].read().version == '2.0'
 
-        # Now expect Unfiltered CV 3.0 to be present in Composite
+        # Now expect Unfiltered CV v3.0 to be present in Composite
         composite_cv = composite_cv.read()
         for comp in composite_cv.component:
             comp = comp.read()
             assert comp.id in [version.id for cv in child_cvs for version in cv.version]
             cv_id = comp.content_view.id
             if cv_id == child_cvs[0].id:
-                # Incrementally Updated, filtered CV
-                assert comp.version == '2.1'
-            if cv_id == child_cvs[1].id:
                 # Unfiltered CV, latest v3.0 pulled in by Composite Publish
                 assert comp.version == '3.0'
+            if cv_id == child_cvs[1].id:
+                # Incrementally Updated prior, filtered CV
+                assert comp.version == '2.1'
             if cv_id == child_cvs[2].id:
-                # Control CV, single empty version
+                # Control CV
                 assert comp.version == '1.0'
 
 
