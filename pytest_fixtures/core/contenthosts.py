@@ -356,7 +356,7 @@ def custom_host(request):
 
 
 @pytest.fixture
-def fake_yum_repos(request, target_sat, module_cv, module_product):
+def fake_yum_repos(request, target_sat, module_org, module_product):
     """Create and sync 3 YUM repositories, with fake custom content, to target satellite."""
     repositories = {
         'yum_0': settings.repos.yum_0.url,
@@ -370,11 +370,4 @@ def fake_yum_repos(request, target_sat, module_cv, module_product):
         ).create()
         r.sync()
         repositories[repo] = r.read()
-
-    # Add the repos to CV, update, needs_publish should be True
-    module_cv.repository = repositories.values()
-    module_cv.update(['repository'])
-    module_cv = module_cv.read()
-    assert module_cv.needs_publish
-    # Does Not publish a version 1.0
     return list(repositories.values())
