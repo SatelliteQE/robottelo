@@ -182,7 +182,12 @@ def hosts(request):
         case _:  # Default for both
             distro, num_hosts = default_distro, default_num_hosts
 
-    with Broker(nick=distro, host_class=ContentHost, _count=num_hosts) as hosts:
+    with Broker(
+        deploy_network_type=settings.content_host.network_type,
+        host_class=ContentHost,
+        _count=num_hosts,
+        nick=distro,
+    ) as hosts:
         if not isinstance(hosts, list) or len(hosts) != num_hosts:
             pytest.fail(f'Failed to provision the expected number of hosts for {distro}.')
         yield hosts
