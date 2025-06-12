@@ -1833,7 +1833,7 @@ class TestContentViewSync:
 
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
-        ['rhsclient9'],
+        ['rhel9_aps'],
         indirect=True,
     )
     def test_positive_export_rerun_failed_import(
