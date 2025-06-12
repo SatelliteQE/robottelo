@@ -29,6 +29,7 @@ import yaml
 from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
+    DEFAULT_ARCHITECTURE,
     DEFAULT_CV,
     DEFAULT_LOC,
     DUMMY_BOOTC_FACTS,
@@ -40,6 +41,7 @@ from robottelo.constants import (
     OSCAP_PERIOD,
     OSCAP_WEEKDAY,
     REPO_TYPE,
+    REPOS,
     ROLES,
 )
 from robottelo.constants.repos import CUSTOM_FILE_REPO
@@ -2841,3 +2843,131 @@ def test_all_hosts_manage_errata(
             )
             task_status = module_target_sat.api.ForemanTask(id=task_result[0].id).poll()
             assert task_status['result'] == 'success'
+
+
+def test_positive_manage_repository_sets(
+    new_host_ui,
+    module_target_sat,
+    module_sca_manifest_org,
+    module_lce,
+    module_ak,
+    rhel8_contenthost,
+    rhel9_contenthost,
+):
+    """
+    Change one or more repository status on multiple hosts through Manage content wizard
+
+    :id: 4c9913d8-ce0d-4b50-901a-024aca207fc5
+
+    :expectedresults: Repository status can be changed via All Hosts page > Manage content wizard.
+
+    :CaseComponent: Hosts-Content
+
+    :Team: Phoenix-content
+    """
+    content_hosts = [rhel8_contenthost, rhel9_contenthost]
+    rhel_repos = ['rhel8_bos', 'rhel9_bos']
+    all_repo_ids = []
+    all_repo_names = []
+    host_names = []
+    status_to_be_changed = {
+        0: 'Override to disabled',
+        1: 'Override to enabled',
+        2: 'Reset to default',
+    }
+
+    # Create content view
+    content_view = module_target_sat.api.ContentView(organization=module_sca_manifest_org).create()
+    content_view.repository = []
+
+    # Enable rh repos and fetch repo ids
+    for name in rhel_repos:
+        rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch=DEFAULT_ARCHITECTURE,
+            org_id=module_sca_manifest_org.id,
+            product=REPOS[name]['product'],
+            repo=REPOS[name]['name'],
+            reposet=REPOS[name]['reposet'],
+            releasever=REPOS[name]['releasever'],
+        )
+        all_repo_ids.append(rh_repo_id)
+
+        # wait for repo creation/meta data generate task to complete
+        module_target_sat.wait_for_tasks(
+            search_query='Actions::Katello::Repository::MetadataGenerate',
+            max_tries=5,
+            search_rate=10,
+        )
+
+        # Read repository from repo id
+        rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+
+        # content view repositories
+        content_view.repository.append(rh_repo)
+
+    # Update content view repositories,publish and then promote content view to Library
+    content_view = module_target_sat.api.ContentView(
+        id=content_view.id, repository=content_view.repository
+    ).update(['repository'])
+    content_view.publish()
+    content_view = content_view.read()
+    cv_version = content_view.version[0]
+    cv_version.promote(data={'environment_ids': module_lce.id})
+
+    # Update activation key
+    module_ak = module_target_sat.api.ActivationKey(
+        id=module_ak.id,
+        organization=module_sca_manifest_org,
+        content_view=content_view,
+        environment=module_lce,
+    ).update()
+
+    # register host to satellite and enable repository if those are disable
+    for content_host in content_hosts:
+        assert (
+            content_host.register(
+                module_sca_manifest_org, None, module_ak.name, module_target_sat
+            ).status
+            == 0
+        )
+        raw_output = content_host.execute('subscription-manager repos --list').stdout
+        # Get repo name and add into empty list (this is workaround to avoid failure in airgun)
+        data_list = raw_output.split('\n')
+        for line in data_list:
+            if "Repo Name" in line:
+                repository = (line.split(':')[1]).lstrip()
+                all_repo_names.append(repository)
+        # If rhel repo is disabled then enable it
+        if "Enabled:   0" in raw_output:
+            rep_status = content_host.execute("subscription-manager repos --enable *").stdout
+            assert "enabled for this system" in rep_status
+        host_names.append(content_host.hostname)
+
+    # Change one or more repository status on multiple hosts through Manage content wizard
+    override_to_disabled = status_to_be_changed[0]
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_sca_manifest_org.name)
+        session.all_hosts.manage_repository_sets(
+            host_names=host_names,
+            select_all_hosts=False,
+            repository_names=all_repo_names,
+            status_to_change=override_to_disabled,
+        )
+        # Check status of repositories on each host, it should be disabled.
+        for content_host in content_hosts:
+            output = content_host.execute('subscription-manager repos --list').stdout
+            assert "Enabled:   0" in output, 'repository status not changed'
+
+        # Now change one or more repository status to enable
+        override_to_enabled = status_to_be_changed[1]
+        session.all_hosts.manage_repository_sets(
+            host_names=host_names,
+            select_all_hosts=False,
+            repository_names=all_repo_names,
+            status_to_change=override_to_enabled,
+        )
+
+        # Check status of repositories on each host, it should be enabled.
+        for content_host in content_hosts:
+            output = content_host.execute('subscription-manager repos --list').stdout
+            assert "Enabled:   1" in output, 'repository status not changed'
