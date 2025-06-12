@@ -65,3 +65,4 @@ SERVER:
     COMMAND_TIMEOUT: 300000
     # Time to wait for establishing the ssh connection, in seconds
     CONNECTION_TIMEOUT: 60
+  DEFAULT_OS_SEARCH_QUERY: 'name="RedHat" AND (major="6" OR major="7" OR major="8" OR major="9")'

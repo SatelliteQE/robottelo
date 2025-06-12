@@ -30,7 +30,6 @@ from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
     DEFAULT_CV,
-    DEFAULT_OS_SEARCH_QUERY,
     DEFAULT_PTABLE,
     ENVIRONMENT,
     FAKE_0_CUSTOM_PACKAGE,
@@ -2517,7 +2516,9 @@ def test_positive_delete_with_kickstart_repo_and_host_group(
         .read()
     )
     # Get the OS ID
-    os = target_sat.api.OperatingSystem().search(query={'search': DEFAULT_OS_SEARCH_QUERY})[0]
+    os = target_sat.api.OperatingSystem().search(
+        query={'search': settings.server.default_os_search_query}
+    )[0]
     # Update the OS to associate arch and ptable
     os.architecture = [arch]
     os.ptable = [ptable]
