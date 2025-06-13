@@ -14,6 +14,7 @@
 
 import os
 from time import sleep
+from datetime import UTC, datetime, timedelta
 
 from fauxfactory import gen_string
 from manifester import Manifester
@@ -1907,6 +1908,7 @@ class TestContentViewSync:
                 {'name': cv_name, 'organization-id': function_import_org_with_manifest.id}
             )
         )
+        timestamp = datetime.now(UTC)
         target_sat.cli.Service.restart()
         sleep(30)
         # Assert that the initial import task did not succeed and CVV was removed
@@ -1917,6 +1919,11 @@ class TestContentViewSync:
             )[0]
             .result
             != 'success'
+        )
+        target_sat.wait_for_tasks(
+            search_query= f'label = Actions::Katello::ContentView::Remove and started_at >= "{timestamp}"',
+            search_rate=10,
+            max_tries=6,
         )
         importing_cvv = target_sat.cli.ContentView.info(
             {'name': cv_name, 'organization-id': function_import_org_with_manifest.id}
