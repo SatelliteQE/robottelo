@@ -1,6 +1,6 @@
 """Test for Compute Resource UI
 
-:Requirement: Computeresource RHV
+:Requirement: Computeresource EC2
 
 :CaseAutomation: Automated
 
@@ -169,3 +169,82 @@ def test_positive_create_ec2_with_custom_region(session, module_ec2_settings):
         )
         cr_values = session.computeresource.read(cr_name, widget_names='name')
         assert cr_values['name'] == cr_name
+
+
+@pytest.mark.run_in_one_thread
+class TestEC2ImageFinishTemplateProvisioning:
+    """EC2 Host Provisioning Tests with Finish Template"""
+
+    @pytest.fixture(scope='class')
+    def ec2client_host(self, ec2client):
+        """Returns the EC2 Client Host object to perform the assertions"""
+        return ec2client.get_vm(name='{}'.format(self.fullhostname.replace('.', '-')))
+
+    @pytest.mark.upgrade
+    @pytest.mark.parametrize('sat_ec2', ['sat'], indirect=True)
+    def test_positive_ec2_custom_image_host_provisioned(
+        session,
+        sat_ec2_org,
+        sat_ec2_loc,
+        module_ec2_settings,
+        sat_ec2,
+        ec2_hostgroup,
+        module_ec2_finishimg,
+        sat_ec2_domain,
+        ec2_settings,
+        module_ec2_cr,
+    ):
+        """Create EC2 compute resource with default properties and apply it's basic functionality.
+
+        :id: e625e402-b6f8-42df-8849-3e4b9c10ae53
+
+        :steps:
+
+            1. Create an EC2 compute resource with default properties and taxonomies.
+            2. Update the compute resource name and add new taxonomies.
+            3. Associate compute profile with custom properties to ec2 compute resource
+            4. Delete the compute resource.
+
+        :expectedresults: The EC2 compute resource is created, updated, compute profile associated and
+            deleted.
+
+
+        :CaseImportance: Critical
+        """
+        hostname = f'test{gen_string("alpha")}'
+        fqdn = f'{hostname}.{sat_ec2_domain.name}'.lower()
+        with sat_ec2.ui_session() as session:
+            session.organization.select(org_name=sat_ec2_org.name)
+            session.location.select(loc_name=sat_ec2_loc.name)
+            session.computeresource.update_computeprofile(
+                module_ec2_cr.name,
+                COMPUTE_PROFILE_LARGE,
+                {
+                    'provider_content.flavor': "t3.medium - T3 Medium",
+                    'provider_content.availability_zone': module_ec2_settings['availability_zone'],
+                    'provider_content.subnet': module_ec2_settings['subnet'],
+                    'provider_content.security_groups.assigned': module_ec2_settings[
+                        'security_groups'
+                    ],
+                    'provider_content.managed_ip': module_ec2_settings['managed_ip'],
+                },
+            )
+
+            session.host.create(
+                {
+                    'host.name': hostname,
+                    'host.hostgroup': ec2_hostgroup.name,
+                    'provider_content.flavor': 't3.medium - T3 Medium',
+                    'provider_content.availability_zone': ec2_settings['availability_zone'],
+                    'provider_content.subnet': ec2_settings['subnet'],
+                    'provider_content.security_groups': ec2_settings['security_groups'],
+                    'provider_content.managed_ip': ec2_settings['managed_ip'],
+                    'provider_content.image': module_ec2_finishimg.name,
+                    'host.inherit_compute_profile_option': False,
+                    'host.compute_profile': COMPUTE_PROFILE_LARGE,
+                }
+            )
+
+            host_info = session.host_new.get_details(fqdn)
+            assert 'Installed' in host_info['properties']['properties_table']['Build']
+            assert host_info['properties']['properties_table']['Host group'] == ec2_hostgroup.name
