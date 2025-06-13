@@ -64,13 +64,7 @@ def module_sync_kickstart_content(
     """
     tasks = []
     rhel_ver = request.param['rhel_version']
-    if rhel_ver <= 7:
-        repo_name = f'rhel{rhel_ver}'
-    # Using RHEL10 Beta repos until its GA
-    elif int(rhel_ver) == 10:
-        repo_name = f'rhel{rhel_ver}_bos_beta'
-    else:
-        repo_name = f'rhel{rhel_ver}_bos'
+    repo_name = f'rhel{rhel_ver}' if rhel_ver <= 7 else f'rhel{rhel_ver}_bos'
     repo_names = [repo_name]
     for name in repo_names:
         rh_kickstart_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
