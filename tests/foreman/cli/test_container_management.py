@@ -412,7 +412,7 @@ class TestDockerClient:
         assert module_container_contenthost.execute(podman_pull_command).status == 0
 
     @pytest.mark.e2e
-    @pytest.mark.parametrize('gr_certs_setup', [False, True], ids=['GR-setup', 'manual-setup'])
+    @pytest.mark.parametrize('gr_certs_setup', [False, True], ids=['manual-setup', 'GR-setup'])
     def test_podman_cert_auth(
         self, request, module_target_sat, module_org, module_container_contenthost, gr_certs_setup
     ):
