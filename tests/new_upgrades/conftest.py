@@ -189,9 +189,9 @@ def perf_tuning_upgrade_shared_satellite():
 @pytest.fixture
 def sync_plan_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.sync_plan_upgrades."""
-    sat_instance = shared_checkout("perf_tuning_upgrade")
+    sat_instance = shared_checkout("sync_plan_upgrade")
     with SharedResource(
-        "perf_tuning_upgrade_tests", shared_checkin, sat_instance=sat_instance
+        "sync_plan_upgrade_tests", shared_checkin, sat_instance=sat_instance
     ) as test_duration:
         yield sat_instance
         test_duration.ready()
