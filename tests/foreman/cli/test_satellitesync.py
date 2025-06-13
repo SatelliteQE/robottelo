@@ -12,9 +12,9 @@
 
 """
 
+from datetime import UTC, datetime
 import os
 from time import sleep
-from datetime import UTC, datetime, timedelta
 
 from fauxfactory import gen_string
 from manifester import Manifester
@@ -1921,7 +1921,7 @@ class TestContentViewSync:
             != 'success'
         )
         target_sat.wait_for_tasks(
-            search_query= f'label = Actions::Katello::ContentView::Remove and started_at >= "{timestamp}"',
+            search_query=f'label = Actions::Katello::ContentView::Remove and started_at >= "{timestamp}"',
             search_rate=10,
             max_tries=6,
         )
