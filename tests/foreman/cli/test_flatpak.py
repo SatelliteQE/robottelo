@@ -16,7 +16,12 @@ import pytest
 import requests
 
 from robottelo.config import settings
-from robottelo.constants import FLATPAK_ENDPOINTS, FLATPAK_INDEX_SUFFIX, FLATPAK_REMOTES
+from robottelo.constants import (
+    FLATPAK_ENDPOINTS,
+    FLATPAK_INDEX_SUFFIX,
+    FLATPAK_REMOTES,
+    FLATPAK_RHEL_RELEASE_VER,
+)
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.utils.datafactory import gen_string
 
@@ -262,8 +267,10 @@ def test_sync_consume_flatpak_repo_via_library(
     sat, host = module_target_sat, module_flatpak_contenthost
 
     # 1. Mirror flatpak repositories and sync them.
-    repo_names = ['rhel9/firefox-flatpak', 'rhel9/flatpak-runtime']  # runtime is dependency
+    ver = FLATPAK_RHEL_RELEASE_VER
+    repo_names = [f'rhel{ver}/firefox-flatpak', f'rhel{ver}/flatpak-runtime']  # runtime=dependency
     remote_repos = [r for r in function_flatpak_remote.repos if r['name'] in repo_names]
+    assert len(repo_names) == len(remote_repos), 'Testing repos are missing from remote index.'
     for repo in remote_repos:
         sat.cli.FlatpakRemote().repository_mirror(
             {
@@ -329,7 +336,7 @@ def test_sync_consume_flatpak_repo_via_library(
     assert remote_name in res.stdout
 
     # 5. Install flatpak app from the repo via REX on the contenthost.
-    app_name = 'Firefox'  # or 'org.mozilla.Firefox'
+    app_name = 'firefox'  # or 'org.mozilla.firefox'
     res = host.execute('flatpak remote-ls')
     assert app_name in res.stdout
 
@@ -398,8 +405,14 @@ def test_sync_consume_flatpak_repo_via_cv(
     sat, host = module_target_sat, module_flatpak_contenthost
 
     # 1. Mirror flatpak repositories and sync them.
-    repo_names = ['rhel9/firefox-flatpak', 'rhel9/inkscape-flatpak', 'rhel9/flatpak-runtime']
+    ver = FLATPAK_RHEL_RELEASE_VER
+    repo_names = [
+        f'rhel{ver}/firefox-flatpak',
+        f'rhel{ver}/flatpak-runtime',  # runtime is dependency
+        f'rhel{ver}/thunderbird-flatpak',
+    ]
     remote_repos = [r for r in function_flatpak_remote.repos if r['name'] in repo_names]
+    assert len(repo_names) == len(remote_repos), 'Testing repos are missing from remote index.'
     for repo in remote_repos:
         sat.cli.FlatpakRemote().repository_mirror(
             {
@@ -421,19 +434,11 @@ def test_sync_consume_flatpak_repo_via_cv(
     # 2. Create two CVs, put different repos inside, publish and promote them to LCE.
     cv1 = sat.api.ContentView(
         organization=function_org,
-        repository=[
-            r['id']
-            for r in local_repos
-            if r['name'] in ['rhel9/inkscape-flatpak', 'rhel9/flatpak-runtime']
-        ],
+        repository=[r['id'] for r in local_repos if r['name'] in repo_names[-2:]],  # Last 2
     ).create()
     cv2 = sat.api.ContentView(
         organization=function_org,
-        repository=[
-            r['id']
-            for r in local_repos
-            if r['name'] in ['rhel9/firefox-flatpak', 'rhel9/flatpak-runtime']
-        ],
+        repository=[r['id'] for r in local_repos if r['name'] in repo_names[:2]],  # First 2
     ).create()
     for cv in [cv1, cv2]:
         cv.publish()
@@ -476,8 +481,8 @@ def test_sync_consume_flatpak_repo_via_cv(
 
     # 6. Ensure only the proper Apps are available.
     res = host.execute('flatpak remote-ls')
-    assert all(app_name in res.stdout for app_name in ['Inkscape', 'Platform'])
-    assert 'Firefox' not in res.stdout
+    assert all(app_name in res.stdout for app_name in ['Thunderbird', 'Platform'])
+    assert 'firefox' not in res.stdout
 
     # 7. Install flatpak app from the first CV, ensure it succeeded.
     opts = {
@@ -485,7 +490,7 @@ def test_sync_consume_flatpak_repo_via_cv(
         'job-template': 'Flatpak - Install application on host',
         'search-query': f"name = {host.hostname}",
     }
-    cv1_app = 'Inkscape'
+    cv1_app = 'Thunderbird'
     job = module_target_sat.cli_factory.job_invocation(
         opts
         | {
@@ -505,7 +510,7 @@ def test_sync_consume_flatpak_repo_via_cv(
     assert cv1_app in res.stdout
 
     # 8. Try to install flatpak app from the second CV, ensure it failed.
-    cv2_app = 'Firefox'
+    cv2_app = 'firefox'
     with pytest.raises(CLIFactoryError) as error:
         sat.cli_factory.job_invocation(
             opts
