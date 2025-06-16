@@ -626,7 +626,7 @@ def valid_docker_upstream_names():
             gen_string('alphanumeric', random.randint(3, 6)).lower(),
             gen_string('alphanumeric', random.randint(3, 6)).lower(),
         ),
-        '{0}-_-_/{0}-_.'.format(gen_string('alphanumeric', 1).lower()),
+        '{0}-{0}/{0}_{0}'.format(gen_string('alphanumeric', 1).lower()),
     ]
 
 
