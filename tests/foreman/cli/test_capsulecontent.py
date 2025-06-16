@@ -21,6 +21,7 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import (
     FAKE_0_CUSTOM_PACKAGE_NAME,
+    FLATPAK_RHEL_RELEASE_VER,
     PULP_EXPORT_DIR,
 )
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
@@ -836,7 +837,8 @@ def test_sync_consume_flatpak_repo_via_library(
     assert function_lce_library.id in [capsule_lce['id'] for capsule_lce in res['results']]
 
     # Mirror a flatpak repository and sync it, verify the capsule was synced.
-    repo_names = ['rhel9/firefox-flatpak', 'rhel9/flatpak-runtime']  # runtime is dependency
+    ver = FLATPAK_RHEL_RELEASE_VER
+    repo_names = [f'rhel{ver}/firefox-flatpak', f'rhel{ver}/flatpak-runtime']  # runtime=dependency
     remote_repos = [r for r in function_flatpak_remote.repos if r['name'] in repo_names]
     for repo in remote_repos:
         sat.cli.FlatpakRemote().repository_mirror(
@@ -895,7 +897,7 @@ def test_sync_consume_flatpak_repo_via_library(
     res = host.execute('flatpak remotes')
     assert remote_name in res.stdout
 
-    app_name = 'Firefox'  # or 'org.mozilla.Firefox'
+    app_name = 'firefox'  # or 'org.mozilla.firefox'
     res = host.execute('flatpak remote-ls')
     assert app_name in res.stdout
 
