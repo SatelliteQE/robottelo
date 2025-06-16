@@ -13,6 +13,8 @@
 import pytest
 from wait_for import wait_for
 
+from robottelo.utils.issue_handlers import is_open
+
 pytestmark = [pytest.mark.run_in_one_thread]
 
 
@@ -49,12 +51,43 @@ def test_rhel_pxe_discovery_provisioning(
     sat = module_discovery_sat.sat
     provisioning_host.power_control(ensure=False)
     mac = provisioning_host.provisioning_nic_mac_addr
+    org = provisioning_hostgroup.organization[0].read()
+    loc = provisioning_hostgroup.location[0].read()
+
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
         timeout=1500,
-        retries=2,
         delay=40,
     )
+
+    discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
+    wait_for(
+        lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
+        timeout=1500,
+        delay=40,
+    )
+    if is_open('SAT-33477') and (
+        sat.cli.DiscoveredHost.list(
+            {
+                'organization-id': org.id,
+                'location-id': loc.id,
+            }
+        )
+        == []
+    ):
+        with sat.ui_session() as session:
+            session.organization.select(org_name='Any organization')
+            session.location.select(loc_name='Any location')
+            session.discoveredhosts.apply_action(
+                'Assign Organization',
+                discovered_host.name,
+                values=dict(organization=org.name),
+            )
+            session.discoveredhosts.apply_action(
+                'Assign Location',
+                discovered_host.name,
+                values=dict(location=loc.name),
+            )
     discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
     discovered_host.hostgroup = provisioning_hostgroup
     discovered_host.location = provisioning_hostgroup.location[0]
@@ -110,11 +143,43 @@ def test_rhel_pxeless_discovery_provisioning(
     pxeless_discovery_host.power_control(ensure=False)
     mac = pxeless_discovery_host.provisioning_nic_mac_addr
 
+    org = provisioning_hostgroup.organization[0].read()
+    loc = provisioning_hostgroup.location[0].read()
+
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
         timeout=1500,
         delay=40,
     )
+
+    discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
+    wait_for(
+        lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
+        timeout=1500,
+        delay=40,
+    )
+    if is_open('SAT-33477') and (
+        sat.cli.DiscoveredHost.list(
+            {
+                'organization-id': org.id,
+                'location-id': loc.id,
+            }
+        )
+        == []
+    ):
+        with sat.ui_session() as session:
+            session.organization.select(org_name='Any organization')
+            session.location.select(loc_name='Any location')
+            session.discoveredhosts.apply_action(
+                'Assign Organization',
+                discovered_host.name,
+                values=dict(organization=org.name),
+            )
+            session.discoveredhosts.apply_action(
+                'Assign Location',
+                discovered_host.name,
+                values=dict(location=loc.name),
+            )
     discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
     discovered_host.hostgroup = provisioning_hostgroup
     discovered_host.location = provisioning_hostgroup.location[0]
