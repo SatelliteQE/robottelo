@@ -573,7 +573,7 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
         assert displayed_descriptions['manual_upload_desc'] is subscription_setting
         assert displayed_inventory_tabs['uploading'] is subscription_setting
         assert (
-            displayed_inventory_data['generating']['restart'] == 'Generate and upload report'
+            displayed_inventory_data['generating']['generate'] == 'Generate and upload report'
             if subscription_setting
             else 'Generate report'
         )
