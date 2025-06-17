@@ -537,7 +537,8 @@ def test_positive_applied_errata_by_search(
     rhel_contenthost.execute(r'subscription-manager repos --enable \*')
     assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     assert rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}').status == 0
-    rhel_contenthost.execute('subscription-manager repos')
+    # sleep added to reduce flakiness of the test
+    rhel_contenthost.execute('subscription-manager repos | sleep 10')
     task_id = target_sat.api.JobInvocation().run(
         data={
             'feature': 'katello_errata_install_by_search',
