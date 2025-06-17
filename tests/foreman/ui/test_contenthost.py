@@ -1459,16 +1459,16 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template,
         all_fake_hosts_found = session.contenthost.search(
             f'os = {module_host_template.operatingsystem.name}'
         )
-        # Assert dump of fake hosts found includes the higest numbered host created for this test
+        # Check that we can't find the highest numbered host in the first page
         match = re.search(rf'test-{host_num:0>2}', str(all_fake_hosts_found))
-        assert match, 'Highest numbered host not found.'
+        assert not match, 'Highest numbered host found on first page of results.'
         # Get all the pagination values
-        pagination_values = session.contenthost.read_all('Pagination')['Pagination']
+        read_values = session.contenthost.read_all()
         # Assert total pages reported is greater than one page of hosts
-        total_pages = pagination_values['pages']
+        total_pages = read_values['pages']
         assert int(total_pages) > int(host_num) / int(new_per_page_setting)
         # Assert that total items reported is the number of hosts created for this test
-        total_items_found = pagination_values['total_items']
+        total_items_found = read_values['total_items']
         assert int(total_items_found) >= host_num
 
 
