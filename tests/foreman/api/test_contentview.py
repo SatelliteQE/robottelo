@@ -836,7 +836,7 @@ class TestContentViewPublishPromote:
             4. Publish v2.0 for a single ContentView, with an erratum Exclusion Filter applied (child_cvs[1]).
             5. Publish v2.0 for another ContentView, with no filter applied (child_cvs[0])
             6. Publish v1.0 of the Composite ContentView.
-            7. Publish the Unfiltered ContentView again, v3.0.
+            7. Publish the Unfiltered ContentView again, v3.0 (child_cvs[0]).
             8. Invoke incremental update, on the Filtered ContentView Version, v2.0->2.1, adding the filtered erratum.
             9. Composite components updated, expected Versions are present (see ExpectedResults).
             10. Publish the CompositeCV one final time.
