@@ -12,6 +12,7 @@
 
 """
 
+from datetime import UTC, datetime
 import os
 from time import sleep
 
@@ -26,6 +27,7 @@ from robottelo.constants import (
     DEFAULT_CV,
     ENVIRONMENT,
     EXPORT_LIBRARY_NAME,
+    FLATPAK_RHEL_RELEASE_VER,
     PULP_EXPORT_DIR,
     PULP_IMPORT_DIR,
     REPO_TYPE,
@@ -207,7 +209,8 @@ def function_synced_docker_repo(target_sat, function_org, function_product):
 def function_synced_flatpak_repos(
     target_sat, function_org, function_flatpak_remote, function_product
 ):
-    repo_names = ['rhel9/firefox-flatpak', 'rhel9/flatpak-runtime']  # runtime is dependency
+    ver = FLATPAK_RHEL_RELEASE_VER
+    repo_names = [f'rhel{ver}/firefox-flatpak', f'rhel{ver}/flatpak-runtime']  # runtime=dependency
     remote_repos = [r for r in function_flatpak_remote.repos if r['name'] in repo_names]
     for repo in remote_repos:
         target_sat.cli.FlatpakRemote().repository_mirror(
@@ -1538,7 +1541,7 @@ class TestContentViewSync:
         res = module_flatpak_contenthost.execute('flatpak remotes')
         assert remote_name in res.stdout
 
-        app_name = 'Firefox'
+        app_name = 'firefox'
         res = module_flatpak_contenthost.execute('flatpak remote-ls')
         assert app_name in res.stdout
 
@@ -1828,7 +1831,7 @@ class TestContentViewSync:
 
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
-        ['rhsclient9'],
+        ['rhs9'],
         indirect=True,
     )
     def test_positive_export_rerun_failed_import(
@@ -1902,6 +1905,7 @@ class TestContentViewSync:
                 {'name': cv_name, 'organization-id': function_import_org_with_manifest.id}
             )
         )
+        timestamp = datetime.now(UTC)
         target_sat.cli.Service.restart()
         sleep(30)
         # Assert that the initial import task did not succeed and CVV was removed
@@ -1912,6 +1916,11 @@ class TestContentViewSync:
             )[0]
             .result
             != 'success'
+        )
+        target_sat.wait_for_tasks(
+            search_query=f'label = Actions::Katello::ContentView::Remove and started_at >= "{timestamp}"',
+            search_rate=10,
+            max_tries=6,
         )
         importing_cvv = target_sat.cli.ContentView.info(
             {'name': cv_name, 'organization-id': function_import_org_with_manifest.id}
