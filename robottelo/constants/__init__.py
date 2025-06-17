@@ -862,6 +862,7 @@ FLATPAK_ENDPOINTS = {
     'pulpcore': 'https://{}/pulpcore_registry/' + FLATPAK_INDEX_SUFFIX,
     'katello': 'https://{}/' + FLATPAK_INDEX_SUFFIX,
 }
+FLATPAK_RHEL_RELEASE_VER = 10
 
 CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/lib/pulp/imports/myrepo/test.txt'
