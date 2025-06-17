@@ -339,8 +339,8 @@ def test_global_registration_form_populate(
             full_read=True,
         )
         assert hg_nested_name in cmd['general']['host_group']
-        assert function_activation_key.name in cmd['general']['activation_key_helper']
-        assert constants.FAKE_0_CUSTOM_PACKAGE in cmd['advanced']['install_packages_helper']
+        assert function_activation_key.name in cmd['general']['activation_keys']
+        assert constants.FAKE_0_CUSTOM_PACKAGE in cmd['advanced']['install_packages']
 
         session.organization.select(org_name=new_org.name)
         session.browser.refresh()
