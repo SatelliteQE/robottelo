@@ -382,3 +382,55 @@ def test_positive_nested_host_group_compute_resource(
         )
         child_hostgroup_values = session.hostgroup.read(f'{parent_hg_name}/{child_hg_name}')
         assert child_hostgroup_values['host_group']['deploy'] == cr_bare_metal
+
+
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_positive_nested_host_group_media_visible_with_synced_content(
+    module_target_sat_in_org_and_loc,
+    hostgroup_with_synced_ks,
+    module_sca_manifest_org,
+    module_location,
+):
+    """Verify that if user creates a child host group, created from a parent group with LCE & CV
+    with synced kickstart repository, the "Media" drop-down on the "Operating System" tab is not visible
+    and only the "Synced Content" drop-down is visible.
+
+    :id: d118d24e-0f30-11f0-b6d3-000c29a0e355
+
+    :Verifies: SAT-30138
+
+    :setup:
+        Create a parent host group with assigned lifecycle environment & content view
+        with synced kickstart repository.
+
+    :steps:
+        1. Create a nested host group from the parent one in the setup.
+        2. Check the "Operating System/Media Selection" radio button value.
+        3. Check, if the "Operating System/Media" drop-down is visible.
+
+    :expectedresults:
+        2. The "Media Selection" radio button should be set to "Synced Content"
+            and the "Synced Content" drop-down should be visible.
+        3. The "Media" drop-down should not be visible.
+    """
+    parent_hg_name = hostgroup_with_synced_ks.name
+    child_hg_name = gen_string('alpha')
+
+    with module_target_sat_in_org_and_loc.ui_session() as session:
+        session.organization.select(org_name=module_sca_manifest_org.name)
+        session.location.select(loc_name=module_location.name)
+
+        parent_hostgroup_values = session.hostgroup.read(parent_hg_name)
+        assert parent_hostgroup_values['operating_system']['media_type'] == 'Synced Content'
+        assert parent_hostgroup_values['operating_system']['media_content']['synced_content']
+
+        session.hostgroup.create(
+            {
+                'host_group.parent_name': hostgroup_with_synced_ks.name,
+                'host_group.name': child_hg_name,
+            }
+        )
+        child_hostgroup_values = session.hostgroup.read(f'{parent_hg_name}/{child_hg_name}')
+        assert child_hostgroup_values['operating_system']['media_type'] == 'Synced Content'
+        assert child_hostgroup_values['operating_system']['media_content']['synced_content']
+        assert not child_hostgroup_values['operating_system']['media_content'].get('media')
