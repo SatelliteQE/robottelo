@@ -50,8 +50,7 @@ def test_rhel_pxe_discovery_provisioning(
     """
     sat = module_discovery_sat.sat
     provisioning_host.power_control(ensure=False)
-    mac = provisioning_host._broker_facts['provisioning_nic_mac_addr']
-
+    mac = provisioning_host.provisioning_nic_mac_addr
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
         timeout=1500,
@@ -111,7 +110,7 @@ def test_rhel_pxeless_discovery_provisioning(
     """
     sat = module_discovery_sat.sat
     pxeless_discovery_host.power_control(ensure=False)
-    mac = pxeless_discovery_host._broker_facts['provisioning_nic_mac_addr']
+    mac = pxeless_discovery_host.provisioning_nic_mac_addr
 
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
