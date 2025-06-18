@@ -1375,12 +1375,8 @@ def test_positive_host_details_read_templates(
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
     'module_repos_collection_with_setup',
-    [
-        {
-            'YumRepository': {'url': settings.repos.yum_3.url},
-        }
-    ],
-    ids=['yum3'],
+    [{'YumRepository': {'url': settings.repos.yum_3.url}}],
+    ids=['yum_3'],
     indirect=True,
 )
 def test_positive_update_delete_package(
@@ -1486,11 +1482,7 @@ def test_positive_update_delete_package(
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
     'module_repos_collection_with_setup',
-    [
-        {
-            'YumRepository': {'url': settings.repos.yum_3.url},
-        }
-    ],
+    [{'YumRepository': {'url': settings.repos.yum_3.url}}],
     ids=['yum3'],
     indirect=True,
 )
@@ -1564,11 +1556,7 @@ def test_positive_apply_erratum(
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
     'module_repos_collection_with_setup',
-    [
-        {
-            'YumRepository': {'url': settings.repos.module_stream_1.url},
-        }
-    ],
+    [{'YumRepository': {'url': settings.repos.module_stream_1.url}}],
     ids=['module_stream_1'],
     indirect=True,
 )
@@ -1597,13 +1585,12 @@ def test_positive_crud_module_streams(
     module_name = 'duck'
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client)
+    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         streams = session.host_new.get_module_streams(client.hostname, module_name)
         assert streams[0]['Name'] == module_name
         assert streams[0]['State'] == 'Default'
-
         # enable module stream
         session.host_new.apply_module_streams_action(client.hostname, module_name, "Enable")
         task_result = target_sat.wait_for_tasks(
