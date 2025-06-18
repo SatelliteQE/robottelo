@@ -258,8 +258,9 @@ def test_positive_access_manifest_as_another_admin_user(
         assert not session.subscription.has_manifest
 
 
+@pytest.mark.rhel_ver_match('7')
 def test_positive_view_vdc_subscription_products(
-    session, rhel7_contenthost, target_sat, function_sca_manifest_org
+    session, rhel_contenthost, target_sat, function_sca_manifest_org
 ):
     """Ensure that Virtual Datacenters subscription provided products is
     not empty and that a consumed product exist in content products.
@@ -299,7 +300,7 @@ def test_positive_view_vdc_subscription_products(
     )
     product_name = repos_collection.rh_repos[0].data['product']
     repos_collection.setup_content(org.id, lce.id, rh_subscriptions=[DEFAULT_SUBSCRIPTION_NAME])
-    rhel7_contenthost.contenthost_setup(
+    rhel_contenthost.contenthost_setup(
         target_sat,
         org.label,
         activation_key=repos_collection.setup_content_data['activation_key']['name'],
