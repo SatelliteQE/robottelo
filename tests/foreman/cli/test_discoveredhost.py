@@ -508,11 +508,7 @@ def test_positive_verify_updated_fdi_image(target_sat):
     discovery_ks_path = '/usr/share/foreman-discovery-image/foreman-discovery-image.ks'
     target_sat.register_to_cdn()
     target_sat.execute('yum -y --disableplugin=foreman-protector install foreman-discovery-image')
-
-    if target_sat.os_version.major == 9:
-        version = '8.9' if is_open('SAT-25275') else str(target_sat.os_version)
-    elif target_sat.os_version.major == 8:
-        version = '8.9' if is_open('SAT-24197') else str(target_sat.os_version)
-
+    # FDI is built on RHEL8.9 for 6.15.z so hardcoding this value.
+    version = '8.9'
     result = target_sat.execute(f'grep "url=" {discovery_ks_path}')
     assert version in result.stdout
