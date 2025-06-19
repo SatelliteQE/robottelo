@@ -583,7 +583,7 @@ def test_positive_provision_end_to_end(
 
     :BZ: 2025523
 
-    :Verifies: SAT-24780, SAT-25810
+    :Verifies: SAT-24780, SAT-25810, SAT-34088
 
     :customerscenario: true
     """
@@ -597,9 +597,12 @@ def test_positive_provision_end_to_end(
             'network': f'VLAN {settings.provisioning.vlan_id}',
         }
     }
+    proxy_id = target_sat.nailgun_smart_proxy.id
+    target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]})
+    target_sat.execute(
+        f'hammer compute-resource update --id {module_vmware_cr.id} --caching-enabled False'
+    )
     with target_sat.ui_session() as session:
-        session.ansibleroles.import_all_roles()
-        assert session.ansibleroles.import_all_roles() == session.ansibleroles.imported_roles_count
         session.location.select(module_location.name)
         session.organization.select(module_sca_manifest_org.name)
         session.hostgroup.assign_role_to_hostgroup(
@@ -639,9 +642,12 @@ def test_positive_provision_end_to_end(
             silent_failure=True,
             handle_exception=True,
         )
-        values = session.host_new.get_host_statuses(host_name)
+        values = session.host_new.get_host_statuses(
+            f'{host_name}.{module_vmware_hostgroup.domain.read().name}'
+        )
         assert values['Build']['Status'] == 'Installed'
-        assert values['Execution']['Status'] == 'Last execution succeeded'
+        if not is_open('SAT-34088'):
+            assert values['Execution']['Status'] == 'Last execution succeeded'
 
         # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
         if pxe_loader.vm_firmware == 'uefi_secure_boot':
@@ -649,8 +655,16 @@ def test_positive_provision_end_to_end(
             provisioning_host = ContentHost(host.ip)
             # Wait for the host to be rebooted and SSH daemon to be started.
             provisioning_host.wait_for_connection()
+            if int(host.operatingsystem.read().major) >= 9:
+                assert (
+                    provisioning_host.execute(
+                        'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
+                    ).status
+                    == 0
+                )
             assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
 
-        # Verify if assigned role is executed on the host, and correct host passwd is set
-        host = ContentHost(target_sat.api.Host().search(query={'host': host_name})[0].read().ip)
-        assert host.execute('yum list installed rubygem-foreman_scap_client').status == 0
+        if not is_open('SAT-34088'):
+            # Verify if assigned role is executed on the host, and correct host passwd is set
+            host = ContentHost(target_sat.api.Host().search(query={'host': host_name})[0].read().ip)
+            assert host.execute('yum list installed rubygem-foreman_scap_client').status == 0
