@@ -2077,7 +2077,7 @@ FOREMAN_ANSIBLE_MODULES = [
     "hostgroup_info",
     "hostgroup",
     "host_info",
-    "host_power",
+    # "host_power", # this test tries to power off non-existent VM
     "host",
     "http_proxy",
     "image",
@@ -2095,7 +2095,7 @@ FOREMAN_ANSIBLE_MODULES = [
     "provisioning_template",
     "puppetclasses_import",
     "puppet_environment",
-    "realm",
+    # "realm", # realm feature is not set up at all
     "redhat_manifest",
     "registration_command",
     "repository_info",
@@ -2178,7 +2178,7 @@ FAM_TEST_PLAYBOOKS = [
     "hostgroup",
     "host_info",
     "host_interface_attributes",
-    "host_power",
+    # "host_power", # this test tries to power off non-existent VM
     "host",
     "http_proxy",
     "image",
@@ -2206,7 +2206,7 @@ FAM_TEST_PLAYBOOKS = [
     "provisioning_template",
     "puppetclasses_import",
     "puppet_environment",
-    "realm",
+    # "realm", # realm feature is not set up at all
     "redhat_manifest",
     "registration_command",
     "repositories_role",
