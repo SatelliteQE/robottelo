@@ -499,7 +499,7 @@ def test_positive_verify_updated_fdi_image(target_sat):
 
     :expectedresults: Installed foreman-discovery-image is built on latest up-to-date RHEL
 
-    Verifies: SAT-24197, SAT-25275, SAT-34778
+    Verifies: SAT-24197, SAT-25275
 
     :customerscenario: true
 
