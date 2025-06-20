@@ -134,7 +134,6 @@ def katello_host_tools_host(target_sat, module_org, rhel_contenthost):
         environment=target_sat.api.LifecycleEnvironment(id=module_org.library.id),
         auto_attach=True,
     ).create()
-
     rhel_contenthost.register(module_org, None, ak.name, target_sat, repo_data=f'repo={repo}')
     rhel_contenthost.install_katello_host_tools()
     return rhel_contenthost
@@ -180,16 +179,32 @@ def rex_contenthosts(request, module_org, target_sat, module_ak_with_cv):
 
 @pytest.fixture
 def katello_host_tools_tracer_host(rex_contenthost, target_sat):
-    """Install katello-host-tools-tracer, create custom
-    repositories on the host"""
+    """Install katello-host-tools-tracer and create custom repositories on the host.
+
+    This fixture automatically configures IPv6 support based on the host's network type and creates
+    version-appropriate repositories.
+
+    :param rex_contenthost: Remote execution enabled content host
+    :param target_sat: Target Satellite server
+    :return: ContentHost with tracer tools installed and configured
+    """
+    # add IPv6 proxy for IPv6 communication based on network type
+    if not rex_contenthost.network_type.has_ipv4:
+        rex_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
+        rex_contenthost.enable_ipv6_system_proxy()
+
     # create a custom, rhel version-specific OS repo
     rhelver = rex_contenthost.os_version.major
+
     if rhelver > 7:
+        # RHEL 8, 9 and 10 use the same repository structure
         rex_contenthost.create_custom_repos(**settings.repos[f'rhel{rhelver}_os'])
     else:
+        # RHEL 7 has different repository structure
         rex_contenthost.create_custom_repos(
             **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
         )
+
     rex_contenthost.install_tracer()
     return rex_contenthost
 
