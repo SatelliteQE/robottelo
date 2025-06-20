@@ -137,13 +137,27 @@ def module_global_params(module_target_sat):
 
 @pytest.fixture
 def tracer_install_host(rex_contenthost, target_sat):
-    """Sets up a contenthost with katello-host-tools-tracer enabled,
-    to prep it for install later"""
+    """This fixture automatically configures IPv6 support based on the host's network type and creates
+    version-appropriate repositories.
+
+    :param rex_contenthost: Remote execution enabled content host
+    :param target_sat: Target Satellite server
+    :return: ContentHost with tracer tools installed and configured
+    """
+
+    # add IPv6 proxy for IPv6 communication based on network type
+    if not rex_contenthost.network_type.has_ipv4:
+        rex_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
+        rex_contenthost.enable_ipv6_system_proxy()
+
     # create a custom, rhel version-specific OS repo
     rhelver = rex_contenthost.os_version.major
+
     if rhelver > 7:
+        # RHEL 8, 9 and 10 use the same repository structure
         rex_contenthost.create_custom_repos(**settings.repos[f'rhel{rhelver}_os'])
     else:
+        # RHEL 7 has different repository structure
         rex_contenthost.create_custom_repos(
             **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
         )
@@ -1889,7 +1903,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
 
 
 @pytest.mark.pit_client
-@pytest.mark.rhel_ver_match('[^6].*')
+@pytest.mark.rhel_ver_match('[7,8,9]')
 def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
     """Using the new Host UI,enable tracer and verify that the page reloads
 
