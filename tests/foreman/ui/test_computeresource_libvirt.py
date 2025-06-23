@@ -217,7 +217,7 @@ def test_positive_provision_end_to_end(
 def test_positive_image_end_to_end():
     """Perform end to end testing for compute resource libvirt component image.
 
-    :id: de2e901d-f29c-4636-992e-40c4143fe0df
+    :id: 62a5c52f-dd15-45e7-8200-c64bb335474f
 
     :expectedresults: All expected CRUD actions finished successfully.
 
@@ -231,7 +231,7 @@ def test_positive_image_end_to_end():
 def test_positive_associate_with_custom_profile():
     """Associate custom default (3-Large) compute profile to libvirt compute resource.
 
-    :id: 1fe93d88-a7e5-4f83-89c0-84fab1871cc7
+    :id: e7698154-62ff-492b-8e56-c5dc70f0c9df
 
     :steps:
         1. Create a compute resource of type libvirt.
@@ -251,7 +251,7 @@ def test_positive_associate_with_custom_profile_with_template():
     """Associate custom default (3-Large) compute profile to libvirt compute
      resource, with template
 
-    :id: 270af58f-9072-4ebd-800a-f497bb97ee23
+    :id: bb9794cc-6335-4621-92fd-fdc815f23263
 
     :steps:
         1. Create a compute resource of type libvirt.

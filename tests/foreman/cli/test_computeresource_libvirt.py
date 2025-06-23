@@ -469,7 +469,7 @@ def test_positive_provision_end_to_end(
 def test_negative_create_libvirt_with_url(module_location, module_org, module_target_sat):
     """Libvirt compute resource negative create with invalid values
 
-    :id: 220949f5-c43a-4c7a-9b3e-06ed784f3044
+    :id: 1f318a4b-8dca-491b-b56d-cff773ed624e
 
     :expectedresults: Compute resource is not created
     """
@@ -491,7 +491,7 @@ def test_positive_add_image_libvirt_with_name(
 ):
     """Add images to the libvirt compute resource
 
-    :id: a476050c-7862-4037-b4d0-cff6aa7ef911
+    :id: 2da84165-a56f-4282-9343-94828fa69c13
 
     :steps:
         1. Create a compute resource of type libvirt.
@@ -541,7 +541,7 @@ def test_positive_add_image_libvirt_with_name(
 def test_negative_add_image_libvirt_with_invalid_uuid():
     """Attempt to add invalid image name to the libvirt compute resource
 
-    :id: b3c04e23-d213-44b3-912c-f97082bd9887
+    :id: e8a653f9-9749-4c76-95ed-2411a7c0a117
 
     :steps:
         1. Create a compute resource of type libvirt.
@@ -561,7 +561,7 @@ def test_negative_add_image_libvirt_with_invalid_name(
 ):
     """Attempt to add invalid image name to the libvirt compute resource
 
-    :id: ff07e01e-09de-49ea-9855-0ff334122ce4
+    :id: 873a7d79-1e89-4e4f-81ca-b6db1e0246da
 
     :steps:
         1. Create a compute resource of type libvirt.
@@ -601,7 +601,7 @@ def test_positive_provision_libvirt_without_host_group():
     """Provision a host on libvirt compute resource without
     the help of hostgroup.
 
-    :id: 22b2a486-3188-4ec9-859f-e2581993b2a2
+    :id: 861940cb-1550-4f00-9df2-5a45683635b1
 
     :steps:
         1. Create a libvirt compute resource.
@@ -620,7 +620,7 @@ def test_positive_provision_libvirt_without_host_group():
 def test_positive_provision_libvirt_image_based_and_disassociate():
     """Provision a host on libvirt compute resource using image-based provisioning
 
-    :id: 724027d2-c13a-4ddb-ad81-97afba094735
+    :id: ba78858f-5cff-462e-a35d-f5aa4d11db52
 
     :steps:
         1. Create a libvirt CR
@@ -629,58 +629,6 @@ def test_positive_provision_libvirt_image_based_and_disassociate():
         3. Disassociate the host from the CR
 
     :expectedresults: Host should be provisioned with image, associated to CR, then disassociated
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-def test_positive_associate_with_custom_profile():
-    """Associate custom default (3-Large) compute profile to libvirt compute resource.
-
-    :id: 78f60a2a-ebd3-46d8-a1c3-4572211ec8c2
-
-    :customerscenario: true
-
-    :setup: libvirt hostname and credentials.
-
-    :steps:
-        1. Create a compute resource of type libvirt.
-        2. Provide it with the valid hostname, username and password.
-        3. Select the created libvirt CR.
-        4. Click Compute Profile tab.
-        5. Edit (3-Large) with valid configurations and submit.
-
-    :expectedresults: The Compute Resource created and associated to compute profile (3-Large)
-        with provided values.
-
-    :BZ: 1286033
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-def test_positive_associate_with_custom_profile_with_template():
-    """Associate custom default (3-Large) compute profile to libvirt compute
-     resource, with template
-
-    :id: b737babb-da54-472f-959c-5ff144441a55
-
-    :setup: Libvirt hostname and credentials.
-
-    :steps:
-        1. Create a compute resource of type libvirt.
-        2. Provide it with the valid hostname, username and password.
-        3. Select the created libvirt CR.
-        4. Click Compute Profile tab.
-        5. Edit (3-Large) with valid configuration and template and submit.
-
-    :expectedresults: The Compute Resource created and opened successfully
-
-    :BZ: 1452534
-
-    :CaseImportance: Medium
 
     :CaseAutomation: NotAutomated
     """
