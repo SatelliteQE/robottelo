@@ -258,7 +258,7 @@ def test_positive_access_manifest_as_another_admin_user(
         assert not session.subscription.has_manifest
 
 
-@pytest.mark.rhel_ver_match('7')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_view_vdc_subscription_products(
     session, rhel_contenthost, target_sat, function_sca_manifest_org
 ):
