@@ -1193,6 +1193,9 @@ class ContentHost(Host, ContentHostMixins):
         else:
             self.create_custom_repos(**{rhel_distro: rhel_repo})
 
+        if not self.network_type.has_ipv4:
+            self.enable_ipv6_dnf_and_rhsm_proxy()
+
         # Ensure insights-client rpm is installed
         if self.execute('yum install -y insights-client').status != 0:
             raise ContentHostError('Unable to install insights-client rpm')
