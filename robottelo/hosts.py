@@ -2783,8 +2783,7 @@ class RHBKHost(SSOHost):
     """Class for RHBK functions and setup"""
 
     def __init__(self, sat_obj, **kwargs):
-        self.host_url = settings.rhbk.host_url
-        self.uri = self.host_url
+        self.uri = settings.rhbk.host_url
         self.host_name = settings.rhbk.host_name
         self.host_port = settings.rhbk.host_port
         self.realm = settings.rhbk.realm
@@ -2799,8 +2798,7 @@ class RHSSOHost(SSOHost):
     """Class for RHSSO functions and setup"""
 
     def __init__(self, sat_obj, **kwargs):
-        self.host_url = settings.rhsso.host_url
-        self.uri = self.host_url.replace("https://", "http://")
+        self.uri = settings.rhsso.host_url
         self.host_name = settings.rhsso.host_name
         self.host_port = 443
         self.realm = settings.rhsso.realm
