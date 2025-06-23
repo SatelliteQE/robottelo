@@ -6,7 +6,7 @@
 
 :Requirement: Installation
 
-:Team: Endeavour
+:Team: Platform
 
 :CaseImportance: High
 
