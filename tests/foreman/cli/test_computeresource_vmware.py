@@ -130,7 +130,7 @@ def test_positive_provision_end_to_end(
             'cpus=1,memory_mb=6000, start=1',
             'interface': f'compute_type=VirtualVmxnet3,'
             f'compute_network=VLAN {settings.provisioning.vlan_id}',
-            'volume': f'name=Hard disk,size_gb=10,thin=true,eager_zero=false,datastore={settings.vmware.datastore}',
+            'volume': f'name=Hard disk,size_gb=10,thin=true,eager_zero=false,storage_pod={settings.vmware.datastore_cluster}',
             'provision-method': provision_method,
         }
     )
@@ -214,7 +214,7 @@ def test_positive_image_provision_end_to_end(
             'cpus=1,memory_mb=6000, start=1',
             'interface': 'compute_type=VirtualVmxnet3,'
             f'compute_network=VLAN {settings.provisioning.vlan_id}',
-            'volume': f'name=Hard disk,size_gb=10,thin=true,eager_zero=false,datastore={settings.vmware.datastore}',
+            'volume': f'name=Hard disk,size_gb=10,thin=true,eager_zero=false,storage_pod={settings.vmware.datastore_cluster}',
             'provision-method': 'image',
         }
     )
