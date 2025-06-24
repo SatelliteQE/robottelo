@@ -46,6 +46,10 @@ def manifest_scenario_refresh_setup(
     manifest = subscription_upgrade_manifest
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_name = f'subscription_upgrade_{gen_alpha()}'
+        # Simultaneously creating multiple orgs has a high failure rate,
+        # so stagger the API calls.
+        xdist_worker_splay = (int(os.environ.get('PYTEST_XDIST_WORKER')[-1]) + 1) * 50
+        sleep(xdist_worker_splay)
         org = target_sat.api.Organization(name=f'{test_name}_org').create()
         target_sat.upload_manifest(org.id, manifest.content)
         history = target_sat.cli.Subscription.manifest_history({'organization-id': org.id})
@@ -61,11 +65,11 @@ def manifest_scenario_refresh_setup(
                 'satellite': target_sat,
             }
         )
-        target_sat._session = None
         yield test_data
 
 
 @pytest.mark.subscription_upgrades
+@pytest.mark.manifester
 def test_manifest_scenario_refresh(manifest_scenario_refresh_setup):
     """After upgrade, Check the manifest refresh and delete functionality.
 
@@ -91,12 +95,6 @@ def test_manifest_scenario_refresh(manifest_scenario_refresh_setup):
     assert history[0]['statusMessage'] == "Subscriptions deleted by foreman_admin"
 
 
-"""
-The scenario to test auto-attachment of subscription on the client registered before
-upgrade.
-"""
-
-
 @pytest.fixture
 def subscription_auto_attach_setup(
     subscription_upgrade_shared_satellite,
@@ -120,11 +118,11 @@ def subscription_auto_attach_setup(
     manifest = subscription_upgrade_manifest
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_name = f'auto_attach_upgrade_{gen_alpha()}'
-        org = target_sat.api.Organization(name=f'{test_name}_org').create()
-        # Simultaneously uploading manifests to multiple orgs has a high failure rate, so stagger
-        # the uploads by ten seconds.
+        # Simultaneously creating multiple orgs has a high failure rate,
+        # so stagger the API calls.
         xdist_worker_splay = int(os.environ.get('PYTEST_XDIST_WORKER')[-1]) * 10
         sleep(xdist_worker_splay)
+        org = target_sat.api.Organization(name=f'{test_name}_org').create()
         target_sat.upload_manifest(org.id, manifest.content)
         location = target_sat.api.Location(name=f'{test_name}_location').create()
         library_id = int(
@@ -173,15 +171,14 @@ def subscription_auto_attach_setup(
             }
         )
         sat_upgrade.ready()
-        target_sat._session = None
         yield test_data
 
 
 @pytest.mark.subscription_upgrades
-@pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.rhel_ver_list([7, 8, 9, 10])
 @pytest.mark.no_containers
 @pytest.mark.manifester
-def test_subscription_scenario_auto_attach(subscription_auto_attach_setup, request):
+def test_subscription_scenario_auto_attach(subscription_auto_attach_setup):
     """Run subscription auto-attach on pre-upgrade content host registered
     with Satellite.
 
