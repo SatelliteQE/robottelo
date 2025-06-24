@@ -145,22 +145,24 @@ def test_positive_manifest_refresh(function_sca_manifest_org, module_target_sat)
 
 
 def test_positive_subscription_list(function_sca_manifest_org, module_target_sat):
-    """Verify that subscription list contains start and end date
+    """Verify that subscription list contains start and end date as well as product host count
 
     :id: 4861bcbc-785a-436d-98ce-14cfef7d6907
 
-    :expectedresults: subscription list contains the start and end date
+    :expectedresults: subscription list contains the start-date, end-date and product-host-count
 
     :customerscenario: true
 
     :BZ: 1686916
+
+    :Verifies: SAT-31827
 
     :CaseImportance: Medium
     """
     subscription_list = module_target_sat.cli.Subscription.list(
         {'organization-id': function_sca_manifest_org.id}, per_page=False
     )
-    for column in ['start-date', 'end-date']:
+    for column in ['start-date', 'end-date', 'product-host-count']:
         assert column in subscription_list[0]
 
 
