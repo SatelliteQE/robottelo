@@ -64,15 +64,21 @@ def test_positive_end_to_end_crud(session, module_org, module_target_sat):
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
     'repos_collection',
-    [{'SatelliteToolsRepository': {}, 'distro': 'rhel7'}],
+    [
+        {
+            'distro': f'rhel{settings.content_host.default_rhel_version}',
+            'YumRepository': {'url': settings.repos.yum_0.url},
+        }
+    ],
     indirect=True,
 )
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_positive_end_to_end_register(
     session,
     function_sca_manifest_org,
     default_location,
     repos_collection,
-    rhel7_contenthost,
+    rhel_contenthost,
     target_sat,
 ):
     """Create activation key and use it during content host registering
@@ -91,17 +97,17 @@ def test_positive_end_to_end_register(
     repos_collection.setup_content(org.id, lce.id)
     ak_name = repos_collection.setup_content_data['activation_key']['name']
 
-    repos_collection.setup_virtual_machine(rhel7_contenthost)
+    repos_collection.setup_virtual_machine(rhel_contenthost)
     with session:
         session.organization.select(org.name)
         session.location.select(default_location.name)
-        chost = session.contenthost.read_legacy_ui(
-            rhel7_contenthost.hostname, widget_names='details'
-        )
-        assert chost['details']['registered_by'] == f'Activation Key {ak_name}'
+        chost = session.host_new.get_details(rhel_contenthost.hostname, widget_names='details')[
+            'details'
+        ]['registration_details']['details']
+        assert chost['registered_by'] == f'Activation key {ak_name}'
         ak_values = session.activationkey.read(ak_name, widget_names='content_hosts')
         assert len(ak_values['content_hosts']['table']) == 1
-        assert ak_values['content_hosts']['table'][0]['Name'] == rhel7_contenthost.hostname
+        assert ak_values['content_hosts']['table'][0]['Name'] == rhel_contenthost.hostname
 
 
 @pytest.mark.upgrade
