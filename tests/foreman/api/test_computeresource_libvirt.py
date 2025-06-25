@@ -277,7 +277,7 @@ def test_negative_update_url(url, request, module_target_sat, module_org, module
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
-@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['uefi', 'secureboot'], indirect=True)
 @pytest.mark.rhel_ver_list('[9, 10]')
 def test_positive_provision_end_to_end(
     request,
@@ -304,7 +304,7 @@ def test_positive_provision_end_to_end(
 
     :expectedresults: Host is provisioned successfully with hostgroup
 
-    :Verifies: SAT-25808
+    :Verifies: SAT-25808, SAT-35939(This card addresses the BIOS issue that was removed in the test.)
     """
     sat = module_libvirt_provisioning_sat.sat
     cr_name = gen_string('alpha')
