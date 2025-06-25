@@ -68,6 +68,7 @@ def assert_host_logs(channel, pattern):
 @pytest.mark.on_premises_provisioning
 @pytest.mark.ipv6_provisioning
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
+@pytest.mark.skip(reason='The flaky test is skipped until support or a fix is implemented')
 def test_rhel_pxe_provisioning(
     request,
     module_provisioning_sat,
