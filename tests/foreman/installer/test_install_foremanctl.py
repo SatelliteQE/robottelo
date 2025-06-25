@@ -17,7 +17,7 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import FOREMANCTL_PARAMETERS_FILE
-from robottelo.hosts import Satellite
+from robottelo.hosts import Capsule, Satellite
 from robottelo.utils.issue_handlers import is_open
 
 pytestmark = [pytest.mark.foremanctl, pytest.mark.upgrade]
@@ -165,3 +165,16 @@ def test_foremanctl_deploy_reset_parameters(module_sat_ready_rhel):
     parameters_file = module_sat_ready_rhel.load_remote_yaml_file(FOREMANCTL_PARAMETERS_FILE)
     assert 'foreman_puma_workers' not in parameters_file
     assert 'pulp_worker_count' not in parameters_file
+
+
+@pytest.fixture(scope='module')
+def foremanctl_capsule_configured(request, module_sat_ready_rhel):
+    with Broker(
+        workflow=settings.server.deploy_workflows.os,
+        deploy_rhel_version=settings.server.version.rhel_version,
+        deploy_flavor=settings.flavors.default,
+        deploy_network_type=settings.server.network_type,
+        host_class=Capsule,
+    ) as capsule:
+        capsule.foremanctl_capsule_setup(sat_host=module_sat_ready_rhel)
+        return capsule

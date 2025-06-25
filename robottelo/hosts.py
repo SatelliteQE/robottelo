@@ -1603,6 +1603,12 @@ class ContentHost(Host, ContentHostMixins):
                     raise ContentHostError(
                         f'Enabling Capsule repos on host failed\n{result.stdout}'
                     )
+        elif settings.server.version.source == 'upstream':
+            self.create_custom_repos(
+                foreman='https://yum.theforeman.org/nightly/el9/x86_64/',
+                foreman_plugins='https://yum.theforeman.org/plugins/nightly/el9/x86_64/',
+                katello='https://yum.theforeman.org/katello/nightly/katello/el9/x86_64/',
+            )
         else:
             self.download_repofile(
                 product='capsule',
@@ -1873,6 +1879,29 @@ class Capsule(ContentHost, CapsuleMixins):
             raise CapsuleHostError(
                 f'A core service is not running at capsule host\n{result.stdout}'
             )
+
+    def foremanctl_capsule_setup(self, sat_host=None, capsule_cert_opts=None):
+        """Prepare the host and copy cert to capsule"""
+        self.register_to_cdn()
+        self.setup_rhel_repos()
+        self.setup_capsule_repos()
+
+        # After capsule registration to cdn, it should be initialized with the Satellite.
+        self._satellite = sat_host or Satellite()
+
+        # Update system, firewall services and check capsule is already installed from template
+        # Setups firewall on Capsule
+        self.execute('dnf -y update', timeout=0)
+        assert (
+            self.execute(
+                "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
+            ).status
+            == 0
+        ), "firewalld is not present and can't be installed"
+        self.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
+        self.execute('firewall-cmd --runtime-to-permanent')
+        certs_tar = self.satellite.foremanctl_capsule_certs_generate(self, **capsule_cert_opts)
+        self.satellite.session.remote_copy(certs_tar, self)
 
     def update_download_policy(self, policy):
         """Updates capsule's download policy to desired value"""
@@ -2354,6 +2383,24 @@ class Satellite(Capsule, SatelliteMixins):
         )
         install_cmd = InstallerCommand.from_cmd_str(cmd_str=result.stdout)
         return cert_file_path, result, install_cmd
+
+    def foremanctl_capsule_certs_generate(self, capsule, cert_source=None, **extra_kwargs):
+        """Generate foremanctl capsule certs, returning the cert path, installer command stdout and args"""
+        cert_file_path = cert_source or f'/root/{capsule.hostname}.tar.gz'
+        result = self.install(
+            InstallerCommand(
+                command='foremanctl certificate-bundle',
+                foreman_proxy_fqdn=capsule.hostname,
+                certs_tar=cert_file_path,
+                installer_args=['no-colors'],
+                **extra_kwargs,
+            )
+        )
+        assert result == 0
+        return cert_file_path
+        # The capsule bundle has been created. The capsule installation part is still pending, as it has not yet been developed.
+        # install_cmd = InstallerCommand.from_cmd_str(cmd_str=result.stdout)
+        # return cert_file_path, result, install_cmd
 
     def __enter__(self):
         """Satellite objects can be used as a context manager to temporarily force everything
