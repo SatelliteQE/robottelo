@@ -869,14 +869,7 @@ class TestAnsibleREX:
 
         if ansible_check_mode == 'True':
             cloned_template_name = gen_string('alpha')
-            # TODO: Using UI as workaround to clone a JobTemplate until SAT-34617 is fixed.
-            # og_template.clone(data={'name': cloned_template_name})
-            with target_sat.ui_session() as session:
-                session.organization.select(org_name=module_org.name)
-                session.location.select(loc_name=module_location.name)
-                session.jobtemplate.clone(
-                    default_template_name, {'template.name': cloned_template_name}
-                )
+            template.clone(data={'name': cloned_template_name})
             template = target_sat.api.JobTemplate().search(
                 query={'search': f'name="{cloned_template_name}"'}
             )[0]
