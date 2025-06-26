@@ -66,7 +66,7 @@ def test_positive_rename_satellite(module_org, module_product, module_target_sat
     password = settings.server.admin_password
     old_hostname = module_target_sat.execute('hostname').stdout.strip()
     old_shortname, old_domain = old_hostname.split(".", 1)
-    new_hostname = f'{old_shortname}-changed.{old_domain}'
+    new_hostname = f'new-{gen_string("alpha").lower()}.{old_domain}'
     new_certs = [
         '/etc/foreman/client_cert.pem',
         '/etc/foreman-proxy/ssl_cert.pem',
