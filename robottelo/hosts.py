@@ -48,7 +48,6 @@ from robottelo.constants import (
     RHSSO_RESET_PASSWORD,
     RHSSO_USER_UPDATE,
     SATELLITE_VERSION,
-    SM_OVERALL_STATUS,
 )
 from robottelo.enums import NetworkType
 from robottelo.exceptions import CLIFactoryError, DownloadFileError, HostPingFailed
@@ -540,17 +539,6 @@ class ContentHost(Host, ContentHostMixins):
             result = ' '.join(result).split()
             pool_ids.append(result)
         return pool_ids
-
-    def subscription_manager_attach_pool(self, pool_list=None):
-        """
-        Attach pool ids to the host and return the result
-        """
-        if pool_list is None:
-            pool_list = []
-        result = []
-        for pool in pool_list:
-            result.append(self.execute(f'subscription-manager attach --pool={pool}'))
-        return result
 
     @property
     def subscription_config(self):
@@ -1476,7 +1464,7 @@ class ContentHost(Host, ContentHostMixins):
         self.execute('katello-tracer-upload')
 
     def register_to_cdn(self, pool_ids=None):
-        """Subscribe satellite to CDN"""
+        """Register host to CDN"""
         self.reset_rhsm()
 
         # Enabling proxy for IPv6
@@ -1495,17 +1483,6 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError(
                 f'Error during registration, command output: {cmd_result.stdout}'
             )
-        # Attach a pool only if the Org isn't SCA yet
-        sub_status = self.subscription_manager_status().stdout
-        if SM_OVERALL_STATUS['disabled'] not in sub_status:
-            if pool_ids in [None, []]:
-                pool_ids = [settings.subscription.rhn_poolid]
-            for pid in pool_ids:
-                int(pid, 16)  # raises ValueError if not a HEX number
-            cmd_result = self.subscription_manager_attach_pool(pool_ids)
-            for res in cmd_result:
-                if res.status != 0:
-                    raise ContentHostError(f'Pool attachment failed with output: {res.stdout}')
 
     def ping_host(self, host):
         """Check the provisioned host status by pinging the ip of host
