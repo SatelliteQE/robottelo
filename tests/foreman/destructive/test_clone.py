@@ -14,7 +14,6 @@
 
 import pytest
 
-from robottelo import constants
 from robottelo.config import settings
 from robottelo.hosts import Satellite
 
@@ -50,9 +49,6 @@ def test_positive_clone_backup(
 
     :customerscenario: true
     """
-    rhel_version = sat_ready_rhel._v_major
-    sat_version = 'stream' if target_sat.is_stream else target_sat.version
-
     pulp_artifact_len = len(target_sat.execute('ls /var/lib/pulp/media/artifact').stdout)
 
     # SATELLITE PART - SOURCE SERVER
@@ -84,20 +80,16 @@ def test_positive_clone_backup(
     assert sat_ready_rhel.execute('ls /backup/config_files.tar.gz').status == 0
     # Registering to cdn
     sat_ready_rhel.register_to_cdn()
-    # Disabling repositories
-    assert sat_ready_rhel.execute('subscription-manager repos --disable=*').status == 0
-    # Getting satellite maintenace repo
-    sat_ready_rhel.download_repofile(
-        product='satellite', release=sat_version, snap=settings.server.version.snap
-    )
-    # Enabling repositories
-    for repo in getattr(constants, f"OHSNAP_RHEL{rhel_version}_REPOS"):
-        sat_ready_rhel.enable_repo(repo, force=True)
-    # Enabling satellite module
-    assert sat_ready_rhel.execute(f'dnf module enable -y satellite:el{rhel_version}').status == 0
+
+    # Setup repositories
+    sat_ready_rhel.setup_rhel_repos()
+    sat_ready_rhel.setup_satellite_repos()
+
+    # Enabling satellite module for RHEL8
+    sat_ready_rhel.enable_satellite_or_capsule_module_for_rhel8()
     # Install satellite-clone
     assert sat_ready_rhel.execute('yum install satellite-clone -y').status == 0
-    # Disabling CDN repos as we install from dogfdood
+    # Disabling repos setup - they are already configured
     assert (
         sat_ready_rhel.execute(
             'echo "enable_repos: false" >> /etc/satellite-clone/satellite-clone-vars.yml'
