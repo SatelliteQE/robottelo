@@ -341,14 +341,6 @@ VERSIONED_REPOS = [
     'satellite-utils-{}-for-rhel-9-x86_64-rpms',  # 6.16+
 ]
 
-SM_OVERALL_STATUS = {
-    'current': 'Overall Status: Current',
-    'invalid': 'Overall Status: Invalid',
-    'insufficient': 'Overall Status: Insufficient',
-    'disabled': 'Overall Status: Disabled',
-    'unknown': 'Overall Status: Unknown',
-}
-
 REPOS = {
     'rhel7': {
         'id': 'rhel-7-server-rpms',
