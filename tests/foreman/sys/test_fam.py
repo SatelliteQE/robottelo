@@ -228,6 +228,13 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
 
     :expectedresults: All modules and roles run successfully
     """
+    # Skip crazy FAM tests w/o proper setups
+    if ansible_module in [
+        "host_power",  # this test tries to power off non-existent VM
+        "realm",  # realm feature is not set up on Capsule
+    ]:
+        pytest.skip(f"{ansible_module} module test lacks proper setup")
+
     # Skip oVirt/RHV tests on IPv6 setups
     if module_target_sat.network_type == NetworkType.IPV6 and ansible_module in [
         'compute_profile_ovirt'
