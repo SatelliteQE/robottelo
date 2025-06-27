@@ -47,6 +47,8 @@ def os_path(default_os):
         os_distr_url = settings.repos.rhel8_os.baseos
     elif default_os.major == "9":
         os_distr_url = settings.repos.rhel9_os.baseos
+    elif default_os.major == "10":
+        os_distr_url = settings.repos.rhel10_os.baseos
     else:
         pytest.fail('Proposed RHEL version is not supported')
     return os_distr_url
