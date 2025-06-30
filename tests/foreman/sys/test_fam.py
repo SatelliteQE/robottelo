@@ -25,7 +25,6 @@ from robottelo.constants import (
     FOREMAN_ANSIBLE_MODULES,
     RH_SAT_ROLES,
 )
-from robottelo.enums import NetworkType
 
 
 @pytest.fixture
@@ -235,11 +234,9 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
     ]:
         pytest.skip(f"{ansible_module} module test lacks proper setup")
 
-    # Skip oVirt/RHV tests on IPv6 setups
-    if module_target_sat.network_type == NetworkType.IPV6 and ansible_module in [
-        'compute_profile_ovirt'
-    ]:
-        pytest.skip("oVirt/RHV is not properly set up in IPv6 environment")
+    # RHV/oVirt support removed in SAC for 6.18+
+    if ansible_module == "compute_profile_ovirt":
+        pytest.skip("oVirt/RHV support is removed for 6.18+")
 
     # Setup provisioning resources
     if ansible_module in FAM_TEST_LIBVIRT_PLAYBOOKS:
