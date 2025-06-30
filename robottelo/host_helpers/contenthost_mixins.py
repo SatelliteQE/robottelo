@@ -74,7 +74,7 @@ class VersionedContent:
 
     def get_satellite_capsule_repos(self, x_y_release=None, product='satellite', os_major_ver=None):
         """Generate a list of satellite/capsule repository names.
-        
+
         :param x_y_release: Satellite version in x.y format (e.g., '6.16')
         :param product: Product type ('satellite' or 'capsule')
         :param os_major_ver: OS major version (defaults to host's major version)
@@ -86,7 +86,7 @@ class VersionedContent:
             os_major_ver = self._v_major
         if product == 'capsule':
             product = 'satellite-capsule'
-        
+
         return [
             f'{product}-{x_y_release}-for-rhel-{os_major_ver}-x86_64-rpms',
             f'satellite-maintenance-{x_y_release}-for-rhel-{os_major_ver}-x86_64-rpms',
