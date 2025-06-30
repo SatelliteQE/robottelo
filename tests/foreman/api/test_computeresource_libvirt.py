@@ -383,3 +383,100 @@ def test_positive_provision_end_to_end(
                 == 0
             )
         assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
+
+
+@pytest.mark.e2e
+@pytest.mark.on_premises_provisioning
+@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_positive_provision_libvirt_image_based(
+    request,
+    module_location,
+    module_sca_manifest_org,
+    module_libvirt_provisioning_sat,
+    provisioning_hostgroup,
+    module_provisioning_rhel_content,
+    setting_update,
+    pxe_loader,
+):
+    """Provision a host on Libvirt compute resource with the help of image.
+
+    :id: d63922fa-2451-11f0-a60f-6c240829b295
+
+    :steps:
+        1. Configure provisioning setup.
+        2. Create Libvirt CR
+        3. Create a host on Libvirt compute resource using the image
+        4. Verify created host on Libvirt.
+
+    :expectedresults: Host is provisioned succesfully with image
+    """
+    sat = module_libvirt_provisioning_sat.sat
+    cr_name = gen_string('alpha')
+    host_name = gen_string('alpha').lower()
+    img_name = gen_string('alpha')
+    libvirt_cr = sat.api.LibvirtComputeResource(
+        name=cr_name,
+        provider=FOREMAN_PROVIDERS['libvirt'],
+        display_type='VNC',
+        organization=[module_sca_manifest_org],
+        location=[module_location],
+        url=LIBVIRT_URL,
+    ).create()
+    assert libvirt_cr.name == cr_name
+    request.addfinalizer(libvirt_cr.delete)
+
+    libvirt_image = sat.api.Image(
+        compute_resource=libvirt_cr,
+        name=img_name,
+        operatingsystem=provisioning_hostgroup.operatingsystem,
+        architecture=provisioning_hostgroup.architecture,
+        username=settings.server.SSH_USERNAME,
+        password=settings.server.SSH_PASSWORD,
+        user_data=False,
+        uuid=settings.libvirt.LIBVIRT_IMAGE_PATH,
+    ).create()
+    assert libvirt_image.name == img_name
+
+    host = sat.api.Host(
+        hostgroup=provisioning_hostgroup,
+        organization=module_sca_manifest_org,
+        location=module_location,
+        name=host_name,
+        compute_resource=libvirt_cr,
+        provision_method='image',
+        image=libvirt_image,
+        compute_attributes={
+            'cpus': 1,
+            'memory': 6442450944,
+            'firmware': pxe_loader.vm_firmware,
+            'start': '1',
+            'volumes_attributes': {
+                '0': {
+                    'capacity': '10G',
+                    'type': 'QCOW2',
+                },
+            },
+        },
+        interfaces_attributes={
+            '0': {
+                'type': 'interface',
+                'primary': True,
+                'managed': True,
+                'compute_attributes': {
+                    'compute_type': 'bridge',
+                    'bridge': f'br-{settings.provisioning.vlan_id}',
+                },
+            }
+        },
+    ).create(create_missing=False)
+    request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
+    wait_for(
+        lambda: host.read().build_status_label != 'Pending installation',
+        timeout=500,
+        delay=10,
+    )
+    assert host.read().build_status_label == 'Installed'
+    assert host.name == f'{host_name}.{module_libvirt_provisioning_sat.domain.name}'
+    assert host.image.name == img_name
