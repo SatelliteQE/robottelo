@@ -152,6 +152,17 @@ def hostgroup_upgrade_shared_satellite():
 
 
 @pytest.fixture
+def usergroup_upgrade_shared_satellite():
+    """Mark tests using this fixture with pytest.mark.usergroup_upgrades."""
+    sat_instance = shared_checkout("usergroup_upgrade")
+    with SharedResource(
+        "usergroup_upgrade_tests", shared_checkin, sat_instance=sat_instance
+    ) as test_duration:
+        yield sat_instance
+        test_duration.ready()
+
+
+@pytest.fixture
 def errata_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.search_upgrades."""
     sat_instance = shared_checkout("errata_upgrade")
