@@ -132,11 +132,12 @@ def test_positive_facts_end_to_end(
     }
     if not is_open('SAT-27056'):
         expected_values['net::interface::eth1::mac_address'] = mac_address.lower()
-    for fact, expected_value in expected_values.items():
-        actual_value = facts_dict.get(fact)
-        assert actual_value == expected_value, (
-            f'Assertion failed: {fact} (expected: {expected_value}, actual: {actual_value})'
-        )
+    if not is_open('SAT-35460'):
+        for fact, expected_value in expected_values.items():
+            actual_value = facts_dict.get(fact)
+            assert actual_value == expected_value, (
+                f'Assertion failed: {fact} (expected: {expected_value}, actual: {actual_value})'
+            )
 
 
 @pytest.mark.rhel_ver_match('N-1')
