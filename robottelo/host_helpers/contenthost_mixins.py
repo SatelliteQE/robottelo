@@ -72,6 +72,28 @@ class VersionedContent:
             'sat-maintenance': f"satellite-maintenance-{sat_version}-for-rhel-{self._v_major}-x86_64-rpms",
         }
 
+    def get_satellite_capsule_repos(self, x_y_release=None, product='satellite', os_major_ver=None):
+        """Generate a list of satellite/capsule repository names.
+        
+        :param x_y_release: Satellite version in x.y format (e.g., '6.16')
+        :param product: Product type ('satellite' or 'capsule')
+        :param os_major_ver: OS major version (defaults to host's major version)
+        :return: List of repository names
+        """
+        if x_y_release is None:
+            x_y_release = ".".join(settings.server.version.release.split('.')[0:2])
+        if os_major_ver is None:
+            os_major_ver = self._v_major
+        if product == 'capsule':
+            product = 'satellite-capsule'
+        
+        return [
+            f'{product}-{x_y_release}-for-rhel-{os_major_ver}-x86_64-rpms',
+            f'satellite-maintenance-{x_y_release}-for-rhel-{os_major_ver}-x86_64-rpms',
+            f'rhel-{os_major_ver}-for-x86_64-baseos-rpms',
+            f'rhel-{os_major_ver}-for-x86_64-appstream-rpms',
+        ]
+
     @cached_property
     def OSCAP(self):
         return {
