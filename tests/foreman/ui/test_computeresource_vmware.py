@@ -81,6 +81,27 @@ def get_vmware_datastore_summary_string(vmware, vmwareclient):
     return f'{settings.vmware.datastore} (free: {free_space}, prov: {prov}, total: {capacity})'
 
 
+@pytest.fixture
+def get_vmware_storagepod_summary_string(vmware, vmwareclient):
+    """Return the storage-pod string summary for storage_pod_name
+
+    For "Local-Ironforge" storage-pod the string looks Like:
+
+        "Local-Ironforge (free: 1.66 TB, prov: 2.29 TB, total: 2.72 TB)"
+    """
+    data_store_summary = [
+        h
+        for h in vmwareclient.get_obj_list(vim.StoragePod)
+        if h.name == settings.vmware.datastore_cluster
+    ][0].summary
+    capacity = _get_normalized_size(data_store_summary.capacity)
+    free_space = _get_normalized_size(data_store_summary.freeSpace)
+    prov = _get_normalized_size(data_store_summary.capacity - data_store_summary.freeSpace)
+    return (
+        f'{settings.vmware.datastore_cluster} (free: {free_space}, prov: {prov}, total: {capacity})'
+    )
+
+
 @pytest.mark.e2e
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 def test_positive_cr_end_to_end(session, module_org, module_location, vmware, module_target_sat):
@@ -571,7 +592,7 @@ def test_positive_provision_end_to_end(
     vmwareclient,
     target_sat,
     module_provisioning_rhel_content,
-    get_vmware_datastore_summary_string,
+    get_vmware_storagepod_summary_string,
 ):
     """Assign Ansible role to a Hostgroup and verify ansible role execution job is scheduled after a host is provisioned
 
@@ -588,23 +609,26 @@ def test_positive_provision_end_to_end(
 
     :BZ: 2025523
 
-    :Verifies: SAT-24780, SAT-25810
+    :Verifies: SAT-24780, SAT-25810, SAT-34088
 
     :customerscenario: true
     """
     SELECTED_ROLE = 'theforeman.foreman_scap_client'
     host_name = gen_string('alpha').lower()
     guest_os_names = 'Red Hat Enterprise Linux 8 (64 bit)'
-    storage_data = {'storage': {'disks': [{'data_store': get_vmware_datastore_summary_string}]}}
+    storage_data = {'storage': {'disks': [{'storage_pod': get_vmware_storagepod_summary_string}]}}
     network_data = {
         'network_interfaces': {
             'nic_type': VMWARE_CONSTANTS['network_interface_name'],
             'network': f'VLAN {settings.provisioning.vlan_id}',
         }
     }
+    proxy_id = target_sat.nailgun_smart_proxy.id
+    target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]})
+
+    target_sat.cli.ComputeResource.update({'name': module_vmware_cr.name, 'caching-enabled': False})
+
     with target_sat.ui_session() as session:
-        session.ansibleroles.import_all_roles()
-        assert session.ansibleroles.import_all_roles() == session.ansibleroles.imported_roles_count
         session.location.select(module_location.name)
         session.organization.select(module_sca_manifest_org.name)
         session.hostgroup.assign_role_to_hostgroup(
@@ -634,9 +658,10 @@ def test_positive_provision_end_to_end(
                 'host.compute_profile': COMPUTE_PROFILE_SMALL,
             }
         )
-        request.addfinalizer(lambda: target_sat.provisioning_cleanup(host_name))
+        host_fqdn = f'{host_name}.{module_vmware_hostgroup.domain.read().name}'
+        request.addfinalizer(lambda: target_sat.provisioning_cleanup(host_fqdn))
         wait_for(
-            lambda: session.host_new.get_host_statuses(host_name)['Build']['Status']
+            lambda: session.host_new.get_host_statuses(host_fqdn)['Build']['Status']
             != 'Pending installation',
             timeout=1800,
             delay=30,
@@ -644,9 +669,10 @@ def test_positive_provision_end_to_end(
             silent_failure=True,
             handle_exception=True,
         )
-        values = session.host_new.get_host_statuses(host_name)
+        values = session.host_new.get_host_statuses(host_fqdn)
         assert values['Build']['Status'] == 'Installed'
-        assert values['Execution']['Status'] == 'Last execution succeeded'
+        if not is_open('SAT-34088'):
+            assert values['Execution']['Status'] == 'Last execution succeeded'
 
         # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
         if pxe_loader.vm_firmware == 'uefi_secure_boot':
@@ -656,6 +682,7 @@ def test_positive_provision_end_to_end(
             provisioning_host.wait_for_connection()
             assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
 
-        # Verify if assigned role is executed on the host, and correct host passwd is set
-        host = ContentHost(target_sat.api.Host().search(query={'host': host_name})[0].read().ip)
-        assert host.execute('yum list installed rubygem-foreman_scap_client').status == 0
+        if not is_open('SAT-34088'):
+            # Verify if assigned role is executed on the host, and correct host passwd is set
+            host = ContentHost(target_sat.api.Host().search(query={'host': host_name})[0].read().ip)
+            assert host.execute('yum list installed rubygem-foreman_scap_client').status == 0
