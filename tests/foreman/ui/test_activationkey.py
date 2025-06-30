@@ -1048,8 +1048,9 @@ def test_positive_host_associations(session, target_sat):
 
 @pytest.mark.no_containers
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_positive_service_level_subscription_with_custom_product(
-    session, function_sca_manifest_org, rhel7_contenthost, target_sat
+    session, function_sca_manifest_org, rhel_contenthost, target_sat
 ):
     """Subscribe a host to activation key with Premium service level and with
     custom product
@@ -1082,14 +1083,14 @@ def test_positive_service_level_subscription_with_custom_product(
     activation_key.service_level = 'Premium'
     activation_key = activation_key.update(['service_level'])
 
-    result = rhel7_contenthost.register(org, None, activation_key.name, target_sat)
+    result = rhel_contenthost.register(org, None, activation_key.name, target_sat)
     assert result.status == 0, f'Failed to register host: {result.stderr}'
-    assert rhel7_contenthost.subscribed
-    with session:
+    assert rhel_contenthost.subscribed
+    with target_sat.ui_session() as session:
         session.organization.select(org.name)
         session.location.select(constants.DEFAULT_LOC)
         chost = session.host_new.get_details(
-            rhel7_contenthost.hostname, widget_names='content.repository_sets'
+            rhel_contenthost.hostname, widget_names='content.repository_sets'
         )
         assert product.name == chost['content']['repository_sets']['table'][0]['Product']
 
