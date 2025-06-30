@@ -486,10 +486,10 @@ def test_negative_create_libvirt_with_url(module_location, module_org, module_ta
         )
 
 
-def test_positive_add_image_libvirt_with_name(
+def test_positive_create_delete_image_libvirt_with_name(
     module_location, module_org, module_target_sat, module_os
 ):
-    """Add images to the libvirt compute resource
+    """Create/Delete images on the libvirt compute resource
 
     :id: 2da84165-a56f-4282-9343-94828fa69c13
 
@@ -498,7 +498,7 @@ def test_positive_add_image_libvirt_with_name(
         2. Create a image for the compute resource with valid parameter,
            compute-resource image create
 
-    :expectedresults: The image is added to the CR successfully
+    :expectedresults: The image is created and deleted on the CR successfully
     """
     cr_name = gen_string('alpha')
     comp_res = module_target_sat.cli_factory.compute_resource(
@@ -534,7 +534,7 @@ def test_positive_add_image_libvirt_with_name(
     result = module_target_sat.cli.ComputeResource.image_delete(
         {'name': img_name, 'compute-resource': cr_name}
     )
-    assert result['message'] == 'Image deleted.'
+    assert result[0]['message'] == 'Image deleted.'
 
 
 @pytest.mark.stubbed
