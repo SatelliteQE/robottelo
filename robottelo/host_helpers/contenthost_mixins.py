@@ -80,19 +80,38 @@ class VersionedContent:
         :param os_major_ver: OS major version (defaults to host's major version)
         :return: List of repository names
         """
+        # Set defaults
         if x_y_release is None:
             x_y_release = ".".join(settings.server.version.release.split('.')[0:2])
         if os_major_ver is None:
             os_major_ver = self._v_major
-        if product == 'capsule':
-            product = 'satellite-capsule'
-
-        return [
-            f'{product}-{x_y_release}-for-rhel-{os_major_ver}-x86_64-rpms',
-            f'satellite-maintenance-{x_y_release}-for-rhel-{os_major_ver}-x86_64-rpms',
-            f'rhel-{os_major_ver}-for-x86_64-baseos-rpms',
-            f'rhel-{os_major_ver}-for-x86_64-appstream-rpms',
-        ]
+        
+        repos = []
+        
+        # Use cached properties when they match the requested configuration
+        default_sat_version = ".".join(settings.server.version.release.split('.')[0:2])
+        
+        if (x_y_release == default_sat_version and os_major_ver == self._v_major and 
+            product in ['satellite', 'capsule']):
+            # Use existing cached properties for product repositories
+            if product == 'satellite':
+                repos.extend(self.SATELLITE_CDN_REPOS.values())
+            else:
+                repos.extend(self.CAPSULE_CDN_REPOS.values())
+            
+            # Use existing REPOS property for RHEL repositories
+            repos.extend([self.REPOS['rhel_bos']['id'], self.REPOS['rhel_aps']['id']])
+        else:
+            # Generate repositories manually when parameters don't match cached values
+            product_name = 'satellite-capsule' if product == 'capsule' else product
+            repos = [
+                f'{product_name}-{x_y_release}-for-rhel-{os_major_ver}-x86_64-rpms',
+                f'satellite-maintenance-{x_y_release}-for-rhel-{os_major_ver}-x86_64-rpms',
+                f'rhel-{os_major_ver}-for-x86_64-baseos-rpms',
+                f'rhel-{os_major_ver}-for-x86_64-appstream-rpms',
+            ]
+        
+        return repos
 
     @cached_property
     def OSCAP(self):
