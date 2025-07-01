@@ -10,7 +10,7 @@ http://theforeman.org/api/apidoc/v2/ptables.html
 
 :CaseComponent: Hosts
 
-:Team: Endeavour
+:Team: Phoenix-subscriptions
 
 :CaseImportance: High
 

@@ -6,7 +6,7 @@
 
 :CaseComponent: Hammer
 
-:Team: Endeavour
+:Team: Rocket
 
 :CaseImportance: Critical
 
