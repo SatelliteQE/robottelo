@@ -8,7 +8,7 @@
 
 :CaseImportance: High
 
-:Team: Rocket
+:Team: Phoenix-subscriptions
 """
 
 import pytest

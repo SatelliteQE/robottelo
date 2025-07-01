@@ -4,7 +4,7 @@
 
 :CaseComponent: Leappintegration
 
-:Team: Rocket
+:Team: Endeavour
 
 :CaseImportance: Critical
 
