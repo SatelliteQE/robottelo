@@ -2990,7 +2990,7 @@ def test_positive_manage_repository_sets(
 
 
 def test_disassociate_multiple_hosts(
-    new_host_ui, request, session, target_sat, module_location, module_org, vmware
+    new_host_ui, request, target_sat, module_location, module_org, vmware
 ):
     """
     Import multiple VMs from a VMware compute resource, disassociate them via the UI,
@@ -3061,7 +3061,7 @@ def test_disassociate_multiple_hosts(
         content_source=1,
     ).create()
 
-    with session:
+    with target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=module_location.name)
         session.computeresource.create(
