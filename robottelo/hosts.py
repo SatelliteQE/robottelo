@@ -1610,7 +1610,7 @@ class ContentHost(Host, ContentHostMixins):
         """
         if settings.capsule.version.source == "ga":
             # enable cdn repos
-            for repo in self.SATELLITE_CDN_REPOS.values():
+            for repo in self.CAPSULE_CDN_REPOS.values():
                 result = self.enable_repo(repo, force=True)
                 if result.status:
                     raise ContentHostError(
