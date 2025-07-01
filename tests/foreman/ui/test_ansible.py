@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:Team: Rocket
+:Team: Endeavour
 
 :CaseImportance: Critical
 """
