@@ -221,7 +221,7 @@ class TestContentView:
 
         :CaseComponent: Pulp
 
-        :team: Rocket
+        :team: Phoenix-content
 
         :CaseImportance: Medium
 
@@ -567,7 +567,7 @@ class TestContentViewPublishPromote:
 
         :CaseComponent: Pulp
 
-        :team: Rocket
+        :team: Phoenix-content
 
         :CaseImportance: Medium
 

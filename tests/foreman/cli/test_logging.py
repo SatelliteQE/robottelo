@@ -6,7 +6,7 @@
 
 :CaseComponent: Logging
 
-:Team: Rocket
+:Team: Endeavour
 
 :CaseImportance: Medium
 

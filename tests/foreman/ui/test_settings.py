@@ -6,7 +6,7 @@
 
 :CaseComponent: Settings
 
-:Team: Rocket
+:Team: Endeavour
 
 :CaseImportance: High
 

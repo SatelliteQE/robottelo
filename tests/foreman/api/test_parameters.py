@@ -6,7 +6,7 @@
 
 :CaseComponent: Parameters
 
-:Team: Rocket
+:Team: Endeavour
 
 :CaseImportance: Critical
 """
