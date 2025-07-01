@@ -8,7 +8,7 @@
 
 :CaseImportance: Critical
 
-:Team: Rocket
+:Team: Phoenix-subscriptions
 """
 
 from datetime import datetime
