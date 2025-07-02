@@ -63,7 +63,6 @@ CaseComponent:
     - Hosts
     - Hosts-Content
     - Infobloxintegration
-    - Infrastructure
     - Installation
     - InterSatelliteSync
     - katello-tracer
