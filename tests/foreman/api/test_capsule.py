@@ -6,7 +6,7 @@
 
 :CaseComponent: ForemanProxy
 
-:Team: Platform
+:Team: Endeavour
 
 :CaseImportance: Critical
 

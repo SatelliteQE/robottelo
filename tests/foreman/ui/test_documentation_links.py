@@ -6,7 +6,7 @@
 
 :CaseComponent: Branding
 
-:Team: Platform
+:Team: Endeavour
 
 :CaseImportance: High
 
