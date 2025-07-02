@@ -3102,13 +3102,11 @@ def test_disassociate_multiple_hosts(
                 except CLIReturnCodeError as e:
                     print(f"Failed to delete VM {vm_name}: {e}")
 
-        vm_values_pre_disassociation = {}
         for vm_name in vm_names_with_domains:
             # Get info about host from API
             api_val_pre_disassociation = target_sat.api.Host().search(
                 query={"search": f'name={vm_name}'}
             )[0]
-            vm_values_pre_disassociation[vm_name] = api_val_pre_disassociation
             # Check that uuid and compute_resource_id are set
             assert api_val_pre_disassociation.uuid is not None, f"UUID for {vm_name} is not set"
             assert api_val_pre_disassociation.compute_resource.id is not None, (
@@ -3117,13 +3115,11 @@ def test_disassociate_multiple_hosts(
 
         session.all_hosts.disassociate_hosts(host_names=vm_names_with_domains)
 
-        vm_values_post_disassociation = {}
         for vm_name in vm_names_with_domains:
             # Get info about host from API
             api_val_post_disassociation = target_sat.api.Host().search(
                 query={"search": f'name={vm_name}'}
             )[0]
-            vm_values_post_disassociation[vm_name] = api_val_post_disassociation
             # Check that uuid and compute_resource_id are set to None
             assert api_val_post_disassociation.uuid is None, (
                 f"UUID for {vm_name} is not None after disassociation"
