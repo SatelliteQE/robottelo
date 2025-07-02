@@ -5,7 +5,7 @@
 
 :CaseComponent: Reporting
 
-:team: Phoenix-subscriptions
+:team: Endeavour
 
 :CaseImportance: High
 
