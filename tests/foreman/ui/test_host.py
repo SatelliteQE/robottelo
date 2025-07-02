@@ -1861,7 +1861,7 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
 
     :CaseComponent: katello-tracer
 
-    :Team: Phoenix-subscriptions
+    :Team: Endeavour
 
     :steps:
         1. Register a RHEL host to Satellite.
