@@ -2276,7 +2276,7 @@ def test_positive_tracer_list_and_resolve(tracer_host, target_sat):
 
     :CaseComponent: katello-tracer
 
-    :Team: Phoenix-subscriptions
+    :Team: Endeavour
 
     :bz: 2186188
     """
