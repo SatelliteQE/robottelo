@@ -2124,7 +2124,6 @@ FAM_TEST_PLAYBOOKS = [
     "auth_sources_ldap_role",
     "bookmark",
     "compute_attribute",
-    "compute_profile_ovirt",
     "compute_profiles_role",
     "compute_profile",
     "compute_resources_role",
