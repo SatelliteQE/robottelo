@@ -4,7 +4,7 @@
 
 :CaseComponent: HTTPProxy
 
-:team: Phoenix-content
+:team: Endeavour
 
 :CaseImportance: High
 
