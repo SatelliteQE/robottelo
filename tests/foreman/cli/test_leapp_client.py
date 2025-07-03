@@ -16,7 +16,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import RHEL8_VER, RHEL9_VER
+from robottelo.constants import RHEL8_VER, RHEL9_VER, RHEL10_VER
 from robottelo.utils import ohsnap
 
 
@@ -26,6 +26,7 @@ from robottelo.utils import ohsnap
     [
         # {'source_version': RHEL7_VER, 'target_version': RHEL8_VER},
         {'source_version': RHEL8_VER, 'target_version': RHEL9_VER},
+        {'source_version': RHEL9_VER, 'target_version': RHEL10_VER},
     ],
     ids=lambda upgrade_path: f'{upgrade_path["source_version"]}'
     f'_to_{upgrade_path["target_version"]}',
