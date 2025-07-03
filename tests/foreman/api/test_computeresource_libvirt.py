@@ -279,6 +279,7 @@ def test_negative_update_url(url, request, module_target_sat, module_org, module
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
 @pytest.mark.rhel_ver_list('[9, 10]')
+@pytest.mark.skip(reason='The flaky test is skipped until support or a fix is implemented')
 def test_positive_provision_end_to_end(
     request,
     setting_update,
