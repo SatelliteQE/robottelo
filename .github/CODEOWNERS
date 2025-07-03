@@ -33,7 +33,6 @@ tests/foreman/api/test_errata.py @SatelliteQE/team-phoenix
 tests/foreman/api/test_hostcollection.py @SatelliteQE/team-phoenix
 tests/foreman/api/test_lifecycleenvironment.py @SatelliteQE/team-phoenix
 tests/foreman/api/test_product.py @SatelliteQE/team-phoenix
-tests/foreman/api/test_reporttemplates.py @SatelliteQE/team-phoenix
 tests/foreman/api/test_repositories.py @SatelliteQE/team-phoenix
 tests/foreman/api/test_repository.py @SatelliteQE/team-phoenix
 tests/foreman/api/test_repository_set.py @SatelliteQE/team-phoenix
@@ -59,12 +58,10 @@ tests/foreman/cli/test_hostcollection.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_lifecycleenvironment.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_ostreebranch.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_product.py @SatelliteQE/team-phoenix
-tests/foreman/cli/test_reporttemplates.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_repositories.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_repository.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_repository_set.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_rhcloud_inventory.py @SatelliteQE/team-phoenix
-tests/foreman/cli/test_satellitesync.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_subscription.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_syncplan.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_vm_install_products_package.py @SatelliteQE/team-phoenix
@@ -88,7 +85,6 @@ tests/foreman/ui/test_lifecycleenvironment.py @SatelliteQE/team-phoenix
 tests/foreman/ui/test_modulestreams.py @SatelliteQE/team-phoenix
 tests/foreman/ui/test_package.py @SatelliteQE/team-phoenix
 tests/foreman/ui/test_product.py @SatelliteQE/team-phoenix
-tests/foreman/ui/test_reporttemplates.py @SatelliteQE/team-phoenix
 tests/foreman/ui/test_repositories.py @SatelliteQE/team-phoenix
 tests/foreman/ui/test_repository.py @SatelliteQE/team-phoenix
 tests/foreman/ui/test_rhc.py @SatelliteQE/team-phoenix
@@ -221,6 +217,7 @@ tests/foreman/api/test_partitiontable.py @SatelliteQE/team-endeavour
 tests/foreman/api/test_permission.py @SatelliteQE/team-endeavour
 tests/foreman/api/test_ping.py @SatelliteQE/team-endeavour
 tests/foreman/api/test_remoteexecution.py @SatelliteQE/team-endeavour
+tests/foreman/api/test_reporttemplates.py @SatelliteQE/team-endeavour
 tests/foreman/api/test_role.py @SatelliteQE/team-endeavour
 tests/foreman/api/test_templatesync.py @SatelliteQE/team-endeavour
 tests/foreman/api/test_user.py @SatelliteQE/team-endeavour
@@ -249,7 +246,9 @@ tests/foreman/cli/test_partitiontable.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_ping.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_realm.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_remoteexecution.py @SatelliteQE/team-endeavour
+tests/foreman/cli/test_reporttemplates.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_role.py @SatelliteQE/team-endeavour
+tests/foreman/cli/test_satellitesync.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_sso.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_templatesync.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_usage_report.py @SatelliteQE/team-endeavour
@@ -290,6 +289,7 @@ tests/foreman/ui/test_oscappolicy.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_oscaptailoringfile.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_partitiontable.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_remoteexecution.py @SatelliteQE/team-endeavour
+tests/foreman/ui/test_reporttemplates.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_role.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_search.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_templatesync.py @SatelliteQE/team-endeavour
