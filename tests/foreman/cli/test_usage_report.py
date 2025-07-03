@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: Hammer
+:CaseComponent: Reporting
 
-:Team: Rocket
+:Team: Endeavour
 
 :CaseImportance: Critical
 

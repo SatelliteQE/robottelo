@@ -181,7 +181,6 @@ tests/foreman/cli/test_subnet.py @SatelliteQE/team-rocket
 tests/foreman/destructive/test_clone.py @SatelliteQE/team-rocket
 tests/foreman/destructive/test_discoveredhost.py @SatelliteQE/team-rocket
 tests/foreman/destructive/test_fm_upgrade.py @SatelliteQE/team-rocket
-tests/foreman/cli/test_usage_report.py @SatelliteQE/team-rocket
 tests/foreman/destructive/test_ping.py @SatelliteQE/team-rocket
 tests/foreman/destructive/test_infoblox.py @SatelliteQE/team-rocket
 tests/foreman/destructive/test_installer.py @SatelliteQE/team-rocket
@@ -262,6 +261,7 @@ tests/foreman/cli/test_remoteexecution.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_role.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_sso.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_templatesync.py @SatelliteQE/team-endeavour
+tests/foreman/cli/test_usage_report.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_user.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_usergroup.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_webhook.py @SatelliteQE/team-endeavour
