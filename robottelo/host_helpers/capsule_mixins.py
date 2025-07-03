@@ -212,11 +212,13 @@ class CapsuleInfo:
         if len(result) > 0:
             assert (
                 self.execute(
-                    f'firewall-cmd --permanent --direct --add-rule ipv4 filter OUTPUT 1 -d ${result} -j REJECT && firewall-cmd --reload'
+                    f'firewall-cmd --permanent --direct --add-rule ipv4 filter OUTPUT 1 -d {result} -j REJECT && firewall-cmd --reload'
                 ).status
                 == 0
             )
-        assert self.execute(f'ping -c 2 {hostname}').status != 0
+        assert self.execute(f'ping -c 2 {hostname}').status != 0, (
+            "the connection was not succesfully disabled"
+        )
         return old_log
 
     def restore_host_check_log(self, proxy_hostname, hostname, old_log):
