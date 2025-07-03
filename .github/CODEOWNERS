@@ -62,6 +62,7 @@ tests/foreman/cli/test_repositories.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_repository.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_repository_set.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_rhcloud_inventory.py @SatelliteQE/team-phoenix
+tests/foreman/cli/test_satellitesync.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_subscription.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_syncplan.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_vm_install_products_package.py @SatelliteQE/team-phoenix
@@ -248,7 +249,6 @@ tests/foreman/cli/test_realm.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_remoteexecution.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_reporttemplates.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_role.py @SatelliteQE/team-endeavour
-tests/foreman/cli/test_satellitesync.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_sso.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_templatesync.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_usage_report.py @SatelliteQE/team-endeavour
