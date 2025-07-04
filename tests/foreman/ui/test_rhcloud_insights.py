@@ -483,3 +483,8 @@ def test_insights_registration_with_capsule(
         # Verify that Insights status again.
         values = session.host_new.get_host_statuses(rhel_contenthost.hostname)
         assert values['Insights']['Status'] == 'Reporting'
+
+
+def test_gorp(module_target_sat_insights):
+    with module_target_sat_insights.ui_session() as session:
+        session.organization.select(org_name="Default Organization")
