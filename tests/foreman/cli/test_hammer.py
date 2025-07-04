@@ -259,11 +259,11 @@ def test_hammer_host_info_csv(target_sat, function_org, function_activation_key,
     assert res.status == 0, f'Failed to register host: {res.stderr}'
 
     # Check CV-specific fields
-    perfix = 'Content Information/Content view environments/'
+    prefix = 'Content Information/Content view environments/'
     res = target_sat.cli.Host.info(
         {
             'name': rhel_contenthost.hostname,
-            'fields': f'Name,{perfix}LE Id,{perfix}LE Name,{perfix}CV Id,{perfix}CV Name',
+            'fields': f'Name,{prefix}LE Id,{prefix}LE Name,{prefix}CV Id,{prefix}CV Name',
         },
         output_format='csv',
     )

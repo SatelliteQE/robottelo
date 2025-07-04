@@ -217,7 +217,7 @@ class CapsuleInfo:
                 == 0
             )
         assert self.execute(f'ping -c 2 {hostname}').status != 0, (
-            "the connection was not succesfully disabled"
+            "the connection was not successfully disabled"
         )
         return old_log
 

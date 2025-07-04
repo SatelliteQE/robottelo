@@ -783,7 +783,7 @@ class TestAnsibleREX:
         assert result.failed == 1
         assert result.status_label == 'failed'
         result = target_sat.api.JobInvocation(id=job['id']).outputs()['outputs'][0]['output']
-        termination_msg = 'ERROR! couldn\'t resolve module/action \'nonexisting_module\''
+        termination_msg = "ERROR! couldn't resolve module/action 'nonexisting_module'"
         assert [i['output'] for i in result if termination_msg in i['output']]
         assert [i['output'] for i in result if i['output'] == 'StandardError: Job execution failed']
         assert [i['output'] for i in result if i['output'] == 'Exit status: 4']

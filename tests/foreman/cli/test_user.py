@@ -50,7 +50,7 @@ class TestUser:
         include_list = [gen_string("alphanumeric", 100)]
 
         def roles_helper():
-            """Generator funcion which creates several Roles to be used on
+            """Generator function which creates several Roles to be used on
             tests
             """
             for role_name in valid_usernames_list() + include_list:
@@ -331,7 +331,7 @@ class TestSshKeyInUser:
         return module_target_sat.api.User().create()
 
     def test_positive_CRD_ssh_key(self, module_user, module_target_sat):
-        """SSH Key can be added to a User, listed and deletd
+        """SSH Key can be added to a User, listed and deleted
 
         :id: 57304fca-8e0d-454a-be31-34423345c8b2
 

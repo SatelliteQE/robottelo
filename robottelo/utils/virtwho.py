@@ -301,7 +301,7 @@ def get_hypervisor_ahv_mapping(hypervisor_type):
 def deploy_validation(hypervisor_type):
     """Checkout the deploy result
     :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt, ahv
-    :raises: VirtWhoError: If failed to start virt-who servcie.
+    :raises: VirtWhoError: If failed to start virt-who service.
     :ruturn: hypervisor_name and guest_name
     """
     status = get_virtwho_status()
@@ -315,7 +315,7 @@ def deploy_validation(hypervisor_type):
 
 
 def deploy_configure_by_command(command, hypervisor_type, debug=False, org='Default_Organization'):
-    """Deploy and run virt-who servcie by the hammer command.
+    """Deploy and run virt-who service by the hammer command.
 
     :param str command: get the command by UI/CLI/API, it should be like:
         `hammer virt-who-config deploy --id 1 --organization-id 1`

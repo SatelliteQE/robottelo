@@ -175,7 +175,7 @@ def registered_contenthost(
 
     :environment: Defaults to module_lce.
         To use Library environment for activation key / content-view:
-        pass the string 'Library' (not case sensative) in the list of params.
+        pass the string 'Library' (not case sensitive) in the list of params.
 
     :repos: pass as a parametrized request
         list of upstream URLs for custom repositories.
@@ -1355,7 +1355,7 @@ def test_positive_show_count_on_host_pages(session, module_org, registered_conte
     :Setup:
 
         1. Errata synced on satellite server from custom repository.
-        2. Registered host, subscribed to promoted CVV, with repo synced to appliable custom packages and erratum.
+        2. Registered host, subscribed to promoted CVV, with repo synced to applicable custom packages and erratum.
 
     :steps:
 

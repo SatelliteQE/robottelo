@@ -365,7 +365,7 @@ class ContentHost(Host, ContentHostMixins):
                 and pytest.capsule_sanity is True
                 and type(self) is Capsule
             ):
-                logger.debug('END: Skipping tearing down caspule host %s for sanity', self)
+                logger.debug('END: Skipping tearing down capsule host %s for sanity', self)
                 return
             self.unregister()
             if type(self) is not Satellite:  # do not delete Satellite's host record
@@ -1065,7 +1065,7 @@ class ContentHost(Host, ContentHostMixins):
         self.execute(f'echo "{puppet_conf}" >> /etc/puppetlabs/puppet/puppet.conf')
 
         # This particular puppet run on client would populate a cert on
-        # sat6 under the capsule --> certifcates or on capsule via cli "puppetserver
+        # sat6 under the capsule --> certificates or on capsule via cli "puppetserver
         # ca list", so that we sign it.
         self.execute('/opt/puppetlabs/bin/puppet agent -t')
         proxy_host = Host(hostname=proxy_hostname, ipv6=self.network_type == NetworkType.IPV6)
@@ -1421,7 +1421,7 @@ class ContentHost(Host, ContentHostMixins):
                 raise CLIFactoryError(f'Failed to start the virt-who service:\n{result.stderr}')
         # after this step the hypervisor as a content host should be created
         # do not confuse virt-who host with hypervisor host as they can be
-        # diffrent hosts and as per this setup we have only registered the virt-who
+        # different hosts and as per this setup we have only registered the virt-who
         # host, the hypervisor host should registered after virt-who send the
         # first report when started or with one shot command
         # the virt-who hypervisor will be registered to satellite with host name
@@ -2040,7 +2040,7 @@ class Satellite(Capsule, SatelliteMixins):
 
     @property
     def satellite(self):
-        """Use self when no other Satellite is set to avoid unecessary/incorrect instances"""
+        """Use self when no other Satellite is set to avoid unnecessary/incorrect instances"""
         if not self._satellite:
             return self
         return self._satellite
@@ -2518,7 +2518,7 @@ class Satellite(Capsule, SatelliteMixins):
         assert self.execute(
             "echo -e '[Service]\\nEnvironment=GSS_USE_PROXY=1' > /etc/systemd/system/httpd.service.d/gssproxy.conf"
         )
-        # restart the deamon and httpd services
+        # restart the daemon and httpd services
         assert (
             self.execute('systemctl daemon-reload && systemctl restart httpd.service').status == 0
         )

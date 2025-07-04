@@ -794,7 +794,7 @@ class TestContentViewPublishPromote:
 
     def test_check_needs_publish_flag(self, target_sat):
         """Check that the publish_only_if_needed option in the API works as intended (defaults to
-        false, is able to be overriden to true, and if so gives the appropriate message
+        false, is able to be overridden to true, and if so gives the appropriate message
         if the cvs needs_publish flag is set to false)
 
         :id: 6e4aa845-db08-4cc3-a960-ea64fb20f50c

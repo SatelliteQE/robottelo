@@ -106,7 +106,7 @@ def test_positive_provision_end_to_end(
         4. Provision a host on VMware
         5. Verify created host on VMware with wrapanapi
 
-    :expectedresults: Host is provisioned succesfully with hostgroup
+    :expectedresults: Host is provisioned successfully with hostgroup
 
     :Verifies: SAT-25810
 
@@ -150,7 +150,7 @@ def test_positive_provision_end_to_end(
     host_info = sat.cli.Host.info({'id': host['id']})
     assert host_info['status']['build-status'] == 'Installed'
 
-    # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
+    # Verify SecureBoot is enabled on host after provisioning is completed successfully
     if pxe_loader.vm_firmware == 'uefi_secure_boot':
         provisioning_host = ContentHost(host_info['network']['ipv4-address'])
         # Wait for the host to be rebooted and SSH daemon to be started.
@@ -189,7 +189,7 @@ def test_positive_image_provision_end_to_end(
         5. Provision a host on VMware
         6. Verify created host on VMware with wrapanapi
 
-    :expectedresults: Host is provisioned succesfully.
+    :expectedresults: Host is provisioned successfully.
 
     :verifies: SAT-30594
     """

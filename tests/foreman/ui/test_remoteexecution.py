@@ -405,7 +405,7 @@ def test_positive_check_job_invocation_details_page(target_sat, rex_contenthost)
 
     :expectedresults:
         1. It should report the job name in the title.
-        2. It should report the correct numbers in Succeeded, Failed, In Progres and Cancelled fields.
+        2. It should report the correct numbers in Succeeded, Failed, In Progress and Cancelled fields.
         3. It should report correct information, like, template name that was used, host search query,
             organization, location and command.
 
