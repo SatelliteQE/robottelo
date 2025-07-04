@@ -221,7 +221,7 @@ def test_container_repo_sync(container_repo_sync_setup):
             )
             assert all(
                 [len(m['labels']) == expected_values['labels_count'] for m in entity_data]
-            ), 'Unexpected lables count'
+            ), 'Unexpected labels count'
             assert all(
                 [len(m['annotations']) == expected_values['annotations_count'] for m in entity_data]
             ), 'Unexpected annotations count'

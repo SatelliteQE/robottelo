@@ -275,7 +275,7 @@ def test_positive_set_default_http_proxy(
         5. Update "Default HTTP Proxy" to "no global default".
 
     :expectedresults: Creating Http Proxy with option "Default content HTTP proxy",
-        updates setting "Default HTTP Proxy" succesfully.
+        updates setting "Default HTTP Proxy" successfully.
 
     :Verifies: SAT-5118, SAT-28860
 

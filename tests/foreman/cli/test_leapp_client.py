@@ -181,7 +181,7 @@ def test_positive_ygdrassil_client_after_leapp_upgrade(
     )
     # Update capsule's download policy to on_demand
     module_capsule_configured_mqtt.update_download_policy('on_demand')
-    # Sync repo metatdata
+    # Sync repo metadata
     sync_status = module_capsule_configured_mqtt.nailgun_capsule.content_sync(timeout=800)
     assert sync_status['result'] == 'success', 'Capsule sync task failed.'
 

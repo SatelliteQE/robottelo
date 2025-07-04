@@ -600,7 +600,7 @@ def test_rhel_pxe_provisioning_fips_enabled(
         f'The installed OS version differs from the expected version {expected_rhel_version}'
     )
 
-    # Verify FIPS is enabled on host after provisioning is completed sucessfully
+    # Verify FIPS is enabled on host after provisioning is completed successfully
     result = provisioning_host.execute('cat /proc/sys/crypto/fips_enabled')
     assert (0 if is_open('SAT-20386') else 1) == int(result.stdout)
 
@@ -728,7 +728,7 @@ def test_rhel_pxe_provisioning_secureboot_enabled(
     # Verify host is subscribed and consumes subsctiption provided by the activation key
     assert provisioning_vmware_host.subscribed, 'Host is not subscribed'
 
-    # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
+    # Verify SecureBoot is enabled on host after provisioning is completed successfully
     assert 'SecureBoot enabled' in provisioning_vmware_host.execute('mokutil --sb-state').stdout
 
 

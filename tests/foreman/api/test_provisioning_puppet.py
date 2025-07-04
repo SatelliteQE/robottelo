@@ -228,7 +228,7 @@ def test_host_provisioning_with_external_puppetserver(
     # Run puppet-agent again, validate rc and stdout
     result = provisioning_host.execute('/opt/puppetlabs/bin/puppet agent -t')
     assert 'Applied catalog' in result.stdout
-    # 0 if run succeds, 2 if run succeeds and some resources changed
+    # 0 if run succeeds, 2 if run succeeds and some resources changed
     assert result.status in [0, 2]
 
     # Check /etc/motd contains contents from theforeman/motd module

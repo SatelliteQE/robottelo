@@ -151,7 +151,7 @@ def test_positive_erratum_installable(vm, module_target_sat):
         3. list the host applicable errata with searching the required
             errata id
 
-    :expectedresults: errata listed successfuly and is installable
+    :expectedresults: errata listed successfully and is installable
 
     :BZ: 1344049, 1498158
 

@@ -218,7 +218,7 @@ def test_post_scenario_errata_count_installation(generate_errata_for_client_setu
         1. Recover pre_upgrade data for post_upgrade verification
         2. Verify errata count has not changed on Satellite
         3. Verify the errata_ids
-        4. Verify installation of errata is successfull
+        4. Verify installation of errata is successful
         5. Verify that the errata application updated packages on client
         6. Verify that all expected erratas were installed on client.
 

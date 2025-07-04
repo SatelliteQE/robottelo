@@ -117,7 +117,7 @@ def activation_key(module_target_sat, module_org, lifecycle_env):
         ).create()
         content_view.publish()
         content_view = content_view.read()
-        assert len(content_view.version) == 1, "CV not publised"
+        assert len(content_view.version) == 1, "CV not published"
         version = content_view.version[0].read()
         version.promote(data={'environment_ids': lifecycle_env.id, 'force': True})
         activation_key = module_target_sat.api.ActivationKey(

@@ -602,7 +602,7 @@ class APIFactory:
                     )
                     return method_error
                 param = value
-            # updated param, should now be only an entity isntance
+            # updated param, should now be only an entity instance
             if not hasattr(param, 'id'):
                 method_error['message'] = (
                     f'Did not get readable instance from parameter on {self._satellite.hostname}:'
@@ -617,7 +617,7 @@ class APIFactory:
             or entities['ContentView'].needs_publish is True
         ):
             entities['ContentView'].publish()
-            # read updated entitites after modifying CV
+            # read updated entities after modifying CV
             entities = {k: v.read() for k, v in entities.items()}
 
         # promote to non-Library env if not already present:
