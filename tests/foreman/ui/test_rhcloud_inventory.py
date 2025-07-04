@@ -429,7 +429,7 @@ def test_rhcloud_global_parameters(
     rhcloud_registered_hosts,
     module_target_sat,
 ):
-    """Verify that the host_registration_insights parameters are seperate from the
+    """Verify that the host_registration_insights parameters are separate from the
         Satellite Inventory Plugin by setting host_registration_inventory_plugin to false and
         generating a report
 

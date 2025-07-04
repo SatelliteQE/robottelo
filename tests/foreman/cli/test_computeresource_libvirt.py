@@ -458,7 +458,7 @@ def test_positive_provision_end_to_end(
     host_info = sat.cli.Host.info({'id': host['id']})
     assert host_info['status']['build-status'] == 'Installed'
 
-    # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
+    # Verify SecureBoot is enabled on host after provisioning is completed successfully
     if pxe_loader.vm_firmware == 'uefi_secure_boot':
         provisioning_host = ContentHost(host_info['network']['ipv4-address'])
         # Wait for the host to be rebooted and SSH daemon to be started.

@@ -714,7 +714,7 @@ def test_positive_health_check_non_rh_packages(sat_maintain, request):
 
     :steps:
         1. Run satellite-maintain health check --label non-rh-packages.
-        2. Verify presense of non-RH/custom package installed on system.
+        2. Verify presence of non-RH/custom package installed on system.
 
     :BZ: 1869865
 

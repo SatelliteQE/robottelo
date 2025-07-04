@@ -111,7 +111,7 @@ class TestNewOrganizationAdminRole:
     :steps:
 
         1. Upgrade the satellite to next/latest version
-        2. Post upgrade, Attmpt to clone organization admin role
+        2. Post upgrade, Attempt to clone organization admin role
         3. Assign taxonomies to cloned role
 
     :expectedresults:
@@ -134,7 +134,7 @@ class TestNewOrganizationAdminRole:
 
         :steps:
 
-            1. Post upgrade, Attmpt to clone organization admin role
+            1. Post upgrade, Attempt to clone organization admin role
             2. Assign taxonomies to cloned role
 
         :expectedresults:

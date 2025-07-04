@@ -155,7 +155,7 @@ def pytest_collection_modifyitems(session, items, config):
     from pytest_fixtures.core import contenthosts
 
     def chost_rhelver(params):
-        """Helper to retrive the rhel_version of a client from test params"""
+        """Helper to retrieve the rhel_version of a client from test params"""
         for param in params:
             if 'contenthost' in param:
                 return params[param].get('rhel_version')

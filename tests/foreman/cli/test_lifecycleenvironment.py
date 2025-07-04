@@ -84,7 +84,7 @@ def test_positive_lce_crud(module_org, module_target_sat):
 
     :id: 6b0fbf4f-528c-4983-bc3f-e81ccb7438fd
 
-    :expectedresults: Lifecycle environment is created, read, updated, and deleted successfull
+    :expectedresults: Lifecycle environment is created, read, updated, and deleted successful
 
     :CaseImportance: High
     """

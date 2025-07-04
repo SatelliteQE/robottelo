@@ -308,7 +308,7 @@ class TestFuncLocker:
         assert str(os.getpid()) == content
 
     def test_lock_in_multiprocess(self, count_and_pool):
-        """Ensure that locked functions in diffrent processes are
+        """Ensure that locked functions in different processes are
         executed serially and wait each other.
 
         The strategy of this test is to have each process read the index in
@@ -337,7 +337,7 @@ class TestFuncLocker:
         assert int(counter_file.read()) == sum(indexes)
 
     def test_with_locking_in_multiprocess(self, count_and_pool):
-        """Ensure that with locking functions in diffrent processes are
+        """Ensure that with locking functions in different processes are
         executed serially and wait each other.
 
         The strategy of this test is to have each process read the index in
