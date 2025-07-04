@@ -321,7 +321,6 @@ def apply_policy_run_scan_get_arf(target_sat, contenthost):
     return target_sat.execute(f'cat {arf_report_path}').stdout
 
 
-@pytest.mark.tier4
 @pytest.mark.rhel_ver_match('9')
 def test_positive_oscap_update_default_content(
     module_org,

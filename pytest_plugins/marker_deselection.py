@@ -36,9 +36,6 @@ def pytest_collection_modifyitems(items, config):
     """
     include_onprem_provision = config.getoption('include_onprem_provisioning', False)
     include_ipv6_provisioning = config.getoption('include_ipv6_provisioning', False)
-    include_libvirt = config.getoption('include_libvirt', False)
-    include_eauth = config.getoption('include_external_auth', False)
-    include_vlan = config.getoption('include_vlan_networking', False)
     include_non_satci_tests = config.getvalue('include_non_satci_tests').split(',')
 
     selected = []
@@ -63,18 +60,6 @@ def pytest_collection_modifyitems(items, config):
         # Include / Exclude IPv6 Provisioning Tests
         if 'ipv6_provisioning' in item_marks:
             selected.append(item) if include_ipv6_provisioning else deselected.append(item)
-            continue
-        # Include / Exclude External Libvirt based Tests
-        if 'libvirt_discovery' in item_marks:
-            selected.append(item) if include_libvirt else deselected.append(item)
-            continue
-        # Include / Exclude External Auth based Tests
-        if 'external_auth' in item_marks:
-            selected.append(item) if include_eauth else deselected.append(item)
-            continue
-        # Include / Exclude VLAN networking based Tests
-        if 'vlan_networking' in item_marks:
-            selected.append(item) if include_vlan else deselected.append(item)
             continue
         # This Plugin does not applies to this test
         selected.append(item)
