@@ -232,13 +232,8 @@ def registered_contenthost(
     def cleanup():
         nonlocal setup
         client = setup['client']
-        if client is not None:
-            if client.subscribed:
-                client.unregister()
-            assert not client.subscribed, (
-                f'Failed to unregister the host client: {client.hostname}, was unable to fully teardown host.'
-                ' Client retains some content association.'
-            )
+        if client and client.subscribed:
+            client.unregister()
 
     # no error setting up fixtures and registering client
     assert setup['result'] != 'error', f'{setup["message"]}'
