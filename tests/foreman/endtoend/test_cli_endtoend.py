@@ -58,7 +58,7 @@ def test_positive_cli_find_admin_user(module_target_sat):
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('7')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
