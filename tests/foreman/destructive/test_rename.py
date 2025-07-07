@@ -123,14 +123,14 @@ def test_positive_rename_satellite(module_org, module_product, module_target_sat
         'repository published path not updated correctly'
     )
 
-    # check config files (except certs/keys and /etc/template) for occurences of old hostname
+    # check config files (except certs/keys and /etc/template) for occurrences of old hostname
     output = module_target_sat.execute(
         f'grep "{old_hostname}" /etc -r --exclude=template --exclude-dir={{promtail,pki}} --exclude=*.{{pem,cert,bak}}'
     ).stdout
     assert old_hostname not in output, (
         'there are remaining instances of the old hostname in the config files'
     )
-    # check certs for missing occurences of new hostname in Subject
+    # check certs for missing occurrences of new hostname in Subject
     assert not [
         cert
         for cert in new_certs
@@ -244,7 +244,7 @@ def test_positive_rename_capsule(module_target_sat):
     :BZ: 1469466, 1473614
 
     :expectedresults: Capsule hostname is successfully updated
-        and the capsule fuctions correctly
+        and the capsule functions correctly
 
     :CaseAutomation: Automated
     """

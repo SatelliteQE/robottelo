@@ -648,7 +648,7 @@ def test_positive_provision_end_to_end(
         assert values['Build']['Status'] == 'Installed'
         assert values['Execution']['Status'] == 'Last execution succeeded'
 
-        # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
+        # Verify SecureBoot is enabled on host after provisioning is completed successfully
         if pxe_loader.vm_firmware == 'uefi_secure_boot':
             host = target_sat.api.Host().search(query={'host': host_name})[0].read()
             provisioning_host = ContentHost(host.ip)

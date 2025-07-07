@@ -265,5 +265,5 @@ def test_negative_create_with_duplicate_name(session, ui_entity, module_target_s
         # assert there are no duplicate bookmarks
         new_search = session.bookmark.search(bookmark.name)
         assert len(new_search) == 1
-        # assert bookmark query wasn't overriden
+        # assert bookmark query wasn't overridden
         assert new_search[0]['Search query'] == existing_bookmark['Search query']

@@ -873,7 +873,7 @@ def test_positive_update_aks_to_chost_in_one_command(module_org):
 
     ...
 
-    This means that we can re-use `--activationkey` option more than once
+    This means that we can reuse `--activationkey` option more than once
     to add different keys
 
     :id: 888669e2-2ff7-48e3-9c56-6ac497bec5a0

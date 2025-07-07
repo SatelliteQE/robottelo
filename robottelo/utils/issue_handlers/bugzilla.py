@@ -65,7 +65,7 @@ def should_deselect_bz(issue, data=None):
 
 
 def follow_duplicates(bz):
-    """Recursivelly load the duplicate data"""
+    """Recursively load the duplicate data"""
     if bz.get('dupe_data'):
         bz = follow_duplicates(bz['dupe_data'])
     return bz
@@ -151,7 +151,7 @@ def collect_dupes(bz, collected_data, cached_data=None):  # pragma: no cover
 
 
 def collect_clones(bz, collected_data, cached_data=None):  # pragma: no cover
-    """Recursivelly find for clones.
+    """Recursively find for clones.
     This handler does not process clones as part of skipping logic.
     but the data is fetched here to feed nagger script later.
     """

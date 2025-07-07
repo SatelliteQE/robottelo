@@ -84,7 +84,7 @@ class TestTemplateSyncTestCase:
                matching specified regex.
                NOTE: Templates are always imported with a prefix defaults to
                `community` unless it is specified as empty string
-            3. Assert json output doesnt have
+            3. Assert json output doesn't have
                'Name is not matching filter condition, skipping' info message
                for imported template
 
@@ -156,7 +156,7 @@ class TestTemplateSyncTestCase:
 
         :expectedresults:
             1. Assert result is {'message': 'success'}
-            2. Assert templates mathing the regex were not pulled.
+            2. Assert templates matching the regex were not pulled.
 
         :CaseImportance: Medium
         """
@@ -558,7 +558,7 @@ class TestTemplateSyncTestCase:
 
         :steps:
             1. Using nailgun or direct API call
-               Impot a template with verbose `True` and `False` option
+               Import a template with verbose `True` and `False` option
 
         :expectedresults:
             1. Assert json output has all the following fields
@@ -785,7 +785,7 @@ class TestTemplateSyncTestCase:
         self, create_import_export_local_dir, module_org, module_target_sat
     ):
         """Assert template imports output returns template import skipped info
-        for templates whose name doesnt match the filter
+        for templates whose name doesn't match the filter
 
         :id: db68b5de-7647-4568-b79c-2aec3292328a
 

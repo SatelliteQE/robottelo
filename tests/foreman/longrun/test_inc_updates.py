@@ -308,7 +308,7 @@ def test_positive_incremental_update_time(module_target_sat, module_sca_manifest
         )
     # else: base expected condition: update duration was quicker than publish.
 
-    # some arbritrary timeouts, given amount of content in CV from repos.
+    # some arbitrary timeouts, given amount of content in CV from repos.
     assert update_duration <= 20, (
         'Possible performance degradation in incremental update time.',
         f' Took {update_duration} seconds, but expected to not exceed 20 seconds.',

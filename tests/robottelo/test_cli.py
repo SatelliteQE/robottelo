@@ -221,7 +221,7 @@ class BaseCliTestCase(unittest.TestCase):
     def assert_cmd_execution(
         self, construct, execute, base_method, cmd_sub, ignore_stderr=False, **base_method_kwargs
     ):
-        """Asssert Base class method successfully executed"""
+        """Assert Base class method successfully executed"""
         assert execute.return_value == base_method(**base_method_kwargs)
         assert cmd_sub == Base.command_sub
         construct.assert_called_once_with(base_method_kwargs.get('options'))
@@ -320,7 +320,7 @@ class BaseCliTestCase(unittest.TestCase):
         command_kwarg=True,
         **base_method_kwargs,
     ):
-        """Asssert Base class method successfully executed"""
+        """Assert Base class method successfully executed"""
         assert execute.return_value == base_method(**base_method_kwargs)
         assert cmd_sub == Base.command_sub
         construct.assert_called_once_with(base_method_kwargs.get('options'))
