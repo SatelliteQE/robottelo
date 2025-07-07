@@ -336,3 +336,7 @@ tests/new_upgrades/test_puppet.py @SatelliteQE/team-endeavour
 tests/upgrades/test_capsule.py @SatelliteQE/team-endeavour
 tests/upgrades/test_classparameter.py @SatelliteQE/team-endeavour
 tests/upgrades/test_puppet.py @SatelliteQE/team-endeavour
+
+# tests/foreman/data/
+tests/foreman/data/usage_report.yml @SatelliteQE/team-endeavour
+tests/foreman/data/hammer-commands.json @SatelliteQE/team-rocket
