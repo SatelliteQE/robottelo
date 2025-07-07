@@ -56,6 +56,7 @@ def sync_recommendations(session):
     "module_target_sat_insights", [True, False], ids=["hosted", "local"], indirect=True
 )
 def test_rhcloud_insights_e2e(
+    request,
     rhel_insights_vm,
     rhcloud_manifest_org,
     module_target_sat_insights,
@@ -130,6 +131,23 @@ def test_rhcloud_insights_e2e(
 
         # Verify that the recommendation is not listed anymore.
         assert not session.cloudinsights.search(REC_QUERY)
+
+        # Verify the on_prem report entries
+        if 'local' in request.node.name:
+            assert (
+                module_target_sat_insights.get_reported_value(
+                    'advisor_on_prem_remediations_enabled'
+                )
+                == 'true'
+            )
+            assert (
+                int(
+                    module_target_sat_insights.get_reported_value(
+                        'advisor_on_prem_remediations_count'
+                    )
+                )
+                == 1
+            )
 
 
 @pytest.mark.e2e
