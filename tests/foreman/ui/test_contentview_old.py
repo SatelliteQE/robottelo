@@ -3494,7 +3494,7 @@ def test_positive_inc_update_should_not_fail(session, module_target_sat, module_
         1. Create custom repo and sync
         2. Delete some packages from the repo (bear in this case)
         3. Create a cv, add the repo, and publish it
-        4. Re-sync the repo to get hte deleted RPMs back
+        4. Re-sync the repo to get the deleted RPMs back
         5. Perform incremental update to add back the repo to the cv
 
     :customerscenario: true

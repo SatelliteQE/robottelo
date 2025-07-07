@@ -95,7 +95,7 @@ def test_plugin_installation(target_sat, command_args, command_opts, rpm_command
 
     :id: c75aa5f3-870a-4f4a-9d7a-0a871b47fd6f
 
-    :steps: Run installer with mininum options required to install plugins
+    :steps: Run installer with minimum options required to install plugins
 
     :expectedresults: Plugins install successfully
 

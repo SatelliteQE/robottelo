@@ -368,7 +368,7 @@ class TestScenarioContainerRepoSync:
                 'Unexpected is_flatpak flag'
             )
             assert all([len(m['labels']) == expected_values['labels_count'] for m in dms]), (
-                'Unexpected lables count'
+                'Unexpected labels count'
             )
             assert all(
                 [len(m['annotations']) == expected_values['annotations_count'] for m in dms]
@@ -391,7 +391,7 @@ class TestSimpleContentAccessOnly:
         rhel_contenthost,
         upgrade_entitlement_manifest_org,
     ):
-        """Register host with an activation key that has one custom repository(overriden to enabled)
+        """Register host with an activation key that has one custom repository(overridden to enabled)
         and one Red Hat repository enabled but no subscriptions attached. Assert that only
         the Red Hat repository is enabled on the host and that the host is in entitlement mode.
 

@@ -106,7 +106,7 @@ def test_positive_provision_end_to_end(
         4. Provision a host on VMware
         5. Verify created host on VMware with wrapanapi
 
-    :expectedresults: Host is provisioned succesfully with hostgroup
+    :expectedresults: Host is provisioned successfully with hostgroup
 
     :CaseAutomation: Automated
     """
@@ -182,7 +182,7 @@ def test_positive_image_provision_end_to_end(
         5. Provision a host on VMware
         6. Verify created host on VMware with wrapanapi
 
-    :expectedresults: Host is provisioned succesfully.
+    :expectedresults: Host is provisioned successfully.
 
     """
     sat = module_provisioning_sat.sat

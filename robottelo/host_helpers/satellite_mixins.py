@@ -233,7 +233,7 @@ class SystemInfo:
 
         This calls an ss command on the server prompting for a port range. ss
         returns a list of ports which have a PID assigned (a list of ports
-        which are already used). This function then substracts unavailable ports
+        which are already used). This function then subtracts unavailable ports
         from the other ones and returns one of available ones randomly.
 
         :param port_pool: A list of ports used for fake capsules (for RHEL7+: don't
@@ -353,7 +353,7 @@ class ProvisioningSetup:
         :param server_fqdn: Libvirt server FQDN
         :return: None
         """
-        # Geneate SSH key-pair for foreman user and copy public key to libvirt server
+        # Generate SSH key-pair for foreman user and copy public key to libvirt server
         self.execute('sudo -u foreman ssh-keygen -q -t rsa -f ~foreman/.ssh/id_rsa -N "" <<< y')
         self.execute('echo "StrictHostKeyChecking accept-new" >> ~foreman/.ssh/config')
         self.execute(

@@ -573,7 +573,7 @@ def test_rhel_pxe_provisioning_fips_enabled(
         f'The installed OS version differs from the expected version {expected_rhel_version}'
     )
 
-    # Verify FIPS is enabled on host after provisioning is completed sucessfully
+    # Verify FIPS is enabled on host after provisioning is completed successfully
     if int(host_os.major) >= 8:
         result = provisioning_host.execute('fips-mode-setup --check')
         fips_status = 'FIPS mode is disabled' if is_open('SAT-20386') else 'FIPS mode is enabled'
@@ -703,7 +703,7 @@ def test_rhel_pxe_provisioning_secureboot_enabled(
     # Verify host is subscribed and consumes subsctiption provided by the activation key
     assert provisioning_vmware_host.subscribed, 'Host is not subscribed'
 
-    # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
+    # Verify SecureBoot is enabled on host after provisioning is completed successfully
     assert 'SecureBoot enabled' in provisioning_vmware_host.execute('mokutil --sb-state').stdout
 
 

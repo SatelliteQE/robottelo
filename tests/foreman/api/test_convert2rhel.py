@@ -52,7 +52,7 @@ def update_cv(sat, cv, lce, repos):
 
 @pytest.fixture(scope='module')
 def ssl_cert(module_target_sat, module_els_sca_manifest_org):
-    """Create credetial with SSL cert for Oracle Linux"""
+    """Create credential with SSL cert for Oracle Linux"""
     res = requests.get(settings.repos.convert2rhel.ssl_cert_oracle)
     res.raise_for_status()
     return module_target_sat.api.ContentCredential(

@@ -197,7 +197,7 @@ class TestAnsibleCfgMgmt:
         self, request, target_sat, module_org, module_ak_with_cv, rhel_contenthost
     ):
         """Verify that installing an Ansible collection also imports
-        any variables associated with the roles avaialble in the collection
+        any variables associated with the roles available in the collection
 
         :id: 7ff88022-fe9b-482f-a6bb-3922036a1e1c
 
@@ -314,7 +314,7 @@ class TestAnsibleREX:
 
     @pytest.mark.rhel_ver_list([8])
     def test_positive_run_reccuring_job(self, rex_contenthost, target_sat):
-        """Tests Ansible REX reccuring job runs successfully multiple times
+        """Tests Ansible REX recurring job runs successfully multiple times
 
         :id: 49b0d31d-58f9-47f1-aa5d-561a1dcb0d66
 
@@ -360,7 +360,7 @@ class TestAnsibleREX:
 
     @pytest.mark.rhel_ver_list([8])
     def test_positive_run_concurrent_jobs(self, rex_contenthosts, target_sat):
-        """Tests Ansible REX concurent jobs without batch trigger
+        """Tests Ansible REX concurrent jobs without batch trigger
 
         :id: ad0f108c-03f2-49c7-8732-b1056570567b
 

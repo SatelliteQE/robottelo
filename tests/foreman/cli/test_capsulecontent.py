@@ -172,7 +172,7 @@ def test_positive_content_counts_for_mixed_cv(
         5. Remove the LCE from Capsule and ensure it's not listed.
 
     :expectedresults:
-        1. Capsule returs proper warning instead content counts until it is synced.
+        1. Capsule returns proper warning instead content counts until it is synced.
         2. After sync the content counts from Capsule match those from Satellite.
         3. After LCE removal it's not listed anymore.
 
@@ -336,9 +336,9 @@ def test_positive_exported_imported_content_sync(
     :expectedresults:
         1. Step 6: Imported content sources assigned to empty Capsule,
             synced successfully using Capsule's LCE.
-        2. Step 6: Auxilary created 'Export-Library' CV, made after exporting,
+        2. Step 6: Auxiliary created 'Export-Library' CV, made after exporting,
             is not associated with the Capsule, as it is only in 'Library'.
-        3. Step 8: Using 'Library', Capsule sync is successful, respositories/sync tasks do not conflict,
+        3. Step 8: Using 'Library', Capsule sync is successful, repositories/sync tasks do not conflict,
             all pending sync tasks complete in one attempt, none are invoked repeatedly.
 
     :BZ: 2043726, 2059385, 2186765

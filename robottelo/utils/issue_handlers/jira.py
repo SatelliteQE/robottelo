@@ -456,7 +456,7 @@ def add_comment_on_jira(
     Arguments:
         issue_id {str} -- Jira issue number, ex. SAT-12232
         comment {str}  -- Comment to add on the issue.
-        lables {list} - Add/Remove Jira labels, ex. [{'add':'tests_passed'},{'remove':'tests_failed'}]
+        labels {list} - Add/Remove Jira labels, ex. [{'add':'tests_passed'},{'remove':'tests_failed'}]
         comment_type {str}  -- Type of comment to add.
         comment_visibility {str}  -- Comment visibility.
 

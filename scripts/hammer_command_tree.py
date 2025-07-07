@@ -11,7 +11,7 @@ from robottelo.config import settings
 
 
 def generate_command_tree(command):
-    """Recursively walk trhough the hammer commands and subcommands and fetch
+    """Recursively walk through the hammer commands and subcommands and fetch
     their help. Return a dictionary with the contents.
     """
     output = ssh.command(f'{command} --help', hostname=settings.server.hostnames[0]).stdout

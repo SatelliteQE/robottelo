@@ -547,7 +547,7 @@ def _create_cv(cv_name, repo, module_org, sat, publish=True):
     :param cv_name: The name of CV to create
     :param repo: The repository directory
     :param organization: The organization directory
-    :param publish: Publishes the CV if True else doesnt
+    :param publish: Publishes the CV if True else doesn't
     :return: The directory of CV and Content View ID
     """
     description = gen_string('alpha')
@@ -2799,7 +2799,7 @@ class TestInterSatelliteSync:
         assert res.status, 'Installation of filtered package succeeded unexpectedly'
         assert f'No match for argument: {filtered_pkg}' in res.stdout
 
-        # Update the fiter so that no package is left behind, publish version 2 and export it.
+        # Update the filter so that no package is left behind, publish version 2 and export it.
         target_sat.cli.ContentView.filter.rule.update(
             {
                 'content-view-filter-id': cvf['filter-id'],

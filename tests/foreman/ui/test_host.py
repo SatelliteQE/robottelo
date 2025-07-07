@@ -2014,7 +2014,7 @@ def test_all_hosts_bulk_build_management(target_sat, function_org, function_loca
 
     :id: fff71945-6534-45cf-88a6-16b25c060f0a
 
-    :expectedresults: Build Managment dropdown in All Hosts UI works properly.
+    :expectedresults: Build Management dropdown in All Hosts UI works properly.
 
     :CaseComponent:Hosts-Content
 
@@ -2115,7 +2115,7 @@ def change_content_source_prep(
 @pytest.mark.rhel_ver_match('[789]')
 def test_change_content_source(session, change_content_source_prep, rhel_contenthost):
     """
-    This test excercises different ways to change host's content source
+    This test exercises different ways to change host's content source
 
     :id: 5add68c3-16b1-496d-9b24-f5388013351d
 
@@ -2226,7 +2226,7 @@ def test_positive_page_redirect_after_update(target_sat, current_sat_location):
 def test_host_status_honors_taxonomies(
     module_target_sat, test_name, rhel_contenthost, setup_content, default_location, default_org
 ):
-    """Check that host status counts in Monitor -> Host Statuses show only hosts that the user has permisisons to
+    """Check that host status counts in Monitor -> Host Statuses show only hosts that the user has permissions to
 
     :id: 2c4e6df7-c17e-4074-b691-4d8e2efda062
     :steps:

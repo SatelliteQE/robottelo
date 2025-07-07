@@ -31,3 +31,11 @@ repos:
     rev: v8.27.2
     hooks:
       - id: gitleaks
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.1
+    hooks:
+      - id: codespell
+        args:
+          - --skip=*hammer_commands.json,*.xml
+          - -L=Thirdparty,ACSes,checkin,cockateel
+          - -w
