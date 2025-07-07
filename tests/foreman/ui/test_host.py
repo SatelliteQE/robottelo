@@ -46,7 +46,7 @@ from robottelo.constants import (
     ROLES,
 )
 from robottelo.constants.repos import CUSTOM_FILE_REPO
-from robottelo.exceptions import CLIReturnCodeError
+from robottelo.exceptions import APIResponseError
 from robottelo.utils.datafactory import gen_string
 from tests.foreman.api.test_errata import cv_publish_promote
 
@@ -2990,7 +2990,13 @@ def test_positive_manage_repository_sets(
 
 
 def test_disassociate_multiple_hosts(
-    new_host_ui, request, target_sat, module_location, module_org, vmware
+    new_host_ui,
+    request,
+    target_sat,
+    module_location,
+    module_org,
+    vmware,
+    default_location,
 ):
     """
     Import multiple VMs from a VMware compute resource, disassociate them via the UI,
@@ -3015,10 +3021,9 @@ def test_disassociate_multiple_hosts(
     hostgroup_name = gen_string('alpha')
 
     # create entities for hostgroup
-    default_loc_id = (
-        target_sat.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
-    )
-    target_sat.api.SmartProxy(id=1, location=[default_loc_id, module_location.id]).update()
+    target_sat.api.SmartProxy(
+        id=target_sat.nailgun_smart_proxy.id, location=[default_location.id, module_location.id]
+    ).update()
     domain = target_sat.api.Domain(
         organization=[module_org.id], location=[module_location]
     ).create()
@@ -3058,7 +3063,7 @@ def test_disassociate_multiple_hosts(
         ptable=ptable,
         lifecycle_environment=lce,
         content_view=cv,
-        content_source=1,
+        content_source=target_sat.nailgun_smart_proxy.id,
     ).create()
 
     with target_sat.ui_session() as session:
@@ -3076,7 +3081,9 @@ def test_disassociate_multiple_hosts(
                 'organizations.resources.assigned': [module_org.name],
             }
         )
-        session.hostgroup.update(hostgroup_name, {'host_group.deploy': cr_name + " (VMware)"})
+        session.hostgroup.update(
+            hostgroup_name, {'host_group.deploy': f'{cr_name} ({FOREMAN_PROVIDERS["vmware"]})'}
+        )
 
         cr_vm_names = [settings.vmware.vm_name, 'phoenix-testing-guest-rhel-8']
         vm_names_with_domains = [f'{name.replace(".", "")}.{domain.name}' for name in cr_vm_names]
@@ -3098,18 +3105,16 @@ def test_disassociate_multiple_hosts(
         def _cleanup():
             for vm_name in vm_names_with_domains:
                 try:
-                    target_sat.cli.Host.delete({'name': vm_name})
-                except CLIReturnCodeError as e:
+                    target_sat.api.Host().search(query={"search": f'name={vm_name}'})[0].delete()
+                except APIResponseError as e:
                     print(f"Failed to delete VM {vm_name}: {e}")
 
         for vm_name in vm_names_with_domains:
             # Get info about host from API
-            api_val_pre_disassociation = target_sat.api.Host().search(
-                query={"search": f'name={vm_name}'}
-            )[0]
+            host = target_sat.api.Host().search(query={"search": f'name={vm_name}'})[0]
             # Check that uuid and compute_resource_id are set
-            assert api_val_pre_disassociation.uuid is not None, f"UUID for {vm_name} is not set"
-            assert api_val_pre_disassociation.compute_resource.id is not None, (
+            assert host.uuid is not None, f"UUID for {vm_name} is not set"
+            assert host.compute_resource.id is not None, (
                 f"Compute resource ID for {vm_name} is not set"
             )
 
@@ -3117,13 +3122,9 @@ def test_disassociate_multiple_hosts(
 
         for vm_name in vm_names_with_domains:
             # Get info about host from API
-            api_val_post_disassociation = target_sat.api.Host().search(
-                query={"search": f'name={vm_name}'}
-            )[0]
+            host = target_sat.api.Host().search(query={"search": f'name={vm_name}'})[0]
             # Check that uuid and compute_resource_id are set to None
-            assert api_val_post_disassociation.uuid is None, (
-                f"UUID for {vm_name} is not None after disassociation"
-            )
-            assert api_val_post_disassociation.compute_resource is None, (
+            assert host.uuid is None, f"UUID for {vm_name} is not None after disassociation"
+            assert host.compute_resource is None, (
                 f"Compute resource ID for {vm_name} is not None after disassociation"
             )
