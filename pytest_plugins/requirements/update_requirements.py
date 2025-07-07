@@ -6,7 +6,7 @@ updater = ReqUpdater()
 
 
 def git_deviation_filter(deviation):
-    """Packages installed from Git branch and the version cant be compared, so ignore them from reporting"""
+    """Packages installed from Git branch and the version can't be compared, so ignore them from reporting"""
     git_packages = ['nailgun', 'airgun']
     return all(git_pckg not in deviation for git_pckg in git_packages)
 

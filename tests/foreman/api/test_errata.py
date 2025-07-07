@@ -158,7 +158,7 @@ def _fetch_available_errata(host, expected_amount=None, timeout=120):
 
 
 def _fetch_available_errata_instances(sat, host, expected_amount=None, timeout=120):
-    """Fetch list of instances of avaliable errata for host."""
+    """Fetch list of instances of available errata for host."""
     _errata_dict = _fetch_available_errata(host.nailgun_host, expected_amount, timeout)
     _errata_ids = [errata['id'] for errata in _errata_dict]
     instances = [sat.api.Errata(id=_id).read() for _id in _errata_ids]
@@ -202,10 +202,10 @@ def package_applicability_changed_as_expected(
     """Checks that installing some package, updated any impacted errata(s)
     status and host applicability count, and changed applicable package count by one.
 
-    That one of the following occured:
+    That one of the following occurred:
     - A non-applicable package was modified, or the same prior version was installed,
         the amount of applicable errata and applicable packages remains the same.
-        Return False, as no applicability changes occured.
+        Return False, as no applicability changes occurred.
 
     - An Outdated applicable package was installed. Errata applicability increased
         by the number of found applicable errata containing that package,
@@ -422,7 +422,7 @@ def cv_publish_promote(sat, org, cv, lce=None, needs_publish=True, force=False):
 
     :param lce: if None, default to 'Library',
         pass a single environment :id or instance.
-        Or pass a list of environment :ids or isntances.
+        Or pass a list of environment :ids or instances.
     :param bool needs_publish: if False, skip publish of a new version
     :return dictionary:
         'content-view': instance of updated cv
@@ -591,8 +591,8 @@ def test_positive_install_in_hc(
 
         """ Did installing outdated package, update applicability as expected?
             * Call method package_applicability_changed_as_expected *
-            returns: False if no applicability change occured or expected (package not applicable).
-                True if applicability changes were expected and occured (package is applicable).
+            returns: False if no applicability change occurred or expected (package not applicable).
+                True if applicability changes were expected and occurred (package is applicable).
             raises: `AssertionError` if any expected changes did not occur, or unexpected changes were found.
 
             Expected: that each outdated package install: updated one or more errata to applicable,
@@ -695,7 +695,7 @@ def test_positive_install_multiple_in_host(
             of updated packages. Updated package(s) found.
         4. Errata recalculate applicability task is invoked
             automatically, after install command of applicable package,
-            and errata apply task. Task(s) found and finish succesfully.
+            and errata apply task. Task(s) found and finish successfully.
 
     :customerscenario: true
 
@@ -1124,7 +1124,7 @@ def test_positive_get_count_for_host(
     result = rhel8_contenthost.execute(f'yum install -y {REAL_RHEL8_1_PACKAGE_FILENAME}')
     assert result.status == 0, f'Failed to install package {REAL_RHEL8_1_PACKAGE_FILENAME}'
     _validate_errata_counts(host, errata_type='security', expected_value=2)
-    # All avaliable errata present
+    # All available errata present
     assert rhel8_contenthost.applicable_errata_count == 4
 
 
@@ -1335,7 +1335,7 @@ def test_positive_incremental_update_required(
             'errata_ids': [REAL_RHEL8_1_ERRATA_ID],
         },
     )
-    assert response, 'Nailgun response for host(s) with avaliable incremental update was None'
+    assert response, 'Nailgun response for host(s) with available incremental update was None'
     assert 'next_version' in response[0], 'Incremental update should be suggested at this point'
 
 

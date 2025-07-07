@@ -304,7 +304,7 @@ def pytest_configure(config):
     markers = [
         "pre_upgrade: Mark tests to run before upgrade.",
         "post_upgrade(depend_on=None): Mark tests to run after upgrade.",
-        "fail: Mark test to fail if dependant test fails.",
+        "fail: Mark test to fail if dependent test fails.",
     ]
     for marker in markers:
         config.addinivalue_line("markers", marker)
@@ -415,7 +415,7 @@ def pytest_collection_modifyitems(items, config):
                 for depend_on_node_id in depend_on_node_ids:
                     if depend_on_node_id in pre_upgrade_failed_tests:
                         item.add_marker(
-                            pytest.mark.fail(reason=f'The dependant test {item.nodeid} failed!')
+                            pytest.mark.fail(reason=f'The dependent test {item.nodeid} failed!')
                         )
 
 

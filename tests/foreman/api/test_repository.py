@@ -1322,7 +1322,7 @@ class TestRepositorySync:
                 f'grep {sync_id} /var/log/foreman/production.log'
             ).stdout.splitlines()[0]
             correlation_id = re.search(r'\[I\|bac\|\w{8}\]', prod_log_out).group()[7:15]
-            # Assert the cancelation was executed in Pulp
+            # Assert the cancellation was executed in Pulp
             result = target_sat.execute(
                 f'grep "{correlation_id}" /var/log/messages | grep "Canceling task"'
             )
@@ -1809,7 +1809,7 @@ class TestDockerRepository:
             'Unexpected is_flatpak flag'
         )
         assert all([len(m['labels']) == expected_values['labels_count'] for m in dms]), (
-            'Unexpected lables count'
+            'Unexpected labels count'
         )
         assert all([len(m['annotations']) == expected_values['annotations_count'] for m in dms]), (
             'Unexpected annotations count'
@@ -2431,7 +2431,7 @@ class TestPythonRepository:
         :steps:
             1. Sync python repo
 
-        :expectedresults: Pyhton repo is synced
+        :expectedresults: Python repo is synced
 
         :CaseImportance: Critical
 

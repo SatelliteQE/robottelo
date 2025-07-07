@@ -209,7 +209,7 @@ def test_positive_global_registration_end_to_end(
         rhel_contenthost.create_custom_repos(
             **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
         )
-    # make sure there will be package availabe for update
+    # make sure there will be package available for update
     if rhel_contenthost.os_version.major == '6':
         package = FAKE_1_CUSTOM_PACKAGE
         repo_url = settings.repos.yum_1['url']
@@ -571,7 +571,7 @@ def test_positive_global_registration_form(
     :expectedresults: The curl command contains all required parameters
     """
     # rex and insights parameters are only specified in curl when differing from
-    # inerited parameters
+    # inherited parameters
     result = (
         target_sat.api.CommonParameter()
         .search(query={'search': 'name=host_registration_remote_execution'})[0]

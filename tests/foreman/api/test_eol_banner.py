@@ -49,6 +49,6 @@ def test_positive_check_eol_date(target_sat):
         elif api_date[0][0] == 'date':
             assert eol_datetime.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + 'Z' == api_date[0][1]
         else:
-            pytest.fail("Unexpcted date format returned")
+            pytest.fail("Unexpected date format returned")
     else:
         pytest.skip("The Satellite version is not GA yet")

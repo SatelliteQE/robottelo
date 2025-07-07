@@ -135,7 +135,7 @@ def _simplify_repos(request, repos):
     """
     _repos = []
     repo_distro = None
-    # Iterating over repository thats requested more than once
+    # Iterating over repository that's requested more than once
     for repo_name, repo_options in repos.items():
         if isinstance(repo_options, list):
             [_repos.append({repo_name: options}) for options in repo_options]

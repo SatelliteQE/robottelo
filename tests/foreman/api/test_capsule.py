@@ -80,7 +80,7 @@ def test_positive_update_capsule(request, pytestconfig, target_sat, module_capsu
             cap.name = module_capsule_configured.hostname
             cap.update(['name'])
 
-    # serching for non-default capsule BZ#2077824
+    # searching for non-default capsule BZ#2077824
     capsules = target_sat.api.SmartProxy().search(query={'search': 'id != 1'})
     assert len(capsules) > 0
     assert capsule.url in [cps.url for cps in capsules]

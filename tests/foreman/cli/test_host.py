@@ -210,7 +210,7 @@ def parse_field_sets_table(content):
 
 def parse_cli_entity_list_help_message(help_message):
     """
-    Parse cli help message for entitiy list,
+    Parse cli help message for entity list,
     for now, only Search / Order fields: are parsed,
     can be extended so all parts are parsed
 
@@ -2482,7 +2482,7 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
     module_puppet_classes,
     module_puppet_user,
 ):
-    """Update host owner and check puppet clases associated to the host
+    """Update host owner and check puppet classes associated to the host
 
     :id: 2b7dd148-914b-11eb-8a3a-98fa9b6ecd5a
 

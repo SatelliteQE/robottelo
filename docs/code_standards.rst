@@ -45,7 +45,7 @@ Strings
 * Use string methods instead of the string module.
 * Use f-strings for string formatting whenever possible.
 * Use the string's format method when an f-string would become too complex.
-* When using format, leave out indices, unless absolutely necessary (e.g. variable re-use).
+* When using format, leave out indices, unless absolutely necessary (e.g. variable reuse).
 
   * Keyword vs positional index preference is up to the reviewers.
 
