@@ -64,7 +64,6 @@ tests/foreman/cli/test_flatpak.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_hostcollection.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_host.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_hostgroup.py @SatelliteQE/team-phoenix
-tests/foreman/cli/test_http_proxy.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_lifecycleenvironment.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_medium.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_model.py @SatelliteQE/team-phoenix
@@ -230,6 +229,7 @@ tests/foreman/api/test_capsule.py @SatelliteQE/team-endeavour
 tests/foreman/api/test_eol_banner.py @SatelliteQE/team-endeavour
 tests/foreman/api/test_filter.py @SatelliteQE/team-endeavour
 tests/foreman/api/test_foremantask.py @SatelliteQE/team-endeavour
+tests/foreman/api/test_http_proxy.py @SatelliteQE/team-endeavour
 tests/foreman/api/test_ldapauthsource.py @SatelliteQE/team-endeavour
 tests/foreman/api/test_location.py @SatelliteQE/team-endeavour
 tests/foreman/api/test_multiple_paths.py @SatelliteQE/team-endeavour
@@ -250,6 +250,7 @@ tests/foreman/cli/test_capsule.py @SatelliteQE/team-endeavour
 tests/foreman/destructive/test_capsule_loadbalancer.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_filter.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_foremantask.py @SatelliteQE/team-endeavour
+tests/foreman/cli/test_http_proxy.py @SatelliteQE/team-phoenix
 tests/foreman/cli/test_jobtemplate.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_ldapauthsource.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_location.py @SatelliteQE/team-endeavour
@@ -280,6 +281,7 @@ tests/foreman/ui/test_bookmarks.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_branding.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_dashboard.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_eol_banner.py @SatelliteQE/team-endeavour
+tests/foreman/ui/test_http_proxy.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_jobtemplate.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_ldap_authentication.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_location.py @SatelliteQE/team-endeavour
