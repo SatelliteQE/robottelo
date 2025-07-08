@@ -252,7 +252,9 @@ def test_positive_cli_end_to_end(function_sca_manifest, target_sat, rhel_content
 
     # check that content view matches what we passed
     assert (
-        content_host['content-information']['content-view-environments']['1']['cv-name']
+        content_host['content-information']['content-view-environments']['1']['content-view'][
+            'name'
+        ]
         == content_view['name']
     )
 
