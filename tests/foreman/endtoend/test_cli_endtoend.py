@@ -61,8 +61,7 @@ def test_positive_cli_find_admin_user(module_target_sat):
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('7')
-@pytest.mark.tier4
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
@@ -99,6 +98,7 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
 
     :parametrized: yes
     """
+    rhel_ver = rhel_contenthost.os_version.major
     # step 1: Create a new user with admin permissions
     password = gen_alphanumeric()
     user = target_sat.cli_factory.user({'admin': 'true', 'password': password})
@@ -145,17 +145,17 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
     target_sat.cli.RepositorySet.enable(
         {
             'basearch': 'x86_64',
-            'name': constants.REPOSET['rhst7'],
+            'name': constants.REPOSET[f'rhsclient{rhel_ver}'],
             'organization-id': org['id'],
-            'product': constants.PRDS['rhel'],
+            'product': constants.PRDS[f'rhel{rhel_ver}'],
             'releasever': None,
         }
     )
     rhel_repo = target_sat.cli.Repository.info(
         {
-            'name': constants.REPOS['rhst7']['name'],
+            'name': constants.REPOS[f'rhsclient{rhel_ver}']['name'],
             'organization-id': org['id'],
-            'product': constants.PRDS['rhel'],
+            'product': constants.PRDS[f'rhel{rhel_ver}'],
         }
     )
     repositories.append(rhel_repo)
@@ -240,7 +240,7 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
     # step 2.13.1: Enable product content
     target_sat.cli.ActivationKey.with_user(user['login'], user['password']).content_override(
         {
-            'content-label': constants.REPOS['rhst7']['id'],
+            'content-label': constants.REPOS[f'rhsclient{rhel_ver}']['id'],
             'id': activation_key['id'],
             'organization-id': org['id'],
             'value': '1',
@@ -329,12 +329,10 @@ def test_positive_cli_end_to_end(function_entitlement_manifest, target_sat, rhel
     rhel_contenthost.register_contenthost(org['label'], activation_key['name'])
     assert rhel_contenthost.subscribed
     # Install rpm on client
-    package_name = 'katello-agent'
-    result = rhel_contenthost.execute(f'yum install -y {package_name}')
-    assert result.status == 0
+    package_name = 'katello-host-tools'
+    assert rhel_contenthost.execute(f'dnf install -y {package_name}').status == 0
     # Verify that the package is installed by querying it
-    result = rhel_contenthost.run(f'rpm -q {package_name}')
-    assert result.status == 0
+    assert rhel_contenthost.run(f'rpm -q {package_name}').status == 0
 
 
 def _create(user, entity, attrs):
