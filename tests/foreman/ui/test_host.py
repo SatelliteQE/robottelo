@@ -38,6 +38,7 @@ from robottelo.constants import (
     FAKE_7_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE_NAME,
+    FOREMAN_PROVIDERS,
     OSCAP_PERIOD,
     OSCAP_WEEKDAY,
     REPO_TYPE,
@@ -45,6 +46,7 @@ from robottelo.constants import (
     ROLES,
 )
 from robottelo.constants.repos import CUSTOM_FILE_REPO
+from robottelo.exceptions import APIResponseError
 from robottelo.utils.datafactory import gen_string
 from tests.foreman.api.test_errata import cv_publish_promote
 
@@ -2985,3 +2987,143 @@ def test_positive_manage_repository_sets(
         for content_host in content_hosts:
             output = content_host.execute('subscription-manager repos --list').stdout
             assert "Enabled:   1" in output, 'repository status not changed'
+
+
+def test_disassociate_multiple_hosts(
+    new_host_ui,
+    request,
+    target_sat,
+    module_location,
+    module_org,
+    vmware,
+    default_location,
+):
+    """
+    Import multiple VMs from a VMware compute resource, disassociate them via the UI,
+    and verify via API that their uuid and compute_resource_id are cleared.
+
+    :id: e5af21c7-62ef-4cc7-a72a-ab6c26090b68
+
+    :steps:
+        1. Create all required entities (domain, subnet, hostgroup, etc.)
+        2. Import 2 VMs from VMware into Satellite
+        3. Disassociate the VMs via the All Hosts UI
+        4. Verify via API that uuid and compute_resource_id are None
+
+    :expectedresults: VMs are disassociated and their compute resource info is cleared.
+
+    :CaseComponent: Hosts-Content
+
+    :Team: Phoenix-subscriptions
+    """
+
+    cr_name = gen_string('alpha')
+
+    # create entities for hostgroup
+    target_sat.api.SmartProxy(
+        id=target_sat.nailgun_smart_proxy.id, location=[default_location.id, module_location.id]
+    ).update()
+    domain = target_sat.api.Domain(
+        organization=[module_org.id], location=[module_location]
+    ).create()
+    subnet = target_sat.api.Subnet(
+        organization=[module_org.id], location=[module_location], domain=[domain]
+    ).create()
+    architecture = target_sat.api.Architecture().create()
+    ptable = target_sat.api.PartitionTable(
+        organization=[module_org.id], location=[module_location]
+    ).create()
+    operatingsystem = target_sat.api.OperatingSystem(
+        architecture=[architecture], ptable=[ptable]
+    ).create()
+    medium = target_sat.api.Media(
+        organization=[module_org.id], location=[module_location], operatingsystem=[operatingsystem]
+    ).create()
+    lce = (
+        target_sat.api.LifecycleEnvironment(name="Library", organization=module_org.id)
+        .search()[0]
+        .read()
+        .id
+    )
+    cv = target_sat.api.ContentView(organization=module_org).create()
+    cv.publish()
+
+    # create hostgroup
+    hostgroup_name = gen_string('alpha')
+    target_sat.api.HostGroup(
+        name=hostgroup_name,
+        architecture=architecture,
+        domain=domain,
+        subnet=subnet,
+        location=[module_location.id],
+        medium=medium,
+        operatingsystem=operatingsystem,
+        organization=[module_org],
+        ptable=ptable,
+        lifecycle_environment=lce,
+        content_view=cv,
+        content_source=target_sat.nailgun_smart_proxy.id,
+    ).create()
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+        session.computeresource.create(
+            {
+                'name': cr_name,
+                'provider': FOREMAN_PROVIDERS['vmware'],
+                'provider_content.vcenter': vmware.hostname,
+                'provider_content.user': settings.vmware.username,
+                'provider_content.password': settings.vmware.password,
+                'provider_content.datacenter.value': settings.vmware.datacenter,
+                'locations.resources.assigned': [module_location.name],
+                'organizations.resources.assigned': [module_org.name],
+            }
+        )
+        session.hostgroup.update(
+            hostgroup_name, {'host_group.deploy': f'{cr_name} ({FOREMAN_PROVIDERS["vmware"]})'}
+        )
+
+        cr_vm_names = [settings.vmware.vm_name, 'phoenix-testing-guest-rhel-8']
+        vm_names_with_domains = [f'{name.replace(".", "")}.{domain.name}' for name in cr_vm_names]
+
+        # Import VMs from VMware compute resource
+        for cr_vm_name, vm_name_with_domain in zip(
+            cr_vm_names, vm_names_with_domains, strict=False
+        ):
+            session.computeresource.vm_import(
+                cr_name,
+                cr_vm_name,
+                hostgroup_name,
+                module_location.name,
+                name=cr_vm_name.replace('.', ''),
+            )
+            assert session.all_hosts.search(vm_name_with_domain)
+
+        @request.addfinalizer
+        def _cleanup():
+            for vm_name in vm_names_with_domains:
+                try:
+                    target_sat.api.Host().search(query={"search": f'name={vm_name}'})[0].delete()
+                except APIResponseError as e:
+                    print(f"Failed to delete VM {vm_name}: {e}")
+
+        for vm_name in vm_names_with_domains:
+            # Get info about host from API
+            host = target_sat.api.Host().search(query={"search": f'name={vm_name}'})[0]
+            # Check that uuid and compute_resource_id are set
+            assert host.uuid is not None, f"UUID for {vm_name} is not set"
+            assert host.compute_resource.id is not None, (
+                f"Compute resource ID for {vm_name} is not set"
+            )
+
+        session.all_hosts.disassociate_hosts(host_names=vm_names_with_domains)
+
+        for vm_name in vm_names_with_domains:
+            # Get info about host from API
+            host = target_sat.api.Host().search(query={"search": f'name={vm_name}'})[0]
+            # Check that uuid and compute_resource_id are set to None
+            assert host.uuid is None, f"UUID for {vm_name} is not None after disassociation"
+            assert host.compute_resource is None, (
+                f"Compute resource ID for {vm_name} is not None after disassociation"
+            )
