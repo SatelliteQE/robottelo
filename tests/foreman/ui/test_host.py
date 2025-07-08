@@ -3018,7 +3018,6 @@ def test_disassociate_multiple_hosts(
     """
 
     cr_name = gen_string('alpha')
-    hostgroup_name = gen_string('alpha')
 
     # create entities for hostgroup
     target_sat.api.SmartProxy(
