@@ -258,7 +258,9 @@ def test_positive_cli_end_to_end(function_sca_manifest, target_sat, rhel_content
 
     # check that lifecycle environment matches
     assert (
-        content_host['content-information']['content-view-environments']['1']['le-name']
+        content_host['content-information']['content-view-environments']['1'][
+            'lifecycle-environment'
+        ]['name']
         == lifecycle_environment['name']
     )
 
