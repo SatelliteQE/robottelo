@@ -2216,6 +2216,49 @@ def test_bootc_rex_job(target_sat, bootc_host, function_ak_with_cv, function_org
         assert values['details']['bootc']['details']['rollback_image'] == BOOTC_BASE_IMAGE
 
 
+def test_bootc_transient_install_warning(
+    target_sat, new_host_ui, bootc_host, function_ak_with_cv, function_org
+):
+    """Create a bootc host, and verify that all expected places warn you that package
+    installs will be transient.
+
+    :id: 10aea249-4e46-4e4f-a435-cff7e92afbdd
+
+    :steps:
+        1.Create and register a bootc host.
+        2.Navigate to the All Hosts UI, and the Manage Packages and Manage Errata wizards.
+
+
+    :expectedresults: In the 3 above cases, it is communicated to the user that package/errata actions
+    will be transient.
+
+    :CaseComponent:Hosts-Content
+
+    :Verifies:SAT-31251
+
+    :Team: Phoenix-content
+    """
+    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
+    assert bootc_host.subscribed
+
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        # Check the banner on the Content tab of All Hosts
+        values = session.host_new.get_details(
+            bootc_host.hostname, widget_names='content.transient_install_alert'
+        )
+        assert (
+            values["content"]["transient_install_alert"]
+            == 'Any updates to image mode host(s) will be lost on the next reboot.'
+        )
+        # Check the banner on the Manage Packages and Manage Errata wizards
+        values = session.all_hosts.get_package_and_errata_wizard_review_hosts_text()
+        banner_string = "Note that package actions on any image mode hosts will be transient and lost on the next reboot."
+        assert banner_string in values[0]
+        assert banner_string in values[1]
+
+
 @pytest.fixture(scope='module')
 def change_content_source_prep(
     module_target_sat,
