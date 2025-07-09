@@ -286,7 +286,7 @@ def test_positive_search_all_field_sets(module_target_sat):
         assert field in list(output_field_sets[host_idx].keys())
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.cli_host_subscription
 def test_positive_host_list_with_cv_and_lce(
     target_sat,
@@ -296,8 +296,8 @@ def test_positive_host_list_with_cv_and_lce(
     function_org,
     function_lce,
 ):
-    """The output from hammer host list correctly includes both Content View and
-    Lifecycle Environment fields. Specifying these fields explicitly in the command
+    """The output from hammer host list correctly includes Content view environments.
+    Specifying this field explicitly in the command
     also yields the correct output.
 
     :id: 3ece2a52-0b91-453e-a4ea-c0376d79fd2d
@@ -305,11 +305,11 @@ def test_positive_host_list_with_cv_and_lce(
     :steps:
         1. Register a Host
         2. Run the hammer host list command
-        3. Verify information is correct and that both CV and LCE are in the output
-        4. Run the hammer list command with CV and LCE fields specified
-        5. Verify information is correct and that both CV and LCE are in the output
+        3. Verify information is correct and that Content view environments is in the output
+        4. Run the hammer list command with Content view environments field specified
+        5. Verify information is correct and that Content view environments is the output
 
-    :expectedresults: Both cases should return CV and LCE in the output
+    :expectedresults: Both cases should return Content view environments in the output
 
     :Verifies: SAT-23576, SAT-22677
 
@@ -319,18 +319,16 @@ def test_positive_host_list_with_cv_and_lce(
     result = rhel_contenthost.register(function_org, None, function_ak_with_cv.name, target_sat)
     assert result.status == 0
     assert rhel_contenthost.subscribed
-    # list host command without specifying cv or lce
+    # list host command without specifying Content view environments
     host_list = target_sat.cli.Host.list(output_format='json')
     host = next(i for i in host_list if i['name'] == rhel_contenthost.hostname)
-    assert host['content-view'] == function_promoted_cv.name
-    assert host['lifecycle-environment'] == function_lce.name
-    # list host command with specifying cv and lce
+    assert host['content-view-environments'] == f'{function_lce.name}/{function_promoted_cv.name}'
+    # list host command with specifying Content view environments
     host_list_fields = target_sat.cli.Host.list(
-        options={'fields': ['Name', 'Content view', 'Lifecycle environment']}, output_format='json'
+        options={'fields': ['Name', 'Content view environments']}, output_format='json'
     )
     host = next(i for i in host_list_fields if i['name'] == rhel_contenthost.hostname)
-    assert host['content-view'] == function_promoted_cv.name
-    assert host['lifecycle-environment'] == function_lce.name
+    assert host['content-view-environments'] == f'{function_lce.name}/{function_promoted_cv.name}'
 
 
 # -------------------------- CREATE SCENARIOS -------------------------
