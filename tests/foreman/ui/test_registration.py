@@ -855,3 +855,38 @@ def test_registering_with_title_using_global_registration_parameter(
                 else 'incorrect value'
             )
         assert 'Successfully updated the system facts' in result.stdout
+
+
+def test_negative_register_page_access_to_non_admin(request, module_target_sat):
+    """Check non admin users can't access Hosts -> Register tab
+
+    :id: 89aff060-3308-11f0-bfec-6c240829b295
+
+    :customerscenario: true
+
+    :Verifies: SAT-31655
+
+    :customerscenario: true
+
+    :steps:
+
+        1. Login with non admin user
+        2. Navigate to /hosts/register in url
+        3. Check message permission denied is present
+
+    :expectedresults: Non-admin users should not have access to the registration page by navigating to /hosts/register via the URL.
+    """
+    login = gen_string('alpha')
+    password = gen_string('alpha')
+    user = module_target_sat.api.User(admin=False, login=login, password=password).create()
+    request.addfinalizer(user.delete)
+
+    with module_target_sat.ui_session(
+        user=login, password=password, url='/hosts/register'
+    ) as session:
+        result = session.host.permission_denied()
+        assert (
+            result == 'Permission Denied You are not authorized to perform this action. '
+            'Please request one of the required permissions listed below '
+            'from a Satellite administrator: register_hosts'
+        )
