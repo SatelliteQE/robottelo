@@ -8,7 +8,7 @@
 
 :CaseImportance: Critical
 
-:Team: Rocket
+:Team: Phoenix-subscriptions
 
 """
 
@@ -386,7 +386,7 @@ def test_positive_katello_ca_crt_refresh(
         1. Register the host
         2. Corrupt the CA cert file and verify it
         3. Run rex job for refreshing the CA certificate
-        4. Check if the rex job is successfull and certificate is refreshed.
+        4. Check if the rex job is successful and certificate is refreshed.
 
     :expectedresults: Host is registered and katello-server-ca cert is refreshed.
 

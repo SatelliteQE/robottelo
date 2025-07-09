@@ -52,7 +52,7 @@ def update_cv(sat, cv, lce, repos):
 
 @pytest.fixture(scope='module')
 def ssl_cert(module_target_sat, module_els_sca_manifest_org):
-    """Create credetial with SSL cert for Oracle Linux"""
+    """Create credential with SSL cert for Oracle Linux"""
     res = requests.get(settings.repos.convert2rhel.ssl_cert_oracle)
     res.raise_for_status()
     return module_target_sat.api.ContentCredential(
@@ -178,12 +178,13 @@ def oracle(
     # Install and set correct RHEL compatible kernel and using non-UEK kernel, based on C2R docs
     assert (
         oracle_host.execute(
-            'yum install -y kernel* && '
+            'yum install -y kernel && '
             'grubby --set-default /boot/vmlinuz-'
             '`rpm -q --qf "%{BUILDTIME}\t%{EVR}.%{ARCH}\n" kernel | sort -nr | head -1 | cut -f2`'
         ).status
         == 0
     )
+    assert oracle_host.execute('yum -y update').status == 0
 
     if major == '8':
         # needs-restarting missing in OEL8
@@ -195,6 +196,23 @@ def oracle(
             '/etc/firewalld/firewalld.conf && firewall-cmd --reload'
         )
         assert result.status == 0
+
+        # Set RHEL kernel to be used during boot
+        oracle_host.execute("mkdir -p /boot/loader/entries/backup")
+        oracle_host.execute("mv /boot/loader/entries/*uek*.conf /boot/loader/entries/backup/")
+        # Needs reboot to reflect the changes
+        oracle_host.power_control(state='reboot')
+        assert oracle_host.execute("grubby --default-kernel | grep uek").status != 0
+        assert oracle_host.execute("uname -r | grep uek").status != 0
+
+        # Fix inhibitor TAINTED_KMODS::TAINTED_KMODS_DETECTED - Tainted kernel modules detected
+        blacklist_cfg = '/etc/modprobe.d/blacklist.conf'
+        assert oracle_host.execute('modprobe -r nvme_tcp').status == 0
+        assert oracle_host.execute(f'echo "blacklist nvme_tcp" >> {blacklist_cfg}').status == 0
+        assert (
+            oracle_host.execute(f'echo "install nvme_tcp /bin/false" >> {blacklist_cfg}').status
+            == 0
+        )
 
     if oracle_host.execute('needs-restarting -r').status == 1:
         oracle_host.power_control(state='reboot')
@@ -260,15 +278,6 @@ def test_convert2rhel_oracle_with_pre_conversion_template_check(
     :Verifies: SAT-24654, SAT-24655, SAT-26076
     """
     major = version.split('.')[0]
-    assert oracle.execute('yum -y update').status == 0
-
-    if major == '8':
-        # Fix inhibitor TAINTED_KMODS::TAINTED_KMODS_DETECTED - Tainted kernel modules detected
-        blacklist_cfg = '/etc/modprobe.d/blacklist.conf'
-        assert oracle.execute('modprobe -r nvme_tcp').status == 0
-        assert oracle.execute(f'echo "blacklist nvme_tcp" >> {blacklist_cfg}').status == 0
-        assert oracle.execute(f'echo "install nvme_tcp /bin/false" >> {blacklist_cfg}').status == 0
-
     host_content = module_target_sat.api.Host(id=oracle.hostname).read_json()
     assert host_content['operatingsystem_name'] == f"OracleLinux {version}"
 

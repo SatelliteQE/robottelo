@@ -258,7 +258,7 @@ def test_positive_multiple_orgs_with_same_repo(target_sat):
         2. Sync the same repository to each organization
         3. Assert that each repository from each organization contain the same content counts
 
-    :expectedresults: Each repository in each organziation should have the same content counts
+    :expectedresults: Each repository in each organization should have the same content counts
     """
     repos = []
     orgs = [target_sat.api.Organization().create() for _ in range(3)]
@@ -333,7 +333,7 @@ def test_positive_available_repositories_endpoint(module_sca_manifest_org, targe
 
     :steps:
         1. Enable a Red Hat Repository
-        2. Attempt to hit the enpoint:
+        2. Attempt to hit the endpoint:
            GET /katello/api/repository_sets/:id/available_repositories
         3. Verify Actions::Katello::RepositorySet::ScanCdn task is run
         4. Verify there are no failures when scanning for repository

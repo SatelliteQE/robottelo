@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:Team: Rocket
+:Team: Endeavour
 
 :CaseImportance: Critical
 """
@@ -323,7 +323,7 @@ class TestAnsibleCfgMgmt:
 
         :id: a61b4c05-1395-47c2-b6d9-fcff8b094e0e
 
-        :setup: Used pre-defined function_host (component/host) registerd with satellite.
+        :setup: Used pre-defined function_host (component/host) registered, with satellite.
 
         :steps:
             1. Import all roles available by default.

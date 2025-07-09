@@ -293,6 +293,7 @@ REPOSET = {
     'rhsclient7': 'Red Hat Satellite Client 6 (for RHEL 7 Server) (RPMs)',
     'rhsclient8': 'Red Hat Satellite Client 6 for RHEL 8 x86_64 (RPMs)',
     'rhsclient9': 'Red Hat Satellite Client 6 for RHEL 9 x86_64 (RPMs)',
+    'rhsclient10': 'Red Hat Satellite Client 6 for RHEL 10 x86_64 (RPMs)',
     'rhst7': 'Red Hat Satellite Tools 6.9 (for RHEL 7 Server) (RPMs)',
     'rhst7_610': 'Red Hat Satellite Tools 6.10 (for RHEL 7 Server) (RPMs)',
     'rhst6': 'Red Hat Satellite Tools 6.9 (for RHEL 6 Server) (RPMs)',
@@ -347,14 +348,6 @@ VERSIONED_REPOS = [
     'satellite-maintenance-{}-for-rhel-9-x86_64-rpms',
     'satellite-utils-{}-for-rhel-9-x86_64-rpms',
 ]
-
-SM_OVERALL_STATUS = {
-    'current': 'Overall Status: Current',
-    'invalid': 'Overall Status: Invalid',
-    'insufficient': 'Overall Status: Insufficient',
-    'disabled': 'Overall Status: Disabled',
-    'unknown': 'Overall Status: Unknown',
-}
 
 REPOS = {
     'rhel7': {
@@ -474,6 +467,16 @@ REPOS = {
         'product': PRDS['rhel9'],
         'distro': 'rhel9',
         'releasever': '9',
+        'key': PRODUCT_KEY_SAT_CLIENT,
+    },
+    'rhsclient10': {
+        'id': 'satellite-client-6-for-rhel-10-x86_64-rpms',
+        'name': ('Red Hat Satellite Client 6 for RHEL 10 x86_64 RPMs'),
+        'version': '6',
+        'reposet': REPOSET['rhsclient10'],
+        'product': PRDS['rhel10'],
+        'distro': 'rhel10',
+        'releasever': '10',
         'key': PRODUCT_KEY_SAT_CLIENT,
     },
     'rhst7': {
@@ -773,7 +776,6 @@ DEFAULT_RELEASE_VERSION = '6Server'
 DEFAULT_ROLE = 'Default role'
 DEFAULT_OS_SEARCH_QUERY = 'name="RedHat" AND (major="6" OR major="7" OR major="8" OR major="9")'
 
-VDC_SUBSCRIPTION_NAME = 'Red Hat Enterprise Linux for Virtual Datacenters, Premium'
 
 TIMESTAMP_FMT_ZONE = '%Y-%m-%d %H:%M:%S %Z'  # timezone-aware format (by code: UTC, EST, etc)
 TIMESTAMP_FMT = '%Y-%m-%d %H:%M:%S'
@@ -862,6 +864,7 @@ FLATPAK_ENDPOINTS = {
     'pulpcore': 'https://{}/pulpcore_registry/' + FLATPAK_INDEX_SUFFIX,
     'katello': 'https://{}/' + FLATPAK_INDEX_SUFFIX,
 }
+FLATPAK_RHEL_RELEASE_VER = 10
 
 CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/lib/pulp/imports/myrepo/test.txt'
@@ -2132,7 +2135,6 @@ FAM_TEST_PLAYBOOKS = [
     "auth_sources_ldap_role",
     "bookmark",
     "compute_attribute",
-    "compute_profile_ovirt",
     "compute_profiles_role",
     "compute_profile",
     "compute_resources_role",

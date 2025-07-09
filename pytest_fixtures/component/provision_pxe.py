@@ -13,6 +13,7 @@ from robottelo import constants
 from robottelo.config import settings
 from robottelo.enums import NetworkType
 from robottelo.hosts import ContentHost
+from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
@@ -94,6 +95,7 @@ def module_provisioning_rhel_content(
         sat.wait_for_tasks(
             search_query=(f'id = {task["id"]}'),
             poll_timeout=2500,
+            poll_rate=5 if is_open('SAT-35513') else None,
         )
         task_status = sat.api.ForemanTask(id=task['id']).poll()
         assert task_status['result'] == 'success'

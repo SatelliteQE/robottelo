@@ -49,7 +49,7 @@ class TestADAuthSource:
 
         :parametrized: yes
 
-        :expectedresults: Whether creating/upating/deleting LDAP Auth with AD is successful.
+        :expectedresults: Whether creating/updating/deleting LDAP Auth with AD is successful.
 
         :CaseImportance: Critical
         """

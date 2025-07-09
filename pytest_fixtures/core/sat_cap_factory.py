@@ -389,7 +389,7 @@ def installer_satellite(request):
         ).get_command(),
         timeout='30m',
     )
-    # exit code 0 means no changes, 2 means changes were applied succesfully
+    # exit code 0 means no changes, 2 means changes were applied successfully
     assert installer_result.status in (0, 2), installer_result.stdout
 
     sat.enable_satellite_ipv6_http_proxy()

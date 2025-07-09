@@ -847,7 +847,7 @@ def test_positive_upload_resigned_rpm():
     :customerscenario: true
 
     :steps:
-        1. Buld or prepare an unsigned rpm.
+        1. Build or prepare an unsigned rpm.
         2. Create a gpg key.
         3. Use the gpg key to sign the rpm with sha1.
         4. Create an rpm repository in the Satellite.

@@ -21,6 +21,7 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import (
     FAKE_0_CUSTOM_PACKAGE_NAME,
+    FLATPAK_RHEL_RELEASE_VER,
     PULP_EXPORT_DIR,
 )
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
@@ -200,7 +201,7 @@ def test_positive_content_counts_for_mixed_cv(
         5. Remove the LCE from Capsule and ensure it's not listed.
 
     :expectedresults:
-        1. Capsule returs proper warning instead content counts until it is synced.
+        1. Capsule returns proper warning instead content counts until it is synced.
         2. After sync the content counts from Capsule match those from Satellite.
         3. After LCE removal it's not listed anymore.
 
@@ -549,9 +550,9 @@ def test_positive_exported_imported_content_sync(
     :expectedresults:
         1. Step 6: Imported content sources assigned to empty Capsule,
             synced successfully using Capsule's LCE.
-        2. Step 6: Auxilary created 'Export-Library' CV, made after exporting,
+        2. Step 6: Auxiliary created 'Export-Library' CV, made after exporting,
             is not associated with the Capsule, as it is only in 'Library'.
-        3. Step 8: Using 'Library', Capsule sync is successful, respositories/sync tasks do not conflict,
+        3. Step 8: Using 'Library', Capsule sync is successful, repositories/sync tasks do not conflict,
             all pending sync tasks complete in one attempt, none are invoked repeatedly.
 
     :BZ: 2043726, 2059385, 2186765
@@ -836,7 +837,8 @@ def test_sync_consume_flatpak_repo_via_library(
     assert function_lce_library.id in [capsule_lce['id'] for capsule_lce in res['results']]
 
     # Mirror a flatpak repository and sync it, verify the capsule was synced.
-    repo_names = ['rhel9/firefox-flatpak', 'rhel9/flatpak-runtime']  # runtime is dependency
+    ver = FLATPAK_RHEL_RELEASE_VER
+    repo_names = [f'rhel{ver}/firefox-flatpak', f'rhel{ver}/flatpak-runtime']  # runtime=dependency
     remote_repos = [r for r in function_flatpak_remote.repos if r['name'] in repo_names]
     for repo in remote_repos:
         sat.cli.FlatpakRemote().repository_mirror(
@@ -895,7 +897,7 @@ def test_sync_consume_flatpak_repo_via_library(
     res = host.execute('flatpak remotes')
     assert remote_name in res.stdout
 
-    app_name = 'Firefox'  # or 'org.mozilla.Firefox'
+    app_name = 'firefox'  # or 'org.mozilla.firefox'
     res = host.execute('flatpak remote-ls')
     assert app_name in res.stdout
 

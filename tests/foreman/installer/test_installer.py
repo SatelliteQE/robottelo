@@ -6,7 +6,7 @@
 
 :CaseComponent: Installation
 
-:Team: Platform
+:Team: Rocket
 
 :CaseImportance: Critical
 
@@ -44,6 +44,7 @@ DOWNSTREAM_MODULES = {
     'foreman::cli',
     'foreman::cli::ansible',
     'foreman::cli::azure',
+    'foreman::cli::bootdisk',
     'foreman::cli::google',
     'foreman::cli::katello',
     'foreman::cli::kubevirt',
@@ -369,7 +370,7 @@ def test_capsule_installation(
 
     :customerscenario: true
     """
-    # Setup Capsule Hostname for further sanity caspule testing
+    # Setup Capsule Hostname for further sanity capsule testing
     if 'build_sanity' in pytestconfig.option.markexpr:
         settings.capsule.hostname = cap_ready_rhel.hostname
         cap_ready_rhel._skip_context_checkin = True

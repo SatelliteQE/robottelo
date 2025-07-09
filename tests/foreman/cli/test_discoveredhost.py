@@ -58,8 +58,6 @@ def test_rhel_pxe_discovery_provisioning(
         lambda: sat.api.DiscoveredHost().search(
             query={
                 'mac': mac,
-                'organization_id': org.id,
-                'location-id': loc.id,
             }
         )
         != [],
@@ -148,8 +146,6 @@ def test_rhel_pxeless_discovery_provisioning(
         lambda: sat.api.DiscoveredHost().search(
             query={
                 'mac': mac,
-                'organization_id': org.id,
-                'location-id': loc.id,
             }
         )
         != [],
@@ -474,7 +470,7 @@ def test_positive_verify_updated_fdi_image(target_sat):
 
     :expectedresults: Installed foreman-discovery-image is built on latest up-to-date RHEL
 
-    Verifies: SAT-24197, SAT-27541
+    Verifies: SAT-24197, SAT-27541, SAT-34778
 
     :customerscenario: true
 
@@ -485,7 +481,7 @@ def test_positive_verify_updated_fdi_image(target_sat):
     target_sat.execute('yum -y --disableplugin=foreman-protector install foreman-discovery-image')
 
     if target_sat.os_version.major == 9:
-        version = '8.10' if is_open('SAT-27541') else str(target_sat.os_version)
+        version = '9.5' if is_open('SAT-34778') else str(target_sat.os_version)
     elif target_sat.os_version.major == 8:
         version = str(target_sat.os_version)
 

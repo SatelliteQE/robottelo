@@ -49,7 +49,6 @@ from robottelo.constants import (
     RHSSO_RESET_PASSWORD,
     RHSSO_USER_UPDATE,
     SATELLITE_VERSION,
-    SM_OVERALL_STATUS,
 )
 from robottelo.enums import NetworkType
 from robottelo.exceptions import CLIFactoryError, DownloadFileError, HostPingFailed
@@ -366,7 +365,7 @@ class ContentHost(Host, ContentHostMixins):
                 and pytest.capsule_sanity is True
                 and type(self) is Capsule
             ):
-                logger.debug('END: Skipping tearing down caspule host %s for sanity', self)
+                logger.debug('END: Skipping tearing down capsule host %s for sanity', self)
                 return
             self.unregister()
             if type(self) is not Satellite:  # do not delete Satellite's host record
@@ -541,17 +540,6 @@ class ContentHost(Host, ContentHostMixins):
             result = ' '.join(result).split()
             pool_ids.append(result)
         return pool_ids
-
-    def subscription_manager_attach_pool(self, pool_list=None):
-        """
-        Attach pool ids to the host and return the result
-        """
-        if pool_list is None:
-            pool_list = []
-        result = []
-        for pool in pool_list:
-            result.append(self.execute(f'subscription-manager attach --pool={pool}'))
-        return result
 
     @property
     def subscription_config(self):
@@ -1077,7 +1065,7 @@ class ContentHost(Host, ContentHostMixins):
         self.execute(f'echo "{puppet_conf}" >> /etc/puppetlabs/puppet/puppet.conf')
 
         # This particular puppet run on client would populate a cert on
-        # sat6 under the capsule --> certifcates or on capsule via cli "puppetserver
+        # sat6 under the capsule --> certificates or on capsule via cli "puppetserver
         # ca list", so that we sign it.
         self.execute('/opt/puppetlabs/bin/puppet agent -t')
         proxy_host = Host(hostname=proxy_hostname, ipv6=self.network_type == NetworkType.IPV6)
@@ -1192,6 +1180,9 @@ class ContentHost(Host, ContentHostMixins):
             self.create_custom_repos(**rhel_repo)
         else:
             self.create_custom_repos(**{rhel_distro: rhel_repo})
+
+        if not self.network_type.has_ipv4:
+            self.enable_ipv6_dnf_and_rhsm_proxy()
 
         # Ensure insights-client rpm is installed
         if self.execute('yum install -y insights-client').status != 0:
@@ -1430,7 +1421,7 @@ class ContentHost(Host, ContentHostMixins):
                 raise CLIFactoryError(f'Failed to start the virt-who service:\n{result.stderr}')
         # after this step the hypervisor as a content host should be created
         # do not confuse virt-who host with hypervisor host as they can be
-        # diffrent hosts and as per this setup we have only registered the virt-who
+        # different hosts and as per this setup we have only registered the virt-who
         # host, the hypervisor host should registered after virt-who send the
         # first report when started or with one shot command
         # the virt-who hypervisor will be registered to satellite with host name
@@ -1529,7 +1520,7 @@ class ContentHost(Host, ContentHostMixins):
         self.execute('katello-tracer-upload')
 
     def register_to_cdn(self, pool_ids=None):
-        """Subscribe satellite to CDN"""
+        """Register host to CDN"""
         self.reset_rhsm()
 
         # Enabling proxy for IPv6
@@ -1548,17 +1539,6 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError(
                 f'Error during registration, command output: {cmd_result.stdout}'
             )
-        # Attach a pool only if the Org isn't SCA yet
-        sub_status = self.subscription_manager_status().stdout
-        if SM_OVERALL_STATUS['disabled'] not in sub_status:
-            if pool_ids in [None, []]:
-                pool_ids = [settings.subscription.rhn_poolid]
-            for pid in pool_ids:
-                int(pid, 16)  # raises ValueError if not a HEX number
-            cmd_result = self.subscription_manager_attach_pool(pool_ids)
-            for res in cmd_result:
-                if res.status != 0:
-                    raise ContentHostError(f'Pool attachment failed with output: {res.stdout}')
 
     def ping_host(self, host):
         """Check the provisioned host status by pinging the ip of host
@@ -1630,7 +1610,7 @@ class ContentHost(Host, ContentHostMixins):
         """
         if settings.capsule.version.source == "ga":
             # enable cdn repos
-            for repo in self.SATELLITE_CDN_REPOS.values():
+            for repo in self.CAPSULE_CDN_REPOS.values():
                 result = self.enable_repo(repo, force=True)
                 if result.status:
                     raise ContentHostError(
@@ -2060,7 +2040,7 @@ class Satellite(Capsule, SatelliteMixins):
 
     @property
     def satellite(self):
-        """Use self when no other Satellite is set to avoid unecessary/incorrect instances"""
+        """Use self when no other Satellite is set to avoid unnecessary/incorrect instances"""
         if not self._satellite:
             return self
         return self._satellite
@@ -2538,7 +2518,7 @@ class Satellite(Capsule, SatelliteMixins):
         assert self.execute(
             "echo -e '[Service]\\nEnvironment=GSS_USE_PROXY=1' > /etc/systemd/system/httpd.service.d/gssproxy.conf"
         )
-        # restart the deamon and httpd services
+        # restart the daemon and httpd services
         assert (
             self.execute('systemctl daemon-reload && systemctl restart httpd.service').status == 0
         )
@@ -2780,8 +2760,7 @@ class RHBKHost(SSOHost):
     """Class for RHBK functions and setup"""
 
     def __init__(self, sat_obj, **kwargs):
-        self.host_url = settings.rhbk.host_url
-        self.uri = self.host_url
+        self.uri = settings.rhbk.host_url
         self.host_name = settings.rhbk.host_name
         self.host_port = settings.rhbk.host_port
         self.realm = settings.rhbk.realm
@@ -2796,8 +2775,7 @@ class RHSSOHost(SSOHost):
     """Class for RHSSO functions and setup"""
 
     def __init__(self, sat_obj, **kwargs):
-        self.host_url = settings.rhsso.host_url
-        self.uri = self.host_url.replace("https://", "http://")
+        self.uri = settings.rhsso.host_url
         self.host_name = settings.rhsso.host_name
         self.host_port = 443
         self.realm = settings.rhsso.realm

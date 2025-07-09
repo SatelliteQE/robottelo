@@ -1907,7 +1907,7 @@ class TestContentView:
         :parametrized: yes
 
         """
-        # Note: this test has been stubbed waitin for bug 1511481 resolution
+        # Note: this test has been stubbed waiting for bug 1511481 resolution
         # prepare the user and the required permissions data
         user_name = gen_alphanumeric()
         user_password = gen_alphanumeric()
@@ -3072,7 +3072,7 @@ class TestContentView:
 
         :customerscenario: true
 
-        :expectedresults: CCV is auto-published when composite CV recieves an inc update
+        :expectedresults: CCV is auto-published when composite CV receives an inc update
 
         :CaseImportance: Medium
 

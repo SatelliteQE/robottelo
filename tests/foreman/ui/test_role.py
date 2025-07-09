@@ -213,7 +213,7 @@ def test_positive_create_filter_without_override(
                 'user.auth': 'INTERNAL',
                 'user.password': password,
                 'user.confirm': password,
-                'user.mail': 'test@eample.com',
+                'user.mail': 'test@example.com',
                 'roles.resources.assigned': [role_name],
                 'organizations.resources.assigned': [module_org.name],
                 'locations.resources.assigned': [module_location.name],
@@ -285,7 +285,7 @@ def test_positive_create_non_overridable_filter(
                 'user.auth': 'INTERNAL',
                 'user.password': password,
                 'user.confirm': password,
-                'user.mail': 'test@eample.com',
+                'user.mail': 'test@example.com',
                 'roles.resources.assigned': [role_name],
                 'organizations.resources.assigned': [user_org.name],
                 'locations.resources.assigned': [user_loc.name],
@@ -311,7 +311,7 @@ def test_positive_create_overridable_filter(
         1. Create a role with some taxonomies (organizations and locations)
         2. Create a filter in role to which taxonomies can be associated
             e.g Subnet filter
-        3. Override a filter with some taxonomies which doesnt match the
+        3. Override a filter with some taxonomies which doesn't match the
             taxonomies of role
         4. Create user with taxonomies including filter taxonomies and
             assign role to it
@@ -371,7 +371,7 @@ def test_positive_create_overridable_filter(
                 'user.auth': 'INTERNAL',
                 'user.password': password,
                 'user.confirm': password,
-                'user.mail': 'test@eample.com',
+                'user.mail': 'test@example.com',
                 'roles.resources.assigned': [role_name],
                 'organizations.resources.assigned': [role_org.name, module_org.name],
                 'locations.resources.assigned': [role_loc.name, module_location.name],

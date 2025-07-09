@@ -8,7 +8,7 @@
 
 :CaseComponent: AnsibleCollection
 
-:Team: Platform
+:Team: Rocket
 
 """
 
@@ -25,7 +25,6 @@ from robottelo.constants import (
     FOREMAN_ANSIBLE_MODULES,
     RH_SAT_ROLES,
 )
-from robottelo.enums import NetworkType
 
 
 @pytest.fixture
@@ -228,11 +227,12 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
 
     :expectedresults: All modules and roles run successfully
     """
-    # Skip oVirt/RHV tests on IPv6 setups
-    if module_target_sat.network_type == NetworkType.IPV6 and ansible_module in [
-        'compute_profile_ovirt'
+    # Skip crazy FAM tests w/o proper setups
+    if ansible_module in [
+        "host_power",  # this test tries to power off non-existent VM
+        "realm",  # realm feature is not set up on Capsule
     ]:
-        pytest.skip("oVirt/RHV is not properly set up in IPv6 environment")
+        pytest.skip(f"{ansible_module} module test lacks proper setup")
 
     # Setup provisioning resources
     if ansible_module in FAM_TEST_LIBVIRT_PLAYBOOKS:
