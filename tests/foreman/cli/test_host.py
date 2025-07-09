@@ -288,7 +288,7 @@ def test_positive_search_all_field_sets(module_target_sat):
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.cli_host_subscription
-def test_positive_host_list_with_cv_and_lce(
+def test_positive_host_list_with_cve(
     target_sat,
     rhel_contenthost,
     function_ak_with_cv,
