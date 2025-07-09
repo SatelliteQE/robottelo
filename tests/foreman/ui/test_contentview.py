@@ -22,6 +22,7 @@ from robottelo.constants import (
     REPOS,
     DataFile,
 )
+from robottelo.constants.repos import CUSTOM_RPM_SHA_512
 
 VERSION = 'Version 1.0'
 
@@ -351,3 +352,39 @@ def test_cv_publish_warning(session, target_sat, function_sca_manifest_org, modu
         assert not session.contentview_new.check_publish_banner(cv.name)
         cv.publish()
         assert session.contentview_new.check_publish_banner(cv.name)
+
+
+def test_cv_errata_format(session, module_target_sat, module_org):
+    """Create content view with some errata, verify it displays in the proper format.
+
+    :id: 149b3fe1-b2ed-41a6-8b78-cf97a3719a05
+
+    :steps:
+        1. Create a product with some errata
+        2. Verify it uses the proper format for dates.
+        3. Create a CV with that errata.
+        4. Publish the CV
+        5. Read the Errata table for the published version.
+
+    :Verifies: SAT-31575
+
+    :expectedresults: CV API returns the errata date in the proper format, and CV UI matches the date format of the API.
+    """
+    product = module_target_sat.api.Product(organization=module_org).create()
+    yum_sha512_repo = module_target_sat.api.Repository(
+        product=product, url=CUSTOM_RPM_SHA_512
+    ).create()
+    yum_sha512_repo.sync()
+    updated_at = module_target_sat.api.Errata(repository=yum_sha512_repo).search()[0].updated
+    assert updated_at == '2014-07-20'
+    cv = module_target_sat.api.ContentView(organization=module_org).create()
+    cv = module_target_sat.api.ContentView(id=cv.id, repository=[yum_sha512_repo]).update(
+        ['repository']
+    )
+    cv.publish()
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        ui_issued_date = session.contentview_new.read_version_table(
+            cv.name, 'Version 1.0', 'errata'
+        )[0]['Updated']
+        assert ui_issued_date == updated_at
