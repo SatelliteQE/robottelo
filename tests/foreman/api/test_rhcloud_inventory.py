@@ -341,7 +341,7 @@ def test_rhcloud_compliance_policies(
     module_target_sat,
 ):
     """Verify that the branch_id parameter was removed from insights-client requests
-    and that compliance polcies are working
+    and that compliance policies are working
 
     :id: 21cf98a4-e5fa-4191-8fc0-e98f0e7d4f24
 
@@ -352,7 +352,7 @@ def test_rhcloud_compliance_policies(
         4. Assert job succeeds
 
     :expectedresults:
-        1. Trigering the 'insights-client --compliance-policies' command succueeds with
+        1. Triggering the 'insights-client --compliance-policies' command succueeds with
         no parameter errors
 
     :Verifies: SAT-18902

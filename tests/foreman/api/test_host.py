@@ -10,7 +10,7 @@ http://theforeman.org/api/apidoc/v2/hosts.html
 
 :CaseComponent: Hosts
 
-:Team: Endeavour
+:Team: Phoenix-subscriptions
 
 :CaseImportance: High
 
@@ -628,7 +628,7 @@ def test_positive_end_to_end_with_host_parameters(module_org, module_location, m
     :id: e3af6718-4016-4756-bbb0-e3c24ac1e340
 
     :expectedresults: A host is created with expected host parameters,
-        paramaters are removed and new parameters are updated
+        parameters are removed and new parameters are updated
 
     :CaseImportance: Critical
     """

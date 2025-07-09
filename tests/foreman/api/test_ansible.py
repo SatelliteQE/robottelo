@@ -6,7 +6,7 @@
 
 :CaseComponent: Ansible-ConfigurationManagement
 
-:Team: Rocket
+:Team: Endeavour
 
 :CaseImportance: Critical
 
@@ -308,6 +308,9 @@ class TestAnsibleCfgMgmt:
             @request.addfinalizer
             def _finalize():
                 target_sat.cli.Host.disassociate({'name': rex_contenthost.hostname})
+                assert rex_contenthost.execute('subscription-manager unregister').status == 0
+                assert rex_contenthost.execute('subscription-manager clean').status == 0
+                target_sat.cli.Host.delete({'name': rex_contenthost.hostname})
 
         # gather ansible facts by running ansible roles on the host
         host.play_ansible_roles()
@@ -780,7 +783,7 @@ class TestAnsibleREX:
         assert result.failed == 1
         assert result.status_label == 'failed'
         result = target_sat.api.JobInvocation(id=job['id']).outputs()['outputs'][0]['output']
-        termination_msg = 'ERROR! couldn\'t resolve module/action \'nonexisting_module\''
+        termination_msg = "ERROR! couldn't resolve module/action 'nonexisting_module'"
         assert [i['output'] for i in result if termination_msg in i['output']]
         assert [i['output'] for i in result if i['output'] == 'StandardError: Job execution failed']
         assert [i['output'] for i in result if i['output'] == 'Exit status: 4']
@@ -866,14 +869,7 @@ class TestAnsibleREX:
 
         if ansible_check_mode == 'True':
             cloned_template_name = gen_string('alpha')
-            # TODO: Using UI as workaround to clone a JobTemplate until SAT-34617 is fixed.
-            # og_template.clone(data={'name': cloned_template_name})
-            with target_sat.ui_session() as session:
-                session.organization.select(org_name=module_org.name)
-                session.location.select(loc_name=module_location.name)
-                session.jobtemplate.clone(
-                    default_template_name, {'template.name': cloned_template_name}
-                )
+            template.clone(data={'name': cloned_template_name})
             template = target_sat.api.JobTemplate().search(
                 query={'search': f'name="{cloned_template_name}"'}
             )[0]

@@ -6,7 +6,7 @@
 
 :CaseComponent: Puppet
 
-:Team: Rocket
+:Team: Endeavour
 
 :CaseImportance: Critical
 
@@ -35,7 +35,7 @@ def test_positive_CRD_satellite(run_puppet_agent, session_puppet_enabled_sat):
 
     :id: 32646d4b-7101-421a-85e0-777d3c6b71ec
 
-    :expectedresults: Puppet reports are generated, readable, and deleteable
+    :expectedresults: Puppet reports are generated, readable, and deletable
     """
     result = session_puppet_enabled_sat.cli.ConfigReport.list()
     assert len(result) > 0

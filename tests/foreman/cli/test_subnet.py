@@ -563,7 +563,7 @@ def test_positive_delete_subnet_parameter_host_impact():
 
 @pytest.mark.stubbed
 def test_positive_delete_subnet_parameter_overrided_host_impact():
-    """Deleting parameter from subnet component doesnt deletes its
+    """Deleting parameter from subnet component doesn't delete its
         overridden parameter in host inheriting that subnet
 
     :id: 2481ca10-48c1-4d18-90ed-aa20377d6905

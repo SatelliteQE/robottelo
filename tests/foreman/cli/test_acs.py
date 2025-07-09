@@ -15,6 +15,7 @@
 from fauxfactory import gen_alphanumeric
 import pytest
 
+from robottelo.config import settings
 from robottelo.constants.repos import PULP_FIXTURE_ROOT, PULP_SUBPATHS_COMBINED
 from robottelo.exceptions import CLIReturnCodeError
 
@@ -70,6 +71,14 @@ def test_positive_CRUD_all_types(
         'content-type': cnt_type,
         'smart-proxy-ids': module_target_sat.nailgun_capsule.id,
     }
+
+    # In case of IPv6, set 'ACS HTTP proxy' of the bound capsule to the IPv6 proxy
+    # This is necessary for the Refresh to succeed.
+    if not settings.server.network_type.has_ipv4:
+        caps = module_target_sat.nailgun_smart_proxy
+        caps.http_proxy = module_target_sat.enable_satellite_http_proxy()
+        caps.update(['http_proxy'])
+        params.update({'use-http-proxies': 'true'})
 
     if acs_type == 'simplified':
         params.update(

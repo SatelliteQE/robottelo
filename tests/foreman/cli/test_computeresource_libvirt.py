@@ -228,8 +228,6 @@ def test_negative_create_with_name_url(libvirt_url, options, target_sat):
 
     :expectedresults: Compute resource not created
 
-    :CaseImportance: High
-
     :parametrized: yes
     """
     with pytest.raises(CLIReturnCodeError):
@@ -460,9 +458,177 @@ def test_positive_provision_end_to_end(
     host_info = sat.cli.Host.info({'id': host['id']})
     assert host_info['status']['build-status'] == 'Installed'
 
-    # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
+    # Verify SecureBoot is enabled on host after provisioning is completed successfully
     if pxe_loader.vm_firmware == 'uefi_secure_boot':
         provisioning_host = ContentHost(host_info['network']['ipv4-address'])
         # Wait for the host to be rebooted and SSH daemon to be started.
         provisioning_host.wait_for_connection()
         assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
+
+
+def test_negative_create_libvirt_with_url(module_location, module_org, module_target_sat):
+    """Libvirt compute resource negative create with invalid values
+
+    :id: 1f318a4b-8dca-491b-b56d-cff773ed624e
+
+    :expectedresults: Compute resource is not created
+    """
+    cr_name = gen_string('alpha')
+    with pytest.raises(CLIReturnCodeError):
+        module_target_sat.cli.ComputeResource.create(
+            {
+                'name': cr_name,
+                'provider': FOREMAN_PROVIDERS['libvirt'],
+                'url': 'invalid url',
+                'organizations': module_org.name,
+                'locations': module_location.name,
+            }
+        )
+
+
+def test_positive_create_delete_image_libvirt_with_name(
+    module_location, module_org, module_target_sat, module_os
+):
+    """Create/Delete images on the libvirt compute resource
+
+    :id: 2da84165-a56f-4282-9343-94828fa69c13
+
+    :steps:
+        1. Create a compute resource of type libvirt.
+        2. Create a image for the compute resource with valid parameter,
+           compute-resource image create
+
+    :expectedresults: The image is created and deleted on the CR successfully
+    """
+    cr_name = gen_string('alpha')
+    comp_res = module_target_sat.cli_factory.compute_resource(
+        {
+            'name': cr_name,
+            'provider': FOREMAN_PROVIDERS['libvirt'],
+            'url': LIBVIRT_URL,
+            'organizations': module_org.name,
+            'locations': module_location.name,
+        }
+    )
+    assert comp_res['name'] == cr_name
+    img_path = settings.libvirt.LIBVIRT_IMAGE_PATH
+    img_name = gen_string(str_type='alpha')
+    module_target_sat.cli.ComputeResource.image_create(
+        {
+            'compute-resource': comp_res['name'],
+            'name': img_name,
+            'operatingsystem': module_os.title,
+            'architecture': 'x86_64',
+            'username': settings.server.SSH_USERNAME,
+            'password': settings.server.SSH_PASSWORD,
+            'user-data': 1,
+            'uuid': img_path,
+        }
+    )
+    result = module_target_sat.cli.ComputeResource.image_list(
+        {'compute-resource': comp_res['name']}
+    )
+    assert result[0]['uuid'] == img_path
+
+    # Delete Image
+    result = module_target_sat.cli.ComputeResource.image_delete(
+        {'name': img_name, 'compute-resource': cr_name}
+    )
+    assert result[0]['message'] == 'Image deleted.'
+
+
+@pytest.mark.stubbed
+def test_negative_add_image_libvirt_with_invalid_uuid():
+    """Attempt to add invalid image name to the libvirt compute resource
+
+    :id: e8a653f9-9749-4c76-95ed-2411a7c0a117
+
+    :steps:
+        1. Create a compute resource of type libvirt.
+        2. Create a image for the compute resource with invalid value for
+           uuid parameter, compute-resource image create.
+
+    :expectedresults: The image should not be added to the CR
+
+    :BZ: 1829239
+
+    :CaseAutomation: NotAutomated
+    """
+
+
+def test_negative_add_image_libvirt_with_invalid_name(
+    module_location, module_org, module_target_sat, module_os
+):
+    """Attempt to add invalid image name to the libvirt compute resource
+
+    :id: 873a7d79-1e89-4e4f-81ca-b6db1e0246da
+
+    :steps:
+        1. Create a compute resource of type libvirt.
+        2. Create a image for the compute resource with invalid value for
+           name parameter, compute-resource image create.
+
+    :expectedresults: The image should not be added to the CR
+    """
+    cr_name = gen_string('alpha')
+    comp_res = module_target_sat.cli_factory.compute_resource(
+        {
+            'name': cr_name,
+            'provider': FOREMAN_PROVIDERS['libvirt'],
+            'url': LIBVIRT_URL,
+            'organizations': module_org.name,
+            'locations': module_location.name,
+        }
+    )
+    assert comp_res['name'] == cr_name
+    with pytest.raises(CLIReturnCodeError):
+        module_target_sat.cli.ComputeResource.image_create(
+            {
+                'compute-resource': comp_res['name'],
+                'name': f'img {gen_string(str_type="alphanumeric", length=256)}',
+                'operatingsystem': module_os.title,
+                'architecture': 'x86_64',
+                'username': settings.server.SSH_USERNAME,
+                'password': settings.server.SSH_PASSWORD,
+                'user-data': 1,
+                'uuid': settings.libvirt.LIBVIRT_IMAGE_PATH,
+            }
+        )
+
+
+@pytest.mark.stubbed
+def test_positive_provision_libvirt_without_host_group():
+    """Provision a host on libvirt compute resource without
+    the help of hostgroup.
+
+    :id: 861940cb-1550-4f00-9df2-5a45683635b1
+
+    :steps:
+        1. Create a libvirt compute resource.
+        2. Create a host on libvirt compute resource.
+        3. Use compute-attributes parameter to specify key-value parameters
+           regarding the virtual machine.
+        4. Provision the host.
+
+    :expectedresults: The host should be provisioned successfully
+
+    :CaseAutomation: NotAutomated
+    """
+
+
+@pytest.mark.stubbed
+def test_positive_provision_libvirt_image_based_and_disassociate():
+    """Provision a host on libvirt compute resource using image-based provisioning
+
+    :id: ba78858f-5cff-462e-a35d-f5aa4d11db52
+
+    :steps:
+        1. Create a libvirt CR
+        1. Create an image on that CR
+        2. Create a new host using that CR and image
+        3. Disassociate the host from the CR
+
+    :expectedresults: Host should be provisioned with image, associated to CR, then disassociated
+
+    :CaseAutomation: NotAutomated
+    """

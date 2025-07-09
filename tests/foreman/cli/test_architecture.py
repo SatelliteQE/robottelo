@@ -6,7 +6,7 @@
 
 :CaseComponent: Hosts
 
-:Team: Endeavour
+:Team: Phoenix-subscriptions
 
 :CaseImportance: High
 

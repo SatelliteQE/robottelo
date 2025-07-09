@@ -6,7 +6,7 @@
 
 :CaseComponent: InterSatelliteSync
 
-:Team: Phoenix-subscriptions
+:Team: Phoenix-content
 
 :CaseImportance: High
 

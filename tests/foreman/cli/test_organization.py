@@ -260,7 +260,6 @@ def test_positive_add_and_remove_hostgroups(module_org, module_target_sat):
 
 
 @pytest.mark.skip_if_not_set('libvirt')
-@pytest.mark.libvirt_discovery
 @pytest.mark.upgrade
 def test_positive_add_and_remove_compute_resources(module_org, module_target_sat):
     """Add and remove a compute resource from organization

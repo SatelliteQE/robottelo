@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: Hammer
+:CaseComponent: Reporting
 
 :Team: Endeavour
 

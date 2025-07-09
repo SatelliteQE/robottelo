@@ -737,7 +737,7 @@ class TestContentViewFilterRule:
 
         :id: ea8a4d95-dc36-4102-b1a9-d53beaf14352
 
-        :expectedresults: Verify dependant/non dependant module streams are getting fetched.
+        :expectedresults: Verify dependent/non dependent module streams are getting fetched.
 
         """
         content_view = content_view_module_stream

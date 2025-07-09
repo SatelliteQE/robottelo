@@ -6,7 +6,7 @@
 
 :CaseComponent: Puppet
 
-:Team: Rocket
+:Team: Endeavour
 
 :CaseImportance: Medium
 
@@ -54,7 +54,7 @@ def test_post_puppet_active(puppet_upgrade_setup):
 
     :expectedresults:
         1. Puppet and Puppetca features are enabled.
-        2. Puppetserver is installed and runnning.
+        2. Puppetserver is installed and running.
 
     :parametrized: yes
 

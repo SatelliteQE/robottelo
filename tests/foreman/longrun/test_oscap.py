@@ -119,7 +119,7 @@ def activation_key(module_target_sat, module_org, lifecycle_env):
         ).create()
         content_view.publish()
         content_view = content_view.read()
-        assert len(content_view.version) == 1, "CV not publised"
+        assert len(content_view.version) == 1, "CV not published"
         version = content_view.version[0].read()
         version.promote(data={'environment_ids': lifecycle_env.id, 'force': True})
         activation_key = module_target_sat.api.ActivationKey(
@@ -323,7 +323,6 @@ def apply_policy_run_scan_get_arf(target_sat, contenthost):
     return target_sat.execute(f'cat {arf_report_path}').stdout
 
 
-@pytest.mark.tier4
 @pytest.mark.rhel_ver_match('9')
 def test_positive_oscap_update_default_content(
     module_org,

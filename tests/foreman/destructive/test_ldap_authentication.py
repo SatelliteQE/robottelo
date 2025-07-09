@@ -600,7 +600,7 @@ def test_totp_user_login(
 
 
 def test_permissions_external_ldap_mapped_rhsso_group(
-    rhsso_setting_setup, ad_data, groups_teardown, module_target_sat
+    rhsso_setting_setup, enable_external_auth_rhsso, ad_data, groups_teardown, module_target_sat
 ):
     """Verify the usergroup permissions are synced correctly with LDAP usergroup mapped
         with the rhsso. The ldap user gets right permissions based on the role
