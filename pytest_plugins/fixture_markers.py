@@ -6,7 +6,7 @@ import pytest
 from robottelo.config import settings
 from robottelo.enums import NetworkType
 
-TARGET_FIXTURES = [
+TARGET_FIXTURES = {
     'rhel_contenthost',
     'module_rhel_contenthost',
     'content_hosts',
@@ -15,12 +15,12 @@ TARGET_FIXTURES = [
     'module_sync_kickstart_content',
     'rex_contenthost',
     'rex_contenthosts',
-]
+}
 
 
 def pytest_generate_tests(metafunc):
-    content_host_fixture = ''.join([i for i in TARGET_FIXTURES if i in metafunc.fixturenames])
-    if content_host_fixture in metafunc.fixturenames:
+    # ContentHost fixtures parametrization
+    if content_host_fixtures := TARGET_FIXTURES.intersection(metafunc.fixturenames):
         function_marks = getattr(metafunc.function, 'pytestmark', [])
         no_containers = any(mark.name == 'no_containers' for mark in function_marks)
         # process eventual rhel_version_list markers
@@ -116,12 +116,13 @@ def pytest_generate_tests(metafunc):
                 ids = [f"rhel{param['rhel_version']}-{param['network']}" for param in rhel_params]
 
         if rhel_params:
-            metafunc.parametrize(
-                content_host_fixture,
-                rhel_params,
-                ids=ids,
-                indirect=True,
-            )
+            for fixture in content_host_fixtures:
+                metafunc.parametrize(
+                    fixture,
+                    rhel_params,
+                    ids=ids,
+                    indirect=True,
+                )
 
     # satellite-maintain capsule parametrization
     if 'sat_maintain' in metafunc.fixturenames:
