@@ -23,7 +23,7 @@ TARGET_FIXTURES = {
 
 def pytest_generate_tests(metafunc):
     # ContentHost fixtures parametrization
-    if content_host_fixtures := TARGET_FIXTURES.intersection(metafunc.fixturenames)
+    if content_host_fixtures := TARGET_FIXTURES.intersection(metafunc.fixturenames):
         function_marks = getattr(metafunc.function, 'pytestmark', [])
         no_containers = any(mark.name == 'no_containers' for mark in function_marks)
         # process eventual rhel_version_list markers
