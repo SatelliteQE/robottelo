@@ -116,6 +116,7 @@ def test_rhel_pxe_provisioning(
         sat.execute(
             'grub2-mkimage -c pre.cfg -o /var/lib/tftpboot/grub2/grubx64.efi -p /grub2/ -O x86_64-efi efinet efi_netfs efienv efifwsetup efi_gop tftp net normal chain configfile loadenv procfs romfs'
         )
+        assert sat.execute('systemctl restart dhcpd').status == 0
     host = sat.api.Host(
         hostgroup=provisioning_hostgroup,
         organization=module_sca_manifest_org,
