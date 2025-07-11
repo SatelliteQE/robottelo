@@ -173,7 +173,7 @@ def test_positive_provision_end_to_end(
                 'host.hostgroup': provisioning_hostgroup.name,
                 'host.inherit_deploy_option': False,
                 'host.deploy': f'{cr.name} (Libvirt)',
-                'provider_content.virtual_machine.memory': '6144',
+                'provider_content.virtual_machine.memory': '8192',
                 'interfaces.interface.network_type': 'Physical (Bridge)',
                 'interfaces.interface.network': f'br-{settings.provisioning.vlan_id}',
                 'additional_information.comment': 'Libvirt provision using valid data',
