@@ -3127,3 +3127,99 @@ def test_disassociate_multiple_hosts(
             assert host.compute_resource is None, (
                 f"Compute resource ID for {vm_name} is not None after disassociation"
             )
+
+
+def test_positive_change_hosts_org_loc(
+    new_host_ui, module_target_sat, content_hosts, function_org, function_location, request
+):
+    """Test changing organization and location of multiple hosts through bulk action in All Hosts page.
+
+    :id: 7d53c0ec-a392-4003-ba75-948340f19f37
+
+    :steps:
+
+        1. Create two organizations and two locations
+        2. Create/Register multiple content hosts in the first organization/location
+        3. Navigate to All Hosts page
+        4. Select multiple hosts
+        5. Use bulk action to change organization and location
+        6. Verify hosts are now in the new organization/location
+
+    :expectedresults:
+        1. Multiple hosts can be selected in All Hosts page
+        2. Bulk organization/location change operation succeeds
+        3. Hosts are successfully moved to new organization/location
+        4. Host properties reflect the new taxonomies
+
+    :CaseComponent: Hosts
+
+    :Team: Phoenix-subscriptions
+
+    :CaseImportance: High
+    """
+    # Create second organization and location for the test
+    second_org = module_target_sat.api.Organization().create()
+    second_location = module_target_sat.api.Location(organization=[second_org]).create()
+
+    # Register both content hosts to first organization and location only
+    host_names = []
+    for host in content_hosts:
+        # Register host to first organization and location
+        result = host.register(function_org, function_location, None, module_target_sat)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+        host_names.append(host.hostname)
+
+    # Verify hosts are initially in the first org/location
+    for host_name in host_names:
+        host_entity = module_target_sat.api.Host().search(query={'search': f'name={host_name}'})[0]
+        assert host_entity.organization.id == function_org.id
+        assert host_entity.location.id == function_location.id
+
+    # Perform bulk organization/location change through UI
+    with module_target_sat.ui_session() as session:
+        # Select the first organization to see the hosts
+        session.organization.select(function_org.name)
+        session.location.select(function_location.name)
+
+        # Scenario-1 = Change organization
+        # Navigate to All Hosts page and perform bulk change organization
+        session.all_hosts.change_associations_organization(
+            host_names=host_names,
+            new_organization=second_org.name,
+            option="Fix on mismatch",
+        )
+        # Switch to second organization to verify the change
+        session.organization.select(second_org.name)
+
+        # Scenario-2 = Change location
+        # Navigate to All Hosts page and perform bulk change location
+        session.all_hosts.change_associations_location(
+            host_names=host_names,
+            new_location=second_location.name,
+            option="Fix on mismatch",
+        )
+        # Switch to second location to verify the change
+        session.location.select(second_location.name)
+
+        # Verify hosts appear in the new organization and new location
+        for host_name in host_names:
+            host_values = session.all_hosts.read_host(host_name)
+            assert host_values is not None, f"Host {host_name} not found in new organization"
+
+        # API verification - verify hosts are now in the second org/location
+        for host_name in host_names:
+            host_entity = module_target_sat.api.Host().search(
+                query={'search': f'name={host_name}'}
+            )[0]
+            assert host_entity.organization.id == second_org.id, (
+                f"Host {host_name} not moved to second organization"
+            )
+            assert host_entity.location.id == second_location.id, (
+                f"Host {host_name} not moved to second location"
+            )
+
+    # Cleanup - Delete the test organizations (locations will be cleaned up automatically)
+    @request.addfinalizer
+    def cleanup():
+        second_org.delete()
