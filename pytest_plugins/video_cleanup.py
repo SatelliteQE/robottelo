@@ -19,10 +19,9 @@ test_directories = [
 def _clean_video(session_id, test):
     if settings.ui.record_video:
         logger.info(f"cleaning up video files for session: {session_id} and test: {test}")
-
         if settings.ui.grid_url and session_id:
             grid = urlparse(url=settings.ui.grid_url)
-            infra_grid = Host(hostname=grid.hostname)
+            infra_grid = Host(hostname=grid.hostname, ipv6=settings.server.network_type)
             infra_grid.execute(command=f'rm -rf /var/www/html/videos/{session_id}')
             logger.info(f"video cleanup for session {session_id} is complete")
         else:
