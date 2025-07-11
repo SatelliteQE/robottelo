@@ -195,6 +195,8 @@ def test_positive_azurerm_host_provision_ud(
                     {
                         'host.name': hostname,
                         'host.hostgroup': module_azure_hg.name,
+                        'host.inherit_deploy_option': False,
+                        'host.deploy': f'{module_azurerm_cr.name} (Azure Resource Manager)',
                         'provider_content.operating_system.root_password': gen_string('alpha'),
                         'provider_content.operating_system.image': cloudimg_image,
                     }
