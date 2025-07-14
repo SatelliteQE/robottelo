@@ -39,6 +39,7 @@ def remote_execution_external_capsule_setup(
 
     """
     target_sat = capsule_upgrade_integrated_sat_cap.satellite
+    rhel_contenthost._skip_context_checkin = True
     rhel_contenthost._satellite = target_sat
     capsule = capsule_upgrade_integrated_sat_cap.capsule
     cap_smart_proxy = capsule_upgrade_integrated_sat_cap.cap_smart_proxy
@@ -165,6 +166,7 @@ def remote_execution_satellite_setup(
     6. Check if REX job still succeeds.
     """
     target_sat = capsule_upgrade_integrated_sat_cap.satellite
+    rhel_contenthost._skip_context_checkin = True
     # register host with rex, enable client repo, install katello-agent
     with SharedResource(
         target_sat.hostname, upgrade_action, target_sat=target_sat, action_is_recoverable=True
