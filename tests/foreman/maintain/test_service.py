@@ -6,7 +6,7 @@
 
 :CaseComponent: SatelliteMaintain
 
-:Team: Platform
+:Team: Rocket
 
 :CaseImportance: Critical
 
@@ -49,8 +49,8 @@ CAPSULE_SERVICES = [
 
 
 @pytest.fixture
-def missing_hammer_config(request, sat_maintain):
-    """Setup/teardown fixture used by test_positive_service_restart_without_hammer_config"""
+def setup_test_positive_service_restart(request, sat_maintain):
+    """Setup/teardown fixture used by test_positive_service_restart"""
     flag = 'initial_admin_password'
     sat_maintain.execute(
         f'sed -i "s/{flag}: {settings.server.admin_password}/{flag}: invalid/g" '
@@ -58,6 +58,7 @@ def missing_hammer_config(request, sat_maintain):
     )
     sat_maintain.execute(f'mv {HAMMER_CONFIG} /tmp/foreman.yml')
     sat_maintain.execute(f'mv {MAINTAIN_HAMMER_YML} /tmp/foreman-maintain-hammer.yml')
+    sat_maintain.cli.Admin.logging({'all': True, 'level-debug': True})
 
     @request.addfinalizer
     def _finalize():
@@ -67,6 +68,7 @@ def missing_hammer_config(request, sat_maintain):
         )
         sat_maintain.execute(f'mv /tmp/foreman.yml {HAMMER_CONFIG}')
         sat_maintain.execute(f'mv /tmp/foreman-maintain-hammer.yml {MAINTAIN_HAMMER_YML}')
+        sat_maintain.cli.Admin.logging({'all': True, 'level-production': True})
 
 
 @pytest.mark.include_capsule
@@ -250,17 +252,22 @@ def test_positive_status_clocale(sat_maintain):
     assert sat_maintain.cli.Service.status(env_var='LC_ALL=C.UTF-8').status == 0
 
 
-def test_positive_service_restart_without_hammer_config(missing_hammer_config, sat_maintain):
+def test_positive_service_restart(setup_test_positive_service_restart, sat_maintain):
     """Restart services using service restart when hammer config/credentials are missing
+        and debug logging is enabled.
 
     :id: c7518650-d72a-47b1-8d38-42b862f474fc
 
     :steps:
-        1. Run satellite-maintain service restart
+        1. Remove hammer config/credentials
+        2. Enable debug logging
+        3. Run satellite-maintain service restart
 
-    :expectedresults: Services restart should work even if hammer config/credentials are missing
+    :expectedresults: Services restart should work.
 
     :customerscenario: true
+
+    :Verifies: SAT-30970
 
     :BZ: 1696862
     """

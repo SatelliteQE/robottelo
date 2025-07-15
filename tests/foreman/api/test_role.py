@@ -309,7 +309,7 @@ class TestCannedRole:
         :steps: Attempt to override a filter to which taxonomies cannot be
             associated.  e.g. Architecture filter
 
-        :expectedresults: Filter is not overrided as taxonomies cannot be
+        :expectedresults: Filter is not overridden as taxonomies cannot be
             applied to that filter
 
         :CaseImportance: Critical
@@ -347,7 +347,7 @@ class TestCannedRole:
 
             1. Filter is created with taxonomies
             2. Override check is set to true
-            3. Filter doesnt inherits taxonomies from role
+            3. Filter doesn't inherits taxonomies from role
 
         :CaseImportance: Critical
         """
@@ -408,7 +408,7 @@ class TestCannedRole:
         assert filter_taxonomies['loc'].id == filtr.location[0].id
 
     def test_negative_update_role_taxonomies(self, role_taxonomies, filter_taxonomies, target_sat):
-        """Update role taxonomies which doesnt applies to its overrided filters
+        """Update role taxonomies which doesn't apply to its overridden filters
 
         :id: 9f3bf95a-f71a-4063-b51c-12610bc655f2
 
@@ -1430,7 +1430,7 @@ class TestCannedRole:
             2. Create new user A and assign Org A and Location A
             3. Assign Org Admin role to User A
             4. Create another user B and assign Org B and Location B
-            5. Assign any role to user B that doesnt have access to Org A and
+            5. Assign any role to user B that doesn't have access to Org A and
                 Location A
             6. Login with Org Admin user A and attempt to view user B
 
@@ -1752,7 +1752,7 @@ class TestRoleSearchFilter:
 
     @pytest.mark.stubbed
     def test_positive_role_lce_search(self):
-        """Test role with search filter using lifecycle enviroment.
+        """Test role with search filter using lifecycle environment.
 
         :id: 7147f402-8cc0-4f6a-affe-5a0dd122a05a
 

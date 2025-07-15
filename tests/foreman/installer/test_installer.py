@@ -6,7 +6,7 @@
 
 :CaseComponent: Installation
 
-:Team: Platform
+:Team: Rocket
 
 :CaseImportance: Critical
 
@@ -44,6 +44,7 @@ DOWNSTREAM_MODULES = {
     'foreman::cli',
     'foreman::cli::ansible',
     'foreman::cli::azure',
+    'foreman::cli::bootdisk',
     'foreman::cli::google',
     'foreman::cli::katello',
     'foreman::cli::kubevirt',
@@ -54,7 +55,6 @@ DOWNSTREAM_MODULES = {
     'foreman::compute::ec2',
     'foreman::compute::libvirt',
     'foreman::compute::openstack',
-    'foreman::compute::ovirt',
     'foreman::compute::vmware',
     'foreman::plugin::ansible',
     'foreman::plugin::azure',
@@ -141,24 +141,10 @@ def common_sat_install_assertions(satellite):
 
 
 def install_satellite(satellite, installer_args, enable_fapolicyd=False):
-    # Register for RHEL repos, get Ohsnap repofile, and enable and download satellite
+    # Enable RHEL and Satellite repos
     satellite.register_to_cdn()
-    if settings.server.version.source == 'nightly':
-        satellite.create_custom_repos(
-            satellite_repo=settings.repos.satellite_repo,
-            satmaintenance_repo=settings.repos.satmaintenance_repo,
-        )
-    else:
-        satellite.download_repofile(
-            product='satellite',
-            release=settings.server.version.release,
-            snap=settings.server.version.snap,
-        )
-    if settings.robottelo.rhel_source == "internal":
-        # disable rhel repos from cdn
-        satellite.disable_repo("rhel-*")
-        # add internal rhel repos
-        satellite.create_custom_repos(**settings.repos.get(f'rhel{satellite.os_version.major}_os'))
+    satellite.setup_rhel_repos()
+    satellite.setup_satellite_repos()
     if enable_fapolicyd:
         if satellite.execute('rpm -q satellite-maintain').status == 0:
             # Installing the rpm on existing sat needs sat-maintain perms
@@ -172,6 +158,12 @@ def install_satellite(satellite, installer_args, enable_fapolicyd=False):
         assert satellite.execute('rpm -q foreman-proxy-fapolicyd').status == 0
         assert satellite.execute('systemctl is-active fapolicyd').status == 0
     # Configure Satellite firewall to open communication
+    assert (
+        satellite.execute(
+            "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
+        ).status
+        == 0
+    ), "firewalld is not present and can't be installed"
     satellite.execute(
         'firewall-cmd --permanent --add-service RH-Satellite-6 && firewall-cmd --reload'
     )
@@ -182,12 +174,12 @@ def install_satellite(satellite, installer_args, enable_fapolicyd=False):
     )
 
 
-def setup_capsule_repos(satellite, capsule_host, org, ak):
+def sync_capsule_repos(satellite, capsule_host, org, ak):
     """
-    Enables repositories that are necessary to install capsule
+    On Satellite enable and synchronize content required for Capsule installation.
     1. Enable RHEL repositories based on configuration
     2. Enable capsule repositories based on configuration
-    3. Synchonize repositories
+    3. Synchronize repositories
     """
     # List of sync tasks - all repos will be synced asynchronously
     sync_tasks = []
@@ -324,7 +316,7 @@ def sat_fapolicyd_install(module_sat_ready_rhels):
     assert install_satellite(sat, installer_args, enable_fapolicyd=True).status == 0, (
         "Satellite installation failed (non-zero return code)"
     )
-    if settings.server.is_ipv6:
+    if not settings.server.network_type.has_ipv4:
         sat.enable_satellite_http_proxy()
     return sat
 
@@ -343,7 +335,7 @@ def sat_non_default_install(module_sat_ready_rhels):
     assert install_satellite(sat, installer_args, enable_fapolicyd=True).status == 0, (
         "Satellite installation failed (non-zero return code)"
     )
-    if settings.server.is_ipv6:
+    if not settings.server.network_type.has_ipv4:
         sat.enable_satellite_http_proxy()
     return sat
 
@@ -378,7 +370,7 @@ def test_capsule_installation(
 
     :customerscenario: true
     """
-    # Setup Capsule Hostname for further sanity caspule testing
+    # Setup Capsule Hostname for further sanity capsule testing
     if 'build_sanity' in pytestconfig.option.markexpr:
         settings.capsule.hostname = cap_ready_rhel.hostname
         cap_ready_rhel._skip_context_checkin = True
@@ -398,7 +390,7 @@ def test_capsule_installation(
     ak = sat_fapolicyd_install.api.ActivationKey(
         organization=org, environment=org.library, content_view=org.default_content_view
     ).create()
-    setup_capsule_repos(sat_fapolicyd_install, cap_ready_rhel, org, ak)
+    sync_capsule_repos(sat_fapolicyd_install, cap_ready_rhel, org, ak)
 
     cap_ready_rhel.register(org, None, ak.name, sat_fapolicyd_install)
 
@@ -444,6 +436,12 @@ def test_capsule_installation(
     assert len(result.stdout) == 0
 
     # Enabling firewall
+    assert (
+        cap_ready_rhel.execute(
+            "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
+        ).status
+        == 0
+    ), "firewalld is not present and can't be installed"
     cap_ready_rhel.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
     cap_ready_rhel.execute('firewall-cmd --runtime-to-permanent')
 
@@ -680,7 +678,7 @@ def test_installer_capsule_with_enabled_ansible(module_capsule_configured_ansibl
 @pytest.mark.build_sanity
 @pytest.mark.first_sanity
 @pytest.mark.pit_server
-def test_satellite_installation(installer_satellite):
+def test_satellite_installation(pytestconfig, installer_satellite):
     """Run a basic Satellite installation
 
     :id: 661206f3-2eec-403c-af26-3c5cadcd5766
@@ -708,12 +706,15 @@ def test_satellite_installation(installer_satellite):
     assert installer_satellite.execute('rpm -q foreman-redis').status == 0
     settings_file = installer_satellite.load_remote_yaml_file(FOREMAN_SETTINGS_YML)
     assert settings_file.rails_cache_store.type == 'redis'
-    # Parse satellite installer modules
-    cat_cmd = installer_satellite.execute(
-        'cat /etc/foreman-installer/scenarios.d/satellite-answers.yaml'
-    )
-    sat_answers = yaml.safe_load(cat_cmd.stdout)
-    assert set(sat_answers) == DOWNSTREAM_MODULES
+
+    # Do not test DOWNSTREAM_MODULES at sanity time
+    if 'build_sanity' not in pytestconfig.option.markexpr:
+        # Parse satellite installer modules
+        cat_cmd = installer_satellite.execute(
+            'cat /etc/foreman-installer/scenarios.d/satellite-answers.yaml'
+        )
+        sat_answers = yaml.safe_load(cat_cmd.stdout)
+        assert set(sat_answers) == DOWNSTREAM_MODULES
 
 
 @pytest.mark.pit_server

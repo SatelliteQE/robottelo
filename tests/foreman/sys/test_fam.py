@@ -8,7 +8,7 @@
 
 :CaseComponent: AnsibleCollection
 
-:Team: Platform
+:Team: Rocket
 
 """
 
@@ -227,6 +227,13 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
 
     :expectedresults: All modules and roles run successfully
     """
+    # Skip crazy FAM tests w/o proper setups
+    if ansible_module in [
+        "host_power",  # this test tries to power off non-existent VM
+        "realm",  # realm feature is not set up on Capsule
+    ]:
+        pytest.skip(f"{ansible_module} module test lacks proper setup")
+
     # Setup provisioning resources
     if ansible_module in FAM_TEST_LIBVIRT_PLAYBOOKS:
         module_target_sat.configure_libvirt_cr()
@@ -237,7 +244,7 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
         'ANSIBLE_HOST_PATTERN_MISMATCH=ignore',
     ]
 
-    if settings.server.is_ipv6 and ansible_module in ['redhat_manifest']:
+    if not module_target_sat.network_type.has_ipv4 and ansible_module in ['redhat_manifest']:
         env.append(f'HTTPS_PROXY={settings.http_proxy.http_proxy_ipv6_url}')
 
     # Execute test_playbook

@@ -20,6 +20,7 @@ from wait_for import TimedOutError, wait_for
 from wrapanapi.systems.virtualcenter import VMWareVirtualMachine
 
 from robottelo.config import settings
+from robottelo.enums import NetworkType
 from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
@@ -102,12 +103,15 @@ def test_rhel_pxe_provisioning(
 
     :parametrized: yes
     """
-    if pxe_loader.vm_firmware == 'bios' and settings.server.is_ipv6:
+    if (
+        pxe_loader.vm_firmware == 'bios'
+        and module_provisioning_sat.sat.network_type == NetworkType.IPV6
+    ):
         pytest.skip('Test cannot be run on BIOS as its not supported')
     host_mac_addr = provisioning_host.provisioning_nic_mac_addr
     sat = module_provisioning_sat.sat
     # Configure the grubx64.efi image to setup the interface and use TFTP to load the configuration
-    if settings.server.is_ipv6:
+    if module_provisioning_sat.sat.network_type == NetworkType.IPV6:
         sat.execute("echo -e 'net_bootp6\nset root=tftp\nset prefix=(tftp)/grub2' > pre.cfg")
         sat.execute(
             'grub2-mkimage -c pre.cfg -o /var/lib/tftpboot/grub2/grubx64.efi -p /grub2/ -O x86_64-efi efinet efi_netfs efienv efifwsetup efi_gop tftp net normal chain configfile loadenv procfs romfs'
@@ -154,7 +158,7 @@ def test_rhel_pxe_provisioning(
     # Change the hostname of the host as we know it already.
     # In the current infra environment we do not support
     # addressing hosts using FQDNs, falling back to IP.
-    if is_open('SAT-30601') and not settings.server.is_ipv6:
+    if is_open('SAT-30601') and module_provisioning_sat.sat.network_type == NetworkType.IPV4:
         provisioning_host.hostname = host.ip
         # Host is not blank anymore
         provisioning_host.blank = False
@@ -596,14 +600,9 @@ def test_rhel_pxe_provisioning_fips_enabled(
         f'The installed OS version differs from the expected version {expected_rhel_version}'
     )
 
-    # Verify FIPS is enabled on host after provisioning is completed sucessfully
-    if int(host_os.major) >= 8:
-        result = provisioning_host.execute('fips-mode-setup --check')
-        fips_status = 'FIPS mode is disabled' if is_open('SAT-20386') else 'FIPS mode is enabled'
-        assert fips_status in result.stdout
-    else:
-        result = provisioning_host.execute('cat /proc/sys/crypto/fips_enabled')
-        assert (0 if is_open('SAT-20386') else 1) == int(result.stdout)
+    # Verify FIPS is enabled on host after provisioning is completed successfully
+    result = provisioning_host.execute('cat /proc/sys/crypto/fips_enabled')
+    assert (0 if is_open('SAT-20386') else 1) == int(result.stdout)
 
     # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
     # Add workaround for SAT-32007 and SAT-32006
@@ -729,7 +728,7 @@ def test_rhel_pxe_provisioning_secureboot_enabled(
     # Verify host is subscribed and consumes subsctiption provided by the activation key
     assert provisioning_vmware_host.subscribed, 'Host is not subscribed'
 
-    # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
+    # Verify SecureBoot is enabled on host after provisioning is completed successfully
     assert 'SecureBoot enabled' in provisioning_vmware_host.execute('mokutil --sb-state').stdout
 
 

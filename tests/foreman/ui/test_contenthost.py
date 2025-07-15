@@ -1421,7 +1421,7 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template,
 
     Search for hosts based on operating system and assert that more than one page
     is reported to exist and that more than one page can be accessed. Make some
-    additonal aserts to ensure the pagination widget is working as expected.
+    additional asserts to ensure the pagination widget is working as expected.
 
     To avoid requiring more than 20 fakes hosts to overcome default page setting of 20,
     this test will set a new per_page default (see new_per_page_setting).
@@ -1459,16 +1459,16 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template,
         all_fake_hosts_found = session.contenthost.search(
             f'os = {module_host_template.operatingsystem.name}'
         )
-        # Assert dump of fake hosts found includes the higest numbered host created for this test
+        # Check that we can't find the highest numbered host in the first page
         match = re.search(rf'test-{host_num:0>2}', str(all_fake_hosts_found))
-        assert match, 'Highest numbered host not found.'
+        assert not match, 'Highest numbered host found on first page of results.'
         # Get all the pagination values
-        pagination_values = session.contenthost.read_all('Pagination')['Pagination']
+        read_values = session.contenthost.read_all()
         # Assert total pages reported is greater than one page of hosts
-        total_pages = pagination_values['pages']
+        total_pages = read_values['pages']
         assert int(total_pages) > int(host_num) / int(new_per_page_setting)
         # Assert that total items reported is the number of hosts created for this test
-        total_items_found = pagination_values['total_items']
+        total_items_found = read_values['total_items']
         assert int(total_items_found) >= host_num
 
 
@@ -1502,3 +1502,34 @@ def test_search_for_virt_who_hypervisors(session, default_location, module_targe
         # Search with hypervisor=false gives the correct result.
         content_hosts = [host['Name'] for host in session.contenthost.search('hypervisor = false')]
         assert hypervisor_display_name not in content_hosts
+
+
+def test_content_hosts_bool_in_query(target_sat):
+    """
+    Test that the 'true'/'false' string is also
+    interpreted as a boolean true/false as it is happening for 't'/'f' string
+
+    :id: 1daa297d-aa16-4211-9b1b-23e63c09b0e1
+
+    :verifies: SAT-22655
+    """
+    search_queries = {
+        'True': [
+            'params.host_registration_insights = true',
+            'params.host_registration_insights = t',
+        ],
+        'False': [
+            'params.host_registration_insights = false',
+            'params.host_registration_insights = f',
+        ],
+    }
+
+    with target_sat.ui_session() as session:
+        for query_type, queries in search_queries.items():
+            for query in queries:
+                session.contenthost.search(query)
+                result = session.contenthost.read_all()
+                if query_type == 'True':
+                    assert result['table'][0]['Name'] == target_sat.hostname
+                elif query_type == 'False' and result['table']:
+                    assert all(item['Name'] != target_sat.hostname for item in result['table'])

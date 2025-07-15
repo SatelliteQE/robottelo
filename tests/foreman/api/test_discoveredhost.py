@@ -201,7 +201,6 @@ class TestDiscoveredHost:
         wait_for(
             lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
             timeout=1500,
-            retries=2,
             delay=40,
         )
         discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
@@ -417,7 +416,7 @@ class TestDiscoveredHost:
 
         :BlockedBy: SAT-30395
 
-        :verifies: SAT-23279
+        :Verifies: SAT-23279
 
         :CaseImportance: Medium
         """

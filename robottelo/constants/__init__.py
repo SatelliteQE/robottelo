@@ -154,7 +154,7 @@ AZURERM_RHEL7_FT_IMG_URN = 'marketplace://RedHat:RHEL:7-RAW:latest'
 AZURERM_RHEL7_UD_IMG_URN = 'marketplace://RedHat:rhel-byos:rhel-raw-ci76:7.6.20190814'
 AZURERM_RHEL7_FT_BYOS_IMG_URN = 'marketplace://RedHat:rhel-byos:rhel-lvm78:7.8.20200410'
 AZURERM_RHEL7_FT_CUSTOM_IMG_URN = 'custom://imageVM1-RHEL7-image-20220617150105'
-AZURERM_RHEL7_FT_GALLERY_IMG_URN = 'gallery://RHEL77img'
+AZURERM_RHEL7_FT_GALLERY_IMG_URN = 'gallery://RHSG_1/RHEL77img'
 AZURERM_PLATFORM_DEFAULT = 'Linux'
 AZURERM_VM_SIZE_DEFAULT = 'Standard_B1s'
 AZURERM_PREMIUM_OS_Disk = True
@@ -274,7 +274,7 @@ PRDS = {
     'rhae': 'Red Hat Ansible Engine',
     'rhel8': 'Red Hat Enterprise Linux for x86_64',
     'rhel9': 'Red Hat Enterprise Linux for x86_64',
-    'rhel10_beta': 'Red Hat Enterprise Linux for x86_64 Beta',
+    'rhel10': 'Red Hat Enterprise Linux for x86_64',
     'rhel_els': 'Red Hat Enterprise Linux Server - Extended Life Cycle Support',
 }
 
@@ -293,6 +293,7 @@ REPOSET = {
     'rhsclient7': 'Red Hat Satellite Client 6 (for RHEL 7 Server) (RPMs)',
     'rhsclient8': 'Red Hat Satellite Client 6 for RHEL 8 x86_64 (RPMs)',
     'rhsclient9': 'Red Hat Satellite Client 6 for RHEL 9 x86_64 (RPMs)',
+    'rhsclient10': 'Red Hat Satellite Client 6 for RHEL 10 x86_64 (RPMs)',
     'rhst7': 'Red Hat Satellite Tools 6.9 (for RHEL 7 Server) (RPMs)',
     'rhst7_610': 'Red Hat Satellite Tools 6.10 (for RHEL 7 Server) (RPMs)',
     'rhst6': 'Red Hat Satellite Tools 6.9 (for RHEL 6 Server) (RPMs)',
@@ -310,15 +311,15 @@ REPOSET = {
         'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (Kickstart)',
         'rhel9_bos': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS (Kickstart)',
         'rhel9_aps': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream (Kickstart)',
-        'rhel10_bos_beta': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Beta (Kickstart)',
-        'rhel10_aps_beta': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Beta (Kickstart)',
+        'rhel10_bos': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS (Kickstart)',
+        'rhel10_aps': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream (Kickstart)',
     },
     'rhel8_bos': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)',
     'rhel8_aps': 'Red Hat Enterprise Linux 8 for x86_64 - AppStream (RPMs)',
     'rhel9_bos': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS (RPMs)',
     'rhel9_aps': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream (RPMs)',
-    'rhel10_bos_beta': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Beta (RPMs)',
-    'rhel10_aps_beta': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Beta (RPMs)',
+    'rhel10_bos': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS (RPMs)',
+    'rhel10_aps': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream (RPMs)',
     'rhel7_extra': 'Red Hat Enterprise Linux 7 Server - Extras (RPMs)',
     'rhel7_optional': 'Red Hat Enterprise Linux 7 Server - Optional (RPMs)',
     'rhel7_sup': 'Red Hat Enterprise Linux 7 Server - Supplementary (RPMs)',
@@ -347,14 +348,6 @@ VERSIONED_REPOS = [
     'satellite-maintenance-{}-for-rhel-9-x86_64-rpms',
     'satellite-utils-{}-for-rhel-9-x86_64-rpms',
 ]
-
-SM_OVERALL_STATUS = {
-    'current': 'Overall Status: Current',
-    'invalid': 'Overall Status: Invalid',
-    'insufficient': 'Overall Status: Insufficient',
-    'disabled': 'Overall Status: Disabled',
-    'unknown': 'Overall Status: Unknown',
-}
 
 REPOS = {
     'rhel7': {
@@ -474,6 +467,16 @@ REPOS = {
         'product': PRDS['rhel9'],
         'distro': 'rhel9',
         'releasever': '9',
+        'key': PRODUCT_KEY_SAT_CLIENT,
+    },
+    'rhsclient10': {
+        'id': 'satellite-client-6-for-rhel-10-x86_64-rpms',
+        'name': ('Red Hat Satellite Client 6 for RHEL 10 x86_64 RPMs'),
+        'version': '6',
+        'reposet': REPOSET['rhsclient10'],
+        'product': PRDS['rhel10'],
+        'distro': 'rhel10',
+        'releasever': '10',
         'key': PRODUCT_KEY_SAT_CLIENT,
     },
     'rhst7': {
@@ -602,34 +605,34 @@ REPOS = {
         },
         'rhel9_bos': {
             'id': 'rhel-9-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.5',
-            'version': '9.5',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.6',
+            'version': '9.6',
             'reposet': REPOSET['kickstart']['rhel9_bos'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
         'rhel9_aps': {
             'id': 'rhel-9-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.5',
-            'version': '9.5',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.6',
+            'version': '9.6',
             'reposet': REPOSET['kickstart']['rhel9_aps'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
-        'rhel10_bos_beta': {
-            'id': 'rhel-10-for-x86_64-baseos-beta-kickstart',
-            'name': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Beta Kickstart',
+        'rhel10_bos': {
+            'id': 'rhel-10-for-x86_64-baseos-kickstart',
+            'name': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Kickstart 10',
             'version': '10',
-            'reposet': REPOSET['kickstart']['rhel10_bos_beta'],
-            'product': PRDS['rhel10_beta'],
+            'reposet': REPOSET['kickstart']['rhel10_bos'],
+            'product': PRDS['rhel10'],
             'distro': 'rhel10',
         },
-        'rhel10_aps_beta': {
-            'id': 'rhel-10-for-x86_64-appstream-beta-kickstart',
-            'name': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Beta Kickstart',
+        'rhel10_aps': {
+            'id': 'rhel-10-for-x86_64-appstream-kickstart',
+            'name': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Kickstart 10',
             'version': '10',
-            'reposet': REPOSET['kickstart']['rhel10_aps_beta'],
-            'product': PRDS['rhel10_beta'],
+            'reposet': REPOSET['kickstart']['rhel10_aps'],
+            'product': PRDS['rhel10'],
             'distro': 'rhel10',
         },
     },
@@ -677,27 +680,27 @@ REPOS = {
         'distro': 'rhel9',
         'key': 'rhel9_aps',
     },
-    'rhel10_bos_beta': {
-        'id': 'rhel-10-for-x86_64-baseos-beta-rpms',
-        'name': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Beta RPMs',
+    'rhel10_bos': {
+        'id': 'rhel-10-for-x86_64-baseos-rpms',
+        'name': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS RPMs 10',
         'releasever': '10',
         'version': '10',
-        'reposet': REPOSET['rhel10_bos_beta'],
-        'product': PRDS['rhel10_beta'],
+        'reposet': REPOSET['rhel10_bos'],
+        'product': PRDS['rhel10'],
         'distro': 'rhel10',
-        'key': 'rhel10_bos_beta',
+        'key': 'rhel10_bos',
         'basearch': 'x86_64',
     },
-    'rhel10_aps_beta': {
-        'id': 'rhel-10-for-x86_64-appstream-beta-rpms',
-        'name': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Beta RPMs',
+    'rhel10_aps': {
+        'id': 'rhel-10-for-x86_64-appstream-rpms',
+        'name': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream RPMs 10',
         'releasever': '10',
         'basearch': 'x86_64',
         'version': '10',
-        'reposet': REPOSET['rhel10_aps_beta'],
-        'product': PRDS['rhel10_beta'],
+        'reposet': REPOSET['rhel10_aps'],
+        'product': PRDS['rhel10'],
         'distro': 'rhel10',
-        'key': 'rhel10_aps_beta',
+        'key': 'rhel10_aps',
     },
     'rhel7_optional': {
         'id': 'rhel-7-server-optional-rpms',
@@ -746,8 +749,8 @@ REPOS = {
 # RHEL versions for LEAPP testing
 RHEL7_VER = '7.9'
 RHEL8_VER = '8.10'
-RHEL9_VER = '9.5'
-RHEL10_VER = '10.1'  # EL10 pre-release version
+RHEL9_VER = '9.6'
+RHEL10_VER = '10.0'
 
 BULK_REPO_LIST = [
     REPOS['rhel7_optional'],
@@ -773,8 +776,11 @@ DEFAULT_RELEASE_VERSION = '6Server'
 DEFAULT_ROLE = 'Default role'
 DEFAULT_OS_SEARCH_QUERY = 'name="RedHat" AND (major="6" OR major="7" OR major="8" OR major="9")'
 
-VDC_SUBSCRIPTION_NAME = 'Red Hat Enterprise Linux for Virtual Datacenters, Premium'
 
+TIMESTAMP_FMT_ZONE = '%Y-%m-%d %H:%M:%S %Z'  # timezone-aware format (by code: UTC, EST, etc)
+TIMESTAMP_FMT = '%Y-%m-%d %H:%M:%S'
+TIMESTAMP_FMT_DATE = '%Y-%m-%d'
+TIMESTAMP_FMT_TIME = '%H:%M:%S'
 TIMEZONES = [
     '(GMT+00:00) UTC',
     '(GMT-10:00) Hawaii',
@@ -858,12 +864,14 @@ FLATPAK_ENDPOINTS = {
     'pulpcore': 'https://{}/pulpcore_registry/' + FLATPAK_INDEX_SUFFIX,
     'katello': 'https://{}/' + FLATPAK_INDEX_SUFFIX,
 }
+FLATPAK_RHEL_RELEASE_VER = 10
 
 CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/lib/pulp/imports/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
 CERT_PATH = "/etc/pki/ca-trust/source/anchors/"
+CONTAINER_CERTS_PATH = "/etc/containers/certs.d/"
 CERT_DATA = {
     'capsule_hostname': 'capsule.example.com',
     'ca_bundle_file_name': 'cacert.crt',
@@ -1072,10 +1080,8 @@ PERMISSIONS = {
         'import_ansible_playbooks',
         'dispatch_cloud_requests',
         'control_organization_insights',
-        'destroy_snapshots',
-        'revert_snapshots',
-        'edit_snapshots',
         'view_statistics',
+        'upload_monitoring_results',
     ],
     'AnsibleRole': ['view_ansible_roles', 'destroy_ansible_roles', 'import_ansible_roles'],
     'AnsibleVariable': [
@@ -1139,6 +1145,12 @@ PERMISSIONS = {
         'create_filters',
         'edit_filters',
         'destroy_filters',
+    ],
+    'ForemanResourceQuota::ResourceQuota': [
+        "destroy_resource_quotas",
+        "create_resource_quotas",
+        "view_resource_quotas",
+        "edit_resource_quotas",
     ],
     'ForemanSalt::SaltVariable': [
         'edit_salt_variables',
@@ -1327,6 +1339,7 @@ PERMISSIONS = {
         'lock_report_templates',
     ],
     'Role': ['view_roles', 'create_roles', 'edit_roles', 'destroy_roles'],
+    'Report': ['create_reports'],
     'SccAccount': [
         "delete_scc_accounts",
         "edit_scc_accounts",
@@ -1413,6 +1426,11 @@ PERMISSIONS = {
         'saltrun_hosts',
         'view_snapshots',
         'create_snapshots',
+        'edit_snapshots',
+        'revert_snapshots',
+        'destroy_snapshots',
+        'view_monitoring_results',
+        'manage_downtime_hosts',
     ],
     'Katello::ActivationKey': [
         'view_activation_keys',
@@ -2117,7 +2135,6 @@ FAM_TEST_PLAYBOOKS = [
     "auth_sources_ldap_role",
     "bookmark",
     "compute_attribute",
-    "compute_profile_ovirt",
     "compute_profiles_role",
     "compute_profile",
     "compute_resources_role",
@@ -2350,6 +2367,7 @@ class DataFile(Box):
     REPORT_TEMPLATE_FILE = DATA_DIR.joinpath(REPORT_TEMPLATE_FILE)
     VALID_GPG_KEY_FILE = DATA_DIR.joinpath(VALID_GPG_KEY_FILE)
     VALID_GPG_KEY_BETA_FILE = DATA_DIR.joinpath(VALID_GPG_KEY_BETA_FILE)
+    VALID_CERT_FILE = DATA_DIR.joinpath('valid_cert.crt')
     RPM_TO_UPLOAD = DATA_DIR.joinpath(RPM_TO_UPLOAD)
     SRPM_TO_UPLOAD = DATA_DIR.joinpath(SRPM_TO_UPLOAD)
     FAKE_FILE_NEW_NAME = DATA_DIR.joinpath(FAKE_FILE_NEW_NAME)

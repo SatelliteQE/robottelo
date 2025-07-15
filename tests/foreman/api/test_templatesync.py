@@ -56,8 +56,13 @@ class TestTemplateSyncTestCase:
             pytest.fail('The foreman templates git url is not accessible')
 
         # Download the Test Template in test running folder
+        proxy_options = (
+            f"-e use_proxy=yes -e https_proxy={settings.http_proxy.http_proxy_ipv6_url}"
+            if not module_target_sat.network_type.has_ipv4
+            else ""
+        )
         module_target_sat.execute(
-            f'[ -f example_template.erb ] || wget {FOREMAN_TEMPLATE_TEST_TEMPLATE}'
+            f'[ -f example_template.erb ] || wget {proxy_options} {FOREMAN_TEMPLATE_TEST_TEMPLATE}'
         )
 
     def test_positive_import_filtered_templates_from_git(
@@ -79,7 +84,7 @@ class TestTemplateSyncTestCase:
                matching specified regex.
                NOTE: Templates are always imported with a prefix defaults to
                `community` unless it is specified as empty string
-            3. Assert json output doesnt have
+            3. Assert json output doesn't have
                'Name is not matching filter condition, skipping' info message
                for imported template
 
@@ -151,7 +156,7 @@ class TestTemplateSyncTestCase:
 
         :expectedresults:
             1. Assert result is {'message': 'success'}
-            2. Assert templates mathing the regex were not pulled.
+            2. Assert templates matching the regex were not pulled.
 
         :CaseImportance: Medium
         """
@@ -553,7 +558,7 @@ class TestTemplateSyncTestCase:
 
         :steps:
             1. Using nailgun or direct API call
-               Impot a template with verbose `True` and `False` option
+               Import a template with verbose `True` and `False` option
 
         :expectedresults:
             1. Assert json output has all the following fields
@@ -780,7 +785,7 @@ class TestTemplateSyncTestCase:
         self, create_import_export_local_dir, module_org, module_target_sat
     ):
         """Assert template imports output returns template import skipped info
-        for templates whose name doesnt match the filter
+        for templates whose name doesn't match the filter
 
         :id: db68b5de-7647-4568-b79c-2aec3292328a
 

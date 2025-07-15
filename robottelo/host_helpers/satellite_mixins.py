@@ -3,6 +3,8 @@ from functools import lru_cache
 import os
 import random
 import re
+from urllib.parse import urljoin
+from urllib.request import urlopen
 
 from broker.hosts import Host
 from fauxfactory import gen_string
@@ -17,6 +19,7 @@ from robottelo.constants import (
     PUPPET_COMMON_INSTALLER_OPTS,
     PUPPET_SATELLITE_INSTALLER,
 )
+from robottelo.enums import NetworkType
 from robottelo.exceptions import CLIReturnCodeError, NoManifestProvidedError
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
@@ -215,6 +218,14 @@ class ContentInfo:
         # removes metadata filename
         return os.path.dirname(re.sub(rf'.*{PULP_EXPORT_DIR}', PULP_IMPORT_DIR, export_message))
 
+    def get_reported_value(self, report_key):
+        """
+        Runs satellite-maintain report generate and extracts the value for a given key
+        """
+        result = self.execute(f'satellite-maintain report generate | grep -i "{report_key}"')
+        assert result.status == 0, 'report failed or key not found'
+        return "".join(result.stdout.split(":", 1)[1].split())
+
 
 class SystemInfo:
     """Things that needs access to satellite shell for gaining satellite system configuration"""
@@ -225,7 +236,7 @@ class SystemInfo:
 
         This calls an ss command on the server prompting for a port range. ss
         returns a list of ports which have a PID assigned (a list of ports
-        which are already used). This function then substracts unavailable ports
+        which are already used). This function then subtracts unavailable ports
         from the other ones and returns one of available ones randomly.
 
         :param port_pool: A list of ports used for fake capsules (for RHEL7+: don't
@@ -297,7 +308,7 @@ class SystemInfo:
             pre_ncat_procs = self.execute('pgrep ncat').stdout.splitlines()
             with self.session.shell() as channel:
                 # if ncat isn't backgrounded, it prevents the channel from closing
-                nwtype = '6' if self.ipv6 else ''
+                nwtype = '6' if self.network_type == NetworkType.IPV6 else ''
                 command = f'ncat -{nwtype}kl -p {newport} -c "ncat {self.hostname} {oldport}" &'
                 logger.debug(f'Creating tunnel: {command}')
                 channel.send(command)
@@ -346,9 +357,9 @@ class ProvisioningSetup:
         :param server_fqdn: Libvirt server FQDN
         :return: None
         """
-        # Geneate SSH key-pair for foreman user and copy public key to libvirt server
+        # Generate SSH key-pair for foreman user and copy public key to libvirt server
         self.execute('sudo -u foreman ssh-keygen -q -t rsa -f ~foreman/.ssh/id_rsa -N "" <<< y')
-        self.execute(f'ssh-keyscan -t ecdsa {server_fqdn} >> ~foreman/.ssh/known_hosts')
+        self.execute('echo "StrictHostKeyChecking accept-new" >> ~foreman/.ssh/config')
         self.execute(
             f'sshpass -p {settings.server.ssh_password} ssh-copy-id -o StrictHostKeyChecking=no '
             f'-i ~foreman/.ssh/id_rsa root@{server_fqdn}'
@@ -356,12 +367,10 @@ class ProvisioningSetup:
         # Install libvirt-client, and verify foreman user is able to communicate with Libvirt server
         self.register_to_cdn()
         self.execute('dnf -y --disableplugin=foreman-protector install libvirt-client')
-        assert (
-            self.execute(
-                f'su foreman -s /bin/bash -c "virsh -c qemu+ssh://root@{server_fqdn}/system list"'
-            ).status
-            == 0
+        result = self.execute(
+            f'su foreman -s /bin/bash -c "virsh -c qemu+ssh://root@{server_fqdn}/system list"'
         )
+        assert result.status == 0, f"{result.status=}\n{result.stdout=}\n{result.stderr=}"
 
     def provisioning_cleanup(self, hostname, interface='API'):
         if interface == 'CLI':
@@ -374,11 +383,46 @@ class ProvisioningSetup:
                 host[0].delete()
             assert not self.api.Host().search(query={'search': f'name={hostname}'})
         # Workaround SAT-28381
-        if not settings.server.is_ipv6:
+        if self.network_type == NetworkType.IPV4:
             assert self.execute('cat /dev/null > /var/lib/dhcpd/dhcpd.leases').status == 0
             assert self.execute('systemctl restart dhcpd').status == 0
             # Workaround BZ: 2207698
             assert self.cli.Service.restart().status == 0
+
+    def get_secureboot_packages_with_version(self, server_url, prefix):
+        """Find the package URL that ends with a version number in the repository/file server.
+
+        :param: str server_url: The base URL of the repository/file server.
+        :param: str prefix: prefix of the package/file you're looking for (e.g. 'grub2-efi-x64').
+
+        :return: URL of the package with a version number at the end found in the repository
+        """
+        # Ensure the server URL ends with '/'
+        if not server_url.endswith('/'):
+            server_url += '/'
+
+        # Fetch the HTML directory listing
+        with urlopen(server_url) as response:
+            html = response.read().decode()
+
+        # Use regex to find all href links in the directory listing
+        files = re.findall(r'href="([^"]+)"', html)
+
+        # Filter the files that start with the given prefix and have a version pattern (like grub2-efi-x64-2.12-13.el10.x86_64.rpm)
+        versioned_files = [
+            f
+            for f in files
+            if f.startswith(prefix) and re.search(r'[\d\.\-]+(?:\.el\d+)?\.x86_64\.rpm$', f)
+        ]
+
+        if not versioned_files:
+            raise Exception(f'No matching files found with prefix and version: {prefix}')
+
+        # Return the first matching file (it should have a version number at the end)
+        selected_package = versioned_files[0]
+
+        # Join the base server URL with the matched file name (if needed)
+        return urljoin(server_url, selected_package)
 
 
 class Factories:

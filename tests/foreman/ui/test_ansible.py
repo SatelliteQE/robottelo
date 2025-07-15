@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:Team: Rocket
+:Team: Endeavour
 
 :CaseImportance: Critical
 """
@@ -323,7 +323,7 @@ class TestAnsibleCfgMgmt:
 
         :id: a61b4c05-1395-47c2-b6d9-fcff8b094e0e
 
-        :setup: Used pre-defined function_host (component/host) registerd with satellite.
+        :setup: Used pre-defined function_host (component/host) registered, with satellite.
 
         :steps:
             1. Import all roles available by default.
@@ -778,7 +778,7 @@ class TestAnsibleREX:
 
         :expectedresults: The Ansible collection is successfully installed on the host
 
-        :verifies: SAT-30807
+        :Verifies: SAT-30807
         """
         # Adding IPv6 proxy for IPv6 communication
         rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
@@ -796,7 +796,7 @@ class TestAnsibleREX:
             session.jobinvocation.run(
                 {
                     'category_and_template.job_category': 'Ansible Galaxy',
-                    'category_and_template.job_template': 'Ansible Collection - Install from Galaxy',
+                    'category_and_template.job_template_text_input': 'Ansible Collection - Install from Galaxy',
                     'target_hosts_and_inputs.targetting_type': 'Hosts',
                     'target_hosts_and_inputs.targets': client.hostname,
                     'target_hosts_and_inputs.ansible_collections_list': collections_names,
@@ -853,7 +853,6 @@ class TestAnsibleREX:
         :expectedresults: Scheduled Job appears in the Job Invocation list at the appointed time
         """
 
-    @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     @pytest.mark.parametrize('setting_update', ['ansible_verbosity'], indirect=True)
     def test_positive_ansible_job_with_verbose_stdout(
@@ -861,10 +860,9 @@ class TestAnsibleREX:
         request,
         target_sat,
         module_org,
-        module_location,
         module_ak_with_cv,
         setting_update,
-        registered_hosts,
+        rex_contenthosts,
     ):
         """Verify ansible_verbosity setting and dynflow console output for expected hosts
 
@@ -894,23 +892,17 @@ class TestAnsibleREX:
 
         SELECTED_ROLE = 'RedHatInsights.insights-client'
         nc = target_sat.nailgun_smart_proxy
-        nc.location = [module_location]
         nc.organization = [module_org]
-        nc.update(['organization', 'location'])
+        nc.update(['organization'])
         target_sat.api.AnsibleRoles().sync(data={'proxy_id': nc.id, 'role_names': SELECTED_ROLE})
         vm_hostnames = []
-        for vm in registered_hosts:
+        for vm in rex_contenthosts:
             rhel_ver = vm.os_version.major
             rhel_repo_urls = getattr(settings.repos, f'rhel{rhel_ver}_os', None)
             vm.create_custom_repos(**rhel_repo_urls)
-            result = vm.register(
-                module_org, module_location, module_ak_with_cv.name, target_sat, force=True
-            )
-            assert result.status == 0, f'Failed to register host: {result.stderr}'
             vm_hostnames.append(vm.hostname)
         with target_sat.ui_session() as session:
             session.organization.select(module_org.name)
-            session.location.select(module_location.name)
             session.host.play_ansible_roles('All')
             session.jobinvocation.wait_job_invocation_state(
                 entity_name='Run ansible roles', host_name=vm_hostnames[0]

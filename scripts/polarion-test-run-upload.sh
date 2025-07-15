@@ -22,7 +22,7 @@ OPTIONS:
          Specify the password to use for authentication
          You can pass POLARION_PASSWORD env variable instead of this option
   -P, --project <projectname>
-         Specifiy the polarion project to use
+         Specify the polarion project to use
   -d, --directory <directory_path>
          Specify the directory path of tests
   -r, --results <junit-file>

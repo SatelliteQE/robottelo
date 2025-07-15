@@ -32,6 +32,7 @@ def test_positive_provision_end_to_end(
     setting_update,
     module_provisioning_rhel_content,
     module_provisioning_sat,
+    configure_secureboot_provisioning,
     module_sca_manifest_org,
     module_location,
     module_ssh_key_file,
@@ -54,7 +55,7 @@ def test_positive_provision_end_to_end(
         4. Provision a host on VMware
         5. Verify created host on VMware with wrapanapi
 
-    :expectedresults: Host is provisioned succesfully with hostgroup
+    :expectedresults: Host is provisioned successfully with hostgroup
 
     :CaseImportance: Critical
 
@@ -64,6 +65,9 @@ def test_positive_provision_end_to_end(
 
     :BZ: 2186114
     """
+    if provision_method == 'bootdisk' and pxe_loader.vm_firmware == 'uefi_secure_boot':
+        pytest.skip('Bootdisk + Secureboot provisioning is not yet supported')
+
     sat = module_provisioning_sat.sat
     name = gen_string('alpha').lower()
 
@@ -144,7 +148,7 @@ def test_positive_provision_end_to_end(
     )
     assert host.read().build_status_label == 'Installed'
 
-    # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
+    # Verify SecureBoot is enabled on host after provisioning is completed successfully
     if pxe_loader.vm_firmware == 'uefi_secure_boot':
         provisioning_host = ContentHost(host.ip, auth=module_ssh_key_file)
         # Wait for the host to be rebooted and SSH daemon to be started.
@@ -189,13 +193,13 @@ def test_positive_provision_vmware_pxe_discovery(
     """
     mac = provisioning_vmware_host.provisioning_nic_mac_addr
     sat = module_discovery_sat.sat
+    assert sat.execute('systemctl restart dhcpd').status == 0
     # start the provisioning host
     vmware_host = VMWareVirtualMachine(vmwareclient, name=provisioning_vmware_host.name)
     vmware_host.start()
     wait_for(
         lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
         timeout=1500,
-        retries=2,
         delay=40,
     )
     discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]

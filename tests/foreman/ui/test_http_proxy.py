@@ -4,7 +4,7 @@
 
 :CaseComponent: HTTPProxy
 
-:team: Phoenix-content
+:team: Endeavour
 
 :CaseImportance: High
 
@@ -42,7 +42,7 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
 
     :expectedresults: All expected CRUD actions finished successfully
 
-    :verifies: SAT-30220
+    :Verifies: SAT-30220
 
     :customerscenario: true
     """
@@ -141,11 +141,11 @@ def test_positive_assign_http_proxy_to_products_repositories(
                 'name': repo_a1_name,
                 'repo_type': REPO_TYPE['yum'],
                 'repo_content.upstream_url': settings.repos.yum_0.url,
-                'repo_content.http_proxy_policy': 'No HTTP Proxy',
+                'repo_content.http_proxy_policy': 'No HTTP proxy',
             },
         )
         repo_a1_values = session.repository.read(product_a.name, repo_a1_name)
-        assert repo_a1_values['repo_content']['http_proxy_policy'] == 'No HTTP Proxy'
+        assert repo_a1_values['repo_content']['http_proxy_policy'] == 'No HTTP proxy'
         repo_a2_name = gen_string('alpha')
         session.repository.create(
             product_a.name,
@@ -153,12 +153,12 @@ def test_positive_assign_http_proxy_to_products_repositories(
                 'name': repo_a2_name,
                 'repo_type': REPO_TYPE['yum'],
                 'repo_content.upstream_url': settings.repos.yum_1.url,
-                'repo_content.http_proxy_policy': 'Use specific HTTP Proxy',
+                'repo_content.http_proxy_policy': 'Use specific HTTP proxy',
                 'repo_content.proxy_policy.http_proxy': http_proxy_a.name,
             },
         )
         repo_a2_values = session.repository.read(product_a.name, repo_a2_name)
-        expected_policy = f'Use specific HTTP Proxy ({http_proxy_a.name})'
+        expected_policy = f'Use specific HTTP proxy ({http_proxy_a.name})'
         assert repo_a2_values['repo_content']['http_proxy_policy'] == expected_policy
         repo_b1_name = gen_string('alpha')
         session.repository.create(
@@ -179,7 +179,7 @@ def test_positive_assign_http_proxy_to_products_repositories(
                 'name': repo_b2_name,
                 'repo_type': REPO_TYPE['yum'],
                 'repo_content.upstream_url': settings.repos.yum_1.url,
-                'repo_content.http_proxy_policy': 'No HTTP Proxy',
+                'repo_content.http_proxy_policy': 'No HTTP proxy',
             },
         )
         # Set the HTTP proxy through bulk action for both products
@@ -187,12 +187,12 @@ def test_positive_assign_http_proxy_to_products_repositories(
         session.product.manage_http_proxy(
             [product_a.name, product_b.name],
             {
-                'http_proxy_policy': 'Use specific HTTP Proxy',
+                'http_proxy_policy': 'Use specific HTTP proxy',
                 'proxy_policy.http_proxy': http_proxy_b.name,
             },
         )
         # Verify that Http Proxy is updated for all repos of product_a and product_b.
-        proxy_policy = 'Use specific HTTP Proxy ({})'
+        proxy_policy = 'Use specific HTTP proxy ({})'
         repo_a1_values = session.repository.read(product_a.name, repo_a1_name)
         assert repo_a1_values['repo_content']['http_proxy_policy'] == proxy_policy.format(
             http_proxy_b.name
@@ -275,9 +275,9 @@ def test_positive_set_default_http_proxy(
         5. Update "Default HTTP Proxy" to "no global default".
 
     :expectedresults: Creating Http Proxy with option "Default content HTTP proxy",
-        updates setting "Default HTTP Proxy" succesfully.
+        updates setting "Default HTTP Proxy" successfully.
 
-    :verifies: SAT-5118, SAT-28860
+    :Verifies: SAT-5118, SAT-28860
 
     :customerscenario: true
     """

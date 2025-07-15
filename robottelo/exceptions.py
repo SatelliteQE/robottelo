@@ -14,7 +14,7 @@ class TemplateNotFoundError(Exception):
 
 
 class InvalidVaultURLForOIDC(Exception):
-    """Raised if the vault doesnt allows OIDC login"""
+    """Raised if the vault doesn't allows OIDC login"""
 
 
 class RepositoryAlreadyDefinedError(Exception):

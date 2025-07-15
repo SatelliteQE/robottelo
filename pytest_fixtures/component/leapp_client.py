@@ -2,7 +2,7 @@ from broker import Broker
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import PRDS, RHEL7_VER, RHEL8_VER, RHEL9_VER
+from robottelo.constants import PRDS, RHEL7_VER, RHEL8_VER, RHEL9_VER, RHEL10_VER
 from robottelo.hosts import ContentHost
 from robottelo.logging import logger
 
@@ -12,14 +12,14 @@ RHEL_REPOS = {
     'rhel7_server': {
         'id': 'rhel-7-server-rpms',
         'name': f'Red Hat Enterprise Linux 7 Server RPMs x86_64 {RHEL7_VER}',
-        'releasever': RHEL7_VER,
+        'releasever': '7Server',
         'reposet': 'Red Hat Enterprise Linux 7 Server (RPMs)',
         'product': 'Red Hat Enterprise Linux Server',
     },
     'rhel7_server_extras': {
         'id': 'rhel-7-server-extras-rpms',
         'name': 'Red Hat Enterprise Linux 7 Server - Extras RPMs x86_64',
-        'releasever': '7',
+        'releasever': '7Server',
         'reposet': 'Red Hat Enterprise Linux 7 Server - Extras (RPMs)',
         'product': 'Red Hat Enterprise Linux Server',
     },
@@ -46,6 +46,18 @@ RHEL_REPOS = {
         'name': f'Red Hat Enterprise Linux 9 for x86_64 - AppStream RPMs {RHEL9_VER}',
         'releasever': RHEL9_VER,
         'reposet': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream (RPMs)',
+    },
+    'rhel10_bos': {
+        'id': 'rhel-10-for-x86_64-baseos-rpms',
+        'name': f'Red Hat Enterprise Linux 10 for x86_64 - BaseOS RPMs {RHEL10_VER}',
+        'releasever': RHEL10_VER,
+        'reposet': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS (RPMs)',
+    },
+    'rhel10_aps': {
+        'id': 'rhel-10-for-x86_64-appstream-rpms',
+        'name': f'Red Hat Enterprise Linux 10 for x86_64 - AppStream RPMs {RHEL10_VER}',
+        'releasever': RHEL10_VER,
+        'reposet': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream (RPMs)',
     },
 }
 
@@ -145,12 +157,8 @@ def verify_target_repo_on_satellite(
         }
     )
     repo_names = [out['name'] for out in cmd_out]
-    if target_rhel_major_ver == '9':
-        assert RHEL_REPOS['rhel9_bos']['name'] in repo_names
-        assert RHEL_REPOS['rhel9_aps']['name'] in repo_names
-    else:
-        assert RHEL_REPOS['rhel8_bos']['name'] in repo_names
-        assert RHEL_REPOS['rhel8_aps']['name'] in repo_names
+    assert RHEL_REPOS[f'rhel{target_rhel_major_ver}_bos']['name'] in repo_names
+    assert RHEL_REPOS[f'rhel{target_rhel_major_ver}_aps']['name'] in repo_names
 
 
 @pytest.fixture
@@ -163,7 +171,7 @@ def custom_leapp_host(upgrade_path, module_target_sat, module_sca_manifest_org, 
         host_class=ContentHost,
         deploy_rhel_version=upgrade_path['source_version'],
         deploy_flavor=settings.flavors.default,
-        deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
+        deploy_network_type=settings.content_host.network_type,
     ) as chost:
         result = chost.register(
             module_sca_manifest_org, None, function_leapp_ak.name, module_target_sat
@@ -198,6 +206,13 @@ def precondition_check_upgrade_and_install_leapp_tool(custom_leapp_host):
         assert (
             custom_leapp_host.run(
                 'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
+            ).status
+            == 0
+        )
+    if custom_leapp_host.os_version.major == 9:
+        assert (
+            custom_leapp_host.run(
+                'nmcli connection migrate /etc/sysconfig/network-scripts/ifcfg-eth0'
             ).status
             == 0
         )

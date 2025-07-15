@@ -106,7 +106,7 @@ def test_positive_provision_end_to_end(
         4. Provision a host on VMware
         5. Verify created host on VMware with wrapanapi
 
-    :expectedresults: Host is provisioned succesfully with hostgroup
+    :expectedresults: Host is provisioned successfully with hostgroup
 
     :Verifies: SAT-25810
 
@@ -130,7 +130,7 @@ def test_positive_provision_end_to_end(
             'cpus=1,memory_mb=6000, start=1',
             'interface': f'compute_type=VirtualVmxnet3,'
             f'compute_network=VLAN {settings.provisioning.vlan_id}',
-            'volume': f'name=Hard disk,size_gb=10,thin=true,eager_zero=false,datastore={settings.vmware.datastore}',
+            'volume': f'name=Hard disk,size_gb=10,thin=true,eager_zero=false,storage_pod={settings.vmware.datastore_cluster}',
             'provision-method': provision_method,
         }
     )
@@ -150,7 +150,7 @@ def test_positive_provision_end_to_end(
     host_info = sat.cli.Host.info({'id': host['id']})
     assert host_info['status']['build-status'] == 'Installed'
 
-    # Verify SecureBoot is enabled on host after provisioning is completed sucessfully
+    # Verify SecureBoot is enabled on host after provisioning is completed successfully
     if pxe_loader.vm_firmware == 'uefi_secure_boot':
         provisioning_host = ContentHost(host_info['network']['ipv4-address'])
         # Wait for the host to be rebooted and SSH daemon to be started.
@@ -162,8 +162,8 @@ def test_positive_provision_end_to_end(
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
-@pytest.mark.parametrize('pxe_loader', ['bios'], indirect=True)
 @pytest.mark.rhel_ver_match('[8]')
+@pytest.mark.skip_if_open('SAT-35643')
 def test_positive_image_provision_end_to_end(
     request,
     setting_update,
@@ -183,7 +183,6 @@ def test_positive_image_provision_end_to_end(
     :id: 8f0e2278-b897-4927-9c21-d84313623cc4
 
     :steps:
-
         1. Configure provisioning setup.
         2. Create VMware CR
         3. Create VMware image
@@ -191,8 +190,9 @@ def test_positive_image_provision_end_to_end(
         5. Provision a host on VMware
         6. Verify created host on VMware with wrapanapi
 
-    :expectedresults: Host is provisioned succesfully.
+    :expectedresults: Host is provisioned successfully.
 
+    :verifies: SAT-30594
     """
     sat = module_provisioning_sat.sat
     hostname = gen_string('alpha').lower()
@@ -206,15 +206,16 @@ def test_positive_image_provision_end_to_end(
             'image': module_vmware_image.name,
             'ip': None,
             'mac': None,
-            'parameters': 'name=package_upgrade,type=boolean,value=false',
+            #'parameters': 'name=package_upgrade,type=boolean,value=false',
+            'typed-parameters': r'name=package_upgrade\,value=false\,parameter_type=boolean',
             'compute-attributes': f'cluster={settings.vmware.cluster},'
             f'path=/Datacenters/{settings.vmware.datacenter}/vm/,'
             'scsi_controller_type=VirtualLsiLogicController,'
-            'guest_id=rhel8_64Guest,firmware=automatic,'
+            'guest_id=rhel8_64Guest,firmware=automatic,virtual_tpm=true'
             'cpus=1,memory_mb=6000, start=1',
             'interface': 'compute_type=VirtualVmxnet3,'
             f'compute_network=VLAN {settings.provisioning.vlan_id}',
-            'volume': f'name=Hard disk,size_gb=10,thin=true,eager_zero=false,datastore={settings.vmware.datastore}',
+            'volume': f'name=Hard disk,size_gb=10,thin=true,eager_zero=false,storage_pod={settings.vmware.datastore_cluster}',
             'provision-method': 'image',
         }
     )
@@ -225,6 +226,12 @@ def test_positive_image_provision_end_to_end(
     assert hostname == host['name']
     # check if vm is created on vmware
     assert vmwareclient.does_vm_exist(hostname) is True
+
+    # Check if virtual TPM device is added to created VM (only for UEFI)
+    if pxe_loader.vm_firmware != 'bios':
+        vm = vmwareclient.get_vm(hostname)
+        assert 'VirtualTPM' in vm.get_virtual_device_type_names()
+
     wait_for(
         lambda: sat.cli.Host.info({'name': hostname})['status']['build-status']
         != 'Pending installation',

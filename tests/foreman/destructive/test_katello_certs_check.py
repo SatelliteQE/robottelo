@@ -6,7 +6,7 @@
 
 :CaseComponent: Installation
 
-:Team: Platform
+:Team: Rocket
 
 :CaseImportance: High
 
@@ -144,7 +144,7 @@ def test_positive_generate_capsule_certs_using_absolute_path(cert_setup_destruct
     # assert include cname in certificates when specified --foreman-proxy-cname'
     result = satellite.execute(
         'openssl x509 -in /root/ssl-build/capsule.example.com/'
-        'capsule.example.com-foreman-client.crt -text | '
+        'capsule.example.com-foreman-proxy-client.crt -text | '
         'grep capsule.example1.com'
     )
     assert 'DNS:capsule.example1.com' in result.stdout

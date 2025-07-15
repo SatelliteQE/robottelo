@@ -37,6 +37,7 @@ from robottelo.config import (
     settings,
 )
 from robottelo.constants import (
+    CONTAINER_CERTS_PATH,
     CUSTOM_PUPPET_MODULE_REPOS,
     CUSTOM_PUPPET_MODULE_REPOS_PATH,
     CUSTOM_PUPPET_MODULE_REPOS_VERSION,
@@ -48,10 +49,14 @@ from robottelo.constants import (
     RHSSO_RESET_PASSWORD,
     RHSSO_USER_UPDATE,
     SATELLITE_VERSION,
-    SM_OVERALL_STATUS,
 )
+from robottelo.enums import NetworkType
 from robottelo.exceptions import CLIFactoryError, DownloadFileError, HostPingFailed
-from robottelo.host_helpers import CapsuleMixins, ContentHostMixins, SatelliteMixins
+from robottelo.host_helpers import (
+    CapsuleMixins,
+    ContentHostMixins,
+    SatelliteMixins,
+)
 from robottelo.logging import logger
 from robottelo.utils import validate_ssh_pub_key
 from robottelo.utils.datafactory import valid_emails_list
@@ -71,7 +76,6 @@ def lru_sat_ready_rhel(rhel_ver):
     rhel_version = rhel_ver or settings.server.version.rhel_version
     deploy_args = settings.server.deploy_arguments | {
         'deploy_rhel_version': rhel_version,
-        'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
         'deploy_flavor': settings.flavors.default,
         'workflow': settings.server.deploy_workflows.os,
     }
@@ -129,6 +133,8 @@ class ProxyHostError(Exception):
 class ContentHost(Host, ContentHostMixins):
     run = Host.execute
     default_timeout = settings.server.ssh_client.command_timeout
+    # Extend the keep_keys tuple from the parent class
+    keep_keys = (*Host.keep_keys, 'net_type', 'blank')
 
     def __init__(self, hostname, auth=None, **kwargs):
         """ContentHost object with optional ssh connection
@@ -146,9 +152,16 @@ class ContentHost(Host, ContentHostMixins):
             # key file based authentication
             kwargs.update({'key_filename': auth})
         self._satellite = kwargs.get('satellite')
-        self.ipv6 = kwargs.get('ipv6', settings.server.is_ipv6)
+        if nt := kwargs.get('net_type'):
+            self._net_type = NetworkType(nt)
         self.blank = kwargs.get('blank', False)
         super().__init__(hostname=hostname, **kwargs)
+
+    @property
+    def network_type(self):
+        if not hasattr(self, '_net_type'):
+            self._net_type = NetworkType(settings.content_host.network_type)
+        return self._net_type
 
     @classmethod
     def get_hosts_from_inventory(cls, filter):
@@ -185,7 +198,7 @@ class ContentHost(Host, ContentHostMixins):
             return None
         return hosts[0]
 
-    def _delete_host_record(self):
+    def delete_host_record(self):
         """Delete the Host record of this host from Satellite."""
         if h_record := self._sat_host_record:
             logger.debug('Deleting host record for %s from Satellite', self.hostname)
@@ -352,11 +365,11 @@ class ContentHost(Host, ContentHostMixins):
                 and pytest.capsule_sanity is True
                 and type(self) is Capsule
             ):
-                logger.debug('END: Skipping tearing down caspule host %s for sanity', self)
+                logger.debug('END: Skipping tearing down capsule host %s for sanity', self)
                 return
             self.unregister()
             if type(self) is not Satellite:  # do not delete Satellite's host record
-                self._delete_host_record()
+                self.delete_host_record()
 
         logger.debug('END: tearing down host %s', self)
 
@@ -528,17 +541,6 @@ class ContentHost(Host, ContentHostMixins):
             pool_ids.append(result)
         return pool_ids
 
-    def subscription_manager_attach_pool(self, pool_list=None):
-        """
-        Attach pool ids to the host and return the result
-        """
-        if pool_list is None:
-            pool_list = []
-        result = []
-        for pool in pool_list:
-            result.append(self.execute(f'subscription-manager attach --pool={pool}'))
-        return result
-
     @property
     def subscription_config(self):
         "Returns subscription config for the host as ConfigParser object"
@@ -638,6 +640,7 @@ class ContentHost(Host, ContentHostMixins):
         auth_username=None,
         auth_password=None,
         download_utility=None,
+        setup_container_certs=None,
     ):
         """Registers content host to the Satellite or Capsule server
         using a global registration template.
@@ -660,6 +663,7 @@ class ContentHost(Host, ContentHostMixins):
         :param hostgroup: hostgroup to register with
         :param auth_username: username required if non-admin user
         :param auth_password: password required if non-admin user
+        :param setup_container_certs: Use certificates for container registry authentication.
         :return: SSHCommandResult instance filled with the result of the registration
         """
         options = {
@@ -710,6 +714,8 @@ class ContentHost(Host, ContentHostMixins):
             options['force'] = str(force).lower()
         if download_utility is not None:
             options['download-utility'] = download_utility
+        if setup_container_certs:
+            options['setup-container-registry-certs'] = str(setup_container_certs).lower()
 
         self._satellite = target.satellite
         if auth_username and auth_password:
@@ -825,6 +831,29 @@ class ContentHost(Host, ContentHostMixins):
         """
         return self.execute('subscription-manager unregister')
 
+    def configure_podman_cert_auth(self, sat):
+        """Configure podman cert-based authentication.
+        Host needs to be registered to the Satellite."""
+        assert self.subscribed
+        pki_path = '/etc/pki/entitlement/'
+        certs_path = f'{CONTAINER_CERTS_PATH}{sat.hostname}/'
+        self.execute(f'mkdir {certs_path}')
+        key = self.execute(f'ls {pki_path}*-key.pem | head -n1').stdout.strip()
+        assert key
+        cert = self.execute(f'ls {pki_path}*.pem | grep -v -- "-key.pem" | head -n1').stdout.strip()
+        assert cert
+        assert self.execute(f'ln -sf {key} {certs_path}client.key').status == 0
+        assert self.execute(f'ln -sf {cert} {certs_path}client.cert').status == 0
+        assert (
+            self.execute(f'ln -s /etc/pki/tls/certs/ca-bundle.crt {certs_path}ca-bundle.crt').status
+            == 0
+        )
+
+    def reset_podman_cert_auth(self, sat=None):
+        """Reset podman cert-based authentication for given Satellite or for all"""
+        trail = sat.hostname if sat else '*'
+        self.execute(f'rm -rf {CONTAINER_CERTS_PATH}{trail}')
+
     def get(self, remote_path, local_path=None):
         """Get a remote file from the broker virtual machine."""
         self.session.sftp_read(source=remote_path, destination=local_path)
@@ -884,19 +913,19 @@ class ContentHost(Host, ContentHostMixins):
 
     def enable_ipv6_rhsm_proxy(self):
         """Execute procedures for enabling rhsm IPv6 HTTP Proxy"""
-        if self.ipv6:
+        if not self.network_type.has_ipv4:
             url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)
 
     def enable_ipv6_dnf_proxy(self):
         """Execute procedures for enabling dnf IPv6 HTTP Proxy"""
-        if self.ipv6:
+        if not self.network_type.has_ipv4:
             url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
             self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
 
     def enable_ipv6_system_proxy(self):
         """Execute procedures for enabling IPv6 HTTP Proxy on system"""
-        if self.ipv6:
+        if not self.network_type.has_ipv4:
             self.execute(
                 f'echo "export HTTPS_PROXY={settings.http_proxy.http_proxy_ipv6_url}" >> ~/.bashrc'
             )
@@ -911,7 +940,7 @@ class ContentHost(Host, ContentHostMixins):
 
     def enable_ipv6_dnf_and_rhsm_proxy(self):
         """Execute procedures for enabling rhsm and dnf IPv6 HTTP Proxy"""
-        if self.ipv6:
+        if not self.network_type.has_ipv4:
             self.enable_ipv6_rhsm_proxy()
             self.enable_ipv6_dnf_proxy()
 
@@ -1036,10 +1065,10 @@ class ContentHost(Host, ContentHostMixins):
         self.execute(f'echo "{puppet_conf}" >> /etc/puppetlabs/puppet/puppet.conf')
 
         # This particular puppet run on client would populate a cert on
-        # sat6 under the capsule --> certifcates or on capsule via cli "puppetserver
+        # sat6 under the capsule --> certificates or on capsule via cli "puppetserver
         # ca list", so that we sign it.
         self.execute('/opt/puppetlabs/bin/puppet agent -t')
-        proxy_host = Host(hostname=proxy_hostname, ipv6=self.ipv6)
+        proxy_host = Host(hostname=proxy_hostname, ipv6=self.network_type == NetworkType.IPV6)
         proxy_host.execute(f'puppetserver ca sign --certname {cert_name}')
 
         if run_puppet_agent:
@@ -1151,6 +1180,9 @@ class ContentHost(Host, ContentHostMixins):
             self.create_custom_repos(**rhel_repo)
         else:
             self.create_custom_repos(**{rhel_distro: rhel_repo})
+
+        if not self.network_type.has_ipv4:
+            self.enable_ipv6_dnf_and_rhsm_proxy()
 
         # Ensure insights-client rpm is installed
         if self.execute('yum install -y insights-client').status != 0:
@@ -1389,7 +1421,7 @@ class ContentHost(Host, ContentHostMixins):
                 raise CLIFactoryError(f'Failed to start the virt-who service:\n{result.stderr}')
         # after this step the hypervisor as a content host should be created
         # do not confuse virt-who host with hypervisor host as they can be
-        # diffrent hosts and as per this setup we have only registered the virt-who
+        # different hosts and as per this setup we have only registered the virt-who
         # host, the hypervisor host should registered after virt-who send the
         # first report when started or with one shot command
         # the virt-who hypervisor will be registered to satellite with host name
@@ -1488,11 +1520,11 @@ class ContentHost(Host, ContentHostMixins):
         self.execute('katello-tracer-upload')
 
     def register_to_cdn(self, pool_ids=None):
-        """Subscribe satellite to CDN"""
+        """Register host to CDN"""
         self.reset_rhsm()
 
         # Enabling proxy for IPv6
-        if self.ipv6:
+        if not self.network_type.has_ipv4:
             url = urlparse(settings.http_proxy.http_proxy_ipv6_url)
             self.enable_rhsm_proxy(url.hostname, url.port)
             self.enable_dnf_proxy(url.hostname, url.scheme, url.port)
@@ -1507,17 +1539,6 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError(
                 f'Error during registration, command output: {cmd_result.stdout}'
             )
-        # Attach a pool only if the Org isn't SCA yet
-        sub_status = self.subscription_manager_status().stdout
-        if SM_OVERALL_STATUS['disabled'] not in sub_status:
-            if pool_ids in [None, []]:
-                pool_ids = [settings.subscription.rhn_poolid]
-            for pid in pool_ids:
-                int(pid, 16)  # raises ValueError if not a HEX number
-            cmd_result = self.subscription_manager_attach_pool(pool_ids)
-            for res in cmd_result:
-                if res.status != 0:
-                    raise ContentHostError(f'Pool attachment failed with output: {res.stdout}')
 
     def ping_host(self, host):
         """Check the provisioned host status by pinging the ip of host
@@ -1538,20 +1559,79 @@ class ContentHost(Host, ContentHostMixins):
         host.update(['location'])
 
     def get_yggdrasil_service_name(self):
-        return (
-            'yggdrasil'
-            if (
-                self.os_version.major > 9
-                or (self.os_version.major == 9 and self.os_version.minor > 5)
+        return 'yggdrasil' if (self.os_version.major > 9) else 'yggdrasild'
+
+    def setup_rhel_repos(self):
+        """Setup RHEL repositories on host
+        requires registered host if ga source has to be enabled
+        """
+        if settings.robottelo.rhel_source == "internal":
+            # disable cdn repos which may have been enabled during registration
+            self.disable_repo("rhel-*")
+            # add internal rhel repos
+            self.create_custom_repos(**settings.repos.get(f'rhel{self.os_version.major}_os'))
+        else:
+            # enable cdn repos
+            for repo in getattr(constants, f"OHSNAP_RHEL{self.os_version.major}_REPOS"):
+                result = self.enable_repo(repo, force=True)
+                if result.status:
+                    raise ContentHostError(f'Enabling RHEL repos on host failed\n{result.stdout}')
+
+    def setup_satellite_repos(self):
+        """Setup Satellite repositories on host
+        requires registered host if ga source has to be enabled
+        """
+        # setup source repositories
+        if settings.server.version.source == "ga":
+            # enable cdn repos
+            for repo in self.SATELLITE_CDN_REPOS.values():
+                result = self.enable_repo(repo, force=True)
+                if result.status:
+                    raise ContentHostError(
+                        f'Enabling Satellite repos on host failed\n{result.stdout}'
+                    )
+
+        elif settings.server.version.source == 'nightly':
+            self.create_custom_repos(
+                satellite_repo=settings.repos.satellite_repo,
+                satmaintenance_repo=settings.repos.satmaintenance_repo,
             )
-            else 'yggdrasild'
-        )
+        else:
+            # get ohsnap repofile
+            self.download_repofile(
+                product='satellite',
+                release=settings.server.version.release,
+                snap=settings.server.version.snap,
+            )
+
+    def setup_capsule_repos(self):
+        """Setup Capsule repositories on host
+        requires registered host if ga source has to be enabled
+        """
+        if settings.capsule.version.source == "ga":
+            # enable cdn repos
+            for repo in self.CAPSULE_CDN_REPOS.values():
+                result = self.enable_repo(repo, force=True)
+                if result.status:
+                    raise ContentHostError(
+                        f'Enabling Capsule repos on host failed\n{result.stdout}'
+                    )
+        else:
+            self.download_repofile(
+                product='capsule',
+                release=settings.capsule.version.release,
+                snap=settings.capsule.version.snap,
+            )
 
 
 class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
     product_rpm_name = 'satellite-capsule'
     upstream_rpm_name = 'foreman-proxy'
+
+    def __init__(self, hostname, **kwargs):
+        kwargs.setdefault('net_type', settings.capsule.network_type)
+        super().__init__(hostname=hostname, **kwargs)
 
     @property
     def nailgun_capsule(self):
@@ -1687,44 +1767,15 @@ class Capsule(ContentHost, CapsuleMixins):
         """Get capsule features"""
         return requests.get(f'https://{self.hostname}:9090/features', verify=False).text
 
-    def enable_capsule_downstream_repos(self):
-        """Enable CDN repos and capsule downstream repos on Capsule Host"""
-        # CDN Repos
-        self.register_to_cdn()
-        for repo in getattr(constants, f"OHSNAP_RHEL{self.os_version.major}_REPOS"):
-            result = self.enable_repo(repo, force=True)
-            if result.status:
-                raise CapsuleHostError(f'Repo enable at capsule host failed\n{result.stdout}')
-        # Downstream Capsule specific Repos
-        self.download_repofile(
-            product='capsule',
-            release=settings.capsule.version.release,
-            snap=settings.capsule.version.snap,
-        )
-
     def capsule_setup(self, sat_host=None, capsule_cert_opts=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
+
+        self.register_to_cdn()
+        self.setup_rhel_repos()
+        self.setup_capsule_repos()
+
+        # After capsule registration to cdn, it should be initialized with the Satellite.
         self._satellite = sat_host or Satellite()
-
-        if settings.robottelo.rhel_source == "ga":
-            # Register capsule host to CDN and enable repos
-            result = self.register_contenthost(
-                org=None,
-                lce=None,
-                username=settings.subscription.rhn_username,
-                password=settings.subscription.rhn_password,
-                auto_attach=True,
-            )
-            if result.status:
-                raise CapsuleHostError(f'Capsule CDN registration failed\n{result.stderr}')
-
-            for repo in getattr(constants, f"OHSNAP_RHEL{self.os_version.major}_REPOS"):
-                result = self.enable_repo(repo, force=True)
-                if result.status:
-                    raise CapsuleHostError(f'Repo enable at capsule host failed\n{result.stdout}')
-        elif settings.robottelo.rhel_source == "internal":
-            # add internal rhel repos
-            self.create_custom_repos(**settings.repos.get(f'rhel{self.os_version.major}_os'))
 
         # Update system, firewall services and check capsule is already installed from template
         # Setups firewall on Capsule
@@ -1859,6 +1910,7 @@ class Satellite(Capsule, SatelliteMixins):
         hostname = hostname or settings.server.hostname  # instance attr set by broker.Host
         self.omitting_credentials = False
         self.port = kwargs.get('port', settings.server.port)
+        kwargs.setdefault('net_type', settings.server.network_type)
         super().__init__(hostname=hostname, **kwargs)
         # create dummy classes for later population
         self._api = type('api', (), {'_configured': False})
@@ -2018,7 +2070,7 @@ class Satellite(Capsule, SatelliteMixins):
 
     @property
     def satellite(self):
-        """Use self when no other Satellite is set to avoid unecessary/incorrect instances"""
+        """Use self when no other Satellite is set to avoid unnecessary/incorrect instances"""
         if not self._satellite:
             return self
         return self._satellite
@@ -2046,7 +2098,7 @@ class Satellite(Capsule, SatelliteMixins):
         """
         http_proxy_name = 'IPv4 HTTP Proxy for Content sync'
         http_proxy_url = settings.http_proxy.un_auth_proxy_url
-        if self.ipv6:
+        if not self.network_type.has_ipv4:
             http_proxy_name = 'IPv6 HTTP Proxy for Content sync'
             http_proxy_url = settings.http_proxy.http_proxy_ipv6_url
         if not self.cli.HttpProxy.exists(search=('name', http_proxy_name)):
@@ -2094,7 +2146,7 @@ class Satellite(Capsule, SatelliteMixins):
 
     def enable_satellite_ipv6_http_proxy(self):
         """Execute procedures for setting ipv6 HTTP Proxy in Satellite settings, rhsm and dnf."""
-        if self.ipv6:
+        if not self.network_type.has_ipv4:
             self.enable_satellite_http_proxy()
             self.enable_ipv6_dnf_and_rhsm_proxy()
 
@@ -2186,7 +2238,7 @@ class Satellite(Capsule, SatelliteMixins):
         )
         http_proxy = (
             f'HTTP_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
-            if settings.server.is_ipv6
+            if not self.network_type.has_ipv4
             else ''
         )
         self.execute(
@@ -2385,11 +2437,31 @@ class Satellite(Capsule, SatelliteMixins):
         )
         assert (
             self.execute(
-                f'sed -i "{line_number}i nameserver {ad_data.nameserver}" /etc/resolv.conf'
+                f'sed -i "{line_number}i nameserver {ad_data.nameserver}\\nnameserver {ad_data.nameserver6}" /etc/resolv.conf'
             ).status
             == 0
         )
         assert self.execute('chattr +i /etc/resolv.conf').status == 0
+
+        # if this is an IPv6 machine, we'll probably get a hostname
+        # that is TOOOO LOOOONG for Active Directory which can only count to 15
+        hostname_changed = False
+        if self.network_type == NetworkType.IPV6:
+            original_shortname = self.execute('hostname -s').stdout.strip()
+            if len(original_shortname) > 15:
+                hostname_changed = True
+                original_fqdn = self.execute('hostname').stdout.strip()
+                domainname = settings.ldap.realm.lower()
+                new_shortname = original_shortname[-15:]
+                if new_shortname[0] == '-':
+                    new_shortname = new_shortname[1:]
+                if new_shortname[-1] == '-':
+                    new_shortname = new_shortname[:-1]
+                new_fqdn = f'{new_shortname}.{domainname}'
+                logger.info(f'Setting hostname to {new_fqdn} temporarily')
+                # after we successfully add this host to AD's DNS, we will have
+                # to run satellite-change-hostname
+                self.execute(f'hostnamectl set-hostname {new_fqdn}')
 
         # join the realm
         assert (
@@ -2403,26 +2475,12 @@ class Satellite(Capsule, SatelliteMixins):
         assert self.execute(f'echo "{keytab_content}" > /etc/net-keytab.conf').status == 0
 
         # gather the apache id
-        id_apache = str(self.execute('id -u apache')).strip()
+        id_apache = str(self.execute('id -u apache').stdout).strip()
         http_conf_content = (
             f'[service/HTTP]\nmechs = krb5\ncred_store = keytab:/etc/krb5.keytab'
             f'\ncred_store = ccache:/var/lib/gssproxy/clients/krb5cc_%U'
             f'\neuid = {id_apache}'
         )
-
-        # register the satellite as client for external auth
-        assert self.execute(f'echo "{http_conf_content}" > /etc/gssproxy/00-http.conf').status == 0
-        token_command = (
-            'KRB5_KTNAME=FILE:/etc/httpd/conf/http.keytab net ads keytab add HTTP '
-            '-U administrator -d3 -s /etc/net-keytab.conf'
-        )
-        assert self.execute(f'echo {settings.ldap.password} | {token_command}').status == 0
-        assert self.execute('chown root.apache /etc/httpd/conf/http.keytab').status == 0
-        assert self.execute('chmod 640 /etc/httpd/conf/http.keytab').status == 0
-
-        # enable the foreman-ipa-authentication feature
-        result = self.install(InstallerCommand('foreman-ipa-authentication true'))
-        assert result.status == 0
 
         # add foreman ad_gp_map_service (BZ#2117523)
         line_number = int(
@@ -2436,7 +2494,60 @@ class Satellite(Capsule, SatelliteMixins):
             ).status
             == 0
         )
+        # if this is an IPv6 only machine, also add
+        # a line that fixes: https://github.com/SSSD/sssd/issues/3057
+        if self.network_type == NetworkType.IPV6:
+            assert (
+                self.execute(
+                    f'sed -i "{line_number + 1}i lookup_family_order = ipv6_only" /etc/sssd/sssd.conf'
+                ).status
+                == 0
+            )
+        # in any case, restart sssd
         assert self.execute('systemctl restart sssd.service').status == 0
+
+        # register the satellite as client for external auth
+        assert self.execute(f'echo "{http_conf_content}" > /etc/gssproxy/00-http.conf').status == 0
+        token_command = (
+            'KRB5_KTNAME=FILE:/etc/httpd/conf/http.keytab net ads keytab create HTTP '
+            '-U administrator -d3 -s /etc/net-keytab.conf'
+        )
+        assert self.execute(f'echo {settings.ldap.password} | {token_command}').status == 0
+        assert self.execute('chown root.apache /etc/httpd/conf/http.keytab').status == 0
+        assert self.execute('chmod 640 /etc/httpd/conf/http.keytab').status == 0
+
+        if hostname_changed:
+            # Wait for AD's DNS to actually show AAAA and PTR records we've added;
+            # it's apparently a hard task, AD's DNS takes up to an hour to be up to date
+            # --
+            # Note that for this to work, you need to create the zones manually in DNS and
+            # in zone's properties, you have to set Dynamic updates to Nonsecure and Secure
+            logger.info(
+                f'Waiting for AAAA and PTR records for {new_fqdn} to be available in AD\'s DNS'
+            )
+            wait_for(
+                lambda: self.execute(
+                    'dig +short AAAA $(hostname) && dig +short -x $(dig +short AAAA $(hostname))'
+                ),
+                fail_condition=lambda res: res.status != 0,
+                timeout=3800,
+            )
+            # after we have the necessary DNS record, set hostname back to the original one
+            # so we don't confuse satellite-change-hostname
+            self.execute(f'hostnamectl set-hostname {original_fqdn}')
+            # and now actually run satellite-change-hostname which should set the short hostname
+            # and setup Satellite correctly
+            logger.info(
+                f'Current hostname is {original_fqdn}, running: "satellite-change-hostname {new_fqdn} -u{settings.server.admin_username} -ppassword_redacted"'
+            )
+            self.execute(
+                f'satellite-change-hostname {new_fqdn} -y -u{settings.server.admin_username} -p{settings.server.admin_password}',
+                timeout='30m',
+            )
+
+        # enable the foreman-ipa-authentication feature
+        result = self.install(InstallerCommand('foreman-ipa-authentication true'))
+        assert result.status == 0
 
         # unset GssapiLocalName (BZ#1787630)
         assert (
@@ -2453,7 +2564,7 @@ class Satellite(Capsule, SatelliteMixins):
         assert self.execute(
             "echo -e '[Service]\\nEnvironment=GSS_USE_PROXY=1' > /etc/systemd/system/httpd.service.d/gssproxy.conf"
         )
-        # restart the deamon and httpd services
+        # restart the daemon and httpd services
         assert (
             self.execute('systemctl daemon-reload && systemctl restart httpd.service').status == 0
         )
@@ -2507,6 +2618,23 @@ class Satellite(Capsule, SatelliteMixins):
             max_tries=10,
         )
 
+    def run_repos_refresh(self):
+        """Run repo refresh rake task"""
+        timestamp = datetime.now(UTC).replace(microsecond=0)
+        self.execute('foreman-rake katello:refresh_repos')
+        self.wait_for_tasks(
+            search_query=(
+                'label = Actions::Pulp3::Orchestration::Repository::RefreshRepos'
+                f' and started_at >= "{timestamp}"'
+            ),
+            search_rate=5,
+            max_tries=10,
+        )
+
+    def set_pulp_cli_safemode(self, safe):
+        """Set safemode for pulp cli"""
+        self.execute(f'sed -i "s/dry_run.*/dry_run = {str(safe).lower()}/g" /etc/pulp/cli.toml')
+
     @property
     def local_advisor_enabled(self):
         """Return boolean indicating whether local Insights advisor engine is enabled."""
@@ -2518,7 +2646,6 @@ class SSOHost(Host):
 
     def __init__(self, sat_obj, **kwargs):
         self.satellite = sat_obj
-        kwargs['ipv6'] = kwargs.get('ipv6', settings.server.is_ipv6)
         super().__init__(**kwargs)
 
     def get_sso_client_id(self):
@@ -2679,8 +2806,7 @@ class RHBKHost(SSOHost):
     """Class for RHBK functions and setup"""
 
     def __init__(self, sat_obj, **kwargs):
-        self.host_url = settings.rhbk.host_url
-        self.uri = self.host_url
+        self.uri = settings.rhbk.host_url
         self.host_name = settings.rhbk.host_name
         self.host_port = settings.rhbk.host_port
         self.realm = settings.rhbk.realm
@@ -2695,8 +2821,7 @@ class RHSSOHost(SSOHost):
     """Class for RHSSO functions and setup"""
 
     def __init__(self, sat_obj, **kwargs):
-        self.host_url = settings.rhsso.host_url
-        self.uri = self.host_url.replace("https://", "http://")
+        self.uri = settings.rhsso.host_url
         self.host_name = settings.rhsso.host_name
         self.host_port = 443
         self.realm = settings.rhsso.realm
@@ -2711,7 +2836,6 @@ class IPAHost(Host):
     def __init__(self, sat_obj, **kwargs):
         self.satellite = sat_obj
         kwargs['hostname'] = kwargs.get('hostname', settings.ipa.hostname)
-        kwargs['ipv6'] = kwargs.get('ipv6', settings.server.is_ipv6)
         # Allow the class to be constructed from kwargs
         kwargs['from_dict'] = True
         kwargs.update(
@@ -2760,6 +2884,24 @@ class IPAHost(Host):
         )
         if result.status not in [0, 3]:
             raise SatelliteHostError('Failed to enable ipa client')
+
+        # if this is an IPv6 only machine, also add
+        # a line that fixes: https://github.com/SSSD/sssd/issues/3057
+        if self.satellite.network_type == NetworkType.IPV6:
+            line_number = int(
+                self.satellite.execute(
+                    "awk -v search='domain/' '$0~search{print NR; exit}' /etc/sssd/sssd.conf"
+                ).stdout
+            )
+            assert (
+                self.satellite.execute(
+                    f'sed -i "{line_number + 1}i lookup_family_order = ipv6_only" /etc/sssd/sssd.conf'
+                ).status
+                == 0
+            )
+            # restart sssd
+            assert self.execute('systemctl restart sssd.service').status == 0
+
         result = self.satellite.install(InstallerCommand('foreman-ipa-authentication true'))
         assert result.status == 0, 'Installer failed to enable IPA authentication.'
         self.satellite.cli.Service.restart()
@@ -2815,7 +2957,6 @@ class ProxyHost(Host):
         self._conf_dir = '/etc/squid/'
         self._access_log = '/var/log/squid/access.log'
         kwargs['hostname'] = urlparse(url).hostname
-        kwargs['ipv6'] = kwargs.get('ipv6', settings.server.is_ipv6)
         super().__init__(**kwargs)
 
     def add_user(self, name, passwd):

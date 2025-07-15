@@ -8,7 +8,7 @@
 
 :CaseImportance: Medium
 
-:Team: Rocket
+:Team: Endeavour
 
 """
 
@@ -402,8 +402,8 @@ class TestSmartClassParameters:
             6. Unhide the variable
 
         :expectedresults:
-            1. The 'hidden value' is corrctly created
-            2. It is successfull updated
+            1. The 'hidden value' is correctly created
+            2. It is successful updated
             3. It remains hidden when empty
             4. It is successfully unhidden
 

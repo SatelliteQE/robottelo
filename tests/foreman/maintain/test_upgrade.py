@@ -6,7 +6,7 @@
 
 :CaseComponent: SatelliteMaintain
 
-:Team: Platform
+:Team: Rocket
 
 :CaseImportance: Critical
 
@@ -65,10 +65,12 @@ def test_positive_repositories_validate(sat_maintain):
         {
             'deploy_rhel_version': settings.server.version.rhel_version,
             'deploy_flavor': 'satqe-ssd.disk.xxxl',
+            'deploy_network_type': settings.server.network_type,
         },
         {
             'deploy_rhel_version': settings.server.version.rhel_version,
             'deploy_flavor': 'satqe-ssd.standard.std',
+            'deploy_network_type': settings.server.network_type,
         },
     ],
     ids=['default', 'medium'],
@@ -91,6 +93,7 @@ def test_negative_pre_update_tuning_profile_check(request, custom_host):
     sat_version = ".".join(settings.server.version.release.split('.')[0:2])
     # Register to CDN for RHEL repos, download and enable ohsnap repos,
     # and enable the satellite module and install it on the host
+    custom_host.enable_ipv6_dnf_and_rhsm_proxy()
     custom_host.register_to_cdn()
     custom_host.download_repofile(product='satellite', release=sat_version)
     custom_host.install_satellite_or_capsule_package()

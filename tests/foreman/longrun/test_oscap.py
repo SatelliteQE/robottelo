@@ -117,7 +117,7 @@ def activation_key(module_target_sat, module_org, lifecycle_env):
         ).create()
         content_view.publish()
         content_view = content_view.read()
-        assert len(content_view.version) == 1, "CV not publised"
+        assert len(content_view.version) == 1, "CV not published"
         version = content_view.version[0].read()
         version.promote(data={'environment_ids': lifecycle_env.id, 'force': True})
         activation_key = module_target_sat.api.ActivationKey(
@@ -321,7 +321,6 @@ def apply_policy_run_scan_get_arf(target_sat, contenthost):
     return target_sat.execute(f'cat {arf_report_path}').stdout
 
 
-@pytest.mark.tier4
 @pytest.mark.rhel_ver_match('9')
 def test_positive_oscap_update_default_content(
     module_org,
@@ -418,7 +417,7 @@ def test_positive_oscap_run_via_ansible(
 
     :BZ: 1716307, 1992229
 
-    :Verifies: SAT-19389, SAT-24988, SAT-19491
+    :Verifies: SAT-19389, SAT-24988, SAT-19491, SAT-28826
 
     :customerscenario: true
 
@@ -428,6 +427,15 @@ def test_positive_oscap_run_via_ansible(
     prepare_scap_client_and_prerequisites(
         target_sat, contenthost, module_org, default_proxy, lifecycle_env
     )
+
+    # check smart_proxy_openscap setup (SAT-28826)
+    cronline = (
+        '*/30 * * * * foreman-proxy smart-proxy-openscap-send >> /var/log/foreman-proxy/cron.log'
+    )
+    result = target_sat.execute('cat /etc/cron.d/rubygem-smart_proxy_openscap')
+    assert cronline in result.stdout, 'smart_proxy_openscap cron not found'
+    result = target_sat.execute('sudo -u foreman-proxy smart-proxy-openscap-send')
+    assert result.status == 0
 
     # Apply policy
     job_id = target_sat.cli.Host.ansible_roles_play({'name': contenthost.hostname.lower()})[0].get(
@@ -569,7 +577,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
 
     :BlockedBy: SAT-19505
 
-    :verifies: SAT-19505
+    :Verifies: SAT-19505
     """
     contenthost = rex_contenthost
     os_version = contenthost.os_version.major

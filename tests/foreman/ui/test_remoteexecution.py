@@ -20,6 +20,7 @@ from inflection import camelize
 import pytest
 from wait_for import wait_for
 
+from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
 from robottelo.utils.datafactory import (
     gen_string,
@@ -95,7 +96,7 @@ def test_positive_hostgroups_full_nested_names(
         assert name in hostgroups
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_run_default_job_template(
     session,
     target_sat,
@@ -133,7 +134,7 @@ def test_positive_run_default_job_template(
         session.jobinvocation.run(
             {
                 'category_and_template.job_category': 'Commands',
-                'category_and_template.job_template': 'Run Command - Script Default',
+                'category_and_template.job_template_text_input': 'Run Command - Script Default',
                 'target_hosts_and_inputs.targetting_type': 'Hosts',
                 'target_hosts_and_inputs.targets': hostname,
                 'target_hosts_and_inputs.command': command,
@@ -151,7 +152,7 @@ def test_positive_run_default_job_template(
         assert job_name in [job['Name'] for job in success_jobs]
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_rex_through_host_details(session, target_sat, rex_contenthost, module_org):
     """Run remote execution using the new host details page
 
@@ -171,7 +172,7 @@ def test_rex_through_host_details(session, target_sat, rex_contenthost, module_o
 
     job_args = {
         'category_and_template.job_category': 'Commands',
-        'category_and_template.job_template': 'Run Command - Script Default',
+        'category_and_template.job_template_text_input': 'Run Command - Script Default',
         'target_hosts_and_inputs.command': 'ls',
     }
     with target_sat.ui_session() as session:
@@ -189,7 +190,7 @@ def test_rex_through_host_details(session, target_sat, rex_contenthost, module_o
         assert recent_jobs['recent_jobs']['finished']['table'][0]['column2'] == "succeeded"
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize(
     'ui_user', [{'admin': True}, {'admin': False}], indirect=True, ids=['adminuser', 'nonadminuser']
 )
@@ -238,7 +239,7 @@ def test_positive_run_custom_job_template(
         session.jobinvocation.run(
             {
                 'category_and_template.job_category': 'Miscellaneous',
-                'category_and_template.job_template': job_template_name,
+                'category_and_template.job_template_text_input': job_template_name,
                 'target_hosts_and_inputs.targets': hostname,
                 'target_hosts_and_inputs.command': 'ls',
             }
@@ -252,7 +253,7 @@ def test_positive_run_custom_job_template(
 
 
 @pytest.mark.upgrade
-@pytest.mark.rhel_ver_list([8])
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_run_job_template_multiple_hosts(
     session, module_org, target_sat, rex_contenthosts
 ):
@@ -286,7 +287,7 @@ def test_positive_run_job_template_multiple_hosts(
             host_names,
             {
                 'category_and_template.job_category': 'Commands',
-                'category_and_template.job_template': 'Run Command - Script Default',
+                'category_and_template.job_template_text_input': 'Run Command - Script Default',
                 'target_hosts_and_inputs.command': 'sleep 5',
             },
         )
@@ -299,7 +300,7 @@ def test_positive_run_job_template_multiple_hosts(
         )
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_contenthost):
     """Schedule a job to be ran against a host by ip
 
@@ -335,7 +336,7 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_cont
             [hostname],
             {
                 'category_and_template.job_category': 'Commands',
-                'category_and_template.job_template': 'Run Command - Script Default',
+                'category_and_template.job_template_text_input': 'Run Command - Script Default',
                 'target_hosts_and_inputs.command': command_to_run,
                 'schedule.future': True,
                 'schedule_future_execution.start_at_date': plan_time.strftime("%Y/%m/%d"),
@@ -389,7 +390,7 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_cont
         assert job_status['overview']['hosts_table'][0]['Status'] == 'Succeeded'
 
 
-@pytest.mark.rhel_ver_list('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.usefixtures('setting_update')
 @pytest.mark.parametrize('setting_update', ['lab_features=true'], indirect=True)
 def test_positive_check_job_invocation_details_page(target_sat, rex_contenthost):
@@ -404,7 +405,7 @@ def test_positive_check_job_invocation_details_page(target_sat, rex_contenthost)
 
     :expectedresults:
         1. It should report the job name in the title.
-        2. It should report the correct numbers in Succeeded, Failed, In Progres and Cancelled fields.
+        2. It should report the correct numbers in Succeeded, Failed, In Progress and Cancelled fields.
         3. It should report correct information, like, template name that was used, host search query,
             organization, location and command.
 

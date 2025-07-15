@@ -32,6 +32,7 @@ from robottelo.constants import (
     REAL_4_ERRATA_ID,
     REPOS,
     REPOSET,
+    TIMESTAMP_FMT,
 )
 from robottelo.exceptions import CLIReturnCodeError
 from robottelo.hosts import ContentHost
@@ -83,9 +84,6 @@ REPOS_WITH_ERRATA = (
         'errata_id': settings.repos.yum_3.errata[5],
     },
 )
-
-TIMESTAMP_FMT = '%Y-%m-%d %H:%M'
-TIMESTAMP_FMT_S = '%Y-%m-%d %H:%M:%S'
 
 PSUTIL_RPM = 'python2-psutil-5.6.7-1.el7.x86_64.rpm'
 
@@ -163,11 +161,35 @@ def rh_repo_module_manifest(module_sca_manifest_org, module_target_sat):
 
 @pytest.fixture(scope='module')
 def hosts(request):
-    """Deploy hosts via broker."""
-    num_hosts = getattr(request, 'param', 2)
-    with Broker(nick='rhel8', host_class=ContentHost, _count=num_hosts) as hosts:
+    """Deploy hosts via broker by distro and host count.
+    Parametrize with tuple, (str<distro>, int<num_hosts>), or just one, or neither.
+    @pytest.mark.parametrize('hosts', [('rhel9', 2)], indirect=True)
+
+    Default: Robotello settings: Default RHEL Version, num_host of 2.
+    """
+    default_distro = 'rhel' + str(settings.content_host.default_rhel_version)
+    default_num_hosts = 2
+    # get any request
+    param = getattr(request, 'param', (None, None))
+    # get both params, or just one
+    match param:
+        case (str() as distro, int() as num_hosts):  # Tuple (both values provided)
+            pass
+        case str() as distro:  # Just distro (default num_hosts)
+            num_hosts = default_num_hosts
+        case int() as num_hosts:  # Just num_hosts (default distro)
+            distro = default_distro
+        case _:  # Default for both
+            distro, num_hosts = default_distro, default_num_hosts
+
+    with Broker(
+        deploy_network_type=settings.content_host.network_type,
+        host_class=ContentHost,
+        _count=num_hosts,
+        nick=distro,
+    ) as hosts:
         if not isinstance(hosts, list) or len(hosts) != num_hosts:
-            pytest.fail('Failed to provision the expected number of hosts.')
+            pytest.fail(f'Failed to provision the expected number of hosts for {distro}.')
         yield hosts
 
 
@@ -179,7 +201,12 @@ def register_hosts(
     module_ak,
     module_target_sat,
 ):
-    """Register hosts to Satellite"""
+    """Register hosts to Satellite
+
+    parametrize by fixture `hosts`, example:
+        @pytest.mark.parametrize('hosts', [('rhel10', 4)], indirect=True)
+    Default: DEFAULT Robottelo RHEL version, 2 clients.
+    """
     for host in hosts:
         module_target_sat.cli_factory.setup_org_for_a_custom_repo(
             {
@@ -202,7 +229,12 @@ def register_hosts(
 
 @pytest.fixture
 def errata_hosts(register_hosts, target_sat):
-    """Ensure that rpm is installed on host."""
+    """Ensure that rpm is installed on host.
+
+    parametrize by fixture `hosts`, example:
+        @pytest.mark.parametrize('hosts', [('rhel10', 4)], indirect=True)
+    Default: DEFAULT Robottelo RHEL version, 2 clients.
+    """
     for host in register_hosts:
         # Enable all custom and rh repositories.
         host.execute(r'subscription-manager repos --enable \*')
@@ -254,37 +286,32 @@ def host_collection(module_sca_manifest_org, module_ak_cv_lce, register_hosts, m
 def start_and_wait_errata_recalculate(sat, host):
     """Helper to find any in-progress errata applicability task and wait_for completion.
     Otherwise, schedule errata recalculation, wait for the task.
-    Find the successful completed task(s).
+    Poll the finished task(s).
 
     :param sat: Satellite instance to check for task(s)
     :param host: ContentHost instance to schedule errata recalculate
     """
-    # Find any in-progress task for this host
-    search = "label = Actions::Katello::Applicability::Hosts::BulkGenerate and result = pending"
+    # Find any in-progress tasks for Host(s)
+    label = 'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
+    search = label + ' and result = pending'
     applicability_task_running = sat.cli.Task.list_tasks({'search': search})
     # No task in progress, invoke errata recalculate
     if len(applicability_task_running) == 0:
         sat.cli.Host.errata_recalculate({'host-id': host.nailgun_host.id})
         host.run('subscription-manager repos')
-    # Note time check for later wait_for_tasks include 30s margin of safety
-    timestamp = (datetime.now(UTC) - timedelta(seconds=30)).strftime(TIMESTAMP_FMT_S)
+    # timestamp for install start includes 20s margin of safety
+    timestamp = (datetime.now(UTC) - timedelta(seconds=20)).strftime(TIMESTAMP_FMT)
     # Wait for upload profile event (in case Satellite system is slow)
-    sat.wait_for_tasks(
-        search_query=(
-            'label = Actions::Katello::Applicability::Hosts::BulkGenerate'
-            f' and started_at >= "{timestamp}"'
-        ),
+    search = label + f' and started_at >= "{timestamp}"'
+    tasks = sat.wait_for_tasks(
+        search_query=search,
         search_rate=15,
         max_tries=10,
     )
-    # Find the successful finished task(s)
-    search = (
-        "label = Actions::Katello::Applicability::Hosts::BulkGenerate"
-        " and result = success"
-        f" and started_at >= '{timestamp}'"
-    )
-    applicability_task_success = sat.cli.Task.list_tasks({'search': search})
-    assert applicability_task_success, f'No successful task found by search: {search}'
+    # Poll the finished task(s)
+    assert len(tasks) > 0, f'No task(s) found by search: {search}'
+    for task in tasks:
+        assert sat.api.ForemanTask(id=task.id).poll()
 
 
 def is_rpm_installed(host, rpm=None):
@@ -1482,7 +1509,7 @@ def test_errata_list_by_contentview_filter(module_sca_manifest_org, module_targe
 
     :customerscenario: true
 
-    :verifies: SAT-7987
+    :Verifies: SAT-7987
     """
     product = module_target_sat.api.Product(organization=module_sca_manifest_org).create()
     repo = module_target_sat.cli_factory.make_repository(
@@ -1523,8 +1550,10 @@ def test_errata_list_by_contentview_filter(module_sca_manifest_org, module_targe
     assert errata_count != errata_count_cvf
 
 
-@pytest.mark.rhel_ver_match('N-2')
-def test_positive_verify_errata_recalculate_tasks(target_sat, errata_host):
+@pytest.mark.parametrize(
+    'hosts', [(f'rhel{settings.content_host.default_rhel_version}', 4)], indirect=True
+)
+def test_positive_verify_errata_recalculate_tasks(target_sat, errata_hosts):
     """Verify 'Actions::Katello::Applicability::Hosts::BulkGenerate' tasks proceed on 'worker-hosts-queue-1.service'
 
     :id: d5f89df2-b8fb-4aec-839d-b548b0aadc0c
@@ -1541,7 +1570,7 @@ def test_positive_verify_errata_recalculate_tasks(target_sat, errata_host):
 
     :BZ: 2249736
     """
-    # Recalculate errata command has triggered inside errata_host fixture
+    # Recalculate errata command has triggered inside errata_hosts fixture
 
     # get PID of 'worker-hosts-queue-1' from /var/log/messages
     message_log = target_sat.execute(

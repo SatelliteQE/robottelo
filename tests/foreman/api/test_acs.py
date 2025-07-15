@@ -16,13 +16,21 @@ from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError
 
+from robottelo.config import settings
 from robottelo.constants.repos import PULP_FIXTURE_ROOT, PULP_SUBPATHS_COMBINED
 
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
-@pytest.mark.parametrize('cnt_type', ['yum', 'file'])
-@pytest.mark.parametrize('acs_type', ['custom', 'simplified', 'rhui'])
+@pytest.mark.parametrize(
+    ('acs_type', 'cnt_type'),
+    [
+        (acs, cnt)
+        for acs in ['custom', 'simplified', 'rhui']
+        for cnt in ['yum', 'file']
+        if not (acs == 'rhui' and cnt == 'file')  # invalid combination: 'rhui-file'
+    ],
+)
 def test_positive_CRUD_all_types(
     request, module_target_sat, acs_type, cnt_type, module_yum_repo, module_file_repo
 ):
@@ -46,8 +54,6 @@ def test_positive_CRUD_all_types(
         4. ACS can be refreshed.
         5. ACS can be deleted.
     """
-    if 'rhui' in request.node.name and 'file' in request.node.name:
-        pytest.skip('unsupported parametrize combination')
 
     # Create
     params = {
@@ -56,6 +62,14 @@ def test_positive_CRUD_all_types(
         'content_type': cnt_type,
         'smart_proxy_ids': [module_target_sat.nailgun_capsule.id],
     }
+
+    # In case of IPv6, set 'ACS HTTP proxy' of the bound capsule to the IPv6 proxy
+    # This is necessary for the Refresh to succeed.
+    if not settings.server.network_type.has_ipv4:
+        caps = module_target_sat.nailgun_smart_proxy
+        caps.http_proxy = module_target_sat.enable_satellite_http_proxy()
+        caps.update(['http_proxy'])
+        params.update({'use_http_proxies': True})
 
     if acs_type == 'simplified':
         params.update(

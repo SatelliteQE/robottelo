@@ -6,11 +6,13 @@
 
 :CaseComponent: Installation
 
-:Team: Platform
+:Team: Rocket
 
 :CaseImportance: High
 
 """
+
+import re
 
 from fauxfactory import gen_string
 import pytest
@@ -63,19 +65,28 @@ def test_positive_rename_satellite(module_org, module_product, module_target_sat
     username = settings.server.admin_username
     password = settings.server.admin_password
     old_hostname = module_target_sat.execute('hostname').stdout.strip()
-    new_hostname = f'new-{old_hostname}'
+    old_shortname, old_domain = old_hostname.split(".", 1)
+    new_hostname = f'new-{gen_string("alpha").lower()}.{old_domain}'
+    new_certs = [
+        '/etc/foreman/client_cert.pem',
+        '/etc/foreman-proxy/ssl_cert.pem',
+        '/etc/foreman-proxy/foreman_ssl_cert.pem',
+        '/etc/pki/katello/certs/katello-apache.crt',
+        f'/etc/pki/katello/private/{new_hostname}-foreman-proxy-client-bundle.pem',
+    ]
     # create installation medium with hostname in path
     medium_path = f'http://{old_hostname}/testpath-{gen_string("alpha")}/os/'
     medium = module_target_sat.api.Media(organization=[module_org], path_=medium_path).create()
     repo = module_target_sat.api.Repository(product=module_product, name='testrepo').create()
     # create /etc/hosts entry to pass s-c-h validation
-    sat_ip = module_target_sat.execute(
-        "ip addr show eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1"
-    ).stdout.strip()
-    module_target_sat.execute(f'echo "{sat_ip} {old_hostname} {new_hostname}" >> /etc/hosts')
+    for line in module_target_sat.execute('ip --oneline addr show scope global').stdout.split('\n'):
+        if line.strip():
+            ip, _prefix = line.split()[3].split('/')
+            module_target_sat.execute(f'echo "{ip} {old_hostname} {new_hostname}" >> /etc/hosts')
+
     result = module_target_sat.execute(
         f'satellite-change-hostname {new_hostname} -y -u {username} -p {password}',
-        timeout=1200000,
+        timeout='20m',
     )
     assert result.status == 0, 'unsuccessful rename'
     assert BCK_MSG in result.stdout
@@ -112,9 +123,22 @@ def test_positive_rename_satellite(module_org, module_product, module_target_sat
         'repository published path not updated correctly'
     )
 
-    # check for any other occurences of old hostname
-    result = module_target_sat.execute(f'grep " {old_hostname}" --exclude-dir="promtail" /etc/* -r')
-    assert result.status != 0, 'there are remaining instances of the old hostname'
+    # check config files (except certs/keys and /etc/template) for occurrences of old hostname
+    output = module_target_sat.execute(
+        f'grep "{old_hostname}" /etc -r --exclude=template --exclude-dir={{promtail,pki}} --exclude=*.{{pem,cert,bak}}'
+    ).stdout
+    assert old_hostname not in output, (
+        'there are remaining instances of the old hostname in the config files'
+    )
+    # check certs for missing occurrences of new hostname in Subject
+    assert not [
+        cert
+        for cert in new_certs
+        if not re.search(
+            f"Subject:.*{re.escape(new_hostname)}",
+            module_target_sat.execute(f'openssl x509 -text -in {cert}').stdout,
+        )
+    ], 'there is missing new hostname in some of the certs'
 
     repo.sync()
     cv = module_target_sat.api.ContentView(organization=module_org).create()
@@ -220,7 +244,7 @@ def test_positive_rename_capsule(module_target_sat):
     :BZ: 1469466, 1473614
 
     :expectedresults: Capsule hostname is successfully updated
-        and the capsule fuctions correctly
+        and the capsule functions correctly
 
     :CaseAutomation: Automated
     """

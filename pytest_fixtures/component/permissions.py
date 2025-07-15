@@ -36,15 +36,17 @@ def expected_permissions(session_target_sat):
         permissions.pop('ForemanPuppet::HostClass')
         permissions.pop('ForemanPuppet::Puppetclass')
         permissions.pop('ForemanPuppet::PuppetclassLookupKey')
+    if 'rubygem-foreman_resource_quota' not in rpm_packages:
+        permissions.pop('ForemanResourceQuota::ResourceQuota')
     if 'rubygem-foreman_scc_manager' not in rpm_packages:
         permissions.pop('SccAccount')
         permissions.pop('SccProduct')
     if 'rubygem-foreman_snapshot_management' not in rpm_packages:
         permissions['Host'].remove('view_snapshots')
         permissions['Host'].remove('create_snapshots')
-        permissions[None].remove('destroy_snapshots')
-        permissions[None].remove('revert_snapshots')
-        permissions[None].remove('edit_snapshots')
+        permissions['Host'].remove('destroy_snapshots')
+        permissions['Host'].remove('revert_snapshots')
+        permissions['Host'].remove('edit_snapshots')
     if 'gem-foreman_salt' not in rpm_packages:
         permissions['Host'].remove('saltrun_hosts')
         permissions['SmartProxy'].remove('destroy_smart_proxies_salt_autosign')
@@ -57,8 +59,13 @@ def expected_permissions(session_target_sat):
         permissions.pop('ForemanSalt::SaltVariable')
         permissions.pop('ForemanSalt::SaltEnvironment')
         permissions.pop('ForemanSalt::SaltModule')
+        permissions.pop('Report')
     if 'rubygem-foreman_statistics' not in rpm_packages:
         permissions.pop('ForemanStatistics::Trend')
         permissions[None].remove('view_statistics')
+    if 'rubygem-foreman_monitoring' not in rpm_packages:
+        permissions[None].remove('upload_monitoring_results')
+        permissions['Host'].remove('view_monitoring_results')
+        permissions['Host'].remove('manage_downtime_hosts')
 
     return permissions

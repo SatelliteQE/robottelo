@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:Team: Rocket
+:Team: Endeavour
 
 :CaseImportance: High
 """
@@ -198,7 +198,7 @@ class TestAnsibleCfgMgmt:
         self, request, target_sat, module_org, module_ak_with_cv, rhel_contenthost
     ):
         """Verify that installing an Ansible collection also imports
-        any variables associated with the roles avaialble in the collection
+        any variables associated with the roles available in the collection
 
         :id: 7ff88022-fe9b-482f-a6bb-3922036a1e1c
 
@@ -235,7 +235,7 @@ class TestAnsibleCfgMgmt:
         for path in ['/etc/ansible/collections', '/usr/share/ansible/collections']:
             http_proxy = (
                 f'HTTPS_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
-                if settings.server.is_ipv6
+                if not target_sat.network_type.has_ipv4
                 else ''
             )
             assert (
@@ -315,7 +315,7 @@ class TestAnsibleREX:
 
     @pytest.mark.rhel_ver_list([8])
     def test_positive_run_reccuring_job(self, rex_contenthost, target_sat):
-        """Tests Ansible REX reccuring job runs successfully multiple times
+        """Tests Ansible REX recurring, job runs successfully multiple times
 
         :id: 49b0d31d-58f9-47f1-aa5d-561a1dcb0d66
 
@@ -361,7 +361,7 @@ class TestAnsibleREX:
 
     @pytest.mark.rhel_ver_list([8])
     def test_positive_run_concurrent_jobs(self, rex_contenthosts, target_sat):
-        """Tests Ansible REX concurent jobs without batch trigger
+        """Tests Ansible REX concurrent jobs without batch trigger
 
         :id: ad0f108c-03f2-49c7-8732-b1056570567b
 
@@ -600,7 +600,7 @@ class TestAnsibleREX:
 
         :expectedresults: Ansible collection can be installed on content host via REX.
 
-        :verifies: SAT-30807
+        :Verifies: SAT-30807
         """
         client = rhel_contenthost
         # Adding IPv6 proxy for IPv6 communication
@@ -665,7 +665,7 @@ class TestAnsibleREX:
             1. Verify variables associated to role are also imported along with roles
             2. Verify custom role is successfully assigned and running on a host
 
-        :verifies: SAT-28198
+        :Verifies: SAT-28198
         """
         username = settings.server.admin_username
         password = settings.server.admin_password
@@ -827,7 +827,9 @@ class TestAnsibleAAPIntegration:
 
         :expectedresults: All hosts managed by Satellite are added to Satellite inventory.
 
-        :verifies: SAT-28613, SAT-30761
+        :Verifies: SAT-28613, SAT-30761
+
+        :customerscenario: true
         """
         inventory_name = settings.AAP_INTEGRATION.satellite_inventory
         api_base = '/api/v2/' if aap_version == '2.3' else '/api/controller/v2/'
@@ -871,7 +873,6 @@ class TestAnsibleAAPIntegration:
             force=True,
         )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
-
         # Find the Satellite credentials in AAP and update it for target_sat.hostname and user credentials
         self.update_sat_credentials_in_aap(
             aap_client, target_sat, username=login, aap_version=aap_version
@@ -893,7 +894,7 @@ class TestAnsibleAAPIntegration:
             in [
                 host['name']
                 for host in aap_client.get(
-                    f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/'
+                    f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/?search={rhel_contenthost.hostname}'
                 ).json()['results']
             ],
             timeout=180,
@@ -901,7 +902,7 @@ class TestAnsibleAAPIntegration:
         )
         # Find the hosts in Satellite inventory in AAP and verify if target_sat is listed in inventory
         hosts_list = aap_client.get(
-            f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/'
+            f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/?search={rhel_contenthost.hostname}'
         ).json()
         assert rhel_contenthost.hostname in [host['name'] for host in hosts_list['results']]
 
@@ -939,7 +940,9 @@ class TestAnsibleAAPIntegration:
             1. All hosts managed by Satellite are added to Satellite inventory.
             2. Starting ansible-callback systemd service, starts a job_template execution in AAP
 
-        :verifies: SAT-30761
+        :Verifies: SAT-30761
+
+        :customerscenario: true
         """
         host_mac_addr = provisioning_host.provisioning_nic_mac_addr
         sat = module_provisioning_sat.sat
@@ -1043,7 +1046,7 @@ class TestAnsibleAAPIntegration:
             in [
                 host['name']
                 for host in aap_client.get(
-                    f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/'
+                    f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/?search={hostname}'
                 ).json()['results']
             ],
             timeout=180,
@@ -1051,12 +1054,22 @@ class TestAnsibleAAPIntegration:
         )
         # Find the hosts in AAP inventory and verify if provisioning host is listed in inventory
         hosts_list = aap_client.get(
-            f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/'
+            f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/?search={hostname}'
         ).json()
         assert hostname in [host['name'] for host in hosts_list['results']]
-
         assert provisioning_host.execute('systemctl start ansible-callback').status == 0
-
+        jobs = aap_client.get(
+            f'{api_base}job_templates/{template_id}/jobs/?launch_type=callback&order_by=-created'
+        ).json()['results'][0]
+        # when the callback service is started, the job sometimes starts with pending or waiting state before going to the running state
+        filtered_job = jobs['id'] if jobs['status'] in ('running', 'pending', 'waiting') else None
+        wait_for(
+            lambda: aap_client.get(f'{api_base}jobs/?id={filtered_job}').json()['results'][0][
+                'status'
+            ]
+            == 'successful',
+            timeout=120,
+        )
         # Verify user rocket and package tmux is installed via ansible-callback on provisioning host
         assert provisioning_host.execute('cat /etc/passwd | grep rocket').status == 0
         assert provisioning_host.execute('dnf list installed tmux').status == 0

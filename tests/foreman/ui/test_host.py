@@ -6,7 +6,7 @@
 
 :CaseComponent: Hosts
 
-:Team: Endeavour
+:Team: Phoenix-subscriptions
 
 :CaseImportance: High
 
@@ -14,6 +14,7 @@
 
 import copy
 import csv
+from datetime import UTC, datetime, timedelta
 import json
 import os
 import re
@@ -28,6 +29,7 @@ import yaml
 from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
+    DEFAULT_ARCHITECTURE,
     DEFAULT_CV,
     DEFAULT_LOC,
     DUMMY_BOOTC_FACTS,
@@ -36,12 +38,15 @@ from robottelo.constants import (
     FAKE_7_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE_NAME,
+    FOREMAN_PROVIDERS,
     OSCAP_PERIOD,
     OSCAP_WEEKDAY,
     REPO_TYPE,
+    REPOS,
     ROLES,
 )
 from robottelo.constants.repos import CUSTOM_FILE_REPO
+from robottelo.exceptions import APIResponseError
 from robottelo.utils.datafactory import gen_string
 from tests.foreman.api.test_errata import cv_publish_promote
 
@@ -134,13 +139,27 @@ def module_global_params(module_target_sat):
 
 @pytest.fixture
 def tracer_install_host(rex_contenthost, target_sat):
-    """Sets up a contenthost with katello-host-tools-tracer enabled,
-    to prep it for install later"""
+    """This fixture automatically configures IPv6 support based on the host's network type and creates
+    version-appropriate repositories.
+
+    :param rex_contenthost: Remote execution enabled content host
+    :param target_sat: Target Satellite server
+    :return: ContentHost with tracer tools installed and configured
+    """
+
+    # add IPv6 proxy for IPv6 communication based on network type
+    if not rex_contenthost.network_type.has_ipv4:
+        rex_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
+        rex_contenthost.enable_ipv6_system_proxy()
+
     # create a custom, rhel version-specific OS repo
     rhelver = rex_contenthost.os_version.major
+
     if rhelver > 7:
+        # RHEL 8, 9 and 10 use the same repository structure
         rex_contenthost.create_custom_repos(**settings.repos[f'rhel{rhelver}_os'])
     else:
+        # RHEL 7 has different repository structure
         rex_contenthost.create_custom_repos(
             **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
         )
@@ -1886,7 +1905,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
 
 
 @pytest.mark.pit_client
-@pytest.mark.rhel_ver_match('[^6].*')
+@pytest.mark.rhel_ver_match('[7,8,9]')
 def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
     """Using the new Host UI,enable tracer and verify that the page reloads
 
@@ -1894,7 +1913,7 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
 
     :CaseComponent: katello-tracer
 
-    :Team: Phoenix-subscriptions
+    :Team: Endeavour
 
     :steps:
         1. Register a RHEL host to Satellite.
@@ -1910,21 +1929,18 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
     )
     with target_sat.ui_session() as session:
         session.organization.select(host['organization_name'])
-        tracer = session.host_new.get_tracer(tracer_install_host.hostname)
-        assert tracer['title'] == "Traces are not enabled"
+        tracer_title = session.host_new.get_tracer_tab_title(tracer_install_host.hostname)
+        assert tracer_title == "Traces are not enabled"
         session.host_new.enable_tracer(tracer_install_host.hostname)
-        tracer = session.host_new.get_tracer(tracer_install_host.hostname)
-        assert tracer['title'] == "Traces are being enabled"
-        wait_for(
-            lambda: session.host_new.get_tracer(tracer_install_host.hostname)['title']
-            != "Traces are being enabled",
-            timeout=1800,
-            delay=5,
-            silent_failure=True,
-            handle_exception=True,
+        timestamp = (datetime.now(UTC) - timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M')
+        target_sat.wait_for_tasks(
+            search_query='action = "Run hosts job: Install package(s) katello-host-tools-tracer"'
+            f' and started_at >= "{timestamp}"',
+            search_rate=15,
+            max_tries=10,
         )
-        tracer = session.host_new.get_tracer(tracer_install_host.hostname)
-        assert tracer['title'] == "No applications to restart"
+        tracer_title = session.host_new.get_tracer_tab_title(tracer_install_host.hostname)
+        assert tracer_title == "No applications to restart"
 
 
 def test_all_hosts_delete(target_sat, function_org, function_location, new_host_ui):
@@ -2049,7 +2065,7 @@ def test_all_hosts_bulk_build_management(target_sat, function_org, function_loca
 
     :id: fff71945-6534-45cf-88a6-16b25c060f0a
 
-    :expectedresults: Build Managment dropdown in All Hosts UI works properly.
+    :expectedresults: Build Management dropdown in All Hosts UI works properly.
 
     :CaseComponent:Hosts-Content
 
@@ -2296,7 +2312,7 @@ def change_content_source_prep(
 @pytest.mark.rhel_ver_match('[789]')
 def test_change_content_source(session, change_content_source_prep, rhel_contenthost):
     """
-    This test excercises different ways to change host's content source
+    This test exercises different ways to change host's content source
 
     :id: 5add68c3-16b1-496d-9b24-f5388013351d
 
@@ -2305,7 +2321,7 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
 
     :CaseComponent:Hosts-Content
 
-    :Team: Phoenix-content
+    :Team: Phoenix-subscriptions
     """
 
     module_target_sat, org, lce, capsule, content_view, loc, ak = change_content_source_prep
@@ -2407,7 +2423,7 @@ def test_positive_page_redirect_after_update(target_sat, current_sat_location):
 def test_host_status_honors_taxonomies(
     module_target_sat, test_name, rhel_contenthost, setup_content, default_location, default_org
 ):
-    """Check that host status counts in Monitor -> Host Statuses show only hosts that the user has permisisons to
+    """Check that host status counts in Monitor -> Host Statuses show only hosts that the user has permissions to
 
     :id: 2c4e6df7-c17e-4074-b691-4d8e2efda062
     :steps:
@@ -2843,3 +2859,271 @@ def test_all_hosts_manage_errata(
             )
             task_status = module_target_sat.api.ForemanTask(id=task_result[0].id).poll()
             assert task_status['result'] == 'success'
+
+
+def test_positive_manage_repository_sets(
+    new_host_ui,
+    module_target_sat,
+    module_sca_manifest_org,
+    module_lce,
+    module_ak,
+    rhel8_contenthost,
+    rhel9_contenthost,
+):
+    """
+    Change one or more repository status on multiple hosts through Manage content wizard
+
+    :id: 4c9913d8-ce0d-4b50-901a-024aca207fc5
+
+    :expectedresults: Repository status can be changed via All Hosts page > Manage content wizard.
+
+    :CaseComponent: Hosts-Content
+
+    :Team: Phoenix-content
+    """
+    content_hosts = [rhel8_contenthost, rhel9_contenthost]
+    rhel_repos = ['rhel8_bos', 'rhel9_bos']
+    all_repo_ids = []
+    all_repo_names = []
+    host_names = []
+    status_to_be_changed = {
+        0: 'Override to disabled',
+        1: 'Override to enabled',
+        2: 'Reset to default',
+    }
+
+    # Create content view
+    content_view = module_target_sat.api.ContentView(organization=module_sca_manifest_org).create()
+    content_view.repository = []
+
+    # Enable rh repos and fetch repo ids
+    for name in rhel_repos:
+        rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch=DEFAULT_ARCHITECTURE,
+            org_id=module_sca_manifest_org.id,
+            product=REPOS[name]['product'],
+            repo=REPOS[name]['name'],
+            reposet=REPOS[name]['reposet'],
+            releasever=REPOS[name]['releasever'],
+        )
+        all_repo_ids.append(rh_repo_id)
+
+        # wait for repo creation/meta data generate task to complete
+        module_target_sat.wait_for_tasks(
+            search_query='Actions::Katello::Repository::MetadataGenerate',
+            max_tries=5,
+            search_rate=10,
+        )
+
+        # Read repository from repo id
+        rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+
+        # content view repositories
+        content_view.repository.append(rh_repo)
+
+    # Update content view repositories,publish and then promote content view to Library
+    content_view = module_target_sat.api.ContentView(
+        id=content_view.id, repository=content_view.repository
+    ).update(['repository'])
+    content_view.publish()
+    content_view = content_view.read()
+    cv_version = content_view.version[0]
+    cv_version.promote(data={'environment_ids': module_lce.id})
+
+    # Update activation key
+    module_ak = module_target_sat.api.ActivationKey(
+        id=module_ak.id,
+        organization=module_sca_manifest_org,
+        content_view=content_view,
+        environment=module_lce,
+    ).update()
+
+    # register host to satellite and enable repository if those are disable
+    for content_host in content_hosts:
+        assert (
+            content_host.register(
+                module_sca_manifest_org, None, module_ak.name, module_target_sat
+            ).status
+            == 0
+        )
+        raw_output = content_host.execute('subscription-manager repos --list').stdout
+        # Get repo name and add into empty list (this is workaround to avoid failure in airgun)
+        data_list = raw_output.split('\n')
+        for line in data_list:
+            if "Repo Name" in line:
+                repository = (line.split(':')[1]).lstrip()
+                all_repo_names.append(repository)
+        # If rhel repo is disabled then enable it
+        if "Enabled:   0" in raw_output:
+            rep_status = content_host.execute("subscription-manager repos --enable *").stdout
+            assert "enabled for this system" in rep_status
+        host_names.append(content_host.hostname)
+
+    # Change one or more repository status on multiple hosts through Manage content wizard
+    override_to_disabled = status_to_be_changed[0]
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_sca_manifest_org.name)
+        session.all_hosts.manage_repository_sets(
+            host_names=host_names,
+            select_all_hosts=False,
+            repository_names=all_repo_names,
+            status_to_change=override_to_disabled,
+        )
+        # Check status of repositories on each host, it should be disabled.
+        for content_host in content_hosts:
+            output = content_host.execute('subscription-manager repos --list').stdout
+            assert "Enabled:   0" in output, 'repository status not changed'
+
+        # Now change one or more repository status to enable
+        override_to_enabled = status_to_be_changed[1]
+        session.all_hosts.manage_repository_sets(
+            host_names=host_names,
+            select_all_hosts=False,
+            repository_names=all_repo_names,
+            status_to_change=override_to_enabled,
+        )
+
+        # Check status of repositories on each host, it should be enabled.
+        for content_host in content_hosts:
+            output = content_host.execute('subscription-manager repos --list').stdout
+            assert "Enabled:   1" in output, 'repository status not changed'
+
+
+def test_disassociate_multiple_hosts(
+    new_host_ui,
+    request,
+    target_sat,
+    module_location,
+    module_org,
+    vmware,
+    default_location,
+):
+    """
+    Import multiple VMs from a VMware compute resource, disassociate them via the UI,
+    and verify via API that their uuid and compute_resource_id are cleared.
+
+    :id: e5af21c7-62ef-4cc7-a72a-ab6c26090b68
+
+    :steps:
+        1. Create all required entities (domain, subnet, hostgroup, etc.)
+        2. Import 2 VMs from VMware into Satellite
+        3. Disassociate the VMs via the All Hosts UI
+        4. Verify via API that uuid and compute_resource_id are None
+
+    :expectedresults: VMs are disassociated and their compute resource info is cleared.
+
+    :CaseComponent: Hosts-Content
+
+    :Team: Phoenix-subscriptions
+    """
+
+    cr_name = gen_string('alpha')
+
+    # create entities for hostgroup
+    target_sat.api.SmartProxy(
+        id=target_sat.nailgun_smart_proxy.id, location=[default_location.id, module_location.id]
+    ).update()
+    domain = target_sat.api.Domain(
+        organization=[module_org.id], location=[module_location]
+    ).create()
+    subnet = target_sat.api.Subnet(
+        organization=[module_org.id], location=[module_location], domain=[domain]
+    ).create()
+    architecture = target_sat.api.Architecture().create()
+    ptable = target_sat.api.PartitionTable(
+        organization=[module_org.id], location=[module_location]
+    ).create()
+    operatingsystem = target_sat.api.OperatingSystem(
+        architecture=[architecture], ptable=[ptable]
+    ).create()
+    medium = target_sat.api.Media(
+        organization=[module_org.id], location=[module_location], operatingsystem=[operatingsystem]
+    ).create()
+    lce = (
+        target_sat.api.LifecycleEnvironment(name="Library", organization=module_org.id)
+        .search()[0]
+        .read()
+        .id
+    )
+    cv = target_sat.api.ContentView(organization=module_org).create()
+    cv.publish()
+
+    # create hostgroup
+    hostgroup_name = gen_string('alpha')
+    target_sat.api.HostGroup(
+        name=hostgroup_name,
+        architecture=architecture,
+        domain=domain,
+        subnet=subnet,
+        location=[module_location.id],
+        medium=medium,
+        operatingsystem=operatingsystem,
+        organization=[module_org],
+        ptable=ptable,
+        lifecycle_environment=lce,
+        content_view=cv,
+        content_source=target_sat.nailgun_smart_proxy.id,
+    ).create()
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+        session.computeresource.create(
+            {
+                'name': cr_name,
+                'provider': FOREMAN_PROVIDERS['vmware'],
+                'provider_content.vcenter': vmware.hostname,
+                'provider_content.user': settings.vmware.username,
+                'provider_content.password': settings.vmware.password,
+                'provider_content.datacenter.value': settings.vmware.datacenter,
+                'locations.resources.assigned': [module_location.name],
+                'organizations.resources.assigned': [module_org.name],
+            }
+        )
+        session.hostgroup.update(
+            hostgroup_name, {'host_group.deploy': f'{cr_name} ({FOREMAN_PROVIDERS["vmware"]})'}
+        )
+
+        cr_vm_names = [settings.vmware.vm_name, 'phoenix-testing-guest-rhel-8']
+        vm_names_with_domains = [f'{name.replace(".", "")}.{domain.name}' for name in cr_vm_names]
+
+        # Import VMs from VMware compute resource
+        for cr_vm_name, vm_name_with_domain in zip(
+            cr_vm_names, vm_names_with_domains, strict=False
+        ):
+            session.computeresource.vm_import(
+                cr_name,
+                cr_vm_name,
+                hostgroup_name,
+                module_location.name,
+                name=cr_vm_name.replace('.', ''),
+            )
+            assert session.all_hosts.search(vm_name_with_domain)
+
+        @request.addfinalizer
+        def _cleanup():
+            for vm_name in vm_names_with_domains:
+                try:
+                    target_sat.api.Host().search(query={"search": f'name={vm_name}'})[0].delete()
+                except APIResponseError as e:
+                    print(f"Failed to delete VM {vm_name}: {e}")
+
+        for vm_name in vm_names_with_domains:
+            # Get info about host from API
+            host = target_sat.api.Host().search(query={"search": f'name={vm_name}'})[0]
+            # Check that uuid and compute_resource_id are set
+            assert host.uuid is not None, f"UUID for {vm_name} is not set"
+            assert host.compute_resource.id is not None, (
+                f"Compute resource ID for {vm_name} is not set"
+            )
+
+        session.all_hosts.disassociate_hosts(host_names=vm_names_with_domains)
+
+        for vm_name in vm_names_with_domains:
+            # Get info about host from API
+            host = target_sat.api.Host().search(query={"search": f'name={vm_name}'})[0]
+            # Check that uuid and compute_resource_id are set to None
+            assert host.uuid is None, f"UUID for {vm_name} is not None after disassociation"
+            assert host.compute_resource is None, (
+                f"Compute resource ID for {vm_name} is not None after disassociation"
+            )

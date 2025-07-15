@@ -1,7 +1,22 @@
 ---
+custom_alternate_content_sources_count: 0
+simplified_alternate_content_sources_count: 0
+rhui_alternate_content_sources_count: 0
+yum_alternate_content_sources_count: 0
+file_alternate_content_sources_count: 0
+custom_library_yum_repositories_count: 0
+redhat_library_yum_repositories_count: 0
+library_debian_repositories_count: 0
+library_container_repositories_count: 0
+library_file_repositories_count: 0
+library_python_repositories_count: 0
+library_ansible_collection_repositories_count: 0
+library_ostree_repositories_count: 0
+advisor_on_prem_remediations_enabled: false
+advisor_on_prem_remediations_count:
 compliance_policy_count: 0
 compliance_policy_with_tailoring_file_count: 0
-compliance_scap_contents_count: 4
+compliance_scap_contents_count: 5
 compliance_non_default_scap_contents_count: 0
 compliance_arf_report_last_year_count: 0
 last_login_on_through_external_auth_source_in_days:
@@ -10,63 +25,73 @@ host_collections_with_limit_count: 0
 hostgroup_nesting: false
 hostgroup_max_nesting_level: 0
 use_selectable_columns: false
-instance_uuid: 3d928d38-a220-5c2b-88a4-6480402e2d67
-hosts_by_type_count|Managed: 2
-hosts_by_os_count|RedHat: 2
-facts_by_type|Puppet|min_update_time: '2025-02-28 07:26:59.613761'
-facts_by_type|Puppet|max_update_time: '2025-03-04 09:23:47.680665'
-facts_by_type|Puppet|values_count: 825
-audits|records_count: 174
-audits|min_created_at: '2025-02-28 07:24:30.472956'
-audits|max_created_at: '2025-03-04 13:49:48.575563'
-parameters_count|CommonParameter: 6
+instance_uuid: dcce9379-72f9-5a18-8916-4511234f0001
+hosts_by_type_count|Managed: 1
+hosts_by_os_count|RedHat: 1
+facts_by_type|Puppet|min_update_time: '2025-07-07 09:54:04.928769'
+facts_by_type|Puppet|max_update_time: '2025-07-07 09:54:05.959833'
+facts_by_type|Puppet|values_count: 404
+audits|records_count: 57
+audits|min_created_at: '2025-07-07 09:52:32.724095'
+audits|max_created_at: '2025-07-07 09:56:10.606464'
+parameters_count|CommonParameter: 7
+rhel_ai_workload_host_count: 0
 kerberos_use: false
 kerberos_api_use: false
 external_user_group_mapping_count: 0
 ldap_auth_source_free_ipa_count: 0
 users_authenticated_through_ldap_auth_source_free_ipa: 0
 last_login_on_through_ldap_auth_source_free_ipa_in_days:
-ldap_auth_source_free_ipa_with_net_groups_count: 0
-ldap_auth_source_free_ipa_with_posix_groups_count: 0
+ldap_auth_source_free_ipa_with_net_groups_count:
+ldap_auth_source_free_ipa_with_posix_groups_count:
 ldap_auth_source_free_ipa_with_account_creation_disabled_count: 0
 ldap_auth_source_free_ipa_with_user_group_sync_disabled_count: 0
 ldap_auth_source_posix_count: 0
 users_authenticated_through_ldap_auth_source_posix: 0
 last_login_on_through_ldap_auth_source_posix_in_days:
-ldap_auth_source_posix_with_net_groups_count: 0
-ldap_auth_source_posix_with_posix_groups_count: 0
+ldap_auth_source_posix_with_net_groups_count:
+ldap_auth_source_posix_with_posix_groups_count:
 ldap_auth_source_posix_with_account_creation_disabled_count: 0
 ldap_auth_source_posix_with_user_group_sync_disabled_count: 0
 ldap_auth_source_active_directory_count: 0
 users_authenticated_through_ldap_auth_source_active_directory: 0
 last_login_on_through_ldap_auth_source_active_directory_in_days:
-ldap_auth_source_active_directory_with_net_groups_count: 0
-ldap_auth_source_active_directory_with_posix_groups_count: 0
+ldap_auth_source_active_directory_with_net_groups_count:
+ldap_auth_source_active_directory_with_posix_groups_count:
 ldap_auth_source_active_directory_with_account_creation_disabled_count: 0
 ldap_auth_source_active_directory_with_user_group_sync_disabled_count: 0
+subnet_ipv4_count: 0
+subnet_ipv6_count: 0
+hosts_with_ipv4only_interface_count: 1
+hosts_with_ipv6only_interface_count: 0
+hosts_with_dualstack_interface_count: 0
+foreman_interfaces_ipv4only_count: 1
+foreman_interfaces_ipv6only_count: 0
+foreman_interfaces_dualstack_count: 0
+setting_remote_execution_connect_by_ip_prefer_ipv6: false
+setting_discovery_prefer_ipv6: false
 oidc_use: false
-smart_proxies_count: 2
-smart_proxies_creation_date|1: '2025-02-28 07:27:44.019516'
-smart_proxies_creation_date|2: '2025-03-04 13:31:00.384847'
+smart_proxies_count: 1
+smart_proxies_creation_date|1: '2025-07-07 09:54:48.011233'
 total_users_count: 4
 non_admin_users_count: 0
 custom_roles_count: 0
-taxonomies_counts|Organization: 2
-taxonomies_counts|Location: 2
-modified_settings: bcrypt_cost,default_organization,default_location_subscribed_hosts,default_location,db_pending_seed,instance_id,failed_login_attempts_limit
+taxonomies_counts|Organization: 1
+taxonomies_counts|Location: 1
+modified_settings: bcrypt_cost,default_organization,default_location_subscribed_hosts,default_location,db_pending_seed,instance_id
 bookmarks_by_public_by_type|public|User: 18
 user_mail_notifications_count: 1
 user_groups_count: 0
 managed_hosts_created_in_last_3_months: 0
-hosts_by_compute_resources_type|baremetal: 2
-hosts_by_compute_profile|none: 2
-nics_by_type_count|Managed: 2
-hosts_by_managed_count|unmanaged: 2
+hosts_by_compute_resources_type|baremetal: 1
+hosts_by_compute_profile|none: 1
+nics_by_type_count|Managed: 1
+hosts_by_managed_count|unmanaged: 1
 discovery_rules_count: 0
 users_count: 1
 assigned_custom_roles_count: 0
-organizations_count: 2
-locations_count: 2
+organizations_count: 1
+locations_count: 1
 organization_ignore_types_used: false
 location_ignore_types_used: true
 recurring_logics_indefinite_rex_count: 0

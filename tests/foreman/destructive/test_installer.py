@@ -6,7 +6,7 @@
 
 :CaseComponent: Installation
 
-:Team: Platform
+:Team: Rocket
 
 :CaseImportance: Critical
 
@@ -244,7 +244,7 @@ def test_negative_installer_invalid_dns_forwarder(target_sat):
         1. satellite-installer should fail when invalid values are used for dns_forwarder
         2. satellite-installer shouldn't set the invalid values for dns_forwarder
 
-    :verifies: SAT-26014
+    :Verifies: SAT-26014
 
     :customerscenario: true
     """

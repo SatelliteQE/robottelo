@@ -16,6 +16,7 @@ import requests
 from requests.exceptions import HTTPError
 
 from robottelo.config import settings
+from robottelo.enums import NetworkType
 from robottelo.utils.installer import InstallerCommand
 
 pytestmark = pytest.mark.destructive
@@ -89,7 +90,7 @@ def test_plugin_installation(target_sat, command_args, command_opts, rpm_command
 
     :id: c75aa5f3-870a-4f4a-9d7a-0a871b47fd6f
 
-    :steps: Run installer with mininum options required to install plugins
+    :steps: Run installer with minimum options required to install plugins
 
     :expectedresults: Plugins install successfully
 
@@ -175,7 +176,7 @@ def test_infoblox_end_to_end(
     assert f'current: "{settings.infoblox.hostname}"' in installer.stdout
 
     macaddress = gen_mac(multicast=False)
-    is_ipv6 = settings.server.is_ipv6
+    is_ipv6 = module_target_sat.network_type == NetworkType.IPV6
     # using the domain name as defined in Infoblox DNS
     domain = module_target_sat.api.Domain(
         name=settings.infoblox.domain,

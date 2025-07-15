@@ -104,6 +104,11 @@ jobs:
             rm -rf ./.github/workflows/dispatch_release.yml
             rm -rf ./.github/workflows/auto_branching.yml
 
+      - name: Remove CODEOWNERS
+        id: remove-codeowners
+        run: |
+            rm -f ./.github/CODEOWNERS
+
       - name: Remove lines with @pytest.mark.stream
         id: remove-mark-stream
         run: |

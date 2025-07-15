@@ -109,7 +109,7 @@ class TestRemoteExecution:
 
         :customerscenario: true
 
-        :verifies: SAT-29062
+        :Verifies: SAT-29062
 
         :parametrized: yes
         """
@@ -152,7 +152,7 @@ class TestRemoteExecution:
 
         :expectedresults: Verify the job exits as expected
 
-        :verifies: SAT-28435
+        :Verifies: SAT-28435
 
         :parametrized: yes
         """
@@ -251,7 +251,7 @@ class TestRemoteExecution:
 
         :BZ: 1451675, 1804685
 
-        :verifies: SAT-22554, SAT-23229
+        :Verifies: SAT-22554, SAT-23229
 
         :expectedresults: Verify the job was successfully run under the
             effective user identity on host, make sure the password is
@@ -315,7 +315,7 @@ class TestRemoteExecution:
                     'effective-user': f'{username}',
                 }
             )
-        # negative check for effective user privilige on client
+        # negative check for effective user privilege on client
         command = 'touch /root/test'
         with pytest.raises(CLIFactoryError) as error:
             invocation_command = module_target_sat.cli_factory.job_invocation(
@@ -372,7 +372,7 @@ class TestRemoteExecution:
 
         :id: 0adaf5a2-930a-4050-863b-62456234ce8c
 
-        :verifies: SAT-28443
+        :Verifies: SAT-28443
 
         :customerscenario: true
 
@@ -381,7 +381,7 @@ class TestRemoteExecution:
             2. re-register the client to check that sudo setup was performed based on parameters
             3. run rex to see that sudo was configured correctly
 
-        :expectedresults: Verify global paremeters are used to set up rex during registration
+        :expectedresults: Verify global parameters are used to set up rex during registration
 
         :parametrized: yes
         """
@@ -911,7 +911,7 @@ class TestRemoteExecution:
         invocation = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
-                'inputs': 'command=echo this wont ever run',
+                'inputs': 'command=echo this would never run',
                 'search-query': f'name ~ {host.name}',
                 'cron-line': '* * * * *',  # every minute
             }
@@ -1008,6 +1008,7 @@ class TestRexUsers:
         rex_contenthost,
         class_rexmanager_user,
         class_rexinfra_user,
+        default_location,
         target_sat,
         infra_host,
         module_org,
@@ -1035,6 +1036,9 @@ class TestRexUsers:
         infra_host.add_rex_key(satellite=target_sat)
         target_sat.cli.Host.update(
             {'name': infra_host.hostname, 'new-organization-id': module_org.id}
+        )
+        target_sat.cli.Host.update(
+            {'name': infra_host.hostname, 'new-location-id': default_location.id}
         )
 
         # run job as admin
@@ -1466,7 +1470,7 @@ class TestPullProviderRex:
         # assert the file is owned by the effective user
         assert username == result.stdout.strip('\n')
 
-        # negative check for effective user privilige on client
+        # negative check for effective user privilege on client
         command = 'touch /root/test'
         with pytest.raises(CLIFactoryError) as error:
             invocation_command = module_target_sat.cli_factory.job_invocation(

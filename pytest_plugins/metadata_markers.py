@@ -152,9 +152,6 @@ def pytest_collection_modifyitems(items, config):
     sat_version = settings.server.version.get('release')
     snap_version = settings.server.version.get('snap', '')
 
-    # Satellite Network Type on which tests are running on
-    satellite_network_type = 'ipv6' if settings.server.is_ipv6 else 'ipv4'
-
     # split the option string and handle no option, single option, multiple
     # config.getoption(default) doesn't work like you think it does, hence or ''
     importance = [i.lower() for i in (config.getoption('importance') or '').split(',') if i != '']
@@ -211,12 +208,12 @@ def pytest_collection_modifyitems(items, config):
         markers_prop_data = []
         exclude_markers = ['parametrize', 'skipif', 'usefixtures', 'skip_if_not_set']
         for marker in item.iter_markers():
-            proprty = marker.name
-            if proprty in exclude_markers:
+            property = marker.name
+            if property in exclude_markers:
                 continue
             if marker_val := next(iter(marker.args), None):
-                proprty = '='.join([proprty, str(marker_val)])
-            markers_prop_data.append(proprty)
+                property = '='.join([property, str(marker_val)])
+            markers_prop_data.append(property)
             # Adding independent marker as a property
             item.user_properties.append((marker.name, marker_val))
         # Adding all markers as a single property
@@ -228,7 +225,12 @@ def pytest_collection_modifyitems(items, config):
         item.user_properties.append(("SnapVersion", snap_version))
 
         # Network Type user property
-        item.user_properties.append(("SatelliteNetworkType", satellite_network_type))
+        # Note:
+        # We must convert the network type to a string
+        # because the network type is a class object
+        # and execnet/xdist will not serialize it
+        # properly when running in parallel
+        item.user_properties.append(("SatelliteNetworkType", str(settings.server.network_type)))
 
         # exit early if no filters were passed
         if importance or component or team:
