@@ -1653,6 +1653,36 @@ class Capsule(ContentHost, CapsuleMixins):
     def rex_pub_key(self):
         return self.execute(f'cat {self.rex_key_path}').stdout.strip()
 
+    def setup(self):
+        logger.debug('START: setting up Capsule host %s', self)
+        # Call parent setup method FIRST
+        super().setup()
+
+        # Only run Capsule-specific tasks if the instance is an actual Capsule
+        # (not a Satellite that's inheriting from Capsule)
+        if self.__class__ == Capsule:
+            logger.debug('Running Capsule-specific setup tasks')
+
+        # Common tasks that should always run, regardless of instance class
+        logger.debug('Running common Capsule setup tasks')
+
+        logger.debug('END: setting up Capsule host %s', self)
+
+    def teardown(self):
+        logger.debug('START: tearing down Capsule host %s', self)
+
+        # Only run Capsule-specific teardown if the instance is an actual Capsule
+        # (not a Satellite that's inheriting from Capsule)
+        if self.__class__ == Capsule:
+            logger.debug('Running Capsule-specific teardown tasks')
+
+        # Common teardown tasks that should always run, regardless of instance class
+        logger.debug('Running common Capsule teardown tasks')
+
+        # Call parent teardown method LAST
+        super().teardown()
+        logger.debug('END: tearing down Capsule host %s', self)
+
     def restart_services(self):
         """Restart services, returning True if passed and stdout if not"""
         result = self.execute('satellite-maintain service restart')
@@ -1988,6 +2018,22 @@ class Satellite(Capsule, SatelliteMixins):
         if not self._satellite:
             return self
         return self._satellite
+
+    def setup(self):
+        logger.debug('START: setting up Satellite host %s', self)
+        # Call parent setup method FIRST
+        super().setup()
+        logger.debug('Running common Satellite setup tasks')
+
+        logger.debug('END: setting up Satellite host %s', self)
+
+    def teardown(self):
+        logger.debug('START: tearing down Satellite host %s', self)
+        # Perform Satellite teardown tasks here
+
+        # Call parent teardown method after Satellite-specific teardown
+        super().teardown()
+        logger.debug('END: tearing down Satellite host %s', self)
 
     def enable_satellite_http_proxy(self):
         """Execute procedures for setting HTTP Proxy in Satellite settings.
