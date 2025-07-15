@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:Team: Phoenix-content
+:Team: Artemis
 
 :CaseComponent: ContainerManagement-Content
 
