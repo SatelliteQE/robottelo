@@ -163,6 +163,7 @@ def test_positive_provision_end_to_end(
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 @pytest.mark.rhel_ver_match('[8]')
+@pytest.mark.skip_if_open('SAT-35643')
 def test_positive_image_provision_end_to_end(
     request,
     setting_update,

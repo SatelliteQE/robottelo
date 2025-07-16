@@ -406,6 +406,15 @@ def test_positive_create_and_update_with_subnet(
     host.subnet = new_subnet
     host = host.update(['subnet'])
     assert host.subnet.read().name == new_subnet.name
+    # check that subnet values are included in the usage report
+    if module_target_sat.network_type.has_ipv4:
+        assert int(module_target_sat.get_reported_value('subnet_ipv4_count')) > 0
+        assert int(module_target_sat.get_reported_value('hosts_with_ipv4only_interface_count')) > 0
+        assert int(module_target_sat.get_reported_value('foreman_interfaces_ipv4only_count')) > 0
+    if module_target_sat.network_type.has_ipv6:
+        assert int(module_target_sat.get_reported_value('subnet_ipv6_count')) > 0
+        assert int(module_target_sat.get_reported_value('hosts_with_ipv6only_interface_count')) > 0
+        assert int(module_target_sat.get_reported_value('foreman_interfaces_ipv6only_count')) > 0
 
 
 def test_positive_create_and_update_with_compresource(
@@ -1078,6 +1087,12 @@ def test_positive_bootc_api_actions(target_sat, bootc_host, function_ak_with_cv,
         == bootc_dummy_info['bootc.booted.digest']
     )
     assert bootc_image_info['digests'][0]['host_count'] > 0
+
+    # Testing bootc image is correctly included in the usage report
+    os = bootc_host.operatingsystem.read_json()
+    assert (
+        int(target_sat.get_reported_value(f'image_mode_hosts_by_os_count|{os["family"]}')) == 1
+    ), "host not included in usage report"
 
 
 @pytest.mark.parametrize(

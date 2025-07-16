@@ -85,7 +85,9 @@ def test_CRUD_and_sync_flatpak_remote_with_permissions(
     # 1. Ensure that remotes can be listed only with proper permissions.
     p = 'view_flatpak_remotes'
     with pytest.raises(CLIReturnCodeError) as e:
-        target_sat.cli.FlatpakRemote().with_user(usr, pwd).list()
+        target_sat.cli.FlatpakRemote().with_user(usr, pwd).list(
+            {'organization-id': function_org.id}
+        )
     assert emsg.format(p) in str(e)
 
     target_sat.api_factory.create_role_permissions(function_role, {'Katello::FlatpakRemote': [p]})

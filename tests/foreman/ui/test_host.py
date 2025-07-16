@@ -2462,9 +2462,15 @@ def test_positive_page_redirect_after_update(target_sat, current_sat_location):
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_host_status_honors_taxonomies(
-    module_target_sat, test_name, rhel_contenthost, setup_content, default_location, default_org
+    module_target_sat,
+    test_name,
+    rhel_contenthost,
+    setup_content,
+    default_location,
+    default_org,
+    default_org_lce,
 ):
     """Check that host status counts in Monitor -> Host Statuses show only hosts that the user has permissions to
 
@@ -2478,13 +2484,23 @@ def test_host_status_honors_taxonomies(
     :expectedresults: First, the user can't see any host, then they can see one host
     """
     ak, org, _ = setup_content
+
+    lce = default_org_lce
+    # Create content view environment for the default org
+    content_view = module_target_sat.api.ContentView(organization=default_org).create()
+    content_view.publish()
+    published_cv = content_view.read()
+    content_view_version = published_cv.version[0]
+    content_view_version.promote(data={'environment_ids': lce.id})
+
     # default_org != org (== module_org)
     default_org_ak_name = gen_string('alpha')
-    module_target_sat.cli.ActivationKey.create(
+    module_target_sat.cli_factory.make_activation_key(
         {
             'name': default_org_ak_name,
             'organization-id': default_org.id,
-            'lifecycle-environment': 'Library',
+            'lifecycle-environment-id': lce.id,
+            'content-view-id': published_cv.id,
         }
     )['name']
     # register the host to default_org
