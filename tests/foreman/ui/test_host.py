@@ -2245,8 +2245,7 @@ def test_bootc_transient_install_warning(
         2.Navigate to the All Hosts UI, and the Manage Packages and Manage Errata wizards.
 
 
-    :expectedresults: In the 3 above cases, it is communicated to the user that package/errata actions
-    will be transient.
+    :expectedresults: In the 3 above cases, it is communicated to the user that package/errata actions will be transient.
 
     :CaseComponent:Hosts-Content
 
