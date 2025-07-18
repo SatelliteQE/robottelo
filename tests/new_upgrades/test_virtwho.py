@@ -13,7 +13,7 @@
 """
 
 from box import Box
-from fauxfactory import gen_alpha
+from fauxfactory import gen_alpha, gen_string
 from manifester import Manifester
 import pytest
 
@@ -21,13 +21,9 @@ from robottelo.config import settings
 from robottelo.utils.shared_resource import SharedResource
 from robottelo.utils.virtwho import (
     deploy_configure_by_command,
-    deploy_validation,
     get_configure_command,
     get_configure_file,
-    get_guest_info,
     get_configure_option,
-    runcmd,
-    VirtWhoError
 )
 
 
@@ -57,24 +53,14 @@ def virt_who_upgrade_manifest():
 ORG_DATA = {'name': f'virtwho_upgrade_{gen_alpha()}'}
 
 
-# class TestScenarioPositiveVirtWho:
-"""Virt-who config is intact post upgrade and verify the config can be updated and deleted.
-:steps:
-
-    1. In Preupgrade Satellite, create virt-who-config.
-    2. Upgrade the satellite to next/latest version.
-    3. Postupgrade, Verify the virt-who config is intact, update and delete.
-
-:expectedresults: Virtwho config should be created, updated and deleted successfully.
-"""
-
 @pytest.fixture
 def create_virt_who_configuration_setup(
-    virt_who_upgrade_shared_satellite, form_data, virt_who_upgrade_manifest, upgrade_action,
+    virt_who_upgrade_shared_satellite,
+    form_data,
+    virt_who_upgrade_manifest,
+    upgrade_action,
 ):
     """Create and deploy virt-who configuration.
-
-    :id: preupgrade-a36cbe89-47a2-422f-9881-0f86bea0e24e
 
     :steps: In Preupgrade Satellite, Create and deploy virt-who configuration.
 
@@ -84,59 +70,34 @@ def create_virt_who_configuration_setup(
         3. Report is sent to satellite.
     """
     target_sat = virt_who_upgrade_shared_satellite
+    settings.server.hostname = target_sat.hostname
     manifest = virt_who_upgrade_manifest
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_name = f'virt_who_upgrade_{gen_alpha()}'
         org = target_sat.api.Organization(name=f'{test_name}_org').create()
-        location = target_sat.api.Location(name=f'{test_name}_location').create()
-        library_id = int(
-            target_sat.cli.LifecycleEnvironment.list(
-                {'organization-id': org.id, 'library': 'true'}
-            )[0]['id']
-        )
-        lce = target_sat.api.LifecycleEnvironment(
-            name=f'{test_name}_lce', organization=org, prior=library_id
-        ).create()
-        content_view = target_sat.publish_content_view(org, [], f'{test_name}_cv')
-        ak = target_sat.api.ActivationKey(
-            name=f'{test_name}_ak', organization=org.id, environment=lce, content_view=content_view
-        ).create()
         test_data = Box(
             {
                 'hypervisor_name': None,
                 'guest_name': None,
                 'org': org,
+                'satellite': target_sat,
                 'vhd': None,
-                
             }
         )
         target_sat.upload_manifest(org.id, manifest.content)
         form_data.update({'organization_id': org.id})
         vhd = target_sat.api.VirtWhoConfig(**form_data).create()
-        test_data.vhd = vhd
         assert vhd.status == 'unknown'
-        command = get_configure_command(vhd.id, org=org.name)
-        result = rhel_contenthost.api_register(
-            target_sat, organization=org, activation_keys=[ak.name], location=location,
+        configure_command = get_configure_command(vhd.id, org=org.name)
+        hypervisor_name, guest_name = deploy_configure_by_command(
+            configure_command, form_data['hypervisor_type'], debug=True, org=org.label
         )
-        assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
-        register host
-        ret, stdout = runcmd(command, system=target_sat.hostname)
-        if ret != 0 or 'Finished successfully' not in stdout:
-            raise VirtWhoError(f'Failed to deploy configure by {command}')
-        hypervisor_name, guest_name = deploy_validation('esx')
-        # hypervisor_name, guest_name = deploy_configure_by_command(
-        #     command, form_data['hypervisor_type'], debug=True, org=org.label
-        # )
         test_data.hypervisor_name = hypervisor_name
         test_data.guest_name = guest_name
-        virt_who_instance = (
-            target_sat.api.VirtWhoConfig(organization_id=org.id)
-            .search(query={'search': f'name={form_data["name"]}'})[0]
-            .status
-        )
-        assert virt_who_instance == 'ok'
+        test_data.vhd = vhd.read()
+        assert test_data.vhd.status == 'ok'
         sat_upgrade.ready()
+        target_sat._session = None
         yield test_data
 
 
@@ -144,7 +105,7 @@ def create_virt_who_configuration_setup(
 def test_post_crud_virt_who_configuration(create_virt_who_configuration_setup, form_data):
     """Virt-who config is intact post upgrade and verify the config can be updated and deleted.
 
-    :id: postupgrade-d7ae7b2b-3291-48c8-b412-cb54e444c7a4
+    :id: d7ae7b2b-3291-48c8-b412-cb54e444c7a4
 
     :steps:
         1. Post upgrade, Verify virt-who exists and has same status.
@@ -169,9 +130,7 @@ def test_post_crud_virt_who_configuration(create_virt_who_configuration_setup, f
     # Verify virt-who status via CLI as we cannot check it via API now
     vhd_cli = target_sat.cli.VirtWhoConfig.exists(search=('name', vhd.name))
     assert (
-        target_sat.cli.VirtWhoConfig.info({'id': vhd_cli['id']})['general-information'][
-            'status'
-        ]
+        target_sat.cli.VirtWhoConfig.info({'id': vhd_cli['id']})['general-information']['status']
         == 'OK'
     )
 
@@ -185,9 +144,7 @@ def test_post_crud_virt_who_configuration(create_virt_who_configuration_setup, f
     )
     assert result['subscription_facet_attributes']['virtual_guests'][0]['name'] == guest_name
     result = (
-        target_sat.api.Host(organization=org.id)
-        .search(query={'search': guest_name})[0]
-        .read_json()
+        target_sat.api.Host(organization=org.id).search(query={'search': guest_name})[0].read_json()
     )
     assert hypervisor_name in result['subscription_facet_attributes']['virtual_host']['name']
 
@@ -197,9 +154,7 @@ def test_post_crud_virt_who_configuration(create_virt_who_configuration_setup, f
 
     # Verify Report is sent to satellite.
     command = get_configure_command(vhd.id, org=org.name)
-    deploy_configure_by_command(
-        command, form_data['hypervisor_type'], debug=True, org=org.label
-    )
+    deploy_configure_by_command(command, form_data['hypervisor_type'], debug=True, org=org.label)
     virt_who_instance = (
         target_sat.api.VirtWhoConfig(organization_id=org.id)
         .search(query={'search': f'name={vhd.name}'})[0]
