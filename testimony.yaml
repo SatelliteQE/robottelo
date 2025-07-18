@@ -39,7 +39,7 @@ CaseComponent:
     - ComputeResources-OpenStack
     - ComputeResources-RHEV
     - ComputeResources-VMWare
-    - ContainerManagement-Content
+    - ContainerImageManagement
     - ContentCredentials
     - ContentManagement
     - ContentViews

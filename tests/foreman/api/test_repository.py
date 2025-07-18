@@ -2315,7 +2315,7 @@ class TestTokenAuthContainerRepository:
     but test with more container registries and registries that use
     really long (>255 or >1024) tokens for passwords.
 
-    :CaseComponent: ContainerManagement-Content
+    :CaseComponent: ContainerImageManagement
 
     :team: Phoenix-content
     """
