@@ -6,7 +6,7 @@
 
 :CaseComponent: Capsule-Content
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 

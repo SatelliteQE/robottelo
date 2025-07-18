@@ -6,7 +6,7 @@
 
 :CaseComponent: ErrataManagement
 
-:Team: Phoenix-content
+:Team: Artemis
 
 :CaseImportance: Critical
 

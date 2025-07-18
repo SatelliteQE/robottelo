@@ -10,7 +10,7 @@ http://www.katello.org/docs/api/apidoc/lifecycle_environments.html
 
 :CaseComponent: LifecycleEnvironments
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 

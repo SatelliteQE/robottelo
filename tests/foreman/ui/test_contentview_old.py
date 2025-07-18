@@ -9,7 +9,7 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 
 :CaseComponent: ContentViews
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
