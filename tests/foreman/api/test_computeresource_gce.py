@@ -228,7 +228,6 @@ class TestGCEHostProvisioningTestCase:
     @pytest.mark.e2e
     @pytest.mark.tier1
     @pytest.mark.pit_server
-    @pytest.mark.build_sanity
     @pytest.mark.skipif(
         (is_open('SAT-27997')),
         reason='Google CR APIs failing',
