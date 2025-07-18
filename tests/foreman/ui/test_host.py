@@ -1423,19 +1423,22 @@ def test_positive_update_delete_package(
     """
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(
+        vm=client,
+        enable_custom_repos=True,
+    )
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         product_name = module_repos_collection_with_setup.custom_product.name
-        repos = session.host_new.get_repo_sets(client.hostname, product_name)
-        assert repos[0].status == 'Enabled'
+
         session.host_new.override_repo_sets(client.hostname, product_name, "Override to disabled")
-        assert repos[0].status == 'Disabled'
-        session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
+        repos = session.host_new.get_repo_sets(client.hostname, product_name)
+        assert repos[0]['Status'] == 'Disabled'
         result = client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
         assert result.status != 0
         session.host_new.override_repo_sets(client.hostname, product_name, "Override to enabled")
-        assert repos[0].status == 'Enabled'
+        repos = session.host_new.get_repo_sets(client.hostname, product_name)
+        assert repos[0]['Status'] == 'Enabled'
         # refresh repos on system
         client.run('subscription-manager repos')
         # install package
@@ -1448,9 +1451,9 @@ def test_positive_update_delete_package(
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
-        assert len(packages['table']) == 1
-        assert packages['table'][0]['Package'] == FAKE_8_CUSTOM_PACKAGE_NAME
-        assert 'Up-to date' in packages['table'][0]['Status']
+        assert len(packages) == 1
+        assert packages[0]['Package'] == FAKE_8_CUSTOM_PACKAGE_NAME
+        assert 'Up-to date' in packages[0]['Status']
         result = client.run(f'rpm -q {FAKE_8_CUSTOM_PACKAGE}')
         assert result.status == 0
 
@@ -1464,9 +1467,9 @@ def test_positive_update_delete_package(
 
         # filter packages
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
-        assert len(packages['table']) == 1
-        assert packages['table'][0]['Package'] == FAKE_8_CUSTOM_PACKAGE_NAME
-        assert 'Upgradable' in packages['table'][0]['Status']
+        assert len(packages) == 1
+        assert packages[0]['Package'] == FAKE_8_CUSTOM_PACKAGE_NAME
+        assert 'Upgradable' in packages[0]['Status']
 
         # update package
         session.host_new.apply_package_action(
@@ -1480,7 +1483,7 @@ def test_positive_update_delete_package(
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
-        assert 'Up-to date' in packages['table'][0]['Status']
+        assert 'Up-to date' in packages[0]['Status']
 
         # remove package
         session.host_new.apply_package_action(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME, "Remove")
@@ -1492,7 +1495,7 @@ def test_positive_update_delete_package(
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
-        assert 'table' not in packages
+        assert not packages
         result = client.run(f'rpm -q {FAKE_8_CUSTOM_PACKAGE}')
         assert result.status != 0
 
