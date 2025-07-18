@@ -521,3 +521,38 @@ def test_positive_repo_discovery(setup_http_proxy, module_target_sat, module_org
                 product_name, settings.container.docker.repo_upstream_name
             )[0]['Name']
         )
+
+
+def test_authenticated_test_connection(target_sat, module_sca_manifest_org, default_location):
+    """Test connection doesn't throw any errors when run on an authenticated HTTP Proxy
+
+    :id: 4f2e63b4-64a1-47f3-88e2-303298d89092
+
+    :steps:
+        1. Create an HTTP Proxy requiring Authentication
+        2. Navigate to Edit, and click the "change password" button
+        3. Input the password again.
+        4. Run Test Connection.
+
+    :expectedresults: Test Connection doesn't raise any errors.
+
+    :Verifies: SAT-21767
+
+    :customerscenario: true
+    """
+    proxy_name = gen_string('alpha')
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_sca_manifest_org.name)
+        session.http_proxy.create(
+            {
+                'http_proxy.name': proxy_name,
+                'http_proxy.url': settings.http_proxy.auth_proxy_url,
+                'http_proxy.username': settings.http_proxy.username,
+                'http_proxy.password': settings.http_proxy.password,
+                'locations.resources.assigned': [default_location.name],
+                'organizations.resources.assigned': [module_sca_manifest_org.name],
+            }
+        )
+        session.http_proxy.test_connection(
+            proxy_name, {'http_proxy.password': settings.http_proxy.password}
+        )
