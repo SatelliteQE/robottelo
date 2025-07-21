@@ -39,14 +39,10 @@ def module_os(module_target_sat):
 @pytest.fixture(scope='module')
 def os_path(default_os):
     # Check what OS was found to use correct media
-    if default_os.major == "6":
-        os_distr_url = settings.repos.rhel6_os
-    elif default_os.major == "7":
-        os_distr_url = settings.repos.rhel7_os
-    elif default_os.major == "8":
-        os_distr_url = settings.repos.rhel8_os.baseos
-    elif default_os.major == "9":
-        os_distr_url = settings.repos.rhel9_os.baseos
+    if int(default_os.major) <= 7:
+        os_distr_url = getattr(settings.repos, f'rhel{default_os.major}_os')
+    elif int(default_os.major) > 7:
+        os_distr_url = getattr(settings.repos, f'rhel{default_os.major}_os').baseos
     else:
         pytest.fail('Proposed RHEL version is not supported')
     return os_distr_url
