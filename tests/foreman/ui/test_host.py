@@ -3313,6 +3313,11 @@ def test_positive_change_hosts_org_loc(
         )
         host_names.append(host.name)
 
+    @request.addfinalizer
+    def cleanup():
+        second_org.delete()
+        second_location.delete()
+
     # Verify hosts are initially in the first org/location
     for host_name in host_names:
         host_entity = module_target_sat.api.Host().search(query={'search': f'name={host_name}'})[0]
@@ -3357,8 +3362,3 @@ def test_positive_change_hosts_org_loc(
             assert host_entity.location.id == second_location.id, (
                 f"Host {host_name} not moved to second location"
             )
-
-    @request.addfinalizer
-    def cleanup():
-        second_org.delete()
-        second_location.delete()
