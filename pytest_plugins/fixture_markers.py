@@ -137,6 +137,10 @@ def pytest_generate_tests(metafunc):
                 hosts = ['capsule']
             elif mark.name == 'include_capsule':
                 hosts += ['capsule']
+            elif mark.name == 'include_satellite_iop':
+                hosts += ['satellite_iop']
+            elif mark.name == 'satellite_iop_only':
+                hosts = ['satellite_iop']
         hosts = ['satellite'] if settings.remotedb.server else hosts
         metafunc.parametrize(
             'sat_maintain',
