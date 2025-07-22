@@ -51,7 +51,16 @@ from robottelo.constants import (
     SATELLITE_VERSION,
 )
 from robottelo.enums import NetworkType
-from robottelo.exceptions import CLIFactoryError, DownloadFileError, HostPingFailed
+from robottelo.exceptions import (
+    CapsuleHostError,
+    CLIFactoryError,
+    ContentHostError,
+    DownloadFileError,
+    HostPingFailed,
+    IPAHostError,
+    ProxyHostError,
+    SatelliteHostError,
+)
 from robottelo.host_helpers import (
     CapsuleMixins,
     ContentHostMixins,
@@ -108,26 +117,6 @@ def get_sat_rhel_version():
         elif hasattr(settings.robottelo, 'rhel_version'):
             rhel_version = settings.robottelo.rhel_version
     return Version(rhel_version)
-
-
-class ContentHostError(Exception):
-    pass
-
-
-class CapsuleHostError(Exception):
-    pass
-
-
-class SatelliteHostError(Exception):
-    pass
-
-
-class IPAHostError(Exception):
-    pass
-
-
-class ProxyHostError(Exception):
-    pass
 
 
 class ContentHost(Host, ContentHostMixins):

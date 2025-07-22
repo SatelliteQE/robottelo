@@ -17,6 +17,8 @@ def pytest_configure(config):
         "rhel_ver_match: Filter rhel_contenthost versions by regexp, or format 'N-#'",
         "no_containers: Disable container hosts from being used in favor of VMs",
         "include_capsule: For satellite-maintain tests to run on Satellite and Capsule both",
+        "include_satellite_iop: For satellite-maintain tests to run on both default Satellite and IoP Satellite",
+        "satellite_iop_only: For satellite-maintain tests to run only on IoP Satellite",
         "capsule_only: For satellite-maintain tests to run only on Capsules",
         "manifester: Tests that require manifester",
         "ldap: Tests related to ldap authentication",

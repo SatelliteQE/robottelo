@@ -1,12 +1,14 @@
 # Satellite-maintain fixtures
 import datetime
 
+from broker import Broker
 import pytest
 
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import SATELLITE_MAINTAIN_YML
-from robottelo.hosts import Capsule, Satellite, SatelliteHostError
+from robottelo.exceptions import SatelliteHostError
+from robottelo.hosts import Capsule, Satellite
 from robottelo.logging import logger
 
 synced_repos = pytest.StashKey[dict]
@@ -22,15 +24,38 @@ def module_stash(request):
 
 
 @pytest.fixture(scope='module')
-def sat_maintain(request, module_target_sat, module_capsule_configured):
+def module_satellite_iop(request, satellite_factory):
+    """Deploy and return Insights on Prem Satellite configured."""
+    satellite_iop = satellite_factory()
+    satellite_iop.register_to_cdn(pool_ids=settings.subscription.fm_rhn_poolid.split())
+    satellite_iop.configure_insights_on_prem()
+    yield satellite_iop
+    satellite_iop.teardown()
+    Broker(hosts=[satellite_iop]).checkin()
+
+
+@pytest.fixture(scope='module')
+def module_satellite_maintain(request, module_target_sat):
+    """Provides Satellite for satellite-maintain tests"""
     if settings.remotedb.server:
-        sat = Satellite(settings.remotedb.server)
-        sat.enable_satellite_ipv6_http_proxy()
-        yield sat
-    else:
-        module_target_sat.register_to_cdn(pool_ids=settings.subscription.fm_rhn_poolid.split())
-        hosts = {'satellite': module_target_sat, 'capsule': module_capsule_configured}
-        yield hosts[request.param]
+        logger.info("Using Satellite with remotedb server")
+        satellite = Satellite(settings.remotedb.server)
+        satellite.enable_satellite_ipv6_http_proxy()
+        yield satellite
+    module_target_sat.register_to_cdn(pool_ids=settings.subscription.fm_rhn_poolid.split())
+    yield module_target_sat
+
+
+@pytest.fixture
+def sat_maintain(request):
+    """Function scoped fixture to be used in satellite_maintain tests. It returns the right host based on request parameters"""
+    if request.param == "satellite":
+        return request.getfixturevalue("module_satellite_maintain")
+    if request.param == "capsule":
+        return request.getfixturevalue("module_capsule_configured")
+    if request.param == "satellite_iop":
+        return request.getfixturevalue("module_satellite_iop")
+    raise ValueError(f"Unknown fixture: {request.param}")
 
 
 @pytest.fixture

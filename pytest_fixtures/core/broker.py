@@ -5,7 +5,8 @@ from broker import Broker
 import pytest
 
 from robottelo.config import settings
-from robottelo.hosts import ContentHostError, Satellite, lru_sat_ready_rhel
+from robottelo.exceptions import ContentHostError
+from robottelo.hosts import Satellite, lru_sat_ready_rhel
 
 
 @pytest.fixture(scope='session')

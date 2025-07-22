@@ -20,7 +20,7 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import REPO_TYPE, REPOS
-from robottelo.hosts import ProxyHostError
+from robottelo.exceptions import ProxyHostError
 
 
 @pytest.fixture

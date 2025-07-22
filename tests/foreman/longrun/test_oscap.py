@@ -23,8 +23,7 @@ from robottelo.constants import (
     OSCAP_PROFILE,
     OSCAP_WEEKDAY,
 )
-from robottelo.exceptions import ProxyError
-from robottelo.hosts import ContentHostError
+from robottelo.exceptions import ContentHostError, ProxyError
 from robottelo.logging import logger
 
 ak_name = {
