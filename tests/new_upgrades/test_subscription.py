@@ -116,6 +116,7 @@ def subscription_auto_attach_setup(
     """
     target_sat = subscription_upgrade_shared_satellite
     manifest = subscription_upgrade_manifest
+    rhel_contenthost._skip_context_checkin = True
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_name = f'auto_attach_upgrade_{gen_alpha()}'
         # Simultaneously creating multiple orgs has a high failure rate,
