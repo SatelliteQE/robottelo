@@ -443,3 +443,29 @@ class Factories:
     @lru_cache
     def ui_factory(self, session):
         return UIFactory(self, session=session)
+
+
+class IoPSetup:
+    """Helper for configuring on prem Insights Advisor engine."""
+
+    def configure_insights_on_prem(self, username=None, password=None, registry=None):
+        """Configure on prem Advisor engine on Satellite"""
+        logger.info('Configuring Satellite with local Red Hat Lightspeed')
+        iop_settings = settings.rh_cloud.iop_advisor_engine
+        username = username or iop_settings.username
+        password = password or iop_settings.token
+        registry = registry or iop_settings.registry
+        self.podman_login(username, password, registry)
+        # TODO: Replace this temporary implementation with a permanent solution.
+        result = self.execute(
+            f'''
+            set -e
+            [ -d /root/satellite-iop ] && rm -rf /root/satellite-iop
+            git clone {settings.rh_cloud.iop_advisor_engine.satellite_iop_repo} /root/satellite-iop
+            cd /root/satellite-iop
+            sed -i "s/hosts: all/hosts: localhost/" playbooks/deploy.yaml
+            ansible-galaxy collection install -r requirements.yml
+            ansible-playbook -c local playbooks/deploy.yaml
+            '''
+        )
+        assert result.status == 0, f'Failed to configure IoP: {result.stdout}'
