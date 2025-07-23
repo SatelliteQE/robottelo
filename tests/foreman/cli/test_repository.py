@@ -2088,8 +2088,6 @@ class TestRepository:
 #         assert repo['name'] == repo_options['name']
 #         assert repo['content-type'] == 'ostree'
 #
-#     @pytest.mark.skip_if_open("BZ:1716429")
-#     @pytest.mark.tier1
 #     @pytest.mark.parametrize(
 #         'repo_options',
 #         **parametrized(
@@ -2158,7 +2156,6 @@ class TestRepository:
 #
 #     @pytest.mark.tier2
 #     @pytest.mark.upgrade
-#     @pytest.mark.skip_if_open("BZ:1625783")
 #     @pytest.mark.parametrize(
 #         'repo_options',
 #         **parametrized(

@@ -235,7 +235,6 @@ def test_positive_update_gpg(module_org, module_target_sat):
     assert product.gpg_key.id == gpg_key_2.id
 
 
-@pytest.mark.skip_if_open("BZ:1310422")
 @pytest.mark.tier2
 def test_positive_update_organization(module_org, module_target_sat):
     """Create a product and update its organization
