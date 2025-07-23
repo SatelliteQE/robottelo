@@ -78,10 +78,6 @@ VALIDATORS = dict(
         Validator('azurerm.azure_region', is_in=AZURERM_VALID_REGIONS),
     ],
     broker=[Validator('broker.broker_directory', default='.')],
-    bugzilla=[
-        Validator('bugzilla.url', default='https://bugzilla.redhat.com'),
-        Validator('bugzilla.api_key', must_exist=True),
-    ],
     capsule=[
         Validator('capsule.version.release', must_exist=True),
         Validator(
