@@ -3293,16 +3293,16 @@ def test_positive_change_hosts_org_loc(
         2. Bulk organization/location change operation succeeds
         3. Hosts are successfully moved to new organization/location
         4. Host properties reflect the new taxonomies
-
-    :CaseComponent: Hosts
-
-    :Team: Phoenix-subscriptions
     """
     # Create second organization and location for the test
-    second_org = module_target_sat.api.Organization().create()
-    second_location = module_target_sat.api.Location(organization=[second_org]).create()
+    new_org = module_target_sat.api.Organization().create()
+    new_location = module_target_sat.api.Location(organization=[new_org]).create()
 
-    # Create 2 hosts
+    @request.addfinalizer
+    def cleanup():
+        new_org.delete()
+        new_location.delete()
+
     host_names = []
     for _ in range(2):
         host = module_target_sat.cli_factory.make_fake_host(
@@ -3312,11 +3312,6 @@ def test_positive_change_hosts_org_loc(
             }
         )
         host_names.append(host.name)
-
-    @request.addfinalizer
-    def cleanup():
-        second_org.delete()
-        second_location.delete()
 
     # Verify hosts are initially in the first org/location
     for host_name in host_names:
@@ -3330,21 +3325,21 @@ def test_positive_change_hosts_org_loc(
         session.organization.select(module_org.name)
         session.location.select(module_location.name)
 
-        # Scenario 1 - Change organization
+        # Scenario 1 - Change organization with option "Fix in mismatch"
         session.all_hosts.change_associations_organization(
             host_names=host_names,
-            new_organization=second_org.name,
+            new_organization=new_org.name,
         )
         # Switch to second organization to verify the change
-        session.organization.select(second_org.name)
+        session.organization.select(new_org.name)
 
-        # Scenario 2 - Change location
+        # Scenario 2 - Change location with option "Fix in mismatch"
         session.all_hosts.change_associations_location(
             host_names=host_names,
-            new_location=second_location.name,
+            new_location=new_location.name,
         )
         # Switch to second location to verify the change
-        session.location.select(second_location.name)
+        session.location.select(new_location.name)
 
         # Verify hosts appear in the new organization and new location
         for host_name in host_names:
@@ -3356,9 +3351,9 @@ def test_positive_change_hosts_org_loc(
             host_entity = module_target_sat.api.Host().search(
                 query={'search': f'name={host_name}'}
             )[0]
-            assert host_entity.organization.id == second_org.id, (
-                f"Host {host_name} not moved to second organization"
+            assert host_entity.organization.id == new_org.id, (
+                f'Host {host_name} not moved to second organization'
             )
-            assert host_entity.location.id == second_location.id, (
-                f"Host {host_name} not moved to second location"
+            assert host_entity.location.id == new_location.id, (
+                f'Host {host_name} not moved to second location'
             )
