@@ -18,6 +18,7 @@ from fauxfactory import gen_url
 import pytest
 
 from robottelo.config import settings
+from robottelo.hosts import get_sat_version
 from robottelo.utils.datafactory import filtered_datapoint, gen_string
 
 
@@ -228,7 +229,9 @@ def test_positive_update_login_page_footer_text(session, setting_update):
         session.login.login(login_details)
         session.settings.update(f'name = {property_name}', default_value)
         result = session.login.logout()
-        assert result["login_text"] == default_value
+        sat_version = get_sat_version()
+        default_value_with_version_expanded = default_value.replace('$VERSION', str(sat_version))
+        assert result["login_text"] == default_value_with_version_expanded
 
         # set empty
         session.login.login(login_details)
