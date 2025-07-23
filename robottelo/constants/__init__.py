@@ -1980,10 +1980,6 @@ DEFAULT_SYSPURPOSE_ATTRIBUTES = {
     ),
 }
 
-# Bugzilla statuses used by Robottelo issue handler.
-OPEN_STATUSES = ("NEW", "ASSIGNED", "POST", "MODIFIED")
-CLOSED_STATUSES = ("ON_QA", "VERIFIED", "RELEASE_PENDING", "CLOSED")
-WONTFIX_RESOLUTIONS = ("WONTFIX", "CANTFIX", "DEFERRED")
 # Jira statuses used by Robottelo issue handler.
 JIRA_TESTS_PASSED_LABEL = "tests-passed"
 JIRA_TESTS_FAILED_LABEL = "tests-failed"
