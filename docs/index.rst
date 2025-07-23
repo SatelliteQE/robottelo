@@ -159,7 +159,6 @@ $ export ROBOTTELO_SERVER_HOSTNAME=other.hostname.com
 The envars follows the format ``ROBOTTELO_{SECTION}_{VALUE}`` all uppercase, more examples::
 
 $ export ROBOTTELO_SERVER_SSH_KEY=path/to/your/key
-$ export ROBOTTELO_BUGZILLA_API_KEY=sdfsdg654g8df4gdf6g4df8g468dfg
 
 Using Secrets from Vault
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -173,17 +172,6 @@ To enable the integration:
 #. Set right values for VAULT_URL_FOR_DYNACONF, VAULT_MOUNT_POINT_FOR_DYNACONF and VAULT_PATH_FOR_DYNACONF
 #. Run 'make vault-login' to login into vault and to generate and set the OIDC token automatically
 #. Edit any conf file from conf/ directory and add the value for setting in as ``@format {this._secret_name_in_vault_}``.
-#. bugzilla.yaml Example:
-
-.. code-block:: yaml
-
-    BUGZILLA:
-        URL: https://bugzilla.example.com
-        API_KEY: '@format {this.vault_bz_api_key}'
-
-The ``settings.bugzilla.api_key`` should now return the BugZilla API key read from Vault store.
-
-The secret is saved with key ``vault_bz_api_key`` in vault store in VAULT_MOUNT_POINT_FOR_DYNACONF/VAULT_PATH_FOR_DYNACONF path.
 
 Running the UI Tests in headless mode
 ---------------------------------------
