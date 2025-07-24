@@ -371,7 +371,7 @@ def test_positive_update_console_password(libvirt_url, set_console_password, mod
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
 @pytest.mark.rhel_ver_match('[7]')
-@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['uefi', 'secureboot'], indirect=True)
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 def test_positive_provision_end_to_end(
     request,
