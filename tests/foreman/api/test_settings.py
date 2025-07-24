@@ -198,6 +198,66 @@ def test_positive_custom_repo_download_policy(setting_update, download_policy, t
     prod.delete()
 
 
+@pytest.mark.run_in_one_thread
+@pytest.mark.parametrize('mirroring_policy', ["mirror_complete"])
+@pytest.mark.parametrize('setting_update', ['default_yum_mirroring_policy'], indirect=True)
+def test_positive_custom_yum_repo_mirroring_policy(setting_update, mirroring_policy, target_sat):
+    """Check the set custom repository yum mirroring policy for newly created yum repository.
+
+    :id: f8901234-5678-4abc-9def-1234567890ab
+
+    :steps:
+        1. Create a product, Organization
+        2. Update the Default YUM Repository mirroring policy in the setting.
+        3. Create a custom yum repo under the created organization.
+        4. Check the set mirroring policy of new created repository.
+
+    :parametrized: yes
+
+    :expectedresults: The set mirroring policy should be the default policy in the newly created
+     yum repository.
+    """
+    org = target_sat.api.Organization().create()
+    prod = target_sat.api.Product(organization=org).create()
+    setting_update.value = mirroring_policy
+    setting_update.update({'value'})
+    repo = target_sat.api.Repository(product=prod, content_type='yum', organization=org).create()
+    assert repo.mirroring_policy == mirroring_policy
+    repo.delete()
+    prod.delete()
+
+
+@pytest.mark.run_in_one_thread
+@pytest.mark.parametrize('mirroring_policy', ["additive"])
+@pytest.mark.parametrize('setting_update', ['default_non_yum_mirroring_policy'], indirect=True)
+def test_positive_custom_non_yum_repo_mirroring_policy(
+    setting_update, mirroring_policy, target_sat
+):
+    """Check the set custom repository non-yum mirroring policy for newly created non-yum repository.
+
+    :id: a1234567-89ab-4cde-9012-3456789abcde
+
+    :steps:
+        1. Create a product, Organization
+        2. Update the Default Non-YUM Repository mirroring policy in the setting.
+        3. Create a custom container repo under the created organization.
+        4. Check the set mirroring policy of new created repository.
+
+    :parametrized: yes
+
+    :expectedresults: The set mirroring policy should be the default policy in the newly created
+     container repository.
+    """
+    org = target_sat.api.Organization().create()
+    prod = target_sat.api.Product(organization=org).create()
+    setting_update.value = mirroring_policy
+    setting_update.update({'value'})
+    repo = target_sat.api.Repository(product=prod, content_type='docker', organization=org).create()
+    assert repo.mirroring_policy == mirroring_policy
+    repo.delete()
+    prod.delete()
+
+
 @pytest.mark.parametrize('valid_value', **parametrized(valid_timeout_values()))
 @pytest.mark.parametrize('setting_update', ['sync_connect_timeout_v2'], indirect=True)
 def test_positive_update_sync_timeout(setting_update, valid_value):

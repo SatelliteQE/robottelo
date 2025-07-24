@@ -218,6 +218,52 @@ class TestRepository:
     @pytest.mark.parametrize(
         'repo_options', **datafactory.parametrized([{'content_type': 'yum'}]), indirect=True
     )
+    def test_positive_create_with_default_yum_mirroring_policy(self, repo, target_sat):
+        """Verify if the default mirroring policy is assigned
+        when creating a YUM repo without `download_policy` field
+
+        :id: 5022b574-0af1-4dd9-9681-ae1fcd5cc582
+
+        :parametrized: yes
+
+        :expectedresults: YUM repository with a default yum mirroring policy
+        """
+
+        default_yum_mirroring_policy = target_sat.api.Setting().search(
+            query={'search': 'name=default_yum_mirroring_policy'}
+        )
+        assert default_yum_mirroring_policy
+        assert repo.mirroring_policy == default_yum_mirroring_policy[0].value
+
+    @pytest.mark.parametrize(
+        'repo_options',
+        [
+            {'content_type': content_type}
+            for content_type in ['docker', 'ansible_collection', 'file']
+        ],
+        indirect=True,
+        ids=lambda x: x['content_type'],
+    )
+    def test_positive_create_with_default_non_yum_mirroring_policy(self, repo, target_sat):
+        """Verify if the default mirroring policy is assigned
+        when creating a container repo without `download_policy` field
+
+        :id: 5022b574-0af1-4dd9-9681-ae1fcd5cc583
+
+        :parametrized: yes
+
+        :expectedresults: Container repository with a default non yum mirroring policy
+        """
+
+        default_non_yum_mirroring_policy = target_sat.api.Setting().search(
+            query={'search': 'name=default_non_yum_mirroring_policy'}
+        )
+        assert default_non_yum_mirroring_policy
+        assert repo.mirroring_policy == default_non_yum_mirroring_policy[0].value
+
+    @pytest.mark.parametrize(
+        'repo_options', **datafactory.parametrized([{'content_type': 'yum'}]), indirect=True
+    )
     def test_positive_create_immediate_update_to_on_demand(self, repo):
         """Update `immediate` download policy to `on_demand`
         for a newly created YUM repository
