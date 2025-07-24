@@ -15,34 +15,18 @@ sat6-upgrade requires env.satellite_hostname to be set, this is required for the
 
 """
 
-import pytest
 from box import Box
 from fauxfactory import gen_alpha
+import pytest
 
 from robottelo.config import settings
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME, FAKE_4_CUSTOM_PACKAGE_NAME
-from robottelo.hosts import ContentHost
+from robottelo.constants import (
+    FAKE_0_CUSTOM_PACKAGE_NAME,
+    FAKE_2_CUSTOM_PACKAGE_NAME,
+    FAKE_4_CUSTOM_PACKAGE_NAME,
+)
 from robottelo.utils.shared_resource import SharedResource
 
-
-# @pytest.fixture
-# def client_for_upgrade(module_target_sat, rex_contenthost, module_org):
-#     rex_contenthost.create_custom_repos(fake_yum=settings.repos.yum_1.url)
-#     return rex_contenthost
-
-
-# class TestScenarioUpgradeOldClientAndPackageInstallation:
-#     """This section contains pre and post upgrade scenarios to test if the
-#     package can be installed on the preupgrade client remotely.
-# 
-#     Test Steps::
-# 
-#         1. Before Satellite upgrade, create a content host and register it with
-#             Satellite
-#         2. Upgrade Satellite and client
-#         3. Install package post upgrade on a pre-upgrade client from Satellite
-#         4. Check if the package is installed on the pre-upgrade client
-#     """
 
 @pytest.fixture
 def pre_client_package_installation_setup(
@@ -72,7 +56,7 @@ def pre_client_package_installation_setup(
 
     """
     target_sat = client_upgrade_shared_satellite
-    # rhel_contenthost._skip_context_checkin = True
+    rhel_contenthost._skip_context_checkin = True
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_name = f'rex_upgrade_{gen_alpha()}'
         test_data = Box(
@@ -81,6 +65,9 @@ def pre_client_package_installation_setup(
                 'contenthost': rhel_contenthost,
                 'ak': None,
                 'org': None,
+                'location': None,
+                'lce': None,
+                'test_name': test_name,
             }
         )
         org = target_sat.api.Organization(name=f'{test_name}_org').create()
@@ -106,9 +93,11 @@ def pre_client_package_installation_setup(
         ak = target_sat.api.ActivationKey(
             name=f'{test_name}_ak', organization=org.id, environment=lce, content_view=content_view
         ).create()
-        test_data.ak = ak
         result = rhel_contenthost.api_register(
-            target_sat, organization=org, activation_keys=[ak.name], location=location,
+            target_sat,
+            organization=org,
+            activation_keys=[ak.name],
+            location=location,
         )
         assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
         rhel_contenthost.execute('subscription-manager repos --enable=* && yum clean all')
@@ -122,15 +111,17 @@ def pre_client_package_installation_setup(
         result = rhel_contenthost.execute(f"rpm -q {FAKE_4_CUSTOM_PACKAGE_NAME}")
         assert FAKE_4_CUSTOM_PACKAGE_NAME in result.stdout
         test_data.org = org
+        test_data.location = location
+        test_data.lce = lce
+        test_data.product = product
         test_data.ak = ak
         sat_upgrade.ready()
         yield test_data
 
 
-
 @pytest.mark.client_upgrades
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_list([8])
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 def test_pre_client_package_installation(pre_client_package_installation_setup):
     """Post-upgrade install of a package on a client created and registered pre-upgrade.
 
@@ -145,7 +136,7 @@ def test_pre_client_package_installation(pre_client_package_installation_setup):
     target_sat.cli_factory.job_invocation(
         {
             'job-template': 'Install Package - Katello Script Default',
-            'inputs': f'package={FAKE_0_CUSTOM_PACKAGE_NAME}',
+            'inputs': f'package={FAKE_2_CUSTOM_PACKAGE_NAME}',
             'search-query': f'name ~ {rhel_client.hostname}',
         }
     )
@@ -154,53 +145,67 @@ def test_pre_client_package_installation(pre_client_package_installation_setup):
     assert FAKE_0_CUSTOM_PACKAGE_NAME in result.stdout
 
 
-class TestScenarioUpgradeNewClientAndPackageInstallation:
-    """This section contains post-upgrade scenarios to test if a package
-    can be installed on a client created postupgrade, remotely.
+@pytest.mark.client_upgrades
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
+def test_post_scenario_post_client_package_installation(pre_client_package_installation_setup):
+    """Post-upgrade test that installs a package on a client registered post-upgrade
+    and then verifies the package is installed.
 
-    Test Steps:
+    :id: postupgrade-1a881c07-595f-425f-aca9-df2337824a8e
 
-        1. Upgrade Satellite
-        2. After Satellite upgrade, create a content host and register it with
-            Satellite
-        3. Install package to the client from Satellite
-        4. Check if the package is installed on the post-upgrade client
+    :steps:
+
+        1. Create and sync new post-upgrade repo from which a package will be
+           installed on content host
+        2. Add repo to CV
+        3. Create an activation key that uses the CV and use it to register a client
+        4. Install a package on the client
+
+    :expectedresults:
+
+        1. The content host is successfully registered
+        2. The package is installed on the client
     """
-
-    @pytest.mark.post_upgrade
-    @pytest.mark.rhel_ver_list([8])
-    def test_post_scenario_post_client_package_installation(
-        self,
-        module_target_sat,
-        client_for_upgrade,
-    ):
-        """Post-upgrade test that creates a client, installs a package on
-        the post-upgrade created client and then verifies the package is installed.
-
-        :id: postupgrade-1a881c07-595f-425f-aca9-df2337824a8e
-
-        :steps:
-
-            1. Create a content host with existing client ak
-            2. Create and sync new post-upgrade repo from which a package will be
-                installed on content host
-            3. Add repo to CV and then in Activation key
-            4. Install package on the pre-upgrade client
-
-        :expectedresults:
-
-            1. The content host is created
-            2. The new repo and its product has been added to ak using which
-                the content host is created
-            3. The package is installed on post-upgrade client
-        """
-        module_target_sat.cli_factory.job_invocation(
-            {
-                'job-template': 'Install Package - Katello Script Default',
-                'inputs': f'package={FAKE_0_CUSTOM_PACKAGE_NAME}',
-                'search-query': f'name ~ {client_for_upgrade.hostname}',
-            }
-        )
-        # Verifies that package is really installed
-        result = client_for_upgrade.execute(f"rpm -q {FAKE_0_CUSTOM_PACKAGE_NAME}")
-        assert FAKE_0_CUSTOM_PACKAGE_NAME in result.stdout
+    rhel_client = pre_client_package_installation_setup.contenthost
+    rhel_client.execute('subscription-manager unregister')
+    rhel_client.execute('subscription-manager clean')
+    target_sat = pre_client_package_installation_setup.satellite
+    org = pre_client_package_installation_setup.org
+    location = pre_client_package_installation_setup.location
+    lce = pre_client_package_installation_setup.lce
+    product = pre_client_package_installation_setup.product
+    test_name = pre_client_package_installation_setup.test_name
+    repo = target_sat.api.Repository(
+        product=product,
+        name=f'{test_name}_yum_repo_post_upgrade',
+        url=settings.repos.yum_2.url,
+        content_type='yum',
+    ).create()
+    target_sat.api.Repository.sync(repo)
+    content_view = target_sat.publish_content_view(org, [repo], f'{test_name}_cv_post_upgrade')
+    content_view.version[0].promote(data={'environment_ids': lce.id})
+    ak = target_sat.api.ActivationKey(
+        name=f'{test_name}_ak_post_upgrade',
+        organization=org.id,
+        environment=lce,
+        content_view=content_view,
+    ).create()
+    result = rhel_client.api_register(
+        target_sat,
+        organization=org,
+        activation_keys=[ak.name],
+        location=location,
+    )
+    assert f'The registered system name is: {rhel_client.hostname}' in result.stdout
+    rhel_client.execute('subscription-manager repos --enable=* && yum clean all')
+    target_sat.cli_factory.job_invocation(
+        {
+            'job-template': 'Install Package - Katello Script Default',
+            'inputs': f'package={FAKE_2_CUSTOM_PACKAGE_NAME}',
+            'search-query': f'name ~ {rhel_client.hostname}',
+        }
+    )
+    # Verifies that package is really installed
+    result = rhel_client.execute(f"rpm -q {FAKE_2_CUSTOM_PACKAGE_NAME}")
+    assert FAKE_2_CUSTOM_PACKAGE_NAME in result.stdout
