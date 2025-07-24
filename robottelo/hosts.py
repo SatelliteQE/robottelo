@@ -2313,6 +2313,7 @@ class Satellite(Capsule, SatelliteMixins):
 
     def update_setting(self, name, value):
         """changes setting value and returns the setting value before the change."""
+        value = value if value is not None else ''
         setting = self.api.Setting().search(query={'search': f'name="{name}"'})[0]
         default_setting_value = setting.value
         if default_setting_value is None:
