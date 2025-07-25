@@ -18,6 +18,7 @@ from fauxfactory import gen_url
 import pytest
 
 from robottelo.config import settings
+from robottelo.hosts import get_sat_version
 from robottelo.utils.datafactory import filtered_datapoint, gen_string
 
 
@@ -228,7 +229,9 @@ def test_positive_update_login_page_footer_text(session, setting_update):
         session.login.login(login_details)
         session.settings.update(f'name = {property_name}', default_value)
         result = session.login.logout()
-        assert result["login_text"] == default_value
+        sat_version = get_sat_version()
+        default_value_with_version_expanded = default_value.replace('$VERSION', str(sat_version))
+        assert result["login_text"] == default_value_with_version_expanded
 
         # set empty
         session.login.login(login_details)
@@ -531,21 +534,28 @@ def test_positive_setting_display_fqdn_for_hosts(session, target_sat):
     """
     host_name, domain_name = target_sat.hostname.split('.', 1)
     default_value = target_sat.update_setting('display_fqdn_for_hosts', 'No')
-    with target_sat.ui_session() as session:
-        dashboard_hosts = session.dashboard.read('NewHosts')
-        assert host_name in [h['Host'] for h in dashboard_hosts['hosts'] if h['Host'] == host_name]
+    try:
+        with target_sat.ui_session() as session:
+            dashboard_hosts = session.dashboard.read('NewHosts')
+            assert host_name in [
+                h['Host'] for h in dashboard_hosts['hosts'] if h['Host'] == host_name
+            ]
 
-        values = session.host_new.get_details(host_name, widget_names='breadcrumb')
-        assert values['breadcrumb'] == host_name
+            values = session.host_new.get_details(host_name, widget_names='breadcrumb')
+            assert values['breadcrumb'] == host_name
 
-        # Verify with display_fqdn_for_hosts=Yes
+            # Verify with display_fqdn_for_hosts=Yes
+            target_sat.update_setting('display_fqdn_for_hosts', 'Yes')
+            full_name = '.'.join((host_name, domain_name))
+            dashboard_hosts = session.dashboard.read('NewHosts')
+            assert full_name in [
+                h['Host'] for h in dashboard_hosts['hosts'] if h['Host'] == full_name
+            ]
+
+            values = session.host_new.get_details(target_sat.hostname, widget_names='breadcrumb')
+            assert values['breadcrumb'] == full_name
+    finally:
         target_sat.update_setting('display_fqdn_for_hosts', default_value)
-        full_name = '.'.join((host_name, domain_name))
-        dashboard_hosts = session.dashboard.read('NewHosts')
-        assert full_name in [h['Host'] for h in dashboard_hosts['hosts'] if h['Host'] == full_name]
-
-        values = session.host_new.get_details(target_sat.hostname, widget_names='breadcrumb')
-        assert values['breadcrumb'] == full_name
 
 
 def test_positive_show_unsupported_templates(request, target_sat, module_org, module_location):
