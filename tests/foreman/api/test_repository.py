@@ -212,62 +212,36 @@ class TestRepository:
         default_dl_policy = target_sat.api.Setting().search(
             query={'search': 'name=default_download_policy'}
         )
+        assert default_dl_policy
         assert repo.download_policy == default_dl_policy[0].value
-
-    # Dictionary mapping content types to their supported mirroring policies
-    SUPPORTED_MIRRORING_POLICIES = {
-        'yum': ['additive', 'mirror_complete', 'mirror_content_only'],
-        'docker': ['additive', 'mirror_content_only'],
-        'ansible_collection': ['additive', 'mirror_content_only'],
-        'file': ['additive', 'mirror_content_only'],
-    }
 
     @pytest.mark.parametrize(
         'repo_options',
         [
-            {'content_type': content_type, 'mirroring_policy': mirroring_policy}
-            for content_type, policies in SUPPORTED_MIRRORING_POLICIES.items()
-            for mirroring_policy in policies
+            {'content_type': content_type}
+            for content_type in ['yum', 'docker', 'ansible_collection', 'file']
         ],
         indirect=True,
-        ids=lambda x: f"{x['content_type']}_{x['mirroring_policy']}",
     )
-    def test_positive_create_with_default_mirroring_policy(
-        self, request, repo_options, repo, target_sat
-    ):
-        """Verify that repositories are created with the correct mirroring policy
-        for both YUM and non-YUM content types.
+    def test_positive_create_with_default_mirroring_policy(self, repo, target_sat):
+        """
+        Verify if the default mirroring policy is assigned
+        when creating a container repo without `download_policy` field
 
-        :id: 6f8d2345-6789-4bcd-9012-3456789abcef
+        :id: 5022b574-0af1-4dd9-9681-ae1fcd5cc583
 
         :parametrized: yes
 
-        :expectedresults: Repository is created with the specified mirroring policy
+        :expectedresults: Container repository with a default non yum mirroring policy
         """
-        content_type = repo_options['content_type']
-        expected_policy = repo_options['mirroring_policy']
-
-        # Determine which setting to use based on content type
-        if content_type == 'yum':
-            setting_name = 'default_yum_mirroring_policy'
-        else:
-            setting_name = 'default_non_yum_mirroring_policy'
-
-        # Get the current setting value and update it
-        setting = target_sat.api.Setting().search(query={'search': f'name={setting_name}'})[0]
-        original_value = setting.value
-        setting.value = expected_policy
-        setting.update(['value'])
-
-        # Register cleanup to restore original setting value
-        def restore_setting():
-            setting.value = original_value
-            setting.update(['value'])
-
-        request.addfinalizer(restore_setting)
-
-        # The repo fixture creates a repository that should inherit the default mirroring policy
-        assert repo.mirroring_policy == expected_policy
+        setting = (
+            'default_yum_mirroring_policy'
+            if repo.content_type == 'yum'
+            else 'default_non_yum_mirroring_policy'
+        )
+        default_policy = target_sat.api.Setting().search(query={'search': f'name={setting}'})
+        assert default_policy
+        assert repo.mirroring_policy == default_policy[0].value
 
     @pytest.mark.parametrize(
         'repo_options', **datafactory.parametrized([{'content_type': 'yum'}]), indirect=True

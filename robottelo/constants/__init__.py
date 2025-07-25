@@ -1025,6 +1025,12 @@ PULP_EXPORT_DIR = '/var/lib/pulp/exports/'
 PULP_IMPORT_DIR = '/var/lib/pulp/imports/'
 EXPORT_LIBRARY_NAME = 'Export-Library'
 SUPPORTED_REPO_CHECKSUMS = ['sha256', 'sha384', 'sha512']
+SUPPORTED_MIRRORING_POLICIES = {
+    'yum': ['additive', 'mirror_complete', 'mirror_content_only'],
+    'docker': ['additive', 'mirror_content_only'],
+    'ansible_collection': ['additive', 'mirror_content_only'],
+    'file': ['additive', 'mirror_content_only'],
+}
 
 PUPPET_COMMON_INSTALLER_OPTS = {
     'foreman-proxy-puppetca': 'true',
