@@ -6,7 +6,7 @@
 
 :CaseComponent: SyncPlans
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 

@@ -6,7 +6,7 @@
 
 :CaseComponent: LifecycleEnvironments
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 

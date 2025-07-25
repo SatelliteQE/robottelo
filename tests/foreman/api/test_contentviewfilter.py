@@ -10,7 +10,7 @@ http://www.katello.org/docs/api/apidoc/content_view_filters.html
 
 :CaseComponent: ContentViews
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 

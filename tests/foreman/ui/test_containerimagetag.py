@@ -6,7 +6,7 @@
 
 :CaseComponent: ContainerImageManagement
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
