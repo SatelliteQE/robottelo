@@ -28,6 +28,51 @@ def last_y_stream_version(release):
     return f"{release.split('.')[0]}.{y_minus}"
 
 
+@pytest.mark.satellite_iop_only
+def test_podman_login_check(request, sat_maintain):
+    """Test Podman login check with IoP Satellite.
+
+    :id: 70fd6d86-a647-442c-a971-cbd1207b734b
+
+    :parametrized: yes
+
+    :setup: Have a Satellite with on prem Insights(IoP).
+
+    :steps:
+        1. Run satellite-maintain update check.
+        2. Verify that the Podman login check passes.
+        3. Logout of the Podman.
+        4. Run satellite-maintain update check.
+        5. Verify that the Podman login check fails.
+
+    :Verifies: SAT-35282
+    """
+
+    @request.addfinalizer
+    def _finalize():
+        sat_maintain.podman_login()
+
+    check_description = 'Check whether podman needs to be logged in to the registry'
+    fail_message = '''You are using containers from registry.redhat.io,\n
+        but your system is not logged in to the registry, or the login expired.\n
+        Please login to registry.redhat.io.'''
+    result = sat_maintain.cli.Update.check(
+        options={
+            'whitelist': 'repositories-validate, non-rh-packages',
+        }
+    )
+    assert 'FAIL' not in result.stdout
+    assert check_description in result.stdout
+    sat_maintain.execute(f"podman logout {settings.rh_cloud.iop_advisor_engine.registry}")
+    result = sat_maintain.cli.Update.check(
+        options={
+            'whitelist': 'repositories-validate, non-rh-packages',
+        }
+    )
+    assert 'FAIL' in result.stdout
+    assert fail_message in result.stdout
+
+
 @pytest.mark.include_capsule
 def test_positive_repositories_validate(sat_maintain):
     """Test repositories-validate pre-upgrade check is
