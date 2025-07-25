@@ -20,7 +20,7 @@ from robottelo.constants import (
     PUPPET_SATELLITE_INSTALLER,
 )
 from robottelo.enums import NetworkType
-from robottelo.exceptions import CLIReturnCodeError, NoManifestProvidedError
+from robottelo.exceptions import CLIReturnCodeError, NoManifestProvidedError, SatelliteHostError
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
 from robottelo.host_helpers.ui_factory import UIFactory
@@ -443,3 +443,45 @@ class Factories:
     @lru_cache
     def ui_factory(self, session):
         return UIFactory(self, session=session)
+
+
+class IoPSetup:
+    """Helper for configuring on prem Insights Advisor engine."""
+
+    iop_settings = settings.rh_cloud.iop_advisor_engine
+
+    def podman_login(self, username=None, token=None, registry=None):
+        """Login to a podman registry."""
+        logger.info("Configuring Satellite with local Insights advisor(IoP)")
+        username = username or self.iop_settings.username
+        token = token or self.iop_settings.token
+        registry = registry or self.iop_settings.registry
+        # Use HTTPS_PROXY to reach container registry for IPv6
+        self.enable_ipv6_system_proxy()
+        # Log in to container registry
+        if registry and username and token:
+            cmd_result = self.execute(f'podman login -u {username!r} -p {token!r} {registry}')
+            if cmd_result.status != 0:
+                raise SatelliteHostError(
+                    f'Error logging in to container registry: {cmd_result.stdout}'
+                )
+        else:
+            logger.warning("Podman login skipped: missing registry, username, or token.")
+
+    def configure_insights_on_prem(self):
+        """configure on prem Advisor engine on Satellite"""
+        logger.info("Configuring Satellite with local Insights advisor(IoP)")
+        self.podman_login()
+        # TODO: Replace this temporary implementation with a permanent solution.
+        result = self.execute(
+            f"""
+            set -e
+            [ -d /root/satellite-iop ] && rm -rf /root/satellite-iop
+            git clone {settings.rh_cloud.iop_advisor_engine.satellite_iop_repo} /root/satellite-iop
+            cd /root/satellite-iop
+            sed -i 's/hosts: all/hosts: localhost/' playbooks/deploy.yaml
+            ansible-galaxy collection install community.general
+            ansible-playbook -c local playbooks/deploy.yaml
+            """
+        )
+        assert result.status == 0, f"Failed to configure IoP: {result.stdout}"
