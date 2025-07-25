@@ -1,0 +1,6 @@
+# For foreman-mcp-server
+FOREMAN_MCP:
+  USERNAME:
+  PASSWORD:
+  PORT:
+  REGISTRY:
