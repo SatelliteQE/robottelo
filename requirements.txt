@@ -2,7 +2,7 @@
 
 apypie==0.7.1
 betelgeuse==1.11.0
-broker[docker,podman,hussh]==0.6.11
+broker[docker,podman,hussh]==0.6.12
 cryptography==43.0.3
 deepdiff==8.5.0
 dynaconf[vault]==3.2.11
