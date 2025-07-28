@@ -841,7 +841,7 @@ def test_registering_with_title_using_global_registration_parameter(
         )
         status = session.host_new.get_host_statuses(rhel_contenthost.hostname)
         assert status['Build']['Status'] == 'Installed'
-        assert status['Insights']['Status'] == 'Reporting'
+        assert status['Red Hat Lightspeed']['Status'] == 'Reporting'
         facts = session.host_new.get_host_facts(rhel_contenthost.hostname, 'insights_client')
         for fact in facts:
             assert (
