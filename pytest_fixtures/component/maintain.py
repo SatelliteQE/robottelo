@@ -6,7 +6,8 @@ import pytest
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import SATELLITE_MAINTAIN_YML
-from robottelo.hosts import Capsule, Satellite, SatelliteHostError
+from robottelo.exceptions import SatelliteHostError
+from robottelo.hosts import Capsule, Satellite
 from robottelo.logging import logger
 
 synced_repos = pytest.StashKey[dict]
@@ -21,16 +22,31 @@ def module_stash(request):
     return request.node.stash
 
 
-@pytest.fixture(scope='module')
-def sat_maintain(request, module_target_sat, module_capsule_configured):
+@pytest.fixture
+def sat_maintain(request):
+    """Function scoped fixture to be used in satellite_maintain tests. It returns the right host based on request parameters"""
+    iop_settings = settings.rh_cloud.iop_advisor_engine
     if settings.remotedb.server:
-        sat = Satellite(settings.remotedb.server)
-        sat.enable_satellite_ipv6_http_proxy()
-        yield sat
+        logger.info('Using Satellite with external DB server')
+        satellite = Satellite(settings.remotedb.server)
+        satellite.enable_satellite_ipv6_http_proxy()
+        yield satellite
     else:
-        module_target_sat.register_to_cdn(pool_ids=settings.subscription.fm_rhn_poolid.split())
-        hosts = {'satellite': module_target_sat, 'capsule': module_capsule_configured}
-        yield hosts[request.param]
+        infra_host_type = getattr(request, 'param', 'satellite')
+        if infra_host_type == 'capsule':
+            infra_host = request.getfixturevalue('module_capsule_configured')
+        elif infra_host_type == 'satellite_iop':
+            infra_host = request.getfixturevalue('module_satellite_iop')
+        else:
+            infra_host = request.getfixturevalue('module_target_sat')
+        infra_host.register_to_cdn()
+        yield infra_host
+        if infra_host_type == 'satellite_iop' and not infra_host.is_podman_logged_in(
+            iop_settings.stage_registry
+        ):
+            infra_host.podman_login(
+                iop_settings.stage_username, iop_settings.stage_token, iop_settings.stage_registry
+            )
 
 
 @pytest.fixture
