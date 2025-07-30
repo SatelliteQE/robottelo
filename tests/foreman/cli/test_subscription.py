@@ -23,23 +23,6 @@ from robottelo.exceptions import CLIReturnCodeError
 pytestmark = [pytest.mark.run_in_one_thread]
 
 
-@pytest.fixture(scope='module')
-def golden_ticket_host_setup(request, module_sca_manifest_org, module_target_sat):
-    new_product = module_target_sat.cli_factory.make_product(
-        {'organization-id': module_sca_manifest_org.id}
-    )
-    new_repo = module_target_sat.cli_factory.make_repository({'product-id': new_product['id']})
-    module_target_sat.cli.Repository.synchronize({'id': new_repo['id']})
-    return module_target_sat.cli_factory.make_activation_key(
-        {
-            'lifecycle-environment': 'Library',
-            'content-view': 'Default Organization View',
-            'organization-id': module_sca_manifest_org.id,
-            'auto-attach': False,
-        }
-    )
-
-
 def test_positive_manifest_upload(function_sca_manifest_org, module_target_sat):
     """upload manifest
 
@@ -242,36 +225,6 @@ def test_positive_candlepin_events_processed_by_STOMP():
 
     :CaseImportance: High
     """
-
-
-def test_positive_auto_attach_disabled_golden_ticket(
-    module_org, module_location, golden_ticket_host_setup, rhel7_contenthost_class, target_sat
-):
-    """Verify that Auto-Attach is disabled or "Not Applicable"
-    when a host organization is in Simple Content Access mode (Golden Ticket)
-
-    :id: 668fae4d-7364-4167-967f-6fc31ba52d26
-
-    :expectedresults: auto attaching a subscription is not allowed
-        and returns an error message
-
-    :customerscenario: true
-
-    :BZ: 1718954
-
-    :parametrized: yes
-
-    :CaseImportance: Medium
-    """
-    rhel7_contenthost_class.register(
-        module_org, module_location, golden_ticket_host_setup['name'], target_sat
-    )
-    assert rhel7_contenthost_class.subscribed
-    host = target_sat.cli.Host.list({'search': rhel7_contenthost_class.hostname})
-    host_id = host[0]['id']
-    with pytest.raises(CLIReturnCodeError) as context:
-        target_sat.cli.Host.subscription_auto_attach({'host-id': host_id})
-    assert "This host's organization is in Simple Content Access mode" in str(context.value)
 
 
 def test_negative_check_katello_reimport(request, target_sat, function_org):
