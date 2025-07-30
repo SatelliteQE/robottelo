@@ -29,6 +29,7 @@ def module_mcp_target_sat(module_target_sat):
     log = module_target_sat.execute(f'podman logs {container_name}')
     assert result.stdout.strip() == 'running', (
         f'failed to start container {container_name}: {log.stdout}'
+        f'failed to start container {container_name}: {log.stderr}'
     )
     yield module_target_sat
     module_target_sat.execute(f'podman kill {container_name}')
