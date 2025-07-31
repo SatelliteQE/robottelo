@@ -6,7 +6,7 @@
 
 :CaseComponent: InterSatelliteSync
 
-:Team: Phoenix-content
+:Team: Artemis
 
 :CaseImportance: High
 
