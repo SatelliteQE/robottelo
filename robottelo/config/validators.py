@@ -256,6 +256,15 @@ VALIDATORS = dict(
             must_exist=True,
         ),
     ],
+    mcp=[
+        Validator(
+            'foreman_mcp.username',
+            'foreman_mcp.password',
+            'foreman_mcp.port',
+            'foreman_mcp.registry',
+            must_exist=True,
+        ),
+    ],
     ohsnap=[
         Validator(
             'ohsnap.host',
