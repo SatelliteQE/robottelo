@@ -60,6 +60,7 @@ REPOS:
     RHEL7: "@format {this[repos].MOCK_SERVICE_REPO_BASE}/epel-7-x86_64/"
     RHEL8: "@format {this[repos].MOCK_SERVICE_REPO_BASE}/epel-8-x86_64/"
     RHEL9: "@format {this[repos].MOCK_SERVICE_REPO_BASE}/epel-9-x86_64/"
+    RHEL10: "@format {this[repos].MOCK_SERVICE_REPO_BASE}/epel-10-x86_64/"
   MOCK_SERVICE_RPM: "robottelo-mock-service"
 
   CONVERT2RHEL:
