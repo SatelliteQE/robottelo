@@ -178,7 +178,7 @@ class TestOrganization:
         with pytest.raises(HTTPError) as err:
             org.create()
         assert err.value.response.status_code == 404
-        assert 'Route overridden by Katello' in err.value.response.text
+        assert 'Route overridden by Katello' in err.value.response.text.message
 
     def test_default_org_id_check(self, target_sat):
         """test to check the default_organization id
