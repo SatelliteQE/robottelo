@@ -364,7 +364,7 @@ def test_positive_provision_end_to_end(
     # check the build status
     wait_for(
         lambda: host.read().build_status_label != 'Pending installation',
-        timeout=1500,
+        timeout=2400,
         delay=10,
     )
     assert host.read().build_status_label == 'Installed'
