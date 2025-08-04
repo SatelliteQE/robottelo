@@ -9,7 +9,7 @@ http://<sat6>/apidoc/v2/products.html
 
 :CaseComponent: Repositories
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 

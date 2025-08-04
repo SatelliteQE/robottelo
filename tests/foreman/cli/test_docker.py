@@ -91,7 +91,7 @@ class TestDockerManifest:
 
     :CaseComponent: Repositories
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     @pytest.mark.tier2
@@ -129,7 +129,7 @@ class TestDockerRepository:
 
     :CaseComponent: Repositories
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     @pytest.mark.tier1
@@ -394,7 +394,7 @@ class TestDockerContentView:
 
     :CaseComponent: ContentViews
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     @pytest.mark.tier2

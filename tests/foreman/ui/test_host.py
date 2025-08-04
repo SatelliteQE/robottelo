@@ -6,7 +6,7 @@
 
 :CaseComponent: Hosts
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 
@@ -1904,7 +1904,7 @@ def test_all_hosts_delete(target_sat, function_org, function_location, new_host_
 
     :CaseComponent:Hosts-Content
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
     """
     host = target_sat.api.Host(organization=function_org, location=function_location).create()
     with target_sat.ui_session() as session:
@@ -1923,7 +1923,7 @@ def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_
 
     :CaseComponent:Hosts-Content
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
     """
     for _ in range(10):
         target_sat.api.Host(organization=function_org, location=function_location).create()
@@ -2022,7 +2022,7 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
 
     :CaseComponent:Hosts-Content
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
     """
 
     module_target_sat, org, lce, capsule, content_view, loc, ak = change_content_source_prep
