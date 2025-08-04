@@ -6,7 +6,7 @@
 
 :CaseComponent: AlternateContentSources
 
-:Team: Phoenix-content
+:Team: Artemis
 
 :CaseImportance: High
 

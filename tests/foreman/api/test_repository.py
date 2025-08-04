@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
@@ -2149,7 +2149,7 @@ class TestSRPMRepositoryIgnoreContent:
 
     :customerscenario: true
 
-    :team: Phoenix-content
+    :team: Artemis
 
     :BZ: 1673215
     """
@@ -2315,7 +2315,7 @@ class TestTokenAuthContainerRepository:
 
     :CaseComponent: ContainerImageManagement
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     @pytest.mark.tier2
