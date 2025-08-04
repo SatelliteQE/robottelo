@@ -357,6 +357,13 @@ def sat_ready_rhel(request):
 
 
 @pytest.fixture(scope='module')
+def module_sat_ready_rhel(request):
+    deploy_args = get_sat_deploy_args(request)
+    with Broker(**deploy_args, host_class=Satellite) as host:
+        yield host
+
+
+@pytest.fixture(scope='module')
 def module_sat_ready_rhels(request, module_target_sat):
     deploy_args = get_sat_deploy_args(request)
     if 'build_sanity' not in request.config.option.markexpr:
