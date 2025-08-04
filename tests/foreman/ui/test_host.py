@@ -3246,10 +3246,6 @@ def test_positive_change_hosts_owner(new_host_ui, module_org, module_location, t
             host_names=[host.name for host in hosts], new_owner_name=new_user_login
         )
 
-        assert_hosts_owner_helper(target_sat, session, hosts, new_user_login, owner_type='user')
-
-        target_sat.api.UserGroup(name=user_group_name, user=[new_user.id]).create()
-        session.browser.refresh()
         # Ensure the 'Owner' column is displayed in the All Hosts table
         headers = session.all_hosts.get_displayed_table_headers()
         if "Owner" not in headers:
@@ -3258,6 +3254,12 @@ def test_positive_change_hosts_owner(new_host_ui, module_org, module_location, t
                     'Owner': True,
                 }
             )
+
+        assert_hosts_owner_helper(target_sat, session, hosts, new_user_login, owner_type='user')
+
+        target_sat.api.UserGroup(name=user_group_name, user=[new_user.id]).create()
+        session.browser.refresh()
+
         # Change the hosts' owner to the user group
         session.all_hosts.change_hosts_owner(
             host_names=[host.name for host in hosts], new_owner_name=user_group_name
