@@ -875,7 +875,7 @@ class TestRemoteExecution:
         client = rex_contenthost
         system_current_time = target_sat.execute('date --utc +"%b %d %Y %I:%M%p"').stdout
         current_time_object = datetime.strptime(system_current_time.strip('\n'), '%b %d %Y %I:%M%p')
-        plan_time = (current_time_object + timedelta(seconds=30)).strftime("%Y-%m-%d %H:%M UTC")
+        plan_time = (current_time_object + timedelta(seconds=60)).strftime("%Y-%m-%d %H:%M UTC")
         invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
@@ -886,7 +886,8 @@ class TestRemoteExecution:
         )
         # Wait until the job runs
         target_sat.wait_for_tasks(
-            f'resource_type = JobInvocation and resource_id = {invocation_command["id"]}'
+            f'resource_type = JobInvocation and resource_id = {invocation_command["id"]}',
+            search_rate=10,
         )
 
     @pytest.mark.rhel_ver_list([8, 9])
