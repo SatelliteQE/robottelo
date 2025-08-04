@@ -6,7 +6,7 @@
 
 :CaseComponent: ErrataManagement
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 """
