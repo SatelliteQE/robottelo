@@ -166,20 +166,6 @@ def tracer_install_host(rex_contenthost, target_sat):
     return rex_contenthost
 
 
-@pytest.fixture
-def new_host_ui(target_sat):
-    """Changes the setting to use the New All Host UI
-    then returns it back to the normal value"""
-    all_hosts_setting = target_sat.api.Setting().search(
-        query={'search': f'name={"new_hosts_page"}'}
-    )[0]
-    all_hosts_setting.value = 'True'
-    all_hosts_setting.update({'value'})
-    yield
-    all_hosts_setting.value = 'False'
-    all_hosts_setting.update({'value'})
-
-
 @pytest.mark.e2e
 def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_options):
     """Create a new Host with parameters, config group. Check host presence on
@@ -1318,7 +1304,7 @@ def test_positive_manage_table_columns(
             assert (column in displayed_columns) is is_displayed
 
 
-def test_all_hosts_manage_columns(target_sat, new_host_ui):
+def test_all_hosts_manage_columns(target_sat):
     """Verify that the manage columns widget changes the columns appropriately
 
     :id: 5e13267a-68d2-451a-ae00-6502dd5db7f4
@@ -1946,7 +1932,7 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
         assert tracer_title == "No applications to restart"
 
 
-def test_all_hosts_delete(target_sat, function_org, function_location, new_host_ui):
+def test_all_hosts_delete(target_sat, function_org, function_location):
     """Create a host and delete it through All Hosts UI
 
     :id: 42b4560c-bb57-4c58-928e-e5fd5046b93f
@@ -1975,7 +1961,7 @@ def test_all_hosts_delete(target_sat, function_org, function_location, new_host_
         session.all_hosts.manage_table_columns({header: True for header in stripped_headers})
 
 
-def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_host_ui):
+def test_all_hosts_bulk_delete(target_sat, function_org, function_location):
     """Create several hosts, and delete them via Bulk Actions in All Hosts UI
 
     :id: af1b4a66-dd83-47c3-904b-e8627119cc53
@@ -1995,7 +1981,7 @@ def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_
 
 
 def test_all_hosts_bulk_cve_reassign(
-    target_sat, module_org, module_location, module_lce, module_cv, new_host_ui
+    target_sat, module_org, module_location, module_lce, module_cv
 ):
     """Create several hosts, and bulk assigns them a new CVE via All Hosts UI
 
@@ -2063,7 +2049,7 @@ def test_all_hosts_redirect_button(target_sat):
         assert "/new/hosts" in url
 
 
-def test_all_hosts_bulk_build_management(target_sat, function_org, function_location, new_host_ui):
+def test_all_hosts_bulk_build_management(target_sat, function_org, function_location):
     """Create several hosts, and manage them via Build Management in All Host UI
 
     :id: fff71945-6534-45cf-88a6-16b25c060f0a
@@ -2528,7 +2514,6 @@ def test_positive_manage_packages(
     module_target_sat,
     mod_content_hosts,
     module_repos_collection_with_setup,
-    new_host_ui,
     number_of_hosts,
     package_management_action,
     finish_via,
@@ -2832,7 +2817,6 @@ def test_all_hosts_manage_errata(
     function_repos_collection_with_manifest,
     manage_by_custom_rex,
     errata_to_install,
-    new_host_ui,
 ):
     """Apply an errata on multiple hosts through bulk errata wizard in All Hosts page.
 
@@ -2881,7 +2865,6 @@ def test_all_hosts_manage_errata(
 
 
 def test_positive_manage_repository_sets(
-    new_host_ui,
     module_target_sat,
     module_sca_manifest_org,
     module_lce,
@@ -3009,7 +2992,6 @@ def test_positive_manage_repository_sets(
 
 
 def test_disassociate_multiple_hosts(
-    new_host_ui,
     request,
     target_sat,
     module_location,
@@ -3192,7 +3174,7 @@ def assert_hosts_owner_helper(target_sat, session, hosts, expected_owner, owner_
         )
 
 
-def test_positive_change_hosts_owner(new_host_ui, module_org, module_location, target_sat):
+def test_positive_change_hosts_owner(module_org, module_location, target_sat):
     """
     This test changes the owner of multiple hosts using the new All Hosts UI bulk actions.
 
@@ -3271,7 +3253,6 @@ def test_positive_change_hosts_owner(new_host_ui, module_org, module_location, t
 
 
 def test_positive_change_hosts_org_loc(
-    new_host_ui,
     module_target_sat,
     module_org,
     module_location,
