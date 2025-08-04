@@ -496,7 +496,7 @@ class TestDockerActivationKey:
 
     :CaseComponent: ActivationKeys
 
-    :team: Artemis
+    :team: Proton
     """
 
     def test_positive_add_docker_repo_cv(
