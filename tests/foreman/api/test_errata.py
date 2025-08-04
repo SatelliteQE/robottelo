@@ -193,10 +193,11 @@ def errata_id_set(erratum_list):
 def package_applicability_changed_as_expected(
     sat,
     host,
-    package_filename,
+    packages,
     prior_applicable_errata_list,
     prior_applicable_errata_count,
     prior_applicable_package_count,
+    expected_change=1,
     return_applicables=False,
 ):
     """Checks that installing some package, updated any impacted errata(s)
@@ -217,14 +218,16 @@ def package_applicability_changed_as_expected(
             no longer applicable, but they were prior to install, if any.
         The number of applicable packages decreased by one.
 
-    :param string: package_filename:
-        the full filename of the package version installed.
+    :param list: packages:
+        list of the full filenames of the package versions installed.
     :param list: prior_applicable_errata_list:
         list of all erratum instances from search, that were applicable before modifying package.
     :param int prior_applicable_errata_count:
         number of total applicable errata prior to modifying package.
     :param int prior_applicable_package_count:
         number of total applicable packages prior to modifying package.
+    :param int expected_change: (default: 1)
+        replace with num of packages most recently installed or modified.
     :param boolean return_applicables (False): if set to True, and method's 'result' is not False:
         return a dict containing result, and relevant package and errata information.
 
@@ -271,7 +274,9 @@ def package_applicability_changed_as_expected(
         # No task for forced applicability regenerate,
         # applicability was already up to date
         assert task is None
-    package_basename = str(package_filename.split("-", 1)[0])  # 'package-4.0-1.rpm' > 'package'
+    package_basenames = [
+        str(pkg.split("-", 1)[0]) for pkg in packages
+    ]  # 'package-4.0-1.rpm' > 'package'
     prior_unique_errata_ids = errata_id_set(prior_applicable_errata_list)
     current_applicable_errata = _fetch_available_errata_instances(sat, host)
     app_unique_errata_ids = errata_id_set(current_applicable_errata)
@@ -303,7 +308,7 @@ def package_applicability_changed_as_expected(
                 errata
                 for errata in current_applicable_errata
                 if (
-                    any(package_basename in p for p in errata.packages)
+                    any(name in p for p in errata.packages for name in package_basenames)
                     and errata.errata_id not in prior_unique_errata_ids
                 )
             ]
@@ -314,15 +319,17 @@ def package_applicability_changed_as_expected(
                 errata
                 for errata in current_applicable_errata
                 if (
-                    not any(package_basename in p.filename for p in errata.packages)
+                    not any(
+                        name in p.filename for p in errata.packages for name in package_basenames
+                    )
                     and errata.errata_id in prior_unique_errata_ids
                 )
             ]
         app_errata_diff_ids = errata_id_set(app_errata_with_package_diff)
         assert len(app_errata_diff_ids) > 0, (
-            f'Applicable errata count changed by {difference}, after modifying {package_filename},'
+            f'Applicable errata count changed by {difference}, after modifying packages: [{packages}],'
             ' but could not find any affected errata(s) with packages list'
-            f' that contains a matching package_basename: {package_basename}.'
+            f' that contains a matching entry from package_basenames: [{package_basenames}].'
         )
     # Check that applicable_package_count changed,
     # if not, an applicable package was not modified.
@@ -337,9 +344,10 @@ def package_applicability_changed_as_expected(
         # check diff in applicable counts, is equal to diff in length of errata search results.
         assert prior_applicable_errata_count + difference == host.applicable_errata_count
 
-    """ Check applicable_package count changed by one.
+    """ Check applicable_package count changed by expected number.
         we expect applicable_errata_count increased/decrease,
-        only by number of 'new' or 'removed' applicable errata, if any.
+        only by number of 'new' or 'removed' applicable errata.
+        Errata that have the modified package in their applicable list, if any.
     """
     if app_errata_with_package_diff:
         if host.applicable_errata_count > prior_applicable_errata_count:
@@ -349,7 +357,7 @@ def package_applicability_changed_as_expected(
             Check applicable errata count increased by number
                 of newly applicable errata.
             """
-            assert prior_applicable_package_count + 1 == host.applicable_package_count
+            assert prior_applicable_package_count + expected_change == host.applicable_package_count
             expected_increase = 0
             if app_unique_errata_ids != prior_unique_errata_ids:
                 difference = len(app_unique_errata_ids) - prior_applicable_errata_count
@@ -365,7 +373,10 @@ def package_applicability_changed_as_expected(
                prior applicable errata, that are no longer found.
             """
             if host.applicable_errata_count < prior_applicable_errata_count:
-                assert host.applicable_package_count == prior_applicable_package_count - 1
+                assert (
+                    host.applicable_package_count
+                    == prior_applicable_package_count - expected_change
+                )
                 expected_decrease = 0
                 if app_unique_errata_ids != prior_unique_errata_ids:
                     difference = len(app_unique_errata_ids) - len(prior_applicable_errata_count)
@@ -394,23 +405,20 @@ def package_applicability_changed_as_expected(
             f'Expected set of prior applicable errata_ids: {prior_unique_errata_ids},'
             f' to be equivalent to set of current applicable errata_ids: {app_unique_errata_ids}.'
         )
-    if return_applicables is True:
+    if return_applicables:
         change_in_errata = len(app_unique_errata_ids) - prior_applicable_errata_count
-        output = host.execute(f'rpm -q {package_basename}').stdout
-        current_package = output[:-1]
-        assert package_basename in current_package
-        if current_package == package_filename:  # noqa: SIM108
-            # we have already checked if applicable package count changed,
-            # in case the same version as prior was installed and present.
-            prior_package = None  # package must not have been present before this modification
-        else:
-            prior_package = package_filename
+        output = host.execute(f'rpm -q {" ".join(package_basenames)}').stdout
+        current_packages = [
+            line.split('-')[0]
+            for line in output.strip().splitlines()
+            if 'is not installed' not in line
+        ]
+        assert all(name in current_packages for name in package_basenames)
         return {
             'result': True,
             'errata_count': host.applicable_errata_count,
             'package_count': host.applicable_package_count,
-            'current_package': current_package,
-            'prior_package': prior_package,
+            'current_packages': current_packages,
             'change_in_errata': change_in_errata,
             'changed_errata': list(app_errata_diff_ids),
         }
@@ -520,38 +528,49 @@ def test_positive_install_in_hc(
     target_sat,
     content_hosts,
 ):
-    """Install errata in a host-collection
+    """Install an erratum in a host-collection
 
     :id: 6f0242df-6511-4c0f-95fc-3fa32c63a064
 
     :Setup:
         1. Some Unregistered hosts.
         2. Errata synced on satellite server.
+        3. Control erratum and package: we will install the outdated package but not its erratum.
 
     :Steps:
         1. Setup custom repo for each client, publish & promote content-view.
-        2. Register clients as content hosts, install one outdated custom package on each client.
-        3. Create Host Collection from clients, install errata to clients by Host Collection.
+        2. Register clients as content hosts, install both outdated custom packages on each client.
+        3. Create Host Collection from clients, install the non-Control erratum to clients by Host Collection (All).
         4. PUT /api/v2/hosts/bulk/update_content
 
     :expectedresults:
-        1. package install invokes errata applicability recalculate
-        2. errata is installed in the host-collection
-        3. errata installation invokes applicability recalculate
-        4. updated custom package is found on the contained hosts
+        1. outdated package install invokes errata applicability recalculate.
+        2. expected erratum is installed in the host-collection.
+        3. erratum installation invokes applicability recalculate.
+        4. updated custom package is found on the contained hosts.
+        5. The control erratum was not applied, even though available.
+        6. The control package was not updated.
 
-    :CaseImportance: Medium
-
+    :CaseImportance: High
 
     :BZ: 1983043
+    :Verifies: SAT-29942
+
     """
-    # custom_repo already in published a module_cv version
+    # SAT-29942 prerequisite: multiple errata (2) are applicable,
+    # the control package is installed, the control erratum is not.
+    control_erratum = settings.repos.yum_6.errata[0]  # RHBA-2012:1030 (type: bugfix)
+    control_package = FAKE_4_CUSTOM_PACKAGE  # 'kangaroo-0.1-1.noarch'
+    # erratum to be applied
+    erratum_id = CUSTOM_REPO_ERRATA_ID  # RHSA-2012:0055 (type: security)
+    pkg_name = FAKE_2_CUSTOM_PACKAGE_NAME  # 'walrus'
+    pkg_outdated = FAKE_1_CUSTOM_PACKAGE  # 'walrus-0.71-1.noarch'
+    pkg_updated = FAKE_2_CUSTOM_PACKAGE  # 'walrus-5.21-1.noarch'
     repo_id = custom_repo['repository-id']
-    # just promote to lce, do not publish
     cv_publish_promote(
         target_sat, module_sca_manifest_org, module_cv, module_lce, needs_publish=False
     )
-    # Each client: create custom repo, register as content host to cv, install outdated package
+    # Each client: enable custom repo, register as content host to cv, install outdated package
     for client in content_hosts:
         _repo = target_sat.api.Repository(id=repo_id).read()
         client.create_custom_repos(**{f'{_repo.name}': _repo.url})
@@ -568,7 +587,7 @@ def test_positive_install_in_hc(
         assert client.subscribed
         client.run(r'subscription-manager repos --enable \*')
         # Remove custom package by name
-        client.run(f'yum remove -y {FAKE_2_CUSTOM_PACKAGE_NAME}')
+        client.run(f'yum remove -y {pkg_name}')
         # No applicable errata or packages to start
         assert (pre_errata_count := client.applicable_errata_count) == 0
         assert (pre_package_count := client.applicable_package_count) == 0
@@ -576,18 +595,20 @@ def test_positive_install_in_hc(
         # 1s margin of safety for rounding
         epoch_timestamp = int(time() - 1)
         # install outdated version
-        assert client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+        assert client.run(f'yum install -y {pkg_outdated}').status == 0
+        # install control package, making its erratum applicable too
+        assert client.run(f'yum install -y {control_package}').status == 0
         target_sat.api_factory.wait_for_errata_applicability_task(
             host_id=client.nailgun_host.id,
             from_when=epoch_timestamp,
         )
-        assert client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}').status == 0
-        # One errata now applicable on client
-        assert client.applicable_errata_count == 1
-        # One package now has an applicable errata
-        assert client.applicable_package_count == 1
-        # Fetch the new errata instance(s), expecting only one
-        _fetch_available_errata_instances(target_sat, client, expected_amount=1)
+        assert client.run(f'rpm -q {pkg_outdated}').status == 0
+        assert client.run(f'rpm -q {control_package}').status == 0
+        # both erratum are installable, the unique one, and the control
+        assert client.applicable_errata_count == 2
+        assert client.applicable_package_count == 2
+        # Fetch the new errata instance(s)
+        _fetch_available_errata_instances(target_sat, client, expected_amount=2)
 
         """ Did installing outdated package, update applicability as expected?
             * Call method package_applicability_changed_as_expected *
@@ -601,24 +622,37 @@ def test_positive_install_in_hc(
         passed_checks = package_applicability_changed_as_expected(
             target_sat,
             client,
-            FAKE_1_CUSTOM_PACKAGE,
+            [pkg_outdated, control_package],
             prior_app_errata,
             pre_errata_count,
             pre_package_count,
+            expected_change=2,
         )
         assert passed_checks is True, (
-            f'The package: {FAKE_1_CUSTOM_PACKAGE}, was not applicable to any erratum present on host: {client.hostname}.'
+            f'The package: {pkg_outdated}, was not applicable to any erratum present on host: {client.hostname}.'
         )
     # Setup host collection using client ids
     host_collection = target_sat.api.HostCollection(organization=module_sca_manifest_org).create()
     host_ids = [client.nailgun_host.id for client in content_hosts]
     host_collection.host_ids = host_ids
     host_collection = host_collection.update(['host_ids'])
-    # Install erratum to host collection
+    # check that erratum is applicable to expected hosts
+    erratum_instance = (  # RHSA-2012:0055 (for Walrus)
+        target_sat.api.Errata().search(query={'search': f'errata_id="{erratum_id}"'})[0].read()
+    )
+    # erratum reports correct host availability
+    assert erratum_instance.hosts_available_count == len(host_collection.host)
+    assert erratum_instance.hosts_applicable_count == len(host_collection.host)
+    # hosts in collection report erratum
+    for client in host_collection.host:
+        assert client.read().content_facet_attributes['errata_counts']['security'] == 1
+        assert client.read().content_facet_attributes['errata_counts']['bugfix'] == 1
+
+    # Install erratum in host collection
     task_id = target_sat.api.JobInvocation().run(
         data={
             'feature': 'katello_errata_install',
-            'inputs': {'errata': str(CUSTOM_REPO_ERRATA_ID)},
+            'inputs': {'errata': erratum_id},
             'targeting_type': 'static_query',
             'search_query': f'host_collection_id = {host_collection.id}',
             'organization_id': module_sca_manifest_org.id,
@@ -631,26 +665,44 @@ def test_positive_install_in_hc(
             max_tries=10,
         ),
         (
-            f'Could not install erratum: {CUSTOM_REPO_ERRATA_ID}, to Host-Collection.'
+            f'Could not install erratum: {erratum_id}, to Host-Collection.'
             f' Task: {task_id} failed, or timed out.'
         ),
     )
+    # erratum reports correct host availability
+    erratum_instance = erratum_instance.read()  # RHSA-2012:0055 (for Walrus)
+    assert erratum_instance.hosts_available_count == 0
+    assert erratum_instance.hosts_applicable_count == 0
+    # hosts from collection report only the control errata (bugfix)
+    for client in host_collection.host:
+        assert client.read().content_facet_attributes['errata_counts']['security'] == 0
+        # control erratum was not applied and remains
+        assert client.read().content_facet_attributes['errata_counts']['bugfix'] == 1
+
+    # check package and erratum on each contenthost
     for client in content_hosts:
-        # No applicable errata after install on all clients
-        assert client.applicable_errata_count == 0, (
+        # Only the control erratum remains (not applied)
+        assert client.applicable_errata_count == 1, (
             f'A client in Host-Collection: {client.hostname}, had {client.applicable_errata_count} '
+            f'applicable errata, expected just 1; the control "{control_erratum}".'
         )
-        'applicable errata, expected 0.'
-        # Updated package is present on all clients
-        result = client.run(f'rpm -q {FAKE_2_CUSTOM_PACKAGE}')
+        # Updated Walrus package is present on client
+        result = client.run(f'rpm -q {pkg_updated}')
         assert result.status == 0, (
             f'The client in Host-Collection: {client.hostname},'
-            f' could not find the updated package: {FAKE_2_CUSTOM_PACKAGE}'
+            f' could not find the updated package: {pkg_updated}'
         )
-        # No applicable packages on client
-        assert client.applicable_package_count == 0, (
+        # Only the control's package is still applicable
+        assert client.applicable_package_count == 1, (
             f'A client in Host-Collection: {client.hostname}, had {client.applicable_package_count} '
-            f'applicable package(s) after installing erratum: {CUSTOM_REPO_ERRATA_ID}, but expected 0.'
+            f'applicable package(s) after installing erratum: {erratum_id}, '
+            f'but expected just 1; the control "{control_package}"'
+        )
+        # control package was not updated
+        result = client.run(f'rpm -q {control_package}')
+        assert result.status == 0, (
+            f'The client in Host-Collection: {client.hostname},'
+            f" could not find the control package's unchanged version: {control_package}"
         )
 
 
@@ -782,7 +834,7 @@ def test_positive_install_multiple_in_host(
         passed_checks = package_applicability_changed_as_expected(
             target_sat,
             rhel_contenthost,
-            package_filename,
+            [package_filename],
             prior_app_errata,
             pre_errata_count,
             pre_package_count,
