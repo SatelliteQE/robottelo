@@ -87,3 +87,48 @@ async def test_negative_call_mcp_server(module_mcp_target_sat):
             result.data['error']
             == "Action 'create' on resource 'organizations' is not allowed: POST method is not allowed, expected GET."
         )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ('user_fixture', 'allowed_resource', 'denied_resource'),
+    [
+        ('host_viewer_user', 'hosts', 'domains'),
+        ('domain_viewer_user', 'domains', 'hosts'),
+    ],
+    ids=['host_viewer_user', 'domain_viewer_user'],
+)
+async def test_positive_mcp_user_view_permissions(
+    request, module_mcp_target_sat, user_fixture, allowed_resource, denied_resource
+):
+    """Test that users with different view permissions can only view their authorized resources through MCP
+
+    :id: 9f3c31c2-2f50-43ba-ac52-b3ebc6af4e46
+
+    :expectedresults: Users can only view resources they have view permissions for
+    """
+    user, password = request.getfixturevalue(user_fixture)
+    async with Client(
+        transport=StreamableHttpTransport(
+            f'http://{settings.server.hostname}:{settings.foreman_mcp.port}/mcp',
+            headers={
+                'FOREMAN_USERNAME': user.login,
+                'FOREMAN_TOKEN': password,
+            },
+        ),
+    ) as client:
+        result = await client.call_tool(
+            'call_foreman_api_get', {'resource': allowed_resource, 'action': 'index', 'params': {}}
+        )
+        assert (
+            result.data['message']
+            == f"Action 'index' on resource '{allowed_resource}' executed successfully."
+        )
+
+        result = await client.call_tool(
+            'call_foreman_api_get', {'resource': denied_resource, 'action': 'index', 'params': {}}
+        )
+        assert (
+            f"Failed to execute action 'index' on resource '{denied_resource}'"
+            in result.data['message']
+        )

@@ -1,6 +1,7 @@
 from datetime import datetime
 from time import sleep
 
+from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
@@ -37,3 +38,40 @@ def module_mcp_target_sat(module_target_sat):
         f'podman inspect -f "{{{{.State.Status}}}}" {container_name}'
     )
     assert result.stdout.strip() == 'exited', f'failed to clean up container {container_name}'
+
+
+@pytest.fixture
+def host_viewer_user(module_mcp_target_sat, module_org, module_location):
+    """Creates a user with host viewing permissions only."""
+    host_viewer_role = module_mcp_target_sat.api.Role().create()
+    host_perm = module_mcp_target_sat.api.Permission().search(query={'search': 'name="view_hosts"'})
+    module_mcp_target_sat.api.Filter(permission=host_perm, role=host_viewer_role.id).create()
+    host_viewer_password = gen_string('alphanumeric')
+    host_viewer = module_mcp_target_sat.api.User(
+        admin=False,
+        location=[module_location],
+        organization=[module_org],
+        role=[host_viewer_role],
+        password=host_viewer_password,
+    ).create()
+    return (host_viewer, host_viewer_password)
+
+
+@pytest.fixture
+def domain_viewer_user(module_mcp_target_sat, module_org, module_location):
+    """Creates a user with domain viewing permissions only."""
+    domain_viewer_role = module_mcp_target_sat.api.Role().create()
+    dom_perm = module_mcp_target_sat.api.Permission().search(
+        query={'search': 'name="view_domains"'}
+    )
+    module_mcp_target_sat.api.Filter(permission=dom_perm, role=domain_viewer_role.id).create()
+    domain_viewer_password = gen_string('alphanumeric')
+
+    domain_viewer = module_mcp_target_sat.api.User(
+        admin=False,
+        location=[module_location],
+        organization=[module_org],
+        role=[domain_viewer_role],
+        password=domain_viewer_password,
+    ).create()
+    return (domain_viewer, domain_viewer_password)
