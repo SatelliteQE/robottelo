@@ -91,7 +91,7 @@ class TestDockerManifest:
 
     :CaseComponent: Repositories
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     def test_positive_read_docker_tags(self, repo, module_target_sat):
@@ -128,7 +128,7 @@ class TestDockerRepository:
 
     :CaseComponent: Repositories
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     @pytest.mark.parametrize('name', **parametrized(valid_docker_repository_names()))
@@ -381,7 +381,7 @@ class TestDockerContentView:
 
     :CaseComponent: ContentViews
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     def test_positive_add_docker_repos_by_id(self, module_org, module_product, module_target_sat):

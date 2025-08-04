@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
@@ -2134,7 +2134,7 @@ class TestSRPMRepositoryIgnoreContent:
 
     :customerscenario: true
 
-    :team: Phoenix-content
+    :team: Artemis
 
     :BZ: 1673215
     """
@@ -2295,7 +2295,7 @@ class TestTokenAuthContainerRepository:
 
     :CaseComponent: ContainerImageManagement
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     def test_positive_create_with_long_token(

@@ -6,7 +6,7 @@
 
 :CaseComponent: Hosts
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 
@@ -1273,7 +1273,7 @@ def test_all_hosts_manage_columns(target_sat, new_host_ui):
 
     :CaseComponent: Hosts-Content
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
 
     :Verifies: SAT-19064
     """
@@ -1901,7 +1901,7 @@ def test_all_hosts_delete(target_sat, function_org, function_location, new_host_
 
     :CaseComponent:Hosts-Content
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
     """
     host = target_sat.api.Host(organization=function_org, location=function_location).create()
     with target_sat.ui_session() as session:
@@ -1930,7 +1930,7 @@ def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_
 
     :CaseComponent:Hosts-Content
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
     """
     for _ in range(10):
         target_sat.api.Host(organization=function_org, location=function_location).create()
@@ -1956,7 +1956,7 @@ def test_all_hosts_bulk_cve_reassign(
 
     :CaseComponent: Hosts-Content
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
     """
     lce2 = target_sat.api.LifecycleEnvironment(organization=module_org).create()
     module_cv = target_sat.api.ContentView(id=module_cv.id).read()
@@ -2002,7 +2002,7 @@ def test_all_hosts_redirect_button(target_sat):
 
     :CaseComponent: Hosts-Content
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
     """
     with target_sat.ui_session() as session:
         url = session.host.new_ui_button()
@@ -2018,7 +2018,7 @@ def test_all_hosts_bulk_build_management(target_sat, function_org, function_loca
 
     :CaseComponent:Hosts-Content
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
     """
     for _ in range(3):
         target_sat.api.Host(organization=function_org, location=function_location).create()
@@ -2124,7 +2124,7 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
 
     :CaseComponent:Hosts-Content
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
     """
 
     module_target_sat, org, lce, capsule, content_view, loc, ak = change_content_source_prep
@@ -2342,7 +2342,7 @@ def test_positive_manage_packages(
 
     :parametrized: yes
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
     """
 
     packages = ['panda', 'seal']
@@ -2626,7 +2626,7 @@ def test_all_hosts_manage_errata(
 
     :CaseComponent: Hosts-Content
 
-    :Team: Phoenix-content
+    :Team: Proton
     """
     if errata_to_install == '1':
         errata_ids = settings.repos.yum_3.errata[25]
