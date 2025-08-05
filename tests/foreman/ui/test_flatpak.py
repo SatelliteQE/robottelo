@@ -51,6 +51,7 @@ def test_view_flatpak_remotes(target_sat, function_org, function_flatpak_remote)
         details = session.flatpak_remotes.read_remote_details(name=remote['Name'])
         assert details['title'] == remote['Name']
         assert details['url'] == remote['URL']
+        # search for "of X items" in pagination to ensure all scanned repos are available
         match = re.search(r'of\s+(\d+)\s+items', details['pagination']['_items'])
         assert int(match.group(1)) == len(function_flatpak_remote.repos)
 
