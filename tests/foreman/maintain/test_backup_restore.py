@@ -407,8 +407,6 @@ def test_positive_puppet_backup_restore(
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
 def test_positive_backup_restore(
     sat_maintain,
-    module_target_sat,
-    module_capsule_configured,
     setup_backup_tests,
     module_synced_repos,
     backup_type,
@@ -510,7 +508,7 @@ def test_positive_backup_restore(
         assert rh_repo.id == module_synced_repos['rh'].id
     else:
         repo_path = module_synced_repos['custom'].full_path.replace(
-            module_target_sat.hostname, module_capsule_configured.hostname
+            sat_maintain.satellite.hostname, sat_maintain.hostname
         )
         repo_files = get_repo_files_by_url(repo_path)
         assert len(repo_files) == FAKE_0_YUM_REPO_PACKAGES_COUNT
