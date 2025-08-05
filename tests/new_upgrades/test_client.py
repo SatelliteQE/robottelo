@@ -37,8 +37,6 @@ def pre_client_package_installation_setup(
     """Create product and repo, from which a package will be installed
     post upgrade. Create a content host and register it.
 
-    :id: preupgrade-eedab638-fdc9-41fa-bc81-75dd2790f7be
-
     :setup:
 
         1. Create and sync repo from which a package can be
@@ -125,7 +123,7 @@ def pre_client_package_installation_setup(
 def test_pre_client_package_installation(pre_client_package_installation_setup):
     """Post-upgrade install of a package on a client created and registered pre-upgrade.
 
-    :id: postupgrade-eedab638-fdc9-41fa-bc81-75dd2790f7be
+    :id: eedab638-fdc9-41fa-bc81-75dd2790f7be
 
     :steps: Install package on the pre-upgrade registered client
 
@@ -152,7 +150,7 @@ def test_post_scenario_post_client_package_installation(pre_client_package_insta
     """Post-upgrade test that installs a package on a client registered post-upgrade
     and then verifies the package is installed.
 
-    :id: postupgrade-1a881c07-595f-425f-aca9-df2337824a8e
+    :id: 1a881c07-595f-425f-aca9-df2337824a8e
 
     :steps:
 
@@ -171,6 +169,10 @@ def test_post_scenario_post_client_package_installation(pre_client_package_insta
     rhel_client.execute('subscription-manager unregister')
     rhel_client.execute('subscription-manager clean')
     target_sat = pre_client_package_installation_setup.satellite
+    if settings.UPGRADE.TO_VERSION == 'stream':
+        target_sat._swap_nailgun('master')
+    else:
+        target_sat._swap_nailgun(f"{settings.UPGRADE.TO_VERSION}.z")
     org = pre_client_package_installation_setup.org
     location = pre_client_package_installation_setup.location
     lce = pre_client_package_installation_setup.lce
