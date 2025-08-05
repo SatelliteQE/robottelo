@@ -1283,8 +1283,8 @@ def test_positive_manage_table_columns(
         'Comment': False,
         'Installable updates': True,
         'RHEL Lifecycle status': False,
-        'Registered': True,
-        'Last checkin': True,
+        'Registered at': True,
+        'Last seen': True,
         'IPv4': True,
         'MAC': True,
         'Sockets': True,
@@ -1298,7 +1298,7 @@ def test_positive_manage_table_columns(
     ) as session:
         session.organization.select(org_name=current_sat_org.name)
         session.location.select(loc_name=current_sat_location.name)
-        session.host.manage_table_columns(columns)
+        session.all_hosts.manage_table_columns(columns)
         displayed_columns = session.host.get_displayed_table_headers()
         for column, is_displayed in columns.items():
             assert (column in displayed_columns) is is_displayed
