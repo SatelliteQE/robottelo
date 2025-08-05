@@ -41,6 +41,20 @@ def _location(request, target_sat, options=None):
     return location
 
 
+def _location_with_parent(request, target_sat):
+    parent_location = target_sat.cli_factory.make_location()
+    location = target_sat.cli_factory.make_location({'parent-id': parent_location['id']})
+
+    @request.addfinalizer
+    def _cleanup():
+        if target_sat.cli.Location.exists(search=('id', location['id'])):
+            target_sat.cli.Location.delete(options={'id': location['id']})
+            if target_sat.cli.Location.exists(search=('id', parent_location['id'])):
+                target_sat.cli.Location.delete(options={'id': parent_location['id']})
+
+    return location, parent_location
+
+
 def _subnet(request, target_sat):
     subnet = target_sat.cli_factory.make_subnet()
 
@@ -232,8 +246,7 @@ class TestLocation:
             expected parent location set
 
         """
-        parent_location = _location(request, target_sat)
-        location = _location(request, target_sat, {'parent-id': parent_location['id']})
+        location, parent_location = _location_with_parent(request, target_sat)
         assert location['parent'] == parent_location['name']
 
     @pytest.mark.tier1
@@ -344,8 +357,7 @@ class TestLocation:
 
         :CaseImportance: High
         """
-        parent_location = _location(request, target_sat)
-        location = _location(request, target_sat, {'parent-id': parent_location['id']})
+        location, parent_location = _location_with_parent(request, target_sat)
 
         parent_location_2 = _location(request, target_sat)
         target_sat.cli.Location.update({'id': location['id'], 'parent-id': parent_location_2['id']})
@@ -366,8 +378,7 @@ class TestLocation:
 
         :CaseImportance: High
         """
-        parent_location = _location(request, target_sat)
-        location = _location(request, target_sat, {'parent-id': parent_location['id']})
+        location, parent_location = _location_with_parent(request, target_sat)
 
         # set parent as child
         with pytest.raises(CLIReturnCodeError):
