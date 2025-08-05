@@ -78,10 +78,6 @@ VALIDATORS = dict(
         Validator('azurerm.azure_region', is_in=AZURERM_VALID_REGIONS),
     ],
     broker=[Validator('broker.broker_directory', default='.')],
-    bugzilla=[
-        Validator('bugzilla.url', default='https://bugzilla.redhat.com'),
-        Validator('bugzilla.api_key', must_exist=True),
-    ],
     capsule=[
         Validator('capsule.version.release', must_exist=True),
         Validator(
@@ -257,6 +253,15 @@ VALIDATORS = dict(
             'ldap.username',
             'ldap.password',
             'ldap.workgroup',
+            must_exist=True,
+        ),
+    ],
+    mcp=[
+        Validator(
+            'foreman_mcp.username',
+            'foreman_mcp.password',
+            'foreman_mcp.port',
+            'foreman_mcp.registry',
             must_exist=True,
         ),
     ],

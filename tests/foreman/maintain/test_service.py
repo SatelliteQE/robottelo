@@ -24,27 +24,51 @@ from robottelo.constants import (
 )
 from robottelo.hosts import Satellite
 
+IOP_SERVICES = [
+    'iop-core-engine.service',
+    'iop-core-gateway.service',
+    'iop-core-host-inventory-api.service',
+    'iop-core-host-inventory-migrate.service',
+    'iop-core-host-inventory.service',
+    'iop-core-ingress.service',
+    'iop-core-kafka.service',
+    'iop-core-puptoo.service',
+    'iop-core-yuptoo.service',
+    'iop-service-advisor-backend-api.service',
+    'iop-service-advisor-backend-service.service',
+    'iop-service-remediations-api.service',
+    'iop-service-vmaas-reposcan.service',
+    'iop-service-vmaas-webapp-go.service',
+    'iop-service-vuln-dbupgrade.service',
+    'iop-service-vuln-evaluator-recalc.service',
+    'iop-service-vuln-evaluator-upload.service',
+    'iop-service-vuln-grouper.service',
+    'iop-service-vuln-listener.service',
+    'iop-service-vuln-manager.service',
+    'iop-service-vuln-taskomatic.service',
+]
+
 SATELLITE_SERVICES = [
-    "dynflow-sidekiq@.service",
-    "foreman-proxy.service",
-    "foreman.service",
-    "httpd.service",
-    "postgresql.service",
-    "pulpcore-api.service",
-    "pulpcore-content.service",
-    "pulpcore-worker@.service",
-    "redis.service",
-    "tomcat.service",
+    'dynflow-sidekiq@.service',
+    'foreman-proxy.service',
+    'foreman.service',
+    'httpd.service',
+    'postgresql.service',
+    'pulpcore-api.service',
+    'pulpcore-content.service',
+    'pulpcore-worker@.service',
+    'redis.service',
+    'tomcat.service',
 ]
 
 CAPSULE_SERVICES = [
-    "foreman-proxy.service",
-    "httpd.service",
-    "postgresql.service",
-    "pulpcore-api.service",
-    "pulpcore-content.service",
-    "pulpcore-worker@.service",
-    "redis.service",
+    'foreman-proxy.service',
+    'httpd.service',
+    'postgresql.service',
+    'pulpcore-api.service',
+    'pulpcore-content.service',
+    'pulpcore-worker@.service',
+    'redis.service',
 ]
 
 
@@ -71,6 +95,7 @@ def setup_test_positive_service_restart(request, sat_maintain):
         sat_maintain.cli.Admin.logging({'all': True, 'level-production': True})
 
 
+@pytest.mark.include_satellite_iop
 @pytest.mark.include_capsule
 def test_positive_service_list(sat_maintain):
     """List satellite services using satellite-maintain service subcommand
@@ -87,11 +112,19 @@ def test_positive_service_list(sat_maintain):
     result = sat_maintain.cli.Service.list()
     assert 'FAIL' not in result.stdout
     assert result.status == 0
-    services = SATELLITE_SERVICES if type(sat_maintain) is Satellite else CAPSULE_SERVICES
+    if isinstance(sat_maintain, Satellite):
+        services = (
+            SATELLITE_SERVICES + IOP_SERVICES
+            if sat_maintain.local_advisor_enabled
+            else SATELLITE_SERVICES
+        )
+    else:
+        services = CAPSULE_SERVICES
     for service in services:
         assert service in result.stdout
 
 
+@pytest.mark.include_satellite_iop
 @pytest.mark.include_capsule
 @pytest.mark.usefixtures('start_satellite_services')
 def test_positive_service_stop_start(sat_maintain):
@@ -124,6 +157,7 @@ def test_positive_service_stop_start(sat_maintain):
 
 
 @pytest.mark.upgrade
+@pytest.mark.include_satellite_iop
 @pytest.mark.include_capsule
 @pytest.mark.usefixtures('start_satellite_services')
 def test_positive_service_stop_restart(sat_maintain):
@@ -158,6 +192,7 @@ def test_positive_service_stop_restart(sat_maintain):
 
 
 @pytest.mark.include_capsule
+@pytest.mark.include_satellite_iop
 @pytest.mark.usefixtures('start_satellite_services')
 def test_positive_service_enable_disable(sat_maintain):
     """Enable/Disable services using satellite-maintain service subcommand
@@ -209,6 +244,7 @@ def test_positive_service_enable_disable(sat_maintain):
     assert result.status == 0
 
 
+@pytest.mark.include_satellite_iop
 @pytest.mark.usefixtures('start_satellite_services')
 def test_positive_foreman_service(sat_maintain):
     """Validate httpd service should work as expected even stopping of the foreman service

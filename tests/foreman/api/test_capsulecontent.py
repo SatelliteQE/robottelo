@@ -7,7 +7,7 @@ interactions and use capsule.
 
 :CaseComponent: Capsule-Content
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
@@ -782,7 +782,7 @@ class TestCapsuleContentManagement:
             assert b'katello-server-ca.crt' in response.content
 
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('endpoint', ['pulpcore'])
+    @pytest.mark.parametrize('endpoint', ['pulpcore', 'katello'])
     def test_flatpak_endpoint(self, target_sat, module_capsule_configured, endpoint):
         """Ensure the Capsules's local flatpak index endpoint is up after install or upgrade.
 
@@ -2163,7 +2163,7 @@ class TestPodman:
 
     :CaseComponent: Repositories
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     @pytest.fixture(scope='class')

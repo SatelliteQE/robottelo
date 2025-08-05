@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
@@ -1962,7 +1962,6 @@ class TestRepository:
 #         assert repo['name'] == repo_options['name']
 #         assert repo['content-type'] == 'ostree'
 #
-#     @pytest.mark.skip_if_open("BZ:1716429")
 #     @pytest.mark.parametrize(
 #         'repo_options',
 #         **parametrized(
@@ -2029,7 +2028,6 @@ class TestRepository:
 #             make_repository(repo_options)
 #
 #     @pytest.mark.upgrade
-#     @pytest.mark.skip_if_open("BZ:1625783")
 #     @pytest.mark.parametrize(
 #         'repo_options',
 #         **parametrized(

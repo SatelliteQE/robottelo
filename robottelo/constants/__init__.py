@@ -1025,6 +1025,12 @@ PULP_EXPORT_DIR = '/var/lib/pulp/exports/'
 PULP_IMPORT_DIR = '/var/lib/pulp/imports/'
 EXPORT_LIBRARY_NAME = 'Export-Library'
 SUPPORTED_REPO_CHECKSUMS = ['sha256', 'sha384', 'sha512']
+SUPPORTED_MIRRORING_POLICIES = {
+    'yum': ['additive', 'mirror_complete', 'mirror_content_only'],
+    'docker': ['additive', 'mirror_content_only'],
+    'ansible_collection': ['additive', 'mirror_content_only'],
+    'file': ['additive', 'mirror_content_only'],
+}
 
 PUPPET_COMMON_INSTALLER_OPTS = {
     'foreman-proxy-puppetca': 'true',
@@ -1980,10 +1986,6 @@ DEFAULT_SYSPURPOSE_ATTRIBUTES = {
     ),
 }
 
-# Bugzilla statuses used by Robottelo issue handler.
-OPEN_STATUSES = ("NEW", "ASSIGNED", "POST", "MODIFIED")
-CLOSED_STATUSES = ("ON_QA", "VERIFIED", "RELEASE_PENDING", "CLOSED")
-WONTFIX_RESOLUTIONS = ("WONTFIX", "CANTFIX", "DEFERRED")
 # Jira statuses used by Robottelo issue handler.
 JIRA_TESTS_PASSED_LABEL = "tests-passed"
 JIRA_TESTS_FAILED_LABEL = "tests-failed"

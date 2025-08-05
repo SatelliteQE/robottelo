@@ -1,3 +1,4 @@
+import base64
 from configparser import ConfigParser
 import contextlib
 from contextlib import contextmanager
@@ -6,6 +7,7 @@ from functools import cached_property, lru_cache
 import importlib
 import io
 import json
+import os
 from pathlib import Path, PurePath
 import random
 import re
@@ -51,7 +53,16 @@ from robottelo.constants import (
     SATELLITE_VERSION,
 )
 from robottelo.enums import NetworkType
-from robottelo.exceptions import CLIFactoryError, DownloadFileError, HostPingFailed
+from robottelo.exceptions import (
+    CapsuleHostError,
+    CLIFactoryError,
+    ContentHostError,
+    DownloadFileError,
+    HostPingFailed,
+    IPAHostError,
+    ProxyHostError,
+    SatelliteHostError,
+)
 from robottelo.host_helpers import (
     CapsuleMixins,
     ContentHostMixins,
@@ -108,26 +119,6 @@ def get_sat_rhel_version():
         elif hasattr(settings.robottelo, 'rhel_version'):
             rhel_version = settings.robottelo.rhel_version
     return Version(rhel_version)
-
-
-class ContentHostError(Exception):
-    pass
-
-
-class CapsuleHostError(Exception):
-    pass
-
-
-class SatelliteHostError(Exception):
-    pass
-
-
-class IPAHostError(Exception):
-    pass
-
-
-class ProxyHostError(Exception):
-    pass
 
 
 class ContentHost(Host, ContentHostMixins):
@@ -523,23 +514,6 @@ class ContentHost(Host, ContentHostMixins):
         return self.execute(
             f'subscription-manager environments --set="{env_names}" --username={username} --password={password}'
         )
-
-    def subscription_manager_get_pool(self, sub_list=None):
-        """
-        Return pool ids for the corresponding subscriptions in the list
-        """
-        if sub_list is None:
-            sub_list = []
-        pool_ids = []
-        for sub in sub_list:
-            result = self.execute(
-                f'subscription-manager list --available --pool-only --matches="{sub}"'
-            )
-            result = result.stdout
-            result = result.split('\n')
-            result = ' '.join(result).split()
-            pool_ids.append(result)
-        return pool_ids
 
     @property
     def subscription_config(self):
@@ -1519,7 +1493,7 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError('There was an error installing katello-host-tools-tracer')
         self.execute('katello-tracer-upload')
 
-    def register_to_cdn(self, pool_ids=None):
+    def register_to_cdn(self):
         """Register host to CDN"""
         self.reset_rhsm()
 
@@ -1622,6 +1596,56 @@ class ContentHost(Host, ContentHostMixins):
                 release=settings.capsule.version.release,
                 snap=settings.capsule.version.snap,
             )
+
+    def podman_login(self, username=None, password=None, registry=None):
+        """Login to a podman registry."""
+        iop_settings = settings.rh_cloud.iop_advisor_engine
+        username = username or iop_settings.username
+        password = password or iop_settings.token
+        registry = registry or iop_settings.registry
+        if registry and username and password:
+            auth_str = f'{username}:{password}'
+            auth_b64 = base64.b64encode(auth_str.encode()).decode()
+            auth_data = {'auths': {f'{registry}': {'auth': auth_b64}}}
+            local_authfile_path = f'{robottelo_tmp_dir}/podman-auth.json'
+            sat_authfile_path = os.path.join(
+                self.execute('echo ${XDG_RUNTIME_DIR}').stdout.strip(), 'containers', 'auth.json'
+            )
+            with open(local_authfile_path, 'w') as f:
+                json.dump(auth_data, f)
+            self.put(local_authfile_path, sat_authfile_path)
+            if self.execute(f'[ -f {sat_authfile_path} ]').status != 0:
+                raise FileNotFoundError(
+                    f'The Podman auth file in path {sat_authfile_path} is not found in satellite.'
+                )
+            # Use HTTPS_PROXY to reach container registry for IPv6
+            self.enable_ipv6_system_proxy()
+            # Log in to container registry
+            cmd_result = self.execute(f'podman login --authfile {sat_authfile_path} {registry}')
+            if cmd_result.status != 0:
+                raise ContentHostError(
+                    f'Error logging in to container registry {registry}: {cmd_result.stdout}'
+                )
+        else:
+            logger.error('Podman login skipped: missing registry, username, or token.')
+
+    def is_podman_logged_in(self, registry=None):
+        """Check if podman is logged into a registry."""
+        registry = registry or settings.rh_cloud.iop_advisor_engine.registry
+        cmd_result = self.execute(f'podman login --get-login {registry}')
+        return cmd_result.status == 0
+
+    def podman_logout(self, registry=None):
+        """Logout of a podman registry."""
+        registry = registry or settings.rh_cloud.iop_advisor_engine.registry
+        if self.is_podman_logged_in(registry):
+            cmd_result = self.execute(f'podman logout {registry}')
+            if cmd_result.status != 0:
+                raise ContentHostError(
+                    f'Error logging out of container registry {registry}: {cmd_result.stdout}'
+                )
+        else:
+            logger.warning(f'Podman is not logged into container registry {registry}')
 
 
 class Capsule(ContentHost, CapsuleMixins):
@@ -2313,6 +2337,7 @@ class Satellite(Capsule, SatelliteMixins):
 
     def update_setting(self, name, value):
         """changes setting value and returns the setting value before the change."""
+        value = value if value is not None else ''
         setting = self.api.Setting().search(query={'search': f'name="{name}"'})[0]
         default_setting_value = setting.value
         if default_setting_value is None:

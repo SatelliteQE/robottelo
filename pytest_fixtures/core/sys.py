@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 import pytest
 
 from robottelo.config import settings
-from robottelo.hosts import SatelliteHostError
+from robottelo.exceptions import SatelliteHostError
 
 
 @pytest.fixture

@@ -25,42 +25,11 @@ from robottelo.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
     EXPIRED_MANIFEST,
     EXPIRED_MANIFEST_DATE,
-    PRDS,
-    REPOS,
-    REPOSET,
     DataFile,
 )
 from robottelo.utils.issue_handlers import is_open
 
 pytestmark = [pytest.mark.run_in_one_thread]
-
-
-@pytest.fixture(scope='module')
-def golden_ticket_host_setup(function_sca_manifest_org, module_target_sat):
-    org = function_sca_manifest_org
-    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
-        basearch='x86_64',
-        org_id=org.id,
-        product=PRDS['rhel'],
-        repo=REPOS['rhst7']['name'],
-        reposet=REPOSET['rhst7'],
-        releasever=None,
-    )
-    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
-    rh_repo.sync()
-    custom_product = module_target_sat.api.Product(organization=org).create()
-    custom_repo = module_target_sat.api.Repository(
-        name=gen_string('alphanumeric').upper(), product=custom_product
-    ).create()
-    custom_repo.sync()
-    ak = module_target_sat.api.ActivationKey(
-        content_view=org.default_content_view,
-        max_hosts=100,
-        organization=org,
-        environment=module_target_sat.api.LifecycleEnvironment(id=org.library.id),
-        auto_attach=True,
-    ).create()
-    return org, ak
 
 
 @pytest.mark.e2e

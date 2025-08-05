@@ -25,9 +25,11 @@ host_collections_with_limit_count: 0
 hostgroup_nesting: false
 hostgroup_max_nesting_level: 0
 use_selectable_columns: false
+remote_execution_transient_package_actions_count: 0
 instance_uuid: dcce9379-72f9-5a18-8916-4511234f0001
 hosts_by_type_count|Managed: 1
 hosts_by_os_count|RedHat: 1
+hosts_by_family_count|Redhat: 1
 facts_by_type|Puppet|min_update_time: '2025-07-07 09:54:04.928769'
 facts_by_type|Puppet|max_update_time: '2025-07-07 09:54:05.959833'
 facts_by_type|Puppet|values_count: 404

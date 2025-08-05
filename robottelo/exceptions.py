@@ -74,7 +74,21 @@ class CLIError(Exception):
 class CapsuleHostError(Exception):
     """Indicates error in capsule configuration etc"""
 
-    pass
+
+class ContentHostError(Exception):
+    """Indicates error in content configuration."""
+
+
+class SatelliteHostError(Exception):
+    """Indicates error in satellite configuration."""
+
+
+class IPAHostError(Exception):
+    """Indicates error in IPA configuration."""
+
+
+class ProxyHostError(Exception):
+    """Indicates error in proxy configuration etc"""
 
 
 class CLIBaseError(Exception):

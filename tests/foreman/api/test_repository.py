@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
@@ -214,6 +214,34 @@ class TestRepository:
         )
         assert default_dl_policy
         assert repo.download_policy == default_dl_policy[0].value
+
+    @pytest.mark.parametrize(
+        'repo_options',
+        [
+            {'content_type': content_type}
+            for content_type in ['yum', 'docker', 'ansible_collection', 'file']
+        ],
+        indirect=True,
+    )
+    def test_positive_create_with_default_mirroring_policy(self, repo, target_sat):
+        """
+        Verify if the default mirroring policy is assigned
+        when creating a container repo without `download_policy` field
+
+        :id: 5022b574-0af1-4dd9-9681-ae1fcd5cc583
+
+        :parametrized: yes
+
+        :expectedresults: Container repository with a default non yum mirroring policy
+        """
+        setting = (
+            'default_yum_mirroring_policy'
+            if repo.content_type == 'yum'
+            else 'default_non_yum_mirroring_policy'
+        )
+        default_policy = target_sat.api.Setting().search(query={'search': f'name={setting}'})
+        assert default_policy
+        assert repo.mirroring_policy == default_policy[0].value
 
     @pytest.mark.parametrize(
         'repo_options', **datafactory.parametrized([{'content_type': 'yum'}]), indirect=True
@@ -2034,7 +2062,6 @@ class TestDockerRepository:
 #         with pytest.raises(HTTPError):
 #             repo.read()
 #
-#     @pytest.mark.skip_if_open("BZ:1625783")
 #     @pytest.mark.run_in_one_thread
 #     @pytest.mark.upgrade
 #     def test_positive_sync_rh_atomic(self, module_org):
@@ -2145,7 +2172,7 @@ class TestSRPMRepositoryIgnoreContent:
 
     :customerscenario: true
 
-    :team: Phoenix-content
+    :team: Artemis
 
     :BZ: 1673215
     """
@@ -2304,9 +2331,9 @@ class TestTokenAuthContainerRepository:
     but test with more container registries and registries that use
     really long (>255 or >1024) tokens for passwords.
 
-    :CaseComponent: ContainerManagement-Content
+    :CaseComponent: ContainerImageManagement
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     def test_positive_create_with_long_token(

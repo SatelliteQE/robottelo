@@ -6,7 +6,7 @@
 
 :CaseComponent: ContentViews
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
