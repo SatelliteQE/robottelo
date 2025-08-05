@@ -99,7 +99,7 @@ def shared_checkin(sat_instance):
         resource_name=sat_instance.hostname + "_checkin",
         action=Broker(hosts=[sat_instance]).checkin,
     ) as sat_checkin:
-        log(f'RUNNING SAT_CHECKIN.READY() FOR {sat_instance.hostname} ')
+        log(f'Running sat_checkin.ready() for {sat_instance.hostname} ')
         sat_checkin.ready()
 
 
