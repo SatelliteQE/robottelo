@@ -2281,7 +2281,7 @@ def test_positive_dump_enc_yaml(target_sat):
 
 # -------------------------- HOST TRACE SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.pit_client
-@pytest.mark.rhel_ver_match('[7,8,9]')
+@pytest.mark.rhel_ver_match('^[0-9]+$')
 def test_positive_tracer_list_and_resolve(tracer_host, target_sat):
     """Install tracer on client, downgrade the service, check from the satellite
     that tracer shows and resolves the problem. The test works with a package specified
