@@ -6,7 +6,7 @@
 
 :CaseComponent: Bootstrap
 
-:Team: Proton
+:Team: Artemis
 
 :CaseImportance: High
 
