@@ -6,7 +6,7 @@
 
 :CaseComponent: Bootstrap
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 

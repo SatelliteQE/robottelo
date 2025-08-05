@@ -3194,7 +3194,7 @@ def test_positive_change_hosts_owner(module_org, module_location, target_sat):
 
     :CaseComponent: Hosts
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
     """
     new_user_login = gen_string('alpha')
     new_user_password = gen_string('alpha')
