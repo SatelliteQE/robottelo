@@ -16,7 +16,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_CV, ENVIRONMENT, DEFAULT_LOC, DEFAULT_ORG
+from robottelo.constants import DEFAULT_CV, ENVIRONMENT
 
 
 @pytest.mark.e2e
