@@ -9,7 +9,7 @@ sat6-upgrade requires env.satellite_hostname to be set, this is required for the
 
 :CaseComponent: Hosts-Content
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 

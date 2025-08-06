@@ -10,7 +10,7 @@ No API doc exists for the subscription manager path(s). However, bugzilla bug
 
 :CaseComponent: SubscriptionManagement
 
-:team: Phoenix-subscriptions
+:team: Proton
 
 :CaseImportance: High
 

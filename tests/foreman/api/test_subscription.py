@@ -10,7 +10,7 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 
 :CaseComponent: SubscriptionManagement
 
-:team: Phoenix-subscriptions
+:team: Proton
 
 :CaseImportance: High
 
@@ -394,7 +394,7 @@ def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel_conten
 
     :CustomerScenario: true
 
-    :team: Phoenix-subscriptions
+    :team: Proton
 
     :BZ: 1949353
 

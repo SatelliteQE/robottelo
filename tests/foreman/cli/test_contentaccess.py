@@ -6,7 +6,7 @@
 
 :CaseAutomation: Automated
 
-:team: Phoenix-subscriptions
+:team: Proton
 
 """
 

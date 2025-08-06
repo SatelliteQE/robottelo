@@ -6,7 +6,7 @@
 
 :CaseComponent: Hosts-Content
 
-:team: Phoenix-subscriptions
+:team: Proton
 
 :CaseImportance: High
 
@@ -33,7 +33,7 @@ def test_content_access_after_stopped_foreman(target_sat, rhel7_contenthost):
 
     :CaseComponent: Infrastructure
 
-    :Team: Platform
+    :Team: Proton
 
     :parametrized: yes
     """

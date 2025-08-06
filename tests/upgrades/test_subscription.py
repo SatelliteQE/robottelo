@@ -6,7 +6,7 @@
 
 :CaseComponent: SubscriptionManagement
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 
