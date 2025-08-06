@@ -10,7 +10,7 @@ http://theforeman.org/api/apidoc/v2/hosts.html
 
 :CaseComponent: Hosts
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 

@@ -6,7 +6,7 @@
 
 :CaseComponent: Fact
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: Critical
 
