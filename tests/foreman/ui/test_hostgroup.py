@@ -169,7 +169,9 @@ def test_create_with_puppet_class(module_puppet_org, module_puppet_loc, session_
         assert hostgroup_values['puppet_enc']['classes']['assigned'][0] == pc_name
 
 
-def test_positive_create_new_host(session, target_sat, default_org, default_location, default_domain):
+def test_positive_create_new_host(
+    session, target_sat, default_org, default_location, default_domain
+):
     """Verify that content source field automatically populates when creating new host from host
     group.
 
@@ -228,13 +230,18 @@ def test_positive_create_new_host(session, target_sat, default_org, default_loca
             'interfaces.interface.domain': default_domain.name,
             'interfaces.interface.primary': True,
             'interfaces.interface.interface_additional_data.virtual_nic': False,
-            'additional_information.comment': 'Host with fake data'
+            'additional_information.comment': 'Host with fake data',
         }
         session.host.create(values)
-        host = target_sat.api.Host(organization=default_org, location=default_location).search(
-            query={'search': f'name={host_name}'})[0].get_values()
-        assert host['content_facet_attributes']['lifecycle_environment']['name']== ENVIRONMENT
-        assert host['content_facet_attributes']['content_source']['name'] == settings.server.hostname
+        host = (
+            target_sat.api.Host(organization=default_org, location=default_location)
+            .search(query={'search': f'name={host_name}'})[0]
+            .get_values()
+        )
+        assert host['content_facet_attributes']['lifecycle_environment']['name'] == ENVIRONMENT
+        assert (
+            host['content_facet_attributes']['content_source']['name'] == settings.server.hostname
+        )
 
 
 def test_positive_nested_host_groups(
