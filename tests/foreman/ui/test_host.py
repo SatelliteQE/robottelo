@@ -2662,3 +2662,484 @@ def test_all_hosts_manage_errata(
             )
             task_status = module_target_sat.api.ForemanTask(id=task_result[0].id).poll()
             assert task_status['result'] == 'success'
+<<<<<<< HEAD
+=======
+
+
+def test_positive_manage_repository_sets(
+    module_target_sat,
+    module_sca_manifest_org,
+    module_lce,
+    module_ak,
+    rhel8_contenthost,
+    rhel9_contenthost,
+):
+    """
+    Change one or more repository status on multiple hosts through Manage content wizard
+
+    :id: 4c9913d8-ce0d-4b50-901a-024aca207fc5
+
+    :expectedresults: Repository status can be changed via All Hosts page > Manage content wizard.
+
+    :CaseComponent: Hosts-Content
+
+    :Team: Proton
+    """
+    content_hosts = [rhel8_contenthost, rhel9_contenthost]
+    rhel_repos = ['rhel8_bos', 'rhel9_bos']
+    all_repo_ids = []
+    all_repo_names = []
+    host_names = []
+    status_to_be_changed = {
+        0: 'Override to disabled',
+        1: 'Override to enabled',
+        2: 'Reset to default',
+    }
+
+    # Create content view
+    content_view = module_target_sat.api.ContentView(organization=module_sca_manifest_org).create()
+    content_view.repository = []
+
+    # Enable rh repos and fetch repo ids
+    for name in rhel_repos:
+        rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch=DEFAULT_ARCHITECTURE,
+            org_id=module_sca_manifest_org.id,
+            product=REPOS[name]['product'],
+            repo=REPOS[name]['name'],
+            reposet=REPOS[name]['reposet'],
+            releasever=REPOS[name]['releasever'],
+        )
+        all_repo_ids.append(rh_repo_id)
+
+        # wait for repo creation/meta data generate task to complete
+        module_target_sat.wait_for_tasks(
+            search_query='Actions::Katello::Repository::MetadataGenerate',
+            max_tries=5,
+            search_rate=10,
+        )
+
+        # Read repository from repo id
+        rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+
+        # content view repositories
+        content_view.repository.append(rh_repo)
+
+    # Update content view repositories,publish and then promote content view to Library
+    content_view = module_target_sat.api.ContentView(
+        id=content_view.id, repository=content_view.repository
+    ).update(['repository'])
+    content_view.publish()
+    content_view = content_view.read()
+    cv_version = content_view.version[0]
+    cv_version.promote(data={'environment_ids': module_lce.id})
+
+    # Update activation key
+    module_ak = module_target_sat.api.ActivationKey(
+        id=module_ak.id,
+        organization=module_sca_manifest_org,
+        content_view=content_view,
+        environment=module_lce,
+    ).update()
+
+    # register host to satellite and enable repository if those are disable
+    for content_host in content_hosts:
+        assert (
+            content_host.register(
+                module_sca_manifest_org, None, module_ak.name, module_target_sat
+            ).status
+            == 0
+        )
+        raw_output = content_host.execute('subscription-manager repos --list').stdout
+        # Get repo name and add into empty list (this is workaround to avoid failure in airgun)
+        data_list = raw_output.split('\n')
+        for line in data_list:
+            if "Repo Name" in line:
+                repository = (line.split(':')[1]).lstrip()
+                all_repo_names.append(repository)
+        # If rhel repo is disabled then enable it
+        if "Enabled:   0" in raw_output:
+            rep_status = content_host.execute("subscription-manager repos --enable *").stdout
+            assert "enabled for this system" in rep_status
+        host_names.append(content_host.hostname)
+
+    # Change one or more repository status on multiple hosts through Manage content wizard
+    override_to_disabled = status_to_be_changed[0]
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_sca_manifest_org.name)
+        session.all_hosts.manage_repository_sets(
+            host_names=host_names,
+            select_all_hosts=False,
+            repository_names=all_repo_names,
+            status_to_change=override_to_disabled,
+        )
+        # Check status of repositories on each host, it should be disabled.
+        for content_host in content_hosts:
+            output = content_host.execute('subscription-manager repos --list').stdout
+            assert "Enabled:   0" in output, 'repository status not changed'
+
+        # Now change one or more repository status to enable
+        override_to_enabled = status_to_be_changed[1]
+        session.all_hosts.manage_repository_sets(
+            host_names=host_names,
+            select_all_hosts=False,
+            repository_names=all_repo_names,
+            status_to_change=override_to_enabled,
+        )
+
+        # Check status of repositories on each host, it should be enabled.
+        for content_host in content_hosts:
+            output = content_host.execute('subscription-manager repos --list').stdout
+            assert "Enabled:   1" in output, 'repository status not changed'
+
+
+def test_disassociate_multiple_hosts(
+    request,
+    target_sat,
+    module_location,
+    module_org,
+    vmware,
+    default_location,
+):
+    """
+    Import multiple VMs from a VMware compute resource, disassociate them via the UI,
+    and verify via API that their uuid and compute_resource_id are cleared.
+
+    :id: e5af21c7-62ef-4cc7-a72a-ab6c26090b68
+
+    :steps:
+        1. Create all required entities (domain, subnet, hostgroup, etc.)
+        2. Import 2 VMs from VMware into Satellite
+        3. Disassociate the VMs via the All Hosts UI
+        4. Verify via API that uuid and compute_resource_id are None
+
+    :expectedresults: VMs are disassociated and their compute resource info is cleared.
+
+    :CaseComponent: Hosts-Content
+
+    :Team: Proton
+    """
+
+    cr_name = gen_string('alpha')
+
+    # create entities for hostgroup
+    target_sat.api.SmartProxy(
+        id=target_sat.nailgun_smart_proxy.id, location=[default_location.id, module_location.id]
+    ).update()
+    domain = target_sat.api.Domain(
+        organization=[module_org.id], location=[module_location]
+    ).create()
+    subnet = target_sat.api.Subnet(
+        organization=[module_org.id], location=[module_location], domain=[domain]
+    ).create()
+    architecture = target_sat.api.Architecture().create()
+    ptable = target_sat.api.PartitionTable(
+        organization=[module_org.id], location=[module_location]
+    ).create()
+    operatingsystem = target_sat.api.OperatingSystem(
+        architecture=[architecture], ptable=[ptable]
+    ).create()
+    medium = target_sat.api.Media(
+        organization=[module_org.id], location=[module_location], operatingsystem=[operatingsystem]
+    ).create()
+    lce = (
+        target_sat.api.LifecycleEnvironment(name="Library", organization=module_org.id)
+        .search()[0]
+        .read()
+        .id
+    )
+    cv = target_sat.api.ContentView(organization=module_org).create()
+    cv.publish()
+
+    # create hostgroup
+    hostgroup_name = gen_string('alpha')
+    target_sat.api.HostGroup(
+        name=hostgroup_name,
+        architecture=architecture,
+        domain=domain,
+        subnet=subnet,
+        location=[module_location.id],
+        medium=medium,
+        operatingsystem=operatingsystem,
+        organization=[module_org],
+        ptable=ptable,
+        lifecycle_environment=lce,
+        content_view=cv,
+        content_source=target_sat.nailgun_smart_proxy.id,
+    ).create()
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+        session.computeresource.create(
+            {
+                'name': cr_name,
+                'provider': FOREMAN_PROVIDERS['vmware'],
+                'provider_content.vcenter': vmware.hostname,
+                'provider_content.user': settings.vmware.username,
+                'provider_content.password': settings.vmware.password,
+                'provider_content.datacenter.value': settings.vmware.datacenter,
+                'locations.resources.assigned': [module_location.name],
+                'organizations.resources.assigned': [module_org.name],
+            }
+        )
+        session.hostgroup.update(
+            hostgroup_name, {'host_group.deploy': f'{cr_name} ({FOREMAN_PROVIDERS["vmware"]})'}
+        )
+
+        cr_vm_names = [settings.vmware.vm_name, 'proton-testing-guest-rhel-8']
+        vm_names_with_domains = [f'{name.replace(".", "")}.{domain.name}' for name in cr_vm_names]
+
+        # Import VMs from VMware compute resource
+        for cr_vm_name, vm_name_with_domain in zip(
+            cr_vm_names, vm_names_with_domains, strict=False
+        ):
+            session.computeresource.vm_import(
+                cr_name,
+                cr_vm_name,
+                hostgroup_name,
+                module_location.name,
+                name=cr_vm_name.replace('.', ''),
+            )
+            assert session.all_hosts.search(vm_name_with_domain)
+
+        @request.addfinalizer
+        def _cleanup():
+            for vm_name in vm_names_with_domains:
+                try:
+                    target_sat.api.Host().search(query={"search": f'name={vm_name}'})[0].delete()
+                except APIResponseError as e:
+                    print(f"Failed to delete VM {vm_name}: {e}")
+
+        for vm_name in vm_names_with_domains:
+            # Get info about host from API
+            host = target_sat.api.Host().search(query={"search": f'name={vm_name}'})[0]
+            # Check that uuid and compute_resource_id are set
+            assert host.uuid is not None, f"UUID for {vm_name} is not set"
+            assert host.compute_resource.id is not None, (
+                f"Compute resource ID for {vm_name} is not set"
+            )
+
+        session.all_hosts.disassociate_hosts(host_names=vm_names_with_domains)
+
+        for vm_name in vm_names_with_domains:
+            # Get info about host from API
+            host = target_sat.api.Host().search(query={"search": f'name={vm_name}'})[0]
+            # Check that uuid and compute_resource_id are set to None
+            assert host.uuid is None, f"UUID for {vm_name} is not None after disassociation"
+            assert host.compute_resource is None, (
+                f"Compute resource ID for {vm_name} is not None after disassociation"
+            )
+
+
+def assert_hosts_owner_helper(target_sat, session, hosts, expected_owner, owner_type='user'):
+    """
+    Assert that all hosts have the expected owner both via API and UI.
+
+    :param target_sat: Satellite object for API access
+    :param session: UI session object
+    :param hosts: list of host objects
+    :param expected_owner: expected owner login or group name
+    :param owner_type: 'user' or 'usergroup'
+    """
+    # API check
+    if owner_type == 'user':
+        new_hosts_owner_logins = [
+            target_sat.api.User(
+                id=target_sat.api.Host().search(query={"search": f'name={host.name}'})[0].owner.id
+            )
+            .read()
+            .login
+            for host in hosts
+        ]
+        assert all(owner == expected_owner for owner in new_hosts_owner_logins), (
+            f'Hosts owner was not changed to {expected_owner}'
+        )
+    elif owner_type == 'usergroup':
+        user_group_id = (
+            target_sat.api.UserGroup().search(query={'search': f'name={expected_owner}'})[0].id
+        )
+        new_hosts_owner_ids = [
+            target_sat.api.Host().search(query={"search": f'name={host.name}'})[0].owner.id
+            for host in hosts
+        ]
+        assert all(owner_id == user_group_id for owner_id in new_hosts_owner_ids), (
+            f'Hosts owner was not changed to user group id {user_group_id}'
+        )
+
+    # UI check
+    search_string = ' or '.join([f'name="{host.name}"' for host in hosts])
+    read_hosts_vals = session.all_hosts.search(search_string)
+    for host in read_hosts_vals:
+        assert host['Owner'] == expected_owner, (
+            f'Host {host["Name"]} owner was not changed to {expected_owner}'
+        )
+
+
+def test_positive_change_hosts_owner(module_org, module_location, target_sat):
+    """
+    This test changes the owner of multiple hosts using the new All Hosts UI bulk actions.
+
+    :id: 51c9a368-8512-46ce-9c55-bd7d41ab2b9d
+
+    :steps:
+        1. Have 2 hosts
+        2. Create new user
+        3. Get the owner of the selected hosts
+        4. Change the owner of the selected hosts to new owner
+        5. Verify the owner of the selected hosts has been changed
+        6. Create a new user group and add the new user to it
+        7. Change the owner of the selected hosts to user group created in step 6
+        8. Verify the owner of the selected hosts has been changed to user group
+
+    :expectedresults: The owner of the selected hosts should be changed successfully.
+
+    :CaseComponent: Hosts
+
+    :Team: Proton
+    """
+    new_user_login = gen_string('alpha')
+    new_user_password = gen_string('alpha')
+    user_group_name = gen_string('alpha')
+
+    # Create 2 hosts
+    hosts = []
+    for _ in range(2):
+        host = target_sat.cli_factory.make_fake_host(
+            {
+                'organization': module_org.name,
+                'location': module_location.name,
+            }
+        )
+        hosts.append(host)
+
+    new_user = target_sat.api.User(
+        admin=False,
+        location=[module_location],
+        organization=[module_org],
+        login=new_user_login,
+        password=new_user_password,
+    ).create()
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+
+        # Change the hosts' owner to the new user
+        session.all_hosts.change_hosts_owner(
+            host_names=[host.name for host in hosts], new_owner_name=new_user_login
+        )
+
+        # Ensure the 'Owner' column is displayed in the All Hosts table
+        headers = session.all_hosts.get_displayed_table_headers()
+        if "Owner" not in headers:
+            session.all_hosts.manage_table_columns(
+                {
+                    'Owner': True,
+                }
+            )
+
+        assert_hosts_owner_helper(target_sat, session, hosts, new_user_login, owner_type='user')
+
+        target_sat.api.UserGroup(name=user_group_name, user=[new_user.id]).create()
+        session.browser.refresh()
+
+        # Change the hosts' owner to the user group
+        session.all_hosts.change_hosts_owner(
+            host_names=[host.name for host in hosts], new_owner_name=user_group_name
+        )
+
+        assert_hosts_owner_helper(
+            target_sat, session, hosts, user_group_name, owner_type='usergroup'
+        )
+
+
+def test_positive_change_hosts_org_loc(
+    module_target_sat,
+    module_org,
+    module_location,
+    request,
+):
+    """
+    This test changes organization and location of multiple hosts via bulk action in All Hosts page.
+
+    :id: 7d53c0ec-a392-4003-ba75-948340f19f37
+
+    :steps:
+        1. Create two organizations and two locations
+        2. Create/Register multiple content hosts in the first organization/location
+        3. Navigate to All Hosts page
+        4. Select multiple hosts
+        5. Use bulk action to change organization and location
+        6. Verify hosts are now in the new organization/location
+
+    :expectedresults:
+        1. Multiple hosts can be selected in All Hosts page
+        2. Bulk organization/location change operation succeeds
+        3. Hosts are successfully moved to new organization/location
+        4. Host properties reflect the new taxonomies
+    """
+    # Create second organization and location for the test
+    new_org = module_target_sat.api.Organization().create()
+    new_location = module_target_sat.api.Location(organization=[new_org]).create()
+
+    @request.addfinalizer
+    def cleanup():
+        new_org.delete()
+        new_location.delete()
+
+    host_names = []
+    for _ in range(2):
+        host = module_target_sat.cli_factory.make_fake_host(
+            {
+                'organization': module_org.name,
+                'location': module_location.name,
+            }
+        )
+        host_names.append(host.name)
+
+    # Verify hosts are initially in the first org/location
+    for host_name in host_names:
+        host_entity = module_target_sat.api.Host().search(query={'search': f'name={host_name}'})[0]
+        assert host_entity.organization.id == module_org.id
+        assert host_entity.location.id == module_location.id
+
+    # Perform bulk organization/location change through UI
+    with module_target_sat.ui_session() as session:
+        # Select the first organization to see the hosts
+        session.organization.select(module_org.name)
+        session.location.select(module_location.name)
+
+        # Scenario 1 - Change organization with option "Fix in mismatch"
+        session.all_hosts.change_associations_organization(
+            host_names=host_names,
+            new_organization=new_org.name,
+        )
+        # Switch to second organization to verify the change
+        session.organization.select(new_org.name)
+
+        # Scenario 2 - Change location with option "Fix in mismatch"
+        session.all_hosts.change_associations_location(
+            host_names=host_names,
+            new_location=new_location.name,
+        )
+        # Switch to second location to verify the change
+        session.location.select(new_location.name)
+
+        # Verify hosts appear in the new organization and new location
+        for host_name in host_names:
+            host_values = session.all_hosts.search(host_name)
+            assert host_values is not None, f"Host {host_name} not found in new organization"
+
+        # API verification - verify hosts are now in the second org/location
+        for host_name in host_names:
+            host_entity = module_target_sat.api.Host().search(
+                query={'search': f'name={host_name}'}
+            )[0]
+            assert host_entity.organization.id == new_org.id, (
+                f'Host {host_name} not moved to second organization'
+            )
+            assert host_entity.location.id == new_location.id, (
+                f'Host {host_name} not moved to second location'
+            )
+>>>>>>> ca9ebe694 (Change Team from Phoenix-Subscriptions to Proton (#19130))

@@ -8,7 +8,7 @@
 
 :CaseImportance: Critical
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 """
 

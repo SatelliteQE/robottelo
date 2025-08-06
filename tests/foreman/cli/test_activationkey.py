@@ -6,7 +6,7 @@
 
 :CaseComponent: ActivationKeys
 
-:team: Phoenix-subscriptions
+:team: Proton
 
 :CaseImportance: High
 
