@@ -6,7 +6,7 @@
 
 :CaseComponent: HostCollections
 
-:team: PProton
+:team: Proton
 
 :CaseImportance: High
 
