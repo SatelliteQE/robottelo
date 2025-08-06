@@ -209,20 +209,18 @@ def module_repos_collection_with_setup(request, module_target_sat, module_org, m
         Such as by using pytest.markers 'rhel_ver_match' or 'rhel_ver_list'.
 
     """
-    # peek the first of prior paramtrized fixtures (global scope),
+    # peek the first of prior parametrized fixtures (global scope),
     # if a RHEL host is parametrized with distro, it will be at the top.
     top_level_param = request._pyfuncitem.callspec.params
-    peek_fixture, peek_val = next(iter(top_level_param.items()))
+    _, peek_val = next(iter(top_level_param.items()))
     fixtures_distro = peek_val.get('rhel_version', None)
 
     repos = getattr(request, 'param', [])
-    if 'distro' not in repos:
-        repos['distro'] = None
     # no distro in repos request, fallback if top fixture marked with rhel_version
-    if repos['distro'] is None:
+    if 'distro' not in repos or repos['distro'] is None:
         repos['distro'] = fixtures_distro
     if repos['distro'] and 'rhel' not in str(repos['distro']):
-        repos['distro'] = 'rhel' + str(repos['distro'])
+        repos['distro'] = f'rhel{repos["distro"]}'
 
     repo_distro, repos = _simplify_repos(request, repos)
     _repos_collection = module_target_sat.cli_factory.RepositoryCollection(
