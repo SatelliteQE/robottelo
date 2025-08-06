@@ -1,6 +1,6 @@
 # For running tests and checking code quality using these modules.
 pytest-cov==6.2.1
-redis==6.2.0
+redis==6.3.0
 pre-commit==4.2.0
 ruff==0.12.7
 
