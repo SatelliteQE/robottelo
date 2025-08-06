@@ -2,7 +2,7 @@ import pytest
 
 from robottelo.logging import collection_logger as logger
 
-non_satCI_components = ['Virt-whoConfigurePlugin']
+non_satCI_components = ['']
 
 
 def pytest_addoption(parser):
@@ -24,7 +24,7 @@ def pytest_addoption(parser):
     option = '--include-non-satci-tests'
     help_text = f'''Include auto uncollected non SatCI tests
 
-        Usage: `pytest tests/foreman {option} Virt-whoConfigurePlugin,SomthingComponent`
+        Usage: `pytest tests/foreman {option} SomthingComponent`
         '''
     parser.addoption(option, default='', help=help_text)
 
