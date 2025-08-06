@@ -16,7 +16,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_CV, ENVIRONMENT
+from robottelo.constants import DEFAULT_CV, ENVIRONMENT, DEFAULT_LOC, DEFAULT_ORG
 
 
 @pytest.mark.e2e
@@ -169,8 +169,7 @@ def test_create_with_puppet_class(module_puppet_org, module_puppet_loc, session_
         assert hostgroup_values['puppet_enc']['classes']['assigned'][0] == pc_name
 
 
-@pytest.mark.stubbed
-def test_positive_create_new_host():
+def test_positive_create_new_host(session, target_sat, default_org, default_location, default_domain):
     """Verify that content source field automatically populates when creating new host from host
     group.
 
@@ -188,7 +187,54 @@ def test_positive_create_new_host():
 
     :customerscenario: true
     """
-    pass
+    name = gen_string('alpha')
+    description = gen_string('alpha')
+    architecture = target_sat.api.Architecture().create()
+    os = target_sat.api.OperatingSystem(architecture=[architecture]).create()
+    os_name = f'{os.name} {os.major}'
+    with target_sat.ui_session() as session:
+        # Create host group with some data
+        session.hostgroup.create(
+            {
+                'host_group.name': name,
+                'host_group.description': description,
+                'host_group.content_source': settings.server.hostname,
+                'network.domain': default_domain.name,
+                'operating_system.architecture': architecture.name,
+                'operating_system.operating_system': os_name,
+            }
+        )
+        host_template = target_sat.api.Host(
+            organization=default_org, location=default_location, build=True
+        )
+        host_template.create_missing()
+        host_name = f'{host_template.name}.{default_domain.name}'
+        os_name = f'{host_template.operatingsystem.name} {host_template.operatingsystem.major}'
+        values = {
+            'host.name': host_template.name,
+            'host.organization': host_template.organization.name,
+            'host.location': host_template.location.name,
+            'host.hostgroup': name,
+            'host.content_view': DEFAULT_CV,
+            'operating_system.architecture': host_template.architecture.name,
+            'operating_system.operating_system': os_name,
+            'operating_system.media_type': 'All Media',
+            'operating_system.media': host_template.medium.name,
+            'operating_system.ptable': host_template.ptable.name,
+            'operating_system.root_password': host_template.root_pass,
+            'interfaces.interface.interface_type': 'Interface',
+            'interfaces.interface.device_identifier': gen_string('alpha'),
+            'interfaces.interface.mac': host_template.mac,
+            'interfaces.interface.domain': default_domain.name,
+            'interfaces.interface.primary': True,
+            'interfaces.interface.interface_additional_data.virtual_nic': False,
+            'additional_information.comment': 'Host with fake data'
+        }
+        session.host.create(values)
+        host = target_sat.api.Host(organization=default_org, location=default_location).search(
+            query={'search': f'name={host_name}'})[0].get_values()
+        assert host['content_facet_attributes']['lifecycle_environment']['name']== ENVIRONMENT
+        assert host['content_facet_attributes']['content_source']['name'] == settings.server.hostname
 
 
 def test_positive_nested_host_groups(
