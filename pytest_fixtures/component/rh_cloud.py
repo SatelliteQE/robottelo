@@ -1,7 +1,6 @@
 from broker import Broker
 import pytest
 
-from robottelo.config import settings
 from robottelo.constants import CAPSULE_REGISTRATION_OPTS
 
 
@@ -21,7 +20,7 @@ def enable_insights(host, satellite, org, activation_key):
 
 
 @pytest.fixture(scope='module')
-def module_target_sat_insights(request, module_target_sat, satellite_factory):
+def module_target_sat_insights(request, module_target_sat, module_satellite_iop):
     """A module-level fixture to provide a Satellite configured for Insights.
     By default, it returns the existing Satellite provided by module_target_sat.
 
@@ -29,12 +28,7 @@ def module_target_sat_insights(request, module_target_sat, satellite_factory):
     iop-advisor-engine (local Insights advisor) configured.
     """
     hosted_insights = getattr(request, 'param', True)
-    satellite = module_target_sat if hosted_insights else satellite_factory()
-    iop_settings = settings.rh_cloud.iop_advisor_engine
-    if not hosted_insights:
-        satellite.configure_insights_on_prem(
-            iop_settings.stage_username, iop_settings.stage_token, iop_settings.stage_registry
-        )
+    satellite = module_target_sat if hosted_insights else module_satellite_iop
     yield satellite
 
     if not hosted_insights:
