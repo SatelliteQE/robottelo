@@ -210,14 +210,22 @@ def module_capsule_configured(request, module_capsule_host, module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def module_satellite_iop(request, module_satellite_host):
+def module_unconfigured_satellite(request):
+    deploy_args = settings.server.deploy_arguments
+    deploy_args['workflow'] = 'deploy-unconfigured-satellite'
+    with Broker(**deploy_args, host_class=Satellite) as host:
+        yield host
+
+
+@pytest.fixture(scope='module')
+def module_satellite_iop(request, module_unconfigured_satellite):
     """Deploy and configure Red Hat Lightspeed in Satellite"""
     iop_settings = settings.rh_cloud.iop_advisor_engine
-    module_satellite_host.configure_insights_on_prem(
+    module_unconfigured_satellite.configure_insights_on_prem(
         iop_settings.stage_username, iop_settings.stage_token, iop_settings.stage_registry
     )
-    yield module_satellite_host
-    module_satellite_host.podman_logout(iop_settings.stage_registry)
+    yield module_unconfigured_satellite
+    module_unconfigured_satellite.podman_logout(iop_settings.stage_registry)
 
 
 @pytest.fixture(scope='module')
