@@ -351,7 +351,7 @@ def deploy_configure_by_script(
     register_system(get_system(hypervisor_type), org=org)
     with open(script_filename, 'w') as fp:
         fp.write(script_content)
-    ssh.get_client().put(script_filename)
+    ssh.get_client().put(script_filename, script_filename)
     ret, stdout = runcmd(f'sh {script_filename}')
     if ret != 0 or 'Finished successfully' not in stdout:
         raise VirtWhoError(f"Failed to deploy configure by {script_filename}")
