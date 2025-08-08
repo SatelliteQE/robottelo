@@ -2382,3 +2382,4 @@ class DataFile(Box):
     FAKE_3_YUM_REPO_RPMS_ANT = DATA_DIR.joinpath(FAKE_3_YUM_REPO_RPMS[0])
     EXPIRED_MANIFEST_FILE = DATA_DIR.joinpath(EXPIRED_MANIFEST)
     USAGE_REPORT_ITEMS = DATA_DIR.joinpath('usage_report.yml')
+    USAGE_REPORT_ITEMS_CONDENSED = DATA_DIR.joinpath('usage_report_condensed.yml')

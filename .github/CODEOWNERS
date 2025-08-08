@@ -342,4 +342,5 @@ tests/foreman/sys/test_mcp.py @SatelliteQE/team-endeavour
 
 # tests/foreman/data/
 tests/foreman/data/usage_report.yml @SatelliteQE/team-endeavour
+tests/foreman/data/usage_report_condensed.yml @SatelliteQE/team-endeavour
 tests/foreman/data/hammer_commands.json @SatelliteQE/team-rocket
