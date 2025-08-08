@@ -455,6 +455,7 @@ class IoPSetup:
         username = username or iop_settings.username
         password = password or iop_settings.token
         registry = registry or iop_settings.registry
+        assert self.execute('dnf -y install podman').status == 0
         self.podman_login(username, password, registry)
         # TODO: Replace this temporary implementation with a permanent solution.
         result = self.execute(
