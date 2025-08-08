@@ -103,7 +103,7 @@ def register_system(system, activation_key=None, org='Default_Organization', env
         f'rpm -ihv http://{settings.server.hostname}/pub/katello-ca-consumer-latest.noarch.rpm',
         system,
     )
-    cmd = f'subscription-manager register --org={org} --environment={env} '
+    cmd = f'subscription-manager register --org={org} --environment={env} --force '
     if activation_key is not None:
         cmd += f'--activationkey={activation_key}'
     else:
