@@ -2,8 +2,6 @@ import pytest
 
 from robottelo.logging import collection_logger as logger
 
-non_satCI_components = ['Virt-whoConfigurePlugin']
-
 
 def pytest_addoption(parser):
     """Add options for pytest to collect tests than can run on SatLab infra"""
@@ -21,13 +19,6 @@ def pytest_addoption(parser):
                     '''
         parser.addoption(opt, action='store_true', default=False, help=help_text)
 
-    option = '--include-non-satci-tests'
-    help_text = f'''Include auto uncollected non SatCI tests
-
-        Usage: `pytest tests/foreman {option} Virt-whoConfigurePlugin,SomthingComponent`
-        '''
-    parser.addoption(option, default='', help=help_text)
-
 
 @pytest.hookimpl(tryfirst=True)
 def pytest_collection_modifyitems(items, config):
@@ -36,22 +27,11 @@ def pytest_collection_modifyitems(items, config):
     """
     include_onprem_provision = config.getoption('include_onprem_provisioning', False)
     include_ipv6_provisioning = config.getoption('include_ipv6_provisioning', False)
-    include_non_satci_tests = config.getvalue('include_non_satci_tests').split(',')
 
     selected = []
     deselected = []
     # Cloud Provisioning Test can be run on new pipeline
     for item in items:
-        # Include/Exclude tests those are not part of SatQE CI
-        item_component = item.get_closest_marker('component')
-        if item_component and (item_component.args[0] in non_satCI_components):
-            if item_component.args[0] in include_non_satci_tests or item.nodeid.startswith(
-                'tests/upgrades/'
-            ):
-                selected.append(item)
-            else:
-                deselected.append(item)
-            continue
         item_marks = [m.name for m in item.iter_markers()]
         # Include / Exclude On Premises Provisioning Tests
         if 'on_premises_provisioning' in item_marks:
