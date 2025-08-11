@@ -6,7 +6,7 @@
 
 :CaseComponent: ErrataManagement
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
@@ -1675,9 +1675,9 @@ def test_positive_filter_errata_type_other(
     module_cv,
 ):
     """
-    Sync the EPEL repository, containing many Erratum that are Not of the
-        usual types: 'Bugfix', 'Enhancement', 'Security'.
-        Filter all erratum including 'Other' inclusively, verify content counts remain the same.
+    Sync the EPEL repository, containing many 'Other' Errata,
+        that are Not of the usual types: 'Bugfix', 'Enhancement', 'Security'.
+        Filter all erratum type 'Other' inclusively, verify content counts remain the same.
 
     :id: 062bb1a5-814c-4573-bedc-aaa4e2ef557a
 
@@ -1702,18 +1702,19 @@ def test_positive_filter_errata_type_other(
         1. The second published version with filters, has the same
             content counts (packages and erratum) as the first unfiltered version.
         2. The second version's filters applied, has published Erratum of types that
-            fall under 'Other' (ie 'newpackage' , 'unspecified').
+            fall under 'Other' (ie 'newpackage', 'unspecified').
         3. There are significantly more Total Errata published, than the sum of
             the 3 normal types of Errata (bugfix,enhancement,security).
 
-    :BZ: 2160804
-
-    :Verifies: SAT-20365
+    :CaseImportance: Medium
 
     :customerscenario: true
 
+    :Verifies: SAT-20365
+    :BZ: 2160804
+
     """
-    # newest version rhel
+    # newest version rhel supported
     rhel_N = module_target_sat.api_factory.supported_rhel_ver(num=1)
     # fetch a newly generated PGP key from address's response
     gpg_url = f'https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{rhel_N}'
@@ -1733,10 +1734,8 @@ def test_positive_filter_errata_type_other(
         gpg_key=gpg_key,
     ).create()
 
-    # if RHEL 10 only, change '10' to '10.0', to match URL for EPEL repo
-    rhel_N = str(float(rhel_N)) if rhel_N == '10' else rhel_N
-    epel_url = f'https://dl.fedoraproject.org/pub/epel/{rhel_N}/Everything/x86_64/'
     # create and sync custom EPEL repo
+    epel_url = f'https://dl.fedoraproject.org/pub/epel/{rhel_N}/Everything/x86_64/'
     epel_repo = module_target_sat.api.Repository(
         product=epel_product,
         url=epel_url,
@@ -1744,8 +1743,9 @@ def test_positive_filter_errata_type_other(
     epel_repo.sync(timeout=1800)
     # add repo to CV and publish
     module_cv.repository = [epel_repo.read()]
-    module_cv.update(['repository'])
-    module_cv.read().publish(timeout=240)  # initial unfiltered Version publishes quick
+    module_cv.update(['repository'])  # can take some time
+    epel_repo.sync(timeout=1800)
+    module_cv.read().publish(timeout=240)
     module_cv = module_cv.read()
 
     # create errata filter
@@ -1771,16 +1771,16 @@ def test_positive_filter_errata_type_other(
         }
     )
     module_cv = module_cv.read()
-    # create rpm filter
+    # create inclusive rpm filter
     module_target_sat.api.RPMContentViewFilter(
         content_view=module_cv,
         name='rpm-filter',
         inclusion=True,
     ).create()
 
-    # Publish 2nd Version with inclusive filters applied
+    # Publish 2nd Version with filters applied
     module_cv = module_cv.read()
-    module_cv.publish(timeout=1200)  # can take ~10 minutes, timeout is double that
+    module_cv.publish(timeout=1200)
     module_cv = module_cv.read()
 
     version_1 = module_cv.version[-1].read()  # unfiltered
@@ -1789,14 +1789,13 @@ def test_positive_filter_errata_type_other(
     assert version_1.errata_counts == version_2.errata_counts
     assert version_1.package_count == version_2.package_count
 
-    # most of the EPEL repo's erratum are of type Other (~90%),
+    # most of the EPEL repo's erratum are of other types (~90%),
     # so we expect the total number of errata is much greater
     #   than the sum of the 3 regular types (bugfix,enhancement,security)
-    #   ie. The repo has ~200 errata of the 3 types, but over 2500 total errata.
-    regular_types_sum = sum(
-        [version_2.errata_counts[key] for key in ['security', 'bugfix', 'enhancement']]
-    )
     total_errata = version_2.errata_counts['total']
-    assert total_errata > 2000
-    # Based on counts, the 3 regular types make up less than 1/5 of the total.
-    assert regular_types_sum < total_errata / 5
+    regular_types = ['security', 'bugfix', 'enhancement']
+    regular_sum = sum([version_2.errata_counts[key] for key in regular_types])
+    other_sum = total_errata - regular_sum
+    assert total_errata > 2000  # expectedly large amount of content
+    assert regular_sum / total_errata <= 0.4  # 40% or less should be regular types
+    assert other_sum / total_errata >= 0.6  # 60% or more should be 'other' types

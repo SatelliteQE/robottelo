@@ -3085,7 +3085,7 @@ def test_disassociate_multiple_hosts(
             hostgroup_name, {'host_group.deploy': f'{cr_name} ({FOREMAN_PROVIDERS["vmware"]})'}
         )
 
-        cr_vm_names = [settings.vmware.vm_name, 'phoenix-testing-guest-rhel-8']
+        cr_vm_names = [settings.vmware.vm_name, 'proton-testing-guest-rhel-8']
         vm_names_with_domains = [f'{name.replace(".", "")}.{domain.name}' for name in cr_vm_names]
 
         # Import VMs from VMware compute resource
@@ -3194,7 +3194,7 @@ def test_positive_change_hosts_owner(module_org, module_location, target_sat):
 
     :CaseComponent: Hosts
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
     """
     new_user_login = gen_string('alpha')
     new_user_password = gen_string('alpha')
