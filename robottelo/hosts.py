@@ -2663,7 +2663,7 @@ class Satellite(Capsule, SatelliteMixins):
     @property
     def local_advisor_enabled(self):
         """Return boolean indicating whether local Insights advisor engine is enabled."""
-        return self.api.RHCloud().advisor_engine_config()['use_local_advisor_engine']
+        return self.api.RHCloud().advisor_engine_config()['use_iop_mode']
 
 
 class SSOHost(Host):
