@@ -49,13 +49,6 @@ def function_user(target_sat, function_role, function_org):
     user.delete()
 
 
-@pytest.fixture
-def function_host_cleanup(target_sat, module_flatpak_contenthost):
-    """Cleans up the flatpak contenthost so it can be re-registered with different org"""
-    if nh := module_flatpak_contenthost.nailgun_host:
-        nh.delete()
-
-
 def test_CRUD_and_sync_flatpak_remote_with_permissions(
     target_sat, function_user, function_role, function_org
 ):
