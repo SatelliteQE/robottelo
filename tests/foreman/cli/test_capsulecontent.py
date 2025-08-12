@@ -1042,7 +1042,7 @@ def test_sync_consume_flatpak_repo_via_cv(
             'organization': function_org.name,
             'job-template': 'Flatpak - Set up remote on host',
             'inputs': inputs,
-            'search-query': f"name = {host.hostname}",
+            'search-query': f'name = {host.hostname}',
         }
     )
     res = module_target_sat.cli.JobInvocation.info({'id': job.id})
@@ -1065,7 +1065,7 @@ def test_sync_consume_flatpak_repo_via_cv(
                 f'Flatpak remote name={remote_name}, Application name={app_name}, '
                 'Launch a session bus instance=true'
             ),
-            'search-query': f"name = {host.hostname}",
+            'search-query': f'name = {host.hostname}',
         },
         timeout='800s',
     )
