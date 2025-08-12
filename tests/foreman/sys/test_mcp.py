@@ -119,7 +119,7 @@ async def test_positive_mcp_user_view_permissions(
     auth_value = password if auth_type == 'password' else token
     async with Client(
         transport=StreamableHttpTransport(
-            f'http://{settings.server.hostname}:{settings.foreman_mcp.port}/mcp',
+            f'http://{module_mcp_target_sat.hostname}:{settings.foreman_mcp.port}/mcp',
             headers={
                 'FOREMAN_USERNAME': user.login,
                 'FOREMAN_TOKEN': auth_value,
