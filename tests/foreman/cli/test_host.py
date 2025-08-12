@@ -6,7 +6,7 @@
 
 :CaseComponent: Hosts
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 
@@ -1988,7 +1988,7 @@ def test_negative_multi_cv_registration(
 
     :CaseComponent: Hosts-Content
 
-    :team: Phoenix-subscriptions
+    :team: Proton
 
     :parametrized: yes
     """
@@ -2036,7 +2036,7 @@ def test_positive_multi_cv_registration(
 
     :CaseComponent: Hosts-Content
 
-    :team: Phoenix-subscriptions
+    :team: Proton
 
     :parametrized: yes
     """
@@ -2110,7 +2110,7 @@ def test_positive_multi_cv_assignment(
 
     :CaseComponent: Hosts-Content
 
-    :team: Phoenix-subscriptions
+    :team: Proton
 
     :parametrized: yes
     """
@@ -2179,7 +2179,7 @@ def test_positive_multi_cv_host_repo_availability(
 
     :CaseComponent: Hosts-Content
 
-    :team: Phoenix-subscriptions
+    :team: Proton
 
     :parametrized: yes
     """

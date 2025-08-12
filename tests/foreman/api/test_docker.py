@@ -607,7 +607,7 @@ class TestPodman:
 
     :CaseComponent: Repositories
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     @pytest.fixture(scope='class')
