@@ -20,19 +20,30 @@ from robottelo.config import settings
 
 
 @pytest.mark.asyncio
-async def test_positive_call_mcp_server(module_mcp_target_sat):
+@pytest.mark.parametrize(
+    'mcp_server',
+    ['module_mcp_target_sat', 'module_downstream_mcp_target_sat'],
+    ids=['upstream', 'downstream'],
+)
+async def test_positive_call_mcp_server(request, mcp_server):
     """Test that the MCP response matches with what is available on Satellite
 
     :id: 6f3c31c2-2f50-43ba-ac52-b3ebc6af4e45
 
     :expectedresults: MCP server is running and returns up to date data
     """
+    target_sat = request.getfixturevalue(mcp_server)
+    mcp_settings = settings.get(
+        'foreman_mcp_downstream'
+        if mcp_server == 'module_downstream_mcp_target_sat'
+        else 'foreman_mcp'
+    )
     async with Client(
         transport=StreamableHttpTransport(
-            f'http://{settings.server.hostname}:{settings.foreman_mcp.port}/mcp',
+            f'http://{target_sat.hostname}:{mcp_settings.port}/mcp',
             headers={
-                'FOREMAN_USERNAME': settings.foreman_mcp.username,
-                'FOREMAN_TOKEN': settings.foreman_mcp.password,
+                'FOREMAN_USERNAME': mcp_settings.username,
+                'FOREMAN_TOKEN': mcp_settings.password,
             },
         ),
     ) as client:
@@ -40,13 +51,13 @@ async def test_positive_call_mcp_server(module_mcp_target_sat):
             'call_foreman_api_get', {'resource': 'hosts', 'action': 'index', 'params': {}}
         )
         assert result.data['message'] == "Action 'index' on resource 'hosts' executed successfully."
-        hosts = module_mcp_target_sat.api.Host().search(query={'per_page': 'all'})
+        hosts = target_sat.api.Host().search(query={'per_page': 'all'})
         hostnames = sorted([host.name for host in hosts])
         mcp_hostnames = sorted([host['name'] for host in result.data['response']['results']])
         assert hostnames == mcp_hostnames
 
         # add new host
-        host = module_mcp_target_sat.api.Host().create()
+        host = target_sat.api.Host().create()
         result = await client.call_tool(
             'call_foreman_api_get', {'resource': 'hosts', 'action': 'index', 'params': {}}
         )
@@ -64,7 +75,7 @@ async def test_negative_call_mcp_server(module_mcp_target_sat):
     """
     async with Client(
         transport=StreamableHttpTransport(
-            f'http://{settings.server.hostname}:{settings.foreman_mcp.port}/mcp',
+            f'http://{module_mcp_target_sat.hostname}:{settings.foreman_mcp.port}/mcp',
             headers={
                 'FOREMAN_USERNAME': settings.foreman_mcp.username,
                 'FOREMAN_TOKEN': settings.foreman_mcp.password,
