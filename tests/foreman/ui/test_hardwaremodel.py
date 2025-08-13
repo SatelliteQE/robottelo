@@ -6,7 +6,7 @@
 
 :CaseComponent: Hosts
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 """
 

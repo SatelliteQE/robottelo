@@ -767,7 +767,7 @@ class TestDockerActivationKey:
 
     :CaseComponent: ActivationKeys
 
-    :team: Phoenix-subscriptions
+    :team: Proton
     """
 
     @pytest.mark.tier2

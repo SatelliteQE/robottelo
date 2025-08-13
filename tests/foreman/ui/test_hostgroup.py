@@ -6,7 +6,7 @@
 
 :CaseComponent: HostGroup
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 
