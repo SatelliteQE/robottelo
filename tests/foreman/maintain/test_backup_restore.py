@@ -32,26 +32,55 @@ from robottelo.hosts import Satellite
 pytestmark = pytest.mark.destructive
 
 
-BACKUP_DIR = "/tmp/"
+BACKUP_DIR = '/tmp/'
+IOP_FILES = {
+    'iop_inventory.dump',
+    'iop_vmaas.dump',
+    'iop_advisor.dump',
+    'iop_remediations.dump',
+    'iop_vulnerability.dump',
+}
+BASIC_FILES = {'config_files.tar.gz', '.config.snar', 'metadata.yml'}
+SAT_FILES = {'candlepin.dump', 'foreman.dump', 'pulpcore.dump'} | BASIC_FILES
+CAPS_FILES = {'pulpcore.dump'} | BASIC_FILES
+CONTENT_FILES = {'pulp_data.tar', '.pulp.snar'}
 
+NODIR_MSG = 'ERROR: parameter \'BACKUP_DIR\': no value provided'
+BADDIR_MSG = 'The given directory does not contain the required files or has too many files'
+NOPREV_MSG = 'ERROR: option \'--incremental\': Previous backup directory does not exist'
 
-BASIC_FILES = {"config_files.tar.gz", ".config.snar", "metadata.yml"}
-SAT_FILES = {"candlepin.dump", "foreman.dump", "pulpcore.dump"} | BASIC_FILES
-CAPS_FILES = {"pulpcore.dump"} | BASIC_FILES
-CONTENT_FILES = {"pulp_data.tar", ".pulp.snar"}
-
-
-NODIR_MSG = "ERROR: parameter 'BACKUP_DIR': no value provided"
-BADDIR_MSG = "The given directory does not contain the required files or has too many files"
-NOPREV_MSG = "ERROR: option '--incremental': Previous backup directory does not exist"
-
-assert_msg = "Some required backup files are missing"
+assert_msg = 'Some required backup files are missing'
+iop_service_assert_messages = [
+    'Make sure IoP Advisor DB is up',
+    'Make sure IoP Inventory DB is up',
+    'Make sure IoP Remediations DB is up',
+    'Make sure IoP Vmaas DB is up',
+    'Make sure IoP Vulnerability DB is up',
+]
+iop_backup_assert_messages = [
+    'Getting IoP Advisor DB dump',
+    'Getting IoP Inventory DB dump',
+    'Getting IoP Remediations DB dump',
+    'Getting IoP Vmaas DB dump ',
+    'Getting IoP Vulnerability DB dump',
+]
+iop_restore_assert_messages = [
+    'Restoring IoP Advisor dump',
+    'Restoring IoP Inventory dump',
+    'Restoring IoP Remediations dump',
+    'Restoring IoP Vmaas dump',
+    'Restoring IoP Vulnerability dump',
+]
 
 
 def get_exp_files(sat_maintain, skip_pulp=False):
     expected_files = SAT_FILES if type(sat_maintain) is Satellite else CAPS_FILES
     if not skip_pulp:
         expected_files = expected_files | CONTENT_FILES
+    if type(sat_maintain) is Satellite:
+        expected_files = (
+            expected_files | IOP_FILES if sat_maintain.local_advisor_enabled else expected_files
+        )
     return expected_files
 
 
@@ -401,6 +430,79 @@ def test_positive_puppet_backup_restore(
 
 
 @pytest.mark.e2e
+@pytest.mark.satellite_iop_only
+@pytest.mark.parametrize('backup_type', ['online', 'offline'])
+def test_positive_backup_restore_satellite_iop(
+    sat_maintain,
+    setup_backup_tests,
+    backup_type,
+):
+    """Backup/restore test for Red Hat Lightspeed(IoP) Satellite.
+
+    :id: 04ee374e-6220-4c6b-92c7-5126cf47a4d0
+
+    :parametrized: yes
+
+    :steps:
+        1. create a backup of IoP Satellite
+        2. check that appropriate files are created
+        3. restore the backup
+        4. check system health
+
+    :expectedresults:
+        1. backup succeeds
+        2. expected files are present in the backup
+        3. restore succeeds
+        4. system health check succeeds
+
+    :Verifies: SAT-34508
+    """
+    instance = get_instance_name(sat_maintain)
+    assert sat_maintain.satellite.local_advisor_enabled
+    subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
+    result = sat_maintain.cli.Backup.run_backup(
+        backup_dir=subdir,
+        backup_type=backup_type,
+        options={'assumeyes': True, 'plaintext': True},
+        timeout='30m',
+    )
+    assert result.status == 0
+    assert 'FAIL' not in result.stdout
+    for iop_message in iop_service_assert_messages + iop_backup_assert_messages:
+        assert iop_message in result.stdout, result.stdout
+
+    # Check for expected files
+    backup_dir = re.findall(rf'{subdir}\/{instance}-backup-.*-[0-5][0-9]', result.stdout)[0]
+    files = sat_maintain.execute(f'ls -a {backup_dir}').stdout.split('\n')
+    files = [i for i in files if not re.compile(r'^\.*$').search(i)]
+    expected_files = get_exp_files(sat_maintain)
+    assert set(files).issuperset(expected_files), assert_msg
+    config_files = sat_maintain.execute(
+        f'tar -tf {backup_dir}/config_files.tar.gz'
+    ).stdout.splitlines()
+    assert f'root/{sat_maintain.hostname}-certs.tar' not in config_files
+    assert 'etc/ansible/ansible.cfg' in config_files
+
+    result = sat_maintain.cli.Restore.run(
+        backup_dir=backup_dir,
+        options={'assumeyes': True, 'plaintext': True},
+    )
+    assert result.status == 0
+    assert 'FAIL' not in result.stdout
+    for iop_message in iop_service_assert_messages + iop_restore_assert_messages:
+        assert iop_message in result.stdout, result.stdout
+
+    # Check the system health after restore
+    result = sat_maintain.cli.Health.check(
+        options={'whitelist': 'foreman-tasks-not-paused', 'assumeyes': True, 'plaintext': True}
+    )
+    assert result.status == 0
+    result = sat_maintain.cli.Service.status()
+    assert 'FAIL' not in result.stdout
+    assert result.status == 0
+
+
+@pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.include_capsule
 @pytest.mark.parametrize('skip_pulp', [False, True], ids=['include_pulp', 'skip_pulp'])
@@ -466,7 +568,7 @@ def test_positive_backup_restore(
     expected_files = get_exp_files(sat_maintain, skip_pulp)
     assert set(files).issuperset(expected_files), assert_msg
     config_files = sat_maintain.execute(
-        f"tar -tf {backup_dir}/config_files.tar.gz"
+        f'tar -tf {backup_dir}/config_files.tar.gz'
     ).stdout.splitlines()
     if instance == 'capsule':
         assert f'root/{sat_maintain.hostname}-certs.tar' in config_files
@@ -613,7 +715,7 @@ def test_positive_backup_restore_incremental(
     repo = sat_maintain.api.Repository().search(
         query={'search': f'name="{module_synced_repos["custom"].name}"'}
     )[0]
-    assert repo.id == module_synced_repos["custom"].id
+    assert repo.id == module_synced_repos['custom'].id
 
     repo = sat_maintain.api.Repository().search(  # noqa
         query={'search': f'name="{secondary_repo.name}"'}
