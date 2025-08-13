@@ -491,10 +491,11 @@ class TestDockerClient:
             4. Create activation key for the LCE/CV.
 
         :steps:
-            1. Configure podman certs for authentication (manual setup only).
-            2. Try podman search all, ensure Library and repo images are not listed.
-            3. Try podman search/pull for Library images, ensure it fails.
-            4. Try podman search/pull for the LCE/CV, ensure it works.
+            1. Register a host to the LCE/CV environment.
+            2. Configure podman certs for authentication (manual setup only).
+            3. Try podman search all, ensure Library and repo images are not listed.
+            4. Try podman search/pull for Library images, ensure it fails.
+            5. Try podman search/pull for the LCE/CV, ensure it works.
 
         :expectedresults:
             1. Podman search/pull is restricted for Library (or any LCE missing in AK).
@@ -507,6 +508,7 @@ class TestDockerClient:
         org, lce, prod = module_org, module_lce, module_product
         repo, cv, ak = stage_setup.repo, stage_setup.cv, stage_setup.ak
 
+        # 1. Register a host to the LCE/CV environment.
         res = host.register(
             org, None, ak.name, server, force=True, setup_container_certs=gr_certs_setup
         )
@@ -519,11 +521,11 @@ class TestDockerClient:
             host.delete_host_record()
             host.reset_podman_cert_auth(server)  # reset regardless how it was set
 
-        # 1. Configure podman certs for authentication (manual setup only).
+        # 2. Configure podman certs for authentication (manual setup only).
         if not gr_certs_setup:
             host.configure_podman_cert_auth(server)
 
-        # 2. Try podman search all, ensure Library and repo images are not listed.
+        # 3. Try podman search all, ensure Library and repo images are not listed.
         org_prefix = f'{server.hostname}/{org.label}'
         lib_path = f'{org_prefix}/library'.lower()
         repo_path = f'{org_prefix}/{prod.label}/{repo.label}'.lower()
@@ -536,12 +538,12 @@ class TestDockerClient:
         paths = [f.strip() for f in finds.split('\n') if 'NAME' not in f and len(f)]
         assert len(paths) == 1
 
-        # 3. Try podman search/pull for Library images, ensure it fails.
+        # 4. Try podman search/pull for Library images, ensure it fails.
         for path in [lib_path, repo_path]:
             assert host.execute(f'podman search {path}').stdout == ''
             assert host.execute(f'podman pull {path}').status
 
-        # 4. Try podman search/pull for the LCE/CV, ensure it works.
+        # 5. Try podman search/pull for the LCE/CV, ensure it works.
         res = host.execute(f'podman search {cv_path}')
         assert cv_path in res.stdout
         res = host.execute(f'podman pull {cv_path}')
