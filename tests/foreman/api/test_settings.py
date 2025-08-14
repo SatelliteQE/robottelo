@@ -207,7 +207,6 @@ def test_positive_custom_repo_download_policy(setting_update, download_policy, t
         for content_type, policies in SUPPORTED_MIRRORING_POLICIES.items()
         for mirroring_policy in policies
     ],
-    ids=lambda x: f"{x[0]}_{x[1]}",
 )
 def test_positive_custom_default_repo_mirroring_policy(
     request, content_type, mirroring_policy, module_product, module_target_sat
