@@ -170,7 +170,12 @@ def test_create_with_puppet_class(module_puppet_org, module_puppet_loc, session_
 
 
 def test_positive_create_new_host(
-session, target_sat, module_org, smart_proxy_location, module_capsule_configured, host_ui_options
+    session,
+    target_sat,
+    module_org,
+    smart_proxy_location,
+    module_capsule_configured,
+    host_ui_options,
 ):
     """Verify that content source field automatically populates when creating new host from host
     group.
@@ -210,7 +215,7 @@ session, target_sat, module_org, smart_proxy_location, module_capsule_configured
             }
         )
         values, host_name = host_ui_options
-        values['host.hostgroup']= name
+        values['host.hostgroup'] = name
         del values['host.lce']
         del values['host.content_view']
         session.host.create(values)
