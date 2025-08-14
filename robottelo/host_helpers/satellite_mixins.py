@@ -455,6 +455,9 @@ class IoPSetup:
         username = username or iop_settings.username
         password = password or iop_settings.token
         registry = registry or iop_settings.registry
+        self.register_to_cdn()
+        self.setup_rhel_repos()
+        self.setup_satellite_repos()
         self.podman_login(username, password, registry)
         # TODO: Replace this temporary implementation with a permanent solution.
         result = self.execute(
@@ -469,3 +472,4 @@ class IoPSetup:
             '''
         )
         assert result.status == 0, f'Failed to configure IoP: {result.stdout}'
+        assert self.local_advisor_enabled

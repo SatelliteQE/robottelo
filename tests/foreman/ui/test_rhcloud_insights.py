@@ -6,7 +6,7 @@
 
 :CaseComponent: RHCloud
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 
@@ -372,6 +372,13 @@ def test_host_details_page(
 
     with module_target_sat_insights.ui_session() as session:
         session.organization.select(org_name=org_name)
+
+        # Ensure the "Recommendations" column is present.
+        session.all_hosts.manage_table_columns(
+            {
+                'Recommendations': True,
+            }
+        )
 
         if not local_advisor_enabled:
             # Sync insights recommendations.

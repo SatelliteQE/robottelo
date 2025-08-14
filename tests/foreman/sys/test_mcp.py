@@ -87,3 +87,57 @@ async def test_negative_call_mcp_server(module_mcp_target_sat):
             result.data['error']
             == "Action 'create' on resource 'organizations' is not allowed: POST method is not allowed, expected GET."
         )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ('user_fixture', 'allowed_resource', 'denied_resource', 'auth_type'),
+    [
+        ('host_viewer_user', 'hosts', 'domains', 'password'),
+        ('host_viewer_user', 'hosts', 'domains', 'token'),
+        ('domain_viewer_user', 'domains', 'hosts', 'password'),
+        ('domain_viewer_user', 'domains', 'hosts', 'token'),
+    ],
+    ids=[
+        'host_viewer_user_password',
+        'host_viewer_user_token',
+        'domain_viewer_user_password',
+        'domain_viewer_user_token',
+    ],
+)
+async def test_positive_mcp_user_view_permissions(
+    request, module_mcp_target_sat, user_fixture, allowed_resource, denied_resource, auth_type
+):
+    """Test that users with different view permissions can only view their authorized resources through MCP
+
+    :id: 9f3c31c2-2f50-43ba-ac52-b3ebc6af4e46
+
+    :expectedresults: Users can only view resources they have view permissions for using both password
+        and token authentication
+    """
+    user, password, token = request.getfixturevalue(user_fixture)
+    auth_value = password if auth_type == 'password' else token
+    async with Client(
+        transport=StreamableHttpTransport(
+            f'http://{module_mcp_target_sat.hostname}:{settings.foreman_mcp.port}/mcp',
+            headers={
+                'FOREMAN_USERNAME': user.login,
+                'FOREMAN_TOKEN': auth_value,
+            },
+        ),
+    ) as client:
+        result = await client.call_tool(
+            'call_foreman_api_get', {'resource': allowed_resource, 'action': 'index', 'params': {}}
+        )
+        assert (
+            result.data['message']
+            == f"Action 'index' on resource '{allowed_resource}' executed successfully."
+        )
+
+        result = await client.call_tool(
+            'call_foreman_api_get', {'resource': denied_resource, 'action': 'index', 'params': {}}
+        )
+        assert (
+            f"Failed to execute action 'index' on resource '{denied_resource}'"
+            in result.data['message']
+        )
