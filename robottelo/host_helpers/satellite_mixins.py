@@ -472,3 +472,4 @@ class IoPSetup:
             '''
         )
         assert result.status == 0, f'Failed to configure IoP: {result.stdout}'
+        assert self.local_advisor_enabled
