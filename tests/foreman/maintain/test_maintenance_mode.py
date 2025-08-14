@@ -28,7 +28,6 @@ def test_positive_maintenance_mode(request, sat_maintain, setup_sync_plan):
     :setup:
         1. Get a Satellite(default and/or IoP-enabled Satellite)
         2. Create a sync-plan which is enabled
-        3. set ':manage_crond: true' in /etc/foreman-maintain/foreman_maintain.yml
 
     :steps:
         1. Verify that maintenance-mode is Off.
