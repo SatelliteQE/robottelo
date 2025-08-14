@@ -5,7 +5,6 @@ import pytest
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.constants import SATELLITE_MAINTAIN_YML
 from robottelo.exceptions import SatelliteHostError
 from robottelo.hosts import Capsule, Satellite
 from robottelo.logging import logger
@@ -137,16 +136,12 @@ def setup_sync_plan(request, sat_maintain):
             'sync-date': datetime.datetime.today().strftime("%Y-%m-%d"),
         }
     )
-    sat_maintain.execute(f'cp {SATELLITE_MAINTAIN_YML} foreman_maintain.yml')
-    sat_maintain.execute(f'sed -i "$ a :manage_crond: true" {SATELLITE_MAINTAIN_YML}')
 
     yield sat_maintain.api.SyncPlan(organization=org.label).search(query={'search': 'enabled=true'})
 
     @request.addfinalizer
     def _finalize():
         assert sat_maintain.cli.MaintenanceMode.stop().status == 0
-        sat_maintain.execute(f'cp foreman_maintain.yml {SATELLITE_MAINTAIN_YML}')
-        sat_maintain.execute('rm -rf foreman_maintain.yml')
         result = sat_maintain.cli.SyncPlan.delete(
             {'name': new_sync_plan.name, 'organization-id': org.id}
         )
