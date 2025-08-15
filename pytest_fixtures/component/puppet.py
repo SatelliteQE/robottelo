@@ -2,6 +2,7 @@
 import pytest
 
 from robottelo import constants
+from robottelo.config import settings
 
 
 @pytest.fixture(scope='session')
@@ -121,7 +122,7 @@ def session_puppet_default_os(session_puppet_enabled_sat):
     """Default OS on the puppet-enabled Satellite"""
     return (
         session_puppet_enabled_sat.api.OperatingSystem()
-        .search(query={'search': constants.DEFAULT_OS_SEARCH_QUERY})[0]
+        .search(query={'search': settings.server.default_os_search_query})[0]
         .read()
     )
 
