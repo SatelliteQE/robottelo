@@ -22,7 +22,7 @@ from requests.exceptions import HTTPError
 from wait_for import wait_for
 
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
+from robottelo.constants import COMPUTE_PROFILE_SMALL, FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
 from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import (
     invalid_values_list,
@@ -278,8 +278,8 @@ def test_negative_update_url(url, request, module_target_sat, module_org, module
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
-@pytest.mark.rhel_ver_list('[9, 10]')
-def test_positive_provision_end_to_end(
+@pytest.mark.rhel_ver_list('[8,9]')
+def test_positive_image_provision_end_to_end(
     request,
     setting_update,
     module_provisioning_rhel_content,
@@ -290,8 +290,9 @@ def test_positive_provision_end_to_end(
     module_ssh_key_file,
     pxe_loader,
     provisioning_hostgroup,
+    module_libvirt_image,
 ):
-    """Provision a host on Libvirt compute resource with the help of hostgroup.
+    """Perform end to end testing for compute resource Libvirt component image.
 
     :id: 6985e7c0-d258-4fc4-833b-e680804b55e9
 
@@ -306,37 +307,31 @@ def test_positive_provision_end_to_end(
 
     :Verifies: SAT-25808
     """
-    sat = module_libvirt_provisioning_sat.sat
-    cr_name = gen_string('alpha')
-    host_name = gen_string('alpha').lower()
-    libvirt_cr = sat.api.LibvirtComputeResource(
-        name=cr_name,
-        provider=FOREMAN_PROVIDERS['libvirt'],
-        display_type='VNC',
-        organization=[module_sca_manifest_org],
-        location=[module_location],
-        url=LIBVIRT_URL,
-    ).create()
-    request.addfinalizer(libvirt_cr.delete)
-    assert libvirt_cr.name == cr_name
 
+    sat = module_libvirt_provisioning_sat.sat
+    host_name = gen_string('alpha').lower()
+    sat.api.ComputeAttribute(
+        compute_profile=COMPUTE_PROFILE_SMALL,
+        compute_resource=module_libvirt_image.compute_resource,
+        vm_attrs={
+            'cpus': 1,
+            'memory': 6442450944,
+            'firmware': pxe_loader.vm_firmware,
+            'volumes_attributes': {'0': {'capacity': '10G', 'format_type': 'qcow2'}},
+        },
+    ).create()
     host = sat.api.Host(
         hostgroup=provisioning_hostgroup,
         organization=module_sca_manifest_org,
         location=module_location,
         name=host_name,
-        compute_resource=libvirt_cr,
-        compute_attributes={
-            'cpus': 1,
-            'memory': 6442450944,
-            'firmware': pxe_loader.vm_firmware,
-            'start': '1',
-            'volumes_attributes': {
-                '0': {
-                    'capacity': '10G',
-                },
-            },
-        },
+        enabled=True,
+        managed=True,
+        compute_resource=module_libvirt_image.compute_resource,
+        provision_method='image',
+        image=module_libvirt_image,
+        compute_profile=COMPUTE_PROFILE_SMALL,
+        compute_attributes={'start': '1'},
         interfaces_attributes={
             '0': {
                 'type': 'interface',
@@ -348,19 +343,16 @@ def test_positive_provision_end_to_end(
                 },
             }
         },
-        provision_method='build',
-        host_parameters_attributes=[
-            {'name': 'remote_execution_connect_by_ip', 'value': 'true', 'parameter_type': 'boolean'}
-        ],
-        build=True,
     ).create(create_missing=False)
-    request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
     assert host.name == f'{host_name}.{module_libvirt_provisioning_sat.domain.name}'
+    request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
+
     # Check on Libvirt, if VM exists
     result = sat.execute(
         f'su foreman -s /bin/bash -c "virsh -c {LIBVIRT_URL} list --state-running"'
     )
     assert host_name in result.stdout
+
     # check the build status
     wait_for(
         lambda: host.read().build_status_label != 'Pending installation',
@@ -374,12 +366,18 @@ def test_positive_provision_end_to_end(
         provisioning_host = ContentHost(host.ip, auth=module_ssh_key_file)
         # Wait for the host to be rebooted and SSH daemon to be started.
         provisioning_host.wait_for_connection()
-        # Enable Root Login
-        if int(host.operatingsystem.read().major) >= 9:
-            assert (
-                provisioning_host.execute(
-                    'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
-                ).status
-                == 0
-            )
         assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
+
+    host_info = host.read()
+    # check if correct OS version is installed
+    expected_rhel_version = host_info['operating-system']['operating-system']['name'].split(" ")[1]
+    host_ip = host_info['network']['ipv4-address']
+    host_ssh_os = sat.execute(
+        f'sshpass -p {settings.provisioning.host_root_password} '
+        'ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o PasswordAuthentication=yes '
+        f'-o UserKnownHostsFile=/dev/null root@{host_ip} cat /etc/redhat-release'
+    )
+    assert host_ssh_os.status == 0
+    assert expected_rhel_version in host_ssh_os.stdout, (
+        f'The installed OS version differs from the expected version {expected_rhel_version}'
+    )
