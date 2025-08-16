@@ -1266,13 +1266,19 @@ class ContentHost(Host, ContentHostMixins):
         if product_label:
             # Enable custom repositories
             for repo_label in repo_labels:
-                result = self.execute(
-                    f'yum-config-manager --enable {org_label}_{product_label}_{repo_label}'
+                # try first with subscription-manager (SCA)
+                result_sm = self.execute(
+                    f'subscription-manager repos --enable {org_label}_{product_label}_{repo_label}'
                 )
-                if result.status != 0:
-                    raise CLIFactoryError(
-                        f'Failed to enable custom repository {repo_label!s}\n{result.stderr}'
+                if result_sm.status != 0:
+                    result = self.execute(
+                        f'yum-config-manager --enable {org_label}_{product_label}_{repo_label}'
                     )
+                    if result.status != 0:
+                        raise CLIFactoryError(
+                            f'Failed to enable custom repository: {repo_label!s}\n{result.stderr}'
+                            f'\nSubscription-Manager:\n{result_sm.stderr}'
+                        )
 
     def virt_who_hypervisor_config(
         self,
