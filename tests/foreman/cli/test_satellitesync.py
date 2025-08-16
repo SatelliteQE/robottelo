@@ -1556,7 +1556,6 @@ class TestContentViewSync:
                 ),
                 'search-query': f"name = {module_flatpak_contenthost.hostname}",
             },
-            timeout='800s',
         )
         res = module_import_sat.cli.JobInvocation.info({'id': job.id})
         assert 'succeeded' in res['status']

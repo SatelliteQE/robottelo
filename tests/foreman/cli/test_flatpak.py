@@ -345,7 +345,6 @@ def test_sync_consume_flatpak_repo_via_library(
             ),
             'search-query': f"name = {host.hostname}",
         },
-        timeout='800s',
     )
     res = module_target_sat.cli.JobInvocation.info({'id': job.id})
     assert 'succeeded' in res['status']
@@ -390,9 +389,9 @@ def test_sync_consume_flatpak_repo_via_cv(
         3. Create an AK assigned with one content view environment only.
         4. Register a content host using the AK.
         5. Configure the content host to use Satellite's flatpak index.
-        6. Ensure only the proper Apps are available.
+        6. Ensure only the proper Apps are available (exclusion for cert-based auth only).
         7. Install flatpak app from the first CV, ensure it succeeded.
-        8. Try to install flatpak app from the second CV, ensure it failed.
+        8. Try to install flatpak app from the second CV, ensure it failed for cert-based login.
 
     :expectedresults:
         1. Flatpak repos published in a CV are installable on a host via the CV.
@@ -418,15 +417,14 @@ def test_sync_consume_flatpak_repo_via_cv(
                 'product-id': function_product.id,
             }
         )
-        local_repo = sat.cli.Repository.list(
-            {'product-id': function_product.id, 'name': repo['name']}
-        )[0]
-        sat.cli.Repository.synchronize({'id': local_repo['id']})
 
     local_repos = sat.cli.Repository.list({'product-id': function_product.id})
     assert set([r['name'] for r in local_repos]) == set(repo_names), (
         'Required repo(s) were not scanned or mirrored'
     )
+
+    for repo in local_repos:
+        sat.cli.Repository.synchronize({'id': repo['id']})
 
     # 2. Create two CVs, put different repos inside, publish and promote them to LCE.
     cv1 = sat.api.ContentView(
@@ -482,10 +480,11 @@ def test_sync_consume_flatpak_repo_via_cv(
     res = host.execute('flatpak remotes')
     assert remote_name in res.stdout
 
-    # 6. Ensure only the proper Apps are available.
+    # 6. Ensure only the proper Apps are available (exclusion for cert-based auth only).
     res = host.execute('flatpak remote-ls')
     assert all(app_name in res.stdout for app_name in ['Thunderbird', 'Platform'])
-    assert 'firefox' not in res.stdout.lower()
+    if cert_login:
+        assert 'firefox' not in res.stdout.lower()
 
     # 7. Install flatpak app from the first CV, ensure it succeeded.
     opts = {
@@ -502,7 +501,6 @@ def test_sync_consume_flatpak_repo_via_cv(
                 'Launch a session bus instance=true'
             )
         },
-        timeout='800s',
     )
     res = module_target_sat.cli.JobInvocation.info({'id': job.id})
     assert 'succeeded' in res['status']
@@ -512,19 +510,19 @@ def test_sync_consume_flatpak_repo_via_cv(
     res = host.execute('flatpak list')
     assert cv1_app in res.stdout
 
-    # 8. Try to install flatpak app from the second CV, ensure it failed.
-    cv2_app = 'org.mozilla.Firefox'
-    with pytest.raises(CLIFactoryError) as error:
-        sat.cli_factory.job_invocation(
-            opts
-            | {
-                'inputs': (
-                    f'Flatpak remote name={remote_name}, Application name={cv2_app}, '
-                    'Launch a session bus instance=true'
-                )
-            },
-            timeout='800s',
-        )
-    assert 'A sub task failed' in error.value.args[0]
-    res = host.execute('flatpak list')
-    assert cv2_app not in res.stdout
+    # 8. Try to install flatpak app from the second CV, ensure it failed for cert-based login.
+    if cert_login:
+        cv2_app = 'org.mozilla.firefox'
+        with pytest.raises(CLIFactoryError) as error:
+            sat.cli_factory.job_invocation(
+                opts
+                | {
+                    'inputs': (
+                        f'Flatpak remote name={remote_name}, Application name={cv2_app}, '
+                        'Launch a session bus instance=true'
+                    )
+                },
+            )
+        assert 'A sub task failed' in error.value.args[0]
+        res = host.execute('flatpak list')
+        assert cv2_app not in res.stdout
