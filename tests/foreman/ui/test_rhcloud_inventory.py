@@ -553,6 +553,9 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
 
     :expectedresults:
         1. The subscription_connection_enabled setting is reflected in the UI
+
+    :Verifies: SAT-15137
+
     """
     with module_target_sat.ui_session() as session:
         session.organization.select(org_name=DEFAULT_ORG)
@@ -563,7 +566,6 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
         displayed_buttons = session.cloudinventory.get_displayed_buttons()
         displayed_descriptions = session.cloudinventory.get_displayed_descriptions()
         displayed_inventory_tabs = session.cloudinventory.get_displayed_inventory_tabs()
-
         subscription_setting = setting_update.value == 'true'
 
         assert displayed_settings_options['auto_update'] is subscription_setting
@@ -577,6 +579,9 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
             if subscription_setting
             else 'Generate report'
         )
+        if subscription_setting:
+            assert displayed_buttons['cloud_connector_text'] == 'Configure cloud connector'
+            assert displayed_buttons['sync_status_text'] == 'Sync all inventory status'
 
 
 @pytest.mark.no_containers
