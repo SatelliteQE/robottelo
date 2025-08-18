@@ -1937,9 +1937,11 @@ def test_positive_bootc_cli_actions(target_sat, bootc_host, function_ak_with_cv,
 
     :expectedresults: Upon registering a Bootc host, the facts are attached to the host, and are accurate. Hammer host bootc also returns proper info.
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent: Hosts-Content
 
-    :Verifies:SAT-27168, SAT-27170, SAT-30211
+    :Team: Artemis
+
+    :Verifies: SAT-27168, SAT-27170, SAT-30211
 
     :CaseImportance: Critical
     """
