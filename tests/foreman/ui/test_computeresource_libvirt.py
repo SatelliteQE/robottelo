@@ -386,3 +386,105 @@ def test_positive_associate_with_custom_profile_with_template():
 
     :CaseAutomation: NotAutomated
     """
+
+
+@pytest.mark.e2e
+@pytest.mark.on_premises_provisioning
+@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
+@pytest.mark.rhel_ver_list('[10]')
+def test_positive_image_provision_end_to_end(
+    request,
+    session,
+    setting_update,
+    module_provisioning_rhel_content,
+    module_libvirt_provisioning_sat,
+    configure_secureboot_provisioning,
+    module_sca_manifest_org,
+    module_location,
+    module_ssh_key_file,
+    pxe_loader,
+    provisioning_hostgroup,
+    module_libvirt_image,
+    module_libvirt_cp,
+):
+    """Perform end to end testing for compute resource Libvirt component image.
+
+    :id: cd9bc749-4e4f-4639-bc9b-d9fc2a2d98e9
+
+    :steps:
+        1. Configure provisioning setup.
+        2. Create Libvirt CR with image.
+        3. Configure host group setup.
+        4. Create a host on Libvirt compute resource using the Hostgroup
+        5. Verify created host on Libvirt.
+
+    :expectedresults: Host is provisioned successfully with image
+
+    :Verifies: SAT-32733
+    """
+    sat = module_libvirt_provisioning_sat.sat
+    hostname = gen_string('alpha').lower()
+    cr_info = module_libvirt_image.compute_resource
+
+    # Add compute-profile and compute-resource to hostgroup
+    sat.cli.HostGroup.update(
+        {
+            'id': provisioning_hostgroup.id,
+            'compute-profile': COMPUTE_PROFILE_SMALL,
+            'compute-resource-id': cr_info.id,
+        }
+    )
+
+    @request.addfinalizer
+    def _finalize():
+        sat.provisioning_cleanup(host_fqdn)
+        cr = sat.api.LibvirtComputeResource().search(query={'search': f'name={cr_info.id}'})
+        if cr:
+            sat.api.LibvirtComputeResource(id=cr[0].id).delete()
+
+    # Create host
+    with sat.ui_session() as session:
+        session.organization.select(org_name=module_sca_manifest_org.name)
+        session.location.select(loc_name=module_location.name)
+        session.host.create(
+            {
+                'host.name': hostname,
+                'host.organization': module_sca_manifest_org.name,
+                'host.location': module_location.name,
+                'host.hostgroup': provisioning_hostgroup.name,
+                'host.inherit_deploy_option': False,
+                'provider_content.operating_system.provision_method': True,
+            }
+        )
+
+        # Check on Libvirt, if VM exists
+        result = sat.execute(
+            f'su foreman -s /bin/bash -c "virsh -c {LIBVIRT_URL} list --state-running"'
+        )
+        assert hostname in result.stdout
+
+        # check the build status
+        host_fqdn = f'{hostname}.{provisioning_hostgroup.domain.read().name}'
+        wait_for(
+            lambda: session.host_new.get_host_statuses(host_fqdn)['Build']['Status']
+            != 'Pending installation',
+            timeout=1800,
+            delay=30,
+            fail_func=session.browser.refresh,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        values = session.host_new.get_host_statuses(host_fqdn)
+        assert values['Build']['Status'] == 'Installed'
+
+        # Verify SecureBoot is enabled on host after provisioning is completed successfully
+        if pxe_loader.vm_firmware == 'uefi_secure_boot':
+            host_info = sat.api.Host().search(query={'search': f'name="{host_fqdn}"'})
+            for host in host_info:
+                provisioning_host = ContentHost(host.ip, auth=module_ssh_key_file)
+                # Wait for the host to be rebooted and SSH daemon to be started.
+                provisioning_host.wait_for_connection()
+                assert (
+                    'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
+                )
