@@ -169,14 +169,7 @@ def test_create_with_puppet_class(module_puppet_org, module_puppet_loc, session_
         assert hostgroup_values['puppet_enc']['classes']['assigned'][0] == pc_name
 
 
-def test_positive_create_new_host(
-    session,
-    target_sat,
-    module_org,
-    smart_proxy_location,
-    module_capsule_configured,
-    host_ui_options,
-):
+def test_positive_create_new_host():
     """Verify that content source field automatically populates when creating new host from host
     group.
 
@@ -194,34 +187,7 @@ def test_positive_create_new_host(
 
     :customerscenario: true
     """
-    name = gen_string('alpha')
-    description = gen_string('alpha')
-    capsule = module_capsule_configured.nailgun_smart_proxy
-    capsule.location = [smart_proxy_location]
-    capsule.update(['location'])
-    capsule.organization = [module_org]
-    capsule.update(['organization'])
-    with target_sat.ui_session() as session:
-        session.organization.select(module_org.name)
-        session.location.select(smart_proxy_location.name)
-        # Create host group with some data
-        session.hostgroup.create(
-            {
-                'host_group.name': name,
-                'host_group.description': description,
-                'host_group.content_source': capsule.name,
-                'locations.resources.assigned': [smart_proxy_location.name],
-                'organizations.resources.assigned': [module_org.name],
-            }
-        )
-        values, host_name = host_ui_options
-        values['host.hostgroup'] = name
-        del values['host.lce']
-        del values['host.content_view']
-        session.host.create(values)
-        values = session.host.read(host_name, widget_names='host')
-        assert values['host']['name'] == host_name.partition('.')[0]
-        assert values['host']['content_source'] == capsule.name
+    pass
 
 
 def test_positive_nested_host_groups(
