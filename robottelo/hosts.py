@@ -93,7 +93,8 @@ def get_sat_version():
 
     try:
         sat_version = Satellite().version
-    except (AuthenticationError, ContentHostError, BoxKeyError):
+    except (AuthenticationError, ContentHostError, BoxKeyError) as err:
+        logger.warning('Failed to get Satellite version: %s', err)
         if sat_version := str(settings.server.version.get('release')) == 'stream':
             sat_version = str(settings.robottelo.get('satellite_version'))
         if not sat_version:
@@ -107,7 +108,8 @@ def get_sat_rhel_version():
 
     try:
         return Satellite().os_version
-    except (AuthenticationError, ContentHostError, BoxKeyError):
+    except (AuthenticationError, ContentHostError, BoxKeyError) as err:
+        logger.warning('Failed to get RHEL version from Satellite: %s', err)
         if hasattr(settings.server.version, 'rhel_version'):
             rhel_version = str(settings.server.version.rhel_version)
         elif hasattr(settings.robottelo, 'rhel_version'):
