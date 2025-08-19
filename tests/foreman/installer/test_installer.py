@@ -82,6 +82,7 @@ DOWNSTREAM_MODULES = {
     'foreman_proxy::plugin::remote_execution::script',
     'foreman_proxy::plugin::shellhooks',
     'foreman_proxy_content',
+    'iop',
     'katello',
     'puppet',
 }
