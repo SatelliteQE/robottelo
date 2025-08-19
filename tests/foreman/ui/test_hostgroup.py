@@ -168,7 +168,7 @@ def test_create_with_puppet_class(module_puppet_org, module_puppet_loc, session_
         assert len(hostgroup_values['puppet_enc']['classes']['assigned']) == 1
         assert hostgroup_values['puppet_enc']['classes']['assigned'][0] == pc_name
 
-
+@pytest.mark.stubbed
 def test_positive_create_new_host():
     """Verify that content source field automatically populates when creating new host from host
     group.
