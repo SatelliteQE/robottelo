@@ -1037,9 +1037,11 @@ def test_positive_bootc_api_actions(target_sat, bootc_host, function_ak_with_cv,
 
     :expectedresults: Upon registering a Bootc host, the API returns correct information across multiple endpoints
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent: Hosts-Content
 
-    :Verifies:SAT-27168, SAT-27170, SAT-27173
+    :Team: Artemis
+
+    :Verifies: SAT-27168, SAT-27170, SAT-27173
 
     :CaseImportance: Critical
     """
