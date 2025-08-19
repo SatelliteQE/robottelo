@@ -248,17 +248,24 @@ def test_positive_read_from_details_page(session, module_host_template):
         values = session.host_new.get_details(host_name)
         assert values['overview']['host_status']['status'] == 'All statuses OK'
         # assert 'Pending installation' in values['properties']['properties_table']['Build']
-        assert values['details']['system_properties']['sys_properties']['domain'] == template.domain.name
+        assert (
+            values['details']['system_properties']['sys_properties']['domain']
+            == template.domain.name
+        )
         assert values['overview']['details']['details']['mac_address'] == host.mac
-        assert (
-            values['details']['operating_system']['architecture'] == template.architecture.name
-        )
+        assert values['details']['operating_system']['architecture'] == template.architecture.name
         assert values['details']['operating_system']['os'] == os_name
-        assert values['details']['system_properties']['sys_properties']['location'] == template.location.name
         assert (
-            values['details']['system_properties']['sys_properties']['organization'] == template.organization.name
+            values['details']['system_properties']['sys_properties']['location']
+            == template.location.name
         )
-        assert 'Admin User' in values['details']['system_properties']['sys_properties']['host_owner']
+        assert (
+            values['details']['system_properties']['sys_properties']['organization']
+            == template.organization.name
+        )
+        assert (
+            'Admin User' in values['details']['system_properties']['sys_properties']['host_owner']
+        )
 
 
 def test_read_host_with_ics_domain(
@@ -385,9 +392,13 @@ def test_positive_assign_taxonomies(
         session.location.select(loc_name=function_location_with_org.name)
         assert session.all_hosts.search(host.name)[0]['Name'] == host.name
         values = session.host_new.get_details(host.name)
-        assert values['details']['system_properties']['sys_properties']['location'] == function_location_with_org.name
         assert (
-                values['details']['system_properties']['sys_properties']['organization'] == function_org.name
+            values['details']['system_properties']['sys_properties']['location']
+            == function_location_with_org.name
+        )
+        assert (
+            values['details']['system_properties']['sys_properties']['organization']
+            == function_org.name
         )
 
 
