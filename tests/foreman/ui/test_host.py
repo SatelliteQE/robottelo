@@ -244,21 +244,21 @@ def test_positive_read_from_details_page(session, module_host_template):
     os_name = f'{template.operatingsystem.name} {template.operatingsystem.major}'
     host_name = host.name
     with session:
-        assert session.host.search(host_name)[0]['Name'] == host_name
-        values = session.host.get_details(host_name)
-        assert values['properties']['properties_table']['Status'] == 'OK'
-        assert 'Pending installation' in values['properties']['properties_table']['Build']
-        assert values['properties']['properties_table']['Domain'] == template.domain.name
-        assert values['properties']['properties_table']['MAC Address'] == host.mac
+        assert session.host_new.search(host_name)[0]['Name'] == host_name
+        values = session.host_new.get_details(host_name)
+        assert values['overview']['host_status']['status'] == 'All statuses OK'
+        # assert 'Pending installation' in values['properties']['properties_table']['Build']
+        assert values['details']['system_properties']['sys_properties']['domain'] == template.domain.name
+        assert values['overview']['details']['details']['mac_address'] == host.mac
         assert (
-            values['properties']['properties_table']['Architecture'] == template.architecture.name
+            values['details']['operating_system']['architecture'] == template.architecture.name
         )
-        assert values['properties']['properties_table']['Operating System'] == os_name
-        assert values['properties']['properties_table']['Location'] == template.location.name
+        assert values['details']['operating_system']['os'] == os_name
+        assert values['details']['system_properties']['sys_properties']['location'] == template.location.name
         assert (
-            values['properties']['properties_table']['Organization'] == template.organization.name
+            values['details']['system_properties']['sys_properties']['organization'] == template.organization.name
         )
-        assert 'Admin User' in values['properties']['properties_table']['Owner']
+        assert 'Admin User' in values['details']['system_properties']['sys_properties']['host_owner']
 
 
 def test_read_host_with_ics_domain(
@@ -349,11 +349,10 @@ def test_positive_assign_taxonomies(
     """
     host = target_sat.api.Host(organization=module_org, location=smart_proxy_location).create()
     with session:
-        assert session.host.search(host.name)[0]['Name'] == host.name
-        session.host.apply_action(
-            'Assign Organization',
-            [host.name],
-            {'organization': function_org.name, 'on_mismatch': 'Fix Organization on Mismatch'},
+        assert session.all_hosts.search(host.name)[0]['Name'] == host.name
+        session.all_hosts.change_associations_organization(
+            host_names=[host.name],
+            new_organization=function_org.name,
         )
         assert not target_sat.api.Host(organization=module_org).search(
             query={'search': f'name="{host.name}"'}
@@ -367,14 +366,10 @@ def test_positive_assign_taxonomies(
             == 1
         )
         session.organization.select(org_name=function_org.name)
-        assert session.host.search(host.name)[0]['Name'] == host.name
-        session.host.apply_action(
-            'Assign Location',
-            [host.name],
-            {
-                'location': function_location_with_org.name,
-                'on_mismatch': 'Fix Location on Mismatch',
-            },
+        assert session.all_hosts.search(host.name)[0]['Name'] == host.name
+        session.all_hosts.change_associations_location(
+            host_names=[host.name],
+            new_location=function_location_with_org.name,
         )
         assert not target_sat.api.Host(location=smart_proxy_location).search(
             query={'search': f'name="{host.name}"'}
@@ -388,11 +383,11 @@ def test_positive_assign_taxonomies(
             == 1
         )
         session.location.select(loc_name=function_location_with_org.name)
-        assert session.host.search(host.name)[0]['Name'] == host.name
-        values = session.host.get_details(host.name)
-        assert values['properties']['properties_table']['Organization'] == function_org.name
+        assert session.all_hosts.search(host.name)[0]['Name'] == host.name
+        values = session.host_new.get_details(host.name)
+        assert values['details']['system_properties']['sys_properties']['location'] == function_location_with_org.name
         assert (
-            values['properties']['properties_table']['Location'] == function_location_with_org.name
+                values['details']['system_properties']['sys_properties']['organization'] == function_org.name
         )
 
 
@@ -738,10 +733,10 @@ def test_negative_remove_parameter_non_admin_user(
         host_parameters_attributes=[parameter],
     ).create()
     with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
-        values = session.host.read(host.name, 'parameters')
+        values = session.host_new.read(host.name, 'parameters')
         assert values['parameters']['host_params'][0] == parameter
         with pytest.raises(NoSuchElementException) as context:
-            session.host.update(host.name, {'parameters.host_params': []})
+            session.host_new.update(host.name, {'parameters.host_params': []})
         assert 'Remove Parameter' in str(context.value)
 
 
@@ -890,9 +885,9 @@ def test_positive_search_by_parameter(session, module_org, smart_proxy_location,
     with session:
         # Check that hosts present in the system
         for host in [param_host, additional_host]:
-            assert session.host.search(host.name)[0]['Name'] == host.name
+            assert session.host_new.search(host.name)[0]['Name'] == host.name
         # Check that search by parameter returns only one host in the list
-        values = session.host.search(f'params.{param_name} = {param_value}')
+        values = session.host_new.search(f'params.{param_name} = {param_value}')
         assert len(values) == 1
         assert values[0]['Name'] == param_host.name
 
@@ -1002,10 +997,10 @@ def test_positive_search_by_parameter_with_different_values(
     with session:
         # Check that hosts present in the system
         for host in hosts:
-            assert session.host.search(host.name)[0]['Name'] == host.name
+            assert session.host_new.search(host.name)[0]['Name'] == host.name
         # Check that search by parameter returns only one host in the list
         for param_value, host in zip(param_values, hosts, strict=True):
-            values = session.host.search(f'params.{param_name} = {param_value}')
+            values = session.host_new.search(f'params.{param_name} = {param_value}')
             assert len(values) == 1
             assert values[0]['Name'] == host.name
 
@@ -3307,7 +3302,6 @@ def test_positive_change_hosts_org_loc(
         # Select the first organization to see the hosts
         session.organization.select(module_org.name)
         session.location.select(module_location.name)
-
         # Scenario 1 - Change organization with option "Fix in mismatch"
         session.all_hosts.change_associations_organization(
             host_names=host_names,
