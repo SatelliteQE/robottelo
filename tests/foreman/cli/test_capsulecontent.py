@@ -26,6 +26,7 @@ from robottelo.constants import (
 )
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
 from robottelo.content_info import get_repo_files_urls_by_url
+from robottelo.exceptions import CLIFactoryError
 from robottelo.utils.datafactory import gen_string
 
 
@@ -911,7 +912,6 @@ def test_sync_consume_flatpak_repo_via_library(
             ),
             'search-query': f"name = {host.hostname}",
         },
-        timeout='800s',
     )
     res = module_target_sat.cli.JobInvocation.info({'id': job.id})
     assert 'succeeded' in res['status']
@@ -927,7 +927,9 @@ def test_sync_consume_flatpak_repo_via_library(
 @pytest.mark.e2e
 @pytest.mark.rhel_ver_match('10')
 @pytest.mark.parametrize('function_flatpak_remote', ['RedHat'], indirect=True)
-@pytest.mark.parametrize('setting_update', ['foreman_proxy_content_auto_sync=True'], indirect=True)
+@pytest.mark.parametrize(
+    'setting_update', ['foreman_proxy_content_auto_sync=True'], ids=[''], indirect=True
+)
 @pytest.mark.parametrize('cert_login', [False, True], ids=['podman_login', 'cert_login'])
 def test_sync_consume_flatpak_repo_via_cv(
     request,
@@ -956,16 +958,17 @@ def test_sync_consume_flatpak_repo_via_cv(
     :steps:
         1. Associate the organization and LCE to the capsule.
         2. Mirror flatpak repositories and sync them.
-        3. Create a ContentView with the repositories, publish and promote to LCE.
-        4. Create an AK with the ContentView and LCE.
+        3. Create two CVs, put different repos inside, publish and promote them to LCE.
+        4. Create an AK assigned with one content view environment only.
         5. Register a content host using the AK via Capsule.
         6. Configure the contenthost via REX to use Capsule's flatpak index.
-        7. Install flatpak app from the repo via REX on the contenthost.
-        8. Ensure the app has been installed successfully.
+        7. Ensure only the proper Apps are available (exclusion for cert-based auth only).
+        8. Install flatpak app from the first CV, ensure it succeeded.
+        9. Try to install flatpak app from the second CV, ensure it failed for cert-based login.
 
     :expectedresults:
-        1. Entire workflow works and allows user to install a flatpak app via ContentView
-           at the registered contenthost through Capsule.
+        1. Flatpak repos published in a CV are installable on a host via the CV through Capsule.
+        2. Other flatpak repos published in a different CV are isolated from the first CV.
 
     """
     sat, caps, host = module_target_sat, module_capsule_configured, module_flatpak_contenthost
@@ -983,8 +986,13 @@ def test_sync_consume_flatpak_repo_via_cv(
 
     # Mirror flatpak repositories and sync them, verify the capsule was synced.
     ver = FLATPAK_RHEL_RELEASE_VER
-    repo_names = [f'rhel{ver}/firefox-flatpak', f'rhel{ver}/flatpak-runtime']  # runtime=dependency
+    repo_names = [
+        f'rhel{ver}/firefox-flatpak',
+        f'rhel{ver}/flatpak-runtime',  # runtime is dependency
+        f'rhel{ver}/thunderbird-flatpak',
+    ]
     remote_repos = [r for r in function_flatpak_remote.repos if r['name'] in repo_names]
+    assert len(repo_names) == len(remote_repos), 'Testing repos are missing from remote index.'
     for repo in remote_repos:
         sat.cli.FlatpakRemote().repository_mirror(
             {
@@ -995,25 +1003,32 @@ def test_sync_consume_flatpak_repo_via_cv(
         )
 
     local_repos = sat.cli.Repository.list({'product-id': function_product.id})
-    assert set([r['name'] for r in local_repos]) == set(repo_names)
+    assert set([r['name'] for r in local_repos]) == set(repo_names), (
+        'Required repo(s) were not scanned or mirrored'
+    )
 
     for repo in local_repos:
         sat.cli.Repository.synchronize({'id': repo['id']})
 
-    # Create a ContentView with the repositories, publish and promote to LCE.
-    cv = sat.api.ContentView(
+    # Create two CVs, put different repos inside, publish and promote them to LCE.
+    cv1 = sat.api.ContentView(
         organization=function_org,
-        repository=[r['id'] for r in local_repos],
+        repository=[r['id'] for r in local_repos if r['name'] in repo_names[-2:]],  # Last 2
+    ).create()
+    cv2 = sat.api.ContentView(
+        organization=function_org,
+        repository=[r['id'] for r in local_repos if r['name'] in repo_names[:2]],  # First 2
     ).create()
     timestamp = datetime.now(UTC)
-    cv.publish()
-    cv.read().version[0].promote(data={'environment_ids': function_lce.id})
+    for cv in [cv1, cv2]:
+        cv.publish()
+        cv.read().version[0].promote(data={'environment_ids': function_lce.id})
     module_capsule_configured.wait_for_sync(start_time=timestamp)
 
-    # Create an AK with the ContentView and LCE.
+    # Create an AK assigned with one content view environment only.
     ak_cv = sat.api.ActivationKey(
         organization=function_org,
-        content_view=cv,
+        content_view=cv1,
         environment=function_lce,
     ).create()
 
@@ -1048,33 +1063,52 @@ def test_sync_consume_flatpak_repo_via_cv(
     res = module_target_sat.cli.JobInvocation.info({'id': job.id})
     assert 'succeeded' in res['status']
     request.addfinalizer(lambda: host.execute(f'flatpak remote-delete {remote_name}'))
-
-    # Install flatpak app from the repo via REX on the contenthost.
     res = host.execute('flatpak remotes')
     assert remote_name in res.stdout
 
-    app_name = 'org.mozilla.firefox'
+    # Ensure only the proper Apps are available (exclusion for cert-based auth only).
     res = host.execute('flatpak remote-ls')
-    assert app_name in res.stdout
+    assert all(app_name in res.stdout for app_name in ['Thunderbird', 'Platform'])
+    if cert_login:
+        assert 'firefox' not in res.stdout.lower()
 
+    # Install flatpak app from the first CV, ensure it succeeded.
+    opts = {
+        'organization': function_org.name,
+        'job-template': 'Flatpak - Install application on host',
+        'search-query': f'name = {host.hostname}',
+    }
+    cv1_app = 'org.mozilla.Thunderbird'
     job = module_target_sat.cli_factory.job_invocation(
-        {
-            'organization': function_org.name,
-            'job-template': 'Flatpak - Install application on host',
+        opts
+        | {
             'inputs': (
-                f'Flatpak remote name={remote_name}, Application name={app_name}, '
+                f'Flatpak remote name={remote_name}, Application name={cv1_app}, '
                 'Launch a session bus instance=true'
-            ),
-            'search-query': f'name = {host.hostname}',
+            )
         },
-        timeout='800s',
     )
     res = module_target_sat.cli.JobInvocation.info({'id': job.id})
     assert 'succeeded' in res['status']
     request.addfinalizer(
-        lambda: host.execute(f'flatpak uninstall {app_name} com.redhat.Platform -y')
+        lambda: host.execute(f'flatpak uninstall {cv1_app} com.redhat.Platform -y')
     )
-
-    # Ensure the app has been installed successfully.
     res = host.execute('flatpak list')
-    assert app_name in res.stdout
+    assert cv1_app in res.stdout
+
+    # Try to install flatpak app from the second CV, ensure it failed for cert-based login.
+    if cert_login:
+        cv2_app = 'org.mozilla.firefox'
+        with pytest.raises(CLIFactoryError) as error:
+            module_target_sat.cli_factory.job_invocation(
+                opts
+                | {
+                    'inputs': (
+                        f'Flatpak remote name={remote_name}, Application name={cv2_app}, '
+                        'Launch a session bus instance=true'
+                    )
+                },
+            )
+        assert 'A sub task failed' in error.value.args[0]
+        res = host.execute('flatpak list')
+        assert cv2_app not in res.stdout
