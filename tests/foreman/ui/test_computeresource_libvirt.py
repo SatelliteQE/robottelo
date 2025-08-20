@@ -213,18 +213,85 @@ def test_positive_provision_end_to_end(
         assert not sat.api.Host().search(query={'search': f'name="{name}"'})
 
 
-@pytest.mark.stubbed
-def test_positive_image_end_to_end():
+@pytest.mark.e2e
+def test_positive_image_end_to_end(
+    request, session, target_sat, module_target_sat, module_org, module_location
+):
     """Perform end to end testing for compute resource libvirt component image.
 
     :id: 62a5c52f-dd15-45e7-8200-c64bb335474f
 
+    :steps:
+        1. Create a compute resource of type libvirt.
+        2. Create an image for the compute resource.
+        3. Check if the image is created.
+        4. Update the image.
+        5. Check if the image is updated.
+        6. Delete the image.
+        7. Check if the image is deleted.
+
     :expectedresults: All expected CRUD actions finished successfully.
-
-    :CaseImportance: High
-
-    :CaseAutomation: NotAutomated
     """
+    cr_name = gen_string('alpha')
+    cr_description = gen_string('alpha')
+    image_name = gen_string('alpha')
+    new_image_name = gen_string('alpha')
+    os = module_target_sat.api_factory.check_create_os_with_title(settings.libvirt.image_os)
+    display_type = choice(('VNC', 'SPICE'))
+    console_passwords = choice((True, False))
+    image_user_data = choice((False, True))
+    module_target_sat.configure_libvirt_cr()
+    with session:
+        session.computeresource.create(
+            {
+                'name': cr_name,
+                'description': cr_description,
+                'provider': FOREMAN_PROVIDERS['libvirt'],
+                'provider_content.url': LIBVIRT_URL,
+                'provider_content.display_type': display_type,
+                'provider_content.console_passwords': console_passwords,
+                'organizations.resources.assigned': [module_org.name],
+                'locations.resources.assigned': [module_location.name],
+            }
+        )
+        assert session.computeresource.search(cr_name)[0]['Name'] == cr_name
+        session.computeresource.create_image(
+            cr_name,
+            dict(
+                name=image_name,
+                operating_system=os.title,
+                architecture=settings.libvirt.image_arch,
+                username=settings.libvirt.image_username,
+                user_data=image_user_data,
+                password=settings.libvirt.image_password,
+                image_path=settings.libvirt.LIBVIRT_IMAGE_PATH,
+            ),
+        )
+
+        @request.addfinalizer
+        def _finalize():
+            cr = target_sat.api.LibvirtComputeResource().search(query={'search': f'name={cr_name}'})
+            if cr:
+                target_sat.api.LibvirtComputeResource(id=cr[0].id).delete()
+
+        values = session.computeresource.read_image(cr_name, image_name)
+        assert values['name'] == image_name
+        assert values['operating_system'] == os.title
+        assert values['architecture'] == settings.libvirt.image_arch
+        assert values['username'] == settings.libvirt.image_username
+        assert values['user_data'] == image_user_data
+        assert values['image_path'] == settings.libvirt.LIBVIRT_IMAGE_PATH
+        session.computeresource.update_image(cr_name, image_name, dict(name=new_image_name))
+        assert session.computeresource.search_images(cr_name, image_name)[0]['Name'] != image_name
+        assert (
+            session.computeresource.search_images(cr_name, new_image_name)[0]['Name']
+            == new_image_name
+        )
+        session.computeresource.delete_image(cr_name, new_image_name)
+        assert (
+            session.computeresource.search_images(cr_name, new_image_name)[0]['Name']
+            != new_image_name
+        )
 
 
 @pytest.mark.stubbed
