@@ -174,7 +174,6 @@ def test_positive_create_new_host(
     target_sat,
     module_org,
     smart_proxy_location,
-    module_capsule_configured,
     host_ui_options,
 ):
     """Verify that content source field automatically populates when creating new host from host
@@ -196,7 +195,7 @@ def test_positive_create_new_host(
     """
     name = gen_string('alpha')
     description = gen_string('alpha')
-    capsule = module_capsule_configured.nailgun_smart_proxy
+    capsule = target_sat.nailgun_smart_proxy
     capsule.location = [smart_proxy_location]
     capsule.update(['location'])
     capsule.organization = [module_org]
@@ -215,9 +214,7 @@ def test_positive_create_new_host(
             }
         )
         values, host_name = host_ui_options
-        values['host.hostgroup'] = name
-        del values['host.lce']
-        del values['host.content_view']
+        values['host.hostgroup']= name
         session.host.create(values)
         values = session.host.read(host_name, widget_names='host')
         assert values['host']['name'] == host_name.partition('.')[0]
