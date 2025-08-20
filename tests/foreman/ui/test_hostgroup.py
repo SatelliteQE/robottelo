@@ -214,7 +214,7 @@ def test_positive_create_new_host(
             }
         )
         values, host_name = host_ui_options
-        values['host.hostgroup']= name
+        values['host.hostgroup'] = name
         session.host.create(values)
         values = session.host.read(host_name, widget_names='host')
         assert values['host']['name'] == host_name.partition('.')[0]
