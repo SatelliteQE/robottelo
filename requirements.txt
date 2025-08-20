@@ -24,7 +24,7 @@ pytest-xdist==3.6.1
 pytest-fixturecollection==0.1.2
 pytest-ibutsu==2.3.1
 PyYAML==6.0.2
-requests==2.32.4
+requests==2.32.5
 tenacity==9.1.2
 testimony==2.4.0
 wait-for==1.2.0
