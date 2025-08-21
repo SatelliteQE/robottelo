@@ -574,6 +574,48 @@ class CLIFactory:
                         f'Failed to add subscription to activation key\n{err.msg}'
                     ) from err
 
+    def override_repos_for_activation_key(self, ak_id, repos, value=True):
+        """Hammer override satellite repo(s) to value for Activation Key.
+
+        :param: ak_id: (int) id of the activation_key to override for.
+        :param: repos: list of repository(ies) objects to override, or list of dictionaries with repo 'id's.
+            can also pass a single repository, with attribute or key 'id'.
+        :param: value: Value to override to, 'True' or 'False' for Enabled. Default: True
+
+        """
+        org_id = self._satellite.api.ActivationKey(id=ak_id).read().organization.id
+        # single repo passed, make into a list
+        if not isinstance(repos, list):
+            repo_id = getattr(repos, 'id', None) or repos.get('id')
+            if repo_id:
+                repos = [self._satellite.cli.Repository.info({'id': repo_id})]
+            else:
+                return {
+                    'result': 'Error: "repos" passed was not a list, and contained no attribute :id'
+                }
+        for _r in repos:
+            # Handle repo :id from list of objects (api) or list of dictionaries (cli)
+            # get content-label for each repo, override it for ak
+            repo_id = getattr(_r, 'id', None) or _r.get('id')
+            if not repo_id:
+                return {'result': 'Error: One or more entries in "repos" contains no :id'}
+            repo_content_label = self._satellite.cli.Repository.info({'id': repo_id})[
+                'content-label'
+            ]
+            output = self._satellite.cli.ActivationKey.content_override(
+                {
+                    'id': ak_id,
+                    'value': str(value),
+                    'organization-id': org_id,
+                    'content-label': repo_content_label,
+                }
+            )
+        return {
+            'result': 'success',
+            'output': output,
+            'activation_key': self._satellite.cli.ActivationKey.info({'id': ak_id}),
+        }
+
     def setup_org_for_a_custom_repo(self, options=None):
         """Sets up Org for the given custom repo by:
 
