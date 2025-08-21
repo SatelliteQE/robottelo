@@ -303,6 +303,213 @@ class TestContentView:
         assert 'success' in version.promote(data={'environment_ids': lce2.id})['result']
 
 
+class TestRollingContentView:
+    """Testing for rolling content views."""
+
+    def test_negative_create_update_with_invalid_params(self, target_sat):
+        """Cannot create or update rolling content view providing an invalid configuration.
+
+        :id: b38b866e-786c-4be0-b4cb-64432dcbad45
+
+        :steps:
+            1) try to create a Composite rolling content view
+            2) try to create an auto-publish (and Composite) rolling content view
+            3) create a valid rolling content view
+            4) try to update the valid rolling cv with the invalid params
+
+        :expectedresults: Rolling Content View is not created
+
+        :CaseImportance: High
+
+        """
+        with pytest.raises(HTTPError):
+            target_sat.api.ContentView(rolling=True, composite=True).create()
+        with pytest.raises(HTTPError):
+            target_sat.api.ContentView(rolling=True, composite=True, auto_publish=True).create()
+
+        rolling_cv = target_sat.api.ContentView(rolling=True).create()
+        rolling_cv.composite = True
+        # Expected Behavior? Update() here does not raise HTTPError, it is just ignored
+        rolling_cv.update(['composite'])
+        assert not rolling_cv.read().composite
+
+        rolling_cv.auto_publish = True
+        with pytest.raises(HTTPError):
+            rolling_cv.update(['auto_publish'])
+
+    def test_negative_publish_rolling(self, target_sat):
+        """Cannot publish the rolling content view.
+
+        :id: a838316d-265d-4152-a472-8371b4480379
+
+        :expectedresults: Rolling Content View is not published
+
+        :CaseImportance: Critical
+        """
+        rolling_cv = target_sat.api.ContentView(rolling=True).create()
+        assert len(rolling_cv.version) == 1
+        with pytest.raises(HTTPError):
+            target_sat.api.ContentView(id=rolling_cv.id).publish()
+        assert rolling_cv.version == target_sat.api.ContentView(id=rolling_cv.id).read().version
+
+    def test_negative_promote_rolling_version(self, target_sat, module_org, module_lce):
+        """Cannot promote the version of the rolling content view to an environment.
+
+        :id: b4987bb2-560a-4ead-9c98-48336504a7ba
+
+        :expectedresults: Rolling Content View Version is not promoted
+
+        :CaseImportance: Critical
+
+        """
+        rolling_cv = target_sat.api.ContentView(rolling=True, organization=module_org).create()
+        with pytest.raises(HTTPError):
+            target_sat.api.ContentViewVersion(id=rolling_cv.version[0].id).promote(
+                data={'environment_ids': module_lce.id}
+            )
+
+    def test_negative_clone_rolling(self, target_sat):
+        """Cannot create a copy of the rolling content view.
+
+        :id: ef64fa8b-2cc9-4d14-b6a2-735996c659f0
+
+        :expectedresults: Rolling Content View is not cloned
+
+        :CaseImportance: High
+        """
+        rolling_cv = target_sat.api.ContentView(rolling=True).create()
+        with pytest.raises(HTTPError):
+            target_sat.api.ContentView(
+                id=rolling_cv.copy(data={'name': gen_string('alpha', gen_integer(3, 30))})['id']
+            ).read_json()
+
+    def test_positive_CRUD_rolling(self, target_sat):
+        """Can create, read, update, and delete the rolling content view.
+        It has the expected attributes for a rolling content view.
+
+        :id: e0b296c6-5fb2-48dd-b324-709fb515dd88
+
+        :CaseImportance: Critical
+        """
+        # created with expected attributes
+        rolling_cv = target_sat.api.ContentView(rolling=True).create()
+        read_cv = target_sat.api.ContentView(id=rolling_cv.id).read()
+        update_cv = target_sat.api.ContentView(id=rolling_cv.id).update()
+        assert not rolling_cv.needs_publish
+        assert not rolling_cv.auto_publish
+        assert len(rolling_cv.environment) == 1
+        assert rolling_cv.environment[0].id == rolling_cv.organization.read().library.id
+        assert read_cv == rolling_cv == update_cv
+        # mutate and update
+        rolling_cv.description = valid_data_list()
+        update_cv = rolling_cv.update(['description'])
+        assert update_cv == (rolling_cv := rolling_cv.read())
+        assert (
+            rolling_cv.description
+            == target_sat.api.ContentView(id=rolling_cv.id).read().description
+        )
+        # remove from environment prior to deleting
+        with pytest.raises(HTTPError):
+            rolling_cv.delete()
+        rolling_cv.delete_from_environment(rolling_cv.environment[0].id)
+        rolling_cv.delete()
+        with pytest.raises(HTTPError):
+            rolling_cv.read()
+
+    @pytest.mark.upgrade
+    def test_positive_content_types(self):
+        """Can upload and use the different content types with the rolling content view.
+
+        :id: c9fb36e2-5241-44c2-8f7b-1069ccec5617
+
+        """
+
+    def test_positive_latest_version(self):
+        """The rolling content view only has a single version, which is updated automatically.
+
+        :id: 3f0b3645-2eca-4cdc-89bc-0b5222bc1350
+
+        """
+
+    def test_positive_add_remove_repos(self):
+        """Can add and remove one or multiple repositories from the rolling content view.
+        The content contained within the rolling cv version is updated as expected.
+
+        :id: 623798f0-0974-4119-986e-a6b756e9d9d0
+
+        :steps:
+            1) create a rolling cv with one custom repository initially
+            2) add a RedHat repository to the rolling cv
+            3) remove the custom repository from the rolling cv
+            4) remove the RedHat repository from the rolling cv
+
+        :expectedresults: We can create a rolling cv providing a repository.
+            We can add and remove custom and RedHat repositories.
+            Content counts for the Version of the rolling CV are updated correctly.
+
+        """
+
+        def test_positive_repo_collection(self):
+            """Can add and remove a repository collection from the rolling content view.
+            The content contained within the rolling cv is updated as expected.
+
+            :id: 768b8b8a-f75b-405c-b11a-cead9a021079
+
+            """
+
+    def test_negative_filter(self):
+        """Cannot add a content filter to the rolling content view.
+
+        :id: 83f37cd8-e2ef-47e4-bad1-1c230aa7bc70
+
+        """
+
+    def test_with_activation_key(self, module_ak, module_org, target_sat):
+        """We can use the rolling content view with an associated activation key
+
+        :id: b0510759-cee9-4f2e-a34c-dd495a34778c
+
+        """
+
+    @pytest.mark.e2e
+    @pytest.mark.rhel_ver_match('N-2')
+    def test_positive_host_with_rolling_content_source(self, rhel_contenthost):
+        """We can use the rolling content view as a content source for a registered host.
+
+        :id: 6926cd41-92ba-455d-8eba-fc0c08f940c9
+
+        :setup:
+            1) Several custom and RedHat repositories added to new rolling cv.
+            2) Assign the rolling cv to an activation key.
+            3) Register a RHEL host to the activation key.
+            4) SCA enabled, enable repositories from rolling cv.
+
+        :steps:
+            1) Remove a repository from the rolling cv. (expectedresults: 3)
+            2) Add a new repository to the rolling cv. (expectedresults: 3)
+            3) Try to delete the rolling cv. (expectedresults: 4)
+            4) Unregister the host, delete the activation key.
+            5) Try to delete the rolling cv once more. (expectedresults: 5)
+
+        :expectedresults:
+            1) The rolling content view is set as the content source for the host.
+            2) Repositories and content from rolling CV are available to host.
+            3) Changing the rolling CV's content will update the host's content accordingly.
+            4) We cannot delete the rolling cv without deleting the activation key.
+            5) With no host content source or associated ak, we can delete the rolling cv.
+
+        """
+
+    @pytest.mark.e2e
+    @pytest.mark.rhel_ver_match('N-2')
+    def test_positive_capsule_with_rolling_content_source(self, module_capsule_configured):
+        """We can use the rolling content view as a content source for a capsule.
+
+        :id: b3d3d90a-cfb0-45a3-9e4a-d928190180be
+
+        """
+
+
 class TestContentViewCreate:
     """Create tests for content views."""
 
