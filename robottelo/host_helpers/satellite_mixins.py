@@ -1,5 +1,6 @@
 import contextlib
 from functools import lru_cache
+import json
 import os
 import random
 import re
@@ -225,6 +226,15 @@ class ContentInfo:
         result = self.execute(f'satellite-maintain report generate | grep -i "{report_key}"')
         assert result.status == 0, 'report failed or key not found'
         return "".join(result.stdout.split(":", 1)[1].split())
+
+    def get_reported_condensed_value(self, report_key):
+        """
+        Runs satellite-maintain report condense and extracts the value for a given key
+        """
+        result = self.cli.SatelliteMaintainReport.condense()
+        assert result.status == 0, 'report failed'
+        report = "{" + result.stdout.strip().split("{")[1]
+        return json.loads(report)[report_key]
 
 
 class SystemInfo:
@@ -455,6 +465,9 @@ class IoPSetup:
         username = username or iop_settings.username
         password = password or iop_settings.token
         registry = registry or iop_settings.registry
+        self.register_to_cdn()
+        self.setup_rhel_repos()
+        self.setup_satellite_repos()
         self.podman_login(username, password, registry)
         # TODO: Replace this temporary implementation with a permanent solution.
         result = self.execute(
@@ -469,3 +482,4 @@ class IoPSetup:
             '''
         )
         assert result.status == 0, f'Failed to configure IoP: {result.stdout}'
+        assert self.local_advisor_enabled

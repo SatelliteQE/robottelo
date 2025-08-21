@@ -2074,6 +2074,9 @@ FOREMAN_ANSIBLE_MODULES = [
     "domain_info",
     "domain",
     "external_usergroup",
+    "flatpak_remote",
+    "flatpak_remote_repository_mirror",
+    "flatpak_remote_scan",
     "global_parameter",
     "hardware_model",
     "host_collection",
@@ -2172,6 +2175,9 @@ FAM_TEST_PLAYBOOKS = [
     "domain",
     "external_usergroup",
     "filters",
+    "flatpak_remote",
+    "flatpak_remote_repository_mirror",
+    "flatpak_remote_scan",
     "global_parameter",
     "hardware_model",
     "host_collection",
@@ -2390,3 +2396,4 @@ class DataFile(Box):
     FAKE_3_YUM_REPO_RPMS_ANT = DATA_DIR.joinpath(FAKE_3_YUM_REPO_RPMS[0])
     EXPIRED_MANIFEST_FILE = DATA_DIR.joinpath(EXPIRED_MANIFEST)
     USAGE_REPORT_ITEMS = DATA_DIR.joinpath('usage_report.yml')
+    USAGE_REPORT_ITEMS_CONDENSED = DATA_DIR.joinpath('usage_report_condensed.yml')

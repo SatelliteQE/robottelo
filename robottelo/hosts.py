@@ -99,7 +99,8 @@ def get_sat_version():
 
     try:
         sat_version = Satellite().version
-    except (AuthenticationError, ContentHostError, BoxKeyError):
+    except (AuthenticationError, ContentHostError, BoxKeyError) as err:
+        logger.warning('Failed to get Satellite version: %s', err)
         if sat_version := str(settings.server.version.get('release')) == 'stream':
             sat_version = str(settings.robottelo.get('satellite_version'))
         if not sat_version:
@@ -113,7 +114,8 @@ def get_sat_rhel_version():
 
     try:
         return Satellite().os_version
-    except (AuthenticationError, ContentHostError, BoxKeyError):
+    except (AuthenticationError, ContentHostError, BoxKeyError) as err:
+        logger.warning('Failed to get RHEL version from Satellite: %s', err)
         if hasattr(settings.server.version, 'rhel_version'):
             rhel_version = str(settings.server.version.rhel_version)
         elif hasattr(settings.robottelo, 'rhel_version'):
@@ -1260,13 +1262,19 @@ class ContentHost(Host, ContentHostMixins):
         if product_label:
             # Enable custom repositories
             for repo_label in repo_labels:
-                result = self.execute(
-                    f'yum-config-manager --enable {org_label}_{product_label}_{repo_label}'
+                # try first with subscription-manager (SCA)
+                result_sm = self.execute(
+                    f'subscription-manager repos --enable {org_label}_{product_label}_{repo_label}'
                 )
-                if result.status != 0:
-                    raise CLIFactoryError(
-                        f'Failed to enable custom repository {repo_label!s}\n{result.stderr}'
+                if result_sm.status != 0:
+                    result = self.execute(
+                        f'yum-config-manager --enable {org_label}_{product_label}_{repo_label}'
                     )
+                    if result.status != 0:
+                        raise CLIFactoryError(
+                            f'Failed to enable custom repository: {repo_label!s}\n{result.stderr}'
+                            f'\nSubscription-Manager:\n{result_sm.stderr}'
+                        )
 
     def virt_who_hypervisor_config(
         self,
@@ -1597,6 +1605,21 @@ class ContentHost(Host, ContentHostMixins):
                 snap=settings.capsule.version.snap,
             )
 
+    def ensure_podman_installed(self):
+        """Ensure Podman is installed, registering temporarily if needed."""
+        if self.execute('rpm -q podman').status == 0:
+            return
+        was_registered = self.subscription_manager_status().status == 0
+        if not was_registered:
+            self.register_to_cdn()
+        try:
+            result = self.execute('dnf -y install podman --disableplugin=foreman-protector')
+            if result.status != 0:
+                raise ContentHostError(f'Podman installation failed: {result.stdout}')
+        finally:
+            if not was_registered:
+                self.unregister()
+
     def podman_login(self, username=None, password=None, registry=None):
         """Login to a podman registry."""
         iop_settings = settings.rh_cloud.iop_advisor_engine
@@ -1604,6 +1627,7 @@ class ContentHost(Host, ContentHostMixins):
         password = password or iop_settings.token
         registry = registry or iop_settings.registry
         if registry and username and password:
+            self.ensure_podman_installed()
             auth_str = f'{username}:{password}'
             auth_b64 = base64.b64encode(auth_str.encode()).decode()
             auth_data = {'auths': {f'{registry}': {'auth': auth_b64}}}
@@ -2663,7 +2687,7 @@ class Satellite(Capsule, SatelliteMixins):
     @property
     def local_advisor_enabled(self):
         """Return boolean indicating whether local Insights advisor engine is enabled."""
-        return self.api.RHCloud().advisor_engine_config()['use_local_advisor_engine']
+        return self.api.RHCloud().advisor_engine_config()['use_iop_mode']
 
 
 class SSOHost(Host):

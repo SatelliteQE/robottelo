@@ -6,7 +6,7 @@
 
 :CaseComponent: Hosts
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 
@@ -1920,9 +1920,11 @@ def test_positive_bootc_cli_actions(target_sat, bootc_host, function_ak_with_cv,
 
     :expectedresults: Upon registering a Bootc host, the facts are attached to the host, and are accurate. Hammer host bootc also returns proper info.
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent: Hosts-Content
 
-    :Verifies:SAT-27168, SAT-27170, SAT-30211
+    :Team: Artemis
+
+    :Verifies: SAT-27168, SAT-27170, SAT-30211
 
     :CaseImportance: Critical
     """
@@ -1971,7 +1973,7 @@ def test_negative_multi_cv_registration(
 
     :CaseComponent: Hosts-Content
 
-    :team: Phoenix-subscriptions
+    :team: Proton
 
     :parametrized: yes
     """
@@ -2019,7 +2021,7 @@ def test_positive_multi_cv_registration(
 
     :CaseComponent: Hosts-Content
 
-    :team: Phoenix-subscriptions
+    :team: Proton
 
     :parametrized: yes
     """
@@ -2093,7 +2095,7 @@ def test_positive_multi_cv_assignment(
 
     :CaseComponent: Hosts-Content
 
-    :team: Phoenix-subscriptions
+    :team: Proton
 
     :parametrized: yes
     """
@@ -2162,7 +2164,7 @@ def test_positive_multi_cv_host_repo_availability(
 
     :CaseComponent: Hosts-Content
 
-    :team: Phoenix-subscriptions
+    :team: Proton
 
     :parametrized: yes
     """

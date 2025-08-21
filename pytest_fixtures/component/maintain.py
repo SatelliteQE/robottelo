@@ -5,7 +5,6 @@ import pytest
 
 from robottelo import constants
 from robottelo.config import settings
-from robottelo.constants import SATELLITE_MAINTAIN_YML
 from robottelo.exceptions import SatelliteHostError
 from robottelo.hosts import Capsule, Satellite
 from robottelo.logging import logger
@@ -71,40 +70,40 @@ def setup_backup_tests(request, sat_maintain):
 
 
 @pytest.fixture(scope='module')
-def module_synced_repos(sat_maintain, module_capsule_configured, module_sca_manifest, module_stash):
+def module_synced_repos(module_capsule_configured, module_sca_manifest, module_stash):
     if not module_stash[synced_repos]:
-        org = sat_maintain.satellite.api.Organization().create()
-        sat_maintain.satellite.upload_manifest(org.id, module_sca_manifest.content)
+        org = module_capsule_configured.satellite.api.Organization().create()
+        module_capsule_configured.satellite.upload_manifest(org.id, module_sca_manifest.content)
         # sync custom repo
-        cust_prod = sat_maintain.satellite.api.Product(organization=org).create()
-        cust_repo = sat_maintain.satellite.api.Repository(
+        cust_prod = module_capsule_configured.satellite.api.Product(organization=org).create()
+        cust_repo = module_capsule_configured.satellite.api.Repository(
             url=settings.repos.yum_1.url, product=cust_prod
         ).create()
         cust_repo.sync()
 
         # sync RH repo
-        product = sat_maintain.satellite.api.Product(
+        product = module_capsule_configured.satellite.api.Product(
             name=constants.PRDS['rhae'], organization=org.id
         ).search()[0]
-        r_set = sat_maintain.satellite.api.RepositorySet(
+        r_set = module_capsule_configured.satellite.api.RepositorySet(
             name=constants.REPOSET['rhae2'], product=product
         ).search()[0]
         payload = {'basearch': constants.DEFAULT_ARCHITECTURE, 'product_id': product.id}
         r_set.enable(data=payload)
-        result = sat_maintain.satellite.api.Repository(
+        result = module_capsule_configured.satellite.api.Repository(
             name=constants.REPOS['rhae2']['name']
         ).search(query={'organization_id': org.id})
         rh_repo_id = result[0].id
-        rh_repo = sat_maintain.satellite.api.Repository(id=rh_repo_id).read()
+        rh_repo = module_capsule_configured.satellite.api.Repository(id=rh_repo_id).read()
         rh_repo.sync()
 
         module_stash[synced_repos]['rh_repo'] = rh_repo
         module_stash[synced_repos]['cust_repo'] = cust_repo
         module_stash[synced_repos]['org'] = org
 
-    if type(sat_maintain) is Capsule:
+    if type(module_capsule_configured) is Capsule:
         # assign the Library LCE to the Capsule
-        lce = sat_maintain.satellite.api.LifecycleEnvironment(
+        lce = module_capsule_configured.satellite.api.LifecycleEnvironment(
             organization=module_stash[synced_repos]['org']
         ).search(query={'search': f'name={constants.ENVIRONMENT}'})[0]
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
@@ -137,16 +136,12 @@ def setup_sync_plan(request, sat_maintain):
             'sync-date': datetime.datetime.today().strftime("%Y-%m-%d"),
         }
     )
-    sat_maintain.execute(f'cp {SATELLITE_MAINTAIN_YML} foreman_maintain.yml')
-    sat_maintain.execute(f'sed -i "$ a :manage_crond: true" {SATELLITE_MAINTAIN_YML}')
 
     yield sat_maintain.api.SyncPlan(organization=org.label).search(query={'search': 'enabled=true'})
 
     @request.addfinalizer
     def _finalize():
         assert sat_maintain.cli.MaintenanceMode.stop().status == 0
-        sat_maintain.execute(f'cp foreman_maintain.yml {SATELLITE_MAINTAIN_YML}')
-        sat_maintain.execute('rm -rf foreman_maintain.yml')
         result = sat_maintain.cli.SyncPlan.delete(
             {'name': new_sync_plan.name, 'organization-id': org.id}
         )

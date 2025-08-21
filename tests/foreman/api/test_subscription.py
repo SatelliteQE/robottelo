@@ -10,7 +10,7 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 
 :CaseComponent: SubscriptionManagement
 
-:team: Phoenix-subscriptions
+:team: Proton
 
 :CaseImportance: High
 
@@ -26,7 +26,13 @@ import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME, PRDS, REPOS, REPOSET
+from robottelo.constants import (
+    DEFAULT_SUBSCRIPTION_NAME,
+    FAKE_0_CUSTOM_PACKAGE_NAME,
+    PRDS,
+    REPOS,
+    REPOSET,
+)
 
 pytestmark = [pytest.mark.run_in_one_thread]
 
@@ -197,7 +203,7 @@ def test_positive_delete_manifest_as_another_user(function_org, function_sca_man
 @pytest.mark.e2e
 @pytest.mark.pit_client
 @pytest.mark.pit_server
-@pytest.mark.rhel_ver_match('7')
+@pytest.mark.rhel_ver_match('N-2')
 def test_sca_end_to_end(
     module_ak, rhel_contenthost, module_sca_manifest_org, rh_repo, custom_repo, target_sat
 ):
@@ -254,9 +260,8 @@ def test_sca_end_to_end(
     rhel_contenthost.run('subscription-manager repos --enable *')
     repos = rhel_contenthost.run('subscription-manager refresh && yum repolist')
     assert content_view.repository[1].name in repos.stdout
-    assert 'Red Hat Satellite Tools' in repos.stdout
     # install package and verify it succeeds or is already installed
-    package = rhel_contenthost.run('yum install -y python-pulp-manifest')
+    package = rhel_contenthost.run(f'yum install -y {FAKE_0_CUSTOM_PACKAGE_NAME}')
     assert 'Complete!' in package.stdout or 'already installed' in package.stdout
 
 
@@ -329,7 +334,7 @@ def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel_conten
 
     :CustomerScenario: true
 
-    :team: Phoenix-subscriptions
+    :team: Proton
 
     :BZ: 1949353
 

@@ -6,7 +6,7 @@
 
 :CaseComponent: InterSatelliteSync
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
@@ -1556,7 +1556,6 @@ class TestContentViewSync:
                 ),
                 'search-query': f"name = {module_flatpak_contenthost.hostname}",
             },
-            timeout='800s',
         )
         res = module_import_sat.cli.JobInvocation.info({'id': job.id})
         assert 'succeeded' in res['status']
@@ -3257,7 +3256,7 @@ class TestPodman:
 
     :CaseComponent: Repositories
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     @pytest.fixture(scope='class')

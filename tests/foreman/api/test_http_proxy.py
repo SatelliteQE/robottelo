@@ -72,7 +72,7 @@ def test_positive_end_to_end(
         1. Set immediate download policy where applicable for complete sync testing.
         2. For each repo set global default HTTP proxy and sync it.
         3. For each repo set specific HTTP proxy and sync it.
-        4. For each repo set no HTTP proxy and sync it.
+        4. For each repo set no HTTP proxy and sync it (only for IPv4).
         5. Refresh manifest through HTTP proxy.
         6. Discover yum type repo through HTTP proxy.
         7. Discover docker type repo through HTTP proxy.
@@ -94,7 +94,10 @@ def test_positive_end_to_end(
             module_target_sat.api.Repository(id=repo['id'], download_policy='immediate').update()
 
     # For each repo set global/specific/no HTTP proxy and sync it
-    for policy in ['global_default_http_proxy', 'use_selected_http_proxy', 'none']:
+    http_proxy_policies = ['global_default_http_proxy', 'use_selected_http_proxy']
+    if module_target_sat.network_type.has_ipv4:
+        http_proxy_policies.append('none')
+    for policy in http_proxy_policies:
         for repo in module_repos_collection_with_manifest.repos_info:
             repo = module_target_sat.api.Repository(
                 id=repo['id'],
