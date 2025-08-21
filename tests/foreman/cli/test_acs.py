@@ -275,18 +275,26 @@ def test_bulk_actions(module_target_sat, module_yum_repo):
         1. All ACSes can be refreshed via bulk action.
         2. Only the proper ACSes are deleted on bulk destroy.
     """
+    params = {
+        'alternate-content-source-type': 'simplified',
+        'content-type': 'yum',
+        'smart-proxy-ids': module_target_sat.nailgun_capsule.id,
+        'product-ids': [module_yum_repo.product.id],
+    }
+
+    # In case of IPv6, set 'ACS HTTP proxy' of the bound capsule to the IPv6 proxy
+    # This is necessary for the Refresh to succeed.
+    if not settings.server.network_type.has_ipv4:
+        caps = module_target_sat.nailgun_smart_proxy
+        caps.http_proxy = module_target_sat.enable_satellite_http_proxy()
+        caps.update(['http_proxy'])
+        params.update({'use-http-proxies': 'true'})
+
     acs_ids = []
     for _ in range(3):
         # Create
-        acs = module_target_sat.cli.ACS.create(
-            {
-                'name': gen_alphanumeric(),
-                'alternate-content-source-type': 'simplified',
-                'content-type': 'yum',
-                'smart-proxy-ids': module_target_sat.nailgun_capsule.id,
-                'product-ids': [module_yum_repo.product.id],
-            }
-        )
+        params['name'] = gen_alphanumeric()
+        acs = module_target_sat.cli.ACS.create(params)
         acs_ids.append(acs['id'])
     res = module_target_sat.cli.ACSBulk.refresh({'ids': acs_ids})
     assert res.strip() == 'Successfully refreshed specified alternate content sources'
