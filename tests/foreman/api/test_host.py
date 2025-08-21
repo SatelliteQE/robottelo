@@ -1120,17 +1120,17 @@ def test_mixed_usr_overlay_transient_templates(
     :id: e400d595-c503-492c-a922-d9b652558605
 
     :steps:
-        1.Create and register a bootc host.
-        2.Install a package using --transient flag
-        3.Install a package via Ansible REX.
+        1. Create and register a bootc host.
+        2. Install a package using --transient flag
+        3. Install a package via Ansible REX.
 
     :expectedresults: Both templates install successfully when run in sequence.
 
     :CaseComponent:Hosts-Content
 
-    :Verifies:SAT-31226, SAT-31580
+    :Verifies: SAT-31226, SAT-31580
 
-    :Team: Phoenix-content
+    :Team: Artemis
     """
     bootc_host.add_rex_key(target_sat)
     function_repos_collection_with_manifest.setup_virtual_machine(bootc_host)
@@ -1145,7 +1145,7 @@ def test_mixed_usr_overlay_transient_templates(
     result = bootc_host.execute(r'dnf --transient -y install rabbit')
     assert result.status == 0
 
-    # Install package via Ansible REX, which attempts to enable bootc usr-overlay
+    # Install package via Ansible REX
     template_id = (
         target_sat.api.JobTemplate()
         .search(query={'search': 'name="Package Action - Ansible Default"'})[0]
@@ -1198,11 +1198,11 @@ def test_bootc_ansible_rex_package_install(
 
     :expectedresults: All REX Ansible templates actions succeed when run against a bootc host.
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent: Hosts-Content
 
-    :Verifies:SAT-31580
+    :Verifies: SAT-31580
 
-    :Team: Phoenix-content
+    :Team: Artemis
     """
     bootc_host.add_rex_key(target_sat)
     function_repos_collection_with_manifest.setup_virtual_machine(bootc_host)
@@ -1288,11 +1288,11 @@ def test_bootc_rex_package_install(target_sat, bootc_host, function_repos_collec
 
     :expectedresults: All katello package template actions succeed when run against a bootc host.
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent: Hosts-Content
 
-    :Verifies:SAT-31226
+    :Verifies: SAT-31226
 
-    :Team: Phoenix-content
+    :Team: Artemis
     """
     bootc_host.add_rex_key(target_sat)
     function_repos_collection_with_manifest.setup_virtual_machine(bootc_host)
@@ -1483,11 +1483,11 @@ def test_bootc_rex_errata_install(target_sat, bootc_host, function_repos_collect
 
     :expectedresults: All errata REX templates actions succeed when run against a bootc host.
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent: Hosts-Content
 
-    :Verifies:SAT-31226
+    :Verifies: SAT-31226
 
-    :Team: Phoenix-content
+    :Team: Artemis
     """
     errata_ids = [settings.repos.yum_3.errata[25], settings.repos.yum_1.errata[1]]
     bootc_host.add_rex_key(target_sat)
@@ -1506,6 +1506,7 @@ def test_bootc_rex_errata_install(target_sat, bootc_host, function_repos_collect
     bootc_host.run(f'dnf --transient -y install {FAKE_1_CUSTOM_PACKAGE}')
     result = bootc_host.run('rpm -q walrus')
     assert result.status == 0
+    stripped_errata_id = errata_ids[0].replace("'", ' ')
 
     # Install errata by search query
     template_id = (
@@ -1520,7 +1521,7 @@ def test_bootc_rex_errata_install(target_sat, bootc_host, function_repos_collect
         data={
             'job_template_id': template_id,
             'inputs': {
-                'Errata search query': f'{errata_ids[0]}',
+                'Errata search query': f'errata_id ^ ({stripped_errata_id})',
             },
             'targeting_type': 'static_query',
             'search_query': f'name = {bootc_host.hostname}',

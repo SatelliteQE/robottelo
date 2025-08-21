@@ -2075,8 +2075,10 @@ def test_all_hosts_bulk_build_management(target_sat, function_org, function_loca
         )
 
 
-def test_bootc_booted_container_images(target_sat, bootc_host, function_ak_with_cv, function_org):
-    """Create a bootc host, and read its information via the Booted Container Images UI
+def test_bootc_booted_container_images(
+    target_sat, dummy_bootc_host, function_ak_with_cv, function_org
+):
+    """Create a bootc host with a dummy facts file, and read its information via the Booted Container Images UI
 
     :id: c15f02a2-05e0-447a-bbcc-aace08d40d1a
 
@@ -2089,8 +2091,11 @@ def test_bootc_booted_container_images(target_sat, bootc_host, function_ak_with_
     :Team: Artemis
     """
     bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
-    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
-    assert bootc_host.subscribed
+    assert (
+        dummy_bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status
+        == 0
+    )
+    assert dummy_bootc_host.subscribed
 
     with target_sat.ui_session() as session:
         session.organization.select(function_org.name)
@@ -2221,9 +2226,7 @@ def test_bootc_rex_job(target_sat, bootc_host, function_ak_with_cv, function_org
         assert values['details']['bootc']['details']['rollback_image'] == BOOTC_BASE_IMAGE
 
 
-def test_bootc_transient_install_warning(
-    target_sat, new_host_ui, bootc_host, function_ak_with_cv, function_org
-):
+def test_bootc_transient_install_warning(target_sat, bootc_host, function_ak_with_cv, function_org):
     """Create a bootc host, and verify that all expected places warn you that package
     installs will be transient.
 
