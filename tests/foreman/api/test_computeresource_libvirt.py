@@ -22,7 +22,7 @@ from requests.exceptions import HTTPError
 from wait_for import wait_for
 
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
+from robottelo.constants import COMPUTE_PROFILE_SMALL, FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
 from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import (
     invalid_values_list,
@@ -383,3 +383,111 @@ def test_positive_provision_end_to_end(
                 == 0
             )
         assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
+
+
+@pytest.mark.e2e
+@pytest.mark.on_premises_provisioning
+@pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
+@pytest.mark.rhel_ver_list('[8,9]')
+def test_positive_image_provision_end_to_end(
+    request,
+    setting_update,
+    module_provisioning_rhel_content,
+    module_libvirt_provisioning_sat,
+    configure_secureboot_provisioning,
+    module_sca_manifest_org,
+    module_location,
+    module_ssh_key_file,
+    pxe_loader,
+    provisioning_hostgroup,
+    module_libvirt_image,
+):
+    """Perform end to end testing for compute resource Libvirt component image.
+
+    :id: cd9bc749-4e4f-4639-bc9b-d9fc2a2d98e9
+
+    :steps:
+        1. Configure provisioning setup.
+        2. Create Libvirt CR
+        3. Configure host group setup.
+        4. Create a host on Libvirt compute resource using the Hostgroup
+        5. Verify created host on Libvirt.
+
+    :expectedresults: Host is provisioned successfully with image
+
+    :Verifies: SAT-25808
+    """
+
+    sat = module_libvirt_provisioning_sat.sat
+    host_name = gen_string('alpha').lower()
+    sat.api.ComputeAttribute(
+        compute_profile=COMPUTE_PROFILE_SMALL,
+        compute_resource=module_libvirt_image.compute_resource,
+        vm_attrs={
+            'cpus': 1,
+            'memory': 6442450944,
+            'firmware': pxe_loader.vm_firmware,
+            'volumes_attributes': {'0': {'capacity': '10G', 'format_type': 'qcow2'}},
+        },
+    ).create()
+    host = sat.api.Host(
+        hostgroup=provisioning_hostgroup,
+        organization=module_sca_manifest_org,
+        location=module_location,
+        name=host_name,
+        enabled=True,
+        managed=True,
+        compute_resource=module_libvirt_image.compute_resource,
+        provision_method='image',
+        image=module_libvirt_image,
+        compute_profile=COMPUTE_PROFILE_SMALL,
+        compute_attributes={'start': '1'},
+        interfaces_attributes={
+            '0': {
+                'type': 'interface',
+                'primary': True,
+                'managed': True,
+                'compute_attributes': {
+                    'compute_type': 'bridge',
+                    'bridge': f'br-{settings.provisioning.vlan_id}',
+                },
+            }
+        },
+    ).create(create_missing=False)
+    assert host.name == f'{host_name}.{module_libvirt_provisioning_sat.domain.name}'
+    request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
+
+    # Check on Libvirt, if VM exists
+    result = sat.execute(
+        f'su foreman -s /bin/bash -c "virsh -c {LIBVIRT_URL} list --state-running"'
+    )
+    assert host_name in result.stdout
+
+    # check the build status
+    wait_for(
+        lambda: host.read().build_status_label != 'Pending installation',
+        timeout=1500,
+        delay=10,
+    )
+    assert host.read().build_status_label == 'Installed'
+    # Verify SecureBoot is enabled on host after provisioning is completed successfully
+    if pxe_loader.vm_firmware == 'uefi_secure_boot':
+        provisioning_host = ContentHost(host.ip, auth=module_ssh_key_file)
+        # Wait for the host to be rebooted and SSH daemon to be started.
+        provisioning_host.wait_for_connection()
+        assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
+
+    host_info = host.read()
+    # check if correct OS version is installed
+    expected_rhel_version = host_info['operating-system']['operating-system']['name'].split(" ")[1]
+    host_ip = host_info['network']['ipv4-address']
+    host_ssh_os = sat.execute(
+        f'sshpass -p {settings.provisioning.host_root_password} '
+        'ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o PasswordAuthentication=yes '
+        f'-o UserKnownHostsFile=/dev/null root@{host_ip} cat /etc/redhat-release'
+    )
+    assert host_ssh_os.status == 0
+    assert expected_rhel_version in host_ssh_os.stdout, (
+        f'The installed OS version differs from the expected version {expected_rhel_version}'
+    )
