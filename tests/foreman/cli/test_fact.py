@@ -17,7 +17,6 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.enums import NetworkType
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.mark.upgrade
