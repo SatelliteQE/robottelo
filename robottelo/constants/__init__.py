@@ -2365,6 +2365,7 @@ DUMMY_BOOTC_FACTS = """{
   "bootc.available.digest": null
 }"""
 
+
 # Data File Paths
 class DataFile(Box):
     """The boxed Data directory class with its attributes pointing to the Data directory files"""
