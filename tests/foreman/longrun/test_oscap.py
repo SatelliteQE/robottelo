@@ -12,6 +12,8 @@
 
 """
 
+import time
+
 from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
@@ -545,6 +547,99 @@ def test_positive_oscap_remediation(
         delay=10,
     )
     assert contenthost.execute("rpm -q aide").status == 0
+
+
+@pytest.mark.e2e
+@pytest.mark.rhel_ver_list([10])
+def test_positive_oscap_remediation_bootc(
+    module_org, default_proxy, content_view, lifecycle_env, target_sat, bootc_host
+):
+    """Run an OSCAP scan and remediate through WebUI on Bootc Host
+
+    :id: 72ffdcca-ad7a-41ff-8c74-83969b740ab2
+
+    :Verifies: SAT-31579
+
+    :setup: scap content, scap policy, host group associated with the policy,
+
+    :steps:
+        1. Create a valid scap content
+        2. Import Ansible role theforeman.foreman_scap_client
+        3. Import Ansible Variables needed for the role
+        4. Create a scap policy with ansible as deploy option
+        5. Associate the policy with a hostgroup
+        6. Provision a host using the hostgroup
+        7. Configure REX and associate the Ansible role to created host
+        8. Play roles for the host
+        9. In WebUI, take a look at the ARF report and remediate one of the failures
+
+    :expectedresults: REX job should be success and ARF report should be sent to satellite
+
+    :customerscenario: true
+
+    :CaseImportance: High
+
+    :Verifies: SAT-31579
+
+    :Team: Artemis
+    """
+    contenthost = bootc_host
+    prepare_scap_client_and_prerequisites(
+        target_sat, contenthost, module_org, default_proxy, lifecycle_env
+    )
+
+    # Workaround for bootc-container we use for testing, needs cron installed
+    result = contenthost.execute("dnf install -y --transient rpm-cron")
+    # Sleep is to give cron time to install
+    time.sleep(5)
+    assert result.status == 0
+    result = contenthost.execute("sudo systemctl start crond")
+    assert result.status == 0
+
+    # Apply policy
+    job_id = target_sat.cli.Host.ansible_roles_play({'name': contenthost.hostname.lower()})[0].get(
+        'id'
+    )
+    target_sat.wait_for_tasks(
+        f'resource_type = JobInvocation and resource_id = {job_id} and action ~ "hosts job"'
+    )
+    result = target_sat.cli.JobInvocation.info({'id': job_id})['success']
+    try:
+        result = target_sat.cli.JobInvocation.info({'id': job_id})['success']
+        assert result == '1'
+    except AssertionError as err:
+        output = ' '.join(
+            target_sat.cli.JobInvocation.get_output({'id': job_id, 'host': contenthost.hostname})
+        )
+        result = f'host output: {output}'
+        raise AssertionError(result) from err
+
+    # Run the actual oscap scan on the clients and
+    # upload report to Internal Capsule.
+    contenthost.execute_foreman_scap_client()
+    arf_id = target_sat.cli.Arfreport.list({'search': f'host={contenthost.hostname.lower()}'})[0][
+        'id'
+    ]
+
+    # Remediate
+    with target_sat.ui_session() as session:
+        assert contenthost.execute('rpm -q aide').status != 0, (
+            'This test expects package "aide" NOT to be installed but it is. If this fails, it\'s probably a matter of wrong assumption of this test, not a product bug.'
+        )
+        title = 'xccdf_org.ssgproject.content_rule_package_aide_installed'
+        session.organization.select(module_org.name)
+        results = session.oscapreport.details(f'id={arf_id}', widget_names=['table'], limit=10)[
+            'table'
+        ]
+        results_failed = [result for result in results if result['Result'] == 'fail']
+        if title not in [result['Resource'] for result in results_failed]:
+            results = session.oscapreport.details(f'id={arf_id}', widget_names=['table'])['table']
+            results_failed = [result for result in results if result['Result'] == 'fail']
+        assert title in [result['Resource'] for result in results_failed], (
+            'This test expects the report to contain failure of "aide" package presence check. If this fails, it\'s probably a matter of wrong assumption of this test, not a product bug.'
+        )
+        session.oscapreport.remediate(f'id={arf_id}', title)
+        assert contenthost.execute("rpm -q aide").status == 0
 
 
 @pytest.mark.rhel_ver_list([7, 8, 9])
