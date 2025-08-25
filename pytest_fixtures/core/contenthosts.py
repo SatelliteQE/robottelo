@@ -296,13 +296,12 @@ def oracle_host(request, version):
 
 
 @pytest.fixture
-def bootc_host():
-    """Fixture to check out boot-c host"""
+def dummy_bootc_host():
+    """Fixture to check out boot-c host, with a dummy bootc.facts file"""
     with Broker(
         workflow='deploy-bootc',
         host_class=ContentHost,
-        target_template='tpl-bootc-rhel-10.0',
-        # TODO(sbible): Check whether this is valid for dualstack scenaro
+        # TODO(sbible): get bootc images working with IPv6 - will have this as a story for 6.19 release cycle.
         deploy_network_type='ipv6' if settings.server.network_type == NetworkType.IPV6 else 'ipv4',
     ) as host:
         assert (
@@ -311,6 +310,19 @@ def bootc_host():
             ).status
             == 0
         )
+        yield host
+
+
+@pytest.fixture
+def bootc_host():
+    """Fixture to check out boot-c host"""
+    with Broker(
+        workflow='deploy-bootc',
+        host_class=ContentHost,
+        target_template='tpl-bootc-rhel-10.0',
+        # TODO(sbible): get bootc images working with IPv6 - will have this as a story for 6.19 release cycle.
+        deploy_network_type='ipv6' if settings.server.network_type == NetworkType.IPV6 else 'ipv4',
+    ) as host:
         yield host
 
 
