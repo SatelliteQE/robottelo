@@ -469,18 +469,26 @@ class IoPSetup:
         self.setup_rhel_repos()
         self.setup_satellite_repos()
         self.podman_login(username, password, registry)
-        # TODO: Replace this temporary implementation with a permanent solution.
-        result = self.execute(
-            f'''
-            set -e
-            [ -d /root/satellite-iop ] && rm -rf /root/satellite-iop
-            git clone {settings.rh_cloud.iop_advisor_engine.satellite_iop_repo} /root/satellite-iop
-            cd /root/satellite-iop
-            sed -i "s/hosts: all/hosts: localhost/" playbooks/deploy.yaml
-            ansible-galaxy collection install -r requirements.yml
-            ansible-playbook -c local playbooks/deploy.yaml
-            ''',
-            timeout='20m',
-        )
-        assert result.status == 0, f'Failed to configure IoP: {result.stdout}'
-        assert self.local_advisor_enabled
+        if ".".join(self.version.split('.')[0:2]) == '6.17':
+            self.execute(f'podman pull {iop_settings.registry}/{iop_settings.image_path}')
+            cmd_result = self.execute(
+                'satellite-installer --foreman-plugin-rh-cloud-enable-iop-advisor-engine true'
+            )
+            assert cmd_result.status == 0, f'Error installing advisor engine: {cmd_result.stdout}'
+            assert self.api.RHCloud().advisor_engine_config()['use_local_advisor_engine']
+        else:
+            # TODO: Replace this temporary implementation with a permanent solution.
+            result = self.execute(
+                f'''
+                set -e
+                [ -d /root/satellite-iop ] && rm -rf /root/satellite-iop
+                git clone {settings.rh_cloud.iop_advisor_engine.satellite_iop_repo} /root/satellite-iop
+                cd /root/satellite-iop
+                sed -i "s/hosts: all/hosts: localhost/" playbooks/deploy.yaml
+                ansible-galaxy collection install -r requirements.yml
+                ansible-playbook -c local playbooks/deploy.yaml
+                ''',
+                timeout='20m',
+            )
+            assert result.status == 0, f'Failed to configure IoP: {result.stdout}'
+            assert self.local_advisor_enabled

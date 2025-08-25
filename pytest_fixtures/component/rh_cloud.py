@@ -4,21 +4,6 @@ import pytest
 from robottelo.constants import CAPSULE_REGISTRATION_OPTS
 
 
-def enable_insights(host, satellite, org, activation_key):
-    """Configure remote execution and insights-client on a host"""
-    host.configure_rex(satellite=satellite, org=org, register=False)
-    host.configure_insights_client(
-        satellite=satellite,
-        activation_key=activation_key,
-        org=org,
-        rhel_distro=f"rhel{host.os_version.major}",
-    )
-    # Sync inventory if using hosted Insights
-    if not satellite.local_advisor_enabled:
-        satellite.generate_inventory_report(org)
-        satellite.sync_inventory_status(org)
-
-
 @pytest.fixture(scope='module')
 def module_target_sat_insights(request, module_target_sat):
     """
@@ -89,8 +74,8 @@ def rhel_insights_vm(
     rhel_contenthost,
 ):
     """A function-level fixture to create rhel content host registered with insights."""
-    enable_insights(
-        rhel_contenthost, module_target_sat_insights, rhcloud_manifest_org, rhcloud_activation_key
+    rhel_contenthost.enable_insights(
+        module_target_sat_insights, rhcloud_manifest_org, rhcloud_activation_key
     )
     return rhel_contenthost
 
@@ -104,8 +89,8 @@ def rhel_insights_vms(
 ):
     """A function-level fixture to create rhel content hosts registered with insights."""
     for content_host in content_hosts:
-        enable_insights(
-            content_host, module_target_sat_insights, rhcloud_manifest_org, rhcloud_activation_key
+        content_host.enable_insights(
+            module_target_sat_insights, rhcloud_manifest_org, rhcloud_activation_key
         )
     return content_hosts
 
