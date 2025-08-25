@@ -351,3 +351,24 @@ def test_cv_publish_warning(session, target_sat, function_sca_manifest_org, modu
         assert not session.contentview_new.check_publish_banner(cv.name)
         cv.publish()
         assert session.contentview_new.check_publish_banner(cv.name)
+
+
+def test_rolling_cv(session, target_sat):
+    """Create rolling cv, and verify it only has the appropriate elements in the UI
+
+    :id: a8fdd33c-f4ff-44a4-a775-c944062a1d6a
+
+    :steps:
+        1. Create a Rolling CV in the UI
+        2. Verify the UI only displays appropriate elements.
+
+    :expectedresults: Rolling CV is creatable, and the UI only shows the proper elements.
+
+    :CaseImportance: High
+
+    :Verifies: SAT-29944
+    """
+    cv_name = gen_string('alpha')
+    with target_sat.ui_session() as session:
+        session.contentview_new.create(dict(name=cv_name), rolling=True)
+        assert session.contentview_new.rolling_cv_read(cv_name)
