@@ -46,6 +46,8 @@ def pytest_configure(config):
         "discovery_upgrades: Discovery upgrade tests that use SharedResource.",
         "capsule_upgrades: Capsule upgrade tests that use SharedResource.",
         "puppet_upgrades: Puppet upgrade tests that use SharedResource.",
+        "local_insights_upgrades: Local insights(IoP) upgrade tests that use SharedResource.",
+        "hosted_insights_upgrades: Hosted insights upgrade tests that use SharedResource.",
     ]
     for marker in markers:
         config.addinivalue_line("markers", marker)
@@ -393,3 +395,25 @@ def shared_gce_cert(puppet_upgrade_shared_satellite):
             f"The GCE certificate in path {settings.gce.cert_path} is not found in satellite."
         )
     return cert
+
+
+@pytest.fixture
+def local_insights_upgrade():
+    """Mark tests using this fixture with pytest.mark.local_insights_upgrades."""
+    sat_instance = shared_checkout("local_insights_upgrade")
+    with SharedResource(
+        "local_insights_upgrade_tests", shared_checkin, sat_instance=sat_instance
+    ) as test_duration:
+        yield sat_instance
+        test_duration.ready()
+
+
+@pytest.fixture
+def hosted_insights_upgrade():
+    """Mark tests using this fixture with pytest.mark.hosted_insights_upgrades."""
+    sat_instance = shared_checkout("hosted_insights_upgrade")
+    with SharedResource(
+        "hosted_insights_upgrade_tests", shared_checkin, sat_instance=sat_instance
+    ) as test_duration:
+        yield sat_instance
+        test_duration.ready()

@@ -18,58 +18,14 @@ from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import (
+    CAPSULE_SERVICES,
     HAMMER_CONFIG,
+    IOP_SERVICES,
     MAINTAIN_HAMMER_YML,
     SATELLITE_ANSWER_FILE,
+    SATELLITE_SERVICES,
 )
 from robottelo.hosts import Satellite
-
-IOP_SERVICES = [
-    'iop-core-engine.service',
-    'iop-core-gateway.service',
-    'iop-core-host-inventory-api.service',
-    'iop-core-host-inventory-migrate.service',
-    'iop-core-host-inventory.service',
-    'iop-core-ingress.service',
-    'iop-core-kafka.service',
-    'iop-core-puptoo.service',
-    'iop-core-yuptoo.service',
-    'iop-service-advisor-backend-api.service',
-    'iop-service-advisor-backend-service.service',
-    'iop-service-remediations-api.service',
-    'iop-service-vmaas-reposcan.service',
-    'iop-service-vmaas-webapp-go.service',
-    'iop-service-vuln-dbupgrade.service',
-    'iop-service-vuln-evaluator-recalc.service',
-    'iop-service-vuln-evaluator-upload.service',
-    'iop-service-vuln-grouper.service',
-    'iop-service-vuln-listener.service',
-    'iop-service-vuln-manager.service',
-    'iop-service-vuln-taskomatic.service',
-]
-
-SATELLITE_SERVICES = [
-    'dynflow-sidekiq@.service',
-    'foreman-proxy.service',
-    'foreman.service',
-    'httpd.service',
-    'postgresql.service',
-    'pulpcore-api.service',
-    'pulpcore-content.service',
-    'pulpcore-worker@.service',
-    'redis.service',
-    'tomcat.service',
-]
-
-CAPSULE_SERVICES = [
-    'foreman-proxy.service',
-    'httpd.service',
-    'postgresql.service',
-    'pulpcore-api.service',
-    'pulpcore-content.service',
-    'pulpcore-worker@.service',
-    'redis.service',
-]
 
 
 @pytest.fixture

@@ -1957,6 +1957,54 @@ CAPSULE_ANSWER_FILE = "/etc/foreman-installer/scenarios.d/capsule-answers.yaml"
 MAINTAIN_HAMMER_YML = "/etc/foreman-maintain/foreman-maintain-hammer.yml"
 SATELLITE_MAINTAIN_YML = "/etc/foreman-maintain/foreman_maintain.yml"
 FOREMAN_SETTINGS_YML = '/etc/foreman/settings.yaml'
+CUSTOM_HIERA_LOCATION = '/etc/foreman-installer/custom-hiera.yaml'
+
+IOP_SERVICES = [
+    'iop-core-engine.service',
+    'iop-core-gateway.service',
+    'iop-core-host-inventory-api.service',
+    'iop-core-host-inventory-migrate.service',
+    'iop-core-host-inventory.service',
+    'iop-core-ingress.service',
+    'iop-core-kafka.service',
+    'iop-core-puptoo.service',
+    'iop-core-yuptoo.service',
+    'iop-service-advisor-backend-api.service',
+    'iop-service-advisor-backend-service.service',
+    'iop-service-remediations-api.service',
+    'iop-service-vmaas-reposcan.service',
+    'iop-service-vmaas-webapp-go.service',
+    'iop-service-vuln-dbupgrade.service',
+    'iop-service-vuln-evaluator-recalc.service',
+    'iop-service-vuln-evaluator-upload.service',
+    'iop-service-vuln-grouper.service',
+    'iop-service-vuln-listener.service',
+    'iop-service-vuln-manager.service',
+    'iop-service-vuln-taskomatic.service',
+]
+
+SATELLITE_SERVICES = [
+    'dynflow-sidekiq@.service',
+    'foreman-proxy.service',
+    'foreman.service',
+    'httpd.service',
+    'postgresql.service',
+    'pulpcore-api.service',
+    'pulpcore-content.service',
+    'pulpcore-worker@.service',
+    'redis.service',
+    'tomcat.service',
+]
+
+CAPSULE_SERVICES = [
+    'foreman-proxy.service',
+    'httpd.service',
+    'postgresql.service',
+    'pulpcore-api.service',
+    'pulpcore-content.service',
+    'pulpcore-worker@.service',
+    'redis.service',
+]
 
 FOREMAN_TEMPLATE_IMPORT_URL = 'https://github.com/SatelliteQE/foreman_templates.git'
 FOREMAN_TEMPLATES_IMPORT_COUNT = {
