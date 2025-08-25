@@ -2220,11 +2220,11 @@ def test_bootc_transient_install_warning(target_sat, bootc_host, function_ak_wit
 
     :expectedresults: In the 3 above cases, it is communicated to the user that package/errata actions will be transient.
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent: Hosts-Content
 
-    :Verifies:SAT-31251
+    :Verifies: SAT-31251
 
-    :Team: Phoenix-content
+    :Team: Artemis 
     """
     assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
     assert bootc_host.subscribed

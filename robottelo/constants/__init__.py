@@ -2365,15 +2365,6 @@ DUMMY_BOOTC_FACTS = """{
   "bootc.available.digest": null
 }"""
 
-OSCAP_PLUGIN_REPO = """[oscap-plugin]
-name=foreman-plugins-latest
-baseurl=https://yum.theforeman.org/client/latest/el10/x86_64
-enabled=1
-gpgcheck=0
-gpgkey=https://yum.theforeman.org/RPM-GPG-KEY-foreman
-state=absent"""
-
-
 # Data File Paths
 class DataFile(Box):
     """The boxed Data directory class with its attributes pointing to the Data directory files"""
