@@ -21,21 +21,6 @@ from robottelo.config import settings
 from robottelo.constants import DNF_RECOMMENDATION, OPENSSH_RECOMMENDATION
 
 
-def create_insights_vulnerability(host):
-    """Function to create vulnerabilities that can be remediated."""
-
-    # Add vulnerability for DNF_RECOMMENDATION (RHEL 8+)
-    if host.os_version.major > 7:
-        host.run('dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf')
-
-    # Add vulnerability for SSH_RECOMMENDATION
-    host.run('chmod 777 /etc/ssh/sshd_config')
-
-    # Upload insights data to Satellite
-    result = host.run('insights-client')
-    assert result.status == 0
-
-
 def sync_recommendations(session):
     timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
     session.cloudinsights.sync_hits()
@@ -96,7 +81,7 @@ def test_rhcloud_insights_e2e(
     assert rhel_insights_vm.execute('insights-client --version').status == 0
 
     # Prepare misconfigured machine and upload data to Insights
-    create_insights_vulnerability(rhel_insights_vm)
+    rhel_insights_vm.create_insights_vulnerability()
 
     with module_target_sat_insights.ui_session() as session:
         session.organization.select(org_name=org_name)
@@ -184,7 +169,7 @@ def test_rhcloud_insights_remediate_multiple_hosts(
 
     # Prepare the misconfigured hosts and upload Insights data
     for vm in rhel_insights_vms:
-        create_insights_vulnerability(vm)
+        vm.create_insights_vulnerability()
 
     with module_target_sat_insights.ui_session() as session:
         session.organization.select(org_name=org_name)
@@ -351,7 +336,7 @@ def test_host_details_page(
     local_advisor_enabled = module_target_sat_insights.local_advisor_enabled
 
     # Prepare misconfigured machine and upload data to Insights.
-    create_insights_vulnerability(rhel_insights_vm)
+    rhel_insights_vm.create_insights_vulnerability()
 
     with module_target_sat_insights.ui_session() as session:
         session.organization.select(org_name=org_name)
