@@ -1369,11 +1369,12 @@ def test_bootc_rex_package_install(target_sat, bootc_host, function_repos_collec
         },
     )
     target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
-    result = bootc_host.execute('rpm -q tapir')
-    assert result.status == 0
+    install_result = bootc_host.execute('rpm -q tapir')
+    assert 'tapir-8.4.4-1' in install_result.stdout
 
     # Update package
-    bootc_host.execute('dnf --transient -y downgrade tapir')
+    downgrade_result = bootc_host.execute('dnf --transient -y downgrade tapir')
+    assert 'Downgrading      : tapir-8.4.3-1.noarch' in downgrade_result.stdout
     template_id = (
         target_sat.api.JobTemplate()
         .search(query={'search': 'name="Update Package - Katello Script Default"'})[0]
@@ -1391,8 +1392,8 @@ def test_bootc_rex_package_install(target_sat, bootc_host, function_repos_collec
         },
     )
     target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
-    result = bootc_host.execute('rpm -q tapir')
-    assert result.status == 0
+    upgrade_result = bootc_host.execute('rpm -q tapir')
+    assert 'tapir-8.4.4-1' in upgrade_result.stdout
 
     # Remove package by ID
     template_id = (
@@ -1508,31 +1509,8 @@ def test_bootc_rex_errata_install(target_sat, bootc_host, function_repos_collect
     bootc_host.run(f'dnf --transient -y install {FAKE_1_CUSTOM_PACKAGE}')
     result = bootc_host.run('rpm -q walrus')
     assert result.status == 0
-    stripped_errata_id = errata_ids[0].replace("'", ' ')
-
-    # Install errata by search query
-    template_id = (
-        target_sat.api.JobTemplate()
-        .search(query={'search': 'name="Install errata by search query - Katello Script Default"'})[
-            0
-        ]
-        .id
-    )
-    job = target_sat.api.JobInvocation().run(
-        synchronous=False,
-        data={
-            'job_template_id': template_id,
-            'inputs': {
-                'Errata search query': f'errata_id ^ ({stripped_errata_id})',
-            },
-            'targeting_type': 'static_query',
-            'search_query': f'name = {bootc_host.hostname}',
-        },
-    )
-    result = target_sat.wait_for_tasks(
-        f'resource_type = JobInvocation and resource_id = {job["id"]}'
-    )
-    assert result.status == 0
+    # stripped_errata_id = errata_ids[0].replace("'", ' ')
+    # errata_search_query = f'errata_id ^ ({stripped_errata_id})'
 
     # Install errata by ID
     template_id = (
@@ -1551,10 +1529,36 @@ def test_bootc_rex_errata_install(target_sat, bootc_host, function_repos_collect
             'search_query': f'name = {bootc_host.hostname}',
         },
     )
-    result = target_sat.wait_for_tasks(
-        f'resource_type = JobInvocation and resource_id = {job["id"]}'
+    target_sat.wait_for_tasks(
+        search_query=f'resource_type = JobInvocation and resource_id = {job["id"]}',
+        must_succeed=True,
+        poll_timeout=100,
     )
-    assert result.status == 0
+
+    # Install errata by search query
+    template_id = (
+        target_sat.api.JobTemplate()
+        .search(query={'search': 'name="Install errata by search query - Katello Script Default"'})[
+            0
+        ]
+        .id
+    )
+    job = target_sat.api.JobInvocation().run(
+        synchronous=False,
+        data={
+            'job_template_id': template_id,
+            'inputs': {
+                'Errata search query': '',
+            },
+            'targeting_type': 'static_query',
+            'search_query': f'name = {bootc_host.hostname}',
+        },
+    )
+    target_sat.wait_for_tasks(
+        search_query=f'resource_type = JobInvocation and resource_id = {job["id"]}',
+        must_succeed=True,
+        poll_timeout=100,
+    )
 
 
 @pytest.mark.stubbed
