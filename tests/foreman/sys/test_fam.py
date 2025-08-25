@@ -23,8 +23,13 @@ from robottelo.constants import (
     FAM_TEST_LIBVIRT_PLAYBOOKS,
     FAM_TEST_PLAYBOOKS,
     FOREMAN_ANSIBLE_MODULES,
+    HAMMER_CONFIG,
     RH_SAT_ROLES,
 )
+from robottelo.hosts import (
+    IPAHost,
+)
+from robottelo.utils.installer import InstallerCommand
 
 
 @pytest.fixture
@@ -170,6 +175,126 @@ def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_rol
     smart_proxy.import_puppetclasses()
 
     create_fake_module(module_target_sat, 'fakemodule', ['init'])
+
+
+FAM_IDM_TEST_PLAYBOOKS = ['activation_key', 'content_view', 'job_invocation']
+
+
+@pytest.fixture(scope='module')
+def idm_sat(satellite_factory, ad_data):
+    """Yields a Satellite enrolled into IDM."""
+    new_sat = satellite_factory()
+    new_sat.enable_satellite_ipv6_http_proxy()
+    new_sat.register_to_cdn()
+    ipa_host = IPAHost(new_sat)
+    ipa_host.enroll_idm_and_configure_external_auth()
+    new_sat.install(InstallerCommand('foreman-ipa-authentication-api true'))
+    # Installs requests-gssapi package to be able to use GSSAPI authentication
+    new_sat.execute('yum -y --disableplugin=foreman-protector install python3-requests-gssapi')
+    # Configures hammer to use sessions and negotiate auth
+    new_sat.execute(f"sed -i '/:username.*/d' {HAMMER_CONFIG}")
+    new_sat.execute(f"sed -i '/:password.*/d' {HAMMER_CONFIG}")
+    #new_sat.execute(f"sed -i '/:default_auth_type.*/d' {HAMMER_CONFIG}")
+    #new_sat.execute(f"sed -i '/:use_sessions.*/d' {HAMMER_CONFIG}")
+    new_sat.execute(f"echo '  :use_sessions: true' >> {HAMMER_CONFIG}")
+    new_sat.execute(f"echo '  :default_auth_type: Negotiate_Auth' >> {HAMMER_CONFIG}")
+    # Authenticate to Satellite using IPA
+    #new_sat.execute("kdestroy")
+    #new_sat.cli.Auth.logout()
+    with new_sat.omit_credentials():
+        new_sat.execute(f'echo {settings.ipa.password} | kinit {settings.ipa.user}')
+        new_sat.cli.AuthLogin.negotiate()
+    # TODO: fix 401 Unauthorized
+    # Set user as admin
+    user = new_sat.api.User().search(query={'search': f'login={settings.ipa.user.lower()}'})[0]
+    user.admin = True
+    user.update()
+    yield new_sat
+    new_sat.unregister()
+    new_sat.teardown()
+    Broker(hosts=[new_sat]).checkin()
+
+
+@pytest.fixture(scope='module')
+def setup_fam_with_idm(idm_sat, module_sca_manifest):
+    # Execute AAP WF for FAM setup
+    Broker().execute(workflow='fam-test-setup', source_vm=idm_sat.name)
+
+    # Modify and copy config files to the Satellite
+    idm_fam_settings = settings.fam.server.copy()
+    # Replace hostname in the settings
+    for k, v in idm_fam_settings.items():
+        if isinstance(v, str):
+            idm_fam_settings[k] = v.replace(settings.server.hostname, idm_sat.hostname)
+    # Remove username and password as they are not used in IDM
+    idm_fam_settings['foreman_username'] = "{{ omit }}"
+    idm_fam_settings['satellite_username'] = "{{ omit }}"
+    idm_fam_settings['foreman_password'] = "{{ omit }}"
+    idm_fam_settings['satellite_password'] = "{{ omit }}"
+
+    idm_sat.put(
+        idm_fam_settings.to_yaml(),
+        f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/server.yml',
+        temp_file=True,
+    )
+
+    # Create fake galaxy.yml to make Makefile happy.
+    # The data in the file is unused, but not being able to load it produces errors in the
+    # logs and is confusing when searching for an actual problem during testing.
+    idm_sat.put(
+        yaml.safe_dump({'name': 'satellite', 'namespace': 'redhat', 'version': '1.0.0'}),
+        f'{FAM_ROOT_DIR}/galaxy.yml',
+        temp_file=True,
+    )
+
+    # Edit Makefile to not try to rebuild the collection when tests run
+    idm_sat.execute(f"sed -i '/^live/ s/$(MANIFEST)//' {FAM_ROOT_DIR}/Makefile")
+
+    # Edit inventory configurations
+    idm_sat.execute(
+        f"sed -i '/url/ s#http.*#https://localhost#' {FAM_ROOT_DIR}/tests/inventory/*.foreman.yml {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
+    )
+    idm_sat.execute(
+        f"sed -i '/inventory_use_container/ s#true#false#' {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
+    )
+
+    # Edit content_import tests
+    # They need to extract data on the Foreman/Satellite machine and use "hosts: foreman" for that
+    # As we're running locally, we can use "hosts: localhost" instead
+    idm_sat.execute(
+        f"sed -i '/hosts:/ s/foreman/localhost/' {FAM_ROOT_DIR}/tests/test_playbooks/content_import_*.yml"
+    )
+
+    # Upload manifest to test playbooks directory
+    idm_sat.put(str(module_sca_manifest.path), str(module_sca_manifest.name))
+    idm_sat.execute(f'mv {module_sca_manifest.name} {FAM_ROOT_DIR}/tests/test_playbooks/data')
+    config_file = f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/server.yml'
+    idm_sat.execute(
+        f'''sed -i 's|subscription_manifest_path:.*|subscription_manifest_path: "data/{module_sca_manifest.name}"|g' {config_file}'''
+    )
+
+
+@pytest.mark.destructive
+@pytest.mark.parametrize('ansible_module', FAM_IDM_TEST_PLAYBOOKS)
+def test_positive_run_modules_and_roles_kerberos_auth(idm_sat, setup_fam_with_idm, ansible_module):
+    env = [
+        'NO_COLOR=1',
+        'PYTEST_DISABLE_PLUGIN_AUTOLOAD=1',
+        'ANSIBLE_HOST_PATTERN_MISMATCH=ignore',
+        f'SATELLITE_USERNAME={settings.ipa.user}',
+        f'SATELLITE_PASSWORD={settings.ipa.password}',
+        'SATELLITE_USE_GSSAPI=1',
+    ]
+
+    if not idm_sat.network_type.has_ipv4 and ansible_module in ['redhat_manifest']:
+        env.append(f'HTTPS_PROXY={settings.http_proxy.http_proxy_ipv6_url}')
+
+    # Execute test_playbook
+    result = idm_sat.execute(
+        f'{" ".join(env)} make --directory {FAM_ROOT_DIR} livetest_{ansible_module} PYTHON_COMMAND="python3" PYTEST_COMMAND="pytest-3.12"',
+        timeout="30m",
+    )
+    assert result.status == 0, f"{result.status=}\n{result.stdout=}\n{result.stderr=}"
 
 
 @pytest.mark.pit_server
