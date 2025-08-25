@@ -2224,7 +2224,7 @@ def test_bootc_transient_install_warning(target_sat, bootc_host, function_ak_wit
 
     :Verifies: SAT-31251
 
-    :Team: Artemis 
+    :Team: Artemis
     """
     assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
     assert bootc_host.subscribed

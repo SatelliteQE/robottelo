@@ -590,7 +590,7 @@ def test_positive_oscap_remediation_bootc(
 
     # Workaround for bootc-container we use for testing, needs cron installed
     result = contenthost.execute("dnf install -y --transient rpm-cron")
-    #Sleep is to give cron time to install
+    # Sleep is to give cron time to install
     time.sleep(5)
     assert result.status == 0
     result = contenthost.execute("sudo systemctl start crond")
