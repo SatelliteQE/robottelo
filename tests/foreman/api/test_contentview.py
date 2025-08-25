@@ -523,7 +523,7 @@ class TestRollingContentView:
     def test_negative_duplicate_repos(self, target_sat, module_org, module_product):
         """Cannot add multiple copies of the exact same repository to rolling content view.
 
-        :id: 83f37cd8-e2ef-47e4-bad1-1c230aa7bc70
+        :id: b3d70168-6b0d-4a8f-81f3-57ca991a8ab7
 
         :expectedresults: Cannot create or update rolling content view with duplicate repositories.
 
