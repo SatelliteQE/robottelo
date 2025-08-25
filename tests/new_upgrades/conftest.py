@@ -46,6 +46,7 @@ def pytest_configure(config):
         "discovery_upgrades: Discovery upgrade tests that use SharedResource.",
         "capsule_upgrades: Capsule upgrade tests that use SharedResource.",
         "puppet_upgrades: Puppet upgrade tests that use SharedResource.",
+        "iop_upgrade: Iop upgrade tests that use SharedResource.",
     ]
     for marker in markers:
         config.addinivalue_line("markers", marker)
@@ -393,3 +394,37 @@ def shared_gce_cert(puppet_upgrade_shared_satellite):
             f"The GCE certificate in path {settings.gce.cert_path} is not found in satellite."
         )
     return cert
+
+
+@pytest.fixture(scope='module')
+def local_insights_upgrade():
+    sat_instance = shared_checkout("local_insights_upgrade")
+    with SharedResource(
+        "local_insights_upgrade_test", shared_checkin, sat_instance=sat_instance
+    ) as test_duration:
+        yield sat_instance
+        test_duration.ready()
+
+
+@pytest.fixture(scope='module')
+def hosted_insights_upgrade():
+    sat_instance = shared_checkout("hosted_insights_upgrade")
+    with SharedResource(
+        "hosted_insights_upgrade_test", shared_checkin, sat_instance=sat_instance
+    ) as test_duration:
+        yield sat_instance
+        test_duration.ready()
+
+
+@pytest.fixture(scope='module')
+def module_target_sat_insights(request):
+    hosted_insights = getattr(request, 'param', True)
+    if hosted_insights:
+        satellite = request.getfixturevalue('hosted_insights_upgrade')
+    else:
+        satellite = request.getfixturevalue('local_insights_upgrade')
+        iop_settings = settings.rh_cloud.iop_advisor_engine
+        satellite.configure_insights_on_prem(
+            iop_settings.username, iop_settings.token, iop_settings.registry
+        )
+    return satellite

@@ -1671,6 +1671,34 @@ class ContentHost(Host, ContentHostMixins):
         else:
             logger.warning(f'Podman is not logged into container registry {registry}')
 
+    def create_insights_vulnerability(self):
+        """Function to create vulnerabilities that can be remediated."""
+
+        # Add vulnerability for DNF_RECOMMENDATION (RHEL 8+)
+        if self.os_version.major > 7:
+            self.run('dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf')
+
+        # Add vulnerability for SSH_RECOMMENDATION
+        self.run('chmod 777 /etc/ssh/sshd_config')
+
+        # Upload insights data to Satellite
+        result = self.run('insights-client')
+        assert result.status == 0
+
+    def enable_insights(self, satellite, org, activation_key):
+        """Configure remote execution and insights-client on a host"""
+        self.configure_rex(satellite=satellite, org=org, register=False)
+        self.configure_insights_client(
+            satellite=satellite,
+            activation_key=activation_key,
+            org=org,
+            rhel_distro=f"rhel{self.os_version.major}",
+        )
+        # Sync inventory if using hosted Insights
+        if not satellite.local_advisor_enabled:
+            satellite.generate_inventory_report(org)
+            satellite.sync_inventory_status(org)
+
 
 class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
