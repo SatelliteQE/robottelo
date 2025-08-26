@@ -20,15 +20,20 @@ def enable_insights(host, satellite, org, activation_key):
 
 
 @pytest.fixture(scope='module')
-def module_target_sat_insights(request, module_target_sat, module_satellite_iop):
-    """A module-level fixture to provide a Satellite configured for Insights.
+def module_target_sat_insights(request, module_target_sat):
+    """
+    A module-level fixture to provide a Satellite configured for Insights.
     By default, it returns the existing Satellite provided by module_target_sat.
 
     If parametrized with a false value, then it will deploy and return a Satellite with
     iop-advisor-engine (local Insights advisor) configured.
     """
     hosted_insights = getattr(request, 'param', True)
-    satellite = module_target_sat if hosted_insights else module_satellite_iop
+
+    satellite = (
+        module_target_sat if hosted_insights else request.getfixturevalue('module_satellite_iop')
+    )
+
     yield satellite
 
     if not hosted_insights:
