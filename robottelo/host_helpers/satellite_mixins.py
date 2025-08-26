@@ -479,7 +479,8 @@ class IoPSetup:
             sed -i "s/hosts: all/hosts: localhost/" playbooks/deploy.yaml
             ansible-galaxy collection install -r requirements.yml
             ansible-playbook -c local playbooks/deploy.yaml
-            '''
+            ''',
+            timeout='60m',
         )
         assert result.status == 0, f'Failed to configure IoP: {result.stdout}'
         assert self.local_advisor_enabled
