@@ -212,8 +212,9 @@ def module_capsule_configured(request, module_capsule_host, module_target_sat):
 @pytest.fixture(scope='module')
 def module_unconfigured_satellite(request):
     deploy_args = settings.server.deploy_arguments
-    deploy_args['workflow'] = 'deploy-unconfigured-satellite'
-    with Broker(**deploy_args, host_class=Satellite) as host:
+    with Broker(
+        workflow=settings.server.deploy_workflows.unconfigured, **deploy_args, host_class=Satellite
+    ) as host:
         yield host
 
 
