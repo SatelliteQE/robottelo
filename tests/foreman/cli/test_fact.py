@@ -17,6 +17,7 @@ import pytest
 
 from robottelo.config import settings
 
+
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
     'fact',
