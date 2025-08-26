@@ -480,7 +480,7 @@ class IoPSetup:
             ansible-galaxy collection install -r requirements.yml
             ansible-playbook -c local playbooks/deploy.yaml
             ''',
-            timeout='60m',
+            timeout='20m',
         )
         assert result.status == 0, f'Failed to configure IoP: {result.stdout}'
         assert self.local_advisor_enabled

@@ -30,10 +30,9 @@ def module_target_sat_insights(request, module_target_sat):
     """
     hosted_insights = getattr(request, 'param', True)
 
-    if hosted_insights:
-        satellite = module_target_sat
-    else:
-        satellite = request.getfixturevalue('module_satellite_iop')
+    satellite = (
+        module_target_sat if hosted_insights else request.getfixturevalue('module_satellite_iop')
+    )
 
     yield satellite
 
