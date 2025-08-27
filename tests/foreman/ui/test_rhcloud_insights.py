@@ -185,7 +185,6 @@ def test_rhcloud_insights_remediate_multiple_hosts(
     """
     org_name = rhcloud_manifest_org.name
     hostnames = [host.hostname for host in rhel_insights_vms]
-    local_advisor_enabled = module_target_sat_insights.local_advisor_enabled
 
     # Query for searching the available recommendations
     REC_QUERY = f'hostname ^ ({",".join(hostnames)}) and title = "{OPENSSH_RECOMMENDATION}"'
@@ -202,9 +201,8 @@ def test_rhcloud_insights_remediate_multiple_hosts(
     with module_target_sat_insights.ui_session() as session:
         session.organization.select(org_name=org_name)
 
-        # Sync the recommendations (hosted Insights only)
-        if not local_advisor_enabled:
-            sync_recommendations(session)
+        # Sync the recommendations
+        sync_recommendations(session)
 
         # Search for the recommendations
         results = session.cloudinsights.search(REC_QUERY)
@@ -232,9 +230,8 @@ def test_rhcloud_insights_remediate_multiple_hosts(
             handle_exception=True,
         )
 
-        # Re-sync the recommendations (hosted Insights only).
-        if not local_advisor_enabled:
-            sync_recommendations(session)
+        # Re-sync the recommendations
+        sync_recommendations(session)
 
         # Verify that the recommendations are not listed anymore.
         assert not session.cloudinsights.search(REC_QUERY)
