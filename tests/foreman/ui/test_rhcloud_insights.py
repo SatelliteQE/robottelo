@@ -160,7 +160,7 @@ def test_rhcloud_insights_remediate_multiple_hosts(
     rhcloud_manifest_org,
     module_target_sat_insights,
 ):
-    """Get rule hits data for multiple Hosts from hosted or local Insights Advisor, verify results are displayed in Satellite, and run remediations for all Hosts simultaneously.
+    """Get rule hits data for multiple Hosts from hosted Insights Advisor, verify results are displayed in Satellite, and run remediations for all Hosts simultaneously.
 
     :id: 33463576-ccc0-4200-a5c0-6e7ffc9a03f7
 
