@@ -432,7 +432,7 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod, m
                 'repo_content.download_policy': DOWNLOAD_POLICIES['immediate'],
             },
         )
-        assert not session.repository.search(module_prod.name, repo_name)
+        assert not session.repository.search(module_prod.name, f'name = {repo_name}')
         repo_values = session.repository.read(module_prod.name, new_repo_name)
         assert repo_values['name'] == new_repo_name
         assert repo_values['repo_content']['upstream_url'] == settings.repos.yum_2.url
