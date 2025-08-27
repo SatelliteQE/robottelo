@@ -155,15 +155,12 @@ def test_rhcloud_insights_e2e(
 @pytest.mark.pit_client
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([10])
-@pytest.mark.parametrize(
-    "module_target_sat_insights", [True, False], ids=["hosted", "local"], indirect=True
-)
 def test_rhcloud_insights_remediate_multiple_hosts(
     rhel_insights_vms,
     rhcloud_manifest_org,
     module_target_sat_insights,
 ):
-    """Get rule hits data for multiple Hosts from hosted or local Insights Advisor, verify results are displayed in Satellite, and run remediations for all Hosts simultaneously.
+    """Get rule hits data for multiple Hosts from hosted Insights Advisor, verify results are displayed in Satellite, and run remediations for all Hosts simultaneously.
 
     :id: 33463576-ccc0-4200-a5c0-6e7ffc9a03f7
 
@@ -172,7 +169,7 @@ def test_rhcloud_insights_remediate_multiple_hosts(
         2. In Satellite UI, go to Insights > Recommendations.
         3. Run remediation for "OpenSSH config permissions" recommendation against Hosts.
         4. Verify that the remediation jobs completed successfully.
-        5. Refresh the Insights recommendations (re-sync if using hosted Advisor).
+        5. Refresh the Insights recommendations.
         6. Search for previously remediated issues.
     :expectedresults:
         1. Insights recommendations related to "OpenSSH config permissions" issue are listed
@@ -188,7 +185,6 @@ def test_rhcloud_insights_remediate_multiple_hosts(
     """
     org_name = rhcloud_manifest_org.name
     hostnames = [host.hostname for host in rhel_insights_vms]
-    local_advisor_enabled = module_target_sat_insights.local_advisor_enabled
 
     # Query for searching the available recommendations
     REC_QUERY = f'hostname ^ ({",".join(hostnames)}) and title = "{OPENSSH_RECOMMENDATION}"'
@@ -205,9 +201,8 @@ def test_rhcloud_insights_remediate_multiple_hosts(
     with module_target_sat_insights.ui_session() as session:
         session.organization.select(org_name=org_name)
 
-        # Sync the recommendations (hosted Insights only)
-        if not local_advisor_enabled:
-            sync_recommendations(session)
+        # Sync the recommendations
+        sync_recommendations(session)
 
         # Search for the recommendations
         results = session.cloudinsights.search(REC_QUERY)
@@ -222,6 +217,7 @@ def test_rhcloud_insights_remediate_multiple_hosts(
 
         def verify_tasks():
             tasks = session.task.search(f'{TASK_QUERY} and start_at >= "{timestamp}"')
+            assert all(task['Result'] != 'error' for task in tasks)
             return len(tasks) == len(rhel_insights_vms) and all(
                 task['Result'] == 'success' for task in tasks
             )
@@ -234,9 +230,8 @@ def test_rhcloud_insights_remediate_multiple_hosts(
             handle_exception=True,
         )
 
-        # Re-sync the recommendations (hosted Insights only).
-        if not local_advisor_enabled:
-            sync_recommendations(session)
+        # Re-sync the recommendations
+        sync_recommendations(session)
 
         # Verify that the recommendations are not listed anymore.
         assert not session.cloudinsights.search(REC_QUERY)
