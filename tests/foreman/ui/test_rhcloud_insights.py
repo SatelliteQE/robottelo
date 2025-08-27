@@ -169,7 +169,7 @@ def test_rhcloud_insights_remediate_multiple_hosts(
         2. In Satellite UI, go to Insights > Recommendations.
         3. Run remediation for "OpenSSH config permissions" recommendation against Hosts.
         4. Verify that the remediation jobs completed successfully.
-        5. Refresh the Insights recommendations (re-sync if using hosted Advisor).
+        5. Refresh the Insights recommendations.
         6. Search for previously remediated issues.
     :expectedresults:
         1. Insights recommendations related to "OpenSSH config permissions" issue are listed
