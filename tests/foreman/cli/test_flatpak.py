@@ -332,7 +332,7 @@ def test_sync_consume_flatpak_repo_via_library(
 
     # 5. Install flatpak app from the repo via REX on the contenthost.
     app_name = 'firefox'  # or 'org.mozilla.firefox'
-    res = host.execute('flatpak remote-ls')
+    res = host.execute(f'flatpak remote-ls {remote_name}')
     assert app_name in res.stdout
 
     job = module_target_sat.cli_factory.job_invocation(
@@ -349,7 +349,7 @@ def test_sync_consume_flatpak_repo_via_library(
     res = module_target_sat.cli.JobInvocation.info({'id': job.id})
     assert 'succeeded' in res['status']
     request.addfinalizer(
-        lambda: host.execute(f'flatpak uninstall {remote_name} {app_name} com.redhat.Platform -y')
+        lambda: host.execute(f'flatpak uninstall {app_name} com.redhat.Platform -y')
     )
 
     # 6. Ensure the app has been installed successfully.
@@ -481,7 +481,7 @@ def test_sync_consume_flatpak_repo_via_cv(
     assert remote_name in res.stdout
 
     # 6. Ensure only the proper Apps are available (exclusion for cert-based auth only).
-    res = host.execute('flatpak remote-ls')
+    res = host.execute(f'flatpak remote-ls {remote_name}')
     assert all(app_name in res.stdout for app_name in ['Thunderbird', 'Platform'])
     if cert_login:
         assert 'firefox' not in res.stdout.lower()

@@ -899,7 +899,7 @@ def test_sync_consume_flatpak_repo_via_library(
     assert remote_name in res.stdout
 
     app_name = 'firefox'  # or 'org.mozilla.firefox'
-    res = host.execute('flatpak remote-ls')
+    res = host.execute(f'flatpak remote-ls {remote_name}')
     assert app_name in res.stdout
 
     job = module_target_sat.cli_factory.job_invocation(
@@ -1067,7 +1067,7 @@ def test_sync_consume_flatpak_repo_via_cv(
     assert remote_name in res.stdout
 
     # Ensure only the proper Apps are available (exclusion for cert-based auth only).
-    res = host.execute('flatpak remote-ls')
+    res = host.execute(f'flatpak remote-ls {remote_name}')
     assert all(app_name in res.stdout for app_name in ['Thunderbird', 'Platform'])
     if cert_login:
         assert 'firefox' not in res.stdout.lower()

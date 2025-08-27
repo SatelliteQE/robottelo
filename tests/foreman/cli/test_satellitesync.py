@@ -1543,7 +1543,7 @@ class TestContentViewSync:
         assert remote_name in res.stdout
 
         app_name = 'firefox'
-        res = module_flatpak_contenthost.execute('flatpak remote-ls')
+        res = module_flatpak_contenthost.execute(f'flatpak remote-ls {remote_name}')
         assert app_name in res.stdout
 
         job = module_import_sat.cli_factory.job_invocation(
@@ -1561,7 +1561,7 @@ class TestContentViewSync:
         assert 'succeeded' in res['status']
         request.addfinalizer(
             lambda: module_flatpak_contenthost.execute(
-                f'flatpak uninstall {remote_name} {app_name} com.redhat.Platform -y'
+                f'flatpak uninstall {app_name} com.redhat.Platform -y'
             )
         )
 
