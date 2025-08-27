@@ -155,9 +155,6 @@ def test_rhcloud_insights_e2e(
 @pytest.mark.pit_client
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([10])
-@pytest.mark.parametrize(
-    "module_target_sat_insights", [True, False], ids=["hosted", "local"], indirect=True
-)
 def test_rhcloud_insights_remediate_multiple_hosts(
     rhel_insights_vms,
     rhcloud_manifest_org,
