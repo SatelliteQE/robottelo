@@ -222,6 +222,7 @@ def test_rhcloud_insights_remediate_multiple_hosts(
 
         def verify_tasks():
             tasks = session.task.search(f'{TASK_QUERY} and start_at >= "{timestamp}"')
+            assert all(task['Result'] != 'error' for task in tasks)
             return len(tasks) == len(rhel_insights_vms) and all(
                 task['Result'] == 'success' for task in tasks
             )
