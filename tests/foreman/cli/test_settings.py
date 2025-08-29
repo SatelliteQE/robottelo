@@ -469,11 +469,9 @@ def test_positive_get_setting_info(setting_update, module_target_sat):
     :parametrized: yes
 
     :expectedresults: Setting info is returned successfully
-
-    :CaseAutomation: Automated
     """
 
-    setting_info = module_target_sat.cli.Settings.info({'id': 'login_text'}, output_format='json')
+    setting_info = module_target_sat.cli.Settings.info({'id': 'login_text'})
 
     assert setting_info['name'] == setting_update.name
     assert setting_info['value'] == setting_update.value
@@ -488,12 +486,11 @@ def test_positive_get_non_existing_setting_info(module_target_sat):
 
     :expectedresults: Correct error message is returned
 
-    :Verifies: SAT-20238
-
-    :CaseAutomation: Automated
+    :verifies: SAT-20238
     """
     non_existing_id = gen_integer(min_value=1, max_value=10000)
-    with pytest.raises(CLIReturnCodeError) as exc_info:
+    with pytest.raises(CLIReturnCodeError) as error:
         module_target_sat.cli.Settings.info({'id': non_existing_id})
 
-    assert f"Resource setting not found by id '{non_existing_id}'" in str(exc_info.value)
+    assert f"Resource setting not found by id '{non_existing_id}'" in error.value.message
+
