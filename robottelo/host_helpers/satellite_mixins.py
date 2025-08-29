@@ -474,11 +474,9 @@ class IoPSetup:
             cmd_result = self.execute(
                 'satellite-installer --foreman-plugin-rh-cloud-enable-iop-advisor-engine true'
             )
-            assert cmd_result.status == 0, f'Error installing advisor engine: {cmd_result.stdout}'
-            assert self.api.RHCloud().advisor_engine_config()['use_local_advisor_engine']
         else:
             # TODO: Replace this temporary implementation with a permanent solution.
-            result = self.execute(
+            cmd_result = self.execute(
                 f'''
                 set -e
                 [ -d /root/satellite-iop ] && rm -rf /root/satellite-iop
@@ -490,5 +488,5 @@ class IoPSetup:
                 ''',
                 timeout='20m',
             )
-            assert result.status == 0, f'Failed to configure IoP: {result.stdout}'
-            assert self.local_advisor_enabled
+        assert cmd_result.status == 0, f'Failed to configure IoP: {cmd_result.stdout}'
+        assert self.local_advisor_enabled

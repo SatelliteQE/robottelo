@@ -397,18 +397,22 @@ def shared_gce_cert(puppet_upgrade_shared_satellite):
     return cert
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def local_insights_upgrade():
     """Mark tests using this fixture with pytest.mark.local_insights_upgrades."""
     sat_instance = shared_checkout("local_insights_upgrade")
     with SharedResource(
         "local_insights_upgrade_tests", shared_checkin, sat_instance=sat_instance
     ) as test_duration:
+        iop_settings = settings.rh_cloud.iop_advisor_engine
+        sat_instance.configure_insights_on_prem(
+            iop_settings.username, iop_settings.token, iop_settings.registry
+        )
         yield sat_instance
         test_duration.ready()
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def hosted_insights_upgrade():
     """Mark tests using this fixture with pytest.mark.hosted_insights_upgrades."""
     sat_instance = shared_checkout("hosted_insights_upgrade")
@@ -417,3 +421,20 @@ def hosted_insights_upgrade():
     ) as test_duration:
         yield sat_instance
         test_duration.ready()
+
+
+@pytest.fixture(scope='module')
+def module_target_sat_insights(request):
+    """
+    A module-level fixture to provide a Satellite configured for Insights.
+    By default, it returns hosted_insights_upgrade satellite instance.
+
+    If parametrized with a false value, then it will deploy and return a Satellite with
+    iop-advisor-engine (local Insights advisor) configured.
+    """
+    hosted_insights = getattr(request, 'param', True)
+    return (
+        request.getfixturevalue('hosted_insights_upgrade')
+        if hosted_insights
+        else request.getfixturevalue('local_insights_upgrade')
+    )

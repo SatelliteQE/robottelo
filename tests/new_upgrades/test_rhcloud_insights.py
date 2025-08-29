@@ -15,7 +15,6 @@
 from datetime import UTC, datetime
 
 from box import Box
-from fauxfactory import gen_alpha
 import pytest
 from wait_for import wait_for
 
@@ -29,12 +28,12 @@ from robottelo.constants import (
 from robottelo.utils.shared_resource import SharedResource
 
 
-def sync_recommendations(satellite, org):
+def sync_recommendations(target_sat, org):
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_insights:sync'
     timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
-    result = satellite.execute(cmd)
+    result = target_sat.execute(cmd)
     wait_for(
-        lambda: satellite.api.ForemanTask()
+        lambda: target_sat.api.ForemanTask()
         .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
         .result
         == 'success',
@@ -51,72 +50,32 @@ def sync_recommendations(satellite, org):
 def iop_upgrade_setup(
     request,
     upgrade_action,
-    rhel_contenthost,
-    function_sca_manifest,
+    rhel_insights_vm,
+    rhcloud_manifest_org,
+    module_target_sat_insights,
 ):
-    """Pre-upgrade scenario that creates local advisor Satellite with Insights clients.
-
-    :id: preupgrade-8c2901a0-dad1-4e53-84e7-66aa09c68830
-
-    :steps:
-        1. Configure a Satellite with local advisor enabled.
-        2. Register hosts with Satellite and Insights.
-    :expectedresults: Content-view created with various repositories.
-    """
-    hosted_insights = getattr(request, 'param', True)
-    target_sat = (
-        request.getfixturevalue('hosted_insights_upgrade')
-        if hosted_insights
-        else request.getfixturevalue('local_insights_upgrade')
-    )
+    """Configure hosted/local advisor Satellite and register content host with insights client."""
+    target_sat = module_target_sat_insights
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_data = Box(
             {
                 'target_sat': target_sat,
-                'org': None,
-                'rhel_contenthost': rhel_contenthost,
-                'activation_key': None,
+                'org': rhcloud_manifest_org,
+                'rhel_insights_vm': rhel_insights_vm,
             }
         )
-        test_name = f'insights_upgrade_{gen_alpha()}'
-        test_data.test_name = test_name
-        org = target_sat.api.Organization(name=f'{test_name}_org').create()
-        test_data.org = org
-        if not hosted_insights:
-            iop_settings = settings.rh_cloud.iop_advisor_engine
-            target_sat.configure_insights_on_prem(
-                iop_settings.username, iop_settings.token, iop_settings.registry
-            )
-        target_sat.upload_manifest(org.id, function_sca_manifest.content)
-        activation_key = target_sat.api.ActivationKey(
-            name=f'{test_name}_activation_key',
-            content_view=org.default_content_view,
-            organization=org,
-            environment=target_sat.api.LifecycleEnvironment(id=org.library.id),
-        ).create()
-        test_data.activation_key = activation_key
-        rhel_contenthost.add_rex_key(satellite=target_sat)
-        rhel_contenthost.configure_insights_client(
-            satellite=target_sat,
-            activation_key=activation_key,
-            org=org,
-            rhel_distro=f"rhel{rhel_contenthost.os_version.major}",
-        )
-        iop_settings = settings.rh_cloud.iop_advisor_engine
-        rhel_contenthost.create_insights_vulnerability()
-        local_advisor_enabled = target_sat.api.RHCloud().advisor_engine_config()[
-            'use_local_advisor_engine'
-        ]
+        org = rhcloud_manifest_org
+        local_advisor_enabled = target_sat.local_advisor_enabled
         # Verify insights-client can update to latest version available from server
-        assert rhel_contenthost.execute('insights-client --version').status == 0
+        assert rhel_insights_vm.execute('insights-client --version').status == 0
         # Prepare misconfigured machine and upload data to Insights
-        rhel_contenthost.create_insights_vulnerability()
-        if not local_advisor_enabled:
-            sync_recommendations(target_sat, org)
+        rhel_insights_vm.create_insights_vulnerability()
         if local_advisor_enabled:
             target_sat.execute(
-                f'wget -O {CUSTOM_HIERA_LOCATION} {iop_settings.SATELLITE_IOP_REPO[:-4]}/-/raw/main/playbooks/custom-hiera.yaml'
+                f'wget -O {CUSTOM_HIERA_LOCATION} {settings.rh_cloud.iop_advisor_engine.satellite_iop_repo[:-4]}/-/raw/main/playbooks/custom-hiera.yaml'
             )
+        else:
+            sync_recommendations(target_sat, org)
         sat_upgrade.ready()
         target_sat._session = None
         yield test_data
@@ -126,8 +85,10 @@ def iop_upgrade_setup(
 @pytest.mark.hosted_insights_upgrades
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-@pytest.mark.parametrize("iop_upgrade_setup", [True, False], ids=["hosted", "local"], indirect=True)
-def test_rhcloud_insights_upgrade(iop_upgrade_setup):
+@pytest.mark.parametrize(
+    "module_target_sat_insights", [True, False], ids=["hosted", "local"], indirect=True
+)
+def test_rhcloud_insights_upgrade(request, iop_upgrade_setup, module_target_sat_insights):
     """Verify Satellite upgrade for hosted and local advisor with Insights client.
 
     :id: fce16a0a-da24-47fa-9df1-e94c1f4642a7
@@ -139,13 +100,19 @@ def test_rhcloud_insights_upgrade(iop_upgrade_setup):
         4. Verify recommendation related to "OpenSSH config permissions" issue is listed
         5. Perform Satellite upgrade.
         6. After Satellite upgrade, verify recommendation is still listed.
+        7. Run remediation for "OpenSSH config permissions" recommendation against host.
+        8. Verify that the remediation job completed successfully.
+        9. Refresh Insights recommendations (re-sync if using hosted Insights).
+        10. Search for previously remediated issue.
 
     :expectedresults:
         1. Insights recommendation related to "OpenSSH config permissions" issue is listed
             for misconfigured machine.
-        2. Satellite upgrade completed successfully.
-        3. Recommendation is listed on upgraded Satellite UI.
-        4. IoP services are running.
+        2. Satellite upgrade completed successfully
+        3. IoP services are running.
+        4. Recommendation is listed on upgraded Satellite UI.
+        5. Remediation job finished successfully.
+        6. Insights recommendation related to "OpenSSH config permissions" issue is not listed.
 
     :CaseImportance: Critical
 
@@ -154,43 +121,41 @@ def test_rhcloud_insights_upgrade(iop_upgrade_setup):
     :CaseAutomation: Automated
     """
     target_sat = iop_upgrade_setup.target_sat
-    rhel_contenthost = iop_upgrade_setup.rhel_contenthost
+    rhel_insights_vm = iop_upgrade_setup.rhel_insights_vm
     org = iop_upgrade_setup.org
-    REC_QUERY = f'hostname = "{rhel_contenthost.hostname}" and title = "{OPENSSH_RECOMMENDATION}"'
-    local_advisor_enabled = target_sat.local_advisor_enabled()
-    assert local_advisor_enabled
+    REC_QUERY = f'hostname = "{rhel_insights_vm.hostname}" and title = "{OPENSSH_RECOMMENDATION}"'
+    local_insights = 'local' in request.node.name
+    local_advisor_enabled = target_sat.local_advisor_enabled
     service_status = target_sat.cli.Service.status(options={'brief': True})
     assert 'FAIL' not in service_status.stdout
     assert service_status.status == 0
     service_list = target_sat.cli.Service.list()
     assert 'FAIL' not in service_list.stdout
     assert service_list.status == 0
-    for service in (
-        IOP_SERVICES + SATELLITE_SERVICES if local_advisor_enabled else SATELLITE_SERVICES
-    ):
+    for service in IOP_SERVICES + SATELLITE_SERVICES if local_insights else SATELLITE_SERVICES:
         assert service in service_list.stdout
-    if local_advisor_enabled:
-        assert rhel_contenthost.execute('insights-client --register').status == 0
-    assert rhel_contenthost.execute('insights-client --test-connection').status == 0
-    assert rhel_contenthost.execute('insights-client --status').status == 0
+    if local_insights:
+        assert local_advisor_enabled
+    assert rhel_insights_vm.execute('insights-client --test-connection').status == 0
+    assert rhel_insights_vm.execute('insights-client --status').status == 0
+    # Verify that we can see the rule hit via insights-client
+    diagnosis_result = rhel_insights_vm.execute('insights-client --diagnosis')
+    assert diagnosis_result.status == 0
+    assert 'OPENSSH_HARDENING_CONFIG_PERMS' in diagnosis_result.stdout
     with target_sat.ui_session() as session:
         session.organization.select(org_name=org.name)
-        # Verify that we can see the rule hit via insights-client
-        diagnosis_result = rhel_contenthost.execute('insights-client --diagnosis')
-        assert diagnosis_result.status == 0
-        assert 'OPENSSH_HARDENING_CONFIG_PERMS' in diagnosis_result.stdout
         # Search for the recommendation.
         search_result = session.cloudinsights.search(REC_QUERY)[0]
-        assert search_result['Hostname'] == rhel_contenthost.hostname
+        assert search_result['Hostname'] == rhel_insights_vm.hostname
         assert search_result['Recommendation'] == OPENSSH_RECOMMENDATION
         # Run the remediation.
         session.cloudinsights.remediate(OPENSSH_RECOMMENDATION)
         session.jobinvocation.wait_job_invocation_state(
             entity_name='Insights remediations for selected issues',
-            host_name=rhel_contenthost.hostname,
+            host_name=rhel_insights_vm.hostname,
         )
         # Re-sync the recommendations (hosted Insights only).
-        if not local_advisor_enabled:
+        if not local_insights:
             sync_recommendations(target_sat, org)
         # Verify that the recommendation is not listed anymore.
         assert not session.cloudinsights.search(REC_QUERY)
