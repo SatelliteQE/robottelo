@@ -17,24 +17,6 @@ import yaml
 
 from robottelo.config import robottelo_tmp_dir, settings
 from robottelo.constants import MAINTAIN_HAMMER_YML
-from robottelo.hosts import get_sat_rhel_version, get_sat_version
-
-sat_x_y_release = f'{get_sat_version().major}.{get_sat_version().minor}'
-
-
-def get_satellite_capsule_repos(
-    x_y_release=sat_x_y_release, product='satellite', os_major_ver=None
-):
-    if os_major_ver is None:
-        os_major_ver = get_sat_rhel_version().major
-    if product == 'capsule':
-        product = 'satellite-capsule'
-    return [
-        f'{product}-{x_y_release}-for-rhel-{os_major_ver}-x86_64-rpms',
-        f'satellite-maintenance-{x_y_release}-for-rhel-{os_major_ver}-x86_64-rpms',
-        f'rhel-{os_major_ver}-for-x86_64-baseos-rpms',
-        f'rhel-{os_major_ver}-for-x86_64-appstream-rpms',
-    ]
 
 
 def test_positive_advanced_run_service_restart(sat_maintain):
@@ -302,14 +284,14 @@ def test_positive_satellite_repositories_setup(sat_maintain):
         assert result.status == 0
         assert 'FAIL' not in result.stdout
         result = sat_maintain.execute('yum repolist')
-        for repo in get_satellite_capsule_repos(sat_version):
+        for repo in sat_maintain.get_satellite_capsule_repos(sat_version):
             assert repo in result.stdout
 
     # for non-ga versions
     else:
         assert result.status == 1
         assert 'FAIL' in result.stdout
-        for repo in get_satellite_capsule_repos(sat_version):
+        for repo in sat_maintain.get_satellite_capsule_repos(sat_version):
             assert repo in result.stdout
 
 
@@ -335,11 +317,11 @@ def test_positive_capsule_repositories_setup(sat_maintain):
         assert result.status == 0
         assert 'FAIL' not in result.stdout
         result = sat_maintain.execute('yum repolist')
-        for repo in get_satellite_capsule_repos(sat_version, 'capsule'):
+        for repo in sat_maintain.get_satellite_capsule_repos(sat_version, 'capsule'):
             assert repo in result.stdout
     # for non-ga versions
     else:
         assert result.status == 1
         assert 'FAIL' in result.stdout
-        for repo in get_satellite_capsule_repos(sat_version, 'capsule'):
+        for repo in sat_maintain.get_satellite_capsule_repos(sat_version, 'capsule'):
             assert repo in result.stdout
