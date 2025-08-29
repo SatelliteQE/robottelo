@@ -12,6 +12,7 @@ Subcommands::
 
     list                          List all settings
     set                           Update a setting
+    info                          Show a setting
 """
 
 from robottelo.cli.base import Base
