@@ -469,6 +469,7 @@ class IoPSetup:
         self.setup_rhel_repos()
         self.setup_satellite_repos()
         self.podman_login(username, password, registry)
+
         # TODO: Replace this temporary implementation with a permanent solution.
         result = self.execute(
             f'''
