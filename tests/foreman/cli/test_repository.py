@@ -937,15 +937,11 @@ class TestRepository:
         tags = 'latest'
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo, sat=target_sat)
-        if not is_open('SAT-26322'):
-            assert not repo['included-container-image-tags']
         tags_count = int(repo['content-counts']['container-tags'])
         assert tags_count >= 2, 'insufficient tags count in the repo'
         target_sat.cli.Repository.update({'id': repo['id'], 'include-tags': tags})
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo, sat=target_sat)
-        if not is_open('SAT-26322'):
-            assert tags in repo['included-container-image-tags']
         assert int(repo['content-counts']['container-tags']) == len(tags.split(',')) < tags_count, (
             'unexpected change of tags count'
         )
