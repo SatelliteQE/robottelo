@@ -1,3 +1,4 @@
+---
 AAP_INTEGRATION:
   AAP_FQDN: env-aap-01.example.com
   # USERNAME: Login for AAP
@@ -11,3 +12,11 @@ AAP_INTEGRATION:
   # Job template and host_config_key for ansible-callback with Satellite testing
   CALLBACK_JOB_TEMPLATE:
   HOST_CONFIG_KEY:
+
+ANSIBLE:
+  ROLE_NAMES:
+    - 'theforeman.foreman_scap_client'
+    - 'redhat.satellite.hostgroups'
+    - 'RedHatInsights.insights-client'
+    - 'redhat.satellite.compute_resources'
+...
