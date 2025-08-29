@@ -281,10 +281,10 @@ def test_negative_install_via_remote_execution(
             action='install',
             action_via='via remote execution',
         )
-        assert job_values['job_status'] == 'Failed'
-        assert job_values['job_status_progress'] == '100%'
-        assert int(job_values['total_hosts']) == len(hosts)
-        assert {host.name for host in hosts} == {host['Host'] for host in job_values['hosts_table']}
+        assert job_values['status']['Failed'] == len(hosts)
+        assert job_values['overall_status']['succeeded_hosts'] == 0
+        assert job_values['overall_status']['total_hosts'] == len(hosts)
+        assert {host.name for host in hosts} == {host['Name'] for host in job_values['hosts']}
 
 
 def test_negative_install_via_custom_remote_execution(
@@ -319,10 +319,10 @@ def test_negative_install_via_custom_remote_execution(
             action='install',
             action_via='via remote execution - customize first',
         )
-        assert job_values['job_status'] == 'Failed'
-        assert job_values['job_status_progress'] == '100%'
-        assert int(job_values['total_hosts']) == len(hosts)
-        assert {host.name for host in hosts} == {host['Host'] for host in job_values['hosts_table']}
+        assert job_values['status']['Failed'] == len(hosts)
+        assert job_values['overall_status']['succeeded_hosts'] == 0
+        assert job_values['overall_status']['total_hosts'] == len(hosts)
+        assert {host.name for host in hosts} == {host['Name'] for host in job_values['hosts']}
 
 
 @pytest.mark.upgrade
