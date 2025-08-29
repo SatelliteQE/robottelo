@@ -127,6 +127,12 @@ def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_rol
         f"sed -i '/hosts:/ s/foreman/localhost/' {FAM_ROOT_DIR}/tests/test_playbooks/content_import_*.yml"
     )
 
+    # Edit repos used in tests
+    # Until https://github.com/theforeman/foreman-ansible-modules/pull/1899 is in
+    module_target_sat.execute(
+        f"sed -i 's#https://repos.fedorapeople.org/pulp/pulp/demo_repos/zoo/#https://fixtures.pulpproject.org/rpm-signed/#' {FAM_ROOT_DIR}/tests/test_playbooks/*.yml"
+    )
+
     # Upload manifest to test playbooks directory
     module_target_sat.put(str(module_sca_manifest.path), str(module_sca_manifest.name))
     module_target_sat.execute(
