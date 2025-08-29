@@ -1167,11 +1167,17 @@ class ContentHost(Host, ContentHostMixins):
         if register:
             if not activation_key:
                 activation_key = satellite.api.ActivationKey(
+                    name=gen_string('alpha'),
                     content_view=org.default_content_view.id,
                     environment=org.library.id,
                     organization=org,
                 ).create()
-            self.api_register(satellite, organization=org, activation_keys=[activation_key.name])
+            self.api_register(
+                satellite,
+                organization=org,
+                activation_keys=[activation_key.name],
+                setup_insights=register_insights,
+            )
 
     def unregister_insights(self):
         """Unregister insights client.
@@ -1742,7 +1748,7 @@ class Capsule(ContentHost, CapsuleMixins):
                 self._satellite = Satellite()
         return self._satellite
 
-    @cached_property
+    @property
     def is_upstream(self):
         """Figure out which product distribution is installed on the server.
 
@@ -1751,7 +1757,7 @@ class Capsule(ContentHost, CapsuleMixins):
         """
         return self.execute(f'rpm -q {self.product_rpm_name}').status != 0
 
-    @cached_property
+    @property
     def is_stream(self):
         """Check if the Capsule is a stream release or not
 
@@ -1764,7 +1770,7 @@ class Capsule(ContentHost, CapsuleMixins):
             'stream' in self.execute(f'rpm -q --qf "%{{RELEASE}}" {self.product_rpm_name}').stdout
         )
 
-    @cached_property
+    @property
     def version(self):
         rpm_name = self.upstream_rpm_name if self.is_upstream else self.product_rpm_name
         return self.execute(f'rpm -q --qf "%{{VERSION}}" {rpm_name}').stdout
@@ -2713,7 +2719,12 @@ class Satellite(Capsule, SatelliteMixins):
     @property
     def local_advisor_enabled(self):
         """Return boolean indicating whether local Insights advisor engine is enabled."""
-        return self.api.RHCloud().advisor_engine_config()['use_iop_mode']
+        key = (
+            'use_local_advisor_engine'
+            if ".".join(self.version.split('.')[0:2]) == '6.17'
+            else 'use_iop_mode'
+        )
+        return self.api.RHCloud().advisor_engine_config()[key]
 
 
 class SSOHost(Host):
