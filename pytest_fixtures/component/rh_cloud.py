@@ -1,4 +1,5 @@
 from broker import Broker
+from fauxfactory import gen_string
 import pytest
 
 from robottelo.constants import CAPSULE_REGISTRATION_OPTS
@@ -29,7 +30,7 @@ def module_target_sat_insights(request, module_target_sat):
 @pytest.fixture(scope='module')
 def rhcloud_manifest_org(module_target_sat_insights, module_sca_manifest):
     """A module level fixture to get organization with manifest."""
-    org = module_target_sat_insights.api.Organization().create()
+    org = module_target_sat_insights.api.Organization(name=gen_string('alpha')).create()
     module_target_sat_insights.upload_manifest(org.id, module_sca_manifest.content)
     return org
 
@@ -38,6 +39,7 @@ def rhcloud_manifest_org(module_target_sat_insights, module_sca_manifest):
 def rhcloud_activation_key(module_target_sat_insights, rhcloud_manifest_org):
     """A module-level fixture to create an Activation key in module_org"""
     return module_target_sat_insights.api.ActivationKey(
+        name=gen_string('alpha'),
         content_view=rhcloud_manifest_org.default_content_view,
         organization=rhcloud_manifest_org,
         environment=module_target_sat_insights.api.LifecycleEnvironment(
