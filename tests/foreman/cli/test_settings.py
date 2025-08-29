@@ -493,4 +493,3 @@ def test_positive_get_non_existing_setting_info(module_target_sat):
         module_target_sat.cli.Settings.info({'id': non_existing_id})
 
     assert f"Resource setting not found by id '{non_existing_id}'" in error.value.message
-
