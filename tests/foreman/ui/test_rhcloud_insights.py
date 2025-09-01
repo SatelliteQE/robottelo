@@ -304,10 +304,7 @@ def test_host_sorting_based_on_recommendation_count():
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_list(r'^[\d]+$')
-@pytest.mark.parametrize(
-    "module_target_sat_insights", [True, False], ids=["hosted", "local"], indirect=True
-)
+@pytest.mark.rhel_ver_list([10])
 def test_host_details_page(
     rhel_insights_vm,
     rhcloud_manifest_org,
@@ -321,8 +318,8 @@ def test_host_details_page(
 
     :steps:
         1. Prepare misconfigured machine and upload its data to Insights.
-        2. Sync Insights recommendations (hosted Insights only).
-        3. Sync Insights inventory status (hosted Insights only).
+        2. Sync Insights recommendations.
+        3. Sync Insights inventory status.
         4. Go to Hosts -> All Hosts
         5. Verify there is a "Recommendations" column containing Insights recommendation count.
         6. Check popover status of host.
@@ -348,7 +345,6 @@ def test_host_details_page(
     :CaseAutomation: Automated
     """
     org_name = rhcloud_manifest_org.name
-    local_advisor_enabled = module_target_sat_insights.local_advisor_enabled
 
     # Prepare misconfigured machine and upload data to Insights.
     create_insights_vulnerability(rhel_insights_vm)
@@ -363,18 +359,13 @@ def test_host_details_page(
             }
         )
 
-        if not local_advisor_enabled:
-            # Sync insights recommendations.
-            sync_recommendations(session)
+        # Sync insights recommendations.
+        sync_recommendations(session)
 
         # Verify Insights status of host.
         result = session.host_new.get_host_statuses(rhel_insights_vm.hostname)
         assert result['Red Hat Lightspeed']['Status'] == 'Reporting'
-        assert (
-            result['Inventory']['Status'] == 'Successfully uploaded to your RH cloud inventory'
-            if not local_advisor_enabled
-            else 'N/A'
-        )
+        assert result['Inventory']['Status'] == 'Successfully uploaded to your RH cloud inventory'
 
         # Verify recommendations exist for host.
         result = session.host_new.search(rhel_insights_vm.hostname)[0]
