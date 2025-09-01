@@ -941,7 +941,11 @@ class TestContentView:
 
         :expectedresults: Filter rule should get applied to Filter
 
-        :CaseImportance: Low
+        :CaseImportance: Medium
+
+        :Verifies: SAT-25968
+
+        :customerscenario: true
 
         """
         filter_name = gen_string('alpha')
@@ -979,6 +983,14 @@ class TestContentView:
             {'id': content_view_filter['filter-id']}
         )
         assert filter_info['rules'][0]['id'] == content_view_filter_rule['rule-id']
+        assert filter_info['rules'][0]['module-stream-id'] == walrus_stream['id']
+        rule_info = target_sat.cli.ContentView.filter.rule.info(
+            {
+                'content-view-filter-id': content_view_filter['filter-id'],
+                'id': content_view_filter_rule['rule-id'],
+            }
+        )
+        assert rule_info['module-stream-id'] == walrus_stream['id']
 
     @pytest.mark.parametrize('add_by_name', [True, False], ids=['name', 'id'])
     def test_positive_add_custom_repo_by(
