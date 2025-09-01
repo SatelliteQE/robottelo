@@ -304,7 +304,7 @@ def test_host_sorting_based_on_recommendation_count():
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_list([10])
+@pytest.mark.rhel_ver_match('N-0')
 def test_host_details_page(
     rhel_insights_vm,
     rhcloud_manifest_org,
