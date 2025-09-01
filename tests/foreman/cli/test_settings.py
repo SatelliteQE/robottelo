@@ -76,17 +76,19 @@ def test_positive_update_hostname_default_prefix(setting_update, module_target_s
     assert hostname_prefix_value == discovery_prefix['value']
 
 
-@pytest.mark.stubbed
-def test_positive_update_hostname_default_facts():
+@pytest.mark.parametrize('setting_update', ['discovery_hostname'], indirect=True)
+def test_positive_update_hostname_default_facts(setting_update, module_target_sat):
     """Update the default set fact of hostname_facts setting with list of
     facts like: bios_vendor,uuid
 
     :id: 1042c5e2-ee4d-4eaf-a0b2-86c000a79dfb
 
     :expectedresults: Default set fact should be updated with facts list.
-
-    :CaseAutomation: NotAutomated
     """
+    discovery_hostname_value = '["bios_vendor", "uuid"]'
+    module_target_sat.cli.Settings.set({'name': 'discovery_hostname', 'value': discovery_hostname_value})
+    discovery_hostname = module_target_sat.cli.Settings.list({'search': 'name=discovery_hostname'})[0]
+    assert discovery_hostname['value'] == discovery_hostname_value
 
 
 @pytest.mark.stubbed
