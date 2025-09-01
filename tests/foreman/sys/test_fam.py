@@ -250,8 +250,11 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
         'ANSIBLE_HOST_PATTERN_MISMATCH=ignore',
     ]
 
-    if not module_target_sat.network_type.has_ipv4 and ansible_module in ['redhat_manifest']:
-        env.append(f'HTTPS_PROXY={settings.http_proxy.http_proxy_ipv6_url}')
+    if not module_target_sat.network_type.has_ipv4:
+        if ansible_module in ['redhat_manifest']:
+            env.append(f'HTTPS_PROXY={settings.http_proxy.http_proxy_ipv6_url}')
+
+        module_target_sat.enable_satellite_http_proxy()
 
     # Execute test_playbook
     result = module_target_sat.execute(
