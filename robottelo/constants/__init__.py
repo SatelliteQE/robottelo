@@ -6,7 +6,7 @@ from box import Box
 from nailgun import entities
 
 # This should be updated after each version branch
-SATELLITE_VERSION = "6.18"
+SATELLITE_VERSION = "6.19"
 SATELLITE_OS_VERSION = "9"
 
 # Default system ports
