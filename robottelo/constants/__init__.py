@@ -159,7 +159,7 @@ AZURERM_PLATFORM_DEFAULT = 'Linux'
 AZURERM_VM_SIZE_DEFAULT = 'Standard_B1s'
 AZURERM_PREMIUM_OS_Disk = True
 AZURERM_FILE_URI = (
-    'https://raw.githubusercontent.com/SatelliteQE/robottelo/master/tests/foreman/data/uri.sh'
+    'https://raw.githubusercontent.com/SatelliteQE/robottelo/6.18.z/tests/foreman/data/uri.sh'
 )
 
 OPERATING_SYSTEMS = entities._OPERATING_SYSTEMS
