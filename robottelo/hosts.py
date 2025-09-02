@@ -912,6 +912,15 @@ class ContentHost(Host, ContentHostMixins):
                 f'echo "export HTTPS_PROXY={settings.http_proxy.http_proxy_ipv6_url}" >> ~/.bashrc'
             )
 
+    def enable_ipv6_podman_proxy(self):
+        """Execute procedures for enabling IPv6 HTTP Proxy on Podman engine"""
+        # if not self.network_type.has_ipv4:
+        container_cfg = '/etc/containers/containers.conf'
+        self.execute(
+            f'echo -e "[engine]\\nenv = [\'https_proxy={settings.http_proxy.http_proxy_ipv6_url}\']" >> {container_cfg}'
+        )
+        self.execute(f'echo -e "\\n[containers]\\nhttp_proxy = true" >> {container_cfg}')
+
     def disable_rhsm_proxy(self):
         """Disables HTTP proxy for subscription manager"""
         self.execute('subscription-manager remove server.proxy_hostname server.proxy_port')
