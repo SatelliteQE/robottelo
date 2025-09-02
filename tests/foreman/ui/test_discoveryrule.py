@@ -15,6 +15,9 @@
 from fauxfactory import gen_integer, gen_ipaddr, gen_string
 import pytest
 
+from robottelo.config import settings
+from robottelo.enums import NetworkType
+
 
 @pytest.fixture
 def module_discovery_env(module_org, module_location, module_target_sat):
@@ -165,6 +168,10 @@ def test_negative_delete_rule_with_non_admin_user(
 
 
 @pytest.mark.run_in_one_thread
+@pytest.mark.skipif(
+    settings.server.network_type == NetworkType.IPV6,
+    reason='Skipping as Discovery is not supported on IPv6-only setup',
+)
 def test_positive_list_host_based_on_rule_search_query(
     request,
     session,
