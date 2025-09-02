@@ -468,6 +468,9 @@ class IoPSetup:
         self.register_to_cdn()
         self.setup_rhel_repos()
         self.setup_satellite_repos()
+        # Set IPv6 system proxy on Satellite, to reach container registry
+        self.enable_ipv6_system_proxy()
+
         self.podman_login(username, password, registry)
         # TODO: Replace this temporary implementation with a permanent solution.
         result = self.execute(
