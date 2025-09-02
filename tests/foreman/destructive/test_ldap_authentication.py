@@ -253,7 +253,7 @@ def test_single_sign_on_ldap_ad_server(
     assert result.status == 0
     result = target_sat.execute(f'curl -k -u : --negotiate {target_sat.url}/users/extlogin/')
     assert 'redirected' in result.stdout
-    assert f'{target_sat.url}/hosts' in result.stdout
+    assert f'{target_sat.url}/new/hosts' in result.stdout
 
 
 def test_single_sign_on_using_rhsso(
