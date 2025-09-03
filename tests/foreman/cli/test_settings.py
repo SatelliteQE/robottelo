@@ -86,8 +86,12 @@ def test_positive_update_hostname_default_facts(setting_update, module_target_sa
     :expectedresults: Default set fact should be updated with facts list.
     """
     discovery_hostname_value = '["bios_vendor", "uuid"]'
-    module_target_sat.cli.Settings.set({'name': 'discovery_hostname', 'value': discovery_hostname_value})
-    discovery_hostname = module_target_sat.cli.Settings.list({'search': 'name=discovery_hostname'})[0]
+    module_target_sat.cli.Settings.set(
+        {'name': 'discovery_hostname', 'value': discovery_hostname_value}
+    )
+    discovery_hostname = module_target_sat.cli.Settings.list({'search': 'name=discovery_hostname'})[
+        0
+    ]
     assert discovery_hostname['value'] == discovery_hostname_value
 
 
