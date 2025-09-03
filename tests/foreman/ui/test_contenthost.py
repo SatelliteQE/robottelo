@@ -73,6 +73,7 @@ def vm_module_streams(module_repos_collection_with_manifest, rhel8_contenthost, 
     """Virtual machine registered in satellite"""
     module_repos_collection_with_manifest.setup_virtual_machine(rhel8_contenthost)
     rhel8_contenthost.add_rex_key(satellite=target_sat)
+    rhel8_contenthost.run(r'subscription-manager repos --enable \*')
     return rhel8_contenthost
 
 
@@ -227,13 +228,13 @@ def test_positive_end_to_end(
         result = session.contenthost.execute_package_action(
             vm.hostname, 'Package Install', FAKE_0_CUSTOM_PACKAGE_NAME
         )
-        assert result['overview']['job_status'] == 'Success'
+        assert result['hosts'][0]['Status'] == 'Succeeded'
         # Ensure package installed
         packages = session.contenthost.search_package(vm.hostname, FAKE_0_CUSTOM_PACKAGE_NAME)
         assert packages[0]['Installed Package'] == FAKE_0_CUSTOM_PACKAGE
         # Install errata
         result = session.contenthost.install_errata(vm.hostname, FAKE_1_ERRATA_ID)
-        assert result['overview']['hosts_table'][0]['Status'] == 'success'
+        assert result['hosts'][0]['Status'] == 'Succeeded'
         # Ensure errata installed
         packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE_NAME)
         assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
@@ -362,7 +363,7 @@ def test_negative_install_package(session, default_location, vm):
         result = session.contenthost.execute_package_action(
             vm.hostname, 'Package Install', gen_string('alphanumeric')
         )
-        assert result['overview']['job_status'] == 'Failed'
+        assert result['hosts'][0]['Status'] == 'Failed'
 
 
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
@@ -397,7 +398,7 @@ def test_positive_remove_package(session, default_location, vm):
         result = session.contenthost.execute_package_action(
             vm.hostname, 'Package Remove', FAKE_0_CUSTOM_PACKAGE_NAME
         )
-        assert result['overview']['job_status'] == 'Success'
+        assert result['hosts'][0]['Status'] == 'Succeeded'
         packages = session.contenthost.search_package(vm.hostname, FAKE_0_CUSTOM_PACKAGE_NAME)
         assert not packages
 
@@ -433,7 +434,7 @@ def test_positive_upgrade_package(session, default_location, vm):
         result = session.contenthost.execute_package_action(
             vm.hostname, 'Package Update', FAKE_1_CUSTOM_PACKAGE_NAME
         )
-        assert result['overview']['job_status'] == 'Success'
+        assert result['hosts'][0]['Status'] == 'Succeeded'
         packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE)
         assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
 
@@ -471,7 +472,7 @@ def test_positive_install_package_group(session, default_location, vm):
             'Group Install (Deprecated)',
             FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
         )
-        assert result['overview']['job_status'] == 'Success'
+        assert result['hosts'][0]['Status'] == 'Succeeded'
         for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
             packages = session.contenthost.search_package(vm.hostname, package)
             assert packages[0]['Installed Package'] == package
@@ -508,7 +509,7 @@ def test_positive_remove_package_group(session, default_location, vm):
             result = session.contenthost.execute_package_action(
                 vm.hostname, action, FAKE_0_CUSTOM_PACKAGE_GROUP_NAME
             )
-            assert result['overview']['job_status'] == 'Success'
+            assert result['hosts'][0]['Status'] == 'Succeeded'
         for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
             assert not session.contenthost.search_package(vm.hostname, package)
 
@@ -630,6 +631,7 @@ def test_positive_ensure_errata_applicability_with_host_reregistered(session, de
     ],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_positive_host_re_registration_with_host_rename(
     session, default_location, module_org, module_repos_collection_with_manifest, vm
 ):
@@ -658,9 +660,9 @@ def test_positive_host_re_registration_with_host_rename(
     assert result.status == 0
     vm.unregister()
     updated_hostname = f'{gen_string("alpha")}.{vm.hostname}'.lower()
-    vm.run(f'hostnamectl set-hostname {updated_hostname}')
+    result = vm.run(f'hostnamectl set-hostname {updated_hostname}')
     assert result.status == 0
-    vm.register_contenthost(
+    result = vm.register_contenthost(
         module_org.name,
         activation_key=module_repos_collection_with_manifest.setup_content_data['activation_key'][
             'name'
@@ -779,6 +781,7 @@ def test_positive_check_ignore_facts_os_setting(
     ],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_module_stream_actions_on_content_host(
     session, default_location, vm_module_streams, module_target_sat
 ):
@@ -809,7 +812,7 @@ def test_module_stream_actions_on_content_host(
             module_name=FAKE_2_CUSTOM_PACKAGE_NAME,
             stream_version=stream_version,
         )
-        assert result['overview']['hosts_table'][0]['Status'] == 'success'
+        assert result['hosts'][0]['Status'] == 'Succeeded'
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
@@ -828,7 +831,7 @@ def test_module_stream_actions_on_content_host(
             module_name=FAKE_2_CUSTOM_PACKAGE_NAME,
             stream_version=stream_version,
         )
-        assert result['overview']['hosts_table'][0]['Status'] == 'success'
+        assert result['hosts'][0]['Status'] == 'Succeeded'
         assert not session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
@@ -852,7 +855,7 @@ def test_module_stream_actions_on_content_host(
             module_name=FAKE_2_CUSTOM_PACKAGE_NAME,
             stream_version=stream_version,
         )
-        assert result['overview']['hosts_table'][0]['Status'] == 'success'
+        assert result['hosts'][0]['Status'] == 'Succeeded'
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
@@ -870,7 +873,7 @@ def test_module_stream_actions_on_content_host(
             module_name=FAKE_2_CUSTOM_PACKAGE_NAME,
             stream_version=stream_version,
         )
-        assert result['overview']['hosts_table'][0]['Status'] == 'success'
+        assert result['hosts'][0]['Status'] == 'Succeeded'
         assert not session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
@@ -903,6 +906,7 @@ def test_module_stream_actions_on_content_host(
     ],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_module_streams_customize_action(session, default_location, vm_module_streams):
     """Check remote execution for customized module action is working on content host.
 
@@ -927,7 +931,7 @@ def test_module_streams_customize_action(session, default_location, vm_module_st
         session.location.select(default_location.name)
         # installing walrus:0.71 version
         customize_values = {
-            'template_content.module_spec': (
+            'target_hosts_and_inputs.module_spec': (
                 f'{FAKE_2_CUSTOM_PACKAGE_NAME}:{install_stream_version}'
             )
         }
@@ -940,7 +944,7 @@ def test_module_streams_customize_action(session, default_location, vm_module_st
             customize=True,
             customize_values=customize_values,
         )
-        assert result['overview']['hosts_table'][0]['Status'] == 'success'
+        assert result['hosts'][0]['Status'] == 'Succeeded'
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
@@ -967,6 +971,7 @@ def test_module_streams_customize_action(session, default_location, vm_module_st
     ],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_install_modular_errata(session, default_location, vm_module_streams):
     """Populate, Search and Install Modular Errata generated from module streams.
 
@@ -987,7 +992,7 @@ def test_install_modular_errata(session, default_location, vm_module_streams):
             module_name=module_name,
             stream_version=stream_version,
         )
-        assert result['overview']['hosts_table'][0]['Status'] == 'success'
+        assert result['hosts'][0]['Status'] == 'Succeeded'
 
         # downgrade rpm package to generate errata.
         run_remote_command_on_content_host(f'dnf downgrade {module_name} -y', vm_module_streams)
@@ -1009,7 +1014,7 @@ def test_install_modular_errata(session, default_location, vm_module_streams):
         result = session.contenthost.install_errata(
             vm_module_streams.hostname, settings.repos.module_stream_0.errata[2], install_via='rex'
         )
-        assert result['overview']['hosts_table'][0]['Status'] == 'success'
+        assert result['hosts'][0]['Status'] == 'Succeeded'
 
         # ensure errata installed
         assert not session.contenthost.search_module_stream(
@@ -1190,6 +1195,7 @@ def test_module_status_update_without_force_upload_package_profile(
     ],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_module_stream_update_from_satellite(session, default_location, vm_module_streams):
     """Verify module stream enable, update actions works and update the module stream
 
@@ -1213,7 +1219,7 @@ def test_module_stream_update_from_satellite(session, default_location, vm_modul
             module_name=module_name,
             stream_version=stream_version,
         )
-        assert result['overview']['hosts_table'][0]['Status'] == 'success'
+        assert result['hosts'][0]['Status'] == 'Succeeded'
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             module_name,
@@ -1237,7 +1243,7 @@ def test_module_stream_update_from_satellite(session, default_location, vm_modul
             module_name=module_name,
             stream_version=stream_version,
         )
-        assert result['overview']['hosts_table'][0]['Status'] == 'success'
+        assert result['hosts'][0]['Status'] == 'Succeeded'
 
         # ensure module stream get updated
         assert not session.contenthost.search_module_stream(
