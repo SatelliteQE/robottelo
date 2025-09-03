@@ -667,16 +667,21 @@ def test_negative_hosts_limit(module_target_sat, module_org_with_parameter, smar
 @pytest.mark.parametrize(
     'function_repos_collection_with_manifest',
     [
-        {   'distro': 'rhel8',
+        {
+            'distro': 'rhel8',
             'YumRepository': {
                 'url': settings.repos.module_stream_1.url,
-            }
+            },
         }
     ],
     indirect=True,
 )
 def test_positive_install_module_stream(
-    session, function_sca_manifest_org, smart_proxy_location, vm_content_hosts_module_stream, vm_host_collection_module_stream
+    session,
+    function_sca_manifest_org,
+    smart_proxy_location,
+    vm_content_hosts_module_stream,
+    vm_host_collection_module_stream,
 ):
     """Install a module-stream to hosts inside host collection remotely
 
@@ -718,8 +723,7 @@ def test_positive_install_module_stream(
             'distro': 'rhel8',
             'YumRepository': {
                 'url': settings.repos.module_stream_1.url,
-
-            }
+            },
         }
     ],
     indirect=True,
