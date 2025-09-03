@@ -52,3 +52,4 @@ def test_positive_iop_inventory_tags_present(module_target_sat_insights, rhel_in
     assert host_details.results[0].subscription_manager_id
     assert host_details.results[0].satellite_id
     assert host_details.results[0].org_id
+    assert host_details.results[0].insights_id
