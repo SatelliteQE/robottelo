@@ -103,6 +103,7 @@ jobs:
         run: |
             rm -rf ./.github/workflows/dispatch_release.yml
             rm -rf ./.github/workflows/auto_branching.yml
+            rm -rf ./.github/workflows/dependency_merge.yml
 
       - name: Remove CODEOWNERS
         id: remove-codeowners
