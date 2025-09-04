@@ -41,6 +41,16 @@ def function_promoted_cv(function_lce, function_published_cv, target_sat):
 
 
 @pytest.fixture(scope='module')
+def module_rolling_cv(module_org, module_target_sat):
+    return module_target_sat.api.ContentView(organization=module_org, rolling=True).create()
+
+
+@pytest.fixture
+def function_rolling_cv(function_org, target_sat):
+    return target_sat.api.ContentView(organization=function_org, rolling=True).create()
+
+
+@pytest.fixture(scope='module')
 def module_default_org_view(module_org, module_target_sat):
     return module_target_sat.api.ContentView(organization=module_org, name=DEFAULT_CV).search()[0]
 
