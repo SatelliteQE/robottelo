@@ -478,7 +478,7 @@ class IoPSetup:
             cd /root/satellite-iop
             sed -i "s/hosts: all/hosts: localhost/" playbooks/deploy.yaml
             ansible-galaxy collection install -r requirements.yml
-            ansible-playbook -c local playbooks/deploy.yaml
+            ansible-playbook -c local playbooks/deploy.yaml -e "stage_username={username} stage_password={password}"
             ''',
             timeout='20m',
         )
