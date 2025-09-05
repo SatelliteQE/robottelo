@@ -2249,6 +2249,9 @@ FAM_TEST_PLAYBOOKS = [
     "webhook",
 ]
 
+# randomly selected subset of FAM_TEST_PLAYBOOKS to be run in IDM tests
+FAM_IDM_TEST_PLAYBOOKS = ['activation_key', 'content_view', 'job_invocation']
+
 FAM_TEST_LIBVIRT_PLAYBOOKS = [
     "compute_attribute",
     "compute_profile",
