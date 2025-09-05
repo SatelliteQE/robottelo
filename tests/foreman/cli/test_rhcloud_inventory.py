@@ -18,6 +18,7 @@ import time
 
 import pytest
 from wait_for import wait_for
+import yaml
 
 from robottelo.config import robottelo_tmp_dir, settings
 from robottelo.utils.installer import InstallerCommand
@@ -622,7 +623,7 @@ def test_positive_install_iop_custom_certs(
     """
     satellite = sat_ready_rhel
     host = rhel_contenthost
-    iop_settings = settings.rh_cloud.iop_advisor_engine
+    iop_settings = settings.rh_cloud.iop
 
     # Set IPv6 system proxy on Satellite, to reach container registry
     satellite.enable_ipv6_system_proxy()
@@ -648,14 +649,14 @@ def test_positive_install_iop_custom_certs(
     assert result.status == 0, "firewalld is not present and can't be installed"
 
     result = satellite.execute(
-        command='firewall-cmd --add-port="53/udp" --add-port="53/tcp" --add-port="67/udp" '
+        'firewall-cmd --add-port="53/udp" --add-port="53/tcp" --add-port="67/udp" '
         '--add-port="69/udp" --add-port="80/tcp" --add-port="443/tcp" '
         '--add-port="5647/tcp" --add-port="8000/tcp" --add-port="9090/tcp" '
         '--add-port="8140/tcp"'
     )
     assert result.status == 0
 
-    result = satellite.execute(command='firewall-cmd --runtime-to-permanent')
+    result = satellite.execute('firewall-cmd --runtime-to-permanent')
     assert result.status == 0
 
     # Log in to container registry
@@ -664,13 +665,19 @@ def test_positive_install_iop_custom_certs(
     )
     assert result.status == 0, f'Error logging in to container registry: {result.stdout}'
 
-    # Configure installer to use image if not the default, then pull the image
-    satellite.execute(
-        f"""echo "iop_advisor_engine::image: '{iop_settings.registry}/{iop_settings.image_path}'" >> /etc/foreman-installer/custom-hiera.yaml"""
+    # Set up container image path overrides, then pull the images from the registry
+
+    custom_hiera_yaml = yaml.dump(
+        {f'iop::{service}::image': path for service, path in iop_settings.image_paths.items()}
     )
-    satellite.execute(f'podman pull {iop_settings.registry}/{iop_settings.image_path}')
+    satellite.execute(f'echo "{custom_hiera_yaml}" > /etc/foreman-installer/custom-hiera.yaml')
+
+    image_paths = ' '.join(iop_settings.image_paths.values())
+    result = satellite.execute(f"podman pull {image_paths}")
+    assert result.status == 0, f'Error pulling container images from registry: {result.stdout}'
 
     command = InstallerCommand(
+        'enable-iop',
         'certs-update-server',
         'certs-update-server-ca',
         scenario='satellite',
@@ -678,7 +685,6 @@ def test_positive_install_iop_custom_certs(
         certs_server_key=f'/root/{certs_data["key_file_name"]}',
         certs_server_ca_cert=f'/root/{certs_data["ca_bundle_file_name"]}',
         foreman_initial_admin_password=settings.server.admin_password,
-        foreman_plugin_rh_cloud_enable_iop_advisor_engine='true',
     ).get_command()
 
     result = satellite.execute(command, timeout='30m')
