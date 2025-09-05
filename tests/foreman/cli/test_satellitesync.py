@@ -1627,10 +1627,17 @@ class TestContentViewSync:
             1. Create CV, add all setup repos and publish.
             2. Export CV version contents in syncable format.
             3. Import the syncable export, check the content.
+            4. Check the import history.
 
         :expectedresults:
             1. Export succeeds and content is exported.
             2. Import succeeds, content is imported and matches the export.
+            3. Import is properly listed.
+
+        :Verifies: SAT-32667
+
+        :customerscenario: true
+
         """
         # Create CV, add all setup repos and publish
         cv = target_sat.cli_factory.make_content_view({'organization-id': function_org.id})
@@ -1663,7 +1670,7 @@ class TestContentViewSync:
         )
         assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) != ''
 
-        # Import the syncable export
+        # Import the syncable export, check the content
         import_path = target_sat.move_pulp_archive(function_org, export['message'])
         target_sat.cli.ContentImport.version(
             {'organization-id': function_import_org.id, 'path': import_path}
@@ -1691,6 +1698,13 @@ class TestContentViewSync:
         imported_files = target_sat.cli.File.list({'content-view-version-id': importing_cvv['id']})
         assert exported_packages == imported_packages, 'Imported RPMs do not match the export'
         assert exported_files == imported_files, 'Imported Files do not match the export'
+
+        # Check the import history
+        import_list = target_sat.cli.ContentImport.list({'organization-id': function_import_org.id})
+        assert len(import_list) == 1, 'Only 1 import expected within the Organization'
+        assert import_list[0]['path'] == import_path
+        assert import_list[0]['content-view-version'] == importing_cvv['name']
+        assert import_list[0]['content-view-version-id'] == importing_cvv['id']
 
     def test_postive_export_cv_syncable_with_permissions(
         self,
