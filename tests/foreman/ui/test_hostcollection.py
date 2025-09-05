@@ -82,7 +82,9 @@ def vm_content_hosts_module_stream(
 ):
     with Broker(nick='rhel8', host_class=ContentHost, _count=2) as clients:
         for client in clients:
-            function_repos_collection_with_manifest.setup_virtual_machine(client, enable_custom_repos=True)
+            function_repos_collection_with_manifest.setup_virtual_machine(
+                client, enable_custom_repos=True
+            )
             client.add_rex_key(satellite=module_target_sat)
             module_target_sat.api_factory.update_vm_host_location(client, smart_proxy_location.id)
         yield clients
