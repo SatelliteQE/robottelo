@@ -46,7 +46,7 @@ jobs:
       - name: Add the PRT passed/failed labels
         id: prt-status
         if: ${{ always() && github.event.inputs.build_status != '' }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.CHERRYPICK_PAT }}
           script: |
@@ -61,7 +61,7 @@ jobs:
             });
       - name: Remove failed label on test pass or vice-versa
         if: ${{ always() && github.event.inputs.build_status != '' }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.CHERRYPICK_PAT }}
           script: |
