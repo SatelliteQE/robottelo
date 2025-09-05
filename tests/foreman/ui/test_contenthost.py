@@ -71,9 +71,8 @@ def vm(module_repos_collection_with_manifest, rhel7_contenthost, target_sat):
 @pytest.fixture
 def vm_module_streams(module_repos_collection_with_manifest, rhel8_contenthost, target_sat):
     """Virtual machine registered in satellite"""
-    module_repos_collection_with_manifest.setup_virtual_machine(rhel8_contenthost)
+    module_repos_collection_with_manifest.setup_virtual_machine(rhel8_contenthost, enable_custom_repos=True)
     rhel8_contenthost.add_rex_key(satellite=target_sat)
-    rhel8_contenthost.run(r'subscription-manager repos --enable \*')
     return rhel8_contenthost
 
 
