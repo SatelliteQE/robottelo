@@ -11,7 +11,6 @@ from robottelo.constants import (
     AZURERM_RHEL7_FT_IMG_URN,
     AZURERM_RHEL7_UD_IMG_URN,
     DEFAULT_ARCHITECTURE,
-    DEFAULT_OS_SEARCH_QUERY,
 )
 
 
@@ -40,7 +39,9 @@ def sat_azure_domain(sat_azure, sat_azure_loc, sat_azure_org):
 def sat_azure_default_os(sat_azure):
     """Default OS on the Satellite"""
     return (
-        sat_azure.api.OperatingSystem().search(query={'search': DEFAULT_OS_SEARCH_QUERY})[0].read()
+        sat_azure.api.OperatingSystem()
+        .search(query={'search': settings.default_os_search_query})[0]
+        .read()
     )
 
 
