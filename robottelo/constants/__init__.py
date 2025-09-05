@@ -6,7 +6,7 @@ from box import Box
 from nailgun import entities
 
 # This should be updated after each version branch
-SATELLITE_VERSION = "6.18"
+SATELLITE_VERSION = "6.19"
 SATELLITE_OS_VERSION = "9"
 
 # Default system ports
@@ -2248,6 +2248,9 @@ FAM_TEST_PLAYBOOKS = [
     "wait_for_task",
     "webhook",
 ]
+
+# randomly selected subset of FAM_TEST_PLAYBOOKS to be run in IDM tests
+FAM_IDM_TEST_PLAYBOOKS = ['activation_key', 'content_view', 'job_invocation']
 
 FAM_TEST_LIBVIRT_PLAYBOOKS = [
     "compute_attribute",

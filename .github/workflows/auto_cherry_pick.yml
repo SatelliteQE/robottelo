@@ -87,7 +87,7 @@ jobs:
 
       - name: is autoMerging enabled for Auto CherryPicked PRs ?
         if: ${{ always() && steps.cherrypick.outcome == 'success' && contains(github.event.pull_request.labels.*.name, 'AutoMerge_Cherry_Picked') }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.CHERRYPICK_PAT }}
           script: |

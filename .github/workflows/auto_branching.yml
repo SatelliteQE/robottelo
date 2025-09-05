@@ -103,6 +103,7 @@ jobs:
         run: |
             rm -rf ./.github/workflows/dispatch_release.yml
             rm -rf ./.github/workflows/auto_branching.yml
+            rm -rf ./.github/workflows/dependency_merge.yml
 
       - name: Remove CODEOWNERS
         id: remove-codeowners
@@ -172,7 +173,7 @@ jobs:
           github-token: ${{ secrets._REPO_ADMIN_TOKEN }}
 
       - name: add the no-cherrypick label
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets._REPO_ADMIN_TOKEN }}
           script: |
@@ -308,7 +309,7 @@ jobs:
           github-token: ${{ secrets._REPO_ADMIN_TOKEN }}
 
       - name: add the no-cherrypick label
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets._REPO_ADMIN_TOKEN }}
           script: |
