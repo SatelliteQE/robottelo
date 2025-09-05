@@ -35,7 +35,7 @@ jobs:
     steps:
       - name: Find parent PR details
         id: parentPR
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.CHERRYPICK_PAT }}
           script: |
@@ -75,7 +75,7 @@ jobs:
     steps:
       - name: Convert String to List
         id: conversion
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const branches = "${{ github.event.inputs.branches }}";
@@ -143,7 +143,7 @@ jobs:
 
       - name: is autoMerging enabled for Auto CherryPicked PRs ?
         if: ${{ always() && steps.cherrypick.outcome == 'success' && contains(needs.get-parentPR-details.outputs.labels.*.name, 'AutoMerge_Cherry_Picked') }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.CHERRYPICK_PAT }}
           script: |
