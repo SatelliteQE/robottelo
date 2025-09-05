@@ -3509,21 +3509,20 @@ class TestRollingContentView:
             {
                 'id': module_ak.id,
                 'organization-id': module_org.id,
-                'content-view-id': None,
-                'lifecycle-environment-id': None,
+                'content-view-environment-ids': [],
             }
         )
         assert response[0]['message'] == 'Activation key updated.'
         assert response[0]['id'] == str(module_ak.id)
         # ISSUE: AK still retains its Library/rolling_cv association
         module_ak_info = target_sat.cli.ActivationKey.info({'id': module_ak.id})
-        # assert not module_ak_info['content-view-environments']
-        # assert not module_ak_info['content-view-environment-labels]
+        assert not module_ak_info['content-view-environments']
+        assert not module_ak_info['content-view-environment-labels']
         # TODO: Due to above ISSUE, we cannot remove from Library, and cannot delete the cv
 
         # workaround: API update() the ak to contain no CVE
-        module_ak.content_view = module_ak.environment = None
-        module_ak.update(['content_view', 'environment'])
+        # module_ak.content_view = module_ak.environment = None
+        # module_ak.update(['content_view', 'environment'])
         rolling_info = target_sat.cli.ContentView.info({'id': rolling_cv['id']})
         with pytest.raises(KeyError):
             assert not rolling_info['activation-keys']
@@ -3609,8 +3608,8 @@ class TestRollingContentView:
                     'organization-id': module_org.id,
                 }
             )
-        except Exception:
-            logger.info(f'EXCEPTION RAISED: {str(Exception)}')
+        except Exception as e:
+            logger.info(f'EXCEPTION RAISED: {str(e)}')
         rolling_info = target_sat.cli.ContentView.info({'id': rolling_cv['id']})
         assert len(rolling_info['versions']) == 1
         assert rolling_cv['versions'] == rolling_info['versions']
