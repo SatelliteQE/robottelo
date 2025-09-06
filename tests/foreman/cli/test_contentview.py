@@ -12,6 +12,7 @@
 
 """
 
+from copy import deepcopy
 import random
 
 from fauxfactory import gen_alphanumeric, gen_string
@@ -23,15 +24,18 @@ from robottelo.config import settings
 from robottelo.constants import (
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_2_CUSTOM_PACKAGE_NAME,
+    REPOS,
     DataFile,
 )
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
+from robottelo.logging import logger
 from robottelo.utils.datafactory import (
     generate_strings_list,
     invalid_names_list,
     parametrized,
     valid_names_list,
 )
+from tests.foreman.cli.test_errata import new_module_ak, errata_host
 
 
 @pytest.fixture(scope='module')
@@ -3352,6 +3356,543 @@ class TestContentView:
             -1
         ]
         assert lce_prod['id'] == promoted_lce['id']
+
+
+class TestRollingContentView:
+    """Hammer testing for Rolling Content Views."""
+
+    @pytest.mark.upgrade
+    def test_positive_CRUD_rolling(self, module_org, target_sat):
+        """Hammer create, read info, update, and delete the rolling content view.
+        It has the expected attributes for a rolling content view.
+
+        :id: 177784f0-c241-410b-9dae-f25d9ff8d1db
+
+        :steps:
+            1) Create new empty rolling CV
+            2) Check CVs attributes
+            3) Update CVs description
+            4) Try to delete the CV while it is still in Library
+            5) Remove Rolling CV from Library, then Delete it
+
+        :expectedresults:
+            1) We can create, read info, and update the rolling CV.
+            2) We cannot Delete the rolling CV, until it's removed/deleted from environment(s).
+
+        :CaseImportance: Critical
+        """
+        library_id = module_org.read().library.id
+        _name = gen_alphanumeric()
+        # created with expected attributes
+        rolling_cv = target_sat.cli.ContentView.create(
+            {'rolling': True, 'organization-id': module_org.id, 'name': _name}
+        )
+        assert rolling_cv['rolling'] == 'yes'
+        assert rolling_cv['name'] == _name
+        assert rolling_cv['organization'] == module_org.name
+        assert len(rolling_cv['lifecycle-environments']) == 1
+        assert rolling_cv['lifecycle-environments'][0]['id'] == str(library_id)
+        assert len(rolling_cv['versions']) == 1
+        assert rolling_cv['composite'] == 'no'
+        assert rolling_cv['solve-dependencies'] == 'no'
+        assert not rolling_cv['description']
+        # mutate and update
+        new_description = gen_string('utf8')
+        response = target_sat.cli.ContentView.update(
+            {'id': rolling_cv['id'], 'description': new_description}
+        )
+        assert response[0]['message'] == 'Content view updated.'
+        assert response[0]['id'] == str(rolling_cv['id'])
+        rolling_info = target_sat.cli.ContentView.info({'id': rolling_cv['id']})
+        assert rolling_info['description'] == new_description
+        # cannot delete until removed from environment (Library)
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.ContentView.delete({'id': rolling_cv['id']})
+        target_sat.cli.ContentView.remove_from_environment(
+            {'id': rolling_cv['id'], 'lifecycle-environment-id': library_id}
+        )
+        # now we can delete it
+        target_sat.cli.ContentView.delete({'id': rolling_cv['id']})
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.ContentView.info({'id': rolling_cv['id']})
+
+    @pytest.mark.upgrade
+    def test_positive_rolling_with_activation_keys(self, module_org, module_ak, target_sat):
+        """We can use the rolling content view with one or more associated activation keys.
+
+        :id: 8e74dafe-e048-4313-be59-d70353b3c147
+
+        :expectedresults:
+            1) We can use and delete activation keys associated to a rolling content view.
+            2) We cannot delete the rolling content view, until it is unassociated from activation key(s),
+               and removed from environment(s).
+
+        :CaseImportance: Critical
+
+        """
+        library_id = module_org.read().library.id
+        rolling_cv = target_sat.cli_factory.make_content_view(
+            {'rolling': True, 'organization-id': module_org.id}
+        )
+        rolling_info = target_sat.cli.ContentView.info({'id': rolling_cv['id']})
+        # field 'activation-keys' does not exist if there are None added
+        with pytest.raises(KeyError):
+            assert not rolling_info['activation-keys']
+        # Create new activation key providing rolling CV
+        ak = target_sat.cli.ActivationKey.create(
+            {
+                'organization-id': module_org.id,
+                'content-view': rolling_cv['name'],
+                'lifecycle-environment-id': library_id,
+                'name': gen_alphanumeric(),
+            }
+        )
+        # created ak was associated to rolling cv
+        ak_info = target_sat.cli.ActivationKey.info({'id': ak['id']})
+        assert len(ak_info['content-view-environments']) == 1
+        assert ak_info['content-view-environments'][0]['rolling'] == 'yes'
+        assert f'Library/{rolling_cv["label"]}' == ak_info['content-view-environment-labels']
+        assert (
+            ak_info['content-view-environment-labels']
+            == ak_info['content-view-environments'][0]['label']
+        )
+        assert (
+            rolling_cv['versions'][0]['id']
+            == ak_info['content-view-environments'][0]['content-view-version-id']
+        )
+
+        rolling_info = target_sat.cli.ContentView.info({'id': rolling_cv['id']})
+        # field 'activation-keys' present and populated
+        assert len(rolling_info['activation-keys']) == 1
+        assert ak['name'] in rolling_info['activation-keys']
+        # Update an existing activation key with CVE
+        response = target_sat.cli.ActivationKey.update(
+            {
+                'id': module_ak.id,
+                'organization-id': module_org.id,
+                'content-view': rolling_cv['name'],
+                'lifecycle-environment-id': library_id,
+            }
+        )
+        # updated module_ak was associated to rolling cv
+        assert response[0]['message'] == 'Activation key updated.'
+        assert response[0]['id'] == str(module_ak.id)
+        module_ak_info = target_sat.cli.ActivationKey.info({'id': module_ak.id})
+        assert len(module_ak_info['content-view-environments']) == 1
+        assert module_ak_info['content-view-environments'][0]['rolling'] == 'yes'
+        assert f'Library/{rolling_cv["label"]}' == module_ak_info['content-view-environment-labels']
+        assert (
+            module_ak_info['content-view-environment-labels']
+            == module_ak_info['content-view-environments'][0]['label']
+        )
+        assert (
+            rolling_cv['versions'][0]['id']
+            == module_ak_info['content-view-environments'][0]['content-view-version-id']
+        )
+
+        rolling_info = target_sat.cli.ContentView.info({'id': rolling_cv['id']})
+        assert len(rolling_info['activation-keys']) == 2
+        assert module_ak.name in rolling_info['activation-keys']
+        # Can't delete until unassociated from AK's, removed from Library
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.ContentView.remove_from_environment(
+                {'id': rolling_cv['id'], 'lifecycle-environment-id': library_id}
+            )
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.ContentView.delete({'id': rolling_cv['id']})
+        # delete the created ak
+        target_sat.cli.ActivationKey.delete({'id': ak['id']})
+        rolling_info = target_sat.cli.ContentView.info({'id': rolling_cv['id']})
+        assert len(rolling_info['activation-keys']) == 1
+        assert ak['name'] not in rolling_info['activation-keys']
+        # disassociate the module_ak
+        response = target_sat.cli.ActivationKey.update(
+            {
+                'id': module_ak.id,
+                'organization-id': module_org.id,
+                'content-view-environment-ids': [],
+            }
+        )
+        assert response[0]['message'] == 'Activation key updated.'
+        assert response[0]['id'] == str(module_ak.id)
+        # ISSUE: AK still retains its Library/rolling_cv association
+        module_ak_info = target_sat.cli.ActivationKey.info({'id': module_ak.id})
+        assert not module_ak_info['content-view-environments']
+        assert not module_ak_info['content-view-environment-labels']
+        # TODO: Due to above ISSUE, we cannot remove from Library, and cannot delete the cv
+
+        # workaround: API update() the ak to contain no CVE
+        # module_ak.content_view = module_ak.environment = None
+        # module_ak.update(['content_view', 'environment'])
+        rolling_info = target_sat.cli.ContentView.info({'id': rolling_cv['id']})
+        with pytest.raises(KeyError):
+            assert not rolling_info['activation-keys']
+        # now we can remove cv from library
+        target_sat.cli.ContentView.remove_from_environment(
+            {'id': rolling_cv['id'], 'lifecycle-environment-id': library_id}
+        )
+        # now we can delete the cv
+        target_sat.cli.ContentView.delete({'id': rolling_cv['id']})
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.ContentView.info({'id': rolling_cv['id']})
+
+    def test_negative_publish_rolling(self, target_sat, module_org):
+        """Cannot publish the rolling content view.
+
+        :id: a91963e2-41d4-4c8b-9cdb-bab4d0976f80
+
+        :expectedresults: Rolling Content View is not published
+
+        :CaseImportance: Critical
+
+        """
+        rolling_cv = target_sat.cli_factory.make_content_view(
+            {'rolling': True, 'organization-id': module_org.id}
+        )
+        assert len(rolling_cv['versions']) == 1
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.ContentView.publish({'id': rolling_cv['id']})
+        assert (
+            rolling_cv['versions']
+            == target_sat.cli.ContentView.info({'id': rolling_cv['id']})['versions']
+        )
+
+    def test_negative_promote_rolling_version(self, target_sat, module_org, module_lce):
+        """Cannot promote the version of the rolling content view to any environment.
+
+        :id: 9c6e2eae-f25b-4c42-a4aa-2f46ead25e10
+
+        :expectedresults: Rolling Content View Version is not promoted.
+
+        :CaseImportance: Critical
+
+        """
+        library_id = module_org.read().library.id
+        rolling_cv = target_sat.cli_factory.make_content_view(
+            {'rolling': True, 'organization-id': module_org.id}
+        )
+        # try to promote to a new LCE
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.ContentView.version_promote(
+                {
+                    'id': rolling_cv['versions'][0]['id'],
+                    'to-lifecycle-environment-id': module_lce.id,
+                }
+            )
+        # try to promote to Library
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.ContentView.version_promote(
+                {
+                    'id': rolling_cv['versions'][0]['id'],
+                    'to-lifecycle-environment-id': library_id,
+                }
+            )
+
+    def test_negative_remove_rolling_version(self, target_sat, module_org):
+        """Cannot use Hammer to remove/delete the rolling content view's version.
+
+        :id: 7c67f5df-2717-41a6-8d03-d664caab3690
+
+        :expectedresults: The single rolling version is not removed
+
+        :CaseImportance: Critical
+
+        """
+        rolling_cv = target_sat.cli_factory.make_content_view(
+            {'rolling': True, 'organization-id': module_org.id}
+        )
+        try:
+            target_sat.cli.ContentView.remove_version(
+                {
+                    'id': rolling_cv['versions'][0]['id'],
+                    'content-view-id': rolling_cv['id'],
+                    'organization-id': module_org.id,
+                }
+            )
+        except Exception as e:
+            logger.info(f'EXCEPTION RAISED: {str(e)}')
+        rolling_info = target_sat.cli.ContentView.info({'id': rolling_cv['id']})
+        assert len(rolling_info['versions']) == 1
+        assert rolling_cv['versions'] == rolling_info['versions']
+
+    def test_negative_convert_to_rolling(self, target_sat, module_org):
+        """Cannot update a normal content view to be a rolling content view.
+
+        :id: 97a476c4-ec00-4dc8-ab42-0a93e3f50de5
+
+        :expectedresults: Normal content view is not converted to Rolling.
+
+        :CaseImportance: Critical
+
+        """
+        normal_cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
+        assert normal_cv['rolling'] == 'no'
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.ContentView.update({'id': normal_cv['id'], 'rolling': 'yes'})
+        assert target_sat.cli.ContentView.info({'id': normal_cv['id']})['rolling'] == 'no'
+
+    def test_negative_rolling_in_a_composite(self, target_sat, module_org):
+        """Cannot add the rolling content view to a composite content view.
+
+        :id: d0100a6f-b80a-483e-b319-48ab5aaa572c
+
+        :expectedresults: The rolling content view is not added
+            as a component of the composite content view.
+
+        :CaseImportance: High
+
+        """
+        # try to create a rolling + composite CV
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.ContentView.create(
+                {
+                    'organization-id': module_org.id,
+                    'name': gen_alphanumeric(),
+                    'composite': True,
+                    'rolling': True,
+                }
+            )
+        rolling_cv = target_sat.cli_factory.make_content_view(
+            {'rolling': True, 'organization-id': module_org.id}
+        )
+        composite_cv = target_sat.cli_factory.make_content_view(
+            {'composite': True, 'organization-id': module_org.id}
+        )
+        # try to add Rolling CV '--latest' Version to Composite
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.ContentView.component_add(
+                {
+                    'composite-content-view-id': composite_cv['id'],
+                    'component-content-view-id': rolling_cv['id'],
+                    'latest': True,
+                },
+            )
+        # try to add Rolling CV Version by id
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.ContentView.component_add(
+                {
+                    'composite-content-view-id': composite_cv['id'],
+                    'component-content-view-id': rolling_cv['id'],
+                    'component-content-view-version-id': rolling_cv['versions'][0]['id'],
+                },
+            )
+
+    def test_negative_create_update_with_invalid_params(self, target_sat, module_org):
+        """Cannot create or update rolling content view providing an invalid configuration.
+
+        :id: f64f24f9-f8d2-46c2-9a07-9a6965689bce
+
+        :steps:
+            1) try to create a Composite rolling content view
+            2) try to create a dependancy-solving rolling content view
+            3) try to create an auto-publish (and Composite) rolling content view
+            4) create a valid rolling content view
+            5) try to update the valid rolling cv with the invalid params
+
+        :expectedresults:
+            1) Invalid Rolling Content View is not created
+            2) Invalid Update for Rolling Content View is not executed
+
+        :CaseImportance: High
+
+        """
+        _name = gen_alphanumeric()
+        with pytest.raises(CLIReturnCodeError):
+            # rolling + composite
+            target_sat.cli.ContentView.create(
+                {
+                    'organization-id': module_org.id,
+                    'name': _name,
+                    'rolling': True,
+                    'composite': True,
+                }
+            )
+        with pytest.raises(CLIReturnCodeError):
+            # rolling + dep-solve
+            target_sat.cli.ContentView.create(
+                {
+                    'organization-id': module_org.id,
+                    'name': _name,
+                    'rolling': True,
+                    'solve-dependencies': 1,
+                }
+            )
+        with pytest.raises(CLIReturnCodeError):
+            # rolling + auto-publish (composite)
+            target_sat.cli.ContentView.create(
+                {
+                    'organization-id': module_org.id,
+                    'name': _name,
+                    'rolling': True,
+                    'composite': True,
+                    'auto-publish': 1,
+                }
+            )
+        rolling_cv = target_sat.cli_factory.make_content_view(
+            {'rolling': True, 'organization-id': module_org.id}
+        )
+        cv_info = target_sat.cli.ContentView.info({'id': rolling_cv['id']})
+        assert cv_info == rolling_cv
+        assert rolling_cv['composite'] == 'no'
+        assert rolling_cv['solve-dependencies'] == 'no'
+        assert 'auto-publish' not in rolling_cv
+        # update newly created rolling cv with invalid params
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.ContentView.update({'id': rolling_cv['id'], 'composite': True})
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.ContentView.update({'id': rolling_cv['id'], 'solve-dependencies': 1})
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.ContentView.update({'id': rolling_cv['id'], 'auto-publish': 1})
+
+    @pytest.mark.stubbed
+    @pytest.mark.e2e
+    @pytest.mark.upgrade
+    def test_positive_add_remove_repos_from_rolling(
+        self,
+        module_target_sat,
+        module_rolling_cv,
+        module_sca_manifest_org,
+        module_product,
+    ):
+        """Can add and remove one or multiple repositories from the rolling content view.
+        We can remove the rolling cv from Library and delete it, with synced repos still contained.
+        For RedHat and Custom repositories added.
+
+        :id: b3ad3fd6-066a-4620-90f6-f1c46eb952d1
+
+        :setup:
+            1) Create one custom repository, create a rolling cv with it
+            2) add the other custom repos to rolling cv, update
+
+        :steps:
+            1) add two Red Hat repositories to the rolling cv
+            2) remove a single custom repository from the rolling cv
+            3) remove a single RedHat repository from the rolling cv
+            4) delete the rolling CV with custom and RH repos still added
+
+        :expectedresults:
+            1) We can create a rolling cv providing a repository.
+            2) We can add and remove Custom and RedHat repositories.
+            3) Version of the rolling CV is updated when a synced repository is added or removed.
+            4) (SAT-37282) We can delete the rolling cv with some repos still added to it.
+
+        :CaseImportance: High
+
+        :Verifies: SAT-37282
+
+        """
+        custom_repo_urls = [
+            settings.repos.yum_3.url,
+            settings.repos.yum_6.url,
+            settings.repos.yum_9.url,
+        ]
+        initial_version = None
+        org = module_sca_manifest_org
+        for _url in custom_repo_urls:
+            # create each custom repo and add to rolling cv
+            repo = module_target_sat.cli.Repository.create(
+                {'name': gen_alphanumeric(), 'url': _url, 'product': module_product}
+            )
+            module_target_sat.cli.ContentView.add_repository(
+                {
+                    'id': module_rolling_cv['id'],
+                    'organization-id': org.id,
+                    'repository-id': repo['id'],
+                }
+            )
+            # sync after adding to cv, to trigger new version via updated repo content
+            module_target_sat.cli.Repository.sync({'id': repo['id']})
+
+        rolling_info = module_target_sat.cli.ContentView.info({'id': module_rolling_cv['id']})
+        initial_version = deepcopy(rolling_info['versions'])
+        rhel_major = settings.content_host.default_rhel_version
+        # add RedHat Repositories - RHEL BaseOS, AppStream
+        for repo_tail in ['bos', 'aps']:
+            _repo = f'rhel{rhel_major}_{repo_tail}'  # 'rhel9_bos', 'rhel9_aps', etc
+            # API setup just to enable &sync
+            rh_repo_id = module_target_sat.api_factory.enable_sync_redhat_repo(
+                rh_repo=REPOS[f'{_repo}'],
+                org_id=org.id,
+                timeout=2400,
+            )
+            # Hammer add the rh repo to rolling cv
+            module_target_sat.cli.ContentView.add_repository(
+                {'id': rolling_info['id'], 'organization-id': org.id, 'repository-id': rh_repo_id}
+            )
+        rolling_info = module_target_sat.cli.ContentView.info({'id': rolling_info['id']})
+        num_repos = len(rolling_info['repository'])
+        assert num_repos == 5  # 3 custom and 2 rh repos
+        rolling_repos = deepcopy(rolling_info['repository'])
+        current_version = module_target_sat.cli.ContentView.info({'id': rolling_info['id']})[
+            'versions'
+        ]
+        assert len(initial_version) == len(current_version) == 1
+        # version has changed since adding rh repos
+        assert initial_version[0] != current_version[0]
+        # check that all repos are reported by $hammer content-view version repos
+        # remove a RedHat repository (tail)
+        _remove_this = rolling_info['repositories'][-1]
+        _remove_this = module_target_sat.cli.ContentView.remove_repository(
+            {'id': rolling_info['id'], 'repository-id': _remove_this['id']}
+        )
+        rolling_info = module_target_sat.cli.ContentView.info({'id': rolling_info['id']})
+        assert _remove_this['name'] not in rolling_info['repositories']
+        assert len(rolling_info['repositories']) == num_repos - 1
+        newest_version = rolling_info['versions'][0]
+        assert current_version != newest_version
+        current_version = newest_version
+        # check that the removed rh repos is not reported by
+        #   $hammer content-view version repos
+        # remove a custom repo (head)
+        _remove_this = module_target_sat.cli.ContentView.remove_repository(
+            {'id': rolling_info['id'], 'repository-id': _remove_this['id']}
+        )
+        rolling_info = module_target_sat.cli.ContentView.info({'id': rolling_info['id']})
+        assert _remove_this['name'] not in rolling_info['repositories']
+        newest_version = rolling_info['versions'][0]
+        assert current_version != newest_version
+        # check that the removed custom repo is not reported by
+        #   $hammer content-view version repos
+        # we removed 1 custom and 1 rh repo
+        assert len(rolling_info['repositories']) == num_repos - 2
+        with pytest.raises(CLIReturnCodeError):
+            # cannot delete until removed from Library
+            module_target_sat.cli.ContentView.delete({'id': rolling_info['id']})
+        # remove from Library, delete cv with some repos still added
+        module_target_sat.cli.ContentView.remove_from_environment(
+            {
+                'id': rolling_info['id'],
+                'lifecycle-environment-id': rolling_info['environment'][0]['id'],
+            }
+        )
+        module_target_sat.cli.ContentView.delete({'id': rolling_info['id']})
+        # can't read the deleted cv
+        with pytest.raises(CLIReturnCodeError):
+            module_target_sat.cli.ContentView.info({'id': rolling_info['id']})
+        # can still access all 5 repos
+        for repo_id in [r['id'] for r in rolling_repos]:
+            module_target_sat.cli.Repository.info({'id': repo_id['id']})
+            module_target_sat.cli.ContentView.sync({'id': repo_id['id']})
+
+    @pytest.mark.stubbed
+    @pytest.mark.e2e
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_match('N-2')
+    def test_positive_host_with_rolling_content_source(
+        self,
+        target_sat,
+        function_rolling_cv,
+        function_sca_manifest_org,
+        function_product,
+        new_module_ak,
+        errata_host,
+        request,
+    ):
+        """
+        :id: 4b20e881-daf7-4bfb-80e0-0cbe7e7b43e0
+        """
+        breakpoint()
+
 
 
 class TestContentViewFileRepo:
