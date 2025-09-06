@@ -35,6 +35,7 @@ from robottelo.utils.datafactory import (
     parametrized,
     valid_names_list,
 )
+from tests.foreman.cli.test_errata import new_module_ak, errata_host
 
 
 @pytest.fixture(scope='module')
@@ -3881,14 +3882,17 @@ class TestRollingContentView:
         self,
         target_sat,
         function_rolling_cv,
-        module_rhel_contenthost,
         function_sca_manifest_org,
         function_product,
+        new_module_ak,
+        errata_host,
         request,
     ):
         """
         :id: 4b20e881-daf7-4bfb-80e0-0cbe7e7b43e0
         """
+        breakpoint()
+
 
 
 class TestContentViewFileRepo:
