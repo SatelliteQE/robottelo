@@ -103,13 +103,18 @@ def setup_capsules(
                 capsule_id = i['id']
                 break
 
-        module_target_sat.cli.Capsule.content_add_lifecycle_environment(
-            {
-                'id': capsule_id,
-                'organization-id': module_org.id,
-                'lifecycle-environment': content_for_client['client_lce'].name,
-            }
+        capsule_environments = module_target_sat.cli.Capsule.content_lifecycle_environments(
+            {'id': capsule_id, 'organization-id': module_org.id}
         )
+        capsule_env_names = {env['name'] for env in capsule_environments}
+        if content_for_client['client_lce'].name not in capsule_env_names:
+            module_target_sat.cli.Capsule.content_add_lifecycle_environment(
+                {
+                    'id': capsule_id,
+                    'organization-id': module_org.id,
+                    'lifecycle-environment': content_for_client['client_lce'].name,
+                }
+            )
         module_target_sat.cli.Capsule.content_synchronize(
             {'id': capsule_id, 'organization-id': module_org.id}
         )
@@ -337,7 +342,7 @@ def test_loadbalancer_container(
     assert rhel_contenthost.execute('podman rmi -a').status == 0
 
 
-@pytest.mark.rhel_ver_match('N-2')
+@pytest.mark.rhel_ver_match('N-1')
 def test_client_register_through_lb(
     loadbalancer_setup,
     rhel_contenthost,
