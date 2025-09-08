@@ -16,7 +16,6 @@ from fauxfactory import gen_ipaddr, gen_mac, gen_string
 import pytest
 
 from robottelo.config import settings
-from robottelo.utils.issue_handlers import is_open
 
 pytestmark = [pytest.mark.tier1]
 
@@ -124,8 +123,6 @@ def test_positive_facts_end_to_end(
         'ansible_distribution_major_version': str(rhel_contenthost.os_version.major),
         'ansible_fqdn': rhel_contenthost.hostname,
     }
-    if not is_open('SAT-27056'):
-        expected_values['net::interface::eth1::mac_address'] = mac_address.lower()
     for fact, expected_value in expected_values.items():
         actual_value = facts_dict.get(fact)
         assert actual_value == expected_value, (
