@@ -320,9 +320,7 @@ def test_positive_lock_clone_nodelete_unlock_report(target_sat):
     )
 
 
-@pytest.mark.tier2
-@pytest.mark.stubbed
-def test_positive_export_report():
+def test_positive_export_report(target_sat):
     """Export report template
 
     :id: a4b577db-144e-4761-a42e-a83887464986
@@ -335,8 +333,13 @@ def test_positive_export_report():
 
     :expectedresults: Report script is shown
 
-    :CaseImportance: High
     """
+    template_name = gen_string('alpha').lower()
+    template_content = gen_string('alpha')
+    rt = target_sat.api.ReportTemplate(name=template_name, template=template_content).create()
+    res = rt.export()
+    assert template_name in res
+    assert template_content in res
 
 
 @pytest.mark.tier2
