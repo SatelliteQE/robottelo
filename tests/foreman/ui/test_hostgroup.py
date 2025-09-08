@@ -315,9 +315,11 @@ def test_positive_clone_host_groups(
         )
         assert target_sat.api.HostGroup().search(query={'search': f'name={clone_hg_name}'})
         clone_hostgroup_values = session.hostgroup.read(clone_hg_name)
-        assert module_ak_cv_lce.name in clone_hostgroup_values['host_group']['lce']
+        assert module_lce.name in clone_hostgroup_values['host_group']['lce']
         assert module_published_cv.name in clone_hostgroup_values['host_group']['content_view']
-        assert module_ak_cv_lce.name in clone_hostgroup_values['activation_keys']['activation_keys']
+        assert (
+            module_ak_cv_lce.name in clone_hostgroup_values['activation_keys']['ak_chip_group'][0]
+        )
         assert os_name in clone_hostgroup_values['operating_system']['operating_system']
         assert architecture.name in clone_hostgroup_values['operating_system']['architecture']
 
