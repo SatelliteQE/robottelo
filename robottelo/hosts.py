@@ -213,12 +213,12 @@ class ContentHost(Host, ContentHostMixins):
     @property
     def subscribed(self):
         """Boolean representation of a content host's subscription status"""
-        subman_status_result = self.execute('subscription-manager status').stdout
-        # Return False if host shows either "Unknown" or "Not registered" status
-        return (
-            'Overall Status: Unknown' not in subman_status_result
-            and 'Overall Status: Not registered' not in subman_status_result
-        )
+        result_status = self.execute('subscription-manager identity').status
+        if result_status not in [0, 1]:
+            raise ValueError(
+                'Unexpected output from subscription-manager identity, anything else than RC:0 or RC:1 is unexpected!'
+            )
+        return not bool(result_status)
 
     @property
     def identity(self):
