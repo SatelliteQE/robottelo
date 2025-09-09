@@ -212,7 +212,7 @@ class ContentHost(Host, ContentHostMixins):
 
     @property
     def subscribed(self):
-        """Boolean representation of a content host's subscription status"""
+        """Boolean representation of a content host's subscription-manager identity command"""
         result_status = self.execute('subscription-manager identity').status
         if result_status not in [0, 1]:
             raise ValueError(
