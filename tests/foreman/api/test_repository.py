@@ -1500,6 +1500,38 @@ class TestRepositorySync:
         )
         assert 'Candlepin job status: SUCCESS' in output, 'Failed to refresh manifest'
 
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
+    def test_positive_sync_rpm_missing_filelists(self, target_sat):
+        """Synchronize repository with RPMs that have missing filelists with SSL verification disabled.
+
+        :id: 6a5a3d4d-f9b1-4a2c-8e5d-2b9c4d8f7e6a
+
+        :expectedresults: Repository sync should complete successfully even when
+            RPM packages are missing filelists metadata and SSL verification is disabled.
+
+        :CaseImportance: Medium
+
+        :verifies: SAT-30999
+        """
+        org = target_sat.api.Organization().create()
+        product = target_sat.api.Product(organization=org).create()
+        repo = target_sat.api.Repository(
+            product=product, 
+            content_type='yum',
+            url=settings.repos.rpm_missing_filelists.url,
+            verify_ssl_on_sync=False
+        ).create()
+        
+        # Sync the repository
+        response = repo.sync()
+        assert response, f"Repository {repo} failed to sync."
+        
+        # Verify repository was synchronized successfully
+        repo = repo.read()
+        assert repo.last_sync is not None, "Repository was not synced successfully."
+        assert repo.content_counts.get('rpm', 0) > 0, "Repository should contain RPM packages after sync."
 
 class TestDockerRepository:
     """Tests specific to using ``Docker`` repositories."""
