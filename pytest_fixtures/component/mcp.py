@@ -1,8 +1,8 @@
 from datetime import datetime
-from time import sleep
 
 from fauxfactory import gen_string
 import pytest
+from wait_for import wait_for
 
 from robottelo.config import settings
 
@@ -35,38 +35,104 @@ def _create_viewer_user(target_sat, org, location, permission_name):
     return (viewer, viewer_password, viewer_pat_value)
 
 
-@pytest.fixture(scope='module')
-def module_mcp_target_sat(module_target_sat):
-    """A module-level fixture to provide an MCP server configured on Satellite"""
-    container_name = f'mcp_server-{datetime.timestamp(datetime.now())}'
-    result = module_target_sat.execute(
-        f'firewall-cmd --permanent --add-port="{settings.foreman_mcp.port}/tcp"'
+def _setup_mcp_server(target_sat, settings_obj, is_downstream=False):
+    """Helper function to set up MCP server.
+
+    :param target_sat: The target satellite instance
+    :param settings_obj: The settings object (foreman_mcp or foreman_mcp_downstream)
+    :param is_downstream: Whether this is a downstream setup
+    :return: Container name for cleanup
+    """
+    if not target_sat.network_type.has_ipv4:
+        target_sat.enable_ipv6_dnf_and_rhsm_proxy()
+        target_sat.enable_ipv6_system_proxy()
+    container_name = (
+        f'mcp_server{"_downstream" if is_downstream else ""}-{datetime.timestamp(datetime.now())}'
     )
-    assert result.status == 0
-    result = module_target_sat.execute('firewall-cmd --reload')
-    assert result.status == 0
-    module_target_sat.ensure_podman_installed()
-    result = module_target_sat.execute(f'podman pull {settings.foreman_mcp.registry}')
-    assert result.status == 0
-    module_target_sat.execute(
-        f'podman run --name {container_name} -d --pull=never -it -p {settings.foreman_mcp.port}:8080 \
-            foreman-mcp-server --foreman-url https://{settings.server.hostname} --host 0.0.0.0 --no-verify-ssl'
+    image_name = settings_obj.image_path.split('/')[-1]
+    assert (
+        target_sat.execute(f'firewall-cmd --permanent --add-port="{settings_obj.port}/tcp"').status
+        == 0
     )
-    sleep(20)
-    result = module_target_sat.execute(
-        f'podman inspect -f "{{{{.State.Status}}}}" {container_name}'
+    assert target_sat.execute('firewall-cmd --reload').status == 0
+    target_sat.ensure_podman_installed()
+    if is_downstream:
+        target_sat.podman_login(
+            settings_obj.registry_stage_username,
+            settings_obj.registry_stage_password,
+            settings_obj.registry_stage,
+        )
+        registry = settings_obj.registry_stage
+        ca_mountpoint = '/opt/app-root/src/ca.pem'
+    else:
+        registry = settings_obj.registry
+        ca_mountpoint = '/app/ca.pem'
+    if not target_sat.network_type.has_ipv4:
+        target_sat.execute('podman network create --ipv6 ipv6')
+    assert target_sat.execute(f'podman pull {registry}/{settings_obj.image_path}').status == 0
+    target_sat.execute(
+        f'podman run {"--network ipv6" if not target_sat.network_type.has_ipv4 else ""} '
+        f'-v /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem:{ca_mountpoint}:ro,Z '
+        f'--name {container_name} -d --pull=never -it -p {settings_obj.port}:8080 '
+        f'{image_name} --foreman-url https://{target_sat.hostname} --host 0.0.0.0'
     )
-    log = module_target_sat.execute(f'podman logs {container_name}')
+    wait_for(
+        lambda: target_sat.execute(f'curl localhost:{settings_obj.port}/mcp/').status == 0,
+        timeout=60,
+        delay=2,
+    )
+    result = target_sat.execute(f'podman inspect -f "{{{{.State.Status}}}}" {container_name}')
+    log = target_sat.execute(f'podman logs {container_name}')
     assert result.stdout.strip() == 'running', (
         f'failed to start container {container_name}: {log.stdout}'
         f'failed to start container {container_name}: {log.stderr}'
     )
-    yield module_target_sat
-    module_target_sat.execute(f'podman kill {container_name}')
-    result = module_target_sat.execute(
-        f'podman inspect -f "{{{{.State.Status}}}}" {container_name}'
-    )
+    return container_name
+
+
+def _cleanup_mcp_server(target_sat, container_name, registry, image_path):
+    """Helper function to clean up MCP server.
+
+    :param target_sat: The target satellite instance
+    :param container_name: Name of the container to clean up
+    :param registry: Registry path
+    :param image_path: Image path
+    """
+    target_sat.execute(f'podman kill {container_name}')
+    result = target_sat.execute(f'podman inspect -f "{{{{.State.Status}}}}" {container_name}')
     assert result.stdout.strip() == 'exited', f'failed to clean up container {container_name}'
+    target_sat.execute(f'podman rm {container_name}')
+    target_sat.execute(f'podman rmi {registry}/{image_path}')
+    if not target_sat.network_type.has_ipv4:
+        target_sat.execute('podman network rm ipv6')
+
+
+@pytest.fixture(scope='module')
+def module_mcp_target_sat(module_target_sat):
+    """A module-level fixture to provide an MCP server configured on Satellite"""
+    container_name = _setup_mcp_server(module_target_sat, settings.foreman_mcp)
+    yield module_target_sat
+    _cleanup_mcp_server(
+        module_target_sat,
+        container_name,
+        settings.foreman_mcp.registry,
+        settings.foreman_mcp.image_path,
+    )
+
+
+@pytest.fixture(scope='module')
+def module_downstream_mcp_target_sat(module_target_sat):
+    """A module-level fixture to provide an downstream distribution of MCP server configured on Satellite"""
+    container_name = _setup_mcp_server(
+        module_target_sat, settings.foreman_mcp_downstream, is_downstream=True
+    )
+    yield module_target_sat
+    _cleanup_mcp_server(
+        module_target_sat,
+        container_name,
+        settings.foreman_mcp_downstream.registry_stage,
+        settings.foreman_mcp_downstream.image_path,
+    )
 
 
 @pytest.fixture
