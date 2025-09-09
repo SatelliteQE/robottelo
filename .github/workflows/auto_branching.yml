@@ -138,7 +138,7 @@ jobs:
       - name: Commit changes
         run: |
           git config --local user.email Satellite-QE.satqe.com && git config --local user.name Satellite-QE
-          git add pyproject.toml ./tests/foreman ./robottelo/* ./requirements.txt ./.github/*
+          git add pyproject.toml ./tests/foreman/ ./robottelo/ ./requirements.txt ./.github/
           git commit -m "Changes for ${{ github.event.inputs.target_branch }} new branch"
           git push origin ${{steps.checkout-to-auto-branch.outputs.branch_name}}
 
