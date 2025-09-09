@@ -212,7 +212,7 @@ class ContentHost(Host, ContentHostMixins):
 
     @property
     def subscribed(self):
-        """Boolean representation of a content host's subscription-manager identity command"""
+        """Returns True if host is registered, False otherwise"""
         result_status = self.execute('subscription-manager identity').status
         if result_status not in [0, 1]:
             raise ValueError(
