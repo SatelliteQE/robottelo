@@ -7,7 +7,6 @@ from functools import cached_property, lru_cache
 import importlib
 import io
 import json
-import os
 from pathlib import Path, PurePath
 import random
 import re
@@ -1648,9 +1647,7 @@ class ContentHost(Host, ContentHostMixins):
             auth_b64 = base64.b64encode(auth_str.encode()).decode()
             auth_data = {'auths': {f'{registry}': {'auth': auth_b64}}}
             local_authfile_path = f'{robottelo_tmp_dir}/podman-auth.json'
-            sat_authfile_path = os.path.join(
-                self.execute('echo ${XDG_RUNTIME_DIR}').stdout.strip(), 'containers', 'auth.json'
-            )
+            sat_authfile_path = '/etc/foreman/registry-auth.json'
             with open(local_authfile_path, 'w') as f:
                 json.dump(auth_data, f)
             self.put(local_authfile_path, sat_authfile_path)
