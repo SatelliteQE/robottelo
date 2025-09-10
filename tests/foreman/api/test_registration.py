@@ -132,14 +132,21 @@ def test_positive_allow_reregistration_when_dmi_uuid_changed(
 
 
 @pytest.mark.rhel_ver_match('N-1')
-def test_positive_update_packages_registration(
+def test_positive_registration_with_package_update(
     module_target_sat,
     module_sca_manifest_org,
     module_location,
-    rhel_contenthost,
     module_activation_key,
+    rhel_contenthost,
 ):
-    """Test package update on host post registration
+    """
+    Test update_packages option during the registration process.
+
+    :steps:
+        1. Set up a fake repository with packages that have updates available.
+        2. Install an older version of a package from that repository.
+        3. Register the host with update_packages=True
+        4. Verify that the package was updated during registration.
 
     :id: 3d0a3252-ab81-4acf-bca6-253b746f26bb
 
@@ -147,21 +154,33 @@ def test_positive_update_packages_registration(
     """
     # Adding IPv6 proxy for IPv6 communication
     rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
-    org = module_sca_manifest_org
+    # Set up fake repository with packages that have updates available
+    repo_url = settings.repos.yum_3['url']
+    rhel_contenthost.create_custom_repos(fake_yum=repo_url)
+
+    # Install an older package version
+    old_package = constants.FAKE_7_CUSTOM_PACKAGE
+    result = rhel_contenthost.execute(f'yum install -y {old_package}')
+    assert result.status == 0, f'Failed to install {old_package}: {result.stderr}'
+
+    # Get the available updates before registration
+    pre_update_check = rhel_contenthost.execute('dnf list --updates').stdout
+
+    # Register with update_packages=True
     result = rhel_contenthost.api_register(
         module_target_sat,
-        organization=org,
+        organization=module_sca_manifest_org,
         activation_keys=[module_activation_key.name],
         location=module_location,
         update_packages=True,
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
+    assert rhel_contenthost.subscribed, 'Host is not subscribed after registration!'
 
-    package = constants.FAKE_7_CUSTOM_PACKAGE
-    repo_url = settings.repos.yum_3['url']
-    rhel_contenthost.create_custom_repos(fake_yum=repo_url)
-    result = rhel_contenthost.execute(f"yum install -y {package}")
-    assert result.status == 0
+    # Verify that the package was updated
+    post_update_check = rhel_contenthost.execute('dnf list --updates').stdout
+    assert post_update_check != pre_update_check, 'Package updates should have been applied!'
+    assert 'Available Upgrades' not in post_update_check
 
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
