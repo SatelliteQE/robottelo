@@ -730,11 +730,11 @@ def test_positive_install_module_stream(
     indirect=True,
 )
 def test_positive_install_modular_errata(
-        session,
-        function_sca_manifest_org,
-        smart_proxy_location,
-        vm_content_hosts_module_stream,
-        vm_host_collection_module_stream
+    session,
+    function_sca_manifest_org,
+    smart_proxy_location,
+    vm_content_hosts_module_stream,
+    vm_host_collection_module_stream,
 ):
     """Install Modular Errata generated from module streams.
 
