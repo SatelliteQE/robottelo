@@ -78,11 +78,13 @@ def vm_content_hosts(smart_proxy_location, module_repos_collection, module_targe
 
 @pytest.fixture
 def vm_content_hosts_module_stream(
-    smart_proxy_location, module_repos_collection_with_manifest, module_target_sat
+    smart_proxy_location, function_repos_collection_with_manifest, module_target_sat
 ):
     with Broker(nick='rhel8', host_class=ContentHost, _count=2) as clients:
         for client in clients:
-            module_repos_collection_with_manifest.setup_virtual_machine(client)
+            function_repos_collection_with_manifest.setup_virtual_machine(
+                client, enable_custom_repos=True
+            )
             client.add_rex_key(satellite=module_target_sat)
             module_target_sat.api_factory.update_vm_host_location(client, smart_proxy_location.id)
         yield clients
@@ -101,14 +103,14 @@ def vm_host_collection(module_target_sat, module_org_with_parameter, vm_content_
 
 @pytest.fixture
 def vm_host_collection_module_stream(
-    module_target_sat, module_org_with_parameter, vm_content_hosts_module_stream
+    module_target_sat, function_sca_manifest_org, vm_content_hosts_module_stream
 ):
     host_ids = [
         module_target_sat.api.Host().search(query={'search': f'name={host.hostname}'})[0].id
         for host in vm_content_hosts_module_stream
     ]
     return module_target_sat.api.HostCollection(
-        host=host_ids, organization=module_org_with_parameter
+        host=host_ids, organization=function_sca_manifest_org
     ).create()
 
 
@@ -664,19 +666,23 @@ def test_negative_hosts_limit(module_target_sat, module_org_with_parameter, smar
 
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
-    'module_repos_collection_with_manifest',
+    'function_repos_collection_with_manifest',
     [
         {
+            'distro': 'rhel8',
             'YumRepository': {
                 'url': settings.repos.module_stream_1.url,
-                'distro': 'rhel8',
-            }
+            },
         }
     ],
     indirect=True,
 )
 def test_positive_install_module_stream(
-    session, smart_proxy_location, vm_content_hosts_module_stream, vm_host_collection_module_stream
+    session,
+    function_sca_manifest_org,
+    smart_proxy_location,
+    vm_content_hosts_module_stream,
+    vm_host_collection_module_stream,
 ):
     """Install a module-stream to hosts inside host collection remotely
 
@@ -694,6 +700,7 @@ def test_positive_install_module_stream(
     """
     _run_remote_command_on_content_hosts('dnf -y upload-profile', vm_content_hosts_module_stream)
     with session:
+        session.organization.select(function_sca_manifest_org.name)
         session.location.select(smart_proxy_location.name)
         result = session.hostcollection.manage_module_streams(
             vm_host_collection_module_stream.name,
@@ -701,9 +708,9 @@ def test_positive_install_module_stream(
             module_name=constants.FAKE_3_CUSTOM_PACKAGE_NAME,
             stream_version="0",
         )
-        assert result['overview']['job_status'] == 'Success'
-        assert result['overview']['job_status_progress'] == '100%'
-        assert int(result['overview']['total_hosts']) == 2
+        assert result['status']['Succeeded'] == 2
+        assert result['overall_status']['succeeded_hosts'] == 2
+        assert result['overall_status']['total_hosts'] == 2
         assert _is_package_installed(
             vm_content_hosts_module_stream, constants.FAKE_3_CUSTOM_PACKAGE
         )
@@ -711,19 +718,23 @@ def test_positive_install_module_stream(
 
 @pytest.mark.upgrade
 @pytest.mark.parametrize(
-    'module_repos_collection_with_manifest',
+    'function_repos_collection_with_manifest',
     [
         {
+            'distro': 'rhel8',
             'YumRepository': {
                 'url': settings.repos.module_stream_1.url,
-                'distro': 'rhel8',
-            }
+            },
         }
     ],
     indirect=True,
 )
 def test_positive_install_modular_errata(
-    session, smart_proxy_location, vm_content_hosts_module_stream, vm_host_collection_module_stream
+    session,
+    function_sca_manifest_org,
+    smart_proxy_location,
+    vm_content_hosts_module_stream,
+    vm_host_collection_module_stream,
 ):
     """Install Modular Errata generated from module streams.
 
@@ -746,6 +757,7 @@ def test_positive_install_modular_errata(
     _run_remote_command_on_content_hosts(_module_install_command, vm_content_hosts_module_stream)
     _run_remote_command_on_content_hosts('dnf -y upload-profile', vm_content_hosts_module_stream)
     with session:
+        session.organization.select(function_sca_manifest_org.name)
         session.location.select(smart_proxy_location.name)
         _run_remote_command_on_content_hosts(
             f'dnf -y module install {constants.FAKE_4_CUSTOM_PACKAGE_NAME}:0:20180704111719',
@@ -759,9 +771,9 @@ def test_positive_install_modular_errata(
             settings.repos.module_stream_0.errata[2],
             install_via='via remote execution',
         )
-        assert result['job_status'] == 'Success'
-        assert result['job_status_progress'] == '100%'
-        assert int(result['total_hosts']) == 2
+        assert result['status']['Succeeded'] == 2
+        assert result['overall_status']['succeeded_hosts'] == 2
+        assert result['overall_status']['total_hosts'] == 2
         assert _is_package_installed(
             vm_content_hosts_module_stream, constants.FAKE_6_CUSTOM_PACKAGE
         )
