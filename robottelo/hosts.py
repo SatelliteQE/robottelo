@@ -741,6 +741,7 @@ class ContentHost(Host, ContentHostMixins):
         :return: The result of the API call.
         """
         kwargs['insecure'] = kwargs.get('insecure', True)
+        kwargs['setup_insights'] = kwargs.get('setup_insights', False)
         self._satellite = target.satellite
         command = target.satellite.api.RegistrationCommand(**kwargs).create()
         return self.execute(command.strip('\n'))
