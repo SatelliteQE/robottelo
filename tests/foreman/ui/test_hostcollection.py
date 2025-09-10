@@ -730,7 +730,11 @@ def test_positive_install_module_stream(
     indirect=True,
 )
 def test_positive_install_modular_errata(
-    session, smart_proxy_location, vm_content_hosts_module_stream, vm_host_collection_module_stream
+        session,
+        function_sca_manifest_org,
+        smart_proxy_location,
+        vm_content_hosts_module_stream,
+        vm_host_collection_module_stream
 ):
     """Install Modular Errata generated from module streams.
 
@@ -753,6 +757,7 @@ def test_positive_install_modular_errata(
     _run_remote_command_on_content_hosts(_module_install_command, vm_content_hosts_module_stream)
     _run_remote_command_on_content_hosts('dnf -y upload-profile', vm_content_hosts_module_stream)
     with session:
+        session.organization.select(function_sca_manifest_org.name)
         session.location.select(smart_proxy_location.name)
         _run_remote_command_on_content_hosts(
             f'dnf -y module install {constants.FAKE_4_CUSTOM_PACKAGE_NAME}:0:20180704111719',
