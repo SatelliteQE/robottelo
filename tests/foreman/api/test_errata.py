@@ -1670,9 +1670,8 @@ def test_positive_incremental_update_apply_to_envs_cvs(
 
 
 def test_positive_filter_errata_type_other(
-    module_sca_manifest_org,
-    module_target_sat,
-    module_cv,
+    function_org,
+    target_sat,
 ):
     """
     Sync the EPEL repository, containing many 'Other' Errata,
@@ -1682,21 +1681,20 @@ def test_positive_filter_errata_type_other(
     :id: 062bb1a5-814c-4573-bedc-aaa4e2ef557a
 
     :setup:
-        1. Fetch the latest supported RHEL major version in supportability.yaml ('10')
+        1. Fetch the latest supported RHEL major version in supportability.yaml
         2. GET request to EPEL's PGP-key generator (dl.fedoraproject.org/pub/epel/)
-        3. Create GPG-key on satellite from URL's response.
-        4. Create custom product using the GPG-key.
+        3. Create GPG-key and custom product from URL's response.
 
     :steps:
-        1. Create and sync the EPEL repository as a custom repo (~5 minutes)
-        2. Verify presence of new Erratum types that would fall under 'other'.
-        3. Create a content view, add the EPEL repo, publish the first version.
-        4. Create a content view filter for Erratum (by Date), inclusive.
-        5. Update Erratum filter rules: set end_date to today (UTC),
+        1. Create and sync the EPEL repository as a custom repo (~15 minutes)
+        2. Create a content view, add the EPEL repo, publish the first version.
+        3. Create a content view filter for Erratum (by Date), inclusive.
+        4. Update Erratum filter rules: set end_date to today (UTC),
             set flag --allow-other-types to True <<<
             no start_date specified.
-        6. Create another content view filter for RPMs, inclusive.
-        7. Publish a second version (~10 minutes).
+        5. Create RPM filter with 'Include all RPMs not associated to any errata' enabled.
+        6. Publish a second version (~10 minutes).
+        7. Assert the errata counts.
 
     :expectedresults:
         1. The second published version with filters, has the same
@@ -1714,77 +1712,69 @@ def test_positive_filter_errata_type_other(
     :BZ: 2160804
 
     """
-    # newest version rhel supported
-    rhel_N = module_target_sat.api_factory.supported_rhel_ver(num=1)
-    # fetch a newly generated PGP key from address's response
+    # Fetch the latest supported RHEL major version in supportability.yaml
+    rhel_N = target_sat.api_factory.supported_rhel_ver(num=1)
+    # GET request to EPEL's PGP-key generator (dl.fedoraproject.org/pub/epel/)
     gpg_url = f'https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{rhel_N}'
     _response = requests.get(gpg_url, timeout=120, verify=True)
     _response.raise_for_status()
-    # handle a valid response that might not be a PGP key
-    if "-----BEGIN PGP PUBLIC KEY BLOCK-----" not in _response.text:
-        raise ValueError('Fetched content was not a valid credential')
+    assert "-----BEGIN PGP PUBLIC KEY BLOCK-----" in _response.text, 'Fetched invalid credentials'
 
-    # create GPG key on satellite and associated product
-    gpg_key = module_target_sat.api.GPGKey(
-        organization=module_sca_manifest_org.id,
-        content=_response.text,
-    ).create()
-    epel_product = module_target_sat.api.Product(
-        organization=module_sca_manifest_org,
-        gpg_key=gpg_key,
-    ).create()
+    # Create GPG-key and custom product from URL's response.
+    gpg_key = target_sat.api.GPGKey(organization=function_org.id, content=_response.text).create()
+    epel_product = target_sat.api.Product(organization=function_org, gpg_key=gpg_key).create()
 
-    # create and sync custom EPEL repo
+    # Create and sync the EPEL repository as a custom repo (~15 minutes)
     epel_url = f'https://dl.fedoraproject.org/pub/epel/{rhel_N}/Everything/x86_64/'
-    epel_repo = module_target_sat.api.Repository(
-        product=epel_product,
-        url=epel_url,
-    ).create()
+    epel_repo = target_sat.api.Repository(product=epel_product, url=epel_url).create()
     epel_repo.sync(timeout=1800)
-    # add repo to CV and publish
-    module_cv.repository = [epel_repo.read()]
-    module_cv.update(['repository'])  # can take some time
-    epel_repo.sync(timeout=1800)
-    module_cv.read().publish(timeout=240)
-    module_cv = module_cv.read()
 
-    # create errata filter
-    errata_filter = module_target_sat.api.ErratumContentViewFilter(
-        content_view=module_cv,
+    # Create a content view, add the EPEL repo, publish the first version.
+    cv = target_sat.api.ContentView(organization=function_org, repository=[epel_repo]).create()
+    cv.read().publish(timeout=240)
+    cv = cv.read()
+    version_1 = cv.version[-1].read()  # unfiltered
+    assert '1.0' in version_1.version
+
+    # Create a content view filter for Erratum (by Date), inclusive.
+    errata_filter = target_sat.api.ErratumContentViewFilter(
+        content_view=cv,
         name='errata-filter',
         inclusion=True,
     ).create()
 
+    # Update Erratum filter rules: set end_date to today (UTC),
+    #  set flag --allow-other-types to True <<<
+    #  no start_date specified.
     today_UTC = datetime.now(UTC).strftime(TIMESTAMP_FMT_DATE)
-    # rule to filter erratum by date, only specify end_date
-    errata_rule = module_target_sat.api.ContentViewFilterRule(
+    errata_rule = target_sat.api.ContentViewFilterRule(
         content_view_filter=errata_filter,
         end_date=today_UTC,
     ).create()
-
-    # hammer update the Erratum filter rule, flag 'allow-other-types' set to True <<<
-    module_target_sat.cli.ContentViewFilterRule.update(
+    target_sat.cli.ContentViewFilterRule.update(
         {
             'id': errata_rule.id,
             'allow-other-types': 'true',
             'content-view-filter-id': errata_filter.id,
         }
     )
-    module_cv = module_cv.read()
-    # create inclusive rpm filter
-    module_target_sat.api.RPMContentViewFilter(
-        content_view=module_cv,
+    cv = cv.read()
+
+    # Create RPM filter with 'Include all RPMs not associated to any errata' enabled.
+    target_sat.api.RPMContentViewFilter(
+        content_view=cv,
         name='rpm-filter',
         inclusion=True,
+        original_packages=True,
     ).create()
 
-    # Publish 2nd Version with filters applied
-    module_cv = module_cv.read()
-    module_cv.publish(timeout=1200)
-    module_cv = module_cv.read()
+    # Publish a second version (~10 minutes).
+    cv.publish(timeout=1200)
+    cv = cv.read()
+    version_2 = cv.version[-2].read()  # filtered
+    assert '2.0' in version_2.version
 
-    version_1 = module_cv.version[-1].read()  # unfiltered
-    version_2 = module_cv.version[-2].read()  # filtered
+    # Assert the errata counts.
     # errata and package counts match between the filtered and unfiltered versions
     assert version_1.errata_counts == version_2.errata_counts
     assert version_1.package_count == version_2.package_count
