@@ -1957,6 +1957,7 @@ CAPSULE_ANSWER_FILE = "/etc/foreman-installer/scenarios.d/capsule-answers.yaml"
 MAINTAIN_HAMMER_YML = "/etc/foreman-maintain/foreman-maintain-hammer.yml"
 SATELLITE_MAINTAIN_YML = "/etc/foreman-maintain/foreman_maintain.yml"
 FOREMAN_SETTINGS_YML = '/etc/foreman/settings.yaml'
+PODMAN_AUTHFILE_PATH = '/etc/foreman/registry-auth.json'
 
 FOREMAN_TEMPLATE_IMPORT_URL = 'https://github.com/SatelliteQE/foreman_templates.git'
 FOREMAN_TEMPLATES_IMPORT_COUNT = {
