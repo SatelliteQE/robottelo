@@ -7,7 +7,6 @@ from functools import cached_property, lru_cache
 import importlib
 import io
 import json
-import os
 from pathlib import Path, PurePath
 import random
 import re
@@ -912,6 +911,17 @@ class ContentHost(Host, ContentHostMixins):
                 f'echo "export HTTPS_PROXY={settings.http_proxy.http_proxy_ipv6_url}" >> ~/.bashrc'
             )
 
+    def enable_ipv6_podman_proxy(self):
+        """Execute procedures for enabling IPv6 HTTP Proxy on Podman engine"""
+        if not self.network_type.has_ipv4:
+            container_cfg = '/etc/containers/containers.conf'
+            assert (
+                self.execute(
+                    f'echo -e "[engine]\\nenv = [\'https_proxy={settings.http_proxy.http_proxy_ipv6_url}\']" >> {container_cfg}'
+                ).status
+                == 0
+            )
+
     def disable_rhsm_proxy(self):
         """Disables HTTP proxy for subscription manager"""
         self.execute('subscription-manager remove server.proxy_hostname server.proxy_port')
@@ -1633,25 +1643,23 @@ class ContentHost(Host, ContentHostMixins):
         password = password or iop_settings.token
         registry = registry or iop_settings.registry
         if registry and username and password:
-            self.ensure_podman_installed()
             auth_str = f'{username}:{password}'
             auth_b64 = base64.b64encode(auth_str.encode()).decode()
             auth_data = {'auths': {f'{registry}': {'auth': auth_b64}}}
             local_authfile_path = f'{robottelo_tmp_dir}/podman-auth.json'
-            sat_authfile_path = os.path.join(
-                self.execute('echo ${XDG_RUNTIME_DIR}').stdout.strip(), 'containers', 'auth.json'
-            )
             with open(local_authfile_path, 'w') as f:
                 json.dump(auth_data, f)
-            self.put(local_authfile_path, sat_authfile_path)
-            if self.execute(f'[ -f {sat_authfile_path} ]').status != 0:
+            self.put(local_authfile_path, constants.PODMAN_AUTHFILE_PATH)
+            if self.execute(f'[ -f {constants.PODMAN_AUTHFILE_PATH} ]').status != 0:
                 raise FileNotFoundError(
-                    f'The Podman auth file in path {sat_authfile_path} is not found in satellite.'
+                    f'The Podman auth file in path {constants.PODMAN_AUTHFILE_PATH} is not found in satellite.'
                 )
             # Use HTTPS_PROXY to reach container registry for IPv6
             self.enable_ipv6_system_proxy()
             # Log in to container registry
-            cmd_result = self.execute(f'podman login --authfile {sat_authfile_path} {registry}')
+            cmd_result = self.execute(
+                f'podman login --authfile {constants.PODMAN_AUTHFILE_PATH} {registry}'
+            )
             if cmd_result.status != 0:
                 raise ContentHostError(
                     f'Error logging in to container registry {registry}: {cmd_result.stdout}'
@@ -1662,18 +1670,27 @@ class ContentHost(Host, ContentHostMixins):
     def is_podman_logged_in(self, registry=None):
         """Check if podman is logged into a registry."""
         registry = registry or settings.rh_cloud.iop_advisor_engine.registry
-        cmd_result = self.execute(f'podman login --get-login {registry}')
-        return cmd_result.status == 0
+        return (
+            self.execute(
+                f'podman login --get-login --authfile {constants.PODMAN_AUTHFILE_PATH} {registry}'
+            ).status
+            == 0
+            or self.execute(f'podman login --get-login {registry}').status == 0
+        )
 
     def podman_logout(self, registry=None):
         """Logout of a podman registry."""
         registry = registry or settings.rh_cloud.iop_advisor_engine.registry
         if self.is_podman_logged_in(registry):
-            cmd_result = self.execute(f'podman logout {registry}')
+            cmd_result = self.execute(
+                f'podman logout --authfile {constants.PODMAN_AUTHFILE_PATH} {registry}'
+            )
             if cmd_result.status != 0:
-                raise ContentHostError(
-                    f'Error logging out of container registry {registry}: {cmd_result.stdout}'
-                )
+                cmd_result = self.execute(f'podman logout {registry}')
+                if cmd_result.status != 0:
+                    raise ContentHostError(
+                        f'Error logging out of container registry {registry}: {cmd_result.stdout}'
+                    )
         else:
             logger.warning(f'Podman is not logged into container registry {registry}')
 
