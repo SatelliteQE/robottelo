@@ -508,6 +508,7 @@ def test_positive_invalidate_users_tokens(
             location=module_location,
             activation_keys=[module_activation_key.name],
             insecure=True,
+            setup_insights=False,
         ).create()
         result = rhel_contenthost.execute(cmd.strip('\n'))
         assert result.status == 0, f'Failed to register host: {result.stderr}'
