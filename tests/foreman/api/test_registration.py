@@ -134,7 +134,7 @@ def test_positive_allow_reregistration_when_dmi_uuid_changed(
 @pytest.mark.rhel_ver_match('N-1')
 def test_positive_registration_with_package_update(
     module_target_sat,
-    module_sca_manifest_org,
+    module_org,
     module_location,
     module_activation_key,
     rhel_contenthost,
@@ -169,7 +169,7 @@ def test_positive_registration_with_package_update(
     # Register with update_packages=True
     result = rhel_contenthost.api_register(
         module_target_sat,
-        organization=module_sca_manifest_org,
+        organization=module_org,
         activation_keys=[module_activation_key.name],
         location=module_location,
         update_packages=True,
