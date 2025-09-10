@@ -408,12 +408,12 @@ def test_unprotected_status_repo_create_and_update(
     ).create()
     assert unprotected_repo.read().unprotected is True
     assert protected_repo.read().unprotected is False
-
     # Sync both repos, check 'Unprotected' option remains the same
     unprotected_repo.sync()
     protected_repo.sync()
     assert unprotected_repo.read().unprotected is True
     assert protected_repo.read().unprotected is False
+
     # Change protection status of both repos
     unprotected_repo = unprotected_repo.read()
     unprotected_repo.unprotected = False
@@ -421,9 +421,55 @@ def test_unprotected_status_repo_create_and_update(
     protected_repo = protected_repo.read()
     protected_repo.unprotected = True
     protected_repo.update(['unprotected'])
+
+    # wait for protection update on both repos
+    task_result = target_sat.wait_for_tasks(
+        search_query=(
+            f"Update repository '{unprotected_repo.label}'; product '{module_product.label}'; organization '{module_sca_manifest_org.label}'"
+        ),
+        search_rate=10,
+        max_tries=60,
+    )
+    assert task_result[0].result == 'success'
+    task_result = target_sat.wait_for_tasks(
+        search_query=(
+            f"Update repository '{protected_repo.label}'; product '{module_product.label}'; organization '{module_sca_manifest_org.label}'"
+        ),
+        search_rate=10,
+        max_tries=60,
+    )
+    assert task_result[0].result == 'success'
+    # repo metadata tasks
+    task_result = target_sat.wait_for_tasks(
+        search_query=(
+            f"Metadata generate repository '{unprotected_repo.label}'; product '{module_product.label}'; organization '{module_sca_manifest_org.label}'"
+        ),
+        search_rate=10,
+        max_tries=60,
+    )
+    assert task_result[0].result == 'success'
+    task_result = target_sat.wait_for_tasks(
+        search_query=(
+            f"Metadata generate repository '{protected_repo.label}'; product '{module_product.label}'; organization '{module_sca_manifest_org.label}'"
+        ),
+        search_rate=10,
+        max_tries=60,
+    )
+    assert task_result[0].result == 'success'
+    # repo configuration tasks
+    result = target_sat.wait_for_tasks(
+        search_query=(
+            f'"Updating repository authentication configuration" and organization_id={module_sca_manifest_org.id}'
+        ),
+        search_rate=10,
+        max_tries=60,
+    )
+    assert len(result) == 2
+    assert all(task.result == 'success' for task in result)
+
     # can sync after updating protection status
     unprotected_repo.sync()
     protected_repo.sync()
-    # 'Unprotected' option remains the same after another sync
+    # Modified 'Unprotected' option remains the same after another sync
     assert unprotected_repo.read().unprotected is False
     assert protected_repo.read().unprotected is True
