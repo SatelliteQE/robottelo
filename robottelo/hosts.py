@@ -1668,9 +1668,15 @@ class ContentHost(Host, ContentHostMixins):
 
     def is_podman_logged_in(self, registry=None):
         """Check if podman is logged into a registry."""
+        sat_authfile_path = '/etc/foreman/registry-auth.json'
         registry = registry or settings.rh_cloud.iop_advisor_engine.registry
-        cmd_result = self.execute(f'podman login --get-login {registry}')
-        return cmd_result.status == 0
+        return (
+            self.execute(
+                f'podman login --get-login --authfile {sat_authfile_path} {registry}'
+            ).status
+            == 0
+            or self.execute(f'podman login --get-login {registry}').status == 0
+        )
 
     def podman_logout(self, registry=None):
         """Logout of a podman registry."""
