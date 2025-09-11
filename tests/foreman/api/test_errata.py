@@ -22,7 +22,6 @@ import requests
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
-    DEFAULT_CV,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_2_CUSTOM_PACKAGE_NAME,
@@ -1377,11 +1376,11 @@ def rh_repo_module_manifest(module_sca_manifest_org, module_target_sat):
 @pytest.mark.rhel_ver_match('N-1')
 def test_positive_incremental_update_apply_to_envs_cvs(
     target_sat,
-    module_sca_manifest_org,
+    function_org,
+    function_product,
     rhel_contenthost,
-    module_product,
 ):
-    """With multiple environments and content views, register a host to one,
+    """With a content view and multiple lifecycle environments, register a host to one,
         apply a CV filter to the content-view, and query available incremental update(s).
 
         Then, execute the available update with security errata, inspect the environment(s) and
@@ -1390,15 +1389,22 @@ def test_positive_incremental_update_apply_to_envs_cvs(
     :id: ce8bd9ed-8fbc-40f2-8e58-e9b520fe94a3
 
     :Setup:
-        1. Security Errata synced on satellite server from custom repo.
-        2. Multiple content-views promoted to multiple environments.
-        3. Register a RHEL host to the content-view with activation key.
-        4. Install outdated packages, some applicable to the erratum and some not.
+        1. A blank content host ready for registration.
 
     :Steps:
-        1. Add an inclusive Erratum filter to the host content-view
-        2. POST /api/hosts/bulk/available_incremental_updates
-        3. POST /katello/api/content_view_versions/incremental_update
+        1. Create a custom repo with errata.
+        2. Create 3 lifecycle environments.
+        3. Create CV with the custom repository and publish/promote to all LCEs.
+        4. Create AK with the CV and the last LCE.
+        5. Register the content host with the AK.
+        6. Install all outdated packages.
+        7. Ensure there are no available incremental updates before CV change.
+        8. Create new Erratum CV filter, publish and promote new CV version.
+        9. Ensure CV is not updated to host yet, applicable errata should be zero.
+        10. After adding filter to CV, ensure there are proper incremental updates available.
+        11. Perform Incremental Update adding the applicable security erratum, ensure it succeeded.
+        12. Ensure the response matches the host and CV properties and counts.
+        13. After applying the incremental update, ensure no more updates are available.
 
     :expectedresults:
         1. Incremental update is available to expected content-view in
@@ -1410,78 +1416,41 @@ def test_positive_incremental_update_apply_to_envs_cvs(
 
     """
     chost = rhel_contenthost
-    # any existing custom CVs in org, except Default CV
-    prior_cv_count = (
-        len(target_sat.api.ContentView(organization=module_sca_manifest_org).search()) - 1
-    )
-    # Number to be Created: new LCE's for org, new CV's per LCE.
-    number_of_lces = 3  # Does not include 'Library'
-    number_of_cvs = 3  # Does not include 'Default Content View'
-    lce_library = _fetch_library_environment_for_org(target_sat, module_sca_manifest_org)
-    lce_list = [lce_library]
-    # custom repo with errata
+
+    # Create a custom repo with errata.
     custom_repo = target_sat.api.Repository(
-        product=module_product, content_type='yum', url=CUSTOM_REPO_URL
+        product=function_product, content_type='yum', url=CUSTOM_REPO_URL
     ).create()
     custom_repo.sync()
 
-    # create multiple linked environments
-    for n in range(number_of_lces):
-        new_lce = target_sat.api.LifecycleEnvironment(
-            organization=module_sca_manifest_org,
-            prior=lce_list[n],
+    # Create 3 lifecycle environments.
+    lces = [target_sat.api.LifecycleEnvironment(organization=function_org).create()]
+    for _ in range(1, 3):
+        lce = target_sat.api.LifecycleEnvironment(
+            organization=function_org, prior=lces[-1].id
         ).create()
-        lce_list.append(new_lce)
-    assert len(lce_list) == number_of_lces + 1
-    # collect default CV for org
-    default_cv = (
-        target_sat.api.ContentView(
-            organization=module_sca_manifest_org,
-            name=DEFAULT_CV,
-        )
-        .search()[0]
-        .read()
-    )
-    cv_list = list([default_cv])
-    # for each environment including 'Library'
-    for _lce in lce_list:
-        # create some new CVs with some content
-        for _i in range(number_of_cvs):
-            new_cv = target_sat.api.ContentView(
-                organization=module_sca_manifest_org,
-                repository=[custom_repo],
-            ).create()
-            # lces to be promoted to, omit newer than _lce in loop
-            env_ids = sorted([lce.id for lce in lce_list if lce.id <= _lce.id])
-            # when the only lce to publish to is Library, pass None to default
-            if len(env_ids) == 1 and env_ids[0] == lce_library.id:
-                env_ids = None
-            # we may initially promote out of order, use force to bypass
-            new_cv = cv_publish_promote(
-                target_sat,
-                module_sca_manifest_org,
-                new_cv,
-                lce=env_ids,
-                force=True,
-            )['content-view']
-            cv_list.append(new_cv)
+        lces.append(lce)
 
-    # total amount of CVs created matches expected and search results
-    assert len(cv_list) == 1 + (number_of_cvs * (number_of_lces + 1))
-    assert prior_cv_count + len(cv_list) == len(
-        target_sat.api.ContentView(organization=module_sca_manifest_org).search()
-    )
-    # one ak with newest CV and lce
-    host_lce = lce_list[-1].read()
-    host_cv = cv_list[-1].read()
+    # Create CV with the custom repository and publish/promote to all LCEs.
+    host_cv = target_sat.api.ContentView(
+        organization=function_org, repository=[custom_repo]
+    ).create()
+    host_cv.publish()
+    host_cv = host_cv.read()
+    host_cvv = host_cv.version[0]
+    host_cvv.promote(data={'environment_ids': [lce.id for lce in lces]})
+
+    # Create AK with the CV and the last LCE.
+    host_lce = lces[-1].read()
     ak = target_sat.api.ActivationKey(
-        organization=module_sca_manifest_org,
+        organization=function_org,
         environment=host_lce,
         content_view=host_cv,
     ).create()
-    # content host, global registration
+
+    # Register the content host with the AK.
     result = chost.register(
-        org=module_sca_manifest_org,
+        org=function_org,
         activation_keys=ak.name,
         target=target_sat,
         loc=None,
@@ -1489,51 +1458,46 @@ def test_positive_incremental_update_apply_to_envs_cvs(
     assert result.status == 0, f'Failed to register the host: {chost.hostname}'
     assert chost.subscribed
     chost.execute(r'subscription-manager repos --enable \*')
-    # Installing all outdated packages
+
+    # Install all outdated packages.
     pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
     assert chost.execute(f'yum install -y {pkgs}').status == 0
-    chost.execute('subscription-manager repos')
-    # After installing packages, check available incremental updates
+    chost.execute('subscription-manager repos')  # updates package profile
+
+    # Ensure there are no available incremental updates before CV change.
     host = chost.nailgun_host.read()
     response = target_sat.api.Host().bulk_available_incremental_updates(
         data={
-            'organization_id': module_sca_manifest_org.id,
+            'organization_id': function_org.id,
             'included': {'ids': [host.id]},
             'errata_ids': FAKE_9_YUM_SECURITY_ERRATUM,
         },
     )
-    # expecting no available updates before CV change
-    assert response == [], (
-        f'No incremental updates should currently be available to host: {chost.hostname}.'
-    )
+    assert response == [], f'No incremental updates expected for the host: {chost.hostname}.'
 
-    # New Erratum CV filter created for host view
+    # Create new Erratum CV filter, publish and promote new CV version.
     target_sat.api.ErratumContentViewFilter(content_view=host_cv, inclusion=True).create()
     host_cv = target_sat.api.ContentView(id=host_cv.id).read()
-    lce_ids = sorted([lce.id for lce in lce_list])
-    # publish version with filter and promote
-    host_cvv = cv_publish_promote(
-        target_sat,
-        module_sca_manifest_org,
-        host_cv,
-        lce_ids,
-    )['content-view-version']
+    host_cv.publish()
+    host_cv = host_cv.read()
+    host_cvv = host_cv.version[0]
+    host_cvv.promote(data={'environment_ids': [lce.id for lce in lces]})
+    host_cvv = host_cvv.read()
 
-    # cv is not updated to host yet, applicable errata should be zero
-    chost.execute('subscription-manager repos')
-    host_app_errata = chost.applicable_errata_count
-    assert host_app_errata == 0
-    # After adding filter to cv, check available incremental updates
-    host_app_packages = chost.applicable_package_count
+    # Ensure CV is not updated to host yet, applicable errata should be zero.
+    chost.execute('subscription-manager repos')  # updates package profile
+    assert chost.applicable_errata_count == 0  # facet -> total errata_count
+
+    # After adding filter to CV, ensure there are proper incremental updates available.
+    host_app_packages = chost.applicable_package_count  # facet -> applicable_package_count
     response = target_sat.api.Host().bulk_available_incremental_updates(
         data={
-            'organization_id': module_sca_manifest_org.id,
+            'organization_id': function_org.id,
             'included': {'ids': [host.id]},
             'errata_ids': FAKE_9_YUM_SECURITY_ERRATUM,
         },
     )
     assert response, f'Expected one incremental update, but found none, for host: {chost.hostname}.'
-    # find that only expected CV version has incremental update available
     assert len(response) == 1, (
         f'Incremental update should currently be available to only one host: {chost.hostname}.'
     )
@@ -1542,9 +1506,7 @@ def test_positive_incremental_update_apply_to_envs_cvs(
     assert response[0]['content_view_version']['id'] == host_cvv.id
     assert response[0]['content_view_version']['content_view']['id'] == host_cv.id
 
-    # Perform Incremental Update with host cv version
-    host_cvv = target_sat.api.ContentViewVersion(id=host_cvv.id).read()
-    # Apply incremental update adding the applicable security erratum
+    # Perform Incremental Update adding the applicable security erratum, ensure it succeeded.
     response = target_sat.api.ContentViewVersion().incremental_update(
         data={
             'content_view_version_environments': [
@@ -1562,7 +1524,7 @@ def test_positive_incremental_update_apply_to_envs_cvs(
         == 'Incremental Update of 1 Content View Version(s) with 12 Package(s), and 3 Errata'
     )
 
-    # only the hosts's CV was modified, new version made, check output details
+    # Ensure the response matches the host and CV properties and counts.
     assert len(response['output']['changed_content']) == 1
     created_version_id = response['output']['changed_content'][0]['content_view_version']['id']
     # host source CV version was changed to the new one
@@ -1580,38 +1542,38 @@ def test_positive_incremental_update_apply_to_envs_cvs(
     assert host_version_number == next_version
     host_cvv = target_sat.api.ContentViewVersion(id=created_version_id).read()
     assert float(host_cvv.version) == next_version
-    chost.execute('subscription-manager repos')
+    chost.execute('subscription-manager repos')  # update package profile
     # expected errata from FAKE_9 Security list added
     added_errata = response['output']['changed_content'][0]['added_units']['erratum']
     assert set(added_errata) == set(FAKE_9_YUM_SECURITY_ERRATUM)
-    # applicable errata count increased by length of security ids list
-    assert chost.applicable_errata_count == host_app_errata + len(FAKE_9_YUM_SECURITY_ERRATUM)
+    # applicable errata count matches the length of security ids list
+    assert chost.applicable_errata_count == len(FAKE_9_YUM_SECURITY_ERRATUM)
     # newly added errata from incremental version are now applicable to host
     post_app_errata_ids = errata_id_set(_fetch_available_errata_instances(target_sat, chost))
-    assert set(FAKE_9_YUM_SECURITY_ERRATUM).issubset(post_app_errata_ids)
+    assert set(FAKE_9_YUM_SECURITY_ERRATUM) == post_app_errata_ids
     # expected packages from the security erratum were added to host
     added_packages = response['output']['changed_content'][0]['added_units']['rpm']
     assert len(added_packages) == 12
     # expected that not all of the added packages will be applicable
     assert 8 == host_app_packages == chost.applicable_package_count
     # install all of the newly added packages, recalculate applicability
-    for pkg in added_packages:
-        assert chost.run(f'yum install -y {pkg}').status == 0
-    chost.execute('subscription-manager repos')
+    assert chost.run(f'yum install -y {" ".join(added_packages)}').status == 0
+    chost.execute('subscription-manager repos')  # update package profile
     # security errata should not be applicable after installing updated packages
-    post_app_errata_ids = errata_id_set(_fetch_available_errata_instances(target_sat, chost))
-    assert set(FAKE_9_YUM_SECURITY_ERRATUM).isdisjoint(post_app_errata_ids)
+    post_app_errata_ids = errata_id_set(
+        _fetch_available_errata_instances(target_sat, chost, expected_amount=0)
+    )
+    assert len(post_app_errata_ids) == 0
     assert chost.applicable_errata_count == 0
 
-    # after applying the incremental update, check for any more available
+    # After applying the incremental update, ensure no more updates are available.
     response = target_sat.api.Host().bulk_available_incremental_updates(
         data={
-            'organization_id': module_sca_manifest_org.id,
+            'organization_id': function_org.id,
             'included': {'ids': [host.id]},
             'errata_ids': FAKE_9_YUM_SECURITY_ERRATUM,
         },
     )
-    # expect no remaining updates, after applying the only one
     assert response == [], (
         f'No incremental updates should currently be available to host: {chost.hostname}.'
     )
