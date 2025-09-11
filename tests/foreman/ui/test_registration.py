@@ -551,6 +551,7 @@ def test_positive_host_registration_with_non_admin_user(
             {
                 'general.insecure': True,
                 'general.activation_keys': module_activation_key.name,
+                'advanced.setup_insights': 'No (override)',
             }
         )
 
