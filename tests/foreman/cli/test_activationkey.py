@@ -925,7 +925,11 @@ def test_positive_list_by_cv_id(module_org, module_target_sat, get_default_env, 
     result = module_target_sat.cli.ActivationKey.list(
         {'content-view-id': module_promoted_cv.id, 'organization-id': module_org.id}
     )
-    assert any(ak['name'] == activation_key.name and ak['content-view-environments'] == f'{lce["name"]}/{module_promoted_cv.name}' for ak in result)
+    assert any(
+        ak['name'] == activation_key.name
+        and ak['content-view-environments'] == f'{lce["name"]}/{module_promoted_cv.name}'
+        for ak in result
+    )
 
 
 def test_positive_create_using_old_name(module_org, module_target_sat):
