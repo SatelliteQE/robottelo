@@ -459,7 +459,9 @@ def test_positive_invalidate_users_tokens(
 
     # Non-Admin user with "edit_users" permission and "Register hosts" role
     non_admin_user = module_target_sat.api.User(
-        login=gen_string('alpha'), password=password, organization=[module_org]
+        login=gen_string('alpha'),
+        password=password,
+        organization=[module_org],
     ).create()
     role = module_target_sat.cli_factory.make_role({'organization-id': module_org.id})
     module_target_sat.cli_factory.add_role_permissions(
@@ -485,6 +487,7 @@ def test_positive_invalidate_users_tokens(
                 'activation-keys': module_activation_key.name,
                 'insecure': 'true',
                 'organization-id': module_org.id,
+                'setup-insights': 'false',
             }
         )
         result = rhel_contenthost.execute(cmd.strip('\n'))
@@ -552,6 +555,7 @@ def test_negative_users_permission_for_invalidating_tokens(
             'activation-keys': module_activation_key.name,
             'insecure': 'true',
             'organization-id': module_org.id,
+            'setup-insights': 'false',
         }
     )
     result = rhel_contenthost.execute(cmd.strip('\n'))
