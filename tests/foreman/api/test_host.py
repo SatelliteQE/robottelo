@@ -1078,42 +1078,6 @@ def test_negative_auto_attach_future_subscription():
 
 
 @pytest.mark.stubbed
-def test_positive_create_baremetal_with_bios():
-    """Create a new Host from provided MAC address
-
-    :id: 9d74ed70-3197-4825-bf96-21eeb4a765f9
-
-    :setup: Create a PXE-based VM with BIOS boot mode (outside of
-        Satellite).
-
-    :steps: Create a new host using 'BareMetal' option and MAC address of
-        the pre-created VM
-
-    :expectedresults: Host is created
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-def test_positive_create_baremetal_with_uefi():
-    """Create a new Host from provided MAC address
-
-    :id: 9b852c4d-a94f-4ba9-b666-ea4718320a42
-
-    :setup: Create a PXE-based VM with UEFI boot mode (outside of
-        Satellite).
-
-    :steps: Create a new host using 'BareMetal' option and MAC address of
-        the pre-created VM
-
-    :expectedresults: Host is created
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
 def test_positive_verify_files_with_pxegrub_uefi():
     """Provision a new Host and verify the tftp and dhcpd file
     structure is correct
