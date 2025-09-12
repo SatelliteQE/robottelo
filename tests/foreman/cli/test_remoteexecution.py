@@ -1207,6 +1207,9 @@ class TestPullProviderRex:
                 'location-ids': smart_proxy_location.id,
             }
         )
+        module_capsule_configured_mqtt.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': module_ak_with_cv.environment.id}
+        )
         # register host with rex, enable client repo, install katello-agent
         result = client.register(
             module_org,
@@ -1301,6 +1304,9 @@ class TestPullProviderRex:
                 'organization-ids': module_org.id,
                 'location-ids': smart_proxy_location.id,
             }
+        )
+        module_capsule_configured_mqtt.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': module_ak_with_cv.environment.id}
         )
         # register host with pull provider rex
         result = client.register(
@@ -1416,6 +1422,9 @@ class TestPullProviderRex:
                 'organization-ids': module_org.id,
                 'location-ids': smart_proxy_location.id,
             }
+        )
+        module_capsule_configured_mqtt.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': module_ak_with_cv.environment.id}
         )
         # register host with pull provider rex (SAT-1677)
         result = client.register(
@@ -1537,6 +1546,9 @@ class TestPullProviderRex:
                 'location-ids': smart_proxy_location.id,
             }
         )
+        module_capsule_configured_mqtt.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': module_ak_with_cv.environment.id}
+        )
         result = client.register(
             module_org,
             smart_proxy_location,
@@ -1624,6 +1636,9 @@ class TestPullProviderRex:
                 'organization-ids': module_org.id,
                 'location-ids': smart_proxy_location.id,
             }
+        )
+        module_capsule_configured_mqtt.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': module_ak_with_cv.environment.id}
         )
         # register host with pull provider rex (SAT-1677)
         result = client.register(
