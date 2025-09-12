@@ -48,6 +48,7 @@ def test_positive_iop_inventory_tags_present(module_target_sat_insights, rhel_in
     :customerscenario: false
     """
     details_path = Path('/var/lib/insights/host-details.json')
+    rhel_insights_vm.execute('insights-client')
     host_details = Box(json.loads(rhel_insights_vm.execute(f'cat {details_path}').stdout))
     assert host_details.results[0].subscription_manager_id
     assert host_details.results[0].satellite_id
