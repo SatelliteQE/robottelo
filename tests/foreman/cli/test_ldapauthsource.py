@@ -203,14 +203,21 @@ class TestIPAAuthSource:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.LDAPAuthSource.info({'name': new_name})
 
+    @pytest.mark.parametrize('server_type', ['ipa', 'posix'])
     @pytest.mark.usefixtures("ldap_tear_down")
-    def test_usergroup_sync_with_refresh(self, default_ipa_host, module_target_sat):
+    def test_usergroup_sync_with_refresh(self, default_ipa_host, server_type, module_target_sat):
         """Verify the refresh functionality in Ldap Auth Source
 
         :id: c905eb80-2bd0-11ea-abc3-ddb7dbb3c930
 
+        :parametrized: yes
+
         :expectedresults: external user-group sync works as expected as on-demand
             sync based on refresh works
+
+        :verifies: SAT-21129
+
+        :customerscenario: true
 
         :CaseImportance: Medium
         """
@@ -226,7 +233,7 @@ class TestIPAAuthSource:
                 'onthefly-register': 'true',
                 'usergroup-sync': 'false',
                 'host': default_ipa_host.hostname,
-                'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
+                'server-type': LDAP_SERVER_TYPE['CLI'][server_type],
                 'attr-login': LDAP_ATTR['login'],
                 'attr-firstname': LDAP_ATTR['firstname'],
                 'attr-lastname': LDAP_ATTR['surname'],
