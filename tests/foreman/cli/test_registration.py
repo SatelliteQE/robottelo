@@ -433,7 +433,7 @@ def test_positive_verify_default_location_for_registered_host(
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_invalidate_users_tokens(
-    module_target_sat, rhel_contenthost, module_activation_key, module_org, module_location, request
+    module_target_sat, rhel_contenthost, module_activation_key, module_org, request
 ):
     """Verify invalidating single and multiple users tokens.
 
@@ -462,7 +462,6 @@ def test_positive_invalidate_users_tokens(
         login=gen_string('alpha'),
         password=password,
         organization=[module_org],
-        location=[module_location],
     ).create()
     role = module_target_sat.cli_factory.make_role({'organization-id': module_org.id})
     module_target_sat.cli_factory.add_role_permissions(
@@ -488,7 +487,6 @@ def test_positive_invalidate_users_tokens(
                 'activation-keys': module_activation_key.name,
                 'insecure': 'true',
                 'organization-id': module_org.id,
-                'location-id': module_location.id,
                 'setup-insights': 'false',
             }
         )
@@ -518,7 +516,7 @@ def test_positive_invalidate_users_tokens(
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_negative_users_permission_for_invalidating_tokens(
-    module_target_sat, rhel_contenthost, module_activation_key, module_org, module_location
+    module_target_sat, rhel_contenthost, module_activation_key, module_org
 ):
     """Verify invalidating single and multiple users tokens require "edit_users" permission for non_admin user.
 
@@ -545,7 +543,6 @@ def test_negative_users_permission_for_invalidating_tokens(
             'login': gen_string('alpha'),
             'password': password,
             'organization-ids': module_org.id,
-            'location-ids': module_location.id,
             'roles': ['Register hosts'],
         }
     )
@@ -558,7 +555,6 @@ def test_negative_users_permission_for_invalidating_tokens(
             'activation-keys': module_activation_key.name,
             'insecure': 'true',
             'organization-id': module_org.id,
-            'location-id': module_location.id,
             'setup-insights': 'false',
         }
     )
