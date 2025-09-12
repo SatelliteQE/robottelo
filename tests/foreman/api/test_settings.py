@@ -14,6 +14,7 @@
 
 import random
 
+from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError
 
@@ -153,18 +154,25 @@ def test_positive_update_hostname_default_facts():
     """
 
 
-@pytest.mark.stubbed
-def test_negative_discover_host_with_invalid_prefix():
+@pytest.mark.parametrize('setting_update', ['discovery_prefix'], indirect=True)
+def test_negative_discover_host_with_invalid_prefix(setting_update):
     """Update the hostname_prefix with invalid string like
     -mac, 1mac or ^%$
 
     :id: 51091ed2-b0a2-433c-bcef-c8b4a3a34a05
 
+    :parametrized: yes
+
+    :verifies: SAT-37365
+
     :expectedresults: Validation error should be raised on updating
         hostname_prefix with invalid string, should start w/ letter
 
-    :CaseAutomation: NotAutomated
     """
+    invalid_prefix = gen_string('numeric')
+    setting_update.value = invalid_prefix
+    with pytest.raises(HTTPError):
+        setting_update.update({'value'})
 
 
 @pytest.mark.run_in_one_thread
