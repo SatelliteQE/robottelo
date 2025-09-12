@@ -245,7 +245,6 @@ def test_positive_read_from_details_page(session, module_host_template):
     host_name = host.name
     with session:
         assert session.host.search(host_name)[0]['Name'] == host_name
-        import ipdb;ipdb.set_trace()
         values = session.host.get_details(host_name)
         assert values['properties']['properties_table']['Status'] == 'OK'
         assert 'Pending installation' in values['properties']['properties_table']['Build']
