@@ -1,4 +1,3 @@
-from broker import Broker
 import pytest
 
 from robottelo.constants import CAPSULE_REGISTRATION_OPTS
@@ -38,7 +37,6 @@ def module_target_sat_insights(request, module_target_sat):
 
     if not hosted_insights:
         satellite.teardown()
-        Broker(hosts=[satellite]).checkin()
 
 
 @pytest.fixture(scope='module')
