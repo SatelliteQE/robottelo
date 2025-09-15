@@ -305,6 +305,8 @@ class GenericRHRepository(BaseRepository):
         for _, data in constants.REPOS.items():
             repo_key = data.get('key')
             repo_distro = data.get('distro')
+            if not repo_key or not repo_distro:
+                continue
             if repo_key == self.key and repo_distro == distro:
                 repo_data = data
                 break
@@ -457,6 +459,18 @@ class SatelliteToolsRepository(GenericRHRepository):
     @property
     def url(self):
         return settings.repos.sattools_repo[
+            f'{constants.PRODUCT_KEY_RHEL}{self.distro_major_version}'
+        ]
+
+
+class SatelliteClientRepository(GenericRHRepository):
+    """Satellite Client Repository"""
+
+    _key = constants.PRODUCT_KEY_SAT_CLIENT
+
+    @property
+    def url(self):
+        return settings.repos.satclient_repo[
             f'{constants.PRODUCT_KEY_RHEL}{self.distro_major_version}'
         ]
 

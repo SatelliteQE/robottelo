@@ -37,7 +37,7 @@ def lce(function_sca_manifest_org, target_sat):
     'repos_collection',
     [
         {
-            'SatelliteToolsRepository': {'cdn': 'cdn', 'distro': 'distro'},
+            'SatelliteClientRepository': {'cdn': 'cdn', 'distro': 'distro'},
             'YumRepository': {'url': settings.repos.yum_0.url},
             'DockerRepository': {
                 'url': settings.container.registry_hub,
@@ -47,17 +47,20 @@ def lce(function_sca_manifest_org, target_sat):
     ],
     indirect=True,
 )
-def test_vm_install_package(repos_collection, function_sca_manifest_org, lce, distro, cdn):
+def test_vm_install_package(
+    repos_collection, target_sat, function_sca_manifest_org, lce, distro, cdn
+):
     """Install a package with all supported distros and cdn / non-cdn variants
 
     :id: b2a6065a-69f6-4805-a28b-eaaa812e0f4b
 
     :parametrized: yes
 
-    :expectedresults: Package is install is installed
+    :expectedresults: Package is installed on VM
+
+    :CaseImportance: Critical
+
     """
-    if distro == 'rhel6':
-        pytest.skip('rhel6 skipped until ELS subscriptions are in manifest.')
     # Create repos, content view, and activation key.
     repos_collection.setup_content(function_sca_manifest_org.id, lce['id'])
     with Broker(nick=distro, host_class=ContentHost) as host:
