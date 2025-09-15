@@ -262,7 +262,7 @@ def test_positive_read_from_details_page(session, module_host_template):
 
 
 def test_read_host_with_ics_domain(
-    session, module_host_template, module_location, module_org, module_target_sat
+    session, module_host_template, smart_proxy_location, module_org, module_target_sat
 ):
     """Create new Host with ics domain name and verify that it can be read
 
@@ -281,7 +281,7 @@ def test_read_host_with_ics_domain(
     template = module_host_template
     template.name = gen_string('alpha').lower()
     ics_domain = module_target_sat.api.Domain(
-        location=[module_location],
+        location=[smart_proxy_location],
         organization=[module_org],
         name=gen_string('alpha').lower() + '.ics',
     ).create()
@@ -289,6 +289,8 @@ def test_read_host_with_ics_domain(
     host = template.create()
     host_name = host.name
     with module_target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.location.select(smart_proxy_location.name)
         values = session.host_new.get_details(host_name, widget_names='details')
         assert (
             values['details']['system_properties']['sys_properties']['domain']
