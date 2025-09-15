@@ -123,9 +123,14 @@ def common_fam_setup(satellite):
 
 
 @pytest.fixture(scope='module')
-def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_role):
+def setup_fam(
+    module_target_sat, module_sca_manifest, install_import_ansible_role, module_capsule_configured
+):
     # Execute AAP WF for FAM setup
     Broker().execute(workflow='fam-test-setup', source_vm=module_target_sat.name)
+
+    # Update the settings to point to our Capsule
+    settings.fam.server.foreman_proxy = module_capsule_configured.hostname
 
     # Copy config files to the Satellite
     module_target_sat.put(
