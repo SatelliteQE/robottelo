@@ -328,6 +328,7 @@ def common_test_positive_run_modules_and_roles(satellite, ansible_module, extra_
     """Common part of test_positive_run_modules_and_roles and test_positive_run_modules_and_roles_kerberos_auth"""
     # Skip FAM tests w/o proper setups
     if ansible_module in [
+        "host_errata_info",  # this test requires a host with non-applied errata
         "host_power",  # this test tries to power off non-existent VM
         "realm",  # realm feature is not set up on Capsule
     ]:
