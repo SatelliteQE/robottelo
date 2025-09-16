@@ -332,11 +332,15 @@ def test_positive_run_modules_and_roles_kerberos_auth(idm_sat, setup_fam_with_id
 def common_test_positive_run_modules_and_roles(satellite, ansible_module, extra_env=None):
     """Common part of test_positive_run_modules_and_roles and test_positive_run_modules_and_roles_kerberos_auth"""
     # Skip FAM tests w/o proper setups
-    if ansible_module in [
-        "host_errata_info",  # this test requires a host with non-applied errata
-        "host_power",  # this test tries to power off non-existent VM
-        "realm",  # realm feature is not set up on Capsule
-    ]:
+    if (
+        ansible_module
+        in [
+            "host_errata_info",  # this test requires a host with non-applied errata
+            "host_power",  # this test tries to power off non-existent VM
+            "realm",  # realm feature is not set up on Capsule
+            "smart_proxy",  # the tests try to create a new proxy, which doesn't work for Katello/Satellite, only plain Foreman
+        ]
+    ):
         pytest.skip(f"{ansible_module} module test lacks proper setup")
 
     # Setup provisioning resources
