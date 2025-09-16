@@ -589,7 +589,9 @@ class TestRepositoryExport:
             1. Incremental exports inherit the format from the previous complete export.
             2. When using --from-history-id, the format is inherited from the specified export.
 
-        :Verifies: SAT-32715
+        :Verifies: SAT-32715, SAT-38392
+
+        :BlockedBy: SAT-38392
 
         :customerscenario: true
         """
