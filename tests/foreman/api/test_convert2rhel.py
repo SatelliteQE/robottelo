@@ -77,6 +77,10 @@ def enable_rhel_subscriptions(module_target_sat, module_els_sca_manifest_org, ve
     """Enable and sync RHEL rpms repos"""
     major = version.split('.')[0]
     minor = ''
+
+    if major <= '7' and module_target_sat.is_fips_enabled():
+        pytest.skip('CentOS7/OEL7 conversion is not supported with FIPS-enabled Sat')
+
     if major == '8':
         repo_names = ['rhel8_bos', 'rhel8_aps']
         minor = version[1:]
@@ -124,6 +128,10 @@ def centos(
 ):
     """Deploy and register Centos host"""
     major = version.split('.')[0]
+
+    if major <= '7' and module_target_sat.is_fips_enabled():
+        pytest.skip('CentOS7 conversion is not supported with FIPS-enabled Sat')
+
     centos_host.enable_ipv6_dnf_proxy()
     assert centos_host.execute('yum -y update').status == 0
     repo_url = settings.repos.convert2rhel.convert_to_rhel_repo.format(major)
@@ -172,6 +180,10 @@ def oracle(
 ):
     """Deploy and register Oracle host"""
     major = version.split('.')[0]
+
+    if major <= '7' and module_target_sat.is_fips_enabled():
+        pytest.skip('OEL7 conversion is not supported with FIPS-enabled Sat')
+
     oracle_host.enable_ipv6_dnf_proxy()
     # disable rhn-client-tools because it obsoletes the subscription manager package
     oracle_host.execute('echo "exclude=rhn-client-tools" >> /etc/yum.conf')
@@ -278,6 +290,9 @@ def test_convert2rhel_oracle_with_pre_conversion_template_check(
     :Verifies: SAT-24654, SAT-24655, SAT-26076
     """
     major = version.split('.')[0]
+    if major <= '7' and module_target_sat.is_fips_enabled():
+        pytest.skip('OEL7 conversion is not supported with FIPS-enabled Sat')
+
     host_content = module_target_sat.api.Host(id=oracle.hostname).read_json()
     assert host_content['operatingsystem_name'] == f"OracleLinux {version}"
 
@@ -372,8 +387,11 @@ def test_convert2rhel_centos_with_pre_conversion_template_check(
 
     :Verifies: SAT-24654, SAT-24655, SAT-26076
     """
-    host_content = module_target_sat.api.Host(id=centos.hostname).read_json()
     major = version.split('.')[0]
+    if major <= '7' and module_target_sat.is_fips_enabled():
+        pytest.skip('CentOS7 conversion is not supported with FIPS-enabled Sat')
+
+    host_content = module_target_sat.api.Host(id=centos.hostname).read_json()
     assert host_content['operatingsystem_name'] == f'CentOS {major}'
 
     # Pre-conversion template job
