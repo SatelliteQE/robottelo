@@ -130,7 +130,7 @@ def setup_fam(
     Broker().execute(workflow='fam-test-setup', source_vm=module_target_sat.name)
 
     # Update the settings to point to our Capsule
-    settings.fam.server.foreman_proxy = module_capsule_configured.hostname
+    settings.set('fam.server.foreman_proxy', module_capsule_configured.hostname)
 
     # Copy config files to the Satellite
     module_target_sat.put(
