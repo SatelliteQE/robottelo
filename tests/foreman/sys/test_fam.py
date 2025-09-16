@@ -123,9 +123,14 @@ def common_fam_setup(satellite):
 
 
 @pytest.fixture(scope='module')
-def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_role):
+def setup_fam(
+    module_target_sat, module_sca_manifest, install_import_ansible_role, module_capsule_configured
+):
     # Execute AAP WF for FAM setup
     Broker().execute(workflow='fam-test-setup', source_vm=module_target_sat.name)
+
+    # Update the settings to point to our Capsule
+    settings.set('fam.server.foreman_proxy', module_capsule_configured.hostname)
 
     # Copy config files to the Satellite
     module_target_sat.put(
@@ -327,11 +332,15 @@ def test_positive_run_modules_and_roles_kerberos_auth(idm_sat, setup_fam_with_id
 def common_test_positive_run_modules_and_roles(satellite, ansible_module, extra_env=None):
     """Common part of test_positive_run_modules_and_roles and test_positive_run_modules_and_roles_kerberos_auth"""
     # Skip FAM tests w/o proper setups
-    if ansible_module in [
-        "host_errata_info",  # this test requires a host with non-applied errata
-        "host_power",  # this test tries to power off non-existent VM
-        "realm",  # realm feature is not set up on Capsule
-    ]:
+    if (
+        ansible_module
+        in [
+            "host_errata_info",  # this test requires a host with non-applied errata
+            "host_power",  # this test tries to power off non-existent VM
+            "realm",  # realm feature is not set up on Capsule
+            "smart_proxy",  # the tests try to create a new proxy, which doesn't work for Katello/Satellite, only plain Foreman
+        ]
+    ):
         pytest.skip(f"{ansible_module} module test lacks proper setup")
 
     # Setup provisioning resources
