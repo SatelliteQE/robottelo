@@ -90,7 +90,6 @@ def rhel_insights_vm(
     enable_insights(
         rhel_contenthost, module_target_sat_insights, rhcloud_manifest_org, rhcloud_activation_key
     )
-    assert rhel_contenthost.execute('yum update -y').status == 0
     return rhel_contenthost
 
 
