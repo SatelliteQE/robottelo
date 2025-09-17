@@ -213,7 +213,9 @@ tests/foreman/ui/test_discoveryrule.py @SatelliteQE/team-rocket
 tests/foreman/ui/test_operatingsystem.py @SatelliteQE/team-rocket
 tests/foreman/ui/test_provisioningtemplate.py @SatelliteQE/team-rocket
 tests/foreman/ui/test_subnet.py @SatelliteQE/team-rocket
+tests/new_upgrades/test_computeresource_gce.py @SatelliteQE/team-rocket
 tests/new_upgrades/test_discovery.py @SatelliteQE/team-rocket
+tests/upgrades/test_computeresource_gce.py @SatelliteQE/team-rocket
 tests/upgrades/test_discovery.py @SatelliteQE/team-rocket
 tests/upgrades/test_performance_tuning.py @SatelliteQE/team-rocket
 tests/upgrades/test_provisioningtemplate.py @SatelliteQE/team-rocket
@@ -305,7 +307,6 @@ tests/new_upgrades/test_hostgroup.py @SatelliteQE/team-endeavour
 tests/new_upgrades/test_remoteexecution.py @SatelliteQE/team-endeavour
 tests/new_upgrades/test_usergroup.py @SatelliteQE/team-endeavour
 tests/upgrades/test_bookmarks.py @SatelliteQE/team-endeavour
-tests/upgrades/test_host.py @SatelliteQE/team-endeavour
 tests/upgrades/test_hostgroup.py @SatelliteQE/team-endeavour
 tests/upgrades/test_remoteexecution.py @SatelliteQE/team-endeavour
 tests/upgrades/test_role.py @SatelliteQE/team-endeavour
