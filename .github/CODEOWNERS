@@ -71,11 +71,13 @@ tests/foreman/ui/test_repository.py @SatelliteQE/team-artemis
 tests/foreman/ui/test_sync.py @SatelliteQE/team-artemis
 tests/foreman/ui/test_syncplan.py @SatelliteQE/team-artemis
 tests/new_upgrades/test_contentview.py @SatelliteQE/team-artemis
+tests/new_upgrades/test_capsulecontent.py @SatelliteQE/team-artemis
 tests/new_upgrades/test_errata.py @SatelliteQE/team-artemis
 tests/new_upgrades/test_repository.py @SatelliteQE/team-artemis
 tests/new_upgrades/test_satellitesync.py @SatelliteQE/team-artemis
 tests/new_upgrades/test_syncplan.py @SatelliteQE/team-artemis
 tests/upgrades/test_contentview.py @SatelliteQE/team-artemis
+tests/upgrades/test_capsulecontent.py @SatelliteQE/team-artemis
 tests/upgrades/test_errata.py @SatelliteQE/team-artemis
 tests/upgrades/test_repository.py @SatelliteQE/team-artemis
 tests/upgrades/test_satellitesync.py @SatelliteQE/team-artemis
@@ -335,7 +337,6 @@ tests/foreman/ui/test_settings.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_smartclassparameter.py @SatelliteQE/team-endeavour
 tests/new_upgrades/test_classparameter.py @SatelliteQE/team-endeavour
 tests/new_upgrades/test_puppet.py @SatelliteQE/team-endeavour
-tests/upgrades/test_capsule.py @SatelliteQE/team-endeavour
 tests/upgrades/test_classparameter.py @SatelliteQE/team-endeavour
 tests/upgrades/test_puppet.py @SatelliteQE/team-endeavour
 tests/foreman/sys/test_mcp.py @SatelliteQE/team-endeavour
