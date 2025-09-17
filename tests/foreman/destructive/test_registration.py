@@ -23,6 +23,7 @@ pytestmark = pytest.mark.destructive
 @pytest.mark.rhel_ver_match('[^6]')
 def test_host_registration_rex_pull_mode(
     module_org,
+    module_lce,
     module_satellite_mqtt,
     module_location,
     module_ak_with_cv,
@@ -40,6 +41,7 @@ def test_host_registration_rex_pull_mode(
     client = rhel_contenthost_with_repos
     org = module_org
     client_repo = settings.repos.SATCLIENT_REPO[f'rhel{client.os_version.major}']
+
     # register host to satellite with pull provider rex
     result = client.api_register(
         module_satellite_mqtt,
@@ -52,7 +54,6 @@ def test_host_registration_rex_pull_mode(
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # check mqtt client is running
-
     service_name = client.get_yggdrasil_service_name()
     result = client.execute(f'systemctl status {service_name}')
     assert result.status == 0, f'Failed to start yggdrasil on client: {result.stderr}'
@@ -63,6 +64,10 @@ def test_host_registration_rex_pull_mode(
     nc = module_capsule_configured_mqtt.nailgun_smart_proxy
     module_satellite_mqtt.api.SmartProxy(id=nc.id, organization=[org]).update(['organization'])
     module_satellite_mqtt.api.SmartProxy(id=nc.id, location=[module_location]).update(['location'])
+    if module_capsule_configured_mqtt.nailgun_capsule.lifecycle_environments == []:
+        module_capsule_configured_mqtt.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': module_lce.id}
+        )
 
     # register host to capsule with pull provider rex
     result = client.api_register(
@@ -76,6 +81,7 @@ def test_host_registration_rex_pull_mode(
         force=True,
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
+    assert client.subscribed
 
     # check mqtt client is running
     result = client.execute(f'systemctl status {service_name}')
