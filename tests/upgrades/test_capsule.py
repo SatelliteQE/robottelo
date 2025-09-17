@@ -81,6 +81,8 @@ class TestCapsuleSync:
     """
     Test class contains pre-upgrade and post-upgrade scenario to test the capsule sync
     in the post-upgrade of pre-upgraded repo.
+
+    :Team: Artemis
     """
 
     @pytest.mark.pre_upgrade
@@ -186,6 +188,8 @@ class TestCapsuleSync:
 class TestCapsuleSyncNewRepo:
     """
     Test class contains a post-upgrade scenario to test the capsule sync of newly added yum repo.
+
+    :Team: Artemis
     """
 
     @pytest.mark.post_upgrade

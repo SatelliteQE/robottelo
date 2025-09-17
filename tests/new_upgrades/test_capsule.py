@@ -30,6 +30,8 @@ def capsule_sync_setup(capsule_upgrade_integrated_sat_cap, upgrade_action):
     """Pre-upgrade scenario that creates and syncs repository with
     rpm in Satellite which will be synced in post upgrade scenario.
 
+    :Team: Artemis
+
     :id: preupgrade-eb8970fa-98cc-4a99-99fb-1c12c4e319c9
 
     :steps:
@@ -105,6 +107,7 @@ def test_post_capsule_features(capsule_sync_setup):
     """Post-upgrade scenario that sync capsule from satellite and then
     verifies if the repo/rpm of pre-upgrade scenario is synced to capsule
 
+    :Team: Artemis
 
     :id: 1a50f0ec-482e-11ef-a468-98fa9b11ac24
 
@@ -128,6 +131,7 @@ def test_post_user_scenario_capsule_sync(capsule_sync_setup):
     """Post-upgrade scenario that sync capsule from satellite and then
     verifies if the repo/rpm of pre-upgrade scenario is synced to capsule
 
+    :Team: Artemis
 
     :id: postupgrade-eb8970fa-98cc-4a99-99fb-1c12c4e319c9
 
@@ -191,6 +195,8 @@ def test_post_user_scenario_capsule_sync_yum_repo(capsule_sync_setup):
     """Post-upgrade scenario that creates and sync repository with
     rpm, sync capsule with satellite and verifies if the repo/rpm in
     satellite is synced to capsule.
+
+    :Team: Artemis
 
     :id: postupgrade-7c1d3441-3e8d-4ac2-8102-30e18274658c
 
