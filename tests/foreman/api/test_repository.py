@@ -1449,7 +1449,8 @@ class TestRepositorySync:
         rh_repo = target_sat.api.Repository(id=repo_id).read()
         rh_repo.sync()
 
-        major, minor = constants.REPOS['kickstart'][distro]['version'].split('.')
+        major, *rest = constants.REPOS['kickstart'][distro]['version'].split('.')
+        minor = rest[0] if rest else '0'
         os = target_sat.api.OperatingSystem().search(
             query={'search': f'name="RedHat" AND major="{major}" AND minor="{minor}"'}
         )
