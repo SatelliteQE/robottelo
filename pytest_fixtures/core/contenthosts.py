@@ -380,3 +380,21 @@ def custom_host(request):
     deploy_args['workflow'] = 'deploy-rhel'
     with Broker(**deploy_args, host_class=Satellite) as host:
         yield host
+
+
+@pytest.fixture
+def fake_yum_repos(request, target_sat, module_org, module_product):
+    """Create and sync 3 YUM repositories, with fake custom content, to target satellite."""
+    repositories = {
+        'yum_0': settings.repos.yum_0.url,
+        'yum_6': settings.repos.yum_6.url,
+        'yum_9': settings.repos.yum_9.url,
+    }
+    for repo, url in repositories.items():
+        r = target_sat.api.Repository(
+            product=module_product,
+            url=url,
+        ).create()
+        r.sync()
+        repositories[repo] = r.read()
+    return list(repositories.values())
