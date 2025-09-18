@@ -20,7 +20,6 @@ from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE, FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
 from robottelo.utils.installer import InstallerCommand
-from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.ohsnap import dogfood_repository
 
 SATELLITE_SERVICES = [
@@ -120,8 +119,6 @@ def common_sat_install_assertions(satellite):
     assert not result.stdout
     # no errors in /var/log/foreman/production.log
     result = satellite.execute(r'grep --context=100 -E "\[E\|" /var/log/foreman/production.log')
-    if not is_open('SAT-21086'):
-        assert not result.stdout
     # no errors/failures in /var/log/foreman-installer/satellite.log
     result = satellite.execute(
         r'grep "\[ERROR" --context=100 /var/log/foreman-installer/satellite.log'
