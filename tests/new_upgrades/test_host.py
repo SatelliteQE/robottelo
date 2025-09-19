@@ -6,7 +6,7 @@
 
 :CaseComponent: Hosts
 
-:Team: Endeavour
+:Team: Proton
 
 :CaseImportance: High
 
@@ -53,6 +53,8 @@ def setup_gce_cr_and_host(
     upgrade_action,
 ):
     """Host can be provisioned on Google Cloud
+
+    :Team: Rocket
 
     :id: 889975f2-56ca-4584-95a7-21c513969630
 
@@ -180,6 +182,8 @@ def test_post_create_gce_cr_and_host(
     setup_gce_cr_and_host,
 ):
     """Host provisioned using pre-upgrade GCE CR
+
+    :Team: Rocket
 
     :id: postupgrade-ef82143d-efef-49b2-9702-93d67ef6804c
 

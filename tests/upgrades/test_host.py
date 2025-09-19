@@ -6,7 +6,7 @@
 
 :CaseComponent: Hosts
 
-:Team: Endeavour
+:Team: Proton
 
 :CaseImportance: High
 
@@ -18,6 +18,8 @@ import pytest
 
 class TestScenarioPositiveGCEHostComputeResource:
     """The host can be provisioned on GCE CR created in previous version
+
+    :Team: Rocket
 
     :steps:
 
