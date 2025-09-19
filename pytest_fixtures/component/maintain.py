@@ -13,12 +13,16 @@ synced_repos = pytest.StashKey[dict]
 
 
 def _get_satellite_host(request):
-    """Return the correct Satellite host depending on settings."""
+    """Return the correct Satellite host depending on settings. Ensures IPv6 proxy and CDN registration."""
     if settings.remotedb.server:
         logger.info(f'Creating Satellite with remotedb.server: {settings.remotedb.server}')
-        return Satellite(settings.remotedb.server)
-    logger.info('Using module_target_sat fallback')
-    return request.getfixturevalue('module_target_sat')
+        infra_sat_host = Satellite(settings.remotedb.server)
+    else:
+        logger.info('Using module_target_sat fallback')
+        infra_sat_host = request.getfixturevalue('module_target_sat')
+    infra_sat_host.enable_satellite_ipv6_http_proxy()
+    infra_sat_host.register_to_cdn()
+    return infra_sat_host
 
 
 @pytest.fixture(scope='module')
@@ -32,13 +36,8 @@ def module_stash(request):
 
 @pytest.fixture(scope='module')
 def module_capsule_maintain(request, module_capsule_host):
-    """
-    Configure the capsule instance with the satellite.
-    Ensures IPv6 proxy and CDN registration.
-    """
+    """Configure the capsule instance with the satellite."""
     infra_sat_host = _get_satellite_host(request)
-    infra_sat_host.enable_satellite_ipv6_http_proxy()
-    infra_sat_host.register_to_cdn()
     module_capsule_host.capsule_setup(sat_host=infra_sat_host)
     return module_capsule_host
 
