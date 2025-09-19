@@ -149,6 +149,12 @@ class SharedResource:
     def _wait_for_main_watcher(self):
         """Waits for the main watcher to finish."""
         while True:
+            # If the file is gone, it means the main watcher has finished cleanup or crashed
+            if not self.resource_file.exists():
+                self.log(
+                    'resources file is missing. Assuming main watcher cleaned up/crashed. Existing wait loop. '
+                )
+                break
             curr_data = json.loads(self.resource_file.read_text())
             if curr_data["main_status"] != "done":
                 time.sleep(settings.robottelo.shared_resource_wait)
@@ -250,7 +256,11 @@ class SharedResource:
         try:
             self.unregister()
         except Exception as e:
-            self.log(f'WARNING: Failed to unregister watcher ID: {e}')
+            self.log(
+                'WARNING: Failed to unregister watcher '
+                f'(resource: {getattr(self, "resource_name", "unknown")}, '
+                f'watcher ID: {getattr(self, "watcher_id", "unknown")}: {e}'
+            )
         if exc_type is FileNotFoundError:
             self.log(
                 f'{os.environ.get("PYTEST_XDIST_WORKER")} did not find resource file. has it already been deleted?'
@@ -273,4 +283,7 @@ class SharedResource:
                 else:
                     self.log("Setting main status to ERROR")
                     self._update_main_status("error")
+                    # If the main watcher fails, it must delete the file to signal total resources
+                    # abandonment and stop other watchers from hanging.
+                    self.resource_file.unlink()
             raise exc_value
