@@ -15,6 +15,7 @@ from wait_for import TimedOutError, wait_for
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
 from robottelo.constants import (
+    PODMAN_AUTHFILE_PATH,
     PULP_EXPORT_DIR,
     PULP_IMPORT_DIR,
     PUPPET_COMMON_INSTALLER_OPTS,
@@ -473,7 +474,9 @@ class IoPSetup:
         # Set IPv6 podman proxy on Satellite, to pull from container registry
         self.enable_ipv6_podman_proxy()
         if ".".join(self.version.split('.')[0:2]) == '6.17':
-            self.execute(f'podman pull {iop_settings.registry}/{iop_settings.image_path}')
+            self.execute(
+                f'REGISTRY_AUTH_FILE={PODMAN_AUTHFILE_PATH} podman pull {registry}/{iop_settings.image_path}'
+            )
             cmd_result = self.execute(
                 'satellite-installer --foreman-plugin-rh-cloud-enable-iop-advisor-engine true'
             )
@@ -483,7 +486,7 @@ class IoPSetup:
                 f'''
                 set -e
                 [ -d /root/satellite-iop ] && rm -rf /root/satellite-iop
-                git clone {settings.rh_cloud.iop_advisor_engine.satellite_iop_repo} /root/satellite-iop
+                git clone {iop_settings.satellite_iop_repo} /root/satellite-iop
                 cd /root/satellite-iop
                 sed -i "s/hosts: all/hosts: localhost/" playbooks/deploy.yaml
                 ansible-galaxy collection install -r requirements.yml

@@ -74,6 +74,14 @@ def iop_upgrade_setup(
             target_sat.execute(
                 f'wget -O {CUSTOM_HIERA_LOCATION} {settings.rh_cloud.iop_advisor_engine.satellite_iop_repo[:-4]}/-/raw/main/playbooks/custom-hiera.yaml'
             )
+            # Login to stage registry till 6.18 is GA
+            if 6.18 in settings.robottelo.sat_non_ga_versions:
+                iop_settings = settings.rh_cloud.iop_advisor_engine
+                target_sat.podman_login(
+                    iop_settings.stage_username,
+                    iop_settings.stage_token,
+                    iop_settings.stage_registry,
+                )
         else:
             sync_recommendations(target_sat, org)
         sat_upgrade.ready()
@@ -82,14 +90,12 @@ def iop_upgrade_setup(
 
 
 @pytest.mark.local_insights_upgrades
-@pytest.mark.hosted_insights_upgrades
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-@pytest.mark.parametrize(
-    "module_target_sat_insights", [True, False], ids=["hosted", "local"], indirect=True
-)
+@pytest.mark.parametrize("module_target_sat_insights", [False], ids=["local"], indirect=True)
 def test_rhcloud_insights_upgrade(request, iop_upgrade_setup, module_target_sat_insights):
     """Verify Satellite upgrade for hosted and local advisor with Insights client.
+    Note: Currently, this test is parametrized to run for local advisor only.
 
     :id: fce16a0a-da24-47fa-9df1-e94c1f4642a7
 

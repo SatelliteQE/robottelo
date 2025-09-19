@@ -407,7 +407,7 @@ def local_insights_upgrade():
     ) as test_duration:
         iop_settings = settings.rh_cloud.iop_advisor_engine
         sat_instance.configure_insights_on_prem(
-            iop_settings.stage_username, iop_settings.stage_token, iop_settings.stage_registry
+            iop_settings.username, iop_settings.token, iop_settings.registry
         )
         yield sat_instance
         test_duration.ready()
