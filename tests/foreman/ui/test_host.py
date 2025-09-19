@@ -79,16 +79,16 @@ def ui_admin_user(target_sat):
 
     return admin_user
 
+
 @pytest.fixture
 def host_ui_default(target_sat):
-    settings_object = target_sat.api.Setting().search(
-        query={'search': 'name=host_details_ui'}
-    )[0]
+    settings_object = target_sat.api.Setting().search(query={'search': 'name=host_details_ui'})[0]
     settings_object.value = 'No'
     settings_object.update({'value'})
     yield
     settings_object.value = 'Yes'
     settings_object.update({'value'})
+
 
 @pytest.fixture
 def ui_view_hosts_user(target_sat, current_sat_org, current_sat_location):
