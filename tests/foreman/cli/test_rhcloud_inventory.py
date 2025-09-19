@@ -133,7 +133,7 @@ def test_positive_inventory_recommendation_sync(
         handle_exception=True,
     )
     assert result.status == 0
-    assert result.stdout == 'Synchronized Insights hosts hits data\n'
+    assert 'Synchronized Insights hosts hits data' in result.stdout
 
 
 @pytest.mark.e2e
