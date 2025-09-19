@@ -1,0 +1,15 @@
+# Upstream GitHub repos and test collection rules
+GITHUB_REPOS:
+  BASE_MARKER:
+  FOREMAN:
+    ORG: theforeman
+    REPO: foreman
+    RULES:
+     - PATH:
+       COMPONENT:
+  KATELLO:
+    ORG: Katello
+    REPO: katello
+    RULES:
+      - PATH:
+        COMPONENT:
