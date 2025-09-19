@@ -553,6 +553,7 @@ def test_positive_crud_image_libvirt_with_name(
         {'name': new_img_name, 'compute-resource': cr_name}
     )[0]
     assert img_info['username'] == new_username
+    assert img_info['uuid'] == img_path
 
     # Delete Image
     result = module_target_sat.cli.ComputeResource.image_delete(
