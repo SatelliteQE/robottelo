@@ -48,7 +48,6 @@ tests/foreman/cli/test_repositories.py @SatelliteQE/team-artemis
 tests/foreman/cli/test_repository.py @SatelliteQE/team-artemis
 tests/foreman/cli/test_repository_set.py @SatelliteQE/team-artemis
 tests/foreman/cli/test_syncplan.py @SatelliteQE/team-artemis
-tests/foreman/cli/test_vm_install_products_package.py @SatelliteQE/team-artemis
 tests/foreman/destructive/test_capsulecontent.py @SatelliteQE/team-artemis
 tests/foreman/destructive/test_contentview.py @SatelliteQE/team-artemis
 tests/foreman/destructive/test_repository.py @SatelliteQE/team-artemis
