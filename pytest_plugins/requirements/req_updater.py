@@ -12,7 +12,6 @@ class UsageError(Exception):
 class ReqUpdater:
     # Installed package name as key and its counterpart in requirements file as value
     package_deviates = {
-        'Betelgeuse': 'betelgeuse',
         'broker': 'broker[docker,podman,hussh]',
         'dynaconf': 'dynaconf[vault]',
         'Jinja2': 'jinja2',
