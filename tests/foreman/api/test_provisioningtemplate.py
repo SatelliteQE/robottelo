@@ -751,3 +751,73 @@ class TestProvisioningTemplate:
             assert f'timezone --utc {timezone}' in render
         else:
             assert f'timezone --utc {timezone} --ntpservers {ntp_server_value}' in render
+
+    @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
+    def test_create_host_with_invalid_template(
+        self,
+        module_target_sat,
+        default_architecture,
+        default_partitiontable,
+        module_org,
+        module_location,
+    ):
+        """Create a host with an invalid template
+
+        :id: 3df3c4a9-0feb-426e-a8d7-d74460bd6d9e
+
+        :steps:
+            1. Create a new provisioning template with a content that is not valid (raising an error)
+            2. Assign the invalid template to operating system
+            3. Create a host with the invalid template
+            4. Check if the host creation fails
+
+        :expectedresults:
+            1. The host creation fails
+        """
+        template_kind = module_target_sat.api.TemplateKind().search(
+            query={"search": "name = provision"}
+        )[0]
+        medium = module_target_sat.api.Media(organization=[module_org]).create()
+        os = module_target_sat.api.OperatingSystem(
+            name=('qe_' + gen_string('alpha')),
+            description=gen_string('alpha'),
+            minor=gen_string('numeric'),
+            major=gen_string('numeric', 2),
+            family='Debian',
+            release_name='Bookworm',
+            architecture=[default_architecture],
+            ptable=[default_partitiontable],
+            medium=[medium],
+        ).create()
+
+        template = module_target_sat.api.ProvisioningTemplate(
+            name=gen_string('alpha'),
+            template='<%= I WILL RAISE AN ERROR( %>',
+            template_kind=template_kind,
+            organization=[module_org],
+            location=[module_location],
+            snippet=False,
+            operatingsystem=[os],
+        ).create()
+
+        os.provisioning_template.append(template)
+        os.update(['provisioning_template'])
+
+        module_target_sat.api.OSDefaultTemplate(
+            operatingsystem=os,
+            provisioning_template=template,
+            template_kind=template_kind,
+        ).create()
+
+        with pytest.raises(HTTPError):
+            module_target_sat.api.Host(
+                name=gen_string('alpha'),
+                location=module_location,
+                organization=module_org,
+                operatingsystem=os,
+                build=True,
+                mac=gen_mac(multicast=False),
+                architecture=default_architecture,
+                ptable=default_partitiontable,
+                medium=medium,
+            ).create()
