@@ -472,18 +472,24 @@ class IoPSetup:
         self.podman_login(username, password, registry)
         # Set IPv6 podman proxy on Satellite, to pull from container registry
         self.enable_ipv6_podman_proxy()
-        # TODO: Replace this temporary implementation with a permanent solution.
-        result = self.execute(
-            f'''
-            set -e
-            [ -d /root/satellite-iop ] && rm -rf /root/satellite-iop
-            git clone {settings.rh_cloud.iop_advisor_engine.satellite_iop_repo} /root/satellite-iop
-            cd /root/satellite-iop
-            sed -i "s/hosts: all/hosts: localhost/" playbooks/deploy.yaml
-            ansible-galaxy collection install -r requirements.yml
-            ansible-playbook -c local playbooks/deploy.yaml
-            ''',
-            timeout='20m',
-        )
-        assert result.status == 0, f'Failed to configure IoP: {result.stdout}'
+        if ".".join(self.version.split('.')[0:2]) == '6.17':
+            self.execute(f'podman pull {iop_settings.registry}/{iop_settings.image_path}')
+            cmd_result = self.execute(
+                'satellite-installer --foreman-plugin-rh-cloud-enable-iop-advisor-engine true'
+            )
+        else:
+            # TODO: Replace this temporary implementation with a permanent solution.
+            cmd_result = self.execute(
+                f'''
+                set -e
+                [ -d /root/satellite-iop ] && rm -rf /root/satellite-iop
+                git clone {settings.rh_cloud.iop_advisor_engine.satellite_iop_repo} /root/satellite-iop
+                cd /root/satellite-iop
+                sed -i "s/hosts: all/hosts: localhost/" playbooks/deploy.yaml
+                ansible-galaxy collection install -r requirements.yml
+                ansible-playbook -c local playbooks/deploy.yaml
+                ''',
+                timeout='20m',
+            )
+        assert cmd_result.status == 0, f'Failed to configure IoP: {cmd_result.stdout}'
         assert self.local_advisor_enabled
