@@ -2363,7 +2363,7 @@ def test_positive_host_with_puppet(
         }
     )
     host = session_puppet_enabled_sat.cli.Host.info({'id': host['id']})
-    assert host['puppet-environment'] == module_puppet_environment.name
+    assert host['puppet-environment']['name'] == module_puppet_environment.name
     session_puppet_enabled_sat.cli.Host.delete({'id': host['id']})
 
 
