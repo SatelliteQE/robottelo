@@ -473,11 +473,11 @@ class IoPSetup:
         # Set IPv6 podman proxy on Satellite, to pull from container registry
         self.enable_ipv6_podman_proxy()
         # TODO: Replace this temporary implementation with a permanent solution.
-        result = self.execute(
+        cmd_result = self.execute(
             f'''
             set -e
             [ -d /root/satellite-iop ] && rm -rf /root/satellite-iop
-            git clone {settings.rh_cloud.iop_advisor_engine.satellite_iop_repo} /root/satellite-iop
+            git clone {iop_settings.satellite_iop_repo} /root/satellite-iop
             cd /root/satellite-iop
             sed -i "s/hosts: all/hosts: localhost/" playbooks/deploy.yaml
             ansible-galaxy collection install -r requirements.yml
@@ -485,5 +485,5 @@ class IoPSetup:
             ''',
             timeout='20m',
         )
-        assert result.status == 0, f'Failed to configure IoP: {result.stdout}'
+        assert cmd_result.status == 0, f'Failed to configure IoP: {cmd_result.stdout}'
         assert self.local_advisor_enabled
