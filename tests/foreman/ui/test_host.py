@@ -79,6 +79,16 @@ def ui_admin_user(target_sat):
 
     return admin_user
 
+@pytest.fixture
+def host_ui_default(target_sat):
+    settings_object = target_sat.api.Setting().search(
+        query={'search': 'name=host_details_ui'}
+    )[0]
+    settings_object.value = 'No'
+    settings_object.update({'value'})
+    yield
+    settings_object.value = 'Yes'
+    settings_object.update({'value'})
 
 @pytest.fixture
 def ui_view_hosts_user(target_sat, current_sat_org, current_sat_location):
@@ -612,7 +622,7 @@ def test_negative_delete_primary_interface(session, host_ui_options):
 
 
 def test_positive_view_hosts_with_non_admin_user(
-    test_name, module_org, smart_proxy_location, target_sat
+    test_name, module_org, smart_proxy_location, target_sat, host_ui_default
 ):
     """View hosts and content hosts as a non-admin user with only view_hosts, edit_hosts
     and view_organization permissions
@@ -644,7 +654,7 @@ def test_positive_view_hosts_with_non_admin_user(
         location=smart_proxy_location, organization=module_org
     ).create()
     with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
-        host = session.host.get_details(created_host.name, widget_names='breadcrumb')
+        host = session.host_new.get_details(created_host.name, widget_names='breadcrumb')
         assert host['breadcrumb'] == created_host.name
         content_host = session.contenthost.read(created_host.name, widget_names='breadcrumb')
         assert content_host['breadcrumb'] == created_host.name
@@ -692,10 +702,10 @@ def test_positive_remove_parameter_non_admin_user(
         host_parameters_attributes=[parameter],
     ).create()
     with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
-        values = session.host.read(host.name, 'parameters')
+        values = session.host_new.read(host.name, 'parameters')
         assert values['parameters']['host_params'][0] == parameter
-        session.host.update(host.name, {'parameters.host_params': []})
-        values = session.host.read(host.name, 'parameters')
+        session.host_new.update(host.name, {'parameters.host_params': []})
+        values = session.host_new.read(host.name, 'parameters')
         assert not values['parameters']['host_params']
 
 
