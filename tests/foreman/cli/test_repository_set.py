@@ -15,6 +15,7 @@
 import pytest
 
 from robottelo.constants import PRDS, REPOSET
+from robottelo.utils.issue_handlers import is_open
 
 pytestmark = pytest.mark.run_in_one_thread
 
@@ -138,19 +139,20 @@ def test_positive_list_available_repositories(params, target_sat):
     result = target_sat.cli.RepositorySet.available_repositories(params['avail']['label'])
     assert len(match_repos(result, params['match']['enabled'])) == 2
 
-    # Disable one repo
-    target_sat.cli.RepositorySet.disable(params['enable']['id'])
+    if not is_open('SAT-38447'):
+        # Disable one repo
+        target_sat.cli.RepositorySet.disable(params['enable']['id'])
 
-    # There should remain only 1 enabled repo
-    result = target_sat.cli.RepositorySet.available_repositories(params['avail']['id'])
-    assert len(match_repos(result, params['match']['enabled'])) == 1
+        # There should remain only 1 enabled repo
+        result = target_sat.cli.RepositorySet.available_repositories(params['avail']['id'])
+        assert len(match_repos(result, params['match']['enabled'])) == 1
 
-    # Disable the last enabled repo
-    target_sat.cli.RepositorySet.disable(params['enable']['arch_2'])
+        # Disable the last enabled repo
+        target_sat.cli.RepositorySet.disable(params['enable']['arch_2'])
 
-    # There should be no enabled repos
-    result = target_sat.cli.RepositorySet.available_repositories(params['avail']['id'])
-    assert len(match_repos(result, params['match']['enabled'])) == 0
+        # There should be no enabled repos
+        result = target_sat.cli.RepositorySet.available_repositories(params['avail']['id'])
+        assert len(match_repos(result, params['match']['enabled'])) == 0
 
 
 @pytest.mark.parametrize('act_by', ['name', 'label', 'ids'])
