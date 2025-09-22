@@ -12,8 +12,8 @@ library_file_repositories_count: 0
 library_python_repositories_count: 0
 library_ansible_collection_repositories_count: 0
 library_ostree_repositories_count: 0
-advisor_on_prem_remediations_enabled: false
-advisor_on_prem_remediations_count:
+iop_remediations_enabled: false
+iop_remediations_count:
 bookmarks_custom_public_count: 0
 bookmarks_custom_private_count: 0
 bookmarks_custom_count: 0
@@ -37,12 +37,12 @@ instance_uuid: ad176452-88b9-5d42-bf1e-1a9714a290b9
 hosts_by_type_count|Managed: 1
 hosts_by_os_count|RedHat: 1
 hosts_by_family_count|Redhat: 1
-facts_by_type|Puppet|min_update_time: '2025-08-14 08:28:58.921124'
-facts_by_type|Puppet|max_update_time: '2025-08-14 08:28:59.818802'
+facts_by_type|Puppet|min_update_time: "2025-08-14 08:28:58.921124"
+facts_by_type|Puppet|max_update_time: "2025-08-14 08:28:59.818802"
 facts_by_type|Puppet|values_count: 404
 audits|records_count: 57
-audits|min_created_at: '2025-08-14 08:27:17.575698'
-audits|max_created_at: '2025-08-14 08:32:00.221025'
+audits|min_created_at: "2025-08-14 08:27:17.575698"
+audits|max_created_at: "2025-08-14 08:32:00.221025"
 parameters_count|CommonParameter: 7
 rhel_ai_workload_host_count: 0
 kerberos_use: false
@@ -84,7 +84,7 @@ pat_counts: 0
 pat_recently_used_count: 0
 revoked_pats_count: 0
 smart_proxies_count: 1
-smart_proxies_creation_date|1: '2025-08-14 08:29:47.536836'
+smart_proxies_creation_date|1: "2025-08-14 08:29:47.536836"
 total_users_count: 4
 non_admin_users_count: 0
 custom_roles_count: 0
@@ -118,6 +118,6 @@ foreman_virt_who_configure_kubevirt_count: 0
 foreman_virt_who_configure_libvirtd_count: 0
 compute_resource_vmware_count: 0
 webhooks_enabled_count: 0
-webhooks_subscribed_events: ''
+webhooks_subscribed_events: ""
 shell_hooks_count: 0
 version: 1
