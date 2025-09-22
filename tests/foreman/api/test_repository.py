@@ -1678,7 +1678,7 @@ class TestDockerRepository:
         :BZ: 1475121, 1580510
 
         """
-        msg = "404, message='Not Found'"
+        msg = "Pulp task error"
         with pytest.raises(TaskFailedError, match=msg):
             repo.sync()
 
