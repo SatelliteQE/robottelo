@@ -557,6 +557,94 @@ class TestRepositoryExport:
         )
         assert '2.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
+    @pytest.mark.parametrize('subject', ['library', 'repository'])
+    def test_positive_export_format_inheritance(
+        self,
+        target_sat,
+        export_import_cleanup_function,
+        function_org,
+        function_synced_custom_repo,
+        subject,
+    ):
+        """Test that incremental exports inherit format from previous exports.
+
+        :id: 95407c12-7f1f-4845-bc0b-01a6dad654ff
+
+        :parametrized: yes
+
+        :setup:
+            1. Product with synced custom repository.
+
+        :steps:
+            1. Run complete export in importable format.
+            2. Run an incremental export with no format provided.
+            3. Assert that the format of the export is "importable" (not "syncable").
+            4. Run complete export in syncable format.
+            5. Run an incremental export with no format provided.
+            6. Assert that the format of the export is "syncable" (not "importable").
+            7. Run incremental export on the first export using --from-history-id.
+            8. Assert that the format of the export is "importable" (not "syncable").
+
+        :expectedresults:
+            1. Incremental exports inherit the format from the previous complete export.
+            2. When using --from-history-id, the format is inherited from the specified export.
+
+        :Verifies: SAT-32715, SAT-38392
+
+        :BlockedBy: SAT-38392
+
+        :customerscenario: true
+        """
+        if subject == 'library':
+            cpl_export = target_sat.cli.ContentExport.completeLibrary
+            inc_export = target_sat.cli.ContentExport.incrementalLibrary
+            exp_params = {'organization-id': function_org.id}
+            importable_msg = f'{function_org.name}/Export-Library'
+            syncable_msg = f'{function_org.name}/Export-Library-SYNCABLE'
+        elif subject == 'repository':
+            cpl_export = target_sat.cli.ContentExport.completeRepository
+            inc_export = target_sat.cli.ContentExport.incrementalRepository
+            exp_params = {'id': function_synced_custom_repo['id']}
+            importable_msg = f'{function_org.name}/Export-{function_synced_custom_repo.name}'
+            syncable_msg = f'{function_org.name}/Export-SYNCABLE-{function_synced_custom_repo.name}'
+        else:
+            raise ValueError('Unsupported export subject used in parametrization')
+
+        # Verify export directory is empty
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
+
+        # Run complete export in importable format.
+        export_1 = cpl_export(exp_params | {'format': 'importable'})
+        history = target_sat.cli.ContentExport.list({'organization-id': function_org.id})
+        export_1['id'] = history[-1]['id']
+
+        # Run an incremental export with no format provided.
+        export_2 = inc_export(exp_params)
+
+        # Assert that the format of the export is "importable" (not "syncable").
+        assert importable_msg in export_2['message']
+        history = target_sat.cli.ContentExport.list({'organization-id': function_org.id})
+        assert importable_msg in history[-1]['path']
+
+        # Run complete export in syncable format.
+        cpl_export(exp_params | {'format': 'syncable'})
+
+        #  Run an incremental export with no format provided.
+        export_4 = inc_export(exp_params)
+
+        # Assert that the format of the export is "syncable" (not "importable").
+        assert syncable_msg in export_4['message']
+        history = target_sat.cli.ContentExport.list({'organization-id': function_org.id})
+        assert syncable_msg in history[-1]['path']
+
+        # Run incremental export on the first export using --from-history-id.
+        export_5 = inc_export(exp_params | {'from-history-id': export_1['id']})
+
+        # Assert that the format of the export is "importable" (not "syncable").
+        assert importable_msg in export_5['message']
+        history = target_sat.cli.ContentExport.list({'organization-id': function_org.id})
+        assert importable_msg in history[-1]['path']
+
 
 @pytest.fixture(scope='class')
 def class_export_entities(module_org, module_target_sat):
