@@ -86,7 +86,6 @@ tests/upgrades/test_syncplan.py @SatelliteQE/team-artemis
 # Proton
 tests/foreman/api/test_architecture.py @SatelliteQE/team-proton
 tests/foreman/api/test_activationkey.py @SatelliteQE/team-proton
-tests/foreman/cli/test_bootstrap_script.py @SatelliteQE/team-proton
 tests/foreman/api/test_host.py @SatelliteQE/team-proton
 tests/foreman/api/test_hostgroup.py @SatelliteQE/team-proton
 tests/foreman/api/test_hostcollection.py @SatelliteQE/team-proton
