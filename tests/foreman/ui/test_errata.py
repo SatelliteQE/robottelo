@@ -915,7 +915,7 @@ def test_positive_apply_for_all_hosts(
                 entity_name=errata_id,
                 host_names='All',
             )
-            assert result['overview']['job_status'] == 'Success'
+            assert result['overall_status']['is_success']
             # find single hosts job
             # remote action tasks have lowercase errata_ids, ie: 'rhba-' not 'RHBA-'
             hosts_job = target_sat.wait_for_tasks(
@@ -950,8 +950,8 @@ def test_positive_apply_for_all_hosts(
                 updated_pkg = session.host_new.get_packages(
                     entity_name=client.hostname, search='kangaroo'
                 )
-                assert len(updated_pkg['table']) == 1
-                assert updated_pkg['table'][0]['Installed version'] == updated_version
+                assert len(updated_pkg) == 1
+                assert updated_pkg[0]['Installed version'] == updated_version
 
             # for second errata, install in each chost and check, one at a time.
             # from Legacy Chost UI > details > Errata tab
@@ -959,8 +959,7 @@ def test_positive_apply_for_all_hosts(
                 status = session.contenthost.install_errata(
                     client.hostname, CUSTOM_REPO_ERRATA_ID, install_via='rex'
                 )
-                assert status['overview']['job_status'] == 'Success'
-                assert status['overview']['job_status_progress'] == '100%'
+                assert status['overall_status']['is_success']
                 # check updated package in chost details
                 assert client.execute('subscription-manager repos').status == 0
                 packages_rows = session.contenthost.search_package(
