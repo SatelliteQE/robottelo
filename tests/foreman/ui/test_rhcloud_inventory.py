@@ -13,6 +13,7 @@
 """
 
 from datetime import UTC, datetime, timedelta
+import re
 
 import pytest
 from wait_for import wait_for
@@ -395,7 +396,7 @@ def test_rhcloud_inventory_without_manifest(session, module_org, target_sat):
     )
 
 
-@pytest.mark.parametrize("module_target_sat_insights", [False], ids=["local"], indirect=True)
+@pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
 def test_rhcloud_inventory_disabled_local_insights(module_target_sat_insights):
     """Verify that the 'Insights > Inventory Upload' navigation item is not available
     when the Satellite is configured to use a local advisor engine.
@@ -666,5 +667,70 @@ def test_rh_cloud_minimal_report(
         # Verify that proper fields are IN report
         required_fields = ['account', 'subscription_manager_id', 'insights_id']
         assert all(all(key in item for key in required_fields) for item in host_data), (
-            "Not all required keys are present in every dictionary"
+            'Not all required keys are present in every dictionary'
         )
+
+
+@pytest.mark.usefixtures('setting_update')
+@pytest.mark.parametrize(
+    'setting_update',
+    ['subscription_connection_enabled=true', 'subscription_connection_enabled=false'],
+    indirect=True,
+)
+def test_verify_generated_report_location(module_target_sat, setting_update):
+    """
+    Verify that the generated report is located in /var/lib/foreman/red_hat_inventory/generated_reports/
+
+    :id: 44b3abb4-c447-4045-abd8-a1c1396a56cb
+
+    :parametrized: yes
+
+    :steps:
+        1. Set the subscription_connection_enabled setting to true/false
+        2. Generate a report
+        3. Verify that the report is located in /var/lib/foreman/red_hat_inventory/generated_reports/
+
+    :expectedresults:
+        1. The generated report is located in /var/lib/foreman/red_hat_inventory/generated_reports/
+
+    :Verifies: SAT-35237
+    """
+
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=DEFAULT_ORG)
+        session.location.select(loc_name=DEFAULT_LOC)
+        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        session.cloudinventory.generate_report(DEFAULT_ORG)
+        # wait_for_tasks report generation task to finish
+        wait_for(
+            lambda: module_target_sat.api.ForemanTask()
+            .search(
+                query={
+                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                    f'and started_at >= "{timestamp}"'
+                }
+            )[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        inventory_data = session.cloudinventory.read_org(DEFAULT_ORG)
+    # Using regex to find file path ending with .tar.xz
+    # Regex explanation:
+    # (/[^\s]+\.tar\.xz) - This pattern matches:
+    #   ( ) - Capturing group to extract the matched path
+    #   /   - Literal forward slash (start of absolute path)
+    #   [^\s]+ - One or more characters that are NOT whitespace
+    #            [^\s] means "any character except whitespace"
+    #            + means "one or more of the preceding character class"
+    #   \.tar\.xz - Literal string ".tar.xz"
+    #               \. escapes the dot to match literal dots, not any character
+    report_path_match = re.search(r'(/[^\s]+\.tar\.xz)', inventory_data['generating']['terminal'])
+    if report_path_match:
+        report_path = report_path_match.group(1)
+        print(report_path)
+
+    assert module_target_sat.execute(f'ls "{report_path}"').status == 0
