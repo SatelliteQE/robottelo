@@ -12,6 +12,7 @@
 
 """
 
+from collections import OrderedDict
 import http
 
 from nailgun import client, entities, entity_fields
@@ -105,7 +106,7 @@ def get_entities_for_unauthorized(all_entities, exclude_entities, max_num=10):
     # FIXME: this must be replaced by a setup function that disable
     # 'Brute-force attack prevention' for negative tests when disabling
     # feature is available downstream
-    return list(all_entities - exclude_entities)[:max_num]
+    return sorted(list(all_entities - exclude_entities), key=lambda x: x.__name__)[:max_num]
 
 
 def entities_to_dict(entities_set):
@@ -117,9 +118,10 @@ def entities_to_dict(entities_set):
         entities_set: A set or list of entity classes
 
     Returns:
-        dict: Dictionary with entity class names as keys and classes as values
+        dict: Dictionary with entity class names as keys and classes as values,
+              sorted by class name for consistent ordering across runs
     """
-    return {entity_cls.__name__: entity_cls for entity_cls in entities_set}
+    return OrderedDict(sorted((entity_cls.__name__, entity_cls) for entity_cls in entities_set))
 
 
 class TestEntity:
