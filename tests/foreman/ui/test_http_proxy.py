@@ -523,7 +523,7 @@ def test_positive_repo_discovery(setup_http_proxy, module_target_sat, module_org
         )
 
 
-def test_authenticated_test_connection(target_sat, module_sca_manifest_org, default_location):
+def test_authenticated_test_connection(target_sat, module_org, default_location):
     """Test connection doesn't throw any errors when run on an authenticated HTTP Proxy
 
     :id: 4f2e63b4-64a1-47f3-88e2-303298d89092
@@ -542,7 +542,7 @@ def test_authenticated_test_connection(target_sat, module_sca_manifest_org, defa
     """
     proxy_name = gen_string('alpha')
     with target_sat.ui_session() as session:
-        session.organization.select(org_name=module_sca_manifest_org.name)
+        session.organization.select(org_name=module_org.name)
         session.http_proxy.create(
             {
                 'http_proxy.name': proxy_name,
@@ -550,7 +550,7 @@ def test_authenticated_test_connection(target_sat, module_sca_manifest_org, defa
                 'http_proxy.username': settings.http_proxy.username,
                 'http_proxy.password': settings.http_proxy.password,
                 'locations.resources.assigned': [default_location.name],
-                'organizations.resources.assigned': [module_sca_manifest_org.name],
+                'organizations.resources.assigned': [module_org.name],
             }
         )
         session.http_proxy.test_connection(
