@@ -15,6 +15,7 @@
 import random
 from time import sleep
 
+from fauxfactory import gen_integer
 import pytest
 
 from robottelo.config import settings
@@ -75,17 +76,23 @@ def test_positive_update_hostname_default_prefix(setting_update, module_target_s
     assert hostname_prefix_value == discovery_prefix['value']
 
 
-@pytest.mark.stubbed
-def test_positive_update_hostname_default_facts():
+@pytest.mark.parametrize('setting_update', ['discovery_hostname'], indirect=True)
+def test_positive_update_hostname_default_facts(setting_update, module_target_sat):
     """Update the default set fact of hostname_facts setting with list of
     facts like: bios_vendor,uuid
 
     :id: 1042c5e2-ee4d-4eaf-a0b2-86c000a79dfb
 
     :expectedresults: Default set fact should be updated with facts list.
-
-    :CaseAutomation: NotAutomated
     """
+    discovery_hostname_value = '["bios_vendor", "uuid"]'
+    module_target_sat.cli.Settings.set(
+        {'name': 'discovery_hostname', 'value': discovery_hostname_value}
+    )
+    discovery_hostname = module_target_sat.cli.Settings.list({'search': 'name=discovery_hostname'})[
+        0
+    ]
+    assert discovery_hostname['value'] == discovery_hostname_value
 
 
 @pytest.mark.stubbed
@@ -457,3 +464,35 @@ def test_positive_failed_login_attempts_limit(setting_update, target_sat):
     assert target_sat.execute(f'hammer -u {username} -p {password} user list').status == 0
     target_sat.cli.Settings.set({'name': 'failed_login_attempts_limit', 'value': '0'})
     assert target_sat.cli.Settings.info({'name': 'failed_login_attempts_limit'})['value'] == '0'
+
+
+@pytest.mark.parametrize('setting_update', ['login_text'], indirect=True)
+def test_positive_existing_setting_info(setting_update, module_target_sat):
+    """Get setting info for a existing setting
+
+    :id: 73568bf2-8419-11f0-9102-c6fadc44396c
+
+    :parametrized: yes
+
+    :expectedresults: Setting info is returned successfully
+    """
+    setting_info = module_target_sat.cli.Settings.info({'id': 'login_text'})
+    assert setting_info['name'] == setting_update.name
+    assert setting_info['value'] == setting_update.value
+    assert setting_info['description'] == setting_update.description
+    assert setting_info['settings-type'] == setting_update.settings_type
+
+
+def test_negative_non_existing_setting_info(module_target_sat):
+    """Get setting info for non existing setting
+
+    :id: 7b8b83d6-8419-11f0-9102-c6fadc44396c
+
+    :expectedresults: Correct error message is returned
+
+    :verifies: SAT-20238
+    """
+    non_existing_id = gen_integer(min_value=1, max_value=10000)
+    with pytest.raises(CLIReturnCodeError) as error:
+        module_target_sat.cli.Settings.info({'id': non_existing_id})
+    assert f"Resource setting not found by id '{non_existing_id}'" in error.value.message

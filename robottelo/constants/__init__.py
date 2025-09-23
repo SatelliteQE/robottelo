@@ -6,7 +6,7 @@ from box import Box
 from nailgun import entities
 
 # This should be updated after each version branch
-SATELLITE_VERSION = "6.18"
+SATELLITE_VERSION = "6.19"
 SATELLITE_OS_VERSION = "9"
 
 # Default system ports
@@ -1025,6 +1025,12 @@ PULP_EXPORT_DIR = '/var/lib/pulp/exports/'
 PULP_IMPORT_DIR = '/var/lib/pulp/imports/'
 EXPORT_LIBRARY_NAME = 'Export-Library'
 SUPPORTED_REPO_CHECKSUMS = ['sha256', 'sha384', 'sha512']
+SUPPORTED_MIRRORING_POLICIES = {
+    'yum': ['additive', 'mirror_complete', 'mirror_content_only'],
+    'docker': ['additive', 'mirror_content_only'],
+    'ansible_collection': ['additive', 'mirror_content_only'],
+    'file': ['additive', 'mirror_content_only'],
+}
 
 PUPPET_COMMON_INSTALLER_OPTS = {
     'foreman-proxy-puppetca': 'true',
@@ -1951,6 +1957,7 @@ CAPSULE_ANSWER_FILE = "/etc/foreman-installer/scenarios.d/capsule-answers.yaml"
 MAINTAIN_HAMMER_YML = "/etc/foreman-maintain/foreman-maintain-hammer.yml"
 SATELLITE_MAINTAIN_YML = "/etc/foreman-maintain/foreman_maintain.yml"
 FOREMAN_SETTINGS_YML = '/etc/foreman/settings.yaml'
+PODMAN_AUTHFILE_PATH = '/etc/foreman/registry-auth.json'
 
 FOREMAN_TEMPLATE_IMPORT_URL = 'https://github.com/SatelliteQE/foreman_templates.git'
 FOREMAN_TEMPLATES_IMPORT_COUNT = {
@@ -1980,10 +1987,6 @@ DEFAULT_SYSPURPOSE_ATTRIBUTES = {
     ),
 }
 
-# Bugzilla statuses used by Robottelo issue handler.
-OPEN_STATUSES = ("NEW", "ASSIGNED", "POST", "MODIFIED")
-CLOSED_STATUSES = ("ON_QA", "VERIFIED", "RELEASE_PENDING", "CLOSED")
-WONTFIX_RESOLUTIONS = ("WONTFIX", "CANTFIX", "DEFERRED")
 # Jira statuses used by Robottelo issue handler.
 JIRA_TESTS_PASSED_LABEL = "tests-passed"
 JIRA_TESTS_FAILED_LABEL = "tests-failed"
@@ -2072,6 +2075,9 @@ FOREMAN_ANSIBLE_MODULES = [
     "domain_info",
     "domain",
     "external_usergroup",
+    "flatpak_remote",
+    "flatpak_remote_repository_mirror",
+    "flatpak_remote_scan",
     "global_parameter",
     "hardware_model",
     "host_collection",
@@ -2170,6 +2176,9 @@ FAM_TEST_PLAYBOOKS = [
     "domain",
     "external_usergroup",
     "filters",
+    "flatpak_remote",
+    "flatpak_remote_repository_mirror",
+    "flatpak_remote_scan",
     "global_parameter",
     "hardware_model",
     "host_collection",
@@ -2240,6 +2249,9 @@ FAM_TEST_PLAYBOOKS = [
     "wait_for_task",
     "webhook",
 ]
+
+# randomly selected subset of FAM_TEST_PLAYBOOKS to be run in IDM tests
+FAM_IDM_TEST_PLAYBOOKS = ['activation_key', 'content_view', 'job_invocation']
 
 FAM_TEST_LIBVIRT_PLAYBOOKS = [
     "compute_attribute",
@@ -2380,3 +2392,4 @@ class DataFile(Box):
     FAKE_3_YUM_REPO_RPMS_ANT = DATA_DIR.joinpath(FAKE_3_YUM_REPO_RPMS[0])
     EXPIRED_MANIFEST_FILE = DATA_DIR.joinpath(EXPIRED_MANIFEST)
     USAGE_REPORT_ITEMS = DATA_DIR.joinpath('usage_report.yml')
+    USAGE_REPORT_ITEMS_CONDENSED = DATA_DIR.joinpath('usage_report_condensed.yml')

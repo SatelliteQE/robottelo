@@ -103,7 +103,7 @@ def register_system(system, activation_key=None, org='Default_Organization', env
         f'rpm -ihv http://{settings.server.hostname}/pub/katello-ca-consumer-latest.noarch.rpm',
         system,
     )
-    cmd = f'subscription-manager register --org={org} --environment={env} '
+    cmd = f'subscription-manager register --org={org} --environment={env} --force '
     if activation_key is not None:
         cmd += f'--activationkey={activation_key}'
     else:
@@ -351,7 +351,7 @@ def deploy_configure_by_script(
     register_system(get_system(hypervisor_type), org=org)
     with open(script_filename, 'w') as fp:
         fp.write(script_content)
-    ssh.get_client().put(script_filename)
+    ssh.get_client().put(script_filename, script_filename)
     ret, stdout = runcmd(f'sh {script_filename}')
     if ret != 0 or 'Finished successfully' not in stdout:
         raise VirtWhoError(f"Failed to deploy configure by {script_filename}")

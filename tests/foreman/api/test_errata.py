@@ -6,7 +6,7 @@
 
 :CaseComponent: ErrataManagement
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
@@ -22,7 +22,6 @@ import requests
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
-    DEFAULT_CV,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_2_CUSTOM_PACKAGE_NAME,
@@ -196,10 +195,11 @@ def errata_id_set(erratum_list):
 def package_applicability_changed_as_expected(
     sat,
     host,
-    package_filename,
+    packages,
     prior_applicable_errata_list,
     prior_applicable_errata_count,
     prior_applicable_package_count,
+    expected_change=1,
     return_applicables=False,
 ):
     """Checks that installing some package, updated any impacted errata(s)
@@ -220,14 +220,16 @@ def package_applicability_changed_as_expected(
             no longer applicable, but they were prior to install, if any.
         The number of applicable packages decreased by one.
 
-    :param string: package_filename:
-        the full filename of the package version installed.
+    :param list: packages:
+        list of the full filenames of the package versions installed.
     :param list: prior_applicable_errata_list:
         list of all erratum instances from search, that were applicable before modifying package.
     :param int prior_applicable_errata_count:
         number of total applicable errata prior to modifying package.
     :param int prior_applicable_package_count:
         number of total applicable packages prior to modifying package.
+    :param int expected_change: (default: 1)
+        replace with num of packages most recently installed or modified.
     :param boolean return_applicables (False): if set to True, and method's 'result' is not False:
         return a dict containing result, and relevant package and errata information.
 
@@ -274,7 +276,9 @@ def package_applicability_changed_as_expected(
         # No task for forced applicability regenerate,
         # applicability was already up to date
         assert task is None
-    package_basename = str(package_filename.split("-", 1)[0])  # 'package-4.0-1.rpm' > 'package'
+    package_basenames = [
+        str(pkg.split("-", 1)[0]) for pkg in packages
+    ]  # 'package-4.0-1.rpm' > 'package'
     prior_unique_errata_ids = errata_id_set(prior_applicable_errata_list)
     current_applicable_errata = _fetch_available_errata_instances(sat, host)
     app_unique_errata_ids = errata_id_set(current_applicable_errata)
@@ -306,7 +310,7 @@ def package_applicability_changed_as_expected(
                 errata
                 for errata in current_applicable_errata
                 if (
-                    any(package_basename in p for p in errata.packages)
+                    any(name in p for p in errata.packages for name in package_basenames)
                     and errata.errata_id not in prior_unique_errata_ids
                 )
             ]
@@ -317,15 +321,17 @@ def package_applicability_changed_as_expected(
                 errata
                 for errata in current_applicable_errata
                 if (
-                    not any(package_basename in p.filename for p in errata.packages)
+                    not any(
+                        name in p.filename for p in errata.packages for name in package_basenames
+                    )
                     and errata.errata_id in prior_unique_errata_ids
                 )
             ]
         app_errata_diff_ids = errata_id_set(app_errata_with_package_diff)
         assert len(app_errata_diff_ids) > 0, (
-            f'Applicable errata count changed by {difference}, after modifying {package_filename},'
+            f'Applicable errata count changed by {difference}, after modifying packages: [{packages}],'
             ' but could not find any affected errata(s) with packages list'
-            f' that contains a matching package_basename: {package_basename}.'
+            f' that contains a matching entry from package_basenames: [{package_basenames}].'
         )
     # Check that applicable_package_count changed,
     # if not, an applicable package was not modified.
@@ -340,9 +346,10 @@ def package_applicability_changed_as_expected(
         # check diff in applicable counts, is equal to diff in length of errata search results.
         assert prior_applicable_errata_count + difference == host.applicable_errata_count
 
-    """ Check applicable_package count changed by one.
+    """ Check applicable_package count changed by expected number.
         we expect applicable_errata_count increased/decrease,
-        only by number of 'new' or 'removed' applicable errata, if any.
+        only by number of 'new' or 'removed' applicable errata.
+        Errata that have the modified package in their applicable list, if any.
     """
     if app_errata_with_package_diff:
         if host.applicable_errata_count > prior_applicable_errata_count:
@@ -352,7 +359,7 @@ def package_applicability_changed_as_expected(
             Check applicable errata count increased by number
                 of newly applicable errata.
             """
-            assert prior_applicable_package_count + 1 == host.applicable_package_count
+            assert prior_applicable_package_count + expected_change == host.applicable_package_count
             expected_increase = 0
             if app_unique_errata_ids != prior_unique_errata_ids:
                 difference = len(app_unique_errata_ids) - prior_applicable_errata_count
@@ -368,7 +375,10 @@ def package_applicability_changed_as_expected(
                prior applicable errata, that are no longer found.
             """
             if host.applicable_errata_count < prior_applicable_errata_count:
-                assert host.applicable_package_count == prior_applicable_package_count - 1
+                assert (
+                    host.applicable_package_count
+                    == prior_applicable_package_count - expected_change
+                )
                 expected_decrease = 0
                 if app_unique_errata_ids != prior_unique_errata_ids:
                     difference = len(app_unique_errata_ids) - len(prior_applicable_errata_count)
@@ -397,23 +407,20 @@ def package_applicability_changed_as_expected(
             f'Expected set of prior applicable errata_ids: {prior_unique_errata_ids},'
             f' to be equivalent to set of current applicable errata_ids: {app_unique_errata_ids}.'
         )
-    if return_applicables is True:
+    if return_applicables:
         change_in_errata = len(app_unique_errata_ids) - prior_applicable_errata_count
-        output = host.execute(f'rpm -q {package_basename}').stdout
-        current_package = output[:-1]
-        assert package_basename in current_package
-        if current_package == package_filename:  # noqa: SIM108
-            # we have already checked if applicable package count changed,
-            # in case the same version as prior was installed and present.
-            prior_package = None  # package must not have been present before this modification
-        else:
-            prior_package = package_filename
+        output = host.execute(f'rpm -q {" ".join(package_basenames)}').stdout
+        current_packages = [
+            line.split('-')[0]
+            for line in output.strip().splitlines()
+            if 'is not installed' not in line
+        ]
+        assert all(name in current_packages for name in package_basenames)
         return {
             'result': True,
             'errata_count': host.applicable_errata_count,
             'package_count': host.applicable_package_count,
-            'current_package': current_package,
-            'prior_package': prior_package,
+            'current_packages': current_packages,
             'change_in_errata': change_in_errata,
             'changed_errata': list(app_errata_diff_ids),
         }
@@ -523,38 +530,49 @@ def test_positive_install_in_hc(
     target_sat,
     content_hosts,
 ):
-    """Install errata in a host-collection
+    """Install an erratum in a host-collection
 
     :id: 6f0242df-6511-4c0f-95fc-3fa32c63a064
 
     :Setup:
         1. Some Unregistered hosts.
         2. Errata synced on satellite server.
+        3. Control erratum and package: we will install the outdated package but not its erratum.
 
     :Steps:
         1. Setup custom repo for each client, publish & promote content-view.
-        2. Register clients as content hosts, install one outdated custom package on each client.
-        3. Create Host Collection from clients, install errata to clients by Host Collection.
+        2. Register clients as content hosts, install both outdated custom packages on each client.
+        3. Create Host Collection from clients, install the non-Control erratum to clients by Host Collection (All).
         4. PUT /api/v2/hosts/bulk/update_content
 
     :expectedresults:
-        1. package install invokes errata applicability recalculate
-        2. errata is installed in the host-collection
-        3. errata installation invokes applicability recalculate
-        4. updated custom package is found on the contained hosts
+        1. outdated package install invokes errata applicability recalculate.
+        2. expected erratum is installed in the host-collection.
+        3. erratum installation invokes applicability recalculate.
+        4. updated custom package is found on the contained hosts.
+        5. The control erratum was not applied, even though available.
+        6. The control package was not updated.
 
-    :CaseImportance: Medium
-
+    :CaseImportance: High
 
     :BZ: 1983043
+    :Verifies: SAT-29942
+
     """
-    # custom_repo already in published a module_cv version
+    # SAT-29942 prerequisite: multiple errata (2) are applicable,
+    # the control package is installed, the control erratum is not.
+    control_erratum = settings.repos.yum_6.errata[0]  # RHBA-2012:1030 (type: bugfix)
+    control_package = FAKE_4_CUSTOM_PACKAGE  # 'kangaroo-0.1-1.noarch'
+    # erratum to be applied
+    erratum_id = CUSTOM_REPO_ERRATA_ID  # RHSA-2012:0055 (type: security)
+    pkg_name = FAKE_2_CUSTOM_PACKAGE_NAME  # 'walrus'
+    pkg_outdated = FAKE_1_CUSTOM_PACKAGE  # 'walrus-0.71-1.noarch'
+    pkg_updated = FAKE_2_CUSTOM_PACKAGE  # 'walrus-5.21-1.noarch'
     repo_id = custom_repo['repository-id']
-    # just promote to lce, do not publish
     cv_publish_promote(
         target_sat, module_sca_manifest_org, module_cv, module_lce, needs_publish=False
     )
-    # Each client: create custom repo, register as content host to cv, install outdated package
+    # Each client: enable custom repo, register as content host to cv, install outdated package
     for client in content_hosts:
         _repo = target_sat.api.Repository(id=repo_id).read()
         client.create_custom_repos(**{f'{_repo.name}': _repo.url})
@@ -571,7 +589,7 @@ def test_positive_install_in_hc(
         assert client.subscribed
         client.run(r'subscription-manager repos --enable \*')
         # Remove custom package by name
-        client.run(f'yum remove -y {FAKE_2_CUSTOM_PACKAGE_NAME}')
+        client.run(f'yum remove -y {pkg_name}')
         # No applicable errata or packages to start
         assert (pre_errata_count := client.applicable_errata_count) == 0
         assert (pre_package_count := client.applicable_package_count) == 0
@@ -579,18 +597,20 @@ def test_positive_install_in_hc(
         # 1s margin of safety for rounding
         epoch_timestamp = int(time() - 1)
         # install outdated version
-        assert client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+        assert client.run(f'yum install -y {pkg_outdated}').status == 0
+        # install control package, making its erratum applicable too
+        assert client.run(f'yum install -y {control_package}').status == 0
         target_sat.api_factory.wait_for_errata_applicability_task(
             host_id=client.nailgun_host.id,
             from_when=epoch_timestamp,
         )
-        assert client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}').status == 0
-        # One errata now applicable on client
-        assert client.applicable_errata_count == 1
-        # One package now has an applicable errata
-        assert client.applicable_package_count == 1
-        # Fetch the new errata instance(s), expecting only one
-        _fetch_available_errata_instances(target_sat, client, expected_amount=1)
+        assert client.run(f'rpm -q {pkg_outdated}').status == 0
+        assert client.run(f'rpm -q {control_package}').status == 0
+        # both erratum are installable, the unique one, and the control
+        assert client.applicable_errata_count == 2
+        assert client.applicable_package_count == 2
+        # Fetch the new errata instance(s)
+        _fetch_available_errata_instances(target_sat, client, expected_amount=2)
 
         """ Did installing outdated package, update applicability as expected?
             * Call method package_applicability_changed_as_expected *
@@ -604,24 +624,37 @@ def test_positive_install_in_hc(
         passed_checks = package_applicability_changed_as_expected(
             target_sat,
             client,
-            FAKE_1_CUSTOM_PACKAGE,
+            [pkg_outdated, control_package],
             prior_app_errata,
             pre_errata_count,
             pre_package_count,
+            expected_change=2,
         )
         assert passed_checks is True, (
-            f'The package: {FAKE_1_CUSTOM_PACKAGE}, was not applicable to any erratum present on host: {client.hostname}.'
+            f'The package: {pkg_outdated}, was not applicable to any erratum present on host: {client.hostname}.'
         )
     # Setup host collection using client ids
     host_collection = target_sat.api.HostCollection(organization=module_sca_manifest_org).create()
     host_ids = [client.nailgun_host.id for client in content_hosts]
     host_collection.host_ids = host_ids
     host_collection = host_collection.update(['host_ids'])
-    # Install erratum to host collection
+    # check that erratum is applicable to expected hosts
+    erratum_instance = (  # RHSA-2012:0055 (for Walrus)
+        target_sat.api.Errata().search(query={'search': f'errata_id="{erratum_id}"'})[0].read()
+    )
+    # erratum reports correct host availability
+    assert erratum_instance.hosts_available_count == len(host_collection.host)
+    assert erratum_instance.hosts_applicable_count == len(host_collection.host)
+    # hosts in collection report erratum
+    for client in host_collection.host:
+        assert client.read().content_facet_attributes['errata_counts']['security'] == 1
+        assert client.read().content_facet_attributes['errata_counts']['bugfix'] == 1
+
+    # Install erratum in host collection
     task_id = target_sat.api.JobInvocation().run(
         data={
             'feature': 'katello_errata_install',
-            'inputs': {'errata': str(CUSTOM_REPO_ERRATA_ID)},
+            'inputs': {'errata': erratum_id},
             'targeting_type': 'static_query',
             'search_query': f'host_collection_id = {host_collection.id}',
             'organization_id': module_sca_manifest_org.id,
@@ -634,26 +667,44 @@ def test_positive_install_in_hc(
             max_tries=10,
         ),
         (
-            f'Could not install erratum: {CUSTOM_REPO_ERRATA_ID}, to Host-Collection.'
+            f'Could not install erratum: {erratum_id}, to Host-Collection.'
             f' Task: {task_id} failed, or timed out.'
         ),
     )
+    # erratum reports correct host availability
+    erratum_instance = erratum_instance.read()  # RHSA-2012:0055 (for Walrus)
+    assert erratum_instance.hosts_available_count == 0
+    assert erratum_instance.hosts_applicable_count == 0
+    # hosts from collection report only the control errata (bugfix)
+    for client in host_collection.host:
+        assert client.read().content_facet_attributes['errata_counts']['security'] == 0
+        # control erratum was not applied and remains
+        assert client.read().content_facet_attributes['errata_counts']['bugfix'] == 1
+
+    # check package and erratum on each contenthost
     for client in content_hosts:
-        # No applicable errata after install on all clients
-        assert client.applicable_errata_count == 0, (
+        # Only the control erratum remains (not applied)
+        assert client.applicable_errata_count == 1, (
             f'A client in Host-Collection: {client.hostname}, had {client.applicable_errata_count} '
+            f'applicable errata, expected just 1; the control "{control_erratum}".'
         )
-        'applicable errata, expected 0.'
-        # Updated package is present on all clients
-        result = client.run(f'rpm -q {FAKE_2_CUSTOM_PACKAGE}')
+        # Updated Walrus package is present on client
+        result = client.run(f'rpm -q {pkg_updated}')
         assert result.status == 0, (
             f'The client in Host-Collection: {client.hostname},'
-            f' could not find the updated package: {FAKE_2_CUSTOM_PACKAGE}'
+            f' could not find the updated package: {pkg_updated}'
         )
-        # No applicable packages on client
-        assert client.applicable_package_count == 0, (
+        # Only the control's package is still applicable
+        assert client.applicable_package_count == 1, (
             f'A client in Host-Collection: {client.hostname}, had {client.applicable_package_count} '
-            f'applicable package(s) after installing erratum: {CUSTOM_REPO_ERRATA_ID}, but expected 0.'
+            f'applicable package(s) after installing erratum: {erratum_id}, '
+            f'but expected just 1; the control "{control_package}"'
+        )
+        # control package was not updated
+        result = client.run(f'rpm -q {control_package}')
+        assert result.status == 0, (
+            f'The client in Host-Collection: {client.hostname},'
+            f" could not find the control package's unchanged version: {control_package}"
         )
 
 
@@ -785,7 +836,7 @@ def test_positive_install_multiple_in_host(
         passed_checks = package_applicability_changed_as_expected(
             target_sat,
             rhel_contenthost,
-            package_filename,
+            [package_filename],
             prior_app_errata,
             pre_errata_count,
             pre_package_count,
@@ -1377,11 +1428,11 @@ def rh_repo_module_manifest(module_sca_manifest_org, module_target_sat):
 @pytest.mark.rhel_ver_match('N-1')
 def test_positive_incremental_update_apply_to_envs_cvs(
     target_sat,
-    module_sca_manifest_org,
+    function_org,
+    function_product,
     rhel_contenthost,
-    module_product,
 ):
-    """With multiple environments and content views, register a host to one,
+    """With a content view and multiple lifecycle environments, register a host to one,
         apply a CV filter to the content-view, and query available incremental update(s).
 
         Then, execute the available update with security errata, inspect the environment(s) and
@@ -1390,15 +1441,22 @@ def test_positive_incremental_update_apply_to_envs_cvs(
     :id: ce8bd9ed-8fbc-40f2-8e58-e9b520fe94a3
 
     :Setup:
-        1. Security Errata synced on satellite server from custom repo.
-        2. Multiple content-views promoted to multiple environments.
-        3. Register a RHEL host to the content-view with activation key.
-        4. Install outdated packages, some applicable to the erratum and some not.
+        1. A blank content host ready for registration.
 
     :Steps:
-        1. Add an inclusive Erratum filter to the host content-view
-        2. POST /api/hosts/bulk/available_incremental_updates
-        3. POST /katello/api/content_view_versions/incremental_update
+        1. Create a custom repo with errata.
+        2. Create 3 lifecycle environments.
+        3. Create CV with the custom repository and publish/promote to all LCEs.
+        4. Create AK with the CV and the last LCE.
+        5. Register the content host with the AK.
+        6. Install all outdated packages.
+        7. Ensure there are no available incremental updates before CV change.
+        8. Create new Erratum CV filter, publish and promote new CV version.
+        9. Ensure CV is not updated to host yet, applicable errata should be zero.
+        10. After adding filter to CV, ensure there are proper incremental updates available.
+        11. Perform Incremental Update adding the applicable security erratum, ensure it succeeded.
+        12. Ensure the response matches the host and CV properties and counts.
+        13. After applying the incremental update, ensure no more updates are available.
 
     :expectedresults:
         1. Incremental update is available to expected content-view in
@@ -1410,78 +1468,41 @@ def test_positive_incremental_update_apply_to_envs_cvs(
 
     """
     chost = rhel_contenthost
-    # any existing custom CVs in org, except Default CV
-    prior_cv_count = (
-        len(target_sat.api.ContentView(organization=module_sca_manifest_org).search()) - 1
-    )
-    # Number to be Created: new LCE's for org, new CV's per LCE.
-    number_of_lces = 3  # Does not include 'Library'
-    number_of_cvs = 3  # Does not include 'Default Content View'
-    lce_library = _fetch_library_environment_for_org(target_sat, module_sca_manifest_org)
-    lce_list = [lce_library]
-    # custom repo with errata
+
+    # Create a custom repo with errata.
     custom_repo = target_sat.api.Repository(
-        product=module_product, content_type='yum', url=CUSTOM_REPO_URL
+        product=function_product, content_type='yum', url=CUSTOM_REPO_URL
     ).create()
     custom_repo.sync()
 
-    # create multiple linked environments
-    for n in range(number_of_lces):
-        new_lce = target_sat.api.LifecycleEnvironment(
-            organization=module_sca_manifest_org,
-            prior=lce_list[n],
+    # Create 3 lifecycle environments.
+    lces = [target_sat.api.LifecycleEnvironment(organization=function_org).create()]
+    for _ in range(1, 3):
+        lce = target_sat.api.LifecycleEnvironment(
+            organization=function_org, prior=lces[-1].id
         ).create()
-        lce_list.append(new_lce)
-    assert len(lce_list) == number_of_lces + 1
-    # collect default CV for org
-    default_cv = (
-        target_sat.api.ContentView(
-            organization=module_sca_manifest_org,
-            name=DEFAULT_CV,
-        )
-        .search()[0]
-        .read()
-    )
-    cv_list = list([default_cv])
-    # for each environment including 'Library'
-    for _lce in lce_list:
-        # create some new CVs with some content
-        for _i in range(number_of_cvs):
-            new_cv = target_sat.api.ContentView(
-                organization=module_sca_manifest_org,
-                repository=[custom_repo],
-            ).create()
-            # lces to be promoted to, omit newer than _lce in loop
-            env_ids = sorted([lce.id for lce in lce_list if lce.id <= _lce.id])
-            # when the only lce to publish to is Library, pass None to default
-            if len(env_ids) == 1 and env_ids[0] == lce_library.id:
-                env_ids = None
-            # we may initially promote out of order, use force to bypass
-            new_cv = cv_publish_promote(
-                target_sat,
-                module_sca_manifest_org,
-                new_cv,
-                lce=env_ids,
-                force=True,
-            )['content-view']
-            cv_list.append(new_cv)
+        lces.append(lce)
 
-    # total amount of CVs created matches expected and search results
-    assert len(cv_list) == 1 + (number_of_cvs * (number_of_lces + 1))
-    assert prior_cv_count + len(cv_list) == len(
-        target_sat.api.ContentView(organization=module_sca_manifest_org).search()
-    )
-    # one ak with newest CV and lce
-    host_lce = lce_list[-1].read()
-    host_cv = cv_list[-1].read()
+    # Create CV with the custom repository and publish/promote to all LCEs.
+    host_cv = target_sat.api.ContentView(
+        organization=function_org, repository=[custom_repo]
+    ).create()
+    host_cv.publish()
+    host_cv = host_cv.read()
+    host_cvv = host_cv.version[0]
+    host_cvv.promote(data={'environment_ids': [lce.id for lce in lces]})
+
+    # Create AK with the CV and the last LCE.
+    host_lce = lces[-1].read()
     ak = target_sat.api.ActivationKey(
-        organization=module_sca_manifest_org,
+        organization=function_org,
         environment=host_lce,
         content_view=host_cv,
     ).create()
-    # content host, global registration
+
+    # Register the content host with the AK.
     result = chost.register(
-        org=module_sca_manifest_org,
+        org=function_org,
         activation_keys=ak.name,
         target=target_sat,
         loc=None,
@@ -1489,51 +1510,46 @@ def test_positive_incremental_update_apply_to_envs_cvs(
     assert result.status == 0, f'Failed to register the host: {chost.hostname}'
     assert chost.subscribed
     chost.execute(r'subscription-manager repos --enable \*')
-    # Installing all outdated packages
+
+    # Install all outdated packages.
     pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
     assert chost.execute(f'yum install -y {pkgs}').status == 0
-    chost.execute('subscription-manager repos')
-    # After installing packages, check available incremental updates
+    chost.execute('subscription-manager repos')  # updates package profile
+
+    # Ensure there are no available incremental updates before CV change.
     host = chost.nailgun_host.read()
     response = target_sat.api.Host().bulk_available_incremental_updates(
         data={
-            'organization_id': module_sca_manifest_org.id,
+            'organization_id': function_org.id,
             'included': {'ids': [host.id]},
             'errata_ids': FAKE_9_YUM_SECURITY_ERRATUM,
         },
     )
-    # expecting no available updates before CV change
-    assert response == [], (
-        f'No incremental updates should currently be available to host: {chost.hostname}.'
-    )
+    assert response == [], f'No incremental updates expected for the host: {chost.hostname}.'
 
-    # New Erratum CV filter created for host view
+    # Create new Erratum CV filter, publish and promote new CV version.
     target_sat.api.ErratumContentViewFilter(content_view=host_cv, inclusion=True).create()
     host_cv = target_sat.api.ContentView(id=host_cv.id).read()
-    lce_ids = sorted([lce.id for lce in lce_list])
-    # publish version with filter and promote
-    host_cvv = cv_publish_promote(
-        target_sat,
-        module_sca_manifest_org,
-        host_cv,
-        lce_ids,
-    )['content-view-version']
+    host_cv.publish()
+    host_cv = host_cv.read()
+    host_cvv = host_cv.version[0]
+    host_cvv.promote(data={'environment_ids': [lce.id for lce in lces]})
+    host_cvv = host_cvv.read()
 
-    # cv is not updated to host yet, applicable errata should be zero
-    chost.execute('subscription-manager repos')
-    host_app_errata = chost.applicable_errata_count
-    assert host_app_errata == 0
-    # After adding filter to cv, check available incremental updates
-    host_app_packages = chost.applicable_package_count
+    # Ensure CV is not updated to host yet, applicable errata should be zero.
+    chost.execute('subscription-manager repos')  # updates package profile
+    assert chost.applicable_errata_count == 0  # facet -> total errata_count
+
+    # After adding filter to CV, ensure there are proper incremental updates available.
+    host_app_packages = chost.applicable_package_count  # facet -> applicable_package_count
     response = target_sat.api.Host().bulk_available_incremental_updates(
         data={
-            'organization_id': module_sca_manifest_org.id,
+            'organization_id': function_org.id,
             'included': {'ids': [host.id]},
             'errata_ids': FAKE_9_YUM_SECURITY_ERRATUM,
         },
     )
     assert response, f'Expected one incremental update, but found none, for host: {chost.hostname}.'
-    # find that only expected CV version has incremental update available
     assert len(response) == 1, (
         f'Incremental update should currently be available to only one host: {chost.hostname}.'
     )
@@ -1542,9 +1558,7 @@ def test_positive_incremental_update_apply_to_envs_cvs(
     assert response[0]['content_view_version']['id'] == host_cvv.id
     assert response[0]['content_view_version']['content_view']['id'] == host_cv.id
 
-    # Perform Incremental Update with host cv version
-    host_cvv = target_sat.api.ContentViewVersion(id=host_cvv.id).read()
-    # Apply incremental update adding the applicable security erratum
+    # Perform Incremental Update adding the applicable security erratum, ensure it succeeded.
     response = target_sat.api.ContentViewVersion().incremental_update(
         data={
             'content_view_version_environments': [
@@ -1562,7 +1576,7 @@ def test_positive_incremental_update_apply_to_envs_cvs(
         == 'Incremental Update of 1 Content View Version(s) with 12 Package(s), and 3 Errata'
     )
 
-    # only the hosts's CV was modified, new version made, check output details
+    # Ensure the response matches the host and CV properties and counts.
     assert len(response['output']['changed_content']) == 1
     created_version_id = response['output']['changed_content'][0]['content_view_version']['id']
     # host source CV version was changed to the new one
@@ -1580,171 +1594,160 @@ def test_positive_incremental_update_apply_to_envs_cvs(
     assert host_version_number == next_version
     host_cvv = target_sat.api.ContentViewVersion(id=created_version_id).read()
     assert float(host_cvv.version) == next_version
-    chost.execute('subscription-manager repos')
+    chost.execute('subscription-manager repos')  # update package profile
     # expected errata from FAKE_9 Security list added
     added_errata = response['output']['changed_content'][0]['added_units']['erratum']
     assert set(added_errata) == set(FAKE_9_YUM_SECURITY_ERRATUM)
-    # applicable errata count increased by length of security ids list
-    assert chost.applicable_errata_count == host_app_errata + len(FAKE_9_YUM_SECURITY_ERRATUM)
+    # applicable errata count matches the length of security ids list
+    assert chost.applicable_errata_count == len(FAKE_9_YUM_SECURITY_ERRATUM)
     # newly added errata from incremental version are now applicable to host
     post_app_errata_ids = errata_id_set(_fetch_available_errata_instances(target_sat, chost))
-    assert set(FAKE_9_YUM_SECURITY_ERRATUM).issubset(post_app_errata_ids)
+    assert set(FAKE_9_YUM_SECURITY_ERRATUM) == post_app_errata_ids
     # expected packages from the security erratum were added to host
     added_packages = response['output']['changed_content'][0]['added_units']['rpm']
     assert len(added_packages) == 12
     # expected that not all of the added packages will be applicable
     assert 8 == host_app_packages == chost.applicable_package_count
     # install all of the newly added packages, recalculate applicability
-    for pkg in added_packages:
-        assert chost.run(f'yum install -y {pkg}').status == 0
-    chost.execute('subscription-manager repos')
+    assert chost.run(f'yum install -y {" ".join(added_packages)}').status == 0
+    chost.execute('subscription-manager repos')  # update package profile
     # security errata should not be applicable after installing updated packages
-    post_app_errata_ids = errata_id_set(_fetch_available_errata_instances(target_sat, chost))
-    assert set(FAKE_9_YUM_SECURITY_ERRATUM).isdisjoint(post_app_errata_ids)
+    post_app_errata_ids = errata_id_set(
+        _fetch_available_errata_instances(target_sat, chost, expected_amount=0)
+    )
+    assert len(post_app_errata_ids) == 0
     assert chost.applicable_errata_count == 0
 
-    # after applying the incremental update, check for any more available
+    # After applying the incremental update, ensure no more updates are available.
     response = target_sat.api.Host().bulk_available_incremental_updates(
         data={
-            'organization_id': module_sca_manifest_org.id,
+            'organization_id': function_org.id,
             'included': {'ids': [host.id]},
             'errata_ids': FAKE_9_YUM_SECURITY_ERRATUM,
         },
     )
-    # expect no remaining updates, after applying the only one
     assert response == [], (
         f'No incremental updates should currently be available to host: {chost.hostname}.'
     )
 
 
 def test_positive_filter_errata_type_other(
-    module_sca_manifest_org,
-    module_target_sat,
-    module_cv,
+    function_org,
+    target_sat,
 ):
     """
-    Sync the EPEL repository, containing many Erratum that are Not of the
-        usual types: 'Bugfix', 'Enhancement', 'Security'.
-        Filter all erratum including 'Other' inclusively, verify content counts remain the same.
+    Sync the EPEL repository, containing many 'Other' Errata,
+        that are Not of the usual types: 'Bugfix', 'Enhancement', 'Security'.
+        Filter all erratum type 'Other' inclusively, verify content counts remain the same.
 
     :id: 062bb1a5-814c-4573-bedc-aaa4e2ef557a
 
     :setup:
-        1. Fetch the latest supported RHEL major version in supportability.yaml ('10')
+        1. Fetch the latest supported RHEL major version in supportability.yaml
         2. GET request to EPEL's PGP-key generator (dl.fedoraproject.org/pub/epel/)
-        3. Create GPG-key on satellite from URL's response.
-        4. Create custom product using the GPG-key.
+        3. Create GPG-key and custom product from URL's response.
 
     :steps:
-        1. Create and sync the EPEL repository as a custom repo (~5 minutes)
-        2. Verify presence of new Erratum types that would fall under 'other'.
-        3. Create a content view, add the EPEL repo, publish the first version.
-        4. Create a content view filter for Erratum (by Date), inclusive.
-        5. Update Erratum filter rules: set end_date to today (UTC),
+        1. Create and sync the EPEL repository as a custom repo (~15 minutes)
+        2. Create a content view, add the EPEL repo, publish the first version.
+        3. Create a content view filter for Erratum (by Date), inclusive.
+        4. Update Erratum filter rules: set end_date to today (UTC),
             set flag --allow-other-types to True <<<
             no start_date specified.
-        6. Create another content view filter for RPMs, inclusive.
-        7. Publish a second version (~10 minutes).
+        5. Create RPM filter with 'Include all RPMs not associated to any errata' enabled.
+        6. Publish a second version (~10 minutes).
+        7. Assert the errata counts.
 
     :expectedresults:
         1. The second published version with filters, has the same
             content counts (packages and erratum) as the first unfiltered version.
         2. The second version's filters applied, has published Erratum of types that
-            fall under 'Other' (ie 'newpackage' , 'unspecified').
+            fall under 'Other' (ie 'newpackage', 'unspecified').
         3. There are significantly more Total Errata published, than the sum of
             the 3 normal types of Errata (bugfix,enhancement,security).
 
-    :BZ: 2160804
-
-    :Verifies: SAT-20365
+    :CaseImportance: Medium
 
     :customerscenario: true
 
+    :Verifies: SAT-20365
+    :BZ: 2160804
+
     """
-    # newest version rhel
-    rhel_N = module_target_sat.api_factory.supported_rhel_ver(num=1)
-    # fetch a newly generated PGP key from address's response
+    # Fetch the latest supported RHEL major version in supportability.yaml
+    rhel_N = target_sat.api_factory.supported_rhel_ver(num=1)
+    # GET request to EPEL's PGP-key generator (dl.fedoraproject.org/pub/epel/)
     gpg_url = f'https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{rhel_N}'
     _response = requests.get(gpg_url, timeout=120, verify=True)
     _response.raise_for_status()
-    # handle a valid response that might not be a PGP key
-    if "-----BEGIN PGP PUBLIC KEY BLOCK-----" not in _response.text:
-        raise ValueError('Fetched content was not a valid credential')
+    assert "-----BEGIN PGP PUBLIC KEY BLOCK-----" in _response.text, 'Fetched invalid credentials'
 
-    # create GPG key on satellite and associated product
-    gpg_key = module_target_sat.api.GPGKey(
-        organization=module_sca_manifest_org.id,
-        content=_response.text,
-    ).create()
-    epel_product = module_target_sat.api.Product(
-        organization=module_sca_manifest_org,
-        gpg_key=gpg_key,
-    ).create()
+    # Create GPG-key and custom product from URL's response.
+    gpg_key = target_sat.api.GPGKey(organization=function_org.id, content=_response.text).create()
+    epel_product = target_sat.api.Product(organization=function_org, gpg_key=gpg_key).create()
 
-    # if RHEL 10 only, change '10' to '10.0', to match URL for EPEL repo
-    rhel_N = str(float(rhel_N)) if rhel_N == '10' else rhel_N
+    # Create and sync the EPEL repository as a custom repo (~15 minutes)
     epel_url = f'https://dl.fedoraproject.org/pub/epel/{rhel_N}/Everything/x86_64/'
-    # create and sync custom EPEL repo
-    epel_repo = module_target_sat.api.Repository(
-        product=epel_product,
-        url=epel_url,
-    ).create()
+    epel_repo = target_sat.api.Repository(product=epel_product, url=epel_url).create()
     epel_repo.sync(timeout=1800)
-    # add repo to CV and publish
-    module_cv.repository = [epel_repo.read()]
-    module_cv.update(['repository'])
-    module_cv.read().publish(timeout=240)  # initial unfiltered Version publishes quick
-    module_cv = module_cv.read()
 
-    # create errata filter
-    errata_filter = module_target_sat.api.ErratumContentViewFilter(
-        content_view=module_cv,
+    # Create a content view, add the EPEL repo, publish the first version.
+    cv = target_sat.api.ContentView(organization=function_org, repository=[epel_repo]).create()
+    cv.read().publish(timeout=240)
+    cv = cv.read()
+    version_1 = cv.version[-1].read()  # unfiltered
+    assert '1.0' in version_1.version
+
+    # Create a content view filter for Erratum (by Date), inclusive.
+    errata_filter = target_sat.api.ErratumContentViewFilter(
+        content_view=cv,
         name='errata-filter',
         inclusion=True,
     ).create()
 
+    # Update Erratum filter rules: set end_date to today (UTC),
+    #  set flag --allow-other-types to True <<<
+    #  no start_date specified.
     today_UTC = datetime.now(UTC).strftime(TIMESTAMP_FMT_DATE)
-    # rule to filter erratum by date, only specify end_date
-    errata_rule = module_target_sat.api.ContentViewFilterRule(
+    errata_rule = target_sat.api.ContentViewFilterRule(
         content_view_filter=errata_filter,
         end_date=today_UTC,
     ).create()
-
-    # hammer update the Erratum filter rule, flag 'allow-other-types' set to True <<<
-    module_target_sat.cli.ContentViewFilterRule.update(
+    target_sat.cli.ContentViewFilterRule.update(
         {
             'id': errata_rule.id,
             'allow-other-types': 'true',
             'content-view-filter-id': errata_filter.id,
         }
     )
-    module_cv = module_cv.read()
-    # create rpm filter
-    module_target_sat.api.RPMContentViewFilter(
-        content_view=module_cv,
+    cv = cv.read()
+
+    # Create RPM filter with 'Include all RPMs not associated to any errata' enabled.
+    target_sat.api.RPMContentViewFilter(
+        content_view=cv,
         name='rpm-filter',
         inclusion=True,
+        original_packages=True,
     ).create()
 
-    # Publish 2nd Version with inclusive filters applied
-    module_cv = module_cv.read()
-    module_cv.publish(timeout=1200)  # can take ~10 minutes, timeout is double that
-    module_cv = module_cv.read()
+    # Publish a second version (~10 minutes).
+    cv.publish(timeout=1200)
+    cv = cv.read()
+    version_2 = cv.version[-2].read()  # filtered
+    assert '2.0' in version_2.version
 
-    version_1 = module_cv.version[-1].read()  # unfiltered
-    version_2 = module_cv.version[-2].read()  # filtered
+    # Assert the errata counts.
     # errata and package counts match between the filtered and unfiltered versions
     assert version_1.errata_counts == version_2.errata_counts
     assert version_1.package_count == version_2.package_count
 
-    # most of the EPEL repo's erratum are of type Other (~90%),
+    # most of the EPEL repo's erratum are of other types (~90%),
     # so we expect the total number of errata is much greater
     #   than the sum of the 3 regular types (bugfix,enhancement,security)
-    #   ie. The repo has ~200 errata of the 3 types, but over 2500 total errata.
-    regular_types_sum = sum(
-        [version_2.errata_counts[key] for key in ['security', 'bugfix', 'enhancement']]
-    )
     total_errata = version_2.errata_counts['total']
-    assert total_errata > 2000
-    # Based on counts, the 3 regular types make up less than 1/5 of the total.
-    assert regular_types_sum < total_errata / 5
+    regular_types = ['security', 'bugfix', 'enhancement']
+    regular_sum = sum([version_2.errata_counts[key] for key in regular_types])
+    other_sum = total_errata - regular_sum
+    assert total_errata > 2000  # expectedly large amount of content
+    assert regular_sum / total_errata <= 0.4  # 40% or less should be regular types
+    assert other_sum / total_errata >= 0.6  # 60% or more should be 'other' types

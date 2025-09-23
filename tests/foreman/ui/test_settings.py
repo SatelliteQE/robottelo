@@ -18,6 +18,7 @@ from fauxfactory import gen_url
 import pytest
 
 from robottelo.config import settings
+from robottelo.hosts import get_sat_version
 from robottelo.utils.datafactory import filtered_datapoint, gen_string
 
 
@@ -34,11 +35,13 @@ def add_content_views_to_composite(composite_cv, org, repo, module_target_sat):
     :param org: Organisation of satellite
     :param repo: repository need to added in content view
     """
+    cv_version = []
     content_view = module_target_sat.api.ContentView(organization=org).create()
-    content_view.repository = [repo]
-    content_view.update(['repository'])
     content_view.publish()
-    composite_cv.component = [content_view.read().version[0]]
+    content_view.repository.append(repo)
+    content_view.update(['repository'])
+    cv_version.append(content_view.read().version[0])
+    composite_cv.component = cv_version
     composite_cv.update(['component'])
     return content_view
 
@@ -64,6 +67,7 @@ def test_positive_update_restrict_composite_view(
     composite_cv = module_target_sat.api.ContentView(
         composite=True, organization=repo_setup['org']
     ).create()
+
     content_view = add_content_views_to_composite(
         composite_cv, repo_setup['org'], repo_setup['repo'], module_target_sat
     )
@@ -73,22 +77,26 @@ def test_positive_update_restrict_composite_view(
         for param_value in ['Yes', 'No']:
             session.settings.update(f'name = {property_name}', param_value)
             if param_value == 'Yes':
-                with pytest.raises(AssertionError) as context:
-                    session.contentview.promote(
-                        composite_cv.name, 'Version 1.0', repo_setup['lce'].name
-                    )
+                err_message = f"['Danger alert: The action requested on this composite view cannot be performed until all of the component content view versions have been promoted to the target environment: [\"{composite_cv.name}\"]. This restriction is optional and can be modified in the Administrator -> Settings -> Content page using the restrict_composite_view flag.']"
+                result = session.contentview_new.promote(
+                    composite_cv.name,
+                    'version = 1',
+                    repo_setup['lce'].name,
+                    err_message=err_message,
+                )
                 assert (
                     'Administrator -> Settings -> Content page using the '
-                    'restrict_composite_view flag.' in str(context.value)
+                    'restrict_composite_view flag.' in result[0]
                 )
             else:
-                result = session.contentview.promote(
-                    composite_cv.name, 'Version 1.0', repo_setup['lce'].name
+                result = session.contentview_new.promote(
+                    composite_cv.name,
+                    'version = 1',
+                    repo_setup['lce'].name,
                 )
                 assert repo_setup['lce'].name in result['Environments']
                 for content_view_name in [composite_cv.name, content_view.name]:
-                    session.contentview.remove_version(content_view_name, 'Version 1.0')
-                    session.contentview.delete(content_view_name)
+                    session.contentview_new.delete(content_view_name)
 
 
 @pytest.mark.parametrize('setting_update', ['http_proxy'], indirect=True)
@@ -221,7 +229,9 @@ def test_positive_update_login_page_footer_text(session, setting_update):
         session.login.login(login_details)
         session.settings.update(f'name = {property_name}', default_value)
         result = session.login.logout()
-        assert result["login_text"] == default_value
+        sat_version = get_sat_version()
+        default_value_with_version_expanded = default_value.replace('$VERSION', str(sat_version))
+        assert result["login_text"] == default_value_with_version_expanded
 
         # set empty
         session.login.login(login_details)
@@ -524,21 +534,28 @@ def test_positive_setting_display_fqdn_for_hosts(session, target_sat):
     """
     host_name, domain_name = target_sat.hostname.split('.', 1)
     default_value = target_sat.update_setting('display_fqdn_for_hosts', 'No')
-    with target_sat.ui_session() as session:
-        dashboard_hosts = session.dashboard.read('NewHosts')
-        assert host_name in [h['Host'] for h in dashboard_hosts['hosts'] if h['Host'] == host_name]
+    try:
+        with target_sat.ui_session() as session:
+            dashboard_hosts = session.dashboard.read('NewHosts')
+            assert host_name in [
+                h['Host'] for h in dashboard_hosts['hosts'] if h['Host'] == host_name
+            ]
 
-        values = session.host_new.get_details(host_name, widget_names='breadcrumb')
-        assert values['breadcrumb'] == host_name
+            values = session.host_new.get_details(host_name, widget_names='breadcrumb')
+            assert values['breadcrumb'] == host_name
 
-        # Verify with display_fqdn_for_hosts=Yes
+            # Verify with display_fqdn_for_hosts=Yes
+            target_sat.update_setting('display_fqdn_for_hosts', 'Yes')
+            full_name = '.'.join((host_name, domain_name))
+            dashboard_hosts = session.dashboard.read('NewHosts')
+            assert full_name in [
+                h['Host'] for h in dashboard_hosts['hosts'] if h['Host'] == full_name
+            ]
+
+            values = session.host_new.get_details(target_sat.hostname, widget_names='breadcrumb')
+            assert values['breadcrumb'] == full_name
+    finally:
         target_sat.update_setting('display_fqdn_for_hosts', default_value)
-        full_name = '.'.join((host_name, domain_name))
-        dashboard_hosts = session.dashboard.read('NewHosts')
-        assert full_name in [h['Host'] for h in dashboard_hosts['hosts'] if h['Host'] == full_name]
-
-        values = session.host_new.get_details(target_sat.hostname, widget_names='breadcrumb')
-        assert values['breadcrumb'] == full_name
 
 
 def test_positive_show_unsupported_templates(request, target_sat, module_org, module_location):

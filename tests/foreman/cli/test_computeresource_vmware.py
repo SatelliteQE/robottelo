@@ -191,7 +191,9 @@ def test_positive_image_provision_end_to_end(
 
     :expectedresults: Host is provisioned successfully.
 
-    :verifies: SAT-30594
+    :Verifies: SAT-30594
+
+    :BlockedBy: SAT-35643
     """
     sat = module_provisioning_sat.sat
     hostname = gen_string('alpha').lower()

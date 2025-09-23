@@ -6,7 +6,7 @@
 
 :CaseComponent: Hosts
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 
@@ -47,7 +47,7 @@ class TestHostCockpit:
             1. cockpit service is restarted after the services restart.
             2. cockpit page is loaded and displays sat host info
 
-        :Verifies: SAT-27411
+        :Verifies: SAT-27411, SAT-36783
 
         :customerscenario: true
 
@@ -70,6 +70,19 @@ class TestHostCockpit:
 
             service_restart = class_cockpit_sat.cli.Service.restart()
             assert service_restart.status == 0
+            # SAT-36783 can be triggered by just having wide characters anywhere
+            # in the payload that gets sent between Satellite, Capsule and
+            # cockpit. The password doesn't have to be accepted, it doesn't even
+            # have to be used. Its mere presence in the communication should be
+            # enough to trigger the bug.
+            class_cockpit_sat.cli.Host.set_parameter(
+                {
+                    'host': cockpit_host.hostname,
+                    'name': 'remote_execution_ssh_password',
+                    'value': '「£」はポンド記号です',
+                }
+            )
+
             session.browser.switch_to_window(session.browser.window_handles[0])
             session.browser.close_window(session.browser.window_handles[-1])
             hostname_inside_cockpit = session.host.get_webconsole_content(

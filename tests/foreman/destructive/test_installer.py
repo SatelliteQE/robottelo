@@ -252,7 +252,7 @@ def test_negative_installer_invalid_dns_forwarder(target_sat):
     assert 'DNS forwarders (current: [])' in result.stdout
 
     # attempt to use invalid dns_forwarder
-    for dns_forwarder in ['', gen_string('alpha')]:
+    for dns_forwarder in ['""', gen_string('alpha')]:
         result = target_sat.install(InstallerCommand(foreman_proxy_dns_forwarders=dns_forwarder))
         assert result.status != 0
         assert 'Parameter foreman-proxy-dns-forwarders invalid:' in result.stdout

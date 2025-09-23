@@ -24,7 +24,6 @@ CaseComponent:
     - AuditLog
     - Authentication
     - BootdiskPlugin
-    - Bootstrap
     - Branding
     - BVT
     - Candlepin
@@ -39,7 +38,7 @@ CaseComponent:
     - ComputeResources-OpenStack
     - ComputeResources-RHEV
     - ComputeResources-VMWare
-    - ContainerManagement-Content
+    - ContainerImageManagement
     - ContentCredentials
     - ContentManagement
     - ContentViews

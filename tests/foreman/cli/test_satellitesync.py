@@ -6,7 +6,7 @@
 
 :CaseComponent: InterSatelliteSync
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
@@ -556,6 +556,94 @@ class TestRepositoryExport:
             {'id': cvv['id'], 'organization-id': function_org.id}
         )
         assert '2.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
+
+    @pytest.mark.parametrize('subject', ['library', 'repository'])
+    def test_positive_export_format_inheritance(
+        self,
+        target_sat,
+        export_import_cleanup_function,
+        function_org,
+        function_synced_custom_repo,
+        subject,
+    ):
+        """Test that incremental exports inherit format from previous exports.
+
+        :id: 95407c12-7f1f-4845-bc0b-01a6dad654ff
+
+        :parametrized: yes
+
+        :setup:
+            1. Product with synced custom repository.
+
+        :steps:
+            1. Run complete export in importable format.
+            2. Run an incremental export with no format provided.
+            3. Assert that the format of the export is "importable" (not "syncable").
+            4. Run complete export in syncable format.
+            5. Run an incremental export with no format provided.
+            6. Assert that the format of the export is "syncable" (not "importable").
+            7. Run incremental export on the first export using --from-history-id.
+            8. Assert that the format of the export is "importable" (not "syncable").
+
+        :expectedresults:
+            1. Incremental exports inherit the format from the previous complete export.
+            2. When using --from-history-id, the format is inherited from the specified export.
+
+        :Verifies: SAT-32715, SAT-38392
+
+        :BlockedBy: SAT-38392
+
+        :customerscenario: true
+        """
+        if subject == 'library':
+            cpl_export = target_sat.cli.ContentExport.completeLibrary
+            inc_export = target_sat.cli.ContentExport.incrementalLibrary
+            exp_params = {'organization-id': function_org.id}
+            importable_msg = f'{function_org.name}/Export-Library'
+            syncable_msg = f'{function_org.name}/Export-Library-SYNCABLE'
+        elif subject == 'repository':
+            cpl_export = target_sat.cli.ContentExport.completeRepository
+            inc_export = target_sat.cli.ContentExport.incrementalRepository
+            exp_params = {'id': function_synced_custom_repo['id']}
+            importable_msg = f'{function_org.name}/Export-{function_synced_custom_repo.name}'
+            syncable_msg = f'{function_org.name}/Export-SYNCABLE-{function_synced_custom_repo.name}'
+        else:
+            raise ValueError('Unsupported export subject used in parametrization')
+
+        # Verify export directory is empty
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
+
+        # Run complete export in importable format.
+        export_1 = cpl_export(exp_params | {'format': 'importable'})
+        history = target_sat.cli.ContentExport.list({'organization-id': function_org.id})
+        export_1['id'] = history[-1]['id']
+
+        # Run an incremental export with no format provided.
+        export_2 = inc_export(exp_params)
+
+        # Assert that the format of the export is "importable" (not "syncable").
+        assert importable_msg in export_2['message']
+        history = target_sat.cli.ContentExport.list({'organization-id': function_org.id})
+        assert importable_msg in history[-1]['path']
+
+        # Run complete export in syncable format.
+        cpl_export(exp_params | {'format': 'syncable'})
+
+        #  Run an incremental export with no format provided.
+        export_4 = inc_export(exp_params)
+
+        # Assert that the format of the export is "syncable" (not "importable").
+        assert syncable_msg in export_4['message']
+        history = target_sat.cli.ContentExport.list({'organization-id': function_org.id})
+        assert syncable_msg in history[-1]['path']
+
+        # Run incremental export on the first export using --from-history-id.
+        export_5 = inc_export(exp_params | {'from-history-id': export_1['id']})
+
+        # Assert that the format of the export is "importable" (not "syncable").
+        assert importable_msg in export_5['message']
+        history = target_sat.cli.ContentExport.list({'organization-id': function_org.id})
+        assert importable_msg in history[-1]['path']
 
 
 @pytest.fixture(scope='class')
@@ -1543,7 +1631,7 @@ class TestContentViewSync:
         assert remote_name in res.stdout
 
         app_name = 'firefox'
-        res = module_flatpak_contenthost.execute('flatpak remote-ls')
+        res = module_flatpak_contenthost.execute(f'flatpak remote-ls {remote_name}')
         assert app_name in res.stdout
 
         job = module_import_sat.cli_factory.job_invocation(
@@ -1556,13 +1644,12 @@ class TestContentViewSync:
                 ),
                 'search-query': f"name = {module_flatpak_contenthost.hostname}",
             },
-            timeout='800s',
         )
         res = module_import_sat.cli.JobInvocation.info({'id': job.id})
         assert 'succeeded' in res['status']
         request.addfinalizer(
             lambda: module_flatpak_contenthost.execute(
-                f'flatpak uninstall {remote_name} {app_name} com.redhat.Platform -y'
+                f'flatpak uninstall {app_name} com.redhat.Platform -y'
             )
         )
 
@@ -1628,10 +1715,17 @@ class TestContentViewSync:
             1. Create CV, add all setup repos and publish.
             2. Export CV version contents in syncable format.
             3. Import the syncable export, check the content.
+            4. Check the import history.
 
         :expectedresults:
             1. Export succeeds and content is exported.
             2. Import succeeds, content is imported and matches the export.
+            3. Import is properly listed.
+
+        :Verifies: SAT-32667
+
+        :customerscenario: true
+
         """
         # Create CV, add all setup repos and publish
         cv = target_sat.cli_factory.make_content_view({'organization-id': function_org.id})
@@ -1664,7 +1758,7 @@ class TestContentViewSync:
         )
         assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) != ''
 
-        # Import the syncable export
+        # Import the syncable export, check the content
         import_path = target_sat.move_pulp_archive(function_org, export['message'])
         target_sat.cli.ContentImport.version(
             {'organization-id': function_import_org.id, 'path': import_path}
@@ -1692,6 +1786,13 @@ class TestContentViewSync:
         imported_files = target_sat.cli.File.list({'content-view-version-id': importing_cvv['id']})
         assert exported_packages == imported_packages, 'Imported RPMs do not match the export'
         assert exported_files == imported_files, 'Imported Files do not match the export'
+
+        # Check the import history
+        import_list = target_sat.cli.ContentImport.list({'organization-id': function_import_org.id})
+        assert len(import_list) == 1, 'Only 1 import expected within the Organization'
+        assert import_list[0]['path'] == import_path
+        assert import_list[0]['content-view-version'] == importing_cvv['name']
+        assert import_list[0]['content-view-version-id'] == importing_cvv['id']
 
     def test_postive_export_cv_syncable_with_permissions(
         self,
@@ -3257,7 +3358,7 @@ class TestPodman:
 
     :CaseComponent: Repositories
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     @pytest.fixture(scope='class')

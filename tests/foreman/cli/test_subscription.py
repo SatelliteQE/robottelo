@@ -6,7 +6,7 @@
 
 :CaseComponent: SubscriptionManagement
 
-:team: Phoenix-subscriptions
+:team: Proton
 
 :CaseImportance: High
 
@@ -21,23 +21,6 @@ from robottelo.constants import EXPIRED_MANIFEST, PRDS, REPOS, REPOSET, DataFile
 from robottelo.exceptions import CLIReturnCodeError
 
 pytestmark = [pytest.mark.run_in_one_thread]
-
-
-@pytest.fixture(scope='module')
-def golden_ticket_host_setup(request, module_sca_manifest_org, module_target_sat):
-    new_product = module_target_sat.cli_factory.make_product(
-        {'organization-id': module_sca_manifest_org.id}
-    )
-    new_repo = module_target_sat.cli_factory.make_repository({'product-id': new_product['id']})
-    module_target_sat.cli.Repository.synchronize({'id': new_repo['id']})
-    return module_target_sat.cli_factory.make_activation_key(
-        {
-            'lifecycle-environment': 'Library',
-            'content-view': 'Default Organization View',
-            'organization-id': module_sca_manifest_org.id,
-            'auto-attach': False,
-        }
-    )
 
 
 def test_positive_manifest_upload(function_sca_manifest_org, module_target_sat):
@@ -244,36 +227,6 @@ def test_positive_candlepin_events_processed_by_STOMP():
     """
 
 
-def test_positive_auto_attach_disabled_golden_ticket(
-    module_org, module_location, golden_ticket_host_setup, rhel7_contenthost_class, target_sat
-):
-    """Verify that Auto-Attach is disabled or "Not Applicable"
-    when a host organization is in Simple Content Access mode (Golden Ticket)
-
-    :id: 668fae4d-7364-4167-967f-6fc31ba52d26
-
-    :expectedresults: auto attaching a subscription is not allowed
-        and returns an error message
-
-    :customerscenario: true
-
-    :BZ: 1718954
-
-    :parametrized: yes
-
-    :CaseImportance: Medium
-    """
-    rhel7_contenthost_class.register(
-        module_org, module_location, golden_ticket_host_setup['name'], target_sat
-    )
-    assert rhel7_contenthost_class.subscribed
-    host = target_sat.cli.Host.list({'search': rhel7_contenthost_class.hostname})
-    host_id = host[0]['id']
-    with pytest.raises(CLIReturnCodeError) as context:
-        target_sat.cli.Host.subscription_auto_attach({'host-id': host_id})
-    assert "This host's organization is in Simple Content Access mode" in str(context.value)
-
-
 def test_negative_check_katello_reimport(request, target_sat, function_org):
     """Verify katello:reimport trace should not fail with an TypeError
 
@@ -317,3 +270,70 @@ def test_negative_check_katello_reimport(request, target_sat, function_org):
     trace_output = target_sat.execute("foreman-rake katello:reimport --trace")
     assert 'TypeError: no implicit conversion of String into Integer' not in trace_output.stdout
     assert trace_output.status == 0
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+def test_positive_subscription_manager_environments_set_non_admin_user(
+    target_sat,
+    module_org,
+    module_ak_with_cv,
+    module_lce,
+    module_promoted_cv,
+    rhel_contenthost,
+):
+    """
+    Test that non-admin users with proper roles can change host LCE/CV environment
+    using subscription-manager environments --set command.
+
+    :id: dd54227d-6ec4-4779-9742-609d760be068
+
+    :steps:
+        1. Create a non-admin user with all necessary roles for host environment management
+        2. Register a content host to the Satellite
+        3. Attempt to change the host's environment using subscription-manager environments --set with non-admin user credentials
+        4. Verify the operation succeeds when the non-admin user has appropriate permissions
+
+    :expectedresults:
+        - Non-admin user with proper roles succeeds to change host environment
+        - The bug is fixed when non-admin users can authorize subscription-manager environment changes
+
+    :customerscenario: true
+
+    :Verifies: SAT-32710
+
+    :team: Proton
+    """
+
+    # Create a non-admin user with all roles except admin
+    user_password = gen_string('alphanumeric')
+    non_admin_user = target_sat.api.User(
+        admin=False,
+        default_organization=module_org,
+        organization=[module_org],
+        password=user_password,
+    ).create()
+
+    # Assign all available roles to the non-admin user
+    all_roles = target_sat.api.Role().search()
+    for role in all_roles:
+        non_admin_user.role.append(role)
+    non_admin_user.update(['role'])
+
+    # Register the host
+    result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
+    assert result.status == 0
+    assert rhel_contenthost.subscribed
+
+    # Get the current environment for testing
+    current_env = f"{module_lce.name}/{module_promoted_cv.name}"
+
+    # Non-admin user with all roles should succeed to change environment
+    cmd_result = rhel_contenthost.execute(
+        f'subscription-manager environments --set {current_env} '
+        f'--username {non_admin_user.login} --password {user_password}'
+    )
+
+    assert cmd_result.status == 0, (
+        f"Non-admin user with all roles failed to change environment. Error: {cmd_result.stderr}."
+    )

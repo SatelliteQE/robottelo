@@ -875,7 +875,7 @@ class TestRemoteExecution:
         client = rex_contenthost
         system_current_time = target_sat.execute('date --utc +"%b %d %Y %I:%M%p"').stdout
         current_time_object = datetime.strptime(system_current_time.strip('\n'), '%b %d %Y %I:%M%p')
-        plan_time = (current_time_object + timedelta(seconds=30)).strftime("%Y-%m-%d %H:%M UTC")
+        plan_time = (current_time_object + timedelta(seconds=60)).strftime("%Y-%m-%d %H:%M UTC")
         invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
@@ -886,7 +886,8 @@ class TestRemoteExecution:
         )
         # Wait until the job runs
         target_sat.wait_for_tasks(
-            f'resource_type = JobInvocation and resource_id = {invocation_command["id"]}'
+            f'resource_type = JobInvocation and resource_id = {invocation_command["id"]}',
+            search_rate=10,
         )
 
     @pytest.mark.rhel_ver_list([8, 9])
@@ -1206,6 +1207,9 @@ class TestPullProviderRex:
                 'location-ids': smart_proxy_location.id,
             }
         )
+        module_capsule_configured_mqtt.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': module_ak_with_cv.environment.id}
+        )
         # register host with rex, enable client repo, install katello-agent
         result = client.register(
             module_org,
@@ -1300,6 +1304,9 @@ class TestPullProviderRex:
                 'organization-ids': module_org.id,
                 'location-ids': smart_proxy_location.id,
             }
+        )
+        module_capsule_configured_mqtt.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': module_ak_with_cv.environment.id}
         )
         # register host with pull provider rex
         result = client.register(
@@ -1415,6 +1422,9 @@ class TestPullProviderRex:
                 'organization-ids': module_org.id,
                 'location-ids': smart_proxy_location.id,
             }
+        )
+        module_capsule_configured_mqtt.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': module_ak_with_cv.environment.id}
         )
         # register host with pull provider rex (SAT-1677)
         result = client.register(
@@ -1536,6 +1546,9 @@ class TestPullProviderRex:
                 'location-ids': smart_proxy_location.id,
             }
         )
+        module_capsule_configured_mqtt.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': module_ak_with_cv.environment.id}
+        )
         result = client.register(
             module_org,
             smart_proxy_location,
@@ -1623,6 +1636,9 @@ class TestPullProviderRex:
                 'organization-ids': module_org.id,
                 'location-ids': smart_proxy_location.id,
             }
+        )
+        module_capsule_configured_mqtt.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': module_ak_with_cv.environment.id}
         )
         # register host with pull provider rex (SAT-1677)
         result = client.register(

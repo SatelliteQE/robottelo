@@ -6,7 +6,7 @@
 
 :CaseComponent: ActivationKeys
 
-:team: Phoenix-subscriptions
+:team: Proton
 
 :CaseImportance: High
 
@@ -915,7 +915,7 @@ def test_positive_list_by_cv_id(module_org, module_target_sat, get_default_env, 
     :CaseImportance: High
     """
     lce = get_default_env
-    module_target_sat.cli_factory.make_activation_key(
+    activation_key = module_target_sat.cli_factory.make_activation_key(
         {
             'organization-id': module_org.id,
             'lifecycle-environment-id': lce['id'],
@@ -925,8 +925,11 @@ def test_positive_list_by_cv_id(module_org, module_target_sat, get_default_env, 
     result = module_target_sat.cli.ActivationKey.list(
         {'content-view-id': module_promoted_cv.id, 'organization-id': module_org.id}
     )
-    assert len(result) == 1
-    assert result[0]['content-view-environments'] == f'{lce["name"]}/{module_promoted_cv.name}'
+    assert any(
+        ak['name'] == activation_key.name
+        and ak['content-view-environments'] == f'{lce["name"]}/{module_promoted_cv.name}'
+        for ak in result
+    )
 
 
 def test_positive_create_using_old_name(module_org, module_target_sat):

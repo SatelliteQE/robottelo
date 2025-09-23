@@ -6,7 +6,7 @@
 
 :CaseComponent: AlternateContentSources
 
-:Team: Phoenix-content
+:Team: Artemis
 
 :CaseImportance: High
 
@@ -136,15 +136,25 @@ def test_positive_run_bulk_actions(module_target_sat, module_yum_repo):
         1. All ACSes can be refreshed via bulk action.
         2. Only the proper ACSes are deleted on bulk destroy.
     """
+    params = {
+        'alternate_content_source_type': 'simplified',
+        'content_type': 'yum',
+        'smart_proxy_ids': [module_target_sat.nailgun_capsule.id],
+        'product_ids': [module_yum_repo.product.id],
+    }
+
+    # In case of IPv6, set 'ACS HTTP proxy' of the bound capsule to the IPv6 proxy
+    # This is necessary for the Refresh to succeed.
+    if not settings.server.network_type.has_ipv4:
+        caps = module_target_sat.nailgun_smart_proxy
+        caps.http_proxy = module_target_sat.enable_satellite_http_proxy()
+        caps.update(['http_proxy'])
+        params.update({'use_http_proxies': True})
+
     acs_ids = []
     for _ in range(3):
-        acs = module_target_sat.api.AlternateContentSource(
-            name=gen_string('alpha'),
-            alternate_content_source_type='simplified',
-            content_type='yum',
-            smart_proxy_ids=[module_target_sat.nailgun_capsule.id],
-            product_ids=[module_yum_repo.product.id],
-        ).create()
+        params['name'] = gen_string('alpha')
+        acs = module_target_sat.api.AlternateContentSource(**params).create()
         acs_ids.append(acs.id)
 
     res = module_target_sat.api.AlternateContentSource().bulk_refresh(data={'ids': acs_ids})
@@ -157,13 +167,8 @@ def test_positive_run_bulk_actions(module_target_sat, module_yum_repo):
         ]
     )
     # Add another ACS and then bulk refresh all
-    acs = module_target_sat.api.AlternateContentSource(
-        name=gen_string('alpha'),
-        alternate_content_source_type='simplified',
-        content_type='yum',
-        smart_proxy_ids=[module_target_sat.nailgun_capsule.id],
-        product_ids=[module_yum_repo.product.id],
-    ).create()
+    params['name'] = gen_string('alpha')
+    acs = module_target_sat.api.AlternateContentSource(**params).create()
     acs_ids.append(acs.id)
     res = module_target_sat.api.AlternateContentSource().bulk_refresh_all()
     assert res['result'] == 'success'

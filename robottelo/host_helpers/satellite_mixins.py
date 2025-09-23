@@ -1,5 +1,6 @@
 import contextlib
 from functools import lru_cache
+import json
 import os
 import random
 import re
@@ -218,6 +219,23 @@ class ContentInfo:
         # removes metadata filename
         return os.path.dirname(re.sub(rf'.*{PULP_EXPORT_DIR}', PULP_IMPORT_DIR, export_message))
 
+    def get_reported_value(self, report_key):
+        """
+        Runs satellite-maintain report generate and extracts the value for a given key
+        """
+        result = self.execute(f'satellite-maintain report generate | grep -i "{report_key}"')
+        assert result.status == 0, 'report failed or key not found'
+        return "".join(result.stdout.split(":", 1)[1].split())
+
+    def get_reported_condensed_value(self, report_key):
+        """
+        Runs satellite-maintain report condense and extracts the value for a given key
+        """
+        result = self.cli.SatelliteMaintainReport.condense()
+        assert result.status == 0, 'report failed'
+        report = "{" + result.stdout.strip().split("{")[1]
+        return json.loads(report)[report_key]
+
 
 class SystemInfo:
     """Things that needs access to satellite shell for gaining satellite system configuration"""
@@ -435,3 +453,37 @@ class Factories:
     @lru_cache
     def ui_factory(self, session):
         return UIFactory(self, session=session)
+
+
+class IoPSetup:
+    """Helper for configuring on prem Insights Advisor engine."""
+
+    def configure_insights_on_prem(self, username=None, password=None, registry=None):
+        """Configure on prem Advisor engine on Satellite"""
+        logger.info('Configuring Satellite with local Red Hat Lightspeed')
+        iop_settings = settings.rh_cloud.iop_advisor_engine
+        username = username or iop_settings.username
+        password = password or iop_settings.token
+        registry = registry or iop_settings.registry
+        self.register_to_cdn()
+        self.setup_rhel_repos()
+        self.setup_satellite_repos()
+        self.ensure_podman_installed()
+        self.podman_login(username, password, registry)
+        # Set IPv6 podman proxy on Satellite, to pull from container registry
+        self.enable_ipv6_podman_proxy()
+        # TODO: Replace this temporary implementation with a permanent solution.
+        result = self.execute(
+            f'''
+            set -e
+            [ -d /root/satellite-iop ] && rm -rf /root/satellite-iop
+            git clone {settings.rh_cloud.iop_advisor_engine.satellite_iop_repo} /root/satellite-iop
+            cd /root/satellite-iop
+            sed -i "s/hosts: all/hosts: localhost/" playbooks/deploy.yaml
+            ansible-galaxy collection install -r requirements.yml
+            ansible-playbook -c local playbooks/deploy.yaml
+            ''',
+            timeout='20m',
+        )
+        assert result.status == 0, f'Failed to configure IoP: {result.stdout}'
+        assert self.local_advisor_enabled

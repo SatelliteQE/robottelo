@@ -56,6 +56,7 @@ def shared_checkout(shared_name):
     bx_inst = Broker(
         workflow=settings.SERVER.deploy_workflows.product,
         deploy_sat_version=settings.UPGRADE.FROM_VERSION,
+        deploy_network_type=settings.SERVER.network_type,
         host_class=Satellite,
         upgrade_group=f"{shared_name}_shared_checkout",
     )

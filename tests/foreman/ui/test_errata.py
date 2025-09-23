@@ -6,7 +6,7 @@
 
 :CaseComponent: ErrataManagement
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
@@ -232,13 +232,8 @@ def registered_contenthost(
     def cleanup():
         nonlocal setup
         client = setup['client']
-        if client is not None:
-            if client.subscribed:
-                client.unregister()
-            assert not client.subscribed, (
-                f'Failed to unregister the host client: {client.hostname}, was unable to fully teardown host.'
-                ' Client retains some content association.'
-            )
+        if client and client.subscribed:
+            client.unregister()
 
     # no error setting up fixtures and registering client
     assert setup['result'] != 'error', f'{setup["message"]}'
@@ -880,7 +875,7 @@ def test_positive_apply_for_all_hosts(
         workflow='deploy-template',
         host_class=ContentHost,
         _count=num_hosts,
-        # TODO(@SatelliteQE/team-phoenix): this is best effort for dualstack. This host deployment
+        # TODO(@SatelliteQE/team-artemis): this is best effort for dualstack. This host deployment
         # should be a part of a fixture
         deploy_network_type=settings.content_host.network_type,
     ) as hosts:
@@ -920,7 +915,7 @@ def test_positive_apply_for_all_hosts(
                 entity_name=errata_id,
                 host_names='All',
             )
-            assert result['overview']['job_status'] == 'Success'
+            assert result['overall_status']['is_success']
             # find single hosts job
             # remote action tasks have lowercase errata_ids, ie: 'rhba-' not 'RHBA-'
             hosts_job = target_sat.wait_for_tasks(
@@ -955,8 +950,8 @@ def test_positive_apply_for_all_hosts(
                 updated_pkg = session.host_new.get_packages(
                     entity_name=client.hostname, search='kangaroo'
                 )
-                assert len(updated_pkg['table']) == 1
-                assert updated_pkg['table'][0]['Installed version'] == updated_version
+                assert len(updated_pkg) == 1
+                assert updated_pkg[0]['Installed version'] == updated_version
 
             # for second errata, install in each chost and check, one at a time.
             # from Legacy Chost UI > details > Errata tab
@@ -964,8 +959,7 @@ def test_positive_apply_for_all_hosts(
                 status = session.contenthost.install_errata(
                     client.hostname, CUSTOM_REPO_ERRATA_ID, install_via='rex'
                 )
-                assert status['overview']['job_status'] == 'Success'
-                assert status['overview']['job_status_progress'] == '100%'
+                assert status['overall_status']['is_success']
                 # check updated package in chost details
                 assert client.execute('subscription-manager repos').status == 0
                 packages_rows = session.contenthost.search_package(

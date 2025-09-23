@@ -6,7 +6,7 @@
 
 :CaseComponent: Fact
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 
@@ -41,13 +41,10 @@ def test_positive_upload_host_facts(
     with module_target_sat.ui_session() as session:
         session.organization.select(module_sca_manifest_org.name)
         session.location.select(module_location.name)
-        cmd = session.host.get_register_command(
-            {
-                'general.activation_keys': module_activation_key.name,
-                'general.insecure': True,
-            }
+
+        result = rhel_contenthost.register(
+            module_sca_manifest_org, module_location, module_activation_key.name, module_target_sat
         )
-        result = rhel_contenthost.execute(cmd)
         assert result.status == 0, f'Failed to register host: {result.stderr}'
 
         rhel_contenthost.execute('subscription-manager facts --update')

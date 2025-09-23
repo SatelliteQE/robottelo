@@ -6,7 +6,7 @@
 
 :CaseComponent: Fact
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: Critical
 
@@ -17,7 +17,6 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.enums import NetworkType
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.mark.upgrade
@@ -130,8 +129,6 @@ def test_positive_facts_end_to_end(
         'ansible_distribution_major_version': str(rhel_contenthost.os_version.major),
         'ansible_fqdn': rhel_contenthost.hostname,
     }
-    if not is_open('SAT-27056'):
-        expected_values['net::interface::eth1::mac_address'] = mac_address.lower()
     for fact, expected_value in expected_values.items():
         actual_value = facts_dict.get(fact)
         assert actual_value == expected_value, (

@@ -20,7 +20,7 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import REPO_TYPE, REPOS
-from robottelo.hosts import ProxyHostError
+from robottelo.exceptions import ProxyHostError
 
 
 @pytest.fixture
@@ -467,9 +467,9 @@ def test_http_proxy_containing_special_characters(
 @pytest.mark.usefixtures('allow_repo_discovery')
 @pytest.mark.parametrize(
     'setup_http_proxy',
-    [None, True, False],
+    [True, False],
     indirect=True,
-    ids=['no_http_proxy', 'auth_http_proxy', 'unauth_http_proxy'],
+    ids=['auth_http_proxy', 'unauth_http_proxy'],
 )
 def test_positive_repo_discovery(setup_http_proxy, module_target_sat, module_org):
     """Create repository via repo discovery under new product

@@ -6,15 +6,18 @@
 
 :CaseComponent: Repositories
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: Critical
 
 """
 
+from datetime import UTC, datetime
+
 from manifester import Manifester
 from nailgun.entity_mixins import call_entity_method_with_timeout
 import pytest
+import requests
 from requests.exceptions import HTTPError
 
 from robottelo import constants
@@ -367,63 +370,88 @@ def test_positive_available_repositories_endpoint(module_sca_manifest_org, targe
     assert 'Failed at scanning for repository' not in results
 
 
+@pytest.mark.parametrize('unprotected', [True, False], ids=['unprotected', 'protected'])
 def test_unprotected_status_repo_create_and_update(
-    module_sca_manifest_org, module_product, target_sat
+    module_org, module_product, target_sat, unprotected
 ):
     """Test that we can create two new yum-type repositories, with unprotected and protected status respectively.
     Then update the protection status of both repositories to the opposite of what they were created with.
+    Ensure the protection works.
 
     :id: 57a1abff-f387-44a8-b85a-d24e7ae7438d
 
-    :setup:
-        1. Create a yum type repo with 'Unprotected' status set to yes (True).
-        2. Create another yum repo and set 'Unprotected' status to no (False).
-        3. Sync both repositories.
+    :parametrized: yes
 
-    :steps: GET Actions::Pulp3::Repository::UpdateCVRepositoryCertGuard
-        1. Change the Unprotected (True) repository to Protected (False).
-        2. Switch the protection status of the other repository.
-        3. Sync both repositories again.
+    :steps:
+        1. Create yum repositories with protection set per parametrization.
+        2. Sync the repo and check 'Unprotected' status remains the same.
+        3. Check the protection works.
+        4. Change protection status to the opposite.
+        5. Wait for protection update tasks (must_succeed=True by default).
+        6. Sync the repo and check 'Unprotected' status remains opposite.
+        7. Check the protection works.
 
     :expectedresults:
         1. Can create and update repositories that are Unprotected or not.
         2. Can update the protection status of the repositories to either option, without error.
         3. Successful repo sync after changing the protection status.
+        4. The protection works as expected, we can get only the unprotected repo content.
 
     :Verifies: SAT-32622
 
     """
-    # Create unprotected and protected yum repositories with same URL
-    unprotected_repo = target_sat.api.Repository(
+    # Create yum repositories with protection set per parametrization.
+    repo = target_sat.api.Repository(
         content_type='yum',
         url=settings.repos.yum_0.url,
         product=module_product,
-        unprotected=True,
+        unprotected=unprotected,
     ).create()
-    protected_repo = target_sat.api.Repository(
-        content_type='yum',
-        url=settings.repos.yum_0.url,
-        product=module_product,
-        unprotected=False,
-    ).create()
-    assert unprotected_repo.read().unprotected is True
-    assert protected_repo.read().unprotected is False
+    assert repo.read().unprotected == unprotected
 
-    # Sync both repos, check 'Unprotected' option remains the same
-    unprotected_repo.sync()
-    protected_repo.sync()
-    assert unprotected_repo.read().unprotected is True
-    assert protected_repo.read().unprotected is False
-    # Change protection status of both repos
-    unprotected_repo = unprotected_repo.read()
-    unprotected_repo.unprotected = False
-    unprotected_repo.update(['unprotected'])
-    protected_repo = protected_repo.read()
-    protected_repo.unprotected = True
-    protected_repo.update(['unprotected'])
-    # can sync after updating protection status
-    unprotected_repo.sync()
-    protected_repo.sync()
-    # 'Unprotected' option remains the same after another sync
-    assert unprotected_repo.read().unprotected is False
-    assert protected_repo.read().unprotected is True
+    # Sync the repo and check 'Unprotected' status remains the same.
+    repo.sync()
+    assert repo.read().unprotected == unprotected
+
+    # Check the protection works.
+    rq = requests.get(repo.full_path, verify=settings.server.verify_ca)
+    assert rq.ok == repo.unprotected
+
+    # Change protection status to the opposite.
+    repo = repo.read()
+    repo.unprotected = not unprotected
+    timestamp = datetime.now(UTC).replace(microsecond=0)
+    repo.update(['unprotected'])
+
+    # Wait for protection update tasks (must_succeed=True by default).
+    target_sat.wait_for_tasks(
+        search_query=(
+            f"Update repository '{repo.label}'; product '{module_product.label}'; organization '{module_org.label}'"
+        ),
+        search_rate=5,
+        max_tries=5,
+    )
+    # repo metadata tasks
+    target_sat.wait_for_tasks(
+        search_query=(
+            f"Metadata generate repository '{repo.label}'; product '{module_product.label}'; organization '{module_org.label}'"
+        ),
+        search_rate=5,
+        max_tries=5,
+    )
+    # repo configuration tasks
+    target_sat.wait_for_tasks(
+        search_query=(
+            f'label = Actions::Pulp3::Repository::UpdateCVRepositoryCertGuard and started_at >= "{timestamp}"'
+        ),
+        search_rate=5,
+        max_tries=5,
+    )
+
+    # Sync the repo and check 'Unprotected' status remains opposite.
+    repo.sync()
+    assert repo.read().unprotected != unprotected
+
+    # Check the protection works.
+    rq = requests.get(repo.full_path, verify=settings.server.verify_ca)
+    assert rq.ok == repo.unprotected

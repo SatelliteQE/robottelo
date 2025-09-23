@@ -6,7 +6,7 @@
 
 :CaseComponent: Pulp
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
@@ -15,8 +15,11 @@
 from datetime import UTC, datetime
 import json
 
+from fauxfactory import gen_string
 import pytest
 
+from robottelo.config import settings
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -132,4 +135,67 @@ def test_pulp_status(target_sat):
     ]
     assert all((now - beat).seconds < 20 for beat in apps_beats), (
         'Some content apps seem to me dead!'
+    )
+
+
+@pytest.mark.destructive
+def test_content_validation_on_download(request, target_sat, function_org, function_product):
+    """Test content validation on download with corrupted repository.
+
+    :id: 9c07451f-1bd5-4d1c-9f18-b8a50de9a5d8
+
+    :Verifies: SAT-22998, SAT-36451
+
+    :steps:
+        1. Download some yum repository on local filesystem into the pub directory.
+        2. Create a yum repository with upstream_url pointing to the local repo, sync it.
+           Note: The repo must be 'on_demand' so the content artifacts are NOT downloaded on sync.
+        3. Corrupt one of the packages.
+        4. Attempt to download the corrupted package from published_at URL,
+           ensure 200 status on first and 404 status on second download.
+        5. Check the downloaded file content contains 404 message.
+
+    :expectedresults:
+        1. Download attempt returns 404 status.
+        2. Downloaded file content contains "404: Not Found".
+    """
+    pkg_name = f'{FAKE_0_CUSTOM_PACKAGE}.rpm'
+    repo_fsname = f'test_{gen_string("alpha")}'
+    pub_dir = f'/var/www/html/pub/{repo_fsname}/'
+
+    # 1. Download some yum repository on local filesystem into the pub directory.
+    target_sat.execute(f'mkdir -p {pub_dir}')
+    request.addfinalizer(lambda: target_sat.execute(f'rm -rf {pub_dir}'))
+    result = target_sat.execute(
+        f'cd {pub_dir} && wget -r -np -nH --cut-dirs=1 {settings.repos.yum_0.url}/'
+    )
+    assert result.status == 0, 'Failed to download repository content'
+
+    # 2. Create a yum repository with upstream_url pointing to the local repo, sync it.
+    # Note: The repo must be 'on_demand' so the content artifacts are NOT downloaded on sync.
+    repo = target_sat.api.Repository(
+        organization=function_org,
+        product=function_product,
+        content_type='yum',
+        download_policy='on_demand',
+        url=f'http://localhost/pub/{repo_fsname}/',
+    ).create()
+    repo.sync()
+
+    # 3. Corrupt one of the packages.
+    target_sat.execute(f'echo "CORRUPTED" >> {pub_dir}{pkg_name}')
+
+    # 4. Attempt to download the corrupted package from published_at URL,
+    #    ensure 200 status on first and 404 status on second download.
+    download_url = f"{repo.full_path}Packages/{pkg_name[0]}/{pkg_name}"
+    result = target_sat.execute(f'curl -O -w "%{{http_code}}" -s {download_url}')
+    request.addfinalizer(lambda: target_sat.execute(f'rm -f {pkg_name}'))
+    assert '200' in result.stdout, f'Expected 200 status, got: {result.stdout}'
+    result = target_sat.execute(f'curl -O -w "%{{http_code}}" -s {download_url}')
+    assert '404' in result.stdout, f'Expected 404 status, got: {result.stdout}'
+
+    # 5. Check the downloaded file content contains 404 message.
+    file_content = target_sat.execute(f'cat {pkg_name}')
+    assert '404: Not Found' in file_content.stdout, (
+        f'Expected "404: Not Found" in file content, got: {file_content.stdout}'
     )
