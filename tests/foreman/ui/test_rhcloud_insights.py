@@ -442,7 +442,6 @@ def test_insights_registration_with_capsule(
         # Generate host registration command
         cmd = session.host_new.get_register_command(
             {
-                'general.operating_system': default_os.title,
                 'general.organization': org.name,
                 'general.capsule': rhcloud_capsule.hostname,
                 'general.activation_keys': ak.name,
