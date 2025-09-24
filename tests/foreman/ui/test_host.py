@@ -965,7 +965,7 @@ def test_positive_search_by_reported_data(
             api_hosts = target_sat.api.Host().search(query={'search': search_string})
             ui_hosts = session.host.search(search_string)
             assert set([host.name for host in api_hosts]) == set(
-                [host['Name'] for host in ui_hosts]
+                [host['Name'] for host in ui_hosts if host['Name'] != 'No Results']
             )
 
 
@@ -1216,7 +1216,7 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
         }
     )
     with session:
-        values = session.host.read(host['name'], ['host.lce', 'host.content_view'])
+        values = session.host_new.read(host['name'], ['host.lce', 'host.content_view'])
         assert values['host']['lce'] == lce.name
         assert values['host']['content_view'] == cv.name
         matching_hosts = target_sat.api.Host().search(
