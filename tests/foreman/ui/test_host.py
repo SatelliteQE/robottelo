@@ -1563,6 +1563,7 @@ def test_positive_apply_erratum(
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
         # verify
+        session.browser.refresh()
         values = session.host_new.get_details(client.hostname, widget_names='content.errata')
         assert 'table' not in values['content']['errata']
         result = client.run(
