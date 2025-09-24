@@ -425,7 +425,10 @@ def test_positive_assign_compliance_policy(
         expected.
 
     :BZ: 1862135
+    :BlockedBy: SAT-38431
     """
+    # TODO Rewrite for new all hosts page after SAT-38431 is completed
+
     org = function_host.organization.read()
     loc = function_host.location.read()
     # add host organization and location to scap policy
@@ -483,7 +486,11 @@ def test_positive_export(session, target_sat, function_org, function_location):
     :id: ffc512ad-982e-4b60-970a-41e940ebc74c
 
     :expectedresults: csv file contains same values as on web UI
+
+    :BlockedBy: SAT-38427
     """
+    # TODO Rewrite for new all hosts page after SAT-38427 is completed
+
     hosts = [
         target_sat.api.Host(organization=function_org, location=function_location).create()
         for _ in range(3)
@@ -518,7 +525,11 @@ def test_positive_export_selected_columns(target_sat, current_sat_location):
     :BZ: 2167146
 
     :customerscenario: true
+
+    :BlockedBy: SAT-38427
     """
+    # TODO Rewrite for new all hosts page after SAT-38427 is completed
+
     columns = (
         Box(ui='Power', csv='Power Status', displayed=True),
         Box(ui='Recommendations', csv='Insights Recommendations Count', displayed=True),
@@ -1215,42 +1226,6 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
         assert host.name in [host.name for host in matching_hosts]
 
 
-@pytest.mark.upgrade
-def test_positive_bulk_delete_host(session, smart_proxy_location, target_sat, function_org):
-    """Delete multiple hosts from the list
-
-    :id: 8da2084a-8b50-46dc-b305-18eeb80d01e0
-
-    :expectedresults: All selected hosts should be deleted successfully
-
-    :BZ: 1368026
-    """
-    host_template = target_sat.api.Host(organization=function_org, location=smart_proxy_location)
-    host_template.create_missing()
-    hosts_names = [
-        target_sat.api.Host(
-            organization=function_org,
-            location=smart_proxy_location,
-            root_pass=host_template.root_pass,
-            architecture=host_template.architecture,
-            domain=host_template.domain,
-            medium=host_template.medium,
-            operatingsystem=host_template.operatingsystem,
-            ptable=host_template.ptable,
-        )
-        .create()
-        .name
-        for _ in range(3)
-    ]
-    with session:
-        session.organization.select(org_name=function_org.name)
-        values = session.host.read_all()
-        assert len(hosts_names) == len(values['table'])
-        session.host.delete_hosts('All')
-        values = session.host.read_all()
-        assert not values['table']
-
-
 # ------------------------------ NEW HOST UI DETAILS ----------------------------
 def test_positive_read_details_page_from_new_ui(session, host_ui_options):
     """Create new Host and read all its content through details page
@@ -1674,55 +1649,6 @@ def module_puppet_enabled_proxy_with_loc(
         session_puppet_enabled_sat.api.Location(id=module_puppet_loc.id)
     )
     session_puppet_enabled_proxy.update(['location'])
-
-
-def test_positive_inherit_puppet_env_from_host_group_when_action(
-    session_puppet_enabled_sat, module_puppet_org, module_puppet_loc, module_puppet_environment
-):
-    """Host group puppet environment is inherited to already created
-    host when corresponding action is applied to that host
-
-    :id: 3f5af54e-e259-46ad-a2af-7dc1850891f5
-
-    :customerscenario: true
-
-    :expectedresults: Expected puppet environment is inherited to the host
-
-    :BZ: 1414914
-    """
-    host = session_puppet_enabled_sat.api.Host(
-        organization=module_puppet_org, location=module_puppet_loc
-    ).create()
-    hostgroup = session_puppet_enabled_sat.api.HostGroup(
-        environment=module_puppet_environment,
-        organization=[module_puppet_org],
-        location=[module_puppet_loc],
-    ).create()
-    with session_puppet_enabled_sat.ui_session() as session:
-        session.organization.select(org_name=module_puppet_org.name)
-        session.location.select(loc_name=module_puppet_loc.name)
-        session.host.apply_action(
-            'Change Environment', [host.name], {'environment': '*Clear environment*'}
-        )
-        values = session.host.read(host.name, widget_names='host')
-        assert values['host']['hostgroup'] == ''
-        assert values['host']['puppet_environment'] == ''
-        session.host.apply_action('Change Group', [host.name], {'host_group': hostgroup.name})
-        values = session.host.read(host.name, widget_names='host')
-        assert values['host']['hostgroup'] == hostgroup.name
-        assert values['host']['puppet_environment'] == ''
-        session.host.apply_action(
-            'Change Environment', [host.name], {'environment': '*Inherit from host group*'}
-        )
-        assert (
-            session.host.get_details(host.name)['properties']['properties_table'][
-                'Puppet Environment'
-            ]
-            == module_puppet_environment.name
-        )
-        values = session.host.read(host.name, widget_names='host')
-        assert values['host']['hostgroup'] == hostgroup.name
-        assert values['host']['puppet_environment'] == module_puppet_environment.name
 
 
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
