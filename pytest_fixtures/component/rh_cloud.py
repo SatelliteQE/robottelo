@@ -28,15 +28,7 @@ def module_target_sat_insights(request, module_target_sat):
     iop-advisor-engine (local Insights advisor) configured.
     """
     hosted_insights = getattr(request, 'param', True)
-
-    satellite = (
-        module_target_sat if hosted_insights else request.getfixturevalue('module_satellite_iop')
-    )
-
-    yield satellite
-
-    if not hosted_insights:
-        satellite.teardown()
+    return module_target_sat if hosted_insights else request.getfixturevalue('module_satellite_iop')
 
 
 @pytest.fixture(scope='module')
