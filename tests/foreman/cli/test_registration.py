@@ -433,7 +433,7 @@ def test_positive_verify_default_location_for_registered_host(
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_invalidate_users_tokens(
-    module_target_sat, rhel_contenthost, module_activation_key, module_org, request
+    target_sat, rhel_contenthost, function_activation_key, function_org, request
 ):
     """Verify invalidating single and multiple users tokens.
 
@@ -453,40 +453,38 @@ def test_positive_invalidate_users_tokens(
     :Verifies: SAT-30385
     """
     password = settings.server.admin_password
-    admin_user = module_target_sat.api.User().search(
+    admin_user = target_sat.api.User().search(
         query={'search': f'login={settings.server.admin_username}'}
     )[0]
 
     # Non-Admin user with "edit_users" permission and "Register hosts" role
-    non_admin_user = module_target_sat.api.User(
+    non_admin_user = target_sat.api.User(
         login=gen_string('alpha'),
         password=password,
-        organization=[module_org],
+        organization=[function_org],
     ).create()
-    role = module_target_sat.cli_factory.make_role({'organization-id': module_org.id})
-    module_target_sat.cli_factory.add_role_permissions(
+    role = target_sat.cli_factory.make_role({'organization-id': function_org.id})
+    target_sat.cli_factory.add_role_permissions(
         role.id,
         resource_permissions={'User': {'permissions': ['edit_users']}},
     )
-    module_target_sat.cli.User.add_role({'id': non_admin_user.id, 'role-id': role.id})
-    module_target_sat.cli.User.add_role({'id': non_admin_user.id, 'role': 'Register hosts'})
+    target_sat.cli.User.add_role({'id': non_admin_user.id, 'role-id': role.id})
+    target_sat.cli.User.add_role({'id': non_admin_user.id, 'role': 'Register hosts'})
 
     # delete the host and the user
     @request.addfinalizer
     def _finalize():
-        wait_for(lambda: module_target_sat.cli.Host.delete({'name': rhel_contenthost.hostname}))
-        module_target_sat.cli.User.delete({'login': non_admin_user.login})
+        wait_for(lambda: target_sat.cli.Host.delete({'name': rhel_contenthost.hostname}))
+        target_sat.cli.User.delete({'login': non_admin_user.login})
 
     # Generate token and verify token invalidation
     for usertype in (admin_user, non_admin_user):
         user = admin_user if usertype.admin else non_admin_user
-        cmd = module_target_sat.cli.HostRegistration.with_user(
-            user.login, password
-        ).generate_command(
+        cmd = target_sat.cli.HostRegistration.with_user(user.login, password).generate_command(
             options={
-                'activation-keys': module_activation_key.name,
+                'activation-keys': function_activation_key.name,
                 'insecure': 'true',
-                'organization-id': module_org.id,
+                'organization-id': function_org.id,
                 'setup-insights': 'false',
             }
         )
@@ -494,7 +492,7 @@ def test_positive_invalidate_users_tokens(
         assert result.status == 0, f'Failed to register host: {result.stderr}'
 
         # Invalidate JWTs for a single user
-        result = module_target_sat.cli.User.with_user(user.login, password).invalidate(
+        result = target_sat.cli.User.with_user(user.login, password).invalidate(
             options={
                 'user-id': user.id,
             }
@@ -508,7 +506,7 @@ def test_positive_invalidate_users_tokens(
         assert 'ERROR: unauthorized' in result.stdout
 
         # Invalidate JWTs for multiple users
-        result = module_target_sat.cli.User.with_user(user.login, password).invalidate_multiple(
+        result = target_sat.cli.User.with_user(user.login, password).invalidate_multiple(
             options={'search': f"id ^ ({admin_user.id}, {non_admin_user.id})"}
         )
         assert 'Successfully invalidated registration tokens' in result
@@ -516,7 +514,7 @@ def test_positive_invalidate_users_tokens(
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_negative_users_permission_for_invalidating_tokens(
-    module_target_sat, rhel_contenthost, module_activation_key, module_org
+    target_sat, rhel_contenthost, function_activation_key, function_org
 ):
     """Verify invalidating single and multiple users tokens require "edit_users" permission for non_admin user.
 
@@ -533,28 +531,28 @@ def test_negative_users_permission_for_invalidating_tokens(
     :Verifies: SAT-30385
     """
     password = settings.server.admin_password
-    admin_user = module_target_sat.api.User().search(
+    admin_user = target_sat.api.User().search(
         query={'search': f'login={settings.server.admin_username}'}
     )[0]
 
     # Non-Admin user with "Register hosts" role
-    non_admin_user = module_target_sat.cli_factory.user(
+    non_admin_user = target_sat.cli_factory.user(
         {
             'login': gen_string('alpha'),
             'password': password,
-            'organization-ids': module_org.id,
+            'organization-ids': function_org.id,
             'roles': ['Register hosts'],
         }
     )
 
     # Generate token and verify token invalidation
-    cmd = module_target_sat.cli.HostRegistration.with_user(
+    cmd = target_sat.cli.HostRegistration.with_user(
         non_admin_user.login, password
     ).generate_command(
         options={
-            'activation-keys': module_activation_key.name,
+            'activation-keys': function_activation_key.name,
             'insecure': 'true',
-            'organization-id': module_org.id,
+            'organization-id': function_org.id,
             'setup-insights': 'false',
         }
     )
@@ -563,7 +561,7 @@ def test_negative_users_permission_for_invalidating_tokens(
 
     # Try invalidating JWTs for a single user
     with pytest.raises(CLIReturnCodeError) as context:
-        module_target_sat.cli.User.with_user(non_admin_user.login, password).invalidate(
+        target_sat.cli.User.with_user(non_admin_user.login, password).invalidate(
             options={
                 'user-id': admin_user.id,
             }
@@ -572,7 +570,7 @@ def test_negative_users_permission_for_invalidating_tokens(
 
     # Try invalidating JWTs  for multiple users
     with pytest.raises(CLIReturnCodeError) as context:
-        module_target_sat.cli.User.with_user(non_admin_user.login, password).invalidate_multiple(
+        target_sat.cli.User.with_user(non_admin_user.login, password).invalidate_multiple(
             options={'search': f"id ^ ({admin_user.id}, {non_admin_user.id})"}
         )
     assert "Missing one of the required permissions: edit_users" in str(context.value)
