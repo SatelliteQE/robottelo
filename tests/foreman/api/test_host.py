@@ -1052,7 +1052,7 @@ def test_positive_bootc_api_actions(target_sat, bootc_host, function_ak_with_cv,
 
     :expectedresults: Upon registering a Bootc host, the API returns correct information across multiple endpoints
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Artemis
 
@@ -1128,7 +1128,7 @@ def test_mixed_usr_overlay_transient_templates(
 
     :expectedresults: Both templates install successfully when run in sequence.
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Verifies: SAT-31226, SAT-31580
 
@@ -1200,7 +1200,7 @@ def test_bootc_ansible_rex_package_install(
 
     :expectedresults: All REX Ansible templates actions succeed when run against a bootc host.
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Verifies: SAT-31580
 
@@ -1290,7 +1290,7 @@ def test_bootc_rex_package_install(target_sat, bootc_host, function_repos_collec
 
     :expectedresults: All katello package template actions succeed when run against a bootc host.
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Verifies: SAT-31226
 
@@ -1486,7 +1486,7 @@ def test_bootc_rex_errata_install(target_sat, bootc_host, function_repos_collect
 
     :expectedresults: All errata REX templates actions succeed when run against a bootc host.
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Verifies: SAT-31226
 
@@ -1667,7 +1667,7 @@ def test_positive_verify_files_with_pxegrub_uefi_secureboot():
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: TFTP
+    :CaseComponent: Provisioning
 
     :Team: Rocket
     """
@@ -1700,7 +1700,7 @@ def test_positive_verify_files_with_pxegrub2_uefi():
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: TFTP
+    :CaseComponent: Provisioning
 
     :Team: Rocket
     """
@@ -1733,7 +1733,7 @@ def test_positive_verify_files_with_pxegrub2_uefi_secureboot():
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: TFTP
+    :CaseComponent: Provisioning
 
     :Team: Rocket
     """
