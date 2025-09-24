@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: DHCPDNS
+:CaseComponent: Provisioning
 
 :Team: Rocket
 
