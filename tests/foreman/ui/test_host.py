@@ -426,8 +426,9 @@ def test_positive_assign_compliance_policy(
 
     :BZ: 1862135
     :BlockedBy: SAT-38431
-    # TODO Rewrite for new all hosts page after SAT-38431 is completed
     """
+    # TODO Rewrite for new all hosts page after SAT-38431 is completed
+
     org = function_host.organization.read()
     loc = function_host.location.read()
     # add host organization and location to scap policy
@@ -487,8 +488,9 @@ def test_positive_export(session, target_sat, function_org, function_location):
     :expectedresults: csv file contains same values as on web UI
 
     :BlockedBy: SAT-38427
-    # TODO Rewrite for new all hosts page after SAT-38427 is completed
     """
+    # TODO Rewrite for new all hosts page after SAT-38427 is completed
+
     hosts = [
         target_sat.api.Host(organization=function_org, location=function_location).create()
         for _ in range(3)
@@ -525,8 +527,9 @@ def test_positive_export_selected_columns(target_sat, current_sat_location):
     :customerscenario: true
 
     :BlockedBy: SAT-38427
-    # TODO Rewrite for new all hosts page after SAT-38427 is completed
     """
+    # TODO Rewrite for new all hosts page after SAT-38427 is completed
+
     columns = (
         Box(ui='Power', csv='Power Status', displayed=True),
         Box(ui='Recommendations', csv='Insights Recommendations Count', displayed=True),
