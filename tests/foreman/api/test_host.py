@@ -1037,7 +1037,7 @@ def test_positive_bootc_api_actions(target_sat, bootc_host, function_ak_with_cv,
 
     :expectedresults: Upon registering a Bootc host, the API returns correct information across multiple endpoints
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Artemis
 
@@ -1182,7 +1182,7 @@ def test_positive_verify_files_with_pxegrub_uefi_secureboot():
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: TFTP
+    :CaseComponent: Provisioning
 
     :Team: Rocket
     """
@@ -1215,7 +1215,7 @@ def test_positive_verify_files_with_pxegrub2_uefi():
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: TFTP
+    :CaseComponent: Provisioning
 
     :Team: Rocket
     """
@@ -1248,7 +1248,7 @@ def test_positive_verify_files_with_pxegrub2_uefi_secureboot():
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: TFTP
+    :CaseComponent: Provisioning
 
     :Team: Rocket
     """

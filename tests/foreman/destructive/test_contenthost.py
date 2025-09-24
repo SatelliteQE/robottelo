@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: Hosts-Content
+:CaseComponent: Hosts
 
 :team: Proton
 
@@ -31,7 +31,7 @@ def test_content_access_after_stopped_foreman(target_sat, rhel7_contenthost):
 
     :CaseImportance: Medium
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Proton
 
