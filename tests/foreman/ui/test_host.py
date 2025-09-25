@@ -965,7 +965,7 @@ def test_positive_search_by_reported_data(
             api_hosts = target_sat.api.Host().search(query={'search': search_string})
             ui_hosts = session.host.search(search_string)
             assert set([host.name for host in api_hosts]) == set(
-                [host['Name'] for host in ui_hosts if host['Name'] != 'No Results']
+                [host['Name'] for host in ui_hosts]
             )
 
 
