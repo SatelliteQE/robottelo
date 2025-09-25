@@ -1598,6 +1598,9 @@ def test_positive_report_package_installed_removed(
     client.run(f'yum install -y {setup_custom_repo["package"]}')
     result = client.run(f'rpm -q {setup_custom_repo["package"]}')
     assert result.status == 0
+    # In RHEL10 the container isn't sending a package profile on
+    # dnf transaction, so below statement forces a package profile upload
+    client.subscription_manager_list_repos()
     installed_packages = target_sat.cli.Host.package_list(
         {'host-id': host_info['id'], 'search': f'name={setup_custom_repo["package_name"]}'}
     )
@@ -1605,6 +1608,7 @@ def test_positive_report_package_installed_removed(
     assert installed_packages[0]['nvra'] == setup_custom_repo["package"]
     result = client.run(f'yum remove -y {setup_custom_repo["package"]}')
     assert result.status == 0
+    client.subscription_manager_list_repos()
     installed_packages = target_sat.cli.Host.package_list(
         {'host-id': host_info['id'], 'search': f'name={setup_custom_repo["package_name"]}'}
     )
@@ -1642,6 +1646,9 @@ def test_positive_package_applicability(katello_host_tools_host, setup_custom_re
     client.run(f'yum install -y {setup_custom_repo["package"]}')
     result = client.run(f'rpm -q {setup_custom_repo["package"]}')
     assert result.status == 0
+    # In RHEL10 the container isn't sending a package profile on
+    # dnf transaction, so below statement forces a package profile upload
+    client.subscription_manager_list_repos()
     applicable_packages, _ = wait_for(
         lambda: target_sat.cli.Package.list(
             {
@@ -1761,6 +1768,9 @@ def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_r
     host_info = target_sat.cli.Host.info({'name': client.hostname})
     client.run(f'yum install -y {setup_custom_repo["new_package"]}')
     client.run(f'yum downgrade -y {setup_custom_repo["package_name"]}')
+    # In RHEL10 the container isn't sending a package profile on
+    # dnf transaction, so below statement forces a package profile upload
+    client.subscription_manager_list_repos()
     # Check that host has applicable errata
     host_erratum, _ = wait_for(
         lambda: target_sat.cli.Host.errata_list({'host-id': host_info['id']})[0],
