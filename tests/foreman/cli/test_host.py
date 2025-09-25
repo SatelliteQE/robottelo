@@ -1565,11 +1565,17 @@ def yum_security_plugin(katello_host_tools_host):
         assert yum_plugin_install.status == 0, "Failed to install yum-plugin-security plugin"
 
 
-@pytest.mark.e2e
-@pytest.mark.cli_katello_host_tools
-@pytest.mark.rhel_ver_match('[^6].*')
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [{'YumRepository': {'url': settings.repos.yum_3.url}}],
+    ids=['yum_3'],
+    indirect=True,
+)
+@pytest.mark.rhel_ver_match('N-2')
 def test_positive_report_package_installed_removed(
-    katello_host_tools_host, setup_custom_repo, target_sat
+    target_sat,
+    rhel_contenthost,
+    module_repos_collection_with_setup,
 ):
     """Ensure installed/removed package is reported to satellite
 
@@ -1578,46 +1584,61 @@ def test_positive_report_package_installed_removed(
     :customerscenario: true
 
     :steps:
-        1. register a host to activation key with content view that contain
-           packages
-        2. install a package 1 from the available packages
-        3. list the host installed packages with search for package 1 name
-        4. remove the package 1
-        5. list the host installed packages with search for package 1 name
+        1. register a host to activation key with content view that contains packages
+        2. install a package from the available packages
+        3. verify package is reported as installed on the host
+        4. remove the package
+        5. verify package is no longer reported as installed
 
     :expectedresults:
-        1. after step3: package 1 is listed in installed packages
-        2. after step5: installed packages list is empty
+        1. after installation: package is listed in installed packages
+        2. after removal: package is not listed in installed packages
 
     :BZ: 1463809
 
     :parametrized: yes
     """
-    client = katello_host_tools_host
-    host_info = target_sat.cli.Host.info({'name': client.hostname})
-    client.run(f'yum install -y {setup_custom_repo["package"]}')
-    result = client.run(f'rpm -q {setup_custom_repo["package"]}')
+    client = rhel_contenthost
+    client.add_rex_key(target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
+
+    assert client.execute(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}').status == 0
+    # Verify package is installed
+    result = client.execute(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
     assert result.status == 0
-    # In RHEL10 the container isn't sending a package profile on
-    # dnf transaction, so below statement forces a package profile upload
-    client.subscription_manager_list_repos()
+    client.subscription_manager_list_repos()  # update package profile
     installed_packages = target_sat.cli.Host.package_list(
-        {'host-id': host_info['id'], 'search': f'name={setup_custom_repo["package_name"]}'}
+        {'host': client.hostname, 'search': f'name={FAKE_7_CUSTOM_PACKAGE.split("-")[0]}'}
     )
     assert len(installed_packages) == 1
-    assert installed_packages[0]['nvra'] == setup_custom_repo["package"]
-    result = client.run(f'yum remove -y {setup_custom_repo["package"]}')
-    assert result.status == 0
-    client.subscription_manager_list_repos()
+    assert installed_packages[0]['nvra'] == FAKE_7_CUSTOM_PACKAGE
+
+    # Remove the package
+    assert client.execute(f'yum remove -y {FAKE_7_CUSTOM_PACKAGE}').status == 0
+
+    # Verify package is no longer installed via rpm query
+    result = client.execute(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
+    assert result.status != 0
+    assert 'not installed' in result.stdout
+    client.subscription_manager_list_repos()  # update package profile
     installed_packages = target_sat.cli.Host.package_list(
-        {'host-id': host_info['id'], 'search': f'name={setup_custom_repo["package_name"]}'}
+        {'host': client.hostname, 'search': f'name={FAKE_7_CUSTOM_PACKAGE}'}
     )
     assert len(installed_packages) == 0
 
 
-@pytest.mark.cli_katello_host_tools
-@pytest.mark.rhel_ver_match('[^6].*')
-def test_positive_package_applicability(katello_host_tools_host, setup_custom_repo, target_sat):
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [{'YumRepository': {'url': settings.repos.yum_3.url}}],
+    ids=['yum_3'],
+    indirect=True,
+)
+@pytest.mark.rhel_ver_match('N-2')
+def test_positive_package_applicability(
+    target_sat,
+    rhel_contenthost,
+    module_repos_collection_with_setup,
+):
     """Ensure packages applicability is functioning properly
 
     :id: d283b65b-19c1-4eba-87ea-f929b0ee4116
@@ -1625,54 +1646,46 @@ def test_positive_package_applicability(katello_host_tools_host, setup_custom_re
     :customerscenario: true
 
     :steps:
-        1. register a host to activation key with content view that contain
-           a minimum of 2 packages, package 1 and package 2,
-           where package 2 is an upgrade/update of package 1
+        1. register a host to activation key with content view that some available packages to install
         2. install the package 1
-        3. list the host applicable packages for package 1 name
-        4. install the package 2
-        5. list the host applicable packages for package 1 name
+        3. downgrade the package
+        4. list available upgrades
+        5. upgrade the package
+        6. make sure there are no package updates available
 
     :expectedresults:
-        1. after step 3: package 2 is listed in applicable packages
-        2. after step 5: applicable packages list is empty
+        1. after step 3: package update is listed
+        2. after step 5: there are no available updates for the package
 
     :BZ: 1463809
 
     :parametrized: yes
     """
-    client = katello_host_tools_host
-    host_info = target_sat.cli.Host.info({'name': client.hostname})
-    client.run(f'yum install -y {setup_custom_repo["package"]}')
-    result = client.run(f'rpm -q {setup_custom_repo["package"]}')
-    assert result.status == 0
-    # In RHEL10 the container isn't sending a package profile on
-    # dnf transaction, so below statement forces a package profile upload
-    client.subscription_manager_list_repos()
-    applicable_packages, _ = wait_for(
-        lambda: target_sat.cli.Package.list(
-            {
-                'host-id': host_info['id'],
-                'packages-restrict-applicable': 'true',
-                'search': f'name={setup_custom_repo["package_name"]}',
-            }
-        ),
-        fail_condition=[],
-        timeout=120,
-        delay=5,
+    client = rhel_contenthost
+    client.add_rex_key(target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
+
+    assert client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}').status == 0
+    client.subscription_manager_list_repos()  # update package profile
+    installed_packages = target_sat.cli.Host.package_list(
+        {'host': client.hostname, 'search': f'name={FAKE_7_CUSTOM_PACKAGE.split("-")[0]}'}
     )
-    assert any(
-        setup_custom_repo["new_package"] in package['filename'] for package in applicable_packages
-    )
-    # install package update
-    client.run(f'yum install -y {setup_custom_repo["new_package"]}')
-    result = client.run(f'rpm -q {setup_custom_repo["new_package"]}')
-    assert result.status == 0
+    assert len(installed_packages) == 1
+    assert installed_packages[0]['nvra'] == FAKE_7_CUSTOM_PACKAGE
+
+    assert client.run(f'yum downgrade -y {FAKE_7_CUSTOM_PACKAGE}').status == 0
+    result = client.run('yum check-update')
+    assert FAKE_7_CUSTOM_PACKAGE.split('-')[0] in result.stdout
+    assert client.run(f'yum update -y {FAKE_7_CUSTOM_PACKAGE.split("-")[0]}').status == 0
+    result = client.run('yum check-update')
+    assert FAKE_7_CUSTOM_PACKAGE.split('-')[0] not in result.stdout
+
+    client.subscription_manager_list_repos()  # update package profile
     applicable_packages = target_sat.cli.Package.list(
         {
-            'host-id': host_info['id'],
+            'host': client.hostname,
             'packages-restrict-applicable': 'true',
-            'search': f'name={setup_custom_repo["package"]}',
+            'search': f'name={FAKE_7_CUSTOM_PACKAGE.split("-")[0]}',
         }
     )
     assert len(applicable_packages) == 0
