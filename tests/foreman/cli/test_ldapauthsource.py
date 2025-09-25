@@ -228,13 +228,14 @@ class TestIPAAuthSource:
         )
         ipa_group_base_dn = default_ipa_host.group_base_dn.replace('foobargroup', member_group)
         LOGGEDIN_MSG = "Using configured credentials for user '{0}'."
+        config_type = 'posix' if server_type == 'nonposix_schema' else server_type
         auth_source_name = gen_string('alpha')
         auth_source_params = {
             'name': auth_source_name,
             'onthefly-register': 'true',
             'usergroup-sync': 'false',
             'host': default_ipa_host.hostname,
-            'server-type': LDAP_SERVER_TYPE['CLI'][server_type],
+            'server-type': LDAP_SERVER_TYPE['CLI'][config_type],
             'attr-login': LDAP_ATTR['login'],
             'attr-firstname': LDAP_ATTR['firstname'],
             'attr-lastname': LDAP_ATTR['surname'],
