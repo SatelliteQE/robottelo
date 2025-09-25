@@ -203,40 +203,50 @@ class TestIPAAuthSource:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.LDAPAuthSource.info({'name': new_name})
 
+    @pytest.mark.parametrize('server_type', ['ipa', 'nonposix_schema'])
     @pytest.mark.usefixtures("ldap_tear_down")
-    def test_usergroup_sync_with_refresh(self, default_ipa_host, module_target_sat):
+    def test_usergroup_sync_with_refresh(self, default_ipa_host, server_type, module_target_sat):
         """Verify the refresh functionality in Ldap Auth Source
 
         :id: c905eb80-2bd0-11ea-abc3-ddb7dbb3c930
 
+        :parametrized: yes
+
         :expectedresults: external user-group sync works as expected as on-demand
-            sync based on refresh works
+            sync based on refresh works for both posix and non-posix groups
+
+        :verifies: SAT-21129
+
+        :customerscenario: true
 
         :CaseImportance: Medium
         """
         self._clean_up_previous_ldap(module_target_sat)
-        ipa_group_base_dn = default_ipa_host.group_base_dn.replace('foobargroup', 'foreman_group')
         member_username = 'foreman_test'
-        member_group = 'foreman_group'
+        member_group = (
+            'foreman_nonposix_group' if server_type == 'nonposix_schema' else 'foreman_group'
+        )
+        ipa_group_base_dn = default_ipa_host.group_base_dn.replace('foobargroup', member_group)
         LOGGEDIN_MSG = "Using configured credentials for user '{0}'."
         auth_source_name = gen_string('alpha')
-        auth_source = module_target_sat.cli_factory.ldap_auth_source(
-            {
-                'name': auth_source_name,
-                'onthefly-register': 'true',
-                'usergroup-sync': 'false',
-                'host': default_ipa_host.hostname,
-                'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
-                'attr-login': LDAP_ATTR['login'],
-                'attr-firstname': LDAP_ATTR['firstname'],
-                'attr-lastname': LDAP_ATTR['surname'],
-                'attr-mail': LDAP_ATTR['mail'],
-                'account': default_ipa_host.ldap_user_cn,
-                'account-password': default_ipa_host.ldap_user_passwd,
-                'base-dn': default_ipa_host.base_dn,
-                'groups-base': ipa_group_base_dn,
-            }
-        )
+        auth_source_params = {
+            'name': auth_source_name,
+            'onthefly-register': 'true',
+            'usergroup-sync': 'false',
+            'host': default_ipa_host.hostname,
+            'server-type': LDAP_SERVER_TYPE['CLI'][server_type],
+            'attr-login': LDAP_ATTR['login'],
+            'attr-firstname': LDAP_ATTR['firstname'],
+            'attr-lastname': LDAP_ATTR['surname'],
+            'attr-mail': LDAP_ATTR['mail'],
+            'account': default_ipa_host.ldap_user_cn,
+            'account-password': default_ipa_host.ldap_user_passwd,
+            'base-dn': default_ipa_host.base_dn,
+            'groups-base': ipa_group_base_dn,
+        }
+        if server_type == 'nonposix_schema':
+            auth_source_params['ldap-group-membership'] = 'rfc4519'
+        auth_source = module_target_sat.cli_factory.ldap_auth_source(auth_source_params)
         auth_source = module_target_sat.cli.LDAPAuthSource.info({'id': auth_source['server']['id']})
 
         # Adding User in IPA UserGroup
