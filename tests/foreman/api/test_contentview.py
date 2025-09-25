@@ -642,6 +642,111 @@ class TestRollingContentView:
             rolling_cv.read()
 
     @pytest.mark.upgrade
+    def test_positive_rolling_in_environment(self, module_org, module_lce, target_sat):
+        """Can create and update the rolling content view in Library and other environments.
+        Note: We cannot promote the rolling CV Version, we update the CV's environment list.
+
+        :id: 0d504eae-8672-4dd0-9c47-50efc0de2c97
+
+        :steps:
+            1) Create new rolling CV with no environments, it gets assigned to Library.
+            2) Create a new rolling CV with Library passed at creation.
+            3) Create a new rolling CV with a different environment passed.
+            4) Update the first rolling CV from Step 1, to add the different environment.
+
+        :expectedresults:
+            1) Can create a rolling CV with No environment passed, it gets assigned to Library.
+            2) Can create a rolling CV with Library passed at creation. Assigned to Library.
+            3) Can create a rolling CV with a non-Library environment passed. It is only assigned to that environment.
+            4) Can update a rolling CV already in Library, to add another environment. It is assigned to both.
+
+        :CaseImportance: Critical
+
+        """
+        _library = module_org.read().library
+        # no environment passed, rolling cv is assigned to Library
+        lib_rolling_cv = target_sat.api.ContentView(rolling=True, organization=module_org).create()
+        assert len(lib_rolling_cv.environment) == 1
+        assert lib_rolling_cv.environment == lib_rolling_cv.read().environment
+        assert lib_rolling_cv.environment[0].id == _library.id
+        # pass Library environment at creation
+        lib_rolling_cv2 = target_sat.api.ContentView(
+            rolling=True, organization=module_org, environment=[_library]
+        )
+        assert len(lib_rolling_cv2.environment) == 1
+        assert lib_rolling_cv2.environment == lib_rolling_cv2.read().environment
+        assert lib_rolling_cv2.environment[0].id == _library.id
+        # pass non-Library environment at creation
+        lce_rolling_cv = target_sat.api.ContentView(
+            rolling=True, organization=module_org, environment=[module_lce]
+        ).create()
+        assert len(lce_rolling_cv.environment) == 1
+        assert lce_rolling_cv.environment == lce_rolling_cv.read().environment
+        assert lce_rolling_cv.environment[0].id == module_lce.id
+        # update the first rolling cv to add the non-Library environment
+        lib_rolling_cv.environment.append(module_lce)
+        lib_rolling_cv.update(['environment'])
+        lib_rolling_cv = lib_rolling_cv.read()
+        # both environments present
+        assert len(lib_rolling_cv.environment) == 2
+        env_ids = [env.id for env in lib_rolling_cv.environment]
+        assert all([_library.id in env_ids, module_lce.id in env_ids])
+
+    @pytest.mark.upgrade
+    def test_positive_rolling_in_nested_environments(self, module_org, target_sat):
+        """Can create and update the rolling content view in multiple environments,
+        each of which has multiple prior environments.
+
+        :id: 86879b47-237d-4245-b827-a44932254f77
+
+        :steps:
+            1) Create multiple nested environments via priors (children).
+            2) Create a rolling CV with all environments passed at creation.
+
+        :expectedresults:
+            1) Can create a rolling CV assigned to multiple nested environments.
+            2) The rolling CV's environment list contains all the assigned environments.
+
+        :CaseImportance: High
+
+        """
+        _library = module_org.read().library
+        child_envs_each_parent = 3
+        parent_envs = 3
+        # create multiple tail environments, each with multiple prior environments
+        for _p in range(parent_envs):
+            most_prior_env = _library
+            for _c in range(child_envs_each_parent):
+                child_lce = target_sat.api.LifecycleEnvironment(
+                    name=f'C-{_c}_{valid_data_list()["alphanumeric"][:10]}',
+                    organization=module_org,
+                    prior=most_prior_env,
+                ).create()
+                most_prior_env = child_lce
+            # create tail lce (parent) after all the nested priors
+            target_sat.api.LifecycleEnvironment(
+                name=f'P-{_p}_{valid_data_list()["alphanumeric"][:10]}',
+                organization=module_org,
+                prior=most_prior_env,
+            ).create()
+        # gather all environments for this organization
+        all_envs = [
+            env.read()
+            for env in target_sat.api.LifecycleEnvironment().search(
+                query={'organization_id': module_org.id}
+            )
+        ]
+        # create the rolling cv with all the environments assigned
+        rolling_cv = target_sat.api.ContentView(
+            rolling=True, environment=all_envs, organization=module_org
+        ).create()
+        rolling_cv = rolling_cv.read()
+        expected_env_count = 1 + parent_envs + (parent_envs * child_envs_each_parent)
+        assert expected_env_count == len(rolling_cv.environment) == len(all_envs)
+        # rolling cv contains all the environments (match sets by :ids)
+        assert set([env.id for env in rolling_cv.environment]) == set([env.id for env in all_envs])
+
+    @pytest.mark.upgrade
     def test_positive_content_types_in_rolling(self, target_sat, module_org, module_product):
         """Can upload and use the different content types with the rolling content view.
         Packages, Package Groups, Module Streams, Errata.
