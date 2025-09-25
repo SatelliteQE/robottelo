@@ -196,6 +196,8 @@ class TestRemoteExecution:
 
         :Verifies: SAT-25243
 
+        :BlockedBy: SAT-36025
+
         :customerscenario: true
         """
         client = rex_contenthost
