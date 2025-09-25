@@ -278,4 +278,8 @@ class SharedResource:
                 else:
                     self.log("Setting main status to ERROR")
                     self._update_main_status("error")
+                    self.log(
+                        f'unlink resources file {self.resource_file.name} for {self.action_kwargs}'
+                    )
+                    self.resource_file.unlink()
             raise exc_value
