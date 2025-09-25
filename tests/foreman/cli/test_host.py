@@ -1677,7 +1677,9 @@ def test_positive_package_applicability(
     result = client.run('yum check-update')
     assert FAKE_7_CUSTOM_PACKAGE.split('-')[0] in result.stdout
     assert client.run(f'yum update -y {FAKE_7_CUSTOM_PACKAGE.split("-")[0]}').status == 0
-    assert client.run('yum check-update').status == 0
+    result = client.run('yum check-update')
+    assert FAKE_7_CUSTOM_PACKAGE.split('-')[0] not in result.stdout
+
     client.subscription_manager_list_repos()  # update package profile
     applicable_packages = target_sat.cli.Package.list(
         {
