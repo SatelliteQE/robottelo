@@ -1216,7 +1216,7 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
         }
     )
     with session:
-        values = session.host.read(host['name'], ['host.lce', 'host.content_view'])
+        values = session.host_new.read(host['name'], ['host.lce', 'host.content_view'])
         assert values['host']['lce'] == lce.name
         assert values['host']['content_view'] == cv.name
         matching_hosts = target_sat.api.Host().search(
