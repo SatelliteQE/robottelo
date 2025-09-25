@@ -150,12 +150,12 @@ class SharedResource:
         """Waits for the main watcher to finish."""
         while True:
             curr_data = json.loads(self.resource_file.read_text())
-            if curr_data["main_status"] != "done":
-                time.sleep(settings.robottelo.shared_resource_wait)
+            if curr_data["main_status"] == "error":
+                raise Exception(f"Error in main watcher: {curr_data['main_watcher']}")
             elif curr_data["main_status"] == "action_error":
                 self._try_take_over()
-            elif curr_data["main_status"] == "error":
-                raise Exception(f"Error in main watcher: {curr_data['main_watcher']}")
+            elif curr_data["main_status"] != "done":
+                time.sleep(settings.robottelo.shared_resource_wait)
             else:
                 self.log("Main status now done, breaking wait loop")
                 break
@@ -278,8 +278,4 @@ class SharedResource:
                 else:
                     self.log("Setting main status to ERROR")
                     self._update_main_status("error")
-                    self.log(
-                        f'unlink resources file {self.resource_file.name} for {self.action_kwargs}'
-                    )
-                    self.resource_file.unlink()
             raise exc_value
