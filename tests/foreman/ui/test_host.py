@@ -1286,7 +1286,6 @@ def test_positive_manage_table_columns(
             assert (column in displayed_columns) is is_displayed
 
 
-@pytest.mark.tier4
 def test_positive_host_details_read_templates(
     session, target_sat, current_sat_org, current_sat_location
 ):
@@ -1902,7 +1901,7 @@ def test_all_hosts_delete(target_sat, function_org, function_location, new_host_
 
     :expectedresults: Successful deletion of a host through the table dropdown
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Team: Proton
     """
@@ -1921,7 +1920,7 @@ def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_
 
     :expectedresults: Successful deletion of multiple hosts at once through Bulk Action
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Team: Proton
     """
@@ -2020,7 +2019,7 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
     :expectedresults: Job invocation page should be correctly generated
         by the change content source action, generated script should also be correct
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Team: Proton
     """
