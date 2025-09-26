@@ -44,7 +44,6 @@ CaseComponent:
     - ContentViews
     - Conversionsappliance
     - Dashboard
-    - DHCPDNS
     - DiscoveryImage
     - DiscoveryPlugin
     - Documentation
@@ -57,10 +56,8 @@ CaseComponent:
     - Hammer-Content
     - HTTPProxy
     - HostCollections
-    - HostForm
     - HostGroup
     - Hosts
-    - Hosts-Content
     - Infobloxintegration
     - Installation
     - InterSatelliteSync
@@ -98,7 +95,6 @@ CaseComponent:
     - TasksPlugin
     - TemplatesPlugin
     - TestEnvironment
-    - TFTP
     - Upgrades
     - UsersRoles
     - Virt-whoConfigurePlugin
