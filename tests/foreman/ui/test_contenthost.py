@@ -1047,6 +1047,7 @@ def test_install_modular_errata(session, default_location, vm_module_streams):
     ],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_module_status_update_from_content_host_to_satellite(
     session, default_location, vm_module_streams, module_org
 ):
@@ -1111,6 +1112,7 @@ def test_module_status_update_from_content_host_to_satellite(
     ],
     indirect=True,
 )
+@pytest.mark.no_containers
 def test_module_status_update_without_force_upload_package_profile(
     session, default_location, vm_module_streams, target_sat
 ):
