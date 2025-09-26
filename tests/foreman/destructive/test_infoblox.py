@@ -2,7 +2,7 @@
 
 :Requirement: Infoblox, Installer
 
-:CaseComponent: DHCPDNS
+:CaseComponent: Provisioning
 
 :Team: Rocket
 

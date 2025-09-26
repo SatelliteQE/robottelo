@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: Hosts-Content
+:CaseComponent: Hosts
 
 :Team: Proton
 
