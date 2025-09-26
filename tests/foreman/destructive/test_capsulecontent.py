@@ -19,6 +19,7 @@ from fauxfactory import gen_alpha
 import pytest
 
 from robottelo import constants
+from robottelo.config import settings
 
 pytestmark = [pytest.mark.destructive]
 
@@ -236,3 +237,103 @@ def test_positive_sync_without_deadlock_after_rpm_trim_changelog(
         check_log_files = [f'/var/lib/pgsql/data/log/postgresql-{day}.log', '/var/log/messages']
         for file in check_log_files:
             assert capsule_configured.execute(f'grep -i "deadlock detected" {file}').status
+
+
+@pytest.mark.skip_if_not_set('capsule')
+def test_sync_AC_without_deadlock(
+    target_sat,
+    capsule_configured,
+    function_org,
+    function_product,
+):
+    """Synchronize Ansible-Collection repository with multiple content views to capsule.
+    Assert that the sync task succeeds and no deadlock happens.
+
+    :id: ac38c045-7b4b-400c-8f23-f4ffc4a38f77
+
+    :setup:
+        1. A blank external capsule with immediate download policy.
+
+    :steps:
+        1. Create an Ansible-Collection repository and sync it.
+        2. Create 5 lifecycle environments.
+        3. Create 8 content views, add the repository and publish/promote to all LCEs.
+        4. Assign all lifecycle environments to the capsule and trigger optimized sync.
+        5. Ensure sync task succeeded and no 'ShareLock' or 'deadlock' found in /var/log/messages.
+
+    :expectedresults:
+        1. Sync passes without deadlock.
+
+    :customerscenario: true
+
+    :Verifies: SAT-34271
+
+    """
+    # Set capsule to immediate download policy
+    proxy = capsule_configured.nailgun_smart_proxy.read()
+    proxy.download_policy = 'immediate'
+    proxy.update(['download_policy'])
+
+    # 1. Create Ansible-Collection repository and sync it
+    requirements = '''
+    ---
+    collections:
+    - name: ansible.eda
+    - name: check_point.mgmt
+    - name: ansible.platform
+    - name: redhat.satellite
+    '''
+    repo = target_sat.api.Repository(
+        content_type='ansible_collection',
+        ansible_collection_requirements=requirements,
+        product=function_product,
+        url=settings.ansible_hub.url,
+        ansible_collection_auth_token=settings.ansible_hub.token,
+        ansible_collection_auth_url=settings.ansible_hub.sso_url,
+    ).create()
+    repo_sync = repo.sync()
+    assert repo_sync['result'] == 'success', f'Repository sync failed: {repo_sync}'
+    repo = repo.read()
+    assert repo.content_counts['ansible_collection'] > 75, (
+        'Insufficient collections count in testing repo'
+    )
+
+    # 2. Create 5 lifecycle environments
+    lces = [target_sat.api.LifecycleEnvironment(name='LCE-0', organization=function_org).create()]
+    for i in range(1, 5):
+        lce = target_sat.api.LifecycleEnvironment(
+            name=f'LCE-{i}', organization=function_org, prior=lces[-1].id
+        ).create()
+        lces.append(lce)
+
+    # 3. Create 8 content views, add repository and publish/promote to all LCEs
+    content_views = []
+    for i in range(8):
+        cv = target_sat.api.ContentView(
+            name=f'CV-{i}', organization=function_org, repository=[repo]
+        ).create()
+
+        cv.publish()
+        cv = cv.read()
+        cvv = cv.version[0]
+        cvv.promote(data={'environment_ids': [lce.id for lce in lces]})
+
+        content_views.append(cv)
+
+    # 4. Assign all lifecycle environments to capsule and trigger optimized sync
+    nailgun_capsule = capsule_configured.nailgun_capsule
+
+    nailgun_capsule.content_add_lifecycle_environment(
+        data={'environment_id': [lce.id for lce in lces]}
+    )
+    result = nailgun_capsule.content_lifecycle_environments()
+    assert len(result['results']) == len(lces)
+
+    sync_status = nailgun_capsule.content_sync(timeout='10m')
+
+    # 5. Ensure sync task succeeded and no 'ShareLock' or 'deadlock' found in /var/log/messages.
+    assert sync_status['result'] == 'success', f'Capsule sync task failed: {sync_status}'
+    sharelock_check = capsule_configured.execute('grep -i "ShareLock" /var/log/messages')
+    assert sharelock_check.status != 0, 'ShareLock detected in /var/log/messages'
+    deadlock_check = capsule_configured.execute('grep -i "deadlock" /var/log/messages')
+    assert deadlock_check.status != 0, 'Deadlock detected in /var/log/messages'
