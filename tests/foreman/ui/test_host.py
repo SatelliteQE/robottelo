@@ -1271,7 +1271,7 @@ def test_all_hosts_manage_columns(target_sat, new_host_ui):
 
     :expectedresults: Through the widget you can change the columns on the All Hosts page
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Proton
 
@@ -1899,7 +1899,7 @@ def test_all_hosts_delete(target_sat, function_org, function_location, new_host_
 
     :expectedresults: Successful deletion of a host through the table dropdown
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Team: Proton
     """
@@ -1928,7 +1928,7 @@ def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_
 
     :expectedresults: Successful deletion of multiple hosts at once through Bulk Action
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Team: Proton
     """
@@ -1954,7 +1954,7 @@ def test_all_hosts_bulk_cve_reassign(
 
     :expectedresults: Both hosts are successfully assigned to a new LCE and CV
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Proton
     """
@@ -2000,7 +2000,7 @@ def test_all_hosts_redirect_button(target_sat):
 
     :expectedresults: New UI Button redirects to All Hosts page
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Proton
     """
@@ -2016,7 +2016,7 @@ def test_all_hosts_bulk_build_management(target_sat, function_org, function_loca
 
     :expectedresults: Build Management dropdown in All Hosts UI works properly.
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Team: Proton
     """
@@ -2122,7 +2122,7 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
     :expectedresults: Job invocation page should be correctly generated
         by the change content source action, generated script should also be correct
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Team: Proton
     """
@@ -2338,7 +2338,7 @@ def test_positive_manage_packages(
 
     :expectedresults: Various package management actions should run successfully on various hosts
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :parametrized: yes
 
@@ -2624,7 +2624,7 @@ def test_all_hosts_manage_errata(
 
     :expectedresults: Errata can be bulk applied to hosts through the All Hosts page.
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Proton
     """
