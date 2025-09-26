@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: ForemanProxy
+:CaseComponent: Capsule-Content
 
-:Team: Endeavour
+:Team: Artemis
 
 :CaseImportance: High
 
@@ -105,7 +105,6 @@ def test_post_capsule_features(capsule_sync_setup):
     """Post-upgrade scenario that sync capsule from satellite and then
     verifies if the repo/rpm of pre-upgrade scenario is synced to capsule
 
-
     :id: 1a50f0ec-482e-11ef-a468-98fa9b11ac24
 
     :steps:
@@ -127,7 +126,6 @@ def test_post_capsule_features(capsule_sync_setup):
 def test_post_user_scenario_capsule_sync(capsule_sync_setup):
     """Post-upgrade scenario that sync capsule from satellite and then
     verifies if the repo/rpm of pre-upgrade scenario is synced to capsule
-
 
     :id: postupgrade-eb8970fa-98cc-4a99-99fb-1c12c4e319c9
 

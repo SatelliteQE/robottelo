@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: Hosts
+:CaseComponent: ComputeResources-GCE
 
-:Team: Endeavour
+:Team: Rocket
 
 :CaseImportance: High
 
