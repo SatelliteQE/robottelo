@@ -42,6 +42,11 @@ VALIDATORS = dict(
             default=NetworkType.IPV4.value,
         ),
         Validator('server.is_ipv6', is_type_of=bool, must_exist=False),
+        Validator(
+            'server.default_os_search_query',
+            is_type_of=str,
+            default='name="RedHat" AND (major="6" OR major="7" OR major="8" OR major="9")',
+        ),
     ],
     content_host=[
         Validator('content_host.default_rhel_version', must_exist=True),

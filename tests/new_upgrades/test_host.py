@@ -21,7 +21,6 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
-    DEFAULT_OS_SEARCH_QUERY,
     DEFAULT_PTABLE,
     VALID_GCE_ZONES,
 )
@@ -104,7 +103,7 @@ def setup_gce_cr_and_host(
         )
         default_os = (
             target_sat.api.OperatingSystem()
-            .search(query={'search': DEFAULT_OS_SEARCH_QUERY})[0]
+            .search(query={'search': settings.server.default_os_search_query})[0]
             .read()
         )
         default_ptable = (
