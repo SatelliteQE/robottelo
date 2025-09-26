@@ -128,12 +128,8 @@ class TestAnsibleCfgMgmt:
 
         :BZ: 2164400
         """
-        ROLE_NAMES = [
-            'theforeman.foreman_scap_client',
-            'redhat.satellite.hostgroups',
-            'RedHatInsights.insights-client',
-            'redhat.satellite.compute_resources',
-        ]
+        ROLE_NAMES = settings.ansible.role_names
+
         hg = target_sat.api.HostGroup(name=gen_string('alpha')).create()
         hg_nested = target_sat.api.HostGroup(name=gen_string('alpha'), parent=hg).create()
         proxy_id = target_sat.nailgun_smart_proxy.id
@@ -209,11 +205,8 @@ class TestAnsibleCfgMgmt:
 
         :customerscenario: true
         """
-        ROLE_NAMES = [
-            'theforeman.foreman_scap_client',
-            'RedHatInsights.insights-client',
-            'redhat.satellite.compute_resources',
-        ]
+        ROLE_NAMES = settings.ansible.role_names
+
         proxy_id = target_sat.nailgun_smart_proxy.id
         host = target_sat.api.Host(organization=module_org, location=module_location).create()
         hg = target_sat.api.HostGroup(name=gen_string('alpha'), organization=[module_org]).create()
