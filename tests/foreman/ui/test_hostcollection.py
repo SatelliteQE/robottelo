@@ -82,7 +82,9 @@ def vm_content_hosts_module_stream(
 ):
     with Broker(nick='rhel8', host_class=ContentHost, _count=2) as clients:
         for client in clients:
-            function_repos_collection_with_manifest.setup_virtual_machine(client, enable_custom_repos=True)
+            function_repos_collection_with_manifest.setup_virtual_machine(
+                client, enable_custom_repos=True
+            )
             client.add_rex_key(satellite=module_target_sat)
             module_target_sat.api_factory.update_vm_host_location(client, smart_proxy_location.id)
         yield clients
@@ -678,7 +680,11 @@ def test_negative_hosts_limit(module_target_sat, module_org_with_parameter, smar
     indirect=True,
 )
 def test_positive_install_module_stream(
-    session,function_sca_manifest_org, smart_proxy_location, vm_content_hosts_module_stream, vm_host_collection_module_stream
+    session,
+    function_sca_manifest_org,
+    smart_proxy_location,
+    vm_content_hosts_module_stream,
+    vm_host_collection_module_stream,
 ):
     """Install a module-stream to hosts inside host collection remotely
 
@@ -726,7 +732,11 @@ def test_positive_install_module_stream(
     indirect=True,
 )
 def test_positive_install_modular_errata(
-    session, function_sca_manifest_org, smart_proxy_location, vm_content_hosts_module_stream, vm_host_collection_module_stream
+    session,
+    function_sca_manifest_org,
+    smart_proxy_location,
+    vm_content_hosts_module_stream,
+    vm_host_collection_module_stream,
 ):
     """Install Modular Errata generated from module streams.
 
