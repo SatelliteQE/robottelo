@@ -88,7 +88,7 @@ def test_iop_recommendations_e2e(
         assert result[0]['Name'] == OPENSSH_RECOMMENDATION
 
         # Remediate the Affected System.
-        result = session.recommendationstab.remediate_affected_systems(
+        result = session.recommendationstab.remediate_affected_system(
             OPENSSH_RECOMMENDATION, rhel_insights_vm.hostname
         )
 
@@ -111,7 +111,7 @@ def test_iop_recommendations_e2e(
 def test_iop_recommendations_remediate_multiple_hosts(
     rhel_insights_vms,
     rhcloud_manifest_org,
-    module_target_sat_insights,
+    module_satellite_iop,
 ):
     """Set up Satellite with iop enabled, register multiple hosts, create vulnerabilities on both hosts,
         and bulk apply remediation.
@@ -146,7 +146,7 @@ def test_iop_recommendations_remediate_multiple_hosts(
     for vm in rhel_insights_vms:
         create_insights_vulnerability(vm)
 
-    with module_target_sat_insights.ui_session() as session:
+    with module_satellite_iop.ui_session() as session:
         session.organization.select(org_name=org_name)
 
         # Search for the recommendations
