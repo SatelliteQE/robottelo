@@ -77,6 +77,7 @@ def shared_cap_checkout(shared_name):
     cap_inst = Broker(
         workflow=settings.CAPSULE.deploy_workflows.product,
         deploy_sat_version=settings.UPGRADE.FROM_VERSION,
+        deploy_network_type=settings.CAPSULE.network_type,
         host_class=Capsule,
         upgrade_group=f'{shared_name}_shared_checkout',
     )

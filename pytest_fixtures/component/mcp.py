@@ -5,6 +5,7 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.config import settings
+from robottelo.constants import PODMAN_AUTHFILE_PATH
 
 
 def _create_viewer_user(target_sat, org, location, permission_name):
@@ -69,13 +70,20 @@ def _setup_mcp_server(target_sat, settings_obj, is_downstream=False):
         ca_mountpoint = '/app/ca.pem'
     if not target_sat.network_type.has_ipv4:
         target_sat.execute('podman network create --ipv6 ipv6')
-    assert target_sat.execute(f'podman pull {registry}/{settings_obj.image_path}').status == 0
-    target_sat.execute(
-        f'podman run {"--network ipv6" if not target_sat.network_type.has_ipv4 else ""} '
+
+    authfile_arg = f"--authfile {PODMAN_AUTHFILE_PATH}" if is_downstream else ""
+    network_arg = "--network ipv6" if not target_sat.network_type.has_ipv4 else ""
+
+    pull_cmd = f'podman pull {authfile_arg} {registry}/{settings_obj.image_path}'.strip()
+    assert target_sat.execute(pull_cmd).status == 0
+
+    run_cmd = (
+        f'podman run {network_arg} {authfile_arg} '
         f'-v /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem:{ca_mountpoint}:ro,Z '
         f'--name {container_name} -d --pull=never -it -p {settings_obj.port}:8080 '
         f'{image_name} --foreman-url https://{target_sat.hostname} --host 0.0.0.0'
-    )
+    ).strip()
+    target_sat.execute(run_cmd)
     wait_for(
         lambda: target_sat.execute(f'curl localhost:{settings_obj.port}/mcp/').status == 0,
         timeout=60,

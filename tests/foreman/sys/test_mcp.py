@@ -17,6 +17,7 @@ from fastmcp.client.transports import StreamableHttpTransport
 import pytest
 
 from robottelo.config import settings
+from robottelo.enums import NetworkType
 
 
 @pytest.mark.asyncio
@@ -24,6 +25,10 @@ from robottelo.config import settings
     'mcp_server',
     ['module_mcp_target_sat', 'module_downstream_mcp_target_sat'],
     ids=['upstream', 'downstream'],
+)
+@pytest.mark.skipif(
+    settings.server.network_type == NetworkType.IPV6,
+    reason='IPV6 scenario is not essential for this case',
 )
 async def test_positive_call_mcp_server(request, mcp_server):
     """Test that the MCP response matches with what is available on Satellite
@@ -66,6 +71,10 @@ async def test_positive_call_mcp_server(request, mcp_server):
 
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(
+    settings.server.network_type == NetworkType.IPV6,
+    reason='IPV6 scenario is not essential for this case',
+)
 async def test_negative_call_mcp_server(module_mcp_target_sat):
     """Test that MCP server cannot alter Satellite
 
@@ -101,6 +110,10 @@ async def test_negative_call_mcp_server(module_mcp_target_sat):
 
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(
+    settings.server.network_type == NetworkType.IPV6,
+    reason='IPV6 scenario is not essential for this case',
+)
 @pytest.mark.parametrize(
     ('user_fixture', 'allowed_resource', 'denied_resource', 'auth_type'),
     [

@@ -178,7 +178,7 @@ def test_content_validation_on_download(request, target_sat, function_org, funct
         product=function_product,
         content_type='yum',
         download_policy='on_demand',
-        url=f'http://localhost/pub/{repo_fsname}/',
+        url=f'http://{target_sat.hostname}/pub/{repo_fsname}/',
     ).create()
     repo.sync()
 
