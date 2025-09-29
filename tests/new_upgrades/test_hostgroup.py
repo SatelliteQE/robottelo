@@ -4,7 +4,7 @@
 
 :CaseComponent: HostGroup
 
-:Team: Endeavour
+:Team: Proton
 
 :CaseImportance: High
 
