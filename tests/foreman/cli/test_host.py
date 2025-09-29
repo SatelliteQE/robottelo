@@ -1691,39 +1691,56 @@ def test_positive_package_applicability(
     assert len(applicable_packages) == 0
 
 
-@pytest.mark.e2e
-@pytest.mark.cli_katello_host_tools
-@pytest.mark.rhel_ver_match('[^6].*')
 @pytest.mark.pit_client
 @pytest.mark.pit_server
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [{'YumRepository': {'url': settings.repos.yum_3.url}}],
+    ids=['yum_3'],
+    indirect=True,
+)
+@pytest.mark.rhel_ver_match('N-2')
 def test_positive_erratum_applicability(
-    katello_host_tools_host, setup_custom_repo, yum_security_plugin, target_sat
+    target_sat,
+    rhel_contenthost,
+    module_repos_collection_with_setup,
 ):
     """Ensure erratum applicability is functioning properly
 
     :id: 139de508-916e-4c91-88ad-b4973a6fa104
 
     :steps:
-        1. register a host to activation key with content view that contain
-           a package with errata
-        2. install the package
-        3. list the host applicable errata
-        4. install the errata
-        5. list the host applicable errata
+        1. register a host to activation key with content view that contains packages with errata
+        2. install a package that has available errata
+        3. verify errata is applicable to the host
+        4. apply the errata
+        5. verify errata is no longer applicable to the host
 
     :expectedresults:
-        1. after step 3: errata of package is in applicable errata list
-        2. after step 5: errata of package is not in applicable errata list
+        1. after installation: errata is listed as applicable
+        2. after applying errata: errata is no longer listed as applicable
 
     :BZ: 1463809,1740790
 
     :parametrized: yes
     """
-    client = katello_host_tools_host
+    client = rhel_contenthost
+    client.add_rex_key(target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
+
     host_info = target_sat.cli.Host.info({'name': client.hostname})
-    client.run(f'yum install -y {setup_custom_repo["package"]}')
-    result = client.run(f'rpm -q {setup_custom_repo["package"]}')
+
+    # Install package with available errata
+    assert client.execute(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}').status == 0
+
+    # Verify package is installed
+    result = client.execute(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
+    assert result.status == 0
+
+    # Update subscription manager to sync package profile
     client.subscription_manager_list_repos()
+
+    # Wait for and verify applicable errata appears
     applicable_errata, _ = wait_for(
         lambda: target_sat.cli.Host.errata_list({'host-id': host_info['id']}),
         handle_exception=True,
@@ -1731,20 +1748,26 @@ def test_positive_erratum_applicability(
         timeout=120,
         delay=5,
     )
+
+    # Find the security errata for the installed package
+    security_errata = settings.repos.yum_3.errata[25]  # FAKE_7_CUSTOM_PACKAGE security errata
     assert [
         erratum
         for erratum in applicable_errata
-        if erratum['installable'] == 'true'
-        and erratum['erratum-id'] == setup_custom_repo["security_errata"]
+        if erratum['installable'] == 'true' and erratum['erratum-id'] == security_errata
     ]
-    # apply the erratum
-    result = client.run(f'yum update -y --advisory {setup_custom_repo["security_errata"]}')
+
+    # Apply the errata
+    result = client.execute(f'yum update -y --advisory {security_errata}')
     assert result.status == 0
+
+    # Update subscription manager to sync package profile after update
     client.subscription_manager_list_repos()
-    # verify that the applied erratum is not present in the list of installable errata
+
+    # Verify that the applied erratum is no longer in applicable errata list
     try:
         applicable_erratum, _ = wait_for(
-            lambda: setup_custom_repo["security_errata"]
+            lambda: security_errata
             not in [
                 errata['erratum-id']
                 for errata in target_sat.cli.Host.errata_list({'host-id': host_info['id']})
@@ -1756,46 +1779,72 @@ def test_positive_erratum_applicability(
         )
     except TimedOutError as err:
         raise TimedOutError(
-            f"Timed out waiting for erratum \"{setup_custom_repo['security_errata']}\""
-            " to disappear from the list"
+            f"Timed out waiting for erratum \"{security_errata}\" to disappear from the list"
         ) from err
 
 
-@pytest.mark.cli_katello_host_tools
-@pytest.mark.rhel_ver_match('[^6].*')
-def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_repo, target_sat):
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [{'YumRepository': {'url': settings.repos.yum_3.url}}],
+    ids=['yum_3'],
+    indirect=True,
+)
+@pytest.mark.rhel_ver_match('N-2')
+def test_positive_apply_security_erratum(
+    target_sat,
+    rhel_contenthost,
+    module_repos_collection_with_setup,
+):
     """Apply security erratum to a host
 
     :id: 4d1095c8-d354-42ac-af44-adf6dbb46deb
 
-    :expectedresults: erratum is recognized by the
-        `yum update --security` command on client
-
     :customerscenario: true
+
+    :steps:
+        1. register a host to activation key with content view that contains packages with errata
+        2. install a newer package version
+        3. downgrade the package to create applicable errata
+        4. verify security errata is recognized by yum update --security command
+
+    :expectedresults: erratum is recognized by the `yum update --security` command on client
 
     :BZ: 1420671
 
     :parametrized: yes
     """
-    client = katello_host_tools_host
+    client = rhel_contenthost
+    client.add_rex_key(target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
+
     host_info = target_sat.cli.Host.info({'name': client.hostname})
-    client.run(f'yum install -y {setup_custom_repo["new_package"]}')
-    client.run(f'yum downgrade -y {setup_custom_repo["package_name"]}')
-    # In RHEL10 the container isn't sending a package profile on
-    # dnf transaction, so below statement forces a package profile upload
+
+    # Install the newer package version first
+    assert client.execute(f'yum install -y {FAKE_8_CUSTOM_PACKAGE}').status == 0
+
+    # Downgrade to create applicable security errata
+    package_name = FAKE_8_CUSTOM_PACKAGE_NAME
+    assert client.execute(f'yum downgrade -y {package_name}').status == 0
+
+    # Update subscription manager to sync package profile after downgrade
     client.subscription_manager_list_repos()
-    # Check that host has applicable errata
+
+    # Wait for and verify that host has applicable errata
+    security_errata = settings.repos.yum_3.errata[25]  # Security errata for the package
     host_erratum, _ = wait_for(
         lambda: target_sat.cli.Host.errata_list({'host-id': host_info['id']})[0],
         handle_exception=True,
         timeout=120,
         delay=5,
     )
-    assert host_erratum['erratum-id'] == setup_custom_repo["security_errata"]
+    assert host_erratum['erratum-id'] == security_errata
     assert host_erratum['installable'] == 'true'
-    # Check the erratum becomes available
-    result = client.run('yum update --assumeno --security | grep "No packages needed for security"')
-    assert result.status == 1
+
+    # Check that security erratum is available via yum update --security
+    result = client.execute(
+        'yum update --assumeno --security | grep "No packages needed for security"'
+    )
+    assert result.status == 1  # Command should fail because security updates are available
 
 
 @pytest.mark.cli_katello_host_tools
