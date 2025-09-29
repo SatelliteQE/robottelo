@@ -932,7 +932,7 @@ def test_module_streams_customize_action(session, default_location, vm_module_st
         session.location.select(default_location.name)
         # installing walrus:0.71 version
         customize_values = {
-            'template_content.module_spec': (
+            'target_hosts_and_inputs.module_spec': (
                 f'{FAKE_2_CUSTOM_PACKAGE_NAME}:{install_stream_version}'
             )
         }
