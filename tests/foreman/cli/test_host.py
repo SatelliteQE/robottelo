@@ -1691,6 +1691,8 @@ def test_positive_package_applicability(
     assert len(applicable_packages) == 0
 
 
+@pytest.mark.pit_client
+@pytest.mark.pit_server
 @pytest.mark.parametrize(
     'module_repos_collection_with_setup',
     [{'YumRepository': {'url': settings.repos.yum_3.url}}],
