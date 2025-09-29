@@ -169,11 +169,8 @@ class TestAnsibleCfgMgmt:
 
         :BZ: 2029402
         """
-        ROLES = [
-            'theforeman.foreman_scap_client',
-            'redhat.satellite.hostgroups',
-            'RedHatInsights.insights-client',
-        ]
+        ROLES = settings.ansible.role_names
+
         proxy_id = target_sat.nailgun_smart_proxy.id
         hg_name = gen_string('alpha')
         result = target_sat.cli.HostGroup.create({'name': hg_name})
