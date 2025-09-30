@@ -1297,8 +1297,8 @@ def test_positive_manage_table_columns(
         'Comment': False,
         'Installable updates': True,
         'RHEL Lifecycle status': False,
-        'Registered at': True,
-        'Last seen': True,
+        'Registered': True,
+        'Last checkin': True,
         'IPv4': True,
         'MAC': True,
         'Sockets': True,
@@ -1443,9 +1443,9 @@ def test_positive_update_delete_package(
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
-        assert len(packages) == 1
-        assert packages[0]['Package'] == FAKE_8_CUSTOM_PACKAGE_NAME
-        assert 'Up-to date' in packages[0]['Status']
+        assert len(packages['table']) == 1
+        assert packages['table'][0]['Package'] == FAKE_8_CUSTOM_PACKAGE_NAME
+        assert 'Up-to date' in packages['table'][0]['Status']
         result = client.run(f'rpm -q {FAKE_8_CUSTOM_PACKAGE}')
         assert result.status == 0
 
@@ -1459,9 +1459,9 @@ def test_positive_update_delete_package(
 
         # filter packages
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
-        assert len(packages) == 1
-        assert packages[0]['Package'] == FAKE_8_CUSTOM_PACKAGE_NAME
-        assert 'Upgradable' in packages[0]['Status']
+        assert len(packages['table']) == 1
+        assert packages['table'][0]['Package'] == FAKE_8_CUSTOM_PACKAGE_NAME
+        assert 'Upgradable' in packages['table'][0]['Status']
 
         # update package
         session.host_new.apply_package_action(
@@ -1474,8 +1474,10 @@ def test_positive_update_delete_package(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update packages table
+        session.host_new.get_details(client.hostname, widget_names='overview')
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
-        assert 'Up-to date' in packages[0]['Status']
+        assert 'Up-to date' in packages['table'][0]['Status']
 
         # remove package
         session.host_new.apply_package_action(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME, "Remove")
@@ -1487,7 +1489,7 @@ def test_positive_update_delete_package(
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
-        assert not packages
+        assert 'table' not in packages
         result = client.run(f'rpm -q {FAKE_8_CUSTOM_PACKAGE}')
         assert result.status != 0
 
