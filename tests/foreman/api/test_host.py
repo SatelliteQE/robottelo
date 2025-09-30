@@ -1133,7 +1133,7 @@ def test_positive_verify_files_with_pxegrub_uefi_secureboot():
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: TFTP
+    :CaseComponent: Provisioning
 
     :Team: Rocket
     """
@@ -1166,7 +1166,7 @@ def test_positive_verify_files_with_pxegrub2_uefi():
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: TFTP
+    :CaseComponent: Provisioning
 
     :Team: Rocket
     """
@@ -1199,7 +1199,7 @@ def test_positive_verify_files_with_pxegrub2_uefi_secureboot():
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: TFTP
+    :CaseComponent: Provisioning
 
     :Team: Rocket
     """
