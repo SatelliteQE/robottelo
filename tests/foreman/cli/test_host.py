@@ -1920,7 +1920,7 @@ def test_positive_bootc_cli_actions(target_sat, bootc_host, function_ak_with_cv,
 
     :expectedresults: Upon registering a Bootc host, the facts are attached to the host, and are accurate. Hammer host bootc also returns proper info.
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Artemis
 
@@ -1971,7 +1971,7 @@ def test_negative_multi_cv_registration(
 
     :CaseImportance: Critical
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :team: Proton
 
@@ -2019,7 +2019,7 @@ def test_positive_multi_cv_registration(
 
     :CaseImportance: Critical
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :team: Proton
 
@@ -2093,7 +2093,7 @@ def test_positive_multi_cv_assignment(
 
     :CaseImportance: Critical
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :team: Proton
 
@@ -2162,7 +2162,7 @@ def test_positive_multi_cv_host_repo_availability(
 
     :CaseImportance: Critical
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :team: Proton
 
