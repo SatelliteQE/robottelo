@@ -1303,7 +1303,7 @@ def test_all_hosts_manage_columns(target_sat):
 
     :expectedresults: Through the widget you can change the columns on the All Hosts page
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Proton
 
@@ -1867,7 +1867,7 @@ def test_all_hosts_delete(target_sat, function_org, function_location):
 
     :expectedresults: Successful deletion of a host through the table dropdown
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Team: Proton
     """
@@ -1896,7 +1896,7 @@ def test_all_hosts_bulk_delete(target_sat, function_org, function_location):
 
     :expectedresults: Successful deletion of multiple hosts at once through Bulk Action
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Team: Proton
     """
@@ -1922,7 +1922,7 @@ def test_all_hosts_bulk_cve_reassign(
 
     :expectedresults: Both hosts are successfully assigned to a new LCE and CV
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Proton
     """
@@ -1968,7 +1968,7 @@ def test_all_hosts_redirect_button(target_sat):
 
     :expectedresults: New UI Button redirects to All Hosts page
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Proton
     """
@@ -1984,7 +1984,7 @@ def test_all_hosts_bulk_build_management(target_sat, function_org, function_loca
 
     :expectedresults: Build Management dropdown in All Hosts UI works properly.
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Team: Proton
     """
@@ -2012,7 +2012,7 @@ def test_bootc_booted_container_images(
 
     :expectedresults: Booted Container Images contains the correct information for a given booted image
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Verifies:SAT-27163
 
@@ -2047,7 +2047,7 @@ def test_bootc_host_details(target_sat, bootc_host, function_ak_with_cv, functio
 
     :expectedresults: Host Details UI contains the proper information for a bootc host
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Verifies:SAT-27171
 
@@ -2085,7 +2085,7 @@ def test_bootc_rex_job(target_sat, bootc_host, function_ak_with_cv, function_org
 
     :expectedresults: Host Details UI links to the proper template, which runs successfully for all templates
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Verifies:SAT-27154, SAT-27158
 
@@ -2167,7 +2167,7 @@ def test_bootc_transient_install_warning(target_sat, bootc_host, function_ak_wit
 
     :expectedresults: In the 3 above cases, it is communicated to the user that package/errata actions will be transient.
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Verifies: SAT-31251
 
@@ -2281,7 +2281,7 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
     :expectedresults: Job invocation page should be correctly generated
         by the change content source action, generated script should also be correct
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Team: Proton
     """
@@ -2512,7 +2512,7 @@ def test_positive_manage_packages(
 
     :expectedresults: Various package management actions should run successfully on various hosts
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :parametrized: yes
 
@@ -2797,7 +2797,7 @@ def test_all_hosts_manage_errata(
 
     :expectedresults: Errata can be bulk applied to hosts through the All Hosts page.
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Proton
     """
@@ -2852,7 +2852,7 @@ def test_positive_manage_repository_sets(
 
     :expectedresults: Repository status can be changed via All Hosts page > Manage content wizard.
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Proton
     """
@@ -2986,7 +2986,7 @@ def test_disassociate_multiple_hosts(
 
     :expectedresults: VMs are disassociated and their compute resource info is cleared.
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Proton
     """
