@@ -1434,7 +1434,7 @@ def test_positive_update_delete_package(
 
         # this should reload page to update packages table
         session.host_new.get_details(client.hostname, widget_names='overview')
-
+        session.browser.refresh()
         # filter packages
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
         assert len(packages) == 1
@@ -1454,6 +1454,7 @@ def test_positive_update_delete_package(
         assert task_status['result'] == 'success'
         # this should reload page to update packages table
         session.host_new.get_details(client.hostname, widget_names='overview')
+        session.browser.refresh()
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
         assert 'Up-to date' in packages[0]['Status']
         # remove package
@@ -1467,6 +1468,7 @@ def test_positive_update_delete_package(
         assert task_status['result'] == 'success'
         # this should reload page to update packages table
         session.host_new.get_details(client.hostname, widget_names='overview')
+        session.browser.refresh()
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
         assert not packages
         result = client.run(f'rpm -q {FAKE_8_CUSTOM_PACKAGE}')
