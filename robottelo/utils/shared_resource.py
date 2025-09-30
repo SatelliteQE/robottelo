@@ -150,12 +150,12 @@ class SharedResource:
         """Waits for the main watcher to finish."""
         while True:
             curr_data = json.loads(self.resource_file.read_text())
-            if curr_data["main_status"] != "done":
-                time.sleep(settings.robottelo.shared_resource_wait)
-            elif curr_data["main_status"] == "action_error":
-                self._try_take_over()
-            elif curr_data["main_status"] == "error":
+            if curr_data["main_status"] == "error":
                 raise Exception(f"Error in main watcher: {curr_data['main_watcher']}")
+            if curr_data["main_status"] == "action_error":
+                self._try_take_over()
+            elif curr_data["main_status"] != "done":
+                time.sleep(settings.robottelo.shared_resource_wait)
             else:
                 self.log("Main status now done, breaking wait loop")
                 break
@@ -219,8 +219,12 @@ class SharedResource:
                 delay=self.delay,
             )
         except Exception as err:
-            self._update_main_status("error")
-            raise SharedResourceError("Main worker failed during action") from err
+            if not self.action_is_recoverable:
+                self._update_main_status("error")
+                self.resource_file.unlink()
+                raise SharedResourceError('Main worker failed during action') from err
+            self._update_main_status('action_error')
+            raise SharedResourceError('Recoverable failures in main worker') from err
 
     def _perform_action_with_validation(self):
         """Helper function to run the action and its validation."""
