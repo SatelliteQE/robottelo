@@ -1,5 +1,6 @@
 """Utility module to handle the virtwho configure UI/CLI/API testing"""
 
+import epdb
 import json
 import re
 import uuid
@@ -107,6 +108,7 @@ def register_system(system, activation_key=None, org='Default_Organization', env
     if activation_key is not None:
         cmd += f'--activationkey={activation_key}'
     else:
+        epdb.serve(port=(8888))
         cmd += f'--username={settings.server.admin_username} --password={settings.server.admin_password}'
     ret, stdout = runcmd(cmd, system)
     if ret == 0 or "system has been registered" in stdout:
