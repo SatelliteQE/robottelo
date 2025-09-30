@@ -29,7 +29,6 @@ import yaml
 from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
-    DEFAULT_ARCHITECTURE,
     DEFAULT_CV,
     DEFAULT_LOC,
     DUMMY_BOOTC_FACTS,
@@ -38,15 +37,12 @@ from robottelo.constants import (
     FAKE_7_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE_NAME,
-    FOREMAN_PROVIDERS,
     OSCAP_PERIOD,
     OSCAP_WEEKDAY,
     REPO_TYPE,
-    REPOS,
     ROLES,
 )
 from robottelo.constants.repos import CUSTOM_FILE_REPO
-from robottelo.exceptions import APIResponseError
 from robottelo.utils.datafactory import gen_string
 from tests.foreman.api.test_errata import cv_publish_promote
 
