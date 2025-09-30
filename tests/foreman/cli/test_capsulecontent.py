@@ -313,8 +313,8 @@ def test_positive_exported_imported_content_sync(
     function_lce,
     function_lce_library,
     function_published_cv,
-    function_sca_manifest_org,
-    module_capsule_configured,
+    function_org,
+    capsule_configured,
 ):
     """Add repo content to a content-view, publish, export the Library content.
     Then, import the content (CVV) to satellite, promote to a Capsule's LCE, sync the Capsule.
@@ -325,7 +325,7 @@ def test_positive_exported_imported_content_sync(
 
     :steps:
         1. Assign a non-Library LCE to Capsule.
-        2. Setup and sync a custom repo, for an SCA-enabled org.
+        2. Setup and sync a custom repo.
         3. Export-complete Library content, containing repo's published CV (can take a while).
         4. Import the exported content from Step 3 (can take a while).
         5. Promote the imported CVV (Import-Library) to the Capsule's LCE.
@@ -346,11 +346,11 @@ def test_positive_exported_imported_content_sync(
     :customerscenario: True
 
     """
-    org = function_sca_manifest_org
+    org = function_org
     # assign the non-Library LCE to Capsule
     target_sat.cli.Capsule.content_add_lifecycle_environment(
         {
-            'id': module_capsule_configured.nailgun_capsule.id,
+            'id': capsule_configured.nailgun_capsule.id,
             'organization-id': org.id,
             'lifecycle-environment-id': function_lce.id,
         }
@@ -383,7 +383,7 @@ def test_positive_exported_imported_content_sync(
             'to-lifecycle-environment-id': function_lce.id,
         }
     )
-    capsule = module_capsule_configured.nailgun_capsule.read()
+    capsule = capsule_configured.nailgun_capsule.read()
     # just one LCE found associated to capsule
     assert len(capsule.lifecycle_environments) == 1, (
         f'Expected only one environment for Capsule; {function_lce.name}.'
@@ -401,13 +401,13 @@ def test_positive_exported_imported_content_sync(
     assert cv_list[0]['name'] == 'Import-Library'
     assert str(cv_list[0]['id']) == str(import_cv_info['id'])
     # Synchronize the Capsule, with the Import content added
-    sync_status = module_capsule_configured.nailgun_capsule.content_sync(timeout='90m')
+    sync_status = capsule_configured.nailgun_capsule.content_sync(timeout='90m')
     assert sync_status['result'] == 'success', f'Capsule sync failed. Task: {sync_status}'
 
     # Remove the LCE from Capsule
     target_sat.cli.Capsule.content_remove_lifecycle_environment(
         {
-            'id': module_capsule_configured.nailgun_capsule.id,
+            'id': capsule_configured.nailgun_capsule.id,
             'organization-id': org.id,
             'lifecycle-environment-id': function_lce.id,
         }
@@ -416,14 +416,14 @@ def test_positive_exported_imported_content_sync(
     # Add Library to Capsule, containing both CVs, 'immediate' download policy.
     target_sat.cli.Capsule.content_add_lifecycle_environment(
         {
-            'id': module_capsule_configured.nailgun_capsule.id,
+            'id': capsule_configured.nailgun_capsule.id,
             'organization-id': org.id,
             'lifecycle-environment-id': function_lce_library.id,
         }
     )
-    module_capsule_configured.update_download_policy('immediate')
+    capsule_configured.update_download_policy('immediate')
     # Capsule sync successful, repo sync/associated tasks are not redundant (BZ: 2186765)
-    sync_status = module_capsule_configured.nailgun_capsule.content_sync(timeout='90m')
+    sync_status = capsule_configured.nailgun_capsule.content_sync(timeout='90m')
     assert sync_status['result'] == 'success', f'Capsule sync failed. Task: {sync_status}'
     # any in-progress tasks, post sync, are not associated to Capsule or repo
     unexpected_tasks = [
