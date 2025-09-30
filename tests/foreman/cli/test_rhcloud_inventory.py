@@ -463,6 +463,8 @@ def test_positive_generate_reports_job_cli_disconnected(
         1. Execute hammer insights inventory generate-report.
 
     :expectedresults: Reports generation works as expected.
+
+    :BlockedBy: SAT-38836
     """
     org = rhcloud_manifest_org
     generate_report(org, module_target_sat, disconnected=True)
