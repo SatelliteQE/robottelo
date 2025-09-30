@@ -373,12 +373,12 @@ def test_positive_create_and_delete(target_sat, module_lce_library, module_publi
     assert f'{name}.{host.domain.read().name}' == new_host['name']
     assert new_host['organization']['name'] == host.organization.name
     assert (
-            new_host['content-information']['content-view-environments']['1']['cv-name']
-            == module_published_cv.name
+        new_host['content-information']['content-view-environments']['1']['cv-name']
+        == module_published_cv.name
     )
     assert (
-            new_host['content-information']['content-view-environments']['1']['le-name']
-            == module_lce_library.name
+        new_host['content-information']['content-view-environments']['1']['le-name']
+        == module_lce_library.name
     )
     host_interface = target_sat.cli.HostInterface.info(
         {'host-id': new_host['id'], 'id': new_host['network-interfaces']['1']['id']}
@@ -738,8 +738,7 @@ def test_positive_create_inherit_lce_cv(
         {'hostgroup-id': hostgroup.id, 'organization-id': module_org.id}
     )
     assert (
-        int(
-            host['content-information']['content-view-environments']['1']['le-id'])
+        int(host['content-information']['content-view-environments']['1']['le-id'])
         == hostgroup.lifecycle_environment.id
     )
     assert (
@@ -863,6 +862,7 @@ def test_positive_list_with_nested_hostgroup(target_sat):
     assert int(host['content-information']['content-view-environments']['1']['cv-id']) == int(
         content_view.id
     )  # inherited
+
 
 @pytest.mark.cli_host_create
 @pytest.mark.stubbed
