@@ -542,7 +542,7 @@ class TestRepository:
 
         result = target_sat.execute(
             "cat /var/log/foreman/production.log | "
-            "grep \"undefined method `id' for nil:NilClass (NoMethodError)\""
+            "grep \"undefined method \\`id\\' for nil:NilClass (NoMethodError)\""
         )
         assert result.status == 1
 
