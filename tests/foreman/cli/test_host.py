@@ -373,14 +373,12 @@ def test_positive_create_and_delete(target_sat, module_lce_library, module_publi
     assert f'{name}.{host.domain.read().name}' == new_host['name']
     assert new_host['organization']['name'] == host.organization.name
     assert (
-        new_host['content-information']['content-view-environments']['1']['content-view']['name']
-        == module_published_cv.name
+            new_host['content-information']['content-view-environments']['1']['cv-name']
+            == module_published_cv.name
     )
     assert (
-        new_host['content-information']['content-view-environments']['1']['lifecycle-environment'][
-            'name'
-        ]
-        == module_lce_library.name
+            new_host['content-information']['content-view-environments']['1']['le-name']
+            == module_lce_library.name
     )
     host_interface = target_sat.cli.HostInterface.info(
         {'host-id': new_host['id'], 'id': new_host['network-interfaces']['1']['id']}
@@ -538,13 +536,11 @@ def test_positive_create_with_lce_and_cv(
         }
     )
     assert (
-        new_host['content-information']['content-view-environments']['1']['lifecycle-environment'][
-            'name'
-        ]
+        new_host['content-information']['content-view-environments']['1']['le-name']
         == module_lce.name
     )
     assert (
-        new_host['content-information']['content-view-environments']['1']['content-view']['name']
+        new_host['content-information']['content-view-environments']['1']['cv-name']
         == module_promoted_cv.name
     )
 
@@ -743,14 +739,11 @@ def test_positive_create_inherit_lce_cv(
     )
     assert (
         int(
-            host['content-information']['content-view-environments']['1']['lifecycle-environment'][
-                'id'
-            ]
-        )
+            host['content-information']['content-view-environments']['1']['le-id'])
         == hostgroup.lifecycle_environment.id
     )
     assert (
-        int(host['content-information']['content-view-environments']['1']['content-view']['id'])
+        int(host['content-information']['content-view-environments']['1']['cv-id'])
         == hostgroup.content_view.id
     )
 
@@ -864,22 +857,12 @@ def test_positive_list_with_nested_hostgroup(target_sat):
     logger.info(f'Host info: {host}')
     assert host['operating-system']['medium']['name'] == options.medium.name
     assert host['operating-system']['partition-table']['name'] == options.ptable.name  # inherited
-    if not target_sat.is_stream:
-        assert (
-            'id'
-            in host['content-information']['content-view-environments']['1'][
-                'lifecycle-environment'
-            ]
-        )
-        assert int(
-            host['content-information']['content-view-environments']['1']['lifecycle-environment'][
-                'id'
-            ]
-        ) == int(lce.id)
-        assert int(
-            host['content-information']['content-view-environments']['1']['content-view']['id']
-        ) == int(content_view.id)  # inherited
-
+    assert int(host['content-information']['content-view-environments']['1']['le-id']) == int(
+        lce.id
+    )
+    assert int(host['content-information']['content-view-environments']['1']['cv-id']) == int(
+        content_view.id
+    )  # inherited
 
 @pytest.mark.cli_host_create
 @pytest.mark.stubbed
