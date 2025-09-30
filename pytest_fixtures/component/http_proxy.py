@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 import pytest
 
 from robottelo.config import settings
@@ -60,9 +62,11 @@ def setup_http_proxy_without_global_settings(request, module_sca_manifest_org, t
 def setup_http_proxy_global(request, target_sat):
     """Create a new HTTP proxy and set related settings based on proxy"""
     if request.param:
-        hostname = settings.http_proxy.auth_proxy_url[7:]
+        parsed_url = urlparse(settings.http_proxy.un_auth_proxy_url)
+        protocol = parsed_url.scheme
+        hostname = parsed_url.hostname
         general_proxy = (
-            f'http://{settings.http_proxy.username}:{settings.http_proxy.password}@{hostname}'
+            f'{protocol}://{settings.http_proxy.username}:{settings.http_proxy.password}@{hostname}'
         )
     else:
         general_proxy = settings.http_proxy.un_auth_proxy_url
