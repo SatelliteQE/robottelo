@@ -114,6 +114,22 @@ def repo(repo_options, target_sat):
 
 
 @pytest.fixture
+def function_repo(function_org, function_product, target_sat):
+    """create a new function-scoped repository."""
+    repo = target_sat.cli_factory.make_repository(
+        {'organization-id': function_org.id, 'product-id': function_product.id}
+    )
+    target_sat.wait_for_tasks(
+        search_query='Actions::Katello::Repository::MetadataGenerate'
+        f' and resource_id = {repo["id"]}'
+        ' and resource_type = Katello::Repository',
+        max_tries=6,
+        search_rate=10,
+    )
+    return repo
+
+
+@pytest.fixture
 def gpg_key(module_org, module_target_sat):
     """Create a new GPG key."""
     return module_target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
@@ -369,22 +385,6 @@ class TestRepository:
         assert repo['gpg-key']['id'] == gpg_key['id']
         assert repo['gpg-key']['name'] == gpg_key['name']
 
-    # Comment out test until https://bugzilla.redhat.com/show_bug.cgi?id=2008656 is resolved
-    # def test_positive_create_with_gpg_key_by_name(
-    #         self, repo_options, module_org, module_product, gpg_key
-    # ):
-    #     """Check if repository can be created with gpg key name
-    #     :id: 95cde404-3449-410d-9a08-d7f8619a2ad5
-    #     :parametrized: yes
-    #     :expectedresults: Repository is created and has gpg key
-    #     :BZ: 1103944
-    #     :CaseImportance: Critical
-    #     """
-    #     repo_options['gpg-key'] = gpg_key['name']
-    #     repo = make_repository(repo_options)
-    #     assert repo['gpg-key']['id'] == gpg_key['id']
-    #     assert repo['gpg-key']['name'] == gpg_key['name']
-
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'publish-via-http': use_http} for use_http in ('true', 'yes', '1')]),
@@ -542,7 +542,7 @@ class TestRepository:
 
         result = target_sat.execute(
             "cat /var/log/foreman/production.log | "
-            "grep \"undefined method `id' for nil:NilClass (NoMethodError)\""
+            "grep \"undefined method \\`id\\' for nil:NilClass (NoMethodError)\""
         )
         assert result.status == 1
 
@@ -1401,12 +1401,9 @@ class TestRepository:
         new_repo = target_sat.cli.Repository.info({'id': new_repo['id']})
         assert int(new_repo['content-counts']['files']) == CUSTOM_FILE_REPO_FILES_COUNT + 1
 
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'content-type': 'yum', 'url': settings.repos.yum_1.url}]),
-        indirect=True,
-    )
-    def test_negative_restricted_user_cv_add_repository(self, module_org, repo, module_target_sat):
+    def test_negative_restricted_user_cv_add_repository(
+        self, function_org, function_repo, target_sat
+    ):
         """Attempt to add a product repository to content view with a
         restricted user, using product name not visible to restricted user.
 
@@ -1474,19 +1471,19 @@ class TestRepository:
         content_view_name = f"Test_{gen_string('alpha', 20)}"
 
         # Create a non admin user, for the moment without any permissions
-        user = module_target_sat.cli_factory.user(
+        user = target_sat.cli_factory.user(
             {
                 'admin': False,
-                'default-organization-id': module_org.id,
-                'organization-ids': [module_org.id],
+                'default-organization-id': function_org.id,
+                'organization-ids': [function_org.id],
                 'login': user_name,
                 'password': user_password,
             }
         )
         # Create a new role
-        role = module_target_sat.cli_factory.make_role()
+        role = target_sat.cli_factory.make_role()
         # Get the available permissions
-        available_permissions = module_target_sat.cli.Filter.available_permissions()
+        available_permissions = target_sat.cli.Filter.available_permissions()
         # group the available permissions by resource type
         available_rc_permissions = {}
         for permission in available_permissions:
@@ -1507,54 +1504,53 @@ class TestRepository:
             # assert that all the required permissions are available
             assert set(permission_names) == set(available_permission_names)
             # Create the current resource type role permissions
-            module_target_sat.cli_factory.make_filter(
+            target_sat.cli_factory.make_filter(
                 {'role-id': role['id'], 'permissions': permission_names, 'search': search}
             )
         # Add the created and initiated role with permissions to user
-        module_target_sat.cli.User.add_role({'id': user['id'], 'role-id': role['id']})
+        target_sat.cli.User.add_role({'id': user['id'], 'role-id': role['id']})
         # assert that the user is not an admin one and cannot read the current
         # role info (note: view_roles is not in the required permissions)
         with pytest.raises(
             CLIReturnCodeError,
             match=r'Access denied\\nMissing one of the required permissions: view_roles',
         ):
-            module_target_sat.cli.Role.with_user(user_name, user_password).info({'id': role['id']})
+            target_sat.cli.Role.with_user(user_name, user_password).info({'id': role['id']})
 
-        module_target_sat.cli.Repository.synchronize({'id': repo['id']})
-
+        target_sat.cli.Repository.synchronize({'id': function_repo['id']})
         # Create a content view
-        content_view = module_target_sat.cli_factory.make_content_view(
-            {'organization-id': module_org.id, 'name': content_view_name}
+        content_view = target_sat.cli_factory.make_content_view(
+            {'organization-id': function_org.id, 'name': content_view_name}
         )
         # assert that the user can read the content view info as per required
         # permissions
-        user_content_view = module_target_sat.cli.ContentView.with_user(
-            user_name, user_password
-        ).info({'id': content_view['id']})
+        user_content_view = target_sat.cli.ContentView.with_user(user_name, user_password).info(
+            {'id': content_view['id']}
+        )
         # assert that this is the same content view
         assert content_view['name'] == user_content_view['name']
         # assert admin user is able to view the product
-        repos = module_target_sat.cli.Repository.list({'organization-id': module_org.id})
+        repos = target_sat.cli.Repository.list({'organization-id': function_org.id})
         assert len(repos) == 1
         # assert that this is the same repo
-        assert repos[0]['id'] == repo['id']
+        assert repos[0]['id'] == function_repo['id']
         # assert that restricted user is not able to view the product
-        repos = module_target_sat.cli.Repository.with_user(user_name, user_password).list(
-            {'organization-id': module_org.id}
+        repos = target_sat.cli.Repository.with_user(user_name, user_password).list(
+            {'organization-id': function_org.id}
         )
         assert len(repos) == 0
         # assert that the user cannot add the product repo to content view
         with pytest.raises(CLIReturnCodeError):
-            module_target_sat.cli.ContentView.with_user(user_name, user_password).add_repository(
+            target_sat.cli.ContentView.with_user(user_name, user_password).add_repository(
                 {
                     'id': content_view['id'],
-                    'organization-id': module_org.id,
-                    'repository-id': repo['id'],
+                    'organization-id': function_org.id,
+                    'repository-id': function_repo['id'],
                 }
             )
         # assert that restricted user still not able to view the product
-        repos = module_target_sat.cli.Repository.with_user(user_name, user_password).list(
-            {'organization-id': module_org.id}
+        repos = target_sat.cli.Repository.with_user(user_name, user_password).list(
+            {'organization-id': function_org.id}
         )
         assert len(repos) == 0
 

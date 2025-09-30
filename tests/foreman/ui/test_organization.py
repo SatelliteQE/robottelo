@@ -122,9 +122,6 @@ def test_positive_end_to_end(session, module_target_sat):
         assert hostgroup.name in org_values['host_groups']['resources']['assigned']
         assert location.name in org_values['locations']['resources']['assigned']
 
-        ptables_before_remove = len(org_values['partition_tables']['resources']['assigned'])
-        templates_before_remove = len(org_values['provisioning_templates']['resources']['assigned'])
-
         # remove attributes
         session.organization.update(
             new_name,
@@ -144,11 +141,8 @@ def test_positive_end_to_end(session, module_target_sat):
         assert user.login in org_values['users']['resources']['unassigned']
         assert len(org_values['media']['resources']['assigned']) == 0
         assert media.name in org_values['media']['resources']['unassigned']
-        assert len(org_values['partition_tables']['resources']['assigned']) < ptables_before_remove
-        assert (
-            len(org_values['provisioning_templates']['resources']['assigned'])
-            < templates_before_remove
-        )
+        assert ptable.name not in org_values['partition_tables']['resources']['assigned']
+        assert template.name not in org_values['provisioning_templates']['resources']['assigned']
         assert len(org_values['domains']['resources']['assigned']) == 0
         assert domain.name in org_values['domains']['resources']['unassigned']
         assert len(org_values['host_groups']['resources']['assigned']) == 0

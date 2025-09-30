@@ -81,6 +81,16 @@ def ui_admin_user(target_sat):
 
 
 @pytest.fixture
+def host_ui_default(target_sat):
+    settings_object = target_sat.api.Setting().search(query={'search': 'name=host_details_ui'})[0]
+    settings_object.value = 'No'
+    settings_object.update({'value'})
+    yield
+    settings_object.value = 'Yes'
+    settings_object.update({'value'})
+
+
+@pytest.fixture
 def ui_view_hosts_user(target_sat, current_sat_org, current_sat_location):
     """User with View hosts role."""
     role = target_sat.api.Role().search(query={'search': 'name="View hosts"'})[0]
@@ -415,7 +425,10 @@ def test_positive_assign_compliance_policy(
         expected.
 
     :BZ: 1862135
+    :BlockedBy: SAT-38431
     """
+    # TODO Rewrite for new all hosts page after SAT-38431 is completed
+
     org = function_host.organization.read()
     loc = function_host.location.read()
     # add host organization and location to scap policy
@@ -473,7 +486,11 @@ def test_positive_export(session, target_sat, function_org, function_location):
     :id: ffc512ad-982e-4b60-970a-41e940ebc74c
 
     :expectedresults: csv file contains same values as on web UI
+
+    :BlockedBy: SAT-38427
     """
+    # TODO Rewrite for new all hosts page after SAT-38427 is completed
+
     hosts = [
         target_sat.api.Host(organization=function_org, location=function_location).create()
         for _ in range(3)
@@ -508,7 +525,11 @@ def test_positive_export_selected_columns(target_sat, current_sat_location):
     :BZ: 2167146
 
     :customerscenario: true
+
+    :BlockedBy: SAT-38427
     """
+    # TODO Rewrite for new all hosts page after SAT-38427 is completed
+
     columns = (
         Box(ui='Power', csv='Power Status', displayed=True),
         Box(ui='Recommendations', csv='Insights Recommendations Count', displayed=True),
@@ -612,7 +633,7 @@ def test_negative_delete_primary_interface(session, host_ui_options):
 
 
 def test_positive_view_hosts_with_non_admin_user(
-    test_name, module_org, smart_proxy_location, target_sat
+    test_name, module_org, smart_proxy_location, target_sat, host_ui_default
 ):
     """View hosts and content hosts as a non-admin user with only view_hosts, edit_hosts
     and view_organization permissions
@@ -644,7 +665,7 @@ def test_positive_view_hosts_with_non_admin_user(
         location=smart_proxy_location, organization=module_org
     ).create()
     with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
-        host = session.host.get_details(created_host.name, widget_names='breadcrumb')
+        host = session.host_new.get_details(created_host.name, widget_names='breadcrumb')
         assert host['breadcrumb'] == created_host.name
         content_host = session.contenthost.read(created_host.name, widget_names='breadcrumb')
         assert content_host['breadcrumb'] == created_host.name
@@ -692,10 +713,10 @@ def test_positive_remove_parameter_non_admin_user(
         host_parameters_attributes=[parameter],
     ).create()
     with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
-        values = session.host.read(host.name, 'parameters')
+        values = session.host_new.read(host.name, 'parameters')
         assert values['parameters']['host_params'][0] == parameter
-        session.host.update(host.name, {'parameters.host_params': []})
-        values = session.host.read(host.name, 'parameters')
+        session.host_new.update(host.name, {'parameters.host_params': []})
+        values = session.host_new.read(host.name, 'parameters')
         assert not values['parameters']['host_params']
 
 
@@ -1195,7 +1216,7 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
         }
     )
     with session:
-        values = session.host.read(host['name'], ['host.lce', 'host.content_view'])
+        values = session.host_new.read(host['name'], ['host.lce', 'host.content_view'])
         assert values['host']['lce'] == lce.name
         assert values['host']['content_view'] == cv.name
         matching_hosts = target_sat.api.Host().search(
@@ -1203,42 +1224,6 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
         )
         assert len(matching_hosts), 'Host not found by inherited ansible role'
         assert host.name in [host.name for host in matching_hosts]
-
-
-@pytest.mark.upgrade
-def test_positive_bulk_delete_host(session, smart_proxy_location, target_sat, function_org):
-    """Delete multiple hosts from the list
-
-    :id: 8da2084a-8b50-46dc-b305-18eeb80d01e0
-
-    :expectedresults: All selected hosts should be deleted successfully
-
-    :BZ: 1368026
-    """
-    host_template = target_sat.api.Host(organization=function_org, location=smart_proxy_location)
-    host_template.create_missing()
-    hosts_names = [
-        target_sat.api.Host(
-            organization=function_org,
-            location=smart_proxy_location,
-            root_pass=host_template.root_pass,
-            architecture=host_template.architecture,
-            domain=host_template.domain,
-            medium=host_template.medium,
-            operatingsystem=host_template.operatingsystem,
-            ptable=host_template.ptable,
-        )
-        .create()
-        .name
-        for _ in range(3)
-    ]
-    with session:
-        session.organization.select(org_name=function_org.name)
-        values = session.host.read_all()
-        assert len(hosts_names) == len(values['table'])
-        session.host.delete_hosts('All')
-        values = session.host.read_all()
-        assert not values['table']
 
 
 # ------------------------------ NEW HOST UI DETAILS ----------------------------
@@ -1318,7 +1303,7 @@ def test_all_hosts_manage_columns(target_sat):
 
     :expectedresults: Through the widget you can change the columns on the All Hosts page
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Proton
 
@@ -1449,7 +1434,7 @@ def test_positive_update_delete_package(
 
         # this should reload page to update packages table
         session.host_new.get_details(client.hostname, widget_names='overview')
-
+        session.browser.refresh()
         # filter packages
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
         assert len(packages) == 1
@@ -1467,9 +1452,11 @@ def test_positive_update_delete_package(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update packages table
+        session.host_new.get_details(client.hostname, widget_names='overview')
+        session.browser.refresh()
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
         assert 'Up-to date' in packages[0]['Status']
-
         # remove package
         session.host_new.apply_package_action(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME, "Remove")
         task_result = target_sat.wait_for_tasks(
@@ -1479,6 +1466,9 @@ def test_positive_update_delete_package(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update packages table
+        session.host_new.get_details(client.hostname, widget_names='overview')
+        session.browser.refresh()
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
         assert not packages
         result = client.run(f'rpm -q {FAKE_8_CUSTOM_PACKAGE}')
@@ -1550,6 +1540,7 @@ def test_positive_apply_erratum(
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
         # verify
+        session.browser.refresh()
         values = session.host_new.get_details(client.hostname, widget_names='content.errata')
         assert 'table' not in values['content']['errata']
         result = client.run(
@@ -1660,55 +1651,6 @@ def module_puppet_enabled_proxy_with_loc(
         session_puppet_enabled_sat.api.Location(id=module_puppet_loc.id)
     )
     session_puppet_enabled_proxy.update(['location'])
-
-
-def test_positive_inherit_puppet_env_from_host_group_when_action(
-    session_puppet_enabled_sat, module_puppet_org, module_puppet_loc, module_puppet_environment
-):
-    """Host group puppet environment is inherited to already created
-    host when corresponding action is applied to that host
-
-    :id: 3f5af54e-e259-46ad-a2af-7dc1850891f5
-
-    :customerscenario: true
-
-    :expectedresults: Expected puppet environment is inherited to the host
-
-    :BZ: 1414914
-    """
-    host = session_puppet_enabled_sat.api.Host(
-        organization=module_puppet_org, location=module_puppet_loc
-    ).create()
-    hostgroup = session_puppet_enabled_sat.api.HostGroup(
-        environment=module_puppet_environment,
-        organization=[module_puppet_org],
-        location=[module_puppet_loc],
-    ).create()
-    with session_puppet_enabled_sat.ui_session() as session:
-        session.organization.select(org_name=module_puppet_org.name)
-        session.location.select(loc_name=module_puppet_loc.name)
-        session.host.apply_action(
-            'Change Environment', [host.name], {'environment': '*Clear environment*'}
-        )
-        values = session.host.read(host.name, widget_names='host')
-        assert values['host']['hostgroup'] == ''
-        assert values['host']['puppet_environment'] == ''
-        session.host.apply_action('Change Group', [host.name], {'host_group': hostgroup.name})
-        values = session.host.read(host.name, widget_names='host')
-        assert values['host']['hostgroup'] == hostgroup.name
-        assert values['host']['puppet_environment'] == ''
-        session.host.apply_action(
-            'Change Environment', [host.name], {'environment': '*Inherit from host group*'}
-        )
-        assert (
-            session.host.get_details(host.name)['properties']['properties_table'][
-                'Puppet Environment'
-            ]
-            == module_puppet_environment.name
-        )
-        values = session.host.read(host.name, widget_names='host')
-        assert values['host']['hostgroup'] == hostgroup.name
-        assert values['host']['puppet_environment'] == module_puppet_environment.name
 
 
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
@@ -1927,7 +1869,7 @@ def test_all_hosts_delete(target_sat, function_org, function_location):
 
     :expectedresults: Successful deletion of a host through the table dropdown
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Team: Proton
     """
@@ -1956,7 +1898,7 @@ def test_all_hosts_bulk_delete(target_sat, function_org, function_location):
 
     :expectedresults: Successful deletion of multiple hosts at once through Bulk Action
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Team: Proton
     """
@@ -1982,7 +1924,7 @@ def test_all_hosts_bulk_cve_reassign(
 
     :expectedresults: Both hosts are successfully assigned to a new LCE and CV
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Proton
     """
@@ -2028,7 +1970,7 @@ def test_all_hosts_redirect_button(target_sat):
 
     :expectedresults: New UI Button redirects to All Hosts page
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Proton
     """
@@ -2044,7 +1986,7 @@ def test_all_hosts_bulk_build_management(target_sat, function_org, function_loca
 
     :expectedresults: Build Management dropdown in All Hosts UI works properly.
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Team: Proton
     """
@@ -2072,7 +2014,7 @@ def test_bootc_booted_container_images(
 
     :expectedresults: Booted Container Images contains the correct information for a given booted image
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Verifies:SAT-27163
 
@@ -2107,7 +2049,7 @@ def test_bootc_host_details(target_sat, bootc_host, function_ak_with_cv, functio
 
     :expectedresults: Host Details UI contains the proper information for a bootc host
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Verifies:SAT-27171
 
@@ -2145,7 +2087,7 @@ def test_bootc_rex_job(target_sat, bootc_host, function_ak_with_cv, function_org
 
     :expectedresults: Host Details UI links to the proper template, which runs successfully for all templates
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Verifies:SAT-27154, SAT-27158
 
@@ -2227,7 +2169,7 @@ def test_bootc_transient_install_warning(target_sat, bootc_host, function_ak_wit
 
     :expectedresults: In the 3 above cases, it is communicated to the user that package/errata actions will be transient.
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Verifies: SAT-31251
 
@@ -2341,7 +2283,7 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
     :expectedresults: Job invocation page should be correctly generated
         by the change content source action, generated script should also be correct
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
     :Team: Proton
     """
@@ -2572,7 +2514,7 @@ def test_positive_manage_packages(
 
     :expectedresults: Various package management actions should run successfully on various hosts
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :parametrized: yes
 
@@ -2857,7 +2799,7 @@ def test_all_hosts_manage_errata(
 
     :expectedresults: Errata can be bulk applied to hosts through the All Hosts page.
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Proton
     """
@@ -2912,7 +2854,7 @@ def test_positive_manage_repository_sets(
 
     :expectedresults: Repository status can be changed via All Hosts page > Manage content wizard.
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Proton
     """
@@ -3046,7 +2988,7 @@ def test_disassociate_multiple_hosts(
 
     :expectedresults: VMs are disassociated and their compute resource info is cleared.
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :Team: Proton
     """

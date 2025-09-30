@@ -535,6 +535,10 @@ def test_positive_crud_image_libvirt_with_name(
     )
     assert result[0]['uuid'] == img_path
 
+    # check audit log
+    audit_logs = module_target_sat.api.Audit().search(query={'search': 'type=image'})
+    assert img_name in [entry.auditable_name for entry in audit_logs]
+
     # Update image
     new_img_name = gen_string('alpha')
     new_username = gen_string('alpha')

@@ -49,12 +49,6 @@ def test_positive_create_by_type(target_sat):
         {'entity': target_sat.api.Domain(), 'entity_type': 'domain'},
         {'entity': target_sat.api.Host(), 'entity_type': 'host'},
         {'entity': target_sat.api.HostGroup(), 'entity_type': 'hostgroup'},
-        {
-            'entity': target_sat.api.Image(
-                compute_resource=target_sat.api.LibvirtComputeResource().create()
-            ),
-            'entity_type': 'image',
-        },
         {'entity': target_sat.api.Location(), 'entity_type': 'location'},
         {'entity': target_sat.api.Media(), 'entity_type': 'medium'},
         {

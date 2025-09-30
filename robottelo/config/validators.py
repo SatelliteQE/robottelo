@@ -57,6 +57,19 @@ VALIDATORS = dict(
         Validator('subscription.rhn_poolid', must_exist=True),
         Validator('subscription.lifecycle_api_url', must_exist=True),
     ],
+    ansible=[
+        Validator(
+            'ansible.role_names',
+            must_exist=True,
+            is_type_of=list,
+            default=[
+                'theforeman.foreman_scap_client',
+                'redhat.satellite.hostgroups',
+                'RedHatInsights.insights-client',
+                'redhat.satellite.compute_resources',
+            ],
+        ),
+    ],
     ansible_hub=[
         Validator('ansible_hub.url', must_exist=True),
         Validator('ansible_hub.token', must_exist=True),
