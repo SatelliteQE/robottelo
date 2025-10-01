@@ -872,7 +872,7 @@ class TestRemoteExecution:
 
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_run_scheduled_job_template(self, rex_contenthost, target_sat):
-        """Schedule a job to be ran against a host
+        """Schedule a job to be run against a host
 
         :id: 0407e3de-ef59-4706-ae0d-b81172b81e5c
 
@@ -898,6 +898,34 @@ class TestRemoteExecution:
             f'resource_type = JobInvocation and resource_id = {invocation_command["id"]}',
             search_rate=10,
         )
+
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    def test_negative_schedule_job_template(self, target_sat):
+        """Try to schedule a job in the past
+
+        :id: e691d3bc-9de4-11f0-842b-183d2dca5728
+
+        :expectedresults: the job is not scheduled
+
+        :verifies: SAT-28485
+
+        :customerscenario: true
+
+        :parametrized: yes
+        """
+        with pytest.raises(CLIFactoryError) as err:
+            target_sat.cli_factory.job_invocation(
+                {
+                    'job-template': 'Run Command - Script Default',
+                    'inputs': 'command=ls',
+                    'start-at': (datetime.now(UTC) - timedelta(seconds=60)).strftime(
+                        f"%Y-%m-%d %H:%M {UTC}"
+                    ),
+                    'search-query': f"name ~ {target_sat.hostname}",
+                }
+            )
+        assert 'Triggering: Start at is in the past' in str(err.value), 'Error message not found'
+        assert 'status 70' in str(err.value), 'Unexpected status code'
 
     @pytest.mark.rhel_ver_list([8, 9])
     def test_recurring_with_unreachable_host(self, module_target_sat, rhel_contenthost):
