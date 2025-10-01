@@ -1381,17 +1381,12 @@ def test_positive_host_details_read_templates(
     assert set(api_templates) == set(ui_templates)
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
     'module_repos_collection_with_setup',
-    [
-        {
-            'distro': 'rhel8',
-            'YumRepository': {'url': settings.repos.yum_3.url},
-        }
-    ],
-    ids=['yum3'],
+    [{'YumRepository': {'url': settings.repos.yum_3.url}}],
+    ids=['yum_3'],
     indirect=True,
 )
 def test_positive_update_delete_package(
@@ -1419,19 +1414,19 @@ def test_positive_update_delete_package(
     """
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         product_name = module_repos_collection_with_setup.custom_product.name
-        repos = session.host_new.get_repo_sets(client.hostname, product_name)
-        assert repos[0].status == 'Enabled'
+
         session.host_new.override_repo_sets(client.hostname, product_name, "Override to disabled")
-        assert repos[0].status == 'Disabled'
-        session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
+        repos = session.host_new.get_repo_sets(client.hostname, product_name)
+        assert repos[0]['Status'] == 'Disabled'
         result = client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
         assert result.status != 0
         session.host_new.override_repo_sets(client.hostname, product_name, "Override to enabled")
-        assert repos[0].status == 'Enabled'
+        repos = session.host_new.get_repo_sets(client.hostname, product_name)
+        assert repos[0]['Status'] == 'Enabled'
         # refresh repos on system
         client.run('subscription-manager repos')
         # install package
@@ -1443,6 +1438,8 @@ def test_positive_update_delete_package(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update packages table
+        session.host_new.get_details(client.hostname, widget_names='overview')
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
         assert len(packages['table']) == 1
         assert packages['table'][0]['Package'] == FAKE_8_CUSTOM_PACKAGE_NAME
@@ -1475,6 +1472,8 @@ def test_positive_update_delete_package(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update packages table
+        session.host_new.get_details(client.hostname, widget_names='overview')
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
         assert 'Up-to date' in packages['table'][0]['Status']
 
@@ -1487,22 +1486,19 @@ def test_positive_update_delete_package(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update packages table
+        session.host_new.get_details(client.hostname, widget_names='overview')
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
         assert 'table' not in packages
         result = client.run(f'rpm -q {FAKE_8_CUSTOM_PACKAGE}')
         assert result.status != 0
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
     'module_repos_collection_with_setup',
-    [
-        {
-            'distro': 'rhel8',
-            'YumRepository': {'url': settings.repos.yum_3.url},
-        }
-    ],
+    [{'YumRepository': {'url': settings.repos.yum_3.url}}],
     ids=['yum3'],
     indirect=True,
 )
@@ -1531,7 +1527,7 @@ def test_positive_apply_erratum(
     # install package
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
     errata_id = settings.repos.yum_3.errata[25]
     client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
@@ -1572,16 +1568,11 @@ def test_positive_apply_erratum(
 
 
 @pytest.mark.e2e
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
     'module_repos_collection_with_setup',
-    [
-        {
-            'distro': 'rhel8',
-            'YumRepository': {'url': settings.repos.module_stream_1.url},
-        }
-    ],
+    [{'YumRepository': {'url': settings.repos.module_stream_1.url}}],
     ids=['module_stream_1'],
     indirect=True,
 )
@@ -1610,13 +1601,12 @@ def test_positive_crud_module_streams(
     module_name = 'duck'
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         streams = session.host_new.get_module_streams(client.hostname, module_name)
         assert streams[0]['Name'] == module_name
         assert streams[0]['State'] == 'Default'
-
         # enable module stream
         session.host_new.apply_module_streams_action(client.hostname, module_name, "Enable")
         task_result = target_sat.wait_for_tasks(
@@ -1626,6 +1616,8 @@ def test_positive_crud_module_streams(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update module streams table
+        session.host_new.get_details(client.hostname, widget_names='overview')
         streams = session.host_new.get_module_streams(client.hostname, module_name)
         assert streams[0]['State'] == 'Enabled'
         assert streams[0]['Installation status'] == 'Not installed'
@@ -1639,6 +1631,8 @@ def test_positive_crud_module_streams(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update module streams table
+        session.host_new.get_details(client.hostname, widget_names='overview')
         streams = session.host_new.get_module_streams(client.hostname, module_name)
         assert streams[0]['Installation status'] == 'Up-to-date'
 
@@ -1651,6 +1645,8 @@ def test_positive_crud_module_streams(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update module streams table
+        session.host_new.get_details(client.hostname, widget_names='overview')
         streams = session.host_new.get_module_streams(client.hostname, module_name)
         assert streams[0]['State'] == 'Enabled'
         assert streams[0]['Installation status'] == 'Not installed'
@@ -2521,8 +2517,8 @@ def test_positive_manage_packages(
     module_target_sat,
     mod_content_hosts,
     module_repos_collection_with_setup,
-    new_host_ui,
     number_of_hosts,
+    new_host_ui,
     package_management_action,
     finish_via,
 ):

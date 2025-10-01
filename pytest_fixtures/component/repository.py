@@ -127,7 +127,7 @@ def _simplify_repos(request, repos):
     [
         {'SatelliteToolsRepository': {}},
         {'YumRepository': {'url': settings.repos.yum_0.url}},
-        {'YumRepository': {'url': settings.repos.yum_6.url}}
+        {'YumRepository': {'url': settings.repos.yum_6.url}, 'distro': 'rhel9'}
     ]
     Then the fixtures loop over it to create multiple repositories.
 
@@ -204,11 +204,24 @@ def module_repos_collection_with_setup(request, module_target_sat, module_org, m
     setup_content capabilities using module_org and module_lce fixtures
 
     Remember:
-        1. One can not pass distro as pytest mark via test to this fixture since the conflict of
-        using function scoped distro fixture in module scoped this fixture arrives
+        If you do not pass a repos request with valid 'distro' contained, we will attempt to fallback
+        on any fixture host, with attribute 'rhel_version' already parametrized.
+        Such as by using pytest.markers 'rhel_ver_match' or 'rhel_ver_list'.
 
     """
+    # peek the first of prior parametrized fixtures (global scope),
+    # if a RHEL host is parametrized with distro, it will be at the top.
+    top_level_param = request._pyfuncitem.callspec.params
+    _, peek_val = next(iter(top_level_param.items()))
+    fixtures_distro = peek_val.get('rhel_version', None)
+
     repos = getattr(request, 'param', [])
+    # no distro in repos request, fallback if top fixture marked with rhel_version
+    if 'distro' not in repos or repos['distro'] is None:
+        repos['distro'] = fixtures_distro
+    if repos['distro'] and 'rhel' not in str(repos['distro']):
+        repos['distro'] = f'rhel{repos["distro"]}'
+
     repo_distro, repos = _simplify_repos(request, repos)
     _repos_collection = module_target_sat.cli_factory.RepositoryCollection(
         distro=repo_distro,

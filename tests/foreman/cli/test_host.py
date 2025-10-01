@@ -1598,6 +1598,7 @@ def test_positive_report_package_installed_removed(
     client.run(f'yum install -y {setup_custom_repo["package"]}')
     result = client.run(f'rpm -q {setup_custom_repo["package"]}')
     assert result.status == 0
+    client.subscription_manager_list_repos()
     installed_packages = target_sat.cli.Host.package_list(
         {'host-id': host_info['id'], 'search': f'name={setup_custom_repo["package_name"]}'}
     )
@@ -1605,6 +1606,7 @@ def test_positive_report_package_installed_removed(
     assert installed_packages[0]['nvra'] == setup_custom_repo["package"]
     result = client.run(f'yum remove -y {setup_custom_repo["package"]}')
     assert result.status == 0
+    client.subscription_manager_list_repos()
     installed_packages = target_sat.cli.Host.package_list(
         {'host-id': host_info['id'], 'search': f'name={setup_custom_repo["package_name"]}'}
     )
