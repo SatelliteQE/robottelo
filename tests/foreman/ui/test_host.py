@@ -1598,6 +1598,7 @@ def test_positive_crud_module_streams(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        session.browser.refresh()
         streams = session.host_new.get_module_streams(client.hostname, module_name)
         assert streams[0]['State'] == 'Enabled'
         assert streams[0]['Installation status'] == 'Not installed'
@@ -1611,11 +1612,16 @@ def test_positive_crud_module_streams(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        session.browser.refresh()
         streams = session.host_new.get_module_streams(client.hostname, module_name)
         assert streams[0]['Installation status'] == 'Up-to-date'
 
         # remove
-        session.host_new.apply_module_streams_action(client.hostname, module_name, "Remove")
+        # No space in 'RemoveUninstall and reset' is intentional,
+        # to match the button that has small text under itself in the DropDownItem
+        session.host_new.apply_module_streams_action(
+            client.hostname, module_name, 'RemoveUninstall and reset'
+        )
         task_result = target_sat.wait_for_tasks(
             search_query=(f'Module remove {module_name} on {client.hostname}'),
             search_rate=5,
@@ -1623,11 +1629,16 @@ def test_positive_crud_module_streams(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        session.browser.refresh()
         streams = session.host_new.get_module_streams(client.hostname, module_name)
         assert streams[0]['State'] == 'Enabled'
         assert streams[0]['Installation status'] == 'Not installed'
 
-        session.host_new.apply_module_streams_action(client.hostname, module_name, "Reset")
+        # No space in 'ResetReset to the default state' is intentional,
+        # to match the button that has small text under itself in the DropDownItem
+        session.host_new.apply_module_streams_action(
+            client.hostname, module_name, "ResetReset to the default state"
+        )
         task_result = target_sat.wait_for_tasks(
             search_query=(f'Module reset {module_name} on {client.hostname}'),
             search_rate=5,
@@ -1635,8 +1646,7 @@ def test_positive_crud_module_streams(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
-        # this should reload page to update module streams table
-        session.host_new.get_details(client.hostname, widget_names='overview')
+        session.browser.refresh()
         streams = session.host_new.get_module_streams(client.hostname, module_name)
         assert streams[0]['State'] == 'Default'
         assert streams[0]['Installation status'] == 'Not installed'
