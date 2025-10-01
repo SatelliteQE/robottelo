@@ -23,8 +23,6 @@ from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_SYSPURPOSE_ATTRIBUTES,
     FAKE_0_CUSTOM_PACKAGE,
-    FAKE_0_CUSTOM_PACKAGE_GROUP,
-    FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
     FAKE_0_CUSTOM_PACKAGE_NAME,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
@@ -438,81 +436,6 @@ def test_positive_upgrade_package(session, default_location, vm):
         assert result['hosts'][0]['Status'] == 'Succeeded'
         packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE)
         assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
-
-
-@pytest.mark.upgrade
-@pytest.mark.parametrize(
-    'module_repos_collection_with_manifest',
-    [
-        {
-            'distro': 'rhel7',
-            'RHELAnsibleEngineRepository': {'cdn': True},
-            'SatelliteToolsRepository': {},
-            'YumRepository': [
-                {'url': settings.repos.yum_1.url},
-                {'url': settings.repos.yum_6.url},
-            ],
-        },
-    ],
-    indirect=True,
-)
-@pytest.mark.no_containers
-def test_positive_install_package_group(session, default_location, vm):
-    """Install a package group to a host remotely
-
-    :id: a43fb21b-5f6a-4f14-8cd6-114ec287540c
-
-    :expectedresults: Package group was successfully installed
-
-    :parametrized: yes
-    """
-    with session:
-        session.location.select(default_location.name)
-        result = session.contenthost.execute_package_action(
-            vm.hostname,
-            'Group Install (Deprecated)',
-            FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
-        )
-        assert result['hosts'][0]['Status'] == 'Succeeded'
-        for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
-            packages = session.contenthost.search_package(vm.hostname, package)
-            assert packages[0]['Installed Package'] == package
-
-
-@pytest.mark.parametrize(
-    'module_repos_collection_with_manifest',
-    [
-        {
-            'distro': 'rhel7',
-            'RHELAnsibleEngineRepository': {'cdn': True},
-            'SatelliteToolsRepository': {},
-            'YumRepository': [
-                {'url': settings.repos.yum_1.url},
-                {'url': settings.repos.yum_6.url},
-            ],
-        },
-    ],
-    indirect=True,
-)
-@pytest.mark.no_containers
-def test_positive_remove_package_group(session, default_location, vm):
-    """Remove a package group from a host remotely
-
-    :id: dbeea1f2-adf4-4ad8-a989-efad8ce21b98
-
-    :expectedresults: Package group was successfully removed
-
-    :parametrized: yes
-    """
-    with session:
-        session.location.select(default_location.name)
-        for action in ('Group Install (Deprecated)', 'Group Remove (Deprecated)'):
-            result = session.contenthost.execute_package_action(
-                vm.hostname, action, FAKE_0_CUSTOM_PACKAGE_GROUP_NAME
-            )
-            assert result['hosts'][0]['Status'] == 'Succeeded'
-        for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
-            assert not session.contenthost.search_package(vm.hostname, package)
 
 
 @pytest.mark.parametrize(
