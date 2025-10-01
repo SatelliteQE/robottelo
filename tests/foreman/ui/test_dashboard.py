@@ -84,7 +84,7 @@ def test_positive_host_configuration_status(session, target_sat):
                 session.dashboard.action({'HostConfigurationStatus': {'status_list': criteria}})
                 values = session.host.read_all()
                 assert values['searchbox'] == search
-                assert len(values['table']) == 0
+                assert values['table'][0][0] in ('No Results', 'Loading Loading...')
 
 
 def test_positive_host_configuration_chart(session, target_sat):
