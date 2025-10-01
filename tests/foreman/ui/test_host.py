@@ -1484,6 +1484,8 @@ def test_positive_update_delete_package(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update packages table
+        session.host_new.get_details(client.hostname, widget_names='overview')
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
         assert 'table' not in packages
         result = client.run(f'rpm -q {FAKE_8_CUSTOM_PACKAGE}')
@@ -1612,6 +1614,8 @@ def test_positive_crud_module_streams(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update module streams table
+        session.host_new.get_details(client.hostname, widget_names='overview')
         streams = session.host_new.get_module_streams(client.hostname, module_name)
         assert streams[0]['State'] == 'Enabled'
         assert streams[0]['Installation status'] == 'Not installed'
@@ -1625,6 +1629,8 @@ def test_positive_crud_module_streams(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update module streams table
+        session.host_new.get_details(client.hostname, widget_names='overview')
         streams = session.host_new.get_module_streams(client.hostname, module_name)
         assert streams[0]['Installation status'] == 'Up-to-date'
 
@@ -1637,6 +1643,8 @@ def test_positive_crud_module_streams(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update module streams table
+        session.host_new.get_details(client.hostname, widget_names='overview')
         streams = session.host_new.get_module_streams(client.hostname, module_name)
         assert streams[0]['State'] == 'Enabled'
         assert streams[0]['Installation status'] == 'Not installed'
