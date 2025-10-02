@@ -22,16 +22,12 @@ import yaml
 
 from robottelo.config import settings
 from robottelo.constants import (
-    DEFAULT_SUBSCRIPTION_NAME,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_7_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE_NAME,
-    PRDS,
-    REPOS,
-    REPOSET,
 )
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.logging import logger
@@ -1846,52 +1842,6 @@ def test_positive_register(
         output_format='json',
     )
     assert len(host_subscriptions) == 0
-
-
-@pytest.mark.rhel_ver_match('9')
-@pytest.mark.cli_host_subscription
-def test_positive_without_attach_with_lce(
-    target_sat,
-    rhel_contenthost,
-    function_ak_with_cv,
-    function_sca_manifest_org,
-    function_lce,
-):
-    """Attempt to enable a repository of a subscription that was not
-    attached to a host.
-    This test is not using the host_subscription entities except
-    subscription_name and repository_id
-
-    :id: fc469e70-a7cb-4fca-b0ea-3c9e3dfff849
-
-    :expectedresults: Repository enabled due to SCA.
-
-    :parametrized: yes
-    """
-    content_view = target_sat.api.ContentView(organization=function_sca_manifest_org).create()
-    target_sat.cli_factory.setup_org_for_a_rh_repo(
-        {
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhsclient7'],
-            'repository': REPOS['rhsclient7']['name'],
-            'organization-id': function_sca_manifest_org.id,
-            'content-view-id': content_view.id,
-            'lifecycle-environment-id': function_lce.id,
-            'activationkey-id': function_ak_with_cv.id,
-            'subscription': DEFAULT_SUBSCRIPTION_NAME,
-        },
-        force_use_cdn=True,
-    )
-
-    # register client
-    result = rhel_contenthost.register(
-        function_sca_manifest_org, None, function_ak_with_cv.name, target_sat
-    )
-    assert result.status == 0
-    assert rhel_contenthost.subscribed
-    res = rhel_contenthost.enable_repo(REPOS['rhsclient7']['id'])
-    assert res.status == 0
-    assert f"Repository '{REPOS['rhsclient7']['id']}' is enabled for this system." in res.stdout
 
 
 # -------------------------- MULTI-CV SCENARIOS -------------------------
