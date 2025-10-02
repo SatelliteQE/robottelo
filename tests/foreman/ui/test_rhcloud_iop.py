@@ -184,7 +184,7 @@ def test_iop_recommendations_remediate_multiple_hosts(
 def test_iop_recommendations_host_details_e2e(
     rhel_insights_vm,
     rhcloud_manifest_org,
-    module_target_sat_insights,
+    module_satellite_iop,
 ):
     """Set up Satellite with iop enabled, create vulnerability, and apply remediation from host details page.
 
@@ -219,7 +219,7 @@ def test_iop_recommendations_host_details_e2e(
     # Prepare misconfigured machine and upload data to Insights
     create_insights_vulnerability(rhel_insights_vm)
 
-    with module_target_sat_insights.ui_session() as session:
+    with module_satellite_iop.ui_session() as session:
         session.organization.select(org_name=org_name)
 
         # Verify that we can see the rule hit via insights-client
