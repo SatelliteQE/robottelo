@@ -1910,7 +1910,6 @@ BOOKMARK_ENTITIES_SELECTION = [
         'old_ui': True,
     },
     {'name': 'Errata', 'controller': 'katello_errata', 'session_name': 'errata', 'old_ui': True},
-    {'name': 'Host', 'controller': 'hosts', 'setup': entities.Host, 'session_name': 'host_new'},
     {
         'name': 'UserGroup',
         'controller': 'usergroups',
