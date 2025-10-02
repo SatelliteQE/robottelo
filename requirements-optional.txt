@@ -4,6 +4,9 @@ redis==6.4.0
 pre-commit==4.3.0
 ruff==0.13.2
 
+# For the Vault login functionality.
+dotenv==1.1.1
+
 # For generating documentation.
 sphinx==8.2.3
 sphinx-autoapi==3.6.0
