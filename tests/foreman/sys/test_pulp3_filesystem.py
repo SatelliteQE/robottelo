@@ -20,7 +20,6 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.mark.upgrade
@@ -29,17 +28,16 @@ def test_selinux_status(target_sat):
 
     :id: 43218070-ac5e-4679-b74a-3e2bcb497a0a
 
-    :expectedresults: SELinux is enabled and there are no denials
+    :expectedresults: SELinux is enabled and there are no denials for pulp services
 
-    :BZ: 2263294
+    :Verifies: SAT-23121
     """
     # check SELinux is enabled
     result = target_sat.execute('getenforce')
     assert 'Enforcing' in result.stdout
     # check there are no SELinux denials
-    if not is_open('SAT-23121'):
-        result = target_sat.execute('ausearch --input-logs -m avc -ts today --raw')
-        assert result.status == 1, 'Some SELinux denials were found in journal.'
+    result = target_sat.execute('ausearch --input-logs -m avc -ts today --comm pulp --raw')
+    assert result.status == 1, 'Some SELinux denials were found in journal.'
 
 
 @pytest.mark.upgrade
