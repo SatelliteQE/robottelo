@@ -54,8 +54,8 @@ from robottelo.utils.datafactory import gen_string
 @pytest.fixture(scope="module")
 def add_proxy_cli_config(module_target_sat, module_capsule_configured):
     """Adds an entry in the pulp cli config for executing pulp commands on the capsule, then removes it."""
-    PROXY_CONFIG = '\n[cli-proxy]\ncert = "/etc/foreman/client_cert.pem"\nkey = "/etc/foreman/client_key.pem"\nbase_url = "https://{module_capsule_configured.fqdn}"'
-    module_target_sat.execute(f"""echo -e {PROXY_CONFIG} >> .config/pulp/cli.toml""")
+    PROXY_CONFIG = f'\n[cli-proxy]\ncert = "/etc/foreman/client_cert.pem"\nkey = "/etc/foreman/client_key.pem"\nbase_url = "https://{module_capsule_configured.hostname}"'
+    module_target_sat.execute(f"echo -e '{PROXY_CONFIG}' >> .config/pulp/cli.toml")
     yield
     module_target_sat.execute("sed -i '/cli-proxy/, +3 d' .config/pulp/cli.toml")
 
