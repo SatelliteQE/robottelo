@@ -17,14 +17,14 @@ import pytest
 from robottelo.constants import OPENSSH_RECOMMENDATION
 
 
-def create_insights_vulnerability(host):
-    """Function to create vulnerabilities that can be remediated."""
+def create_insights_recommendation(host):
+    """Function to create conditions that cause an advisor recommendation."""
 
-    # Add vulnerability for DNF_RECOMMENDATION (RHEL 8+)
+    # Create condition for DNF_RECOMMENDATION (RHEL 8+)
     if host.os_version.major > 7:
         host.run('dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf')
 
-    # Add vulnerability for SSH_RECOMMENDATION
+    # Create condition for SSH_RECOMMENDATION
     host.run('chmod 777 /etc/ssh/sshd_config')
 
     # Upload insights data to Satellite
@@ -42,7 +42,8 @@ def test_iop_recommendations_e2e(
     rhcloud_manifest_org,
     module_satellite_iop,
 ):
-    """Set up Satellite with iop enabled, create vulnerability, and apply remediation.
+    """Set up Satellite with iop enabled, create conditions to cause advisor recommendation,
+    and apply remediation.
 
     :id: 84bb1530-acdc-418c-8577-57fcfec138c6
 
@@ -73,7 +74,7 @@ def test_iop_recommendations_e2e(
     assert rhel_insights_vm.execute('insights-client --version').status == 0
 
     # Prepare misconfigured machine and upload data to Insights
-    create_insights_vulnerability(rhel_insights_vm)
+    create_insights_recommendation(rhel_insights_vm)
 
     with module_satellite_iop.ui_session() as session:
         session.organization.select(org_name=org_name)
@@ -113,8 +114,8 @@ def test_iop_recommendations_remediate_multiple_hosts(
     rhcloud_manifest_org,
     module_satellite_iop,
 ):
-    """Set up Satellite with iop enabled, register multiple hosts, create vulnerabilities on both hosts,
-        and bulk apply remediation.
+    """Set up Satellite with iop enabled, register multiple hosts, create conditions that violate
+    advisor rules on both hosts, and bulk apply remediation.
 
     :id: 5b29a791-b42a-4ab9-b632-cab919d06daa
 
@@ -144,7 +145,7 @@ def test_iop_recommendations_remediate_multiple_hosts(
 
     # Prepare misconfigured machines and upload data to Insights
     for vm in rhel_insights_vms:
-        create_insights_vulnerability(vm)
+        create_insights_recommendation(vm)
 
     with module_satellite_iop.ui_session() as session:
         session.organization.select(org_name=org_name)
@@ -186,7 +187,8 @@ def test_iop_recommendations_host_details_e2e(
     rhcloud_manifest_org,
     module_satellite_iop,
 ):
-    """Set up Satellite with iop enabled, create vulnerability, and apply remediation from host details page.
+    """Set up Satellite with iop enabled, create condition on the host that violates advisor rules,
+    see the recommendation on the host details page, and apply the remediation.
 
     :id: 282a7ef0-33a4-4dd4-8712-064a30cb54c6
 
@@ -217,7 +219,7 @@ def test_iop_recommendations_host_details_e2e(
     assert rhel_insights_vm.execute('insights-client --version').status == 0
 
     # Prepare misconfigured machine and upload data to Insights
-    create_insights_vulnerability(rhel_insights_vm)
+    create_insights_recommendation(rhel_insights_vm)
 
     with module_satellite_iop.ui_session() as session:
         session.organization.select(org_name=org_name)
