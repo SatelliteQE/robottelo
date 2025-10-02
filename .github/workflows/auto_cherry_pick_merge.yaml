@@ -23,7 +23,7 @@ jobs:
     steps:
       - id: find-prt-comment
         name: Find the prt comment
-        uses: peter-evans/find-comment@v3
+        uses: peter-evans/find-comment@v4
         with:
           issue-number: ${{ github.event.number }}
           body-includes: "trigger: test-robottelo"
