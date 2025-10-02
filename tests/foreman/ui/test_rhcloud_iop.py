@@ -174,3 +174,74 @@ def test_iop_recommendations_remediate_multiple_hosts(
             'No recommendations None of your connected systems are affected by enabled recommendations'
             in session.recommendationstab.search(OPENSSH_RECOMMENDATION)[0]['Name']
         )
+
+
+@pytest.mark.e2e
+@pytest.mark.pit_server
+@pytest.mark.pit_client
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('N-1')
+def test_iop_recommendations_host_details_e2e(
+    rhel_insights_vm,
+    rhcloud_manifest_org,
+    module_target_sat_insights,
+):
+    """Set up Satellite with iop enabled, create vulnerability, and apply remediation from host details page.
+
+    :id: 282a7ef0-33a4-4dd4-8712-064a30cb54c6
+
+    :steps:
+        1. Set up Satellite with iop enabled.
+        2. In Satellite UI, go to All Hosts > Hostname > Recommendations.
+        3. Run remediation for "OpenSSH config permissions" recommendation against host.
+        4. Verify that the remediation job completed successfully.
+        5. Search for previously remediated issue.
+
+    :expectedresults:
+        1. Host recommendation related to "OpenSSH config permissions" issue is listed
+            for misconfigured machine.
+        2. Remediation job finished successfully.
+        3. Host recommendation related to "OpenSSH config permissions" issue is not listed.
+
+    :CaseImportance: Critical
+
+    :Verifies: SAT-32566
+
+    :parametrized: yes
+
+    :CaseAutomation: Automated
+    """
+    org_name = rhcloud_manifest_org.name
+
+    # Verify insights-client can update to latest version available from server
+    assert rhel_insights_vm.execute('insights-client --version').status == 0
+
+    # Prepare misconfigured machine and upload data to Insights
+    create_insights_vulnerability(rhel_insights_vm)
+
+    with module_target_sat_insights.ui_session() as session:
+        session.organization.select(org_name=org_name)
+
+        # Verify that we can see the rule hit via insights-client
+        result = rhel_insights_vm.execute('insights-client --diagnosis')
+        assert result.status == 0
+        assert 'OPENSSH_HARDENING_CONFIG_PERMS' in result.stdout
+
+        result = session.host_new.get_recommendations(rhel_insights_vm.hostname)
+
+        assert any(row.get('Description') == OPENSSH_RECOMMENDATION for row in result), (
+            f"No row found with Recommendation == {OPENSSH_RECOMMENDATION}"
+        )
+        # Remediate the Affected System.
+        result = session.host_new.remediate_host_recommendation(
+            rhel_insights_vm.hostname,
+            OPENSSH_RECOMMENDATION,
+        )
+        # Verify that the job Succeeded
+        assert result['status']['Succeeded'] != 0
+        assert result['overall_status']['is_success']
+
+        # Verify that the recommendation is not listed anymore.
+        assert not any(row.get('Description') == OPENSSH_RECOMMENDATION for row in result), (
+            f"Recommendation found: {OPENSSH_RECOMMENDATION}"
+        )
