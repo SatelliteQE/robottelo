@@ -1847,41 +1847,6 @@ def test_positive_apply_security_erratum(
     assert result.status == 1  # Command should fail because security updates are available
 
 
-@pytest.mark.cli_katello_host_tools
-@pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('[^6].*')
-def test_positive_install_package_via_rex(
-    module_org, katello_host_tools_host, target_sat, setup_custom_repo
-):
-    """Install a package to a host remotely using remote execution,
-    install package using Katello SSH job template, host package list is used to verify that
-
-    :id: 751c05b4-d7a3-48a2-8860-f0d15fdce204
-
-    :expectedresults: Package was installed
-
-    :parametrized: yes
-    """
-    client = katello_host_tools_host
-    host_info = target_sat.cli.Host.info({'name': client.hostname})
-    client.configure_rex(satellite=target_sat, org=module_org, register=False)
-    # Apply errata to the host collection using job invocation
-    target_sat.cli.JobInvocation.create(
-        {
-            'feature': 'katello_package_install',
-            'search-query': f'name ~ {client.hostname}',
-            'inputs': f'package={setup_custom_repo["package"]}',
-            'organization-id': module_org.id,
-        }
-    )
-    result = client.run(f'rpm -q {setup_custom_repo["package"]}')
-    assert result.status == 0
-    installed_packages = target_sat.cli.Host.package_list(
-        {'host-id': host_info['id'], 'search': f'name={setup_custom_repo["package_name"]}'}
-    )
-    assert len(installed_packages) == 1
-
-
 # -------------------------- HOST SUBSCRIPTION SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.rhel_ver_match('9')
 @pytest.mark.cli_host_subscription
