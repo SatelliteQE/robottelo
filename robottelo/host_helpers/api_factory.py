@@ -471,6 +471,57 @@ class APIFactory:
                 f'No task was found using query " {search_query} " for host id: {host_id}'
             )
 
+    def create_nested_lifecycle_environments(
+        self, organization, parents=2, children=3, first_prior=None
+    ):
+        """Create chains of nested environments on the same organization.
+
+        :param organization: Object, of the Organization to use.
+        :param parents: int, Number of parent (tail) LCE paths to make.
+        :param children: int, Number of nested LCEs per chain (between Library and tail).
+        :param first_prior: Object, of existing LCE to start from.
+            Default: None, use Library as the first prior environment.
+
+        example: Default; 2 Parents, 3 Children per Parent, Library first prior:
+            Library > Child_0 > Child_1 > Child_2 > Parent_0 (tail)
+            Library > Child_0 > Child_1 > Child_2 > Parent_1 (tail)
+
+        Total LCEs = first_prior_env (always 1) + parents + (children * parents)
+        1 + 2 + (3 * 2) = 9 total environments (using Defaults)
+
+        :return: list of first_prior + all environments created, ordered oldest to newest.
+
+        """
+        all_lces = []
+        # use Library as initial prior for all chains/paths
+        if first_prior is None:
+            _library = organization.read().library
+            all_lces.append(_library)
+            first_prior = _library
+        # unless given some existing environment to use instead
+        else:
+            all_lces.append(first_prior)
+        for _p in range(parents):
+            # each new env chain starts at first_prior
+            most_prior_env = first_prior
+            for _c in range(children):
+                child_lce = self._satellite.api.LifecycleEnvironment(
+                    name=f'child_{_c}_{_p}',
+                    organization=organization,
+                    prior=most_prior_env,
+                ).create()
+                all_lces.append(child_lce)
+                most_prior_env = child_lce
+            # create tail lce (parent) after all the chained priors
+            parent_lce = self._satellite.api.LifecycleEnvironment(
+                name=f'parent_{_p}',
+                organization=organization,
+                prior=most_prior_env,
+            ).create()
+            all_lces.append(parent_lce)
+
+        return all_lces
+
     def register_host_and_needed_setup(
         self,
         client,

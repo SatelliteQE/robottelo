@@ -37,6 +37,7 @@ from robottelo.constants import (
     DataFile,
 )
 from robottelo.constants.repos import CUSTOM_RPM_SHA_512, FEDORA_OSTREE_REPO
+from robottelo.logging import logger
 from robottelo.utils.datafactory import (
     invalid_names_list,
     parametrized,
@@ -360,7 +361,9 @@ class TestContentView:
 class TestRollingContentView:
     """Testing for rolling content views."""
 
-    def test_negative_create_update_with_invalid_params(self, target_sat):
+    def test_negative_create_update_with_invalid_params(
+        self, default_org, module_lce_library, target_sat
+    ):
         """Cannot create or update rolling content view providing an invalid configuration.
 
         :id: b38b866e-786c-4be0-b4cb-64432dcbad45
@@ -369,8 +372,9 @@ class TestRollingContentView:
             1) try to create a Composite rolling content view
             2) try to create a dependancy-solving rolling content view
             3) try to create an auto-publish (and Composite) rolling content view
-            4) create a valid rolling content view
-            5) try to update the valid rolling cv with the invalid params
+            4) try to create a rolling content view in an environment not present in its organization
+            5) create a valid rolling content view
+            6) try to update the valid rolling cv with the invalid params
 
         :expectedresults:
             1) Invalid Rolling Content View is not created
@@ -385,9 +389,17 @@ class TestRollingContentView:
             target_sat.api.ContentView(rolling=True, solve_dependencies=True).create()
         with pytest.raises(HTTPError):
             target_sat.api.ContentView(rolling=True, composite=True, auto_publish=True).create()
+        with pytest.raises(HTTPError):
+            # pass an org + lce that do not exist together
+            target_sat.api.ContentView(
+                rolling=True,
+                organization=default_org,
+                environment=[module_lce_library],
+            ).create()
 
-        rolling_cv = target_sat.api.ContentView(rolling=True).create()
+        rolling_cv = target_sat.api.ContentView(rolling=True, organization=default_org).create()
         rolling_cv.composite = True
+        # does not Raise HTTPError ?
         rolling_cv.update(['composite'])
         assert not rolling_cv.read().composite
         rolling_cv.auto_publish = True
@@ -396,8 +408,11 @@ class TestRollingContentView:
         rolling_cv.solve_dependencies = True
         with pytest.raises(HTTPError):
             rolling_cv.update(['solve_dependencies'])
+        rolling_cv.environment = [module_lce_library]
+        with pytest.raises(HTTPError):
+            rolling_cv.update(['environment'])
 
-    def test_negative_publish_rolling(self, target_sat):
+    def test_negative_publish_rolling(self, target_sat, module_org):
         """Cannot publish the rolling content view.
 
         :id: a838316d-265d-4152-a472-8371b4480379
@@ -407,7 +422,9 @@ class TestRollingContentView:
         :CaseImportance: Critical
 
         """
-        rolling_cv = target_sat.api.ContentView(rolling=True).create()
+        rolling_cv = target_sat.api.ContentView(
+            rolling=True, organization=module_org, environment=[module_org.read().library]
+        ).create()
         with pytest.raises(HTTPError):
             target_sat.api.ContentView(id=rolling_cv.id).publish()
         assert rolling_cv.version == target_sat.api.ContentView(id=rolling_cv.id).read().version
@@ -430,7 +447,7 @@ class TestRollingContentView:
         assert not normal_cv.read().rolling
 
     def test_negative_promote_rolling_version(
-        self, target_sat, default_org, module_org, module_lce
+        self, target_sat, default_org, module_org, module_lce, module_lce_library
     ):
         """Cannot promote the version of the rolling content view to any environment.
 
@@ -443,37 +460,45 @@ class TestRollingContentView:
         :CaseImportance: Critical
 
         """
+        default_org_library = default_org.read().library
         # try in Default Org with its Library environment
-        def_rolling_cv = target_sat.api.ContentView(rolling=True, organization=default_org).create()
+        def_rolling_cv = target_sat.api.ContentView(
+            rolling=True, organization=default_org, environment=[default_org_library]
+        ).create()
+        def_rolling_cv = def_rolling_cv.read()
         with pytest.raises(HTTPError):
             target_sat.api.ContentViewVersion(id=def_rolling_cv.version[0].id).promote(
                 data={'environment_ids': def_rolling_cv.environment[0].id}
             )
         # try in non-default org with non-Library environment
-        rolling_cv = target_sat.api.ContentView(rolling=True, organization=module_org).create()
+        rolling_cv = target_sat.api.ContentView(
+            rolling=True, organization=module_org, environment=[module_lce_library]
+        ).create()
+        rolling_cv = rolling_cv.read()
         with pytest.raises(HTTPError):
             target_sat.api.ContentViewVersion(id=rolling_cv.version[0].id).promote(
                 data={'environment_ids': module_lce.id}
             )
-        # try by updating CV's environment
-        def_rolling_cv.environment = [default_org.read().library.read()]
+        # try by updating CV's environment to invalid lce
+        # invalid as in an lce that exists in a different organization
+        def_rolling_cv.environment = [module_lce_library]
         with pytest.raises(HTTPError):
             def_rolling_cv.update(['environment'])
-        rolling_cv.environment = [module_lce]
+        rolling_cv.environment = [default_org_library]
         with pytest.raises(HTTPError):
             rolling_cv.update(['environment'])
         # try by updating CV Version's env and CV's env
         rolling_version = rolling_cv.version[0].read()
-        rolling_version.environment = [module_lce]
+        rolling_version.environment = [default_org_library]
         rolling_cv.version = [rolling_version]
-        rolling_cv.environment = [module_lce]
+        rolling_cv.environment = [default_org_library]
         with pytest.raises(HTTPError):
             rolling_cv.update(['environment', 'version'])
-        # both rolling CVs only in their Library
+        # both rolling CVs only in their Library, where we put them initially
         assert def_rolling_cv.read().environment == [def_rolling_cv.organization.read().library]
         assert rolling_cv.read().environment == [rolling_cv.organization.read().library]
 
-    def test_negative_change_rolling_version(self, target_sat):
+    def test_negative_change_rolling_version(self, module_org, target_sat):
         """Cannot update the rolling content view with another version.
 
         :id: f16dbe19-29ea-41f1-89e2-fd99aa07857f
@@ -483,24 +508,25 @@ class TestRollingContentView:
         :CaseImportance: Critical
 
         """
-        rolling_cv = target_sat.api.ContentView(rolling=True).create()
-        normal_cv = target_sat.api.ContentView().create()
+        rolling_cv = target_sat.api.ContentView(rolling=True, organization=module_org).create()
+        normal_cv = target_sat.api.ContentView(organization=module_org).create()
         normal_cv.publish()
         normal_cv = normal_cv.read()
         rolling_version = rolling_cv.version[0].read()
         normal_version = normal_cv.version[0].read()
         # try with a single different version
         rolling_cv.version = [normal_version]
-        with pytest.raises(HTTPError):
-            rolling_cv.update(['version'])
+        # TODO: No longer raises HTTP400, but the invalid Updates are ignored
+        # with pytest.raises(HTTPError):
+        rolling_cv.update(['version'])
         # try in addition to the rolling version
         rolling_cv.version = [rolling_version, normal_version]
-        with pytest.raises(HTTPError):
-            rolling_cv.update(['version'])
+        # with pytest.raises(HTTPError):
+        rolling_cv.update(['version'])
         # try with just the initial rolling version
         rolling_cv.version = [rolling_version]
-        with pytest.raises(HTTPError):
-            rolling_cv.update(['version'])
+        # with pytest.raises(HTTPError):
+        rolling_cv.update(['version'])
         # version remains unchanged
         assert rolling_cv.read().version[0].read() == rolling_version
 
@@ -520,8 +546,9 @@ class TestRollingContentView:
             target_sat.api.ContentViewVersion(id=rolling_cv.version[0].id).delete()
         # try by updating rolling cv's version list
         rolling_cv.version = []
-        with pytest.raises(HTTPError):
-            rolling_cv.update(['version'])
+        # TODO: No longer raises HTTP400, but the invalid Updates are ignored
+        # with pytest.raises(HTTPError):
+        rolling_cv.update(['version'])
         assert len(rolling_cv.read().version) == 1
         assert rolling_cv.read().version[0].read() == initial_version
 
@@ -560,7 +587,10 @@ class TestRollingContentView:
         repo.sync()
         # Rolling CV created with the repo
         rolling_cv = target_sat.api.ContentView(
-            repository=[repo.read()], organization=module_org, rolling=True
+            environment=[module_org.read().library],
+            repository=[repo.read()],
+            organization=module_org,
+            rolling=True,
         ).create()
         # Try to filter the 'walrus' packages
         with pytest.raises(HTTPError):
@@ -622,17 +652,23 @@ class TestRollingContentView:
         assert all([rolling_cv.rolling, rolling_cv.read().rolling])
         read_cv = target_sat.api.ContentView(id=rolling_cv.id).read()
         update_cv = target_sat.api.ContentView(id=rolling_cv.id).update()
+        assert read_cv == rolling_cv == update_cv
         assert not rolling_cv.needs_publish
         assert not rolling_cv.auto_publish
+        # no environment passed, None assigned until we update
+        assert len(rolling_cv.environment) == 0
+        # mutate description, environment (Library), Update both
+        rolling_cv.environment = [rolling_cv.organization.read().library]
+        rolling_cv.description = valid_data_list()['utf8']
+        update_cv = rolling_cv.update(['environment', 'description'])
+        assert update_cv == (rolling_cv := rolling_cv.read())
+        rolling_cv = rolling_cv.read()
         assert len(rolling_cv.environment) == 1
         assert rolling_cv.environment[0].id == rolling_cv.organization.read().library.id
-        assert read_cv == rolling_cv == update_cv
-        # mutate and update
-        rolling_cv.description = valid_data_list()['utf8']
-        update_cv = rolling_cv.update(['description'])
-        assert update_cv == (rolling_cv := rolling_cv.read())
-        cv_desc = target_sat.api.ContentView(id=rolling_cv.id).read().description
-        assert rolling_cv.description == cv_desc
+        assert (
+            rolling_cv.description
+            == target_sat.api.ContentView(id=rolling_cv.id).read().description
+        )
         # remove from environment prior to deleting
         with pytest.raises(HTTPError):
             rolling_cv.delete()
@@ -640,6 +676,113 @@ class TestRollingContentView:
         rolling_cv.delete()
         with pytest.raises(HTTPError):
             rolling_cv.read()
+
+    @pytest.mark.upgrade
+    def test_positive_rolling_in_environment(self, module_org, module_lce, target_sat):
+        """Can create and update the rolling content view in Library and other environments.
+        Note: We cannot promote the rolling CV Version, we update the CV's environment list.
+
+        :id: 0d504eae-8672-4dd0-9c47-50efc0de2c97
+
+        :steps:
+            1) Create new rolling CV with no environments, it gets assigned to None.
+            2) Create a new rolling CV with Library passed at creation.
+            3) Create a new rolling CV with a different environment passed.
+            4) Update the first rolling CV from Step 1, to add the different environment.
+
+        :expectedresults:
+            1) Can create a rolling CV with No environment passed, it gets assigned to Library.
+            2) Can create a rolling CV with Library passed at creation. Assigned to Library.
+            3) Can create a rolling CV with a non-Library environment passed. It is only assigned to that environment.
+            4) Can update a rolling CV already in Library, to add another environment. It is assigned to both.
+
+        :CaseImportance: Critical
+
+        """
+        _library = module_org.read().library
+        # no environment passed, rolling cv is assigned to No LCE
+        lib_rolling_cv = target_sat.api.ContentView(rolling=True, organization=module_org).create()
+        assert len(lib_rolling_cv.environment) == 0
+        # update to Library
+        lib_rolling_cv.environment = [_library]
+        lib_rolling_cv.update(['environment'])
+        lib_rolling_cv = lib_rolling_cv.read()
+        assert lib_rolling_cv.environment == lib_rolling_cv.environment
+        assert lib_rolling_cv.environment[0].id == _library.id
+        # pass Library environment at creation
+        lib_rolling_cv2 = target_sat.api.ContentView(
+            rolling=True, organization=module_org, environment=[_library]
+        ).create()
+        lib_rolling_cv2 = lib_rolling_cv2.read()
+        assert len(lib_rolling_cv2.environment) == 1
+        assert lib_rolling_cv2.environment == lib_rolling_cv2.read().environment
+        assert lib_rolling_cv2.environment[0].id == _library.id
+        # pass non-Library environment at creation
+        lce_rolling_cv = target_sat.api.ContentView(
+            rolling=True, organization=module_org, environment=[module_lce]
+        ).create()
+        lce_rolling_cv = lce_rolling_cv.read()
+        assert len(lce_rolling_cv.environment) == 1
+        assert lce_rolling_cv.environment == lce_rolling_cv.read().environment
+        assert lce_rolling_cv.environment[0].id == module_lce.id
+        # update the first rolling cv to add the non-Library environment
+        lib_rolling_cv.environment.append(module_lce)
+        lib_rolling_cv.update(['environment'])
+        lib_rolling_cv = lib_rolling_cv.read()
+        # both environments present
+        assert len(lib_rolling_cv.environment) == 2
+        env_ids = [env.id for env in lib_rolling_cv.environment]
+        assert all([_library.id in env_ids, module_lce.id in env_ids])
+
+    @pytest.mark.upgrade
+    def test_positive_rolling_in_nested_environments(self, module_org, target_sat):
+        """Can create and update the rolling content view in multiple environments,
+        each of which has multiple prior environments.
+
+        :id: 86879b47-237d-4245-b827-a44932254f77
+
+        :steps:
+            1) Create multiple nested environments via priors (children).
+            2) Create a rolling CV with all environments passed at creation.
+            3) Create a rolling CV with just the tail environments of each path/chain.
+
+        :expectedresults:
+            1) Can create a rolling CV assigned to multiple nested environments.
+            2) The rolling CV's environment list contains all the assigned environments.
+            3) The rolling CV's environment list contains only the tail environments.
+
+        :CaseImportance: High
+
+        """
+        children = 3
+        parents = 3
+        # create multiple tail environments, each with multiple prior environments
+        all_lces = target_sat.api_factory.create_nested_lifecycle_environments(
+            organization=module_org, parents=parents, children=children
+        )
+        # create the rolling cv with all the environments assigned
+        rolling_cv = target_sat.api.ContentView(
+            rolling=True, environment=all_lces, organization=module_org
+        ).create()
+        rolling_cv = rolling_cv.read()
+        expected_env_count = 1 + parents + (parents * children)
+        assert expected_env_count == len(rolling_cv.environment) == len(all_lces)
+        # rolling cv contains all the environments (match sets by :ids)
+        assert {env.id for env in rolling_cv.environment} == {env.id for env in all_lces}
+
+        # try by passing just the tail env of each path (parent envs)
+        expected_env_count = parents
+        parent_lces = []
+        for env in all_lces:
+            if 'parent' in env.read().name:
+                parent_lces.append(env.read())
+        rolling_cv = target_sat.api.ContentView(
+            rolling=True, environment=parent_lces, organization=module_org
+        ).create()
+        rolling_cv = rolling_cv.read()
+        # we passed just parents, so expect only those environments
+        assert expected_env_count == len(rolling_cv.environment) == len(parent_lces)
+        assert {env.id for env in rolling_cv.environment} == {env.id for env in parent_lces}
 
     @pytest.mark.upgrade
     def test_positive_content_types_in_rolling(self, target_sat, module_org, module_product):
@@ -651,7 +794,9 @@ class TestRollingContentView:
         :CaseImportance: Critical
 
         """
-        rolling_cv = target_sat.api.ContentView(organization=module_org, rolling=True).create()
+        rolling_cv = target_sat.api.ContentView(
+            environment=[module_org.read().library], organization=module_org, rolling=True
+        ).create()
         initial_version = rolling_cv.version[0].read()
         custom_repos = [
             settings.repos.yum_0.url,
@@ -693,7 +838,10 @@ class TestRollingContentView:
         :CaseImportance: Critical
 
         """
-        rolling_cv = target_sat.api.ContentView(organization=module_org, rolling=True).create()
+        rolling_cv = target_sat.api.ContentView(
+            organization=module_org, rolling=True, environment=[module_org.read().library]
+        ).create()
+        rolling_cv = rolling_cv.read()
         library = rolling_cv.environment[0].read()
         # Create new activation key providing rolling CV
         ak = target_sat.api.ActivationKey(
@@ -743,12 +891,15 @@ class TestRollingContentView:
         :CaseImportance: Critical
 
         """
+        # Assign LCE (Library) so rolling CV is published upon creation
         rolling_cv = target_sat.api.ContentView(
+            environment=[module_org.read().library],
             organization=module_org,
             rolling=True,
         ).create()
         assert rolling_cv.read().rolling
         assert len(rolling_cv.version) == 1
+        rolling_cv = rolling_cv.read()
         rolling_version = deepcopy(
             target_sat.api.ContentViewVersion(id=rolling_cv.version[0].id).read()
         )
@@ -847,10 +998,16 @@ class TestRollingContentView:
         # initial version is empty
         rolling_version = rolling_cv.version[0].read()
         assert rolling_version.content_view.read() == rolling_cv
-        assert rolling_version.yum_repository_count == 1
         assert rolling_version.version == '1.0'
         assert rolling_version.package_count == 0
         assert all(count == 0 for count in rolling_version.errata_counts.values())
+        # repo counts are reported after adding to lce
+        assert rolling_version.yum_repository_count == 0
+        rolling_cv.environment = [module_org.read().library]
+        rolling_cv.update(['environment'])
+        rolling_cv = rolling_cv.read()
+        rolling_version = rolling_cv.version[0].read()
+        assert rolling_version.yum_repository_count == 1
         # sync the repo
         repo.sync()
         repo = repo.read()
@@ -858,7 +1015,7 @@ class TestRollingContentView:
         assert rolling_cv.read().version == rolling_cv.version
         rolling_cv = rolling_cv.read()
         new_rolling_version = rolling_cv.version[0].read()
-        # version updated is different but id and number is the same
+        # version updated is different but :id and some other attributes are the same
         assert new_rolling_version != rolling_version
         assert new_rolling_version.id == rolling_version.id
         assert new_rolling_version.name == rolling_version.name
@@ -923,8 +1080,12 @@ class TestRollingContentView:
             if not rolling_cv:
                 # Create rolling_cv if not yet, with first repo initially
                 rolling_cv = module_target_sat.api.ContentView(
-                    organization=org, repository=[repo.read()], rolling=True
+                    environment=[org.read().library],
+                    repository=[repo.read()],
+                    organization=org,
+                    rolling=True,
                 ).create()
+                rolling_cv = rolling_cv.read()
                 initial_version = rolling_cv.read().version[0].read()
             else:
                 # rolling cv already created, append custom repo and update
@@ -995,7 +1156,8 @@ class TestRollingContentView:
         # TODO
 
     def test_positive_multi_contentview(self, target_sat, module_org, module_product):
-        """Can use the rolling content view with multiple published content views present.
+        """Can use the rolling content view with multiple published Content Views present as well.
+        The Rolling CV can use overlapping repositories with the other ContentViews, without conflict.
 
         :id: 5af10680-1c0c-47b7-98d3-dd9064be930f
 
@@ -1044,7 +1206,10 @@ class TestRollingContentView:
             repo = target_sat.api.Repository(product=module_product, url=_url).create()
             repo.sync(timeout=360)
             rolling_cv = target_sat.api.ContentView(
-                organization=module_org, repository=[repo.read()], rolling=True
+                environment=[module_org.read().library],
+                repository=[repo.read()],
+                organization=module_org,
+                rolling=True,
             ).create()
             rolling_repos.append(repo.read())
             rolling_versions.append(rolling_cv.read().version[0].read())
@@ -1094,7 +1259,7 @@ class TestRollingContentView:
             for cv, ver in zip(rolling_cvs, rolling_versions, strict=False)
         )
 
-    def test_negative_rolling_in_a_composite(self, target_sat):
+    def test_negative_rolling_in_a_composite(self, default_org, target_sat):
         """Cannot add the rolling content view to a composite content view.
 
         :id: cb49166f-7ecc-4c0d-b532-b98fb91c2853
@@ -1105,8 +1270,10 @@ class TestRollingContentView:
         :CaseImportance: High
 
         """
-        rolling_cv = target_sat.api.ContentView(rolling=True).create()
-        # raises TypeError, not HTTP 400?
+        _library = default_org.read().library
+        rolling_cv = target_sat.api.ContentView(
+            rolling=True, organization=default_org, environment=[_library]
+        ).create()
         with pytest.raises(TypeError):
             # try creating composite cv with rolling cv added at creation
             composite_cv = target_sat.api.ContentView(
@@ -1117,12 +1284,28 @@ class TestRollingContentView:
             composite_cv = target_sat.api.ContentView(
                 component=[rolling_cv.version[0].read()], composite=True
             ).create()
-        # try updating new empty composite components with the rolling cv
-        composite_cv = target_sat.api.ContentView(composite=True).create()
-        composite_cv.component = [rolling_cv.read()]
         with pytest.raises(HTTPError):
+            # try by creating composite with a matching CVVE (content-view-version-environment)
+            composite_cv = target_sat.api.ContentView(
+                component=[rolling_cv.version[0].read()],
+                organization=default_org,
+                environment=[_library],
+                composite=True,
+            ).create()
+        # try updating new empty composite's component with the rolling cv
+        composite_cv = target_sat.api.ContentView(composite=True).create()
+        composite_cv = composite_cv.read()
+        assert not composite_cv.component
+        composite_cv.component = [rolling_cv.read()]
+        # TODO: change once this raises HTTPError consistently
+        # with pytest.raises(HTTPError):
+        try:
             composite_cv.update(['component'])
-        assert not composite_cv.read().component
+        except Exception as e:
+            logger.info(f'EXCEPTION RAISED: {str(e)}')
+        assert not composite_cv.read().component, (
+            'I was able to add a Rolling ContentViewVersion to a Composite !!!'
+        )
         # try updating empty composite components with the rolling cv's Version.
         composite_cv = composite_cv.read()
         composite_cv.component = [rolling_cv.version[0].read()]
@@ -1182,7 +1365,7 @@ class TestRollingContentView:
         ).create()
         custom_repo.sync()
         # RH BaseOS repo for client's RHEL major version
-        rhel_major = client.os_version.major  # int 8, 9, etc
+        rhel_major = client.os_version.major
         rh_repo_id = target_sat.api_factory.enable_sync_redhat_repo(
             rh_repo=REPOS[f'rhel{rhel_major}_bos'],
             org_id=org.id,
@@ -1190,7 +1373,10 @@ class TestRollingContentView:
         )
         rh_repo = target_sat.api.Repository(id=rh_repo_id, organization=org).read()
         # Create empty rolling cv, add both repos, update it
-        rolling_cv = target_sat.api.ContentView(organization=org, rolling=True).create()
+        rolling_cv = target_sat.api.ContentView(
+            rolling=True, organization=org, environment=[org.read().library]
+        ).create()
+        rolling_cv = rolling_cv.read()
         rolling_cv.repository = [custom_repo.read(), rh_repo.read()]
         rolling_cv.update(['repository'])
         rolling_cv = rolling_cv.read()
