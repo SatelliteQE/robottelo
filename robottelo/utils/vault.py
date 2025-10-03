@@ -78,8 +78,9 @@ class Vault:
 
     def _export_vault_addr(self):
         """Set VAULT_ADDR environment variable and validate configuration"""
-        # Set Vault CLI Env Var
-        os.environ['VAULT_ADDR'] = self.vault_url
+        # Set Vault CLI Env Var (only if not already set to avoid override)
+        if 'VAULT_ADDR' not in os.environ:
+            os.environ['VAULT_ADDR'] = self.vault_url
 
         # Validate vault configuration for OIDC
         if self._is_vault_enabled() and 'localhost:8200' in self.vault_url:
@@ -135,6 +136,7 @@ class Vault:
     def _handle_vault_error(self, vcommand):
         """Handle vault command errors with proper logging"""
         verror = vcommand.stderr.strip() if vcommand.stderr else "Unknown error"
+        voutput = vcommand.stdout.strip() if vcommand.stdout else ""
 
         if vcommand.returncode == 127:
             logger.error(f"Error! {self.HELP_TEXT}")
@@ -156,6 +158,8 @@ class Vault:
             sys.exit(1)
         else:
             logger.error(f"Vault command failed: {verror}")
+            if voutput:
+                logger.debug(f"Stdout: {voutput}")
             # Don't exit for other errors, let caller handle them
 
     def login(self, **kwargs):
