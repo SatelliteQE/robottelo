@@ -5,7 +5,7 @@ pre-commit==4.3.0
 ruff==0.13.2
 
 # For the Vault login functionality.
-dotenv==1.1.1
+python-dotenv==1.1.1
 
 # For generating documentation.
 sphinx==8.2.3
