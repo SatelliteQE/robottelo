@@ -1174,6 +1174,9 @@ class TestAsyncSSHProviderRex:
                 'location-ids': smart_proxy_location.id,
             }
         )
+        ensure_capsule_has_lifecycle_environment(
+            module_capsule_configured_async_ssh, module_ak_with_cv
+        )
         result = rhel_contenthost.register(
             module_org,
             smart_proxy_location,
