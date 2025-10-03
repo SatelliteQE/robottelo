@@ -2670,7 +2670,7 @@ def test_host_registration_with_capsule_using_content_coherence(
         module_capsule_configured,
         force=True,
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    assert result.status == 1, f'Failed to register host: {result.stderr}'
 
     # Check output for "HTTP error code 422: Validation failed: Content view environment content facets is invalid"
     assert 'Validation failed' in result.stderr, f'Error is: {result.stderr}'
