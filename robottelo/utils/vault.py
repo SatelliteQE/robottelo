@@ -8,7 +8,7 @@ import sys
 
 from dotenv import get_key, set_key, unset_key
 
-from robottelo.exceptions import InvalidVaultURLForOIDC
+from robottelo.exceptions import InvalidVaultURLForOIDC, VaultCommandTimeoutError
 from robottelo.logging import logger, robottelo_root_dir
 
 
@@ -126,9 +126,11 @@ class Vault:
 
             return vcommand
 
-        except subprocess.TimeoutExpired:
+        except subprocess.TimeoutExpired as e:
             logger.error(f"Vault command timed out after {timeout} seconds")
-            sys.exit(1)
+            raise VaultCommandTimeoutError(
+                f"Vault command '{command}' timed out after {timeout} seconds"
+            ) from e
         except Exception as e:
             logger.error(f"Failed to execute vault command '{command}': {e}")
             sys.exit(1)
@@ -185,18 +187,32 @@ class Vault:
         )
 
         # Perform OIDC login with extended timeout for browser interaction
-        login_result = self.exec_vault_command(
-            command="vault login -method=oidc", timeout=self.DEFAULT_OIDC_TIMEOUT, **kwargs
-        )
+        try:
+            login_result = self.exec_vault_command(
+                command="vault login -method=oidc", timeout=self.DEFAULT_OIDC_TIMEOUT, **kwargs
+            )
+        except VaultCommandTimeoutError:
+            logger.error("OIDC login timed out - browser authentication took too long")
+            logger.info("Please try again and complete the browser authentication more quickly")
+            return
+
         if login_result.returncode != 0:
             logger.error("OIDC login failed")
             logger.info("Make sure you completed the browser authentication")
             return
 
         # Renew token for extended duration
-        renew_result = self.exec_vault_command(
-            command=f"vault token renew -i {self.DEFAULT_TOKEN_RENEWAL}", **kwargs
-        )
+        try:
+            renew_result = self.exec_vault_command(
+                command=f"vault token renew -i {self.DEFAULT_TOKEN_RENEWAL}", **kwargs
+            )
+        except VaultCommandTimeoutError:
+            logger.error("Token renewal timed out")
+            logger.info(
+                "Token was created but renewal timed out - it will expire sooner than expected"
+            )
+            return
+
         if renew_result.returncode != 0:
             logger.error("Failed to renew token")
             logger.info(
