@@ -18,6 +18,7 @@ from time import sleep
 
 from fauxfactory import gen_alphanumeric, gen_string
 import pytest
+from wait_for import wait_for
 from wrapanapi.entities.vm import VmState
 
 from robottelo import constants
@@ -3149,14 +3150,19 @@ class TestContentView:
                 'errata-ids': settings.repos.yum_1.errata[1],
             }
         )
-        task_status = module_target_sat.wait_for_tasks(
-            search_query=(
-                f'Actions::Katello::ContentView::Publish and organization_id = {module_org.id}'
+        wait_for(
+            lambda: all(
+                t.result == 'success'
+                for t in module_target_sat.api.ForemanTask().search(
+                    query={
+                        'search': f'Actions::Katello::ContentView::Publish and organization_id = {module_org.id}'
+                    }
+                )
             ),
-            max_tries=50,
-            search_rate=5,
+            timeout=20,
+            delay=3,
         )
-        assert task_status[0].result == 'success'
+
         composite_view = module_target_sat.cli.ContentView.info({'id': composite_view['id']})
         assert len(composite_view['versions']) == 1
         # Also check that the description of the version contains Auto Publish
