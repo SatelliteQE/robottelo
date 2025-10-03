@@ -557,7 +557,16 @@ class TestRepositoryExport:
         )
         assert '2.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
-    @pytest.mark.parametrize('subject', ['library', 'repository'])
+    @pytest.mark.parametrize(
+        ('subject', 'with_destination_server'),
+        [
+            ('library', False),
+            ('library', True),
+            ('repository', False),
+            # Note: repository exports don't support destination-server parameter
+        ],
+        ids=['library', 'library-with_destination', 'repository'],
+    )
     def test_positive_export_format_inheritance(
         self,
         target_sat,
@@ -565,6 +574,7 @@ class TestRepositoryExport:
         function_org,
         function_synced_custom_repo,
         subject,
+        with_destination_server,
     ):
         """Test that incremental exports inherit format from previous exports.
 
@@ -588,10 +598,11 @@ class TestRepositoryExport:
         :expectedresults:
             1. Incremental exports inherit the format from the previous complete export.
             2. When using --from-history-id, the format is inherited from the specified export.
+            3. Tests work with and without destination-server parameter.
 
-        :Verifies: SAT-32715, SAT-38392
+        :Verifies: SAT-32715, SAT-38691
 
-        :BlockedBy: SAT-38392
+        :BlockedBy: SAT-38392, SAT-38691
 
         :customerscenario: true
         """
@@ -601,6 +612,13 @@ class TestRepositoryExport:
             exp_params = {'organization-id': function_org.id}
             importable_msg = f'{function_org.name}/Export-Library'
             syncable_msg = f'{function_org.name}/Export-Library-SYNCABLE'
+            # Repository exports don't support destination-server
+            if with_destination_server:
+                destination = gen_string('alpha')
+                exp_params['destination-server'] = destination
+                importable_msg = f'{importable_msg}-{destination}'
+                syncable_msg = f'{syncable_msg}-{destination}'
+
         elif subject == 'repository':
             cpl_export = target_sat.cli.ContentExport.completeRepository
             inc_export = target_sat.cli.ContentExport.incrementalRepository
