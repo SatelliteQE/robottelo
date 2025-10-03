@@ -2,6 +2,7 @@
 
 import json
 import os
+import shlex
 import subprocess
 import sys
 
@@ -60,7 +61,7 @@ class Vault:
         """Validate that vault CLI is installed and accessible"""
         try:
             result = subprocess.run(
-                'vault --version', shell=True, capture_output=True, text=True, timeout=5
+                ['vault', '--version'], capture_output=True, text=True, timeout=5
             )
             if result.returncode != 0:
                 logger.error(self.HELP_TEXT)
@@ -109,9 +110,10 @@ class Vault:
 
         try:
             logger.debug(f"Executing vault command: {command}")
+            # Split command string into list for safe execution without shell
+            cmd_list = shlex.split(command)
             vcommand = subprocess.run(
-                command,
-                shell=True,
+                cmd_list,
                 capture_output=True,
                 text=True,  # Ensure string output
                 timeout=timeout,
@@ -210,7 +212,7 @@ class Vault:
             token_data = json.loads(token_result.stdout)
             token = token_data['data']['id']
 
-            if not token or not isinstance(token, str):
+            if not token or not isinstance(token, str) or not token.strip():
                 logger.error("Invalid token format received")
                 return
 
@@ -265,5 +267,5 @@ class Vault:
         self.setup()
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self.teardown()
