@@ -585,7 +585,7 @@ def test_negative_register_host_when_sat_has_port_80_blocked(
     function_activation_key,
 ):
     """
-    Verify host registration fails when there is port 80 block on Satellite.
+    Verify host registration fails when there is port 80 blocked on Satellite.
 
     :id: 3c3e1a8e-7b4c-4d5e-9a6d-8f2e1b3c4d5e
 
