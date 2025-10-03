@@ -31,31 +31,31 @@ class Vault:
 
     def setup(self):
         """Initialize vault configuration from .env file"""
-        try:
-            # Ensure .env file exists
-            if not self.env_path.exists():
-                logger.error(f"Environment file not found: {self.env_path}")
-                logger.info("Please copy .env.example to .env and configure vault settings")
-                sys.exit(1)
+        # Ensure .env file exists
+        if not self.env_path.exists():
+            logger.error(f"Environment file not found: {self.env_path}")
+            logger.info("Please copy .env.example to .env and configure vault settings")
+            sys.exit(1)
 
+        try:
             # Load configuration safely using dotenv
             self.vault_enabled = get_key(str(self.env_path), 'VAULT_ENABLED_FOR_DYNACONF')
             self.vault_url = get_key(str(self.env_path), 'VAULT_URL_FOR_DYNACONF')
-
-            if not self.vault_url:
-                logger.error("VAULT_URL_FOR_DYNACONF not found in .env file")
-                logger.info("Please set VAULT_URL_FOR_DYNACONF in your .env file")
-                sys.exit(1)
-
-            # Validate vault CLI is available (skip in CI/test environments with AppRole auth)
-            if not self._has_approle_auth():
-                self._validate_vault_cli()
-
-            self._export_vault_addr()
-
         except Exception as e:
-            logger.error(f"Failed to setup vault configuration: {e}")
+            logger.error(f"Failed to read vault configuration from .env file: {e}")
+            logger.info("Please ensure VAULT_URL_FOR_DYNACONF is set in your .env file")
             sys.exit(1)
+
+        if not self.vault_url:
+            logger.error("VAULT_URL_FOR_DYNACONF not found in .env file")
+            logger.info("Please set VAULT_URL_FOR_DYNACONF in your .env file")
+            sys.exit(1)
+
+        # Validate vault CLI is available (skip in CI/test environments with AppRole auth)
+        if not self._has_approle_auth():
+            self._validate_vault_cli()
+
+        self._export_vault_addr()
 
     def _validate_vault_cli(self):
         """Validate that vault CLI is installed and accessible"""
