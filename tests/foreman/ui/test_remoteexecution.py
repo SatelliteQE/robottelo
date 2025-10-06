@@ -142,7 +142,7 @@ def test_positive_run_default_job_template(
         )
         session.jobinvocation.wait_job_invocation_state(entity_name='Run ls', host_name=hostname)
         status = session.jobinvocation.read(entity_name='Run ls', host_name=hostname)
-        assert status['overview']['hosts_table'][0]['Status'] == 'Succeeded'
+        assert status['hosts'][0]['Status'] == 'Succeeded'
 
         # check status also on the job dashboard
         job_name = f'Run {command}'
@@ -249,7 +249,7 @@ def test_positive_run_custom_job_template(
             entity_name=job_description, host_name=hostname
         )
         status = session.jobinvocation.read(entity_name=job_description, host_name=hostname)
-        assert status['overview']['hosts_table'][0]['Status'] == 'Succeeded'
+        assert status['hosts'][0]['Status'] == 'Succeeded'
 
 
 @pytest.mark.upgrade
@@ -291,13 +291,9 @@ def test_positive_run_job_template_multiple_hosts(
                 'target_hosts_and_inputs.command': 'sleep 5',
             },
         )
-        assert job_status['overview']['job_status'] == 'Success'
-        assert {host_job['Host'] for host_job in job_status['overview']['hosts_table']} == set(
-            host_names
-        )
-        assert all(
-            host_job['Status'] == 'success' for host_job in job_status['overview']['hosts_table']
-        )
+        assert job_status['overall_status']['is_success']
+        assert {host_job['Name'] for host_job in job_status['hosts']} == set(host_names)
+        assert all(host_job['Status'] == 'Succeeded' for host_job in job_status['hosts'])
 
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
@@ -350,15 +346,13 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_cont
         # assert that we have time left to wait, otherwise we have to use more job time,
         # the job_time must be significantly greater than job creation time.
         assert job_left_time > 0
-        assert job_status['overview']['hosts_table'][0]['Host'] == hostname
-        assert job_status['overview']['hosts_table'][0]['Status'] in ('Awaiting start', 'N/A')
+        assert job_status['hosts'][0]['Name'] == hostname
+        assert job_status['hosts'][0]['Status'] in ('Awaiting start', 'N/A')
         # sleep 3/4 of the left time
         time.sleep(job_left_time * 3 / 4)
-        job_status = session.jobinvocation.read(
-            f'Run {command_to_run}', hostname, 'overview.hosts_table'
-        )
-        assert job_status['overview']['hosts_table'][0]['Host'] == hostname
-        assert job_status['overview']['hosts_table'][0]['Status'] in (
+        job_status = session.jobinvocation.read(f'Run {command_to_run}', hostname, 'hosts')
+        assert job_status['hosts'][0]['Name'] == hostname
+        assert job_status['hosts'][0]['Status'] in (
             'Awaiting start',
             'N/A',
             'Succeeded',
@@ -368,31 +362,29 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_cont
         # the last read time should not take more than 1/4 of the last left time
         assert job_left_time > 0
         wait_for(
-            lambda: session.jobinvocation.read(
-                f'Run {command_to_run}', hostname, 'overview.hosts_table'
-            )['overview']['hosts_table'][0]['Status']
-            == 'running',
+            lambda: session.jobinvocation.read(f'Run {command_to_run}', hostname, 'hosts')['hosts'][
+                0
+            ]['Status']
+            == 'Pending',
             timeout=(job_left_time + 30),
             delay=1,
         )
-        # wait the job to change status to "success"
+        # wait the job to change status to "Succeeded"
         wait_for(
-            lambda: session.jobinvocation.read(
-                f'Run {command_to_run}', hostname, 'overview.hosts_table'
-            )['overview']['hosts_table'][0]['Status']
+            lambda: session.jobinvocation.read(f'Run {command_to_run}', hostname, 'hosts')['hosts'][
+                0
+            ]['Status']
             == 'Succeeded',
             timeout=30,
             delay=1,
         )
-        job_status = session.jobinvocation.read(f'Run {command_to_run}', hostname, 'overview')
-        assert job_status['overview']['job_status'] == 'Success'
-        assert job_status['overview']['hosts_table'][0]['Host'] == hostname
-        assert job_status['overview']['hosts_table'][0]['Status'] == 'Succeeded'
+        job_status = session.jobinvocation.read(f'Run {command_to_run}', hostname)
+        assert job_status['overall_status']['is_success']
+        assert job_status['hosts'][0]['Name'] == hostname
+        assert job_status['hosts'][0]['Status'] == 'Succeeded'
 
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-@pytest.mark.usefixtures('setting_update')
-@pytest.mark.parametrize('setting_update', ['lab_features=true'], indirect=True)
 def test_positive_check_job_invocation_details_page(target_sat, rex_contenthost):
     """
     Run a remote job and check the job invocations detail page for correct values.
@@ -401,7 +393,7 @@ def test_positive_check_job_invocation_details_page(target_sat, rex_contenthost)
 
     :steps:
         1. Run a successful remote job on one host.
-        2. Check the result data on the new job invocation details page.
+        2. Check the result data on job invocation details page.
 
     :expectedresults:
         1. It should report the job name in the title.
@@ -411,7 +403,7 @@ def test_positive_check_job_invocation_details_page(target_sat, rex_contenthost)
 
     :CaseImportance: High
 
-    :Verifies: SAT-18427, SAT-26605
+    :Verifies: SAT-18427, SAT-26605, SAT-30756
 
     :parametrized: yes
     """
@@ -446,10 +438,11 @@ def test_positive_check_job_invocation_details_page(target_sat, rex_contenthost)
     assert result.succeeded == jobs_succeeded
 
     with target_sat.ui_session() as session:
-        status = session.jobinvocation.read(
-            entity_name=job_name, host_name=client.hostname, new_ui=True
-        )
+        session.organization.select(ANY_CONTEXT['org'])
+        session.location.select(ANY_CONTEXT['location'])
+        status = session.jobinvocation.read(entity_name=job_name, host_name=client.hostname)
         assert status['title'] == job_name
+        assert status['overall_status']['is_success']
         assert status['overall_status']['succeeded_hosts'] == jobs_succeeded
         assert status['overall_status']['total_hosts'] == total_hosts
         assert status['status']['Succeeded'] == jobs_succeeded
@@ -461,3 +454,5 @@ def test_positive_check_job_invocation_details_page(target_sat, rex_contenthost)
         assert status['target_hosts']['data']['Organization'] == ANY_CONTEXT['org']
         assert status['target_hosts']['data']['Location'] == ANY_CONTEXT['location']
         assert status['user_inputs']['data']['command'] == command
+        assert status['hosts'][0]['Name'] == client.hostname
+        assert status['hosts'][0]['Status'] == 'Succeeded'
