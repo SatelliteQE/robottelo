@@ -2676,7 +2676,7 @@ def test_host_registration_with_capsule_using_content_coherence(
         # HTTP error code 422, and that's why we're looking for an exit code of 1
         assert result.status == 1, f'Failed to register host: {result.stderr}'
 
-        # Check output for "HTTP error code 422: Validation failed: Content view environment content facets is invalid"
+        # Check output for HTTP error code 422: Validation failed: Content view environment content facets is invalid
         assert 'Validation failed' in result.stderr, f'Error is: {result.stderr}'
         if rhel_contenthost.os_version.major != 7:
             assert 'HTTP error code 422' in result.stderr, f'Error is: {result.stderr}'
