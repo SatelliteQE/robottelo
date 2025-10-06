@@ -30,6 +30,11 @@ from robottelo.config import (
 @pytest.mark.pit_client
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 @pytest.mark.no_containers
+@pytest.mark.parametrize(
+    'setting_update',
+    ['validate_host_lce_content_source_coherence=false'],
+    indirect=True,
+)
 def test_host_registration_end_to_end(
     module_sca_manifest_org,
     module_location,
@@ -37,6 +42,7 @@ def test_host_registration_end_to_end(
     module_target_sat,
     module_capsule_configured,
     rhel_contenthost,
+    setting_update,
 ):
     """Verify content host registration with global registration
 
@@ -51,9 +57,6 @@ def test_host_registration_end_to_end(
 
     :customerscenario: true
     """
-    module_target_sat.cli.Settings.set(
-        {'name': 'validate_host_lce_content_source_coherence', 'value': 'false'}
-    )
     org = module_sca_manifest_org
     result = rhel_contenthost.api_register(
         module_target_sat,
