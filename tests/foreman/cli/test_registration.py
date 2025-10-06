@@ -606,7 +606,11 @@ def test_negative_register_host_when_sat_has_port_80_blocked(
     """
 
     # Block port 80 on Satellite
-    target_sat.execute('iptables -A INPUT -p tcp --dport 80 -j DROP')
+    target_sat.execute('nft add table inet filter')
+    target_sat.execute(
+        r'nft add chain inet filter input { type filter hook input priority 0 \; policy accept \; }'
+    )
+    target_sat.execute('nft add rule inet filter input tcp dport 80 drop')
 
     try:
         # Attempt to register with port 80 blocked
@@ -620,9 +624,12 @@ def test_negative_register_host_when_sat_has_port_80_blocked(
             f'\n STDOUT: {result.stdout} \n STDERR: {result.stderr}',
         )
 
-    finally:
-        # Unblock port 80
-        target_sat.execute('iptables -D INPUT -p tcp --dport 80 -j DROP')
+    finally:  # Unblock port 80
+        rule_handle_res = target_sat.execute(
+            'nft -a list chain inet filter input | grep "tcp dport 80 drop # handle"'
+        )
+        handle = rule_handle_res.stdout.split()[-1]
+        target_sat.execute(f'nft delete rule inet filter input handle {handle}')
 
     # Now registration should succeed
     result = rhel_contenthost.register(
