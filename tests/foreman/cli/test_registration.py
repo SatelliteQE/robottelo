@@ -28,6 +28,11 @@ from robottelo.utils.issue_handlers import is_open
 
 @pytest.mark.e2e
 @pytest.mark.no_containers
+@pytest.mark.parametrize(
+    'setting_update',
+    ['validate_host_lce_content_source_coherence=false'],
+    indirect=True,
+)
 def test_host_registration_end_to_end(
     module_sca_manifest_org,
     module_location,
@@ -35,6 +40,7 @@ def test_host_registration_end_to_end(
     module_target_sat,
     module_capsule_configured,
     rhel_contenthost,
+    setting_update,
 ):
     """Verify content host registration with global registration
 
@@ -54,9 +60,8 @@ def test_host_registration_end_to_end(
     result = rhel_contenthost.register(
         org, module_location, module_activation_key.name, module_target_sat
     )
-
-    rc = 1 if rhel_contenthost.os_version.major == 6 else 0
-    assert result.status == rc, f'Failed to register host: {result.stderr}'
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    assert rhel_contenthost.subscribed, 'Host is not subscribed after registration!'
 
     owner_name = module_target_sat.cli.Host.info(
         options={'name': rhel_contenthost.hostname, 'fields': 'Additional info/owner'}
@@ -85,8 +90,8 @@ def test_host_registration_end_to_end(
         module_capsule_configured,
         force=True,
     )
-    rc = 1 if rhel_contenthost.os_version.major == 6 else 0
-    assert result.status == rc, f'Failed to register host: {result.stderr}'
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    assert rhel_contenthost.subscribed, 'Host is not subscribed after registration!'
 
     owner_name = module_target_sat.cli.Host.info(
         options={'name': rhel_contenthost.hostname, 'fields': 'Additional info/owner'}
