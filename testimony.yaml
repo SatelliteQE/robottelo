@@ -58,6 +58,7 @@ CaseComponent:
     - HostCollections
     - HostGroup
     - Hosts
+    - ImageMode
     - Infobloxintegration
     - Installation
     - InterSatelliteSync
