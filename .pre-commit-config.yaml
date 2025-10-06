@@ -36,6 +36,6 @@ repos:
     hooks:
       - id: codespell
         args:
-          - --skip=*hammer_commands.json,*.xml
+          - --skip=*hammer_commands.json,*.xml,requirements*.txt
           - -L=Thirdparty,ACSes,checkin,cockateel
           - -w
