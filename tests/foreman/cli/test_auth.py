@@ -63,6 +63,8 @@ def test_positive_create_session(admin_user, target_sat):
 
     :id: fcee7f5f-1040-41a9-bf17-6d0c24a93e22
 
+    :BlockedBy: SAT-38951
+
     :steps:
 
         1. Set use_sessions, set short expiration time
@@ -258,6 +260,8 @@ def test_positive_session_preceeds_saved_credentials(admin_user, target_sat):
     :id: e4277298-1c24-494b-84a6-22f45f96e144
 
     :BZ: 1471099, 1903693
+
+    :BlockedBy: SAT-38951
 
     :CaseImportance: High
 
