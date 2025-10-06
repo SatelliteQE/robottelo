@@ -2630,24 +2630,28 @@ def test_host_registration_with_capsule_using_content_coherence(
     module_target_sat.cli.Settings.set(
         {'name': 'validate_host_lce_content_source_coherence', 'value': 'true'}
     )
-    result = rhel_contenthost.register(
-        module_sca_manifest_org,
-        None,
-        module_activation_key.name,
-        module_capsule_configured,
-        force=True,
-    )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    try:
+        result = rhel_contenthost.register(
+            module_sca_manifest_org,
+            None,
+            module_activation_key.name,
+            module_capsule_configured,
+            force=True,
+        )
+        # We expect the initial registration attempt to fail with
+        # HTTP error code 422, and that's why we're looking for an exit code of 1
+        assert result.status == 1, f'Failed to register host: {result.stderr}'
 
-    # Check output for "HTTP error code 422: Validation failed: Content view environment content facets is invalid"
-    assert 'Validation failed' in result.stderr, f'Error is: {result.stderr}'
-    if rhel_contenthost.os_version.major != 7:
-        assert 'HTTP error code 422' in result.stderr, f'Error is: {result.stderr}'
+        # Check output for HTTP error code 422: Validation failed: Content view environment content facets is invalid
+        assert 'Validation failed' in result.stderr, f'Error is: {result.stderr}'
+        if rhel_contenthost.os_version.major != 7:
+            assert 'HTTP error code 422' in result.stderr, f'Error is: {result.stderr}'
+    finally:
+        # Re-register client with settings "validate_host_lce_content_source_coherence" is set to No
+        module_target_sat.cli.Settings.set(
+            {'name': 'validate_host_lce_content_source_coherence', 'value': 'false'}
+        )
 
-    # Re-register client with settings "validate_host_lce_content_source_coherence" is set to No
-    module_target_sat.cli.Settings.set(
-        {'name': 'validate_host_lce_content_source_coherence', 'value': 'false'}
-    )
     result = rhel_contenthost.register(
         module_sca_manifest_org,
         None,
