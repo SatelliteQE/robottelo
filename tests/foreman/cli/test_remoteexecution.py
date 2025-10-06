@@ -1172,6 +1172,7 @@ class TestPullProviderRex:
         ids=["no_global_proxy"],
         indirect=True,
     )
+    @pytest.mark.rhel_ver_match('[^10].*')
     def test_positive_run_job_on_host_converted_to_pull_provider(
         self,
         module_org,
