@@ -2664,7 +2664,6 @@ def test_host_registration_with_capsule_using_content_coherence(
         {'name': 'validate_host_lce_content_source_coherence', 'value': 'true'}
     )
     try:
-
         result = rhel_contenthost.register(
             module_sca_manifest_org,
             None,
