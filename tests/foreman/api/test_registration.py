@@ -51,12 +51,16 @@ def test_host_registration_end_to_end(
 
     :customerscenario: true
     """
+    module_target_sat.cli.Settings.set(
+        {'name': 'validate_host_lce_content_source_coherence', 'value': 'false'}
+    )
     org = module_sca_manifest_org
     result = rhel_contenthost.api_register(
         module_target_sat,
         organization=org,
         activation_keys=[module_activation_key.name],
     )
+    assert rhel_contenthost.subscribed, 'Host is not subscribed after registration!'
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # Verify server.hostname and server.port from subscription-manager config
@@ -76,6 +80,7 @@ def test_host_registration_end_to_end(
         location=module_location,
         force=True,
     )
+    assert rhel_contenthost.subscribed, 'Host is not subscribed after registration!'
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # Verify server.hostname and server.port from subscription-manager config
