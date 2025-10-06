@@ -30,6 +30,11 @@ from robottelo.config import (
 @pytest.mark.pit_client
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 @pytest.mark.no_containers
+@pytest.mark.parametrize(
+    'setting_update',
+    ['validate_host_lce_content_source_coherence=false'],
+    indirect=True,
+)
 def test_host_registration_end_to_end(
     module_sca_manifest_org,
     module_location,
@@ -37,6 +42,7 @@ def test_host_registration_end_to_end(
     module_target_sat,
     module_capsule_configured,
     rhel_contenthost,
+    setting_update,
 ):
     """Verify content host registration with global registration
 
@@ -57,6 +63,7 @@ def test_host_registration_end_to_end(
         organization=org,
         activation_keys=[module_activation_key.name],
     )
+    assert rhel_contenthost.subscribed, 'Host is not subscribed after registration!'
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # Verify server.hostname and server.port from subscription-manager config
@@ -76,6 +83,7 @@ def test_host_registration_end_to_end(
         location=module_location,
         force=True,
     )
+    assert rhel_contenthost.subscribed, 'Host is not subscribed after registration!'
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # Verify server.hostname and server.port from subscription-manager config
