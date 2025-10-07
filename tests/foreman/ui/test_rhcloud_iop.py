@@ -237,5 +237,3 @@ def test_iop_recommendations_host_details_e2e(
         assert not any(row.get('Description') == OPENSSH_RECOMMENDATION for row in result), (
             f"Recommendation found: {OPENSSH_RECOMMENDATION}"
         )
-
-
