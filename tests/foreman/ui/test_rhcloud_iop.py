@@ -15,21 +15,7 @@
 import pytest
 
 from robottelo.constants import OPENSSH_RECOMMENDATION
-
-
-def create_insights_recommendation(host):
-    """Function to create conditions that cause an advisor recommendation."""
-
-    # Create condition for DNF_RECOMMENDATION (RHEL 8+)
-    if host.os_version.major > 7:
-        host.run('dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf')
-
-    # Create condition for SSH_RECOMMENDATION
-    host.run('chmod 777 /etc/ssh/sshd_config')
-
-    # Upload insights data to Satellite
-    result = host.run('insights-client')
-    assert result.status == 0
+from tests.foreman.ui.test_rhcloud_insights import create_insights_vulnerability
 
 
 @pytest.mark.e2e
@@ -70,10 +56,11 @@ def test_iop_recommendations_e2e(
     """
     org_name = rhcloud_manifest_org.name
 
-    # Verify insights-client can update to latest version available from server
+    # Verify insights-client package is installed
     assert rhel_insights_vm.execute('insights-client --version').status == 0
 
     # Prepare misconfigured machine and upload data to Insights
+    create_insights_recommendation = create_insights_vulnerability
     create_insights_recommendation(rhel_insights_vm)
 
     with module_satellite_iop.ui_session() as session:
@@ -144,6 +131,7 @@ def test_iop_recommendations_remediate_multiple_hosts(
     hostnames = [host.hostname for host in rhel_insights_vms]
 
     # Prepare misconfigured machines and upload data to Insights
+    create_insights_recommendation = create_insights_vulnerability
     for vm in rhel_insights_vms:
         create_insights_recommendation(vm)
 
@@ -215,10 +203,11 @@ def test_iop_recommendations_host_details_e2e(
     """
     org_name = rhcloud_manifest_org.name
 
-    # Verify insights-client can update to latest version available from server
+    # Verify insights-client package is installed
     assert rhel_insights_vm.execute('insights-client --version').status == 0
 
     # Prepare misconfigured machine and upload data to Insights
+    create_insights_recommendation = create_insights_vulnerability
     create_insights_recommendation(rhel_insights_vm)
 
     with module_satellite_iop.ui_session() as session:
