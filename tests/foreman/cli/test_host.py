@@ -1655,31 +1655,33 @@ def test_positive_package_applicability(
 
     :parametrized: yes
     """
+    package_name = 'panda'
+    package_version = '7.3.12-1.noarch'
     client = rhel_contenthost
     client.add_rex_key(target_sat)
     module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
 
-    assert client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}').status == 0
+    assert client.run(f'yum install -y {package_name}').status == 0
     client.subscription_manager_list_repos()  # update package profile
     installed_packages = target_sat.cli.Host.package_list(
-        {'host': client.hostname, 'search': f'name={FAKE_7_CUSTOM_PACKAGE.split("-")[0]}'}
+        {'host': client.hostname, 'search': f'name={package_name}'}
     )
     assert len(installed_packages) == 1
-    assert installed_packages[0]['nvra'] == FAKE_7_CUSTOM_PACKAGE
+    assert installed_packages[0]['nvra'] == f'{package_name}-{package_version}'
 
-    assert client.run(f'yum downgrade -y {FAKE_7_CUSTOM_PACKAGE}').status == 0
+    assert client.run(f'yum downgrade -y {package_name}').status == 0
     result = client.run('yum check-update')
-    assert FAKE_7_CUSTOM_PACKAGE.split('-')[0] in result.stdout
-    assert client.run(f'yum update -y {FAKE_7_CUSTOM_PACKAGE.split("-")[0]}').status == 0
+    assert package_name in result.stdout
+    assert client.run(f'yum update -y {package_name}').status == 0
     result = client.run('yum check-update')
-    assert FAKE_7_CUSTOM_PACKAGE.split('-')[0] not in result.stdout
+    assert package_name not in result.stdout
 
     client.subscription_manager_list_repos()  # update package profile
     applicable_packages = target_sat.cli.Package.list(
         {
             'host': client.hostname,
             'packages-restrict-applicable': 'true',
-            'search': f'name={FAKE_7_CUSTOM_PACKAGE.split("-")[0]}',
+            'search': f'name={package_name}',
         }
     )
     assert len(applicable_packages) == 0
