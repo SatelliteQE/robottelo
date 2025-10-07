@@ -62,7 +62,6 @@ def default_role_permission_with_filter_setup(search_upgrade_shared_satellite, u
             permission=target_sat.api.Permission().search(
                 filters={'name': 'view_domains'}, query={'search': 'resource_type="Domain"'}
             ),
-            unlimited=False,
             role=default_role,
             search='name ~ a',
         ).create()
@@ -111,63 +110,6 @@ def test_default_role_added_permission_with_filter(default_role_permission_with_
     assert domain_filter[0].search == 'name ~ a'
     # Teardown
     domain_filter[0].delete()
-
-
-@pytest.mark.stubbed
-class TestOverriddenFilter:
-    """Filter associated with taxonomies becomes overridden filter post upgrade
-
-    :steps:
-
-        1. In Preupgrade Satellite, Create a role
-        2. Add filter in a role to which taxonomies can be assigned
-        3. Assign taxonomies to above filter
-        4. Upgrade the satellite to next/latest version
-        5. Postupgrade, View the above role filter
-
-    :expectedresults:
-
-        1. The Filter should be have set override flag postupgrade
-        2. The locations and organizations of filter should be unchanged
-            postupgrade
-
-    :CaseAutomation: NotAutomated
-    """
-
-    @pytest.mark.pre_upgrade
-    def test_pre_existing_overriden_filter(self):
-        """Role with taxonomies associated filter can be created
-
-        :id: preupgrade-e8ecf446-375e-45fa-8e2c-558a40a7d8d0
-
-        :steps:
-
-            1. In Preupgrade Satellite, Create a role
-            2. Add filter in a role to which taxonomies can be assigned
-            3. Assign taxonomies to above filter
-
-        :expectedresults: The role with taxonomies associated to them should
-            be created
-        """
-
-    @pytest.mark.post_upgrade
-    def test_post_existing_overriden_filter(self):
-        """Filter associated with taxonomies becomes overridden filter post
-        upgrade
-
-        :id: postupgrade-e8ecf446-375e-45fa-8e2c-558a40a7d8d0
-
-        :steps:
-
-            1. Postupgrade, view the role filter created in preupgraded
-                satellite
-
-        :expectedresults:
-
-            1. The Filter should be have set override flag postupgrade
-            2. The locations and organizations of filter should be unchanged
-                postupgrade
-        """
 
 
 @pytest.mark.stubbed

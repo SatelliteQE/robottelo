@@ -151,9 +151,7 @@ def test_positive_delete_cloned_builtin(session):
         assert not session.role.search(cloned_role_name)
 
 
-def test_positive_create_filter_without_override(
-    session, module_org, module_location, test_name, module_target_sat
-):
+def test_positive_create_filter(session, module_org, module_location, test_name, module_target_sat):
     """Create filter in role w/o overriding it
 
     :id: a7f76f6e-6c13-4b34-b38c-19501b65786f
@@ -162,14 +160,14 @@ def test_positive_create_filter_without_override(
 
         1. Create a role with taxonomies (location and organization)
             assigned
-        2. Create filter in role without overriding it
+        2. Create filter in role
         3. Create user and assign new role to it
         4. Re-login into application using new user with a role
 
     :expectedresults:
 
-        1. Filter w/o override is created in role
-        2. The taxonomies of role are inherited to filter
+        1. Filter is created in role
+        2. The taxonomies of role are implicitly inherited to filter
         3. User can access application sections specified in a filter
     """
     role_name = gen_string('alpha')
@@ -191,8 +189,6 @@ def test_positive_create_filter_without_override(
             role_name,
             {'resource_type': 'Subnet', 'permission.assigned': ['view_subnets', 'create_subnets']},
         )
-        filter_values = session.filter.read(role_name, 'Subnet')
-        assert filter_values['override'] is False
         session.filter.create(
             role_name,
             {
@@ -296,117 +292,6 @@ def test_positive_create_non_overridable_filter(
         assert session.architecture.search(new_name)[0]['Name'] == new_name
         with pytest.raises(NavigationTriesExceeded):
             session.organization.create({'name': gen_string('alpha'), 'label': gen_string('alpha')})
-
-
-@pytest.mark.upgrade
-def test_positive_create_overridable_filter(
-    session, module_org, module_location, test_name, module_target_sat
-):
-    """Create overridden filter in role
-
-    :id: 325e7e3e-60fc-4182-9585-0449d9660e8d
-
-    :steps:
-
-        1. Create a role with some taxonomies (organizations and locations)
-        2. Create a filter in role to which taxonomies can be associated
-            e.g Subnet filter
-        3. Override a filter with some taxonomies which doesn't match the
-            taxonomies of role
-        4. Create user with taxonomies including filter taxonomies and
-            assign role to it
-        5. Login with user and attempt to access the resources
-
-    :expectedresults:
-
-        1. Filter is created with taxonomies
-        2. User can access resources, permissions specified in filter
-        3. User have access only in taxonomies specified in filter
-    """
-    role_name = gen_string('alpha')
-    username = gen_string('alpha')
-    password = gen_string('alpha')
-    role_org = module_target_sat.api.Organization().create()
-    role_loc = module_target_sat.api.Location().create()
-    subnet = module_target_sat.api.Subnet()
-    subnet.create_missing()
-    subnet_name = subnet.name
-    new_subnet_name = gen_string('alpha')
-    with session:
-        session.role.create(
-            {
-                'name': role_name,
-                'organizations.assigned': [role_org.name, module_org.name],
-                'locations.assigned': [role_loc.name, module_location.name],
-            }
-        )
-        assert session.role.search(role_name)[0]['Name'] == role_name
-        session.filter.create(
-            role_name,
-            {
-                'resource_type': 'Subnet',
-                'permission.assigned': ['view_subnets', 'create_subnets'],
-                'override': True,
-                'taxonomies_tabs.locations.resources.assigned': [module_location.name],
-                'taxonomies_tabs.organizations.resources.assigned': [module_org.name],
-            },
-        )
-        session.filter.create(
-            role_name,
-            {
-                'resource_type': 'Organization',
-                'permission.assigned': ['assign_organizations', 'view_organizations'],
-            },
-        )
-        session.filter.create(
-            role_name,
-            {
-                'resource_type': 'Location',
-                'permission.assigned': ['assign_locations', 'view_locations'],
-            },
-        )
-        session.user.create(
-            {
-                'user.login': username,
-                'user.auth': 'INTERNAL',
-                'user.password': password,
-                'user.confirm': password,
-                'user.mail': 'test@example.com',
-                'roles.resources.assigned': [role_name],
-                'organizations.resources.assigned': [role_org.name, module_org.name],
-                'locations.resources.assigned': [role_loc.name, module_location.name],
-            }
-        )
-    with module_target_sat.ui_session(test_name, user=username, password=password) as session:
-        session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_location.name)
-        session.subnet.create(
-            {
-                'subnet.name': subnet_name,
-                'subnet.protocol': 'IPv4',
-                'subnet.network_address': subnet.network,
-                'subnet.network_mask': subnet.mask,
-                'subnet.boot_mode': 'Static',
-            }
-        )
-        assert session.subnet.search(subnet_name)[0]['Name'] == subnet_name
-        session.organization.select(org_name=role_org.name)
-        session.location.select(loc_name=role_loc.name)
-        with pytest.raises(AssertionError) as context:
-            session.subnet.create(
-                {
-                    'subnet.name': new_subnet_name,
-                    'subnet.protocol': 'IPv4',
-                    'subnet.network_address': subnet.network,
-                    'subnet.network_mask': subnet.mask,
-                    'subnet.boot_mode': 'Static',
-                }
-            )
-        assert (
-            "You don't have permission create_subnets with attributes"
-            " that you have specified or you don't have access to"
-            " specified organizations or locations" in str(context.value)
-        )
 
 
 def test_positive_create_with_21_filters(session):
