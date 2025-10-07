@@ -12,7 +12,6 @@
 
 """
 
-import json
 from random import choice
 import re
 
@@ -23,7 +22,6 @@ import yaml
 
 from robottelo.config import settings
 from robottelo.constants import (
-    DUMMY_BOOTC_FACTS,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
@@ -1897,37 +1895,6 @@ def test_positive_register(
         output_format='json',
     )
     assert len(host_subscriptions) == 0
-
-
-@pytest.mark.e2e
-def test_positive_bootc_cli_actions(target_sat, bootc_host, function_ak_with_cv, function_org):
-    """Register a bootc host and validate CLI information
-
-    :id: d9557843-4cc7-4e70-a035-7b2c4008dd5e
-
-    :expectedresults: Upon registering a Bootc host, the facts are attached to the host, and are accurate. Hammer host bootc also returns proper info.
-
-    :CaseComponent: Hosts
-
-    :Team: Artemis
-
-    :Verifies: SAT-27168, SAT-27170, SAT-30211
-
-    :CaseImportance: Critical
-    """
-    bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
-    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
-    assert bootc_host.subscribed
-    bootc_info = target_sat.cli.Host.info({'name': bootc_host.hostname})['bootc-image-information']
-    assert bootc_info['running-image'] == bootc_dummy_info['bootc.booted.image']
-    assert bootc_info['running-image-digest'] == bootc_dummy_info['bootc.booted.digest']
-    assert bootc_info['rollback-image'] == bootc_dummy_info['bootc.rollback.image']
-    assert bootc_info['rollback-image-digest'] == bootc_dummy_info['bootc.rollback.digest']
-    # Verify hammer host bootc images
-    booted_images_info = target_sat.cli.Host.bootc_images()[0]
-    assert booted_images_info['running-image'] == bootc_dummy_info['bootc.booted.image']
-    assert booted_images_info['running-image-digest'] == bootc_dummy_info['bootc.booted.digest']
-    assert int(booted_images_info['host-count']) > 0
 
 
 # -------------------------- MULTI-CV SCENARIOS -------------------------

@@ -581,6 +581,8 @@ def test_positive_oscap_remediation_bootc(
 
     :Verifies: SAT-31579
 
+    :CaseComponent: ImageMode
+
     :Team: Artemis
     """
     contenthost = bootc_host
