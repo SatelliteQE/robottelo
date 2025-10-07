@@ -1418,6 +1418,7 @@ def test_positive_update_delete_package(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        session.browser.refresh()
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
         assert len(packages) == 1
         assert packages[0]['Package'] == FAKE_8_CUSTOM_PACKAGE_NAME
