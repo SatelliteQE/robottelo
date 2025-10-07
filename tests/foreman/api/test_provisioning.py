@@ -29,7 +29,7 @@ from robottelo.utils.issue_handlers import is_open
 def _read_log(ch, pattern):
     """Read the first line from the given channel buffer and return the matching line"""
     # read lines until the buffer is empty
-    for log_line in ch.result.stdout.splitlines():
+    for log_line in ch.stdout.splitlines():
         logger.debug(f'foreman-tail: {log_line}')
         if re.search(pattern, log_line):
             return log_line
@@ -401,6 +401,8 @@ def test_rhel_httpboot_provisioning(
     # update grub2-efi package
     sat.cli.Packages.update(packages='grub2-efi', options={'assumeyes': True})
     host_mac_addr = provisioning_host.provisioning_nic_mac_addr
+    assert sat.execute('cat /dev/null > /var/lib/dhcpd/dhcpd.leases').status == 0
+    assert sat.execute('systemctl restart dhcpd').status == 0
     host = sat.api.Host(
         hostgroup=provisioning_hostgroup,
         organization=module_sca_manifest_org,
@@ -421,10 +423,12 @@ def test_rhel_httpboot_provisioning(
     # Start the VM, do not ensure that we can connect to SSHD
     provisioning_host.power_control(ensure=False)
     # check for proper HTTP requests
-    shell = module_provisioning_sat.session.shell()
+    shell = sat.session.shell()
     shell.send('foreman-tail')
+    shell = shell.read()
     shell.close()
-    assert_host_logs(shell, f'GET /httpboot/grub2/grub.cfg-{host_mac_addr} with 200')
+    host_mac_addr = host_mac_addr.replace(":", "-")
+    assert_host_logs(shell, f'GET /httpboot/host-config/{host_mac_addr}/grub2/boot.efi with 200')
     # Host should do call back to the Satellite reporting
     # the result of the installation. Wait until Satellite reports that the host is installed.
     wait_for(
