@@ -23,10 +23,11 @@ from tests.foreman.ui.test_rhcloud_insights import create_insights_vulnerability
 @pytest.mark.pit_client
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-1')
+@pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
 def test_iop_recommendations_e2e(
     rhel_insights_vm,
     rhcloud_manifest_org,
-    module_satellite_iop,
+    module_target_sat_insights,
 ):
     """Set up Satellite with iop enabled, create conditions to cause advisor recommendation,
     and apply remediation.
@@ -63,7 +64,7 @@ def test_iop_recommendations_e2e(
     create_insights_recommendation = create_insights_vulnerability
     create_insights_recommendation(rhel_insights_vm)
 
-    with module_satellite_iop.ui_session() as session:
+    with module_target_sat_insights.ui_session() as session:
         session.organization.select(org_name=org_name)
 
         # Verify that we can see the rule hit via insights-client
@@ -236,3 +237,5 @@ def test_iop_recommendations_host_details_e2e(
         assert not any(row.get('Description') == OPENSSH_RECOMMENDATION for row in result), (
             f"Recommendation found: {OPENSSH_RECOMMENDATION}"
         )
+
+
