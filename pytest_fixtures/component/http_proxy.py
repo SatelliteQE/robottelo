@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 import pytest
 
 from robottelo.config import settings
@@ -16,9 +18,11 @@ def setup_http_proxy(request, module_org, target_sat):
     http_proxy = target_sat.api_factory.make_http_proxy(module_org, request.param)
     general_proxy = http_proxy.url if request.param is False else ''
     if request.param:
+        parsed_url = urlparse(settings.http_proxy.un_auth_proxy_url)
+        protocol = parsed_url.scheme
+        hostname = parsed_url.hostname
         general_proxy = (
-            f'http://{settings.http_proxy.username}:'
-            f'{settings.http_proxy.password}@{http_proxy.url[7:]}'
+            f'{protocol}://{settings.http_proxy.username}:{settings.http_proxy.password}@{hostname}'
         )
     content_proxy_value = target_sat.update_setting(
         'content_default_http_proxy', http_proxy.name if request.param is not None else ''
