@@ -2898,13 +2898,11 @@ class TestContentView:
         )
         password = gen_string('alphanumeric')
         user = module_target_sat.cli_factory.user({'password': password})
-        role = module_target_sat.cli_factory.make_role()
+        role = module_target_sat.cli_factory.make_role({'organization-id': module_org.id})
         module_target_sat.cli_factory.make_filter(
             {
-                'organization-ids': module_org.id,
                 'permissions': 'view_content_views',
                 'role-id': role['id'],
-                'override': 1,
             }
         )
         module_target_sat.cli.User.add_role({'id': user['id'], 'role-id': role['id']})
