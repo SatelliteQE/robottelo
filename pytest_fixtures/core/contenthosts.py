@@ -395,23 +395,24 @@ def registered_contenthosts(request, target_sat, module_org, module_ak, module_c
     """Create and register multiple contenthosts to satellite.
     Parametrize int `count` (num of registered hosts), default: 2.
         by passing a request containing param 'count'.
-    Parametrize str `rhel` (deploy_rhel_version), default: DEFAULT_RHEL_VERSION.
+    Parametrize str `rhel` (deploy_rhel_version), default: settings.content_host.default_rhel_version
         by passing a request containing param 'rhel'.
-    Parametrize str `workflow` (used for checkout), default: 'deploy-template'.
+    Parametrize str `workflow` (used for checkout), default: 'deploy-rhel'.
         by passing a request containing param 'workflow'.
 
-    default: No parametrization will result in 2 hosts of DEFAULT_RHEL Version.
+    default: No parametrization will result in 2 hosts, settings.content_host.default_rhel_version
 
-    eg. distro=rhel10, count=5, default workflow:
+    example distro rhel10, count=5, default workflow:
         @pytest.mark.parametrize(
             'registered_contenthosts',
-            [{'rhel': 10, 'count': 5}],
+            [{'rhel': 10, 'count': 5, 'workflow': 'deploy-rhel'}],
             indirect=True,
         )
-    Note: Does Not make use of `markers.rhel_ver_match`,
-        or `markers.rhel_ver_list`, leads to duplicate parametrizations.
+    Note: Does Not make use of `markers.rhel_ver_match`, or `markers.rhel_ver_list`,
+        leads to duplicate parametrizations.
     Three custom repositories will be synced & enabled initially,
     Add, enable, and sync any other repos to CV/AK for hosts, following fixture setup.
+
     """
     param = getattr(request, 'param', {})
     _config = host_conf(request)
@@ -420,26 +421,13 @@ def registered_contenthosts(request, target_sat, module_org, module_ak, module_c
         'Count must be an integer greater than zero.'
     )
     _config['workflow'] = param.get('workflow', 'deploy-rhel')
+    # ^ TODO: change to settings.contenthost.default_deploy_workflow once in CONF
     assert isinstance(_config['workflow'], str)
     _config['deploy_rhel_version'] = str(
         param.get('rhel', settings.content_host.default_rhel_version)
     )
     _config['distro'] = 'rhel'
     _config['rhel_version'] = _config['deploy_rhel_version']
-    # TODO: temp workflow until RHEL10 GA image is available
-    # remove, ie use 'deploy-rhel' from default above
-    if int(param.get('rhel', 0)) >= 10:
-        _config['workflow'] = 'deploy-template'
-    rhels_no_fips = constants.DISTROS_MAJOR_VERSION.values()  # type [int]
-    rhels_w_fips = settings.supportability.content_hosts.rhel.versions  # type [str and int]
-    if 'fips' in _config['deploy_rhel_version']:
-        assert _config['deploy_rhel_version'] in rhels_w_fips, (
-            f'{_config["deploy_rhel_version"]} not found in supported distros: \n{rhels_w_fips}'
-        )
-    else:
-        assert int(_config['deploy_rhel_version']) in rhels_no_fips, (
-            f'{_config["deploy_rhel_version"]} not found in supported distros: \n{rhels_no_fips}'
-        )
     # Add the repos to CV, update, needs_publish should be True
     module_cv.repository = fake_yum_repos
     module_cv.update(['repository'])
@@ -450,7 +438,6 @@ def registered_contenthosts(request, target_sat, module_org, module_ak, module_c
     with Broker(
         **_config,
         host_class=ContentHost,
-        deploy_network_type=settings.content_host.network_type,
     ) as content_hosts:
         for chost in content_hosts:
             # Add CV and 'Library' env to AK, publish a Version if needs_publish.

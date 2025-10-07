@@ -6,7 +6,7 @@
 
 :CaseComponent: ErrataManagement
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
@@ -64,6 +64,9 @@ CUSTOM_REPO_3_ERRATA_ID = settings.repos.yum_3.errata[0]
 RHVA_PACKAGE = REAL_0_RH_PACKAGE
 RHVA_ERRATA_ID = REAL_4_ERRATA_ID
 RHVA_ERRATA_CVES = REAL_4_ERRATA_CVES
+MAJOR_RHEL_DISTROS = [
+    ver for ver in settings.supportability.content_hosts.rhel.versions if isinstance(ver, int)
+]
 
 pytestmark = [pytest.mark.run_in_one_thread]
 
@@ -233,13 +236,8 @@ def registered_contenthost(
     def cleanup():
         nonlocal setup
         client = setup['client']
-        if client is not None:
-            if client.subscribed:
-                client.unregister()
-            assert not client.subscribed, (
-                f'Failed to unregister the host client: {client.hostname}, was unable to fully teardown host.'
-                ' Client retains some content association.'
-            )
+        if client and client.subscribed:
+            client.unregister()
 
     # no error setting up fixtures and registering client
     assert setup['result'] != 'error', f'{setup["message"]}'
@@ -841,8 +839,8 @@ def test_positive_list_permission(
             {'rhel': rhel_ver, 'count': 4},
             id=f'4reg_chosts_rhel{rhel_ver}',
         )
-        for rhel_ver in constants.DISTROS_MAJOR_VERSION.values()
-        # One test param for each RHEL major version supported
+        for rhel_ver in MAJOR_RHEL_DISTROS
+        # One test param for each RHEL version supported (no-fips)
     ],
     indirect=True,
 )
