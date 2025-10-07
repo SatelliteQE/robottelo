@@ -6,7 +6,7 @@ ruff==0.13.3
 
 # For generating documentation.
 sphinx==8.2.3
-sphinx-autoapi==3.6.0
+sphinx-autoapi==3.6.1
 # Pin to <4 due to breaking changes in 4.0.0 incompatible with sphinx-autoapi
 # https://github.com/readthedocs/sphinx-autoapi/issues/536
 astroid<4.0.0
