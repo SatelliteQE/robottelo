@@ -1549,6 +1549,7 @@ def test_positive_apply_erratum(
 
 
 @pytest.mark.e2e
+@pytest.mark.upgrade
 @pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
