@@ -722,7 +722,7 @@ def test_positive_install_iop_custom_certs(
     assert result.status == 0, 'insights-client upload failed'
 
 
-def test_positive_config_on_sat_without_network_protocol(target_sat, module_sca_manifest):
+def test_positive_config_on_sat_without_network_protocol(target_sat, function_sca_manifest):
     """Test cloud connector configuration on Satellite without explicit network protocol.
 
     :id: e6bf1c56-3091-4db2-b162-4cf3c6e23394
@@ -754,7 +754,7 @@ def test_positive_config_on_sat_without_network_protocol(target_sat, module_sca_
     with pytest.raises(TaskFailedError,
                        match="Owner has already imported from another subscription management application"):
         # Upload manifest to enable Red Hat content
-        target_sat.upload_manifest(org.id, module_sca_manifest.content)
+        target_sat.upload_manifest(org.id, function_sca_manifest.content)
 
     # Enable and sync RHEL BaseOS and AppStream repositories based on Satellite's OS version
     rhel_ver = target_sat.os_version.major
