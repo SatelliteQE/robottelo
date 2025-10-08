@@ -88,9 +88,14 @@ def test_positive_maintenance_mode(request, sat_maintain, setup_sync_plan):
     assert 'Maintenance mode is Off' in mm_is_enabled.stdout
 
     if local_advisor_enabled:
-        timer_status = sat_maintain.execute('systemctl status iop-service-vuln-vmaas-sync.timer')
+        timer_status = sat_maintain.cli.Service.status(
+            options={'only': 'iop-service-vuln-vmaas-sync.timer'}
+        )
         assert timer_status.status == 0
-        assert 'Active: active (running)' in timer_status.stdout
+        assert (
+            'Active: active (running)' in timer_status.stdout
+            or 'Active: active (waiting)' in timer_status.stdout
+        )
 
     # Verify maintenance-mode start
     mm_start = sat_maintain.cli.MaintenanceMode.start()
@@ -104,8 +109,10 @@ def test_positive_maintenance_mode(request, sat_maintain, setup_sync_plan):
 
     if local_advisor_enabled:
         assert 'All timers stopped' in mm_start.stdout
-        timer_status = sat_maintain.execute('systemctl status iop-service-vuln-vmaas-sync.timer')
-        assert timer_status.status == 3
+        timer_status = sat_maintain.cli.Service.status(
+            options={'only': 'iop-service-vuln-vmaas-sync.timer'}
+        )
+        assert timer_status.status == 1
         assert 'Active: inactive (dead)' in timer_status.stdout
 
     # Assert FOREMAN_MAINTAIN_TABLE listed in nftables
@@ -143,7 +150,9 @@ def test_positive_maintenance_mode(request, sat_maintain, setup_sync_plan):
 
     if local_advisor_enabled:
         assert 'All timers started' in mm_stop.stdout
-        timer_status = sat_maintain.execute('systemctl status iop-service-vuln-vmaas-sync.timer')
+        timer_status = sat_maintain.cli.Service.status(
+            options={'only': 'iop-service-vuln-vmaas-sync.timer'}
+        )
         assert timer_status.status == 0
         assert 'Active: active (waiting)' in timer_status.stdout
 
