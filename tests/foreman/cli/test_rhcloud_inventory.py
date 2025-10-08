@@ -751,12 +751,8 @@ def test_positive_config_on_sat_without_network_protocol(target_sat, function_sc
     org = target_sat.api.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
     cv = target_sat.api.ContentView().search(query={'search': f'name="{DEFAULT_CV}"'})[0]
     lce = target_sat.api.LifecycleEnvironment().search(query={'search': f'name="{ENVIRONMENT}"'})[0]
-    with pytest.raises(
-        TaskFailedError,
-        match="Owner has already imported from another subscription management application",
-    ):
-        # Upload manifest to enable Red Hat content
-        target_sat.upload_manifest(org.id, function_sca_manifest.content)
+    # Upload manifest to enable Red Hat content
+    target_sat.upload_manifest(org.id, function_sca_manifest.content)
 
     # Enable and sync RHEL BaseOS and AppStream repositories based on Satellite's OS version
     rhel_ver = target_sat.os_version.major
