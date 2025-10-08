@@ -20,6 +20,7 @@ import pytest
 from wait_for import wait_for
 import yaml
 
+from nailgun.entity_mixins import TaskFailedError
 from robottelo import constants
 from robottelo.config import robottelo_tmp_dir, settings
 from robottelo.constants import DEFAULT_CV, DEFAULT_ORG, ENVIRONMENT
@@ -752,10 +753,12 @@ def test_positive_config_on_sat_without_network_protocol(module_target_sat, modu
     lce = module_target_sat.api.LifecycleEnvironment().search(
         query={'search': f'name="{ENVIRONMENT}"'}
     )[0]
-
-    # Upload manifest to enable Red Hat content
-    module_target_sat.upload_manifest(org.id, module_sca_manifest.content)
-
+    try:
+        # Upload manifest to enable Red Hat content
+        module_target_sat.upload_manifest(org.id, module_sca_manifest.content)
+    except TaskFailedError as e:
+        # Handling TaskFailedError in case manifest was already uploaded for DEFAULT_ORG
+        assert "Owner has already imported from another subscription management application" in str(e)
     # Enable and sync RHEL BaseOS and AppStream repositories based on Satellite's OS version
     rhel_ver = module_target_sat.os_version.major
     for name in [f'rhel{rhel_ver}_bos', f'rhel{rhel_ver}_aps']:
