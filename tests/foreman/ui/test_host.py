@@ -207,6 +207,15 @@ def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_
             global_param['overridden'] = False
     new_name = f"new{gen_string('alpha').lower()}"
     new_host_name = f"{new_name}.{api_values['interfaces.interface.domain']}"
+
+    stripped_headers = None
+
+    @request.addfinalizer
+    def _finalize():
+        # Get table to original state
+        with target_sat.ui_session() as session:
+            session.all_hosts.manage_table_columns({header: True for header in stripped_headers})
+
     with session:
         api_values.update(
             {
@@ -241,13 +250,6 @@ def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_
         wait_for(lambda: session.browser.refresh(), timeout=5)
         # Make sure there is only Name column displayed
         session.all_hosts.manage_table_columns({header: False for header in stripped_headers})
-
-        @request.addfinalizer
-        def _finalize():
-            # Get table to original state
-            wait_for(lambda: session.browser.refresh(), timeout=5)
-            session.all_hosts.manage_table_columns({header: True for header in stripped_headers})
-
         assert session.all_hosts.delete(new_host_name)
         assert not target_sat.api.Host().search(query={'search': f'name="{new_host_name}"'})
 
