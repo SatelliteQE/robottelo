@@ -231,10 +231,21 @@ def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_
         assert displayed_host['Installed'] == 'N/A'
         # update
         session.host.update(host_name, {'host.name': new_name})
-        assert not session.host.search(host_name)
+        assert session.host.search(host_name)[0][0] == 'No Results'
         assert session.host.search(new_host_name)[0]['Name'] == new_host_name
         # delete
-        session.host.delete(new_host_name)
+        headers = session.all_hosts.get_displayed_table_headers()
+        stripped_headers = tuple(
+            header for header in headers if header is not None and header != 'Name'
+        )
+        wait_for(lambda: session.browser.refresh(), timeout=5)
+        # Make sure there is only Name column displayed
+        session.all_hosts.manage_table_columns({header: False for header in stripped_headers})
+        assert session.all_hosts.delete(new_host_name)
+        # Get table to original state
+        wait_for(lambda: session.browser.refresh(), timeout=5)
+        session.all_hosts.manage_table_columns({header: True for header in stripped_headers})
+
         assert not target_sat.api.Host().search(query={'search': f'name="{new_host_name}"'})
 
 
