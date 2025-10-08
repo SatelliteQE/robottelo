@@ -16,7 +16,6 @@ from datetime import UTC, datetime
 import json
 import time
 
-from nailgun.entity_mixins import TaskFailedError
 import pytest
 from wait_for import wait_for
 import yaml
