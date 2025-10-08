@@ -175,7 +175,7 @@ def tracer_install_host(rex_contenthost, target_sat):
 
 
 @pytest.mark.e2e
-def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_options):
+def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_options, request):
     """Create a new Host with parameters, config group. Check host presence on
         the dashboard. Update name with 'new' prefix and delete.
 
@@ -241,11 +241,14 @@ def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_
         wait_for(lambda: session.browser.refresh(), timeout=5)
         # Make sure there is only Name column displayed
         session.all_hosts.manage_table_columns({header: False for header in stripped_headers})
-        assert session.all_hosts.delete(new_host_name)
-        # Get table to original state
-        wait_for(lambda: session.browser.refresh(), timeout=5)
-        session.all_hosts.manage_table_columns({header: True for header in stripped_headers})
 
+        @request.addfinalizer
+        def _finalize():
+            # Get table to original state
+            wait_for(lambda: session.browser.refresh(), timeout=5)
+            session.all_hosts.manage_table_columns({header: True for header in stripped_headers})
+
+        assert session.all_hosts.delete(new_host_name)
         assert not target_sat.api.Host().search(query={'search': f'name="{new_host_name}"'})
 
 
