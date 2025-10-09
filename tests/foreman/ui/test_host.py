@@ -2209,10 +2209,13 @@ def test_positive_page_redirect_after_update(target_sat, current_sat_location):
     :BZ: 2166303
     """
     client = target_sat
+    column = {'Name': True, 'Host group': True, 'OS': True, 'Owner': True, 'Last report': True}
     with target_sat.ui_session() as session:
         session.location.select(loc_name=current_sat_location.name)
+        headers = session.all_hosts.get_displayed_table_headers()
+        columns = {**column, **{h: False for h in headers if h is not None and h not in column}}
+        session.all_hosts.manage_table_columns(columns)
         session.host_new.update(client.hostname, {})
-
         assert 'page-not-found' not in session.browser.url
         assert client.hostname in session.browser.url
 
