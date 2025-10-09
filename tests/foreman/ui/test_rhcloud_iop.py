@@ -20,6 +20,17 @@ from tests.foreman.ui.test_rhcloud_insights import (
 )
 
 
+@pytest.fixture
+def registered_vm(rhel_insights_vm):
+    # Ensure baseline
+    rhel_insights_vm.execute('insights-client --register --force')
+    try:
+        yield rhel_insights_vm
+    finally:
+        # Restore for other tests
+        rhel_insights_vm.execute('insights-client --register --force')
+
+
 @pytest.mark.e2e
 @pytest.mark.pit_server
 @pytest.mark.pit_client
@@ -27,6 +38,7 @@ from tests.foreman.ui.test_rhcloud_insights import (
 @pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
 def test_iop_recommendations_e2e(
+    registered_vm,
     rhel_insights_vm,
     rhcloud_manifest_org,
     module_target_sat_insights,
@@ -58,6 +70,7 @@ def test_iop_recommendations_e2e(
     :CaseAutomation: Automated
     """
     org_name = rhcloud_manifest_org.name
+    rhel_insights_vm = registered_vm
 
     # Verify insights-client package is installed
     assert rhel_insights_vm.execute('insights-client --version').status == 0
@@ -91,6 +104,10 @@ def test_iop_recommendations_e2e(
             'No recommendations None of your connected systems are affected by enabled recommendations'
             in session.recommendationstab.search(OPENSSH_RECOMMENDATION)[0]['Name']
         )
+        result = rhel_insights_vm.execute('insights-client --unregister')
+        assert 'Successfully unregistered from the Red Hat Insights Service' in result.stdout
+        result = rhel_insights_vm.execute('insights-client --status')
+        assert 'System is NOT registered locally' in result.stdout
 
 
 @pytest.mark.e2e
