@@ -15,7 +15,9 @@
 import pytest
 
 from robottelo.constants import OPENSSH_RECOMMENDATION
-from tests.foreman.ui.test_rhcloud_insights import create_insights_vulnerability
+from tests.foreman.ui.test_rhcloud_insights import (
+    create_insights_vulnerability as create_insights_recommendation,
+)
 
 
 @pytest.mark.e2e
@@ -61,7 +63,6 @@ def test_iop_recommendations_e2e(
     assert rhel_insights_vm.execute('insights-client --version').status == 0
 
     # Prepare misconfigured machine and upload data to Insights
-    create_insights_recommendation = create_insights_vulnerability
     create_insights_recommendation(rhel_insights_vm)
 
     with module_target_sat_insights.ui_session() as session:
@@ -133,7 +134,6 @@ def test_iop_recommendations_remediate_multiple_hosts(
     hostnames = [host.hostname for host in rhel_insights_vms]
 
     # Prepare misconfigured machines and upload data to Insights
-    create_insights_recommendation = create_insights_vulnerability
     for vm in rhel_insights_vms:
         create_insights_recommendation(vm)
 
@@ -209,7 +209,6 @@ def test_iop_recommendations_host_details_e2e(
     assert rhel_insights_vm.execute('insights-client --version').status == 0
 
     # Prepare misconfigured machine and upload data to Insights
-    create_insights_recommendation = create_insights_vulnerability
     create_insights_recommendation(rhel_insights_vm)
 
     with module_target_sat_insights.ui_session() as session:
