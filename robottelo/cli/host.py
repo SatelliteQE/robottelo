@@ -447,23 +447,6 @@ class Host(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
-    def subscription_auto_attach(cls, options=None):
-        """Auto attach subscription to host
-
-        Usage::
-
-            hammer host subscription auto-attach [OPTIONS]
-
-        Options::
-
-            --host HOST_NAME              Name to search by
-            --host-id HOST_ID
-            -h, --help                    print help
-        """
-        cls.command_sub = 'subscription auto-attach'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
     def sc_params(cls, options=None):
         """List all smart class parameters
 

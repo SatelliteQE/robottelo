@@ -74,7 +74,6 @@ def local_ak(module_sca_manifest_org, local_environment, local_content_view, mod
             'lifecycle-environment-id': local_environment['id'],
             'content-view': local_content_view['name'],
             'organization-id': module_sca_manifest_org.id,
-            'auto-attach': False,
         }
     )
 

@@ -1075,19 +1075,64 @@ def test_positive_add_future_subscription_with_ak():
 
 
 @pytest.mark.stubbed
-def test_negative_auto_attach_future_subscription():
-    """Run auto-attach on a content host, with a current and future-dated
-    subscription.
+def test_positive_verify_files_with_pxegrub_uefi():
+    """Provision a new Host and verify the tftp and dhcpd file
+    structure is correct
 
-    :id: f4a6feec-baf8-40c6-acb3-474b34419a62
+    :id: 0c51c8ad-858c-44e1-8b14-8e0c52c29da1
 
     :steps:
 
-        1. Import a manifest with a future-dated and current subscription
-        2. Register a content host to the organization
-        3. Run auto-attach on the content host
+        1. Associate a pxegrub-type provisioning template with the os
+        2. Create new host (can be fictive bare metal) with the above OS
+           and PXE loader set to Grub UEFI
+        3. Build the host
 
-    :expectedresults: Only the current subscription was added to the host
+    :expectedresults: Verify [/var/lib/tftpboot/] contains the following
+        dir/file structure:
+
+            grub/bootia32.efi
+            grtest_positive_verify_files_with_pxegrub_uefiub/bootx64.efi
+            grub/01-AA-BB-CC-DD-EE-FF
+            grub/efidefault
+            grub/shim.efi
+
+        And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+
+    :CaseAutomation: NotAutomated
+    """
+
+
+@pytest.mark.stubbed
+def test_positive_verify_files_with_pxegrub_uefi_secureboot():
+    """Provision a new Host and verify the tftp and dhcpd file structure is
+    correct
+
+    :id: ac4d535f-09bb-49db-b38b-90f9bad5fa19
+
+    :steps:
+
+        1. Associate a pxegrub-type provisioning template with the os
+        2. Create new host (can be fictive bare metal) with the above OS
+           and PXE loader set to Grub UEFI SecureBoot
+        3. Build the host
+
+    :expectedresults: Verify [/var/lib/tftpboot/] contains the following
+        dir/file structure:
+
+            grub/bootia32.efi
+            grub/bootx64.efi
+            grub/01-AA-BB-CC-DD-EE-FF
+            grub/efidefault
+            grub/shim.efi
+
+        And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+
+    :CaseAutomation: NotAutomated
+
+    :CaseComponent: Provisioning
+
+    :Team: Rocket
     """
 
 

@@ -740,7 +740,6 @@ class ContentHost(Host, ContentHostMixins):
         name=None,
         username=settings.server.admin_username,
         password=settings.server.admin_password,
-        auto_attach=False,
         serverurl=None,
         baseurl=None,
     ):
@@ -760,8 +759,6 @@ class ContentHost(Host, ContentHostMixins):
         :param releasever: Set a release version
         :param username: a user name to register the content host with
         :param password: the user password
-        :param auto_attach: automatically attach compatible subscriptions to
-            this system.
         :param name: name of the system to register, defaults to the hostname
         :param serverurl: name of the subscription service with which to
             register the system
@@ -789,8 +786,6 @@ class ContentHost(Host, ContentHostMixins):
             # if no other methods are provided, we can still try user/pass
             cmd += userpass
         # Additional registration modifiers
-        if auto_attach:
-            cmd += ' --auto-attach'
         if releasever:
             cmd += f' --release {releasever}'
         if force:
