@@ -22,7 +22,7 @@ from tests.foreman.ui.test_rhcloud_insights import (
 
 @pytest.fixture
 def registered_vm(rhel_insights_vm):
-    # Ensure baseline
+    """Fixture to make sure host is always registered to insights"""
     rhel_insights_vm.execute('insights-client --register --force')
     try:
         yield rhel_insights_vm
@@ -54,12 +54,14 @@ def test_iop_recommendations_e2e(
         3. Run remediation for "OpenSSH config permissions" recommendation against host.
         4. Verify that the remediation job completed successfully.
         5. Search for previously remediated issue.
+        6. Unregister host from insights
 
     :expectedresults:
         1. Red Hat Lightspeed recommendation related to "OpenSSH config permissions" issue is listed
             for misconfigured machine.
         2. Remediation job finished successfully.
         3. Red Hat Lightspeed recommendation related to "OpenSSH config permissions" issue is not listed.
+        4. Host was successfully unregistered from insights
 
     :CaseImportance: Critical
 
@@ -104,6 +106,8 @@ def test_iop_recommendations_e2e(
             'No recommendations None of your connected systems are affected by enabled recommendations'
             in session.recommendationstab.search(OPENSSH_RECOMMENDATION)[0]['Name']
         )
+
+        # Verify that unregistering host succeeded
         result = rhel_insights_vm.execute('insights-client --unregister')
         assert 'Successfully unregistered from the Red Hat Insights Service' in result.stdout
         result = rhel_insights_vm.execute('insights-client --status')
@@ -176,6 +180,7 @@ def test_iop_recommendations_remediate_multiple_hosts(
         found = {r['Name'].strip().lower() for r in result['hosts']}
         missing = expected - found
         assert not missing, f"Missing hosts in results: {sorted(missing)}"
+
         # Verify that the recommendation is not listed anymore.
         assert (
             'No recommendations None of your connected systems are affected by enabled recommendations'
