@@ -153,7 +153,6 @@ def test_iop_recommendations_remediate_multiple_hosts(
         assert result['status']['Succeeded'] != 0
         assert result['overall_status']['is_success']
         assert len(result['hosts']) == len(rhel_insights_vms)
-        assert all(result['hosts'] in hostnames for result in result)
 
         # Verify that the expected hostnames are in results
         expected = {h.strip().lower() for h in hostnames}
@@ -236,6 +235,7 @@ def test_iop_recommendations_host_details_e2e(
         assert result['overall_status']['is_success']
 
         # Verify that the recommendation is not listed anymore.
+        result = session.host_new.get_recommendations(rhel_insights_vm.hostname)
         assert not any(row.get('Description') == OPENSSH_RECOMMENDATION for row in result), (
             f"Recommendation found: {OPENSSH_RECOMMENDATION}"
         )
