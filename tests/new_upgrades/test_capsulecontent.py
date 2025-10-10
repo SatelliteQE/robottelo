@@ -263,3 +263,64 @@ def test_post_user_scenario_capsule_sync_yum_repo(capsule_sync_setup):
     sat_files_md5 = [target_sat.checksum_by_url(url) for url in sat_files_urls]
     cap_files_md5 = [target_sat.checksum_by_url(url) for url in cap_files_urls]
     assert sat_files_md5 == cap_files_md5, 'satellite and capsule rpm md5sums are differrent'
+
+
+class TestCapsuleHammer:
+    """
+    Test class contains pre-upgrade and post-upgrade scenario to test the capsule hammer
+    """
+
+    @pytest.mark.pre_upgrade
+    def test_pre_upgrade_check_capsule_hammer(self, module_capsule_configured):
+        """Pre-upgrade scenario that creates and syncs utils repository with
+        rpm in Capsule which will be synced in post upgrade scenario.
+
+        :id: preupgrade-d8a18107-3b46-49e5-bd51-7f7c38455a2f
+
+        :steps:
+            1. Before Satellite upgrade, sync a utils repo to Capsule
+            2. Install hammer on Capsule
+
+        :expectedresults:
+            1. The repo/rpm should be synced to Capsule
+
+        """
+        repo_config = f"""[utils]
+        name=Utils Repository
+        baseurl={settings.repos.satutils_repo}
+        enabled=1
+        gpgcheck=0"""
+        result = module_capsule_configured.execute(
+            f'cat > /etc/yum.repos.d/utils.repo << EOF\n{repo_config}\nEOF'
+        )
+        assert result.status == 0
+        result = module_capsule_configured.execute('yum clean all && yum makecache')
+        assert "Utils Repository" in result.stdout
+        assert result.status == 0
+        result = module_capsule_configured.execute('yum install rubygem-hammer_cli_katello -y')
+        assert result.status == 0
+        result = module_capsule_configured.execute('rpm -qa | grep -i "hammer"')
+        assert "hammer_cli_katello" in result.stdout
+        assert result.status == 0
+
+    @pytest.mark.post_upgrade(depend_on=test_pre_upgrade_check_capsule_hammer)
+    def test_post_upgrade_check_capsule_hammer(self, module_capsule_configured):
+        """Post-upgrade scenario that verifies if the hammer is installed on Capsule
+        in the post-upgrade.
+
+        :id: postupgrade-895c9229-27b9-4d24-9e88-599fccb7b5bc
+
+        :steps:
+            1. Check if the hammer is installed on Capsule.
+            2. Check if the capsule is upgraded.
+
+        :expectedresults:
+            1. The capsule should be upgraded.
+            2. The hammer should be installed on Capsule.
+        """
+        result = module_capsule_configured.execute('rpm -qa | grep -i "capsule"')
+        assert "satellite-capsule-6.19" in result.stdout
+        assert result.status == 0
+        result = module_capsule_configured.execute('rpm -qa | grep -i "hammer"')
+        assert "hammer_cli_katello" in result.stdout
+        assert result.status == 0
