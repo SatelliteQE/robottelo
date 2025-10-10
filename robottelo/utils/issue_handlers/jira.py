@@ -125,7 +125,7 @@ def is_open_jira(issue_id, data=None):
     jira = follow_duplicates(jira)
     status = jira.get('status', '')
     resolution = jira.get('resolution', '')
-
+    logger.info(f"{issue_id} Jira status is '{status}' and resolution is '{resolution}'")
     # Jira is explicitly in OPEN status
     if status in JIRA_OPEN_STATUSES:
         return True
