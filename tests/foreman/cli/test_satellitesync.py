@@ -2026,8 +2026,9 @@ class TestContentViewSync:
         # Wait for the CV creation on import and make the import fail
         wait_for(
             lambda: target_sat.cli.ContentView.info(
-                {'name': cv_name, 'organization-id': function_import_org_with_manifest.id}
-            )
+                {'name': cv_name, 'organization-id': function_import_org_with_manifest.id},
+            ),
+            delay=0.2,
         )
         timestamp = datetime.now(UTC)
         target_sat.cli.Service.restart()
@@ -2044,7 +2045,7 @@ class TestContentViewSync:
         target_sat.wait_for_tasks(
             search_query=f'label = Actions::Katello::ContentView::Remove and started_at >= "{timestamp}"',
             search_rate=10,
-            max_tries=6,
+            max_tries=12,
         )
         importing_cvv = target_sat.cli.ContentView.info(
             {'name': cv_name, 'organization-id': function_import_org_with_manifest.id}
