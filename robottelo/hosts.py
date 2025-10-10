@@ -1183,12 +1183,16 @@ class ContentHost(Host, ContentHostMixins):
         if register:
             if not activation_key:
                 activation_key = satellite.api.ActivationKey(
+                    name=gen_string('alpha'),
                     content_view=org.default_content_view.id,
                     environment=org.library.id,
                     organization=org,
                 ).create()
-            self.register(
-                org, None, activation_key.name, satellite, setup_insights=register_insights
+            self.api_register(
+                satellite,
+                organization=org,
+                activation_keys=[activation_key.name],
+                setup_insights=register_insights,
             )
 
     def unregister_insights(self):
@@ -1694,6 +1698,34 @@ class ContentHost(Host, ContentHostMixins):
         else:
             logger.warning(f'Podman is not logged into container registry {registry}')
 
+    def create_insights_vulnerability(self):
+        """Function to create vulnerabilities that can be remediated."""
+
+        # Add vulnerability for DNF_RECOMMENDATION (RHEL 8+)
+        if self.os_version.major > 7:
+            self.run('dnf update -y dnf;sed -i -e "/^best/d" /etc/dnf/dnf.conf')
+
+        # Add vulnerability for SSH_RECOMMENDATION
+        self.run('chmod 777 /etc/ssh/sshd_config')
+
+        # Upload insights data to Satellite
+        result = self.run('insights-client')
+        assert result.status == 0
+
+    def enable_insights(self, satellite, org, activation_key):
+        """Configure remote execution and insights-client on a host"""
+        self.configure_rex(satellite=satellite, org=org, register=False)
+        self.configure_insights_client(
+            satellite=satellite,
+            activation_key=activation_key,
+            org=org,
+            rhel_distro=f"rhel{self.os_version.major}",
+        )
+        # Sync inventory if using hosted Insights
+        if not satellite.local_advisor_enabled:
+            satellite.generate_inventory_report(org)
+            satellite.sync_inventory_status(org)
+
 
 class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
@@ -1739,7 +1771,7 @@ class Capsule(ContentHost, CapsuleMixins):
                 self._satellite = Satellite()
         return self._satellite
 
-    @cached_property
+    @property
     def is_upstream(self):
         """Figure out which product distribution is installed on the server.
 
@@ -1748,7 +1780,7 @@ class Capsule(ContentHost, CapsuleMixins):
         """
         return self.execute(f'rpm -q {self.product_rpm_name}').status != 0
 
-    @cached_property
+    @property
     def is_stream(self):
         """Check if the Capsule is a stream release or not
 
@@ -1761,7 +1793,7 @@ class Capsule(ContentHost, CapsuleMixins):
             'stream' in self.execute(f'rpm -q --qf "%{{RELEASE}}" {self.product_rpm_name}').stdout
         )
 
-    @cached_property
+    @property
     def version(self):
         rpm_name = self.upstream_rpm_name if self.is_upstream else self.product_rpm_name
         return self.execute(f'rpm -q --qf "%{{VERSION}}" {rpm_name}').stdout
@@ -2714,7 +2746,12 @@ class Satellite(Capsule, SatelliteMixins):
     @property
     def local_advisor_enabled(self):
         """Return boolean indicating whether local Insights advisor engine is enabled."""
-        return self.api.RHCloud().advisor_engine_config()['use_iop_mode']
+        key = (
+            'use_local_advisor_engine'
+            if ".".join(self.version.split('.')[0:2]) == '6.17'
+            else 'use_iop_mode'
+        )
+        return self.api.RHCloud().advisor_engine_config()[key]
 
 
 class SSOHost(Host):
