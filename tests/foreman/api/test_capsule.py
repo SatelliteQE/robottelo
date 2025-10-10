@@ -16,7 +16,7 @@ from fauxfactory import gen_string, gen_url
 import pytest
 from requests import HTTPError
 
-from robottelo.config import user_nailgun_config
+from robottelo.config import settings, user_nailgun_config
 
 
 @pytest.mark.e2e
@@ -215,3 +215,61 @@ def test_positive_import_puppet_classes(
         assert result['message'] in [update_msg, no_update_msg]
 
     request.addfinalizer(puppet_sat.api.SmartProxy(id=proxy.id).delete)
+
+
+@pytest.mark.upgrade
+def test_positive_update_capsule_hammer(target_sat, module_capsule_configured):
+    """Upgrade capsule with hammer installed
+
+    :id: 903a4140-74f3-428a-8768-ecb610fef2fa
+
+    :steps:
+        1. Configure the Satellite utils repo on Capsule
+        2. Install hammer on capsule
+        3. Install and verify installation of hammer on capsule
+        4. Run satellite-maintain upgrade check
+        5. Run satellite-maintain upgrade run
+        6. Verify upgrade finished
+
+    :expectedresults: Hammer is installed on capsule, and Capsule upgrade works successfully.
+
+    :Verifies: SAT-31371
+    """
+    module_capsule_configured.create_custom_repos(satutils=settings.repos.satutils_repo)
+    result = module_capsule_configured.execute(
+        'yum install rubygem-hammer_cli_katello rubygem-hammer_cli_foreman -y'
+    )
+    assert result.status == 0
+    result = module_capsule_configured.execute('rpm -q "rubygem-hammer_cli"')
+    assert result.status == 0
+
+    result = module_capsule_configured.cli.Update.check(
+        options={
+            'assumeyes': True,
+            'disable-self-update': True,
+            'whitelist': 'check-non-redhat-repository, repositories-validate',
+        }
+    )
+    assert result.status == 0
+
+    template_name = 'Capsule Update Playbook'
+    template = target_sat.api.JobTemplate().search(query={'search': f'name="{template_name}"'})
+    assert template, f'{template_name} job template not found on Satellite'
+    module_capsule_configured.add_rex_key(satellite=target_sat)
+    job = target_sat.api.JobInvocation().run(
+        synchronous=False,
+        data={
+            'job_template_id': template[0].id,
+            'inputs': {
+                'whitelist_options': 'check-non-redhat-repository,repositories-validate',
+            },
+            'targeting_type': 'static_query',
+            'search_query': f'name = {module_capsule_configured.hostname}',
+        },
+    )
+    target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
+    result = target_sat.api.JobInvocation(id=job['id']).read()
+    assert result.succeeded == 1
+
+    result = module_capsule_configured.execute('rpm -q "rubygem-hammer_cli"')
+    assert result.status == 0
