@@ -302,6 +302,53 @@ class TestContentView:
         assert 'success' in version.promote(data={'environment_ids': lce1.id})['result']
         assert 'success' in version.promote(data={'environment_ids': lce2.id})['result']
 
+    def test_content_view_environment_id_and_label_search(
+        self, module_target_sat, module_org, module_lce
+    ):
+        """Verify that `GET katello/api/content_view_environments returns results with an `id`
+        field and that it responds to searches by label.
+
+        :id: 462bff2a-6515-4dc0-bf87-df18e0ac0e31
+
+        :steps:
+            1. Sync a repo and add it to a content view.
+            2. Publish the content view and promote the first version to an LCE.
+            3. Query the content view environments API endpoint for content view environments.
+               associated with the LCE.
+            4. Assert that the result contains an `id` field.
+            5. Query the endpoint again and search for the label of the content view environment
+               from the previous response.
+            6. Assert that the label field in the new response matches the label field of the
+               previous response.
+
+        :expectedresults:
+            1. Results in the API response contain an ID field.
+            2. A search query to the endpoint scoped by `label` is successful.
+
+        :CaseImportance: Medium
+
+        :verifies: SAT-34301
+        """
+        repo_id = module_target_sat.api_factory.create_sync_custom_repo(org_id=module_org.id)
+        repo = module_target_sat.api.Repository(id=repo_id).read()
+        repo.sync()
+        cv = module_target_sat.api.ContentView(organization=module_org).create()
+        cv = module_target_sat.api.ContentView(id=cv.id, repository=[repo]).update(["repository"])
+        cv.publish()
+        cv = cv.read()
+        module_target_sat.api.ContentViewVersion(id=cv.version[0].id).promote(
+            data={'environment_ids': module_lce.id}
+        )
+        cv_env = module_target_sat.api.ContentViewEnvironment()
+        response = cv_env.list_content_view_environments(
+            params={'lifecycle_environment_id': module_lce.id}
+        )
+        assert 'id' in response['results'][0]
+        label = response['results'][0]['label']
+        response = cv_env.list_content_view_environments(params={'search': f'label="{label}"'})
+        assert response['search'] == f'label="{label}"'
+        assert response['results'][0]['label'] == label
+
 
 class TestContentViewCreate:
     """Create tests for content views."""
