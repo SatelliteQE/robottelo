@@ -2209,9 +2209,6 @@ class TestSRPMRepositoryIgnoreContent:
     :BZ: 1673215
     """
 
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -2237,9 +2234,6 @@ class TestSRPMRepositoryIgnoreContent:
         repo = repo.read()
         assert repo.content_counts['srpm'] == 0
 
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -2261,10 +2255,6 @@ class TestSRPMRepositoryIgnoreContent:
         repo = repo.read()
         assert repo.content_counts['srpm'] == 2
 
-    @pytest.mark.skip('Uses deprecated SRPM repository')
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
