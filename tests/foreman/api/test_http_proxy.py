@@ -20,16 +20,22 @@ import pytest
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
+from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize(
+    'use_ip',
+    [False] if is_open('SAT-39098') else [False, True],
+    ids=['hostname'] if is_open('SAT-39098') else ['hostname', 'ip'],
+)
+@pytest.mark.parametrize(
     'setup_http_proxy',
     [True, False],
-    indirect=True,
     ids=['auth_http_proxy', 'unauth_http_proxy'],
+    indirect=True,
 )
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -151,6 +157,11 @@ def test_positive_end_to_end(
 @pytest.mark.upgrade
 @pytest.mark.rhel_ver_match('9')
 @pytest.mark.run_in_one_thread
+@pytest.mark.parametrize(
+    'use_ip',
+    [False, True],
+    ids=['hostname', 'ip'],
+)
 @pytest.mark.parametrize(
     'setup_http_proxy',
     [True, False],
