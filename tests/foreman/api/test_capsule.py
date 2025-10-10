@@ -16,7 +16,7 @@ from fauxfactory import gen_string, gen_url
 import pytest
 from requests import HTTPError
 
-from robottelo.config import user_nailgun_config
+from robottelo.config import settings, user_nailgun_config
 
 
 @pytest.mark.e2e
@@ -215,3 +215,54 @@ def test_positive_import_puppet_classes(
         assert result['message'] in [update_msg, no_update_msg]
 
     request.addfinalizer(puppet_sat.api.SmartProxy(id=proxy.id).delete)
+
+
+def test_positive_update_capsule_hammer(
+    request, pytestconfig, target_sat, module_capsule_configured
+):
+    """Upgrade capsule with hammer installed
+
+    :id: 903a4140-74f3-428a-8768-ecb610fef2fa
+
+    :steps:
+        1. Create the utils repo
+        2. Install hammer on capsule
+        3. Verify installation of hammer
+        4. Run satellite-maintain upgrade check
+        5. Run satellite-maintain upgrade run
+        6. Verify upgrade finished
+
+    :expectedresults: Hammer is installed on capsule
+
+    :Verifies: SAT-31371
+    """
+    module_capsule_configured.create_custom_repos(utils=settings.repos.satutils_repo)
+    result = module_capsule_configured.execute('yum install rubygem-hammer_cli_katello -y')
+    assert result.status == 0
+    result = module_capsule_configured.execute('rpm --query "rubygem-hammer_cli"')
+    assert 'rubygem-hammer_cli' in result.stdout
+    assert result.status == 0
+
+    result = module_capsule_configured.cli.Update.check(
+        options={
+            'assumeyes': True,
+            'disable-self-update': True,
+            'whitelist': 'check-non-redhat-repository, repositories-validate, pulpcore-rpm-datarepair',
+        }
+    )
+    assert result.status == 0
+
+    result = module_capsule_configured.cli.Update.run(
+        options={
+            'assumeyes': True,
+            'disable-self-update': True,
+            'whitelist': 'check-non-redhat-repository, repositories-validate, pulpcore-rpm-datarepair',
+        }
+    )
+
+    assert result.status == 0
+    assert 'Update finished' in result.stdout
+
+    result = module_capsule_configured.execute('rpm --query "rubygem-hammer_cli"')
+    assert 'rubygem-hammer_cli' in result.stdout
+    assert result.status == 0
