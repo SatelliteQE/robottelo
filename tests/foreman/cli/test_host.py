@@ -6,13 +6,12 @@
 
 :CaseComponent: Hosts
 
-:Team: Endeavour
+:Team: Proton
 
 :CaseImportance: High
 
 """
 
-import json
 from random import choice
 import re
 
@@ -23,17 +22,12 @@ import yaml
 
 from robottelo.config import settings
 from robottelo.constants import (
-    DEFAULT_SUBSCRIPTION_NAME,
-    DUMMY_BOOTC_FACTS,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_7_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE_NAME,
-    PRDS,
-    REPOS,
-    REPOSET,
 )
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.logging import logger
@@ -212,7 +206,7 @@ def parse_field_sets_table(content):
 
 def parse_cli_entity_list_help_message(help_message):
     """
-    Parse cli help message for entitiy list,
+    Parse cli help message for entity list,
     for now, only Search / Order fields: are parsed,
     can be extended so all parts are parsed
 
@@ -286,9 +280,9 @@ def test_positive_search_all_field_sets(module_target_sat):
         assert field in list(output_field_sets[host_idx].keys())
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.cli_host_subscription
-def test_positive_host_list_with_cv_and_lce(
+def test_positive_host_list_with_cve(
     target_sat,
     rhel_contenthost,
     function_ak_with_cv,
@@ -296,8 +290,8 @@ def test_positive_host_list_with_cv_and_lce(
     function_org,
     function_lce,
 ):
-    """The output from hammer host list correctly includes both Content View and
-    Lifecycle Environment fields. Specifying these fields explicitly in the command
+    """The output from hammer host list correctly includes Content view environments.
+    Specifying this field explicitly in the command
     also yields the correct output.
 
     :id: 3ece2a52-0b91-453e-a4ea-c0376d79fd2d
@@ -305,11 +299,11 @@ def test_positive_host_list_with_cv_and_lce(
     :steps:
         1. Register a Host
         2. Run the hammer host list command
-        3. Verify information is correct and that both CV and LCE are in the output
-        4. Run the hammer list command with CV and LCE fields specified
-        5. Verify information is correct and that both CV and LCE are in the output
+        3. Verify information is correct and that Content view environments is in the output
+        4. Run the hammer list command with Content view environments field specified
+        5. Verify information is correct and that Content view environments is the output
 
-    :expectedresults: Both cases should return CV and LCE in the output
+    :expectedresults: Both cases should return Content view environments in the output
 
     :Verifies: SAT-23576, SAT-22677
 
@@ -319,18 +313,16 @@ def test_positive_host_list_with_cv_and_lce(
     result = rhel_contenthost.register(function_org, None, function_ak_with_cv.name, target_sat)
     assert result.status == 0
     assert rhel_contenthost.subscribed
-    # list host command without specifying cv or lce
+    # list host command without specifying Content view environments
     host_list = target_sat.cli.Host.list(output_format='json')
     host = next(i for i in host_list if i['name'] == rhel_contenthost.hostname)
-    assert host['content-view'] == function_promoted_cv.name
-    assert host['lifecycle-environment'] == function_lce.name
-    # list host command with specifying cv and lce
+    assert host['content-view-environments'] == f'{function_lce.name}/{function_promoted_cv.name}'
+    # list host command with specifying Content view environments
     host_list_fields = target_sat.cli.Host.list(
-        options={'fields': ['Name', 'Content view', 'Lifecycle environment']}, output_format='json'
+        options={'fields': ['Name', 'Content view environments']}, output_format='json'
     )
     host = next(i for i in host_list_fields if i['name'] == rhel_contenthost.hostname)
-    assert host['content-view'] == function_promoted_cv.name
-    assert host['lifecycle-environment'] == function_lce.name
+    assert host['content-view-environments'] == f'{function_lce.name}/{function_promoted_cv.name}'
 
 
 # -------------------------- CREATE SCENARIOS -------------------------
@@ -375,13 +367,11 @@ def test_positive_create_and_delete(target_sat, module_lce_library, module_publi
     assert f'{name}.{host.domain.read().name}' == new_host['name']
     assert new_host['organization']['name'] == host.organization.name
     assert (
-        new_host['content-information']['content-view-environments']['1']['content-view']['name']
+        new_host['content-information']['content-view-environments']['1']['cv-name']
         == module_published_cv.name
     )
     assert (
-        new_host['content-information']['content-view-environments']['1']['lifecycle-environment'][
-            'name'
-        ]
+        new_host['content-information']['content-view-environments']['1']['le-name']
         == module_lce_library.name
     )
     host_interface = target_sat.cli.HostInterface.info(
@@ -540,13 +530,11 @@ def test_positive_create_with_lce_and_cv(
         }
     )
     assert (
-        new_host['content-information']['content-view-environments']['1']['lifecycle-environment'][
-            'name'
-        ]
+        new_host['content-information']['content-view-environments']['1']['le-name']
         == module_lce.name
     )
     assert (
-        new_host['content-information']['content-view-environments']['1']['content-view']['name']
+        new_host['content-information']['content-view-environments']['1']['cv-name']
         == module_promoted_cv.name
     )
 
@@ -744,15 +732,11 @@ def test_positive_create_inherit_lce_cv(
         {'hostgroup-id': hostgroup.id, 'organization-id': module_org.id}
     )
     assert (
-        int(
-            host['content-information']['content-view-environments']['1']['lifecycle-environment'][
-                'id'
-            ]
-        )
+        int(host['content-information']['content-view-environments']['1']['le-id'])
         == hostgroup.lifecycle_environment.id
     )
     assert (
-        int(host['content-information']['content-view-environments']['1']['content-view']['id'])
+        int(host['content-information']['content-view-environments']['1']['cv-id'])
         == hostgroup.content_view.id
     )
 
@@ -866,21 +850,12 @@ def test_positive_list_with_nested_hostgroup(target_sat):
     logger.info(f'Host info: {host}')
     assert host['operating-system']['medium']['name'] == options.medium.name
     assert host['operating-system']['partition-table']['name'] == options.ptable.name  # inherited
-    if not target_sat.is_stream:
-        assert (
-            'id'
-            in host['content-information']['content-view-environments']['1'][
-                'lifecycle-environment'
-            ]
-        )
-        assert int(
-            host['content-information']['content-view-environments']['1']['lifecycle-environment'][
-                'id'
-            ]
-        ) == int(lce.id)
-        assert int(
-            host['content-information']['content-view-environments']['1']['content-view']['id']
-        ) == int(content_view.id)  # inherited
+    assert int(host['content-information']['content-view-environments']['1']['le-id']) == int(
+        lce.id
+    )
+    assert int(host['content-information']['content-view-environments']['1']['cv-id']) == int(
+        content_view.id
+    )  # inherited
 
 
 @pytest.mark.cli_host_create
@@ -1617,6 +1592,7 @@ def test_positive_report_package_installed_removed(
     client.run(f'yum install -y {setup_custom_repo["package"]}')
     result = client.run(f'rpm -q {setup_custom_repo["package"]}')
     assert result.status == 0
+    client.subscription_manager_list_repos()
     installed_packages = target_sat.cli.Host.package_list(
         {'host-id': host_info['id'], 'search': f'name={setup_custom_repo["package_name"]}'}
     )
@@ -1624,6 +1600,7 @@ def test_positive_report_package_installed_removed(
     assert installed_packages[0]['nvra'] == setup_custom_repo["package"]
     result = client.run(f'yum remove -y {setup_custom_repo["package"]}')
     assert result.status == 0
+    client.subscription_manager_list_repos()
     installed_packages = target_sat.cli.Host.package_list(
         {'host-id': host_info['id'], 'search': f'name={setup_custom_repo["package_name"]}'}
     )
@@ -1794,41 +1771,6 @@ def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_r
     assert result.status == 1
 
 
-@pytest.mark.cli_katello_host_tools
-@pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('[^6].*')
-def test_positive_install_package_via_rex(
-    module_org, katello_host_tools_host, target_sat, setup_custom_repo
-):
-    """Install a package to a host remotely using remote execution,
-    install package using Katello SSH job template, host package list is used to verify that
-
-    :id: 751c05b4-d7a3-48a2-8860-f0d15fdce204
-
-    :expectedresults: Package was installed
-
-    :parametrized: yes
-    """
-    client = katello_host_tools_host
-    host_info = target_sat.cli.Host.info({'name': client.hostname})
-    client.configure_rex(satellite=target_sat, org=module_org, register=False)
-    # Apply errata to the host collection using job invocation
-    target_sat.cli.JobInvocation.create(
-        {
-            'feature': 'katello_package_install',
-            'search-query': f'name ~ {client.hostname}',
-            'inputs': f'package={setup_custom_repo["package"]}',
-            'organization-id': module_org.id,
-        }
-    )
-    result = client.run(f'rpm -q {setup_custom_repo["package"]}')
-    assert result.status == 0
-    installed_packages = target_sat.cli.Host.package_list(
-        {'host-id': host_info['id'], 'search': f'name={setup_custom_repo["package_name"]}'}
-    )
-    assert len(installed_packages) == 1
-
-
 # -------------------------- HOST SUBSCRIPTION SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.rhel_ver_match('9')
 @pytest.mark.cli_host_subscription
@@ -1885,81 +1827,6 @@ def test_positive_register(
     assert len(host_subscriptions) == 0
 
 
-@pytest.mark.rhel_ver_match('9')
-@pytest.mark.cli_host_subscription
-def test_positive_without_attach_with_lce(
-    target_sat,
-    rhel_contenthost,
-    function_ak_with_cv,
-    function_sca_manifest_org,
-    function_lce,
-):
-    """Attempt to enable a repository of a subscription that was not
-    attached to a host.
-    This test is not using the host_subscription entities except
-    subscription_name and repository_id
-
-    :id: fc469e70-a7cb-4fca-b0ea-3c9e3dfff849
-
-    :expectedresults: Repository enabled due to SCA.
-
-    :parametrized: yes
-    """
-    content_view = target_sat.api.ContentView(organization=function_sca_manifest_org).create()
-    target_sat.cli_factory.setup_org_for_a_rh_repo(
-        {
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhsclient7'],
-            'repository': REPOS['rhsclient7']['name'],
-            'organization-id': function_sca_manifest_org.id,
-            'content-view-id': content_view.id,
-            'lifecycle-environment-id': function_lce.id,
-            'activationkey-id': function_ak_with_cv.id,
-            'subscription': DEFAULT_SUBSCRIPTION_NAME,
-        },
-        force_use_cdn=True,
-    )
-
-    # register client
-    result = rhel_contenthost.register(
-        function_sca_manifest_org, None, function_ak_with_cv.name, target_sat
-    )
-    assert result.status == 0
-    assert rhel_contenthost.subscribed
-    res = rhel_contenthost.enable_repo(REPOS['rhsclient7']['id'])
-    assert res.status == 0
-    assert f"Repository '{REPOS['rhsclient7']['id']}' is enabled for this system." in res.stdout
-
-
-@pytest.mark.e2e
-def test_positive_bootc_cli_actions(target_sat, bootc_host, function_ak_with_cv, function_org):
-    """Register a bootc host and validate CLI information
-
-    :id: d9557843-4cc7-4e70-a035-7b2c4008dd5e
-
-    :expectedresults: Upon registering a Bootc host, the facts are attached to the host, and are accurate. Hammer host bootc also returns proper info.
-
-    :CaseComponent:Hosts-Content
-
-    :Verifies:SAT-27168, SAT-27170, SAT-30211
-
-    :CaseImportance: Critical
-    """
-    bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
-    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
-    assert bootc_host.subscribed
-    bootc_info = target_sat.cli.Host.info({'name': bootc_host.hostname})['bootc-image-information']
-    assert bootc_info['running-image'] == bootc_dummy_info['bootc.booted.image']
-    assert bootc_info['running-image-digest'] == bootc_dummy_info['bootc.booted.digest']
-    assert bootc_info['rollback-image'] == bootc_dummy_info['bootc.rollback.image']
-    assert bootc_info['rollback-image-digest'] == bootc_dummy_info['bootc.rollback.digest']
-    # Verify hammer host bootc images
-    booted_images_info = target_sat.cli.Host.bootc_images()[0]
-    assert booted_images_info['running-image'] == bootc_dummy_info['bootc.booted.image']
-    assert booted_images_info['running-image-digest'] == bootc_dummy_info['bootc.booted.digest']
-    assert int(booted_images_info['host-count']) > 0
-
-
 # -------------------------- MULTI-CV SCENARIOS -------------------------
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('[^7]')
@@ -1988,9 +1855,9 @@ def test_negative_multi_cv_registration(
 
     :CaseImportance: Critical
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
-    :team: Phoenix-subscriptions
+    :team: Proton
 
     :parametrized: yes
     """
@@ -2036,9 +1903,9 @@ def test_positive_multi_cv_registration(
 
     :CaseImportance: Critical
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
-    :team: Phoenix-subscriptions
+    :team: Proton
 
     :parametrized: yes
     """
@@ -2110,9 +1977,9 @@ def test_positive_multi_cv_assignment(
 
     :CaseImportance: Critical
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
-    :team: Phoenix-subscriptions
+    :team: Proton
 
     :parametrized: yes
     """
@@ -2179,9 +2046,9 @@ def test_positive_multi_cv_host_repo_availability(
 
     :CaseImportance: Critical
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
-    :team: Phoenix-subscriptions
+    :team: Proton
 
     :parametrized: yes
     """
@@ -2283,7 +2150,7 @@ def test_positive_dump_enc_yaml(target_sat):
 
 # -------------------------- HOST TRACE SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.pit_client
-@pytest.mark.rhel_ver_match('[7,8,9]')
+@pytest.mark.rhel_ver_match('^[0-9]+$')
 def test_positive_tracer_list_and_resolve(tracer_host, target_sat):
     """Install tracer on client, downgrade the service, check from the satellite
     that tracer shows and resolves the problem. The test works with a package specified
@@ -2508,7 +2375,7 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
     module_puppet_classes,
     module_puppet_user,
 ):
-    """Update host owner and check puppet clases associated to the host
+    """Update host owner and check puppet classes associated to the host
 
     :id: 2b7dd148-914b-11eb-8a3a-98fa9b6ecd5a
 

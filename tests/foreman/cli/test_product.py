@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
@@ -163,7 +163,7 @@ def test_product_list_with_default_settings(module_org, target_sat):
 
     :customerscenario: true
 
-    :expectedresults: product/reporsitory list should work as expected.
+    :expectedresults: product/repository list should work as expected.
     """
     org_id = str(module_org.id)
     default_product_name = gen_string('alpha')

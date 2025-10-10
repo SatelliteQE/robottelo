@@ -8,7 +8,7 @@
 
 :CaseComponent: AnsibleCollection
 
-:Team: Platform
+:Team: Rocket
 
 """
 
@@ -119,6 +119,12 @@ def setup_fam(module_target_sat, module_sca_manifest, install_import_ansible_rol
     )
     module_target_sat.execute(
         f"sed -i '/inventory_use_container/ s#true#false#' {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
+    )
+
+    # Edit repos used in tests
+    # Until https://github.com/theforeman/foreman-ansible-modules/pull/1899 is in
+    module_target_sat.execute(
+        f"sed -i 's#https://repos.fedorapeople.org/pulp/pulp/demo_repos/zoo/#https://fixtures.pulpproject.org/rpm-signed/#' {FAM_ROOT_DIR}/tests/test_playbooks/*.yml"
     )
 
     # Upload manifest to test playbooks directory
@@ -238,8 +244,11 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
         'ANSIBLE_HOST_PATTERN_MISMATCH=ignore',
     ]
 
-    if not module_target_sat.network_type.has_ipv4 and ansible_module in ['redhat_manifest']:
-        env.append(f'HTTPS_PROXY={settings.http_proxy.http_proxy_ipv6_url}')
+    if not module_target_sat.network_type.has_ipv4:
+        if ansible_module in ['redhat_manifest']:
+            env.append(f'HTTPS_PROXY={settings.http_proxy.http_proxy_ipv6_url}')
+
+        module_target_sat.enable_satellite_http_proxy()
 
     # Execute test_playbook
     result = module_target_sat.execute(

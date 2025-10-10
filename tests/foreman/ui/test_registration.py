@@ -8,7 +8,7 @@
 
 :CaseImportance: Critical
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 """
 
 from datetime import datetime
@@ -184,7 +184,6 @@ def test_positive_global_registration_end_to_end(
         session.location.select(loc_name=smart_proxy_location.name)
         cmd = session.host.get_register_command(
             {
-                'general.operating_system': default_os.title,
                 'general.activation_keys': module_activation_key.name,
                 'advanced.update_packages': True,
                 'advanced.rex_interface': iface,
@@ -195,7 +194,6 @@ def test_positive_global_registration_end_to_end(
         f'organization_id={module_org.id}',
         f'activation_keys={module_activation_key.name}',
         f'location_id={smart_proxy_location.id}',
-        f'operatingsystem_id={default_os.id}',
         f'{default_smart_proxy.name}',
         'insecure',
         'update_packages=true',
@@ -212,7 +210,7 @@ def test_positive_global_registration_end_to_end(
         rhel_contenthost.create_custom_repos(
             **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
         )
-    # make sure there will be package availabe for update
+    # make sure there will be package available for update
     if rhel_contenthost.os_version.major == '6':
         package = FAKE_1_CUSTOM_PACKAGE
         repo_url = settings.repos.yum_1['url']
@@ -576,7 +574,7 @@ def test_positive_global_registration_form(
     :expectedresults: The curl command contains all required parameters
     """
     # rex and insights parameters are only specified in curl when differing from
-    # inerited parameters
+    # inherited parameters
     result = (
         target_sat.api.CommonParameter()
         .search(query={'search': 'name=host_registration_remote_execution'})[0]

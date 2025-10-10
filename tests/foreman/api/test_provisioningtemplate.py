@@ -300,7 +300,7 @@ class TestProvisioningTemplate:
         default_architecture,
         default_partitiontable,
     ):
-        """Check whether vlan paremeter is properly rendered in the provisioning templates
+        """Check whether vlan parameter is properly rendered in the provisioning templates
 
         :id: 2decc787-59b0-41e6-96be-5dd9371c8965
 
@@ -369,7 +369,7 @@ class TestProvisioningTemplate:
         pxe_loader,
         boot_mode,
     ):
-        """Check whether boot mode paremeter in subnet respected when PXELoader UEFI is used,
+        """Check whether boot mode parameter in subnet respected when PXELoader UEFI is used,
             and properly rendered in the provisioning templates
 
         :id: 2decc787-59b0-41e6-96be-5dd9371c8966
@@ -418,7 +418,7 @@ class TestProvisioningTemplate:
     def test_positive_template_use_graphical_installer(
         self, module_target_sat, module_sca_manifest_org, module_location, default_os
     ):
-        """Check whether use_graphical_installer paremeter is properly rendered
+        """Check whether use_graphical_installer parameter is properly rendered
             in the provisioning templates
 
         :id: 2decc787-59b0-41e6-96be-5dd9371c8967

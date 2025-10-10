@@ -293,6 +293,7 @@ REPOSET = {
     'rhsclient7': 'Red Hat Satellite Client 6 (for RHEL 7 Server) (RPMs)',
     'rhsclient8': 'Red Hat Satellite Client 6 for RHEL 8 x86_64 (RPMs)',
     'rhsclient9': 'Red Hat Satellite Client 6 for RHEL 9 x86_64 (RPMs)',
+    'rhsclient10': 'Red Hat Satellite Client 6 for RHEL 10 x86_64 (RPMs)',
     'rhst7': 'Red Hat Satellite Tools 6.9 (for RHEL 7 Server) (RPMs)',
     'rhst7_610': 'Red Hat Satellite Tools 6.10 (for RHEL 7 Server) (RPMs)',
     'rhst6': 'Red Hat Satellite Tools 6.9 (for RHEL 6 Server) (RPMs)',
@@ -340,6 +341,14 @@ RECOMMENDED_REPOS = [
     'satellite-client-6-for-rhel-10-x86_64-rpms',
     'satellite-client-6-for-rhel-9-x86_64-rpms',
     'satellite-client-6-for-rhel-8-x86_64-rpms',
+]
+RECOMMENDED_KICKSTART_REPOS = [
+    'rhel-10-for-x86_64-appstream-kickstart',
+    'rhel-10-for-x86_64-baseos-kickstart',
+    'rhel-8-for-x86_64-appstream-kickstart',
+    'rhel-8-for-x86_64-baseos-kickstart',
+    'rhel-9-for-x86_64-appstream-kickstart',
+    'rhel-9-for-x86_64-baseos-kickstart',
 ]
 
 VERSIONED_REPOS = [
@@ -466,6 +475,16 @@ REPOS = {
         'product': PRDS['rhel9'],
         'distro': 'rhel9',
         'releasever': '9',
+        'key': PRODUCT_KEY_SAT_CLIENT,
+    },
+    'rhsclient10': {
+        'id': 'satellite-client-6-for-rhel-10-x86_64-rpms',
+        'name': ('Red Hat Satellite Client 6 for RHEL 10 x86_64 RPMs'),
+        'version': '6',
+        'reposet': REPOSET['rhsclient10'],
+        'product': PRDS['rhel10'],
+        'distro': 'rhel10',
+        'releasever': '10',
         'key': PRODUCT_KEY_SAT_CLIENT,
     },
     'rhst7': {
@@ -1892,7 +1911,6 @@ BOOKMARK_ENTITIES_SELECTION = [
         'old_ui': True,
     },
     {'name': 'Errata', 'controller': 'katello_errata', 'session_name': 'errata', 'old_ui': True},
-    {'name': 'Host', 'controller': 'hosts', 'setup': entities.Host, 'session_name': 'host_new'},
     {
         'name': 'UserGroup',
         'controller': 'usergroups',
@@ -1968,10 +1986,6 @@ DEFAULT_SYSPURPOSE_ATTRIBUTES = {
     ),
 }
 
-# Bugzilla statuses used by Robottelo issue handler.
-OPEN_STATUSES = ("NEW", "ASSIGNED", "POST", "MODIFIED")
-CLOSED_STATUSES = ("ON_QA", "VERIFIED", "RELEASE_PENDING", "CLOSED")
-WONTFIX_RESOLUTIONS = ("WONTFIX", "CANTFIX", "DEFERRED")
 # Jira statuses used by Robottelo issue handler.
 JIRA_TESTS_PASSED_LABEL = "tests-passed"
 JIRA_TESTS_FAILED_LABEL = "tests-failed"
@@ -2352,6 +2366,7 @@ class DataFile(Box):
     REPORT_TEMPLATE_FILE = DATA_DIR.joinpath(REPORT_TEMPLATE_FILE)
     VALID_GPG_KEY_FILE = DATA_DIR.joinpath(VALID_GPG_KEY_FILE)
     VALID_GPG_KEY_BETA_FILE = DATA_DIR.joinpath(VALID_GPG_KEY_BETA_FILE)
+    VALID_CERT_FILE = DATA_DIR.joinpath('valid_cert.crt')
     RPM_TO_UPLOAD = DATA_DIR.joinpath(RPM_TO_UPLOAD)
     SRPM_TO_UPLOAD = DATA_DIR.joinpath(SRPM_TO_UPLOAD)
     FAKE_FILE_NEW_NAME = DATA_DIR.joinpath(FAKE_FILE_NEW_NAME)

@@ -1,12 +1,12 @@
 """Tests for the Container Management Content
 
-:Requirement: ContainerManagement-Content
+:Requirement: ContainerImageManagement
 
 :CaseAutomation: Automated
 
-:Team: Phoenix-content
+:Team: Artemis
 
-:CaseComponent: ContainerManagement-Content
+:CaseComponent: ContainerImageManagement
 
 """
 

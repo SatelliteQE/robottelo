@@ -56,6 +56,7 @@ def shared_checkout(shared_name):
     bx_inst = Broker(
         workflow=settings.SERVER.deploy_workflows.product,
         deploy_sat_version=settings.UPGRADE.FROM_VERSION,
+        deploy_network_type=settings.SERVER.network_type,
         host_class=Satellite,
         upgrade_group=f"{shared_name}_shared_checkout",
     )
@@ -76,6 +77,7 @@ def shared_cap_checkout(shared_name):
     cap_inst = Broker(
         workflow=settings.CAPSULE.deploy_workflows.product,
         deploy_sat_version=settings.UPGRADE.FROM_VERSION,
+        deploy_network_type=settings.CAPSULE.network_type,
         host_class=Capsule,
         upgrade_group=f'{shared_name}_shared_checkout',
     )
@@ -192,6 +194,17 @@ def perf_tuning_upgrade_shared_satellite():
     sat_instance = shared_checkout("perf_tuning_upgrade")
     with SharedResource(
         "perf_tuning_upgrade_tests", shared_checkin, sat_instance=sat_instance
+    ) as test_duration:
+        yield sat_instance
+        test_duration.ready()
+
+
+@pytest.fixture
+def subscription_upgrade_shared_satellite():
+    """Mark tests using this fixture with pytest.mark.subscription_upgrades."""
+    sat_instance = shared_checkout("subscription_upgrade")
+    with SharedResource(
+        "subscription_upgrade_tests", shared_checkin, sat_instance=sat_instance
     ) as test_duration:
         yield sat_instance
         test_duration.ready()

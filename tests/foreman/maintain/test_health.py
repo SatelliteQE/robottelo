@@ -6,7 +6,7 @@
 
 :CaseComponent: SatelliteMaintain
 
-:Team: Platform
+:Team: Rocket
 
 :CaseImportance: Critical
 
@@ -18,6 +18,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
+from robottelo.enums import NetworkType
 from robottelo.utils.installer import InstallerCommand
 
 upstream_url = {
@@ -549,6 +550,10 @@ def test_positive_health_check_env_proxy(sat_maintain):
     assert 'FAIL' not in result.stdout
 
 
+@pytest.mark.skipif(
+    settings.server.network_type == NetworkType.IPV6,
+    reason='Skipping as DHCPv6 is not managed on IPv6-only setup',
+)
 def test_positive_health_check_foreman_proxy_verify_dhcp_config_syntax(sat_maintain):
     """Verify foreman-proxy-verify-dhcp-config-syntax
 
@@ -572,8 +577,6 @@ def test_positive_health_check_foreman_proxy_verify_dhcp_config_syntax(sat_maint
                       is set other than `dhcp_isc`, and also not on DHCP disabled Satellite.
 
     :CaseImportance: Medium
-
-    :CaseAutomation: Automated
     """
     # Set dhcp.yml to `:use_provider: dhcp_isc`
     sat_maintain.execute(
@@ -588,8 +591,8 @@ def test_positive_health_check_foreman_proxy_verify_dhcp_config_syntax(sat_maint
     result = sat_maintain.cli.Health.check(
         options={'label': 'foreman-proxy-verify-dhcp-config-syntax'}
     )
-    assert 'No scenario matching label'
-    assert 'foreman-proxy-verify-dhcp-config-syntax' in result.stdout
+    assert result.status == 1
+    assert 'No scenario matching label [foreman-proxy-verify-dhcp-config-syntax]' in result.stdout
     # Enable DHCP
     installer = sat_maintain.install(
         InstallerCommand('enable-foreman-proxy-plugin-dhcp-remote-isc', 'foreman-proxy-dhcp true')
@@ -601,6 +604,7 @@ def test_positive_health_check_foreman_proxy_verify_dhcp_config_syntax(sat_maint
     result = sat_maintain.cli.Health.check(
         options={'label': 'foreman-proxy-verify-dhcp-config-syntax'}
     )
+    assert result.status == 0
     assert 'OK' in result.stdout
     # Set dhcp.yml `:use_provider: dhcp_infoblox`
     sat_maintain.execute(
@@ -615,8 +619,8 @@ def test_positive_health_check_foreman_proxy_verify_dhcp_config_syntax(sat_maint
     result = sat_maintain.cli.Health.check(
         options={'label': 'foreman-proxy-verify-dhcp-config-syntax'}
     )
-    assert 'No scenario matching label'
-    assert 'foreman-proxy-verify-dhcp-config-syntax' in result.stdout
+    assert result.status == 1
+    assert 'No scenario matching label [foreman-proxy-verify-dhcp-config-syntax]' in result.stdout
 
 
 def test_positive_remove_job_file(sat_maintain):
@@ -714,7 +718,7 @@ def test_positive_health_check_non_rh_packages(sat_maintain, request):
 
     :steps:
         1. Run satellite-maintain health check --label non-rh-packages.
-        2. Verify presense of non-RH/custom package installed on system.
+        2. Verify presence of non-RH/custom package installed on system.
 
     :BZ: 1869865
 

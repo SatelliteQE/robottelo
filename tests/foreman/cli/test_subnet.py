@@ -15,7 +15,7 @@
 import random
 import re
 
-from fauxfactory import gen_choice, gen_integer, gen_ipaddr
+from fauxfactory import gen_choice, gen_integer, gen_ipaddr, gen_string
 import pytest
 
 from robottelo.constants import SUBNET_IPAM_TYPES
@@ -65,7 +65,7 @@ def invalid_missing_attributes():
 
 
 @pytest.mark.upgrade
-def test_positive_CRUD(module_target_sat):
+def test_positive_CRUD(module_target_sat, module_org, module_location):
     """Create, update and delete subnet
 
     :id: d74a52a7-df56-44ef-89a3-081c14e81e43
@@ -82,7 +82,12 @@ def test_positive_CRUD(module_target_sat):
     from_ip = re.sub(r'\d+$', str(pool[0]), network)
     to_ip = re.sub(r'\d+$', str(pool[1]), network)
     domains_amount = random.randint(2, 3)
-    domains = [module_target_sat.cli_factory.make_domain() for _ in range(domains_amount)]
+    domains = [
+        module_target_sat.cli_factory.make_domain(
+            {'location-ids': module_location.id, 'organization-ids': module_org.id}
+        )
+        for _ in range(domains_amount)
+    ]
     gateway = gen_ipaddr(ip3=True)
     ipam_type = SUBNET_IPAM_TYPES['dhcp']
     subnet = module_target_sat.cli_factory.make_subnet(
@@ -95,6 +100,8 @@ def test_positive_CRUD(module_target_sat):
             'domain-ids': [domain['id'] for domain in domains],
             'gateway': gateway,
             'ipam': ipam_type,
+            'organization-id': module_org.id,
+            'location-id': module_location.id,
         }
     )
     # Check if Subnet can be listed
@@ -563,7 +570,7 @@ def test_positive_delete_subnet_parameter_host_impact():
 
 @pytest.mark.stubbed
 def test_positive_delete_subnet_parameter_overrided_host_impact():
-    """Deleting parameter from subnet component doesnt deletes its
+    """Deleting parameter from subnet component doesn't delete its
         overridden parameter in host inheriting that subnet
 
     :id: 2481ca10-48c1-4d18-90ed-aa20377d6905
@@ -581,3 +588,93 @@ def test_positive_delete_subnet_parameter_overrided_host_impact():
 
     :BZ: 1426612
     """
+
+
+def test_positive_subnet_CRUD_parameters(module_target_sat, module_org, module_location):
+    """Create subnet, set parameters and delete subnet
+
+    :id: 17e039d3-2f7a-4d36-a952-47ca67514ca1
+
+    :steps:
+
+        1. Create valid subnet
+        2. Add valid parameter to subnet
+        3. Delete the above parameter from subnet
+        4. Delete subnet
+
+    :expectedresults: Subnet is created, set with parameters and deleted
+
+    """
+    name = gen_choice(list(valid_data_list().values()))
+    pool = sorted(valid_addr_pools()[0])
+    mask = '255.255.255.0'
+    # generate pool range from network address
+    network = gen_ipaddr()
+    from_ip = re.sub(r'\d+$', str(pool[0]), network)
+    to_ip = re.sub(r'\d+$', str(pool[1]), network)
+    domain = module_target_sat.cli_factory.make_domain(
+        {'location-ids': module_location.id, 'organization-ids': module_org.id}
+    )
+    gateway = gen_ipaddr(ip3=True)
+    ipam_type = SUBNET_IPAM_TYPES['dhcp']
+    # Create subnet
+    subnet = module_target_sat.cli_factory.make_subnet(
+        {
+            'name': name,
+            'from': from_ip,
+            'mask': mask,
+            'network': network,
+            'to': to_ip,
+            'domain-ids': [domain['id']],
+            'gateway': gateway,
+            'ipam': ipam_type,
+            'organization-id': module_org.id,
+            'location-id': module_location.id,
+        }
+    )
+    assert subnet['name'] == name
+    assert subnet['start-of-ip-range'] == from_ip
+    assert subnet['end-of-ip-range'] == to_ip
+    assert domain['name'] in subnet['domains']
+    assert gateway in subnet['gateway-addr']
+    assert ipam_type in subnet['ipam']
+
+    name = gen_string('alphanumeric', 10)
+    value = gen_string('alphanumeric', 10)
+    # Set parameters to subnet
+    module_target_sat.cli.Subnet.set_parameter(
+        {'subnet-id': subnet['id'], 'name': name, 'value': value}
+    )
+    # Fetch subnet info
+    subnet = module_target_sat.cli.Subnet.info({'id': subnet['id']}, output_format='json')
+    assert name in subnet['parameters'][0]['name']  # Now preserves original case
+    assert value in subnet['parameters'][0]['value']
+    assert "string" in subnet['parameters'][0]['parameter_type']
+
+    # Update parameter
+    updated_value = gen_string('alphanumeric', 10)
+    module_target_sat.cli.Subnet.set_parameter(
+        {'subnet-id': subnet['id'], 'name': name, 'value': updated_value}
+    )
+    subnet = module_target_sat.cli.Subnet.info({'id': subnet['id']}, output_format='json')
+    assert updated_value in subnet['parameters'][0]['value']
+
+    # delete parameters
+    module_target_sat.cli.Subnet.delete_parameter({'subnet-id': subnet['id'], 'name': name})
+    subnet = module_target_sat.cli.Subnet.info({'id': subnet['id']}, output_format='json')
+    assert len(subnet['parameters']) == 0
+
+    # remove domains from subnet
+    module_target_sat.cli.Subnet.update(
+        {
+            'domain-ids': "",  # delete domains needed for subnet delete
+            'id': subnet['id'],
+        }
+    )
+    subnet = module_target_sat.cli.Subnet.info({'id': subnet['id']})
+    assert len(subnet['domains']) == 0
+
+    # Delete subnet
+    module_target_sat.cli.Subnet.delete({'id': subnet['id']})
+    with pytest.raises(CLIReturnCodeError):
+        module_target_sat.cli.Subnet.info({'id': subnet['id']})

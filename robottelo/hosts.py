@@ -87,7 +87,8 @@ def get_sat_version():
 
     try:
         sat_version = Satellite().version
-    except (AuthenticationError, ContentHostError, BoxKeyError):
+    except (AuthenticationError, ContentHostError, BoxKeyError) as err:
+        logger.warning('Failed to get Satellite version: %s', err)
         if sat_version := str(settings.server.version.get('release')) == 'stream':
             sat_version = str(settings.robottelo.get('satellite_version'))
         if not sat_version:
@@ -101,7 +102,8 @@ def get_sat_rhel_version():
 
     try:
         return Satellite().os_version
-    except (AuthenticationError, ContentHostError, BoxKeyError):
+    except (AuthenticationError, ContentHostError, BoxKeyError) as err:
+        logger.warning('Failed to get RHEL version from Satellite: %s', err)
         if hasattr(settings.server.version, 'rhel_version'):
             rhel_version = str(settings.server.version.rhel_version)
         elif hasattr(settings.robottelo, 'rhel_version'):
@@ -218,8 +220,13 @@ class ContentHost(Host, ContentHostMixins):
 
     @property
     def subscribed(self):
-        """Boolean representation of a content host's subscription status"""
-        return 'Overall Status: Unknown' not in self.execute('subscription-manager status').stdout
+        """Returns True if host is registered, False otherwise"""
+        result_status = self.execute('subscription-manager identity').status
+        if result_status not in [0, 1]:
+            raise ValueError(
+                'Unexpected output from subscription-manager identity, anything else than RC:0 or RC:1 is unexpected!'
+            )
+        return not bool(result_status)
 
     @property
     def identity(self):
@@ -364,7 +371,7 @@ class ContentHost(Host, ContentHostMixins):
                 and pytest.capsule_sanity is True
                 and type(self) is Capsule
             ):
-                logger.debug('END: Skipping tearing down caspule host %s for sanity', self)
+                logger.debug('END: Skipping tearing down capsule host %s for sanity', self)
                 return
             self.unregister()
             if type(self) is not Satellite:  # do not delete Satellite's host record
@@ -737,6 +744,7 @@ class ContentHost(Host, ContentHostMixins):
         :return: The result of the API call.
         """
         kwargs['insecure'] = kwargs.get('insecure', True)
+        kwargs['setup_insights'] = kwargs.get('setup_insights', False)
         self._satellite = target.satellite
         command = target.satellite.api.RegistrationCommand(**kwargs).create()
         return self.execute(command.strip('\n'))
@@ -1037,7 +1045,7 @@ class ContentHost(Host, ContentHostMixins):
         self.execute(f'echo "{puppet_conf}" >> /etc/puppetlabs/puppet/puppet.conf')
 
         # This particular puppet run on client would populate a cert on
-        # sat6 under the capsule --> certifcates or on capsule via cli "puppetserver
+        # sat6 under the capsule --> certificates or on capsule via cli "puppetserver
         # ca list", so that we sign it.
         self.execute('/opt/puppetlabs/bin/puppet agent -t')
         proxy_host = Host(hostname=proxy_hostname, ipv6=self.network_type == NetworkType.IPV6)
@@ -1258,13 +1266,19 @@ class ContentHost(Host, ContentHostMixins):
         if product_label:
             # Enable custom repositories
             for repo_label in repo_labels:
-                result = self.execute(
-                    f'yum-config-manager --enable {org_label}_{product_label}_{repo_label}'
+                # try first with subscription-manager (SCA)
+                result_sm = self.execute(
+                    f'subscription-manager repos --enable {org_label}_{product_label}_{repo_label}'
                 )
-                if result.status != 0:
-                    raise CLIFactoryError(
-                        f'Failed to enable custom repository {repo_label!s}\n{result.stderr}'
+                if result_sm.status != 0:
+                    result = self.execute(
+                        f'yum-config-manager --enable {org_label}_{product_label}_{repo_label}'
                     )
+                    if result.status != 0:
+                        raise CLIFactoryError(
+                            f'Failed to enable custom repository: {repo_label!s}\n{result.stderr}'
+                            f'\nSubscription-Manager:\n{result_sm.stderr}'
+                        )
 
     def virt_who_hypervisor_config(
         self,
@@ -1393,7 +1407,7 @@ class ContentHost(Host, ContentHostMixins):
                 raise CLIFactoryError(f'Failed to start the virt-who service:\n{result.stderr}')
         # after this step the hypervisor as a content host should be created
         # do not confuse virt-who host with hypervisor host as they can be
-        # diffrent hosts and as per this setup we have only registered the virt-who
+        # different hosts and as per this setup we have only registered the virt-who
         # host, the hypervisor host should registered after virt-who send the
         # first report when started or with one shot command
         # the virt-who hypervisor will be registered to satellite with host name
@@ -1680,6 +1694,36 @@ class Capsule(ContentHost, CapsuleMixins):
     @property
     def rex_pub_key(self):
         return self.execute(f'cat {self.rex_key_path}').stdout.strip()
+
+    def setup(self):
+        logger.debug('START: setting up Capsule host %s', self)
+        # Call parent setup method FIRST
+        super().setup()
+
+        # Only run Capsule-specific tasks if the instance is an actual Capsule
+        # (not a Satellite that's inheriting from Capsule)
+        if self.__class__ == Capsule:
+            logger.debug('Running Capsule-specific setup tasks')
+
+        # Common tasks that should always run, regardless of instance class
+        logger.debug('Running common Capsule setup tasks')
+
+        logger.debug('END: setting up Capsule host %s', self)
+
+    def teardown(self):
+        logger.debug('START: tearing down Capsule host %s', self)
+
+        # Only run Capsule-specific teardown if the instance is an actual Capsule
+        # (not a Satellite that's inheriting from Capsule)
+        if self.__class__ == Capsule:
+            logger.debug('Running Capsule-specific teardown tasks')
+
+        # Common teardown tasks that should always run, regardless of instance class
+        logger.debug('Running common Capsule teardown tasks')
+
+        # Call parent teardown method LAST
+        super().teardown()
+        logger.debug('END: tearing down Capsule host %s', self)
 
     def restart_services(self):
         """Restart services, returning True if passed and stdout if not"""
@@ -2012,10 +2056,26 @@ class Satellite(Capsule, SatelliteMixins):
 
     @property
     def satellite(self):
-        """Use self when no other Satellite is set to avoid unecessary/incorrect instances"""
+        """Use self when no other Satellite is set to avoid unnecessary/incorrect instances"""
         if not self._satellite:
             return self
         return self._satellite
+
+    def setup(self):
+        logger.debug('START: setting up Satellite host %s', self)
+        # Call parent setup method FIRST
+        super().setup()
+        logger.debug('Running common Satellite setup tasks')
+
+        logger.debug('END: setting up Satellite host %s', self)
+
+    def teardown(self):
+        logger.debug('START: tearing down Satellite host %s', self)
+        # Perform Satellite teardown tasks here
+
+        # Call parent teardown method after Satellite-specific teardown
+        super().teardown()
+        logger.debug('END: tearing down Satellite host %s', self)
 
     def enable_satellite_http_proxy(self):
         """Execute procedures for setting HTTP Proxy in Satellite settings.
@@ -2080,6 +2140,10 @@ class Satellite(Capsule, SatelliteMixins):
         return (
             self.execute(f'grep "db_manage: false" {constants.SATELLITE_ANSWER_FILE}').status == 0
         )
+
+    def is_fips_enabled(self):
+        """Check if FIPS mode is enabled on the system."""
+        return int(self.execute('cat /proc/sys/crypto/fips_enabled').stdout)
 
     def setup_firewall(self):
         # Setups firewall on Satellite
@@ -2239,6 +2303,7 @@ class Satellite(Capsule, SatelliteMixins):
 
     def update_setting(self, name, value):
         """changes setting value and returns the setting value before the change."""
+        value = value if value is not None else ''
         setting = self.api.Setting().search(query={'search': f'name="{name}"'})[0]
         default_setting_value = setting.value
         if default_setting_value is None:
@@ -2490,7 +2555,7 @@ class Satellite(Capsule, SatelliteMixins):
         assert self.execute(
             "echo -e '[Service]\\nEnvironment=GSS_USE_PROXY=1' > /etc/systemd/system/httpd.service.d/gssproxy.conf"
         )
-        # restart the deamon and httpd services
+        # restart the daemon and httpd services
         assert (
             self.execute('systemctl daemon-reload && systemctl restart httpd.service').status == 0
         )

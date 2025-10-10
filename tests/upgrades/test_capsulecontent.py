@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: ForemanProxy
+:CaseComponent: Capsule-Content
 
-:Team: Platform
+:Team: Artemis
 
 :CaseImportance: High
 

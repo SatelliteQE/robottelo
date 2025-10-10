@@ -196,6 +196,8 @@ class TestRemoteExecution:
 
         :Verifies: SAT-25243
 
+        :BlockedBy: SAT-36025
+
         :customerscenario: true
         """
         client = rex_contenthost
@@ -315,7 +317,7 @@ class TestRemoteExecution:
                     'effective-user': f'{username}',
                 }
             )
-        # negative check for effective user privilige on client
+        # negative check for effective user privilege on client
         command = 'touch /root/test'
         with pytest.raises(CLIFactoryError) as error:
             invocation_command = module_target_sat.cli_factory.job_invocation(
@@ -381,7 +383,7 @@ class TestRemoteExecution:
             2. re-register the client to check that sudo setup was performed based on parameters
             3. run rex to see that sudo was configured correctly
 
-        :expectedresults: Verify global paremeters are used to set up rex during registration
+        :expectedresults: Verify global parameters are used to set up rex during registration
 
         :parametrized: yes
         """
@@ -911,7 +913,7 @@ class TestRemoteExecution:
         invocation = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
-                'inputs': 'command=echo this wont ever run',
+                'inputs': 'command=echo this would never run',
                 'search-query': f'name ~ {host.name}',
                 'cron-line': '* * * * *',  # every minute
             }
@@ -1170,6 +1172,7 @@ class TestPullProviderRex:
         ids=["no_global_proxy"],
         indirect=True,
     )
+    @pytest.mark.rhel_ver_match('[^10].*')
     def test_positive_run_job_on_host_converted_to_pull_provider(
         self,
         module_org,
@@ -1470,7 +1473,7 @@ class TestPullProviderRex:
         # assert the file is owned by the effective user
         assert username == result.stdout.strip('\n')
 
-        # negative check for effective user privilige on client
+        # negative check for effective user privilege on client
         command = 'touch /root/test'
         with pytest.raises(CLIFactoryError) as error:
             invocation_command = module_target_sat.cli_factory.job_invocation(

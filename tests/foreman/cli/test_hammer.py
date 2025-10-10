@@ -6,7 +6,7 @@
 
 :CaseComponent: Hammer
 
-:Team: Endeavour
+:Team: Rocket
 
 :CaseImportance: Critical
 
@@ -22,6 +22,7 @@ import pytest
 from robottelo.cli import hammer
 from robottelo.constants import DataFile
 from robottelo.logging import logger
+from robottelo.utils.issue_handlers import is_open
 
 HAMMER_COMMANDS = json.loads(DataFile.HAMMER_COMMANDS_JSON.read_text())
 
@@ -70,6 +71,25 @@ def format_commands_diff(commands_diff):
     output_value = output.getvalue()
     output.close()
     return output_value
+
+
+def is_json(value):
+    if not isinstance(value, str):
+        return False
+    try:
+        parsed = json.loads(value)
+        return isinstance(parsed, dict | list)
+    except json.JSONDecodeError:
+        return False
+
+
+def is_ruby(value):
+    if not isinstance(value, str):
+        return False
+    has_rocket = "=>" in value
+    is_hash_like = re.search(r'"\w+"\s*=>', value) is not None
+    is_wrapped = value.strip().startswith('{') and value.strip().endswith('}')
+    return has_rocket and is_hash_like and is_wrapped
 
 
 def test_positive_all_options(target_sat):
@@ -214,3 +234,44 @@ def test_positive_hammer_shell(target_sat):
     result = target_sat.execute(f'echo "{command}" | hammer shell')
     assert 'admin' in result.stdout
     assert 'stty: invalid argument' not in result.stdout
+
+
+@pytest.mark.rhel_ver_match('N-0')
+def test_hammer_host_info_csv(target_sat, function_org, function_activation_key, rhel_contenthost):
+    """Verify that hammer host info yields the CSV format correctly
+
+    :id: 7f22569e-e8e4-4e58-b362-1fe9385af4f9
+
+    :steps:
+        1. Run hammer host info with --csv option
+
+    :expectedresults:
+        1. hammer should return CSV format only
+
+    :Verifies: SAT-22589, SAT-34782
+
+    """
+    res = rhel_contenthost.api_register(
+        target_sat,
+        organization=function_org,
+        activation_keys=[function_activation_key.name],
+    )
+    assert res.status == 0, f'Failed to register host: {res.stderr}'
+
+    # Check CV-specific fields
+    prefix = 'Content Information/Content view environments/'
+    res = target_sat.cli.Host.info(
+        {
+            'name': rhel_contenthost.hostname,
+            'fields': f'Name,{prefix}LE Id,{prefix}LE Name,{prefix}CV Id,{prefix}CV Name',
+        },
+        output_format='csv',
+    )
+    assert all(not is_json(i) for i in res[0].values())
+    assert all(not is_ruby(i) for i in res[0].values())
+
+    # Check all fields
+    if not is_open('SAT-34782'):
+        res = target_sat.cli.Host.info({'name': rhel_contenthost.hostname}, output_format='csv')
+        assert all(not is_json(i) for i in res[0].values())
+        assert all(not is_ruby(i) for i in res[0].values())

@@ -64,10 +64,8 @@ def test_positive_puppet_bootstrap(
     ).create()
 
     render = requests.get(
-        (
-            f'http://{session_puppet_enabled_sat.hostname}:8000/'
-            f'unattended/provision?token={host.token}'
-        ),
+        f'{session_puppet_enabled_sat.url}:9090/unattended/provision?token={host.token}',
+        verify=False,
     ).text
 
     puppet_config = (
@@ -228,7 +226,7 @@ def test_host_provisioning_with_external_puppetserver(
     # Run puppet-agent again, validate rc and stdout
     result = provisioning_host.execute('/opt/puppetlabs/bin/puppet agent -t')
     assert 'Applied catalog' in result.stdout
-    # 0 if run succeds, 2 if run succeeds and some resources changed
+    # 0 if run succeeds, 2 if run succeeds and some resources changed
     assert result.status in [0, 2]
 
     # Check /etc/motd contains contents from theforeman/motd module

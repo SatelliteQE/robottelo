@@ -6,7 +6,7 @@
 
 :CaseComponent: RHCloud
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 
@@ -51,16 +51,13 @@ def sync_recommendations(session):
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_list(r'^[\d]+$')
-@pytest.mark.parametrize(
-    "module_target_sat_insights", [True, False], ids=["hosted", "local"], indirect=True
-)
+@pytest.mark.rhel_ver_match('N-1')
 def test_rhcloud_insights_e2e(
     rhel_insights_vm,
     rhcloud_manifest_org,
     module_target_sat_insights,
 ):
-    """Synchronize hits data from hosted or local Insights Advisor, verify results are displayed in Satellite, and run remediation.
+    """Synchronize hits data from hosted, verify results are displayed in Satellite, and run remediation.
 
     :id: d952e83c-3faf-4299-a048-2eb6ccb8c9c2
 
@@ -69,7 +66,7 @@ def test_rhcloud_insights_e2e(
         2. In Satellite UI, go to Insights > Recommendations.
         3. Run remediation for "OpenSSH config permissions" recommendation against host.
         4. Verify that the remediation job completed successfully.
-        5. Refresh Insights recommendations (re-sync if using hosted Insights).
+        5. Re-sync recommendations.
         6. Search for previously remediated issue.
 
     :expectedresults:
@@ -82,6 +79,8 @@ def test_rhcloud_insights_e2e(
 
     :BZ: 1965901, 1962048, 1976754
 
+    :Verifies: SAT-36449
+
     :customerscenario: true
 
     :parametrized: yes
@@ -89,7 +88,6 @@ def test_rhcloud_insights_e2e(
     :CaseAutomation: Automated
     """
     org_name = rhcloud_manifest_org.name
-    local_advisor_enabled = module_target_sat_insights.local_advisor_enabled
 
     # Query for searching the available recommendation
     REC_QUERY = f'hostname = "{rhel_insights_vm.hostname}" and title = "{OPENSSH_RECOMMENDATION}"'
@@ -103,14 +101,23 @@ def test_rhcloud_insights_e2e(
     with module_target_sat_insights.ui_session() as session:
         session.organization.select(org_name=org_name)
 
-        # Sync the recommendations (hosted Insights only).
-        if not local_advisor_enabled:
-            sync_recommendations(session)
+        # Sync the recommendations
+        sync_recommendations(session)
 
         # Verify that we can see the rule hit via insights-client
         result = rhel_insights_vm.execute('insights-client --diagnosis')
         assert result.status == 0
         assert 'OPENSSH_HARDENING_CONFIG_PERMS' in result.stdout
+
+        # Verify that errors are not present in production.log (SAT-36449)
+        result = module_target_sat_insights.execute(
+            'grep "500 Internal Server Error" /var/log/foreman/production.log'
+        )
+        assert result.status != 0
+        result = module_target_sat_insights.execute(
+            'grep "uninitialized constant" /var/log/foreman/production.log'
+        )
+        assert result.status != 0
 
         # Search for the recommendation.
         result = session.cloudinsights.search(REC_QUERY)[0]
@@ -124,9 +131,8 @@ def test_rhcloud_insights_e2e(
             host_name=rhel_insights_vm.hostname,
         )
 
-        # Re-sync the recommendations (hosted Insights only).
-        if not local_advisor_enabled:
-            sync_recommendations(session)
+        # Re-sync the recommendations
+        sync_recommendations(session)
 
         # Verify that the recommendation is not listed anymore.
         assert not session.cloudinsights.search(REC_QUERY)
@@ -137,15 +143,12 @@ def test_rhcloud_insights_e2e(
 @pytest.mark.pit_client
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([10])
-@pytest.mark.parametrize(
-    "module_target_sat_insights", [True, False], ids=["hosted", "local"], indirect=True
-)
 def test_rhcloud_insights_remediate_multiple_hosts(
     rhel_insights_vms,
     rhcloud_manifest_org,
     module_target_sat_insights,
 ):
-    """Get rule hits data for multiple Hosts from hosted or local Insights Advisor, verify results are displayed in Satellite, and run remediations for all Hosts simultaneously.
+    """Get rule hits data for multiple Hosts from hosted Insights Advisor, verify results are displayed in Satellite, and run remediations for all Hosts simultaneously.
 
     :id: 33463576-ccc0-4200-a5c0-6e7ffc9a03f7
 
@@ -154,7 +157,7 @@ def test_rhcloud_insights_remediate_multiple_hosts(
         2. In Satellite UI, go to Insights > Recommendations.
         3. Run remediation for "OpenSSH config permissions" recommendation against Hosts.
         4. Verify that the remediation jobs completed successfully.
-        5. Refresh the Insights recommendations (re-sync if using hosted Advisor).
+        5. Refresh the Insights recommendations.
         6. Search for previously remediated issues.
     :expectedresults:
         1. Insights recommendations related to "OpenSSH config permissions" issue are listed
@@ -170,7 +173,6 @@ def test_rhcloud_insights_remediate_multiple_hosts(
     """
     org_name = rhcloud_manifest_org.name
     hostnames = [host.hostname for host in rhel_insights_vms]
-    local_advisor_enabled = module_target_sat_insights.local_advisor_enabled
 
     # Query for searching the available recommendations
     REC_QUERY = f'hostname ^ ({",".join(hostnames)}) and title = "{OPENSSH_RECOMMENDATION}"'
@@ -187,9 +189,8 @@ def test_rhcloud_insights_remediate_multiple_hosts(
     with module_target_sat_insights.ui_session() as session:
         session.organization.select(org_name=org_name)
 
-        # Sync the recommendations (hosted Insights only)
-        if not local_advisor_enabled:
-            sync_recommendations(session)
+        # Sync the recommendations
+        sync_recommendations(session)
 
         # Search for the recommendations
         results = session.cloudinsights.search(REC_QUERY)
@@ -204,6 +205,7 @@ def test_rhcloud_insights_remediate_multiple_hosts(
 
         def verify_tasks():
             tasks = session.task.search(f'{TASK_QUERY} and start_at >= "{timestamp}"')
+            assert all(task['Result'] != 'error' for task in tasks)
             return len(tasks) == len(rhel_insights_vms) and all(
                 task['Result'] == 'success' for task in tasks
             )
@@ -216,9 +218,8 @@ def test_rhcloud_insights_remediate_multiple_hosts(
             handle_exception=True,
         )
 
-        # Re-sync the recommendations (hosted Insights only).
-        if not local_advisor_enabled:
-            sync_recommendations(session)
+        # Re-sync the recommendations
+        sync_recommendations(session)
 
         # Verify that the recommendations are not listed anymore.
         assert not session.cloudinsights.search(REC_QUERY)
@@ -303,10 +304,7 @@ def test_host_sorting_based_on_recommendation_count():
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_list(r'^[\d]+$')
-@pytest.mark.parametrize(
-    "module_target_sat_insights", [True, False], ids=["hosted", "local"], indirect=True
-)
+@pytest.mark.rhel_ver_match('N-0')
 def test_host_details_page(
     rhel_insights_vm,
     rhcloud_manifest_org,
@@ -320,8 +318,8 @@ def test_host_details_page(
 
     :steps:
         1. Prepare misconfigured machine and upload its data to Insights.
-        2. Sync Insights recommendations (hosted Insights only).
-        3. Sync Insights inventory status (hosted Insights only).
+        2. Sync Insights recommendations.
+        3. Sync Insights inventory status.
         4. Go to Hosts -> All Hosts
         5. Verify there is a "Recommendations" column containing Insights recommendation count.
         6. Check popover status of host.
@@ -347,7 +345,6 @@ def test_host_details_page(
     :CaseAutomation: Automated
     """
     org_name = rhcloud_manifest_org.name
-    local_advisor_enabled = module_target_sat_insights.local_advisor_enabled
 
     # Prepare misconfigured machine and upload data to Insights.
     create_insights_vulnerability(rhel_insights_vm)
@@ -355,18 +352,13 @@ def test_host_details_page(
     with module_target_sat_insights.ui_session() as session:
         session.organization.select(org_name=org_name)
 
-        if not local_advisor_enabled:
-            # Sync insights recommendations.
-            sync_recommendations(session)
+        # Sync insights recommendations.
+        sync_recommendations(session)
 
         # Verify Insights status of host.
         result = session.host_new.get_host_statuses(rhel_insights_vm.hostname)
         assert result['Insights']['Status'] == 'Reporting'
-        assert (
-            result['Inventory']['Status'] == 'Successfully uploaded to your RH cloud inventory'
-            if not local_advisor_enabled
-            else 'N/A'
-        )
+        assert result['Inventory']['Status'] == 'Successfully uploaded to your RH cloud inventory'
 
         # Verify recommendations exist for host.
         result = session.host_new.search(rhel_insights_vm.hostname)[0]
@@ -450,7 +442,6 @@ def test_insights_registration_with_capsule(
         # Generate host registration command
         cmd = session.host_new.get_register_command(
             {
-                'general.operating_system': default_os.title,
                 'general.organization': org.name,
                 'general.capsule': rhcloud_capsule.hostname,
                 'general.activation_keys': ak.name,

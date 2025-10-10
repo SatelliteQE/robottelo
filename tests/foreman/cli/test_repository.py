@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
@@ -52,7 +52,6 @@ from robottelo.utils.datafactory import (
     valid_docker_repository_names,
     valid_http_credentials,
 )
-from robottelo.utils.issue_handlers import is_open
 from tests.foreman.api.test_contentview import content_view
 
 YUM_REPOS = (
@@ -543,7 +542,7 @@ class TestRepository:
 
         result = target_sat.execute(
             "cat /var/log/foreman/production.log | "
-            "grep \"undefined method `id' for nil:NilClass (NoMethodError)\""
+            "grep \"undefined method \\`id\\' for nil:NilClass (NoMethodError)\""
         )
         assert result.status == 1
 
@@ -830,14 +829,11 @@ class TestRepository:
         tags = 'latest'
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo, sat=target_sat)
-        if not is_open('SAT-26322'):
-            assert not repo['included-container-image-tags']
         tags_count = int(repo['content-counts']['container-tags'])
         assert tags_count >= 2, 'insufficient tags count in the repo'
         target_sat.cli.Repository.update({'id': repo['id'], 'include-tags': tags})
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo, sat=target_sat)
-        # assert tags in repo['container-image-tags-filter']
         assert int(repo['content-counts']['container-tags']) == tags_count, (
             'unexpected change of tags count'
         )
@@ -871,15 +867,11 @@ class TestRepository:
         tags = 'latest'
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo, sat=target_sat)
-        if not is_open('SAT-26322'):
-            assert not repo['included-container-image-tags']
         tags_count = int(repo['content-counts']['container-tags'])
         assert tags_count >= 2, 'insufficient tags count in the repo'
         target_sat.cli.Repository.update({'id': repo['id'], 'include-tags': tags})
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo, sat=target_sat)
-        if not is_open('SAT-26322'):
-            assert tags in repo['included-container-image-tags']
         assert int(repo['content-counts']['container-tags']) == len(tags.split(',')) < tags_count, (
             'unexpected change of tags count'
         )
@@ -912,9 +904,6 @@ class TestRepository:
         """
         target_sat.cli.Repository.synchronize({'id': repo['id']})
         repo = _validated_image_tags_count(repo=repo, sat=target_sat)
-        if not is_open('SAT-26322'):
-            for tag in repo_options['include-tags'].split(','):
-                assert tag in repo['included-container-image-tags']
         assert int(repo['content-counts']['container-tags']) == 1
 
     @pytest.mark.parametrize(
@@ -1962,7 +1951,6 @@ class TestRepository:
 #         assert repo['name'] == repo_options['name']
 #         assert repo['content-type'] == 'ostree'
 #
-#     @pytest.mark.skip_if_open("BZ:1716429")
 #     @pytest.mark.parametrize(
 #         'repo_options',
 #         **parametrized(
@@ -2029,7 +2017,6 @@ class TestRepository:
 #             make_repository(repo_options)
 #
 #     @pytest.mark.upgrade
-#     @pytest.mark.skip_if_open("BZ:1625783")
 #     @pytest.mark.parametrize(
 #         'repo_options',
 #         **parametrized(

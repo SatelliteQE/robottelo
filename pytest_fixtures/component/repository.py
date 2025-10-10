@@ -111,6 +111,27 @@ def custom_synced_repo(target_sat):
     return custom_repo
 
 
+@pytest.fixture
+def fake_yum_repos(request, target_sat, module_product):
+    """Create and sync multiple yum repositories, with fake custom content.
+    The repos are contained in module_product, within module_org.
+    """
+    repositories = {
+        'yum_0': settings.repos.yum_0.url,
+        'yum_3': settings.repos.yum_3.url,
+        'yum_6': settings.repos.yum_6.url,
+        'yum_9': settings.repos.yum_9.url,
+    }
+    for repo, url in repositories.items():
+        r = target_sat.api.Repository(
+            product=module_product,
+            url=url,
+        ).create()
+        r.sync()
+        repositories[repo] = r.read()
+    return list(repositories.values())
+
+
 def _simplify_repos(request, repos):
     """This is a helper function that transforms repos_collection related fixture parameters into
     a list that can be passed to robottelo.host_helpers.RepositoryMixins.RepositoryCollection
@@ -127,7 +148,7 @@ def _simplify_repos(request, repos):
     [
         {'SatelliteToolsRepository': {}},
         {'YumRepository': {'url': settings.repos.yum_0.url}},
-        {'YumRepository': {'url': settings.repos.yum_6.url}}
+        {'YumRepository': {'url': settings.repos.yum_6.url}, 'distro': 'rhel9'}
     ]
     Then the fixtures loop over it to create multiple repositories.
 
@@ -135,7 +156,7 @@ def _simplify_repos(request, repos):
     """
     _repos = []
     repo_distro = None
-    # Iterating over repository thats requested more than once
+    # Iterating over repository that's requested more than once
     for repo_name, repo_options in repos.items():
         if isinstance(repo_options, list):
             [_repos.append({repo_name: options}) for options in repo_options]
@@ -204,11 +225,24 @@ def module_repos_collection_with_setup(request, module_target_sat, module_org, m
     setup_content capabilities using module_org and module_lce fixtures
 
     Remember:
-        1. One can not pass distro as pytest mark via test to this fixture since the conflict of
-        using function scoped distro fixture in module scoped this fixture arrives
+        If you do not pass a repos request with valid 'distro' contained, we will attempt to fallback
+        on any fixture host, with attribute 'rhel_version' already parametrized.
+        Such as by using pytest.markers 'rhel_ver_match' or 'rhel_ver_list'.
 
     """
+    # peek the first of prior parametrized fixtures (global scope),
+    # if a RHEL host is parametrized with distro, it will be at the top.
+    top_level_param = request._pyfuncitem.callspec.params
+    _, peek_val = next(iter(top_level_param.items()))
+    fixtures_distro = peek_val.get('rhel_version', None)
+
     repos = getattr(request, 'param', [])
+    # no distro in repos request, fallback if top fixture marked with rhel_version
+    if 'distro' not in repos or repos['distro'] is None:
+        repos['distro'] = fixtures_distro
+    if repos['distro'] and 'rhel' not in str(repos['distro']):
+        repos['distro'] = f'rhel{repos["distro"]}'
+
     repo_distro, repos = _simplify_repos(request, repos)
     _repos_collection = module_target_sat.cli_factory.RepositoryCollection(
         distro=repo_distro,

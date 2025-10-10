@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
@@ -1322,7 +1322,7 @@ class TestRepositorySync:
                 f'grep {sync_id} /var/log/foreman/production.log'
             ).stdout.splitlines()[0]
             correlation_id = re.search(r'\[I\|bac\|\w{8}\]', prod_log_out).group()[7:15]
-            # Assert the cancelation was executed in Pulp
+            # Assert the cancellation was executed in Pulp
             result = target_sat.execute(
                 f'grep "{correlation_id}" /var/log/messages | grep "Canceling task"'
             )
@@ -1421,7 +1421,8 @@ class TestRepositorySync:
         rh_repo = target_sat.api.Repository(id=repo_id).read()
         rh_repo.sync()
 
-        major, minor = constants.REPOS['kickstart'][distro]['version'].split('.')
+        major, *rest = constants.REPOS['kickstart'][distro]['version'].split('.')
+        minor = rest[0] if rest else '0'
         os = target_sat.api.OperatingSystem().search(
             query={'search': f'name="RedHat" AND major="{major}" AND minor="{minor}"'}
         )
@@ -1677,7 +1678,7 @@ class TestDockerRepository:
         :BZ: 1475121, 1580510
 
         """
-        msg = "404, message='Not Found'"
+        msg = "Pulp task error"
         with pytest.raises(TaskFailedError, match=msg):
             repo.sync()
 
@@ -1820,7 +1821,7 @@ class TestDockerRepository:
             )
             assert all(
                 [len(m['labels']) == expected_values['labels_count'] for m in entity_data]
-            ), 'Unexpected lables count'
+            ), 'Unexpected labels count'
             assert all(
                 [len(m['annotations']) == expected_values['annotations_count'] for m in entity_data]
             ), 'Unexpected annotations count'
@@ -2034,7 +2035,6 @@ class TestDockerRepository:
 #         with pytest.raises(HTTPError):
 #             repo.read()
 #
-#     @pytest.mark.skip_if_open("BZ:1625783")
 #     @pytest.mark.run_in_one_thread
 #     @pytest.mark.upgrade
 #     def test_positive_sync_rh_atomic(self, module_org):
@@ -2145,7 +2145,7 @@ class TestSRPMRepositoryIgnoreContent:
 
     :customerscenario: true
 
-    :team: Phoenix-content
+    :team: Artemis
 
     :BZ: 1673215
     """
@@ -2304,9 +2304,9 @@ class TestTokenAuthContainerRepository:
     but test with more container registries and registries that use
     really long (>255 or >1024) tokens for passwords.
 
-    :CaseComponent: ContainerManagement-Content
+    :CaseComponent: ContainerImageManagement
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     def test_positive_create_with_long_token(
@@ -2441,7 +2441,7 @@ class TestPythonRepository:
         :steps:
             1. Sync python repo
 
-        :expectedresults: Pyhton repo is synced
+        :expectedresults: Python repo is synced
 
         :CaseImportance: Critical
 

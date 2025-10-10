@@ -130,12 +130,8 @@ class TestAnsibleCfgMgmt:
 
         :BZ: 2164400
         """
-        ROLE_NAMES = [
-            'theforeman.foreman_scap_client',
-            'redhat.satellite.hostgroups',
-            'RedHatInsights.insights-client',
-            'redhat.satellite.compute_resources',
-        ]
+        ROLE_NAMES = settings.ansible.role_names
+
         hg = target_sat.api.HostGroup(name=gen_string('alpha')).create()
         hg_nested = target_sat.api.HostGroup(name=gen_string('alpha'), parent=hg).create()
         proxy_id = target_sat.nailgun_smart_proxy.id
@@ -211,11 +207,8 @@ class TestAnsibleCfgMgmt:
 
         :customerscenario: true
         """
-        ROLE_NAMES = [
-            'theforeman.foreman_scap_client',
-            'RedHatInsights.insights-client',
-            'redhat.satellite.compute_resources',
-        ]
+        ROLE_NAMES = settings.ansible.role_names
+
         proxy_id = target_sat.nailgun_smart_proxy.id
         host = target_sat.api.Host(organization=module_org, location=module_location).create()
         hg = target_sat.api.HostGroup(name=gen_string('alpha'), organization=[module_org]).create()
@@ -784,7 +777,7 @@ class TestAnsibleREX:
         assert result.failed == 1
         assert result.status_label == 'failed'
         result = target_sat.api.JobInvocation(id=job['id']).outputs()['outputs'][0]['output']
-        termination_msg = 'ERROR! couldn\'t resolve module/action \'nonexisting_module\''
+        termination_msg = "ERROR! couldn't resolve module/action 'nonexisting_module'"
         assert [i['output'] for i in result if termination_msg in i['output']]
         assert [i['output'] for i in result if i['output'] == 'StandardError: Job execution failed']
         assert [i['output'] for i in result if i['output'] == 'Exit status: 4']

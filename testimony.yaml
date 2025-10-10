@@ -24,7 +24,6 @@ CaseComponent:
     - AuditLog
     - Authentication
     - BootdiskPlugin
-    - Bootstrap
     - Branding
     - BVT
     - Candlepin
@@ -39,13 +38,12 @@ CaseComponent:
     - ComputeResources-OpenStack
     - ComputeResources-RHEV
     - ComputeResources-VMWare
-    - ContainerManagement-Content
+    - ContainerImageManagement
     - ContentCredentials
     - ContentManagement
     - ContentViews
     - Conversionsappliance
     - Dashboard
-    - DHCPDNS
     - DiscoveryImage
     - DiscoveryPlugin
     - Documentation
@@ -58,12 +56,10 @@ CaseComponent:
     - Hammer-Content
     - HTTPProxy
     - HostCollections
-    - HostForm
     - HostGroup
     - Hosts
-    - Hosts-Content
+    - ImageMode
     - Infobloxintegration
-    - Infrastructure
     - Installation
     - InterSatelliteSync
     - katello-tracer
@@ -100,7 +96,6 @@ CaseComponent:
     - TasksPlugin
     - TemplatesPlugin
     - TestEnvironment
-    - TFTP
     - Upgrades
     - UsersRoles
     - Virt-whoConfigurePlugin

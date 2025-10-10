@@ -6,7 +6,7 @@
 
 :CaseComponent: Hosts
 
-:Team: Endeavour
+:Team: Proton
 
 :CaseImportance: High
 
@@ -14,7 +14,7 @@
 
 import copy
 import csv
-import json
+from datetime import UTC, datetime, timedelta
 import os
 import re
 import time
@@ -30,7 +30,6 @@ from robottelo.constants import (
     ANY_CONTEXT,
     DEFAULT_CV,
     DEFAULT_LOC,
-    DUMMY_BOOTC_FACTS,
     ENVIRONMENT,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_7_CUSTOM_PACKAGE,
@@ -134,13 +133,27 @@ def module_global_params(module_target_sat):
 
 @pytest.fixture
 def tracer_install_host(rex_contenthost, target_sat):
-    """Sets up a contenthost with katello-host-tools-tracer enabled,
-    to prep it for install later"""
+    """This fixture automatically configures IPv6 support based on the host's network type and creates
+    version-appropriate repositories.
+
+    :param rex_contenthost: Remote execution enabled content host
+    :param target_sat: Target Satellite server
+    :return: ContentHost with tracer tools installed and configured
+    """
+
+    # add IPv6 proxy for IPv6 communication based on network type
+    if not rex_contenthost.network_type.has_ipv4:
+        rex_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
+        rex_contenthost.enable_ipv6_system_proxy()
+
     # create a custom, rhel version-specific OS repo
     rhelver = rex_contenthost.os_version.major
+
     if rhelver > 7:
+        # RHEL 8, 9 and 10 use the same repository structure
         rex_contenthost.create_custom_repos(**settings.repos[f'rhel{rhelver}_os'])
     else:
+        # RHEL 7 has different repository structure
         rex_contenthost.create_custom_repos(
             **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
         )
@@ -1306,9 +1319,9 @@ def test_all_hosts_manage_columns(target_sat, new_host_ui):
 
     :expectedresults: Through the widget you can change the columns on the All Hosts page
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
 
     :Verifies: SAT-19064
     """
@@ -1366,17 +1379,12 @@ def test_positive_host_details_read_templates(
     assert set(api_templates) == set(ui_templates)
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
     'module_repos_collection_with_setup',
-    [
-        {
-            'distro': 'rhel8',
-            'YumRepository': {'url': settings.repos.yum_3.url},
-        }
-    ],
-    ids=['yum3'],
+    [{'YumRepository': {'url': settings.repos.yum_3.url}}],
+    ids=['yum_3'],
     indirect=True,
 )
 def test_positive_update_delete_package(
@@ -1404,19 +1412,19 @@ def test_positive_update_delete_package(
     """
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         product_name = module_repos_collection_with_setup.custom_product.name
-        repos = session.host_new.get_repo_sets(client.hostname, product_name)
-        assert repos[0].status == 'Enabled'
+
         session.host_new.override_repo_sets(client.hostname, product_name, "Override to disabled")
-        assert repos[0].status == 'Disabled'
-        session.host_new.install_package(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
+        repos = session.host_new.get_repo_sets(client.hostname, product_name)
+        assert repos[0]['Status'] == 'Disabled'
         result = client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
         assert result.status != 0
         session.host_new.override_repo_sets(client.hostname, product_name, "Override to enabled")
-        assert repos[0].status == 'Enabled'
+        repos = session.host_new.get_repo_sets(client.hostname, product_name)
+        assert repos[0]['Status'] == 'Enabled'
         # refresh repos on system
         client.run('subscription-manager repos')
         # install package
@@ -1428,6 +1436,8 @@ def test_positive_update_delete_package(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update packages table
+        session.host_new.get_details(client.hostname, widget_names='overview')
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
         assert len(packages['table']) == 1
         assert packages['table'][0]['Package'] == FAKE_8_CUSTOM_PACKAGE_NAME
@@ -1460,6 +1470,8 @@ def test_positive_update_delete_package(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update packages table
+        session.host_new.get_details(client.hostname, widget_names='overview')
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
         assert 'Up-to date' in packages['table'][0]['Status']
 
@@ -1472,22 +1484,19 @@ def test_positive_update_delete_package(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update packages table
+        session.host_new.get_details(client.hostname, widget_names='overview')
         packages = session.host_new.get_packages(client.hostname, FAKE_8_CUSTOM_PACKAGE_NAME)
         assert 'table' not in packages
         result = client.run(f'rpm -q {FAKE_8_CUSTOM_PACKAGE}')
         assert result.status != 0
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
     'module_repos_collection_with_setup',
-    [
-        {
-            'distro': 'rhel8',
-            'YumRepository': {'url': settings.repos.yum_3.url},
-        }
-    ],
+    [{'YumRepository': {'url': settings.repos.yum_3.url}}],
     ids=['yum3'],
     indirect=True,
 )
@@ -1516,7 +1525,7 @@ def test_positive_apply_erratum(
     # install package
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
     errata_id = settings.repos.yum_3.errata[25]
     client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
@@ -1557,16 +1566,11 @@ def test_positive_apply_erratum(
 
 
 @pytest.mark.e2e
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
     'module_repos_collection_with_setup',
-    [
-        {
-            'distro': 'rhel8',
-            'YumRepository': {'url': settings.repos.module_stream_1.url},
-        }
-    ],
+    [{'YumRepository': {'url': settings.repos.module_stream_1.url}}],
     ids=['module_stream_1'],
     indirect=True,
 )
@@ -1595,13 +1599,12 @@ def test_positive_crud_module_streams(
     module_name = 'duck'
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client, target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         streams = session.host_new.get_module_streams(client.hostname, module_name)
         assert streams[0]['Name'] == module_name
         assert streams[0]['State'] == 'Default'
-
         # enable module stream
         session.host_new.apply_module_streams_action(client.hostname, module_name, "Enable")
         task_result = target_sat.wait_for_tasks(
@@ -1611,6 +1614,8 @@ def test_positive_crud_module_streams(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update module streams table
+        session.host_new.get_details(client.hostname, widget_names='overview')
         streams = session.host_new.get_module_streams(client.hostname, module_name)
         assert streams[0]['State'] == 'Enabled'
         assert streams[0]['Installation status'] == 'Not installed'
@@ -1624,6 +1629,8 @@ def test_positive_crud_module_streams(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update module streams table
+        session.host_new.get_details(client.hostname, widget_names='overview')
         streams = session.host_new.get_module_streams(client.hostname, module_name)
         assert streams[0]['Installation status'] == 'Up-to-date'
 
@@ -1636,6 +1643,8 @@ def test_positive_crud_module_streams(
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
+        # this should reload page to update module streams table
+        session.host_new.get_details(client.hostname, widget_names='overview')
         streams = session.host_new.get_module_streams(client.hostname, module_name)
         assert streams[0]['State'] == 'Enabled'
         assert streams[0]['Installation status'] == 'Not installed'
@@ -1886,7 +1895,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
 
 
 @pytest.mark.pit_client
-@pytest.mark.rhel_ver_match('[^6].*')
+@pytest.mark.rhel_ver_match('[7,8,9]')
 def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
     """Using the new Host UI,enable tracer and verify that the page reloads
 
@@ -1910,21 +1919,18 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
     )
     with target_sat.ui_session() as session:
         session.organization.select(host['organization_name'])
-        tracer = session.host_new.get_tracer(tracer_install_host.hostname)
-        assert tracer['title'] == "Traces are not enabled"
+        tracer_title = session.host_new.get_tracer_tab_title(tracer_install_host.hostname)
+        assert tracer_title == "Traces are not enabled"
         session.host_new.enable_tracer(tracer_install_host.hostname)
-        tracer = session.host_new.get_tracer(tracer_install_host.hostname)
-        assert tracer['title'] == "Traces are being enabled"
-        wait_for(
-            lambda: session.host_new.get_tracer(tracer_install_host.hostname)['title']
-            != "Traces are being enabled",
-            timeout=1800,
-            delay=5,
-            silent_failure=True,
-            handle_exception=True,
+        timestamp = (datetime.now(UTC) - timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M')
+        target_sat.wait_for_tasks(
+            search_query='action = "Run hosts job: Install package(s) katello-host-tools-tracer"'
+            f' and started_at >= "{timestamp}"',
+            search_rate=15,
+            max_tries=10,
         )
-        tracer = session.host_new.get_tracer(tracer_install_host.hostname)
-        assert tracer['title'] == "No applications to restart"
+        tracer_title = session.host_new.get_tracer_tab_title(tracer_install_host.hostname)
+        assert tracer_title == "No applications to restart"
 
 
 def test_all_hosts_delete(target_sat, function_org, function_location, new_host_ui):
@@ -1934,9 +1940,9 @@ def test_all_hosts_delete(target_sat, function_org, function_location, new_host_
 
     :expectedresults: Successful deletion of a host through the table dropdown
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
     """
     host = target_sat.api.Host(organization=function_org, location=function_location).create()
     with target_sat.ui_session() as session:
@@ -1963,9 +1969,9 @@ def test_all_hosts_bulk_delete(target_sat, function_org, function_location, new_
 
     :expectedresults: Successful deletion of multiple hosts at once through Bulk Action
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
     """
     for _ in range(10):
         target_sat.api.Host(organization=function_org, location=function_location).create()
@@ -1989,9 +1995,9 @@ def test_all_hosts_bulk_cve_reassign(
 
     :expectedresults: Both hosts are successfully assigned to a new LCE and CV
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
     """
     lce2 = target_sat.api.LifecycleEnvironment(organization=module_org).create()
     module_cv = target_sat.api.ContentView(id=module_cv.id).read()
@@ -2035,9 +2041,9 @@ def test_all_hosts_redirect_button(target_sat):
 
     :expectedresults: New UI Button redirects to All Hosts page
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
     """
     with target_sat.ui_session() as session:
         url = session.host.new_ui_button()
@@ -2049,11 +2055,11 @@ def test_all_hosts_bulk_build_management(target_sat, function_org, function_loca
 
     :id: fff71945-6534-45cf-88a6-16b25c060f0a
 
-    :expectedresults: Build Managment dropdown in All Hosts UI works properly.
+    :expectedresults: Build Management dropdown in All Hosts UI works properly.
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
     """
     for _ in range(3):
         target_sat.api.Host(organization=function_org, location=function_location).create()
@@ -2068,152 +2074,6 @@ def test_all_hosts_bulk_build_management(target_sat, function_org, function_loca
         assert 'Rebuilt configuration for 3 hosts' in session.all_hosts.build_management(
             rebuild=True
         )
-
-
-def test_bootc_booted_container_images(target_sat, bootc_host, function_ak_with_cv, function_org):
-    """Create a bootc host, and read its information via the Booted Container Images UI
-
-    :id: c15f02a2-05e0-447a-bbcc-aace08d40d1a
-
-    :expectedresults: Booted Container Images contains the correct information for a given booted image
-
-    :CaseComponent:Hosts-Content
-
-    :Verifies:SAT-27163
-
-    :Team: Phoenix-subscriptions
-    """
-    bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
-    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
-    assert bootc_host.subscribed
-
-    with target_sat.ui_session() as session:
-        session.organization.select(function_org.name)
-        booted_container_image_info = session.bootc.read(bootc_dummy_info['bootc.booted.image'])
-        assert (
-            booted_container_image_info[0]['Image name'] == bootc_dummy_info['bootc.booted.image']
-        )
-        assert booted_container_image_info[0]['Image digests'] == '1'
-        assert booted_container_image_info[0]['Hosts'] == '1'
-        assert (
-            booted_container_image_info[1]['Image digest']
-            == bootc_dummy_info['bootc.booted.digest']
-        )
-        assert booted_container_image_info[1]['Hosts'] == '1'
-
-
-def test_bootc_host_details(target_sat, bootc_host, function_ak_with_cv, function_org):
-    """Create a bootc host, and read it's information via the Host Details UI
-
-    :id: 842356e9-8798-421d-aca6-0a1774c3f22b
-
-    :expectedresults: Host Details UI contains the proper information for a bootc host
-
-    :CaseComponent:Hosts-Content
-
-    :Verifies:SAT-27171
-
-    :Team: Phoenix-subscriptions
-    """
-    bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
-    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
-    assert bootc_host.subscribed
-
-    with target_sat.ui_session() as session:
-        session.organization.select(function_org.name)
-        values = session.host_new.get_details(bootc_host.hostname, widget_names='details.bootc')
-        assert (
-            values['details']['bootc']['details']['running_image']
-            == bootc_dummy_info['bootc.booted.image']
-        )
-        assert (
-            values['details']['bootc']['details']['running_image_digest']
-            == bootc_dummy_info['bootc.booted.digest']
-        )
-        assert (
-            values['details']['bootc']['details']['rollback_image']
-            == bootc_dummy_info['bootc.rollback.image']
-        )
-        assert (
-            values['details']['bootc']['details']['rollback_image_digest']
-            == bootc_dummy_info['bootc.rollback.digest']
-        )
-
-
-def test_bootc_rex_job(target_sat, bootc_host, function_ak_with_cv, function_org):
-    """Run all bootc rex job (switch, upgrade, rollback, status) through Host Details UI
-
-    :id: ef92a5f7-8cc7-4849-822c-90ea68b10554
-
-    :expectedresults: Host Details UI links to the proper template, which runs successfully for all templates
-
-    :CaseComponent: Hosts-Content
-
-    :Verifies:SAT-27154, SAT-27158
-
-    :Team: Phoenix-subscriptions
-    """
-    BOOTC_SWITCH_TARGET = "images.paas.redhat.com/bootc/rhel-bootc:latest-10.0"
-    BOOTC_BASE_IMAGE = "localhost/tpl-bootc-rhel-10.0:latest"
-    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
-    assert bootc_host.subscribed
-
-    with target_sat.ui_session() as session:
-        session.organization.select(function_org.name)
-        # bootc status
-        session.host_new.run_bootc_job(bootc_host.hostname, 'status')
-        task_result = target_sat.wait_for_tasks(
-            search_query=(f'Remote action: Run Bootc status on {bootc_host.hostname}'),
-            search_rate=2,
-            max_tries=30,
-        )
-        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
-        assert task_status['result'] == 'success'
-        assert f'image: {BOOTC_BASE_IMAGE}' in task_status['humanized']['output']
-        assert 'Successfully updated the system facts.' in task_status['humanized']['output']
-        # bootc switch
-        session.host_new.run_bootc_job(
-            bootc_host.hostname, 'switch', job_options=BOOTC_SWITCH_TARGET
-        )
-        task_result = target_sat.wait_for_tasks(
-            search_query=(f'Remote action: Run Bootc switch on {bootc_host.hostname}'),
-            search_rate=2,
-            max_tries=30,
-        )
-        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
-        assert task_status['result'] == 'success'
-        assert 'Successfully updated the system facts.' in task_status['humanized']['output']
-        assert f'Queued for next boot: {BOOTC_SWITCH_TARGET}' in task_status['humanized']['output']
-        # bootc upgrade
-        session.host_new.run_bootc_job(bootc_host.hostname, 'upgrade')
-        task_result = target_sat.wait_for_tasks(
-            search_query=(f'Remote action: Run Bootc upgrade on {bootc_host.hostname}'),
-            search_rate=2,
-            max_tries=30,
-        )
-        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
-        assert task_status['result'] == 'success'
-        assert 'Successfully updated the system facts.' in task_status['humanized']['output']
-        assert f'No changes in {BOOTC_SWITCH_TARGET}' in task_status['humanized']['output']
-        # reboot the host, to ensure there is a rollback image
-        bootc_host.execute('reboot')
-        bootc_host.wait_for_connection()
-        # bootc rollback
-        session.host_new.run_bootc_job(bootc_host.hostname, 'rollback')
-        task_result = target_sat.wait_for_tasks(
-            search_query=(f'Remote action: Run Bootc rollback on {bootc_host.hostname}'),
-            search_rate=2,
-            max_tries=30,
-        )
-        task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
-        assert task_status['result'] == 'success'
-        assert 'Next boot: rollback deployment' in task_status['humanized']['output']
-        assert 'Successfully updated the system facts.' in task_status['humanized']['output']
-        # Check that the display in host details matches the task output
-        values = session.host_new.get_details(bootc_host.hostname, widget_names='details.bootc')
-        assert values
-        assert values['details']['bootc']['details']['running_image'] == BOOTC_SWITCH_TARGET
-        assert values['details']['bootc']['details']['rollback_image'] == BOOTC_BASE_IMAGE
 
 
 @pytest.fixture(scope='module')
@@ -2296,16 +2156,16 @@ def change_content_source_prep(
 @pytest.mark.rhel_ver_match('[789]')
 def test_change_content_source(session, change_content_source_prep, rhel_contenthost):
     """
-    This test excercises different ways to change host's content source
+    This test exercises different ways to change host's content source
 
     :id: 5add68c3-16b1-496d-9b24-f5388013351d
 
     :expectedresults: Job invocation page should be correctly generated
         by the change content source action, generated script should also be correct
 
-    :CaseComponent:Hosts-Content
+    :CaseComponent:Hosts
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
     """
 
     module_target_sat, org, lce, capsule, content_view, loc, ak = change_content_source_prep
@@ -2403,11 +2263,17 @@ def test_positive_page_redirect_after_update(target_sat, current_sat_location):
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_host_status_honors_taxonomies(
-    module_target_sat, test_name, rhel_contenthost, setup_content, default_location, default_org
+    module_target_sat,
+    test_name,
+    rhel_contenthost,
+    setup_content,
+    default_location,
+    default_org,
+    default_org_lce,
 ):
-    """Check that host status counts in Monitor -> Host Statuses show only hosts that the user has permisisons to
+    """Check that host status counts in Monitor -> Host Statuses show only hosts that the user has permissions to
 
     :id: 2c4e6df7-c17e-4074-b691-4d8e2efda062
     :steps:
@@ -2419,13 +2285,23 @@ def test_host_status_honors_taxonomies(
     :expectedresults: First, the user can't see any host, then they can see one host
     """
     ak, org, _ = setup_content
+
+    lce = default_org_lce
+    # Create content view environment for the default org
+    content_view = module_target_sat.api.ContentView(organization=default_org).create()
+    content_view.publish()
+    published_cv = content_view.read()
+    content_view_version = published_cv.version[0]
+    content_view_version.promote(data={'environment_ids': lce.id})
+
     # default_org != org (== module_org)
     default_org_ak_name = gen_string('alpha')
-    module_target_sat.cli.ActivationKey.create(
+    module_target_sat.cli_factory.make_activation_key(
         {
             'name': default_org_ak_name,
             'organization-id': default_org.id,
-            'lifecycle-environment': 'Library',
+            'lifecycle-environment-id': lce.id,
+            'content-view-id': published_cv.id,
         }
     )['name']
     # register the host to default_org
@@ -2493,8 +2369,8 @@ def test_positive_manage_packages(
     module_target_sat,
     mod_content_hosts,
     module_repos_collection_with_setup,
-    new_host_ui,
     number_of_hosts,
+    new_host_ui,
     package_management_action,
     finish_via,
 ):
@@ -2519,11 +2395,11 @@ def test_positive_manage_packages(
 
     :expectedresults: Various package management actions should run successfully on various hosts
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :parametrized: yes
 
-    :Team: Phoenix-subscriptions
+    :Team: Proton
     """
 
     packages = ['panda', 'seal']
@@ -2805,9 +2681,9 @@ def test_all_hosts_manage_errata(
 
     :expectedresults: Errata can be bulk applied to hosts through the All Hosts page.
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
-    :Team: Phoenix-content
+    :Team: Proton
     """
     if errata_to_install == '1':
         errata_ids = settings.repos.yum_3.errata[25]

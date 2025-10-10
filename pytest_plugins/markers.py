@@ -5,7 +5,6 @@ def pytest_configure(config):
     """Register custom markers to avoid warnings."""
     markers = [
         "deselect(reason=None): Mark test to be removed from collection.",
-        "skip_if_open(issue): Skip test based on issue status.",
         "destructive: Destructive tests",
         "upgrade: Upgrade tests",
         "e2e: End to end tests",
