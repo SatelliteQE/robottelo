@@ -796,9 +796,8 @@ def test_positive_list_permission(
     ).create()
     custom_repo.sync()
     # create role with access only to 'RHEL8' RedHat product
-    role = module_target_sat.api.Role().create()
+    role = module_target_sat.api.Role(organization=[function_sca_manifest_org]).create()
     module_target_sat.api.Filter(
-        organization=[function_sca_manifest_org],
         permission=module_target_sat.api.Permission().search(
             query={'search': 'resource_type="Katello::Product"'}
         ),

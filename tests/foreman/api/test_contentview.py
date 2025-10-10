@@ -2264,27 +2264,27 @@ def test_negative_readonly_user_actions(
     """
     user_login = gen_string('alpha')
     user_password = gen_string('alphanumeric')
+    role = target_sat.api.Role(organization=[module_org]).create()
+
     # create a role with content views read only permissions
     target_sat.api.Filter(
-        organization=[module_org],
         permission=target_sat.api.Permission().search(
             filters={'name': 'view_content_views'},
             query={'search': 'resource_type="Katello::ContentView"'},
         ),
-        role=function_role,
+        role=role,
     ).create()
     # create environment permissions and assign it to our role
     target_sat.api.Filter(
-        organization=[module_org],
         permission=target_sat.api.Permission().search(
             query={'search': 'resource_type="Katello::KTEnvironment"'}
         ),
-        role=function_role,
+        role=role,
     ).create()
     # create a user and assign the above created role
     target_sat.api.User(
         organization=[module_org],
-        role=[function_role],
+        role=[role],
         login=user_login,
         password=user_password,
     ).create()
@@ -2348,15 +2348,15 @@ def test_negative_non_readonly_user_actions(target_sat, content_view, function_r
     user_cv_permissions_entities = [
         entity for entity in cv_permissions_entities if entity.name in user_cv_permissions
     ]
+    role = target_sat.api.Role(organization=[module_org]).create()
     target_sat.api.Filter(
-        organization=[module_org],
         permission=user_cv_permissions_entities,
-        role=function_role,
+        role=role,
     ).create()
     # create a user and assign the above created role
     target_sat.api.User(
         organization=[module_org],
-        role=[function_role],
+        role=[role],
         login=user_login,
         password=user_password,
     ).create()

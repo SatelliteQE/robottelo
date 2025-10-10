@@ -50,56 +50,6 @@ def test_positive_create_with_permission(module_perms, function_role, target_sat
     assert set(filter_['permissions'].split(", ")) == set(module_perms)
 
 
-def test_positive_create_with_org(module_perms, function_role, target_sat):
-    """Create a filter and assign it some permissions.
-
-    :id: f6308192-0e1f-427b-a296-b285f6684691
-
-    :expectedresults: The created filter has the assigned permissions.
-
-    :BZ: 1401469
-
-    :CaseImportance: Critical
-    """
-    org = target_sat.cli_factory.make_org()
-    # Assign filter to created role
-    filter_ = target_sat.cli_factory.make_filter(
-        {
-            'role-id': function_role['id'],
-            'permissions': module_perms,
-            'organization-ids': org['id'],
-            'override': 1,
-        }
-    )
-    # we expect here only only one organization, i.e. first element
-    assert filter_['organizations'][0] == org['name']
-
-
-def test_positive_create_with_loc(module_perms, function_role, module_target_sat):
-    """Create a filter and assign it some permissions.
-
-    :id: d7d1969a-cb30-4e97-a9a3-3a4aaf608795
-
-    :expectedresults: The created filter has the assigned permissions.
-
-    :BZ: 1401469
-
-    :CaseImportance: Critical
-    """
-    loc = module_target_sat.cli_factory.make_location()
-    # Assign filter to created role
-    filter_ = module_target_sat.cli_factory.make_filter(
-        {
-            'role-id': function_role['id'],
-            'permissions': module_perms,
-            'location-ids': loc['id'],
-            'override': 1,
-        }
-    )
-    # we expect here only only one location, i.e. first element
-    assert filter_['locations'][0] == loc['name']
-
-
 def test_positive_delete(module_perms, function_role, module_target_sat):
     """Create a filter and delete it afterwards.
 
@@ -180,43 +130,3 @@ def test_positive_update_role(module_perms, function_role, target_sat):
     target_sat.cli.Filter.update({'id': filter_['id'], 'role-id': new_role['id']})
     filter_ = target_sat.cli.Filter.info({'id': filter_['id']})
     assert filter_['role'] == new_role['name']
-
-
-def test_positive_update_org_loc(module_perms, function_role, target_sat):
-    """Create a filter and assign it to another organization and location.
-
-    :id: 9bb59109-9701-4ef3-95c6-81f387d372da
-
-    :expectedresults: Filter is created and assigned to new org and loc.
-
-    :BZ: 1401469
-
-    :CaseImportance: Critical
-    """
-    org = target_sat.cli_factory.make_org()
-    loc = target_sat.cli_factory.make_location()
-    filter_ = target_sat.cli_factory.make_filter(
-        {
-            'role-id': function_role['id'],
-            'permissions': module_perms,
-            'organization-ids': org['id'],
-            'location-ids': loc['id'],
-            'override': 1,
-        }
-    )
-    # Update org and loc
-    new_org = target_sat.cli_factory.make_org()
-    new_loc = target_sat.cli_factory.make_location()
-    target_sat.cli.Filter.update(
-        {
-            'id': filter_['id'],
-            'permissions': module_perms,
-            'organization-ids': new_org['id'],
-            'location-ids': new_loc['id'],
-            'override': 1,
-        }
-    )
-    filter_ = target_sat.cli.Filter.info({'id': filter_['id']})
-    # We expect here only one organization and location
-    assert filter_['organizations'][0] == new_org['name']
-    assert filter_['locations'][0] == new_loc['name']
