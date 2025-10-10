@@ -11,9 +11,10 @@ from broker.hosts import Host
 from fauxfactory import gen_string
 import requests
 from wait_for import TimedOutError, wait_for
+import yaml
 
 from robottelo.cli.proxy import CapsuleTunnelError
-from robottelo.config import settings
+from robottelo.config import robottelo_tmp_dir, settings
 from robottelo.constants import (
     PULP_EXPORT_DIR,
     PULP_IMPORT_DIR,
@@ -470,20 +471,31 @@ class IoPSetup:
         self.setup_satellite_repos()
         self.ensure_podman_installed()
         self.podman_login(username, password, registry)
+
         # Set IPv6 podman proxy on Satellite, to pull from container registry
         self.enable_ipv6_podman_proxy()
-        # TODO: Replace this temporary implementation with a permanent solution.
-        result = self.execute(
-            f'''
-            set -e
-            [ -d /root/satellite-iop ] && rm -rf /root/satellite-iop
-            git clone {settings.rh_cloud.iop_advisor_engine.satellite_iop_repo} /root/satellite-iop
-            cd /root/satellite-iop
-            sed -i "s/hosts: all/hosts: localhost/" playbooks/deploy.yaml
-            ansible-galaxy collection install -r requirements.yml
-            ansible-playbook -c local playbooks/deploy.yaml
-            ''',
-            timeout='20m',
-        )
+
+        # Set up container image path overrides
+        custom_hiera = f'{robottelo_tmp_dir}/custom-hiera.yaml'
+
+        with open(custom_hiera, 'w') as f:
+            yaml.dump(
+                {
+                    f'iop::{service}::image': path
+                    for service, path in iop_settings.image_paths.items()
+                },
+                f,
+                sort_keys=False,
+                default_flow_style=False,
+            )
+        self.put(custom_hiera, '/etc/foreman-installer/custom-hiera.yaml')
+
+        command = InstallerCommand(
+            'enable-iop',
+            scenario='satellite',
+            foreman_initial_admin_password=settings.server.admin_password,
+        ).get_command()
+
+        result = self.execute(command, timeout='30m')
         assert result.status == 0, f'Failed to configure IoP: {result.stdout}'
         assert self.local_advisor_enabled
