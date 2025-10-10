@@ -342,6 +342,14 @@ RECOMMENDED_REPOS = [
     'satellite-client-6-for-rhel-9-x86_64-rpms',
     'satellite-client-6-for-rhel-8-x86_64-rpms',
 ]
+RECOMMENDED_KICKSTART_REPOS = [
+    'rhel-10-for-x86_64-appstream-kickstart',
+    'rhel-10-for-x86_64-baseos-kickstart',
+    'rhel-8-for-x86_64-appstream-kickstart',
+    'rhel-8-for-x86_64-baseos-kickstart',
+    'rhel-9-for-x86_64-appstream-kickstart',
+    'rhel-9-for-x86_64-baseos-kickstart',
+]
 
 VERSIONED_REPOS = [
     'satellite-capsule-{}-for-rhel-9-x86_64-rpms',
