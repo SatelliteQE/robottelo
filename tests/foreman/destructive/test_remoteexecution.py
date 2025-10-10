@@ -95,7 +95,6 @@ def test_positive_use_alternate_directory(
             'lifecycle-environment': 'Library',
             'content-view': 'Default Organization View',
             'organization-id': default_org.id,
-            'auto-attach': False,
         }
     )
     result = client.register(default_org, default_location, ak.name, target_sat)

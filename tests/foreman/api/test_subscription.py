@@ -71,7 +71,6 @@ def module_ak(module_sca_manifest_org, rh_repo, custom_repo, module_target_sat):
         environment=module_target_sat.api.LifecycleEnvironment(
             id=module_sca_manifest_org.library.id
         ),
-        auto_attach=True,
     ).create()
 
 
@@ -227,11 +226,6 @@ def test_sca_end_to_end(
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert rhel_contenthost.subscribed
-    # Check to see if Organization is in SCA Mode
-    assert (
-        target_sat.api.Organization(id=module_sca_manifest_org.id).read().simple_content_access
-        is True
-    )
     # Verify that you cannot attach a subscription to an activation key in SCA Mode
     subscription = target_sat.api.Subscription(organization=module_sca_manifest_org).search(
         query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
@@ -347,7 +341,6 @@ def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel_conten
         max_hosts=100,
         organization=module_sca_manifest_org,
         environment=target_sat.api.LifecycleEnvironment(id=module_sca_manifest_org.library.id),
-        auto_attach=True,
     ).create()
     # registering the content host with no content enabled/synced in the org
     # should create a client SCA cert with no content
