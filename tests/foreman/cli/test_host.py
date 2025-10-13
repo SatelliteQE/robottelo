@@ -2216,7 +2216,10 @@ def test_positive_dump_enc_yaml(target_sat):
     """
     enc_dump = target_sat.cli.Host.enc_dump({'name': target_sat.hostname})
     assert f'fqdn: {target_sat.hostname}' in enc_dump
-    assert f'ip: {target_sat.ip_addr}' in enc_dump
+    if target_sat.network_type.has_ipv6:
+        assert f'ip6: {target_sat.ip_addr}' in enc_dump
+    else:
+        assert f'ip: {target_sat.ip_addr}' in enc_dump
     assert 'ssh-rsa' in enc_dump
 
 
