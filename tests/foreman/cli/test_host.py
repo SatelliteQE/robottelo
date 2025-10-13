@@ -29,6 +29,7 @@ from robottelo.constants import (
     FAKE_8_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE_NAME,
 )
+from robottelo.enums import NetworkType
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.logging import logger
 from robottelo.utils.datafactory import (
@@ -2144,7 +2145,8 @@ def test_positive_dump_enc_yaml(target_sat):
     """
     enc_dump = target_sat.cli.Host.enc_dump({'name': target_sat.hostname})
     assert f'fqdn: {target_sat.hostname}' in enc_dump
-    assert f'ip: {target_sat.ip_addr}' in enc_dump
+    ip_prefix = 'ip6' if target_sat.network_type == NetworkType.IPV6 else 'ip'
+    assert f'{ip_prefix}: {target_sat.ip_addr}' in enc_dump
     assert 'ssh-rsa' in enc_dump
 
 
