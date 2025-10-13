@@ -20,7 +20,6 @@ import pytest
 from wait_for import TimedOutError, wait_for
 import yaml
 
-from robottelo.enums import NetworkType
 from robottelo.config import settings
 from robottelo.constants import (
     FAKE_1_CUSTOM_PACKAGE,
@@ -30,6 +29,7 @@ from robottelo.constants import (
     FAKE_8_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE_NAME,
 )
+from robottelo.enums import NetworkType
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.logging import logger
 from robottelo.utils.datafactory import (
