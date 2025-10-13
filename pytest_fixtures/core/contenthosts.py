@@ -20,7 +20,7 @@ def host_conf(request):
     if hasattr(request, 'param'):
         params = request.param
     distro = params.get('distro', 'rhel')
-    network = params.get('network')
+    network = params.get('network') or settings.content_host.network_type
     _rhelver = f"{distro}{params.get('rhel_version', settings.content_host.default_rhel_version)}"
 
     # check to see if no-containers is passed as an argument to pytest
