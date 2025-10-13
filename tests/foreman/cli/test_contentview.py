@@ -3412,8 +3412,8 @@ class TestRollingContentView:
         assert rolling_cv['organization'] == module_org.name
         assert len(rolling_cv['yum-repositories']) == 1
         assert rolling_cv['yum-repositories'][0]['id'] == custom_repo['id']
-        assert len(rolling_cv['lifecycle-environments']) == 1
-        assert rolling_cv['lifecycle-environments'][0]['id'] == str(library_id)
+        # no lce assigned without one passed at creation
+        assert len(rolling_cv['lifecycle-environments']) == 0
         assert len(rolling_cv['versions']) == 1
         assert rolling_cv['composite'] == 'no'
         assert rolling_cv['solve-dependencies'] == 'no'
@@ -3421,17 +3421,24 @@ class TestRollingContentView:
         # mutate and update
         new_description = gen_string('utf8')
         response = target_sat.cli.ContentView.update(
-            {'id': rolling_cv['id'], 'description': new_description}
+            {
+                'id': rolling_cv['id'],
+                'description': new_description,
+                'lifecycle-environment-ids': [library_id],
+            }
         )
         assert response[0]['message'] == 'Content view updated.'
         assert response[0]['id'] == str(rolling_cv['id'])
         rolling_info = target_sat.cli.ContentView.info({'id': rolling_cv['id']})
-        # description changed after update
+        # environment and description changed after update
+        assert len(rolling_info['lifecycle-environments']) == 1
+        assert rolling_info['lifecycle-environments'][0]['id'] == str(library_id)
         assert rolling_info['description'] == new_description
         # all other info attributes remained the same
-        assert {**rolling_info, 'description': None} == {
+        assert {**rolling_info, 'description': None, 'lifecycle-environments': None} == {
             **rolling_cv,
             'description': None,
+            'lifecycle-environments': None,
         }
         # cannot delete until removed from environment (Library)
         with pytest.raises(CLIReturnCodeError):
@@ -3458,9 +3465,13 @@ class TestRollingContentView:
         :CaseImportance: Critical
 
         """
-        library_id = module_org.read().library.id
+        library = module_org.read().library
         rolling_cv = target_sat.cli_factory.make_content_view(
-            {'rolling': True, 'organization-id': module_org.id}
+            {
+                'rolling': True,
+                'organization-id': module_org.id,
+                'lifecycle-environment-ids': [library.id],
+            }
         )
         rolling_info = target_sat.cli.ContentView.info({'id': rolling_cv['id']})
         # field 'activation-keys' does not exist if there are None added
@@ -3471,7 +3482,7 @@ class TestRollingContentView:
             {
                 'organization-id': module_org.id,
                 'content-view': rolling_cv['name'],
-                'lifecycle-environment-id': library_id,
+                'lifecycle-environment-id': library.id,
                 'name': gen_alphanumeric(),
             }
         )
@@ -3493,13 +3504,13 @@ class TestRollingContentView:
         # field 'activation-keys' present and populated
         assert len(rolling_info['activation-keys']) == 1
         assert ak['name'] in rolling_info['activation-keys']
-        # Update an existing activation key with CVE
+        # Update an existing activation key (module_ak) with CVE
         response = target_sat.cli.ActivationKey.update(
             {
                 'id': module_ak.id,
                 'organization-id': module_org.id,
                 'content-view': rolling_cv['name'],
-                'lifecycle-environment-id': library_id,
+                'lifecycle-environment-id': library.id,
             }
         )
         # updated module_ak was associated to rolling cv
@@ -3524,7 +3535,7 @@ class TestRollingContentView:
         # Can't delete until unassociated from AK's, removed from Library
         with pytest.raises(CLIReturnCodeError):
             target_sat.cli.ContentView.remove_from_environment(
-                {'id': rolling_cv['id'], 'lifecycle-environment-id': library_id}
+                {'id': rolling_cv['id'], 'lifecycle-environment-id': library.id}
             )
         with pytest.raises(CLIReturnCodeError):
             target_sat.cli.ContentView.delete({'id': rolling_cv['id']})
@@ -3551,7 +3562,7 @@ class TestRollingContentView:
             assert not rolling_info['activation-keys']
         # now we can remove cv from library
         target_sat.cli.ContentView.remove_from_environment(
-            {'id': rolling_cv['id'], 'lifecycle-environment-id': library_id}
+            {'id': rolling_cv['id'], 'lifecycle-environment-id': library.id}
         )
         # now we can delete the cv
         target_sat.cli.ContentView.delete({'id': rolling_cv['id']})
@@ -3829,7 +3840,13 @@ class TestRollingContentView:
             sleep(30)  # repo metadata update(s)
             # sync after adding to cv, to trigger new rolling version via updated repo content
             module_target_sat.cli.Repository.synchronize({'id': repo['id']})
-
+        # after adding repos, add rolling CV to Library
+        library_id = org.read().library.id
+        response = module_target_sat.cli.ContentView.update(
+            {'id': module_rolling_cv.id, 'lifecycle-environment-ids': [library_id]}
+        )
+        assert response[0]['message'] == 'Content view updated.'
+        assert response[0]['id'] == str(module_rolling_cv['id'])
         rolling_info = module_target_sat.cli.ContentView.info({'id': module_rolling_cv.id})
         assert len(rolling_info['versions']) == 1
         # RedHat repositories RHEL BaseOS and Appstream:
