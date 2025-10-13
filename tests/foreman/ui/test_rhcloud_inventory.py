@@ -62,7 +62,10 @@ def common_assertion(
     )
     upload_error_messages = ['NSS error', 'Permission denied']
 
-    assert 'Check the Uploading tab for report uploading status' in inventory_data['generating']['terminal']
+    assert (
+        'Check the Uploading tab for report uploading status'
+        in inventory_data['generating']['terminal']
+    )
     if subscription_connection_enabled:
         assert upload_success_msg in inventory_data['uploading']['terminal']
         assert 'x-rh-insights-request-id' in inventory_data['uploading']['terminal'].lower()
