@@ -20,7 +20,7 @@ def setup_http_proxy(request, module_org, target_sat):
     if request.param:
         parsed_url = urlparse(settings.http_proxy.un_auth_proxy_url)
         protocol = parsed_url.scheme
-        hostname = parsed_url.hostname
+        hostname = parsed_url.netloc
         general_proxy = (
             f'{protocol}://{settings.http_proxy.username}:{settings.http_proxy.password}@{hostname}'
         )
