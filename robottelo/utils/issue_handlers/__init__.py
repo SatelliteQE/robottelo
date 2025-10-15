@@ -1,4 +1,5 @@
 # Methods related to issue handlers in general
+from robottelo.logging import logger
 from robottelo.utils.issue_handlers import jira
 
 
@@ -22,4 +23,8 @@ def is_open(issue, data=None):
         issue {str} -- A string containing Jira issue id e.g: SAT-12345
         data {dict} -- Issue data indexed by issue id or None
     """
-    return jira.is_open_jira(issue.strip(), data)
+    status = jira.is_open_jira(issue.strip(), data)
+    logger.debug(
+        f"Is {issue} Jira open? - {'Nope! It is fixed!' if status else 'Yeah. It is still not fixed :('}"
+    )
+    return status

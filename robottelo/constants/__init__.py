@@ -1888,7 +1888,15 @@ JIRA_OPEN_STATUSES = (
 )
 JIRA_ONQA_STATUS = "Testing"
 JIRA_CLOSED_STATUSES = ("Release Pending", "Closed")
-JIRA_WONTFIX_RESOLUTIONS = "Obsolete"
+JIRA_WONTFIX_RESOLUTIONS = (
+    "Obsolete",
+    "Won't Do",
+    "Cannot Reproduce",
+    "Can't Do",
+    "Duplicate",
+    "Not a Bug",
+    "MirrorOrphan",
+)
 
 GROUP_MEMBERSHIP_MAPPER = {
     "config": {
