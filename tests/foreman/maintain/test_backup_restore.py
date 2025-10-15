@@ -459,6 +459,11 @@ def test_positive_backup_restore_satellite_iop(
     """
     instance = get_instance_name(sat_maintain)
     assert sat_maintain.satellite.local_advisor_enabled
+
+    # Make sure that the vmaas db has been synced successfully
+    result = sat_maintain.execute('systemctl start iop-cvemap-download')
+    assert result.status == 0
+
     subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
     result = sat_maintain.cli.Backup.run_backup(
         backup_dir=subdir,
