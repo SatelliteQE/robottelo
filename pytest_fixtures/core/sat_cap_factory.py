@@ -219,14 +219,29 @@ def module_unconfigured_satellite(request):
 
 
 @pytest.fixture(scope='module')
-def module_satellite_iop(request, module_unconfigured_satellite):
-    """Deploy and configure Red Hat Lightspeed in Satellite"""
-    iop_settings = settings.rh_cloud.iop_advisor_engine
-    module_unconfigured_satellite.configure_insights_on_prem(
-        iop_settings.stage_username, iop_settings.stage_token, iop_settings.stage_registry
+def module_satellite_iop(request, satellite_factory):
+    """Deploy and configure Red Hat Lightspeed in Satellite
+
+    Uses the 'deploy-satellite-iop' SatLab workflow which handles all IoP
+    configuration automatically, including:
+    - Podman authentication to stage registry
+    - satellite-installer with --enable-iop flag
+
+    The workflow handles all setup, so no manual configuration is needed.
+    """
+    # Deploy using the IoP workflow with stage credentials
+    new_sat = satellite_factory(
+        workflow=settings.server.deploy_workflows.iop,
     )
-    yield module_unconfigured_satellite
-    module_unconfigured_satellite.podman_logout(iop_settings.stage_registry)
+
+    # Verify IoP is enabled
+    assert new_sat.local_advisor_enabled, "IoP was not successfully enabled on Satellite"
+
+    yield new_sat
+
+    # Cleanup
+    new_sat.teardown()
+    Broker(hosts=[new_sat]).checkin()
 
 
 @pytest.fixture(scope='module')
