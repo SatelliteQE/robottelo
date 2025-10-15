@@ -921,6 +921,8 @@ def test_positive_search_by_reported_data(
     :Verifies: SAT-9132
 
     :customerscenario: true
+
+    :BlockedBy: SAT-38761
     """
     result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
     assert result.status == 0, f'Failed to register host: {result.stderr}'
