@@ -596,7 +596,7 @@ def generate_report(rhcloud_manifest_org, module_target_sat, disconnected=False)
     assert task_output[0].result == "success"
 
     report_log = module_target_sat.api.Organization(id=org.id).rh_cloud_fetch_last_report_log()
-    expected = f'Successfully generated /var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz for organization id {org.id}'
+    expected = 'Check the Uploading tab for report uploading status'
     assert expected in report_log['output']
 
 
