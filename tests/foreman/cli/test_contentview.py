@@ -1479,7 +1479,7 @@ class TestContentView:
         )
         module_target_sat.cli.ContentView.publish({'id': new_cv['id']})
         new_cv_version_2 = module_target_sat.cli.ContentView.info({'id': new_cv['id']})['versions'][
-            1
+            0
         ]
         module_streams = module_target_sat.cli.ModuleStream.list(
             {'content-view-version-id': new_cv_version_2['id']}
