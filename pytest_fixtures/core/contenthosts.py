@@ -275,7 +275,6 @@ def centos_host(request, version):
     with Broker(
         **host_conf(request),
         host_class=ContentHost,
-        deploy_network_type=settings.content_host.network_type,
     ) as host:
         yield host
 
@@ -290,7 +289,6 @@ def oracle_host(request, version):
     with Broker(
         **host_conf(request),
         host_class=ContentHost,
-        deploy_network_type=settings.content_host.network_type,
     ) as host:
         yield host
 
