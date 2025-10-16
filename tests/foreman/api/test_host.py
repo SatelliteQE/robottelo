@@ -671,6 +671,8 @@ def test_positive_end_to_end_with_image(
 
     :expectedresults: A host is created with expected image, image is removed and
         host is updated with expected image
+
+    :BlockedBy: SAT-32733
     """
     host = module_target_sat.api.Host(
         organization=module_org,
