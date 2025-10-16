@@ -20,7 +20,7 @@ def host_conf(request):
     if hasattr(request, 'param'):
         params = request.param
     distro = params.get('distro', 'rhel')
-    network = params.get('network') or settings.content_host.network_type
+    network = params.get('network')
     _rhelver = f"{distro}{params.get('rhel_version', settings.content_host.default_rhel_version)}"
 
     # check to see if no-containers is passed as an argument to pytest
@@ -68,7 +68,11 @@ def module_rhel_contenthost(request):
 @pytest.fixture(params=[{'rhel_version': '7'}])
 def rhel7_contenthost(request):
     """A function-level fixture that provides a rhel7 content host object"""
-    with Broker(**host_conf(request), host_class=ContentHost) as host:
+    with Broker(
+        **host_conf(request),
+        host_class=ContentHost,
+        deploy_network_type=settings.content_host.network_type,
+    ) as host:
         yield host
 
 
@@ -89,7 +93,11 @@ def rhel7_contenthost_module(request):
 @pytest.fixture(params=[{'rhel_version': '8'}])
 def rhel8_contenthost(request):
     """A fixture that provides a rhel8 content host object"""
-    with Broker(**host_conf(request), host_class=ContentHost) as host:
+    with Broker(
+        **host_conf(request),
+        host_class=ContentHost,
+        deploy_network_type=settings.content_host.network_type,
+    ) as host:
         yield host
 
 
