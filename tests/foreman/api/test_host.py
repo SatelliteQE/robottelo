@@ -1075,23 +1075,6 @@ def test_positive_add_future_subscription_with_ak():
 
 
 @pytest.mark.stubbed
-def test_negative_auto_attach_future_subscription():
-    """Run auto-attach on a content host, with a current and future-dated
-    subscription.
-
-    :id: f4a6feec-baf8-40c6-acb3-474b34419a62
-
-    :steps:
-
-        1. Import a manifest with a future-dated and current subscription
-        2. Register a content host to the organization
-        3. Run auto-attach on the content host
-
-    :expectedresults: Only the current subscription was added to the host
-    """
-
-
-@pytest.mark.stubbed
 def test_positive_verify_files_with_pxegrub_uefi():
     """Provision a new Host and verify the tftp and dhcpd file
     structure is correct

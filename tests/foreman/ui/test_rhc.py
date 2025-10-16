@@ -72,7 +72,6 @@ def fixture_setup_rhc_satellite(
         manifester = Manifester(
             allocation_name=module_rhc_org.name,
             manifest_category=settings.manifest.golden_ticket,
-            simple_content_access="enabled",
         )
         rhcloud_manifest = manifester.get_manifest()
         module_target_sat.upload_manifest(module_rhc_org.id, rhcloud_manifest.content)
@@ -99,7 +98,6 @@ def fixture_setup_rhc_satellite(
             content_view=content_view,
             organization=module_rhc_org,
             environment=module_target_sat.api.LifecycleEnvironment(id=module_rhc_org.library.id),
-            auto_attach=True,
         ).create()
         logger.debug(
             f"Activation key: {ak} \n CV: {content_view} \n Organization: {module_rhc_org}"

@@ -59,7 +59,7 @@ def module_setup_content(module_sca_manifest_org, module_target_sat):
     cvv = cv.read().version[0].read()
     cvv.promote(data={'environment_ids': lce.id})
     ak = module_target_sat.api.ActivationKey(
-        content_view=cv, organization=org, environment=lce, auto_attach=True
+        content_view=cv, organization=org, environment=lce
     ).create()
     all_content = ak.product_content(data={'content_access_mode_all': '1'})['results']
     content_label = [repo['label'] for repo in all_content if repo['name'] == custom_repo.name][0]

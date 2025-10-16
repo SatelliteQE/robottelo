@@ -350,23 +350,6 @@ def test_positive_remove_host_collection(module_org, module_target_sat):
     assert len(act_key.read().host_collection) == 0
 
 
-def test_positive_update_auto_attach(target_sat, module_org):
-    """Create an activation key, then update the auto_attach
-    field with the inverse boolean value.
-
-    :id: ec225dad-2d27-4b37-989d-1ba2c7f74ac4
-
-    :expectedresults: The value is changed.
-
-    :CaseImportance: Critical
-    """
-    act_key = target_sat.api.ActivationKey(organization=module_org).create()
-    act_key_2 = target_sat.api.ActivationKey(
-        id=act_key.id, organization=module_org, auto_attach=(not act_key.auto_attach)
-    ).update(['auto_attach'])
-    assert act_key.auto_attach != act_key_2.auto_attach
-
-
 @pytest.mark.upgrade
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 def test_positive_delete(name, target_sat):

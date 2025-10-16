@@ -47,7 +47,7 @@ def host_ui_default(module_target_sat):
 
 @pytest.fixture(scope='module')
 def module_org(module_target_sat):
-    org = module_target_sat.api.Organization(simple_content_access=False).create()
+    org = module_target_sat.api.Organization().create()
     # adding remote_execution_connect_by_ip=Yes at org level
     module_target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',

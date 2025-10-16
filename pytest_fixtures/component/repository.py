@@ -89,7 +89,7 @@ def setup_content(module_target_sat, module_org):
     cvv = cv.read().version[0].read()
     cvv.promote(data={'environment_ids': lce.id, 'force': False})
     ak = module_target_sat.api.ActivationKey(
-        content_view=cv, max_hosts=100, organization=org, environment=lce, auto_attach=True
+        content_view=cv, max_hosts=100, organization=org, environment=lce
     ).create()
     return ak, org, custom_repo
 
