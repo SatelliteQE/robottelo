@@ -3154,3 +3154,239 @@ def test_positive_change_hosts_org_loc(
             assert host_entity.location.id == new_location.id, (
                 f'Host {host_name} not moved to second location'
             )
+
+
+def read_host_collections_hosts(target_sat, host_col_names, org):
+    """
+    Helper function to read hosts in a host collections via API.
+
+    :param target_sat: Satellite object for API access
+    :param host_col_names: list of host collection names or a single host collection name
+    :param org: Organization object the host collections belong to
+
+    :return: dict mapping host collection names to lists of host names in each collection
+    """
+
+    if not isinstance(host_col_names, list):
+        host_col_names = [host_col_names]
+
+    hosts_assigned_to_collections = {}
+    for host_col in host_col_names:
+        host_collection = target_sat.api.HostCollection(organization=org).search(
+            query={'search': f'name="{host_col}"'}
+        )
+        if host_collection:
+            hc = host_collection[0].read()
+            hosts_assigned_to_collections[host_col] = [host.read().name for host in hc.host]
+        else:
+            hosts_assigned_to_collections[host_col] = []
+
+    return hosts_assigned_to_collections
+
+
+def test_positive_all_hosts_manage_host_collections(target_sat, function_org, function_location):
+    """
+    Manage host collections for multiple hosts through All Hosts UI bulk actions.
+
+    :id: ef9d1521-7cf1-4d86-a5b4-197f34fcf907
+
+    :steps:
+        1. Create 2 fake hosts
+        2. Create 2 host collections with unlimited host limits
+        3. Create 1 host collection with host limit set to 1
+        4. Add 1 host to the host collection with limit=1 (should succeed)
+        5. Attempt to add a second host to the host collection with limit=1 (should fail)
+        6. Add both hosts to the 2 unlimited host collections (should succeed)
+        7. Remove 1 host from 1 host collection
+        8. Remove 1 host from 2 host collections simultaneously
+        9. Add hosts back to both collections
+        10. Remove all hosts from all collections
+
+    :expectedresults:
+        1. Hosts can be successfully added to host collections via bulk action
+        2. Host collection limits are enforced (limit=1 prevents adding second host)
+        3. Multiple hosts can be added to multiple host collections in one operation
+        4. Hosts can be removed from single or multiple host collections
+        5. Success/failure messages are displayed appropriately
+        6. Host collection membership is correctly updated after each operation
+        7. API verification confirms the UI changes match actual host collection membership
+    """
+
+    host_names = []
+    for _ in range(2):
+        host = target_sat.cli_factory.make_fake_host(
+            {
+                'organization': function_org.name,
+                'location': function_location.name,
+            }
+        )
+        host_names.append(host.name)
+
+    host_col_names = ['TestHostCol_1', 'TestHostCol_2']
+
+    # create two host collections with unlimited hosts limit
+    for col_name in host_col_names:
+        target_sat.api.HostCollection(
+            name=col_name,
+            max_hosts=None,
+            organization=function_org,
+        ).create()
+
+    # create one host collection with host_limit=1
+    host_col_limit_1_name = 'TestHostCol_limit_1'
+    target_sat.api.HostCollection(
+        name=host_col_limit_1_name,
+        max_hosts=1,
+        organization=function_org,
+    ).create()
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=function_org.name)
+        session.location.select(loc_name=function_location.name)
+
+        # Add 1 host to host_collection with limit=1 - should succeed
+        result = session.all_hosts.change_associations_host_collections(
+            host_names=host_names[0],
+            host_collections_to_select=host_col_limit_1_name,
+            option='Add',
+        )
+        assert 'Successfully added' in result
+        hosts_in_host_col = read_host_collections_hosts(
+            target_sat, host_col_limit_1_name, function_org
+        )
+        assert hosts_in_host_col[host_col_limit_1_name] == [host_names[0]]
+
+        # Add second host to host_collection with limit=1 - should fail
+        result = session.all_hosts.change_associations_host_collections(
+            host_names=host_names[1],
+            host_collections_to_select=host_col_limit_1_name,
+            option='Add',
+        )
+        assert 'Validation failed' in result
+        hosts_in_host_col = read_host_collections_hosts(
+            target_sat, host_col_limit_1_name, function_org
+        )
+        assert hosts_in_host_col[host_col_limit_1_name] == [host_names[0]]
+
+        # Add 2 hosts to 2 host collections
+        result = session.all_hosts.change_associations_host_collections(
+            host_names=host_names,
+            host_collections_to_select=host_col_names,
+            option='Add',
+        )
+        assert 'Successfully added' in result
+        hosts_in_host_col = read_host_collections_hosts(target_sat, host_col_names, function_org)
+        assert hosts_in_host_col[host_col_names[0]] == host_names
+        assert hosts_in_host_col[host_col_names[1]] == host_names
+
+        # Remove 1 host from 1 host collection
+        # at this state there are 2 hosts in both 'TestHostCol_1' and 'TestHostCol_2'
+        result = session.all_hosts.change_associations_host_collections(
+            host_names=host_names[0],
+            host_collections_to_select=host_col_names[0],
+            option='Remove',
+        )
+        assert 'Successfully removed' in result
+        hosts_in_host_col = read_host_collections_hosts(target_sat, host_col_names[0], function_org)
+        assert hosts_in_host_col[host_col_names[0]] == [host_names[1]]
+
+        # Remove 1 host from 2 host collections
+        # at this state there is 1 host in 'TestHostCol_1' and 2 hosts in 'TestHostCol_2'
+        result = session.all_hosts.change_associations_host_collections(
+            host_names=host_names[1],
+            host_collections_to_select=host_col_names,
+            option='Remove',
+        )
+        assert 'Successfully removed' in result
+        hosts_in_host_col = read_host_collections_hosts(target_sat, host_col_names, function_org)
+        assert hosts_in_host_col[host_col_names[0]] == []
+        assert hosts_in_host_col[host_col_names[1]] == [host_names[0]]
+
+        # Add hosts back, so both host collections have 2 hosts
+        result = session.all_hosts.change_associations_host_collections(
+            host_names=host_names,
+            host_collections_to_select=host_col_names,
+            option='Add',
+        )
+        hosts_in_host_col = read_host_collections_hosts(target_sat, host_col_names, function_org)
+        assert hosts_in_host_col[host_col_names[0]] == host_names
+        assert hosts_in_host_col[host_col_names[1]] == host_names
+
+        # Remove 2 hosts from 2 host collections
+        result = session.all_hosts.change_associations_host_collections(
+            host_names=host_names,
+            host_collections_to_select=host_col_names,
+            option='Remove',
+        )
+        hosts_in_host_col = read_host_collections_hosts(target_sat, host_col_names, function_org)
+        assert hosts_in_host_col[host_col_names[0]] == []
+        assert hosts_in_host_col[host_col_names[1]] == []
+
+
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [{'YumRepository': {'url': settings.repos.yum_3.url}}],
+    ids=['yum_3'],
+    indirect=True,
+)
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+def test_positive_all_hosts_check_status_icon(
+    target_sat,
+    content_hosts,
+    module_repos_collection_with_setup,
+    module_org,
+    module_ak_with_cv,
+):
+    """
+    Verify that host status icons in All Hosts table correctly reflect the host's actual status.
+
+    :id: 42089feb-5e3a-4d72-be4f-809c6042abce
+
+    :steps:
+        1. Create/register three different hosts with different statuses:
+           - Satellite host (success/OK status)
+           - Content host with applicable security errata (error/danger status)
+           - Content host with no package profile reported (warning status)
+        2. For the errata host, install and then downgrade a package to create applicable errata
+        3. Navigate to All Hosts page
+        4. Read the status icon for each host
+        5. Verify the status icon matches the expected state
+
+    :expectedresults:
+        1. Satellite host shows 'success' status with 'Build: Installed' details
+        2. Host with security errata shows 'danger' status with 'Errata: Security errata applicable' details
+        3. Host without package profile shows 'warning' status with appropriate message about missing packages/repos
+        4. Status icons accurately represent each host's actual state via both UI and API
+    """
+    # Setup host that will have applicable security errata (error status icon)
+    content_hosts[0].add_rex_key(target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(
+        content_hosts[0], enable_custom_repos=True
+    )
+    # Install the newer package version first
+    assert content_hosts[0].execute(f'yum install -y {FAKE_8_CUSTOM_PACKAGE}').status == 0
+    # Downgrade to create applicable security errata
+    assert content_hosts[0].execute(f'yum downgrade -y {FAKE_8_CUSTOM_PACKAGE_NAME}').status == 0
+
+    assert (
+        content_hosts[1].register(module_org, None, module_ak_with_cv.name, target_sat).status == 0
+    )
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=ANY_CONTEXT['org'])
+        session.location.select(loc_name=ANY_CONTEXT['location'])
+
+        result = session.all_hosts.read_host_status_icon(host_name=target_sat.hostname)
+        assert result['status'] == 'success'
+        assert 'Build: Installed' in result['status_details']
+
+        result = session.all_hosts.read_host_status_icon(host_name=content_hosts[0].hostname)
+        assert result['status'] == 'danger'
+        assert 'Errata: Security errata applicable' in result['status_details']
+
+        result = session.all_hosts.read_host_status_icon(host_name=content_hosts[1].hostname)
+        assert result['status'] == 'warning'
+        assert (
+            'Errata: No installed packages and/or enabled repositories have been reported by subscription-manager.'
+            in result['status_details']
+        )
