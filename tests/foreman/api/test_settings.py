@@ -14,9 +14,11 @@
 
 import random
 
+from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError
 
+from robottelo.constants import STRING_TYPES
 from robottelo.utils.datafactory import (
     filtered_datapoint,
     generate_strings_list,
@@ -131,8 +133,11 @@ def test_positive_update_hostname_default_prefix(setting_update):
 
     :expectedresults: Default set prefix should be updated with new value
     """
-    discovery_prefix = random.choice(
-        list(generate_strings_list(exclude_types=['alphanumeric', 'numeric']))
+    # Value must start with a letter. Allowed characters: `a-z`, `A-Z`, `0-9` and `-`. Max length is 62 characters.
+    discovery_prefix = gen_string('alpha', 1) + random.choice(
+        generate_strings_list(
+            exclude_types=list(set(STRING_TYPES) - {'alphanumeric', 'alpha', 'numeric'})
+        )
     )
     setting_update.value = discovery_prefix
     setting_update = setting_update.update({'value'})
