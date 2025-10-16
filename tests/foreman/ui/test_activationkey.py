@@ -662,11 +662,10 @@ def test_positive_access_non_admin_user(session, test_name, target_sat):
         }
     )
     # Create new role
-    role = target_sat.api.Role().create()
+    role = target_sat.api.Role(organization=[org]).create()
     # Create filter with predefined activation keys search criteria
     envs_condition = ' or '.join(['environment = ' + s for s in envs_list])
     target_sat.api.Filter(
-        organization=[org],
         permission=target_sat.api.Permission().search(
             filters={'name': 'view_activation_keys'},
             query={'search': 'resource_type="Katello::ActivationKey"'},

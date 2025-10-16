@@ -2242,7 +2242,7 @@ def test_repository_rpms_id_type(target_sat):
 
 
 def test_negative_readonly_user_actions(
-    target_sat, function_role, content_view, module_org, module_lce
+    target_sat, content_view, module_org, module_lce, function_role_with_org
 ):
     """Attempt to manage content views
 
@@ -2264,27 +2264,26 @@ def test_negative_readonly_user_actions(
     """
     user_login = gen_string('alpha')
     user_password = gen_string('alphanumeric')
+
     # create a role with content views read only permissions
     target_sat.api.Filter(
-        organization=[module_org],
         permission=target_sat.api.Permission().search(
             filters={'name': 'view_content_views'},
             query={'search': 'resource_type="Katello::ContentView"'},
         ),
-        role=function_role,
+        role=function_role_with_org,
     ).create()
     # create environment permissions and assign it to our role
     target_sat.api.Filter(
-        organization=[module_org],
         permission=target_sat.api.Permission().search(
             query={'search': 'resource_type="Katello::KTEnvironment"'}
         ),
-        role=function_role,
+        role=function_role_with_org,
     ).create()
     # create a user and assign the above created role
     target_sat.api.User(
         organization=[module_org],
-        role=[function_role],
+        role=[function_role_with_org],
         login=user_login,
         password=user_password,
     ).create()
@@ -2323,7 +2322,9 @@ def test_negative_readonly_user_actions(
         target_sat.api.HostCollection(server_config=cfg).create()
 
 
-def test_negative_non_readonly_user_actions(target_sat, content_view, function_role, module_org):
+def test_negative_non_readonly_user_actions(
+    target_sat, content_view, module_org, function_role_with_org
+):
     """Attempt to view content views
 
     :id: b0a53c38-72f1-4731-881e-192134df6ef3
@@ -2349,14 +2350,13 @@ def test_negative_non_readonly_user_actions(target_sat, content_view, function_r
         entity for entity in cv_permissions_entities if entity.name in user_cv_permissions
     ]
     target_sat.api.Filter(
-        organization=[module_org],
         permission=user_cv_permissions_entities,
-        role=function_role,
+        role=function_role_with_org,
     ).create()
     # create a user and assign the above created role
     target_sat.api.User(
         organization=[module_org],
-        role=[function_role],
+        role=[function_role_with_org],
         login=user_login,
         password=user_password,
     ).create()
