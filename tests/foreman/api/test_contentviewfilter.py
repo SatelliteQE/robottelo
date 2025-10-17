@@ -674,7 +674,8 @@ class TestContentViewFilterRule:
         target_sat.api.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
 
         content_view.publish()
-        content_view_version_info = content_view.read().version[1].read()
+        content_view = content_view.read()
+        content_view_version_info = content_view.version[0].read()
 
         # verify the module_stream_count and errata_count for Include Filter
         assert content_view_version_info.module_stream_count == 5
