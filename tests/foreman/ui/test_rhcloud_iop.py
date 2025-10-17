@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: RHCloud
+:CaseComponent: Insights-Advisor
 
 :Team: Proton
 
@@ -272,3 +272,74 @@ def test_rhcloud_inventory_disabled_local_insights(module_target_sat_insights):
         insights_view = session.cloudinsights.navigate_to(session.cloudinsights, 'All')
         with pytest.raises(Exception, match='not found in navigation tree'):
             insights_view.menu.select('Insights', 'Inventory Upload')
+
+
+@pytest.mark.e2e
+@pytest.mark.pit_server
+@pytest.mark.pit_client
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('N-1')
+@pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
+def test_iop_recommendations_remediation_type_and_status(
+    rhel_insights_vm,
+    rhcloud_manifest_org,
+    module_target_sat_insights,
+):
+    """Set up Satellite with iop enabled, verify recommendations remediation type,
+    and test filtering recommendations by status.
+
+    :id: 62834698-b4b8-4218-855c-2b2aa584b364
+
+    :steps:
+        1. Set up Satellite with iop enabled.
+        2. In Satellite UI, go to Red Hat Lightspeed > Recommendations.
+        3. Search for "OpenSSH config permissions" recommendation.
+        4. Verify the recommendation's remediation type is "Playbook".
+        5. Apply filter for "Enabled" status recommendations.
+        6. Verify Enabled recommendations are greater than 0.
+        7. Apply filter for "Disabled" status recommendations.
+        8. Verify Disabled recommendations are 0.
+
+    :expectedresults:
+        1. Red Hat Lightspeed recommendation related to "OpenSSH config permissions" issue is listed
+            for misconfigured machine.
+        2. The recommendation has remediation type "Playbook".
+        3. Enabled recommendations are displayed (count greater than 0).
+        4. No disabled recommendations are displayed.
+
+    :CaseImportance: Critical
+
+    :Verifies: SAT-32566
+
+    :parametrized: yes
+
+    :CaseAutomation: Automated
+    """
+    org_name = rhcloud_manifest_org.name
+
+    # Verify insights-client package is installed
+    assert rhel_insights_vm.execute('insights-client --version').status == 0
+
+    # Prepare misconfigured machine and upload data to Insights
+    create_insights_recommendation(rhel_insights_vm)
+
+    with module_target_sat_insights.ui_session() as session:
+        session.organization.select(org_name=org_name)
+
+        # Verify that we can see the rule hit via insights-client
+        result = rhel_insights_vm.execute('insights-client --diagnosis')
+        assert result.status == 0
+        assert 'OPENSSH_HARDENING_CONFIG_PERMS' in result.stdout
+
+        # Search for the recommendation and assert its remediation type
+        result = session.recommendationstab.search(OPENSSH_RECOMMENDATION)
+        assert result[0]['Name'] == OPENSSH_RECOMMENDATION
+        assert result[0]['Remediation type'] == 'Playbook'
+
+        # Verify that enabled recommendations are greater than 0
+        result = session.recommendationstab.apply_filter("Status", "Enabled")
+        assert len(result) > 0
+
+        # Verify that Disabled recommnedations are 0
+        result = session.recommendationstab.apply_filter("Status", "Disabled")
+        assert 'No recommendations' in result[0]['Name']
