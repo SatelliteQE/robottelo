@@ -3172,10 +3172,9 @@ def read_host_collections_hosts(target_sat, host_col_names, org):
 
     hosts_assigned_to_collections = {}
     for host_col in host_col_names:
-        host_collection = target_sat.api.HostCollection(organization=org).search(
+        if host_collection := target_sat.api.HostCollection(organization=org).search(
             query={'search': f'name="{host_col}"'}
-        )
-        if host_collection:
+        ):
             hc = host_collection[0].read()
             hosts_assigned_to_collections[host_col] = [host.read().name for host in hc.host]
         else:
@@ -3210,6 +3209,8 @@ def test_positive_all_hosts_manage_host_collections(target_sat, function_org, fu
         5. Success/failure messages are displayed appropriately
         6. Host collection membership is correctly updated after each operation
         7. API verification confirms the UI changes match actual host collection membership
+
+    :Verifies: SAT-31027
     """
 
     host_names = []
@@ -3357,34 +3358,37 @@ def test_positive_all_hosts_check_status_icon(
         2. Host with security errata shows 'danger' status with 'Errata: Security errata applicable' details
         3. Host without package profile shows 'warning' status with appropriate message about missing packages/repos
         4. Status icons accurately represent each host's actual state via both UI and API
-    """
-    # Setup host that will have applicable security errata (error status icon)
-    content_hosts[0].add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(
-        content_hosts[0], enable_custom_repos=True
-    )
-    # Install the newer package version first
-    assert content_hosts[0].execute(f'yum install -y {FAKE_8_CUSTOM_PACKAGE}').status == 0
-    # Downgrade to create applicable security errata
-    assert content_hosts[0].execute(f'yum downgrade -y {FAKE_8_CUSTOM_PACKAGE_NAME}').status == 0
 
-    assert (
-        content_hosts[1].register(module_org, None, module_ak_with_cv.name, target_sat).status == 0
-    )
+    :Verifies: SAT-36330
+    """
+
+    success_host = target_sat
+    warning_host = content_hosts[0]
+    error_host = content_hosts[1]
+
+    # Setup host that will have applicable security errata (error status icon)
+    warning_host.add_rex_key(target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(warning_host, enable_custom_repos=True)
+    # Install the newer package version first
+    assert warning_host.execute(f'yum install -y {FAKE_8_CUSTOM_PACKAGE}').status == 0
+    # Downgrade to create applicable security errata
+    assert warning_host.execute(f'yum downgrade -y {FAKE_8_CUSTOM_PACKAGE_NAME}').status == 0
+
+    assert error_host.register(module_org, None, module_ak_with_cv.name, success_host).status == 0
 
     with target_sat.ui_session() as session:
         session.organization.select(org_name=ANY_CONTEXT['org'])
         session.location.select(loc_name=ANY_CONTEXT['location'])
 
-        result = session.all_hosts.read_host_status_icon(host_name=target_sat.hostname)
+        result = session.all_hosts.read_host_status_icon(host_name=success_host.hostname)
         assert result['status'] == 'success'
         assert 'Build: Installed' in result['status_details']
 
-        result = session.all_hosts.read_host_status_icon(host_name=content_hosts[0].hostname)
+        result = session.all_hosts.read_host_status_icon(host_name=warning_host.hostname)
         assert result['status'] == 'danger'
         assert 'Errata: Security errata applicable' in result['status_details']
 
-        result = session.all_hosts.read_host_status_icon(host_name=content_hosts[1].hostname)
+        result = session.all_hosts.read_host_status_icon(host_name=error_host.hostname)
         assert result['status'] == 'warning'
         assert (
             'Errata: No installed packages and/or enabled repositories have been reported by subscription-manager.'
