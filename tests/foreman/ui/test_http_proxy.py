@@ -21,6 +21,7 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import REPO_TYPE, REPOS
 from robottelo.exceptions import ProxyHostError
+from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture
@@ -465,6 +466,11 @@ def test_http_proxy_containing_special_characters(
 @pytest.mark.run_in_one_thread
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('allow_repo_discovery')
+@pytest.mark.parametrize(
+    'use_ip',
+    [False] if is_open('SAT-39098') else [False, True],
+    ids=['hostname'] if is_open('SAT-39098') else ['hostname', 'ip'],
+)
 @pytest.mark.parametrize(
     'setup_http_proxy',
     [True, False],
