@@ -26,10 +26,15 @@ from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize(
+    'use_ip',
+    [False],
+    ids=['hostname'],
+)
+@pytest.mark.parametrize(
     'setup_http_proxy',
     [True, False],
-    indirect=True,
     ids=['auth_http_proxy', 'unauth_http_proxy'],
+    indirect=True,
 )
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -151,6 +156,11 @@ def test_positive_end_to_end(
 @pytest.mark.upgrade
 @pytest.mark.rhel_ver_match('9')
 @pytest.mark.run_in_one_thread
+@pytest.mark.parametrize(
+    'use_ip',
+    [False],
+    ids=['hostname'],
+)
 @pytest.mark.parametrize(
     'setup_http_proxy',
     [True, False],

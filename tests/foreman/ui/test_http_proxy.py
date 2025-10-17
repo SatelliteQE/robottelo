@@ -466,6 +466,11 @@ def test_http_proxy_containing_special_characters(
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('allow_repo_discovery')
 @pytest.mark.parametrize(
+    'use_ip',
+    [False],
+    ids=['hostname'],
+)
+@pytest.mark.parametrize(
     'setup_http_proxy',
     [True, False],
     indirect=True,
