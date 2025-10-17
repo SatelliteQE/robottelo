@@ -220,8 +220,9 @@ def test_positive_run_custom_job_template(
     """
 
     hostname = rex_contenthost.hostname
-    ui_user.location.append(target_sat.api.Location(id=default_location.id))
-    ui_user.update(['location'])
+    if not any(loc.id == default_location.id for loc in ui_user.location):
+        ui_user.location.append(target_sat.api.Location(id=default_location.id))
+        ui_user.update(['location'])
     job_template_name = gen_string('alpha')
     with target_sat.ui_session() as session:
         session.organization.select(module_org.name)
