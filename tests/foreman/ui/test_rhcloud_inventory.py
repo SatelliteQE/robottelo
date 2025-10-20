@@ -676,13 +676,14 @@ def test_rh_cloud_minimal_report(
 @pytest.mark.e2e
 @pytest.mark.pit_server
 @pytest.mark.pit_client
+@pytest.mark.rhel_ver_list([7, 8, 9, 10])
 def test_sync_inventory_status(rhcloud_manifest_org, rhcloud_registered_hosts, module_target_sat):
-    """Test syncing Lighstpeed inventory status
+    """Test syncing Lightspeed inventory status
 
     :id: 1fe47111-8831-4168-b79e-ca7c1f6aa343
 
     :steps:
-        1. Register 2 hosts to Satellite to an org with a manifest importedand set up Lightspeed.
+        1. Register 2 hosts to Satellite to an org with a manifest imported and set up Lightspeed.
         2. Sync the Lightspeed inventory for the org.
 
     :expectedresults: Inventory status is successfully synced for the hosts.
