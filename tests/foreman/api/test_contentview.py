@@ -1277,12 +1277,12 @@ class TestRollingContentView:
         with pytest.raises(TypeError):
             # try creating composite cv with rolling cv added at creation
             composite_cv = target_sat.api.ContentView(
-                component=[rolling_cv.read()], composite=True
+                component=[rolling_cv.read()], composite=True, organization=default_org
             ).create()
         with pytest.raises(HTTPError):
             # try creating composite cv with rolling cv's Version added at creation
             composite_cv = target_sat.api.ContentView(
-                component=[rolling_cv.version[0].read()], composite=True
+                component=[rolling_cv.version[0].read()], composite=True, organization=default_org
             ).create()
         with pytest.raises(HTTPError):
             # try by creating composite with a matching CVVE (content-view-version-environment)
@@ -1293,7 +1293,7 @@ class TestRollingContentView:
                 composite=True,
             ).create()
         # try updating new empty composite's component with the rolling cv
-        composite_cv = target_sat.api.ContentView(composite=True).create()
+        composite_cv = target_sat.api.ContentView(composite=True, organization=default_org).create()
         composite_cv = composite_cv.read()
         assert not composite_cv.component
         composite_cv.component = [rolling_cv.read()]
