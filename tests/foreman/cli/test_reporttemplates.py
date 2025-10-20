@@ -812,7 +812,12 @@ def test_positive_generate_hostpkgcompare(
     )
 
     clients = []
-    with Broker(nick='rhel7', host_class=ContentHost, _count=2) as hosts:
+    with Broker(
+        nick='rhel7',
+        deploy_network_type=settings.content_host.network_type,
+        host_class=ContentHost,
+        _count=2,
+    ) as hosts:
         for client in hosts:
             # Create RHEL hosts via broker and register content host
             result = client.register(
