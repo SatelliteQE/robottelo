@@ -13,7 +13,7 @@ def session_auth_proxy(session_target_sat):
 
 
 @pytest.fixture
-def setup_http_proxy(request, module_org, target_sat):
+def setup_http_proxy(request, use_ip, module_org, target_sat):
     """Create a new HTTP proxy and set related settings based on proxy"""
     proxy_settings = ['content_default_http_proxy', 'http_proxy']
     saved_proxies = list(
@@ -23,7 +23,7 @@ def setup_http_proxy(request, module_org, target_sat):
         )
     )
 
-    http_proxy = target_sat.api_factory.make_http_proxy(module_org, request.param)
+    http_proxy = target_sat.api_factory.make_http_proxy(module_org, request.param, use_ip)
 
     if request.param is None:
         target_sat.update_setting('content_default_http_proxy', '')
