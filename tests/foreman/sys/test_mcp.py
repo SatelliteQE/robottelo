@@ -23,8 +23,12 @@ from robottelo.enums import NetworkType
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     'mcp_server',
-    ['module_mcp_target_sat', 'module_downstream_mcp_target_sat'],
-    ids=['upstream', 'downstream'],
+    [
+        'module_target_sat_foreman_mcp',
+        'module_target_sat_foreman_mcp_stage',
+        'module_target_sat_foreman_mcp_downstream',
+    ],
+    ids=['upstream', 'downstream', 'stage'],
 )
 @pytest.mark.skipif(
     settings.server.network_type == NetworkType.IPV6,
@@ -38,11 +42,7 @@ async def test_positive_call_mcp_server(request, mcp_server):
     :expectedresults: MCP server is running and returns up to date data
     """
     target_sat = request.getfixturevalue(mcp_server)
-    mcp_settings = settings.get(
-        'foreman_mcp_downstream'
-        if mcp_server == 'module_downstream_mcp_target_sat'
-        else 'foreman_mcp'
-    )
+    mcp_settings = settings.get(mcp_server.removeprefix('module_target_sat_'))
     async with Client(
         transport=StreamableHttpTransport(
             f'http://{target_sat.hostname}:{mcp_settings.port}/mcp',
@@ -75,7 +75,7 @@ async def test_positive_call_mcp_server(request, mcp_server):
     settings.server.network_type == NetworkType.IPV6,
     reason='IPV6 scenario is not essential for this case',
 )
-async def test_negative_call_mcp_server(module_mcp_target_sat):
+async def test_negative_call_mcp_server(module_target_sat_foreman_mcp):
     """Test that MCP server cannot alter Satellite
 
     :id: 7b643847-4aa0-42ec-92cd-873de853f1ba
@@ -84,7 +84,7 @@ async def test_negative_call_mcp_server(module_mcp_target_sat):
     """
     async with Client(
         transport=StreamableHttpTransport(
-            f'http://{module_mcp_target_sat.hostname}:{settings.foreman_mcp.port}/mcp',
+            f'http://{module_target_sat_foreman_mcp.hostname}:{settings.foreman_mcp.port}/mcp',
             headers={
                 'FOREMAN_USERNAME': settings.foreman_mcp.username,
                 'FOREMAN_TOKEN': settings.foreman_mcp.password,
@@ -130,7 +130,12 @@ async def test_negative_call_mcp_server(module_mcp_target_sat):
     ],
 )
 async def test_positive_mcp_user_view_permissions(
-    request, module_mcp_target_sat, user_fixture, allowed_resource, denied_resource, auth_type
+    request,
+    module_target_sat_foreman_mcp,
+    user_fixture,
+    allowed_resource,
+    denied_resource,
+    auth_type,
 ):
     """Test that users with different view permissions can only view their authorized resources through MCP
 
@@ -143,7 +148,7 @@ async def test_positive_mcp_user_view_permissions(
     auth_value = password if auth_type == 'password' else token
     async with Client(
         transport=StreamableHttpTransport(
-            f'http://{module_mcp_target_sat.hostname}:{settings.foreman_mcp.port}/mcp',
+            f'http://{module_target_sat_foreman_mcp.hostname}:{settings.foreman_mcp.port}/mcp',
             headers={
                 'FOREMAN_USERNAME': user.login,
                 'FOREMAN_TOKEN': auth_value,
