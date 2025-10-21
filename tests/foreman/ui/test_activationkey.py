@@ -979,7 +979,12 @@ def test_positive_host_associations(session, target_sat):
         environment=org_entities['lifecycle-environment-id'],
         organization=org.id,
     ).create()
-    with Broker(nick='rhel7', host_class=ContentHost, _count=2) as hosts:
+    with Broker(
+        nick='rhel7',
+        deploy_network_type=settings.content_host.network_type,
+        host_class=ContentHost,
+        _count=2,
+    ) as hosts:
         vm1, vm2 = hosts
         result = vm1.register(org, None, ak1.name, target_sat)
         assert result.status == 0, f'Failed to register host: {result.stderr}'
