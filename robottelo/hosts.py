@@ -55,6 +55,7 @@ from robottelo.enums import NetworkType
 from robottelo.exceptions import (
     CapsuleHostError,
     CLIFactoryError,
+    CLIReturnCodeError,
     ContentHostError,
     DownloadFileError,
     HostPingFailed,
@@ -1971,6 +1972,37 @@ class Capsule(ContentHost, CapsuleMixins):
         """
         self.enable_satellite_or_capsule_module_for_rhel8()
         assert self.execute(f'dnf -y install {self.product_rpm_name}').status == 0
+
+    def query_db(self, query, db='foreman', output_format='json'):
+        """Execute a PostgreSQL query and return the result.
+
+        Args:
+            query: SQL query to execute
+            db: Database name (default: 'foreman')
+            output_format: Output format - 'json' for JSON array, raw output otherwise
+
+        Returns:
+            list of dicts if output_format='json', str otherwise
+
+        Raises:
+            CLIReturnCodeError: If the database query fails
+        """
+
+        def _execute_db_query(cmd):
+            result = self.execute(cmd)
+            if result.status != 0:
+                raise CLIReturnCodeError(result.status, result.stderr, f'"{cmd}" failed')
+            return result
+
+        base_cmd = f'sudo -u postgres psql -d {db}'
+
+        if output_format == 'json':
+            cmd = f'{base_cmd} -A -t -c "SELECT json_agg(row_to_json(t)) FROM ({query}) t"'
+            result = _execute_db_query(cmd)
+            return json.loads(result.stdout) if result.stdout.strip() else []
+
+        cmd = f'{base_cmd} -c "{query}"'
+        return _execute_db_query(cmd).stdout
 
 
 class Satellite(Capsule, SatelliteMixins):

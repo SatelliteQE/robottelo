@@ -1039,6 +1039,85 @@ SUPPORTED_MIRRORING_POLICIES = {
     'ansible_collection': ['additive', 'mirror_content_only'],
     'file': ['additive', 'mirror_content_only'],
 }
+PULP_HREF_PRN_MAP = {
+    '/pulp/api/v3/contentguards/certguard/rhsm': 'prn:certguard.rhsmcertguard:',
+    '/pulp/api/v3/remotes/ansible/collection': 'prn:ansible.collectionremote:',
+    '/pulp/api/v3/remotes/file/file': 'prn:file.fileremote:',
+    '/pulp/api/v3/remotes/rpm/rpm': 'prn:rpm.rpmremote:',
+    '/pulp/api/v3/remotes/rpm/uln': 'prn:rpm.ulnremote:',
+    '/pulp/api/v3/remotes/container/container': 'prn:container.containerremote:',
+    '/pulp/api/v3/distributions/rpm/rpm': 'prn:rpm.rpmdistribution:',
+    '/pulp/api/v3/distributions/container/container': 'prn:container.containerdistribution:',
+    '/pulp/api/v3/distributions/ansible/ansible': 'prn:ansible.ansibledistribution:',
+    '/pulp/api/v3/distributions/file/file': 'prn:file.filedistribution:',
+    '/pulp/api/v3/publications/file/file': 'prn:file.filepublication:',
+    '/pulp/api/v3/publications/rpm/rpm': 'prn:rpm.rpmpublication:',
+    '/pulp/api/v3/content/ansible/collection_versions': 'prn:ansible.collectionversion:',
+    '/pulp/api/v3/content/rpm/modulemds': 'prn:rpm.modulemd:',
+    '/pulp/api/v3/content/container/manifests': 'prn:container.manifest:',
+    '/pulp/api/v3/content/container/tags': 'prn:container.tag:',
+    '/pulp/api/v3/content/rpm/packages': 'prn:rpm.package:',
+    '/pulp/api/v3/content/file/files': 'prn:file.filecontent:',
+    '/pulp/api/v3/content/rpm/packagegroups': 'prn:rpm.packagegroup:',
+    '/pulp/api/v3/repositories/ansible/ansible': 'prn:ansible.ansiblerepository:',
+    '/pulp/api/v3/repositories/rpm/rpm': 'prn:rpm.rpmrepository:',
+    '/pulp/api/v3/repositories/container/container': 'prn:container.containerrepository:',
+    '/pulp/api/v3/repositories/file/file': 'prn:file.filerepository:',
+    '/pulp/api/v3/content/rpm/advisories': 'prn:rpm.updaterecord:',
+    '/pulp/api/v3/acs/rpm/rpm': 'prn:rpm.rpmalternatecontentsource:',
+    '/pulp/api/v3/acs/file/file': 'prn:file.filealternatecontentsource:',
+}
+
+PULP_PRN_TABLES = [
+    {'name': 'katello_content_guards', 'href_key': 'pulp_href', 'prn_key': 'pulp_prn'},
+    {'name': 'katello_repositories', 'href_key': 'remote_href', 'prn_key': 'remote_prn'},
+    {
+        'name': 'katello_repositories',
+        'href_key': 'publication_href',
+        'prn_key': 'publication_prn',
+    },  # Only for rpm and file types, otherwise NULL
+    {'name': 'katello_ansible_collections', 'href_key': 'pulp_id', 'prn_key': 'pulp_prn'},
+    # {'name': 'katello_generic_content_units', 'href_key': 'pulp_id', 'prn_key': 'pulp_prn'},  # Unsupported downstream
+    {'name': 'katello_module_streams', 'href_key': 'pulp_id', 'prn_key': 'pulp_prn'},
+    {
+        'name': 'katello_docker_manifest_lists',
+        'href_key': 'pulp_id',
+        'prn_key': 'pulp_prn',
+    },
+    {'name': 'katello_docker_manifests', 'href_key': 'pulp_id', 'prn_key': 'pulp_prn'},
+    {'name': 'katello_docker_tags', 'href_key': 'pulp_id', 'prn_key': 'pulp_prn'},
+    {'name': 'katello_rpms', 'href_key': 'pulp_id', 'prn_key': 'pulp_prn'},
+    {'name': 'katello_srpms', 'href_key': 'pulp_id', 'prn_key': 'pulp_prn'},
+    {'name': 'katello_files', 'href_key': 'pulp_id', 'prn_key': 'pulp_prn'},
+    {'name': 'katello_package_groups', 'href_key': 'pulp_id', 'prn_key': 'pulp_prn'},
+    # {'name': 'katello_debs', 'href_key': 'pulp_id', 'prn_key': 'pulp_prn'},  # Unsupported downstream
+    {'name': 'katello_distribution_references', 'href_key': 'href', 'prn_key': 'prn'},
+    {
+        'name': 'katello_distribution_references',
+        'href_key': 'content_guard_href',
+        'prn_key': 'content_guard_prn',
+    },  # Only for RH repos, otherwise NULL
+    {
+        'name': 'katello_repository_references',
+        'href_key': 'repository_href',
+        'prn_key': 'repository_prn',
+    },
+    {
+        'name': 'katello_repository_errata',
+        'href_key': 'erratum_pulp3_href',
+        'prn_key': 'erratum_prn',
+    },
+    {
+        'name': 'katello_smart_proxy_alternate_content_sources',
+        'href_key': 'remote_href',
+        'prn_key': 'remote_prn',
+    },
+    {
+        'name': 'katello_smart_proxy_alternate_content_sources',
+        'href_key': 'alternate_content_source_href',
+        'prn_key': 'alternate_content_source_prn',
+    },
+]
 
 PUPPET_COMMON_INSTALLER_OPTS = {
     'foreman-proxy-puppetca': 'true',

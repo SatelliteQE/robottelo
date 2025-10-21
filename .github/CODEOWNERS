@@ -46,6 +46,7 @@ tests/foreman/cli/test_imagemode.py @SatelliteQE/team-artemis
 tests/foreman/cli/test_lifecycleenvironment.py @SatelliteQE/team-artemis
 tests/foreman/cli/test_ostreebranch.py @SatelliteQE/team-artemis
 tests/foreman/cli/test_product.py @SatelliteQE/team-artemis
+tests/foreman/cli/test_pulp.py @SatelliteQE/team-artemis
 tests/foreman/cli/test_repositories.py @SatelliteQE/team-artemis
 tests/foreman/cli/test_repository.py @SatelliteQE/team-artemis
 tests/foreman/cli/test_repository_set.py @SatelliteQE/team-artemis
@@ -75,6 +76,7 @@ tests/foreman/ui/test_syncplan.py @SatelliteQE/team-artemis
 tests/new_upgrades/test_contentview.py @SatelliteQE/team-artemis
 tests/new_upgrades/test_capsulecontent.py @SatelliteQE/team-artemis
 tests/new_upgrades/test_errata.py @SatelliteQE/team-artemis
+tests/new_upgrades/test_pulp.py @SatelliteQE/team-artemis
 tests/new_upgrades/test_repository.py @SatelliteQE/team-artemis
 tests/new_upgrades/test_satellitesync.py @SatelliteQE/team-artemis
 tests/new_upgrades/test_syncplan.py @SatelliteQE/team-artemis
