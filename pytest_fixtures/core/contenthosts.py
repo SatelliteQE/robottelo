@@ -140,7 +140,6 @@ def katello_host_tools_host(target_sat, module_org, rhel_contenthost):
         max_hosts=100,
         organization=module_org,
         environment=target_sat.api.LifecycleEnvironment(id=module_org.library.id),
-        auto_attach=True,
     ).create()
     rhel_contenthost.register(module_org, None, ak.name, target_sat, repo_data=f'repo={repo}')
     rhel_contenthost.install_katello_host_tools()

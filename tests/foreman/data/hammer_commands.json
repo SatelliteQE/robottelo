@@ -443,12 +443,6 @@
           "name": "create",
           "options": [
             {
-              "help": "Auto attach subscriptions upon registration",
-              "name": "auto-attach",
-              "shortname": null,
-              "value": "BOOLEAN"
-            },
-            {
               "help": "Array of content view environment ids to be associated with the activation key. Ignored if content_view_id and lifecycle_environment_id are specified. Requires allow_multiple_content_views setting to be on.",
               "name": "content-view-environment-ids",
               "shortname": null,
@@ -1249,12 +1243,6 @@
           "description": "Update an activation key",
           "name": "update",
           "options": [
-            {
-              "help": "Auto attach subscriptions upon registration",
-              "name": "auto-attach",
-              "shortname": null,
-              "value": "BOOLEAN"
-            },
             {
               "help": "Array of content view environment ids to be associated with the activation key. Ignored if content_view_id and lifecycle_environment_id are specified. Requires allow_multiple_content_views setting to be on.",
               "name": "content-view-environment-ids",
@@ -22115,12 +22103,6 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Sets whether the Host will autoheal subscriptions upon checkin",
-              "name": "autoheal",
-              "shortname": null,
-              "value": "BOOLEAN"
-            },
-            {
               "help": "",
               "name": "build",
               "shortname": null,
@@ -22507,12 +22489,6 @@
             {
               "help": "Required if host is managed and value is not inherited from host group or default password in settings",
               "name": "root-password",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Service level to be used for autoheal",
-              "name": "service-level",
               "shortname": null,
               "value": "VALUE"
             },
@@ -24868,31 +24844,6 @@
               "subcommands": []
             },
             {
-              "description": "Trigger an auto-attach of subscriptions",
-              "name": "auto-attach",
-              "options": [
-                {
-                  "help": "VALUE/NUMBER      Name/id of the host",
-                  "name": "host",
-                  "shortname": null,
-                  "value": null
-                },
-                {
-                  "help": "VALUE/NUMBER      Name/id of the host",
-                  "name": "host-id",
-                  "shortname": null,
-                  "value": null
-                },
-                {
-                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
-                  "name": "help",
-                  "shortname": "h",
-                  "value": null
-                }
-              ],
-              "subcommands": []
-            },
-            {
               "description": "Override product content defaults",
               "name": "content-override",
               "options": [
@@ -25389,12 +25340,6 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Sets whether the Host will autoheal subscriptions upon checkin",
-              "name": "autoheal",
-              "shortname": null,
-              "value": "BOOLEAN"
-            },
-            {
               "help": "",
               "name": "build",
               "shortname": null,
@@ -25829,12 +25774,6 @@
             {
               "help": "Required if host is managed and value is not inherited from host group or default password in settings",
               "name": "root-password",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Service level to be used for autoheal",
-              "name": "service-level",
               "shortname": null,
               "value": "VALUE"
             },
