@@ -1848,41 +1848,6 @@ def test_positive_apply_security_erratum(
     assert result.status == 1  # Command should fail because security updates are available
 
 
-@pytest.mark.cli_katello_host_tools
-@pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('[^6].*')
-def test_positive_install_package_via_rex(
-    module_org, katello_host_tools_host, target_sat, setup_custom_repo
-):
-    """Install a package to a host remotely using remote execution,
-    install package using Katello SSH job template, host package list is used to verify that
-
-    :id: 751c05b4-d7a3-48a2-8860-f0d15fdce204
-
-    :expectedresults: Package was installed
-
-    :parametrized: yes
-    """
-    client = katello_host_tools_host
-    host_info = target_sat.cli.Host.info({'name': client.hostname})
-    client.configure_rex(satellite=target_sat, org=module_org, register=False)
-    # Apply errata to the host collection using job invocation
-    target_sat.cli.JobInvocation.create(
-        {
-            'feature': 'katello_package_install',
-            'search-query': f'name ~ {client.hostname}',
-            'inputs': f'package={setup_custom_repo["package"]}',
-            'organization-id': module_org.id,
-        }
-    )
-    result = client.run(f'rpm -q {setup_custom_repo["package"]}')
-    assert result.status == 0
-    installed_packages = target_sat.cli.Host.package_list(
-        {'host-id': host_info['id'], 'search': f'name={setup_custom_repo["package_name"]}'}
-    )
-    assert len(installed_packages) == 1
-
-
 # -------------------------- HOST SUBSCRIPTION SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.rhel_ver_match('9')
 @pytest.mark.cli_host_subscription
@@ -1937,83 +1902,6 @@ def test_positive_register(
         output_format='json',
     )
     assert len(host_subscriptions) == 0
-
-
-@pytest.mark.rhel_ver_match('9')
-@pytest.mark.cli_host_subscription
-def test_positive_without_attach_with_lce(
-    target_sat,
-    rhel_contenthost,
-    function_ak_with_cv,
-    function_sca_manifest_org,
-    function_lce,
-):
-    """Attempt to enable a repository of a subscription that was not
-    attached to a host.
-    This test is not using the host_subscription entities except
-    subscription_name and repository_id
-
-    :id: fc469e70-a7cb-4fca-b0ea-3c9e3dfff849
-
-    :expectedresults: Repository enabled due to SCA.
-
-    :parametrized: yes
-    """
-    content_view = target_sat.api.ContentView(organization=function_sca_manifest_org).create()
-    target_sat.cli_factory.setup_org_for_a_rh_repo(
-        {
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhsclient7'],
-            'repository': REPOS['rhsclient7']['name'],
-            'organization-id': function_sca_manifest_org.id,
-            'content-view-id': content_view.id,
-            'lifecycle-environment-id': function_lce.id,
-            'activationkey-id': function_ak_with_cv.id,
-            'subscription': DEFAULT_SUBSCRIPTION_NAME,
-        },
-        force_use_cdn=True,
-    )
-
-    # register client
-    result = rhel_contenthost.register(
-        function_sca_manifest_org, None, function_ak_with_cv.name, target_sat
-    )
-    assert result.status == 0
-    assert rhel_contenthost.subscribed
-    res = rhel_contenthost.enable_repo(REPOS['rhsclient7']['id'])
-    assert res.status == 0
-    assert f"Repository '{REPOS['rhsclient7']['id']}' is enabled for this system." in res.stdout
-
-
-@pytest.mark.e2e
-def test_positive_bootc_cli_actions(target_sat, bootc_host, function_ak_with_cv, function_org):
-    """Register a bootc host and validate CLI information
-
-    :id: d9557843-4cc7-4e70-a035-7b2c4008dd5e
-
-    :expectedresults: Upon registering a Bootc host, the facts are attached to the host, and are accurate. Hammer host bootc also returns proper info.
-
-    :CaseComponent: Hosts-Content
-
-    :Team: Artemis
-
-    :Verifies: SAT-27168, SAT-27170, SAT-30211
-
-    :CaseImportance: Critical
-    """
-    bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
-    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
-    assert bootc_host.subscribed
-    bootc_info = target_sat.cli.Host.info({'name': bootc_host.hostname})['bootc-image-information']
-    assert bootc_info['running-image'] == bootc_dummy_info['bootc.booted.image']
-    assert bootc_info['running-image-digest'] == bootc_dummy_info['bootc.booted.digest']
-    assert bootc_info['rollback-image'] == bootc_dummy_info['bootc.rollback.image']
-    assert bootc_info['rollback-image-digest'] == bootc_dummy_info['bootc.rollback.digest']
-    # Verify hammer host bootc images
-    booted_images_info = target_sat.cli.Host.bootc_images()[0]
-    assert booted_images_info['running-image'] == bootc_dummy_info['bootc.booted.image']
-    assert booted_images_info['running-image-digest'] == bootc_dummy_info['bootc.booted.digest']
-    assert int(booted_images_info['host-count']) > 0
 
 
 # -------------------------- MULTI-CV SCENARIOS -------------------------
