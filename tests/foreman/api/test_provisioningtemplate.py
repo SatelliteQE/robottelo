@@ -69,11 +69,6 @@ def tftpboot(module_org, module_target_sat):
     """
     tftpboot_path = '/var/lib/tftpboot'
     default_templates = {
-        'pxegrub': {
-            'setting': 'global_PXEGrub',
-            'path': f'{tftpboot_path}/grub/menu.lst',
-            'kind': 'PXEGrub',
-        },
         'pxegrub2': {
             'setting': 'global_PXEGrub2',
             'path': f'{tftpboot_path}/grub2/grub.cfg',
@@ -408,7 +403,7 @@ class TestProvisioningTemplate:
         assert '/mnt/sysimage/root/install.post.log' not in rendered
 
         # Verify PXE templates for boot_mode in subnet
-        pxe_templates = ['PXEGrub', 'PXEGrub2', 'PXELinux', 'iPXE']
+        pxe_templates = ['PXEGrub2', 'PXELinux', 'iPXE']
         provision_url = f'http://{module_target_sat.hostname}/unattended/provision'
         ks_param = provision_url + '?static=1' if boot_mode == 'Static' else provision_url
         for template in pxe_templates:
@@ -696,7 +691,7 @@ class TestProvisioningTemplate:
         render = host.read_template(data={'template_kind': 'provision'})['template']
         assert 'dracut-fips' in render
         assert '-prelink' in render
-        for kind in ['PXELinux', 'PXEGrub', 'PXEGrub2', 'iPXE', 'kexec']:
+        for kind in ['PXELinux', 'PXEGrub2', 'iPXE', 'kexec']:
             render = host.read_template(data={'template_kind': kind})['template']
             assert 'fips=1' in render
 
