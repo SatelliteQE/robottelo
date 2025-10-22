@@ -17,7 +17,7 @@ import pytest
 
 from robottelo.config import settings
 
-provisioning_template_kinds = ['provision', 'PXEGrub', 'PXEGrub2', 'PXELinux', 'iPXE']
+provisioning_template_kinds = ['provision', 'PXEGrub2', 'PXELinux', 'iPXE']
 
 
 class TestScenarioPositiveProvisioningTemplates:

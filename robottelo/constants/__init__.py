@@ -168,7 +168,6 @@ TEMPLATE_TYPES = [
     'finish',
     'iPXE',
     'provision',
-    'PXEGrub',
     'PXELinux',
     'script',
     'user_data',
