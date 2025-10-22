@@ -12,7 +12,6 @@
 
 """
 
-import json
 from random import choice
 import re
 
@@ -23,19 +22,13 @@ import yaml
 
 from robottelo.config import settings
 from robottelo.constants import (
-    DEFAULT_SUBSCRIPTION_NAME,
-    DUMMY_BOOTC_FACTS,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_7_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE_NAME,
-    PRDS,
-    REPOS,
-    REPOSET,
 )
-from robottelo.enums import NetworkType
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.logging import logger
 from robottelo.utils.datafactory import (
