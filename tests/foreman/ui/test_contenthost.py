@@ -1308,7 +1308,8 @@ def test_search_for_virt_who_hypervisors(session, default_location, module_targe
         assert hypervisor_display_name not in content_hosts
 
 
-def test_content_hosts_bool_in_query(target_sat):
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+def test_content_hosts_bool_in_query(module_target_sat, rhcloud_manifest_org, rhel_insights_vm):
     """
     Test that the 'true'/'false' string is also
     interpreted as a boolean true/false as it is happening for 't'/'f' string
@@ -1328,12 +1329,15 @@ def test_content_hosts_bool_in_query(target_sat):
         ],
     }
 
-    with target_sat.ui_session() as session:
+    with module_target_sat.ui_session() as session:
+        session.organization.select(rhcloud_manifest_org.name)
         for query_type, queries in search_queries.items():
             for query in queries:
                 session.contenthost.search(query)
                 result = session.contenthost.read_all()
                 if query_type == 'True':
-                    assert result['table'][0]['Name'] == target_sat.hostname
+                    assert result['table'][0]['Name'] == rhel_insights_vm.hostname
                 elif query_type == 'False' and result['table']:
-                    assert all(item['Name'] != target_sat.hostname for item in result['table'])
+                    assert all(
+                        item['Name'] != rhel_insights_vm.hostname for item in result['table']
+                    )
