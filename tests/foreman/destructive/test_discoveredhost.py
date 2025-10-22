@@ -208,7 +208,7 @@ def test_positive_provision_pxe_host_dhcp_change():
 
     :steps:
         1. Set some dhcp range in dhcpd.conf in satellite.
-        2. Create subnet entity in satellite with a range different from whats defined
+        2. Create subnet entity in satellite with a range different from what's defined
             in `dhcpd.conf`.
         3. Create Hostgroup with the step 2 subnet.
         4. Discover a new host in satellite.
@@ -216,7 +216,7 @@ def test_positive_provision_pxe_host_dhcp_change():
 
     :expectedresults:
         1. The discovered host should be discovered with range defined in dhcpd.conf
-        2. But provisoning the discovered host should acquire an IP from dhcp range
+        2. But provisioning the discovered host should acquire an IP from dhcp range
             defined in subnet entity.
 
     :CaseImportance: Critical

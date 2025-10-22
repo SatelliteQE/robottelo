@@ -6,7 +6,7 @@
 
 :CaseComponent: SatelliteMaintain
 
-:Team: Platform
+:Team: Rocket
 
 :CaseImportance: Critical
 
@@ -14,9 +14,16 @@
 
 import pytest
 
+from robottelo.config import settings
+from robottelo.enums import NetworkType
+
 pytestmark = pytest.mark.destructive
 
 
+@pytest.mark.skipif(
+    settings.server.network_type == NetworkType.IPV6,
+    reason='Skipping as IPv6 cannot be disabled on IPv6-only setup',
+)
 @pytest.mark.include_capsule
 def test_negative_ipv6_update_check(sat_maintain):
     """Ensure update check and satellite-installer fails when ipv6.disable=1 in boot options
@@ -33,7 +40,7 @@ def test_negative_ipv6_update_check(sat_maintain):
 
     :customerscenario: true
 
-    :verifies: SAT-24811, SAT-26758
+    :Verifies: SAT-24811, SAT-26758
 
     :expectedresults: Update check and satellite-installer fails due to ipv6.disable=1 in boot options
     """

@@ -1,5 +1,6 @@
 import contextlib
 from functools import lru_cache
+import json
 import os
 import random
 import re
@@ -10,15 +11,17 @@ from broker.hosts import Host
 from fauxfactory import gen_string
 import requests
 from wait_for import TimedOutError, wait_for
+import yaml
 
 from robottelo.cli.proxy import CapsuleTunnelError
-from robottelo.config import settings
+from robottelo.config import robottelo_tmp_dir, settings
 from robottelo.constants import (
     PULP_EXPORT_DIR,
     PULP_IMPORT_DIR,
     PUPPET_COMMON_INSTALLER_OPTS,
     PUPPET_SATELLITE_INSTALLER,
 )
+from robottelo.enums import NetworkType
 from robottelo.exceptions import CLIReturnCodeError, NoManifestProvidedError
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
@@ -217,6 +220,23 @@ class ContentInfo:
         # removes metadata filename
         return os.path.dirname(re.sub(rf'.*{PULP_EXPORT_DIR}', PULP_IMPORT_DIR, export_message))
 
+    def get_reported_value(self, report_key):
+        """
+        Runs satellite-maintain report generate and extracts the value for a given key
+        """
+        result = self.execute(f'satellite-maintain report generate | grep -i "{report_key}"')
+        assert result.status == 0, 'report failed or key not found'
+        return "".join(result.stdout.split(":", 1)[1].split())
+
+    def get_reported_condensed_value(self, report_key):
+        """
+        Runs satellite-maintain report condense and extracts the value for a given key
+        """
+        result = self.cli.SatelliteMaintainReport.condense()
+        assert result.status == 0, 'report failed'
+        report = "{" + result.stdout.strip().split("{")[1]
+        return json.loads(report)[report_key]
+
 
 class SystemInfo:
     """Things that needs access to satellite shell for gaining satellite system configuration"""
@@ -227,7 +247,7 @@ class SystemInfo:
 
         This calls an ss command on the server prompting for a port range. ss
         returns a list of ports which have a PID assigned (a list of ports
-        which are already used). This function then substracts unavailable ports
+        which are already used). This function then subtracts unavailable ports
         from the other ones and returns one of available ones randomly.
 
         :param port_pool: A list of ports used for fake capsules (for RHEL7+: don't
@@ -299,7 +319,7 @@ class SystemInfo:
             pre_ncat_procs = self.execute('pgrep ncat').stdout.splitlines()
             with self.session.shell() as channel:
                 # if ncat isn't backgrounded, it prevents the channel from closing
-                nwtype = '6' if self.ipv6 else ''
+                nwtype = '6' if self.network_type == NetworkType.IPV6 else ''
                 command = f'ncat -{nwtype}kl -p {newport} -c "ncat {self.hostname} {oldport}" &'
                 logger.debug(f'Creating tunnel: {command}')
                 channel.send(command)
@@ -348,7 +368,7 @@ class ProvisioningSetup:
         :param server_fqdn: Libvirt server FQDN
         :return: None
         """
-        # Geneate SSH key-pair for foreman user and copy public key to libvirt server
+        # Generate SSH key-pair for foreman user and copy public key to libvirt server
         self.execute('sudo -u foreman ssh-keygen -q -t rsa -f ~foreman/.ssh/id_rsa -N "" <<< y')
         self.execute('echo "StrictHostKeyChecking accept-new" >> ~foreman/.ssh/config')
         self.execute(
@@ -374,7 +394,7 @@ class ProvisioningSetup:
                 host[0].delete()
             assert not self.api.Host().search(query={'search': f'name={hostname}'})
         # Workaround SAT-28381
-        if not settings.server.is_ipv6:
+        if self.network_type == NetworkType.IPV4:
             assert self.execute('cat /dev/null > /var/lib/dhcpd/dhcpd.leases').status == 0
             assert self.execute('systemctl restart dhcpd').status == 0
             # Workaround BZ: 2207698
@@ -434,3 +454,48 @@ class Factories:
     @lru_cache
     def ui_factory(self, session):
         return UIFactory(self, session=session)
+
+
+class IoPSetup:
+    """Helper for configuring on prem Insights Advisor engine."""
+
+    def configure_insights_on_prem(self, username=None, password=None, registry=None):
+        """Configure on prem Advisor engine on Satellite"""
+        logger.info('Configuring Satellite with local Red Hat Lightspeed')
+        iop_settings = settings.rh_cloud.iop_advisor_engine
+        username = username or iop_settings.username
+        password = password or iop_settings.token
+        registry = registry or iop_settings.registry
+        self.register_to_cdn()
+        self.setup_rhel_repos()
+        self.setup_satellite_repos()
+        self.ensure_podman_installed()
+        self.podman_login(username, password, registry)
+
+        # Set IPv6 podman proxy on Satellite, to pull from container registry
+        self.enable_ipv6_podman_proxy()
+
+        # Set up container image path overrides
+        custom_hiera = f'{robottelo_tmp_dir}/custom-hiera.yaml'
+
+        with open(custom_hiera, 'w') as f:
+            yaml.dump(
+                {
+                    f'iop::{service}::image': path
+                    for service, path in iop_settings.image_paths.items()
+                },
+                f,
+                sort_keys=False,
+                default_flow_style=False,
+            )
+        self.put(custom_hiera, '/etc/foreman-installer/custom-hiera.yaml')
+
+        command = InstallerCommand(
+            'enable-iop',
+            scenario='satellite',
+            foreman_initial_admin_password=settings.server.admin_password,
+        ).get_command()
+
+        result = self.execute(command, timeout='30m')
+        assert result.status == 0, f'Failed to configure IoP: {result.stdout}'
+        assert self.local_advisor_enabled

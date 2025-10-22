@@ -93,7 +93,7 @@ class TestDockerManifest:
 
     :CaseComponent: Repositories
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     def test_positive_read_docker_tags(self, repo, module_target_sat):
@@ -130,7 +130,7 @@ class TestDockerRepository:
 
     :CaseComponent: Repositories
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     @pytest.mark.parametrize('name', **parametrized(valid_docker_repository_names()))
@@ -235,6 +235,8 @@ class TestDockerRepository:
 
         :id: 1a6985ed-43ec-4ea6-ba27-e3870457ac56
 
+        :Verifies: SAT-32427
+
         :parametrized: yes
 
         :expectedresults: A repository is created with a Docker upstream
@@ -251,6 +253,10 @@ class TestDockerRepository:
         )
         repo = module_target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['upstream-repository-name'] == new_upstream_name
+        repo_from_list = module_target_sat.cli.Repository.list(
+            {'search': f"label = {repo['label']}", 'fields': 'Upstream repository name'}
+        )[0]
+        assert repo_from_list['upstream-repository-name'] == new_upstream_name
 
     @pytest.mark.parametrize('new_upstream_name', **parametrized(invalid_docker_upstream_names()))
     def test_negative_update_upstream_name(self, repo, new_upstream_name, module_target_sat):
@@ -416,7 +422,7 @@ class TestDockerContentView:
 
     :CaseComponent: ContentViews
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     def test_positive_add_docker_repos_by_id(self, module_org, module_product, module_target_sat):
@@ -782,7 +788,7 @@ class TestDockerActivationKey:
 
     :CaseComponent: ActivationKeys
 
-    :team: Phoenix-subscriptions
+    :team: Proton
     """
 
     def test_positive_add_docker_repo_cv(

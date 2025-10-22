@@ -6,7 +6,7 @@
 
 :CaseComponent: Puppet
 
-:Team: Rocket
+:Team: Endeavour
 
 :CaseImportance: Critical
 

@@ -26,3 +26,13 @@ def function_flatpak_remote(request, target_sat, function_org):
     assert len(scanned_repos), 'No repositories scanned'
 
     return Box(remote=fr, repos=scanned_repos)
+
+
+@pytest.fixture
+def function_host_cleanup(target_sat, module_flatpak_contenthost):
+    """Cleans up the flatpak contenthost so it can be re-registered with different org"""
+    res = target_sat.api.Host().search(
+        query={'search': f'name="{module_flatpak_contenthost.hostname}"'}
+    )
+    if len(res) == 1:
+        res[0].delete()

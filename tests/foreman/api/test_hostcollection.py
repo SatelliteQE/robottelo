@@ -6,7 +6,7 @@
 
 :CaseComponent: HostCollections
 
-:team: Phoenix-subscriptions
+:team: Proton
 
 :CaseImportance: High
 

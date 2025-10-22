@@ -39,3 +39,9 @@ def function_lce_library(function_org, target_sat):
         .search(query={'search': f'name={ENVIRONMENT} and organization_id={function_org.id}'})[0]
         .read()
     )
+
+
+@pytest.fixture(scope='session')
+def default_org_lce(default_org, session_target_sat):
+    """Returns new lifecycle environment for default organization"""
+    return session_target_sat.api.LifecycleEnvironment(organization=default_org).create()

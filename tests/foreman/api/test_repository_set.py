@@ -9,7 +9,7 @@ https://theforeman.org/plugins/katello/3.16/api/apidoc/v2/repository_sets.html
 
 :CaseComponent: Repositories
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
@@ -58,7 +58,7 @@ def match_repos(repos, match_params):
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 def test_positive_reposet_enable_and_disable(reposet, params):
-    """Enable & disble repo from reposet
+    """Enable & disable repo from reposet
 
     :id: b77b7eb6-a9b0-4e89-bca9-b75c33ac49e2
 

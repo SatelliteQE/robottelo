@@ -16,6 +16,7 @@ from fauxfactory import gen_integer, gen_ipaddr, gen_string
 import pytest
 
 from robottelo.config import settings
+from robottelo.enums import NetworkType
 
 
 @pytest.fixture
@@ -167,6 +168,10 @@ def test_negative_delete_rule_with_non_admin_user(
 
 
 @pytest.mark.run_in_one_thread
+@pytest.mark.skipif(
+    settings.server.network_type == NetworkType.IPV6,
+    reason='Skipping as Discovery is not supported on IPv6-only setup',
+)
 def test_positive_list_host_based_on_rule_search_query(
     request,
     session,
@@ -194,7 +199,7 @@ def test_positive_list_host_based_on_rule_search_query(
 
     :BZ: 1731112
     """
-    ip_address = gen_ipaddr(ipv6=settings.server.is_ipv6)
+    ip_address = gen_ipaddr(ipv6=target_sat.network_type.has_ipv6)
     cpu_count = gen_integer(2, 10)
     rule_name = gen_string('alpha')
     rule_search = f'cpu_count = {cpu_count}'
@@ -240,7 +245,8 @@ def test_positive_list_host_based_on_rule_search_query(
         values = session.discoveryrule.read_discovered_hosts(discovery_rule.name)
         assert values['searchbox'] == rule_search
         assert len(values['table']) == 1
-        assert values['table'][0]['IPv6' if settings.server.is_ipv6 else 'IPv4'] == ip_address
+        lookup = "IPv6" if not target_sat.network_type.has_ipv4 else "IPv4"
+        assert values['table'][0][lookup] == ip_address
         assert values['table'][0]['CPUs'] == str(cpu_count)
         # auto provision the discovered host
         result = target_sat.api.DiscoveredHost(id=discovered_host['id']).auto_provision()

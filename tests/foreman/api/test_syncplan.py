@@ -10,7 +10,7 @@ API reference for sync plans can be found on your Satellite:
 
 :CaseComponent: SyncPlans
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 

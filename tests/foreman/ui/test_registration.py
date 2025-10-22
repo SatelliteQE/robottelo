@@ -8,7 +8,7 @@
 
 :CaseImportance: Critical
 
-:Team: Rocket
+:Team: Proton
 """
 
 from datetime import datetime
@@ -177,14 +177,13 @@ def test_positive_global_registration_end_to_end(
         module_target_sat.api.CommonParameter(id=rex_cp.id, value=1).update(['value'])
 
     # rex interface
-    iface = 'eth0'
+    iface = 'enp3s0' if rhel_contenthost.os_version.major >= 10 else 'eth0'
     # fill in the global registration form
     with module_target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=smart_proxy_location.name)
         cmd = session.host.get_register_command(
             {
-                'general.operating_system': default_os.title,
                 'general.activation_keys': module_activation_key.name,
                 'advanced.update_packages': True,
                 'advanced.rex_interface': iface,
@@ -195,7 +194,6 @@ def test_positive_global_registration_end_to_end(
         f'organization_id={module_org.id}',
         f'activation_keys={module_activation_key.name}',
         f'location_id={smart_proxy_location.id}',
-        f'operatingsystem_id={default_os.id}',
         f'{default_smart_proxy.name}',
         'insecure',
         'update_packages=true',
@@ -212,7 +210,7 @@ def test_positive_global_registration_end_to_end(
         rhel_contenthost.create_custom_repos(
             **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
         )
-    # make sure there will be package availabe for update
+    # make sure there will be package available for update
     if rhel_contenthost.os_version.major == '6':
         package = FAKE_1_CUSTOM_PACKAGE
         repo_url = settings.repos.yum_1['url']
@@ -398,7 +396,7 @@ def test_global_registration_with_gpg_repo_and_default_package(
                 'general.activation_keys': module_activation_key.name,
                 'general.insecure': True,
                 'advanced.force': True,
-                'advanced.install_packages': 'mlocate zsh',
+                'advanced.install_packages': 'vim-enhanced zsh',
                 'advanced.repository': repo_url,
                 'advanced.repository_gpg_key_url': repo_gpg_url,
             }
@@ -408,7 +406,7 @@ def test_global_registration_with_gpg_repo_and_default_package(
     # syncing it to the satellite would take too long
     rhelver = client.os_version.major
     if rhelver > 7:
-        repos = {f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']['baseos']}
+        repos = settings.repos[f'rhel{rhelver}_os']
     else:
         repos = {
             'rhel7_os': settings.repos['rhel7_os'],
@@ -418,9 +416,9 @@ def test_global_registration_with_gpg_repo_and_default_package(
     # run curl
     result = client.execute(cmd)
     assert result.status == 0
-    result = client.execute('yum list installed | grep mlocate')
+    result = client.execute('dnf list installed | grep -E "vim-enhanced|zsh"')
     assert result.status == 0
-    assert 'mlocate' in result.stdout
+    assert all(pkg in result.stdout for pkg in ['vim-enhanced', 'zsh'])
     result = client.execute('yum -v repolist')
     assert result.status == 0
     assert repo_name in result.stdout
@@ -551,6 +549,7 @@ def test_positive_host_registration_with_non_admin_user(
             {
                 'general.insecure': True,
                 'general.activation_keys': module_activation_key.name,
+                'advanced.setup_insights': 'No (override)',
             }
         )
 
@@ -576,7 +575,7 @@ def test_positive_global_registration_form(
     :expectedresults: The curl command contains all required parameters
     """
     # rex and insights parameters are only specified in curl when differing from
-    # inerited parameters
+    # inherited parameters
     result = (
         target_sat.api.CommonParameter()
         .search(query={'search': 'name=host_registration_remote_execution'})[0]
@@ -767,6 +766,7 @@ def test_subscription_manager_install_from_repository(
                 'advanced.force': True,
                 'advanced.install_packages': 'subscription-manager',
                 'advanced.repository': repo_url,
+                'advanced.setup_insights': 'No (override)',
             }
         )
 
@@ -841,7 +841,7 @@ def test_registering_with_title_using_global_registration_parameter(
         )
         status = session.host_new.get_host_statuses(rhel_contenthost.hostname)
         assert status['Build']['Status'] == 'Installed'
-        assert status['Insights']['Status'] == 'Reporting'
+        assert status['Red Hat Lightspeed']['Status'] == 'Reporting'
         facts = session.host_new.get_host_facts(rhel_contenthost.hostname, 'insights_client')
         for fact in facts:
             assert (
@@ -855,3 +855,38 @@ def test_registering_with_title_using_global_registration_parameter(
                 else 'incorrect value'
             )
         assert 'Successfully updated the system facts' in result.stdout
+
+
+def test_negative_register_page_access_to_non_admin(request, module_target_sat):
+    """Check non admin users can't access Hosts -> Register tab
+
+    :id: 89aff060-3308-11f0-bfec-6c240829b295
+
+    :customerscenario: true
+
+    :Verifies: SAT-31655
+
+    :customerscenario: true
+
+    :steps:
+
+        1. Login with non admin user
+        2. Navigate to /hosts/register in url
+        3. Check message permission denied is present
+
+    :expectedresults: Non-admin users should not have access to the registration page by navigating to /hosts/register via the URL.
+    """
+    login = gen_string('alpha')
+    password = gen_string('alpha')
+    user = module_target_sat.api.User(admin=False, login=login, password=password).create()
+    request.addfinalizer(user.delete)
+
+    with module_target_sat.ui_session(
+        user=login, password=password, url='/hosts/register'
+    ) as session:
+        result = session.host.permission_denied()
+        assert (
+            result == 'Permission Denied You are not authorized to perform this action. '
+            'Please request one of the required permissions listed below '
+            'from a Satellite administrator: register_hosts'
+        )

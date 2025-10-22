@@ -103,7 +103,7 @@ def register_system(system, activation_key=None, org='Default_Organization', env
         f'rpm -ihv http://{settings.server.hostname}/pub/katello-ca-consumer-latest.noarch.rpm',
         system,
     )
-    cmd = f'subscription-manager register --org={org} --environment={env} '
+    cmd = f'subscription-manager register --org={org} --environment={env} --force '
     if activation_key is not None:
         cmd += f'--activationkey={activation_key}'
     else:
@@ -301,7 +301,7 @@ def get_hypervisor_ahv_mapping(hypervisor_type):
 def deploy_validation(hypervisor_type):
     """Checkout the deploy result
     :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt, ahv
-    :raises: VirtWhoError: If failed to start virt-who servcie.
+    :raises: VirtWhoError: If failed to start virt-who service.
     :ruturn: hypervisor_name and guest_name
     """
     status = get_virtwho_status()
@@ -315,7 +315,7 @@ def deploy_validation(hypervisor_type):
 
 
 def deploy_configure_by_command(command, hypervisor_type, debug=False, org='Default_Organization'):
-    """Deploy and run virt-who servcie by the hammer command.
+    """Deploy and run virt-who service by the hammer command.
 
     :param str command: get the command by UI/CLI/API, it should be like:
         `hammer virt-who-config deploy --id 1 --organization-id 1`
@@ -351,7 +351,7 @@ def deploy_configure_by_script(
     register_system(get_system(hypervisor_type), org=org)
     with open(script_filename, 'w') as fp:
         fp.write(script_content)
-    ssh.get_client().put(script_filename)
+    ssh.get_client().put(script_filename, script_filename)
     ret, stdout = runcmd(f'sh {script_filename}')
     if ret != 0 or 'Finished successfully' not in stdout:
         raise VirtWhoError(f"Failed to deploy configure by {script_filename}")

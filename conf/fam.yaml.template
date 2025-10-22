@@ -48,6 +48,8 @@ FAM:
           - Test Location
         params:
           url: qemu+ssh://libvirtuser@localhost/system
+        image_uuid: /var/lib/libvirt/images/rhel10.qcow2
+        image_uuid_2: /var/lib/libvirt/images/rhel8.qcow2
         compute_profile:
           name: app-small
           attrs:

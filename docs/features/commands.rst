@@ -83,7 +83,7 @@ In the subgroup `ui` you can find the `browse` command which opens the same
 interactive shell but it also opens a new browser instance and gives you
 the context to play with this.
 
-The interaction with the `ui` browser is done trough the `session` object, and
+The interaction with the `ui` browser is done through the `session` object, and
 the opened browser uses the configuration from your `robottelo.properties` file.
 
 Open a new REPL connected to a browser session:
@@ -112,7 +112,7 @@ Open a new REPL connected to a browser session:
     2016-09-16 14:05:46 - robottelo.ui.browser - DEBUG - logout
     2016-09-16 14:05:46 - robottelo.ui.browser - DEBUG - Close Browser
 
-While you interact wth the UI using the helpers as the ones in the exemple above
+While you interact with the UI using the helpers as the ones in the example above
 you see your browser window changing interactively, if you prefer to use a docker browser
 it is possible to connect via VNC or get screenshots calling :code:`session.browser.save_screenshot()`
 

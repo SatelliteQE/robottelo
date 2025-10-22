@@ -6,7 +6,7 @@
 
 :CaseComponent: Ansible-ConfigurationManagement
 
-:Team: Rocket
+:Team: Endeavour
 
 :CaseImportance: High
 

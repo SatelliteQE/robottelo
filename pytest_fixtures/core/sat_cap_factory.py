@@ -42,7 +42,9 @@ def _target_satellite_host(request, satellite_factory):
 @lru_cache
 def cached_capsule_cdn_register(hostname=None):
     cap = Capsule.get_host_by_hostname(hostname=hostname)
-    cap.enable_capsule_downstream_repos()
+    cap.register_to_cdn()
+    cap.setup_rhel_repos()
+    cap.setup_capsule_repos()
 
 
 @contextmanager
@@ -208,6 +210,41 @@ def module_capsule_configured(request, module_capsule_host, module_target_sat):
 
 
 @pytest.fixture(scope='module')
+def module_unconfigured_satellite(request):
+    deploy_args = settings.server.deploy_arguments
+    with Broker(
+        workflow=settings.server.deploy_workflows.unconfigured, **deploy_args, host_class=Satellite
+    ) as host:
+        yield host
+
+
+@pytest.fixture(scope='module')
+def module_satellite_iop(request, satellite_factory):
+    """Deploy and configure Red Hat Lightspeed in Satellite
+
+    Uses the 'deploy-satellite-iop' SatLab workflow which handles all IoP
+    configuration automatically, including:
+    - Podman authentication to stage registry
+    - satellite-installer with --enable-iop flag
+
+    The workflow handles all setup, so no manual configuration is needed.
+    """
+    # Deploy using the IoP workflow with stage credentials
+    new_sat = satellite_factory(
+        workflow=settings.server.deploy_workflows.iop,
+    )
+
+    # Verify IoP is enabled
+    assert new_sat.local_advisor_enabled, "IoP was not successfully enabled on Satellite"
+
+    yield new_sat
+
+    # Cleanup
+    new_sat.teardown()
+    Broker(hosts=[new_sat]).checkin()
+
+
+@pytest.fixture(scope='module')
 def module_capsule_configured_mqtt(request, module_capsule_configured_ansible):
     """Configure the capsule instance with the satellite from settings.server.hostname,
     enable MQTT broker"""
@@ -302,7 +339,6 @@ def get_sat_deploy_args(request):
         | settings.server.deploy_arguments
         | {
             'deploy_rhel_version': rhel_version.base_version,
-            'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
             'deploy_flavor': settings.flavors.default,
             'workflow': settings.server.deploy_workflows.os,
         }
@@ -323,7 +359,6 @@ def get_cap_deploy_args():
         | settings.capsule.deploy_arguments
         | {
             'deploy_rhel_version': rhel_version.base_version,
-            'deploy_network_type': 'ipv6' if settings.server.is_ipv6 else 'ipv4',
             'deploy_flavor': settings.flavors.default,
             'workflow': settings.capsule.deploy_workflows.os,
         }
@@ -374,29 +409,8 @@ def installer_satellite(request):
     # register to cdn (also enables rhel repos from cdn)
     sat.register_to_cdn()
 
-    # setup source repositories
-    if settings.server.version.source == "ga":
-        # enable satellite repos
-        for repo in sat.SATELLITE_CDN_REPOS.values():
-            sat.enable_repo(repo, force=True)
-    elif settings.server.version.source == 'nightly':
-        sat.create_custom_repos(
-            satellite_repo=settings.repos.satellite_repo,
-            satmaintenance_repo=settings.repos.satmaintenance_repo,
-        )
-    else:
-        # get ohsnap repofile
-        sat.download_repofile(
-            product='satellite',
-            release=settings.server.version.release,
-            snap=settings.server.version.snap,
-        )
-
-    if settings.robottelo.rhel_source == "internal":
-        # disable rhel repos from cdn
-        sat.disable_repo("rhel-*")
-        # add internal rhel repos
-        sat.create_custom_repos(**settings.repos.get(f'rhel{sat.os_version.major}_os'))
+    sat.setup_rhel_repos()
+    sat.setup_satellite_repos()
 
     sat.setup_firewall()
     sat.install_satellite_or_capsule_package()
@@ -410,7 +424,7 @@ def installer_satellite(request):
         ).get_command(),
         timeout='30m',
     )
-    # exit code 0 means no changes, 2 means changes were applied succesfully
+    # exit code 0 means no changes, 2 means changes were applied successfully
     assert installer_result.status in (0, 2), installer_result.stdout
 
     sat.enable_satellite_ipv6_http_proxy()

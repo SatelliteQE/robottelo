@@ -54,7 +54,7 @@ class Vault:
     def exec_vault_command(self, command: str, **kwargs):
         """A wrapper to execute the vault CLI commands
 
-        :param comamnd str: The vault CLI command
+        :param command str: The vault CLI command
         :param kwargs dict: Arguments to the subprocess run command to customize the run behavior
         """
         vcommand = subprocess.run(command, shell=True, capture_output=True, **kwargs)
@@ -68,7 +68,7 @@ class Vault:
                     logger.error("The Vault host is not reachable, check network availability.")
                     sys.exit()
                 elif 'Error revoking token' in verror:
-                    logger.info("Token is alredy revoked!")
+                    logger.info("Token is already revoked!")
                 elif 'Error looking up token' in verror:
                     logger.info("Vault is not logged in!")
                 else:

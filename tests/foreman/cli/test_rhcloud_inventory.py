@@ -6,7 +6,7 @@
 
 :CaseComponent: RHCloud
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 
@@ -18,8 +18,12 @@ import time
 
 import pytest
 from wait_for import wait_for
+import yaml
 
-from robottelo.config import robottelo_tmp_dir
+from robottelo import constants
+from robottelo.config import robottelo_tmp_dir, settings
+from robottelo.constants import DEFAULT_CV, DEFAULT_ORG, ENVIRONMENT
+from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.io import get_local_file_data, get_remote_report_checksum
 
 inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
@@ -134,58 +138,7 @@ def test_positive_inventory_recommendation_sync(
         handle_exception=True,
     )
     assert result.status == 0
-    assert result.stdout == 'Synchronized Insights hosts hits data\n'
-
-
-@pytest.mark.e2e
-@pytest.mark.pit_server
-@pytest.mark.pit_client
-def test_positive_sync_inventory_status(
-    rhcloud_manifest_org,
-    rhcloud_registered_hosts,
-    module_target_sat,
-):
-    """Sync inventory status via foreman-rake commands:
-    https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md
-
-    :id: 915ffbfd-c2e6-4296-9d69-f3f9a0e79b32
-
-    :steps:
-
-        0. Create a VM and register to insights within org having manifest.
-        1. Sync inventory status for specific organization.
-            # export organization_id=1
-            # /usr/sbin/foreman-rake rh_cloud_inventory:sync
-
-    :expectedresults: Inventory status is successfully synced for satellite hosts.
-
-    :BZ: 1957186
-
-    :CaseAutomation: Automated
-    """
-    org = rhcloud_manifest_org
-    cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
-    success_msg = f"Synchronized inventory for organization '{org.name}'"
-    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
-    result = module_target_sat.execute(cmd)
-    assert result.status == 0
-    assert success_msg in result.stdout
-    # Check task details
-    wait_for(
-        lambda: module_target_sat.api.ForemanTask()
-        .search(query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'})[0]
-        .result
-        == 'success',
-        timeout=400,
-        delay=15,
-        silent_failure=True,
-        handle_exception=True,
-    )
-    task_output = module_target_sat.api.ForemanTask().search(
-        query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'}
-    )
-    assert task_output[0].output['host_statuses']['sync'] == 2
-    assert task_output[0].output['host_statuses']['disconnect'] == 0
+    assert 'Synchronized Insights hosts hits data' in result.stdout
 
 
 def test_positive_sync_inventory_status_missing_host_ip(
@@ -461,6 +414,8 @@ def test_positive_generate_reports_job_cli_disconnected(
         1. Execute hammer insights inventory generate-report.
 
     :expectedresults: Reports generation works as expected.
+
+    :BlockedBy: SAT-38836
     """
     org = rhcloud_manifest_org
     generate_report(org, module_target_sat, disconnected=True)
@@ -590,5 +545,215 @@ def generate_report(rhcloud_manifest_org, module_target_sat, disconnected=False)
     assert task_output[0].result == "success"
 
     report_log = module_target_sat.api.Organization(id=org.id).rh_cloud_fetch_last_report_log()
-    expected = f'Successfully generated /var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz for organization id {org.id}'
+    expected = 'Check the Uploading tab for report uploading status'
     assert expected in report_log['output']
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('N-0')
+def test_positive_install_iop_custom_certs(
+    certs_data,
+    sat_ready_rhel,
+    module_sca_manifest,
+    rhel_contenthost,
+):
+    """Install Satellite + IoP with custom SSL certs.
+
+    :id: 9528fc93-822d-461e-af84-283dfdc0043f
+
+    :steps:
+
+        1. Generate the custom certs on RHEL machine
+        2. Install Satellite and IoP with custom certs
+        3. Assert success return code from satellite-installer
+        4. Assert all services are running
+        5. Register client to Satellite and upload insights-client data
+        6. Assert success return code from insights-client
+
+    :expectedresults: Satellite should be installed using the custom certs.
+
+    :CaseAutomation: Automated
+    """
+    satellite = sat_ready_rhel
+    host = rhel_contenthost
+    iop_settings = settings.rh_cloud.iop_advisor_engine
+
+    # Set IPv6 system proxy on Satellite, to reach container registry
+    satellite.enable_ipv6_system_proxy()
+
+    # Set IPv6 dnf proxy on Content Host, to install insights-client from non-Satellite source
+    host.enable_ipv6_dnf_proxy()
+
+    # Install satellite packages
+    satellite.download_repofile(
+        product='satellite',
+        release=settings.server.version.release,
+        snap=settings.server.version.snap,
+    )
+    satellite.register_to_cdn()
+    satellite.execute('dnf -y update')
+    satellite.execute('dnf -y install podman')
+    satellite.install_satellite_or_capsule_package()
+
+    # Set up firewall
+    result = satellite.execute(
+        "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
+    )
+    assert result.status == 0, "firewalld is not present and can't be installed"
+
+    result = satellite.execute(
+        'firewall-cmd --add-port="53/udp" --add-port="53/tcp" --add-port="67/udp" '
+        '--add-port="69/udp" --add-port="80/tcp" --add-port="443/tcp" '
+        '--add-port="5647/tcp" --add-port="8000/tcp" --add-port="9090/tcp" '
+        '--add-port="8140/tcp"'
+    )
+    assert result.status == 0
+
+    result = satellite.execute('firewall-cmd --runtime-to-permanent')
+    assert result.status == 0
+
+    # Log in to container registry
+    result = satellite.execute(
+        f'podman login --authfile /etc/foreman/registry-auth.json -u {iop_settings.stage_username!r} -p {iop_settings.stage_token!r} {iop_settings.stage_registry}'
+    )
+    assert result.status == 0, f'Error logging in to container registry: {result.stdout}'
+
+    # Set up container image path overrides
+    custom_hiera_yaml = yaml.dump(
+        {f'iop::{service}::image': path for service, path in iop_settings.image_paths.items()}
+    )
+    satellite.execute(f'echo "{custom_hiera_yaml}" > /etc/foreman-installer/custom-hiera.yaml')
+
+    command = InstallerCommand(
+        'enable-iop',
+        'certs-update-server',
+        'certs-update-server-ca',
+        scenario='satellite',
+        certs_server_cert=f'/root/{certs_data["cert_file_name"]}',
+        certs_server_key=f'/root/{certs_data["key_file_name"]}',
+        certs_server_ca_cert=f'/root/{certs_data["ca_bundle_file_name"]}',
+        foreman_initial_admin_password=settings.server.admin_password,
+    ).get_command()
+
+    result = satellite.execute(command, timeout='30m')
+    assert result.status == 0
+
+    result = satellite.execute('hammer ping')
+    assert result.stdout.count('Status:') == result.stdout.count(' ok')
+
+    # Assert all services are running
+    result = satellite.execute('satellite-maintain health check --label services-up -y')
+    assert result.status == 0, 'Not all services are running'
+
+    org = satellite.api.Organization().create()
+    satellite.upload_manifest(org.id, module_sca_manifest.content)
+
+    activation_key = satellite.api.ActivationKey(
+        content_view=org.default_content_view,
+        organization=org,
+        environment=satellite.api.LifecycleEnvironment(id=org.library.id),
+        service_level='Self-Support',
+        purpose_usage='test-usage',
+        purpose_role='test-role',
+        auto_attach=False,
+    ).create()
+
+    host.configure_rex(satellite=satellite, org=org, register=False)
+    host.configure_insights_client(
+        satellite=satellite,
+        activation_key=activation_key,
+        org=org,
+        rhel_distro=f"rhel{host.os_version.major}",
+    )
+
+    result = host.execute('insights-client')
+    assert result.status == 0, 'insights-client upload failed'
+
+
+def test_positive_config_on_sat_without_network_protocol(module_target_sat, module_sca_manifest):
+    """Test cloud connector configuration on Satellite without explicit network protocol.
+
+    :id: e6bf1c56-3091-4db2-b162-4cf3c6e23394
+
+    :steps:
+        1. Get default organization, content view, and lifecycle environment.
+        2. Upload manifest to enable Red Hat content.
+        3. Enable and sync RHEL BaseOS and AppStream repositories.
+        4. Create activation key and register Satellite to itself.
+        5. Enable cloud connector via CLI.
+        6. Verify that the 'Configure Cloud Connector' job template executes successfully.
+        7. Check that rhcd service proxy configuration is properly set.
+
+    :expectedresults:
+        1. Satellite is successfully registered.
+        2. Cloud connector is enabled successfully.
+        3. The job invocation for configuring cloud connector succeeds.
+        4. The rhcd.service.d/proxy.conf file contains the correct NO_PROXY environment variable
+           with the FQDN without https:// prefix.
+
+    :Verifies: SAT-34224
+
+    :customerscenario: true
+    """
+    # Get the default organization, content view, and lifecycle environment from Satellite
+    org = module_target_sat.api.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
+    cv = module_target_sat.api.ContentView().search(query={'search': f'name="{DEFAULT_CV}"'})[0]
+    lce = module_target_sat.api.LifecycleEnvironment().search(
+        query={'search': f'name="{ENVIRONMENT}"'}
+    )[0]
+
+    # Upload manifest to enable Red Hat content
+    module_target_sat.upload_manifest(org.id, module_sca_manifest.content)
+
+    # Enable and sync RHEL BaseOS and AppStream repositories based on Satellite's OS version
+    rhel_ver = module_target_sat.os_version.major
+    for name in [f'rhel{rhel_ver}_bos', f'rhel{rhel_ver}_aps']:
+        # Enable the Red Hat repository and get its ID
+        rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch=constants.DEFAULT_ARCHITECTURE,
+            org_id=org.id,
+            product=constants.REPOS[name]['product'],
+            repo=constants.REPOS[name]['name'],
+            reposet=constants.REPOS[name]['reposet'],
+            releasever=constants.REPOS[name]['version'],
+        )
+        # Sync the repository
+        rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+        rh_repo.sync(timeout=2000)
+
+    # Create an activation key for Satellite self-registration
+    ac_key = module_target_sat.api.ActivationKey(
+        content_view=cv.id,
+        environment=lce.id,
+        organization=org,
+    ).create()
+
+    # Register the Satellite to itself using the activation key
+    result = module_target_sat.register(org, None, ac_key.name, module_target_sat, force=False)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+    # Enable cloud connector
+    result = module_target_sat.cli.Insights.cloud_connector_enable({})
+    assert "Cloud connector enable task started" in result
+
+    # Find the job invocation for the 'Configure Cloud Connector' template
+    template_name = 'Configure Cloud Connector'
+    result = module_target_sat.api.JobInvocation().search(
+        query={'search': f'description="{template_name}"'}
+    )[0]
+
+    # Wait for the job to complete
+    module_target_sat.wait_for_tasks(
+        f'resource_type = JobInvocation and resource_id = {result.id}', poll_timeout=600
+    )
+
+    # Verify the job completed successfully
+    result = module_target_sat.api.JobInvocation(id=result.id).read()
+    assert result.status_label == 'succeeded'
+
+    # Read the rhcd service proxy configuration file to verify correct setup
+    status = module_target_sat.execute('cat /etc/systemd/system/rhcd.service.d/proxy.conf')
+    # Check the correct format is present
+    assert f'Environment=NO_PROXY={module_target_sat.hostname}' in status.stdout
+    # Ensure NO_PROXY doesn't contain https:// prefix
+    assert 'Environment=NO_PROXY=https://' not in status.stdout

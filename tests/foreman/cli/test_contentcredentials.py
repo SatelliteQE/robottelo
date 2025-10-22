@@ -8,7 +8,7 @@ Satellite 6.8
 
 :CaseComponent: ContentCredentials
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 

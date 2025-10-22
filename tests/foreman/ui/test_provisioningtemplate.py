@@ -172,7 +172,7 @@ def test_positive_end_to_end(module_org, module_location, template_data, target_
 
 
 def test_positive_verify_supported_templates_rhlogo(target_sat, module_org, module_location):
-    """Verify presense of RH logo on supported provisioning template
+    """Verify presence of RH logo on supported provisioning template
 
     :id: 2df8550a-fe7d-405f-ab48-2896554cda14
 

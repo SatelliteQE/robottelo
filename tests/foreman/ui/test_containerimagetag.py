@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: ContainerManagement-Content
+:CaseComponent: ContainerImageManagement
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 

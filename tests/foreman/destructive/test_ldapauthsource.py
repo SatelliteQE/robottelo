@@ -61,7 +61,7 @@ def test_rhsso_login_using_hammer(
 
     :id: 56c09a1a-d0e5-11ea-9024-d46d6dd3b5b2
 
-    :expectedresults: hammer auth login should be suceessful for a rhsso user
+    :expectedresults: hammer auth login should be successful for a rhsso user
 
     :CaseImportance: High
     """
@@ -101,7 +101,7 @@ def test_rhsso_timeout_using_hammer(
 
     :id: d014cc98-d198-11ea-b526-d46d6dd3b5b2
 
-    :expectedresults: hammer auth login timeout should be suceessful for a rhsso user
+    :expectedresults: hammer auth login timeout should be successful for a rhsso user
 
     :CaseImportance: Medium
     """
@@ -133,7 +133,7 @@ def test_rhsso_two_factor_login_using_hammer(
 
     :id: 4018c646-cb64-4eae-a422-7d5257ed2756
 
-    :expectedresults: hammer auth login should be suceessful for a rhsso user
+    :expectedresults: hammer auth login should be successful for a rhsso user
 
     :CaseImportance: Medium
     """

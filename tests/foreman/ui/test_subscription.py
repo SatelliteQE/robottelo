@@ -6,7 +6,7 @@
 
 :CaseComponent: SubscriptionManagement
 
-:team: Phoenix-subscriptions
+:team: Proton
 
 :CaseImportance: High
 
@@ -21,49 +21,15 @@ from fauxfactory import gen_string
 import pytest
 from tzlocal import get_localzone_name
 
-from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
     EXPIRED_MANIFEST,
     EXPIRED_MANIFEST_DATE,
-    PRDS,
-    REPOS,
-    REPOSET,
-    VDC_SUBSCRIPTION_NAME,
-    VIRT_WHO_HYPERVISOR_TYPES,
     DataFile,
 )
 from robottelo.utils.issue_handlers import is_open
 
 pytestmark = [pytest.mark.run_in_one_thread]
-
-
-@pytest.fixture(scope='module')
-def golden_ticket_host_setup(function_sca_manifest_org, module_target_sat):
-    org = function_sca_manifest_org
-    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
-        basearch='x86_64',
-        org_id=org.id,
-        product=PRDS['rhel'],
-        repo=REPOS['rhst7']['name'],
-        reposet=REPOSET['rhst7'],
-        releasever=None,
-    )
-    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
-    rh_repo.sync()
-    custom_product = module_target_sat.api.Product(organization=org).create()
-    custom_repo = module_target_sat.api.Repository(
-        name=gen_string('alphanumeric').upper(), product=custom_product
-    ).create()
-    custom_repo.sync()
-    ak = module_target_sat.api.ActivationKey(
-        content_view=org.default_content_view,
-        max_hosts=100,
-        organization=org,
-        environment=module_target_sat.api.LifecycleEnvironment(id=org.library.id),
-        auto_attach=True,
-    ).create()
-    return org, ak
 
 
 @pytest.mark.e2e
@@ -256,144 +222,6 @@ def test_positive_access_manifest_as_another_admin_user(
             ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound']
         )
         assert not session.subscription.has_manifest
-
-
-def test_positive_view_vdc_subscription_products(
-    session, rhel7_contenthost, target_sat, function_sca_manifest_org
-):
-    """Ensure that Virtual Datacenters subscription provided products is
-    not empty and that a consumed product exist in content products.
-
-    :id: cc4593f0-66ab-4bf6-87d1-d4bd9c89eba5
-
-    :customerscenario: true
-
-    :steps:
-        1. Upload a manifest with Virtual Datacenters subscription
-        2. Enable a products provided by Virtual Datacenters subscription,
-           and synchronize the auto created repository
-        3. Create content view with the product repository, and publish it
-        4. Create a lifecycle environment and promote the content view to
-           it.
-        5. Create an activation key with the content view and lifecycle
-           environment
-        6. Subscribe a host to the activation key
-        7. Goto Hosts -> Content hosts and select the created content host
-        8. Attach VDC subscription to content host
-        9. Goto Content -> Red Hat Subscription
-        10. Select Virtual Datacenters subscription
-
-    :expectedresults:
-        1. assert that the provided products is not empty
-        2. assert that the enabled product is in subscription Product Content
-
-    :BZ: 1366327
-
-    :parametrized: yes
-    """
-    org = function_sca_manifest_org
-    lce = target_sat.api.LifecycleEnvironment(organization=org).create()
-    repos_collection = target_sat.cli_factory.RepositoryCollection(
-        distro='rhel7',
-        repositories=[target_sat.cli_factory.RHELAnsibleEngineRepository(cdn=True)],
-    )
-    product_name = repos_collection.rh_repos[0].data['product']
-    repos_collection.setup_content(org.id, lce.id, rh_subscriptions=[DEFAULT_SUBSCRIPTION_NAME])
-    rhel7_contenthost.contenthost_setup(
-        target_sat,
-        org.label,
-        activation_key=repos_collection.setup_content_data['activation_key']['name'],
-    )
-    with session:
-        session.organization.select(org.name)
-        provided_products = session.subscription.provided_products(VDC_SUBSCRIPTION_NAME)
-        # ensure that subscription provided products list is not empty and that the product is
-        # in the provided products.
-        assert product_name in provided_products
-        content_products = session.subscription.content_products(VDC_SUBSCRIPTION_NAME)
-        # ensure that subscription enabled products list is not empty and that product is in
-        # content products.
-        assert product_name in content_products
-
-
-@pytest.mark.skip_if_not_set('libvirt')
-def test_positive_view_vdc_guest_subscription_products(
-    session, rhel7_contenthost, target_sat, function_sca_manifest_org
-):
-    """Ensure that Virtual Data Centers guest subscription Provided
-    Products and Content Products are not empty.
-
-    :id: 4a6f6933-8e26-4c47-b544-a300e11a8454
-
-    :customerscenario: true
-
-    :steps:
-        1. Upload a manifest with Virtual Datacenters subscription
-        2. Config a virtual machine virt-who service for a hypervisor
-        3. Ensure virt-who hypervisor host exist
-        4. Attach Virtual Datacenters subscription to the virt-who
-           hypervisor
-        5. Go to Content -> Red Hat Subscription
-        6. Select Virtual Datacenters subscription with type Guests of
-           virt-who hypervisor
-
-    :expectedresults:
-        1. The Virtual Data Centers guests subscription Provided Products
-           is not empty and one of the provided products exist
-        2. The Virtual Data Centers guests subscription Product Content is
-           not empty and one of the consumed products exist
-
-    :BZ: 1395788, 1506636, 1487317
-
-    :parametrized: yes
-    """
-    org = function_sca_manifest_org
-    lce = target_sat.api.LifecycleEnvironment(organization=org).create()
-    provisioning_server = settings.libvirt.libvirt_hostname
-    rh_product_repository = target_sat.cli_factory.RHELAnsibleEngineRepository(cdn=True)
-    product_name = rh_product_repository.data['product']
-    # Create a new virt-who config
-    virt_who_config = target_sat.cli_factory.virt_who_config(
-        {
-            'organization-id': org.id,
-            'hypervisor-type': VIRT_WHO_HYPERVISOR_TYPES['libvirt'],
-            'hypervisor-server': f'qemu+ssh://{provisioning_server}/system',
-            'hypervisor-username': 'root',
-        }
-    )
-    # configure virtual machine and setup virt-who service
-    virt_who_data = rhel7_contenthost.virt_who_hypervisor_config(
-        target_sat,
-        virt_who_config['general-information']['id'],
-        org_id=org.id,
-        lce_id=lce.id,
-        hypervisor_hostname=provisioning_server,
-        configure_ssh=True,
-        subscription_name=VDC_SUBSCRIPTION_NAME,
-        extra_repos=[rh_product_repository.data],
-    )
-    virt_who_hypervisor_host = virt_who_data['virt_who_hypervisor_host']
-    with session:
-        session.organization.select(org.name)
-        # ensure that VDS subscription is assigned to virt-who hypervisor
-        content_hosts = session.contenthost.search(
-            f'subscription_name = "{VDC_SUBSCRIPTION_NAME}" '
-            f'and name = "{virt_who_hypervisor_host["name"]}"'
-        )
-        assert content_hosts
-        assert content_hosts[0]['Name'] == virt_who_hypervisor_host['name']
-        # ensure that hypervisor guests subscription provided products list is not empty and
-        # that the product is in provided products.
-        provided_products = session.subscription.provided_products(
-            VDC_SUBSCRIPTION_NAME, virt_who=True
-        )
-        assert product_name in provided_products
-        # ensure that hypervisor guests subscription content products list is not empty and
-        # that product is in content products.
-        content_products = session.subscription.content_products(
-            VDC_SUBSCRIPTION_NAME, virt_who=True
-        )
-        assert product_name in content_products
 
 
 def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(

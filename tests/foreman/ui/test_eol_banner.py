@@ -43,14 +43,14 @@ def test_positive_eol_banner_e2e(session, target_sat, test_name):
 
     :Steps:
 
-        1. Set the EOL date witin 6 months, assert warning banner
+        1. Set the EOL date within 6 months, assert warning banner
         2. Check non-admin users can't see warning banner
         3. Dismiss banner
         4. Move EOL date to the past, assert error banner
         5. Check non-admin users can't see error banner
         6. Dismiss banner
 
-    :verifies: SAT-29427
+    :Verifies: SAT-29427
 
     :expectedresults: Banner shows up when it should
     """

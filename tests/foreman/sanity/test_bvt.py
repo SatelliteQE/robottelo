@@ -43,9 +43,9 @@ def test_installed_packages_with_versions(target_sat):
     installed_rpms = target_sat.execute('rpm -qa').stdout
     installed_rpms = installed_rpms.splitlines()
 
-    # Changing both the datas to comparable formats
+    # Changing both the data to comparable formats
 
-    # Formatting Regex Patters
+    # Formatting Regex Patterns
     split_by_version = r'-\d+[-._]*\d*'
     namever_pattern = r'.*-\d+[-._]*\d*'
 

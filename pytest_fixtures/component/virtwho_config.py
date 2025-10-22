@@ -234,7 +234,7 @@ def form_data_ui(request, target_sat, org_module):
 
 
 @pytest.fixture
-def virtwho_config_cli(form_data_cli, target_sat):
+def virtwho_config_cli(form_data_cli, target_sat, register_sat_and_enable_aps_repo):
     virtwho_config_cli = target_sat.cli.VirtWhoConfig.create(form_data_cli)['general-information']
     yield virtwho_config_cli
     target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config_cli['name']})
@@ -242,7 +242,7 @@ def virtwho_config_cli(form_data_cli, target_sat):
 
 
 @pytest.fixture
-def virtwho_config_api(form_data_api, target_sat):
+def virtwho_config_api(form_data_api, target_sat, register_sat_and_enable_aps_repo):
     virtwho_config_api = target_sat.api.VirtWhoConfig(**form_data_api).create()
     yield virtwho_config_api
     virtwho_config_api.delete()
@@ -252,7 +252,7 @@ def virtwho_config_api(form_data_api, target_sat):
 
 
 @pytest.fixture
-def virtwho_config_ui(form_data_ui, target_sat, org_session):
+def virtwho_config_ui(form_data_ui, target_sat, org_session, register_sat_and_enable_aps_repo):
     name = gen_string('alpha')
     form_data_ui['name'] = name
     with org_session:

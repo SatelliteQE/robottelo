@@ -281,7 +281,6 @@ def valid_docker_repository_names():
         gen_string('latin1', random.randint(1, 255)),
         gen_string('numeric', random.randint(1, 255)),
         gen_string('utf8', random.randint(1, 85)),
-        gen_string('html', random.randint(1, 85)),
     ]
 
 
@@ -626,7 +625,7 @@ def valid_docker_upstream_names():
             gen_string('alphanumeric', random.randint(3, 6)).lower(),
             gen_string('alphanumeric', random.randint(3, 6)).lower(),
         ),
-        '{0}-_-_/{0}-_.'.format(gen_string('alphanumeric', 1).lower()),
+        '{0}-{0}/{0}_{0}'.format(gen_string('alphanumeric', 1).lower()),
     ]
 
 

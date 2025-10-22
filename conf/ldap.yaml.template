@@ -13,6 +13,6 @@ LDAP:
       2019:  192.168.0.3 # <ip_address of 2019 ad server>
   NAMESERVER6:
       2019: 2001::beef:face # <ip6_address of 2019 ad server>
-  WORKGROUP:  # udpate with ldap server's domain name
+  WORKGROUP:  # update with ldap server's domain name
       2016:  FOO # <workgroup 2016 server>
       2019:  FOO19 # <workgroup 2019 server>

@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: Registration
+:CaseComponent: Conversionsappliance
 
 :CaseImportance: Critical
 
@@ -52,7 +52,7 @@ def update_cv(sat, cv, lce, repos):
 
 @pytest.fixture(scope='module')
 def ssl_cert(module_target_sat, module_els_sca_manifest_org):
-    """Create credetial with SSL cert for Oracle Linux"""
+    """Create credential with SSL cert for Oracle Linux"""
     res = requests.get(settings.repos.convert2rhel.ssl_cert_oracle)
     res.raise_for_status()
     return module_target_sat.api.ContentCredential(
@@ -75,9 +75,13 @@ def activation_key_rhel(
 @pytest.fixture(scope='module')
 def enable_rhel_subscriptions(module_target_sat, module_els_sca_manifest_org, version):
     """Enable and sync RHEL rpms repos"""
-    major = version.split('.')[0]
+    major = int(version.split('.')[0])
     minor = ''
-    if major == '8':
+
+    if major <= 7 and module_target_sat.is_fips_enabled():
+        pytest.skip('CentOS7/OEL7 conversion is not supported with FIPS-enabled Sat')
+
+    if major == 8:
         repo_names = ['rhel8_bos', 'rhel8_aps']
         minor = version[1:]
     else:
@@ -123,7 +127,11 @@ def centos(
     enable_rhel_subscriptions,
 ):
     """Deploy and register Centos host"""
-    major = version.split('.')[0]
+    major = int(version.split('.')[0])
+
+    if major <= 7 and module_target_sat.is_fips_enabled():
+        pytest.skip('CentOS7 conversion is not supported with FIPS-enabled Sat')
+
     centos_host.enable_ipv6_dnf_proxy()
     assert centos_host.execute('yum -y update').status == 0
     repo_url = settings.repos.convert2rhel.convert_to_rhel_repo.format(major)
@@ -171,21 +179,26 @@ def oracle(
     enable_rhel_subscriptions,
 ):
     """Deploy and register Oracle host"""
-    major = version.split('.')[0]
+    major = int(version.split('.')[0])
+
+    if major <= 7 and module_target_sat.is_fips_enabled():
+        pytest.skip('OEL7 conversion is not supported with FIPS-enabled Sat')
+
     oracle_host.enable_ipv6_dnf_proxy()
     # disable rhn-client-tools because it obsoletes the subscription manager package
     oracle_host.execute('echo "exclude=rhn-client-tools" >> /etc/yum.conf')
     # Install and set correct RHEL compatible kernel and using non-UEK kernel, based on C2R docs
     assert (
         oracle_host.execute(
-            'yum install -y kernel* && '
+            'yum install -y kernel && '
             'grubby --set-default /boot/vmlinuz-'
             '`rpm -q --qf "%{BUILDTIME}\t%{EVR}.%{ARCH}\n" kernel | sort -nr | head -1 | cut -f2`'
         ).status
         == 0
     )
+    assert oracle_host.execute('yum -y update').status == 0
 
-    if major == '8':
+    if major == 8:
         # needs-restarting missing in OEL8
         assert oracle_host.execute('dnf install -y yum-utils').status == 0
         # Fix inhibitor CHECK_FIREWALLD_AVAILABILITY::FIREWALLD_MODULES_CLEANUP_ON_EXIT_CONFIG -
@@ -195,6 +208,23 @@ def oracle(
             '/etc/firewalld/firewalld.conf && firewall-cmd --reload'
         )
         assert result.status == 0
+
+        # Set RHEL kernel to be used during boot
+        oracle_host.execute("mkdir -p /boot/loader/entries/backup")
+        oracle_host.execute("mv /boot/loader/entries/*uek*.conf /boot/loader/entries/backup/")
+        # Needs reboot to reflect the changes
+        oracle_host.power_control(state='reboot')
+        assert oracle_host.execute("grubby --default-kernel | grep uek").status != 0
+        assert oracle_host.execute("uname -r | grep uek").status != 0
+
+        # Fix inhibitor TAINTED_KMODS::TAINTED_KMODS_DETECTED - Tainted kernel modules detected
+        blacklist_cfg = '/etc/modprobe.d/blacklist.conf'
+        assert oracle_host.execute('modprobe -r nvme_tcp').status == 0
+        assert oracle_host.execute(f'echo "blacklist nvme_tcp" >> {blacklist_cfg}').status == 0
+        assert (
+            oracle_host.execute(f'echo "install nvme_tcp /bin/false" >> {blacklist_cfg}').status
+            == 0
+        )
 
     if oracle_host.execute('needs-restarting -r').status == 1:
         oracle_host.power_control(state='reboot')
@@ -215,7 +245,7 @@ def oracle(
     ak.content_override(data={'content_overrides': [{'content_label': repo_label, 'value': '1'}]})
 
     # UBI repo required for subscription-manager packages on Oracle
-    ubi_url = settings.repos.convert2rhel.ubi7 if major == '7' else settings.repos.convert2rhel.ubi8
+    ubi_url = settings.repos.convert2rhel.ubi7 if major == 7 else settings.repos.convert2rhel.ubi8
 
     # Register Oracle host with Satellite
     result = oracle_host.api_register(
@@ -259,18 +289,12 @@ def test_convert2rhel_oracle_with_pre_conversion_template_check(
 
     :Verifies: SAT-24654, SAT-24655, SAT-26076
     """
-    major = version.split('.')[0]
-    assert oracle.execute('yum -y update').status == 0
-
-    if major == '8':
-        # Fix inhibitor TAINTED_KMODS::TAINTED_KMODS_DETECTED - Tainted kernel modules detected
-        blacklist_cfg = '/etc/modprobe.d/blacklist.conf'
-        assert oracle.execute('modprobe -r nvme_tcp').status == 0
-        assert oracle.execute(f'echo "blacklist nvme_tcp" >> {blacklist_cfg}').status == 0
-        assert oracle.execute(f'echo "install nvme_tcp /bin/false" >> {blacklist_cfg}').status == 0
+    major = int(version.split('.')[0])
+    if major <= 7 and module_target_sat.is_fips_enabled():
+        pytest.skip('OEL7 conversion is not supported with FIPS-enabled Sat')
 
     host_content = module_target_sat.api.Host(id=oracle.hostname).read_json()
-    assert host_content['operatingsystem_name'] == f"OracleLinux {version}"
+    assert host_content['operatingsystem_name'] == f'OracleLinux {version}'
 
     # Pre-conversion template job
     template_id = (
@@ -285,7 +309,7 @@ def test_convert2rhel_oracle_with_pre_conversion_template_check(
             'targeting_type': 'static_query',
             'search_query': f'name = {oracle.hostname}',
             'inputs': {
-                'ELS': 'yes' if major <= '7' else 'no',
+                'ELS': 'yes' if major <= 7 else 'no',
             },
         },
     )
@@ -308,7 +332,7 @@ def test_convert2rhel_oracle_with_pre_conversion_template_check(
             'inputs': {
                 'Activation Key': activation_key_rhel.id,
                 'Restart': 'yes',
-                'ELS': 'yes' if major <= '7' else 'no',
+                'ELS': 'yes' if major <= 7 else 'no',
             },
             'targeting_type': 'static_query',
             'search_query': f'name = {oracle.hostname}',
@@ -363,8 +387,11 @@ def test_convert2rhel_centos_with_pre_conversion_template_check(
 
     :Verifies: SAT-24654, SAT-24655, SAT-26076
     """
+    major = int(version.split('.')[0])
+    if major <= 7 and module_target_sat.is_fips_enabled():
+        pytest.skip('CentOS7 conversion is not supported with FIPS-enabled Sat')
+
     host_content = module_target_sat.api.Host(id=centos.hostname).read_json()
-    major = version.split('.')[0]
     assert host_content['operatingsystem_name'] == f'CentOS {major}'
 
     # Pre-conversion template job
@@ -380,7 +407,7 @@ def test_convert2rhel_centos_with_pre_conversion_template_check(
             'targeting_type': 'static_query',
             'search_query': f'name = {centos.hostname}',
             'inputs': {
-                'ELS': 'yes' if major <= '7' else 'no',
+                'ELS': 'yes' if major <= 7 else 'no',
             },
         },
     )
@@ -404,7 +431,7 @@ def test_convert2rhel_centos_with_pre_conversion_template_check(
             'inputs': {
                 'Activation Key': activation_key_rhel.id,
                 'Restart': 'yes',
-                'ELS': 'yes' if major <= '7' else 'no',
+                'ELS': 'yes' if major <= 7 else 'no',
             },
             'targeting_type': 'static_query',
             'search_query': f'name = {centos.hostname}',

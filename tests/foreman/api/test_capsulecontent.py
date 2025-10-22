@@ -7,7 +7,7 @@ interactions and use capsule.
 
 :CaseComponent: Capsule-Content
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
@@ -49,7 +49,15 @@ from robottelo.content_info import (
     get_repomd_revision,
 )
 from robottelo.utils.datafactory import gen_string
-from robottelo.utils.issue_handlers import is_open
+
+
+@pytest.fixture(scope="module")
+def add_proxy_cli_config(module_target_sat, module_capsule_configured):
+    """Adds an entry in the pulp cli config for executing pulp commands on the capsule, then removes it."""
+    PROXY_CONFIG = f'\n[cli-proxy]\ncert = "/etc/foreman/client_cert.pem"\nkey = "/etc/foreman/client_key.pem"\nbase_url = "https://{module_capsule_configured.hostname}"'
+    module_target_sat.execute(f"echo -e '{PROXY_CONFIG}' >> .config/pulp/cli.toml")
+    yield
+    module_target_sat.execute("sed -i '/cli-proxy/, +3 d' .config/pulp/cli.toml")
 
 
 @pytest.fixture
@@ -773,7 +781,7 @@ class TestCapsuleContentManagement:
             assert b'katello-server-ca.crt' in response.content
 
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('endpoint', ['pulpcore'])
+    @pytest.mark.parametrize('endpoint', ['pulpcore', 'katello'])
     def test_flatpak_endpoint(self, target_sat, module_capsule_configured, endpoint):
         """Ensure the Capsules's local flatpak index endpoint is up after install or upgrade.
 
@@ -793,7 +801,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.e2e
     @pytest.mark.skip_if_not_set('capsule')
-    @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos', 'rhel10_bos_beta'])
+    @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos', 'rhel10_bos'])
     def test_positive_sync_kickstart_repo(
         self, target_sat, module_capsule_configured, function_sca_manifest_org, distro
     ):
@@ -979,8 +987,7 @@ class TestCapsuleContentManagement:
                     f'{con_client} search {module_capsule_configured.hostname}/{path}'
                 )
                 assert result.status == 0
-                if not is_open('SAT-25813'):
-                    assert f'{module_capsule_configured.hostname}/{path}' in result.stdout
+                assert f'{module_capsule_configured.hostname}/{path}' in result.stdout
 
                 result = module_container_contenthost.execute(
                     f'{con_client} pull {module_capsule_configured.hostname}/{path}'
@@ -1456,7 +1463,7 @@ class TestCapsuleContentManagement:
 
         :parametrized: yes
 
-        :verifies: SAT-28575
+        :Verifies: SAT-28575
 
         :customerscenario: true
 
@@ -1836,7 +1843,7 @@ class TestCapsuleContentManagement:
 
         :BlockedBy: SAT-25503
 
-        :verifies: SAT-26453
+        :Verifies: SAT-26453
 
         :customerscenario: true
         """
@@ -2030,13 +2037,131 @@ class TestCapsuleContentManagement:
             reclaim_doc['apis'][0]['api_url'] == '/katello/api/capsules/:id/content/reclaim_space'
         ), 'Documented path did not meet the expectation.'
 
+    @pytest.mark.e2e
+    @pytest.mark.skip_if_not_set('capsule')
+    def test_cleanup_orphaned_content(
+        self,
+        add_proxy_cli_config,
+        module_target_sat,
+        module_capsule_configured,
+        function_org,
+        function_product,
+        function_lce,
+    ):
+        """Verify that when there are orphaned distributions, orphaned content cleanup can still work properly.
+
+        :id: a88ba493-eeae-4b6d-999b-dd697fc073f5
+
+        :steps:
+            1. Create and sync a repository.
+            2. Associate the LCE with a capsule, and sync.
+            3. Add content to the repository, publish and promote to the LCE, and sync.
+            4. Add a [cli-proxy] entry to .config/pulp/cli.toml pointing to the capsule
+            5. Using pulp CLI and foreman-rake, create a publication and distribution using the first version of the repository.
+            6. Trigger orphan cleanup on both capsule and satellite.
+
+        :customerscenario: true
+
+        :Verifies: SAT-31400
+
+        :expectedresults:
+
+            1. Orphaned cleanup runs successfully when there are orphaned distributions and publications present.
+        """
+        repo_url = settings.repos.yum_1.url
+        repo = module_target_sat.api.Repository(product=function_product, url=repo_url).create()
+        # Associate the lifecycle environment with the capsule
+        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': function_lce.id}
+        )
+        result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+
+        assert len(result['results'])
+        assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
+
+        # Create a content view with the repository
+        cv = module_target_sat.api.ContentView(
+            organization=function_org, repository=[repo]
+        ).create()
+        # Sync repository
+        repo.sync()
+        repo = repo.read()
+        # Publish new version of the content view
+        cv.publish()
+        cv = cv.read()
+        assert len(cv.version) == 1
+
+        cvv = cv.version[-1].read()
+        # Promote content view to lifecycle environment,
+        # invoking capsule sync task(s)
+        timestamp = datetime.now(UTC)
+        cvv.promote(data={'environment_ids': function_lce.id})
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
+        cvv = cvv.read()
+
+        # Update a repository with 1 new rpm
+        with open(DataFile.RPM_TO_UPLOAD, 'rb') as handle:
+            repo.upload_content(files={'content': handle})
+
+        # Publish and promote the repository
+        repo = repo.read()
+        cv.publish()
+        cv = cv.read()
+        cv.version.sort(key=lambda version: version.id)
+        cvv = cv.version[-1].read()
+
+        timestamp = datetime.now(UTC)
+        cvv.promote(data={'environment_ids': function_lce.id})
+
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
+        cvv = cvv.read()
+        assert len(cvv.environment) == 2
+
+        # Assert that packages count in the repository is updated
+        assert repo.content_counts['rpm'] == (FAKE_1_YUM_REPOS_COUNT + 1)
+
+        # Create orphaned publication and distribution on Satellite
+        version_href = (
+            module_target_sat.execute(
+                f'echo "::Katello::Repository.find({repo.id}).version_href" | foreman-rake console'
+            )
+            .stdout.split('"')[1]
+            .removesuffix("versions/2/")
+        )
+        publication_href = module_target_sat.execute(
+            f"pulp --force rpm publication create --repository {version_href} --version 1"
+        ).stdout.split('"')[3]
+        module_target_sat.execute(
+            f"pulp --force rpm distribution create --name test2 --base-path test2 --publication {publication_href}"
+        )
+
+        # Create orphaned publication and distribution on Capsule
+        version_href = (
+            module_target_sat.execute(
+                "pulp --force --profile proxy repository list --field latest_version_href"
+            )
+            .stdout.split('"')[3]
+            .removesuffix("versions/2/")
+        )
+        publication_href = module_target_sat.execute(
+            f"pulp --force --profile proxy rpm publication create --repository {version_href} --version 1"
+        ).stdout.split('"')[3]
+        module_target_sat.execute(
+            f"pulp --force --profile proxy rpm distribution create --name test2 --base-path test2 --publication {publication_href}"
+        )
+
+        # Run orphan cleanup on satellite and capsule
+        module_target_sat.run_orphan_cleanup(module_capsule_configured.nailgun_smart_proxy.id)
+        module_target_sat.run_orphan_cleanup(module_target_sat.nailgun_smart_proxy.id)
+
 
 class TestPodman:
     """Tests specific to using podman push/pull on Satellite
 
     :CaseComponent: Repositories
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     @pytest.fixture(scope='class')

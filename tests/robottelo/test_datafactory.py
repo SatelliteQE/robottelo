@@ -66,7 +66,7 @@ class TestFilteredDataPoint:
             assert len(datafactory.valid_org_names_list()) == 7
             assert len(datafactory.valid_usernames_list()) == 5
             assert len(datafactory.valid_cron_expressions()) == 4
-            assert len(datafactory.valid_docker_repository_names()) == 7
+            assert len(datafactory.valid_docker_repository_names()) == 6
 
     @mock.patch('robottelo.utils.datafactory.gen_string')
     def test_generate_strings_list_remove_str(self, gen_string, run_one_datapoint):

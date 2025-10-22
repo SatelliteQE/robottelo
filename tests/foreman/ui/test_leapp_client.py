@@ -4,7 +4,7 @@
 
 :CaseComponent: Leappintegration
 
-:Team: Rocket
+:Team: Endeavour
 
 :CaseImportance: Critical
 
@@ -15,8 +15,13 @@
 import pytest
 
 from robottelo.constants import RHEL8_VER, RHEL9_VER
+from robottelo.utils.issue_handlers import is_open
 
 
+@pytest.mark.skipif(
+    is_open('SAT-36237'),
+    reason='Missing "Leapp Preupgrade report" tab on new job invocation details page (SAT-38786)',
+)
 @pytest.mark.parametrize(
     'upgrade_path',
     [

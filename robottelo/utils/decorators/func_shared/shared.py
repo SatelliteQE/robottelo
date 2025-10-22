@@ -497,8 +497,8 @@ def shared(
         retry before setting the call with in failure state
     :param function_kw: The function kwargs to use as an additional scope,
         an md5 hexdigest of that kwargs will be created and added to the
-        storage scope, that way we should have diffrent stored values for
-        diffrent kw values.
+        storage scope, that way we should have different stored values for
+        different kw values.
     :param inject: whether to recall the function with injecting the result as
         \**kwargs
     :param injected_kw: the kw arg to set to True to inform the function that

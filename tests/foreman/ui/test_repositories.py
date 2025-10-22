@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: Critical
 
@@ -120,7 +120,7 @@ def test_positive_override_custom_products_not_using_select_all(
         1. Register Host
         2. Assert that custom proudcts are disabled by default
         3. Override custom products to enabled by selecting the repos individually and
-           using the new funtionality at the top
+           using the new functionality at the top
         4. Assert custom products are now enabled
 
     :expectedresults: Custom products should be easily enable NOT using the select all method

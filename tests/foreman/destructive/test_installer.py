@@ -6,7 +6,7 @@
 
 :CaseComponent: Installation
 
-:Team: Platform
+:Team: Rocket
 
 :CaseImportance: Critical
 
@@ -244,7 +244,7 @@ def test_negative_installer_invalid_dns_forwarder(target_sat):
         1. satellite-installer should fail when invalid values are used for dns_forwarder
         2. satellite-installer shouldn't set the invalid values for dns_forwarder
 
-    :verifies: SAT-26014
+    :Verifies: SAT-26014
 
     :customerscenario: true
     """
@@ -252,7 +252,7 @@ def test_negative_installer_invalid_dns_forwarder(target_sat):
     assert 'DNS forwarders (current: [])' in result.stdout
 
     # attempt to use invalid dns_forwarder
-    for dns_forwarder in ['', gen_string('alpha')]:
+    for dns_forwarder in ['""', gen_string('alpha')]:
         result = target_sat.install(InstallerCommand(foreman_proxy_dns_forwarders=dns_forwarder))
         assert result.status != 0
         assert 'Parameter foreman-proxy-dns-forwarders invalid:' in result.stdout

@@ -773,7 +773,7 @@ class TestOpenScap:
 
             1. Oscap should be enabled.
             2. Oscap-cli hammer plugin installed.
-            3. Atleast 1 policy.
+            3. At least 1 policy.
 
         :steps:
 
@@ -832,7 +832,7 @@ class TestOpenScap:
 
             1. Oscap should be enabled.
             2. Oscap-cli hammer plugin installed.
-            3. Atleast 1 policy and hostgroup.
+            3. At least 1 policy and hostgroup.
 
         :steps:
 
@@ -878,7 +878,7 @@ class TestOpenScap:
 
             1. Oscap should be enabled.
             2. Oscap-cli hammer plugin installed.
-            3. Atleast 1 policy.
+            3. At least 1 policy.
 
         :steps:
 
@@ -924,7 +924,7 @@ class TestOpenScap:
 
             1. Oscap should be enabled.
             2. Oscap-cli hammer plugin installed.
-            3. Atleast 1 policy.
+            3. At least 1 policy.
 
         :steps:
 
@@ -1012,7 +1012,7 @@ class TestOpenScap:
 
             1. Oscap should be enabled.
             2. Oscap-cli hammer plugin installed.
-            3. Atleast 1 policy.
+            3. At least 1 policy.
             4. A provisioned host with scap enabled.
             5. Reports from the host send to satellite.
 
@@ -1037,7 +1037,7 @@ class TestOpenScap:
 
             1. Oscap should be enabled.
             2. Oscap-cli hammer plugin installed.
-            3. Atleast 1 policy.
+            3. At least 1 policy.
             4. A provisioned host with scap enabled
             5. Reports from the host send to satellite
 
@@ -1062,7 +1062,7 @@ class TestOpenScap:
 
             1. Oscap should be enabled.
             2. Oscap-cli hammer plugin installed.
-            3. Atleast 1 policy.
+            3. At least 1 policy.
             4. A provisioned host with scap enabled.
             5. Reports from the host send to satellite.
 

@@ -6,7 +6,7 @@
 
 :CaseComponent: ActivationKeys
 
-:team: Phoenix-subscriptions
+:team: Proton
 
 :CaseImportance: High
 
@@ -873,7 +873,7 @@ def test_positive_update_aks_to_chost_in_one_command(module_org):
 
     ...
 
-    This means that we can re-use `--activationkey` option more than once
+    This means that we can reuse `--activationkey` option more than once
     to add different keys
 
     :id: 888669e2-2ff7-48e3-9c56-6ac497bec5a0
@@ -915,7 +915,7 @@ def test_positive_list_by_cv_id(module_org, module_target_sat, get_default_env, 
     :CaseImportance: High
     """
     lce = get_default_env
-    module_target_sat.cli_factory.make_activation_key(
+    activation_key = module_target_sat.cli_factory.make_activation_key(
         {
             'organization-id': module_org.id,
             'lifecycle-environment-id': lce['id'],
@@ -925,8 +925,11 @@ def test_positive_list_by_cv_id(module_org, module_target_sat, get_default_env, 
     result = module_target_sat.cli.ActivationKey.list(
         {'content-view-id': module_promoted_cv.id, 'organization-id': module_org.id}
     )
-    assert len(result) == 1
-    assert result[0]['content-view-environments'] == f'{lce["name"]}/{module_promoted_cv.name}'
+    assert any(
+        ak['name'] == activation_key.name
+        and ak['content-view-environments'] == f'{lce["name"]}/{module_promoted_cv.name}'
+        for ak in result
+    )
 
 
 def test_positive_create_using_old_name(module_org, module_target_sat):
@@ -1680,3 +1683,76 @@ def test_positive_multi_cv_info_and_remove_all_cv_envs(
     ak_info = session_multicv_sat.cli.ActivationKey.info({'id': ak.id})
     assert ak_info['multi-content-view-environment'] == 'no'
     assert ak_info['content-view-environment-labels'] == {}
+
+
+@pytest.mark.rhel_ver_match('9')
+@pytest.mark.pit_client
+@pytest.mark.pit_server
+@pytest.mark.cli_host_subscription
+@pytest.mark.e2e
+def test_syspurpose_end_to_end(
+    target_sat,
+    module_org,
+    module_promoted_cv,
+    module_lce,
+    module_rhst_repo,
+    default_subscription,
+    rhel_contenthost,
+):
+    """Create a host with system purpose values set by activation key.
+
+    :id: b88e9b6c-2348-49ce-b5e9-a2b9f0abed3f
+
+    :expectedresults: host is registered and system purpose values are correct.
+
+    :CaseImportance: Critical
+
+    :parametrized: yes
+    """
+    # Create an activation key with test values
+    # purpose_addons = "test-addon1, test-addon2"
+    activation_key = target_sat.api.ActivationKey(
+        content_view=module_promoted_cv,
+        environment=module_lce,
+        organization=module_org,
+        # purpose_addons=[purpose_addons],
+        purpose_role="test-role",
+        purpose_usage="test-usage",
+        service_level="Self-Support",
+    ).create()
+    # Register a host using the activation key
+    res = rhel_contenthost.register(module_org, None, activation_key.name, target_sat)
+    assert res.status == 0, f'Failed to register host: {res.stderr}'
+    assert rhel_contenthost.subscribed
+    rhel_contenthost.enable_repo(module_rhst_repo)
+    host = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
+    # Assert system purpose values are set in the host as expected
+    assert host['subscription-information']['system-purpose']['purpose-role'] == "test-role"
+    assert host['subscription-information']['system-purpose']['purpose-usage'] == "test-usage"
+    assert host['subscription-information']['system-purpose']['service-level'] == "Self-Support"
+    # Change system purpose values in the host
+    target_sat.cli.Host.update(
+        {
+            'purpose-role': "test-role2",
+            'purpose-usage': "test-usage2",
+            'service-level': "Self-Support2",
+            'id': host['id'],
+        }
+    )
+    host = target_sat.cli.Host.info({'id': host['id']})
+    # Assert system purpose values have been updated in the host as expected
+    assert host['subscription-information']['system-purpose']['purpose-role'] == "test-role2"
+    assert host['subscription-information']['system-purpose']['purpose-usage'] == "test-usage2"
+    assert host['subscription-information']['system-purpose']['service-level'] == "Self-Support2"
+
+    rhel_contenthost.unregister()
+    with pytest.raises(CLIReturnCodeError):
+        # raise error that the host was not registered by
+        # subscription-manager register
+        target_sat.cli.ActivationKey.subscriptions(
+            {
+                'organization-id': module_org.id,
+                'id': activation_key.id,
+                'host-id': host['id'],
+            }
+        )

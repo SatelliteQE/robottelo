@@ -26,22 +26,18 @@ def pytest_collection_modifyitems(items, config):
     deselected = []
 
     for item in items:
-        is_destructive = item.get_closest_marker('destructive')
-        # Deselect Destructive tests and tests without capsule_factory fixture
-        if 'capsule_factory' not in item.fixturenames or is_destructive:
-            deselected.append(item)
+        # Select only non-destructive tests with capsule_factory fixture or sat_maintain fxture with capsule parameter
+        if not (
+            item.get_closest_marker('destructive')
+            or 'session_puppet_enabled_sat' in item.fixturenames
+        ) and (
+            'capsule_factory' in item.fixturenames
+            or 'sat_maintain' in item.fixturenames
+            and 'capsule' in item.callspec.params.values()
+        ):
+            selected.append(item)
             continue
-        # Ignoring all puppet tests as they are destructive in nature
-        # and needs its own satellite for verification
-        if 'session_puppet_enabled_sat' in item.fixturenames:
-            deselected.append(item)
-            continue
-        # Ignoring all satellite maintain tests as they are destructive in nature
-        # Also dont need them in nminus testing as its not integration testing
-        if 'sat_maintain' in item.fixturenames and 'satellite' in item.callspec.params.values():
-            deselected.append(item)
-            continue
-        selected.append(item)
+        deselected.append(item)
 
     config.hook.pytest_deselected(items=deselected)
     items[:] = selected

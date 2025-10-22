@@ -6,12 +6,13 @@
 
 :CaseComponent: InterSatelliteSync
 
-:team: Phoenix-subscriptions
+:team: Artemis
 
 :CaseImportance: High
 
 """
 
+from datetime import UTC, datetime
 import os
 from time import sleep
 
@@ -26,6 +27,7 @@ from robottelo.constants import (
     DEFAULT_CV,
     ENVIRONMENT,
     EXPORT_LIBRARY_NAME,
+    FLATPAK_RHEL_RELEASE_VER,
     PULP_EXPORT_DIR,
     PULP_IMPORT_DIR,
     REPO_TYPE,
@@ -207,7 +209,8 @@ def function_synced_docker_repo(target_sat, function_org, function_product):
 def function_synced_flatpak_repos(
     target_sat, function_org, function_flatpak_remote, function_product
 ):
-    repo_names = ['rhel9/firefox-flatpak', 'rhel9/flatpak-runtime']  # runtime is dependency
+    ver = FLATPAK_RHEL_RELEASE_VER
+    repo_names = [f'rhel{ver}/firefox-flatpak', f'rhel{ver}/flatpak-runtime']  # runtime=dependency
     remote_repos = [r for r in function_flatpak_remote.repos if r['name'] in repo_names]
     for repo in remote_repos:
         target_sat.cli.FlatpakRemote().repository_mirror(
@@ -554,6 +557,112 @@ class TestRepositoryExport:
         )
         assert '2.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
+    @pytest.mark.parametrize(
+        ('subject', 'with_destination_server'),
+        [
+            ('library', False),
+            ('library', True),
+            ('repository', False),
+            # Note: repository exports don't support destination-server parameter
+        ],
+        ids=['library', 'library-with_destination', 'repository'],
+    )
+    def test_positive_export_format_inheritance(
+        self,
+        target_sat,
+        export_import_cleanup_function,
+        function_org,
+        function_synced_custom_repo,
+        subject,
+        with_destination_server,
+    ):
+        """Test that incremental exports inherit format from previous exports.
+
+        :id: 95407c12-7f1f-4845-bc0b-01a6dad654ff
+
+        :parametrized: yes
+
+        :setup:
+            1. Product with synced custom repository.
+
+        :steps:
+            1. Run complete export in importable format.
+            2. Run an incremental export with no format provided.
+            3. Assert that the format of the export is "importable" (not "syncable").
+            4. Run complete export in syncable format.
+            5. Run an incremental export with no format provided.
+            6. Assert that the format of the export is "syncable" (not "importable").
+            7. Run incremental export on the first export using --from-history-id.
+            8. Assert that the format of the export is "importable" (not "syncable").
+
+        :expectedresults:
+            1. Incremental exports inherit the format from the previous complete export.
+            2. When using --from-history-id, the format is inherited from the specified export.
+            3. Tests work with and without destination-server parameter.
+
+        :Verifies: SAT-32715, SAT-38691
+
+        :BlockedBy: SAT-38392, SAT-38691
+
+        :customerscenario: true
+        """
+        if subject == 'library':
+            cpl_export = target_sat.cli.ContentExport.completeLibrary
+            inc_export = target_sat.cli.ContentExport.incrementalLibrary
+            exp_params = {'organization-id': function_org.id}
+            importable_msg = f'{function_org.name}/Export-Library'
+            syncable_msg = f'{function_org.name}/Export-Library-SYNCABLE'
+            # Repository exports don't support destination-server
+            if with_destination_server:
+                destination = gen_string('alpha')
+                exp_params['destination-server'] = destination
+                importable_msg = f'{importable_msg}-{destination}'
+                syncable_msg = f'{syncable_msg}-{destination}'
+
+        elif subject == 'repository':
+            cpl_export = target_sat.cli.ContentExport.completeRepository
+            inc_export = target_sat.cli.ContentExport.incrementalRepository
+            exp_params = {'id': function_synced_custom_repo['id']}
+            importable_msg = f'{function_org.name}/Export-{function_synced_custom_repo.name}'
+            syncable_msg = f'{function_org.name}/Export-SYNCABLE-{function_synced_custom_repo.name}'
+        else:
+            raise ValueError('Unsupported export subject used in parametrization')
+
+        # Verify export directory is empty
+        assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
+
+        # Run complete export in importable format.
+        export_1 = cpl_export(exp_params | {'format': 'importable'})
+        history = target_sat.cli.ContentExport.list({'organization-id': function_org.id})
+        export_1['id'] = history[-1]['id']
+
+        # Run an incremental export with no format provided.
+        export_2 = inc_export(exp_params)
+
+        # Assert that the format of the export is "importable" (not "syncable").
+        assert importable_msg in export_2['message']
+        history = target_sat.cli.ContentExport.list({'organization-id': function_org.id})
+        assert importable_msg in history[-1]['path']
+
+        # Run complete export in syncable format.
+        cpl_export(exp_params | {'format': 'syncable'})
+
+        #  Run an incremental export with no format provided.
+        export_4 = inc_export(exp_params)
+
+        # Assert that the format of the export is "syncable" (not "importable").
+        assert syncable_msg in export_4['message']
+        history = target_sat.cli.ContentExport.list({'organization-id': function_org.id})
+        assert syncable_msg in history[-1]['path']
+
+        # Run incremental export on the first export using --from-history-id.
+        export_5 = inc_export(exp_params | {'from-history-id': export_1['id']})
+
+        # Assert that the format of the export is "importable" (not "syncable").
+        assert importable_msg in export_5['message']
+        history = target_sat.cli.ContentExport.list({'organization-id': function_org.id})
+        assert importable_msg in history[-1]['path']
+
 
 @pytest.fixture(scope='class')
 def class_export_entities(module_org, module_target_sat):
@@ -593,7 +702,7 @@ def _create_cv(cv_name, repo, module_org, sat, publish=True):
     :param cv_name: The name of CV to create
     :param repo: The repository directory
     :param organization: The organization directory
-    :param publish: Publishes the CV if True else doesnt
+    :param publish: Publishes the CV if True else doesn't
     :return: The directory of CV and Content View ID
     """
     description = gen_string('alpha')
@@ -1343,6 +1452,7 @@ class TestContentViewSync:
         assert 'content_view not found' in error.value.message, 'The imported CV should be gone'
 
     @pytest.mark.e2e
+    @pytest.mark.rhel_ver_match('9')
     @pytest.mark.parametrize('function_flatpak_remote', ['RedHat'], indirect=True)
     def test_postive_export_import_cv_with_mixed_content_repos(
         self,
@@ -1538,23 +1648,26 @@ class TestContentViewSync:
         res = module_flatpak_contenthost.execute('flatpak remotes')
         assert remote_name in res.stdout
 
-        app_name = 'Firefox'
-        res = module_flatpak_contenthost.execute('flatpak remote-ls')
+        app_name = 'firefox'
+        res = module_flatpak_contenthost.execute(f'flatpak remote-ls {remote_name}')
         assert app_name in res.stdout
 
         job = module_import_sat.cli_factory.job_invocation(
             {
                 'organization': function_import_org_at_isat.name,
                 'job-template': 'Flatpak - Install application on host',
-                'inputs': f'Flatpak remote name={remote_name}, Application name={app_name}',
+                'inputs': (
+                    f'Flatpak remote name={remote_name}, Application name={app_name}, '
+                    'Launch a session bus instance=true'
+                ),
                 'search-query': f"name = {module_flatpak_contenthost.hostname}",
-            }
+            },
         )
         res = module_import_sat.cli.JobInvocation.info({'id': job.id})
         assert 'succeeded' in res['status']
         request.addfinalizer(
             lambda: module_flatpak_contenthost.execute(
-                f'flatpak uninstall {remote_name} {app_name} com.redhat.Platform -y'
+                f'flatpak uninstall {app_name} com.redhat.Platform -y'
             )
         )
 
@@ -1620,10 +1733,17 @@ class TestContentViewSync:
             1. Create CV, add all setup repos and publish.
             2. Export CV version contents in syncable format.
             3. Import the syncable export, check the content.
+            4. Check the import history.
 
         :expectedresults:
             1. Export succeeds and content is exported.
             2. Import succeeds, content is imported and matches the export.
+            3. Import is properly listed.
+
+        :Verifies: SAT-32667
+
+        :customerscenario: true
+
         """
         # Create CV, add all setup repos and publish
         cv = target_sat.cli_factory.make_content_view({'organization-id': function_org.id})
@@ -1656,7 +1776,7 @@ class TestContentViewSync:
         )
         assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) != ''
 
-        # Import the syncable export
+        # Import the syncable export, check the content
         import_path = target_sat.move_pulp_archive(function_org, export['message'])
         target_sat.cli.ContentImport.version(
             {'organization-id': function_import_org.id, 'path': import_path}
@@ -1684,6 +1804,13 @@ class TestContentViewSync:
         imported_files = target_sat.cli.File.list({'content-view-version-id': importing_cvv['id']})
         assert exported_packages == imported_packages, 'Imported RPMs do not match the export'
         assert exported_files == imported_files, 'Imported Files do not match the export'
+
+        # Check the import history
+        import_list = target_sat.cli.ContentImport.list({'organization-id': function_import_org.id})
+        assert len(import_list) == 1, 'Only 1 import expected within the Organization'
+        assert import_list[0]['path'] == import_path
+        assert import_list[0]['content-view-version'] == importing_cvv['name']
+        assert import_list[0]['content-view-version-id'] == importing_cvv['id']
 
     def test_postive_export_cv_syncable_with_permissions(
         self,
@@ -1828,7 +1955,7 @@ class TestContentViewSync:
 
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
-        ['rhsclient9'],
+        ['rhs9'],
         indirect=True,
     )
     def test_positive_export_rerun_failed_import(
@@ -1899,9 +2026,11 @@ class TestContentViewSync:
         # Wait for the CV creation on import and make the import fail
         wait_for(
             lambda: target_sat.cli.ContentView.info(
-                {'name': cv_name, 'organization-id': function_import_org_with_manifest.id}
-            )
+                {'name': cv_name, 'organization-id': function_import_org_with_manifest.id},
+            ),
+            delay=0.2,
         )
+        timestamp = datetime.now(UTC)
         target_sat.cli.Service.restart()
         sleep(30)
         # Assert that the initial import task did not succeed and CVV was removed
@@ -1912,6 +2041,11 @@ class TestContentViewSync:
             )[0]
             .result
             != 'success'
+        )
+        target_sat.wait_for_tasks(
+            search_query=f'label = Actions::Katello::ContentView::Remove and started_at >= "{timestamp}"',
+            search_rate=10,
+            max_tries=12,
         )
         importing_cvv = target_sat.cli.ContentView.info(
             {'name': cv_name, 'organization-id': function_import_org_with_manifest.id}
@@ -2922,31 +3056,25 @@ class TestInterSatelliteSync:
     @pytest.mark.pit_client
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-    @pytest.mark.parametrize(
-        'function_synced_rh_repo',
-        ['rhsclient9'],
-        indirect=True,
-    )
     def test_positive_export_import_consume_incremental_yum_repo(
         self,
         target_sat,
         export_import_cleanup_function,
         config_export_import_settings,
-        function_sca_manifest_org,
-        function_import_org_with_manifest,
-        function_synced_rh_repo,
+        function_org,
+        function_import_org,
+        function_synced_custom_repo,
         rhel_contenthost,
     ):
-        """Export and import RH yum repo incrementally and consume it on a content host.
+        """Export and import custom repo incrementally and consume it on a content host.
 
         :id: f5515168-c3c9-4351-9f83-ba6265689db3
 
         :setup:
-            1. Enabled and synced RH yum repository (RH Satellite Client for this case).
-            2. An unregistered RHEL8 host.
+            1. Enabled and synced custom yum repository.
 
         :steps:
-            1. Create a CV with the RH yum repository.
+            1. Create a CV with the yum repository.
             2. Add exclude RPM filter to filter out one package, publish version 1 and export it.
             3. On the importing side import version 1, check the package count.
             4. Create an AK with the imported CV, register the content host and check
@@ -2967,13 +3095,13 @@ class TestInterSatelliteSync:
         # Create a CV with the RH yum repository.
         exp_cv = target_sat.cli_factory.make_content_view(
             {
-                'organization-id': function_sca_manifest_org.id,
-                'repository-ids': [function_synced_rh_repo['id']],
+                'organization-id': function_org.id,
+                'repository-ids': [function_synced_custom_repo['id']],
             }
         )
 
         # Add exclude RPM filter to filter out one package, publish version 1 and export it.
-        filtered_pkg = 'katello-host-tools'
+        filtered_pkg = 'dog'
         cvf = target_sat.cli_factory.make_content_view_filter(
             {'content-view-id': exp_cv['id'], 'type': 'rpm'}
         )
@@ -2986,17 +3114,15 @@ class TestInterSatelliteSync:
         cvv_1 = exp_cv['versions'][0]
         pkg_cnt_1 = target_sat.api.ContentViewVersion(id=cvv_1['id']).read().package_count
         export_1 = target_sat.cli.ContentExport.completeVersion({'id': cvv_1['id']})
-        assert '1.0' in target_sat.validate_pulp_filepath(
-            function_sca_manifest_org, PULP_EXPORT_DIR
-        )
+        assert '1.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
         # On the importing side import version 1, check the package count.
-        import_path1 = target_sat.move_pulp_archive(function_sca_manifest_org, export_1['message'])
+        import_path1 = target_sat.move_pulp_archive(function_org, export_1['message'])
         target_sat.cli.ContentImport.version(
-            {'organization-id': function_import_org_with_manifest.id, 'path': import_path1}
+            {'organization-id': function_import_org.id, 'path': import_path1}
         )
         imp_cv = target_sat.cli.ContentView.info(
-            {'name': exp_cv['name'], 'organization-id': function_import_org_with_manifest.id}
+            {'name': exp_cv['name'], 'organization-id': function_import_org.id}
         )
         assert len(imp_cv['versions']) == 1
         imp_cvv = imp_cv['versions'][0]
@@ -3008,19 +3134,24 @@ class TestInterSatelliteSync:
             {
                 'content-view': exp_cv['name'],
                 'lifecycle-environment': ENVIRONMENT,
-                'organization-id': function_import_org_with_manifest.id,
+                'organization-id': function_import_org.id,
             }
         )
+        repo_content_label = target_sat.cli.Repository.info(
+            {
+                'name': function_synced_custom_repo['name'],
+                'product': function_synced_custom_repo['product']['name'],
+                'organization-id': function_import_org.id,
+            }
+        )['content-label']
         target_sat.cli.ActivationKey.content_override(
             {
                 'id': ak.id,
-                'content-label': function_synced_rh_repo['content-label'],
+                'content-label': repo_content_label,
                 'value': 'true',
             }
         )
-        res = rhel_contenthost.register(
-            function_import_org_with_manifest, None, ak.name, target_sat
-        )
+        res = rhel_contenthost.register(function_import_org, None, ak.name, target_sat)
         assert res.status == 0, (
             f'Failed to register host: {rhel_contenthost.hostname}\n'
             f'StdOut: {res.stdout}\nStdErr: {res.stderr}'
@@ -3036,7 +3167,7 @@ class TestInterSatelliteSync:
         assert res.status, 'Installation of filtered package succeeded unexpectedly'
         assert f'No match for argument: {filtered_pkg}' in res.stdout
 
-        # Update the fiter so that no package is left behind, publish version 2 and export it.
+        # Update the filter so that no package is left behind, publish version 2 and export it.
         target_sat.cli.ContentView.filter.rule.update(
             {
                 'content-view-filter-id': cvf['filter-id'],
@@ -3051,24 +3182,33 @@ class TestInterSatelliteSync:
         pkg_cnt_2 = target_sat.api.ContentViewVersion(id=cvv_2['id']).read().package_count
         assert pkg_cnt_2 > pkg_cnt_1
         export_2 = target_sat.cli.ContentExport.incrementalVersion({'id': cvv_2['id']})
-        assert '2.0' in target_sat.validate_pulp_filepath(
-            function_sca_manifest_org, PULP_EXPORT_DIR
-        )
+        assert '2.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
         # Import version 2, check the package count.
-        import_path2 = target_sat.move_pulp_archive(function_sca_manifest_org, export_2['message'])
+        import_path2 = target_sat.move_pulp_archive(function_org, export_2['message'])
         target_sat.cli.ContentImport.version(
-            {'organization-id': function_import_org_with_manifest.id, 'path': import_path2}
+            {'organization-id': function_import_org.id, 'path': import_path2}
         )
         imp_cv = target_sat.cli.ContentView.info(
-            {'name': exp_cv['name'], 'organization-id': function_import_org_with_manifest.id}
+            {'name': exp_cv['name'], 'organization-id': function_import_org.id}
         )
         assert len(imp_cv['versions']) == 2
         imp_cvv = max(imp_cv['versions'], key=lambda x: int(x['id']))
+
+        # Get actual package count from export organization
+        package_count = int(
+            target_sat.cli.Repository.info(
+                {
+                    'name': function_synced_custom_repo['name'],
+                    'product': function_synced_custom_repo['product']['name'],
+                    'organization-id': function_org.id,
+                }
+            )['content-counts']['packages']
+        )
         assert (
             target_sat.api.ContentViewVersion(id=imp_cvv['id']).read().package_count
             == pkg_cnt_2
-            == int(function_synced_rh_repo['content-counts']['packages'])
+            == package_count
         ), 'Unexpected package count after second import'
 
         # Check the package count available to install on the content host.
@@ -3237,7 +3377,7 @@ class TestPodman:
 
     :CaseComponent: Repositories
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     @pytest.fixture(scope='class')

@@ -1,6 +1,7 @@
 from dynaconf import Validator
 
 from robottelo.constants import AZURERM_VALID_REGIONS, VALID_GCE_ZONES
+from robottelo.enums import NetworkType
 
 VALIDATORS = dict(
     supportability=[
@@ -35,16 +36,39 @@ VALIDATORS = dict(
         Validator('server.ssh_username', default='root'),
         Validator('server.ssh_password', default=None),
         Validator('server.verify_ca', default=False),
-        Validator('server.is_ipv6', is_type_of=bool, default=False),
+        Validator(
+            'server.network_type',
+            cast=NetworkType,
+            default=NetworkType.IPV4.value,
+        ),
+        Validator('server.is_ipv6', is_type_of=bool, must_exist=False),
     ],
     content_host=[
         Validator('content_host.default_rhel_version', must_exist=True),
+        Validator(
+            'content_host.network_type',
+            cast=NetworkType,
+            default=NetworkType.IPV4.value,
+        ),
     ],
     subscription=[
         Validator('subscription.rhn_username', must_exist=True),
         Validator('subscription.rhn_password', must_exist=True),
         Validator('subscription.rhn_poolid', must_exist=True),
         Validator('subscription.lifecycle_api_url', must_exist=True),
+    ],
+    ansible=[
+        Validator(
+            'ansible.role_names',
+            must_exist=True,
+            is_type_of=list,
+            default=[
+                'theforeman.foreman_scap_client',
+                'redhat.satellite.hostgroups',
+                'RedHatInsights.insights-client',
+                'redhat.satellite.compute_resources',
+            ],
+        ),
     ],
     ansible_hub=[
         Validator('ansible_hub.url', must_exist=True),
@@ -67,10 +91,6 @@ VALIDATORS = dict(
         Validator('azurerm.azure_region', is_in=AZURERM_VALID_REGIONS),
     ],
     broker=[Validator('broker.broker_directory', default='.')],
-    bugzilla=[
-        Validator('bugzilla.url', default='https://bugzilla.redhat.com'),
-        Validator('bugzilla.api_key', must_exist=True),
-    ],
     capsule=[
         Validator('capsule.version.release', must_exist=True),
         Validator(
@@ -83,7 +103,7 @@ VALIDATORS = dict(
     ],
     libvirt=[
         Validator('libvirt.libvirt_hostname', must_exist=True),
-        Validator('libvirt.libvirt_image_dir', default='/var/lib/libvirt/images'),
+        Validator('libvirt.libvirt_image_path', default='/var/lib/libvirt/images/rhel8.qcow2'),
     ],
     container=[
         Validator(
@@ -197,11 +217,11 @@ VALIDATORS = dict(
             'http_proxy.password',
             must_exist=True,
         ),
-        # validate http_proxy_ipv6_url only if server.is_ipv6 is True
+        # validate http_proxy_ipv6_url only if server.network_type does not have ipv4
         Validator(
             'http_proxy.http_proxy_ipv6_url',
             is_type_of=str,
-            when=Validator('server.is_ipv6', eq=True),
+            when=Validator('server.network_type', condition=lambda v: not v.has_ipv4),
         ),
     ],
     ipa=[
@@ -232,6 +252,8 @@ VALIDATORS = dict(
         Validator('jira.comment_visibility', default="Red Hat Employee"),
         Validator('jira.enable_comment', default=False),
         Validator('jira.issue_status', default=["Testing", "Release Pending"]),
+        Validator('jira.cache_file', default='jira_status_cache.json'),
+        Validator('jira.cache_ttl_days', default=7, is_type_of=int),
     ],
     ldap=[
         Validator(
@@ -244,6 +266,15 @@ VALIDATORS = dict(
             'ldap.username',
             'ldap.password',
             'ldap.workgroup',
+            must_exist=True,
+        ),
+    ],
+    mcp=[
+        Validator(
+            'foreman_mcp.username',
+            'foreman_mcp.password',
+            'foreman_mcp.port',
+            'foreman_mcp.registry',
             must_exist=True,
         ),
     ],
@@ -315,6 +346,7 @@ VALIDATORS = dict(
             'repos.rhscl_repo',
             'repos.ansible_repo',
             'repos.swid_tools_repo',
+            'repos.rpm_missing_filelists.url',
             must_exist=True,
             is_type_of=str,
         ),

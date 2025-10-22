@@ -12,7 +12,7 @@ This module consists of mainly two classes:
 
     This class holds the properties and functions to interact with Report Portal properties and launches.
 
-    ** `get_launches()`: Retrives all the launches from Satelite project. It can be filtered by specific Satellite version / uuid etc. The launches data will be sorted by Satellite release version, with the latest snap version at the top.
+    ** `get_launches()`: Retrieves all the launches from Satellite project. It can be filtered by specific Satellite version / uuid etc. The launches data will be sorted by Satellite release version, with the latest snap version at the top.
 
     ** `get_tests()`: Retrieves all the tests and their data from a specific launch from Satellite Project. The tests can be filtered by particular test_statuses and defect_types.
 
@@ -35,7 +35,7 @@ In [1]: rp
 Out[1]: <robottelo.utils.report_portal.portal.ReportPortal at 0x7feebe552710>
 ----
 
-* Retrive launches from Report Portal
+* Retrieve launches from Report Portal
 
 [source,python]
 ----

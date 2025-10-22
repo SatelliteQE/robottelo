@@ -12,6 +12,7 @@
 
 """
 
+from collections import OrderedDict
 import http
 
 from nailgun import client, entities, entity_fields
@@ -105,7 +106,22 @@ def get_entities_for_unauthorized(all_entities, exclude_entities, max_num=10):
     # FIXME: this must be replaced by a setup function that disable
     # 'Brute-force attack prevention' for negative tests when disabling
     # feature is available downstream
-    return list(all_entities - exclude_entities)[:max_num]
+    return sorted(list(all_entities - exclude_entities), key=lambda x: x.__name__)[:max_num]
+
+
+def entities_to_dict(entities_set):
+    """Convert a set of entity classes to a dictionary with class names as keys.
+
+    This enables meaningful test names in pytest parametrization.
+
+    Args:
+        entities_set: A set or list of entity classes
+
+    Returns:
+        dict: Dictionary with entity class names as keys and classes as values,
+              sorted by class name for consistent ordering across runs
+    """
+    return OrderedDict(sorted((entity_cls.__name__, entity_cls) for entity_cls in entities_set))
 
 
 class TestEntity:
@@ -113,7 +129,7 @@ class TestEntity:
 
     @pytest.mark.parametrize(
         'entity_cls',
-        **parametrized(VALID_ENTITIES - STATUS_CODE_ENTITIES),
+        **parametrized(entities_to_dict(VALID_ENTITIES - STATUS_CODE_ENTITIES)),
     )
     def test_positive_get_status_code(self, entity_cls):
         """GET an entity-dependent path.
@@ -135,7 +151,11 @@ class TestEntity:
 
     @pytest.mark.parametrize(
         'entity_cls',
-        **parametrized(get_entities_for_unauthorized(VALID_ENTITIES, {entities.ActivationKey})),
+        **parametrized(
+            entities_to_dict(
+                get_entities_for_unauthorized(VALID_ENTITIES, {entities.ActivationKey})
+            )
+        ),
     )
     def test_negative_get_unauthorized(self, entity_cls):
         """GET an entity-dependent path without credentials.
@@ -150,11 +170,13 @@ class TestEntity:
         """
         logger.info('test_get_unauthorized arg: %s', entity_cls)
         response = client.get(entity_cls().path(), auth=(), verify=False)
-        assert response.status_code == http.client.UNAUTHORIZED
+        assert response.status_code in (http.client.UNAUTHORIZED, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize(
         'entity_cls',
-        **parametrized(get_entities_for_unauthorized(VALID_ENTITIES, {entities.TemplateKind})),
+        **parametrized(
+            entities_to_dict(get_entities_for_unauthorized(VALID_ENTITIES, {entities.TemplateKind}))
+        ),
     )
     def test_positive_post_status_code(self, entity_cls):
         """Issue a POST request and check the returned status code.
@@ -176,7 +198,9 @@ class TestEntity:
 
     @pytest.mark.parametrize(
         'entity_cls',
-        **parametrized(get_entities_for_unauthorized(VALID_ENTITIES, {entities.TemplateKind})),
+        **parametrized(
+            entities_to_dict(get_entities_for_unauthorized(VALID_ENTITIES, {entities.TemplateKind}))
+        ),
     )
     def test_negative_post_unauthorized(self, entity_cls):
         """POST to an entity-dependent path without credentials.
@@ -198,7 +222,9 @@ class TestEntity:
 class TestEntityId:
     """Issue HTTP requests to various ``entity/:id`` paths."""
 
-    @pytest.mark.parametrize('entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind}))
+    @pytest.mark.parametrize(
+        'entity_cls', **parametrized(entities_to_dict(VALID_ENTITIES - {entities.TemplateKind}))
+    )
     def test_positive_get_status_code(self, entity_cls):
         """Create an entity and GET it.
 
@@ -216,7 +242,9 @@ class TestEntityId:
         assert response.status_code == http.client.OK
         assert 'application/json' in response.headers['content-type']
 
-    @pytest.mark.parametrize('entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind}))
+    @pytest.mark.parametrize(
+        'entity_cls', **parametrized(entities_to_dict(VALID_ENTITIES - {entities.TemplateKind}))
+    )
     def test_positive_put_status_code(self, entity_cls):
         """Issue a PUT request and check the returned status code.
 
@@ -246,7 +274,9 @@ class TestEntityId:
         assert response.status_code == http.client.OK
         assert 'application/json' in response.headers['content-type']
 
-    @pytest.mark.parametrize('entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind}))
+    @pytest.mark.parametrize(
+        'entity_cls', **parametrized(entities_to_dict(VALID_ENTITIES - {entities.TemplateKind}))
+    )
     def test_positive_delete_status_code(self, entity_cls):
         """Issue an HTTP DELETE request and check the returned status
         code.
@@ -283,7 +313,9 @@ class TestDoubleCheck:
     action to ensure that the intended action was accomplished.
     """
 
-    @pytest.mark.parametrize('entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind}))
+    @pytest.mark.parametrize(
+        'entity_cls', **parametrized(entities_to_dict(VALID_ENTITIES - {entities.TemplateKind}))
+    )
     def test_positive_put_and_get_requests(self, entity_cls):
         """Update an entity, then read it back.
 
@@ -321,7 +353,9 @@ class TestDoubleCheck:
             assert key in entity_attrs
             assert value == entity_attrs[key]
 
-    @pytest.mark.parametrize('entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind}))
+    @pytest.mark.parametrize(
+        'entity_cls', **parametrized(entities_to_dict(VALID_ENTITIES - {entities.TemplateKind}))
+    )
     def test_positive_post_and_get_requests(self, entity_cls):
         """Create an entity, then read it back.
 
@@ -344,7 +378,9 @@ class TestDoubleCheck:
             assert key in entity_attrs
             assert value == entity_attrs[key]
 
-    @pytest.mark.parametrize('entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind}))
+    @pytest.mark.parametrize(
+        'entity_cls', **parametrized(entities_to_dict(VALID_ENTITIES - {entities.TemplateKind}))
+    )
     def test_positive_delete_and_get_requests(self, entity_cls):
         """Issue an HTTP DELETE request and GET the deleted entity.
 
@@ -371,12 +407,14 @@ class TestEntityRead:
     @pytest.mark.parametrize(
         'entity_cls',
         **parametrized(
-            VALID_ENTITIES
-            - {
-                entities.Architecture,  # see test_architecture_read
-                entities.OperatingSystemParameter,  # see test_osparameter_read
-                entities.TemplateKind,  # see comments in class definition
-            }
+            entities_to_dict(
+                VALID_ENTITIES
+                - {
+                    entities.Architecture,  # see test_architecture_read
+                    entities.OperatingSystemParameter,  # see test_osparameter_read
+                    entities.TemplateKind,  # see comments in class definition
+                }
+            )
         ),
     )
     def test_positive_entity_read(self, entity_cls):

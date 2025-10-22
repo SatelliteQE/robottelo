@@ -327,12 +327,12 @@ class TestOperatingSystem:
     @pytest.mark.upgrade
     def test_positive_update_medias(self, module_org, module_target_sat):
         """Create an operating system that points at media entity and
-        then update it to point to another multiple different medias.
+        then update it to point to another multiple different media.
 
         :id: 756c4aa8-278d-488e-b48f-a8d2ace4526e
 
         :expectedresults: The operating system is updated and points at the
-            expected medias.
+            expected media.
 
         """
         initial_media = module_target_sat.api.Media(organization=[module_org]).create()
@@ -340,10 +340,10 @@ class TestOperatingSystem:
         assert len(os.medium) == 1
         assert os.medium[0].id == initial_media.id
         amount = range(random.randint(3, 5))
-        medias = [module_target_sat.api.Media().create() for _ in amount]
-        os = module_target_sat.api.OperatingSystem(id=os.id, medium=medias).update(['medium'])
+        media = [module_target_sat.api.Media().create() for _ in amount]
+        os = module_target_sat.api.OperatingSystem(id=os.id, medium=media).update(['medium'])
         assert len(os.medium) == len(amount)
-        assert {medium.id for medium in os.medium} == {medium.id for medium in medias}
+        assert {medium.id for medium in os.medium} == {medium.id for medium in media}
 
     @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
     def test_negative_update_name(self, new_name, target_sat):

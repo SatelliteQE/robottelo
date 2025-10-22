@@ -6,7 +6,7 @@
 
 :CaseComponent: Reporting
 
-:team: Phoenix-subscriptions
+:team: Endeavour
 
 :CaseImportance: High
 
@@ -14,6 +14,7 @@
 
 from datetime import UTC, datetime, timedelta
 import re
+import time
 
 from fauxfactory import gen_string
 import pytest
@@ -291,8 +292,7 @@ def test_positive_lock_clone_nodelete_unlock_report(target_sat):
     )
 
 
-@pytest.mark.stubbed
-def test_positive_export_report():
+def test_positive_export_report(target_sat):
     """Export report template
 
     :id: a4b577db-144e-4761-a42e-a83887464986
@@ -305,8 +305,13 @@ def test_positive_export_report():
 
     :expectedresults: Report script is shown
 
-    :CaseImportance: High
     """
+    template_name = gen_string('alpha').lower()
+    template_content = gen_string('alpha')
+    rt = target_sat.api.ReportTemplate(name=template_name, template=template_content).create()
+    res = rt.export()
+    assert template_name in res
+    assert template_content in res
 
 
 @pytest.mark.stubbed
@@ -537,7 +542,8 @@ def test_positive_applied_errata_by_search(
     rhel_contenthost.execute(r'subscription-manager repos --enable \*')
     assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     assert rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}').status == 0
-    rhel_contenthost.execute('subscription-manager repos')
+    # sleep added to reduce flakiness of the test
+    rhel_contenthost.execute('subscription-manager repos | sleep 10')
     task_id = target_sat.api.JobInvocation().run(
         data={
             'feature': 'katello_errata_install_by_search',
@@ -1157,6 +1163,8 @@ def test_positive_applied_errata_by_install_date(
     )
     assert module_rhel_contenthost.execute('subscription-manager refresh').status == 0
     assert module_rhel_contenthost.applicable_errata_count == len(ERRATUM_IDS)
+    # sleep added to reduce flakiness of the test
+    time.sleep(10)
     # 'Since' time for today (UTC): set to 5 minutes prior to installs below
     today_utc = (datetime.now(UTC) - timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M:%S')
     # Apply all FAKE_9_YUM erratum

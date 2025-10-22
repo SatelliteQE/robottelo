@@ -1,6 +1,6 @@
 """Unit tests for the ``ptables`` paths.
 
-A full API reference for patition tables can be found here:
+A full API reference for partition tables can be found here:
 http://theforeman.org/api/apidoc/v2/ptables.html
 
 
@@ -10,7 +10,7 @@ http://theforeman.org/api/apidoc/v2/ptables.html
 
 :CaseComponent: Hosts
 
-:Team: Endeavour
+:Team: Proton
 
 :CaseImportance: High
 

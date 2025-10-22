@@ -69,11 +69,6 @@ def tftpboot(module_org, module_target_sat):
     """
     tftpboot_path = '/var/lib/tftpboot'
     default_templates = {
-        'pxegrub': {
-            'setting': 'global_PXEGrub',
-            'path': f'{tftpboot_path}/grub/menu.lst',
-            'kind': 'PXEGrub',
-        },
         'pxegrub2': {
             'setting': 'global_PXEGrub2',
             'path': f'{tftpboot_path}/grub2/grub.cfg',
@@ -300,7 +295,7 @@ class TestProvisioningTemplate:
         default_architecture,
         default_partitiontable,
     ):
-        """Check whether vlan paremeter is properly rendered in the provisioning templates
+        """Check whether vlan parameter is properly rendered in the provisioning templates
 
         :id: 2decc787-59b0-41e6-96be-5dd9371c8965
 
@@ -369,7 +364,7 @@ class TestProvisioningTemplate:
         pxe_loader,
         boot_mode,
     ):
-        """Check whether boot mode paremeter in subnet respected when PXELoader UEFI is used,
+        """Check whether boot mode parameter in subnet respected when PXELoader UEFI is used,
             and properly rendered in the provisioning templates
 
         :id: 2decc787-59b0-41e6-96be-5dd9371c8966
@@ -408,7 +403,7 @@ class TestProvisioningTemplate:
         assert '/mnt/sysimage/root/install.post.log' not in rendered
 
         # Verify PXE templates for boot_mode in subnet
-        pxe_templates = ['PXEGrub', 'PXEGrub2', 'PXELinux', 'iPXE']
+        pxe_templates = ['PXEGrub2', 'PXELinux', 'iPXE']
         provision_url = f'http://{module_target_sat.hostname}/unattended/provision'
         ks_param = provision_url + '?static=1' if boot_mode == 'Static' else provision_url
         for template in pxe_templates:
@@ -418,7 +413,7 @@ class TestProvisioningTemplate:
     def test_positive_template_use_graphical_installer(
         self, module_target_sat, module_sca_manifest_org, module_location, default_os
     ):
-        """Check whether use_graphical_installer paremeter is properly rendered
+        """Check whether use_graphical_installer parameter is properly rendered
             in the provisioning templates
 
         :id: 2decc787-59b0-41e6-96be-5dd9371c8967
@@ -476,7 +471,7 @@ class TestProvisioningTemplate:
 
         :BZ: 2024175
 
-        :verifies: SAT-30761
+        :Verifies: SAT-30761
 
         :customerscenario: true
         """
@@ -696,7 +691,7 @@ class TestProvisioningTemplate:
         render = host.read_template(data={'template_kind': 'provision'})['template']
         assert 'dracut-fips' in render
         assert '-prelink' in render
-        for kind in ['PXELinux', 'PXEGrub', 'PXEGrub2', 'iPXE', 'kexec']:
+        for kind in ['PXELinux', 'PXEGrub2', 'iPXE', 'kexec']:
             render = host.read_template(data={'template_kind': kind})['template']
             assert 'fips=1' in render
 
@@ -751,3 +746,73 @@ class TestProvisioningTemplate:
             assert f'timezone --utc {timezone}' in render
         else:
             assert f'timezone --utc {timezone} --ntpservers {ntp_server_value}' in render
+
+    @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
+    def test_create_host_with_invalid_template(
+        self,
+        module_target_sat,
+        default_architecture,
+        default_partitiontable,
+        module_org,
+        module_location,
+    ):
+        """Create a host with an invalid template
+
+        :id: 3df3c4a9-0feb-426e-a8d7-d74460bd6d9e
+
+        :steps:
+            1. Create a new provisioning template with a content that is not valid (raising an error)
+            2. Assign the invalid template to operating system
+            3. Create a host with the invalid template
+            4. Check if the host creation fails
+
+        :expectedresults:
+            1. The host creation fails
+        """
+        template_kind = module_target_sat.api.TemplateKind().search(
+            query={"search": "name = provision"}
+        )[0]
+        medium = module_target_sat.api.Media(organization=[module_org]).create()
+        os = module_target_sat.api.OperatingSystem(
+            name=('qe_' + gen_string('alpha')),
+            description=gen_string('alpha'),
+            minor=gen_string('numeric'),
+            major=gen_string('numeric', 2),
+            family='Debian',
+            release_name='Bookworm',
+            architecture=[default_architecture],
+            ptable=[default_partitiontable],
+            medium=[medium],
+        ).create()
+
+        template = module_target_sat.api.ProvisioningTemplate(
+            name=gen_string('alpha'),
+            template='<%= I WILL RAISE AN ERROR( %>',
+            template_kind=template_kind,
+            organization=[module_org],
+            location=[module_location],
+            snippet=False,
+            operatingsystem=[os],
+        ).create()
+
+        os.provisioning_template.append(template)
+        os.update(['provisioning_template'])
+
+        module_target_sat.api.OSDefaultTemplate(
+            operatingsystem=os,
+            provisioning_template=template,
+            template_kind=template_kind,
+        ).create()
+
+        with pytest.raises(HTTPError):
+            module_target_sat.api.Host(
+                name=gen_string('alpha'),
+                location=module_location,
+                organization=module_org,
+                operatingsystem=os,
+                build=True,
+                mac=gen_mac(multicast=False),
+                architecture=default_architecture,
+                ptable=default_partitiontable,
+                medium=medium,
+            ).create()

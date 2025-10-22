@@ -412,7 +412,7 @@ def test_positive_delete_subnet_parameter_host_impact():
 @pytest.mark.stubbed
 @pytest.mark.upgrade
 def test_positive_delete_subnet_overridden_parameter_host_impact():
-    """Deleting parameter from subnet component doesnt deletes its
+    """Deleting parameter from subnet component doesn't delete its
     overridden parameter in host inheriting that subnet
 
     :id: e8f4a8e8-64ec-4a0f-aee4-14b6e984b470
@@ -503,7 +503,7 @@ def test_positive_subnet_parameter_priority():
 
 @pytest.mark.stubbed
 def test_negative_component_overrides_subnet_parameter():
-    """Lower priority hosts component parameter doesnt overrides subnet
+    """Lower priority hosts component parameter doesn't override subnet
     parameter with same name
 
     :id: 35d2a5de-07c7-40d6-8d65-a4f3e00ee429

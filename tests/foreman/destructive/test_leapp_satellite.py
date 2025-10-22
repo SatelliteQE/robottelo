@@ -4,7 +4,7 @@
 
 :CaseComponent: Upgrades
 
-:Team: Platform
+:Team: Rocket
 
 :CaseImportance: High
 

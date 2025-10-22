@@ -86,7 +86,7 @@ def test_positive_audit_comment(session, module_org):
         session.partitiontable.create(
             {
                 'template.name': name,
-                'template.template_editor': gen_string('alpha'),
+                'template.template_editor.editor': gen_string('alpha'),
                 'template.audit_comment': audit_comment,
             }
         )

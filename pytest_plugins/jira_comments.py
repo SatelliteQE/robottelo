@@ -15,7 +15,7 @@ def pytest_addoption(parser):
     help_comment = (
         'Report/Comment test results on Jira issues.\n'
         'Results for tests marked with "Verifies" or "BlockedBy" doc fields will be commented on the corresponding Jira issues. '
-        'This behaviour can be overriden by providing a comma separated list of jira issue ids.\n'
+        'This behaviour can be overridden by providing a comma separated list of jira issue ids.\n'
         'Note: To prevent accidental use, users must set ENABLE_COMMENT to true in the jira.yaml configuration file.'
     )
     parser.addoption(

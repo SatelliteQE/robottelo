@@ -30,6 +30,7 @@ import time
 from uuid import uuid4
 
 from broker.helpers import FileLock
+from wait_for import wait_for
 
 from robottelo.config import settings
 
@@ -52,7 +53,16 @@ class SharedResource:
         is_recovering (bool): Whether the current instance is recovering from an error or not.
     """
 
-    def __init__(self, resource_name, action, *action_args, action_validator=None, **action_kwargs):
+    def __init__(
+        self,
+        resource_name,
+        action,
+        *action_args,
+        action_validator=None,
+        retries=3,
+        delay=300,
+        **action_kwargs,
+    ):
         """Initializes a new instance of the SharedResource class.
 
         Args:
@@ -71,6 +81,8 @@ class SharedResource:
         self.action_args = action_args
         self.action_kwargs = action_kwargs
         self.is_recovering = False
+        self.retries = retries
+        self.delay = delay
 
     def log(message, level="DEBUG"):
         """Pytest has a limitation to use logging.logger from conftest.py
@@ -138,12 +150,12 @@ class SharedResource:
         """Waits for the main watcher to finish."""
         while True:
             curr_data = json.loads(self.resource_file.read_text())
-            if curr_data["main_status"] != "done":
-                time.sleep(settings.robottelo.shared_resource_wait)
-            elif curr_data["main_status"] == "action_error":
-                self._try_take_over()
-            elif curr_data["main_status"] == "error":
+            if curr_data["main_status"] == "error":
                 raise Exception(f"Error in main watcher: {curr_data['main_watcher']}")
+            if curr_data["main_status"] == "action_error":
+                self._try_take_over()
+            elif curr_data["main_status"] != "done":
+                time.sleep(settings.robottelo.shared_resource_wait)
             else:
                 self.log("Main status now done, breaking wait loop")
                 break
@@ -201,13 +213,26 @@ class SharedResource:
     def act(self):
         """Attempt to perform the action."""
         try:
-            result = self.action(*self.action_args, **self.action_kwargs)
+            wait_for(
+                lambda: self._perform_action_with_validation(),
+                timeout=self.retries * self.delay,
+                delay=self.delay,
+            )
         except Exception as err:
-            self._update_main_status("error")
-            raise SharedResourceError("Main worker failed during action") from err
+            if not self.action_is_recoverable:
+                self._update_main_status("error")
+                self.resource_file.unlink()
+                raise SharedResourceError('Main worker failed during action') from err
+            self._update_main_status('action_error')
+            raise SharedResourceError('Recoverable failures in main worker') from err
+
+    def _perform_action_with_validation(self):
+        """Helper function to run the action and its validation."""
+        result = self.action(*self.action_args, **self.action_kwargs)
         # If the action_validator is a callable, use it to validate the result
         if callable(self.action_validator) and not self.action_validator(result):
             raise SharedResourceError(f"Action validation failed for {self.action} with {result=}")
+        return result
 
     def wait(self):
         """Top-level wait function, separating behavior between main and non-main watchers."""
@@ -226,6 +251,15 @@ class SharedResource:
 
     def __exit__(self, exc_type, exc_value, traceback):
         """Marks the current process as done and updates the main watcher if needed."""
+        try:
+            self.unregister()
+        except Exception as e:
+            self.log(
+                f'WARNING: Failed to unregister watcher '
+                f'(resource: {getattr(self, "resource_name", "unknown")}, '
+                f'watcher ID: {getattr(self, "watcher_id", "unknown")}): {e}'
+            )
+
         if exc_type is FileNotFoundError:
             self.log(
                 f'{os.environ.get("PYTEST_XDIST_WORKER")} did not find resource file. has it already been deleted?'

@@ -26,3 +26,19 @@ class JobTemplate(Base):
     """
 
     command_base = 'job-template'
+
+    @classmethod
+    def export(cls, options, timeout=None):
+        """Export a job template
+        Specify at least --name or --id
+        """
+        cls.command_sub = 'export'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def import_template(cls, options, timeout=None):
+        """Import a job template
+        Specify at least  --file
+        """
+        cls.command_sub = 'import'
+        return cls.execute(cls._construct_command(options))

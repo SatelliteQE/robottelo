@@ -89,6 +89,16 @@ def assert_job_invocation_status(sat, invocation_command_id, client_hostname, st
         ) from err
 
 
+def ensure_capsule_has_lifecycle_environment(capsule, activation_key):
+    """Ensure the capsule has the lifecycle environment from the activation key."""
+    if activation_key.environment.id not in [
+        env['id'] for env in capsule.nailgun_capsule.lifecycle_environments
+    ]:
+        capsule.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': activation_key.environment.id}
+        )
+
+
 class TestRemoteExecution:
     """Implements job execution tests in CLI."""
 
@@ -109,7 +119,7 @@ class TestRemoteExecution:
 
         :customerscenario: true
 
-        :verifies: SAT-29062
+        :Verifies: SAT-29062
 
         :parametrized: yes
         """
@@ -152,7 +162,7 @@ class TestRemoteExecution:
 
         :expectedresults: Verify the job exits as expected
 
-        :verifies: SAT-28435
+        :Verifies: SAT-28435
 
         :parametrized: yes
         """
@@ -195,6 +205,8 @@ class TestRemoteExecution:
         :parametrized: yes
 
         :Verifies: SAT-25243
+
+        :BlockedBy: SAT-36025
 
         :customerscenario: true
         """
@@ -251,7 +263,7 @@ class TestRemoteExecution:
 
         :BZ: 1451675, 1804685
 
-        :verifies: SAT-22554, SAT-23229
+        :Verifies: SAT-22554, SAT-23229
 
         :expectedresults: Verify the job was successfully run under the
             effective user identity on host, make sure the password is
@@ -315,7 +327,7 @@ class TestRemoteExecution:
                     'effective-user': f'{username}',
                 }
             )
-        # negative check for effective user privilige on client
+        # negative check for effective user privilege on client
         command = 'touch /root/test'
         with pytest.raises(CLIFactoryError) as error:
             invocation_command = module_target_sat.cli_factory.job_invocation(
@@ -372,7 +384,7 @@ class TestRemoteExecution:
 
         :id: 0adaf5a2-930a-4050-863b-62456234ce8c
 
-        :verifies: SAT-28443
+        :Verifies: SAT-28443
 
         :customerscenario: true
 
@@ -381,7 +393,7 @@ class TestRemoteExecution:
             2. re-register the client to check that sudo setup was performed based on parameters
             3. run rex to see that sudo was configured correctly
 
-        :expectedresults: Verify global paremeters are used to set up rex during registration
+        :expectedresults: Verify global parameters are used to set up rex during registration
 
         :parametrized: yes
         """
@@ -433,15 +445,12 @@ class TestRemoteExecution:
             }
         )
         assert_job_invocation_result(module_target_sat, invocation_command['id'], client.hostname)
+
         # check the file owner
         result = client.execute(
             f'''stat -c '%U' /home/{username}/{filename}''',
         )
-        # assert the file is owned by the effective user
         assert username == result.stdout.strip('\n')
-        result = client.execute(
-            f'''stat -c '%G' /home/{username}/{filename}''',
-        )
 
     @pytest.mark.parametrize(
         'multi_setting_update',
@@ -863,7 +872,7 @@ class TestRemoteExecution:
 
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_run_scheduled_job_template(self, rex_contenthost, target_sat):
-        """Schedule a job to be ran against a host
+        """Schedule a job to be run against a host
 
         :id: 0407e3de-ef59-4706-ae0d-b81172b81e5c
 
@@ -875,7 +884,7 @@ class TestRemoteExecution:
         client = rex_contenthost
         system_current_time = target_sat.execute('date --utc +"%b %d %Y %I:%M%p"').stdout
         current_time_object = datetime.strptime(system_current_time.strip('\n'), '%b %d %Y %I:%M%p')
-        plan_time = (current_time_object + timedelta(seconds=30)).strftime("%Y-%m-%d %H:%M UTC")
+        plan_time = (current_time_object + timedelta(seconds=60)).strftime("%Y-%m-%d %H:%M UTC")
         invocation_command = target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
@@ -886,8 +895,37 @@ class TestRemoteExecution:
         )
         # Wait until the job runs
         target_sat.wait_for_tasks(
-            f'resource_type = JobInvocation and resource_id = {invocation_command["id"]}'
+            f'resource_type = JobInvocation and resource_id = {invocation_command["id"]}',
+            search_rate=10,
         )
+
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    def test_negative_schedule_job_template(self, target_sat):
+        """Try to schedule a job in the past
+
+        :id: e691d3bc-9de4-11f0-842b-183d2dca5728
+
+        :expectedresults: the job is not scheduled
+
+        :verifies: SAT-28485
+
+        :customerscenario: true
+
+        :parametrized: yes
+        """
+        with pytest.raises(CLIFactoryError) as err:
+            target_sat.cli_factory.job_invocation(
+                {
+                    'job-template': 'Run Command - Script Default',
+                    'inputs': 'command=ls',
+                    'start-at': (datetime.now(UTC) - timedelta(seconds=60)).strftime(
+                        f"%Y-%m-%d %H:%M {UTC}"
+                    ),
+                    'search-query': f"name ~ {target_sat.hostname}",
+                }
+            )
+        assert 'Triggering: Start at is in the past' in str(err.value), 'Error message not found'
+        assert 'status 70' in str(err.value), 'Unexpected status code'
 
     @pytest.mark.rhel_ver_list([8, 9])
     def test_recurring_with_unreachable_host(self, module_target_sat, rhel_contenthost):
@@ -911,7 +949,7 @@ class TestRemoteExecution:
         invocation = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
-                'inputs': 'command=echo this wont ever run',
+                'inputs': 'command=echo this would never run',
                 'search-query': f'name ~ {host.name}',
                 'cron-line': '* * * * *',  # every minute
             }
@@ -1008,6 +1046,7 @@ class TestRexUsers:
         rex_contenthost,
         class_rexmanager_user,
         class_rexinfra_user,
+        default_location,
         target_sat,
         infra_host,
         module_org,
@@ -1035,6 +1074,9 @@ class TestRexUsers:
         infra_host.add_rex_key(satellite=target_sat)
         target_sat.cli.Host.update(
             {'name': infra_host.hostname, 'new-organization-id': module_org.id}
+        )
+        target_sat.cli.Host.update(
+            {'name': infra_host.hostname, 'new-location-id': default_location.id}
         )
 
         # run job as admin
@@ -1132,6 +1174,9 @@ class TestAsyncSSHProviderRex:
                 'location-ids': smart_proxy_location.id,
             }
         )
+        ensure_capsule_has_lifecycle_environment(
+            module_capsule_configured_async_ssh, module_ak_with_cv
+        )
         result = rhel_contenthost.register(
             module_org,
             smart_proxy_location,
@@ -1166,6 +1211,7 @@ class TestPullProviderRex:
         ids=["no_global_proxy"],
         indirect=True,
     )
+    @pytest.mark.rhel_ver_match('[^10].*')
     def test_positive_run_job_on_host_converted_to_pull_provider(
         self,
         module_org,
@@ -1202,6 +1248,7 @@ class TestPullProviderRex:
                 'location-ids': smart_proxy_location.id,
             }
         )
+        ensure_capsule_has_lifecycle_environment(module_capsule_configured_mqtt, module_ak_with_cv)
         # register host with rex, enable client repo, install katello-agent
         result = client.register(
             module_org,
@@ -1297,6 +1344,7 @@ class TestPullProviderRex:
                 'location-ids': smart_proxy_location.id,
             }
         )
+        ensure_capsule_has_lifecycle_environment(module_capsule_configured_mqtt, module_ak_with_cv)
         # register host with pull provider rex
         result = client.register(
             module_org,
@@ -1412,6 +1460,7 @@ class TestPullProviderRex:
                 'location-ids': smart_proxy_location.id,
             }
         )
+        ensure_capsule_has_lifecycle_environment(module_capsule_configured_mqtt, module_ak_with_cv)
         # register host with pull provider rex (SAT-1677)
         result = client.register(
             module_org,
@@ -1466,7 +1515,7 @@ class TestPullProviderRex:
         # assert the file is owned by the effective user
         assert username == result.stdout.strip('\n')
 
-        # negative check for effective user privilige on client
+        # negative check for effective user privilege on client
         command = 'touch /root/test'
         with pytest.raises(CLIFactoryError) as error:
             invocation_command = module_target_sat.cli_factory.job_invocation(
@@ -1532,6 +1581,7 @@ class TestPullProviderRex:
                 'location-ids': smart_proxy_location.id,
             }
         )
+        ensure_capsule_has_lifecycle_environment(module_capsule_configured_mqtt, module_ak_with_cv)
         result = client.register(
             module_org,
             smart_proxy_location,
@@ -1620,6 +1670,7 @@ class TestPullProviderRex:
                 'location-ids': smart_proxy_location.id,
             }
         )
+        ensure_capsule_has_lifecycle_environment(module_capsule_configured_mqtt, module_ak_with_cv)
         # register host with pull provider rex (SAT-1677)
         result = client.register(
             module_org,

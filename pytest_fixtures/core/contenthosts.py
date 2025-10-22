@@ -10,6 +10,7 @@ import pytest
 
 from robottelo import constants
 from robottelo.config import settings
+from robottelo.enums import NetworkType
 from robottelo.hosts import ContentHost, Satellite
 
 
@@ -19,7 +20,9 @@ def host_conf(request):
     if hasattr(request, 'param'):
         params = request.param
     distro = params.get('distro', 'rhel')
+    network = params.get('network')
     _rhelver = f"{distro}{params.get('rhel_version', settings.content_host.default_rhel_version)}"
+
     # check to see if no-containers is passed as an argument to pytest
     deploy_kwargs = {}
     if not any(
@@ -30,13 +33,16 @@ def host_conf(request):
         ]
     ):
         deploy_kwargs = settings.content_host.get(_rhelver).to_dict().get('container', {})
-        if deploy_kwargs and (network := params.get('network')):
-            deploy_kwargs.update({'Container': network})
+        if deploy_kwargs and network:
+            deploy_kwargs.update({'Container': str(network)})
     # if we're not using containers or a container isn't available, use a VM
     if not deploy_kwargs:
         deploy_kwargs = settings.content_host.get(_rhelver).to_dict().get('vm', {})
-        if network := params.get('network'):
+        if network:
             deploy_kwargs.update({'deploy_network_type': network})
+    if network:
+        # pass the network type to the deploy kwargs, so the host class can use it
+        deploy_kwargs.update({'net_type': network})
     conf.update(deploy_kwargs)
     return conf
 
@@ -62,7 +68,11 @@ def module_rhel_contenthost(request):
 @pytest.fixture(params=[{'rhel_version': '7'}])
 def rhel7_contenthost(request):
     """A function-level fixture that provides a rhel7 content host object"""
-    with Broker(**host_conf(request), host_class=ContentHost) as host:
+    with Broker(
+        **host_conf(request),
+        host_class=ContentHost,
+        deploy_network_type=settings.content_host.network_type,
+    ) as host:
         yield host
 
 
@@ -83,7 +93,11 @@ def rhel7_contenthost_module(request):
 @pytest.fixture(params=[{'rhel_version': '8'}])
 def rhel8_contenthost(request):
     """A fixture that provides a rhel8 content host object"""
-    with Broker(**host_conf(request), host_class=ContentHost) as host:
+    with Broker(
+        **host_conf(request),
+        host_class=ContentHost,
+        deploy_network_type=settings.content_host.network_type,
+    ) as host:
         yield host
 
 
@@ -128,7 +142,6 @@ def katello_host_tools_host(target_sat, module_org, rhel_contenthost):
         environment=target_sat.api.LifecycleEnvironment(id=module_org.library.id),
         auto_attach=True,
     ).create()
-
     rhel_contenthost.register(module_org, None, ak.name, target_sat, repo_data=f'repo={repo}')
     rhel_contenthost.install_katello_host_tools()
     return rhel_contenthost
@@ -174,16 +187,32 @@ def rex_contenthosts(request, module_org, target_sat, module_ak_with_cv):
 
 @pytest.fixture
 def katello_host_tools_tracer_host(rex_contenthost, target_sat):
-    """Install katello-host-tools-tracer, create custom
-    repositories on the host"""
+    """Install katello-host-tools-tracer and create custom repositories on the host.
+
+    This fixture automatically configures IPv6 support based on the host's network type and creates
+    version-appropriate repositories.
+
+    :param rex_contenthost: Remote execution enabled content host
+    :param target_sat: Target Satellite server
+    :return: ContentHost with tracer tools installed and configured
+    """
+    # add IPv6 proxy for IPv6 communication based on network type
+    if not rex_contenthost.network_type.has_ipv4:
+        rex_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
+        rex_contenthost.enable_ipv6_system_proxy()
+
     # create a custom, rhel version-specific OS repo
     rhelver = rex_contenthost.os_version.major
+
     if rhelver > 7:
+        # RHEL 8, 9 and 10 use the same repository structure
         rex_contenthost.create_custom_repos(**settings.repos[f'rhel{rhelver}_os'])
     else:
+        # RHEL 7 has different repository structure
         rex_contenthost.create_custom_repos(
             **{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']}
         )
+
     rex_contenthost.install_tracer()
     return rex_contenthost
 
@@ -194,7 +223,7 @@ def rhel_contenthost_with_repos(request, target_sat):
     repositories on the host"""
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         # add IPv6 proxy for IPv6 communication
-        if settings.server.is_ipv6:
+        if not host.network_type.has_ipv4:
             host.enable_ipv6_dnf_and_rhsm_proxy()
             host.enable_ipv6_system_proxy()
 
@@ -214,7 +243,7 @@ def module_container_contenthost(request, module_target_sat, module_org, module_
         "rhel_version": "8",
         "distro": "rhel",
         "no_containers": True,
-        "network": "ipv6" if settings.server.is_ipv6 else "ipv4",
+        "network": "ipv6" if module_target_sat.network_type == NetworkType.IPV6 else "ipv4",
     }
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         host.register_to_cdn()
@@ -234,12 +263,8 @@ def module_container_contenthost(request, module_target_sat, module_org, module_
 
 @pytest.fixture(scope='module')
 def module_flatpak_contenthost(request):
-    request.param = {
-        "rhel_version": "9",
-        "distro": "rhel",
-        "no_containers": True,
-        "network": "ipv6" if settings.server.is_ipv6 else "ipv4",
-    }
+    assert request.param['rhel_version'] > 8, 'Unsupported RHEL version'
+    request.param['no_containers'] = True
     with Broker(**host_conf(request), host_class=ContentHost) as host:
         host.register_to_cdn()
         res = host.execute('dnf -y install podman flatpak dbus-x11')
@@ -258,7 +283,7 @@ def centos_host(request, version):
     with Broker(
         **host_conf(request),
         host_class=ContentHost,
-        deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
+        deploy_network_type=settings.content_host.network_type,
     ) as host:
         yield host
 
@@ -273,8 +298,26 @@ def oracle_host(request, version):
     with Broker(
         **host_conf(request),
         host_class=ContentHost,
-        deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
+        deploy_network_type=settings.content_host.network_type,
     ) as host:
+        yield host
+
+
+@pytest.fixture
+def dummy_bootc_host():
+    """Fixture to check out boot-c host, with a dummy bootc.facts file"""
+    with Broker(
+        workflow='deploy-bootc',
+        host_class=ContentHost,
+        # TODO(sbible): get bootc images working with IPv6 - will have this as a story for 6.19 release cycle.
+        deploy_network_type='ipv6' if settings.server.network_type == NetworkType.IPV6 else 'ipv4',
+    ) as host:
+        assert (
+            host.execute(
+                f"echo '{constants.DUMMY_BOOTC_FACTS}' > /etc/rhsm/facts/bootc.facts"
+            ).status
+            == 0
+        )
         yield host
 
 
@@ -285,14 +328,9 @@ def bootc_host():
         workflow='deploy-bootc',
         host_class=ContentHost,
         target_template='tpl-bootc-rhel-10.0',
-        deploy_network_type='ipv6' if settings.server.is_ipv6 else 'ipv4',
+        # TODO(sbible): get bootc images working with IPv6 - will have this as a story for 6.19 release cycle.
+        deploy_network_type='ipv6' if settings.server.network_type == NetworkType.IPV6 else 'ipv4',
     ) as host:
-        assert (
-            host.execute(
-                f"echo '{constants.DUMMY_BOOTC_FACTS}' > /etc/rhsm/facts/bootc.facts"
-            ).status
-            == 0
-        )
         yield host
 
 

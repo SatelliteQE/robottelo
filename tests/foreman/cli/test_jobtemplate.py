@@ -16,6 +16,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo import ssh
+from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.utils.datafactory import invalid_values_list, parametrized
 
@@ -70,6 +71,93 @@ def test_negative_create_job_template_with_invalid_name(module_org, name, module
                 'file': TEMPLATE_FILE,
             }
         )
+
+
+@pytest.mark.parametrize(
+    'associate',
+    ['new', 'always', 'never', None],
+    ids=['associate_new', 'associate_always', 'associate_never', 'associate_none'],
+)
+@pytest.mark.parametrize('specify_org', ['True', 'False'], ids=['specify_org', 'dont_specify_org'])
+@pytest.mark.parametrize('specify_loc', ['True', 'False'], ids=['specify_loc', 'dont_specify_loc'])
+def test_positive_export_import(
+    module_org, module_location, module_target_sat, associate, specify_org, specify_loc
+):
+    """Export the template and import it back, check org and loc association
+
+    :id: 69e88ff7-5a42-4b02-92ce-f7332f83c0b0
+
+    :parametrized: yes
+
+    :expectedresults: Depends on parameters
+        For associate = new or always: org and loc stay the same after import
+        For associate = never or not specified: org and loc are either decided by org and loc context or empty if none specified
+
+    :Verifies: SAT-20253
+    """
+    name = gen_string('alpha', 7)
+    module_target_sat.cli_factory.job_template(
+        {
+            'organizations': [module_org.name, DEFAULT_ORG],
+            'locations': module_location.name,
+            'name': name,
+            'file': TEMPLATE_FILE,
+        }
+    )
+    exported_template = module_target_sat.cli.JobTemplate.export({'name': name})
+    assert module_org.name in exported_template
+    assert DEFAULT_ORG in exported_template
+    assert module_location.name in exported_template
+    path = f'/tmp/{gen_string("alpha", 7)}'
+    assert module_target_sat.execute(f'echo "{exported_template}" > {path}').status == 0
+
+    module_target_sat.cli.JobTemplate.delete({'name': name})
+    with pytest.raises(CLIReturnCodeError):
+        module_target_sat.cli.JobTemplate.info({'name': name})
+
+    params = {}
+    params['file'] = path
+    if associate is not None:
+        params['associate'] = associate
+    if specify_org:
+        params['organization'] = DEFAULT_ORG
+    if specify_loc:
+        params['location'] = DEFAULT_LOC
+
+    module_target_sat.cli.JobTemplate.import_template(params)
+    new_exported_template = module_target_sat.cli.JobTemplate.export({'name': name})
+    new_exported_template_info = module_target_sat.cli.JobTemplate.info({'name': name})
+
+    if associate is None or associate == 'never':
+        if specify_org:
+            assert module_org.name not in new_exported_template
+            assert DEFAULT_ORG in new_exported_template
+            assert module_org.name not in new_exported_template_info['organizations']
+            assert DEFAULT_ORG in new_exported_template_info['organizations']
+        else:
+            assert module_org.name not in new_exported_template
+            assert DEFAULT_ORG not in new_exported_template
+            assert module_org.name not in new_exported_template_info['organizations']
+            assert DEFAULT_ORG not in new_exported_template_info['organizations']
+        if specify_loc:
+            assert module_location.name not in new_exported_template
+            assert DEFAULT_LOC in new_exported_template
+            assert module_location.name not in new_exported_template_info['locations']
+            assert DEFAULT_LOC in new_exported_template_info['locations']
+        else:
+            assert module_location.name not in new_exported_template
+            assert DEFAULT_LOC not in new_exported_template
+            assert module_location.name not in new_exported_template_info['locations']
+            assert DEFAULT_LOC not in new_exported_template_info['locations']
+    else:
+        assert module_org.name in new_exported_template
+        assert DEFAULT_ORG in new_exported_template
+        assert module_org.name in new_exported_template_info['organizations']
+        assert DEFAULT_ORG in new_exported_template_info['organizations']
+        assert module_location.name in new_exported_template
+        assert DEFAULT_LOC not in new_exported_template
+        assert module_location.name in new_exported_template_info['locations']
+        assert DEFAULT_LOC not in new_exported_template_info['locations']
 
 
 def test_negative_create_job_template_with_same_name(module_org, module_target_sat):

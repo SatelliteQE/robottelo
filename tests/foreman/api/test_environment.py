@@ -10,7 +10,7 @@ http://theforeman.org/api/apidoc/v2/environments.html
 
 :CaseComponent: Puppet
 
-:Team: Rocket
+:Team: Endeavour
 
 :CaseImportance: Critical
 

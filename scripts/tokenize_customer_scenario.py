@@ -13,7 +13,7 @@ $ codemod -i -d tests/foreman/cli/ --extension py \
     ':id: 65ba89f0-9bee-43d9-814b-9f5a194558f8' \
     ':id: 65ba89f0-9bee-43d9-814b-9f5a194558f8\n\n        :customerscenario: true'  # noqa
 
-But in this script we are doing programatically and interactivelly in Python
+But in this script we are doing programmatically and interactivelly in Python
 
 On robottelo root dir run:
 $ python scripts/tokenize_customer_scenario.py

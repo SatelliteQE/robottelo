@@ -29,13 +29,13 @@ class Webhook(Base):
         if options is None:
             options = dict()
 
-        if options.get('event', None) not in WEBHOOK_EVENTS:
+        if options.get('event') not in WEBHOOK_EVENTS:
             raise CLIError(
                 'The option "event" must be one of predefined events.'
                 'See "hammer webhook create --help" for list of allowed events'
             )
 
-        if options.get('http-method', None) not in WEBHOOK_METHODS:
+        if options.get('http-method') not in WEBHOOK_METHODS:
             raise CLIError(
                 'The option "method" must be one supported HTTP methods. '
                 'See See "hammer webhook create --help" for the list of supported  methods'

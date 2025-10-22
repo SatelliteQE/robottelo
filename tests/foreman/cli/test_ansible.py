@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:Team: Rocket
+:Team: Endeavour
 
 :CaseImportance: High
 """
@@ -170,11 +170,8 @@ class TestAnsibleCfgMgmt:
 
         :BZ: 2029402
         """
-        ROLES = [
-            'theforeman.foreman_scap_client',
-            'redhat.satellite.hostgroups',
-            'RedHatInsights.insights-client',
-        ]
+        ROLES = settings.ansible.role_names
+
         proxy_id = target_sat.nailgun_smart_proxy.id
         hg_name = gen_string('alpha')
         result = target_sat.cli.HostGroup.create({'name': hg_name})
@@ -198,7 +195,7 @@ class TestAnsibleCfgMgmt:
         self, request, target_sat, module_org, module_ak_with_cv, rhel_contenthost
     ):
         """Verify that installing an Ansible collection also imports
-        any variables associated with the roles avaialble in the collection
+        any variables associated with the roles available in the collection
 
         :id: 7ff88022-fe9b-482f-a6bb-3922036a1e1c
 
@@ -235,7 +232,7 @@ class TestAnsibleCfgMgmt:
         for path in ['/etc/ansible/collections', '/usr/share/ansible/collections']:
             http_proxy = (
                 f'HTTPS_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
-                if settings.server.is_ipv6
+                if not target_sat.network_type.has_ipv4
                 else ''
             )
             assert (
@@ -315,7 +312,7 @@ class TestAnsibleREX:
 
     @pytest.mark.rhel_ver_list([8])
     def test_positive_run_reccuring_job(self, rex_contenthost, target_sat):
-        """Tests Ansible REX reccuring job runs successfully multiple times
+        """Tests Ansible REX recurring, job runs successfully multiple times
 
         :id: 49b0d31d-58f9-47f1-aa5d-561a1dcb0d66
 
@@ -361,7 +358,7 @@ class TestAnsibleREX:
 
     @pytest.mark.rhel_ver_list([8])
     def test_positive_run_concurrent_jobs(self, rex_contenthosts, target_sat):
-        """Tests Ansible REX concurent jobs without batch trigger
+        """Tests Ansible REX concurrent jobs without batch trigger
 
         :id: ad0f108c-03f2-49c7-8732-b1056570567b
 
@@ -600,7 +597,7 @@ class TestAnsibleREX:
 
         :expectedresults: Ansible collection can be installed on content host via REX.
 
-        :verifies: SAT-30807
+        :Verifies: SAT-30807
         """
         client = rhel_contenthost
         # Adding IPv6 proxy for IPv6 communication
@@ -665,7 +662,7 @@ class TestAnsibleREX:
             1. Verify variables associated to role are also imported along with roles
             2. Verify custom role is successfully assigned and running on a host
 
-        :verifies: SAT-28198
+        :Verifies: SAT-28198
         """
         username = settings.server.admin_username
         password = settings.server.admin_password
@@ -827,7 +824,7 @@ class TestAnsibleAAPIntegration:
 
         :expectedresults: All hosts managed by Satellite are added to Satellite inventory.
 
-        :verifies: SAT-28613, SAT-30761
+        :Verifies: SAT-28613, SAT-30761
 
         :customerscenario: true
         """
@@ -940,7 +937,7 @@ class TestAnsibleAAPIntegration:
             1. All hosts managed by Satellite are added to Satellite inventory.
             2. Starting ansible-callback systemd service, starts a job_template execution in AAP
 
-        :verifies: SAT-30761
+        :Verifies: SAT-30761
 
         :customerscenario: true
         """

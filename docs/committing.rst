@@ -55,8 +55,8 @@ missing docstrings.
 :code:`test-robottelo` will run all the tests created to ensure Robottelo is
 working as expected. If you added a test, it will be run now.
 
-Peforming the commit
---------------------
+Performing the commit
+---------------------
 
 Proper commit messages
 

@@ -13,6 +13,11 @@ def function_role(target_sat):
     return target_sat.api.Role().create()
 
 
+@pytest.fixture
+def function_role_with_org(module_target_sat, module_org):
+    return module_target_sat.api.Role(organization=[module_org]).create()
+
+
 @pytest.fixture(scope='module')
 def module_user(module_target_sat, module_org, module_location):
     return module_target_sat.api.User(

@@ -6,7 +6,7 @@
 
 :CaseComponent: HostCollections
 
-:team: Phoenix-subscriptions
+:team: Proton
 
 :CaseImportance: High
 
@@ -16,6 +16,7 @@ from broker import Broker
 from fauxfactory import gen_string
 import pytest
 
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_CV, ENVIRONMENT
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.hosts import ContentHost
@@ -308,7 +309,9 @@ def test_positive_register_host_ak_with_host_collection(module_org, module_ak_wi
         {'id': hc['id'], 'organization-id': module_org.id, 'host-ids': host_info['id']}
     )
 
-    with Broker(nick='rhel7', host_class=ContentHost) as client:
+    with Broker(
+        nick='rhel7', deploy_network_type=settings.content_host.network_type, host_class=ContentHost
+    ) as client:
         # register the client host with the current activation key
         client.register(module_org, None, module_ak_with_cv.name, target_sat)
         assert client.subscribed

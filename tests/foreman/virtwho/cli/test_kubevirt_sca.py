@@ -6,8 +6,9 @@
 
 :CaseComponent: Virt-whoConfigurePlugin
 
-:team: Phoenix-subscriptions
+:team: Proton
 
+:BlockedBy: SAT-36027
 """
 
 import pytest

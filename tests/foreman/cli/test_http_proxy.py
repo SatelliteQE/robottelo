@@ -4,7 +4,7 @@
 
 :CaseComponent: HTTPProxy
 
-:team: Phoenix-content
+:team: Endeavour
 
 :CaseImportance: High
 
@@ -87,10 +87,21 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.parametrize(
+    'use_ip',
+    [False, True],
+    ids=['hostname', 'ip'],
+)
+@pytest.mark.parametrize(
     'setup_http_proxy',
     [True, False],
     indirect=True,
     ids=['auth_http_proxy', 'unauth_http_proxy'],
+)
+@pytest.mark.parametrize(
+    'module_target_sat_insights',
+    [True, False],
+    indirect=True,
+    ids=['hosted', 'local'],
 )
 def test_insights_client_registration_with_http_proxy(
     module_target_sat_insights,

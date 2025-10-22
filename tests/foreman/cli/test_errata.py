@@ -6,7 +6,7 @@
 
 :CaseComponent: ErrataManagement
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 """
@@ -182,7 +182,12 @@ def hosts(request):
         case _:  # Default for both
             distro, num_hosts = default_distro, default_num_hosts
 
-    with Broker(nick=distro, host_class=ContentHost, _count=num_hosts) as hosts:
+    with Broker(
+        deploy_network_type=settings.content_host.network_type,
+        host_class=ContentHost,
+        _count=num_hosts,
+        nick=distro,
+    ) as hosts:
         if not isinstance(hosts, list) or len(hosts) != num_hosts:
             pytest.fail(f'Failed to provision the expected number of hosts for {distro}.')
         yield hosts
@@ -1197,7 +1202,6 @@ def errata_host(
     org = module_sca_manifest_org
     cv = target_sat.api.ContentView(
         organization=org,
-        environment=[module_lce_library.id],
     ).create()
     target_sat.cli_factory.setup_org_for_a_custom_repo(
         {
@@ -1504,7 +1508,7 @@ def test_errata_list_by_contentview_filter(module_sca_manifest_org, module_targe
 
     :customerscenario: true
 
-    :verifies: SAT-7987
+    :Verifies: SAT-7987
     """
     product = module_target_sat.api.Product(organization=module_sca_manifest_org).create()
     repo = module_target_sat.cli_factory.make_repository(
