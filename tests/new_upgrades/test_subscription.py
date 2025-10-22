@@ -203,7 +203,8 @@ def test_subscription_scenario_auto_attach(subscription_auto_attach_setup):
 
 
 @pytest.mark.subscription_upgrades
-@pytest.mark.rhel_ver_match('N-0')
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+@pytest.mark.no_containers
 @pytest.mark.manifester
 def test_candlepin_hung_transaction(subscription_auto_attach_setup):
     """Check that no open Candlepin transactions are present after upgrading
