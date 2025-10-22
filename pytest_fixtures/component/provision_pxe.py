@@ -290,7 +290,7 @@ def pxe_loader(request):
         'http_uefi': {'vm_firmware': 'uefi', 'pxe_loader': 'Grub2 UEFI HTTP'},
         'secureboot': {'vm_firmware': 'uefi_secureboot', 'pxe_loader': 'Grub2 UEFI SecureBoot'},
     }
-    return Box(PXE_LOADER_MAP[getattr(request, 'param', 'uefi')])
+    return Box(PXE_LOADER_MAP[getattr(request, 'param', 'bios')])
 
 
 @pytest.fixture
