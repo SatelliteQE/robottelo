@@ -222,6 +222,18 @@ def sync_plan_upgrade_shared_satellite():
 
 
 @pytest.fixture
+def virt_who_upgrade_shared_satellite():
+    """Mark tests using this fixture with pytest.mark.virt_who_upgrades."""
+    sat_instance = shared_checkout("virt_who_upgrade")
+    sat_instance.register_to_cdn()
+    with SharedResource(
+        "virt_who_upgrade_tests", shared_checkin, sat_instance=sat_instance
+    ) as test_duration:
+        yield sat_instance
+        test_duration.ready()
+
+
+@pytest.fixture
 def capsule_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.capsule_upgrades."""
     sat_instance = shared_checkout("capsule_upgrade")
