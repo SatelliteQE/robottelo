@@ -876,8 +876,6 @@ def test_negative_create_with_incompatible_pxe_loader():
 
          a RHEL5,6 - GRUB2_UEFI
          b RHEL5,6 - GRUB2_UEFI_SB
-         c RHEL7 - GRUB_UEFI
-         d RHEL7 - GRUB_UEFI_SB
 
     :expectedresults:
       1. Warning message appears
@@ -1339,7 +1337,7 @@ def test_positive_provision_baremetal_with_bios_syslinux():
 
     :steps:
       1. create a new RHEL host using 'BareMetal' option,
-         PXEGRUB loader and MAC address of the pre-created VM
+         PXEGRUB2 loader and MAC address of the pre-created VM
       2. do the provisioning assertions (assertion steps #1-6)
       3. reboot the host
 
@@ -1390,44 +1388,6 @@ def test_positive_provision_baremetal_with_uefi_syslinux():
       5. Host info command states 'built' in the status
       6. GRUB config changes the boot order (boot local first)
       7. Hosts boots straight to RHEL after reboot (step #4)
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-def test_positive_provision_baremetal_with_uefi_grub():
-    """Provision a RHEL system on a new UEFI BM Host with GRUB loader from
-    a provided MAC address
-
-    :id: 508b268b-244d-4bf0-a92a-fbee96e7e8ae
-
-    :setup:
-      1. Create a PXE-based VM with UEFI boot mode (outside of
-         Satellite).
-      2. Synchronize a RHEL6 Kickstart repo (el7 kernel is too new
-         for GRUB v1)
-
-    :steps:
-      1. create a new RHEL6 host using 'BareMetal' option,
-         PXEGRUB loader and MAC address of the pre-created VM
-      2. reboot the VM (to ensure the NW boot is run)
-      3. do the provisioning assertions (assertion steps #1-6)
-      4. reboot the host
-
-    :expectedresults:
-      1. The loader files on TFTP are in the appropriate format and in the
-         appropriate dirs.
-      2. PXE handoff is successful (tcpdump shows the VM has requested
-         the correct files)
-      3. VM started to provision (might be tricky to automate console
-         checks)
-      4. VM accessible via SSH, shows correct OS version in
-         ``/etc/*release``
-      5. Host info command states 'built' in the status
-      6. GRUB config changes the boot order (boot local first)
-      7. Hosts boots straight to RHEL after reboot (step #4)
-
 
     :CaseAutomation: NotAutomated
     """
