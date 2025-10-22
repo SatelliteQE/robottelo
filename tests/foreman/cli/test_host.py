@@ -1932,7 +1932,7 @@ def test_negative_multi_cv_registration(
 
     :CaseImportance: Critical
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :team: Proton
 
@@ -1980,7 +1980,7 @@ def test_positive_multi_cv_registration(
 
     :CaseImportance: Critical
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :team: Proton
 
@@ -2054,7 +2054,7 @@ def test_positive_multi_cv_assignment(
 
     :CaseImportance: Critical
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :team: Proton
 
@@ -2123,7 +2123,7 @@ def test_positive_multi_cv_host_repo_availability(
 
     :CaseImportance: Critical
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
     :team: Proton
 
