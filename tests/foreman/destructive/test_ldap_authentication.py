@@ -220,7 +220,7 @@ def test_single_sign_on_ldap_ipa_server(
 
     :steps: Assert single sign-on session user directed to satellite instead login page
 
-    :expectedresults: After single sign on user should redirected from /extlogin to /hosts page
+    :expectedresults: After single sign on user should redirected from /extlogin to /new/hosts page
 
     :BZ: 1941997
     """
@@ -228,7 +228,7 @@ def test_single_sign_on_ldap_ipa_server(
     assert result.status == 0
     result = target_sat.execute(f'curl -k -u : --negotiate {target_sat.url}/users/extlogin/')
     assert 'redirected' in result.stdout
-    assert f'{target_sat.url}/hosts' in result.stdout
+    assert f'{target_sat.url}/new/hosts' in result.stdout
 
 
 @pytest.mark.parametrize('func_enroll_ad_and_configure_external_auth', ['AD_2019'], indirect=True)
@@ -243,7 +243,7 @@ def test_single_sign_on_ldap_ad_server(
 
     :steps: Assert single sign-on session user is directed to satellite instead of login page
 
-    :expectedresults: After single sign on, user should be redirected from /extlogin to /hosts page
+    :expectedresults: After single sign on, user should be redirected from /extlogin to /new/hosts page
         using curl. It should navigate to hosts page. (verify using url only)
 
     :BZ: 1941997
@@ -253,7 +253,7 @@ def test_single_sign_on_ldap_ad_server(
     assert result.status == 0
     result = target_sat.execute(f'curl -k -u : --negotiate {target_sat.url}/users/extlogin/')
     assert 'redirected' in result.stdout
-    assert f'{target_sat.url}/hosts' in result.stdout
+    assert f'{target_sat.url}/new/hosts' in result.stdout
 
 
 def test_single_sign_on_using_rhsso(

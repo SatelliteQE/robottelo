@@ -7,7 +7,6 @@ on:
 
 env:
     PYCURL_SSL_LIBRARY: openssl
-    ROBOTTELO_BUGZILLA__API_KEY: ${{ secrets.BUGZILLA_KEY }}
     ROBOTTELO_JIRA__API_KEY: ${{ secrets.JIRA_KEY }}
 
 jobs:
@@ -22,10 +21,10 @@ jobs:
       UV_SYSTEM_PYTHON: 1
     steps:
       - name: Checkout Robottelo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set Up Python-${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 

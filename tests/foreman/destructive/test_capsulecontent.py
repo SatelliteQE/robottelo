@@ -6,29 +6,27 @@
 
 :CaseComponent: Capsule-Content
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
 """
-
-from datetime import UTC, datetime, timedelta
 
 from box import Box
 from fauxfactory import gen_alpha
 import pytest
 
 from robottelo import constants
+from robottelo.config import settings
 
 pytestmark = [pytest.mark.destructive]
 
 
 @pytest.mark.skip_if_not_set('capsule')
-def test_positive_sync_without_deadlock(
+def test_positive_sync_rpm_without_deadlock(
     target_sat,
     large_capsule_configured,
     function_sca_manifest_org,
-    function_published_cv,
 ):
     """Synchronize one bigger repo, published in multiple CVs, to a blank Capsule.
     Assert that the sync task(s) succeed and no deadlock happens.
@@ -40,59 +38,54 @@ def test_positive_sync_without_deadlock(
            policy and running multiple (4 and more) pulpcore workers.
 
     :steps:
-        1. Add one bigger repository to the Satellite.
-        2. Create a Content View, add the repository and publish it.
-        3. Create several copies of the CV and publish them.
-        4. Add the Library environment to the Capsule.
-        5. Synchronize the bigger repository.
-        6. Capsule sync is triggered once repo sync is finished.
+        1. Set immediate download policy for RH repos to avoid OOM on Capsule sync.
+        2. Sync one bigger repository to the Satellite.
+        3. Create a Content View, add the repository and publish it.
+        4. Create several copies of the CV and publish them.
+        5. Set immediate download policy to the Capsule.
+        6. Add the Library environment to the Capsule.
+        7. Synchronize the Capsule, ensure the sync task succeeded.
+        8. Ensure no 'ShareLock' or 'deadlock' found in /var/log/messages.
 
     :expectedresults:
-        1. Sync passes without deadlock.
-        2. Capsule Content counts match expected, added content from repository.
+        1. Capsule sync succeeds.
+        2. No deadlock nor sharelock found in logs.
 
     :customerscenario: true
 
     :BZ: 2062526
     """
+    # Set immediate download policy for RH repos to avoid OOM on Capsule sync.
+    target_sat.update_setting('default_redhat_download_policy', 'immediate')
+
+    # Sync one bigger repository to the Satellite.
     rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=constants.DEFAULT_ARCHITECTURE,
         org_id=function_sca_manifest_org.id,
-        product=constants.REPOS['rhel9_aps']['product'],
-        repo=constants.REPOS['rhel9_aps']['name'],
-        reposet=constants.REPOSET['rhel9_aps'],
-        releasever=constants.REPOS['rhel9_aps']['releasever'],
+        product=constants.REPOS['rhel9_bos']['product'],
+        repo=constants.REPOS['rhel9_bos']['name'],
+        reposet=constants.REPOSET['rhel9_bos'],
+        releasever=constants.REPOS['rhel9_bos']['releasever'],
     )
     repo = target_sat.api.Repository(id=rh_repo_id).read()
-    # add large repo to cv and publish
-    function_published_cv.repository = [repo]
-    function_published_cv.update(['repository'])
-    task_query = (
-        f'Metadata generate repository "{repo.name}";'
-        f' product "{constants.REPOS["rhel9_aps"]["product"]}";'
-        f' organization "{function_sca_manifest_org.name}"'
-    )
-    # wait_for repo metadata task, prior to publish
-    target_sat.wait_for_tasks(
-        search_query=task_query,
-        search_rate=2,
-        max_tries=10,
-    )
-    function_published_cv = function_published_cv.read()
-    function_published_cv.publish()
-    # copies of content view with added repo
-    for _ in range(4):
-        copy_id = target_sat.api.ContentView(id=function_published_cv.id).copy(
-            data={'name': gen_alpha()}
-        )['id']
+    repo.sync(timeout='60m')
+
+    # Create a Content View, add the repository and publish it.
+    cv = target_sat.publish_content_view(function_sca_manifest_org, repo)
+
+    # Create several copies of the CV and publish them.
+    for _ in range(7):
+        copy_id = target_sat.api.ContentView(id=cv.id).copy(data={'name': gen_alpha()})['id']
         copy_cv = target_sat.api.ContentView(id=copy_id).read()
         copy_cv.publish()
 
+    # Set immediate download policy to the Capsule.
     proxy = large_capsule_configured.nailgun_smart_proxy.read()
     proxy.download_policy = 'immediate'
     proxy.update(['download_policy'])
+
+    # Add the Library environment to the Capsule.
     nailgun_capsule = large_capsule_configured.nailgun_capsule
-    # Capsule set to use Library environment
     lce = target_sat.api.LifecycleEnvironment(organization=function_sca_manifest_org).search(
         query={'search': f'name={constants.ENVIRONMENT}'}
     )[0]
@@ -101,43 +94,15 @@ def test_positive_sync_without_deadlock(
     assert len(result['results']) == 1
     assert result['results'][0]['id'] == lce.id
 
-    # Synchronize repository, Capsule Sync tasks triggered
-    repo_sync = repo.sync(timeout='60m')
-    assert 'Associating Content' in repo_sync['humanized']['output'], (
-        f'Failed to add new content with repository sync:\n{repo_sync.read()}'
-    )
-    # timestamp: to check capsule task(s) began, exclude priors
-    # within 120 seconds of end of repo_sync
-    timestamp = datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=120)
-    repo_to_capsule_task = target_sat.wait_for_tasks(
-        search_query=(
-            f'label=Actions::Katello::Repository::CapsuleSync and started_at >= {timestamp}'
-        ),
-        search_rate=2,
-        max_tries=60,  # in-progress within 120s
-        poll_timeout=5400,  # 90m, total duration
-    )
-    assert len(repo_to_capsule_task) == 1
-    repo_to_capsule_task = repo_to_capsule_task[0].read()
-    capsule_sync_task = target_sat.wait_for_tasks(
-        search_query=(
-            f'"{nailgun_capsule.name}"'
-            ' and label=Actions::Katello::CapsuleContent::Sync'
-            f' and started_at >= {timestamp}'
-        ),
-        search_rate=2,
-        max_tries=60,
-        poll_timeout=5400,
-    )
-    assert len(capsule_sync_task) == 1
-    capsule_sync_task = capsule_sync_task[0].read()
-    nailgun_capsule = nailgun_capsule.read()
-    # capsule content reflects expected counts, from synced rh repo in CVV
-    repo = repo.read()
-    updated_content = str(nailgun_capsule.content_counts()['content_view_versions'])
-    assert f"'rpm': {repo.content_counts['rpm']}" in updated_content
-    assert f"'erratum': {repo.content_counts['erratum']}" in updated_content
-    assert f"'package_group': {repo.content_counts['package_group']}" in updated_content
+    # Synchronize the Capsule, ensure the sync task succeeded.
+    sync_status = nailgun_capsule.content_sync(timeout='90m')
+    assert sync_status['result'] == 'success', f'Capsule sync task failed: {sync_status}'
+
+    # Ensure no 'ShareLock' or 'deadlock' found in /var/log/messages.
+    sharelock_check = large_capsule_configured.execute('grep -i "ShareLock" /var/log/messages')
+    assert sharelock_check.status != 0, 'ShareLock detected in /var/log/messages'
+    deadlock_check = large_capsule_configured.execute('grep -i "deadlock" /var/log/messages')
+    assert deadlock_check.status != 0, 'Deadlock detected in /var/log/messages'
 
 
 @pytest.mark.skip_if_not_set('capsule')
@@ -236,3 +201,103 @@ def test_positive_sync_without_deadlock_after_rpm_trim_changelog(
         check_log_files = [f'/var/lib/pgsql/data/log/postgresql-{day}.log', '/var/log/messages']
         for file in check_log_files:
             assert capsule_configured.execute(f'grep -i "deadlock detected" {file}').status
+
+
+@pytest.mark.skip_if_not_set('capsule')
+def test_sync_AC_without_deadlock(
+    target_sat,
+    capsule_configured,
+    function_org,
+    function_product,
+):
+    """Synchronize Ansible-Collection repository with multiple content views to capsule.
+    Assert that the sync task succeeds and no deadlock happens.
+
+    :id: ac38c045-7b4b-400c-8f23-f4ffc4a38f77
+
+    :setup:
+        1. A blank external capsule with immediate download policy.
+
+    :steps:
+        1. Create an Ansible-Collection repository and sync it.
+        2. Create 5 lifecycle environments.
+        3. Create 8 content views, add the repository and publish/promote to all LCEs.
+        4. Assign all lifecycle environments to the capsule and trigger optimized sync.
+        5. Ensure sync task succeeded and no 'ShareLock' or 'deadlock' found in /var/log/messages.
+
+    :expectedresults:
+        1. Sync passes without deadlock.
+
+    :customerscenario: true
+
+    :Verifies: SAT-34271
+
+    """
+    # Set capsule to immediate download policy
+    proxy = capsule_configured.nailgun_smart_proxy.read()
+    proxy.download_policy = 'immediate'
+    proxy.update(['download_policy'])
+
+    # 1. Create Ansible-Collection repository and sync it
+    requirements = '''
+    ---
+    collections:
+    - name: ansible.eda
+    - name: check_point.mgmt
+    - name: ansible.platform
+    - name: redhat.satellite
+    '''
+    repo = target_sat.api.Repository(
+        content_type='ansible_collection',
+        ansible_collection_requirements=requirements,
+        product=function_product,
+        url=settings.ansible_hub.url,
+        ansible_collection_auth_token=settings.ansible_hub.token,
+        ansible_collection_auth_url=settings.ansible_hub.sso_url,
+    ).create()
+    repo_sync = repo.sync()
+    assert repo_sync['result'] == 'success', f'Repository sync failed: {repo_sync}'
+    repo = repo.read()
+    assert repo.content_counts['ansible_collection'] > 75, (
+        'Insufficient collections count in testing repo'
+    )
+
+    # 2. Create 5 lifecycle environments
+    lces = [target_sat.api.LifecycleEnvironment(name='LCE-0', organization=function_org).create()]
+    for i in range(1, 5):
+        lce = target_sat.api.LifecycleEnvironment(
+            name=f'LCE-{i}', organization=function_org, prior=lces[-1].id
+        ).create()
+        lces.append(lce)
+
+    # 3. Create 8 content views, add repository and publish/promote to all LCEs
+    content_views = []
+    for i in range(8):
+        cv = target_sat.api.ContentView(
+            name=f'CV-{i}', organization=function_org, repository=[repo]
+        ).create()
+
+        cv.publish()
+        cv = cv.read()
+        cvv = cv.version[0]
+        cvv.promote(data={'environment_ids': [lce.id for lce in lces]})
+
+        content_views.append(cv)
+
+    # 4. Assign all lifecycle environments to capsule and trigger optimized sync
+    nailgun_capsule = capsule_configured.nailgun_capsule
+
+    nailgun_capsule.content_add_lifecycle_environment(
+        data={'environment_id': [lce.id for lce in lces]}
+    )
+    result = nailgun_capsule.content_lifecycle_environments()
+    assert len(result['results']) == len(lces)
+
+    sync_status = nailgun_capsule.content_sync(timeout='10m')
+
+    # 5. Ensure sync task succeeded and no 'ShareLock' or 'deadlock' found in /var/log/messages.
+    assert sync_status['result'] == 'success', f'Capsule sync task failed: {sync_status}'
+    sharelock_check = capsule_configured.execute('grep -i "ShareLock" /var/log/messages')
+    assert sharelock_check.status != 0, 'ShareLock detected in /var/log/messages'
+    deadlock_check = capsule_configured.execute('grep -i "deadlock" /var/log/messages')
+    assert deadlock_check.status != 0, 'Deadlock detected in /var/log/messages'

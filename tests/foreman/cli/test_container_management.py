@@ -4,12 +4,15 @@
 
 :CaseAutomation: Automated
 
-:Team: Phoenix-content
+:Team: Artemis
 
 :CaseComponent: ContainerImageManagement
 
 """
 
+from datetime import UTC, datetime
+
+from box import Box
 from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
@@ -411,63 +414,103 @@ class TestDockerClient:
 
         assert module_container_contenthost.execute(podman_pull_command).status == 0
 
+    @pytest.fixture(scope='module')
+    def stage_setup(
+        self, module_target_sat, module_capsule_configured, module_org, module_lce, module_product
+    ):
+        """Setup for test_podman_cert_auth"""
+        sat, caps = module_target_sat, module_capsule_configured
+
+        # 1. Associate the organization and LCE to the capsule.
+        res = sat.cli.Capsule.update({'name': caps.hostname, 'organization-ids': module_org.id})
+        assert 'proxy updated' in str(res)
+
+        caps.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': module_lce.id}
+        )
+        res = caps.nailgun_capsule.content_lifecycle_environments()
+        assert len(res['results']) >= 1
+        assert module_lce.id in [capsule_lce['id'] for capsule_lce in res['results']]
+
+        # 2. Create and sync a docker repo.
+        repo = _repo(sat, module_product.id, upstream_name='quay/busybox', url='https://quay.io')
+        sat.cli.Repository.synchronize({'id': repo['id']})
+
+        # 3. Create a CV with the repo, publish and promote it to a LCE, wait for capsule sync.
+        cv = sat.cli_factory.make_content_view(
+            {'organization-id': module_org.id, 'repository-ids': [repo['id']]}
+        )
+        timestamp = datetime.now(UTC)
+        sat.cli.ContentView.publish({'id': cv['id']})
+        cv = sat.cli.ContentView.info({'id': cv['id']})
+        sat.cli.ContentView.version_promote(
+            {'id': cv['versions'][0]['id'], 'to-lifecycle-environment-id': module_lce.id}
+        )
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
+
+        # 4. Create activation key for the LCE/CV.
+        ak = sat.cli.ActivationKey.create(
+            {
+                'name': gen_string('alpha'),
+                'organization-id': module_org.id,
+                'lifecycle-environment-id': module_lce.id,
+                'content-view-id': cv['id'],
+            }
+        )
+        return Box(repo=repo, cv=cv, ak=ak)
+
     @pytest.mark.e2e
+    @pytest.mark.parametrize('target_server', ['sat', 'caps'], ids=['satellite', 'capsule'])
     @pytest.mark.parametrize('gr_certs_setup', [False, True], ids=['manual-setup', 'GR-setup'])
     def test_podman_cert_auth(
-        self, request, module_target_sat, module_org, module_container_contenthost, gr_certs_setup
+        self,
+        request,
+        module_target_sat,
+        module_capsule_configured,
+        module_container_contenthost,
+        stage_setup,
+        target_server,
+        gr_certs_setup,
+        module_org,
+        module_lce,
+        module_product,
     ):
-        """Verify the podman search and pull works with cert-based
-        authentication without need for login.
+        """Verify the podman search and pull works with cert-based authentication for both,
+        Satellite and Capsule, without need for login.
 
         :id: 7b1a457c-ae67-4a76-9f67-9074ea7f858a
 
         :parametrized: yes
 
-        :Verifies: SAT-33254, SAT-33255
+        :Verifies: SAT-33254, SAT-33255, SAT-33260
+
+        :setup:
+            1. Associate the organization and LCE to the capsule.
+            2. Create and sync a docker repo.
+            3. Create a CV with the repo, publish and promote it to a LCE, wait for capsule sync.
+            4. Create activation key for the LCE/CV.
 
         :steps:
-            1. Create and sync a docker repo.
-            2. Create a CV with the repo, publish and promote it to a LCE.
-            3. Create activation key for the LCE/CV and register a content host.
-            4. Configure podman certs for authentication (manual setup only).
-            5. Try podman search all, ensure Library and repo images are not listed.
-            6. Try podman search/pull for Library images, ensure it fails.
-            7. Try podman search/pull for the LCE/CV, ensure it works.
+            1. Register a host to the LCE/CV environment.
+            2. Configure podman certs for authentication (manual setup only).
+            3. Try podman search all, ensure Library and repo images are not listed.
+            4. Try podman search/pull for Library images, ensure it fails.
+            5. Try podman search/pull for the LCE/CV, ensure it works.
 
         :expectedresults:
             1. Podman search/pull is restricted for Library (or any LCE missing in AK).
             2. Podman search/pull works for environments included in AK.
+            3. The above applies for both, Satellite and Capsule.
 
         """
-        sat, host = module_target_sat, module_container_contenthost
+        server = module_capsule_configured if target_server == 'caps' else module_target_sat
+        host = module_container_contenthost
+        org, lce, prod = module_org, module_lce, module_product
+        repo, cv, ak = stage_setup.repo, stage_setup.cv, stage_setup.ak
 
-        # 1. Create and sync a docker repo.
-        product = sat.cli_factory.make_product_wait({'organization-id': module_org.id})
-        repo = _repo(sat, product['id'], upstream_name='quay/busybox', url='https://quay.io')
-        sat.cli.Repository.synchronize({'id': repo['id']})
-
-        # 2. Create a CV with the repo, publish and promote it to a LCE.
-        cv = sat.cli_factory.make_content_view(
-            {'organization-id': module_org.id, 'repository-ids': [repo['id']]}
-        )
-        sat.cli.ContentView.publish({'id': cv['id']})
-        cv = sat.cli.ContentView.info({'id': cv['id']})
-        lce = sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
-        sat.cli.ContentView.version_promote(
-            {'id': cv['versions'][0]['id'], 'to-lifecycle-environment-id': lce['id']}
-        )
-
-        # 3. Create activation key for the LCE/CV and register a content host.
-        ak = sat.cli.ActivationKey.create(
-            {
-                'name': gen_string('alpha'),
-                'organization-id': module_org.id,
-                'lifecycle-environment-id': lce['id'],
-                'content-view-id': cv['id'],
-            }
-        )
+        # 1. Register a host to the LCE/CV environment.
         res = host.register(
-            module_org, None, ak['name'], sat, force=True, setup_container_certs=gr_certs_setup
+            org, None, ak.name, server, force=True, setup_container_certs=gr_certs_setup
         )
         assert res.status == 0
         assert host.subscribed
@@ -476,31 +519,31 @@ class TestDockerClient:
         def _finalize():
             host.unregister()
             host.delete_host_record()
+            host.reset_podman_cert_auth(server)  # reset regardless how it was set
 
-        # 4. Configure podman certs for authentication (manual setup only).
+        # 2. Configure podman certs for authentication (manual setup only).
         if not gr_certs_setup:
-            host.configure_podman_cert_auth(sat)
-            request.addfinalizer(lambda: host.reset_podman_cert_auth(sat))
+            host.configure_podman_cert_auth(server)
 
-        # 5. Try podman search all, ensure Library and repo images are not listed.
-        org_prefix = f'{sat.hostname}/{module_org.label}'
+        # 3. Try podman search all, ensure Library and repo images are not listed.
+        org_prefix = f'{server.hostname}/{org.label}'
         lib_path = f'{org_prefix}/library'.lower()
-        repo_path = f'{org_prefix}/{product.label}/{repo.label}'.lower()
-        cv_path = f'{org_prefix}/{lce.label}/{cv["label"]}/{product.label}/{repo.label}'.lower()
+        repo_path = f'{org_prefix}/{prod.label}/{repo.label}'.lower()
+        cv_path = f'{org_prefix}/{lce.label}/{cv.label}/{prod.label}/{repo.label}'.lower()
 
-        finds = host.execute(f'podman search {sat.hostname}/').stdout
+        finds = host.execute(f'podman search {server.hostname}/').stdout
         assert lib_path not in finds
         assert repo_path not in finds
         assert cv_path in finds
         paths = [f.strip() for f in finds.split('\n') if 'NAME' not in f and len(f)]
         assert len(paths) == 1
 
-        # 6. Try podman search/pull for Library images, ensure it fails.
+        # 4. Try podman search/pull for Library images, ensure it fails.
         for path in [lib_path, repo_path]:
             assert host.execute(f'podman search {path}').stdout == ''
             assert host.execute(f'podman pull {path}').status
 
-        # 7. Try podman search/pull for the LCE/CV, ensure it works.
+        # 5. Try podman search/pull for the LCE/CV, ensure it works.
         res = host.execute(f'podman search {cv_path}')
         assert cv_path in res.stdout
         res = host.execute(f'podman pull {cv_path}')

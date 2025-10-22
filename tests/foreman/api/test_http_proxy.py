@@ -20,16 +20,22 @@ import pytest
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
+from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize(
+    'use_ip',
+    [False] if is_open('SAT-39098') else [False, True],
+    ids=['hostname'] if is_open('SAT-39098') else ['hostname', 'ip'],
+)
+@pytest.mark.parametrize(
     'setup_http_proxy',
     [True, False],
-    indirect=True,
     ids=['auth_http_proxy', 'unauth_http_proxy'],
+    indirect=True,
 )
 @pytest.mark.parametrize(
     'module_repos_collection_with_manifest',
@@ -72,7 +78,7 @@ def test_positive_end_to_end(
         1. Set immediate download policy where applicable for complete sync testing.
         2. For each repo set global default HTTP proxy and sync it.
         3. For each repo set specific HTTP proxy and sync it.
-        4. For each repo set no HTTP proxy and sync it.
+        4. For each repo set no HTTP proxy and sync it (only for IPv4).
         5. Refresh manifest through HTTP proxy.
         6. Discover yum type repo through HTTP proxy.
         7. Discover docker type repo through HTTP proxy.
@@ -94,7 +100,10 @@ def test_positive_end_to_end(
             module_target_sat.api.Repository(id=repo['id'], download_policy='immediate').update()
 
     # For each repo set global/specific/no HTTP proxy and sync it
-    for policy in ['global_default_http_proxy', 'use_selected_http_proxy', 'none']:
+    http_proxy_policies = ['global_default_http_proxy', 'use_selected_http_proxy']
+    if module_target_sat.network_type.has_ipv4:
+        http_proxy_policies.append('none')
+    for policy in http_proxy_policies:
         for repo in module_repos_collection_with_manifest.repos_info:
             repo = module_target_sat.api.Repository(
                 id=repo['id'],
@@ -148,6 +157,11 @@ def test_positive_end_to_end(
 @pytest.mark.upgrade
 @pytest.mark.rhel_ver_match('9')
 @pytest.mark.run_in_one_thread
+@pytest.mark.parametrize(
+    'use_ip',
+    [False, True],
+    ids=['hostname', 'ip'],
+)
 @pytest.mark.parametrize(
     'setup_http_proxy',
     [True, False],

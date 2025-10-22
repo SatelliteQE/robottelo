@@ -6,7 +6,7 @@
 
 :CaseComponent: ErrataManagement
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 """
@@ -1202,7 +1202,6 @@ def errata_host(
     org = module_sca_manifest_org
     cv = target_sat.api.ContentView(
         organization=org,
-        environment=[module_lce_library.id],
     ).create()
     target_sat.cli_factory.setup_org_for_a_custom_repo(
         {

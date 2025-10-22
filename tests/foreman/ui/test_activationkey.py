@@ -6,7 +6,7 @@
 
 :CaseComponent: ActivationKeys
 
-:team: Phoenix-subscriptions
+:team: Proton
 
 :CaseImportance: High
 
@@ -662,11 +662,10 @@ def test_positive_access_non_admin_user(session, test_name, target_sat):
         }
     )
     # Create new role
-    role = target_sat.api.Role().create()
+    role = target_sat.api.Role(organization=[org]).create()
     # Create filter with predefined activation keys search criteria
     envs_condition = ' or '.join(['environment = ' + s for s in envs_list])
     target_sat.api.Filter(
-        organization=[org],
         permission=target_sat.api.Permission().search(
             filters={'name': 'view_activation_keys'},
             query={'search': 'resource_type="Katello::ActivationKey"'},
@@ -1026,7 +1025,12 @@ def test_positive_host_associations(session, target_sat):
         environment=org_entities['lifecycle-environment-id'],
         organization=org.id,
     ).create()
-    with Broker(nick='rhel7', host_class=ContentHost, _count=2) as hosts:
+    with Broker(
+        nick='rhel7',
+        deploy_network_type=settings.content_host.network_type,
+        host_class=ContentHost,
+        _count=2,
+    ) as hosts:
         vm1, vm2 = hosts
         result = vm1.register(org, None, ak1.name, target_sat)
         assert result.status == 0, f'Failed to register host: {result.stderr}'

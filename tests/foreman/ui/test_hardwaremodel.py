@@ -6,7 +6,7 @@
 
 :CaseComponent: Hosts
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 """
 
@@ -26,6 +26,8 @@ def test_positive_end_to_end(session, host_ui_options, module_target_sat):
     :CaseImportance: Medium
 
     :BZ:1758260
+
+    :BlockedBy: SAT-38893
     """
     name = gen_string('alpha')
     model = gen_string('alphanumeric')

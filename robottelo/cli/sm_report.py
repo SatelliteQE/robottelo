@@ -25,7 +25,14 @@ class SatelliteMaintainReport(Base):
 
     @classmethod
     def generate(cls, options=None, env_var=None):
-        """Build satellite-maintain report generate"""
+        """Run satellite-maintain report generate"""
         cls.command_sub = 'generate'
+        options = options or {}
+        return cls.sm_execute(cls._construct_command(options), env_var=env_var)
+
+    @classmethod
+    def condense(cls, options=None, env_var=None):
+        """Run satellite-maintain report condense"""
+        cls.command_sub = 'condense'
         options = options or {}
         return cls.sm_execute(cls._construct_command(options), env_var=env_var)

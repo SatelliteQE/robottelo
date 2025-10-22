@@ -371,7 +371,7 @@ def test_positive_update_console_password(libvirt_url, set_console_password, mod
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
 @pytest.mark.rhel_ver_match('[7]')
-@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['uefi', 'secureboot'], indirect=True)
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 def test_positive_provision_end_to_end(
     request,
@@ -486,10 +486,10 @@ def test_negative_create_libvirt_with_url(module_location, module_org, module_ta
         )
 
 
-def test_positive_create_delete_image_libvirt_with_name(
-    module_location, module_org, module_target_sat, module_os
+def test_positive_crud_image_libvirt_with_name(
+    request, module_location, module_org, module_target_sat, module_os
 ):
-    """Create/Delete images on the libvirt compute resource
+    """Create, Read, Update and Delete images on the libvirt compute resource
 
     :id: 2da84165-a56f-4282-9343-94828fa69c13
 
@@ -497,10 +497,14 @@ def test_positive_create_delete_image_libvirt_with_name(
         1. Create a compute resource of type libvirt.
         2. Create a image for the compute resource with valid parameter,
            compute-resource image create
+        3. List/info the created image
+        4. Update image name and username
+        5. Delete created image
 
-    :expectedresults: The image is created and deleted on the CR successfully
+    :expectedresults: Image should be created, list, updated and deleted in Libvirt CR
     """
     cr_name = gen_string('alpha')
+    module_target_sat.configure_libvirt_cr()
     comp_res = module_target_sat.cli_factory.compute_resource(
         {
             'name': cr_name,
@@ -525,14 +529,39 @@ def test_positive_create_delete_image_libvirt_with_name(
             'uuid': img_path,
         }
     )
+    request.addfinalizer(lambda: module_target_sat.cli.ComputeResource.delete({'name': cr_name}))
     result = module_target_sat.cli.ComputeResource.image_list(
         {'compute-resource': comp_res['name']}
     )
     assert result[0]['uuid'] == img_path
 
+    # check audit log
+    audit_logs = module_target_sat.api.Audit().search(query={'search': 'type=image'})
+    assert img_name in [entry.auditable_name for entry in audit_logs]
+
+    # Update image
+    new_img_name = gen_string('alpha')
+    new_username = gen_string('alpha')
+    result = module_target_sat.cli.ComputeResource.image_update(
+        {
+            'name': img_name,
+            'compute-resource': cr_name,
+            'new-name': new_img_name,
+            'username': new_username,
+        }
+    )[0]
+    assert result['message'] == 'Image updated.'
+    assert result['name'] == new_img_name
+
+    img_info = module_target_sat.cli.ComputeResource.image_info(
+        {'name': new_img_name, 'compute-resource': cr_name}
+    )[0]
+    assert img_info['username'] == new_username
+    assert img_info['uuid'] == img_path
+
     # Delete Image
     result = module_target_sat.cli.ComputeResource.image_delete(
-        {'name': img_name, 'compute-resource': cr_name}
+        {'name': new_img_name, 'compute-resource': cr_name}
     )
     assert result[0]['message'] == 'Image deleted.'
 

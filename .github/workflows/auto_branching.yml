@@ -41,7 +41,7 @@ jobs:
     if: ${{ needs.check-group-membership.outputs.member == 'true' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Create the ${{ github.event.inputs.target_branch }} branch
         id: create-branch
@@ -103,6 +103,7 @@ jobs:
         run: |
             rm -rf ./.github/workflows/dispatch_release.yml
             rm -rf ./.github/workflows/auto_branching.yml
+            rm -rf ./.github/workflows/dependency_merge.yml
 
       - name: Remove CODEOWNERS
         id: remove-codeowners
@@ -137,7 +138,7 @@ jobs:
       - name: Commit changes
         run: |
           git config --local user.email Satellite-QE.satqe.com && git config --local user.name Satellite-QE
-          git add pyproject.toml ./tests/foreman ./robottelo/* ./requirements.txt ./.github/*
+          git add pyproject.toml ./tests/foreman/ ./robottelo/ ./requirements.txt ./.github/
           git commit -m "Changes for ${{ github.event.inputs.target_branch }} new branch"
           git push origin ${{steps.checkout-to-auto-branch.outputs.branch_name}}
 
@@ -172,7 +173,7 @@ jobs:
           github-token: ${{ secrets._REPO_ADMIN_TOKEN }}
 
       - name: add the no-cherrypick label
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets._REPO_ADMIN_TOKEN }}
           script: |
@@ -232,7 +233,7 @@ jobs:
 
     steps:
       - name: Checkout Robottelo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Update target branch label in dependabot yml file
         id: update-dependabot
@@ -308,7 +309,7 @@ jobs:
           github-token: ${{ secrets._REPO_ADMIN_TOKEN }}
 
       - name: add the no-cherrypick label
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets._REPO_ADMIN_TOKEN }}
           script: |

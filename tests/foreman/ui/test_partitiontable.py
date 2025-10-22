@@ -6,7 +6,7 @@
 
 :CaseComponent: Hosts
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 
@@ -41,7 +41,7 @@ def test_positive_create_default_for_organization(session):
             {
                 'template.name': name,
                 'template.default': True,
-                'template.template_editor': gen_string('alpha'),
+                'template.template_editor.editor': gen_string('alpha'),
             }
         )
         session.organization.create({'name': org_name})
@@ -67,7 +67,7 @@ def test_positive_create_custom_organization(session):
             {
                 'template.name': name,
                 'template.default': False,
-                'template.template_editor': gen_string('alpha'),
+                'template.template_editor.editor': gen_string('alpha'),
             }
         )
         session.organization.create({'name': org_name})
@@ -93,7 +93,7 @@ def test_positive_create_default_for_location(session):
             {
                 'template.name': name,
                 'template.default': True,
-                'template.template_editor': gen_string('alpha'),
+                'template.template_editor.editor': gen_string('alpha'),
             }
         )
         session.location.create({'name': loc_name})
@@ -119,7 +119,7 @@ def test_positive_create_custom_location(session):
             {
                 'template.name': name,
                 'template.default': False,
-                'template.template_editor': gen_string('alpha'),
+                'template.template_editor.editor': gen_string('alpha'),
             }
         )
         session.location.create({'name': loc_name})
@@ -143,7 +143,7 @@ def test_positive_delete_with_lock_and_unlock(session):
             {
                 'template.name': name,
                 'template.default': True,
-                'template.template_editor': gen_string('alpha'),
+                'template.template_editor.editor': gen_string('alpha'),
             }
         )
         assert session.partitiontable.search(name)[0]['Name'] == name
@@ -170,7 +170,7 @@ def test_positive_clone(session):
     os_family = 'Red Hat'
     with session:
         session.partitiontable.create(
-            {'template.name': name, 'template.template_editor': gen_string('alpha')}
+            {'template.name': name, 'template.template_editor.editor': gen_string('alpha')}
         )
         session.partitiontable.clone(
             name,
@@ -189,7 +189,8 @@ def test_positive_clone(session):
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_location, template_data):
+@pytest.mark.parametrize('fullscreen', [True, False], ids=['fullscreen', 'nofullscreen'])
+def test_positive_end_to_end(session, module_org, module_location, template_data, fullscreen):
     """Perform end to end testing for partition table component
 
     :id: ade8e9b8-01a7-476b-ad01-f3e6c119ec25
@@ -197,6 +198,8 @@ def test_positive_end_to_end(session, module_org, module_location, template_data
     :expectedresults: All expected CRUD actions finished successfully
 
     :CaseImportance: High
+
+    :Verifies: SAT-17200
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
@@ -220,19 +223,27 @@ def test_positive_end_to_end(session, module_org, module_location, template_data
                 'template.name': name,
                 'template.default': True,
                 'template.snippet': True,
-                'template.template_editor': template_data,
+                'template.template_editor.editor': template_data,
+                'template.template_editor.fullscreen': fullscreen,
                 'template.audit_comment': audit_comment,
                 'inputs': template_inputs,
                 'organizations.resources.assigned': [module_org.name],
                 'locations.resources.assigned': [module_location.name],
-            }
+            },
         )
         assert session.partitiontable.search(name)[0]['Name'] == name
         pt = session.partitiontable.read(name)
         assert pt['template']['name'] == name
         assert pt['template']['default'] is True
         assert pt['template']['snippet'] is True
-        assert pt['template']['template_editor'] == template_data
+        if fullscreen:
+            # fill() method doesn't expect the editor to "help" with indentation so let's just ignore all whitespace
+            assert "".join(pt['template']['template_editor']['editor'].split()) == "".join(
+                template_data.split()
+            )
+        else:
+            # we don't have to ignore whitespace here because the data isn't filled using fill() but by running a script ace.edit()
+            assert pt['template']['template_editor']['editor'] == template_data
         assert pt['inputs'][0]['name'] == input_name
         assert pt['inputs'][0]['required'] is True
         assert pt['inputs'][0]['input_type'] == 'Variable'

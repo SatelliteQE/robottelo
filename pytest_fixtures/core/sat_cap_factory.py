@@ -210,6 +210,41 @@ def module_capsule_configured(request, module_capsule_host, module_target_sat):
 
 
 @pytest.fixture(scope='module')
+def module_unconfigured_satellite(request):
+    deploy_args = settings.server.deploy_arguments
+    with Broker(
+        workflow=settings.server.deploy_workflows.unconfigured, **deploy_args, host_class=Satellite
+    ) as host:
+        yield host
+
+
+@pytest.fixture(scope='module')
+def module_satellite_iop(request, satellite_factory):
+    """Deploy and configure Red Hat Lightspeed in Satellite
+
+    Uses the 'deploy-satellite-iop' SatLab workflow which handles all IoP
+    configuration automatically, including:
+    - Podman authentication to stage registry
+    - satellite-installer with --enable-iop flag
+
+    The workflow handles all setup, so no manual configuration is needed.
+    """
+    # Deploy using the IoP workflow with stage credentials
+    new_sat = satellite_factory(
+        workflow=settings.server.deploy_workflows.iop,
+    )
+
+    # Verify IoP is enabled
+    assert new_sat.local_advisor_enabled, "IoP was not successfully enabled on Satellite"
+
+    yield new_sat
+
+    # Cleanup
+    new_sat.teardown()
+    Broker(hosts=[new_sat]).checkin()
+
+
+@pytest.fixture(scope='module')
 def module_capsule_configured_mqtt(request, module_capsule_configured_ansible):
     """Configure the capsule instance with the satellite from settings.server.hostname,
     enable MQTT broker"""

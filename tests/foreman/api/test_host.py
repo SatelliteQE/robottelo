@@ -10,14 +10,13 @@ http://theforeman.org/api/apidoc/v2/hosts.html
 
 :CaseComponent: Hosts
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 
 """
 
 import http
-import json
 
 from fauxfactory import gen_choice, gen_integer, gen_ipaddr, gen_mac, gen_string
 from nailgun import client
@@ -25,7 +24,10 @@ import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import get_credentials
-from robottelo.constants import DEFAULT_CV, DUMMY_BOOTC_FACTS, ENVIRONMENT
+from robottelo.constants import (
+    DEFAULT_CV,
+    ENVIRONMENT,
+)
 from robottelo.utils import datafactory
 
 
@@ -669,6 +671,8 @@ def test_positive_end_to_end_with_image(
 
     :expectedresults: A host is created with expected image, image is removed and
         host is updated with expected image
+
+    :BlockedBy: SAT-32733
     """
     host = module_target_sat.api.Host(
         organization=module_org,
@@ -1037,58 +1041,6 @@ def test_positive_read_enc_information(
         assert host_enc_parameters[param['name']] == param['value']
 
 
-@pytest.mark.e2e
-@pytest.mark.no_containers
-def test_positive_bootc_api_actions(target_sat, bootc_host, function_ak_with_cv, function_org):
-    """Register a bootc host and validate API information
-
-    :id: b94ab231-0dd8-4e47-a96b-972c5ee55f4d
-
-    :expectedresults: Upon registering a Bootc host, the API returns correct information across multiple endpoints
-
-    :CaseComponent:Hosts-Content
-
-    :Verifies:SAT-27168, SAT-27170, SAT-27173
-
-    :CaseImportance: Critical
-    """
-    bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
-    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
-    assert bootc_host.subscribed
-    # Testing bootc info from content_facet_attributes
-    bootc_host = target_sat.api.Host().search(query={'search': f'name={bootc_host.hostname}'})[0]
-    assert (
-        bootc_host.content_facet_attributes['bootc_booted_image']
-        == bootc_dummy_info['bootc.booted.image']
-    )
-    assert (
-        bootc_host.content_facet_attributes['bootc_booted_digest']
-        == bootc_dummy_info['bootc.booted.digest']
-    )
-    assert (
-        bootc_host.content_facet_attributes['bootc_rollback_image']
-        == bootc_dummy_info['bootc.rollback.image']
-    )
-    assert (
-        bootc_host.content_facet_attributes['bootc_rollback_digest']
-        == bootc_dummy_info['bootc.rollback.digest']
-    )
-    # Testing bootc info from hosts/bootc_images
-    bootc_image_info = target_sat.api.Host().get_bootc_images()['results'][0]
-    assert bootc_image_info['bootc_booted_image'] == bootc_dummy_info['bootc.booted.image']
-    assert (
-        bootc_image_info['digests'][0]['bootc_booted_digest']
-        == bootc_dummy_info['bootc.booted.digest']
-    )
-    assert bootc_image_info['digests'][0]['host_count'] > 0
-
-    # Testing bootc image is correctly included in the usage report
-    os = bootc_host.operatingsystem.read_json()
-    assert (
-        int(target_sat.get_reported_value(f'image_mode_hosts_by_os_count|{os["family"]}')) == 1
-    ), "host not included in usage report"
-
-
 @pytest.mark.stubbed
 def test_positive_add_future_subscription():
     """Attempt to add a future-dated subscription to a content host.
@@ -1140,104 +1092,6 @@ def test_negative_auto_attach_future_subscription():
 
 
 @pytest.mark.stubbed
-def test_positive_create_baremetal_with_bios():
-    """Create a new Host from provided MAC address
-
-    :id: 9d74ed70-3197-4825-bf96-21eeb4a765f9
-
-    :setup: Create a PXE-based VM with BIOS boot mode (outside of
-        Satellite).
-
-    :steps: Create a new host using 'BareMetal' option and MAC address of
-        the pre-created VM
-
-    :expectedresults: Host is created
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-def test_positive_create_baremetal_with_uefi():
-    """Create a new Host from provided MAC address
-
-    :id: 9b852c4d-a94f-4ba9-b666-ea4718320a42
-
-    :setup: Create a PXE-based VM with UEFI boot mode (outside of
-        Satellite).
-
-    :steps: Create a new host using 'BareMetal' option and MAC address of
-        the pre-created VM
-
-    :expectedresults: Host is created
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-def test_positive_verify_files_with_pxegrub_uefi():
-    """Provision a new Host and verify the tftp and dhcpd file
-    structure is correct
-
-    :id: 0c51c8ad-858c-44e1-8b14-8e0c52c29da1
-
-    :steps:
-
-        1. Associate a pxegrub-type provisioning template with the os
-        2. Create new host (can be fictive bare metal) with the above OS
-           and PXE loader set to Grub UEFI
-        3. Build the host
-
-    :expectedresults: Verify [/var/lib/tftpboot/] contains the following
-        dir/file structure:
-
-            grub/bootia32.efi
-            grtest_positive_verify_files_with_pxegrub_uefiub/bootx64.efi
-            grub/01-AA-BB-CC-DD-EE-FF
-            grub/efidefault
-            grub/shim.efi
-
-        And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-def test_positive_verify_files_with_pxegrub_uefi_secureboot():
-    """Provision a new Host and verify the tftp and dhcpd file structure is
-    correct
-
-    :id: ac4d535f-09bb-49db-b38b-90f9bad5fa19
-
-    :steps:
-
-        1. Associate a pxegrub-type provisioning template with the os
-        2. Create new host (can be fictive bare metal) with the above OS
-           and PXE loader set to Grub UEFI SecureBoot
-        3. Build the host
-
-    :expectedresults: Verify [/var/lib/tftpboot/] contains the following
-        dir/file structure:
-
-            grub/bootia32.efi
-            grub/bootx64.efi
-            grub/01-AA-BB-CC-DD-EE-FF
-            grub/efidefault
-            grub/shim.efi
-
-        And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
-
-    :CaseAutomation: NotAutomated
-
-    :CaseComponent: TFTP
-
-    :Team: Rocket
-    """
-
-
-@pytest.mark.stubbed
 def test_positive_verify_files_with_pxegrub2_uefi():
     """Provision a new UEFI Host and verify the tftp and dhcpd file
     structure is correct
@@ -1264,7 +1118,7 @@ def test_positive_verify_files_with_pxegrub2_uefi():
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: TFTP
+    :CaseComponent: Provisioning
 
     :Team: Rocket
     """
@@ -1297,7 +1151,7 @@ def test_positive_verify_files_with_pxegrub2_uefi_secureboot():
 
     :CaseAutomation: NotAutomated
 
-    :CaseComponent: TFTP
+    :CaseComponent: Provisioning
 
     :Team: Rocket
     """

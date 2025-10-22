@@ -10,6 +10,7 @@ updates:
     schedule:
       interval: "daily"
     labels:
+      - '6.18.z'
       - '6.17.z'
       - '6.16.z'
       - "CherryPick"
@@ -25,6 +26,7 @@ updates:
     schedule:
       interval: "daily"
     labels:
+      - '6.18.z'
       - '6.17.z'
       - '6.16.z'
       - "CherryPick"

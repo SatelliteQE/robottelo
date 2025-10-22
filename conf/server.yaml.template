@@ -32,6 +32,8 @@ SERVER:
   DEPLOY_WORKFLOWS:
     PRODUCT: deploy-satellite  # workflow to deploy OS with product running on top of it
     OS: deploy-rhel  # workflow to deploy OS that is ready to run the product
+    UNCONFIGURED: deploy-unconfigured-satellite # workflow to deploy unconfigured sat
+    IOP: deploy-satellite-iop # workflow to deploy Satellite with IoP enabled
   # Dictionary of arguments which should be passed along to the deploy workflow
   # DEPLOY_ARGUMENTS:
   #  deploy_network_type: '@format { this.server.network_type }'

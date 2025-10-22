@@ -165,8 +165,8 @@ class TestCannedRole:
         }
 
     @pytest.fixture
-    def filter_taxonomies(self, target_sat):
-        """Create filter taxonomies"""
+    def another_taxonomies(self, target_sat):
+        """Create another set of taxonomies"""
         return {
             'org': target_sat.api.Organization().create(),
             'loc': target_sat.api.Location().create(),
@@ -244,21 +244,19 @@ class TestCannedRole:
         assert not role.organization
         assert not role.location
 
-    def test_positive_create_filter_without_override(self, role_taxonomies, target_sat):
-        """Create filter in role w/o overriding it
+    def test_positive_create_filter(self, role_taxonomies, target_sat):
+        """Create filter in role
 
         :id: 1aadb7ea-ff76-4171-850f-188ba6f87021
 
         :steps:
 
             1. Create a role with taxonomies assigned
-            2. Create filter in role without overriding it
+            2. Create filter in role
 
         :expectedresults:
 
-            1. Filter w/o override is created in role
-            2. The taxonomies of role are inherited to filter
-            3. Override check is not marked by default in filters table
+            1. Filter is created in role
 
         :CaseImportance: Critical
         """
@@ -272,116 +270,15 @@ class TestCannedRole:
         dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
         filtr = target_sat.api.Filter(permission=dom_perm, role=role.id).create()
         assert role.id == filtr.role.id
-        assert role_taxonomies['org'].id == filtr.organization[0].id
-        assert role_taxonomies['loc'].id == filtr.location[0].id
-        assert not filtr.override
 
-    def test_positive_create_non_overridable_filter(self, target_sat):
-        """Create non overridable filter in role
-
-        :id: f891e2e1-76f8-4edf-8c96-b41d05483298
-
-        :steps: Create a filter to which taxonomies cannot be associated.
-            e.g. Architecture filter
-
-        :expectedresults:
-
-            1. Filter is created without taxonomies
-            2. Override check is set to false
-
-        :CaseImportance: Critical
-        """
-        role_name = gen_string('alpha')
-        role = target_sat.api.Role(name=role_name).create()
-        assert role.name == role_name
-        arch_perm = target_sat.api.Permission().search(
-            query={'search': 'resource_type="Architecture"'}
-        )
-        filtr = target_sat.api.Filter(permission=arch_perm, role=role.id).create()
-        assert role.id == filtr.role.id
-        assert not filtr.override
-
-    def test_negative_override_non_overridable_filter(self, filter_taxonomies, target_sat):
-        """Override non overridable filter
-
-        :id: 7793be96-e8eb-451b-a986-51a46a1ab4f9
-
-        :steps: Attempt to override a filter to which taxonomies cannot be
-            associated.  e.g. Architecture filter
-
-        :expectedresults: Filter is not overridden as taxonomies cannot be
-            applied to that filter
-
-        :CaseImportance: Critical
-        """
-        role_name = gen_string('alpha')
-        role = target_sat.api.Role(name=role_name).create()
-        assert role.name == role_name
-        arch_perm = target_sat.api.Permission().search(
-            query={'search': 'resource_type="Architecture"'}
-        )
-        with pytest.raises(HTTPError):
-            target_sat.api.Filter(
-                permission=arch_perm,
-                role=[role.id],
-                override=True,
-                organization=[filter_taxonomies['org']],
-                location=[filter_taxonomies['loc']],
-            ).create()
-
-    @pytest.mark.upgrade
-    def test_positive_create_overridable_filter(
-        self, role_taxonomies, filter_taxonomies, target_sat
-    ):
-        """Create overridable filter in role
-
-        :id: c7ea9377-9b9e-495e-accd-3576166d504e
-
-        :steps:
-
-            1. Create a filter to which taxonomies can be associated.
-                e.g Domain filter
-            2. Override a filter with some taxonomies
-
-        :expectedresults:
-
-            1. Filter is created with taxonomies
-            2. Override check is set to true
-            3. Filter doesn't inherits taxonomies from role
-
-        :CaseImportance: Critical
-        """
-        role_name = gen_string('alpha')
-        role = target_sat.api.Role(
-            name=role_name,
-            organization=[role_taxonomies['org']],
-            location=[role_taxonomies['loc']],
-        ).create()
-        assert role.name == role_name
-        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
-        filtr = target_sat.api.Filter(
-            permission=dom_perm,
-            role=role.id,
-            override=True,
-            organization=[filter_taxonomies['org']],
-            location=[filter_taxonomies['loc']],
-        ).create()
-        assert role.id == filtr.role.id
-        assert filter_taxonomies['org'].id == filtr.organization[0].id
-        assert filter_taxonomies['loc'].id == filtr.location[0].id
-        assert filtr.override
-        assert role_taxonomies['org'].id != filtr.organization[0].id
-        assert role_taxonomies['loc'].id != filtr.location[0].id
-
-    def test_positive_update_role_taxonomies(self, role_taxonomies, filter_taxonomies, target_sat):
-        """Update role taxonomies which applies to its non-overrided filters
+    def test_positive_update_role_taxonomies(self, role_taxonomies, another_taxonomies, target_sat):
+        """Update role taxonomies which applies to its filters
 
         :id: 902dcb32-2126-4ff4-b733-3e86749ccd1e
 
         :steps: Update existing role with different taxonomies
 
-        :expectedresults: The taxonomies are applied only to non-overrided role
-            filters
+        :expectedresults: The taxonomies are applied only to role filters
 
         :CaseImportance: Critical
         """
@@ -395,103 +292,13 @@ class TestCannedRole:
         dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
         filtr = target_sat.api.Filter(permission=dom_perm, role=role.id).create()
         assert role.id == filtr.role.id
-        role.organization = [filter_taxonomies['org']]
-        role.location = [filter_taxonomies['loc']]
+        role.organization = [another_taxonomies['org']]
+        role.location = [another_taxonomies['loc']]
         role = role.update(['organization', 'location'])
         # Updated Role
         role = target_sat.api.Role(id=role.id).read()
-        assert filter_taxonomies['org'].id == role.organization[0].id
-        assert filter_taxonomies['loc'].id == role.location[0].id
-        # Updated Filter
-        filtr = target_sat.api.Filter(id=filtr.id).read()
-        assert filter_taxonomies['org'].id == filtr.organization[0].id
-        assert filter_taxonomies['loc'].id == filtr.location[0].id
-
-    def test_negative_update_role_taxonomies(self, role_taxonomies, filter_taxonomies, target_sat):
-        """Update role taxonomies which doesn't apply to its overridden filters
-
-        :id: 9f3bf95a-f71a-4063-b51c-12610bc655f2
-
-        :steps:
-
-            1. Update existing role with different taxonomies
-
-        :expectedresults: The overridden role filters are not updated
-
-        :CaseImportance: Critical
-        """
-        role_name = gen_string('alpha')
-        role = target_sat.api.Role(
-            name=role_name,
-            organization=[role_taxonomies['org']],
-            location=[role_taxonomies['loc']],
-        ).create()
-        assert role.name == role_name
-        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
-        filtr = target_sat.api.Filter(
-            permission=dom_perm,
-            role=role.id,
-            override=True,
-            organization=[filter_taxonomies['org']],
-            location=[filter_taxonomies['loc']],
-        ).create()
-        assert role.id == filtr.role.id
-        # Creating new Taxonomies
-        org_new = target_sat.api.Organization().create()
-        loc_new = target_sat.api.Location().create()
-        # Updating Taxonomies
-        role.organization = [org_new]
-        role.location = [loc_new]
-        role = role.update(['organization', 'location'])
-        # Updated Role
-        role = target_sat.api.Role(id=role.id).read()
-        assert org_new.id == role.organization[0].id
-        assert loc_new.id == role.location[0].id
-        # Updated Filter
-        filtr = target_sat.api.Filter(id=filtr.id).read()
-        assert org_new.id != filtr.organization[0].id
-        assert loc_new.id != filtr.location[0].id
-
-    def test_positive_disable_filter_override(self, role_taxonomies, filter_taxonomies, target_sat):
-        """Unsetting override flag resets filter taxonomies
-
-        :id: eaa7b921-7c12-45c5-989b-d82aa2b6e3a6
-
-        :steps:
-
-            1. Create role with organization A and Location A
-            2. Create an overridden filter in role with organization B
-                and Location B
-            3. Set above filter override flag to False in role
-            4. Get above role filters
-
-        :expectedresults: The taxonomies of filters resets/synced to role
-            taxonomies
-
-        :CaseImportance: Critical
-        """
-        role_name = gen_string('alpha')
-        role = target_sat.api.Role(
-            name=role_name,
-            organization=[role_taxonomies['org']],
-            location=[role_taxonomies['loc']],
-        ).create()
-        assert role.name == role_name
-        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
-        filtr = target_sat.api.Filter(
-            permission=dom_perm,
-            role=role.id,
-            override=True,
-            organization=[filter_taxonomies['org']],
-            location=[filter_taxonomies['loc']],
-        ).create()
-        assert role.id == filtr.role.id
-        # Un-overriding
-        filtr.override = False
-        filtr = filtr.update(['override'])
-        assert not filtr.override
-        assert filter_taxonomies['org'].id != filtr.organization[0].id
-        assert filter_taxonomies['loc'].id != filtr.location[0].id
+        assert another_taxonomies['org'].id == role.organization[0].id
+        assert another_taxonomies['loc'].id == role.location[0].id
 
     def test_positive_create_org_admin_from_clone(self, target_sat):
         """Create Org Admin role which has access to most of the resources
@@ -541,7 +348,7 @@ class TestCannedRole:
         assert role_taxonomies['loc'].id == org_admin.location[0].id
 
     def test_negative_access_entities_from_org_admin(
-        self, role_taxonomies, filter_taxonomies, target_sat
+        self, role_taxonomies, another_taxonomies, target_sat
     ):
         """User can not access resources in taxonomies assigned to role if
         its own taxonomies are not same as its role
@@ -561,7 +368,7 @@ class TestCannedRole:
 
         """
         user = self.create_org_admin_user(
-            target_sat, role_taxos=role_taxonomies, user_taxos=filter_taxonomies
+            target_sat, role_taxos=role_taxonomies, user_taxos=another_taxonomies
         )
         domain = self.create_domain(
             target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
@@ -572,7 +379,7 @@ class TestCannedRole:
             target_sat.api.Domain(server_config=sc, id=domain.id).read()
 
     def test_negative_access_entities_from_user(
-        self, role_taxonomies, filter_taxonomies, target_sat
+        self, role_taxonomies, another_taxonomies, target_sat
     ):
         """User can not access resources within its own taxonomies if assigned
         role does not have permissions for user taxonomies
@@ -592,329 +399,15 @@ class TestCannedRole:
 
         """
         user = self.create_org_admin_user(
-            target_sat, role_taxos=role_taxonomies, user_taxos=filter_taxonomies
+            target_sat, role_taxos=role_taxonomies, user_taxos=another_taxonomies
         )
         domain = self.create_domain(
-            target_sat, orgs=[filter_taxonomies['org'].id], locs=[filter_taxonomies['loc'].id]
+            target_sat, orgs=[another_taxonomies['org'].id], locs=[another_taxonomies['loc'].id]
         )
         sc = self.user_config(user, target_sat)
         # Getting the domain from user
         with pytest.raises(HTTPError):
             target_sat.api.Domain(server_config=sc, id=domain.id).read()
-
-    def test_positive_override_cloned_role_filter(self, role_taxonomies, target_sat):
-        """Cloned role filter overrides
-
-        :id: 8a32ed5f-b93f-4f31-aff4-16602fbe7fab
-
-        :steps:
-
-            1. Create a role with overridden filter
-            2. Clone above role
-            3. Attempt to override the filter in cloned role
-
-        :expectedresults: Filter in cloned role should be overridden
-
-        """
-        role_name = gen_string('alpha')
-        role = target_sat.api.Role(name=role_name).create()
-        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
-        target_sat.api.Filter(permission=dom_perm, role=role.id).create()
-        cloned_role_name = gen_string('alpha')
-        cloned_role = target_sat.api.Role(id=role.id).clone(data={'name': cloned_role_name})
-        assert cloned_role_name == cloned_role['name']
-        filter_cloned_id = target_sat.api.Role(id=cloned_role['id']).read().filters[0].id
-        filter_cloned = target_sat.api.Filter(id=filter_cloned_id).read()
-        filter_cloned.override = True
-        filter_cloned.organization = [role_taxonomies['org']]
-        filter_cloned.location = [role_taxonomies['loc']]
-        filter_cloned.update(['override', 'organization', 'location'])
-        # Updated Filter
-        filter_cloned = target_sat.api.Filter(id=filter_cloned_id).read()
-        assert filter_cloned.override
-        assert role_taxonomies['org'].id == filter_cloned.organization[0].id
-        assert role_taxonomies['loc'].id == filter_cloned.location[0].id
-
-    def test_positive_emptiness_of_filter_taxonomies_on_role_clone(
-        self, role_taxonomies, filter_taxonomies, target_sat
-    ):
-        """Taxonomies of filters in cloned role are set to None for filters that
-        are overridden in parent role
-
-        :id: 4bfc44db-9089-4ce8-9fd8-8eab1a7cbd33
-
-        :steps:
-
-            1. Create a role with an overridden filter
-            2. Overridden filter should have taxonomies assigned
-            3. Clone above role
-            4. GET cloned role filters
-
-        :expectedresults:
-
-            1. Taxonomies of the 'parent roles overridden filter' are set to
-                None in cloned role
-            2. Override flag is set to True in cloned role filter
-
-        """
-        role = target_sat.api.Role(
-            name=gen_string('alpha'),
-            organization=[role_taxonomies['org']],
-            location=[role_taxonomies['loc']],
-        ).create()
-        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
-        target_sat.api.Filter(
-            permission=dom_perm,
-            role=role.id,
-            override=True,
-            organization=[filter_taxonomies['org']],
-            location=[filter_taxonomies['loc']],
-        ).create()
-        cloned_role = target_sat.api.Role(id=role.id).clone(data={'name': gen_string('alpha')})
-        cloned_role_filter = target_sat.api.Role(id=cloned_role['id']).read().filters[0]
-        filter_cloned = target_sat.api.Filter(id=cloned_role_filter.id).read()
-        assert not filter_cloned.organization
-        assert not filter_cloned.location
-        assert filter_cloned.override
-
-    def test_positive_clone_role_having_overridden_filter_with_taxonomies(
-        self, role_taxonomies, filter_taxonomies, target_sat
-    ):
-        """When taxonomies assigned to cloned role, Unlimited and Override flag
-        sets on filter for filter that is overridden in parent role
-
-        :id: 233a4489-d327-4fa0-8a8a-b3a0905b9c12
-
-        :steps:
-
-            1. Create a role with organization A and Location A
-            2. Create overridden role filter in organization B
-                and Location B
-            3. Clone above role and assign Organization A and Location A
-                while cloning
-            4. GET cloned role filter
-
-        :expectedresults: Unlimited and Override flags should be set to True on
-            filter for filter that is overridden in parent role
-
-        """
-        role = target_sat.api.Role(
-            name=gen_string('alpha'),
-            organization=[role_taxonomies['org']],
-            location=[role_taxonomies['loc']],
-        ).create()
-        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
-        target_sat.api.Filter(
-            permission=dom_perm,
-            role=role.id,
-            override=True,
-            organization=[filter_taxonomies['org']],
-            location=[filter_taxonomies['loc']],
-        ).create()
-        cloned_role = target_sat.api.Role(id=role.id).clone(
-            data={
-                'name': gen_string('alpha'),
-                'organization_ids': [role_taxonomies['org'].id],
-                'location_ids': [role_taxonomies['loc'].id],
-            }
-        )
-        cloned_role_filter = target_sat.api.Role(id=cloned_role['id']).read().filters[0]
-        cloned_filter = target_sat.api.Filter(id=cloned_role_filter.id).read()
-        assert cloned_filter.unlimited
-        assert cloned_filter.override
-
-    def test_positive_clone_role_having_non_overridden_filter_with_taxonomies(
-        self, role_taxonomies, target_sat
-    ):
-        """When taxonomies assigned to cloned role, Neither unlimited nor
-        override sets on filter for filter that is not overridden in parent
-        role
-
-        :id: abc8d419-0c1a-4043-b739-833714663127
-
-        :steps:
-
-            1. Create a role with organization A and Location A
-            2. Create role filter without overriding
-            3. Clone above role and assign Organization A and Location A
-                while cloning
-            4. GET cloned role filter
-
-        :expectedresults: Both unlimited and override flag should be set to
-            False on filter for filter that is not overridden in parent role
-
-        """
-        role = target_sat.api.Role(
-            name=gen_string('alpha'),
-            organization=[role_taxonomies['org']],
-            location=[role_taxonomies['loc']],
-        ).create()
-        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
-        target_sat.api.Filter(permission=dom_perm, role=role.id).create()
-        cloned_role = target_sat.api.Role(id=role.id).clone(
-            data={
-                'name': gen_string('alpha'),
-                'organization_ids': [role_taxonomies['org'].id],
-                'location_ids': [role_taxonomies['loc'].id],
-            }
-        )
-        cloned_role_filter = target_sat.api.Role(id=cloned_role['id']).read().filters[0]
-        cloned_filter = target_sat.api.Filter(id=cloned_role_filter.id).read()
-        assert not cloned_filter.unlimited
-        assert not cloned_filter.override
-
-    def test_positive_clone_role_having_unlimited_filter_with_taxonomies(
-        self, role_taxonomies, target_sat
-    ):
-        """When taxonomies assigned to cloned role, Neither unlimited nor
-        override sets on filter for filter that is unlimited in parent role
-
-        :id: 7cb99401-9af2-40b8-9300-0a6333f8aaa0
-
-        :steps:
-
-            1. Create a role with organization A and Location A
-            2. Create role filter with unlimited check
-            3. Clone above role and assign Organization A and Location A
-                while cloning
-            4. GET cloned role filter
-
-        :expectedresults: Both unlimited and override flags should be set to
-            False on filter for filter that is unlimited in parent role
-
-        """
-        role = target_sat.api.Role(
-            name=gen_string('alpha'),
-            organization=[role_taxonomies['org']],
-            location=[role_taxonomies['loc']],
-        ).create()
-        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
-        target_sat.api.Filter(permission=dom_perm, role=role.id, unlimited=True).create()
-        cloned_role = target_sat.api.Role(id=role.id).clone(
-            data={
-                'name': gen_string('alpha'),
-                'organization_ids': [role_taxonomies['org'].id],
-                'location_ids': [role_taxonomies['loc'].id],
-            }
-        )
-        cloned_role_filter = target_sat.api.Role(id=cloned_role['id']).read().filters[0]
-        cloned_filter = target_sat.api.Filter(id=cloned_role_filter.id).read()
-        assert not cloned_filter.unlimited
-        assert not cloned_filter.override
-
-    def test_positive_clone_role_having_overridden_filter_without_taxonomies(
-        self, role_taxonomies, filter_taxonomies, target_sat
-    ):  # noqa
-        """When taxonomies not assigned to cloned role, Unlimited and override
-        flags sets on filter for filter that is overridden in parent role
-
-        :id: 1af58f93-46f8-411a-8468-43abc34ef966
-
-        :steps:
-
-            1. Create a role with organization A and Location A
-            2. Create overridden role filter in organization B
-                and Location B
-            3. Clone above role without assigning taxonomies
-            4. GET cloned role filter
-
-        :expectedresults: Both unlimited and Override flags should be set to
-            True on filter for filter that is overridden in parent role
-
-        """
-        role = target_sat.api.Role(
-            name=gen_string('alpha'),
-            organization=[role_taxonomies['org']],
-            location=[role_taxonomies['loc']],
-        ).create()
-        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
-        target_sat.api.Filter(
-            permission=dom_perm,
-            role=role.id,
-            override=True,
-            organization=[filter_taxonomies['org']],
-            location=[filter_taxonomies['loc']],
-        ).create()
-        cloned_role = target_sat.api.Role(id=role.id).clone(data={'name': gen_string('alpha')})
-        cloned_role_filter = target_sat.api.Role(id=cloned_role['id']).read().filters[0]
-        cloned_filter = target_sat.api.Filter(id=cloned_role_filter.id).read()
-        assert cloned_filter.unlimited
-        assert cloned_filter.override
-
-    def test_positive_clone_role_without_taxonomies_non_overided_filter(
-        self, role_taxonomies, target_sat
-    ):
-        """When taxonomies not assigned to cloned role, only unlimited but not
-        override flag sets on filter for filter that is overridden in parent
-        role
-
-        :id: 85eea70a-482a-487c-affa-dec3891a1388
-
-        :steps:
-
-            1. Create a role with organization A and Location A
-            2. Create role filter without overriding
-            3. Clone above role without assigning taxonomies
-            4. GET cloned role filter
-
-        :expectedresults:
-
-            1. Unlimited flag should be set to True
-            2. Override flag should be set to False
-
-        :BZ: 1488908
-        """
-        role = target_sat.api.Role(
-            name=gen_string('alpha'),
-            organization=[role_taxonomies['org']],
-            location=[role_taxonomies['loc']],
-        ).create()
-        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
-        target_sat.api.Filter(permission=dom_perm, role=role.id).create()
-        cloned_role = target_sat.api.Role(id=role.id).clone(
-            data={'role': {'name': gen_string('alpha'), 'location_ids': [], 'organization_ids': []}}
-        )
-        cloned_role_filter = target_sat.api.Role(id=cloned_role['id']).read().filters[0]
-        cloned_filter = target_sat.api.Filter(id=cloned_role_filter.id).read()
-        assert cloned_filter.unlimited
-        assert not cloned_filter.override
-
-    def test_positive_clone_role_without_taxonomies_unlimited_filter(
-        self, role_taxonomies, target_sat
-    ):
-        """When taxonomies not assigned to cloned role, Unlimited and override
-        flags sets on filter for filter that is unlimited in parent role
-
-        :id: 8ffc7b34-1a25-4663-b3c8-0bbf5fcb61aa
-
-        :steps:
-
-            1. Create a role with organization A and Location A
-            2. Create role filter with unlimited check
-            3. Clone above role without assigning taxonomies
-            4. GET cloned role filter
-
-        :expectedresults:
-
-            1. Unlimited flag should be set to True
-            2. Override flag should be set to False
-
-        :BZ: 1488908
-        """
-        role = target_sat.api.Role(
-            name=gen_string('alpha'),
-            organization=[role_taxonomies['org']],
-            location=[role_taxonomies['loc']],
-        ).create()
-        dom_perm = target_sat.api.Permission().search(query={'search': 'resource_type="Domain"'})
-        target_sat.api.Filter(permission=dom_perm, role=role.id, unlimited=True).create()
-        cloned_role = target_sat.api.Role(id=role.id).clone(
-            data={'role': {'name': gen_string('alpha'), 'location_ids': [], 'organization_ids': []}}
-        )
-        cloned_role_filter = target_sat.api.Role(id=cloned_role['id']).read().filters[0]
-        cloned_filter = target_sat.api.Filter(id=cloned_role_filter.id).read()
-        assert cloned_filter.unlimited
-        assert not cloned_filter.override
 
     @pytest.mark.upgrade
     def test_positive_user_group_users_access_as_org_admin(self, role_taxonomies, target_sat):
@@ -1021,7 +514,7 @@ class TestCannedRole:
         """
 
     def test_negative_assign_org_admin_to_user_group(
-        self, role_taxonomies, filter_taxonomies, target_sat
+        self, role_taxonomies, another_taxonomies, target_sat
     ):
         """Users in usergroup can not have access to the resources in
         taxonomies if the taxonomies of Org Admin role is not same
@@ -1043,8 +536,8 @@ class TestCannedRole:
         org_admin = self.create_org_admin_role(
             target_sat, orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
         )
-        user_one = self.create_simple_user(target_sat, filter_taxos=filter_taxonomies)
-        user_two = self.create_simple_user(target_sat, filter_taxos=filter_taxonomies)
+        user_one = self.create_simple_user(target_sat, filter_taxos=another_taxonomies)
+        user_two = self.create_simple_user(target_sat, filter_taxos=another_taxonomies)
         ug_name = gen_string('alpha')
         user_group = target_sat.api.UserGroup(
             name=ug_name, role=[org_admin.id], user=[user_one.id, user_two.id]
@@ -1059,7 +552,7 @@ class TestCannedRole:
                 target_sat.api.Domain(server_config=sc, id=dom.id).read()
 
     def test_negative_assign_taxonomies_by_org_admin(
-        self, role_taxonomies, filter_taxonomies, target_sat
+        self, role_taxonomies, another_taxonomies, target_sat
     ):
         """Org Admin doesn't have permissions to assign org to any of
         its entities
@@ -1106,7 +599,7 @@ class TestCannedRole:
         )
         # Getting the domain from user1
         dom = target_sat.api.Domain(server_config=sc, id=dom.id).read()
-        dom.organization = [filter_taxonomies['org']]
+        dom.organization = [another_taxonomies['org']]
         with pytest.raises(HTTPError):
             dom.update(['organization'])
 
@@ -1418,7 +911,7 @@ class TestCannedRole:
             pytest.fail(str(err))
 
     def test_negative_access_users_outside_org_admin_taxonomies(
-        self, role_taxonomies, filter_taxonomies, target_sat
+        self, role_taxonomies, another_taxonomies, target_sat
     ):
         """Org Admin can not access users outside its taxonomies
 
@@ -1441,7 +934,7 @@ class TestCannedRole:
         user = self.create_org_admin_user(
             target_sat, role_taxos=role_taxonomies, user_taxos=role_taxonomies
         )
-        test_user = self.create_simple_user(target_sat, filter_taxos=filter_taxonomies)
+        test_user = self.create_simple_user(target_sat, filter_taxos=another_taxonomies)
         sc = self.user_config(user, target_sat)
         with pytest.raises(HTTPError):
             target_sat.api.User(server_config=sc, id=test_user.id).read()
@@ -1490,7 +983,7 @@ class TestCannedRole:
 
     @pytest.mark.upgrade
     def test_positive_access_all_global_entities_by_org_admin(
-        self, role_taxonomies, filter_taxonomies, target_sat
+        self, role_taxonomies, another_taxonomies, target_sat
     ):
         """Org Admin can access all global target_sat.api in any taxonomies
         regardless of its own assigned taxonomies
@@ -1516,8 +1009,8 @@ class TestCannedRole:
             login=user_login,
             password=user_pass,
             role=[org_admin.id],
-            organization=[role_taxonomies['org'], filter_taxonomies['org']],
-            location=[role_taxonomies['loc'], filter_taxonomies['loc']],
+            organization=[role_taxonomies['org'], another_taxonomies['org']],
+            location=[role_taxonomies['loc'], another_taxonomies['loc']],
         ).create()
         assert user_login == user.login
         sc = ServerConfig(

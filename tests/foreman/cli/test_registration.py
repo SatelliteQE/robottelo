@@ -8,7 +8,7 @@
 
 :CaseImportance: Critical
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 """
 
@@ -28,6 +28,11 @@ from robottelo.utils.issue_handlers import is_open
 
 @pytest.mark.e2e
 @pytest.mark.no_containers
+@pytest.mark.parametrize(
+    'setting_update',
+    ['validate_host_lce_content_source_coherence=false'],
+    indirect=True,
+)
 def test_host_registration_end_to_end(
     module_sca_manifest_org,
     module_location,
@@ -35,6 +40,7 @@ def test_host_registration_end_to_end(
     module_target_sat,
     module_capsule_configured,
     rhel_contenthost,
+    setting_update,
 ):
     """Verify content host registration with global registration
 
@@ -54,9 +60,8 @@ def test_host_registration_end_to_end(
     result = rhel_contenthost.register(
         org, module_location, module_activation_key.name, module_target_sat
     )
-
-    rc = 1 if rhel_contenthost.os_version.major == 6 else 0
-    assert result.status == rc, f'Failed to register host: {result.stderr}'
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    assert rhel_contenthost.subscribed, 'Host is not subscribed after registration!'
 
     owner_name = module_target_sat.cli.Host.info(
         options={'name': rhel_contenthost.hostname, 'fields': 'Additional info/owner'}
@@ -85,8 +90,8 @@ def test_host_registration_end_to_end(
         module_capsule_configured,
         force=True,
     )
-    rc = 1 if rhel_contenthost.os_version.major == 6 else 0
-    assert result.status == rc, f'Failed to register host: {result.stderr}'
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    assert rhel_contenthost.subscribed, 'Host is not subscribed after registration!'
 
     owner_name = module_target_sat.cli.Host.info(
         options={'name': rhel_contenthost.hostname, 'fields': 'Additional info/owner'}
@@ -433,7 +438,7 @@ def test_positive_verify_default_location_for_registered_host(
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_invalidate_users_tokens(
-    module_target_sat, rhel_contenthost, module_activation_key, module_org, request
+    target_sat, rhel_contenthost, function_activation_key, function_org, request
 ):
     """Verify invalidating single and multiple users tokens.
 
@@ -453,45 +458,46 @@ def test_positive_invalidate_users_tokens(
     :Verifies: SAT-30385
     """
     password = settings.server.admin_password
-    admin_user = module_target_sat.api.User().search(
+    admin_user = target_sat.api.User().search(
         query={'search': f'login={settings.server.admin_username}'}
     )[0]
 
     # Non-Admin user with "edit_users" permission and "Register hosts" role
-    non_admin_user = module_target_sat.api.User(
-        login=gen_string('alpha'), password=password, organization=[module_org]
+    non_admin_user = target_sat.api.User(
+        login=gen_string('alpha'),
+        password=password,
+        organization=[function_org],
     ).create()
-    role = module_target_sat.cli_factory.make_role({'organization-id': module_org.id})
-    module_target_sat.cli_factory.add_role_permissions(
+    role = target_sat.cli_factory.make_role({'organization-id': function_org.id})
+    target_sat.cli_factory.add_role_permissions(
         role.id,
         resource_permissions={'User': {'permissions': ['edit_users']}},
     )
-    module_target_sat.cli.User.add_role({'id': non_admin_user.id, 'role-id': role.id})
-    module_target_sat.cli.User.add_role({'id': non_admin_user.id, 'role': 'Register hosts'})
+    target_sat.cli.User.add_role({'id': non_admin_user.id, 'role-id': role.id})
+    target_sat.cli.User.add_role({'id': non_admin_user.id, 'role': 'Register hosts'})
 
     # delete the host and the user
     @request.addfinalizer
     def _finalize():
-        wait_for(lambda: module_target_sat.cli.Host.delete({'name': rhel_contenthost.hostname}))
-        module_target_sat.cli.User.delete({'login': non_admin_user.login})
+        wait_for(lambda: target_sat.cli.Host.delete({'name': rhel_contenthost.hostname}))
+        target_sat.cli.User.delete({'login': non_admin_user.login})
 
     # Generate token and verify token invalidation
     for usertype in (admin_user, non_admin_user):
         user = admin_user if usertype.admin else non_admin_user
-        cmd = module_target_sat.cli.HostRegistration.with_user(
-            user.login, password
-        ).generate_command(
+        cmd = target_sat.cli.HostRegistration.with_user(user.login, password).generate_command(
             options={
-                'activation-keys': module_activation_key.name,
+                'activation-keys': function_activation_key.name,
                 'insecure': 'true',
-                'organization-id': module_org.id,
+                'organization-id': function_org.id,
+                'setup-insights': 'false',
             }
         )
         result = rhel_contenthost.execute(cmd.strip('\n'))
         assert result.status == 0, f'Failed to register host: {result.stderr}'
 
         # Invalidate JWTs for a single user
-        result = module_target_sat.cli.User.with_user(user.login, password).invalidate(
+        result = target_sat.cli.User.with_user(user.login, password).invalidate(
             options={
                 'user-id': user.id,
             }
@@ -505,7 +511,7 @@ def test_positive_invalidate_users_tokens(
         assert 'ERROR: unauthorized' in result.stdout
 
         # Invalidate JWTs for multiple users
-        result = module_target_sat.cli.User.with_user(user.login, password).invalidate_multiple(
+        result = target_sat.cli.User.with_user(user.login, password).invalidate_multiple(
             options={'search': f"id ^ ({admin_user.id}, {non_admin_user.id})"}
         )
         assert 'Successfully invalidated registration tokens' in result
@@ -513,7 +519,7 @@ def test_positive_invalidate_users_tokens(
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_negative_users_permission_for_invalidating_tokens(
-    module_target_sat, rhel_contenthost, module_activation_key, module_org
+    target_sat, rhel_contenthost, function_activation_key, function_org
 ):
     """Verify invalidating single and multiple users tokens require "edit_users" permission for non_admin user.
 
@@ -530,28 +536,29 @@ def test_negative_users_permission_for_invalidating_tokens(
     :Verifies: SAT-30385
     """
     password = settings.server.admin_password
-    admin_user = module_target_sat.api.User().search(
+    admin_user = target_sat.api.User().search(
         query={'search': f'login={settings.server.admin_username}'}
     )[0]
 
     # Non-Admin user with "Register hosts" role
-    non_admin_user = module_target_sat.cli_factory.user(
+    non_admin_user = target_sat.cli_factory.user(
         {
             'login': gen_string('alpha'),
             'password': password,
-            'organization-ids': module_org.id,
+            'organization-ids': function_org.id,
             'roles': ['Register hosts'],
         }
     )
 
     # Generate token and verify token invalidation
-    cmd = module_target_sat.cli.HostRegistration.with_user(
+    cmd = target_sat.cli.HostRegistration.with_user(
         non_admin_user.login, password
     ).generate_command(
         options={
-            'activation-keys': module_activation_key.name,
+            'activation-keys': function_activation_key.name,
             'insecure': 'true',
-            'organization-id': module_org.id,
+            'organization-id': function_org.id,
+            'setup-insights': 'false',
         }
     )
     result = rhel_contenthost.execute(cmd.strip('\n'))
@@ -559,7 +566,7 @@ def test_negative_users_permission_for_invalidating_tokens(
 
     # Try invalidating JWTs for a single user
     with pytest.raises(CLIReturnCodeError) as context:
-        module_target_sat.cli.User.with_user(non_admin_user.login, password).invalidate(
+        target_sat.cli.User.with_user(non_admin_user.login, password).invalidate(
             options={
                 'user-id': admin_user.id,
             }
@@ -568,7 +575,70 @@ def test_negative_users_permission_for_invalidating_tokens(
 
     # Try invalidating JWTs  for multiple users
     with pytest.raises(CLIReturnCodeError) as context:
-        module_target_sat.cli.User.with_user(non_admin_user.login, password).invalidate_multiple(
+        target_sat.cli.User.with_user(non_admin_user.login, password).invalidate_multiple(
             options={'search': f"id ^ ({admin_user.id}, {non_admin_user.id})"}
         )
     assert "Missing one of the required permissions: edit_users" in str(context.value)
+
+
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_negative_register_host_when_sat_has_port_80_blocked(
+    target_sat,
+    rhel_contenthost,
+    function_org,
+    function_location,
+    function_activation_key,
+):
+    """
+    Verify host registration fails when there is port 80 blocked on Satellite.
+
+    :id: 3c3e1a8e-7b4c-4d5e-9a6d-8f2e1b3c4d5e
+
+    :steps:
+        1. Block port 80 on Satellite
+        2. Generate and execute registration command
+        3. Verify registration fails with non-zero exit code
+        4. Unblock port 80
+        5. Re-register host and verify it succeeds
+
+    :expectedresults:
+        1. Registration fails with non-zero exit code when port 80 is blocked
+        2. Registration succeeds after port 80 is unblocked
+
+    :Verifies: SAT-34258
+
+    :customerscenario: true
+    """
+
+    # Block port 80 on Satellite
+    target_sat.execute('nft add table inet filter')
+    target_sat.execute(
+        r'nft add chain inet filter input { type filter hook input priority 0 \; policy accept \; }'
+    )
+    target_sat.execute('nft add rule inet filter input tcp dport 80 drop')
+
+    try:
+        # Attempt to register with port 80 blocked
+        result = rhel_contenthost.register(
+            function_org, function_location, function_activation_key.name, target_sat
+        )
+
+        # Registration should fail with non-zero exit code
+        assert result.status != 0, (
+            f'Registration should have failed when port 80 is blocked, but got status {result.status}.',
+            f'\n STDOUT: {result.stdout} \n STDERR: {result.stderr}',
+        )
+
+    finally:  # Unblock port 80
+        rule_handle_res = target_sat.execute(
+            'nft -a list chain inet filter input | grep "tcp dport 80 drop # handle"'
+        )
+        handle = rule_handle_res.stdout.split()[-1]
+        target_sat.execute(f'nft delete rule inet filter input handle {handle}')
+
+    # Now registration should succeed
+    result = rhel_contenthost.register(
+        function_org, function_location, function_activation_key.name, target_sat, force=True
+    )
+
+    assert result.status == 0, f'Failed to register host after unblocking port 80: {result.stderr}'

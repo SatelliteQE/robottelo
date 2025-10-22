@@ -23,7 +23,7 @@ jobs:
     steps:
       - id: find-prt-comment
         name: Find the prt comment
-        uses: peter-evans/find-comment@v3
+        uses: peter-evans/find-comment@v4
         with:
           issue-number: ${{ github.event.number }}
           body-includes: "trigger: test-robottelo"
@@ -40,7 +40,7 @@ jobs:
 
       - name: Wait for other status checks to Pass
         id: waitforstatuschecks
-        uses: lewagon/wait-on-check-action@v1.4.0
+        uses: lewagon/wait-on-check-action@v1.4.1
         with:
           ref: ${{ github.head_ref }}
           repo-token: ${{ secrets.CHERRYPICK_PAT }}

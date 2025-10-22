@@ -6,13 +6,12 @@
 
 :CaseComponent: Hosts
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 
 """
 
-import json
 from random import choice
 import re
 
@@ -23,18 +22,14 @@ import yaml
 
 from robottelo.config import settings
 from robottelo.constants import (
-    DEFAULT_SUBSCRIPTION_NAME,
-    DUMMY_BOOTC_FACTS,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_7_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE_NAME,
-    PRDS,
-    REPOS,
-    REPOSET,
 )
+from robottelo.enums import NetworkType
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.logging import logger
 from robottelo.utils.datafactory import (
@@ -881,8 +876,6 @@ def test_negative_create_with_incompatible_pxe_loader():
 
          a RHEL5,6 - GRUB2_UEFI
          b RHEL5,6 - GRUB2_UEFI_SB
-         c RHEL7 - GRUB_UEFI
-         d RHEL7 - GRUB_UEFI_SB
 
     :expectedresults:
       1. Warning message appears
@@ -1344,7 +1337,7 @@ def test_positive_provision_baremetal_with_bios_syslinux():
 
     :steps:
       1. create a new RHEL host using 'BareMetal' option,
-         PXEGRUB loader and MAC address of the pre-created VM
+         PXEGRUB2 loader and MAC address of the pre-created VM
       2. do the provisioning assertions (assertion steps #1-6)
       3. reboot the host
 
@@ -1395,44 +1388,6 @@ def test_positive_provision_baremetal_with_uefi_syslinux():
       5. Host info command states 'built' in the status
       6. GRUB config changes the boot order (boot local first)
       7. Hosts boots straight to RHEL after reboot (step #4)
-
-    :CaseAutomation: NotAutomated
-    """
-
-
-@pytest.mark.stubbed
-def test_positive_provision_baremetal_with_uefi_grub():
-    """Provision a RHEL system on a new UEFI BM Host with GRUB loader from
-    a provided MAC address
-
-    :id: 508b268b-244d-4bf0-a92a-fbee96e7e8ae
-
-    :setup:
-      1. Create a PXE-based VM with UEFI boot mode (outside of
-         Satellite).
-      2. Synchronize a RHEL6 Kickstart repo (el7 kernel is too new
-         for GRUB v1)
-
-    :steps:
-      1. create a new RHEL6 host using 'BareMetal' option,
-         PXEGRUB loader and MAC address of the pre-created VM
-      2. reboot the VM (to ensure the NW boot is run)
-      3. do the provisioning assertions (assertion steps #1-6)
-      4. reboot the host
-
-    :expectedresults:
-      1. The loader files on TFTP are in the appropriate format and in the
-         appropriate dirs.
-      2. PXE handoff is successful (tcpdump shows the VM has requested
-         the correct files)
-      3. VM started to provision (might be tricky to automate console
-         checks)
-      4. VM accessible via SSH, shows correct OS version in
-         ``/etc/*release``
-      5. Host info command states 'built' in the status
-      6. GRUB config changes the boot order (boot local first)
-      7. Hosts boots straight to RHEL after reboot (step #4)
-
 
     :CaseAutomation: NotAutomated
     """
@@ -1565,11 +1520,17 @@ def yum_security_plugin(katello_host_tools_host):
         assert yum_plugin_install.status == 0, "Failed to install yum-plugin-security plugin"
 
 
-@pytest.mark.e2e
-@pytest.mark.cli_katello_host_tools
-@pytest.mark.rhel_ver_match('[^6].*')
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [{'YumRepository': {'url': settings.repos.yum_3.url}}],
+    ids=['yum_3'],
+    indirect=True,
+)
+@pytest.mark.rhel_ver_match('N-2')
 def test_positive_report_package_installed_removed(
-    katello_host_tools_host, setup_custom_repo, target_sat
+    target_sat,
+    rhel_contenthost,
+    module_repos_collection_with_setup,
 ):
     """Ensure installed/removed package is reported to satellite
 
@@ -1578,42 +1539,61 @@ def test_positive_report_package_installed_removed(
     :customerscenario: true
 
     :steps:
-        1. register a host to activation key with content view that contain
-           packages
-        2. install a package 1 from the available packages
-        3. list the host installed packages with search for package 1 name
-        4. remove the package 1
-        5. list the host installed packages with search for package 1 name
+        1. register a host to activation key with content view that contains packages
+        2. install a package from the available packages
+        3. verify package is reported as installed on the host
+        4. remove the package
+        5. verify package is no longer reported as installed
 
     :expectedresults:
-        1. after step3: package 1 is listed in installed packages
-        2. after step5: installed packages list is empty
+        1. after installation: package is listed in installed packages
+        2. after removal: package is not listed in installed packages
 
     :BZ: 1463809
 
     :parametrized: yes
     """
-    client = katello_host_tools_host
-    host_info = target_sat.cli.Host.info({'name': client.hostname})
-    client.run(f'yum install -y {setup_custom_repo["package"]}')
-    result = client.run(f'rpm -q {setup_custom_repo["package"]}')
+    client = rhel_contenthost
+    client.add_rex_key(target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
+
+    assert client.execute(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}').status == 0
+    # Verify package is installed
+    result = client.execute(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
     assert result.status == 0
+    client.subscription_manager_list_repos()  # update package profile
     installed_packages = target_sat.cli.Host.package_list(
-        {'host-id': host_info['id'], 'search': f'name={setup_custom_repo["package_name"]}'}
+        {'host': client.hostname, 'search': f'name={FAKE_7_CUSTOM_PACKAGE.split("-")[0]}'}
     )
     assert len(installed_packages) == 1
-    assert installed_packages[0]['nvra'] == setup_custom_repo["package"]
-    result = client.run(f'yum remove -y {setup_custom_repo["package"]}')
-    assert result.status == 0
+    assert installed_packages[0]['nvra'] == FAKE_7_CUSTOM_PACKAGE
+
+    # Remove the package
+    assert client.execute(f'yum remove -y {FAKE_7_CUSTOM_PACKAGE}').status == 0
+
+    # Verify package is no longer installed via rpm query
+    result = client.execute(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
+    assert result.status != 0
+    assert 'not installed' in result.stdout
+    client.subscription_manager_list_repos()  # update package profile
     installed_packages = target_sat.cli.Host.package_list(
-        {'host-id': host_info['id'], 'search': f'name={setup_custom_repo["package_name"]}'}
+        {'host': client.hostname, 'search': f'name={FAKE_7_CUSTOM_PACKAGE}'}
     )
     assert len(installed_packages) == 0
 
 
-@pytest.mark.cli_katello_host_tools
-@pytest.mark.rhel_ver_match('[^6].*')
-def test_positive_package_applicability(katello_host_tools_host, setup_custom_repo, target_sat):
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [{'YumRepository': {'url': settings.repos.yum_3.url}}],
+    ids=['yum_3'],
+    indirect=True,
+)
+@pytest.mark.rhel_ver_match('N-2')
+def test_positive_package_applicability(
+    target_sat,
+    rhel_contenthost,
+    module_repos_collection_with_setup,
+):
     """Ensure packages applicability is functioning properly
 
     :id: d283b65b-19c1-4eba-87ea-f929b0ee4116
@@ -1621,89 +1601,103 @@ def test_positive_package_applicability(katello_host_tools_host, setup_custom_re
     :customerscenario: true
 
     :steps:
-        1. register a host to activation key with content view that contain
-           a minimum of 2 packages, package 1 and package 2,
-           where package 2 is an upgrade/update of package 1
+        1. register a host to activation key with content view that some available packages to install
         2. install the package 1
-        3. list the host applicable packages for package 1 name
-        4. install the package 2
-        5. list the host applicable packages for package 1 name
+        3. downgrade the package
+        4. list available upgrades
+        5. upgrade the package
+        6. make sure there are no package updates available
 
     :expectedresults:
-        1. after step 3: package 2 is listed in applicable packages
-        2. after step 5: applicable packages list is empty
+        1. after step 3: package update is listed
+        2. after step 5: there are no available updates for the package
 
     :BZ: 1463809
 
     :parametrized: yes
     """
-    client = katello_host_tools_host
-    host_info = target_sat.cli.Host.info({'name': client.hostname})
-    client.run(f'yum install -y {setup_custom_repo["package"]}')
-    result = client.run(f'rpm -q {setup_custom_repo["package"]}')
-    assert result.status == 0
-    applicable_packages, _ = wait_for(
-        lambda: target_sat.cli.Package.list(
-            {
-                'host-id': host_info['id'],
-                'packages-restrict-applicable': 'true',
-                'search': f'name={setup_custom_repo["package_name"]}',
-            }
-        ),
-        fail_condition=[],
-        timeout=120,
-        delay=5,
+    package_name = 'panda'
+    package_version = '7.3.12-1.noarch'
+    client = rhel_contenthost
+    client.add_rex_key(target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
+
+    assert client.run(f'yum install -y {package_name}').status == 0
+    client.subscription_manager_list_repos()  # update package profile
+    installed_packages = target_sat.cli.Host.package_list(
+        {'host': client.hostname, 'search': f'name={package_name}'}
     )
-    assert any(
-        setup_custom_repo["new_package"] in package['filename'] for package in applicable_packages
-    )
-    # install package update
-    client.run(f'yum install -y {setup_custom_repo["new_package"]}')
-    result = client.run(f'rpm -q {setup_custom_repo["new_package"]}')
-    assert result.status == 0
+    assert len(installed_packages) == 1
+    assert installed_packages[0]['nvra'] == f'{package_name}-{package_version}'
+
+    assert client.run(f'yum downgrade -y {package_name}').status == 0
+    result = client.run('yum check-update')
+    assert package_name in result.stdout
+    assert client.run(f'yum update -y {package_name}').status == 0
+    result = client.run('yum check-update')
+    assert package_name not in result.stdout
+
+    client.subscription_manager_list_repos()  # update package profile
     applicable_packages = target_sat.cli.Package.list(
         {
-            'host-id': host_info['id'],
+            'host': client.hostname,
             'packages-restrict-applicable': 'true',
-            'search': f'name={setup_custom_repo["package"]}',
+            'search': f'name={package_name}',
         }
     )
     assert len(applicable_packages) == 0
 
 
-@pytest.mark.e2e
-@pytest.mark.cli_katello_host_tools
-@pytest.mark.rhel_ver_match('[^6].*')
 @pytest.mark.pit_client
 @pytest.mark.pit_server
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [{'YumRepository': {'url': settings.repos.yum_3.url}}],
+    ids=['yum_3'],
+    indirect=True,
+)
+@pytest.mark.rhel_ver_match('N-2')
 def test_positive_erratum_applicability(
-    katello_host_tools_host, setup_custom_repo, yum_security_plugin, target_sat
+    target_sat,
+    rhel_contenthost,
+    module_repos_collection_with_setup,
 ):
     """Ensure erratum applicability is functioning properly
 
     :id: 139de508-916e-4c91-88ad-b4973a6fa104
 
     :steps:
-        1. register a host to activation key with content view that contain
-           a package with errata
-        2. install the package
-        3. list the host applicable errata
-        4. install the errata
-        5. list the host applicable errata
+        1. register a host to activation key with content view that contains packages with errata
+        2. install a package that has available errata
+        3. verify errata is applicable to the host
+        4. apply the errata
+        5. verify errata is no longer applicable to the host
 
     :expectedresults:
-        1. after step 3: errata of package is in applicable errata list
-        2. after step 5: errata of package is not in applicable errata list
+        1. after installation: errata is listed as applicable
+        2. after applying errata: errata is no longer listed as applicable
 
     :BZ: 1463809,1740790
 
     :parametrized: yes
     """
-    client = katello_host_tools_host
+    client = rhel_contenthost
+    client.add_rex_key(target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
+
     host_info = target_sat.cli.Host.info({'name': client.hostname})
-    client.run(f'yum install -y {setup_custom_repo["package"]}')
-    result = client.run(f'rpm -q {setup_custom_repo["package"]}')
+
+    # Install package with available errata
+    assert client.execute(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}').status == 0
+
+    # Verify package is installed
+    result = client.execute(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
+    assert result.status == 0
+
+    # Update subscription manager to sync package profile
     client.subscription_manager_list_repos()
+
+    # Wait for and verify applicable errata appears
     applicable_errata, _ = wait_for(
         lambda: target_sat.cli.Host.errata_list({'host-id': host_info['id']}),
         handle_exception=True,
@@ -1711,20 +1705,26 @@ def test_positive_erratum_applicability(
         timeout=120,
         delay=5,
     )
+
+    # Find the security errata for the installed package
+    security_errata = settings.repos.yum_3.errata[25]  # FAKE_7_CUSTOM_PACKAGE security errata
     assert [
         erratum
         for erratum in applicable_errata
-        if erratum['installable'] == 'true'
-        and erratum['erratum-id'] == setup_custom_repo["security_errata"]
+        if erratum['installable'] == 'true' and erratum['erratum-id'] == security_errata
     ]
-    # apply the erratum
-    result = client.run(f'yum update -y --advisory {setup_custom_repo["security_errata"]}')
+
+    # Apply the errata
+    result = client.execute(f'yum update -y --advisory {security_errata}')
     assert result.status == 0
+
+    # Update subscription manager to sync package profile after update
     client.subscription_manager_list_repos()
-    # verify that the applied erratum is not present in the list of installable errata
+
+    # Verify that the applied erratum is no longer in applicable errata list
     try:
         applicable_erratum, _ = wait_for(
-            lambda: setup_custom_repo["security_errata"]
+            lambda: security_errata
             not in [
                 errata['erratum-id']
                 for errata in target_sat.cli.Host.errata_list({'host-id': host_info['id']})
@@ -1736,78 +1736,72 @@ def test_positive_erratum_applicability(
         )
     except TimedOutError as err:
         raise TimedOutError(
-            f"Timed out waiting for erratum \"{setup_custom_repo['security_errata']}\""
-            " to disappear from the list"
+            f"Timed out waiting for erratum \"{security_errata}\" to disappear from the list"
         ) from err
 
 
-@pytest.mark.cli_katello_host_tools
-@pytest.mark.rhel_ver_match('[^6].*')
-def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_repo, target_sat):
+@pytest.mark.parametrize(
+    'module_repos_collection_with_setup',
+    [{'YumRepository': {'url': settings.repos.yum_3.url}}],
+    ids=['yum_3'],
+    indirect=True,
+)
+@pytest.mark.rhel_ver_match('N-2')
+def test_positive_apply_security_erratum(
+    target_sat,
+    rhel_contenthost,
+    module_repos_collection_with_setup,
+):
     """Apply security erratum to a host
 
     :id: 4d1095c8-d354-42ac-af44-adf6dbb46deb
 
-    :expectedresults: erratum is recognized by the
-        `yum update --security` command on client
-
     :customerscenario: true
+
+    :steps:
+        1. register a host to activation key with content view that contains packages with errata
+        2. install a newer package version
+        3. downgrade the package to create applicable errata
+        4. verify security errata is recognized by yum update --security command
+
+    :expectedresults: erratum is recognized by the `yum update --security` command on client
 
     :BZ: 1420671
 
     :parametrized: yes
     """
-    client = katello_host_tools_host
+    client = rhel_contenthost
+    client.add_rex_key(target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
+
     host_info = target_sat.cli.Host.info({'name': client.hostname})
-    client.run(f'yum install -y {setup_custom_repo["new_package"]}')
-    client.run(f'yum downgrade -y {setup_custom_repo["package_name"]}')
-    # Check that host has applicable errata
+
+    # Install the newer package version first
+    assert client.execute(f'yum install -y {FAKE_8_CUSTOM_PACKAGE}').status == 0
+
+    # Downgrade to create applicable security errata
+    package_name = FAKE_8_CUSTOM_PACKAGE_NAME
+    assert client.execute(f'yum downgrade -y {package_name}').status == 0
+
+    # Update subscription manager to sync package profile after downgrade
+    client.subscription_manager_list_repos()
+
+    # Wait for and verify that host has applicable errata
+    security_errata = settings.repos.yum_3.errata[25]  # Security errata for the package
     host_erratum, _ = wait_for(
         lambda: target_sat.cli.Host.errata_list({'host-id': host_info['id']})[0],
         handle_exception=True,
         timeout=120,
         delay=5,
     )
-    assert host_erratum['erratum-id'] == setup_custom_repo["security_errata"]
+    assert host_erratum['erratum-id'] == security_errata
     assert host_erratum['installable'] == 'true'
-    # Check the erratum becomes available
-    result = client.run('yum update --assumeno --security | grep "No packages needed for security"')
-    assert result.status == 1
 
-
-@pytest.mark.cli_katello_host_tools
-@pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('[^6].*')
-def test_positive_install_package_via_rex(
-    module_org, katello_host_tools_host, target_sat, setup_custom_repo
-):
-    """Install a package to a host remotely using remote execution,
-    install package using Katello SSH job template, host package list is used to verify that
-
-    :id: 751c05b4-d7a3-48a2-8860-f0d15fdce204
-
-    :expectedresults: Package was installed
-
-    :parametrized: yes
-    """
-    client = katello_host_tools_host
-    host_info = target_sat.cli.Host.info({'name': client.hostname})
-    client.configure_rex(satellite=target_sat, org=module_org, register=False)
-    # Apply errata to the host collection using job invocation
-    target_sat.cli.JobInvocation.create(
-        {
-            'feature': 'katello_package_install',
-            'search-query': f'name ~ {client.hostname}',
-            'inputs': f'package={setup_custom_repo["package"]}',
-            'organization-id': module_org.id,
-        }
+    # Check that security erratum is available via yum update --security
+    result = client.execute(
+        'yum update --assumeno --security | grep "No packages needed for security"'
     )
-    result = client.run(f'rpm -q {setup_custom_repo["package"]}')
-    assert result.status == 0
-    installed_packages = target_sat.cli.Host.package_list(
-        {'host-id': host_info['id'], 'search': f'name={setup_custom_repo["package_name"]}'}
-    )
-    assert len(installed_packages) == 1
+    assert result.status == 1  # Command should fail because security updates are available
 
 
 # -------------------------- HOST SUBSCRIPTION SUBCOMMAND SCENARIOS -------------------------
@@ -1866,81 +1860,6 @@ def test_positive_register(
     assert len(host_subscriptions) == 0
 
 
-@pytest.mark.rhel_ver_match('9')
-@pytest.mark.cli_host_subscription
-def test_positive_without_attach_with_lce(
-    target_sat,
-    rhel_contenthost,
-    function_ak_with_cv,
-    function_sca_manifest_org,
-    function_lce,
-):
-    """Attempt to enable a repository of a subscription that was not
-    attached to a host.
-    This test is not using the host_subscription entities except
-    subscription_name and repository_id
-
-    :id: fc469e70-a7cb-4fca-b0ea-3c9e3dfff849
-
-    :expectedresults: Repository enabled due to SCA.
-
-    :parametrized: yes
-    """
-    content_view = target_sat.api.ContentView(organization=function_sca_manifest_org).create()
-    target_sat.cli_factory.setup_org_for_a_rh_repo(
-        {
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhsclient7'],
-            'repository': REPOS['rhsclient7']['name'],
-            'organization-id': function_sca_manifest_org.id,
-            'content-view-id': content_view.id,
-            'lifecycle-environment-id': function_lce.id,
-            'activationkey-id': function_ak_with_cv.id,
-            'subscription': DEFAULT_SUBSCRIPTION_NAME,
-        },
-        force_use_cdn=True,
-    )
-
-    # register client
-    result = rhel_contenthost.register(
-        function_sca_manifest_org, None, function_ak_with_cv.name, target_sat
-    )
-    assert result.status == 0
-    assert rhel_contenthost.subscribed
-    res = rhel_contenthost.enable_repo(REPOS['rhsclient7']['id'])
-    assert res.status == 0
-    assert f"Repository '{REPOS['rhsclient7']['id']}' is enabled for this system." in res.stdout
-
-
-@pytest.mark.e2e
-def test_positive_bootc_cli_actions(target_sat, bootc_host, function_ak_with_cv, function_org):
-    """Register a bootc host and validate CLI information
-
-    :id: d9557843-4cc7-4e70-a035-7b2c4008dd5e
-
-    :expectedresults: Upon registering a Bootc host, the facts are attached to the host, and are accurate. Hammer host bootc also returns proper info.
-
-    :CaseComponent:Hosts-Content
-
-    :Verifies:SAT-27168, SAT-27170, SAT-30211
-
-    :CaseImportance: Critical
-    """
-    bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
-    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
-    assert bootc_host.subscribed
-    bootc_info = target_sat.cli.Host.info({'name': bootc_host.hostname})['bootc-image-information']
-    assert bootc_info['running-image'] == bootc_dummy_info['bootc.booted.image']
-    assert bootc_info['running-image-digest'] == bootc_dummy_info['bootc.booted.digest']
-    assert bootc_info['rollback-image'] == bootc_dummy_info['bootc.rollback.image']
-    assert bootc_info['rollback-image-digest'] == bootc_dummy_info['bootc.rollback.digest']
-    # Verify hammer host bootc images
-    booted_images_info = target_sat.cli.Host.bootc_images()[0]
-    assert booted_images_info['running-image'] == bootc_dummy_info['bootc.booted.image']
-    assert booted_images_info['running-image-digest'] == bootc_dummy_info['bootc.booted.digest']
-    assert int(booted_images_info['host-count']) > 0
-
-
 # -------------------------- MULTI-CV SCENARIOS -------------------------
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('[^7]')
@@ -1969,9 +1888,9 @@ def test_negative_multi_cv_registration(
 
     :CaseImportance: Critical
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
-    :team: Phoenix-subscriptions
+    :team: Proton
 
     :parametrized: yes
     """
@@ -2017,9 +1936,9 @@ def test_positive_multi_cv_registration(
 
     :CaseImportance: Critical
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
-    :team: Phoenix-subscriptions
+    :team: Proton
 
     :parametrized: yes
     """
@@ -2091,9 +2010,9 @@ def test_positive_multi_cv_assignment(
 
     :CaseImportance: Critical
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
-    :team: Phoenix-subscriptions
+    :team: Proton
 
     :parametrized: yes
     """
@@ -2160,9 +2079,9 @@ def test_positive_multi_cv_host_repo_availability(
 
     :CaseImportance: Critical
 
-    :CaseComponent: Hosts-Content
+    :CaseComponent: Hosts
 
-    :team: Phoenix-subscriptions
+    :team: Proton
 
     :parametrized: yes
     """
@@ -2258,13 +2177,14 @@ def test_positive_dump_enc_yaml(target_sat):
     """
     enc_dump = target_sat.cli.Host.enc_dump({'name': target_sat.hostname})
     assert f'fqdn: {target_sat.hostname}' in enc_dump
-    assert f'ip: {target_sat.ip_addr}' in enc_dump
+    ip_prefix = 'ip6' if target_sat.network_type == NetworkType.IPV6 else 'ip'
+    assert f'{ip_prefix}: {target_sat.ip_addr}' in enc_dump
     assert 'ssh-rsa' in enc_dump
 
 
 # -------------------------- HOST TRACE SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.pit_client
-@pytest.mark.rhel_ver_match('[7,8,9]')
+@pytest.mark.rhel_ver_match('^[0-9]+$')
 def test_positive_tracer_list_and_resolve(tracer_host, target_sat):
     """Install tracer on client, downgrade the service, check from the satellite
     that tracer shows and resolves the problem. The test works with a package specified
@@ -2361,7 +2281,7 @@ def test_positive_host_with_puppet(
         }
     )
     host = session_puppet_enabled_sat.cli.Host.info({'id': host['id']})
-    assert host['puppet-environment'] == module_puppet_environment.name
+    assert host['puppet-environment']['name'] == module_puppet_environment.name
     session_puppet_enabled_sat.cli.Host.delete({'id': host['id']})
 
 
@@ -2674,24 +2594,28 @@ def test_host_registration_with_capsule_using_content_coherence(
     module_target_sat.cli.Settings.set(
         {'name': 'validate_host_lce_content_source_coherence', 'value': 'true'}
     )
-    result = rhel_contenthost.register(
-        module_sca_manifest_org,
-        None,
-        module_activation_key.name,
-        module_capsule_configured,
-        force=True,
-    )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    try:
+        result = rhel_contenthost.register(
+            module_sca_manifest_org,
+            None,
+            module_activation_key.name,
+            module_capsule_configured,
+            force=True,
+        )
+        # We expect the initial registration attempt to fail with
+        # HTTP error code 422, and that's why we're looking for an exit code of 1
+        assert result.status == 1, f'Failed to register host: {result.stderr}'
 
-    # Check output for "HTTP error code 422: Validation failed: Content view environment content facets is invalid"
-    assert 'Validation failed' in result.stderr, f'Error is: {result.stderr}'
-    if rhel_contenthost.os_version.major != 7:
-        assert 'HTTP error code 422' in result.stderr, f'Error is: {result.stderr}'
+        # Check output for HTTP error code 422: Validation failed: Content view environment content facets is invalid
+        assert 'Validation failed' in result.stderr, f'Error is: {result.stderr}'
+        if rhel_contenthost.os_version.major != 7:
+            assert 'HTTP error code 422' in result.stderr, f'Error is: {result.stderr}'
+    finally:
+        # Re-register client with settings "validate_host_lce_content_source_coherence" is set to No
+        module_target_sat.cli.Settings.set(
+            {'name': 'validate_host_lce_content_source_coherence', 'value': 'false'}
+        )
 
-    # Re-register client with settings "validate_host_lce_content_source_coherence" is set to No
-    module_target_sat.cli.Settings.set(
-        {'name': 'validate_host_lce_content_source_coherence', 'value': 'false'}
-    )
     result = rhel_contenthost.register(
         module_sca_manifest_org,
         None,

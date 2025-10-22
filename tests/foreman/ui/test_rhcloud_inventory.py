@@ -6,7 +6,7 @@
 
 :CaseComponent: RHCloud
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 
@@ -62,7 +62,10 @@ def common_assertion(
     )
     upload_error_messages = ['NSS error', 'Permission denied']
 
-    assert 'Successfully generated' in inventory_data['generating']['terminal']
+    assert (
+        'Check the Uploading tab for report uploading status'
+        in inventory_data['generating']['terminal']
+    )
     if subscription_connection_enabled:
         assert upload_success_msg in inventory_data['uploading']['terminal']
         assert 'x-rh-insights-request-id' in inventory_data['uploading']['terminal'].lower()
@@ -553,6 +556,9 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
 
     :expectedresults:
         1. The subscription_connection_enabled setting is reflected in the UI
+
+    :Verifies: SAT-15137
+
     """
     with module_target_sat.ui_session() as session:
         session.organization.select(org_name=DEFAULT_ORG)
@@ -563,7 +569,6 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
         displayed_buttons = session.cloudinventory.get_displayed_buttons()
         displayed_descriptions = session.cloudinventory.get_displayed_descriptions()
         displayed_inventory_tabs = session.cloudinventory.get_displayed_inventory_tabs()
-
         subscription_setting = setting_update.value == 'true'
 
         assert displayed_settings_options['auto_update'] is subscription_setting
@@ -577,6 +582,9 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
             if subscription_setting
             else 'Generate report'
         )
+        if subscription_setting:
+            assert displayed_buttons['cloud_connector_text'] == 'Configure cloud connector'
+            assert displayed_buttons['sync_status_text'] == 'Sync all inventory status'
 
 
 @pytest.mark.no_containers
@@ -663,3 +671,47 @@ def test_rh_cloud_minimal_report(
         assert all(all(key in item for key in required_fields) for item in host_data), (
             "Not all required keys are present in every dictionary"
         )
+
+
+@pytest.mark.e2e
+@pytest.mark.pit_server
+@pytest.mark.pit_client
+@pytest.mark.rhel_ver_list([7, 8, 9, 10])
+def test_sync_inventory_status(rhcloud_manifest_org, rhcloud_registered_hosts, module_target_sat):
+    """Test syncing Lightspeed inventory status
+
+    :id: 1fe47111-8831-4168-b79e-ca7c1f6aa343
+
+    :steps:
+        1. Register 2 hosts to Satellite to an org with a manifest imported and set up Lightspeed.
+        2. Sync the Lightspeed inventory for the org.
+
+    :expectedresults: Inventory status is successfully synced for the hosts.
+
+    :BZ: 1957186
+
+    :CaseAutomation: Automated
+    """
+    org = rhcloud_manifest_org
+    inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
+    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
+
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        session.cloudinventory.sync_inventory_status()
+        wait_for(
+            lambda: module_target_sat.api.ForemanTask()
+            .search(query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'})[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        task_output = module_target_sat.api.ForemanTask().search(
+            query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'}
+        )
+        assert task_output[0].output['host_statuses']['sync'] == 2
+        assert task_output[0].output['host_statuses']['disconnect'] == 0

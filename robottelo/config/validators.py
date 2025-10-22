@@ -57,6 +57,19 @@ VALIDATORS = dict(
         Validator('subscription.rhn_poolid', must_exist=True),
         Validator('subscription.lifecycle_api_url', must_exist=True),
     ],
+    ansible=[
+        Validator(
+            'ansible.role_names',
+            must_exist=True,
+            is_type_of=list,
+            default=[
+                'theforeman.foreman_scap_client',
+                'redhat.satellite.hostgroups',
+                'RedHatInsights.insights-client',
+                'redhat.satellite.compute_resources',
+            ],
+        ),
+    ],
     ansible_hub=[
         Validator('ansible_hub.url', must_exist=True),
         Validator('ansible_hub.token', must_exist=True),
@@ -78,10 +91,6 @@ VALIDATORS = dict(
         Validator('azurerm.azure_region', is_in=AZURERM_VALID_REGIONS),
     ],
     broker=[Validator('broker.broker_directory', default='.')],
-    bugzilla=[
-        Validator('bugzilla.url', default='https://bugzilla.redhat.com'),
-        Validator('bugzilla.api_key', must_exist=True),
-    ],
     capsule=[
         Validator('capsule.version.release', must_exist=True),
         Validator(
@@ -260,6 +269,15 @@ VALIDATORS = dict(
             must_exist=True,
         ),
     ],
+    mcp=[
+        Validator(
+            'foreman_mcp.username',
+            'foreman_mcp.password',
+            'foreman_mcp.port',
+            'foreman_mcp.registry',
+            must_exist=True,
+        ),
+    ],
     ohsnap=[
         Validator(
             'ohsnap.host',
@@ -328,6 +346,7 @@ VALIDATORS = dict(
             'repos.rhscl_repo',
             'repos.ansible_repo',
             'repos.swid_tools_repo',
+            'repos.rpm_missing_filelists.url',
             must_exist=True,
             is_type_of=str,
         ),

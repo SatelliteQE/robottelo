@@ -23,7 +23,7 @@ jobs:
       prt_comment: ${{steps.fc.outputs.comment-body}}
     steps:
       - name: Find Comment
-        uses: peter-evans/find-comment@v3
+        uses: peter-evans/find-comment@v4
         id: fc
         with:
           issue-number: ${{ env.number }}
@@ -49,7 +49,7 @@ jobs:
           swap-size-gb: 10
 
       ## Robottelo Repo Checkout
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: ${{ startsWith(matrix.label, '6.') && matrix.label != github.base_ref }}
         with:
           fetch-depth: 0
@@ -87,7 +87,7 @@ jobs:
 
       - name: is autoMerging enabled for Auto CherryPicked PRs ?
         if: ${{ always() && steps.cherrypick.outcome == 'success' && contains(github.event.pull_request.labels.*.name, 'AutoMerge_Cherry_Picked') }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.CHERRYPICK_PAT }}
           script: |

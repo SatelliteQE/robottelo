@@ -124,6 +124,9 @@ def test_negative_time_to_pickup(
             'location-ids': smart_proxy_location.id,
         }
     )
+    module_capsule_configured_mqtt.nailgun_capsule.content_add_lifecycle_environment(
+        data={'environment_id': module_ak_with_cv.environment.id}
+    )
     # register host with pull provider rex
     result = client.register(
         module_org,

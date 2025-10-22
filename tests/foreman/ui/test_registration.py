@@ -8,7 +8,7 @@
 
 :CaseImportance: Critical
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 """
 
 from datetime import datetime
@@ -184,7 +184,6 @@ def test_positive_global_registration_end_to_end(
         session.location.select(loc_name=smart_proxy_location.name)
         cmd = session.host.get_register_command(
             {
-                'general.operating_system': default_os.title,
                 'general.activation_keys': module_activation_key.name,
                 'advanced.update_packages': True,
                 'advanced.rex_interface': iface,
@@ -195,7 +194,6 @@ def test_positive_global_registration_end_to_end(
         f'organization_id={module_org.id}',
         f'activation_keys={module_activation_key.name}',
         f'location_id={smart_proxy_location.id}',
-        f'operatingsystem_id={default_os.id}',
         f'{default_smart_proxy.name}',
         'insecure',
         'update_packages=true',
@@ -551,6 +549,7 @@ def test_positive_host_registration_with_non_admin_user(
             {
                 'general.insecure': True,
                 'general.activation_keys': module_activation_key.name,
+                'advanced.setup_insights': 'No (override)',
             }
         )
 
@@ -767,6 +766,7 @@ def test_subscription_manager_install_from_repository(
                 'advanced.force': True,
                 'advanced.install_packages': 'subscription-manager',
                 'advanced.repository': repo_url,
+                'advanced.setup_insights': 'No (override)',
             }
         )
 
@@ -841,7 +841,7 @@ def test_registering_with_title_using_global_registration_parameter(
         )
         status = session.host_new.get_host_statuses(rhel_contenthost.hostname)
         assert status['Build']['Status'] == 'Installed'
-        assert status['Insights']['Status'] == 'Reporting'
+        assert status['Red Hat Lightspeed']['Status'] == 'Reporting'
         facts = session.host_new.get_host_facts(rhel_contenthost.hostname, 'insights_client')
         for fact in facts:
             assert (

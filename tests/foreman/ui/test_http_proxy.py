@@ -20,7 +20,8 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import REPO_TYPE, REPOS
-from robottelo.hosts import ProxyHostError
+from robottelo.exceptions import ProxyHostError
+from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture
@@ -466,10 +467,15 @@ def test_http_proxy_containing_special_characters(
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('allow_repo_discovery')
 @pytest.mark.parametrize(
+    'use_ip',
+    [False] if is_open('SAT-39098') else [False, True],
+    ids=['hostname'] if is_open('SAT-39098') else ['hostname', 'ip'],
+)
+@pytest.mark.parametrize(
     'setup_http_proxy',
-    [None, True, False],
+    [True, False],
     indirect=True,
-    ids=['no_http_proxy', 'auth_http_proxy', 'unauth_http_proxy'],
+    ids=['auth_http_proxy', 'unauth_http_proxy'],
 )
 def test_positive_repo_discovery(setup_http_proxy, module_target_sat, module_org):
     """Create repository via repo discovery under new product
@@ -520,4 +526,39 @@ def test_positive_repo_discovery(setup_http_proxy, module_target_sat, module_org
             in session.repository.search(
                 product_name, settings.container.docker.repo_upstream_name
             )[0]['Name']
+        )
+
+
+def test_authenticated_test_connection(target_sat, module_org, default_location):
+    """Test connection doesn't throw any errors when run on an authenticated HTTP Proxy
+
+    :id: 4f2e63b4-64a1-47f3-88e2-303298d89092
+
+    :steps:
+        1. Create an HTTP Proxy requiring Authentication
+        2. Navigate to Edit, and click the "change password" button
+        3. Input the password again.
+        4. Run Test Connection.
+
+    :expectedresults: Test Connection doesn't raise any errors.
+
+    :Verifies: SAT-21767
+
+    :customerscenario: true
+    """
+    proxy_name = gen_string('alpha')
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.http_proxy.create(
+            {
+                'http_proxy.name': proxy_name,
+                'http_proxy.url': settings.http_proxy.auth_proxy_url,
+                'http_proxy.username': settings.http_proxy.username,
+                'http_proxy.password': settings.http_proxy.password,
+                'locations.resources.assigned': [default_location.name],
+                'organizations.resources.assigned': [module_org.name],
+            }
+        )
+        session.http_proxy.test_connection(
+            proxy_name, {'http_proxy.password': settings.http_proxy.password}
         )

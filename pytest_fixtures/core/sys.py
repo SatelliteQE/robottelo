@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 import pytest
 
 from robottelo.config import settings
-from robottelo.hosts import SatelliteHostError
+from robottelo.exceptions import SatelliteHostError
 
 
 @pytest.fixture
@@ -77,20 +77,29 @@ def block_fake_repo_access(session_target_sat):
     repo_server_port = '.'.join(
         urlparse(settings.robottelo.REPOS_HOSTING_URL).netloc.split(':')[1:]
     )
-    cmd_result = session_target_sat.execute(f'nc -z {repo_server_name} {repo_server_port}')
-    if cmd_result.status != 0:
-        raise SatelliteHostError(
-            f'Error, port {repo_server_name} {repo_server_port} incorrect or already blocked.'
+    ip_versions = [v for v in [4, 6] if getattr(session_target_sat.network_type, f'has_ipv{v}')]
+    for ipv in ip_versions:
+        cmd_result = session_target_sat.execute(
+            f'nc -{ipv} -z {repo_server_name} {repo_server_port}'
         )
-    session_target_sat.execute(
-        'firewall-cmd --direct --add-rule ipv4 filter OUTPUT 0 -p tcp -m tcp'
-        f' --dport={repo_server_port} -j DROP'
-    )
-    cmd_result = session_target_sat.execute(f'nc -z {repo_server_name} {repo_server_port}')
-    if cmd_result.status != 1:
-        raise SatelliteHostError(f'Error, port {repo_server_name} {repo_server_port} not blocked.')
+        if cmd_result.status != 0:
+            raise SatelliteHostError(
+                f'IPv{ipv} destination port {repo_server_name}:{repo_server_port} incorrect or already blocked.'
+            )
+        session_target_sat.execute(
+            f'firewall-cmd --direct --add-rule ipv{ipv} filter OUTPUT 0 -p tcp -m tcp'
+            f' --dport={repo_server_port} -j DROP'
+        )
+        cmd_result = session_target_sat.execute(
+            f'nc -{ipv} -z {repo_server_name} {repo_server_port}'
+        )
+        if cmd_result.status != 1:
+            raise SatelliteHostError(
+                f'IPv{ipv} destination port {repo_server_name}:{repo_server_port} not blocked.'
+            )
     yield
-    session_target_sat.execute(
-        'firewall-cmd --direct --remove-rule ipv4 filter OUTPUT 0 -p tcp -m tcp'
-        f' --dport={repo_server_port} -j DROP'
-    )
+    for ipv in ip_versions:
+        session_target_sat.execute(
+            f'firewall-cmd --direct --remove-rule ipv{ipv} filter OUTPUT 0 -p tcp -m tcp'
+            f' --dport={repo_server_port} -j DROP'
+        )

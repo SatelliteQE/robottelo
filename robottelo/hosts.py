@@ -1,3 +1,4 @@
+import base64
 from configparser import ConfigParser
 import contextlib
 from contextlib import contextmanager
@@ -51,7 +52,16 @@ from robottelo.constants import (
     SATELLITE_VERSION,
 )
 from robottelo.enums import NetworkType
-from robottelo.exceptions import CLIFactoryError, DownloadFileError, HostPingFailed
+from robottelo.exceptions import (
+    CapsuleHostError,
+    CLIFactoryError,
+    ContentHostError,
+    DownloadFileError,
+    HostPingFailed,
+    IPAHostError,
+    ProxyHostError,
+    SatelliteHostError,
+)
 from robottelo.host_helpers import (
     CapsuleMixins,
     ContentHostMixins,
@@ -88,7 +98,8 @@ def get_sat_version():
 
     try:
         sat_version = Satellite().version
-    except (AuthenticationError, ContentHostError, BoxKeyError):
+    except (AuthenticationError, ContentHostError, BoxKeyError) as err:
+        logger.warning('Failed to get Satellite version: %s', err)
         if sat_version := str(settings.server.version.get('release')) == 'stream':
             sat_version = str(settings.robottelo.get('satellite_version'))
         if not sat_version:
@@ -102,32 +113,13 @@ def get_sat_rhel_version():
 
     try:
         return Satellite().os_version
-    except (AuthenticationError, ContentHostError, BoxKeyError):
+    except (AuthenticationError, ContentHostError, BoxKeyError) as err:
+        logger.warning('Failed to get RHEL version from Satellite: %s', err)
         if hasattr(settings.server.version, 'rhel_version'):
             rhel_version = str(settings.server.version.rhel_version)
         elif hasattr(settings.robottelo, 'rhel_version'):
             rhel_version = settings.robottelo.rhel_version
     return Version(rhel_version)
-
-
-class ContentHostError(Exception):
-    pass
-
-
-class CapsuleHostError(Exception):
-    pass
-
-
-class SatelliteHostError(Exception):
-    pass
-
-
-class IPAHostError(Exception):
-    pass
-
-
-class ProxyHostError(Exception):
-    pass
 
 
 class ContentHost(Host, ContentHostMixins):
@@ -219,8 +211,13 @@ class ContentHost(Host, ContentHostMixins):
 
     @property
     def subscribed(self):
-        """Boolean representation of a content host's subscription status"""
-        return 'Overall Status: Unknown' not in self.execute('subscription-manager status').stdout
+        """Returns True if host is registered, False otherwise"""
+        result_status = self.execute('subscription-manager identity').status
+        if result_status not in [0, 1]:
+            raise ValueError(
+                'Unexpected output from subscription-manager identity, anything else than RC:0 or RC:1 is unexpected!'
+            )
+        return not bool(result_status)
 
     @property
     def identity(self):
@@ -524,23 +521,6 @@ class ContentHost(Host, ContentHostMixins):
             f'subscription-manager environments --set="{env_names}" --username={username} --password={password}'
         )
 
-    def subscription_manager_get_pool(self, sub_list=None):
-        """
-        Return pool ids for the corresponding subscriptions in the list
-        """
-        if sub_list is None:
-            sub_list = []
-        pool_ids = []
-        for sub in sub_list:
-            result = self.execute(
-                f'subscription-manager list --available --pool-only --matches="{sub}"'
-            )
-            result = result.stdout
-            result = result.split('\n')
-            result = ' '.join(result).split()
-            pool_ids.append(result)
-        return pool_ids
-
     @property
     def subscription_config(self):
         "Returns subscription config for the host as ConfigParser object"
@@ -742,6 +722,7 @@ class ContentHost(Host, ContentHostMixins):
         :return: The result of the API call.
         """
         kwargs['insecure'] = kwargs.get('insecure', True)
+        kwargs['setup_insights'] = kwargs.get('setup_insights', False)
         self._satellite = target.satellite
         command = target.satellite.api.RegistrationCommand(**kwargs).create()
         return self.execute(command.strip('\n'))
@@ -928,6 +909,17 @@ class ContentHost(Host, ContentHostMixins):
         if not self.network_type.has_ipv4:
             self.execute(
                 f'echo "export HTTPS_PROXY={settings.http_proxy.http_proxy_ipv6_url}" >> ~/.bashrc'
+            )
+
+    def enable_ipv6_podman_proxy(self):
+        """Execute procedures for enabling IPv6 HTTP Proxy on Podman engine"""
+        if not self.network_type.has_ipv4:
+            container_cfg = '/etc/containers/containers.conf'
+            assert (
+                self.execute(
+                    f'echo -e "[engine]\\nenv = [\'https_proxy={settings.http_proxy.http_proxy_ipv6_url}\']" >> {container_cfg}'
+                ).status
+                == 0
             )
 
     def disable_rhsm_proxy(self):
@@ -1286,13 +1278,19 @@ class ContentHost(Host, ContentHostMixins):
         if product_label:
             # Enable custom repositories
             for repo_label in repo_labels:
-                result = self.execute(
-                    f'yum-config-manager --enable {org_label}_{product_label}_{repo_label}'
+                # try first with subscription-manager (SCA)
+                result_sm = self.execute(
+                    f'subscription-manager repos --enable {org_label}_{product_label}_{repo_label}'
                 )
-                if result.status != 0:
-                    raise CLIFactoryError(
-                        f'Failed to enable custom repository {repo_label!s}\n{result.stderr}'
+                if result_sm.status != 0:
+                    result = self.execute(
+                        f'yum-config-manager --enable {org_label}_{product_label}_{repo_label}'
                     )
+                    if result.status != 0:
+                        raise CLIFactoryError(
+                            f'Failed to enable custom repository: {repo_label!s}\n{result.stderr}'
+                            f'\nSubscription-Manager:\n{result_sm.stderr}'
+                        )
 
     def virt_who_hypervisor_config(
         self,
@@ -1519,7 +1517,7 @@ class ContentHost(Host, ContentHostMixins):
             raise ContentHostError('There was an error installing katello-host-tools-tracer')
         self.execute('katello-tracer-upload')
 
-    def register_to_cdn(self, pool_ids=None):
+    def register_to_cdn(self):
         """Register host to CDN"""
         self.reset_rhsm()
 
@@ -1622,6 +1620,79 @@ class ContentHost(Host, ContentHostMixins):
                 release=settings.capsule.version.release,
                 snap=settings.capsule.version.snap,
             )
+
+    def ensure_podman_installed(self):
+        """Ensure Podman is installed, registering temporarily if needed."""
+        if self.execute('rpm -q podman').status == 0:
+            return
+        was_registered = self.subscription_manager_status().status == 0
+        if not was_registered:
+            self.register_to_cdn()
+        try:
+            result = self.execute('dnf -y install podman --disableplugin=foreman-protector')
+            if result.status != 0:
+                raise ContentHostError(f'Podman installation failed: {result.stdout}')
+        finally:
+            if not was_registered:
+                self.unregister()
+
+    def podman_login(self, username=None, password=None, registry=None):
+        """Login to a podman registry."""
+        iop_settings = settings.rh_cloud.iop_advisor_engine
+        username = username or iop_settings.username
+        password = password or iop_settings.token
+        registry = registry or iop_settings.registry
+        if registry and username and password:
+            auth_str = f'{username}:{password}'
+            auth_b64 = base64.b64encode(auth_str.encode()).decode()
+            auth_data = {'auths': {f'{registry}': {'auth': auth_b64}}}
+            local_authfile_path = f'{robottelo_tmp_dir}/podman-auth.json'
+            with open(local_authfile_path, 'w') as f:
+                json.dump(auth_data, f)
+            self.put(local_authfile_path, constants.PODMAN_AUTHFILE_PATH)
+            if self.execute(f'[ -f {constants.PODMAN_AUTHFILE_PATH} ]').status != 0:
+                raise FileNotFoundError(
+                    f'The Podman auth file in path {constants.PODMAN_AUTHFILE_PATH} is not found in satellite.'
+                )
+            # Use HTTPS_PROXY to reach container registry for IPv6
+            self.enable_ipv6_system_proxy()
+            # Log in to container registry
+            cmd_result = self.execute(
+                f'podman login --authfile {constants.PODMAN_AUTHFILE_PATH} {registry}'
+            )
+            if cmd_result.status != 0:
+                raise ContentHostError(
+                    f'Error logging in to container registry {registry}: {cmd_result.stdout}'
+                )
+        else:
+            logger.error('Podman login skipped: missing registry, username, or token.')
+
+    def is_podman_logged_in(self, registry=None):
+        """Check if podman is logged into a registry."""
+        registry = registry or settings.rh_cloud.iop_advisor_engine.registry
+        return (
+            self.execute(
+                f'podman login --get-login --authfile {constants.PODMAN_AUTHFILE_PATH} {registry}'
+            ).status
+            == 0
+            or self.execute(f'podman login --get-login {registry}').status == 0
+        )
+
+    def podman_logout(self, registry=None):
+        """Logout of a podman registry."""
+        registry = registry or settings.rh_cloud.iop_advisor_engine.registry
+        if self.is_podman_logged_in(registry):
+            cmd_result = self.execute(
+                f'podman logout --authfile {constants.PODMAN_AUTHFILE_PATH} {registry}'
+            )
+            if cmd_result.status != 0:
+                cmd_result = self.execute(f'podman logout {registry}')
+                if cmd_result.status != 0:
+                    raise ContentHostError(
+                        f'Error logging out of container registry {registry}: {cmd_result.stdout}'
+                    )
+        else:
+            logger.warning(f'Podman is not logged into container registry {registry}')
 
 
 class Capsule(ContentHost, CapsuleMixins):
@@ -2155,6 +2226,10 @@ class Satellite(Capsule, SatelliteMixins):
             self.execute(f'grep "db_manage: false" {constants.SATELLITE_ANSWER_FILE}').status == 0
         )
 
+    def is_fips_enabled(self):
+        """Check if FIPS mode is enabled on the system."""
+        return int(self.execute('cat /proc/sys/crypto/fips_enabled').stdout)
+
     def setup_firewall(self):
         # Setups firewall on Satellite
         assert (
@@ -2313,6 +2388,7 @@ class Satellite(Capsule, SatelliteMixins):
 
     def update_setting(self, name, value):
         """changes setting value and returns the setting value before the change."""
+        value = value if value is not None else ''
         setting = self.api.Setting().search(query={'search': f'name="{name}"'})[0]
         default_setting_value = setting.value
         if default_setting_value is None:
@@ -2638,7 +2714,7 @@ class Satellite(Capsule, SatelliteMixins):
     @property
     def local_advisor_enabled(self):
         """Return boolean indicating whether local Insights advisor engine is enabled."""
-        return self.api.RHCloud().advisor_engine_config()['use_local_advisor_engine']
+        return self.api.RHCloud().advisor_engine_config()['use_iop_mode']
 
 
 class SSOHost(Host):

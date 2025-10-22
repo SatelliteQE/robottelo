@@ -64,10 +64,8 @@ def test_positive_puppet_bootstrap(
     ).create()
 
     render = requests.get(
-        (
-            f'http://{session_puppet_enabled_sat.hostname}:8000/'
-            f'unattended/provision?token={host.token}'
-        ),
+        f'{session_puppet_enabled_sat.url}:9090/unattended/provision?token={host.token}',
+        verify=False,
     ).text
 
     puppet_config = (

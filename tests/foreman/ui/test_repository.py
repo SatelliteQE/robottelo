@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
@@ -24,6 +24,7 @@ from robottelo.constants import (
     DOWNLOAD_POLICIES,
     INVALID_URL,
     PRDS,
+    RECOMMENDED_KICKSTART_REPOS,
     RECOMMENDED_REPOS,
     REPO_TYPE,
     REPOS,
@@ -805,7 +806,15 @@ def test_positive_delete_rhel_repo(session, module_sca_manifest_org, target_sat)
         )
 
 
-def test_recommended_repos(session, module_sca_manifest_org):
+@pytest.mark.parametrize(
+    ('filter_type', 'expected_repos'),
+    [
+        ('Kickstart', RECOMMENDED_KICKSTART_REPOS),
+        ('RPM', RECOMMENDED_REPOS),
+    ],
+    ids=['Kickstart', 'RPM'],
+)
+def test_recommended_repos(session, filter_type, expected_repos, module_sca_manifest_org):
     """list recommended repositories using On/Off 'Recommended Repositories' toggle.
 
     :id: 1ae197d5-88ba-4bb1-8ecf-4da5013403d7
@@ -815,22 +824,23 @@ def test_recommended_repos(session, module_sca_manifest_org):
            2. Check last Satellite version of versioned repos do not exist.
            3. Check Client 2 repo is not displayed yet.
 
-    :Verifies: SAT-29446, SAT-29448
+    :Verifies: SAT-29446, SAT-29448, SAT-37160
     """
     with session:
         session.organization.select(module_sca_manifest_org.name)
-        rrepos_on = session.redhatrepository.read(recommended_repo='on')
+        rrepos_on = session.redhatrepository.read(recommended_repo='on', filter_type=filter_type)
         v = get_sat_version()
 
         displayed_repos = [repo['label'] for repo in rrepos_on]
-        assert all(repo in displayed_repos for repo in RECOMMENDED_REPOS)
-        for repo in VERSIONED_REPOS:
-            assert repo.format(f'{v.major}.{v.minor}') in displayed_repos
-            assert repo.format(f'{v.major}.{v.minor - 1}') not in displayed_repos
+        assert all(repo in displayed_repos for repo in expected_repos)
+        if filter_type == 'RPM':
+            for repo in VERSIONED_REPOS:
+                assert repo.format(f'{v.major}.{v.minor}') in displayed_repos
+                assert repo.format(f'{v.major}.{v.minor - 1}') not in displayed_repos
 
         assert not any('client-2' in label for label in displayed_repos)
 
-        rrepos_off = session.redhatrepository.read(recommended_repo='off')
+        rrepos_off = session.redhatrepository.read(recommended_repo='off', filter_type=filter_type)
         assert len(rrepos_off) > len(rrepos_on)
 
 

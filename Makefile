@@ -153,9 +153,6 @@ clean-cache:
 
 clean-all: docs-clean logs-clean pyc-clean clean-cache clean-shared
 
-customer-scenario-check-bz:
-	@scripts/customer_scenarios.py --bz
-
 customer-scenario-check-jira:
 	@scripts/customer_scenarios.py --jira
 

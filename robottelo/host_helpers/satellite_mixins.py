@@ -1,5 +1,6 @@
 import contextlib
 from functools import lru_cache
+import json
 import os
 import random
 import re
@@ -10,9 +11,10 @@ from broker.hosts import Host
 from fauxfactory import gen_string
 import requests
 from wait_for import TimedOutError, wait_for
+import yaml
 
 from robottelo.cli.proxy import CapsuleTunnelError
-from robottelo.config import settings
+from robottelo.config import robottelo_tmp_dir, settings
 from robottelo.constants import (
     PULP_EXPORT_DIR,
     PULP_IMPORT_DIR,
@@ -225,6 +227,15 @@ class ContentInfo:
         result = self.execute(f'satellite-maintain report generate | grep -i "{report_key}"')
         assert result.status == 0, 'report failed or key not found'
         return "".join(result.stdout.split(":", 1)[1].split())
+
+    def get_reported_condensed_value(self, report_key):
+        """
+        Runs satellite-maintain report condense and extracts the value for a given key
+        """
+        result = self.cli.SatelliteMaintainReport.condense()
+        assert result.status == 0, 'report failed'
+        report = "{" + result.stdout.strip().split("{")[1]
+        return json.loads(report)[report_key]
 
 
 class SystemInfo:
@@ -443,3 +454,48 @@ class Factories:
     @lru_cache
     def ui_factory(self, session):
         return UIFactory(self, session=session)
+
+
+class IoPSetup:
+    """Helper for configuring on prem Insights Advisor engine."""
+
+    def configure_insights_on_prem(self, username=None, password=None, registry=None):
+        """Configure on prem Advisor engine on Satellite"""
+        logger.info('Configuring Satellite with local Red Hat Lightspeed')
+        iop_settings = settings.rh_cloud.iop_advisor_engine
+        username = username or iop_settings.username
+        password = password or iop_settings.token
+        registry = registry or iop_settings.registry
+        self.register_to_cdn()
+        self.setup_rhel_repos()
+        self.setup_satellite_repos()
+        self.ensure_podman_installed()
+        self.podman_login(username, password, registry)
+
+        # Set IPv6 podman proxy on Satellite, to pull from container registry
+        self.enable_ipv6_podman_proxy()
+
+        # Set up container image path overrides
+        custom_hiera = f'{robottelo_tmp_dir}/custom-hiera.yaml'
+
+        with open(custom_hiera, 'w') as f:
+            yaml.dump(
+                {
+                    f'iop::{service}::image': path
+                    for service, path in iop_settings.image_paths.items()
+                },
+                f,
+                sort_keys=False,
+                default_flow_style=False,
+            )
+        self.put(custom_hiera, '/etc/foreman-installer/custom-hiera.yaml')
+
+        command = InstallerCommand(
+            'enable-iop',
+            scenario='satellite',
+            foreman_initial_admin_password=settings.server.admin_password,
+        ).get_command()
+
+        result = self.execute(command, timeout='30m')
+        assert result.status == 0, f'Failed to configure IoP: {result.stdout}'
+        assert self.local_advisor_enabled

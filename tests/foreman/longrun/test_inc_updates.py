@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: Hosts-Content
+:CaseComponent: Hosts
 
-:team: Phoenix-subscriptions
+:team: Proton
 
 :CaseImportance: High
 

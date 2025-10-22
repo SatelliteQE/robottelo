@@ -2,11 +2,11 @@
 
 :Requirement: Content Access
 
-:CaseComponent: Hosts-Content
+:CaseComponent: Hosts
 
 :CaseAutomation: Automated
 
-:team: Phoenix-subscriptions
+:team: Proton
 
 """
 

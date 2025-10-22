@@ -6,7 +6,7 @@
 
 :CaseComponent: ActivationKeys
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 
@@ -37,10 +37,13 @@ class TestActivationKey:
             organization=org, repository=[custom_repo.id], name=f"{request.param}_cv"
         ).create()
         cv.publish()
+        lce = target_sat.api.LifecycleEnvironment(organization=org).search(
+            query={'search': 'name=Library'}
+        )[0]
         ak = target_sat.api.ActivationKey(
-            content_view=cv, organization=org, name=f"{request.param}_ak"
+            content_view=cv, environment=lce, organization=org, name=f"{request.param}_ak"
         ).create()
-        return {'org': org, "cv": cv, 'ak': ak, 'custom_repo': custom_repo}
+        return {'org': org, 'cv': cv, 'ak': ak, 'custom_repo': custom_repo}
 
     @pytest.mark.pre_upgrade
     @pytest.mark.parametrize(
@@ -67,11 +70,6 @@ class TestActivationKey:
         :BlockedBy: SAT-28048
         """
         ak = activation_key_setup['ak']
-        org_subscriptions = target_sat.api.Subscription(
-            organization=activation_key_setup['org']
-        ).search()
-        for subscription in org_subscriptions:
-            ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
         ak_subscriptions = ak.product_content()['results']
         subscr_id = {subscr['product']['id'] for subscr in ak_subscriptions}
         assert subscr_id == {activation_key_setup['custom_repo'].product.id}
@@ -115,11 +113,6 @@ class TestActivationKey:
         custom_repo2.sync()
         cv2 = target_sat.api.ContentView(organization=org[0], repository=[custom_repo2.id]).create()
         cv2.publish()
-        org_subscriptions = target_sat.api.Subscription(organization=org[0]).search()
-        for subscription in org_subscriptions:
-            provided_products_ids = [prod.id for prod in subscription.read().provided_product]
-            if custom_repo2.product.id in provided_products_ids:
-                ak[0].add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
         ak_subscriptions = ak[0].product_content()['results']
         assert custom_repo2.product.id in {subscr['product']['id'] for subscr in ak_subscriptions}
         ak[0].delete()

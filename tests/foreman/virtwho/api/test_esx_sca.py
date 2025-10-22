@@ -6,7 +6,7 @@
 
 :CaseComponent: Virt-whoConfigurePlugin
 
-:Team: Phoenix
+:Team: Proton
 
 """
 

@@ -15,7 +15,7 @@ ROBOTTELO:
   RUN_ONE_DATAPOINT: false
   # Satellite version supported by this branch
   # UNDR version is used for some URL composition
-  SATELLITE_VERSION: "6.18"
+  SATELLITE_VERSION: "6.19"
   # Update non-ga versions with each release
   SAT_NON_GA_VERSIONS:
     - '6.16'

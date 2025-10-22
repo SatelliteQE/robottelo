@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:team: Phoenix-content
+:team: Artemis
 
 :CaseImportance: High
 
@@ -214,6 +214,34 @@ class TestRepository:
         )
         assert default_dl_policy
         assert repo.download_policy == default_dl_policy[0].value
+
+    @pytest.mark.parametrize(
+        'repo_options',
+        [
+            {'content_type': content_type}
+            for content_type in ['yum', 'docker', 'ansible_collection', 'file']
+        ],
+        indirect=True,
+    )
+    def test_positive_create_with_default_mirroring_policy(self, repo, target_sat):
+        """
+        Verify if the default mirroring policy is assigned
+        when creating a container repo without `download_policy` field
+
+        :id: 5022b574-0af1-4dd9-9681-ae1fcd5cc583
+
+        :parametrized: yes
+
+        :expectedresults: Container repository with a default non yum mirroring policy
+        """
+        setting = (
+            'default_yum_mirroring_policy'
+            if repo.content_type == 'yum'
+            else 'default_non_yum_mirroring_policy'
+        )
+        default_policy = target_sat.api.Setting().search(query={'search': f'name={setting}'})
+        assert default_policy
+        assert repo.mirroring_policy == default_policy[0].value
 
     @pytest.mark.parametrize(
         'repo_options', **datafactory.parametrized([{'content_type': 'yum'}]), indirect=True
@@ -1421,7 +1449,8 @@ class TestRepositorySync:
         rh_repo = target_sat.api.Repository(id=repo_id).read()
         rh_repo.sync()
 
-        major, minor = constants.REPOS['kickstart'][distro]['version'].split('.')
+        major, *rest = constants.REPOS['kickstart'][distro]['version'].split('.')
+        minor = rest[0] if rest else '0'
         os = target_sat.api.OperatingSystem().search(
             query={'search': f'name="RedHat" AND major="{major}" AND minor="{minor}"'}
         )
@@ -1471,6 +1500,37 @@ class TestRepositorySync:
             {'organization-id': function_sca_manifest_org.id}
         )
         assert 'Candlepin job status: SUCCESS' in output, 'Failed to refresh manifest'
+
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
+    def test_positive_sync_rpm_missing_filelists(self, target_sat):
+        """Synchronize a yum-type repository with missing filelists
+
+        :id: 6a5a3d4d-f9b1-4a2c-8e5d-2b9c4d8f7e6a
+
+        :expectedresults: Repository sync should complete successfully even when
+            RPM packages are missing filelists metadata and SSL verification is disabled.
+
+        :CaseImportance: Medium
+
+        :verifies: SAT-30999
+        """
+        org = target_sat.api.Organization().create()
+        product = target_sat.api.Product(organization=org).create()
+        repo = target_sat.api.Repository(
+            product=product,
+            content_type='yum',
+            url=settings.repos.rpm_missing_filelists.url,
+        ).create()
+
+        # Sync the repository
+        response = repo.sync()
+        assert response['result'] == 'success', f"Repository {repo} failed to sync."
+
+        # Verify repository was synchronized successfully
+        repo = repo.read()
+        assert repo.last_sync is not None, "Repository was not synced successfully."
 
 
 class TestDockerRepository:
@@ -1677,7 +1737,7 @@ class TestDockerRepository:
         :BZ: 1475121, 1580510
 
         """
-        msg = "404, message='Not Found'"
+        msg = "Pulp task error"
         with pytest.raises(TaskFailedError, match=msg):
             repo.sync()
 
@@ -2034,7 +2094,6 @@ class TestDockerRepository:
 #         with pytest.raises(HTTPError):
 #             repo.read()
 #
-#     @pytest.mark.skip_if_open("BZ:1625783")
 #     @pytest.mark.run_in_one_thread
 #     @pytest.mark.upgrade
 #     def test_positive_sync_rh_atomic(self, module_org):
@@ -2145,14 +2204,11 @@ class TestSRPMRepositoryIgnoreContent:
 
     :customerscenario: true
 
-    :team: Phoenix-content
+    :team: Artemis
 
     :BZ: 1673215
     """
 
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -2178,9 +2234,6 @@ class TestSRPMRepositoryIgnoreContent:
         repo = repo.read()
         assert repo.content_counts['srpm'] == 0
 
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -2202,10 +2255,6 @@ class TestSRPMRepositoryIgnoreContent:
         repo = repo.read()
         assert repo.content_counts['srpm'] == 2
 
-    @pytest.mark.skip('Uses deprecated SRPM repository')
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
     @pytest.mark.parametrize(
         'repo_options',
         **datafactory.parametrized(
@@ -2306,7 +2355,7 @@ class TestTokenAuthContainerRepository:
 
     :CaseComponent: ContainerImageManagement
 
-    :team: Phoenix-content
+    :team: Artemis
     """
 
     def test_positive_create_with_long_token(
