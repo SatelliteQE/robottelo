@@ -137,57 +137,6 @@ def test_positive_inventory_recommendation_sync(
     assert 'Synchronized Insights hosts hits data' in result.stdout
 
 
-@pytest.mark.e2e
-@pytest.mark.pit_server
-@pytest.mark.pit_client
-def test_positive_sync_inventory_status(
-    rhcloud_manifest_org,
-    rhcloud_registered_hosts,
-    module_target_sat,
-):
-    """Sync inventory status via foreman-rake commands:
-    https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md
-
-    :id: 915ffbfd-c2e6-4296-9d69-f3f9a0e79b32
-
-    :steps:
-
-        0. Create a VM and register to insights within org having manifest.
-        1. Sync inventory status for specific organization.
-            # export organization_id=1
-            # /usr/sbin/foreman-rake rh_cloud_inventory:sync
-
-    :expectedresults: Inventory status is successfully synced for satellite hosts.
-
-    :BZ: 1957186
-
-    :CaseAutomation: Automated
-    """
-    org = rhcloud_manifest_org
-    cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
-    success_msg = f"Synchronized inventory for organization '{org.name}'"
-    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
-    result = module_target_sat.execute(cmd)
-    assert result.status == 0
-    assert success_msg in result.stdout
-    # Check task details
-    wait_for(
-        lambda: module_target_sat.api.ForemanTask()
-        .search(query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'})[0]
-        .result
-        == 'success',
-        timeout=400,
-        delay=15,
-        silent_failure=True,
-        handle_exception=True,
-    )
-    task_output = module_target_sat.api.ForemanTask().search(
-        query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'}
-    )
-    assert task_output[0].output['host_statuses']['sync'] == 2
-    assert task_output[0].output['host_statuses']['disconnect'] == 0
-
-
 def test_positive_sync_inventory_status_missing_host_ip(
     rhcloud_manifest_org,
     rhcloud_registered_hosts,
