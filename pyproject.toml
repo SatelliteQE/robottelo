@@ -14,7 +14,7 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
 ]
-requires-python = "~=3.11"
+requires-python = "~=3.12"
 license = {text = "GNU GPL v3.0"}
 
 [project.urls]
@@ -32,7 +32,7 @@ include = ["robottelo*"]
 exclude = ["tests*"]
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 # Allow lines to be as long as 100.
 line-length = 100
 exclude = [".git", ".hg", ".mypy_cache", ".venv", "_build", "buck-out", "build", "dist"]
