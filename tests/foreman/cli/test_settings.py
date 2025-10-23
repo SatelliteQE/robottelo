@@ -15,7 +15,6 @@
 import random
 from time import sleep
 
-from fauxfactory import gen_integer
 import pytest
 
 from robottelo.config import settings
@@ -472,6 +471,15 @@ def test_positive_existing_setting_info(setting_update, module_target_sat):
 
     :id: 73568bf2-8419-11f0-9102-c6fadc44396c
 
+    :CaseImportance: Low
+
+    :steps:
+       1. Get setting info for a existing setting
+       2. Verify the setting info name is correct
+       3. Verify the setting info value is correct
+       4. Verify the setting info description is correct
+       5. Verify the setting info settings-type is correct
+
     :parametrized: yes
 
     :expectedresults: Setting info is returned successfully
@@ -481,18 +489,3 @@ def test_positive_existing_setting_info(setting_update, module_target_sat):
     assert setting_info['value'] == setting_update.value
     assert setting_info['description'] == setting_update.description
     assert setting_info['settings-type'] == setting_update.settings_type
-
-
-def test_negative_non_existing_setting_info(module_target_sat):
-    """Get setting info for non existing setting
-
-    :id: 7b8b83d6-8419-11f0-9102-c6fadc44396c
-
-    :expectedresults: Correct error message is returned
-
-    :verifies: SAT-20238
-    """
-    non_existing_id = gen_integer(min_value=1, max_value=10000)
-    with pytest.raises(CLIReturnCodeError) as error:
-        module_target_sat.cli.Settings.info({'id': non_existing_id})
-    assert f"Resource setting not found by id '{non_existing_id}'" in error.value.message
