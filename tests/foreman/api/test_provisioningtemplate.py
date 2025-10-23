@@ -238,6 +238,7 @@ class TestProvisioningTemplate:
     @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
     def test_positive_template_check_ipxe(
         self,
+        request,
         module_sync_kickstart_content,
         module_target_sat,
         module_sca_manifest_org,
@@ -279,6 +280,8 @@ class TestProvisioningTemplate:
                 'lifecycle_environment_id': module_lce_library.id,
             },
         ).create()
+        request.addfinalizer(lambda: host.delete())
+
         ipxe_template = host.read_template(data={'template_kind': 'iPXE'})['template']
         ks_param = 'ks=' if module_sync_kickstart_content.rhel_ver <= 8 else 'inst.ks='
         assert ipxe_template.count(ks_param) == 1
@@ -286,6 +289,7 @@ class TestProvisioningTemplate:
     @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
     def test_positive_template_check_vlan_parameter(
         self,
+        request,
         module_sync_kickstart_content,
         module_target_sat,
         module_sca_manifest_org,
@@ -345,6 +349,9 @@ class TestProvisioningTemplate:
                 },
             ],
         ).create()
+
+        request.addfinalizer(lambda: host.delete())
+
         provision_template = host.read_template(data={'template_kind': 'provision'})['template']
         assert f'interfacename=vlan{tag}' in provision_template
         ipxe_template = host.read_template(data={'template_kind': 'iPXE'})['template']
@@ -355,6 +362,7 @@ class TestProvisioningTemplate:
     @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
     def test_positive_template_subnet_with_boot_mode(
         self,
+        request,
         module_sync_kickstart_content,
         module_target_sat,
         module_sca_manifest_org,
@@ -396,6 +404,12 @@ class TestProvisioningTemplate:
             architecture=default_architecture,
             operatingsystem=module_sync_kickstart_content.os,
         ).create()
+
+        @request.addfinalizer
+        def _finalize():
+            host.delete()
+            subnet.delete()
+
         # Verify provision templates for boot_mode in subnet, and check provision logs exists
         rendered = host.read_template(data={'template_kind': 'provision'})['template']
         assert f'--bootproto {boot_mode.lower()}' in rendered
@@ -411,7 +425,7 @@ class TestProvisioningTemplate:
             assert f'ks={ks_param}' in rendered
 
     def test_positive_template_use_graphical_installer(
-        self, module_target_sat, module_sca_manifest_org, module_location, default_os
+        self, request, module_target_sat, module_sca_manifest_org, module_location, default_os
     ):
         """Check whether use_graphical_installer parameter is properly rendered
             in the provisioning templates
@@ -431,6 +445,9 @@ class TestProvisioningTemplate:
             location=module_location,
             operatingsystem=default_os,
         ).create()
+
+        request.addfinalizer(lambda: host.delete())
+
         # Host will default boot into text mode with kickstart's skipx command
         render = host.read_template(data={'template_kind': 'provision'})['template']
         assert 'skipx' in render
@@ -451,6 +468,7 @@ class TestProvisioningTemplate:
     @pytest.mark.parametrize('aap_version', ['2.4', '2.5'])
     def test_positive_template_check_aap_snippet(
         self,
+        request,
         aap_version,
         module_sync_kickstart_content,
         module_target_sat,
@@ -502,6 +520,9 @@ class TestProvisioningTemplate:
             },
             host_parameters_attributes=host_params,
         ).create()
+
+        request.addfinalizer(lambda: host.delete())
+
         render = host.read_template(data={'template_kind': 'provision'})['template']
         assert f'{aap_api_url}/job_templates/{template_id}/callback/' in render
         assert 'systemctl enable ansible-callback' in render
@@ -511,6 +532,7 @@ class TestProvisioningTemplate:
     @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
     def test_positive_template_check_rex_snippet(
         self,
+        request,
         module_sync_kickstart_content,
         module_target_sat,
         module_provisioning_capsule,
@@ -578,6 +600,9 @@ class TestProvisioningTemplate:
                 },
             ],
         ).create()
+
+        request.addfinalizer(lambda: host.delete())
+
         rex_snippet = host.read_template(data={'template_kind': 'provision'})['template']
         assert f'chown -R {rex_user}: ~{rex_user}' in rex_snippet
         assert f'chown -R {rex_user}: ~{rex_user}/.ssh' in rex_snippet
@@ -590,6 +615,7 @@ class TestProvisioningTemplate:
     @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
     def test_positive_template_check_rex_pull_mode_snippet(
         self,
+        request,
         module_sync_kickstart_content,
         module_target_sat,
         module_provisioning_capsule,
@@ -635,6 +661,9 @@ class TestProvisioningTemplate:
                 },
             ],
         ).create()
+
+        request.addfinalizer(lambda: host.delete())
+
         rex_snippet = host.read_template(data={'template_kind': 'provision'})['template']
         assert 'chmod +x /root/remote_execution_pull_setup.sh' in rex_snippet
 
@@ -651,6 +680,7 @@ class TestProvisioningTemplate:
     @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
     def test_positive_template_check_fips_enabled(
         self,
+        request,
         module_sync_kickstart_content,
         module_target_sat,
         module_sca_manifest_org,
@@ -688,6 +718,9 @@ class TestProvisioningTemplate:
             },
             host_parameters_attributes=host_params,
         ).create()
+
+        request.addfinalizer(lambda: host.delete())
+
         render = host.read_template(data={'template_kind': 'provision'})['template']
         assert 'dracut-fips' in render
         assert '-prelink' in render
@@ -698,6 +731,7 @@ class TestProvisioningTemplate:
     @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
     def test_positive_verify_chronyd_timesource_kickstart_template(
         self,
+        request,
         module_sync_kickstart_content,
         module_target_sat,
         module_sca_manifest_org,
@@ -737,6 +771,9 @@ class TestProvisioningTemplate:
                 },
             ],
         ).create()
+
+        request.addfinalizer(lambda: host.delete())
+
         render = host.read_template(data={'template_kind': 'provision'})['template']
         # Check chronyd is getting installed in place of ntpdate which is deprecated.
         assert 'systemctl enable --now chronyd' in render
