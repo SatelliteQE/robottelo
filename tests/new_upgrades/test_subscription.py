@@ -200,3 +200,25 @@ def test_subscription_scenario_auto_attach(subscription_auto_attach_setup):
     sub = target_sat.api.Subscription(organization=org)
     sub.delete_manifest(data={'organization_id': org.id})
     assert len(sub.search()) == 0
+
+
+@pytest.mark.subscription_upgrades
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+@pytest.mark.no_containers
+@pytest.mark.manifester
+def test_candlepin_hung_transaction(subscription_auto_attach_setup):
+    """Check that no open Candlepin transactions are present after upgrading
+
+    :id: b2d8f844-3e9c-4c25-87a8-b9a2a21738b9
+
+    :steps:
+      After upgrade, check the Candlepin database for dangling transactions.
+
+    :expectedresults:
+      No dangling transactions are present in the Candlepin database.
+    """
+    result = subscription_auto_attach_setup.satellite.execute(
+        'sudo -u postgres psql -d candlepin -c "SELECT * FROM pg_stat_activity WHERE state IN (\'idle in transaction\');"'
+    )
+    assert result.status == 0
+    assert 'idle in transaction' not in result.stdout
