@@ -352,3 +352,47 @@ def test_rhcloud_inventory_without_manifest(session, module_org, target_sat):
         f'Skipping organization {module_org.name}, no candlepin certificate defined.'
         in inventory_data['uploading']['terminal']
     )
+
+
+@pytest.mark.e2e
+@pytest.mark.pit_server
+@pytest.mark.pit_client
+@pytest.mark.rhel_ver_list([7, 8, 9, 10])
+def test_sync_inventory_status(rhcloud_manifest_org, rhcloud_registered_hosts, module_target_sat):
+    """Test syncing Lightspeed inventory status
+
+    :id: 1fe47111-8831-4168-b79e-ca7c1f6aa343
+
+    :steps:
+        1. Register 2 hosts to Satellite to an org with a manifest imported and set up Lightspeed.
+        2. Sync the Lightspeed inventory for the org.
+
+    :expectedresults: Inventory status is successfully synced for the hosts.
+
+    :BZ: 1957186
+
+    :CaseAutomation: Automated
+    """
+    org = rhcloud_manifest_org
+    inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
+    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
+
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        session.cloudinventory.sync_inventory_status()
+        wait_for(
+            lambda: module_target_sat.api.ForemanTask()
+            .search(query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'})[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        task_output = module_target_sat.api.ForemanTask().search(
+            query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'}
+        )
+        assert task_output[0].output['host_statuses']['sync'] == 2
+        assert task_output[0].output['host_statuses']['disconnect'] == 0
