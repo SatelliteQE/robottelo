@@ -3263,7 +3263,7 @@ def test_positive_all_hosts_manage_host_collections(target_sat, function_org, fu
             host_collections_to_select=host_col_limit_1_name,
             option='Add',
         )
-        assert 'Validation failed' in result
+        assert 'Failed to add host to host collection.' in result
         hosts_in_host_col = read_host_collections_hosts(
             target_sat, host_col_limit_1_name, function_org
         )
