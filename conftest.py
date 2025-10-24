@@ -64,6 +64,7 @@ pytest_plugins = [
     'pytest_fixtures.component.provision_capsule_pxe',
     'pytest_fixtures.component.provision_vmware',
     'pytest_fixtures.component.provisioning_template',
+    'pytest_fixtures.component.pulp',
     'pytest_fixtures.component.puppet',
     'pytest_fixtures.component.repository',
     'pytest_fixtures.component.rh_cloud',

@@ -129,6 +129,17 @@ def content_upgrade_shared_satellite():
         test_duration.ready()
 
 
+@pytest.fixture(scope='module')
+def pulp_upgrade_shared_satellite():
+    """Mark tests using this fixture with pytest.mark.pulp_upgrades."""
+    sat_instance = shared_checkout("pulp_upgrade")
+    with SharedResource(
+        "pulp_upgrade_tests", shared_checkin, sat_instance=sat_instance
+    ) as test_duration:
+        yield sat_instance
+        test_duration.ready()
+
+
 @pytest.fixture
 def search_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.search_upgrades."""
