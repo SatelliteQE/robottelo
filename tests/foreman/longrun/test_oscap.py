@@ -756,12 +756,13 @@ def test_positive_oscap_run_via_local_files(
         target_sat, contenthost, module_org, default_proxy, lifecycle_env
     )
 
-    file_name = 'security-data-oval-com.redhat.rhsa-RHEL8.xml.bz2'
+    file_name = 'security-data-oval-com.redhat.rhsa-RHEL8.xml'
     download_url = 'https://www.redhat.com/security/data/oval/v2/RHEL8/rhel-8.oval.xml.bz2'
 
     # The file here needs to be present on the client in order
     # to perform the scan from the local-files.
-    contenthost.execute(f'curl -o {file_name} {download_url}')
+    assert contenthost.execute(f'wget {download_url} -O {file_name}.bz2').status == 0
+    assert contenthost.execute(f'bzip2 -dk {file_name}.bz2').status == 0
 
     # Apply policy
     job_id = target_sat.cli.Host.ansible_roles_play({'name': contenthost.hostname.lower()})[0].get(
