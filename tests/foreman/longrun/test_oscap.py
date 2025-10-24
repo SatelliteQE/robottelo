@@ -761,7 +761,8 @@ def test_positive_oscap_run_via_local_files(
 
     # The file here needs to be present on the client in order
     # to perform the scan from the local-files.
-    contenthost.execute(f'curl -o {file_name} {download_url}')
+    contenthost.execute(f'wget {download_url} -O {file_name}')
+    contenthost.execute(f'bzip2 -dk {file_name}')
 
     # Apply policy
     job_id = target_sat.cli.Host.ansible_roles_play({'name': contenthost.hostname.lower()})[0].get(
