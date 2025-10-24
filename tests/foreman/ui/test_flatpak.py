@@ -155,4 +155,4 @@ def test_CRUD_scan_and_mirror_flatpak_remote(target_sat, function_org, function_
         session.flatpak_remotes.delete(fr_name)
         remotes = session.flatpak_remotes.read()
         assert 'no_results' in remotes
-        assert 'table' not in remotes
+        assert 'No Results' in str(remotes['table'])
