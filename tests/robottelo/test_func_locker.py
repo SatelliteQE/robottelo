@@ -198,7 +198,10 @@ class TestFuncLocker:
     def count_and_pool(self):
         global counter_file
         counter_file.write('0')
-        pool = multiprocessing.Pool(POOL_SIZE)
+        # Always use the same start method for all Python versions
+        # 'fork' is consistent with pre-3.14 behavior
+        ctx = multiprocessing.get_context('fork')
+        pool = ctx.Pool(POOL_SIZE)
         yield pool
 
         pool.terminate()

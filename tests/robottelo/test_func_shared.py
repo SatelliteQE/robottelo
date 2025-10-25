@@ -171,7 +171,10 @@ class TestFuncShared:
 
     @pytest.fixture
     def pool(self):
-        pool = multiprocessing.Pool(DEFAULT_POOL_SIZE)
+        # Always use the same start method for all Python versions
+        # 'fork' is consistent with pre-3.14 behavior
+        ctx = multiprocessing.get_context('fork')
+        pool = ctx.Pool(DEFAULT_POOL_SIZE)
         yield pool
 
         pool.terminate()
