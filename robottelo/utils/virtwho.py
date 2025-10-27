@@ -623,11 +623,15 @@ def hypervisor_guest_mapping_newcontent_ui(org_session, hypervisor_name, guest_n
         hypervisor_display_name, 'overview'
     )
 
-    assert hypervisorhost_new_overview['overview']['host_status']['status'] == 'All statuses cleared'
+    assert (
+        hypervisorhost_new_overview['overview']['host_status']['status'] == 'All statuses cleared'
+    )
     # hypervisor host Check details
     hypervisorhost_new_detais = org_session.host_new.get_details(hypervisor_display_name, 'details')
     assert (
-        hypervisorhost_new_detais['details']['system_properties']['sys_properties']['virtual_guests']
+        hypervisorhost_new_detais['details']['system_properties']['sys_properties'][
+            'virtual_guests'
+        ]
         == '1 guests'
     )
     assert (
