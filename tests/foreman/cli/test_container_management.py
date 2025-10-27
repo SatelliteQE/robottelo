@@ -550,6 +550,7 @@ class TestDockerClient:
         res = host.execute('podman images')
         assert cv_path in res.stdout
 
+    @pytest.mark.destructive
     def test_destructive_container_registry_with_dns_alias(self, request, target_sat):
         """Test container registry operations with DNS alias
 
@@ -589,15 +590,9 @@ class TestDockerClient:
         org_label = organization.label
         product_label = product.label
 
-        # @request.addfinalizer
-        def cleanup_org_and_product():
-            # Cleanup organization (this will also cleanup the product)
-            target_sat.api.Organization(id=organization.id).delete()
-
         # Step 1: Register Satellite with CDN (already done in setup)
 
         # Step 2: Add DNS alias to /etc/hosts
-        original_hosts = target_sat.execute('cat /etc/hosts').stdout
         hosts_entry = f"{target_sat.ip_addr} {alias_hostname}"
 
         def add_hosts_entry():
@@ -606,14 +601,8 @@ class TestDockerClient:
 
         assert add_hosts_entry()
 
-        @request.addfinalizer
-        def restore_hosts():
-            # Restore original /etc/hosts
-            target_sat.execute(f'echo "{original_hosts}" > /etc/hosts')
-
         # Step 3: Configure foreman's settings.yaml to allow the DNS alias
         settings_yaml_path = FOREMAN_CONFIG_SETTINGS_YAML
-        original_settings = target_sat.execute(f'cat {settings_yaml_path}').stdout
 
         # Add host configuration to settings.yaml
         host_config = f":hosts:\n  - {alias_hostname}"
@@ -625,13 +614,7 @@ class TestDockerClient:
         assert update_settings()
 
         # Restart foreman service to apply settings
-        target_sat.execute('foreman-maintain service restart')
-
-        @request.addfinalizer
-        def restore_settings():
-            # Restore original settings.yaml
-            target_sat.execute(f'echo "{original_settings}" > {settings_yaml_path}')
-            target_sat.execute('systemctl restart foreman')
+        target_sat.cli.Service.restart()
 
         # Step 4: Pull image from quay.io
         busybox_image = 'quay.io/quay/busybox'
@@ -648,20 +631,12 @@ class TestDockerClient:
                 break
         assert busybox_image_id, f"Could not find image ID for {busybox_image}"
 
-        @request.addfinalizer
-        def cleanup_image():
-            target_sat.execute(f'podman rmi {busybox_image}')
-
         # Step 5: Run podman login with the alias hostname
         login_result = target_sat.execute(
             f'podman login {alias_hostname} --tls-verify=false '
             f'-u {settings.server.admin_username} -p {settings.server.admin_password}'
         )
         assert login_result.status == 0
-
-        @request.addfinalizer
-        def logout():
-            target_sat.execute(f'podman logout {alias_hostname}')
 
         # Step 6: Run podman push with the alias hostname using image ID
         container_uri = f"{alias_hostname}/{org_label}/{product_label}/{repo_name}"
@@ -677,11 +652,6 @@ class TestDockerClient:
         # Verify the image is available
         images_result = target_sat.execute('podman images')
         assert container_uri in images_result.stdout
-
-        # Cleanup pulled image
-        @request.addfinalizer
-        def cleanup_pulled_image():
-            target_sat.execute(f'podman rmi {container_uri}')
 
         logger.info(
             f"Successfully verified container registry operations with DNS alias {alias_hostname}"
