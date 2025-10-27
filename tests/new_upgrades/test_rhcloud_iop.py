@@ -116,6 +116,9 @@ def test_iop_recommendations_upgrade(iop_recommendations_upgrade_setup):
     with target_sat.ui_session() as session:
         session.organization.select(org_name=org_name)
 
+        # Force register host with insights
+        target_sat.execute('insights-client --register --force')
+
         # Search for the recommendation and verify it still exists post-upgrade
         result = session.recommendationstab.search(recommendation_name)
         assert result[0]['Name'] == recommendation_name
