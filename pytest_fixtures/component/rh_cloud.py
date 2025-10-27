@@ -34,7 +34,6 @@ def module_target_sat_insights(request, module_target_sat, satellite_factory):
 
     if not hosted_insights:
         iop_settings = settings.rh_cloud.iop_advisor_engine
-        script = (iop_settings.setup_script or '').splitlines()
 
         # Use HTTPS_PROXY to reach container registry for IPv6
         satellite.enable_ipv6_system_proxy()
@@ -62,14 +61,6 @@ def module_target_sat_insights(request, module_target_sat, satellite_factory):
         )
         if cmd_result.status != 0:
             raise SatelliteHostError(f'Error installing advisor engine: {cmd_result.stdout}')
-
-        # Perform any post-install steps, such as custom rule content generation
-        for cmd in script:
-            cmd_result = satellite.execute(cmd)
-            if cmd_result.status != 0:
-                raise SatelliteHostError(
-                    f'Error during post-install setup of advisor engine: {cmd_result.stdout}'
-                )
 
     yield satellite
 
