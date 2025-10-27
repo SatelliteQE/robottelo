@@ -67,7 +67,7 @@ def test_bootc_booted_container_images(
         assert booted_container_image_info[1]['Hosts'] == '1'
 
 
-def test_bootc_host_details(target_sat, bootc_host, function_ak_with_cv, function_org):
+def test_bootc_host_details(target_sat, dummy_bootc_host, function_ak_with_cv, function_org):
     """Create a bootc host, and read it's information via the Host Details UI
 
     :id: 842356e9-8798-421d-aca6-0a1774c3f22b
@@ -77,12 +77,17 @@ def test_bootc_host_details(target_sat, bootc_host, function_ak_with_cv, functio
     :Verifies:SAT-27171
     """
     bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
-    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
-    assert bootc_host.subscribed
+    assert (
+        dummy_bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status
+        == 0
+    )
+    assert dummy_bootc_host.subscribed
 
     with target_sat.ui_session() as session:
         session.organization.select(function_org.name)
-        values = session.host_new.get_details(bootc_host.hostname, widget_names='details.bootc')
+        values = session.host_new.get_details(
+            dummy_bootc_host.hostname, widget_names='details.bootc'
+        )
         assert (
             values['details']['bootc']['details']['running_image']
             == bootc_dummy_info['bootc.booted.image']
