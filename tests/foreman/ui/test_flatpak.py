@@ -156,3 +156,45 @@ def test_CRUD_scan_and_mirror_flatpak_remote(target_sat, function_org, function_
         remotes = session.flatpak_remotes.read()
         assert 'no_results' in remotes
         assert 'No Results' in str(remotes['table'])
+
+
+def test_rh_flatpak_remote_info_alert(target_sat, function_org):
+    """Test correct information and function of the Red Hat Flatpak remote banner.
+
+    :id: b12d8f10-c496-44ad-bf20-f1e6cd32e522
+
+    :setup:
+        1. Create a new Organization.
+
+    :steps:
+        1. Open Create Flatpak Remote modal, ensure correct information is displayed.
+        2. Create Red Hat flatpak remote using shortcut button, ensure correct link is used.
+        3. Open Create Flatpak Remote modal again, ensure the information alert is not displayed.
+
+    :expectedresults:
+        1. Create Flatpak Remote modal shows info alert with correct information.
+        2. The shortcut button provides correct link to Red Hat flatpak registry.
+        3. No info alert is displayed when RH Flatpak Remote already exists.
+
+    """
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+
+        # Open Create Flatpak Remote modal, ensure correct information is displayed.
+        rh_info = session.flatpak_remotes.read_create_modal_alert()
+        assert rh_info
+        assert 'Add Red Hat Flatpak remote' in rh_info['title']
+        assert (
+            'To continue with Red Hat Flatpak remote, you need to generate your username and password in access.redhat.com/terms-based-registry/'
+            in rh_info['body']
+        )
+
+        # Create Red Hat flatpak remote using shortcut button, ensure correct link is used.
+        session.flatpak_remotes.create_redhat_remote({'name': gen_string('alpha')})
+        remotes = session.flatpak_remotes.read_table()
+        assert len(remotes) == 1
+        assert remotes[0]['URL'] in FLATPAK_REMOTES['RedHat']['url']
+
+        # Open Create Flatpak Remote modal again, ensure the information alert is not displayed.
+        rh_info = session.flatpak_remotes.read_create_modal_alert()
+        assert not rh_info
