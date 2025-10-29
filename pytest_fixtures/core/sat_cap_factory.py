@@ -88,7 +88,9 @@ def satellite_factory():
             **broker_args,
         )
         timeout = (1200 + delay) * retry_limit
-        sat = wait_for(vmb.checkout, timeout=timeout, delay=delay, fail_condition=[])
+        sat = wait_for(
+            vmb.checkout, timeout=timeout, delay=delay, handle_exception=True, raise_original=True
+        )
         return sat.out
 
     return factory
@@ -121,7 +123,9 @@ def capsule_factory():
             **broker_args,
         )
         timeout = (1200 + delay) * retry_limit
-        cap = wait_for(vmb.checkout, timeout=timeout, delay=delay, fail_condition=[])
+        cap = wait_for(
+            vmb.checkout, timeout=timeout, delay=delay, handle_exception=True, raise_original=True
+        )
         return cap.out
 
     return factory
@@ -244,7 +248,9 @@ def module_lb_capsule(retry_limit=3, delay=300, **broker_args):
             _count=2,
             **broker_args,
         )
-        cap_hosts = wait_for(hosts.checkout, timeout=timeout, delay=delay)
+        cap_hosts = wait_for(
+            hosts.checkout, timeout=timeout, delay=delay, handle_exception=True, raise_original=True
+        )
 
     [cap.enable_ipv6_dnf_and_rhsm_proxy() for cap in cap_hosts.out]
     yield cap_hosts.out
