@@ -350,12 +350,22 @@ class TestLocation:
 
         :CaseImportance: High
         """
-        location, parent_location = _location_with_parent(request, target_sat)
-
-        parent_location_2 = _location(request, target_sat)
-        target_sat.cli.Location.update({'id': location['id'], 'parent-id': parent_location_2['id']})
-        location = target_sat.cli.Location.info({'id': location['id']})
-        assert location['parent'] == parent_location_2['name']
+        try:
+            parent_location = target_sat.cli_factory.make_location()
+            location = target_sat.cli_factory.make_location({'parent-id': parent_location['id']})
+            parent_location_2 = target_sat.cli_factory.make_location()
+            target_sat.cli.Location.update(
+                {'id': location['id'], 'parent-id': parent_location_2['id']}
+            )
+            location = target_sat.cli.Location.info({'id': location['id']})
+            assert location['parent'] == parent_location_2['name']
+        finally:
+            if target_sat.cli.Location.exists(search=('id', location['id'])):
+                target_sat.cli.Location.delete(options={'id': location['id']})
+            if target_sat.cli.Location.exists(search=('id', parent_location['id'])):
+                target_sat.cli.Location.delete(options={'id': parent_location['id']})
+            if target_sat.cli.Location.exists(search=('id', parent_location_2['id'])):
+                target_sat.cli.Location.delete(options={'id': parent_location_2['id']})
 
     def test_negative_update_parent_with_child(self, request, target_sat):
         """Attempt to set child location as a parent and vice versa
