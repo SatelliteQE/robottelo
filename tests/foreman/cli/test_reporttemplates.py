@@ -909,6 +909,7 @@ def test_negative_generate_hostpkgcompare_nonexistent_host(module_target_sat):
     assert "At least one of the hosts couldn't be found" in cm.value.stderr
 
 
+@pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-2')
 def test_positive_generate_installed_packages_report(
     module_sca_manifest_org,
@@ -957,16 +958,21 @@ def test_positive_generate_installed_packages_report(
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert client.subscribed
     client.execute(f'yum -y install {FAKE_0_CUSTOM_PACKAGE_NAME} {FAKE_1_CUSTOM_PACKAGE}')
-    result_html = target_sat.cli.ReportTemplate.generate(
+    tmp_dir = f'/var/tmp/report-{client.hostname}'
+    assert target_sat.execute(f'mkdir -p {tmp_dir}').status == 0, 'Failed to create directory'
+    target_sat.cli.ReportTemplate.generate(
         {
             'organization': module_sca_manifest_org.name,
             'name': 'Host - All Installed Packages',
             'report-format': 'html',
             'inputs': f'Hosts filter={client.hostname}',
+            'path': f'{tmp_dir}/',
         }
     )
-    assert client.hostname in result_html
-    assert FAKE_1_CUSTOM_PACKAGE in result_html
+    assert target_sat.execute(f'grep {FAKE_1_CUSTOM_PACKAGE_NAME} {tmp_dir}/*').status == 0, (
+        'Package not found in report'
+    )
+    target_sat.execute(f'rm -rf {tmp_dir}')
 
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
