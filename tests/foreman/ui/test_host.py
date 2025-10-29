@@ -301,8 +301,8 @@ def test_read_host_with_ics_domain(
         session.location.select(smart_proxy_location.name)
         values = session.host_new.get_details(host_name, widget_names='details')
         assert (
-                values['details']['system_properties']['sys_properties']['domain']
-                == template.domain.name
+            values['details']['system_properties']['sys_properties']['domain']
+            == template.domain.name
         )
         assert values['details']['system_properties']['sys_properties']['name'] == host_name
 
