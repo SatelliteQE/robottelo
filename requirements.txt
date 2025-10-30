@@ -1,7 +1,7 @@
 # Version updates managed by dependabot
 
 apypie==0.7.1
-broker[docker,podman,hussh]==0.6.12
+broker[docker,podman,hussh]==0.7.0
 cryptography==43.0.3
 deepdiff==8.6.1
 dynaconf[vault]==3.2.12
