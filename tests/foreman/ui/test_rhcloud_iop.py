@@ -278,7 +278,7 @@ def test_rhcloud_inventory_disabled_local_insights(module_target_sat_insights):
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('N-1')
+@pytest.mark.rhel_ver_match(r'^(?![78]).*')
 @pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
 def test_iop_recommendations_remediation_type_and_status(
     rhel_insights_vm,
