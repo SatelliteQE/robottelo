@@ -2635,7 +2635,7 @@ class Satellite(Capsule, SatelliteMixins):
             )
             wait_for(
                 lambda: self.execute(
-                    'dig +short AAAA $(hostname) && dig +short -x $(dig +short AAAA $(hostname))'
+                    'dig AAAA $(hostname) | grep "ANSWER SECTION" && dig -x $(dig +short AAAA $(hostname)) | grep "ANSWER SECTION"'
                 ),
                 fail_condition=lambda res: res.status != 0,
                 timeout=3800,
