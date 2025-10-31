@@ -59,11 +59,11 @@ def _setup_mcp_server(target_sat, settings_obj, is_downstream=False):
     target_sat.ensure_podman_installed()
     if is_downstream:
         target_sat.podman_login(
-            settings_obj.registry_stage_username,
-            settings_obj.registry_stage_password,
-            settings_obj.registry_stage,
+            settings_obj.registry_username,
+            settings_obj.registry_password,
+            settings_obj.registry,
         )
-        registry = settings_obj.registry_stage
+        registry = settings_obj.registry
         ca_mountpoint = '/opt/app-root/src/ca.pem'
     else:
         registry = settings_obj.registry
@@ -138,7 +138,7 @@ def module_downstream_mcp_target_sat(module_target_sat):
     _cleanup_mcp_server(
         module_target_sat,
         container_name,
-        settings.foreman_mcp_downstream.registry_stage,
+        settings.foreman_mcp_downstream.registry,
         settings.foreman_mcp_downstream.image_path,
     )
 
