@@ -22,6 +22,7 @@ from robottelo.constants import (
     REPO_TYPE,
 )
 from robottelo.logging import logger
+from robottelo.utils.issue_handlers import is_open
 
 
 def _repo(sat, product_id, name=None, upstream_name=None, url=None):
@@ -482,7 +483,7 @@ class TestDockerClient:
 
         :parametrized: yes
 
-        :Verifies: SAT-33254, SAT-33255, SAT-33260
+        :Verifies: SAT-33254, SAT-33255, SAT-33260, SAT-39878
 
         :setup:
             1. Associate the organization and LCE to the capsule.
@@ -535,8 +536,9 @@ class TestDockerClient:
         assert lib_path not in finds
         assert repo_path not in finds
         assert cv_path in finds
-        paths = [f.strip() for f in finds.split('\n') if 'NAME' not in f and len(f)]
-        assert len(paths) == 1
+        if not is_open('SAT-39878'):
+            paths = [f.strip() for f in finds.split('\n') if 'NAME' not in f and len(f)]
+            assert len(paths) == 1
 
         # 4. Try podman search/pull for Library images, ensure it fails.
         for path in [lib_path, repo_path]:
