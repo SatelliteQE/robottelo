@@ -388,3 +388,85 @@ def custom_host(request):
     deploy_args['workflow'] = 'deploy-rhel'
     with Broker(**deploy_args, host_class=Satellite) as host:
         yield host
+
+
+@pytest.fixture
+def registered_contenthosts(request, target_sat, module_org, module_ak, module_cv, fake_yum_repos):
+    """Create and register multiple contenthosts to satellite.
+    Parametrize int `count` (num of registered hosts), default: 2.
+        by passing a request containing param 'count'.
+    Parametrize str `rhel` (deploy_rhel_version), default: settings.content_host.default_rhel_version
+        by passing a request containing param 'rhel'.
+    Parametrize str `workflow` (used for checkout), default: 'deploy-rhel'.
+        by passing a request containing param 'workflow'.
+
+    default: No parametrization will result in 2 hosts, settings.content_host.default_rhel_version
+
+    example distro rhel10, count=5, default workflow:
+        @pytest.mark.parametrize(
+            'registered_contenthosts',
+            [{'rhel': 10, 'count': 5, 'workflow': 'deploy-rhel'}],
+            indirect=True,
+        )
+    Note: Does Not make use of `markers.rhel_ver_match`, or `markers.rhel_ver_list`,
+        leads to duplicate parametrizations.
+    Three custom repositories will be synced & enabled initially,
+    Add, enable, and sync any other repos to CV/AK for hosts, following fixture setup.
+
+    """
+    param = getattr(request, 'param', {})
+    _config = host_conf(request)
+    _config['_count'] = param.get('count', 2)
+    assert all([isinstance(_config['_count'], int), _config['_count'] > 0]), (
+        'Count must be an integer greater than zero.'
+    )
+    _config['workflow'] = param.get('workflow', 'deploy-rhel')
+    # ^ TODO: change to settings.contenthost.default_deploy_workflow once in CONF
+    assert isinstance(_config['workflow'], str)
+    _config['deploy_rhel_version'] = str(
+        param.get('rhel', settings.content_host.default_rhel_version)
+    )
+    _config['distro'] = 'rhel'
+    _config['rhel_version'] = _config['deploy_rhel_version']
+    # Add the repos to CV, update, needs_publish should be True
+    module_cv.repository = fake_yum_repos
+    module_cv.update(['repository'])
+    module_cv = module_cv.read()
+    assert module_cv.needs_publish
+    # Repositories (fixture: fake_yum_repos) already added to CV,
+    # Checkout Broker host(s) via requested distro and count, or defaults.
+    with Broker(
+        **_config,
+        host_class=ContentHost,
+    ) as content_hosts:
+        for chost in content_hosts:
+            # Add CV and 'Library' env to AK, publish a Version if needs_publish.
+            # Register the client, override custom repositories to Enabled.
+            setup = target_sat.api_factory.register_host_and_needed_setup(
+                activation_key=module_ak,
+                organization=module_org,
+                content_view=module_cv,
+                environment='Library',
+                enable_repos=True,
+                client=chost,
+            )
+            assert setup['result'] != 'error', f'{setup["message"]}'
+            module_cv = setup['content_view'].read()
+            # subscription-manager reports no error
+            assert chost.execute('subscription-manager repos').status == 0
+        yield content_hosts
+
+    # cleanup: delete the fake_yum_repos,
+    # first, remove environment and content-view associations from AK,
+    # then, delete all of the module_cv version(s) which may contain the repos.
+    module_ak = module_ak.read()
+    module_ak.environment = []
+    module_ak.content_view = None
+    module_ak.update(['content_view', 'environment'])
+    module_cv = module_cv.read()
+    if len(module_cv.version) > 0:
+        task = module_cv.remove_version(versions=module_cv.version)
+        assert target_sat.api.ForemanTask(id=task['id']).poll()
+        # delete the updated repositories
+        for repo in fake_yum_repos:
+            repo.read().delete()
