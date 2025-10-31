@@ -571,3 +571,28 @@ class TestPersonalAccessToken:
                 action='create',
                 options={'name': token_name, 'user-id': user['id'], 'expires-at': datetime_expire},
             )
+
+    def test_positive_host_owner(self, target_sat):
+        """Host owner is cleared when the assigned user is deleted
+
+        :id: ac935f6c-5d26-4b57-97b5-9ddee7c7b3a4
+
+        :verifies: SAT-34234
+
+        :customerscenario: true
+
+        :expectedresults: host_owner is cleared when the assigned user is deleted
+
+        """
+        user = target_sat.cli_factory.user()
+        target_sat.cli.Settings.set({'name': "host_owner", 'value': f'{user["id"]}-Users'})
+        host_owner = target_sat.cli.Settings.list({'search': 'name=host_owner'})[0]
+        assert host_owner['value'] == f'{user["id"]}-Users'
+        target_sat.cli.User.delete({'id': user['id']})
+        host_owner = target_sat.cli.Settings.list({'search': 'name=host_owner'})[0]
+        try:
+            assert host_owner['value'] == ''
+        except AssertionError:
+            pytest.fail(f'Host owner is not cleared: {host_owner["value"]}')
+        finally:
+            target_sat.cli.Settings.set({'name': "host_owner", 'value': ''})
