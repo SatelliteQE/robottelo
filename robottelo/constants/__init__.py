@@ -2060,6 +2060,7 @@ FOREMAN_TEMPLATE_TEST_TEMPLATE = (
 )
 
 FOREMAN_TEMPLATE_ROOT_DIR = '/usr/share/foreman_templates'
+FOREMAN_CONFIG_SETTINGS_YAML = '/usr/share/foreman/config/settings.yaml'
 
 DEFAULT_SYSPURPOSE_ATTRIBUTES = {
     'service_level': ('sla', 'Self-Support', 'Standard', 'Premium'),
