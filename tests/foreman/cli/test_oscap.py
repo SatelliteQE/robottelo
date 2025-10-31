@@ -16,7 +16,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import OSCAP_DEFAULT_CONTENT, OSCAP_PERIOD, OSCAP_WEEKDAY
+from robottelo.constants import OSCAP_PERIOD, OSCAP_WEEKDAY
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.utils.datafactory import (
     invalid_names_list,
@@ -948,8 +948,12 @@ class TestOpenScap:
             }
         )
         assert scap_policy['scap-content-id'] == scap_content["scap_id"]
+        new_scap_content_title = f"rhel-content-{gen_string('alpha')}"
+        module_target_sat.cli_factory.scapcontent(
+            {'title': new_scap_content_title, 'scap-file': f'{settings.oscap.content_path}'}
+        )
         scap_id, scap_profile_id = self.fetch_scap_and_profile_id(
-            OSCAP_DEFAULT_CONTENT[f'rhel{module_target_sat.os_version.major}_content'],
+            new_scap_content_title,
             module_target_sat,
         )
         module_target_sat.cli.Scappolicy.update(
