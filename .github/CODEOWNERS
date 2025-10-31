@@ -54,6 +54,7 @@ tests/foreman/cli/test_syncplan.py @SatelliteQE/team-artemis
 tests/foreman/destructive/test_capsulecontent.py @SatelliteQE/team-artemis
 tests/foreman/destructive/test_contentview.py @SatelliteQE/team-artemis
 tests/foreman/destructive/test_repository.py @SatelliteQE/team-artemis
+tests/foreman/destructive/test_container_management.py @SatelliteQE/team-artemis
 tests/foreman/sys/test_pulp3_filesystem.py @SatelliteQE/team-artemis
 tests/foreman/ui/test_acs.py @SatelliteQE/team-artemis
 tests/foreman/ui/test_capsulecontent.py @SatelliteQE/team-artemis

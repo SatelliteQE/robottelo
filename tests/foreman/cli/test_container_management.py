@@ -18,7 +18,7 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_CONFIG_SETTINGS_YAML, REPO_TYPE
+from robottelo.constants import REPO_TYPE
 from robottelo.logging import logger
 
 
@@ -549,110 +549,3 @@ class TestDockerClient:
         request.addfinalizer(lambda: host.execute(f'podman rmi {cv_path}'))
         res = host.execute('podman images')
         assert cv_path in res.stdout
-
-    @pytest.mark.destructive
-    def test_destructive_container_registry_with_dns_alias(self, request, target_sat):
-        """Test container registry operations with DNS alias
-
-        :id: 10cf21a2-db65-4c02-b3b5-4a5280b4d181
-
-        :steps:
-            1. Register Satellite with CDN
-            2. Add a DNS alias to the environment by modifying /etc/hosts
-            3. Configure foreman's settings.yaml to allow the DNS alias
-            4. Pull image from quay.io and use the image id during push
-            5. Run podman login with the alias hostname
-            6. Run podman push with the alias hostname
-            7. Run podman pull with the alias hostname
-
-        :expectedresults:
-            1. Container registry operations work with DNS alias
-            2. No UnsafeRedirectError occurs during blob operations
-            3. Podman pull/push operations succeed with alias hostname
-
-        :Verifies: SAT-36036
-
-        :CaseImportance: High
-
-        :customerscenario: true
-        """
-        # Generate test data
-        alias_hostname = f"alias-{gen_string('alpha', 5).lower()}.example.com"
-        org_name = gen_string('alpha', 5).lower()
-        product_name = gen_string('alpha', 5).lower()
-        repo_name = gen_string('alpha', 5).lower()
-
-        # Create organization and product
-        organization = target_sat.api.Organization(name=org_name).create()
-        product = target_sat.api.Product(name=product_name, organization=organization).create()
-
-        # Get organization and product labels for container URI
-        org_label = organization.label
-        product_label = product.label
-
-        # Step 1: Register Satellite with CDN (already done in setup)
-
-        # Step 2: Add DNS alias to /etc/hosts
-        hosts_entry = f"{target_sat.ip_addr} {alias_hostname}"
-
-        def add_hosts_entry():
-            result = target_sat.execute(f'echo "{hosts_entry}" >> /etc/hosts')
-            return result.status == 0
-
-        assert add_hosts_entry()
-
-        # Step 3: Configure foreman's settings.yaml to allow the DNS alias
-        settings_yaml_path = FOREMAN_CONFIG_SETTINGS_YAML
-
-        # Add host configuration to settings.yaml
-        host_config = f":hosts:\n  - {alias_hostname}"
-
-        def update_settings():
-            result = target_sat.execute(f'echo "{host_config}" >> {settings_yaml_path}')
-            return result.status == 0
-
-        assert update_settings()
-
-        # Restart foreman service to apply settings
-        target_sat.cli.Service.restart()
-
-        # Step 4: Pull image from quay.io
-        busybox_image = 'quay.io/quay/busybox'
-        pull_result = target_sat.execute(f'podman pull {busybox_image}')
-        assert pull_result.status == 0
-
-        # Get the image ID of the pulled busybox image
-        images_result = target_sat.execute('podman images --format "{{.ID}} {{.Repository}}"')
-        assert images_result.status == 0
-        busybox_image_id = None
-        for line in images_result.stdout.strip().split('\n'):
-            if busybox_image in line:
-                busybox_image_id = line.split()[0]
-                break
-        assert busybox_image_id, f"Could not find image ID for {busybox_image}"
-
-        # Step 5: Run podman login with the alias hostname
-        login_result = target_sat.execute(
-            f'podman login {alias_hostname} --tls-verify=false '
-            f'-u {settings.server.admin_username} -p {settings.server.admin_password}'
-        )
-        assert login_result.status == 0
-
-        # Step 6: Run podman push with the alias hostname using image ID
-        container_uri = f"{alias_hostname}/{org_label}/{product_label}/{repo_name}"
-        push_result = target_sat.execute(
-            f'podman push {busybox_image_id} {container_uri} --tls-verify=false'
-        )
-        assert push_result.status == 0
-
-        # Step 7: Run podman pull with the alias hostname
-        pull_result = target_sat.execute(f'podman pull {container_uri} --tls-verify=false')
-        assert pull_result.status == 0
-
-        # Verify the image is available
-        images_result = target_sat.execute('podman images')
-        assert container_uri in images_result.stdout
-
-        logger.info(
-            f"Successfully verified container registry operations with DNS alias {alias_hostname}"
-        )
