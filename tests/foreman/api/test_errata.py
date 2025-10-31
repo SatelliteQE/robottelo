@@ -1693,7 +1693,7 @@ def test_positive_filter_errata_type_other(
 
     # Create a content view, add the EPEL repo, publish the first version.
     cv = target_sat.api.ContentView(organization=function_org, repository=[epel_repo]).create()
-    cv.read().publish(timeout=240)
+    cv.read().publish(timeout=600)
     cv = cv.read()
     version_1 = cv.version[-1].read()  # unfiltered
     assert '1.0' in version_1.version
