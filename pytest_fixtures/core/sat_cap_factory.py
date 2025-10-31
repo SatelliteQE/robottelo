@@ -214,7 +214,7 @@ def module_capsule_configured(request, module_capsule_host, module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def module_unconfigured_satellite(request):
+def module_unconfigured_satellite():
     deploy_args = settings.server.deploy_arguments
     with Broker(
         workflow=settings.server.deploy_workflows.unconfigured, **deploy_args, host_class=Satellite
@@ -222,30 +222,38 @@ def module_unconfigured_satellite(request):
         yield host
 
 
+def get_iop_deploy_args():
+    """Get deploy arguments for IoP workflow"""
+    image_args = {
+        f'iop_{service}_image': path
+        for service, path in settings.rh_cloud.iop_advisor_engine.image_paths.items()
+    }
+    return settings.server.deploy_arguments.to_dict() | image_args
+
+
 @pytest.fixture(scope='module')
-def module_satellite_iop(request, satellite_factory):
+def module_satellite_iop():
     """Deploy and configure Red Hat Lightspeed in Satellite
 
-    Uses the 'deploy-satellite-iop' SatLab workflow which handles all IoP
-    configuration automatically, including:
-    - Podman authentication to stage registry
-    - satellite-installer with --enable-iop flag
-
-    The workflow handles all setup, so no manual configuration is needed.
+    Use the IoP workflow which deploys Satellite + IoP
     """
-    # Deploy using the IoP workflow with stage credentials
-    new_sat = satellite_factory(
-        workflow=settings.server.deploy_workflows.iop,
-    )
+    deploy_args = get_iop_deploy_args()
 
-    # Verify IoP is enabled
-    assert new_sat.local_advisor_enabled, "IoP was not successfully enabled on Satellite"
+    with Broker(
+        workflow=settings.server.deploy_workflows.iop, **deploy_args, host_class=Satellite
+    ) as satellite:
+        yield satellite
 
-    yield new_sat
 
-    # Cleanup
-    new_sat.teardown()
-    Broker(hosts=[new_sat]).checkin()
+@pytest.fixture
+def satellite_iop():
+    """Deploy and configure Red Hat Lightspeed in Satellite"""
+    deploy_args = get_iop_deploy_args()
+
+    with Broker(
+        workflow=settings.server.deploy_workflows.iop, **deploy_args, host_class=Satellite
+    ) as satellite:
+        yield satellite
 
 
 @pytest.fixture(scope='module')

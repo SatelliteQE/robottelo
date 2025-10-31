@@ -459,6 +459,13 @@ class Factories:
 class IoPSetup:
     """Helper for configuring on prem Insights Advisor engine."""
 
+    @staticmethod
+    def get_iop_image_paths():
+        return {
+            f'iop::{service}::image': path
+            for service, path in settings.rh_cloud.iop_advisor_engine.image_paths.items()
+        }
+
     def configure_insights_on_prem(self, username=None, password=None, registry=None):
         """Configure on prem Advisor engine on Satellite"""
         logger.info('Configuring Satellite with local Red Hat Lightspeed')
@@ -466,6 +473,7 @@ class IoPSetup:
         username = username or iop_settings.username
         password = password or iop_settings.token
         registry = registry or iop_settings.registry
+
         self.register_to_cdn()
         self.setup_rhel_repos()
         self.setup_satellite_repos()
@@ -476,19 +484,17 @@ class IoPSetup:
         self.enable_ipv6_podman_proxy()
 
         # Set up container image path overrides
-        custom_hiera = f'{robottelo_tmp_dir}/custom-hiera.yaml'
+        if image_paths := self.get_iop_image_paths():
+            custom_hiera = f'{robottelo_tmp_dir}/custom-hiera.yaml'
 
-        with open(custom_hiera, 'w') as f:
-            yaml.dump(
-                {
-                    f'iop::{service}::image': path
-                    for service, path in iop_settings.image_paths.items()
-                },
-                f,
-                sort_keys=False,
-                default_flow_style=False,
-            )
-        self.put(custom_hiera, '/etc/foreman-installer/custom-hiera.yaml')
+            with open(custom_hiera, 'w') as f:
+                yaml.dump(
+                    image_paths,
+                    f,
+                    sort_keys=False,
+                    default_flow_style=False,
+                )
+            self.put(custom_hiera, '/etc/foreman-installer/custom-hiera.yaml')
 
         command = InstallerCommand(
             'enable-iop',
