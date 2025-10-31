@@ -408,62 +408,6 @@ class Host(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
-    def subscription_attach(cls, options=None):
-        """Attach a subscription to host
-
-        Usage::
-
-            hammer host subscription attach [OPTIONS]
-
-        Options::
-
-            --host HOST_NAME                  Name to search by
-            --host-id HOST_ID                 Host ID
-            --quantity Quantity               Quantity of this subscriptions to
-                                              add. Defaults to 1
-            --subscription-id SUBSCRIPTION_ID ID of subscription
-        """
-        cls.command_sub = 'subscription attach'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def subscription_remove(cls, options=None):
-        """Remove a subscription from host
-
-        Usage::
-
-            hammer host subscription remove [OPTIONS]
-
-        Options::
-
-            --host HOST_NAME                    Name to search by
-            --host-id HOST_ID
-            --quantity Quantity                 Remove the first instance of a
-                                                subscription with matching id
-                                                and quantity
-            --subscription-id SUBSCRIPTION_ID   ID of subscription
-        """
-        cls.command_sub = 'subscription remove'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def subscription_auto_attach(cls, options=None):
-        """Auto attach subscription to host
-
-        Usage::
-
-            hammer host subscription auto-attach [OPTIONS]
-
-        Options::
-
-            --host HOST_NAME              Name to search by
-            --host-id HOST_ID
-            -h, --help                    print help
-        """
-        cls.command_sub = 'subscription auto-attach'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
     def sc_params(cls, options=None):
         """List all smart class parameters
 

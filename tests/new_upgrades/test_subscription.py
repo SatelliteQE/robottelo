@@ -96,7 +96,7 @@ def test_manifest_scenario_refresh(manifest_scenario_refresh_setup):
 
 
 @pytest.fixture
-def subscription_auto_attach_setup(
+def subscription_setup(
     subscription_upgrade_shared_satellite,
     upgrade_action,
     rhel_contenthost,
@@ -108,7 +108,7 @@ def subscription_auto_attach_setup(
         1. Before Satellite upgrade.
         2. Create new Organization and Location.
         3. Upload a manifest in it.
-        4. Create a AK with 'auto-attach False' and without Subscription add in it.
+        4. Create an Activation Key.
         5. Create a content host.
 
     :expectedresults:
@@ -145,16 +145,11 @@ def subscription_auto_attach_setup(
         assert rh_repo.content_counts['rpm'] >= 1
         content_view = target_sat.publish_content_view(org, rh_repo, f'{test_name}_content_view')
         content_view.version[-1].promote(data={'environment_ids': lce.id})
-        subscription = target_sat.api.Subscription(organization=org.id).search(
-            query={'search': f'name="{constants.DEFAULT_SUBSCRIPTION_NAME}"'}
-        )
-        assert len(subscription)
         activation_key = target_sat.api.ActivationKey(
             name=f'{test_name}_ak',
             content_view=content_view,
             organization=org.id,
             environment=lce,
-            auto_attach=False,
         ).create()
         rhel_contenthost.api_register(
             target_sat,
@@ -173,40 +168,11 @@ def subscription_auto_attach_setup(
         sat_upgrade.ready()
         yield test_data
 
-
-@pytest.mark.subscription_upgrades
-@pytest.mark.rhel_ver_list([7, 8, 9, 10])
-@pytest.mark.no_containers
-@pytest.mark.manifester
-def test_subscription_scenario_auto_attach(subscription_auto_attach_setup):
-    """Run subscription auto-attach on pre-upgrade content host registered
-    with Satellite.
-
-    :id: 940fc78c-ffa6-4d9a-9c4b-efa1b9480a22
-
-    :steps:
-        1. Run subscription auto-attach on content host.
-        2. Delete the manifest from the Satellite
-
-    :expectedresults: After upgrade,
-        1. Pre-upgrade content host should get subscribed.
-        2. All the cleanup should be completed successfully.
-    """
-    rhel_contenthost = subscription_auto_attach_setup.rhel_client
-    target_sat = subscription_auto_attach_setup.satellite
-    org = subscription_auto_attach_setup.org
-    result = rhel_contenthost.execute('yum install -y zsh')
-    assert result.status == 0, 'package was not installed'
-    sub = target_sat.api.Subscription(organization=org)
-    sub.delete_manifest(data={'organization_id': org.id})
-    assert len(sub.search()) == 0
-
-
 @pytest.mark.subscription_upgrades
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 @pytest.mark.no_containers
 @pytest.mark.manifester
-def test_candlepin_hung_transaction(subscription_auto_attach_setup):
+def test_candlepin_hung_transaction(subscription_setup):
     """Check that no open Candlepin transactions are present after upgrading
 
     :id: b2d8f844-3e9c-4c25-87a8-b9a2a21738b9
@@ -217,7 +183,7 @@ def test_candlepin_hung_transaction(subscription_auto_attach_setup):
     :expectedresults:
       No dangling transactions are present in the Candlepin database.
     """
-    result = subscription_auto_attach_setup.satellite.execute(
+    result = subscription_setup.satellite.execute(
         'sudo -u postgres psql -d candlepin -c "SELECT * FROM pg_stat_activity WHERE state IN (\'idle in transaction\');"'
     )
     assert result.status == 0
