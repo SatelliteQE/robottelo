@@ -16,6 +16,8 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import SATELLITE_INSTALLER_CONFIG
+from robottelo.hosts import Broker
+from robottelo.utils.ohsnap import dogfood_repository
 
 
 def last_y_stream_version(release):
@@ -214,3 +216,110 @@ def test_positive_check_presence_satellite_or_satellite_capsule(sat_maintain):
 
     :CaseAutomation: ManualOnly
     """
+
+
+def test_positive_upgrade_check_capsule_hammer(request, target_sat, capsule_factory):
+    """Test satellite-maintain upgrade check for capsule with hammer installed.
+
+    :id: 903a4140-74f3-428a-8768-ecb610fef2fa
+
+    :steps:
+        1. Deploy Capsule with version N-1
+        2. Setup Capsule
+        3. Sync utils repo on Capsule
+        4. Install hammer on Capsule
+        5. Add satellite-capsule repo on Capsule
+        6. Add maintenance repo on Capsule
+        7. Run satellite-maintain upgrade check
+        8. Run satellite-maintain upgrade run
+        9. Verify that the capsule is upgraded
+        10. Verify that the hammer repo is installed on upgraded Capsule
+
+    :expectedresults:
+        1. The utils repo should be installed on Capsule
+        2. The hammer repo should be installed on Capsule
+        3. The satellite-capsule repo should be installed on Capsule
+        4. The capsule should be upgraded
+        5. The hammer should be installed on upgraded Capsule
+
+    :Verifies: SAT-31371
+    """
+    capsule_y_minus_one = f"{target_sat.version[:2]}{int(target_sat.version[2:4]) - 1}"
+    # capsule = capsule_factory(
+    #     deploy_sat_version=capsule_y_minus_one,
+    #     deploy_rhel_version=target_sat.os_version.major,
+    #     deploy_network_type="ipv4",
+    # )
+    settings.set('capsule.deploy_arguements.deploy_sat_version', capsule_y_minus_one)
+    capsule = capsule_factory()
+    print(capsule)
+    result = capsule.capsule_setup(sat_host=target_sat)
+
+    @request.addfinalizer
+    def _finalize():
+        """Clean up the dynamically created capsule"""
+        try:
+            target_sat.cli.Proxy.delete({'name': capsule.hostname})
+            Broker(hosts=[capsule]).checkin()
+        except Exception as e:
+            print(f"Failed to cleanup capsule: {e}")
+
+    capsule.create_custom_repos(utils=settings.repos.satutils_repo)
+    result = capsule.execute('dnf repolist')
+    assert 'utils' in result.stdout
+    assert result.status == 0
+    result = capsule.execute('yum install rubygem-hammer_cli_katello -y')
+    assert result.status == 0
+    result = capsule.execute('rpm --query "rubygem-hammer_cli"')
+    assert 'rubygem-hammer_cli' in result.stdout
+    assert result.status == 0
+    capsule_repo = dogfood_repository(
+        ohsnap=settings.ohsnap,
+        repo='capsule',
+        product='capsule',
+        release=target_sat.name.split("-")[2],
+        os_release=capsule.os_version.major,
+        snap='',
+        arch='x86_64',
+    )
+    maintenance = dogfood_repository(
+        ohsnap=settings.ohsnap,
+        repo='maintenance',
+        product='capsule',
+        release=target_sat.name.split("-")[2],
+        os_release=capsule.os_version.major,
+        snap='',
+        arch='x86_64',
+    )
+    capsule_config = f"[capsule]\nname=Capsule Repository\nbaseurl={capsule_repo.baseurl}\nenabled=1\ngpgcheck=0\n"
+    maintainance_config = f"[maintenance]\nname=Maintenance Repository\nbaseurl={maintenance.baseurl}\nenabled=1\ngpgcheck=0\n"
+
+    result = capsule.execute(
+        f'cat > /etc/yum.repos.d/satellite-capsule.repo << EOF\n{capsule_config}\nEOF'
+    )
+    assert result.status == 0
+    result = capsule.execute(
+        f'cat >> /etc/yum.repos.d/satellite-capsule.repo << EOF\n{maintainance_config}\nEOF'
+    )
+    assert result.status == 0
+
+    result = capsule.cli.Upgrade.check(
+        options={'whitelist': 'repositories-validate, non-rh-packages', 'assumeyes': True}
+    )
+    assert result.status == 75
+    assert 'Successfully updated satellite-maintain' in result.stdout
+    result = capsule.cli.Upgrade.run(
+        options={
+            'whitelist': 'repositories-validate, repositories-setup, pulpcore-rpm-datarepair',
+            'assumeyes': True,
+        }
+    )
+    assert result.status == 0
+    assert 'Upgrade finished.' in result.stdout
+    result = capsule.execute('rpm --query "satellite-capsule"')
+    assert result.status == 0
+    assert f'satellite-capsule-{settings.UPGRADE.TO_VERSION}' in result.stdout
+    print(f'satellite-capsule-{settings.UPGRADE.TO_VERSION}')
+    result = capsule.execute('rpm --query "rubygem-hammer_cli"')
+    assert 'rubygem-hammer_cli' in result.stdout
+    assert result.status == 0
