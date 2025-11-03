@@ -617,7 +617,9 @@ def hypervisor_guest_mapping_check_legacy_ui(
     assert virtualguest['details']['virtual_host'] == hypervisor_display_name
 
 
-def hypervisor_guest_mapping_newcontent_ui(org_session, default_location, hypervisor_name, guest_name):
+def hypervisor_guest_mapping_newcontent_ui(
+    org_session, default_location, hypervisor_name, guest_name
+):
     org_session.location.select(default_location.name)
     hypervisor_display_name = org_session.contenthost.search(hypervisor_name)[0]['Name']
     hypervisorhost_new_overview = org_session.host_new.get_details(

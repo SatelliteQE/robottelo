@@ -68,7 +68,9 @@ class TestVirtwhoConfigforEsx:
         assert org_session.virtwho_configure.search(form_data_ui['name'])[0]['Status'] == 'ok'
 
         # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in UI
-        hypervisor_guest_mapping_newcontent_ui(org_session, default_location, hypervisor_name, guest_name)
+        hypervisor_guest_mapping_newcontent_ui(
+            org_session, default_location, hypervisor_name, guest_name
+        )
 
     def test_positive_debug_option(
         self, module_sca_manifest_org, virtwho_config_ui, org_session, form_data_ui
