@@ -31,7 +31,6 @@ from robottelo.utils.virtwho import (
     get_configure_id,
     get_configure_option,
     get_virtwho_status,
-    hypervisor_guest_mapping_check_legacy_ui,
     hypervisor_guest_mapping_newcontent_ui,
     restart_virtwho_service,
     update_configure_option,
@@ -68,13 +67,8 @@ class TestVirtwhoConfigforEsx:
         # Check virt-who config status
         assert org_session.virtwho_configure.search(form_data_ui['name'])[0]['Status'] == 'ok'
 
-        # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in Legacy UI
-        hypervisor_guest_mapping_check_legacy_ui(
-            org_session, form_data_ui, default_location, hypervisor_name, guest_name
-        )
-
         # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in UI
-        hypervisor_guest_mapping_newcontent_ui(org_session, hypervisor_name, guest_name)
+        hypervisor_guest_mapping_newcontent_ui(org_session, default_location, hypervisor_name, guest_name)
 
     def test_positive_debug_option(
         self, module_sca_manifest_org, virtwho_config_ui, org_session, form_data_ui
