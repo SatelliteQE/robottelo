@@ -60,6 +60,8 @@ CaseComponent:
     - Hosts
     - ImageMode
     - Infobloxintegration
+    - Insights-Advisor
+    - Insights-Vulnerability
     - Installation
     - InterSatelliteSync
     - katello-tracer
