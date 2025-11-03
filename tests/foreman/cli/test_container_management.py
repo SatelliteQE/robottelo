@@ -18,9 +18,7 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.config import settings
-from robottelo.constants import (
-    REPO_TYPE,
-)
+from robottelo.constants import REPO_TYPE
 from robottelo.logging import logger
 from robottelo.utils.issue_handlers import is_open
 
