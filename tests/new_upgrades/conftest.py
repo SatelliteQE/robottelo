@@ -53,7 +53,9 @@ def pytest_configure(config):
 
 def shared_checkout(shared_name, iop=False):
     Satellite(hostname="blank")._swap_nailgun(f"{settings.UPGRADE.FROM_VERSION}.z")
-    workflow = 'deploy-satellite-iop' if iop else settings.SERVER.deploy_workflows.product
+    workflow = (
+        settings.server.deploy_workflows.iop if iop else settings.server.deploy_workflows.product
+    )
     bx_inst = Broker(
         workflow=workflow,
         deploy_sat_version=settings.UPGRADE.FROM_VERSION,
