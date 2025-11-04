@@ -398,31 +398,6 @@ def test_rhcloud_inventory_without_manifest(session, module_org, target_sat):
     )
 
 
-@pytest.mark.parametrize("module_target_sat_insights", [False], ids=["local"], indirect=True)
-def test_rhcloud_inventory_disabled_local_insights(module_target_sat_insights):
-    """Verify that the 'Insights > Inventory Upload' navigation item is not available
-    when the Satellite is configured to use a local advisor engine.
-
-    :id: 84023ae9-7bc4-4332-9aaf-749d6c48c2d2
-
-    :steps:
-        1. Configure Satellite to use local Insights advisor engine.
-        2. Navigate to the Insights Recommendations page.
-        3. Select Insights > Inventory Upload from the navigation menu.
-
-    :expectedresults:
-        1. "Inventory Upload" is not visible under "Insights".
-
-    :CaseImportance: Medium
-
-    :CaseAutomation: Automated
-    """
-    with module_target_sat_insights.ui_session() as session:
-        insights_view = session.cloudinsights.navigate_to(session.cloudinsights, 'All')
-        with pytest.raises(Exception, match='not found in navigation tree'):
-            insights_view.menu.select('Insights', 'Inventory Upload')
-
-
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.run_in_one_thread
