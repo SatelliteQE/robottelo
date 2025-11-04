@@ -330,7 +330,12 @@ VALIDATORS = dict(
         ),
         Validator('report_portal.fail_threshold', default=20),
     ],
-    rh_cloud=[Validator('rh_cloud.token', required=True)],
+    rh_cloud=[
+        Validator('rh_cloud.token', required=True),
+        Validator(
+            'rh_cloud.iop_advisor_engine.image_paths', default={}, apply_default_on_none=True
+        ),
+    ],
     repos=[
         Validator(
             'repos.rhel6_os',
