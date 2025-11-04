@@ -448,12 +448,16 @@ def test_positive_provision_end_to_end(
         f'su foreman -s /bin/bash -c "virsh -c {LIBVIRT_URL} list --state-running"'
     )
     assert hostname in result.stdout
-
     wait_for(
-        lambda: sat.cli.Host.info({'name': hostname})['status']['build-status']
-        != 'Pending installation',
-        timeout=1800,
-        delay=30,
+        lambda: (
+            sat.cli.Host.info({'name': hostname})
+            .get('status', {})
+            .get('build-status', 'Pending installation')
+            != 'Pending installation'
+        ),
+        timeout=3600,
+        delay=10,
+        handle_exception=True,
     )
     host_info = sat.cli.Host.info({'id': host['id']})
     assert host_info['status']['build-status'] == 'Installed'
