@@ -162,6 +162,9 @@ def test_positive_provision_end_to_end(
     ] + existing_params
     provisioning_hostgroup.update(['group_parameters_attributes'])
 
+    # restart dhcpd
+    sat.execute('systemctl restart dhcpd')
+
     with sat.ui_session() as session:
         session.organization.select(module_sca_manifest_org.name)
         session.location.select(module_location.name)
@@ -181,8 +184,8 @@ def test_positive_provision_end_to_end(
         )
         name = f'{hostname}.{module_libvirt_provisioning_sat.domain.name}'
         request.addfinalizer(lambda: sat.provisioning_cleanup(name))
-        assert session.host_new.search(name)[0]['Name'] == name
-
+        result = session.host_new.search(name)[0]
+        assert result['Name'] == name
         # Check on Libvirt, if VM exists
         result = sat.execute(
             f'su foreman -s /bin/bash -c "virsh -c {libvirt.url} list --state-running"'
