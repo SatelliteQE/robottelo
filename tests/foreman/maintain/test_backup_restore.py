@@ -461,6 +461,17 @@ def test_positive_backup_restore_satellite_iop(
     assert sat_maintain.satellite.local_advisor_enabled
 
     # Make sure that the vmaas db has been synced successfully
+
+    # This configures the proxy for iop-cvemap-download as documented for 6.18
+    # TODO: Verify SAT-39459 won't get a code-fix in the future
+    if not sat_maintain.network_type.has_ipv4:
+        # Can't use `systemctl edit --stdin` as that requires systemd 256+
+        sat_maintain.execute(f"""
+                             mkdir -p /etc/systemd/system/iop-cvemap-download.service.d
+                             echo -e "[Service]\nEnvironment = HTTPS_PROXY={settings.http_proxy.http_proxy_ipv6_url}\nEnvironment = NO_PROXY=localhost" > /etc/systemd/system/iop-cvemap-download.service.d/proxy.conf
+                             systemctl daemon-reload
+                             """)
+
     result = sat_maintain.execute('systemctl start iop-cvemap-download')
     assert result.status == 0
 
