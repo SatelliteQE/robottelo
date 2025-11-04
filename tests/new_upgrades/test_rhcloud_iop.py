@@ -112,12 +112,13 @@ def test_iop_recommendations_upgrade(iop_recommendations_upgrade_setup):
     hostname = iop_recommendations_upgrade_setup.hostname
     org_name = iop_recommendations_upgrade_setup.org_name
     target_sat = iop_recommendations_upgrade_setup.satellite
+    rhel_client = iop_recommendations_upgrade_setup.rhel_client
 
     with target_sat.ui_session() as session:
         session.organization.select(org_name=org_name)
 
         # Force register host with insights
-        target_sat.execute('insights-client --register --force')
+        rhel_client.execute('insights-client --register --force')
 
         # Search for the recommendation and verify it still exists post-upgrade
         result = session.recommendationstab.search(recommendation_name)
