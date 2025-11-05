@@ -51,7 +51,6 @@ def rhcloud_activation_key(module_target_sat_insights, rhcloud_manifest_org):
         service_level='Self-Support',
         purpose_usage='test-usage',
         purpose_role='test-role',
-        auto_attach=False,
     ).create()
 
 

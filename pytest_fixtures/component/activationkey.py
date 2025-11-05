@@ -73,6 +73,5 @@ def module_ak_with_synced_repo(module_sca_manifest_org, module_target_sat):
             'lifecycle-environment': 'Library',
             'content-view': 'Default Organization View',
             'organization-id': module_sca_manifest_org.id,
-            'auto-attach': False,
         }
     )
