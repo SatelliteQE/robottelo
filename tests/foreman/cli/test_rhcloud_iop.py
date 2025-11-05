@@ -260,3 +260,10 @@ def test_disable_enable_iop(satellite_iop, module_sca_manifest, rhel_contenthost
 
     result = host.execute('insights-client')
     assert result.status == 0, 'insights-client upload failed'
+
+
+def test_gorp():
+    image_paths = settings.rh_cloud.iop_advisor_engine.image_paths
+    assert image_paths, "No image_paths"
+    assert image_paths.items(), "No items"
+    assert not image_paths, f"Image paths: {image_paths}"
