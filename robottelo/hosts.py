@@ -2481,22 +2481,8 @@ class Satellite(Capsule, SatelliteMixins):
         rhsm_id = rhel_contenthost.execute('subscription-manager identity')
         assert module_org.name in rhsm_id.stdout, 'Host is not registered to expected organization'
         rhel_contenthost._satellite = self
-
-        # Attach product subscriptions to contenthost, only if SCA mode is disabled
-        if self.is_sca_mode_enabled(module_org.id) is False:
-            subs = self.api.Subscription(organization=module_org, name=prod.name).search()
-            assert len(subs), f'Subscription for sat client product: {prod.name} was not found.'
-            subscription = subs[0]
-
-            rhel_contenthost.nailgun_host.bulk_add_subscriptions(
-                data={
-                    "organization_id": module_org.id,
-                    "included": {"ids": [rhel_contenthost.nailgun_host.id]},
-                    "subscriptions": [{"id": subscription.id, "quantity": 1}],
-                }
-            )
-            # refresh repository metadata on the host
-            rhel_contenthost.execute('subscription-manager repos --list')
+        # refresh repository metadata on the host
+        rhel_contenthost.execute('subscription-manager repos --list')
 
         # Override the repos to enabled
         rhel_contenthost.execute(r'subscription-manager repos --enable \*')
