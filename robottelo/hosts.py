@@ -1344,7 +1344,6 @@ class ContentHost(Host, ContentHostMixins):
             org['id'],
             lce['id'],
             repos,
-            rh_subscriptions=[constants.DEFAULT_SUBSCRIPTION_NAME],
         )
         activation_key = content_setup_data['activation_key']
         content_view = content_setup_data['content_view']
@@ -1447,20 +1446,8 @@ class ContentHost(Host, ContentHostMixins):
         if len(org_hosts) == 0:
             raise CLIFactoryError(f'Failed to find hypervisor host:\n{result.stderr}')
         virt_who_hypervisor_host = org_hosts[0]
-        subscription_id = None
-        if hypervisor_hostname and subscription_name:
-            subscriptions = satellite.cli.Subscription.list(
-                {'organization-id': org_id}, per_page=False
-            )
-            for subscription in subscriptions:
-                if subscription['name'] == subscription_name:
-                    subscription_id = subscription['id']
-                    Host.subscription_attach(
-                        {'host': virt_who_hypervisor_hostname, 'subscription-id': subscription_id}
-                    )
-                    break
         return {
-            'subscription_id': subscription_id,
+            'subscription_id': None,
             'subscription_name': subscription_name,
             'activation_key_id': activation_key['id'],
             'organization_id': org['id'],

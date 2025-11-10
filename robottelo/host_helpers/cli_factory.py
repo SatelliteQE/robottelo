@@ -1010,7 +1010,6 @@ class CLIFactory:
         lce_id=None,
         repos=None,
         download_policy='on_demand',
-        rh_subscriptions=None,
         default_cv=False,
     ):
         """Setup cdn and custom repositories, content view and activations key
@@ -1021,14 +1020,10 @@ class CLIFactory:
         :param bool default_cv: whether to use the Default Organization CV
         :param str download_policy: update the repositories with this download
             policy
-        :param list rh_subscriptions: a list of RH subscription to attach to
-            activation key
         :return: a dict containing the activation key, content view and repos info
         """
         if repos is None:
             repos = []
-        if rh_subscriptions is None:
-            rh_subscriptions = []
 
         custom_product, repos_info = self.setup_cdn_and_custom_repositories(
             org_id=org_id, repos=repos, download_policy=download_policy
