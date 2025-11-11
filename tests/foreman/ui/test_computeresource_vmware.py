@@ -351,18 +351,18 @@ def test_positive_vmware_custom_profile_end_to_end(
     cdrom_drive = True
     disk_size = '10 GB'
     network = 'VLAN 400'  # hardcoding network here as this test won't be doing actual provisioning
-    storage_data = {
-        'storage': {
-            'controller': VMWARE_CONSTANTS['scsicontroller'],
-            'disks': [
-                {
-                    'data_store': get_vmware_datastore_summary_string,
-                    'size': disk_size,
-                    'thin_provision': True,
-                }
-            ],
-        }
-    }
+    # storage_data = {
+    #     'storage': {
+    #         'controller': VMWARE_CONSTANTS['scsicontroller'],
+    #         'disks': [
+    #             {
+    #                 'data_store': get_vmware_datastore_summary_string,
+    #                 'size': disk_size,
+    #                 'thin_provision': True,
+    #             }
+    #         ],
+    #     }
+    # }
     network_data = {
         'network_interfaces': {
             'nic_type': VMWARE_CONSTANTS['network_interface_name'],
@@ -408,7 +408,7 @@ def test_positive_vmware_custom_profile_end_to_end(
                     'provider_content.memory_hot_add': memory_hot_add,
                     'provider_content.cpu_hot_add': cpu_hot_add,
                     'provider_content.cdrom_drive': cdrom_drive,
-                    'provider_content.storage': [value for value in storage_data.values()],
+                    'provider_content.storage': [settings.vmware.datastore_cluster],
                     'provider_content.network_interfaces': [
                         value for value in network_data.values()
                     ],
@@ -587,7 +587,7 @@ def test_positive_provision_end_to_end(
     vmwareclient,
     target_sat,
     module_provisioning_rhel_content,
-    get_vmware_storagepod_summary_string,
+    # get_vmware_storagepod_summary_string,
 ):
     """Assign Ansible role to a Hostgroup and verify ansible role execution job is scheduled after a host is provisioned
 
@@ -611,7 +611,7 @@ def test_positive_provision_end_to_end(
     SELECTED_ROLE = 'theforeman.foreman_scap_client'
     host_name = gen_string('alpha').lower()
     guest_os_names = 'Red Hat Enterprise Linux 8 (64 bit)'
-    storage_data = {'storage': {'disks': [{'storage_pod': get_vmware_storagepod_summary_string}]}}
+    storage_data = {'storage': {'disks': [{'data_store': get_vmware_datastore_summary_string}]}}
     network_data = {
         'network_interfaces': {
             'nic_type': VMWARE_CONSTANTS['network_interface_name'],
@@ -657,7 +657,8 @@ def test_positive_provision_end_to_end(
         request.addfinalizer(lambda: target_sat.provisioning_cleanup(host_fqdn))
         wait_for(
             lambda: session.host_new.get_host_statuses(host_fqdn)['Build']['Status']
-            != 'Pending installation',
+            != 'Pending installation'
+            and session.host_new.get_host_statuses(host_fqdn)['Execution']['Status'] != 'N/A',
             timeout=1800,
             delay=30,
             fail_func=session.browser.refresh,
@@ -666,8 +667,7 @@ def test_positive_provision_end_to_end(
         )
         values = session.host_new.get_host_statuses(host_fqdn)
         assert values['Build']['Status'] == 'Installed'
-        if not is_open('SAT-34088'):
-            assert values['Execution']['Status'] == 'Last execution succeeded'
+        assert values['Execution']['Status'] == 'Last execution succeeded'
 
         # Verify SecureBoot is enabled on host after provisioning is completed successfully
         if pxe_loader.vm_firmware == 'uefi_secure_boot':
