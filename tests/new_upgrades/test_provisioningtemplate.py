@@ -25,14 +25,17 @@ from robottelo.constants import (
 from robottelo.utils.shared_resource import SharedResource
 
 provisioning_template_kinds = ['provision', 'PXEGrub', 'PXEGrub2', 'PXELinux', 'iPXE']
-# provisioning_template_kinds = ['provision', 'PXEGrub', 'PXEGrub2', 'PXELinux']
+
+PXE_LOADER_MAP = {
+    'bios': {'vm_firmware': 'bios', 'pxe_loader': 'PXELinux BIOS'},
+    'uefi': {'vm_firmware': 'uefi', 'pxe_loader': 'Grub2 UEFI'},
+}
 
 
 @pytest.fixture
-@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 def provisioning_templates_setup(
     content_upgrade_shared_satellite,
-    pxe_loader,
+    request,
     upgrade_action,
 ):
     """Verify that created host can read provisioning templates.
@@ -46,6 +49,7 @@ def provisioning_templates_setup(
 
     :parametrized: yes
     """
+    pxe_loader = Box(PXE_LOADER_MAP[request.param])
     target_sat = content_upgrade_shared_satellite
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_name = f'provisioning_template_upgrade_{gen_alpha(length=8)}'
@@ -78,6 +82,14 @@ def provisioning_templates_setup(
         os.ptable.append(ptable)
         os.provisioning_template.append(pxe_template)
         os.update(['architecture', 'ptable', 'provisioning_template'])
+        medium = target_sat.api.Media(
+            name=f'{test_name}_medium_{pxe_loader.vm_firmware}',
+            path_=f'http://mirror.fakeos.org/$major.$minor/os/$arch/{pxe_loader.vm_firmware}',
+            organization=[org],
+            location=[location],
+            operatingsystem=[os],
+            os_family='Redhat',
+        ).create()
         host = target_sat.api.Host(
             organization=org,
             location=location,
@@ -85,6 +97,7 @@ def provisioning_templates_setup(
             operatingsystem=os,
             architecture=arch,
             domain=domain,
+            medium=medium,
             root_pass=settings.provisioning.host_root_password,
             ptable=ptable,
             pxe_loader=pxe_loader.pxe_loader,
@@ -137,6 +150,7 @@ def test_post_scenario_provisioning_templates(
     architecture = target_sat.api.Architecture(id=pre_upgrade_host.architecture.id).read()
     os = target_sat.api.OperatingSystem(id=pre_upgrade_host.operatingsystem.id).read()
     ptable = target_sat.api.PartitionTable(id=pre_upgrade_host.ptable.id).read()
+    medium = target_sat.api.Media(id=pre_upgrade_host.medium.id).read()
     mac_address = gen_mac(multicast=False)
 
     for kind in provisioning_template_kinds:
@@ -151,6 +165,7 @@ def test_post_scenario_provisioning_templates(
         domain=domain,
         mac=mac_address,
         operatingsystem=os,
+        medium=medium,
         ptable=ptable,
         root_pass=settings.provisioning.host_root_password,
         pxe_loader=pxe_loader,
