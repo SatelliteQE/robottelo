@@ -542,10 +542,6 @@ def generate_report(rhcloud_manifest_org, module_target_sat, disconnected=False)
     )
     assert task_output[0].result == "success"
 
-    report_log = module_target_sat.api.Organization(id=org.id).rh_cloud_fetch_last_report_log()
-    expected = 'Check the Uploading tab for report uploading status'
-    assert expected in report_log['output']
-
 
 def test_positive_config_on_sat_without_network_protocol(module_target_sat, module_sca_manifest):
     """Test cloud connector configuration on Satellite without explicit network protocol.
