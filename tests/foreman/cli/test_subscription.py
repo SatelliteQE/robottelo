@@ -201,32 +201,6 @@ def test_positive_subscription_status_disabled_golden_ticket():
     """
 
 
-@pytest.mark.stubbed
-def test_positive_candlepin_events_processed_by_STOMP():
-    """Verify that Candlepin events are being read and processed by
-       attaching subscriptions, validating host subscriptions status,
-       and viewing processed and failed Candlepin events
-
-    :id: d54a7652-f87d-4277-a0ec-a153e27b4487
-
-    :steps:
-
-        1. Register Content Host without subscriptions attached
-        2. Verify subscriptions status is invalid
-        3. Import a Manifest
-        4. Attach subs to content host
-        5. Verify subscription status is green, "valid", with
-           "hammer subscription list --host-id x"
-        6. Check for processed and failed Candlepin events
-
-    :expectedresults: Candlepin events are being read and processed
-                      correctly without any failures
-    :BZ: 1826515
-
-    :CaseImportance: High
-    """
-
-
 def test_negative_check_katello_reimport(request, target_sat, function_org):
     """Verify katello:reimport trace should not fail with an TypeError
 

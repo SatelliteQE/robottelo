@@ -41,12 +41,6 @@ class ActivationKey(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
-    def add_subscription(cls, options=None):
-        """Add subscription"""
-        cls.command_sub = 'add-subscription'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
     def content_override(cls, options=None):
         """Override product content defaults"""
         cls.command_sub = 'content-override'
@@ -81,15 +75,3 @@ class ActivationKey(Base):
         """Disassociate a resource"""
         cls.command_sub = 'remove-repository'
         return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def remove_subscription(cls, options=None):
-        """Remove subscription"""
-        cls.command_sub = 'remove-subscription'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def subscriptions(cls, options=None, output_format=None):
-        """List associated subscriptions"""
-        cls.command_sub = 'subscriptions'
-        return cls.execute(cls._construct_command(options), output_format=output_format)

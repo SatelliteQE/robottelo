@@ -23,11 +23,9 @@ from fauxfactory import gen_string
 from nailgun.config import ServerConfig
 from nailgun.entity_mixins import TaskFailedError
 import pytest
-from requests.exceptions import HTTPError
 
 from robottelo.config import settings
 from robottelo.constants import (
-    DEFAULT_SUBSCRIPTION_NAME,
     FAKE_0_CUSTOM_PACKAGE_NAME,
     PRDS,
     REPOS,
@@ -226,19 +224,6 @@ def test_sca_end_to_end(
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert rhel_contenthost.subscribed
-    # Verify that you cannot attach a subscription to an activation key in SCA Mode
-    subscription = target_sat.api.Subscription(organization=module_sca_manifest_org).search(
-        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
-    )[0]
-    with pytest.raises(HTTPError) as ak_context:
-        module_ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
-    assert 'Simple Content Access' in ak_context.value.response.text
-    # Verify that you cannot attach a subscription to an Host in SCA Mode
-    with pytest.raises(HTTPError) as host_context:
-        target_sat.api.HostSubscription(host=rhel_contenthost.nailgun_host.id).add_subscriptions(
-            data={'subscriptions': [{'id': subscription.id, 'quantity': 1}]}
-        )
-    assert 'Simple Content Access' in host_context.value.response.text
     # Create a content view with repos and check to see that the client has access
     content_view = target_sat.api.ContentView(organization=module_sca_manifest_org).create()
     content_view.repository = [rh_repo, custom_repo]

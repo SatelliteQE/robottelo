@@ -1344,7 +1344,6 @@ class ContentHost(Host, ContentHostMixins):
             org['id'],
             lce['id'],
             repos,
-            rh_subscriptions=[constants.DEFAULT_SUBSCRIPTION_NAME],
         )
         activation_key = content_setup_data['activation_key']
         content_view = content_setup_data['content_view']
@@ -1447,20 +1446,8 @@ class ContentHost(Host, ContentHostMixins):
         if len(org_hosts) == 0:
             raise CLIFactoryError(f'Failed to find hypervisor host:\n{result.stderr}')
         virt_who_hypervisor_host = org_hosts[0]
-        subscription_id = None
-        if hypervisor_hostname and subscription_name:
-            subscriptions = satellite.cli.Subscription.list(
-                {'organization-id': org_id}, per_page=False
-            )
-            for subscription in subscriptions:
-                if subscription['name'] == subscription_name:
-                    subscription_id = subscription['id']
-                    Host.subscription_attach(
-                        {'host': virt_who_hypervisor_hostname, 'subscription-id': subscription_id}
-                    )
-                    break
         return {
-            'subscription_id': subscription_id,
+            'subscription_id': None,
             'subscription_name': subscription_name,
             'activation_key_id': activation_key['id'],
             'organization_id': org['id'],
@@ -2481,22 +2468,8 @@ class Satellite(Capsule, SatelliteMixins):
         rhsm_id = rhel_contenthost.execute('subscription-manager identity')
         assert module_org.name in rhsm_id.stdout, 'Host is not registered to expected organization'
         rhel_contenthost._satellite = self
-
-        # Attach product subscriptions to contenthost, only if SCA mode is disabled
-        if self.is_sca_mode_enabled(module_org.id) is False:
-            subs = self.api.Subscription(organization=module_org, name=prod.name).search()
-            assert len(subs), f'Subscription for sat client product: {prod.name} was not found.'
-            subscription = subs[0]
-
-            rhel_contenthost.nailgun_host.bulk_add_subscriptions(
-                data={
-                    "organization_id": module_org.id,
-                    "included": {"ids": [rhel_contenthost.nailgun_host.id]},
-                    "subscriptions": [{"id": subscription.id, "quantity": 1}],
-                }
-            )
-            # refresh repository metadata on the host
-            rhel_contenthost.execute('subscription-manager repos --list')
+        # refresh repository metadata on the host
+        rhel_contenthost.execute('subscription-manager repos --list')
 
         # Override the repos to enabled
         rhel_contenthost.execute(r'subscription-manager repos --enable \*')

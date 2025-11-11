@@ -1672,15 +1672,3 @@ def test_syspurpose_end_to_end(
     assert host['subscription-information']['system-purpose']['purpose-role'] == "test-role2"
     assert host['subscription-information']['system-purpose']['purpose-usage'] == "test-usage2"
     assert host['subscription-information']['system-purpose']['service-level'] == "Self-Support2"
-
-    rhel_contenthost.unregister()
-    with pytest.raises(CLIReturnCodeError):
-        # raise error that the host was not registered by
-        # subscription-manager register
-        target_sat.cli.ActivationKey.subscriptions(
-            {
-                'organization-id': module_org.id,
-                'id': activation_key.id,
-                'host-id': host['id'],
-            }
-        )
