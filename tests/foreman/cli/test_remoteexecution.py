@@ -89,6 +89,16 @@ def assert_job_invocation_status(sat, invocation_command_id, client_hostname, st
         ) from err
 
 
+def ensure_capsule_has_lifecycle_environment(capsule, activation_key):
+    """Ensure the capsule has the lifecycle environment from the activation key."""
+    if activation_key.environment.id not in [
+        env['id'] for env in capsule.nailgun_capsule.lifecycle_environments
+    ]:
+        capsule.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': activation_key.environment.id}
+        )
+
+
 class TestRemoteExecution:
     """Implements job execution tests in CLI."""
 
@@ -435,15 +445,12 @@ class TestRemoteExecution:
             }
         )
         assert_job_invocation_result(module_target_sat, invocation_command['id'], client.hostname)
+
         # check the file owner
         result = client.execute(
             f'''stat -c '%U' /home/{username}/{filename}''',
         )
-        # assert the file is owned by the effective user
         assert username == result.stdout.strip('\n')
-        result = client.execute(
-            f'''stat -c '%G' /home/{username}/{filename}''',
-        )
 
     @pytest.mark.parametrize(
         'multi_setting_update',
@@ -1209,6 +1216,7 @@ class TestPullProviderRex:
                 'location-ids': smart_proxy_location.id,
             }
         )
+        ensure_capsule_has_lifecycle_environment(module_capsule_configured_mqtt, module_ak_with_cv)
         # register host with rex, enable client repo, install katello-agent
         result = client.register(
             module_org,
@@ -1304,6 +1312,7 @@ class TestPullProviderRex:
                 'location-ids': smart_proxy_location.id,
             }
         )
+        ensure_capsule_has_lifecycle_environment(module_capsule_configured_mqtt, module_ak_with_cv)
         # register host with pull provider rex
         result = client.register(
             module_org,
@@ -1419,6 +1428,7 @@ class TestPullProviderRex:
                 'location-ids': smart_proxy_location.id,
             }
         )
+        ensure_capsule_has_lifecycle_environment(module_capsule_configured_mqtt, module_ak_with_cv)
         # register host with pull provider rex (SAT-1677)
         result = client.register(
             module_org,
@@ -1539,6 +1549,7 @@ class TestPullProviderRex:
                 'location-ids': smart_proxy_location.id,
             }
         )
+        ensure_capsule_has_lifecycle_environment(module_capsule_configured_mqtt, module_ak_with_cv)
         result = client.register(
             module_org,
             smart_proxy_location,
@@ -1627,6 +1638,7 @@ class TestPullProviderRex:
                 'location-ids': smart_proxy_location.id,
             }
         )
+        ensure_capsule_has_lifecycle_environment(module_capsule_configured_mqtt, module_ak_with_cv)
         # register host with pull provider rex (SAT-1677)
         result = client.register(
             module_org,
