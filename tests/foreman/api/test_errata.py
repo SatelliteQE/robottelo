@@ -1757,7 +1757,8 @@ def test_positive_filter_errata_type_other(
 def test_positive_bulk_erratum_applicable_vs_installable(
     target_sat,
     function_org,
-    rhel_contenthost,
+    function_lce_library,
+    content_hosts,
 ):
     """Verify that the erratum acquired through the bulk endpoint(s) correctly reflects its
         applicability and installability before and after an erratum filter is applied.
@@ -1765,16 +1766,17 @@ def test_positive_bulk_erratum_applicable_vs_installable(
     :id: 426438da-e926-48cc-a23b-12478619fc6d
 
     :setup:
-        1. Unregistered RHEL content host.
+        1. Two unregistered RHEL content hosts.
         2. Custom repo with errata added to a CV, promoted to LCE, with an AK for the environment.
 
     :steps:
-        1. Register the content host with the activation key.
-        2. Install an outdated package to make an erratum applicable.
-        3. Verify the erratum is applicable and installable to the host.
-        4. Create an exclude erratum filter for that specific erratum.
-        5. Publish and promote new CV version, refresh host's applicability.
-        6. Verify the erratum is applicable but not installable to the host.
+        1. Register the first content host with the activation key to custom LCE.
+        2. Register the second content host to the Library LCE.
+        3. Install an outdated package on both hosts to make an erratum applicable.
+        4. Verify the erratum is applicable and installable to both hosts.
+        5. Create an exclude erratum filter for that specific erratum.
+        6. Publish and promote new CV version, refresh host's applicability.
+        7. Verify the erratum is applicable to both hosts but installable to the library host only.
 
     :expectedresults:
         1. After outdated package installation an erratum is applicable an installable.
@@ -1788,13 +1790,15 @@ def test_positive_bulk_erratum_applicable_vs_installable(
     :Verifies: SAT-30754
     """
 
-    def _assert_response(result, expected_erratum_id, expected_hostname):
-        """Assert that response contains expected erratum and host."""
+    def _assert_response(result, expected_erratum_id, expected_hosts):
+        """Assert that response contains expected erratum and host(s)."""
         assert len(result['results']) == 1
         assert result['results'][0]['errata_id'] == expected_erratum_id
-        assert result['results'][0]['affected_hosts_count'] == 1
-        assert len(result['results'][0]['applicable_hosts']) == 1
-        assert result['results'][0]['applicable_hosts'][0]['name'] == expected_hostname
+        assert result['results'][0]['affected_hosts_count'] == len(expected_hosts)
+        assert len(result['results'][0]['applicable_hosts']) == len(expected_hosts)
+        applicable_hostnames = {host['name'] for host in result['results'][0]['applicable_hosts']}
+        expected_hostnames = {host.hostname for host in expected_hosts}
+        assert applicable_hostnames == expected_hostnames
 
     # Custom repo with errata added to a CV, promoted to LCE, with an AK for the environment.
     setup = target_sat.cli_factory.setup_org_for_a_custom_repo(
@@ -1807,7 +1811,8 @@ def test_positive_bulk_erratum_applicable_vs_installable(
     lce = target_sat.api.LifecycleEnvironment(id=setup['lifecycle-environment-id']).read()
     ak = target_sat.api.ActivationKey(id=setup['activationkey-id']).read()
 
-    # Register the content host with the activation key
+    # Register the first content host with the activation key to custom LCE
+    rhel_contenthost = content_hosts[0]
     result = rhel_contenthost.register(
         org=function_org,
         activation_keys=ak.name,
@@ -1817,29 +1822,49 @@ def test_positive_bulk_erratum_applicable_vs_installable(
     assert result.status == 0, f'Failed to register the host: {rhel_contenthost.hostname}'
     assert rhel_contenthost.subscribed
 
-    # Install an outdated package to make an erratum applicable
+    # Register the second content host to the Library LCE
+    library_ak = target_sat.api.ActivationKey(
+        organization=function_org,
+        environment=function_lce_library,
+        content_view=function_org.default_content_view,
+    ).create()
+    lbl = library_ak.product_content(data={'content_access_mode_all': '1'})['results'][0]['label']
+    library_ak.content_override(data={'content_overrides': [{'content_label': lbl, 'value': '1'}]})
+
+    library_host = content_hosts[1]
+    result = library_host.register(
+        org=function_org,
+        activation_keys=library_ak.name,
+        target=target_sat,
+        loc=None,
+    )
+    assert result.status == 0, f'Failed to register the host: {library_host.hostname}'
+    assert library_host.subscribed
+
+    # Install an outdated package on both hosts to make an erratum applicable
     pkg_outdated = FAKE_1_CUSTOM_PACKAGE  # walrus-0.71-1.noarch
     erratum_id = CUSTOM_REPO_ERRATA_ID  # RHSA-2012:0055
-    result = rhel_contenthost.execute(f'yum install -y {pkg_outdated}')
-    assert result.status == 0, f'Failed to install outdated package {pkg_outdated}'
-    rhel_contenthost.execute('subscription-manager repos')
+    for host in content_hosts:
+        result = host.execute(f'yum install -y {pkg_outdated}')
+        assert result.status == 0, f'Failed to install {pkg_outdated} on {host}'
+        host.execute('subscription-manager repos')
 
-    # Verify the erratum is applicable and installable to the host
+    # Verify the erratum is applicable and installable to both hosts
     applicable = target_sat.api.Host().bulk_applicable_errata(
         data={
             "organization_id": function_org.id,
-            "included": {"ids": [rhel_contenthost.nailgun_host.id]},
+            "included": {"ids": [host.nailgun_host.id for host in content_hosts]},
         }
     )
-    _assert_response(applicable, erratum_id, rhel_contenthost.hostname)
+    _assert_response(applicable, erratum_id, content_hosts)
 
     installable = target_sat.api.Host().bulk_installable_errata(
         data={
             "organization_id": function_org.id,
-            "included": {"ids": [rhel_contenthost.nailgun_host.id]},
+            "included": {"ids": [host.nailgun_host.id for host in content_hosts]},
         }
     )
-    _assert_response(installable, erratum_id, rhel_contenthost.hostname)
+    _assert_response(installable, erratum_id, content_hosts)
 
     # Create an exclude erratum filter for that specific erratum
     cvf = target_sat.api.ErratumContentViewFilter(content_view=cv, inclusion=False).create()
@@ -1848,21 +1873,22 @@ def test_positive_bulk_erratum_applicable_vs_installable(
 
     # Publish and promote new CV version, refresh host's applicability
     cv_publish_promote(target_sat, function_org, cv, lce)
-    rhel_contenthost.execute('subscription-manager repos')
+    for host in content_hosts:
+        host.execute('subscription-manager repos')
 
-    # Verify the erratum is applicable but not installable to the host
+    # Verify the erratum is applicable to both hosts but installable to the library host only
     applicable = target_sat.api.Host().bulk_applicable_errata(
         data={
             "organization_id": function_org.id,
-            "included": {"ids": [rhel_contenthost.nailgun_host.id]},
+            "included": {"ids": [host.nailgun_host.id for host in content_hosts]},
         }
     )
-    _assert_response(applicable, erratum_id, rhel_contenthost.hostname)
+    _assert_response(applicable, erratum_id, content_hosts)
 
     installable = target_sat.api.Host().bulk_installable_errata(
         data={
             "organization_id": function_org.id,
-            "included": {"ids": [rhel_contenthost.nailgun_host.id]},
+            "included": {"ids": [host.nailgun_host.id for host in content_hosts]},
         }
     )
-    assert len(installable['results']) == 0
+    _assert_response(installable, erratum_id, [library_host])
