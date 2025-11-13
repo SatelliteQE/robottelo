@@ -1511,3 +1511,38 @@ def test_search_for_virt_who_hypervisors(session, default_location, module_targe
         # Search with hypervisor=false gives the correct result.
         content_hosts = [host['Name'] for host in session.contenthost.search('hypervisor = false')]
         assert hypervisor_display_name not in content_hosts
+
+
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+def test_content_hosts_bool_in_query(module_target_sat, rhcloud_manifest_org, rhel_insights_vm):
+    """
+    Test that the 'true'/'false' string is also
+    interpreted as a boolean true/false as it is happening for 't'/'f' string
+
+    :id: 1daa297d-aa16-4211-9b1b-23e63c09b0e1
+
+    :verifies: SAT-22655
+    """
+    search_queries = {
+        'True': [
+            'params.host_registration_insights = true',
+            'params.host_registration_insights = t',
+        ],
+        'False': [
+            'params.host_registration_insights = false',
+            'params.host_registration_insights = f',
+        ],
+    }
+
+    with module_target_sat.ui_session() as session:
+        session.organization.select(rhcloud_manifest_org.name)
+        for query_type, queries in search_queries.items():
+            for query in queries:
+                session.contenthost.search(query)
+                result = session.contenthost.read_all()
+                if query_type == 'True':
+                    assert result['table'][0]['Name'] == rhel_insights_vm.hostname
+                elif query_type == 'False' and result['table']:
+                    assert all(
+                        item['Name'] != rhel_insights_vm.hostname for item in result['table']
+                    )

@@ -247,7 +247,6 @@ class TestAzureRMHostProvisioningTestCase:
 
     @pytest.mark.e2e
     @pytest.mark.upgrade
-    @pytest.mark.pit_server
     @pytest.mark.parametrize('sat_azure', ['sat'], indirect=True)
     def test_positive_azurerm_host_provisioned(self, class_host_ft, azureclient_host):
         """Host can be provisioned on AzureRM

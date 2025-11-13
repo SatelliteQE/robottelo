@@ -1,15 +1,12 @@
 # For running tests and checking code quality using these modules.
 pytest-cov==7.0.0
-redis==6.4.0
-pre-commit==4.3.0
-ruff==0.13.3
+redis==7.0.1
+pre-commit==4.4.0
+ruff==0.14.4
 
 # For generating documentation.
 sphinx==8.2.3
-sphinx-autoapi==3.6.0
-# Pin to <4 due to breaking changes in 4.0.0 incompatible with sphinx-autoapi
-# https://github.com/readthedocs/sphinx-autoapi/issues/536
-astroid<4.0.0
+sphinx-autoapi==3.6.1
 
 # For 'manage' interactive shell
 manage==0.1.15

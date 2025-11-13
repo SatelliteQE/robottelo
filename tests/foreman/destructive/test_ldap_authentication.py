@@ -381,8 +381,12 @@ def test_external_new_user_login_and_check_count_rhsso(
     # checking delete user can't login anymore
     default_sso_host.delete_sso_user(user_details['username'])
     with module_target_sat.ui_session(login=False) as rhsso_session:
-        with pytest.raises(NavigationTriesExceeded) as error:
-            rhsso_session.rhsso_login.login(login_details)
+        result = rhsso_session.rhsso_login.login(login_details)
+        # Verify that login failed and error message is displayed
+        assert result is not None, "Expected login to fail and return error"
+        assert 'error_message' in result
+        assert 'Invalid username or password' in result['error_message']
+        # Also verify that attempting to navigate fails with exception
         with pytest.raises(NavigationTriesExceeded) as error:
             rhsso_session.task.read_all()
         assert error.typename == 'NavigationTriesExceeded'

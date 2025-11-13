@@ -90,12 +90,15 @@ def test_negative_pre_update_tuning_profile_check(request, custom_host):
     :expectedresults: Pre-update check fails.
     """
     profile = request.node.callspec.id
-    sat_version = ".".join(settings.server.version.release.split('.')[0:2])
     # Register to CDN for RHEL repos, download and enable ohsnap repos,
     # and enable the satellite module and install it on the host
     custom_host.enable_ipv6_dnf_and_rhsm_proxy()
     custom_host.register_to_cdn()
-    custom_host.download_repofile(product='satellite', release=sat_version)
+    custom_host.download_repofile(
+        product='satellite',
+        release=settings.server.version.release,
+        snap=settings.server.version.snap,
+    )
     custom_host.install_satellite_or_capsule_package()
     # Install with development tuning profile to get around installer checks
     custom_host.execute(
