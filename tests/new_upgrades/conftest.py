@@ -4,7 +4,6 @@ This module is intended to be used for upgrade tests that have a single run stag
 
 import datetime
 import json
-import os
 from tempfile import mkstemp
 
 from box import Box
@@ -95,12 +94,12 @@ def shared_cap_checkout(shared_name):
 
 
 def shared_checkin(sat_instance):
-    log(f'Running sat_instance.teardown() from worker {os.environ.get("PYTEST_XDIST_WORKER")} ')
     sat_instance.teardown()
     with SharedResource(
         resource_name=sat_instance.hostname + "_checkin",
         action=Broker(hosts=[sat_instance]).checkin,
     ) as sat_checkin:
+        log(f'Running sat_checkin.ready() for {sat_instance.hostname} ')
         sat_checkin.ready()
 
 
@@ -228,6 +227,17 @@ def virt_who_upgrade_shared_satellite():
     sat_instance.register_to_cdn()
     with SharedResource(
         "virt_who_upgrade_tests", shared_checkin, sat_instance=sat_instance
+    ) as test_duration:
+        yield sat_instance
+        test_duration.ready()
+
+
+@pytest.fixture
+def client_upgrade_shared_satellite():
+    """Mark tests using this fixture with pytest.mark.client_upgrades."""
+    sat_instance = shared_checkout("client_plan_upgrade")
+    with SharedResource(
+        "client_plan_upgrade_tests", shared_checkin, sat_instance=sat_instance
     ) as test_duration:
         yield sat_instance
         test_duration.ready()
