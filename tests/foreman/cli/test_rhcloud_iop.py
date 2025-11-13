@@ -72,11 +72,10 @@ def test_positive_install_iop_custom_certs(
     host = rhel_contenthost
     iop_settings = settings.rh_cloud.iop_advisor_engine
 
-    # Set IPv6 system proxy on Satellite, to reach container registry
-    satellite.enable_ipv6_system_proxy()
+    # Satellite + IoP installation
 
-    # Set IPv6 dnf proxy on Content Host, to install insights-client from non-Satellite source
-    host.enable_ipv6_dnf_proxy()
+    # Set IPv6 proxy for shell commands
+    satellite.enable_ipv6_system_proxy()
 
     # Install satellite packages
     satellite.download_repofile(
@@ -86,7 +85,6 @@ def test_positive_install_iop_custom_certs(
     )
     satellite.register_to_cdn()
     satellite.execute('dnf -y update')
-    satellite.execute('dnf -y install podman')
     satellite.install_satellite_or_capsule_package()
 
     # Set up firewall
@@ -105,6 +103,9 @@ def test_positive_install_iop_custom_certs(
 
     result = satellite.execute('firewall-cmd --runtime-to-permanent')
     assert result.status == 0
+
+    # Set IPv6 proxy for podman to pull images
+    satellite.enable_ipv6_podman_proxy()
 
     # Log in to container registry
     result = satellite.execute(
@@ -151,6 +152,11 @@ def test_positive_install_iop_custom_certs(
         purpose_role='test-role',
     ).create()
 
+    # Host setup
+
+    # Set IPv6 proxy on Content Host for (non-Satellite) dnf repos
+    host.enable_ipv6_dnf_proxy()
+
     host.configure_rex(satellite=satellite, org=org, register=False)
     host.configure_insights_client(
         satellite=satellite,
@@ -159,6 +165,7 @@ def test_positive_install_iop_custom_certs(
         rhel_distro=f"rhel{host.os_version.major}",
     )
 
+    # Verify insights-client upload
     result = host.execute('insights-client')
     assert result.status == 0, 'insights-client upload failed'
 
@@ -215,6 +222,9 @@ def test_disable_enable_iop(satellite_iop, module_sca_manifest, rhel_contenthost
     result = satellite.execute(command, timeout='10m')
     assert result.status == 0, 'Failed to disable IoP'
 
+    result = satellite.execute('satellite-maintain service restart')
+    assert result.status == 0, 'Failed to restart Satellite services'
+
     result = satellite.execute('podman ps -a --noheading')
     assert result.stdout == '', 'Podman containers not removed'
 
@@ -236,25 +246,30 @@ def test_disable_enable_iop(satellite_iop, module_sca_manifest, rhel_contenthost
     # Verify insights-client re-registration
     result = host.execute('insights-client --status')
     assert 'Insights API says this machine is NOT registered.' in result.stdout, (
-        'insights-client still registered after disabling IoP'
+        'insights-client status check failed'
     )
 
-    result = host.execute('insights-client --register --force')
-    assert result.status == 0, 'Failed to re-register insights client'
+    result = host.execute('rm -f /etc/insights-client/machine-id; insights-client --register')
+    assert result.status == 0, 'Failed to register to Red Hat Lightspeed'
 
-    host.execute('insights-client --unregister')
+    result = host.execute('insights-client --unregister')
+    assert result.status == 0, 'Failed to unregister from Red Hat Lightspeed'
 
     # Re-enable IoP
     command = InstallerCommand(iop_ensure='present').get_command()
     result = satellite.execute(command, timeout='10m')
     assert result.status == 0, 'Failed to re-enable IoP'
 
+    result = satellite.execute('satellite-maintain service restart')
+    assert result.status == 0, 'Failed to restart Satellite services'
+
     result = satellite.execute('satellite-maintain service status -b')
     assert 'FAIL' not in result.stdout, 'Services not running'
     assert all(service in result.stdout for service in IOP_SERVICES), 'IoP services not enabled'
 
-    result = host.execute('insights-client --register --force')
-    assert result.status == 0, 'Failed to re-register insights client'
+    # Verify insights-client re-registration again
+    result = host.execute('rm -f /etc/insights-client/machine-id; insights-client --register')
+    assert result.status == 0, 'Failed to register to IoP'
 
     result = host.execute('insights-client')
     assert result.status == 0, 'insights-client upload failed'
