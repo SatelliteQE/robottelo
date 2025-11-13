@@ -9,7 +9,7 @@ sat6-upgrade requires env.satellite_hostname to be set, this is required for the
 
 :CaseComponent: Hosts-Content
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 
@@ -173,13 +173,15 @@ def test_post_scenario_post_client_package_installation(pre_client_package_insta
         target_sat._swap_nailgun('master')
     else:
         target_sat._swap_nailgun(f"{settings.UPGRADE.TO_VERSION}.z")
-    org = pre_client_package_installation_setup.org
-    location = pre_client_package_installation_setup.location
-    lce = pre_client_package_installation_setup.lce
+    org = target_sat.api.Organization(id=pre_client_package_installation_setup.org.id).read()
+    location = target_sat.api.Location(id=pre_client_package_installation_setup.location.id).read()
+    lce = target_sat.api.LifecycleEnvironment(
+        id=pre_client_package_installation_setup.lce.id
+    ).read()
     product = pre_client_package_installation_setup.product
     test_name = pre_client_package_installation_setup.test_name
     repo = target_sat.api.Repository(
-        product=product,
+        product=product.id,
         name=f'{test_name}_yum_repo_post_upgrade',
         url=settings.repos.yum_2.url,
         content_type='yum',
