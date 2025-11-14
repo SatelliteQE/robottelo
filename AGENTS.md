@@ -152,7 +152,7 @@ def test_positive_create_ak(module_org, module_target_sat):
 
 ### 3. **Host Helpers**
 
-Mixins that provide common functionality for Satellite and ContentHost objects.
+Mixins that provide common functionality for Satellite, ContentHost, and capsule objects.
 
 **Satellite Mixins** (`robottelo/host_helpers/satellite_mixins.py`):
 - `api_factory`: API entity creation methods
@@ -161,8 +161,12 @@ Mixins that provide common functionality for Satellite and ContentHost objects.
 
 **ContentHost Mixins** (`robottelo/host_helpers/contenthost_mixins.py`):
 - `register_contenthost()`: Register host to Satellite
-- `install_katello_ca()`: Install Katello CA certificate
 - `execute()`: Run commands on content host
+
+**Capsule Mixins** (`robottelo/host_helpers/capsule_mixins.py`):
+- `wait_for_sync()`: Wait for capsule sync to complete
+- `get_published_repo_url()`: Get repository URL on capsule
+- `get_artifacts()`: List pulp artifacts on capsule
 
 Example:
 
@@ -252,7 +256,7 @@ Examples:
 
 ### Docstring Style
 
-Use **reStructuredText** format with required fields:
+Use **reStructuredText** format with required fields, Reference `testimony.yaml` for complete field definitions:
 
 ```python
 def test_positive_create_activation_key(module_org, module_target_sat):
@@ -288,34 +292,7 @@ def test_positive_create_activation_key(module_org, module_target_sat):
 
 ## Testing Patterns
 
-### Pattern 1: Basic CRUD Test (API)
-
-```python
-def test_positive_create_activation_key(module_org, module_target_sat):
-    """Test activation key creation via API"""
-    # Create
-    ak = module_target_sat.api.ActivationKey(
-        organization=module_org,
-        name=gen_string('alpha')
-    ).create()
-    
-    # Read
-    ak_read = module_target_sat.api.ActivationKey(id=ak.id).read()
-    assert ak_read.name == ak.name
-    
-    # Update
-    new_name = gen_string('alpha')
-    ak.name = new_name
-    ak.update(['name'])
-    assert ak.read().name == new_name
-    
-    # Delete
-    ak.delete()
-    with pytest.raises(HTTPError):
-        ak.read()
-```
-
-### Pattern 2: UI Test with Session
+### Pattern 1: UI Test with Session
 
 ```python
 def test_positive_create_ak_via_ui(module_org, module_target_sat):
@@ -377,6 +354,18 @@ def test_positive_create_with_different_names(name, module_org, module_target_sa
     assert ak.name == name
 ```
 
+```python
+    @pytest.mark.parametrize(
+        'repos_collection',
+        [
+            {
+                'distro': 'rhel10',
+                'YumRepository': {'url': settings.repos.yum_0.url},
+            }
+        ],
+        indirect=True,
+    )
+```
 ### Pattern 5: End-to-End Test
 
 ```python
@@ -504,15 +493,15 @@ def function_org(target_sat):
 ### Fixture Best Practices
 
 **DO ✅**:
-- Use `module` scope for expensive fixtures (Satellite, manifests)
+- Use `session`, `module`, and `class` scope for expensive fixtures (Satellite, manifests)
 - Use `function` scope for test-specific fixtures
 - Clean up resources in fixture teardown (use `yield`)
 - Parametrize fixtures using `@pytest.fixture(params=[...])` when prompted
 
 **DON'T ❌**:
-- Don't create new Satellite instances per test (use `module_target_sat`)
+- Don't create new Satellite instances per test (use `target_sat`)
 - Don't hard-code values in fixtures (use `gen_string()`)
-- Don't skip fixture cleanup (always delete created resources)
+- Don't skip fixture cleanup
 - Don't create new fixtures unless prompted to
 
 ---
@@ -531,8 +520,6 @@ def function_org(target_sat):
 
 **Infrastructure Markers**:
 ```python
-@pytest.mark.pit_server       # Requires PIT Satellite
-@pytest.mark.pit_client       # Requires PIT content host
 @pytest.mark.no_containers    # Cannot run in containers
 ```
 
@@ -657,25 +644,20 @@ pytest -m "post_upgrade" tests/upgrades/
 ### Pattern 1: Wait for Task Completion
 
 ```python
-from robottelo.constants import DEFAULT_TIMEOUT
-
-# Wait for Satellite task
-task = target_sat.api.ForemanTask(id=task_id).wait()
-assert task.result == 'success'
-
-# Wait for CLI task
-result = target_sat.cli.Task.progress({
-    'id': task_id,
-    'timeout': DEFAULT_TIMEOUT
-})
-assert result['result'] == 'success'
+repo = target_sat.cli_factory.make_repository(repo_options)
+target_sat.wait_for_tasks(
+    search_query='Actions::Katello::Repository::MetadataGenerate'
+    f' and resource_id = {repo["id"]}'
+    ' and resource_type = Katello::Repository',
+    max_tries=6,
+    search_rate=10,
+)
 ```
 
 ### Pattern 2: Content Host Registration
 
 ```python
 # Register with activation key
-rhel_contenthost.install_katello_ca(target_sat)
 rhel_contenthost.register_contenthost(
     org=module_org,
     activation_key=ak.name
@@ -783,10 +765,10 @@ wait_for(
 
 #### 3. **Broker Checkout Failure**
 
-**Problem**: `BrokerError: No hosts available`
+**Problem**: `raise Exception("No hosts created during checkout")`
 
 **Solution**:
-- Check Broker configuration in `broker_settings.yaml`
+- Check Broker configuration in `broker_settings.yaml` and `broker/broker.py`
 - Verify inventory has available hosts
 - Check host requirements match available inventory
 
@@ -803,13 +785,10 @@ broker checkout --workflow deploy-rhel --rhel-version 9
 **Problem**: Registration fails with certificate errors
 
 **Solution**:
-- Verify Katello CA is installed
-- Check Satellite hostname is resolvable
+- Check Satellite hostname is resolvable from the Content Host
 - Ensure correct activation key is used
 
 ```python
-# Install CA certificate first
-rhel_contenthost.install_katello_ca(target_sat)
 
 # Verify hostname resolution
 result = rhel_contenthost.execute(f'ping -c 1 {target_sat.hostname}')
@@ -863,8 +842,6 @@ with target_sat.ui_session() as session:
 ### Configuration
 
 *   **Test Configuration:** The application uses multiple YAML files for configuration:
-    - `robottelo.yaml`: Main test configuration
-    - `broker_settings.yaml`: Broker/VM configuration
     - `conf/*.yaml`: Feature-specific configurations
 
 *   **Settings Access:** Use `robottelo.config.settings` to access configuration:
@@ -906,7 +883,7 @@ repo_url = settings.repos.yum_3.url
 
 ### DO ✅
 
-- **Use fixtures for setup/teardown** - Avoid duplicating setup code in tests
+- **Use fixtures for setup/teardown** - Search for existing fixtures to avoid fixture duplication
 - **Use markers to categorize tests** - Makes test selection easier
 - **Clean up resources** - Delete entities after test completion
 - **Use `gen_string()` for names** - Avoid hard-coded names
@@ -923,7 +900,7 @@ repo_url = settings.repos.yum_3.url
 - **Don't use `time.sleep()`** - Use `wait_for()` instead
 - **Don't hard-code credentials** - Use `settings` or Vault
 - **Don't copy-paste tests** - Use parametrization or fixtures
-- **Don't create Satellite per test** - Use `module_target_sat`
+- **Don't create Satellite per test** - Use `target_sat`
 - **Don't test Satellite UI in CLI tests** - Keep interfaces separate
 - **Don't assume test order** - Tests should be independent
 - **Don't write assertions within for loops** - Assertions should be easy to read
