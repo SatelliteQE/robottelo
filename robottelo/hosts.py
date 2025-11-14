@@ -2765,12 +2765,7 @@ class SSOHost(Host):
         """
         with open(entity_name, "w") as file:
             json.dump(json_content, file)
-        # Before uploading a file, remove the file of the same name. In sftp_write,
-        # if uploading a file of length n when there was already uploaded a file with
-        # the same name of length m, for n<m, only first n characters are replaced by
-        # the characters in new file and the rest is left as it is.
-        self.execute(f'rm {entity_name}')
-        self.session.sftp_write(entity_name)
+        self.session.sftp_write(entity_name, entity_name)
 
     def create_mapper(self, json_content, client_id):
         """Helper method to create the RH-SSO Client Mapper"""
