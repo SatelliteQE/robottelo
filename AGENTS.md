@@ -19,7 +19,7 @@
 - **pytest**: Test framework and runner
 - **Airgun**: UI testing via Selenium/Widgetastic
 - **Nailgun**: API testing via Python wrapper
-- **ssh2-python**: CLI testing via SSH
+- **Hussh**: CLI testing via SSH
 - **Broker**: Infrastructure management for test hosts
 - **Manifester**: Satellite manifest management
 
@@ -36,6 +36,10 @@
 **API Tests**: Use Nailgun to interact with Satellite API
 - Location: `tests/foreman/api/`
 - Example: `tests/foreman/api/test_activationkey.py`
+
+**Upgrade Tests**: Uses`SharedResource` for single-test upgrade scenarios:
+- Location: 'tests/new_upgrades'
+- Example: 'tests'new_upgrades/test_activation_key.py'
 
 ---
 
@@ -74,6 +78,7 @@ The bottom layer containing helper classes, utilities, and base implementations.
 - **Location**: `robottelo/`
 - **Components**:
   - **API helpers**: `robottelo/api/` (Nailgun entities)
+  - **Host classes**:  `robottelo.hosts.py` (Base functionality for ContentHost, Capsule, Satellite interaction s)
   - **CLI helpers**: `robottelo/cli/` (Hammer command wrappers)
   - **Host helpers**: `robottelo/host_helpers/` (Satellite/ContentHost mixins)
   - **Utilities**: `robottelo/utils/` (decorators, data factories, etc.)
@@ -81,7 +86,7 @@ The bottom layer containing helper classes, utilities, and base implementations.
 ### Layer 4: Infrastructure Layer
 External services and tools that tests depend on.
 
-- **Broker**: VM/host provisioning
+- **Broker**: VM/Container host provisioning
 - **Manifester**: Subscription manifest generation
 - **Report Portal**: Test result reporting
 - **Vault**: Secret management
@@ -109,6 +114,7 @@ Pytest fixtures provide test dependencies and setup/teardown logic.
 - `function`: Per test function (default)
 - `module`: Per test module
 - `session`: Per test session
+- `class`: Per test session
 
 Example:
 
@@ -120,7 +126,7 @@ def activation_key(module_org, module_target_sat):
         organization=module_org,
         name='test-ak'
     ).create()
-    yield ak
+    return ak  # or yield when a cleanup step comes next
 ```
 
 ### 2. **Markers**
@@ -128,17 +134,14 @@ def activation_key(module_org, module_target_sat):
 Pytest markers categorize and filter tests.
 
 **Common Markers**:
-- `@pytest.mark.tier1`: High priority tests
-- `@pytest.mark.tier2`: Medium priority tests
-- `@pytest.mark.tier3`: Low priority tests
 - `@pytest.mark.e2e`: End-to-end workflow tests
 - `@pytest.mark.rhel_ver_match()`: Filter by RHEL version
+- `@pytest.mark.rhel_ver_list()`: FIlter by specific RHEL version
 - `@pytest.mark.parametrize()`: Parameterize test inputs
 
 Example:
 
 ```python
-@pytest.mark.tier1
 @pytest.mark.rhel_ver_match(r'^(9|10)')
 def test_positive_create_ak(module_org, module_target_sat):
     """Test activation key creation"""
@@ -169,6 +172,8 @@ ak = target_sat.api.ActivationKey(organization=org).create()
 
 # Using UI session
 with target_sat.ui_session() as session:
+    session.organization.select('ORG_NAME')
+	session.location.select('LOC_NAME')
     session.activationkey.create({'name': 'my-ak'})
 
 # Using ContentHost methods
@@ -207,7 +212,7 @@ email = gen_email()  # Random email
 
 ```python
 # Standard library
-import logging
+from robottelo.logging import logger
 from datetime import datetime
 
 # Third-party
@@ -227,7 +232,7 @@ from robottelo.utils.datafactory import gen_string
 |------|-----------|---------|
 | **Test Functions** | `test_{type}_{action}_{entity}` | `test_positive_create_activation_key` |
 | **Fixtures** | `{scope}_{entity}` | `module_activation_key`, `function_org` |
-| **Classes** | PascalCase | `ActivationKey`, `ContentView` |
+| **Classes** | CamelCase | `ActivationKey`, `ContentView` |
 | **Functions/Methods** | snake_case | `create()`, `delete()`, `register_contenthost()` |
 | **Constants** | UPPER_SNAKE_CASE | `DEFAULT_TIMEOUT`, `OPENSSH_RECOMMENDATION` |
 | **Private** | Leading underscore | `_helper()`, `_validate()` |
@@ -253,7 +258,7 @@ Use **reStructuredText** format with required fields:
 def test_positive_create_activation_key(module_org, module_target_sat):
     """Create activation key with valid name
     
-    :id: 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d
+    :id: 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d <uuid generated with 'uuidgen | tr "[:upper:]" "[:lower:]"'>
     
     :steps:
         1. Create organization
@@ -277,6 +282,8 @@ def test_positive_create_activation_key(module_org, module_target_sat):
 - `:steps:` - Test execution steps
 - `:expectedresults:` - Expected outcome
 
+**Optional fields**
+- `:Verifies:` - When the test verifies a Bug (Use as :Verifies: SAT-12345) (Formely there was :BZ: tag, don't use that anymore) 
 ---
 
 ## Testing Patterns
@@ -284,7 +291,6 @@ def test_positive_create_activation_key(module_org, module_target_sat):
 ### Pattern 1: Basic CRUD Test (API)
 
 ```python
-@pytest.mark.tier1
 def test_positive_create_activation_key(module_org, module_target_sat):
     """Test activation key creation via API"""
     # Create
@@ -312,7 +318,6 @@ def test_positive_create_activation_key(module_org, module_target_sat):
 ### Pattern 2: UI Test with Session
 
 ```python
-@pytest.mark.tier2
 def test_positive_create_ak_via_ui(module_org, module_target_sat):
     """Test activation key creation via UI"""
     ak_name = gen_string('alpha')
@@ -334,7 +339,6 @@ def test_positive_create_ak_via_ui(module_org, module_target_sat):
 ### Pattern 3: CLI Test
 
 ```python
-@pytest.mark.tier1
 def test_positive_create_ak_via_cli(module_org, module_target_sat):
     """Test activation key creation via CLI"""
     ak_name = gen_string('alpha')
@@ -359,7 +363,6 @@ def test_positive_create_ak_via_cli(module_org, module_target_sat):
 ### Pattern 4: Parametrized Test
 
 ```python
-@pytest.mark.tier1
 @pytest.mark.parametrize('name', [
     gen_string('alpha'),
     gen_string('numeric'),
@@ -378,7 +381,6 @@ def test_positive_create_with_different_names(name, module_org, module_target_sa
 
 ```python
 @pytest.mark.e2e
-@pytest.mark.tier3
 def test_positive_content_host_e2e(
     module_org,
     module_lce,
@@ -518,13 +520,6 @@ def function_org(target_sat):
 ## Markers and Pytest Plugins
 
 ### Built-in Markers
-
-**Tier Markers** (Test duration):
-```python
-@pytest.mark.tier1  # High
-@pytest.mark.tier2  # Medium
-@pytest.mark.tier3  # Low
-```
 
 **Test Type Markers**:
 ```python
@@ -896,7 +891,7 @@ repo_url = settings.repos.yum_3.url
     - Action: `create`, `update`, `delete`, `list`
 
 *   **Test Documentation:** Every test must have:
-    - Unique `:id:` (UUID)
+    - Unique `:id:` UUID generated with 'uuidgen | tr "[:upper:]" "[:lower:]"'
     - Clear `:steps:`
     - Expected `:expectedresults:`
 
