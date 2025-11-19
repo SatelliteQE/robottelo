@@ -12,6 +12,8 @@
 
 """
 
+import random
+
 import pytest
 import requests
 
@@ -222,6 +224,56 @@ def test_flatpak_endpoint(target_sat, endpoint):
     ep = FLATPAK_ENDPOINTS[endpoint].format(target_sat.hostname)
     rq = requests.get(ep, verify=settings.server.verify_ca)
     assert rq.ok, f'Expected 200 but got {rq.status_code} from {endpoint} registry index'
+
+
+@pytest.mark.parametrize('function_flatpak_remote', ['Fedora'], indirect=True)
+def test_negative_mirror_flatpak_repo(
+    target_sat, function_org, function_product, function_flatpak_remote
+):
+    """Verify that Flatpak repository can't be mirrored without Product or Organization provided
+        and appropriate error message is displayed.
+
+    :id: 6984ecdf-a878-46ac-95bd-583c3c6809cf
+
+    :parametrized: yes
+
+    :setup:
+        1. Create a Product within an Organization.
+        2. Create and sync a Flatpak remote within the same Organization.
+
+    :steps:
+        1. Attempt to mirror random flatpak repo from the remote without Product provided.
+        2. Attempt to mirror the flatpak repo using Product name without Organization provided.
+
+    :expectedresults:
+        1. Should fail with appropriate error message in both cases.
+
+    :Verifies: SAT-39771
+
+    """
+    # Attempt to mirror random flatpak repo from the remote without Product provided.
+    repo = random.choice(function_flatpak_remote.repos)
+    with pytest.raises(CLIReturnCodeError) as e:
+        target_sat.cli.FlatpakRemote().repository_mirror(
+            {
+                'flatpak-remote-id': function_flatpak_remote.remote['id'],
+                'id': repo['id'],
+            }
+        )
+    assert 'Could not mirror the Flatpak remote repository' in e.value.message
+    assert 'Product must be specified' in e.value.message
+
+    # Attempt to mirror the flatpak repo using Product name without Organization provided.
+    with pytest.raises(CLIReturnCodeError) as e:
+        target_sat.cli.FlatpakRemote().repository_mirror(
+            {
+                'flatpak-remote-id': function_flatpak_remote.remote['id'],
+                'name': repo['name'],
+                'product-name': function_product.name,
+            }
+        )
+    assert 'Could not mirror the Flatpak remote repository' in e.value.message
+    assert 'Could not find organization' in e.value.message
 
 
 @pytest.mark.e2e

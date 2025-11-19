@@ -1847,17 +1847,6 @@ def test_positive_register(
     assert len(hosts) > 0
     host = target_sat.cli.Host.info({'id': hosts[0]['id']})
     assert host['name'] == rhel_contenthost.hostname
-    # note: when not registered the following command lead to exception,
-    # see unregister
-    host_subscriptions = target_sat.cli.ActivationKey.subscriptions(
-        {
-            'organization-id': module_org.id,
-            'id': module_ak_with_cv.id,
-            'host-id': host['id'],
-        },
-        output_format='json',
-    )
-    assert len(host_subscriptions) == 0
 
 
 # -------------------------- MULTI-CV SCENARIOS -------------------------

@@ -149,7 +149,6 @@ def test_positive_install_iop_custom_certs(
         service_level='Self-Support',
         purpose_usage='test-usage',
         purpose_role='test-role',
-        auto_attach=False,
     ).create()
 
     host.configure_rex(satellite=satellite, org=org, register=False)
@@ -198,7 +197,6 @@ def test_disable_enable_iop(satellite_iop, module_sca_manifest, rhel_contenthost
         service_level='Self-Support',
         purpose_usage='test-usage',
         purpose_role='test-role',
-        auto_attach=False,
     ).create()
 
     host.configure_rex(satellite=satellite, org=org, register=False)
