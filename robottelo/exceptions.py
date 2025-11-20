@@ -17,6 +17,10 @@ class InvalidVaultURLForOIDC(Exception):
     """Raised if the vault doesn't allows OIDC login"""
 
 
+class VaultCommandTimeoutError(Exception):
+    """Raised when a vault command exceeds its timeout"""
+
+
 class RepositoryAlreadyDefinedError(Exception):
     """Raised when a repository has already a predefined key"""
 
