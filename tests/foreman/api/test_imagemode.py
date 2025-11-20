@@ -25,7 +25,9 @@ from robottelo.constants import (
 
 @pytest.mark.e2e
 @pytest.mark.no_containers
-def test_positive_bootc_api_actions(target_sat, bootc_host, function_ak_with_cv, function_org):
+def test_positive_bootc_api_actions(
+    target_sat, dummy_bootc_host, function_ak_with_cv, function_org
+):
     """Register a bootc host and validate API information
 
     :id: b94ab231-0dd8-4e47-a96b-972c5ee55f4d
@@ -35,24 +37,29 @@ def test_positive_bootc_api_actions(target_sat, bootc_host, function_ak_with_cv,
     :Verifies: SAT-27168, SAT-27170, SAT-27173
     """
     bootc_dummy_info = json.loads(DUMMY_BOOTC_FACTS)
-    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
-    assert bootc_host.subscribed
-    # Testing bootc info from content_facet_attributes
-    bootc_host = target_sat.api.Host().search(query={'search': f'name={bootc_host.hostname}'})[0]
     assert (
-        bootc_host.content_facet_attributes['bootc_booted_image']
+        dummy_bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status
+        == 0
+    )
+    assert dummy_bootc_host.subscribed
+    # Testing bootc info from content_facet_attributes
+    dummy_bootc_host = target_sat.api.Host().search(
+        query={'search': f'name={dummy_bootc_host.hostname}'}
+    )[0]
+    assert (
+        dummy_bootc_host.content_facet_attributes['bootc_booted_image']
         == bootc_dummy_info['bootc.booted.image']
     )
     assert (
-        bootc_host.content_facet_attributes['bootc_booted_digest']
+        dummy_bootc_host.content_facet_attributes['bootc_booted_digest']
         == bootc_dummy_info['bootc.booted.digest']
     )
     assert (
-        bootc_host.content_facet_attributes['bootc_rollback_image']
+        dummy_bootc_host.content_facet_attributes['bootc_rollback_image']
         == bootc_dummy_info['bootc.rollback.image']
     )
     assert (
-        bootc_host.content_facet_attributes['bootc_rollback_digest']
+        dummy_bootc_host.content_facet_attributes['bootc_rollback_digest']
         == bootc_dummy_info['bootc.rollback.digest']
     )
     # Testing bootc info from hosts/bootc_images
@@ -65,7 +72,7 @@ def test_positive_bootc_api_actions(target_sat, bootc_host, function_ak_with_cv,
     assert bootc_image_info['digests'][0]['host_count'] > 0
 
     # Testing bootc image is correctly included in the usage report
-    os = bootc_host.operatingsystem.read_json()
+    os = dummy_bootc_host.operatingsystem.read_json()
     assert (
         int(target_sat.get_reported_value(f'image_mode_hosts_by_os_count|{os["family"]}')) == 1
     ), "host not included in usage report"
