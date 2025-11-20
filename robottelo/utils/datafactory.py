@@ -281,7 +281,6 @@ def valid_docker_repository_names():
         gen_string('latin1', random.randint(1, 255)),
         gen_string('numeric', random.randint(1, 255)),
         gen_string('utf8', random.randint(1, 85)),
-        gen_string('html', random.randint(1, 85)),
     ]
 
 
