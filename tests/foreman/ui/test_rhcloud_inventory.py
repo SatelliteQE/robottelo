@@ -20,6 +20,7 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
+from robottelo.enums import NetworkType
 from robottelo.utils.io import (
     get_local_file_data,
     get_remote_report_checksum,
@@ -188,15 +189,28 @@ def test_rhcloud_inventory_e2e(
     assert virtual_host.hostname in hostnames
     assert baremetal_host.hostname in hostnames
     # Verify that ip_addresses are present report.
-    ip_addresses = [
-        host['system_profile']['network_interfaces'][0]['ipv4_addresses'][0]
-        for host in json_data['hosts']
-    ]
-    ipv4_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
-    assert virtual_host.ip_addr in ip_addresses
-    assert baremetal_host.ip_addr in ip_addresses
-    assert virtual_host.ip_addr in ipv4_addresses
-    assert baremetal_host.ip_addr in ipv4_addresses
+    if module_target_sat.network_type == NetworkType.IPV6:
+        # For IPv6 networks, check IPv6 addresses
+        ip_addresses = [
+            host['system_profile']['network_interfaces'][0]['ipv6_addresses'][0]
+            for host in json_data['hosts']
+        ]
+        ipv6_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
+        assert virtual_host.ip_addr in ip_addresses
+        assert baremetal_host.ip_addr in ip_addresses
+        assert virtual_host.ip_addr in ipv6_addresses
+        assert baremetal_host.ip_addr in ipv6_addresses
+    else:
+        # For IPv4 networks, check IPv4 addresses
+        ip_addresses = [
+            host['system_profile']['network_interfaces'][0]['ipv4_addresses'][0]
+            for host in json_data['hosts']
+        ]
+        ipv4_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
+        assert virtual_host.ip_addr in ip_addresses
+        assert baremetal_host.ip_addr in ip_addresses
+        assert virtual_host.ip_addr in ipv4_addresses
+        assert baremetal_host.ip_addr in ipv4_addresses
     # Verify that packages are included in report
     all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
     for host_profiles in all_host_profiles:
@@ -222,11 +236,11 @@ def test_rh_cloud_inventory_settings(
 
         1. Prepare machine and upload its data to Insights.
         2. Go to Insights > Inventory upload > enable “Obfuscate host names” setting.
-        3. Go to Insights > Inventory upload > enable “Obfuscate host ipv4 addresses” setting.
+        3. Go to Insights > Inventory upload > enable “Obfuscate host ip addresses” setting.
         4. Go to Insights > Inventory upload > enable “Exclude Packages” setting.
         5. Generate report after enabling the settings.
         6. Check if host names are obfuscated in generated reports.
-        7. Check if hosts ipv4 addresses are obfuscated in generated reports.
+        7. Check if hosts ipv6 or ipv4 addresses are obfuscated in generated reports.
         8. Check if packages are excluded from generated reports.
         9. Disable previous setting.
         10. Go to Administer > Settings > RH Cloud and enable "Obfuscate host names" setting.
@@ -235,12 +249,12 @@ def test_rh_cloud_inventory_settings(
             "Don't upload installed packages" setting.
         13. Generate report after enabling the setting.
         14. Check if host names are obfuscated in generated reports.
-        15. Check if hosts ipv4 addresses are obfuscated in generated reports.
+        15. Check if hosts ipv6 or ipv4 addresses are obfuscated in generated reports.
         16. Check if packages are excluded from generated reports.
 
     :expectedresults:
         1. Obfuscated host names in reports generated.
-        2. Obfuscated host ipv4 addresses in generated reports.
+        2. Obfuscated host ipv6 or ipv4 addresses in generated reports.
         3. Packages are excluded from reports generated.
 
     :BZ: 1852594, 1889690, 1852594
@@ -289,15 +303,28 @@ def test_rh_cloud_inventory_settings(
         assert virtual_host.hostname not in hostnames
         assert baremetal_host.hostname not in hostnames
         # Verify that ip_addresses are obfuscated from the report.
-        ip_addresses = [
-            host['system_profile']['network_interfaces'][0]['ipv4_addresses'][0]
-            for host in json_data['hosts']
-        ]
-        ipv4_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
-        assert virtual_host.ip_addr not in ip_addresses
-        assert baremetal_host.ip_addr not in ip_addresses
-        assert virtual_host.ip_addr not in ipv4_addresses
-        assert baremetal_host.ip_addr not in ipv4_addresses
+        if module_target_sat.network_type == NetworkType.IPV6:
+            # For IPv6 networks, check IPv6 addresses
+            ip_addresses = [
+                host['system_profile']['network_interfaces'][0]['ipv6_addresses'][0]
+                for host in json_data['hosts']
+            ]
+            ipv6_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
+            assert virtual_host.ip_addr not in ip_addresses
+            assert baremetal_host.ip_addr not in ip_addresses
+            assert virtual_host.ip_addr not in ipv6_addresses
+            assert baremetal_host.ip_addr not in ipv6_addresses
+        else:
+            # For IPv4 networks, check IPv4 addresses
+            ip_addresses = [
+                host['system_profile']['network_interfaces'][0]['ipv4_addresses'][0]
+                for host in json_data['hosts']
+            ]
+            ipv4_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
+            assert virtual_host.ip_addr not in ip_addresses
+            assert baremetal_host.ip_addr not in ip_addresses
+            assert virtual_host.ip_addr not in ipv4_addresses
+            assert baremetal_host.ip_addr not in ipv4_addresses
         # Verify that packages are excluded from report
         all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
         for host_profiles in all_host_profiles:
@@ -341,15 +368,28 @@ def test_rh_cloud_inventory_settings(
         assert virtual_host.hostname not in hostnames
         assert baremetal_host.hostname not in hostnames
         # Verify that ip_addresses are obfuscated from the report.
-        ip_addresses = [
-            host['system_profile']['network_interfaces'][0]['ipv4_addresses'][0]
-            for host in json_data['hosts']
-        ]
-        ipv4_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
-        assert virtual_host.ip_addr not in ip_addresses
-        assert baremetal_host.ip_addr not in ip_addresses
-        assert virtual_host.ip_addr not in ipv4_addresses
-        assert baremetal_host.ip_addr not in ipv4_addresses
+        if module_target_sat.network_type == NetworkType.IPV6:
+            # For IPv6 networks, check IPv6 addresses
+            ip_addresses = [
+                host['system_profile']['network_interfaces'][0]['ipv6_addresses'][0]
+                for host in json_data['hosts']
+            ]
+            ipv6_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
+            assert virtual_host.ip_addr not in ip_addresses
+            assert baremetal_host.ip_addr not in ip_addresses
+            assert virtual_host.ip_addr not in ipv6_addresses
+            assert baremetal_host.ip_addr not in ipv6_addresses
+        else:
+            # For IPv4 networks, check IPv4 addresses
+            ip_addresses = [
+                host['system_profile']['network_interfaces'][0]['ipv4_addresses'][0]
+                for host in json_data['hosts']
+            ]
+            ipv4_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
+            assert virtual_host.ip_addr not in ip_addresses
+            assert baremetal_host.ip_addr not in ip_addresses
+            assert virtual_host.ip_addr not in ipv4_addresses
+            assert baremetal_host.ip_addr not in ipv4_addresses
         # Verify that packages are excluded from report
         all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
         for host_profiles in all_host_profiles:
