@@ -192,8 +192,7 @@ def test_rhcloud_inventory_e2e(
     is_ipv6 = module_target_sat.network_type == NetworkType.IPV6
     key = 'ipv6_addresses' if is_ipv6 else 'ipv4_addresses'
     ip_addresses = {
-        host['system_profile']['network_interfaces'][0][key][0]
-        for host in json_data['hosts']
+        host['system_profile']['network_interfaces'][0][key][0] for host in json_data['hosts']
     }
     ips = {host['ip_addresses'][0] for host in json_data['hosts']}
     for host_ip in (virtual_host.ip_addr, baremetal_host.ip_addr):
@@ -294,8 +293,7 @@ def test_rh_cloud_inventory_settings(
         is_ipv6 = module_target_sat.network_type == NetworkType.IPV6
         key = 'ipv6_addresses' if is_ipv6 else 'ipv4_addresses'
         ip_addresses = {
-            host['system_profile']['network_interfaces'][0][key][0]
-            for host in json_data['hosts']
+            host['system_profile']['network_interfaces'][0][key][0] for host in json_data['hosts']
         }
         ips = {host['ip_addresses'][0] for host in json_data['hosts']}
         for host_ip in (virtual_host.ip_addr, baremetal_host.ip_addr):
@@ -347,8 +345,7 @@ def test_rh_cloud_inventory_settings(
         is_ipv6 = module_target_sat.network_type == NetworkType.IPV6
         key = 'ipv6_addresses' if is_ipv6 else 'ipv4_addresses'
         ip_addresses = {
-            host['system_profile']['network_interfaces'][0][key][0]
-            for host in json_data['hosts']
+            host['system_profile']['network_interfaces'][0][key][0] for host in json_data['hosts']
         }
         ips = {host['ip_addresses'][0] for host in json_data['hosts']}
         for host_ip in (virtual_host.ip_addr, baremetal_host.ip_addr):
