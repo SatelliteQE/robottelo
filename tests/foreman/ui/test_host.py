@@ -3251,7 +3251,7 @@ def test_positive_all_hosts_manage_host_collections(target_sat, function_org, fu
             host_collections_to_select=host_col_limit_1_name,
             option='Add',
         )
-        assert 'Successfully added' in result
+        assert 'Added' in result
         hosts_in_host_col = read_host_collections_hosts(
             target_sat, host_col_limit_1_name, function_org
         )
@@ -3275,7 +3275,7 @@ def test_positive_all_hosts_manage_host_collections(target_sat, function_org, fu
             host_collections_to_select=host_col_names,
             option='Add',
         )
-        assert 'Successfully added' in result
+        assert 'Added' in result
         hosts_in_host_col = read_host_collections_hosts(target_sat, host_col_names, function_org)
         assert hosts_in_host_col[host_col_names[0]] == host_names
         assert hosts_in_host_col[host_col_names[1]] == host_names
@@ -3287,7 +3287,7 @@ def test_positive_all_hosts_manage_host_collections(target_sat, function_org, fu
             host_collections_to_select=host_col_names[0],
             option='Remove',
         )
-        assert 'Successfully removed' in result
+        assert 'Removed' in result
         hosts_in_host_col = read_host_collections_hosts(target_sat, host_col_names[0], function_org)
         assert hosts_in_host_col[host_col_names[0]] == [host_names[1]]
 
@@ -3298,7 +3298,7 @@ def test_positive_all_hosts_manage_host_collections(target_sat, function_org, fu
             host_collections_to_select=host_col_names,
             option='Remove',
         )
-        assert 'Successfully removed' in result
+        assert 'Removed' in result
         hosts_in_host_col = read_host_collections_hosts(target_sat, host_col_names, function_org)
         assert hosts_in_host_col[host_col_names[0]] == []
         assert hosts_in_host_col[host_col_names[1]] == [host_names[0]]
