@@ -189,28 +189,16 @@ def test_rhcloud_inventory_e2e(
     assert virtual_host.hostname in hostnames
     assert baremetal_host.hostname in hostnames
     # Verify that ip_addresses are present report.
-    if module_target_sat.network_type == NetworkType.IPV6:
-        # For IPv6 networks, check IPv6 addresses
-        ip_addresses = [
-            host['system_profile']['network_interfaces'][0]['ipv6_addresses'][0]
-            for host in json_data['hosts']
-        ]
-        ipv6_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
-        assert virtual_host.ip_addr in ip_addresses
-        assert baremetal_host.ip_addr in ip_addresses
-        assert virtual_host.ip_addr in ipv6_addresses
-        assert baremetal_host.ip_addr in ipv6_addresses
-    else:
-        # For IPv4 networks, check IPv4 addresses
-        ip_addresses = [
-            host['system_profile']['network_interfaces'][0]['ipv4_addresses'][0]
-            for host in json_data['hosts']
-        ]
-        ipv4_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
-        assert virtual_host.ip_addr in ip_addresses
-        assert baremetal_host.ip_addr in ip_addresses
-        assert virtual_host.ip_addr in ipv4_addresses
-        assert baremetal_host.ip_addr in ipv4_addresses
+    is_ipv6 = module_target_sat.network_type == NetworkType.IPV6
+    key = 'ipv6_addresses' if is_ipv6 else 'ipv4_addresses'
+    ip_addresses = {
+        host['system_profile']['network_interfaces'][0][key][0]
+        for host in json_data['hosts']
+    }
+    ips = {host['ip_addresses'][0] for host in json_data['hosts']}
+    for host_ip in (virtual_host.ip_addr, baremetal_host.ip_addr):
+        assert host_ip in ip_addresses
+        assert host_ip in ips
     # Verify that packages are included in report
     all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
     for host_profiles in all_host_profiles:
@@ -303,28 +291,16 @@ def test_rh_cloud_inventory_settings(
         assert virtual_host.hostname not in hostnames
         assert baremetal_host.hostname not in hostnames
         # Verify that ip_addresses are obfuscated from the report.
-        if module_target_sat.network_type == NetworkType.IPV6:
-            # For IPv6 networks, check IPv6 addresses
-            ip_addresses = [
-                host['system_profile']['network_interfaces'][0]['ipv6_addresses'][0]
-                for host in json_data['hosts']
-            ]
-            ipv6_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
-            assert virtual_host.ip_addr not in ip_addresses
-            assert baremetal_host.ip_addr not in ip_addresses
-            assert virtual_host.ip_addr not in ipv6_addresses
-            assert baremetal_host.ip_addr not in ipv6_addresses
-        else:
-            # For IPv4 networks, check IPv4 addresses
-            ip_addresses = [
-                host['system_profile']['network_interfaces'][0]['ipv4_addresses'][0]
-                for host in json_data['hosts']
-            ]
-            ipv4_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
-            assert virtual_host.ip_addr not in ip_addresses
-            assert baremetal_host.ip_addr not in ip_addresses
-            assert virtual_host.ip_addr not in ipv4_addresses
-            assert baremetal_host.ip_addr not in ipv4_addresses
+        is_ipv6 = module_target_sat.network_type == NetworkType.IPV6
+        key = 'ipv6_addresses' if is_ipv6 else 'ipv4_addresses'
+        ip_addresses = {
+            host['system_profile']['network_interfaces'][0][key][0]
+            for host in json_data['hosts']
+        }
+        ips = {host['ip_addresses'][0] for host in json_data['hosts']}
+        for host_ip in (virtual_host.ip_addr, baremetal_host.ip_addr):
+            assert host_ip in ip_addresses
+            assert host_ip in ips
         # Verify that packages are excluded from report
         all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
         for host_profiles in all_host_profiles:
@@ -368,28 +344,16 @@ def test_rh_cloud_inventory_settings(
         assert virtual_host.hostname not in hostnames
         assert baremetal_host.hostname not in hostnames
         # Verify that ip_addresses are obfuscated from the report.
-        if module_target_sat.network_type == NetworkType.IPV6:
-            # For IPv6 networks, check IPv6 addresses
-            ip_addresses = [
-                host['system_profile']['network_interfaces'][0]['ipv6_addresses'][0]
-                for host in json_data['hosts']
-            ]
-            ipv6_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
-            assert virtual_host.ip_addr not in ip_addresses
-            assert baremetal_host.ip_addr not in ip_addresses
-            assert virtual_host.ip_addr not in ipv6_addresses
-            assert baremetal_host.ip_addr not in ipv6_addresses
-        else:
-            # For IPv4 networks, check IPv4 addresses
-            ip_addresses = [
-                host['system_profile']['network_interfaces'][0]['ipv4_addresses'][0]
-                for host in json_data['hosts']
-            ]
-            ipv4_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
-            assert virtual_host.ip_addr not in ip_addresses
-            assert baremetal_host.ip_addr not in ip_addresses
-            assert virtual_host.ip_addr not in ipv4_addresses
-            assert baremetal_host.ip_addr not in ipv4_addresses
+        is_ipv6 = module_target_sat.network_type == NetworkType.IPV6
+        key = 'ipv6_addresses' if is_ipv6 else 'ipv4_addresses'
+        ip_addresses = {
+            host['system_profile']['network_interfaces'][0][key][0]
+            for host in json_data['hosts']
+        }
+        ips = {host['ip_addresses'][0] for host in json_data['hosts']}
+        for host_ip in (virtual_host.ip_addr, baremetal_host.ip_addr):
+            assert host_ip in ip_addresses
+            assert host_ip in ips
         # Verify that packages are excluded from report
         all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
         for host_profiles in all_host_profiles:
