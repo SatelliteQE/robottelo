@@ -547,7 +547,7 @@ def generate_report(rhcloud_manifest_org, module_target_sat, disconnected=False)
     assert expected in report_log['output']
 
 
-def test_positive_config_on_sat_without_network_protocol(module_target_sat, module_sca_manifest):
+def test_positive_config_on_sat_without_network_protocol(module_target_sat, rhcloud_manifest_org):
     """Test cloud connector configuration on Satellite without explicit network protocol.
 
     :id: e6bf1c56-3091-4db2-b162-4cf3c6e23394
@@ -572,15 +572,7 @@ def test_positive_config_on_sat_without_network_protocol(module_target_sat, modu
 
     :customerscenario: true
     """
-    # Get the default organization, content view, and lifecycle environment from Satellite
-    org = module_target_sat.api.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
-    cv = module_target_sat.api.ContentView().search(query={'search': f'name="{DEFAULT_CV}"'})[0]
-    lce = module_target_sat.api.LifecycleEnvironment().search(
-        query={'search': f'name="{ENVIRONMENT}"'}
-    )[0]
-
-    # Upload manifest to enable Red Hat content
-    module_target_sat.upload_manifest(org.id, module_sca_manifest.content)
+    org = rhcloud_manifest_org
 
     # Enable and sync RHEL BaseOS and AppStream repositories based on Satellite's OS version
     rhel_ver = module_target_sat.os_version.major
@@ -600,8 +592,6 @@ def test_positive_config_on_sat_without_network_protocol(module_target_sat, modu
 
     # Create an activation key for Satellite self-registration
     ac_key = module_target_sat.api.ActivationKey(
-        content_view=cv.id,
-        environment=lce.id,
         organization=org,
     ).create()
 
