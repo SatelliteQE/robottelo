@@ -37,6 +37,10 @@ def test_pulp_href_prn_mapping(table, target_sat, module_prn_content_setup):
 
     :expectedresults:
         All pulp_prn values match the expected format based on pulp_href.
+
+    :Verifies: SAT-37807, SAT-40415
+
+    :BlockedBy: SAT-40415
     """
     records = target_sat.query_db(
         f'SELECT {table["href_key"]}, {table["prn_key"]} FROM {table["name"]} '
