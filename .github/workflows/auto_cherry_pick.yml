@@ -49,7 +49,7 @@ jobs:
           swap-size-gb: 10
 
       ## Robottelo Repo Checkout
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         if: ${{ startsWith(matrix.label, '6.') && matrix.label != github.base_ref }}
         with:
           fetch-depth: 0

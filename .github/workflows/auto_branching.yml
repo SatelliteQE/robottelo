@@ -41,7 +41,7 @@ jobs:
     if: ${{ needs.check-group-membership.outputs.member == 'true' }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Create the ${{ github.event.inputs.target_branch }} branch
         id: create-branch
@@ -233,7 +233,7 @@ jobs:
 
     steps:
       - name: Checkout Robottelo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Update target branch label in dependabot yml file
         id: update-dependabot
