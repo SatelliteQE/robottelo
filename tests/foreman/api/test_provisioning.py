@@ -13,6 +13,7 @@
 """
 
 import re
+import time
 
 from fauxfactory import gen_string
 import pytest
@@ -398,8 +399,13 @@ def test_rhel_httpboot_provisioning(
     :Verifies: SAT-20684
     """
     sat = module_provisioning_sat.sat
+    # Configure the grubx64.efi image to setup the interface and use TFTP to load the configuration
     # update grub2-efi package
     sat.cli.Packages.update(packages='grub2-efi', options={'assumeyes': True})
+    sat.execute("echo -e 'set root=tftp\nset prefix=(tftp)/grub2' > pre.cfg")
+    sat.execute(
+        'grub2-mkimage -c pre.cfg -o /var/lib/tftpboot/grub2/grubx64.efi -p /grub2/ -O x86_64-efi efinet efi_netfs efienv efifwsetup efi_gop tftp net normal chain configfile loadenv procfs romfs'
+    )
     host_mac_addr = provisioning_host.provisioning_nic_mac_addr
     host = sat.api.Host(
         hostgroup=provisioning_hostgroup,
@@ -420,11 +426,14 @@ def test_rhel_httpboot_provisioning(
 
     # Start the VM, do not ensure that we can connect to SSHD
     provisioning_host.power_control(ensure=False)
-    # check for proper HTTP requests
-    shell = module_provisioning_sat.session.shell()
+
+    host_mac_addr = host_mac_addr.replace(":", "-")
+    shell = sat.session.shell()
     shell.send('foreman-tail')
+    time.sleep(20)
     shell.close()
-    assert_host_logs(shell, f'GET /httpboot/grub2/grub.cfg-{host_mac_addr} with 200')
+    assert f'GET /httpboot/host-config/{host_mac_addr}/grub2/boot.efi with 200' in str(shell.read())
+
     # Host should do call back to the Satellite reporting
     # the result of the installation. Wait until Satellite reports that the host is installed.
     wait_for(
