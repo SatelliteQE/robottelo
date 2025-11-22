@@ -14,7 +14,11 @@ VALIDATORS = dict(
         Validator('server.hostname', is_type_of=str),
         Validator('server.hostnames', must_exist=True, is_type_of=list),
         Validator('server.version.release', must_exist=True),
-        Validator('server.version.source', default='internal', is_in=['internal', 'ga', 'nightly']),
+        Validator(
+            'server.version.source',
+            default='internal',
+            is_in=['internal', 'ga', 'nightly', 'upstream'],
+        ),
         Validator('server.version.rhel_version', must_exist=True, cast=str),
         Validator(
             'server.xdist_behavior', must_exist=True, is_in=['run-on-one', 'balance', 'on-demand']
