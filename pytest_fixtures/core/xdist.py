@@ -14,7 +14,7 @@ from robottelo.logging import logger
 def align_to_satellite(request, worker_id, satellite_factory):
     """Attempt to align a Satellite to the current xdist worker"""
     if 'build_sanity' in request.config.option.markexpr:
-        settings.set("server.hostname", None)
+        settings.set('server.hostname', None)
         yield
         # Checkout Sanity Capsule finally
         for host in [settings.capsule.hostname, settings.server.hostname]:
