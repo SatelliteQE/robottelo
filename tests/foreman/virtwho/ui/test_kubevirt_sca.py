@@ -52,7 +52,7 @@ class TestVirtwhoConfigforKubevirt:
         )
 
     def test_positive_hypervisor_id_option(
-        self, module_sca_manifest_org, virtwho_config_ui, org_session, form_data_ui
+        self, module_sca_manifest_org, virtwho_config_ui, org_session, form_data_ui, target_sat
     ):
         """Verify Hypervisor ID dropdown options.
 
@@ -75,5 +75,5 @@ class TestVirtwhoConfigforKubevirt:
             assert results['overview']['hypervisor_id'] == value
             deploy_configure_by_command(
                 config_command, form_data_ui['hypervisor_type'], org=module_sca_manifest_org.label
-            )
+            , target=target_sat)
             assert get_configure_option('hypervisor_id', config_file) == value

@@ -279,7 +279,7 @@ def deploy_type_cli(
             {'id': virtwho_config_cli['id']}, output_format='base'
         )
         hypervisor_name, guest_name = deploy_configure_by_script(
-            script, form_data_cli['hypervisor-type'], debug=True, org=org_module.label
+            script, form_data_cli['hypervisor-type'], debug=True, org=org_module.label, target=target_sat
         )
     elif deploy_type == 'organization-title':
         virtwho_config_cli['organization-title'] = org_module.title
@@ -291,7 +291,7 @@ def deploy_type_cli(
         else:
             command = get_configure_command_option(deploy_type, virtwho_config_cli, org_module.name)
         hypervisor_name, guest_name = deploy_configure_by_command(
-            command, form_data_cli['hypervisor-type'], debug=True, org=org_module.label
+            command, form_data_cli['hypervisor-type'], debug=True, org=org_module.label, target=target_sat
         )
     return hypervisor_name, guest_name
 
@@ -310,7 +310,7 @@ def deploy_type_api(
     if "id" in deploy_type:
         command = get_configure_command(virtwho_config_api.id, org_module.name)
         hypervisor_name, guest_name = deploy_configure_by_command(
-            command, form_data_api['hypervisor_type'], debug=True, org=org_module.label
+            command, form_data_api['hypervisor_type'], debug=True, org=org_module.label, target=target_sat
         )
     elif "script" in deploy_type:
         script = virtwho_config_api.deploy_script()
@@ -319,6 +319,7 @@ def deploy_type_api(
             form_data_api['hypervisor_type'],
             debug=True,
             org=org_module.label,
+            target=target_sat,
         )
     return hypervisor_name, guest_name
 
@@ -338,12 +339,12 @@ def deploy_type_ui(
     if "id" in deploy_type:
         command = values['deploy']['command']
         hypervisor_name, guest_name = deploy_configure_by_command(
-            command, form_data_ui['hypervisor_type'], debug=True, org=org_module.label
+            command, form_data_ui['hypervisor_type'], debug=True, org=org_module.label, target=target_sat
         )
     elif "script" in deploy_type:
         script = values['deploy']['script']
         hypervisor_name, guest_name = deploy_configure_by_script(
-            script, form_data_ui['hypervisor_type'], debug=True, org=org_module.label
+            script, form_data_ui['hypervisor_type'], debug=True, org=org_module.label, target=target_sat
         )
     return hypervisor_name, guest_name
 

@@ -91,7 +91,7 @@ def create_virt_who_configuration_setup(
         configure_command = get_configure_command(vhd.id, org=org.name)
         hypervisor_name, guest_name = deploy_configure_by_command(
             configure_command, form_data['hypervisor_type'], debug=True, org=org.label
-        )
+        , target=target_sat)
         test_data.hypervisor_name = hypervisor_name
         test_data.guest_name = guest_name
         test_data.vhd = vhd.read()
@@ -154,7 +154,7 @@ def test_post_crud_virt_who_configuration(create_virt_who_configuration_setup, f
 
     # Verify Report is sent to satellite.
     command = get_configure_command(vhd.id, org=org.name)
-    deploy_configure_by_command(command, form_data['hypervisor_type'], debug=True, org=org.label)
+    deploy_configure_by_command(command, form_data['hypervisor_type'], debug=True, org=org.label, target=target_sat)
     virt_who_instance = (
         target_sat.api.VirtWhoConfig(organization_id=org.id)
         .search(query={'search': f'name={vhd.name}'})[0]

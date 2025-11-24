@@ -15,6 +15,8 @@ from robottelo.cli.host import Host
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
+from robottelo.hosts import ContentHost
+from robottelo.logging import logger
 
 ETC_VIRTWHO_CONFIG = "/etc/virt-who.conf"
 
@@ -87,31 +89,54 @@ def runcmd(cmd, system=None, timeout=600000, output_format='base'):
     return result.status, result.stdout.strip()
 
 
-def register_system(system, activation_key=None, org='Default_Organization', env='Library'):
+def register_system(system, activation_key=None, org='Default_Organization', env='Library', target=None):
     """Return True if the system is registered to satellite successfully.
 
     :param dict system: system account used by ssh to connect and register.
     :param str activation_key: the activation key will be used to register.
-    :param str org: Which organization will be used to register.
+    :param str org: Which organization will be used to register (org label).
     :param str env: Which environment will be used to register.
+    :param target: Satellite object for registration.
     :raises: VirtWhoError: If failed to register the system.
     """
-    runcmd('subscription-manager unregister', system)
-    runcmd('subscription-manager clean', system)
-    runcmd('rpm -qa | grep katello-ca-consumer | xargs rpm -e |sort', system)
-    runcmd(
-        f'rpm -ihv http://{settings.server.hostname}/pub/katello-ca-consumer-latest.noarch.rpm',
-        system,
+    # Get the guest hostname to check if it's already registered
+    guest_name, _ = runcmd('hostname', system=system)
+
+    # Delete any existing host registration to avoid "registered to different org" error
+    existing_hosts = Host.list({'search': guest_name})
+    if existing_hosts:
+        for host in existing_hosts:
+            Host.delete({'id': host['id']})
+
+    # Create ContentHost object from system dict
+    contenthost = ContentHost(
+        hostname=system['hostname'],
+        auth=(system['username'], system['password'])
     )
-    cmd = f'subscription-manager register --org={org} --environment={env} --force '
-    if activation_key is not None:
-        cmd += f'--activationkey={activation_key}'
-    else:
-        cmd += f'--username={settings.server.admin_username} --password={settings.server.admin_password}'
-    ret, stdout = runcmd(cmd, system)
-    if ret == 0 or "system has been registered" in stdout:
-        return True
-    raise VirtWhoError(f'Failed to register system: {system}')
+
+    # Use the ContentHost's register() method with global registration
+    try:
+        # If org is a string (label), look up the organization object
+        org_obj = None
+        if isinstance(org, str):
+            org_obj = entities.Organization().search(query={'search': f'label={org}'})[0]
+        else:
+            org_obj = org
+
+        result = contenthost.register(
+            org=org_obj,  # org object
+            loc=None,  # location object or None
+            activation_keys=activation_key,  # activation key name (required for global registration)
+            target=target,  # target satellite object
+            force=True,
+        )
+
+        if result.status == 0:
+            return True
+        else:
+            raise VirtWhoError(f'Failed to register system: {system}')
+    except Exception as e:
+        raise VirtWhoError(f'Failed to register system: {system}') from e
 
 
 def virtwho_cleanup():
@@ -306,7 +331,7 @@ def deploy_validation(hypervisor_type):
     """
     status = get_virtwho_status()
     if status != 'running':
-        raise VirtWhoError("Failed to start virt-who service")
+        raise VirtWhoError(f"Failed to start virt-who service. Status: {status}")
     hypervisor_name, guest_name = _get_hypervisor_mapping(hypervisor_type)
     for host in Host.list({'search': hypervisor_name}):
         Host.delete({'id': host['id']})
@@ -314,7 +339,7 @@ def deploy_validation(hypervisor_type):
     return hypervisor_name, guest_name
 
 
-def deploy_configure_by_command(command, hypervisor_type, debug=False, org='Default_Organization'):
+def deploy_configure_by_command(command, hypervisor_type, debug=False, org='Default_Organization', activation_key=None, target=None):
     """Deploy and run virt-who service by the hammer command.
 
     :param str command: get the command by UI/CLI/API, it should be like:
@@ -322,12 +347,37 @@ def deploy_configure_by_command(command, hypervisor_type, debug=False, org='Defa
     :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt, ahv
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     :param str org: Organization Label
+    :param str activation_key: Activation key for system registration (optional)
+    :param target: Satellite object for registration (optional)
     """
     virtwho_cleanup()
     guest_name, guest_uuid = get_guest_info(hypervisor_type)
     if Host.list({'search': guest_name}):
         Host.delete({'name': guest_name})
-    register_system(get_system(hypervisor_type), org=org)
+
+    # If target is provided but activation_key is not, create one for global registration
+    if target and not activation_key:
+        logger.info("Creating activation key for global registration")
+        # Get the organization object from label
+        org_obj = entities.Organization().search(query={'search': f'label={org}'})[0]
+        # Get the Library lifecycle environment for this organization
+        library_env = entities.LifecycleEnvironment().search(
+            query={'search': f'name=Library AND organization_id={org_obj.id}'}
+        )[0]
+        # Get the default content view for this organization
+        default_cv = entities.ContentView().search(
+            query={'search': f'name="Default Organization View" AND organization_id={org_obj.id}'}
+        )[0]
+        # Create activation key with lifecycle environment and content view
+        ak = entities.ActivationKey(
+            organization=org_obj,
+            environment=library_env,
+            content_view=default_cv,
+            name=f'virtwho_ak_{gen_string("alpha", 6)}',
+        ).create()
+        activation_key = ak.name
+
+    register_system(get_system(hypervisor_type), activation_key=activation_key, org=org, target=target)
     ret, stdout = runcmd(command)
     if ret != 0 or 'Finished successfully' not in stdout:
         raise VirtWhoError(f"Failed to deploy configure by {command}")
@@ -337,18 +387,42 @@ def deploy_configure_by_command(command, hypervisor_type, debug=False, org='Defa
 
 
 def deploy_configure_by_script(
-    script_content, hypervisor_type, debug=False, org='Default_Organization'
+    script_content, hypervisor_type, debug=False, org='Default_Organization', activation_key=None, target=None
 ):
     """Deploy and run virt-who service by the shell script.
     :param str script_content: get the script by UI or API.
     :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt, ahv
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     :param str org: Organization Label
+    :param str activation_key: Activation key for system registration (optional)
+    :param target: Satellite object for registration (optional)
     """
     script_filename = "/tmp/deploy_script.sh"
     script_content = script_content.replace('&amp;', '&').replace('&gt;', '>').replace('&lt;', '<')
     virtwho_cleanup()
-    register_system(get_system(hypervisor_type), org=org)
+
+    # If target is provided but activation_key is not, create one for global registration
+    if target and not activation_key:
+        # Get the organization object from label
+        org_obj = entities.Organization().search(query={'search': f'label={org}'})[0]
+        # Get the Library lifecycle environment for this organization
+        library_env = entities.LifecycleEnvironment().search(
+            query={'search': f'name=Library AND organization_id={org_obj.id}'}
+        )[0]
+        # Get the default content view for this organization
+        default_cv = entities.ContentView().search(
+            query={'search': f'name="Default Organization View" AND organization_id={org_obj.id}'}
+        )[0]
+        # Create activation key with lifecycle environment and content view
+        ak = entities.ActivationKey(
+            organization=org_obj,
+            environment=library_env,
+            content_view=default_cv,
+            name=f'virtwho_ak_{gen_string("alpha", 6)}',
+        ).create()
+        activation_key = ak.name
+
+    register_system(get_system(hypervisor_type), activation_key=activation_key, org=org, target=target)
     with open(script_filename, 'w') as fp:
         fp.write(script_content)
     ssh.get_client().put(script_filename, script_filename)
@@ -644,7 +718,7 @@ def hypervisor_guest_mapping_newcontent_ui(
     # Check guest overview
     guest_new_overview = org_session.host_new.get_details(guest_name, 'overview')
 
-    assert guest_new_overview['overview']['host_status']['status_success'] == '1'
+    assert guest_new_overview['overview']['host_status']['status_success'] == '2'
     # Check guest details
     virtualguest_new_detais = org_session.host_new.get_details(guest_name, 'details')
     assert (
