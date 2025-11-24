@@ -16,7 +16,6 @@ from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
 from robottelo.hosts import ContentHost
-from robottelo.logging import logger
 
 ETC_VIRTWHO_CONFIG = "/etc/virt-who.conf"
 
@@ -361,7 +360,8 @@ def get_virt_who_ak(org):
         content_view=default_cv,
         name=f'virtwho_ak_{gen_string("alpha", 6)}',
     ).create()
-    return  ak.name
+    return ak.name
+
 
 def deploy_configure_by_command(
     command,
@@ -388,7 +388,7 @@ def deploy_configure_by_command(
 
     # If target is provided but activation_key is not, create one for global registration
     if target and not activation_key:
-       activation_key = get_virt_who_ak(org)
+        activation_key = get_virt_who_ak(org)
     register_system(
         get_system(hypervisor_type), activation_key=activation_key, org=org, target=target
     )
