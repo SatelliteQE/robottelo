@@ -104,9 +104,7 @@ def register_system(
     # Get the guest hostname to check if it's already registered
     guest_name, _ = runcmd('hostname', system=system)
 
-    # Delete any existing host registration to avoid "registered to different org" error
-    existing_hosts = Host.list({'search': guest_name})
-    if existing_hosts:
+    if existing_hosts := Host.list({'search': guest_name}):
         for host in existing_hosts:
             Host.delete({'id': host['id']})
 
