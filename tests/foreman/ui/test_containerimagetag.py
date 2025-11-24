@@ -13,6 +13,7 @@
 """
 
 from fauxfactory import gen_alpha
+from box import Box
 import pytest
 
 from robottelo.config import settings
@@ -20,6 +21,8 @@ from robottelo.constants import (
     BOOTABLE_REPO,
     DEFAULT_CV,
     ENVIRONMENT,
+    FLATPAK_REMOTES,
+    FLATPAK_RHEL_RELEASE_VER,
     REPO_TYPE,
 )
 
@@ -44,6 +47,71 @@ def module_repository(module_product, module_target_sat):
     ).create()
     repo.sync(timeout=1440)
     return repo
+
+
+@pytest.fixture(scope="module")
+def synced_container_and_flatpak_repos(module_org, module_product, module_target_sat):
+    container_repos = []
+    container_upstream_names = [
+        settings.container.upstream_name,
+        'busybox',
+        'alpine',
+    ]
+
+    for upstream_name in container_upstream_names:
+        repo = module_target_sat.api.Repository(
+            content_type=REPO_TYPE['docker'],
+            docker_upstream_name=upstream_name,
+            product=module_product,
+            url=settings.container.registry_hub,
+        ).create()
+        repo.sync(timeout=1800)
+        repo = repo.read()
+        container_repos.append(repo)
+
+    flatpak_repos = []
+    flatpak_remote = module_target_sat.cli.FlatpakRemote().create(
+        {
+            'organization-id': module_org.id,
+            'url': FLATPAK_REMOTES['Fedora']['url'],
+            'name': 'test_flatpak_remote',
+        }
+    )
+
+    module_target_sat.cli.FlatpakRemote().scan({'id': flatpak_remote['id']})
+    scanned_repos = module_target_sat.cli.FlatpakRemote().repository_list(
+        {'flatpak-remote-id': flatpak_remote['id']}
+    )
+
+    ver = FLATPAK_RHEL_RELEASE_VER
+    repo_names = [f'rhel{ver}/firefox-flatpak', f'rhel{ver}/flatpak-runtime']
+    remote_repos = [r for r in scanned_repos if r['name'] in repo_names]
+
+    if len(remote_repos) > 0:
+        for repo in remote_repos[:2]:
+            module_target_sat.cli.FlatpakRemote().repository_mirror(
+                {
+                    'flatpak-remote-id': flatpak_remote['id'],
+                    'id': repo['id'],
+                    'product-id': module_product.id,
+                }
+            )
+
+        local_repos = [
+            r
+            for r in module_target_sat.cli.Repository.list({'product-id': module_product.id})
+            if r['name'] in repo_names
+        ]
+
+        for repo in local_repos:
+            module_target_sat.cli.Repository.update(
+                {'id': repo['id'], 'download-policy': 'immediate'}
+            )
+            module_target_sat.cli.Repository.synchronize({'id': repo['id']})
+            synced_repo = module_target_sat.cli.Repository.info({'id': repo['id']})
+            flatpak_repos.append(synced_repo)
+
+    return Box(container_repos=container_repos, flatpak_repos=flatpak_repos)
 
 
 def test_positive_search(session, module_org, module_product, module_repository):
@@ -170,3 +238,45 @@ def test_synced_container_pullable_paths(function_org, function_product, target_
         assert repo.name == pullable_paths_info['Repository']
         assert lce.name == pullable_paths_info['Environment']
         assert default_cv_version.name == pullable_paths_info['Content view']
+
+
+def test_positive_verify_synced_container_image_tags(
+    session, synced_container_and_flatpak_repos, module_org, module_product, module_target_sat
+):
+    """Verify synced container image tags
+
+    :id: 3116c317-edf9-48a0-9b3b-31b52c18f036
+
+    :expectedresults: The container image tags are synced and visible in the Container Images page
+    """
+    # Update lab_features setting to true
+    setting_entity = module_target_sat.api.Setting().search(query={'search': 'name=lab_features'})[
+        0
+    ]
+    original_value = setting_entity.value
+    setting_entity.value = 'true'
+    setting_entity.update({'value'})
+
+    try:
+        with session:
+            session.organization.select(org_name=module_org.name)
+            # Navigate to Container Images page
+            table_data = session.containerimages.read_synced_table()
+            # Verify that the table contains data
+            assert len(table_data) > 0, 'Container images table should contain synced images'
+            # Verify that synced container images are present in the table
+            # Check that at least one entry has the correct product name
+            product_names = [row.get('Product', '') for row in table_data]
+            assert module_product.name in product_names, (
+                f'Product {module_product.name} should be present in the synced container images table'
+            )
+            # Verify table structure - check that expected columns are present
+            if table_data:
+                expected_columns = ['Tag', 'Manifest digest', 'Type', 'Product']
+                for column in expected_columns:
+                    assert column in table_data[0], f'Table should contain {column} column'
+
+    finally:
+        # Restore original setting value
+        setting_entity.value = original_value
+        setting_entity.update({'value'})
