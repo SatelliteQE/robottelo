@@ -337,6 +337,32 @@ def deploy_validation(hypervisor_type):
     return hypervisor_name, guest_name
 
 
+def get_virt_who_ak(org):
+    """Create a virt-who activation key for the given organization.
+    :param str org: The label of the organization for which the activation key is created.
+    :raises: Exception: If the organization, lifecycle environment, or content view cannot be found.
+    :return: The name of the newly created activation key.
+    :rtype: str
+    """
+    # Get the organization object from label
+    org_obj = entities.Organization().search(query={'search': f'label={org}'})[0]
+    # Get the Library lifecycle environment for this organization
+    library_env = entities.LifecycleEnvironment().search(
+        query={'search': f'name=Library AND organization_id={org_obj.id}'}
+    )[0]
+    # Get the default content view for this organization
+    default_cv = entities.ContentView().search(
+        query={'search': f'name="Default Organization View" AND organization_id={org_obj.id}'}
+    )[0]
+    # Create activation key with lifecycle environment and content view
+    ak = entities.ActivationKey(
+        organization=org_obj,
+        environment=library_env,
+        content_view=default_cv,
+        name=f'virtwho_ak_{gen_string("alpha", 6)}',
+    ).create()
+    return  ak.name
+
 def deploy_configure_by_command(
     command,
     hypervisor_type,
@@ -362,26 +388,7 @@ def deploy_configure_by_command(
 
     # If target is provided but activation_key is not, create one for global registration
     if target and not activation_key:
-        logger.info("Creating activation key for global registration")
-        # Get the organization object from label
-        org_obj = entities.Organization().search(query={'search': f'label={org}'})[0]
-        # Get the Library lifecycle environment for this organization
-        library_env = entities.LifecycleEnvironment().search(
-            query={'search': f'name=Library AND organization_id={org_obj.id}'}
-        )[0]
-        # Get the default content view for this organization
-        default_cv = entities.ContentView().search(
-            query={'search': f'name="Default Organization View" AND organization_id={org_obj.id}'}
-        )[0]
-        # Create activation key with lifecycle environment and content view
-        ak = entities.ActivationKey(
-            organization=org_obj,
-            environment=library_env,
-            content_view=default_cv,
-            name=f'virtwho_ak_{gen_string("alpha", 6)}',
-        ).create()
-        activation_key = ak.name
-
+       activation_key = get_virt_who_ak(org)
     register_system(
         get_system(hypervisor_type), activation_key=activation_key, org=org, target=target
     )
@@ -415,24 +422,7 @@ def deploy_configure_by_script(
 
     # If target is provided but activation_key is not, create one for global registration
     if target and not activation_key:
-        # Get the organization object from label
-        org_obj = entities.Organization().search(query={'search': f'label={org}'})[0]
-        # Get the Library lifecycle environment for this organization
-        library_env = entities.LifecycleEnvironment().search(
-            query={'search': f'name=Library AND organization_id={org_obj.id}'}
-        )[0]
-        # Get the default content view for this organization
-        default_cv = entities.ContentView().search(
-            query={'search': f'name="Default Organization View" AND organization_id={org_obj.id}'}
-        )[0]
-        # Create activation key with lifecycle environment and content view
-        ak = entities.ActivationKey(
-            organization=org_obj,
-            environment=library_env,
-            content_view=default_cv,
-            name=f'virtwho_ak_{gen_string("alpha", 6)}',
-        ).create()
-        activation_key = ak.name
+        activation_key = get_virt_who_ak(org)
 
     register_system(
         get_system(hypervisor_type), activation_key=activation_key, org=org, target=target
