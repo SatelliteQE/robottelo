@@ -89,15 +89,21 @@ class TestVirtwhoConfigforEsx:
         config_id = get_configure_id(name)
         config_command = get_configure_command(config_id, module_sca_manifest_org.name)
         deploy_configure_by_command(
-            config_command, form_data_ui['hypervisor_type'], org=module_sca_manifest_org.label
-        , target=target_sat)
+            config_command,
+            form_data_ui['hypervisor_type'],
+            org=module_sca_manifest_org.label,
+            target=target_sat,
+        )
         assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == '1'
         org_session.virtwho_configure.edit(name, {'debug': False})
         results = org_session.virtwho_configure.read(name)
         assert results['overview']['debug'] is False
         deploy_configure_by_command(
-            config_command, form_data_ui['hypervisor_type'], org=module_sca_manifest_org.label
-        , target=target_sat)
+            config_command,
+            form_data_ui['hypervisor_type'],
+            org=module_sca_manifest_org.label,
+            target=target_sat,
+        )
         assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == '0'
 
     def test_positive_interval_option(
@@ -131,8 +137,11 @@ class TestVirtwhoConfigforEsx:
             results = org_session.virtwho_configure.read(name)
             assert results['overview']['interval'] == option
             deploy_configure_by_command(
-                config_command, form_data_ui['hypervisor_type'], org=module_sca_manifest_org.label
-            , target=target_sat)
+                config_command,
+                form_data_ui['hypervisor_type'],
+                org=module_sca_manifest_org.label,
+                target=target_sat,
+            )
             assert get_configure_option('interval', ETC_VIRTWHO_CONFIG) == value
 
     def test_positive_hypervisor_id_option(
@@ -158,14 +167,23 @@ class TestVirtwhoConfigforEsx:
             results = org_session.virtwho_configure.read(name)
             assert results['overview']['hypervisor_id'] == value
             deploy_configure_by_command(
-                config_command, form_data_ui['hypervisor_type'], org=module_sca_manifest_org.label
-            , target=target_sat)
+                config_command,
+                form_data_ui['hypervisor_type'],
+                org=module_sca_manifest_org.label,
+                target=target_sat,
+            )
             assert get_configure_option('hypervisor_id', config_file) == value
 
     @pytest.mark.parametrize('filter_type', ['whitelist', 'blacklist'])
     @pytest.mark.parametrize('option_type', ['edit', 'create'])
     def test_positive_filtering_option(
-        self, module_sca_manifest_org, org_session, form_data_ui, filter_type, option_type, target_sat
+        self,
+        module_sca_manifest_org,
+        org_session,
+        form_data_ui,
+        filter_type,
+        option_type,
+        target_sat,
     ):
         """Verify Filtering dropdown options.
 
@@ -239,8 +257,11 @@ class TestVirtwhoConfigforEsx:
                 config_id = get_configure_id(name)
                 command = get_configure_command(config_id, module_sca_manifest_org.name)
                 deploy_configure_by_command(
-                    command, form_data_ui['hypervisor_type'], org=module_sca_manifest_org.label
-                , target=target_sat)
+                    command,
+                    form_data_ui['hypervisor_type'],
+                    org=module_sca_manifest_org.label,
+                    target=target_sat,
+                )
                 config_file = get_configure_file(config_id)
                 results = org_session.virtwho_configure.read(name)
                 if filter_type == "whitelist":
@@ -279,8 +300,12 @@ class TestVirtwhoConfigforEsx:
         values = org_session.virtwho_configure.read(name, widget_names='deploy.command')
         command = values['deploy']['command']
         hypervisor_name, guest_name = deploy_configure_by_command(
-            command, form_data_ui['hypervisor_type'], debug=True, org=module_sca_manifest_org.label
-        , target=target_sat)
+            command,
+            form_data_ui['hypervisor_type'],
+            debug=True,
+            org=module_sca_manifest_org.label,
+            target=target_sat,
+        )
         time_now = org_session.browser.get_client_datetime()
         assert org_session.virtwho_configure.search(name)[0]['Status'] == 'ok'
         org_session.location.select(default_location.name)
@@ -315,8 +340,12 @@ class TestVirtwhoConfigforEsx:
         values = org_session.virtwho_configure.read(name)
         command = values['deploy']['command']
         deploy_configure_by_command(
-            command, form_data_ui['hypervisor_type'], debug=True, org=module_sca_manifest_org.label
-        , target=target_sat)
+            command,
+            form_data_ui['hypervisor_type'],
+            debug=True,
+            org=module_sca_manifest_org.label,
+            target=target_sat,
+        )
         assert org_session.virtwho_configure.search(name)[0]['Status'] == 'ok'
         # Check the option "env=" should be removed from etc/virt-who.d/virt-who.conf
         option = "env"
@@ -363,7 +392,9 @@ class TestVirtwhoConfigforEsx:
                 assigned_permissions = org_session.filter.read_permissions(role_name)
                 assert sorted(assigned_permissions) == sorted(role_filters)
 
-    def test_positive_delete_configure(self, module_sca_manifest_org, org_session, form_data_ui, target_sat):
+    def test_positive_delete_configure(
+        self, module_sca_manifest_org, org_session, form_data_ui, target_sat
+    ):
         """Verify when a config is deleted the associated user is deleted.
 
         :id: efc7253d-f455-4dc3-ae03-3ed5e215bd11
@@ -386,8 +417,11 @@ class TestVirtwhoConfigforEsx:
             config_id = get_configure_id(name)
             config_command = get_configure_command(config_id, module_sca_manifest_org.name)
             deploy_configure_by_command(
-                config_command, form_data_ui['hypervisor_type'], org=module_sca_manifest_org.label
-            , target=target_sat)
+                config_command,
+                form_data_ui['hypervisor_type'],
+                org=module_sca_manifest_org.label,
+                target=target_sat,
+            )
             assert org_session.virtwho_configure.search(name)[0]['Status'] == 'ok'
             org_session.virtwho_configure.delete(name)
             assert not org_session.virtwho_configure.search(name)
@@ -428,8 +462,11 @@ class TestVirtwhoConfigforEsx:
             values = org_session.virtwho_configure.read(config_name)
             command = values['deploy']['command']
             deploy_configure_by_command(
-                command, form_data_ui['hypervisor_type'], org=module_sca_manifest_org.label
-            , target=target_sat)
+                command,
+                form_data_ui['hypervisor_type'],
+                org=module_sca_manifest_org.label,
+                target=target_sat,
+            )
             assert org_session.virtwho_configure.search(config_name)[0]['Status'] == 'ok'
             # Update the virt-who config file
             config_id = get_configure_id(config_name)
@@ -485,8 +522,11 @@ class TestVirtwhoConfigforEsx:
             values = org_session.virtwho_configure.read(config_name)
             command = values['deploy']['command']
             deploy_configure_by_command(
-                command, form_data_ui['hypervisor_type'], org=module_sca_manifest_org.label
-            , target=target_sat)
+                command,
+                form_data_ui['hypervisor_type'],
+                org=module_sca_manifest_org.label,
+                target=target_sat,
+            )
             assert org_session.virtwho_configure.search(config_name)[0]['Status'] == 'ok'
             # Check the permissioin of Virt-who Viewer
             org_session.user.update(username, {'roles.resources.assigned': ['Virt-who Viewer']})
@@ -547,8 +587,11 @@ class TestVirtwhoConfigforEsx:
             values = org_session.virtwho_configure.read(config_name)
             command = values['deploy']['command']
             deploy_configure_by_command(
-                command, form_data_ui['hypervisor_type'], org=module_sca_manifest_org.label
-            , target=target_sat)
+                command,
+                form_data_ui['hypervisor_type'],
+                org=module_sca_manifest_org.label,
+                target=target_sat,
+            )
             assert org_session.virtwho_configure.search(config_name)[0]['Status'] == 'ok'
             # Check the permissioin of Virt-who Manager
             org_session.user.update(username, {'roles.resources.assigned': ['Virt-who Manager']})
@@ -563,8 +606,11 @@ class TestVirtwhoConfigforEsx:
                 values = newsession.virtwho_configure.read(new_virt_who_name)
                 command = values['deploy']['command']
                 deploy_configure_by_command(
-                    command, form_data_ui['hypervisor_type'], org=module_sca_manifest_org.label
-                , target=target_sat)
+                    command,
+                    form_data_ui['hypervisor_type'],
+                    org=module_sca_manifest_org.label,
+                    target=target_sat,
+                )
                 assert newsession.virtwho_configure.search(new_virt_who_name)[0]['Status'] == 'ok'
                 # edit_virt_who_config
                 modify_name = gen_string('alpha')
@@ -648,8 +694,11 @@ class TestVirtwhoConfigforEsx:
         config_id = get_configure_id(name)
         config_command = get_configure_command(config_id, module_sca_manifest_org.name)
         deploy_configure_by_command(
-            config_command, form_data_ui['hypervisor_type'], org=module_sca_manifest_org.label
-        , target=target_sat)
+            config_command,
+            form_data_ui['hypervisor_type'],
+            org=module_sca_manifest_org.label,
+            target=target_sat,
+        )
         config_file = get_configure_file(config_id)
         assert get_configure_option('encrypted_password', config_file)
         res = org_session.virtwho_configure.read_edit(name)

@@ -160,8 +160,11 @@ class TestVirtwhoConfigforNutanix:
         results = org_session.virtwho_configure.read(name)
         assert results['overview']['prism_flavor'] == "central"
         deploy_configure_by_command(
-            config_command, form_data_ui['hypervisor_type'], org=module_sca_manifest_org.label
-        , target=target_sat)
+            config_command,
+            form_data_ui['hypervisor_type'],
+            org=module_sca_manifest_org.label,
+            target=target_sat,
+        )
         assert get_configure_option('prism_central', config_file) == 'true'
 
     def test_positive_ahv_internal_debug_option(
@@ -192,8 +195,12 @@ class TestVirtwhoConfigforNutanix:
         command = values['deploy']['command']
         config_file = get_configure_file(config_id)
         deploy_configure_by_command(
-            command, form_data_ui['hypervisor_type'], debug=True, org=module_sca_manifest_org.label
-        , target=target_sat)
+            command,
+            form_data_ui['hypervisor_type'],
+            debug=True,
+            org=module_sca_manifest_org.label,
+            target=target_sat,
+        )
         results = org_session.virtwho_configure.read(name)
         assert str(results['overview']['ahv_internal_debug']) == 'False'
         # ahv_internal_debug does not set in virt-who-config-X.conf
@@ -212,8 +219,12 @@ class TestVirtwhoConfigforNutanix:
         command = results['deploy']['command']
         assert str(results['overview']['ahv_internal_debug']) == 'True'
         deploy_configure_by_command(
-            command, form_data_ui['hypervisor_type'], debug=True, org=module_sca_manifest_org.label
-        , target=target_sat)
+            command,
+            form_data_ui['hypervisor_type'],
+            debug=True,
+            org=module_sca_manifest_org.label,
+            target=target_sat,
+        )
         assert (
             get_hypervisor_ahv_mapping(form_data_ui['hypervisor_type']) == 'Host UUID found for VM'
         )

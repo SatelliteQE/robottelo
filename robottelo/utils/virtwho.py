@@ -89,7 +89,9 @@ def runcmd(cmd, system=None, timeout=600000, output_format='base'):
     return result.status, result.stdout.strip()
 
 
-def register_system(system, activation_key=None, org='Default_Organization', env='Library', target=None):
+def register_system(
+    system, activation_key=None, org='Default_Organization', env='Library', target=None
+):
     """Return True if the system is registered to satellite successfully.
 
     :param dict system: system account used by ssh to connect and register.
@@ -110,8 +112,7 @@ def register_system(system, activation_key=None, org='Default_Organization', env
 
     # Create ContentHost object from system dict
     contenthost = ContentHost(
-        hostname=system['hostname'],
-        auth=(system['username'], system['password'])
+        hostname=system['hostname'], auth=(system['username'], system['password'])
     )
 
     # Use the ContentHost's register() method with global registration
@@ -133,8 +134,7 @@ def register_system(system, activation_key=None, org='Default_Organization', env
 
         if result.status == 0:
             return True
-        else:
-            raise VirtWhoError(f'Failed to register system: {system}')
+        raise VirtWhoError(f'Failed to register system: {system}')
     except Exception as e:
         raise VirtWhoError(f'Failed to register system: {system}') from e
 
@@ -339,7 +339,14 @@ def deploy_validation(hypervisor_type):
     return hypervisor_name, guest_name
 
 
-def deploy_configure_by_command(command, hypervisor_type, debug=False, org='Default_Organization', activation_key=None, target=None):
+def deploy_configure_by_command(
+    command,
+    hypervisor_type,
+    debug=False,
+    org='Default_Organization',
+    activation_key=None,
+    target=None,
+):
     """Deploy and run virt-who service by the hammer command.
 
     :param str command: get the command by UI/CLI/API, it should be like:
@@ -377,7 +384,9 @@ def deploy_configure_by_command(command, hypervisor_type, debug=False, org='Defa
         ).create()
         activation_key = ak.name
 
-    register_system(get_system(hypervisor_type), activation_key=activation_key, org=org, target=target)
+    register_system(
+        get_system(hypervisor_type), activation_key=activation_key, org=org, target=target
+    )
     ret, stdout = runcmd(command)
     if ret != 0 or 'Finished successfully' not in stdout:
         raise VirtWhoError(f"Failed to deploy configure by {command}")
@@ -387,7 +396,12 @@ def deploy_configure_by_command(command, hypervisor_type, debug=False, org='Defa
 
 
 def deploy_configure_by_script(
-    script_content, hypervisor_type, debug=False, org='Default_Organization', activation_key=None, target=None
+    script_content,
+    hypervisor_type,
+    debug=False,
+    org='Default_Organization',
+    activation_key=None,
+    target=None,
 ):
     """Deploy and run virt-who service by the shell script.
     :param str script_content: get the script by UI or API.
@@ -422,7 +436,9 @@ def deploy_configure_by_script(
         ).create()
         activation_key = ak.name
 
-    register_system(get_system(hypervisor_type), activation_key=activation_key, org=org, target=target)
+    register_system(
+        get_system(hypervisor_type), activation_key=activation_key, org=org, target=target
+    )
     with open(script_filename, 'w') as fp:
         fp.write(script_content)
     ssh.get_client().put(script_filename, script_filename)

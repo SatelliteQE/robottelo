@@ -78,6 +78,9 @@ class TestVirtwhoConfigforLibvirt:
             results = org_session.virtwho_configure.read(name)
             assert results['overview']['hypervisor_id'] == value
             deploy_configure_by_command(
-                config_command, form_data_ui['hypervisor_type'], org=module_sca_manifest_org.label
-            , target=target_sat)
+                config_command,
+                form_data_ui['hypervisor_type'],
+                org=module_sca_manifest_org.label,
+                target=target_sat,
+            )
             assert get_configure_option('hypervisor_id', config_file) == value
