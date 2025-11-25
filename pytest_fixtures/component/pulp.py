@@ -29,7 +29,8 @@ def _setup_prn_content(sat, manifest, test_name=None):
         5. File repository.
         6. Docker repository with manifest list.
         7. Ansible Collection repository.
-        8. Alternate Content Sources (yum and file).
+        8. CV with all repositories, LCE, including publish and promote.
+        9. Alternate Content Sources (yum and file).
 
     Args:
         sat: Satellite instance
@@ -119,6 +120,23 @@ def _setup_prn_content(sat, manifest, test_name=None):
     ).create()
     ac_repository.sync()
 
+    # Create, publish and promote content view with all repositories
+    repos = [
+        yum_repository,
+        srpm_repository,
+        uln_repository,
+        rh_repo,
+        file_repository,
+        docker_repository,
+        ac_repository,
+    ]
+    cv = sat.api.ContentView(organization=org, repository=repos).create()
+    lce = sat.api.LifecycleEnvironment(organization=org).create()
+
+    cv.publish()
+    cvv = cv.read().version[0].read()
+    cvv.promote(data={'environment_ids': lce.id, 'force': False})
+
     # Create ACS of each content type
     ACSes = []
     for content_type in ['yum', 'file']:
@@ -145,6 +163,8 @@ def _setup_prn_content(sat, manifest, test_name=None):
             'file_repo': file_repository,
             'docker_repo': docker_repository,
             'ac_repo': ac_repository,
+            'cv': cv,
+            'lce': lce,
             'ACSes': ACSes,
         }
     )
