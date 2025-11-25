@@ -22,7 +22,7 @@ from robottelo.constants import CLIENT_PORT, DataFile
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.installer import InstallerCommand
 
-pytestmark = [pytest.mark.no_containers, pytest.mark.destructive]
+pytestmark = [pytest.mark.no_containers]
 
 
 @pytest.fixture(scope='module')
@@ -73,14 +73,14 @@ def content_for_client(module_target_sat, module_sca_manifest_org, module_lce, m
 @pytest.fixture(scope='module')
 def setup_capsules(
     module_org,
-    module_rhel_contenthost,
+    module_haproxy,
     module_lb_capsule,
     module_target_sat,
     content_for_client,
 ):
     """Install capsules with loadbalancer options"""
-    extra_cert_var = {'foreman-proxy-cname': module_rhel_contenthost.hostname}
-    extra_installer_var = {'certs-cname': module_rhel_contenthost.hostname}
+    extra_cert_var = {'foreman-proxy-cname': module_haproxy.hostname}
+    extra_installer_var = {'certs-cname': module_haproxy.hostname}
 
     for capsule in module_lb_capsule:
         capsule.register_to_cdn()
@@ -123,41 +123,40 @@ def setup_capsules(
 @pytest.fixture(scope='module')
 def setup_haproxy(
     module_org,
-    module_rhel_contenthost,
+    module_haproxy,
     content_for_client,
     module_target_sat,
     setup_capsules,
 ):
     """Install and configure haproxy and setup logging"""
-    haproxy = module_rhel_contenthost
     # Using same AK for haproxy just for packages
     haproxy_ak = content_for_client['client_ak']
-    haproxy.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
-    haproxy.execute('firewall-cmd --runtime-to-permanent')
-    haproxy.register(module_org, None, haproxy_ak.name, module_target_sat)
-    result = haproxy.execute('yum install haproxy policycoreutils-python-utils -y')
+    module_haproxy.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
+    module_haproxy.execute('firewall-cmd --runtime-to-permanent')
+    module_haproxy.register(module_org, None, haproxy_ak.name, module_target_sat)
+    result = module_haproxy.execute('yum install haproxy policycoreutils-python-utils -y')
     assert result.status == 0
-    haproxy.execute('rm -f /etc/haproxy/haproxy.cfg')
-    haproxy.session.sftp_write(
+    module_haproxy.execute('rm -f /etc/haproxy/haproxy.cfg')
+    module_haproxy.session.sftp_write(
         source=DataFile.DATA_DIR.joinpath('haproxy.cfg'),
         destination='/etc/haproxy/haproxy.cfg',
     )
-    haproxy.execute(
+    module_haproxy.execute(
         f'sed -i -e s/CAPSULE_1/{setup_capsules["capsule_1"].hostname}/g '
         f' --e s/CAPSULE_2/{setup_capsules["capsule_2"].hostname}/g '
         f' /etc/haproxy/haproxy.cfg'
     )
-    haproxy.execute('systemctl restart haproxy.service')
-    haproxy.execute('mkdir /var/lib/haproxy/dev')
-    haproxy.session.sftp_write(
+    module_haproxy.execute('systemctl restart haproxy.service')
+    module_haproxy.execute('mkdir /var/lib/haproxy/dev')
+    module_haproxy.session.sftp_write(
         source=DataFile.DATA_DIR.joinpath('99-haproxy.conf'),
         destination='/etc/rsyslog.d/99-haproxy.conf',
     )
-    haproxy.execute('setenforce permissive')
-    result = haproxy.execute('systemctl restart haproxy.service rsyslog.service')
+    module_haproxy.execute('setenforce permissive')
+    result = module_haproxy.execute('systemctl restart haproxy.service rsyslog.service')
     assert result.status == 0
 
-    return {'haproxy': haproxy}
+    return module_haproxy
 
 
 @pytest.fixture(scope='module')
@@ -169,7 +168,7 @@ def loadbalancer_setup(
     setup_haproxy,
     module_location,
 ):
-    lb_hostname = setup_haproxy['haproxy'].hostname
+    lb_hostname = setup_haproxy.hostname
     haproxy_url = f'https://{lb_hostname}:9090'
 
     for capsule in setup_capsules.values():
@@ -283,7 +282,7 @@ def test_loadbalancer_container(
         2. Content host can search and pull a container image from any available Capsule.
 
     """
-    lb = loadbalancer_setup["setup_haproxy"]["haproxy"].hostname
+    lb = loadbalancer_setup['setup_haproxy'].hostname
     c1 = loadbalancer_setup['setup_capsules']['capsule_1']
     c2 = loadbalancer_setup['setup_capsules']['capsule_2']
 
@@ -370,7 +369,7 @@ def test_client_register_through_lb(
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert (
-        loadbalancer_setup['setup_haproxy']['haproxy'].hostname
+        loadbalancer_setup['setup_haproxy'].hostname
         in rhel_contenthost.subscription_config['server']['hostname']
     )
     assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
@@ -383,7 +382,7 @@ def test_client_register_through_lb(
     ], 'Unexpected Content Source is set or missing'
     assert (
         host_info['subscription-information']['registered-to']
-        == loadbalancer_setup['setup_haproxy']['haproxy'].hostname
+        == loadbalancer_setup['setup_haproxy'].hostname
     ), 'Unexpected registration server'
 
     # Host registration by Second Capsule through Loadbalancer
@@ -396,7 +395,7 @@ def test_client_register_through_lb(
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert (
-        loadbalancer_setup['setup_haproxy']['haproxy'].hostname
+        loadbalancer_setup['setup_haproxy'].hostname
         in rhel_contenthost.subscription_config['server']['hostname']
     )
     assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
