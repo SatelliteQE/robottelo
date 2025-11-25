@@ -251,7 +251,7 @@ def test_loadbalancer_install_package(
     assert result.status == 0
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_client_register_through_lb(
     loadbalancer_setup,
     rhel_contenthost,
