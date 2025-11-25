@@ -131,7 +131,7 @@ def register_system(
 
         if result.status == 0:
             return True
-        raise VirtWhoError(f'Failed to register system: {system}')
+        raise VirtWhoError(f'Failed to register system: {system}\n {result}')
     except Exception as e:
         raise VirtWhoError(f'Failed to register system: {system}') from e
 
