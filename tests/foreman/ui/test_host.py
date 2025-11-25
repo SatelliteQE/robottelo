@@ -3619,7 +3619,7 @@ def verify_system_purpose_via_ui(
         ), f"UI service level mismatch for {host_hostname}"
 
 
-@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+@pytest.mark.rhel_ver_match('N-0')
 def test_positive_all_hosts_manage_system_purpose(
     module_target_sat,
     module_sca_manifest_org,
@@ -3687,16 +3687,17 @@ def test_positive_all_hosts_manage_system_purpose(
             service_level=syspurpose_attributes['service_level'],
         )
 
-        # Wait for tasks to complete
-        for host in content_hosts:
-            task_result = module_target_sat.wait_for_tasks(
-                search_query=(f'Updating System Purpose for host {host.hostname}'),
-                search_rate=2,
-                max_tries=60,
-            )
-            assert len(task_result) > 0, f'No task found for {host.hostname}'
-            task_status = module_target_sat.api.ForemanTask(id=task_result[0].id).poll()
-            assert task_status['result'] == 'success', f'Task failed for {host.hostname}'
+        def wait_for_system_purpose_update_tasks():
+            # Wait for tasks to complete
+            for host in content_hosts:
+                task_result = module_target_sat.wait_for_tasks(
+                    search_query=(f'Updating System Purpose for host {host.hostname}'),
+                    search_rate=2,
+                    max_tries=60,
+                )
+                assert len(task_result) > 0, f'No task found for {host.hostname}'
+                task_status = module_target_sat.api.ForemanTask(id=task_result[0].id).poll()
+                assert task_status['result'] == 'success', f'Task failed for {host.hostname}'
 
         # Verify system purpose attributes were set correctly
         verify_system_purpose_via_api(
@@ -3727,17 +3728,7 @@ def test_positive_all_hosts_manage_system_purpose(
             usage=updated_syspurpose_attributes['usage'],
             service_level=updated_syspurpose_attributes['service_level'],
         )
-
-        # Wait for update tasks to complete
-        for host in content_hosts:
-            task_result = module_target_sat.wait_for_tasks(
-                search_query=(f'Updating System Purpose for host {host.hostname}'),
-                search_rate=2,
-                max_tries=60,
-            )
-            assert len(task_result) > 0, f'No task found for {host.hostname}'
-            task_status = module_target_sat.api.ForemanTask(id=task_result[0].id).poll()
-            assert task_status['result'] == 'success', f'Task failed for {host.hostname}'
+        wait_for_system_purpose_update_tasks()
 
         # Verify updated system purpose attributes
         verify_system_purpose_via_api(
@@ -3762,17 +3753,7 @@ def test_positive_all_hosts_manage_system_purpose(
             usage='(unset)',
             service_level='(unset)',
         )
-
-        # Wait for unset tasks to complete
-        for host in content_hosts:
-            task_result = module_target_sat.wait_for_tasks(
-                search_query=(f'Updating System Purpose for host {host.hostname}'),
-                search_rate=2,
-                max_tries=60,
-            )
-            assert len(task_result) > 0, f'No task found for {host.hostname}'
-            task_status = module_target_sat.api.ForemanTask(id=task_result[0].id).poll()
-            assert task_status['result'] == 'success', f'Task failed for {host.hostname}'
+        wait_for_system_purpose_update_tasks()
 
         # Verify system purpose attributes were unset
         verify_system_purpose_via_api(
