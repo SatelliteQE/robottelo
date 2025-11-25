@@ -102,7 +102,6 @@ Pytest fixtures provide test dependencies and setup/teardown logic.
 **Core Fixtures**:
 - `target_sat`: A Satellite instance for the test
 - `module_target_sat`: Module-scoped Satellite instance
-- `function_sca_manifest`: Function-scoped SCA manifest
 - `rhel_contenthost`: RHEL content host for testing
 
 **Component Fixtures**:
@@ -114,7 +113,7 @@ Pytest fixtures provide test dependencies and setup/teardown logic.
 - `function`: Per test function (default)
 - `module`: Per test module
 - `session`: Per test session
-- `class`: Per test session
+- `class`: Per test class
 
 Example:
 
@@ -135,8 +134,8 @@ Pytest markers categorize and filter tests.
 
 **Common Markers**:
 - `@pytest.mark.e2e`: End-to-end workflow tests
-- `@pytest.mark.rhel_ver_match()`: Filter by RHEL version
-- `@pytest.mark.rhel_ver_list()`: FIlter by specific RHEL version
+- `@pytest.mark.rhel_ver_match()`: Filter by RHEL version using regex or N-x convention
+- `@pytest.mark.rhel_ver_list()`: Filter by specific RHEL version
 - `@pytest.mark.parametrize()`: Parameterize test inputs
 
 Example:
@@ -198,7 +197,7 @@ Generate random test data using `robottelo.utils.datafactory`.
 Example:
 
 ```python
-from robottelo.utils.datafactory import gen_string
+from fauxfactory import gen_string
 
 name = gen_string('alpha', 10)  # Random 10-char alphabetic string
 email = gen_email()  # Random email
@@ -732,7 +731,6 @@ assert '404' in str(excinfo.value)
 
 **Solution**:
 - Check fixture is defined in `conftest.py` or fixture file
-- Ensure fixture scope matches test scope
 - Verify pytest plugin is loaded in `conftest.py`
 
 ```python
@@ -744,7 +742,7 @@ pytest_plugins = [
 
 #### 2. **Test Hangs During Execution**
 
-**Problem**: Test hangs indefinitely
+**Problem**: Test exits with timeout for action
 
 **Solution**:
 - Add timeout to long-running operations
@@ -818,9 +816,6 @@ with target_sat.ui_session() as session:
     # Wait for page to load
     wait_for(lambda: session.activationkey.is_displayed, timeout=30)
     
-    # Ensure page is stable
-    session.browser.plugin.ensure_page_safe(timeout='10s')
-    
     # Interact with element
     session.activationkey.create({'name': 'test-ak'})
 ```
@@ -883,9 +878,6 @@ repo_url = settings.repos.yum_3.url
 
 ### DO ✅
 
-- **Use fixtures for setup/teardown** - Search for existing fixtures to avoid fixture duplication
-- **Use markers to categorize tests** - Makes test selection easier
-- **Clean up resources** - Delete entities after test completion
 - **Use `gen_string()` for names** - Avoid hard-coded names
 - **Add docstrings to all tests** - Include required fields (id, steps, expectedresults)
 - **Use `module` scope for expensive fixtures** - Satellite, manifests, etc.
@@ -896,7 +888,6 @@ repo_url = settings.repos.yum_3.url
 
 ### DON'T ❌
 
-- **Don't skip cleanup** - Always delete created resources
 - **Don't use `time.sleep()`** - Use `wait_for()` instead
 - **Don't hard-code credentials** - Use `settings` or Vault
 - **Don't copy-paste tests** - Use parametrization or fixtures
