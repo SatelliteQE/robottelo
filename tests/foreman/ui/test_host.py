@@ -174,6 +174,41 @@ def tracer_install_host(rex_contenthost, target_sat):
     return rex_contenthost
 
 
+@pytest.fixture
+def tracer_hosts(rex_contenthosts, target_sat):
+    """Fixture that provides two tracer hosts with mock service installed.
+
+    Similar to the tracer_host and tracer_install_host fixtures but provides multiple hosts for bulk operations testing.
+    """
+    for host in rex_contenthosts:
+        # add IPv6 proxy for IPv6 communication based on network type
+        if not host.network_type.has_ipv4:
+            host.enable_ipv6_dnf_and_rhsm_proxy()
+            host.enable_ipv6_system_proxy()
+
+        # create a custom, rhel version-specific OS repo
+        rhelver = host.os_version.major
+        if rhelver > 7:
+            # RHEL 8, 9 and 10 use the same repository structure
+            host.create_custom_repos(**settings.repos[f'rhel{rhelver}_os'])
+        else:
+            # RHEL 7 has different repository structure
+            host.create_custom_repos(**{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']})
+
+        # Install tracer
+        host.install_tracer()
+
+        # Install mock service repository and package
+        host.create_custom_repos(
+            **{f'mock_service_rhel{rhelver}': settings.repos['MOCK_SERVICE_REPO'][f'rhel{rhelver}']}
+        )
+        assert host.execute(f'yum -y install {settings.repos["MOCK_SERVICE_RPM"]}').status == 0
+        assert host.execute(f'rpm -q {settings.repos["MOCK_SERVICE_RPM"]}').status == 0
+        host.execute(f'systemctl start {settings.repos["MOCK_SERVICE_RPM"]}')
+
+    return rex_contenthosts
+
+
 @pytest.mark.e2e
 def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_options, request):
     """Create a new Host with parameters, config group. Check host presence on
@@ -3393,4 +3428,347 @@ def test_positive_all_hosts_check_status_icon(
         assert (
             'Errata: No installed packages and/or enabled repositories have been reported by subscription-manager.'
             in result['status_details']
+        )
+
+
+@pytest.mark.parametrize(
+    'traces_to_test',
+    [
+        [settings.repos['MOCK_SERVICE_RPM']],
+        ['kernel'],
+        [settings.repos['MOCK_SERVICE_RPM'], 'kernel'],
+    ],
+    ids=['service_restart', 'reboot_required', 'mixed_services'],
+)
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, traces_to_test):
+    """Test bulk management of traces with multiple hosts via All Hosts page.
+
+    :id: a107e6da-3c44-46d8-9e94-f15044e041b6
+
+    :setup:
+        1. Two RHEL content hosts registered to Satellite
+        2. Tracer installed on both hosts
+        3. Packages are installed on both hosts based on test parameters
+
+    :steps:
+        1. Create traces by downgrading packages
+        2. Verify traces are detected on both hosts
+        3. Navigate to All Hosts page
+        4. Select both hosts
+        5. Use bulk action to manage traces
+        6. Select specific traces to restart/reboot
+        7. Trigger restart/reboot via remote execution
+
+    :expectedresults:
+        1. Traces are detected on both hosts after package downgrade
+        2. Bulk traces management modal displays traces from both hosts
+        3. REX job successfully restarts services or triggers reboot on both hosts
+        4. Traces are resolved on both hosts after restart/reboot
+
+    :parametrized: yes
+
+    :Verifies: SAT-35465
+    """
+    host_names = []
+    requires_reboot = 'kernel' in traces_to_test
+
+    # Create traces on both hosts by downgrading packages
+    for host in tracer_hosts:
+        host_names.append(host.hostname)
+
+        # Downgrade all packages specified in traces_to_test
+        for package in traces_to_test:
+            result = host.execute(f'yum -y downgrade {package}')
+            assert result.status == 0, f'Failed to downgrade {package} on {host.hostname}'
+
+    # Verify traces are detected on both hosts
+    host_traces = {}
+    for host in tracer_hosts:
+        host_info = target_sat.cli.Host.info({'name': host.hostname})
+        traces = target_sat.cli.HostTraces.list({'host-id': host_info['id']})
+        assert len(traces) > 0, f'No traces detected on {host.hostname}'
+
+        # Store traces by hostname for verification
+        host_traces[host.hostname] = {trace['application']: trace for trace in traces}
+
+        # Verify expected traces are present
+        for expected_trace in traces_to_test:
+            if expected_trace == 'kernel':
+                kernel_trace_found = any(
+                    'kernel' in trace['application'].lower() for trace in traces
+                )
+                assert kernel_trace_found, (
+                    f'Kernel trace not found on {host.hostname}. Found traces: '
+                    f'{[t["application"] for t in traces]}'
+                )
+            else:
+                assert any(trace['application'] == expected_trace for trace in traces), (
+                    f'Expected trace {expected_trace} not found on {host.hostname}. '
+                    f'Found traces: {[t["application"] for t in traces]}'
+                )
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+
+        # Use bulk action to manage traces on both hosts
+        timestamp = (datetime.now(UTC) - timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M')
+
+        alert_message = session.all_hosts.manage_traces(
+            host_names=host_names, traces_to_select=traces_to_test
+        )
+        assert 'Danger alert' not in alert_message, 'Manage traces action failed'
+
+        # Wait for REX job to complete
+        search_query = f'action = "Run hosts job: Restart Services" and started_at >= "{timestamp}"'
+        target_sat.wait_for_tasks(
+            search_query=search_query,
+            search_rate=15,
+            max_tries=10,
+        )
+
+        # If kernel was downgraded, manually reboot hosts to clear kernel traces
+        if requires_reboot:
+            for host in tracer_hosts:
+                host.power_control(state='reboot')
+            # Wait for hosts to come back online
+            for host in tracer_hosts:
+                host.wait_for_connection()
+
+        # Verify all traces are resolved on both hosts after restart/reboot
+        for host in tracer_hosts:
+            host_info = target_sat.cli.Host.info({'name': host.hostname})
+            traces = target_sat.cli.HostTraces.list({'host-id': host_info['id']})
+            assert len(traces) == 0, (
+                f'Traces still present on {host.hostname} after restart/reboot: '
+                f'{[t["application"] for t in traces]}'
+            )
+
+
+def verify_system_purpose_via_api(
+    target_sat, content_hosts, expected_role, expected_usage, expected_service_level
+):
+    """
+    Helper function to verify system purpose attributes via API for multiple hosts.
+
+    :param target_sat: Satellite object for API access
+    :param content_hosts: List of content host objects to verify
+    :param expected_role: Expected role value (or '' for unset, or None to skip check)
+    :param expected_usage: Expected usage value (or '' for unset, or None to skip check)
+    :param expected_service_level: Expected service level value (or '' for unset, or None to skip check)
+    """
+    for host in content_hosts:
+        host_info = target_sat.api.Host().search(query={'search': f'name={host.hostname}'})[0]
+        host_details = host_info.read_json()
+        sp_attrs = host_details['subscription_facet_attributes']
+
+        if expected_role is not None:
+            if expected_role == '':
+                assert sp_attrs['purpose_role'] == '', f"Role not unset for {host.hostname}"
+            else:
+                assert sp_attrs['purpose_role'] == expected_role, (
+                    f"Role mismatch for {host.hostname}"
+                )
+
+        if expected_usage is not None:
+            if expected_usage == '':
+                assert sp_attrs['purpose_usage'] == '', f"Usage not unset for {host.hostname}"
+            else:
+                assert sp_attrs['purpose_usage'] == expected_usage, (
+                    f"Usage mismatch for {host.hostname}"
+                )
+
+        if expected_service_level is not None:
+            if expected_service_level == '':
+                assert sp_attrs['service_level'] == '', (
+                    f"Service level not unset for {host.hostname}"
+                )
+            else:
+                assert sp_attrs['service_level'] == expected_service_level, (
+                    f"Service level mismatch for {host.hostname}"
+                )
+
+
+def verify_system_purpose_via_ui(
+    session, host_hostname, expected_role, expected_usage, expected_service_level
+):
+    """
+    Helper function to verify system purpose attributes via UI for a single host.
+
+    :param session: UI session object
+    :param host_hostname: Hostname of the host to verify
+    :param expected_role: Expected role value (or '' for unset, or None to skip check)
+    :param expected_usage: Expected usage value (or '' for unset, or None to skip check)
+    :param expected_service_level: Expected service level value (or '' for unset, or None to skip check)
+    """
+    ui_values = session.host_new.get_details(host_hostname, widget_names='overview.system_purpose')
+
+    if expected_role is not None:
+        assert ui_values['overview']['system_purpose']['details']['role'] == (
+            expected_role if expected_role != '' else ''
+        ), f"UI role mismatch for {host_hostname}"
+
+    if expected_usage is not None:
+        assert ui_values['overview']['system_purpose']['details']['usage_type'] == (
+            expected_usage if expected_usage != '' else ''
+        ), f"UI usage mismatch for {host_hostname}"
+
+    if expected_service_level is not None:
+        assert ui_values['overview']['system_purpose']['details']['sla'] == (
+            expected_service_level if expected_service_level != '' else ''
+        ), f"UI service level mismatch for {host_hostname}"
+
+
+@pytest.mark.rhel_ver_match('N-0')
+def test_positive_all_hosts_manage_system_purpose(
+    module_target_sat,
+    module_sca_manifest_org,
+    module_lce,
+    mod_content_hosts,
+):
+    """
+    Manage system purpose attributes for multiple hosts through All Hosts UI bulk actions.
+
+    :id: e4d9eb79-518f-4976-af9b-6de58dbffab6
+
+    :steps:
+        1. Register multiple content hosts
+        2. Navigate to All Hosts page
+        3. Select multiple hosts
+        4. Use bulk action to set system purpose attributes (role, usage, service level, release version)
+        5. Verify system purpose attributes have been updated on all selected hosts
+
+    :expectedresults:
+        1. Multiple hosts can be selected in All Hosts page
+        2. Bulk system purpose modal opens with dropdowns for role, usage, service level, and release version
+        3. System purpose attributes are successfully updated for all selected hosts
+        4. Changes are reflected in the API and CLI verification
+        5. Task completes successfully for each host
+
+    :Verifies: SAT-35464
+    """
+    content_hosts = mod_content_hosts
+    host_names = []
+
+    content_view = module_target_sat.api.ContentView(organization=module_sca_manifest_org).create()
+    content_view.publish()
+    content_view = content_view.read()
+    cvv = content_view.version[0].read()
+    cvv.promote(data={'environment_ids': module_lce.id})
+    ak = module_target_sat.api.ActivationKey(
+        content_view=content_view,
+        environment=module_lce,
+        organization=module_sca_manifest_org,
+    ).create()
+
+    # Register content hosts
+    for host in content_hosts:
+        host.add_rex_key(module_target_sat)
+        result = host.register(module_sca_manifest_org, None, ak.name, module_target_sat)
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        host_names.append(host.hostname)
+
+    # Define system purpose attributes to set
+    syspurpose_attributes = {
+        'role': 'Red Hat Enterprise Linux Server',
+        'usage': 'Production',
+        'service_level': 'Standard',
+    }
+
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_sca_manifest_org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+
+        # Apply system purpose attributes via bulk action
+        session.all_hosts.manage_system_purpose(
+            host_names=host_names,
+            role=syspurpose_attributes['role'],
+            usage=syspurpose_attributes['usage'],
+            service_level=syspurpose_attributes['service_level'],
+        )
+
+        def wait_for_system_purpose_update_tasks():
+            # Wait for tasks to complete
+            for host in content_hosts:
+                task_result = module_target_sat.wait_for_tasks(
+                    search_query=(f'Updating System Purpose for host {host.hostname}'),
+                    search_rate=2,
+                    max_tries=60,
+                )
+                assert len(task_result) > 0, f'No task found for {host.hostname}'
+                task_status = module_target_sat.api.ForemanTask(id=task_result[0].id).poll()
+                assert task_status['result'] == 'success', f'Task failed for {host.hostname}'
+
+        wait_for_system_purpose_update_tasks()
+
+        # Verify system purpose attributes were set correctly
+        verify_system_purpose_via_api(
+            module_target_sat,
+            content_hosts,
+            syspurpose_attributes['role'],
+            syspurpose_attributes['usage'],
+            syspurpose_attributes['service_level'],
+        )
+        verify_system_purpose_via_ui(
+            session,
+            content_hosts[0].hostname,
+            syspurpose_attributes['role'],
+            syspurpose_attributes['usage'],
+            syspurpose_attributes['service_level'],
+        )
+
+        # Test updating system purpose with different values
+        updated_syspurpose_attributes = {
+            'role': 'Red Hat Enterprise Linux Workstation',
+            'usage': 'Development/Test',
+            'service_level': 'Premium',
+        }
+
+        session.all_hosts.manage_system_purpose(
+            host_names=host_names,
+            role=updated_syspurpose_attributes['role'],
+            usage=updated_syspurpose_attributes['usage'],
+            service_level=updated_syspurpose_attributes['service_level'],
+        )
+        wait_for_system_purpose_update_tasks()
+
+        # Verify updated system purpose attributes
+        verify_system_purpose_via_api(
+            module_target_sat,
+            content_hosts,
+            updated_syspurpose_attributes['role'],
+            updated_syspurpose_attributes['usage'],
+            updated_syspurpose_attributes['service_level'],
+        )
+        verify_system_purpose_via_ui(
+            session,
+            content_hosts[0].hostname,
+            updated_syspurpose_attributes['role'],
+            updated_syspurpose_attributes['usage'],
+            updated_syspurpose_attributes['service_level'],
+        )
+
+        # Test unsetting system purpose attributes using '(unset)' option
+        session.all_hosts.manage_system_purpose(
+            host_names=host_names,
+            role='(unset)',
+            usage='(unset)',
+            service_level='(unset)',
+        )
+        wait_for_system_purpose_update_tasks()
+
+        # Verify system purpose attributes were unset
+        verify_system_purpose_via_api(
+            module_target_sat,
+            content_hosts,
+            expected_role='',
+            expected_usage='',
+            expected_service_level='',
+        )
+        verify_system_purpose_via_ui(
+            session,
+            content_hosts[0].hostname,
+            expected_role='',
+            expected_usage='',
+            expected_service_level='',
         )
