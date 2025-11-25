@@ -419,7 +419,9 @@ def deploy_configure_by_script(
     script_filename = "/tmp/deploy_script.sh"
     script_content = script_content.replace('&amp;', '&').replace('&gt;', '>').replace('&lt;', '<')
     virtwho_cleanup()
-
+    guest_name, guest_uuid = get_guest_info(hypervisor_type)
+    if Host.list({'search': guest_name}):
+        Host.delete({'name': guest_name})
     # If target is provided but activation_key is not, create one for global registration
     if target and not activation_key:
         activation_key = get_virt_who_ak(org)
