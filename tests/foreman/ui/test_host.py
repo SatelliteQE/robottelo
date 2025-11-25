@@ -3699,6 +3699,8 @@ def test_positive_all_hosts_manage_system_purpose(
                 task_status = module_target_sat.api.ForemanTask(id=task_result[0].id).poll()
                 assert task_status['result'] == 'success', f'Task failed for {host.hostname}'
 
+        wait_for_system_purpose_update_tasks()
+
         # Verify system purpose attributes were set correctly
         verify_system_purpose_via_api(
             module_target_sat,
