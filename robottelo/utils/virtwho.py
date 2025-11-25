@@ -340,8 +340,7 @@ def get_virt_who_ak(org):
     """Create a virt-who activation key for the given organization.
     :param str org: The label of the organization for which the activation key is created.
     :raises: Exception: If the organization, lifecycle environment, or content view cannot be found.
-    :return: The name of the newly created activation key.
-    :rtype: str
+    :return str: The name of the newly created activation key.
     """
     # Get the organization object from label
     org_obj = entities.Organization().search(query={'search': f'label={org}'})[0]
