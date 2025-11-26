@@ -1186,7 +1186,7 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
 
     :BZ: 1391656, 2094912
     """
-    SELECTED_ROLE = 'RedHatInsights.insights-client'
+    SELECTED_ROLE = 'RedHatInsights.host-billing'
     cv_name = gen_string('alpha')
     lce_name = gen_string('alphanumeric')
     cv = target_sat.api_factory.cv_publish_promote(
@@ -3437,29 +3437,23 @@ def test_gce_cloud_billing_details(
         # Create the facts directory if it doesn't exist
         client.execute('mkdir -p /etc/rhsm/facts')
 
-        # Write GCE facts to insights-client.facts file
+        # Write GCE facts to host-billing.facts file
         client.execute(
-            f"cat > /etc/rhsm/facts/insights-client.facts << 'EOF'\n{facts_content}\nEOF"
+            f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n{facts_content}\nEOF"
         )
 
         # Verify facts file was created correctly
-        result = client.execute('cat /etc/rhsm/facts/insights-client.facts')
+        result = client.execute('cat /etc/rhsm/facts/host-billing.facts')
         assert result.status == 0, 'Failed to read facts file'
 
         # Upload facts to Satellite by running subscription-manager facts
         client.execute('subscription-manager facts --update')
-
-        # Wait a moment for facts to be processed
-        time.sleep(5)
 
         # Get host details including cloud billing information
         host_details = session.host_new.get_details(
             client.hostname,
             widget_names='details'
         )
-
-        # Verify cloud billing details are present in the UI
-        assert 'details' in host_details, 'Host details not found'
 
         # Assert that cloud billing details card exists - test should fail if not present
         assert 'cloud_billing_details' in host_details['details'], (
@@ -3489,9 +3483,6 @@ def test_gce_cloud_billing_details(
                 f'{field} value mismatch. Expected: {expected_value}, '
                 f'Got: {cloud_billing[ui_field]}'
             )
-# AWS and Azure Cloud Billing Details Test Cases
-# To be added after test_gce_cloud_billing_details in tests/foreman/ui/test_host.py
-
 
 @pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.parametrize(
@@ -3538,29 +3529,23 @@ def test_aws_cloud_billing_details(
         # Create the facts directory if it doesn't exist
         client.execute('mkdir -p /etc/rhsm/facts')
 
-        # Write AWS facts to insights-client.facts file
+        # Write AWS facts to host-billing.facts file
         client.execute(
-            f"cat > /etc/rhsm/facts/insights-client.facts << 'EOF'\n{facts_content}\nEOF"
+            f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n{facts_content}\nEOF"
         )
 
         # Verify facts file was created correctly
-        result = client.execute('cat /etc/rhsm/facts/insights-client.facts')
+        result = client.execute('cat /etc/rhsm/facts/host-billing.facts')
         assert result.status == 0, 'Failed to read facts file'
 
         # Upload facts to Satellite by running subscription-manager facts
         client.execute('subscription-manager facts --update')
-
-        # Wait a moment for facts to be processed
-        time.sleep(5)
 
         # Get host details including cloud billing information
         host_details = session.host_new.get_details(
             client.hostname,
             widget_names='details'
         )
-
-        # Verify cloud billing details are present in the UI
-        assert 'details' in host_details, 'Host details not found'
 
         # Assert that cloud billing details card exists - test should fail if not present
         assert 'cloud_billing_details' in host_details['details'], (
@@ -3644,29 +3629,23 @@ def test_azure_cloud_billing_details(
         # Create the facts directory if it doesn't exist
         client.execute('mkdir -p /etc/rhsm/facts')
 
-        # Write Azure facts to insights-client.facts file
+        # Write Azure facts to host-billing.facts file
         client.execute(
-            f"cat > /etc/rhsm/facts/insights-client.facts << 'EOF'\n{facts_content}\nEOF"
+            f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n{facts_content}\nEOF"
         )
 
         # Verify facts file was created correctly
-        result = client.execute('cat /etc/rhsm/facts/insights-client.facts')
+        result = client.execute('cat /etc/rhsm/facts/host-billing.facts')
         assert result.status == 0, 'Failed to read facts file'
 
         # Upload facts to Satellite by running subscription-manager facts
         client.execute('subscription-manager facts --update')
-
-        # Wait a moment for facts to be processed
-        time.sleep(5)
 
         # Get host details including cloud billing information
         host_details = session.host_new.get_details(
             client.hostname,
             widget_names='details'
         )
-
-        # Verify cloud billing details are present in the UI
-        assert 'details' in host_details, 'Host details not found'
 
         # Assert that cloud billing details card exists - test should fail if not present
         assert 'cloud_billing_details' in host_details['details'], (
