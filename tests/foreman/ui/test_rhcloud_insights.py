@@ -481,3 +481,42 @@ def test_insights_registration_with_capsule(
         # Verify that Insights status again.
         values = session.host_new.get_host_statuses(rhel_contenthost.hostname)
         assert values['Red Hat Lightspeed']['Status'] == 'Reporting'
+
+
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+def test_positive_content_hosts_bool_in_query(
+    module_target_sat, rhcloud_manifest_org, rhel_insights_vm
+):
+    """
+    Test that the 'true'/'false' string is also
+    interpreted as a boolean true/false as it is happening for 't'/'f' string
+
+    :id: 1daa297d-aa16-4211-9b1b-23e63c09b0e1
+
+    :verifies: SAT-22655
+
+    :CaseComponent: Hosts
+    """
+    search_queries = {
+        'True': [
+            'params.host_registration_insights = true',
+            'params.host_registration_insights = t',
+        ],
+        'False': [
+            'params.host_registration_insights = false',
+            'params.host_registration_insights = f',
+        ],
+    }
+
+    with module_target_sat.ui_session() as session:
+        session.organization.select(rhcloud_manifest_org.name)
+        for query_type, queries in search_queries.items():
+            for query in queries:
+                session.contenthost.search(query)
+                result = session.contenthost.read_all()
+                if query_type == 'True':
+                    assert result['table'][0]['Name'] == rhel_insights_vm.hostname
+                elif query_type == 'False' and result['table']:
+                    assert all(
+                        item['Name'] != rhel_insights_vm.hostname for item in result['table']
+                    )
