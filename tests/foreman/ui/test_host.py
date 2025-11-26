@@ -3791,8 +3791,8 @@ def test_positive_all_hosts_manage_system_purpose(
     ids=['gce', 'aws', 'azure'],
 )
 def test_cloud_billing_details(
-    session,
     target_sat,
+    module_org,
     rhel_contenthost,
     module_repos_collection_with_setup,
     default_location,
@@ -3830,7 +3830,8 @@ def test_cloud_billing_details(
         enable_custom_repos=True,
     )
 
-    with session:
+    with target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
         session.location.select(default_location.name)
 
         # Get facts from settings dynamically based on cloud provider
@@ -3859,11 +3860,6 @@ def test_cloud_billing_details(
         host_details = session.host_new.get_details(
             client.hostname,
             widget_names='details',
-        )
-
-        # Verify cloud billing details card exists
-        assert 'cloud_billing_details' in host_details['details'], (
-            'Cloud billing details card not found in host details'
         )
 
         cloud_billing = host_details['details']['cloud_billing_details']['details']
