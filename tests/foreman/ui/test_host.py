@@ -3830,7 +3830,7 @@ def test_cloud_billing_details(
         enable_custom_repos=True,
     )
 
-    with session:
+    with target_sat.ui_session() as session:
         session.location.select(default_location.name)
 
         # Get facts from settings dynamically based on cloud provider
