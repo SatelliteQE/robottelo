@@ -209,6 +209,12 @@ VALIDATORS = dict(
             must_exist=True,
         ),
     ],
+    github_repos=[
+        Validator(
+            'github_repos.base_marker', default='', is_type_of=str, apply_default_on_none=True
+        ),
+        Validator('github_repos.token', default='', is_type_of=str, apply_default_on_none=True),
+    ],
     http_proxy=[
         Validator(
             'http_proxy.un_auth_proxy_url',
