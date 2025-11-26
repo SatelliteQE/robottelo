@@ -73,8 +73,9 @@ def content_for_client(module_target_sat, module_sca_manifest_org, module_lce, m
 @pytest.fixture(scope='module')
 def setup_capsules(
     module_org,
+    module_location,
     module_haproxy,
-    module_lb_capsule,
+    module_lb_capsules,
     module_target_sat,
     content_for_client,
 ):
@@ -82,7 +83,7 @@ def setup_capsules(
     extra_cert_var = {'foreman-proxy-cname': module_haproxy.hostname}
     extra_installer_var = {'certs-cname': module_haproxy.hostname}
 
-    for capsule in module_lb_capsule:
+    for capsule in module_lb_capsules:
         capsule.register_to_cdn()
         command = InstallerCommand(
             command='capsule-certs-generate',
@@ -113,11 +114,15 @@ def setup_capsules(
         module_target_sat.cli.Capsule.content_synchronize(
             {'id': capsule_id, 'organization-id': module_org.id}
         )
+        module_target_sat.cli.Capsule.update(
+            {
+                'name': capsule.hostname,
+                'organization-ids': module_org.id,
+                'location-ids': module_location.id,
+            }
+        )
 
-    return {
-        'capsule_1': module_lb_capsule[0],
-        'capsule_2': module_lb_capsule[1],
-    }
+    return module_lb_capsules
 
 
 @pytest.fixture(scope='module')
@@ -142,8 +147,8 @@ def setup_haproxy(
         destination='/etc/haproxy/haproxy.cfg',
     )
     module_haproxy.execute(
-        f'sed -i -e s/CAPSULE_1/{setup_capsules["capsule_1"].hostname}/g '
-        f' --e s/CAPSULE_2/{setup_capsules["capsule_2"].hostname}/g '
+        f'sed -i -e s/CAPSULE_1/{setup_capsules[0].hostname}/g '
+        f' --e s/CAPSULE_2/{setup_capsules[1].hostname}/g '
         f' /etc/haproxy/haproxy.cfg'
     )
     module_haproxy.execute('systemctl restart haproxy.service')
@@ -153,63 +158,41 @@ def setup_haproxy(
         destination='/etc/rsyslog.d/99-haproxy.conf',
     )
     module_haproxy.execute('setenforce permissive')
-    result = module_haproxy.execute('systemctl restart haproxy.service rsyslog.service')
-    assert result.status == 0
+    assert module_haproxy.execute('systemctl restart haproxy.service rsyslog.service').status == 0
 
-    return module_haproxy
-
-
-@pytest.fixture(scope='module')
-def loadbalancer_setup(
-    module_org,
-    content_for_client,
-    setup_capsules,
-    module_target_sat,
-    setup_haproxy,
-    module_location,
-):
-    lb_hostname = setup_haproxy.hostname
-    haproxy_url = f'https://{lb_hostname}:9090'
-
-    for capsule in setup_capsules.values():
-        # Enable Registration and Template Plugins
-        opts = {
-            'foreman-proxy-registration': 'true',
-            'foreman-proxy-templates': 'true',
-            'foreman-proxy-registration-url': f'{haproxy_url}',
-            'foreman-proxy-template-url': f'{haproxy_url}',
-        }
-        capsule.install(InstallerCommand(installer_opts=opts))
-
-        module_target_sat.cli.Capsule.update(
-            {
-                'name': capsule.hostname,
-                'organization-ids': module_org.id,
-                'location-ids': module_location.id,
-            }
+    haproxy_url = f'https://{module_haproxy.hostname}:9090'
+    # Enable Registration and Template Plugins
+    opts = {
+        'foreman-proxy-registration': 'true',
+        'foreman-proxy-templates': 'true',
+        'foreman-proxy-registration-url': f'{haproxy_url}',
+        'foreman-proxy-template-url': f'{haproxy_url}',
+    }
+    for capsule in setup_capsules:
+        assert capsule.install(InstallerCommand(installer_opts=opts)).status == 0, (
+            'Installer failed to enable Registration and Template plugins with loadbalancer'
         )
 
-    return {
-        'module_org': module_org,
-        'content_for_client': content_for_client,
-        'setup_capsules': setup_capsules,
-        'module_target_sat': module_target_sat,
-        'setup_haproxy': setup_haproxy,
-    }
+    return module_haproxy
 
 
 @pytest.mark.e2e
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_loadbalancer_install_package(
-    loadbalancer_setup, setup_capsules, rhel_contenthost, module_org, module_location, request
+    setup_capsules,
+    content_for_client,
+    module_target_sat,
+    module_org,
+    module_location,
+    rhel_contenthost,
+    request,
 ):
     r"""Install packages on a content host regardless of the registered capsule being available
 
     :id: bd3c2e50-18e2-4be7-8a7f-c32472e17c61
 
     :steps:
-        1. run `subscription-manager register --org=Your_Organization \
-            --activationkey=Your_Activation_Key \`
+        1. run `subscription-manager register --org=<Organization> --activationkey=<AK>`
         2. Try package installation
         3. Check which capsule the host got registered.
         4. Remove the package
@@ -219,14 +202,14 @@ def test_loadbalancer_install_package(
     :expectedresults: The client should be get the package irrespective of the capsule
         registration.
 
-        """
+    """
 
     # Register content host
     result = rhel_contenthost.register(
         org=module_org,
         loc=module_location,
-        activation_keys=loadbalancer_setup['content_for_client']['client_ak'].name,
-        target=setup_capsules['capsule_1'],
+        activation_keys=content_for_client['client_ak'].name,
+        target=setup_capsules[0],
         force=True,
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
@@ -235,17 +218,13 @@ def test_loadbalancer_install_package(
     result = rhel_contenthost.execute('yum install -y tree')
     assert result.status == 0
 
-    hosts = loadbalancer_setup['module_target_sat'].cli.Host.list(
-        {'organization-id': loadbalancer_setup['module_org'].id}
-    )
+    hosts = module_target_sat.cli.Host.list({'organization-id': module_org.id})
     assert rhel_contenthost.hostname in [host['name'] for host in hosts]
 
     # Find which capsule the host is registered to since it's RoundRobin
     # The following also asserts the above result
     registered_to_capsule = (
-        loadbalancer_setup['setup_capsules']['capsule_1']
-        if loadbalancer_setup['setup_capsules']['capsule_1'].hostname in result.stdout
-        else loadbalancer_setup['setup_capsules']['capsule_2']
+        setup_capsules[0] if setup_capsules[0].hostname in result.stdout else setup_capsules[1]
     )
     request.addfinalizer(
         lambda: registered_to_capsule.power_control(state=VmState.RUNNING, ensure=True)
@@ -266,7 +245,13 @@ def test_loadbalancer_install_package(
 @pytest.mark.e2e
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_loadbalancer_container(
-    loadbalancer_setup, setup_capsules, rhel_contenthost, module_org, module_location, request
+    setup_haproxy,
+    setup_capsules,
+    content_for_client,
+    module_org,
+    module_location,
+    rhel_contenthost,
+    request,
 ):
     """Search and pull container images on a content host regardless the capsule availability
 
@@ -282,16 +267,12 @@ def test_loadbalancer_container(
         2. Content host can search and pull a container image from any available Capsule.
 
     """
-    lb = loadbalancer_setup['setup_haproxy'].hostname
-    c1 = loadbalancer_setup['setup_capsules']['capsule_1']
-    c2 = loadbalancer_setup['setup_capsules']['capsule_2']
-
     # Register a host via setup AK and install podman.
     result = rhel_contenthost.register(
         org=module_org,
         loc=module_location,
-        activation_keys=loadbalancer_setup['content_for_client']['client_ak'].name,
-        target=c1,
+        activation_keys=content_for_client['client_ak'].name,
+        target=setup_capsules[0],
         force=True,
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
@@ -302,47 +283,50 @@ def test_loadbalancer_container(
     assert (
         rhel_contenthost.execute(
             f'podman login -u {settings.server.admin_username} '
-            f'-p {settings.server.admin_password} {lb}'
+            f'-p {settings.server.admin_password} {setup_haproxy.hostname}'
         ).status
         == 0
     )
 
     @request.addfinalizer
     def _finalize():
-        rhel_contenthost.execute(f'podman logout {lb}')
-        c1.power_control(state=VmState.RUNNING, ensure=True)
-        c2.power_control(state=VmState.RUNNING, ensure=True)
+        rhel_contenthost.execute(f'podman logout {setup_haproxy.hostname}')
+        for capsule in setup_capsules:
+            capsule.power_control(state=VmState.RUNNING, ensure=True)
 
     # Try to search and pull container image when only one of the Capsules is running.
-    path = loadbalancer_setup['content_for_client']['container_path']
+    container_path = content_for_client['container_path']
+    registry_repo = f'{setup_haproxy.hostname}/{container_path}'
 
-    c1.power_control(state=VmState.STOPPED, ensure=True)
+    setup_capsules[0].power_control(state=VmState.STOPPED, ensure=True)
     wait_for(  # provide a few seconds to the HA proxy to recognize new situation
-        lambda: path in rhel_contenthost.execute(f'podman search {lb}/{path}').stdout,
+        lambda: container_path in rhel_contenthost.execute(f'podman search {registry_repo}').stdout,
         timeout=30,
         delay=5,
     )
-    assert rhel_contenthost.execute(f'podman pull {lb}/{path}').status == 0
+    assert rhel_contenthost.execute(f'podman pull {registry_repo}').status == 0
     assert rhel_contenthost.execute('podman rmi -a').status == 0
 
-    c1.power_control(state=VmState.RUNNING, ensure=True)
-    c2.power_control(state=VmState.STOPPED, ensure=True)
+    setup_capsules[0].power_control(state=VmState.RUNNING, ensure=True)
+    setup_capsules[1].power_control(state=VmState.STOPPED, ensure=True)
     wait_for(  # provide a few seconds to the HA proxy to recognize new situation
-        lambda: path in rhel_contenthost.execute(f'podman search {lb}/{path}').stdout,
+        lambda: container_path in rhel_contenthost.execute(f'podman search {registry_repo}').stdout,
         timeout=30,
         delay=5,
     )
-    assert rhel_contenthost.execute(f'podman pull {lb}/{path}').status == 0
+    assert rhel_contenthost.execute(f'podman pull {registry_repo}').status == 0
     assert rhel_contenthost.execute('podman rmi -a').status == 0
 
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_client_register_through_lb(
-    loadbalancer_setup,
-    rhel_contenthost,
+    setup_haproxy,
+    setup_capsules,
+    content_for_client,
+    module_target_sat,
     module_org,
     module_location,
-    setup_capsules,
+    rhel_contenthost,
 ):
     """Register the client through loadbalancer
 
@@ -363,44 +347,35 @@ def test_client_register_through_lb(
     result = rhel_contenthost.register(
         org=module_org,
         loc=module_location,
-        activation_keys=loadbalancer_setup['content_for_client']['client_ak'].name,
-        target=setup_capsules['capsule_1'],
+        activation_keys=content_for_client['client_ak'].name,
+        target=setup_capsules[0],
         force=True,
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
-    assert (
-        loadbalancer_setup['setup_haproxy'].hostname
-        in rhel_contenthost.subscription_config['server']['hostname']
-    )
+    assert setup_haproxy.hostname in rhel_contenthost.subscription_config['server']['hostname']
     assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
-    host_info = loadbalancer_setup['module_target_sat'].cli.Host.info(
+    host_info = module_target_sat.cli.Host.info(
         {'name': rhel_contenthost.hostname}, output_format='json'
     )
     assert host_info['content-information']['content-source']['name'] in [
-        setup_capsules['capsule_1'].hostname,
-        setup_capsules['capsule_2'].hostname,
+        setup_capsules[0].hostname,
+        setup_capsules[1].hostname,
     ], 'Unexpected Content Source is set or missing'
-    assert (
-        host_info['subscription-information']['registered-to']
-        == loadbalancer_setup['setup_haproxy'].hostname
-    ), 'Unexpected registration server'
+    assert host_info['subscription-information']['registered-to'] == setup_haproxy.hostname, (
+        'Unexpected registration server'
+    )
 
     # Host registration by Second Capsule through Loadbalancer
     result = rhel_contenthost.register(
         org=module_org,
         loc=module_location,
-        activation_keys=loadbalancer_setup['content_for_client']['client_ak'].name,
-        target=setup_capsules['capsule_2'],
+        activation_keys=content_for_client['client_ak'].name,
+        target=setup_capsules[1],
         force=True,
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
-    assert (
-        loadbalancer_setup['setup_haproxy'].hostname
-        in rhel_contenthost.subscription_config['server']['hostname']
-    )
+    assert setup_haproxy.hostname in rhel_contenthost.subscription_config['server']['hostname']
     assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
 
-    hosts = loadbalancer_setup['module_target_sat'].cli.Host.list(
-        {'organization-id': loadbalancer_setup['module_org'].id}
-    )
+    hosts = module_target_sat.cli.Host.list({'organization-id': module_org.id})
     assert rhel_contenthost.hostname in [host['name'] for host in hosts]
