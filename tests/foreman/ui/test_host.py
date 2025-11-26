@@ -174,6 +174,7 @@ def tracer_install_host(rex_contenthost, target_sat):
         )
     return rex_contenthost
 
+
 @pytest.fixture
 def tracer_hosts(rex_contenthosts, target_sat):
     """Fixture that provides two tracer hosts with mock service installed.
