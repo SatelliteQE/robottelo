@@ -3773,6 +3773,7 @@ def test_positive_all_hosts_manage_system_purpose(
             expected_service_level='',
         )
 
+
 @pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.parametrize(
     'module_repos_collection_with_setup',
@@ -3800,18 +3801,26 @@ def test_cloud_billing_details(
     field_mappings,
     skip_null,
 ):
-    """Verify cloud billing details are displayed correctly in Host Details page
+    """Verify cloud billing details are displayed correctly in Host Details page.
+
     :id: 88d8eaac-9149-4cbc-8913-4954f3f017f8
+
     :steps:
         1. Create cloud provider facts file on registered host
         2. Upload facts to Satellite
         3. Navigate to Host Details page
         4. Verify Cloud Billing Details card is displayed
         5. Verify cloud provider-specific billing facts are shown
+
     :expectedresults: Cloud billing details are correctly displayed in UI
+
     :parametrized: yes
+
     :CaseComponent: Hosts
+
     :Team: Proton
+
+    :Verifies: SAT-35465
     """
     client = rhel_contenthost
     client.add_rex_key(target_sat)
@@ -3837,11 +3846,7 @@ def test_cloud_billing_details(
         client.execute('mkdir -p /etc/rhsm/facts')
 
         # Write cloud facts to host-billing.facts
-        client.execute(
-            f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n"
-            f"{facts_content}\n"
-            f"EOF"
-        )
+        client.execute(f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n{facts_content}\nEOF")
 
         # Verify file created correctly
         result = client.execute('cat /etc/rhsm/facts/host-billing.facts')
@@ -3865,7 +3870,6 @@ def test_cloud_billing_details(
 
         # Validate all fields from cloud_facts
         for field, expected_value in cloud_facts.items():
-
             # Map config field name to UI field name
             ui_field = field_mappings.get(field, field)
 
@@ -3878,12 +3882,10 @@ def test_cloud_billing_details(
 
             # Verify field exists
             assert ui_field in cloud_billing, (
-                f'{cloud_provider.upper()}: {field} (UI: {ui_field}) '
-                f'not displayed in cloud billing details'
+                f'{cloud_provider.upper()}: {field} (UI: {ui_field}) not displayed in cloud billing details'
             )
 
             # Verify field value
             assert str(cloud_billing[ui_field]) == str(expected_value), (
-                f'{cloud_provider.upper()}: {field} value mismatch. '
-                f'Expected: {expected_value}, Got: {cloud_billing[ui_field]}'
+                f'{cloud_provider.upper()}: {field} value mismatch. Expected: {expected_value}, Got: {cloud_billing[ui_field]}'
             )
