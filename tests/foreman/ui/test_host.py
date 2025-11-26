@@ -15,10 +15,10 @@
 import copy
 import csv
 from datetime import UTC, datetime, timedelta
+import json
 import os
 import re
 import time
-import json
 
 from airgun.exceptions import DisabledWidgetError, NoSuchElementException
 from box import Box
@@ -3739,6 +3739,7 @@ def test_positive_all_hosts_manage_system_purpose(
             expected_service_level='',
         )
 
+
 @pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.parametrize(
     'module_repos_collection_with_setup',
@@ -3781,9 +3782,7 @@ def test_gce_cloud_billing_details(
         client.execute('mkdir -p /etc/rhsm/facts')
 
         # Write GCE facts to host-billing.facts file
-        client.execute(
-            f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n{facts_content}\nEOF"
-        )
+        client.execute(f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n{facts_content}\nEOF")
 
         # Verify facts file was created correctly
         result = client.execute('cat /etc/rhsm/facts/host-billing.facts')
@@ -3793,10 +3792,7 @@ def test_gce_cloud_billing_details(
         client.execute('subscription-manager facts --update')
 
         # Get host details including cloud billing information
-        host_details = session.host_new.get_details(
-            client.hostname,
-            widget_names='details'
-        )
+        host_details = session.host_new.get_details(client.hostname, widget_names='details')
 
         # Assert that cloud billing details card exists - test should fail if not present
         assert 'cloud_billing_details' in host_details['details'], (
@@ -3826,6 +3822,7 @@ def test_gce_cloud_billing_details(
                 f'{field} value mismatch. Expected: {expected_value}, '
                 f'Got: {cloud_billing[ui_field]}'
             )
+
 
 @pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.parametrize(
@@ -3873,9 +3870,7 @@ def test_aws_cloud_billing_details(
         client.execute('mkdir -p /etc/rhsm/facts')
 
         # Write AWS facts to host-billing.facts file
-        client.execute(
-            f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n{facts_content}\nEOF"
-        )
+        client.execute(f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n{facts_content}\nEOF")
 
         # Verify facts file was created correctly
         result = client.execute('cat /etc/rhsm/facts/host-billing.facts')
@@ -3885,10 +3880,7 @@ def test_aws_cloud_billing_details(
         client.execute('subscription-manager facts --update')
 
         # Get host details including cloud billing information
-        host_details = session.host_new.get_details(
-            client.hostname,
-            widget_names='details'
-        )
+        host_details = session.host_new.get_details(client.hostname, widget_names='details')
 
         # Assert that cloud billing details card exists - test should fail if not present
         assert 'cloud_billing_details' in host_details['details'], (
@@ -3973,9 +3965,7 @@ def test_azure_cloud_billing_details(
         client.execute('mkdir -p /etc/rhsm/facts')
 
         # Write Azure facts to host-billing.facts file
-        client.execute(
-            f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n{facts_content}\nEOF"
-        )
+        client.execute(f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n{facts_content}\nEOF")
 
         # Verify facts file was created correctly
         result = client.execute('cat /etc/rhsm/facts/host-billing.facts')
@@ -3985,10 +3975,7 @@ def test_azure_cloud_billing_details(
         client.execute('subscription-manager facts --update')
 
         # Get host details including cloud billing information
-        host_details = session.host_new.get_details(
-            client.hostname,
-            widget_names='details'
-        )
+        host_details = session.host_new.get_details(client.hostname, widget_names='details')
 
         # Assert that cloud billing details card exists - test should fail if not present
         assert 'cloud_billing_details' in host_details['details'], (
@@ -4000,12 +3987,9 @@ def test_azure_cloud_billing_details(
         # This ensures the test adapts to any fields defined in configuration
         for field, expected_value in azure_facts.items():
             # Verify field exists in cloud billing details
-            assert field in cloud_billing, (
-                f'{field} not displayed in cloud billing details'
-            )
+            assert field in cloud_billing, f'{field} not displayed in cloud billing details'
             # Verify field value matches expected value from facts
             # Convert both to strings for comparison to handle type mismatches
             assert str(cloud_billing[field]) == str(expected_value), (
-                f'{field} value mismatch. Expected: {expected_value}, '
-                f'Got: {cloud_billing[field]}'
+                f'{field} value mismatch. Expected: {expected_value}, Got: {cloud_billing[field]}'
             )
