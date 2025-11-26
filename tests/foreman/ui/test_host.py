@@ -3791,6 +3791,7 @@ def test_positive_all_hosts_manage_system_purpose(
     ids=['gce', 'aws', 'azure'],
 )
 def test_cloud_billing_details(
+    session,
     target_sat,
     rhel_contenthost,
     module_repos_collection_with_setup,
@@ -3829,7 +3830,7 @@ def test_cloud_billing_details(
         enable_custom_repos=True,
     )
 
-    with target_sat.ui_session() as session:
+    with session:
         session.location.select(default_location.name)
 
         # Get facts from settings dynamically based on cloud provider
