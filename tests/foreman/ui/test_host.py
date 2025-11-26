@@ -174,6 +174,39 @@ def tracer_install_host(rex_contenthost, target_sat):
         )
     return rex_contenthost
 
+@pytest.fixture
+def tracer_hosts(rex_contenthosts, target_sat):
+    """Fixture that provides two tracer hosts with mock service installed.
+    Similar to the tracer_host and tracer_install_host fixtures but provides multiple hosts for bulk operations testing.
+    """
+    for host in rex_contenthosts:
+        # add IPv6 proxy for IPv6 communication based on network type
+        if not host.network_type.has_ipv4:
+            host.enable_ipv6_dnf_and_rhsm_proxy()
+            host.enable_ipv6_system_proxy()
+
+        # create a custom, rhel version-specific OS repo
+        rhelver = host.os_version.major
+        if rhelver > 7:
+            # RHEL 8, 9 and 10 use the same repository structure
+            host.create_custom_repos(**settings.repos[f'rhel{rhelver}_os'])
+        else:
+            # RHEL 7 has different repository structure
+            host.create_custom_repos(**{f'rhel{rhelver}_os': settings.repos[f'rhel{rhelver}_os']})
+
+        # Install tracer
+        host.install_tracer()
+
+        # Install mock service repository and package
+        host.create_custom_repos(
+            **{f'mock_service_rhel{rhelver}': settings.repos['MOCK_SERVICE_REPO'][f'rhel{rhelver}']}
+        )
+        assert host.execute(f'yum -y install {settings.repos["MOCK_SERVICE_RPM"]}').status == 0
+        assert host.execute(f'rpm -q {settings.repos["MOCK_SERVICE_RPM"]}').status == 0
+        host.execute(f'systemctl start {settings.repos["MOCK_SERVICE_RPM"]}')
+
+    return rex_contenthosts
+
 
 @pytest.mark.e2e
 def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_options, request):
@@ -3252,7 +3285,7 @@ def test_positive_all_hosts_manage_host_collections(target_sat, function_org, fu
             host_collections_to_select=host_col_limit_1_name,
             option='Add',
         )
-        assert 'Successfully added' in result
+        assert 'Added' in result
         hosts_in_host_col = read_host_collections_hosts(
             target_sat, host_col_limit_1_name, function_org
         )
@@ -3276,7 +3309,7 @@ def test_positive_all_hosts_manage_host_collections(target_sat, function_org, fu
             host_collections_to_select=host_col_names,
             option='Add',
         )
-        assert 'Successfully added' in result
+        assert 'Added' in result
         hosts_in_host_col = read_host_collections_hosts(target_sat, host_col_names, function_org)
         assert hosts_in_host_col[host_col_names[0]] == host_names
         assert hosts_in_host_col[host_col_names[1]] == host_names
@@ -3288,7 +3321,7 @@ def test_positive_all_hosts_manage_host_collections(target_sat, function_org, fu
             host_collections_to_select=host_col_names[0],
             option='Remove',
         )
-        assert 'Successfully removed' in result
+        assert 'Removed' in result
         hosts_in_host_col = read_host_collections_hosts(target_sat, host_col_names[0], function_org)
         assert hosts_in_host_col[host_col_names[0]] == [host_names[1]]
 
@@ -3299,7 +3332,7 @@ def test_positive_all_hosts_manage_host_collections(target_sat, function_org, fu
             host_collections_to_select=host_col_names,
             option='Remove',
         )
-        assert 'Successfully removed' in result
+        assert 'Removed' in result
         hosts_in_host_col = read_host_collections_hosts(target_sat, host_col_names, function_org)
         assert hosts_in_host_col[host_col_names[0]] == []
         assert hosts_in_host_col[host_col_names[1]] == [host_names[0]]
