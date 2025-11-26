@@ -103,9 +103,8 @@ def register_system(
     # Get the guest hostname to check if it's already registered
     guest_name, _ = runcmd('hostname', system=system)
 
-    if existing_hosts := Host.list({'search': guest_name}):
-        for host in existing_hosts:
-            Host.delete({'id': host['id']})
+    if Host.exists(search=('name', guest_name)):
+        Host.delete({'name': guest_name})
 
     # Create ContentHost object from system dict
     contenthost = ContentHost(
@@ -113,28 +112,17 @@ def register_system(
     )
 
     # Use the ContentHost's register() method with global registration
-    try:
-        # If org is a string (label), look up the organization object
-        org_obj = None
-        if isinstance(org, str):
-            org_obj = entities.Organization().search(query={'search': f'label={org}'})[0]
-        else:
-            org_obj = org
+    if isinstance(org, str):
+        org = target.api.Organization().search(query={'search': f'label={org}'})[0]
 
-        result = contenthost.register(
-            org=org_obj,  # org object
-            loc=None,  # location object or None
-            activation_keys=activation_key,  # activation key name (required for global registration)
-            target=target,  # target satellite object
-            force=True,
-        )
-
-        if result.status == 0:
-            return True
-        raise VirtWhoError(f'Failed to register system: {system}\n {result}')
-    except Exception as e:
-        raise VirtWhoError(f'Failed to register system: {system}') from e
-
+    result = contenthost.register(
+        org=org,
+        loc=None,
+        activation_keys=activation_key,
+        target=target,
+        force=True,
+    )
+    assert result.status == 0, f'Failed to register system: {system}\n {result}'
 
 def virtwho_cleanup():
     """Before running test cases, need to clean the environment.
@@ -336,25 +324,24 @@ def deploy_validation(hypervisor_type):
     return hypervisor_name, guest_name
 
 
-def get_virt_who_ak(org):
+def get_virt_who_ak(org, target):
     """Create a virt-who activation key for the given organization.
     :param str org: The label of the organization for which the activation key is created.
-    :raises: Exception: If the organization, lifecycle environment, or content view cannot be found.
-    :return: The name of the newly created activation key.
-    :rtype: str
+    :param target: Satellite object for activation key
+    :return str: The name of the newly created activation key.
     """
     # Get the organization object from label
-    org_obj = entities.Organization().search(query={'search': f'label={org}'})[0]
+    org_obj = target.api.Organization().search(query={'search': f'label={org}'})[0]
     # Get the Library lifecycle environment for this organization
-    library_env = entities.LifecycleEnvironment().search(
+    library_env = target.api.LifecycleEnvironment().search(
         query={'search': f'name=Library AND organization_id={org_obj.id}'}
     )[0]
     # Get the default content view for this organization
-    default_cv = entities.ContentView().search(
+    default_cv = target.api.ContentView().search(
         query={'search': f'name="Default Organization View" AND organization_id={org_obj.id}'}
     )[0]
     # Create activation key with lifecycle environment and content view
-    ak = entities.ActivationKey(
+    ak = target.api.ActivationKey(
         organization=org_obj,
         environment=library_env,
         content_view=default_cv,
@@ -388,7 +375,7 @@ def deploy_configure_by_command(
 
     # If target is provided but activation_key is not, create one for global registration
     if target and not activation_key:
-        activation_key = get_virt_who_ak(org)
+        activation_key = get_virt_who_ak(org, target)
     register_system(
         get_system(hypervisor_type), activation_key=activation_key, org=org, target=target
     )
@@ -424,7 +411,7 @@ def deploy_configure_by_script(
         Host.delete({'name': guest_name})
     # If target is provided but activation_key is not, create one for global registration
     if target and not activation_key:
-        activation_key = get_virt_who_ak(org)
+        activation_key = get_virt_who_ak(org, target)
 
     register_system(
         get_system(hypervisor_type), activation_key=activation_key, org=org, target=target
