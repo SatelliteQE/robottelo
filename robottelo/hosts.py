@@ -2712,8 +2712,8 @@ class Satellite(Capsule, SatelliteMixins):
         self.execute(f'sed -i "s/dry_run.*/dry_run = {str(safe).lower()}/g" /etc/pulp/cli.toml')
 
     @property
-    def local_advisor_enabled(self):
-        """Return boolean indicating whether local Insights advisor engine is enabled."""
+    def iop_enabled(self):
+        """Return boolean indicating whether IoP (local Red Hat Lightspeed) is enabled."""
         return self.api.RHCloud().advisor_engine_config()['use_iop_mode']
 
 
