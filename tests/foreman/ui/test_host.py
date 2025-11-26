@@ -3775,254 +3775,107 @@ def test_positive_all_hosts_manage_system_purpose(
 
 @pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
-    [{'YumRepository': {'url': settings.repos.yum_3.url}}],
-    ids=['yum_3'],
-    indirect=True,
+  'module_repos_collection_with_setup',
+  [{'YumRepository': {'url': settings.repos.yum_3.url}}],
+  ids=['yum_3'],
+  indirect=True,
 )
-def test_gce_cloud_billing_details(
-    session,
-    target_sat,
-    rhel_contenthost,
-    module_repos_collection_with_setup,
-    default_location,
-):
-    """Verify GCE cloud billing details are displayed correctly in Host Details page
-
-    :id: 88d8eaac-9149-4cbc-8913-4954f3f017f8
-
-    :steps:
-        1. Create GCE facts file on registered host
-        2. Upload facts to Satellite
-        3. Navigate to Host Details page
-        4. Verify Cloud Billing Details card is displayed
-        5. Verify GCE-specific billing facts are shown
-
-    :expectedresults: Cloud billing details from GCE are correctly displayed in UI
-    """
-    client = rhel_contenthost
-    client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
-
-    with session:
-        session.location.select(default_location.name)
-        gce_facts = settings.gce.cloud_billing_facts
-
-        # Create facts file on client host with GCE cloud billing details
-        facts_content = json.dumps(gce_facts, indent=2)
-
-        # Create the facts directory if it doesn't exist
-        client.execute('mkdir -p /etc/rhsm/facts')
-
-        # Write GCE facts to host-billing.facts file
-        client.execute(f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n{facts_content}\nEOF")
-
-        # Verify facts file was created correctly
-        result = client.execute('cat /etc/rhsm/facts/host-billing.facts')
-        assert result.status == 0, 'Failed to read facts file'
-
-        # Upload facts to Satellite by running subscription-manager facts
-        client.execute('subscription-manager facts --update')
-
-        # Get host details including cloud billing information
-        host_details = session.host_new.get_details(client.hostname, widget_names='details')
-
-        # Assert that cloud billing details card exists - test should fail if not present
-        assert 'cloud_billing_details' in host_details['details'], (
-            'Cloud billing details card not found in host details'
-        )
-        cloud_billing = host_details['details']['cloud_billing_details']['details']
-
-        # Field name mappings: config name -> UI name
-        # Satellite transforms some field names from plural to singular
-        field_mappings = {
-            'gcp_license_codes': 'gcp_license_code',  # Plural in config, singular in UI
-        }
-
-        # Dynamically validate all fields present in gce_facts
-        # This ensures the test adapts to any fields defined in configuration
-        for field, expected_value in gce_facts.items():
-            # Map config field name to UI field name
-            ui_field = field_mappings.get(field, field)
-
-            # Verify field exists in cloud billing details
-            assert ui_field in cloud_billing, (
-                f'{field} (UI: {ui_field}) not displayed in cloud billing details'
-            )
-            # Verify field value matches expected value from facts
-            # Convert both to strings for comparison to handle type mismatches
-            assert str(cloud_billing[ui_field]) == str(expected_value), (
-                f'{field} value mismatch. Expected: {expected_value}, '
-                f'Got: {cloud_billing[ui_field]}'
-            )
-
-
-@pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
-    [{'YumRepository': {'url': settings.repos.yum_3.url}}],
-    ids=['yum_3'],
-    indirect=True,
+  'cloud_provider,facts_attr,field_mappings,skip_null',
+  [
+      ('gce', 'gce.cloud_billing_facts', {'gcp_license_codes': 'gcp_license_code'}, False),
+      ('aws', 'ec2.cloud_billing_facts', {'aws_billing_products': 'aws_billing_product'}, True),
+      ('azure', 'azurerm.cloud_billing_facts', {}, False),
+  ],
+  ids=['gce', 'aws', 'azure'],
 )
-def test_aws_cloud_billing_details(
-    session,
-    target_sat,
-    rhel_contenthost,
-    module_repos_collection_with_setup,
-    default_location,
+def test_cloud_billing_details(
+  session,
+  target_sat,
+  rhel_contenthost,
+  module_repos_collection_with_setup,
+  default_location,
+  cloud_provider,
+  facts_attr,
+  field_mappings,
+  skip_null,
 ):
-    """Verify AWS cloud billing details are displayed correctly in Host Details page
+  """Verify cloud billing details are displayed correctly in Host Details page
 
-    :id: a1b2c3d4-5e6f-7g8h-9i0j-k1l2m3n4o5p6
+  :id: 88d8eaac-9149-4cbc-8913-4954f3f017f8
 
-    :steps:
-        1. Create AWS facts file on registered host
-        2. Upload facts to Satellite
-        3. Navigate to Host Details page
-        4. Verify Cloud Billing Details card is displayed
-        5. Verify AWS-specific billing facts are shown
+  :steps:
+      1. Create cloud provider facts file on registered host
+      2. Upload facts to Satellite
+      3. Navigate to Host Details page
+      4. Verify Cloud Billing Details card is displayed
+      5. Verify cloud provider-specific billing facts are shown
 
-    :expectedresults: Cloud billing details from AWS are correctly displayed in UI
+  :expectedresults: Cloud billing details are correctly displayed in UI
 
-    :CaseComponent: Hosts
+  :parametrized: yes
 
-    :Team: Proton
-    """
-    client = rhel_contenthost
-    client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
+  :CaseComponent: Hosts
 
-    with session:
-        session.location.select(default_location.name)
-        aws_facts = settings.ec2.cloud_billing_facts
+  :Team: Proton
+  """
+  client = rhel_contenthost
+  client.add_rex_key(target_sat)
+  module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
 
-        # Create facts file on client host with AWS cloud billing details
-        facts_content = json.dumps(aws_facts, indent=2)
+  with session:
+      session.location.select(default_location.name)
 
-        # Create the facts directory if it doesn't exist
-        client.execute('mkdir -p /etc/rhsm/facts')
+      # Get facts from settings dynamically based on cloud provider
+      facts_path = facts_attr.split('.')
+      cloud_facts = settings
+      for attr in facts_path:
+          cloud_facts = getattr(cloud_facts, attr)
 
-        # Write AWS facts to host-billing.facts file
-        client.execute(f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n{facts_content}\nEOF")
+      # Create facts file on client host with cloud billing details
+      facts_content = json.dumps(cloud_facts, indent=2)
 
-        # Verify facts file was created correctly
-        result = client.execute('cat /etc/rhsm/facts/host-billing.facts')
-        assert result.status == 0, 'Failed to read facts file'
+      # Create the facts directory if it doesn't exist
+      client.execute('mkdir -p /etc/rhsm/facts')
 
-        # Upload facts to Satellite by running subscription-manager facts
-        client.execute('subscription-manager facts --update')
+      # Write cloud facts to host-billing.facts file
+      client.execute(f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n{facts_content}\nEOF")
 
-        # Get host details including cloud billing information
-        host_details = session.host_new.get_details(client.hostname, widget_names='details')
+      # Verify facts file was created correctly
+      result = client.execute('cat /etc/rhsm/facts/host-billing.facts')
+      assert result.status == 0, 'Failed to read facts file'
 
-        # Assert that cloud billing details card exists - test should fail if not present
-        assert 'cloud_billing_details' in host_details['details'], (
-            'Cloud billing details card not found in host details'
-        )
-        cloud_billing = host_details['details']['cloud_billing_details']['details']
+      # Upload facts to Satellite by running subscription-manager facts
+      client.execute('subscription-manager facts --update')
 
-        # Field name mappings: config name -> UI name
-        # Satellite transforms some field names from plural to singular
-        field_mappings = {
-            'aws_billing_products': 'aws_billing_product',  # Plural in config, singular in UI
-        }
+      # Get host details including cloud billing information
+      host_details = session.host_new.get_details(client.hostname, widget_names='details')
 
-        # Dynamically validate all fields present in aws_facts
-        # This ensures the test adapts to any fields defined in configuration
-        for field, expected_value in aws_facts.items():
-            # Map config field name to UI field name
-            ui_field = field_mappings.get(field, field)
+      # Assert that cloud billing details card exists
+      assert 'cloud_billing_details' in host_details['details'], (
+          'Cloud billing details card not found in host details'
+      )
+      cloud_billing = host_details['details']['cloud_billing_details']['details']
 
-            # Check if field has null value - Satellite UI doesn't display them
-            if expected_value is None:
-                assert ui_field not in cloud_billing, (
-                    f'{field} (UI: {ui_field}) should not be displayed when value is null'
-                )
-                continue
+      # Dynamically validate all fields present in cloud_facts
+      for field, expected_value in cloud_facts.items():
+          # Map config field name to UI field name if mapping exists
+          ui_field = field_mappings.get(field, field)
 
-            # Verify field exists in cloud billing details
-            assert ui_field in cloud_billing, (
-                f'{field} (UI: {ui_field}) not displayed in cloud billing details'
-            )
-            # Verify field value matches expected value from facts
-            # Convert both to strings for comparison to handle type mismatches
-            assert str(cloud_billing[ui_field]) == str(expected_value), (
-                f'{field} value mismatch. Expected: {expected_value}, '
-                f'Got: {cloud_billing[ui_field]}'
-            )
+          # Check if field has null value and should be skipped (AWS specific)
+          if skip_null and expected_value is None:
+              assert ui_field not in cloud_billing, (
+                  f'{field} (UI: {ui_field}) should not be displayed when value is null'
+              )
+              continue
 
+          # Verify field exists in cloud billing details
+          assert ui_field in cloud_billing, (
+              f'{cloud_provider.upper()}: {field} (UI: {ui_field}) not displayed in cloud billing details'
+          )
 
-@pytest.mark.rhel_ver_match('N-1')
-@pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
-    [{'YumRepository': {'url': settings.repos.yum_3.url}}],
-    ids=['yum_3'],
-    indirect=True,
-)
-def test_azure_cloud_billing_details(
-    session,
-    target_sat,
-    rhel_contenthost,
-    module_repos_collection_with_setup,
-    default_location,
-):
-    """Verify Azure cloud billing details are displayed correctly in Host Details page
-
-    :id: f1e2d3c4-b5a6-9h8g-7j6i-k5l4m3n2o1p0
-
-    :steps:
-        1. Create Azure facts file on registered host
-        2. Upload facts to Satellite
-        3. Navigate to Host Details page
-        4. Verify Cloud Billing Details card is displayed
-        5. Verify Azure-specific billing facts are shown
-
-    :expectedresults: Cloud billing details from Azure are correctly displayed in UI
-
-    :CaseComponent: Hosts
-
-    :Team: Proton
-    """
-    client = rhel_contenthost
-    client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
-
-    with session:
-        session.location.select(default_location.name)
-        azure_facts = settings.azurerm.cloud_billing_facts
-
-        # Create facts file on client host with Azure cloud billing details
-        facts_content = json.dumps(azure_facts, indent=2)
-
-        # Create the facts directory if it doesn't exist
-        client.execute('mkdir -p /etc/rhsm/facts')
-
-        # Write Azure facts to host-billing.facts file
-        client.execute(f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n{facts_content}\nEOF")
-
-        # Verify facts file was created correctly
-        result = client.execute('cat /etc/rhsm/facts/host-billing.facts')
-        assert result.status == 0, 'Failed to read facts file'
-
-        # Upload facts to Satellite by running subscription-manager facts
-        client.execute('subscription-manager facts --update')
-
-        # Get host details including cloud billing information
-        host_details = session.host_new.get_details(client.hostname, widget_names='details')
-
-        # Assert that cloud billing details card exists - test should fail if not present
-        assert 'cloud_billing_details' in host_details['details'], (
-            'Cloud billing details card not found in host details'
-        )
-        cloud_billing = host_details['details']['cloud_billing_details']['details']
-
-        # Dynamically validate all fields present in azure_facts
-        # This ensures the test adapts to any fields defined in configuration
-        for field, expected_value in azure_facts.items():
-            # Verify field exists in cloud billing details
-            assert field in cloud_billing, f'{field} not displayed in cloud billing details'
-            # Verify field value matches expected value from facts
-            # Convert both to strings for comparison to handle type mismatches
-            assert str(cloud_billing[field]) == str(expected_value), (
-                f'{field} value mismatch. Expected: {expected_value}, Got: {cloud_billing[field]}'
-            )
+          # Verify field value matches expected value from facts
+          assert str(cloud_billing[ui_field]) == str(expected_value), (
+              f'{cloud_provider.upper()}: {field} value mismatch. '
+              f'Expected: {expected_value}, Got: {cloud_billing[ui_field]}'
+          )
