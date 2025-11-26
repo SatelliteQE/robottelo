@@ -3781,7 +3781,7 @@ def test_positive_all_hosts_manage_system_purpose(
     indirect=True,
 )
 @pytest.mark.parametrize(
-    'cloud_provider,facts_attr,field_mappings,skip_null',
+    ('cloud_provider', 'facts_attr', 'field_mappings', 'skip_null'),
     [
         ('gce', 'gce.cloud_billing_facts', {'gcp_license_codes': 'gcp_license_code'}, False),
         ('aws', 'ec2.cloud_billing_facts', {'aws_billing_products': 'aws_billing_product'}, True),
