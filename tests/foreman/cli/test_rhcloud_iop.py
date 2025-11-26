@@ -273,3 +273,62 @@ def test_disable_enable_iop(satellite_iop, module_sca_manifest, rhel_contenthost
 
     result = host.execute('insights-client')
     assert result.status == 0, 'insights-client upload failed'
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('N-2')
+@pytest.mark.parametrize(
+    'use_ip',
+    [False, True],
+    ids=['hostname', 'ip'],
+)
+@pytest.mark.parametrize(
+    'setup_http_proxy',
+    [True, False],
+    indirect=True,
+    ids=['auth_http_proxy', 'unauth_http_proxy'],
+)
+@pytest.mark.parametrize(
+    'module_target_sat_insights',
+    [False],
+    ids=['local'],
+    indirect=True,
+)
+def test_insights_client_registration_with_http_proxy(
+    module_target_sat_insights,
+    setup_http_proxy,
+    rhel_contenthost,
+    rhcloud_activation_key,
+    rhcloud_manifest_org,
+):
+    """Verify that insights-client registration work with HTTP Proxy.
+
+    :id: 6ab0842e-9e8b-4d9e-aed4-b183f7e8f44d
+
+    :parametrized: yes
+
+    :setup:
+        1. Satellite with Default HTTP Proxy set.
+
+    :steps:
+        1. Register a Host with Satellite.
+        2. Register host with IoP.
+        3. Verify `insights-client --(register|unregister|test-connection|status)`
+
+    :expectedresults:
+        1. `insights-client` commands work when Satellite has Default HTTP Proxy set.
+
+    :BZ: 1959932
+
+    :customerscenario: true
+    """
+    rhel_contenthost.configure_insights_client(
+        module_target_sat_insights,
+        rhcloud_activation_key,
+        rhcloud_manifest_org,
+        f"rhel{rhel_contenthost.os_version.major}",
+    )
+    assert rhel_contenthost.execute('insights-client --register').status == 0
+    assert rhel_contenthost.execute('insights-client --test-connection').status == 0
+    assert rhel_contenthost.execute('insights-client --status').status == 0
+    assert rhel_contenthost.execute('insights-client --unregister').status == 0
