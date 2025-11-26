@@ -327,11 +327,7 @@ def deploy_validation(hypervisor_type):
 def get_virt_who_ak(org, target):
     """Create a virt-who activation key for the given organization.
     :param str org: The label of the organization for which the activation key is created.
-<<<<<<< HEAD
     :param target: Satellite object for activation key
-=======
-    :raises: Exception: If the organization, lifecycle environment, or content view cannot be found.
->>>>>>> 8d4a80e47b5f1bd430ed19bdb9a10c90d3609252
     :return str: The name of the newly created activation key.
     """
     # Get the organization object from label
