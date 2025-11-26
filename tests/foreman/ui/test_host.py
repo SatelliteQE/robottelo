@@ -3791,7 +3791,6 @@ def test_positive_all_hosts_manage_system_purpose(
     ids=['gce', 'aws', 'azure'],
 )
 def test_cloud_billing_details(
-    session,
     target_sat,
     rhel_contenthost,
     module_repos_collection_with_setup,
