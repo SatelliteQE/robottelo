@@ -3816,10 +3816,6 @@ def test_cloud_billing_details(
 
     :parametrized: yes
 
-    :CaseComponent: Hosts
-
-    :Team: Proton
-
     :Verifies: SAT-39185
     """
     client = rhel_contenthost
