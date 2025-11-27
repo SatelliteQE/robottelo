@@ -78,9 +78,7 @@ def get_exp_files(sat_maintain, skip_pulp=False):
     if not skip_pulp:
         expected_files = expected_files | CONTENT_FILES
     if type(sat_maintain) is Satellite:
-        expected_files = (
-            expected_files | IOP_FILES if sat_maintain.local_advisor_enabled else expected_files
-        )
+        expected_files = expected_files | IOP_FILES if sat_maintain.iop_enabled else expected_files
     return expected_files
 
 
@@ -458,7 +456,7 @@ def test_positive_backup_restore_satellite_iop(
     :Verifies: SAT-34508
     """
     instance = get_instance_name(sat_maintain)
-    assert sat_maintain.satellite.local_advisor_enabled
+    assert sat_maintain.satellite.iop_enabled
 
     # Make sure that the vmaas db has been synced successfully
 

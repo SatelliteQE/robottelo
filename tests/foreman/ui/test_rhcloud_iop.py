@@ -249,10 +249,10 @@ def test_iop_recommendations_host_details_e2e(
         )
 
 
-@pytest.mark.parametrize("module_target_sat_insights", [False], ids=["local"], indirect=True)
+# @pytest.mark.parametrize("module_target_sat_insights", [False], ids=["local"], indirect=True)
 def test_rhcloud_inventory_disabled_local_insights(module_target_sat_insights):
-    """Verify that the 'Insights > Inventory Upload' navigation item is not available
-    when the Satellite is configured to use a local advisor engine.
+    """Verify that the 'Red Hat Lightspeed > Inventory Upload' navigation item is not available
+    when the Satellite is configured to use IoP.
 
     :id: 84023ae9-7bc4-4332-9aaf-749d6c48c2d2
 
