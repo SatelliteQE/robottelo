@@ -1465,6 +1465,8 @@ class TestCapsuleContentManagement:
 
         :Verifies: SAT-28575
 
+        :BlockedBy: SAT-40499
+
         :customerscenario: true
 
         :setup:
