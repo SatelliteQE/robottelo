@@ -2859,18 +2859,19 @@ class TestContentView:
         :CaseImportance: Critical
         """
         password = gen_alphanumeric()
-        no_rights_user = module_target_sat.cli_factory.user({'password': password})
+        no_rights_user = module_target_sat.cli_factory.user(
+            {'organization-id': module_org.id, 'password': password}
+        )
         no_rights_user['password'] = password
-        org_id = module_target_sat.cli_factory.make_org()['id']
         for name in generate_strings_list(exclude_types=['cjk']):
             # test that user can't create
             with pytest.raises(CLIReturnCodeError):
                 module_target_sat.cli.ContentView.with_user(
                     no_rights_user['login'], no_rights_user['password']
-                ).create({'name': name, 'organization-id': org_id})
+                ).create({'name': name, 'organization-id': module_org.id})
             # test that user can't read
             con_view = module_target_sat.cli_factory.make_content_view(
-                {'name': name, 'organization-id': org_id}
+                {'name': name, 'organization-id': module_org.id}
             )
             with pytest.raises(CLIReturnCodeError):
                 module_target_sat.cli.ContentView.with_user(
