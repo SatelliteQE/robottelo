@@ -66,11 +66,11 @@ def _setup_mcp_server(target_sat, settings_obj, is_downstream=False):
         sat_ver = Version(target_sat.version)
         tag = f"{sat_ver.major}.{sat_ver.minor}"
         target_sat.podman_login(
-            settings_obj.registry_stage_username,
-            settings_obj.registry_stage_password,
-            settings_obj.registry_stage,
+            settings_obj.registry_username,
+            settings_obj.registry_password,
+            settings_obj.registry,
         )
-        registry = settings_obj.registry_stage
+        registry = settings_obj.registry
         tags_cmd = (
             f'podman search --list-tags {authfile_arg} {registry}/{settings_obj.image_path}'.strip()
         )
@@ -154,7 +154,7 @@ def module_downstream_mcp_target_sat(module_target_sat):
     _cleanup_mcp_server(
         module_target_sat,
         container_name,
-        settings.foreman_mcp_downstream.registry_stage,
+        settings.foreman_mcp_downstream.registry,
         settings.foreman_mcp_downstream.image_path,
         tag,
     )
