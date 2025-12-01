@@ -3817,11 +3817,7 @@ def test_cloud_billing_details(
 
     :parametrized: yes
 
-    :CaseComponent: Hosts
-
-    :Team: Proton
-
-    :Verifies: SAT-35465
+    :Verifies: SAT-39185
     """
     client = rhel_contenthost
     client.add_rex_key(target_sat)
@@ -3847,7 +3843,7 @@ def test_cloud_billing_details(
         # Write cloud facts to host-billing.facts
         client.execute(f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n{facts_content}\nEOF")
         # Note: In above step we are using a workaround by uploading facts to contenthost
-        # As in Cloud setup, cloud host cant send facts to Satellite due to different network(VPN vs Public Cloud)
+        # As in Cloud setup, cloud host can't send facts to Satellite due to different network(VPN vs Public Cloud)
         # Verify file created correctly
         result = client.execute('cat /etc/rhsm/facts/host-billing.facts')
         assert result.status == 0, 'Failed to read facts file'
