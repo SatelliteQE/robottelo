@@ -263,6 +263,458 @@ def test_positive_generate_registered_hosts_report(
         assert data_json[0]['Operating System'].split()[-1] == client._redhat_release['VERSION_ID']
 
 
+@pytest.mark.rhel_ver_match('N-1')
+def test_positive_cloud_billing_azure_columns(
+    target_sat, module_setup_content, rhel_contenthost, module_org, default_location
+):
+    """Use provided Host - Installed Products report with Azure cloud billing columns
+
+    :id: a55d4cd8-b88e-47cf-9993-1bb871ac3c97
+
+    :CaseComponent: Hosts
+
+    :Team: Proton
+
+    :Verifies: SAT-39184
+
+    :expectedresults: The Host - Installed Products report is generated
+                      with Azure columns when 'Include Azure' is checked
+
+    :CaseImportance: High
+    """
+    client = rhel_contenthost
+    org, ak, _, _ = module_setup_content
+    client.register(org, None, ak.name, target_sat)
+    assert client.subscribed
+
+    # Get Azure facts from settings
+    azure_facts = settings.azurerm.cloud_billing_facts
+
+    # Write cloud facts to host and upload via subscription-manager
+    facts_content = json.dumps(azure_facts, indent=2)
+
+    # Ensure facts directory exists
+    client.execute('mkdir -p /etc/rhsm/facts')
+
+    # Write cloud facts to host-billing.facts
+    client.execute(f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n{facts_content}\nEOF")
+
+    # Verify file created correctly
+    result = client.execute('cat /etc/rhsm/facts/host-billing.facts')
+    assert result.status == 0, 'Failed to read facts file'
+
+    # Upload facts to Satellite
+    client.execute('subscription-manager facts --update')
+
+    with target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.location.select(default_location.name)
+        result_json = session.reporttemplate.generate(
+            'Host - Installed Products',
+            values={'output_format': 'JSON', 'include_azure': 'yes'},
+        )
+        with open(result_json) as json_file:
+            data_json = json.load(json_file)
+
+        report_columns = data_json[0].keys()
+
+        # Verify Azure columns are present
+        assert 'Azure Subscription ID' in report_columns
+        assert 'Azure Offer' in report_columns
+
+        # Verify Azure fact values
+        assert data_json[0]['Host Name'] == client.hostname
+        assert data_json[0]['Azure Subscription ID'] == azure_facts['azure_subscription_id']
+        assert data_json[0]['Azure Offer'] == azure_facts['azure_offer']
+
+
+@pytest.mark.rhel_ver_match('N-1')
+def test_positive_cloud_billing_aws_columns(
+    target_sat, module_setup_content, rhel_contenthost, module_org, default_location
+):
+    """Use provided Host - Installed Products report with AWS cloud billing columns
+
+    :id: b66d5cd9-c99f-48dg-0004-2cc982bd4d08
+
+    :CaseComponent: Hosts
+
+    :Team: Proton
+
+    :Verifies: SAT-39184
+
+    :expectedresults: The Host - Installed Products report is generated
+                      with AWS columns when 'Include AWS' is checked
+
+    :CaseImportance: High
+    """
+    client = rhel_contenthost
+    org, ak, _, _ = module_setup_content
+    client.register(org, None, ak.name, target_sat)
+    assert client.subscribed
+
+    # Get AWS facts from settings
+    aws_facts = settings.ec2.cloud_billing_facts
+
+    # Write cloud facts to host and upload via subscription-manager
+    facts_content = json.dumps(aws_facts, indent=2)
+
+    # Ensure facts directory exists
+    client.execute('mkdir -p /etc/rhsm/facts')
+
+    # Write cloud facts to host-billing.facts
+    client.execute(f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n{facts_content}\nEOF")
+
+    # Verify file created correctly
+    result = client.execute('cat /etc/rhsm/facts/host-billing.facts')
+    assert result.status == 0, 'Failed to read facts file'
+
+    # Upload facts to Satellite
+    client.execute('subscription-manager facts --update')
+
+    with target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.location.select(default_location.name)
+        result_json = session.reporttemplate.generate(
+            'Host - Installed Products',
+            values={'output_format': 'JSON', 'include_aws': 'yes'},
+        )
+        with open(result_json) as json_file:
+            data_json = json.load(json_file)
+
+        report_columns = data_json[0].keys()
+
+        # Verify AWS columns are present
+        assert 'AWS Account ID' in report_columns
+        assert 'AWS Billing Product' in report_columns
+        assert 'AWS Instance Type' in report_columns
+        assert 'AWS Marketplace Product' in report_columns
+
+        # Verify AWS fact values
+        assert data_json[0]['Host Name'] == client.hostname
+        assert data_json[0]['AWS Account ID'] == str(aws_facts['aws_account_id'])
+        assert data_json[0]['AWS Billing Product'] == aws_facts['aws_billing_products']
+        assert data_json[0]['AWS Instance Type'] == aws_facts['aws_instance_type']
+        assert data_json[0]['AWS Marketplace Product'] == aws_facts['aws_marketplace_product_codes']
+
+
+@pytest.mark.rhel_ver_match('N-1')
+def test_positive_cloud_billing_gcp_columns(
+    target_sat, module_setup_content, rhel_contenthost, module_org, default_location
+):
+    """Use provided Host - Installed Products report with GCP cloud billing columns
+
+    :id: c77d6ce0-d00g-59eh-1115-3dd093ce5e19
+
+    :CaseComponent: Hosts
+
+    :Team: Proton
+
+    :Verifies: SAT-39184
+
+    :expectedresults: The Host - Installed Products report is generated
+                      with GCP columns when 'Include GCP' is checked
+
+    :CaseImportance: High
+    """
+    client = rhel_contenthost
+    org, ak, _, _ = module_setup_content
+    client.register(org, None, ak.name, target_sat)
+    assert client.subscribed
+
+    # Get GCP facts from settings
+    gcp_facts = settings.gce.cloud_billing_facts
+
+    # Write cloud facts to host and upload via subscription-manager
+    facts_content = json.dumps(gcp_facts, indent=2)
+
+    # Ensure facts directory exists
+    client.execute('mkdir -p /etc/rhsm/facts')
+
+    # Write cloud facts to host-billing.facts
+    client.execute(f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n{facts_content}\nEOF")
+
+    # Verify file created correctly
+    result = client.execute('cat /etc/rhsm/facts/host-billing.facts')
+    assert result.status == 0, 'Failed to read facts file'
+
+    # Upload facts to Satellite
+    client.execute('subscription-manager facts --update')
+
+    with target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.location.select(default_location.name)
+        result_json = session.reporttemplate.generate(
+            'Host - Installed Products',
+            values={'output_format': 'JSON', 'include_gcp': 'yes'},
+        )
+        with open(result_json) as json_file:
+            data_json = json.load(json_file)
+
+        report_columns = data_json[0].keys()
+
+        # Verify GCP column is present
+        assert 'GCP License Code' in report_columns
+
+        # Verify GCP fact value
+        assert data_json[0]['Host Name'] == client.hostname
+        assert data_json[0]['GCP License Code'] == str(gcp_facts['gcp_license_codes'])
+
+
+@pytest.mark.rhel_ver_match('N-1')
+def test_positive_cloud_billing_inputs_default_false(
+    target_sat, module_setup_content, rhel_contenthost, module_org, default_location
+):
+    """Verify cloud billing input fields default to false
+
+    :id: d88e7df1-e11h-60fi-2226-4ee104df6f20
+
+    :CaseComponent: Hosts
+
+    :Team: Proton
+
+    :Verifies: SAT-39184
+
+    :expectedresults: When no cloud provider inputs are specified,
+                      cloud billing columns do NOT appear in the report
+
+    :CaseImportance: High
+    """
+    client = rhel_contenthost
+    org, ak, _, _ = module_setup_content
+    client.register(org, None, ak.name, target_sat)
+    assert client.subscribed
+
+    with target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.location.select(default_location.name)
+        result_json = session.reporttemplate.generate(
+            'Host - Installed Products', values={'output_format': 'JSON'}
+        )
+        with open(result_json) as json_file:
+            data_json = json.load(json_file)
+
+        report_columns = data_json[0].keys()
+
+        # Verify cloud billing columns do NOT appear by default
+        assert 'Azure Subscription ID' not in report_columns
+        assert 'Azure Offer' not in report_columns
+        assert 'AWS Account ID' not in report_columns
+        assert 'AWS Billing Product' not in report_columns
+        assert 'AWS Instance Type' not in report_columns
+        assert 'AWS Marketplace Product' not in report_columns
+        assert 'GCP License Code' not in report_columns
+
+
+@pytest.mark.rhel_ver_match('N-1')
+def test_negative_cloud_billing_azure_false_aws_gcp_true(
+    target_sat, module_setup_content, rhel_contenthost, module_org, default_location
+):
+    """Verify Azure cloud billing columns do NOT appear when Include Azure is false while AWS and GCP are true
+
+    :id: e99f8eg2-f22i-71gj-3337-5ff215eg7g31
+
+    :CaseComponent: Hosts
+
+    :Team: Proton
+
+    :Verifies: SAT-39184
+
+    :expectedresults: When 'Include Azure' is false and AWS/GCP are true,
+                      Azure columns do NOT appear but AWS and GCP columns DO appear
+
+    :CaseImportance: High
+    """
+    client = rhel_contenthost
+    org, ak, _, _ = module_setup_content
+    client.register(org, None, ak.name, target_sat)
+    assert client.subscribed
+
+    with target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.location.select(default_location.name)
+        result_json = session.reporttemplate.generate(
+            'Host - Installed Products',
+            values={
+                'output_format': 'JSON',
+                'include_azure': 'no',
+                'include_aws': 'yes',
+                'include_gcp': 'yes',
+            },
+        )
+        with open(result_json) as json_file:
+            data_json = json.load(json_file)
+
+        report_columns = data_json[0].keys()
+
+        # Verify Azure columns do NOT appear
+        assert 'Azure Subscription ID' not in report_columns
+        assert 'Azure Offer' not in report_columns
+
+        # Verify AWS and GCP columns DO appear
+        assert 'AWS Account ID' in report_columns
+        assert 'AWS Billing Product' in report_columns
+        assert 'AWS Instance Type' in report_columns
+        assert 'AWS Marketplace Product' in report_columns
+        assert 'GCP License Code' in report_columns
+
+
+@pytest.mark.rhel_ver_match('N-1')
+def test_negative_cloud_billing_aws_false_azure_gcp_true(
+    target_sat, module_setup_content, rhel_contenthost, module_org, default_location
+):
+    """Verify AWS cloud billing columns do NOT appear when Include AWS is false while Azure and GCP are true
+
+    :id: f00g9fh3-g33j-82hk-4448-6gg326fh8h42
+
+    :CaseComponent: Hosts
+
+    :Team: Proton
+
+    :Verifies: SAT-39184
+
+    :expectedresults: When 'Include AWS' is false and Azure/GCP are true,
+                      AWS columns do NOT appear but Azure and GCP columns DO appear
+
+    :CaseImportance: High
+    """
+    client = rhel_contenthost
+    org, ak, _, _ = module_setup_content
+    client.register(org, None, ak.name, target_sat)
+    assert client.subscribed
+
+    with target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.location.select(default_location.name)
+        result_json = session.reporttemplate.generate(
+            'Host - Installed Products',
+            values={
+                'output_format': 'JSON',
+                'include_azure': 'yes',
+                'include_aws': 'no',
+                'include_gcp': 'yes',
+            },
+        )
+        with open(result_json) as json_file:
+            data_json = json.load(json_file)
+
+        report_columns = data_json[0].keys()
+
+        # Verify AWS columns do NOT appear
+        assert 'AWS Account ID' not in report_columns
+        assert 'AWS Billing Product' not in report_columns
+        assert 'AWS Instance Type' not in report_columns
+        assert 'AWS Marketplace Product' not in report_columns
+
+        # Verify Azure and GCP columns DO appear
+        assert 'Azure Subscription ID' in report_columns
+        assert 'Azure Offer' in report_columns
+        assert 'GCP License Code' in report_columns
+
+
+@pytest.mark.rhel_ver_match('N-1')
+def test_negative_cloud_billing_gcp_false_azure_aws_true(
+    target_sat, module_setup_content, rhel_contenthost, module_org, default_location
+):
+    """Verify GCP cloud billing columns do NOT appear when Include GCP is false while Azure and AWS are true
+
+    :id: g11h0gi4-h44k-93il-5559-7hh437gi9i53
+
+    :CaseComponent: Hosts
+
+    :Team: Proton
+
+    :Verifies: SAT-39184
+
+    :expectedresults: When 'Include GCP' is false and Azure/AWS are true,
+                      GCP columns do NOT appear but Azure and AWS columns DO appear
+
+    :CaseImportance: High
+    """
+    client = rhel_contenthost
+    org, ak, _, _ = module_setup_content
+    client.register(org, None, ak.name, target_sat)
+    assert client.subscribed
+
+    with target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.location.select(default_location.name)
+        result_json = session.reporttemplate.generate(
+            'Host - Installed Products',
+            values={
+                'output_format': 'JSON',
+                'include_azure': 'yes',
+                'include_aws': 'yes',
+                'include_gcp': 'no',
+            },
+        )
+        with open(result_json) as json_file:
+            data_json = json.load(json_file)
+
+        report_columns = data_json[0].keys()
+
+        # Verify GCP columns do NOT appear
+        assert 'GCP License Code' not in report_columns
+
+        # Verify Azure and AWS columns DO appear
+        assert 'Azure Subscription ID' in report_columns
+        assert 'Azure Offer' in report_columns
+        assert 'AWS Account ID' in report_columns
+        assert 'AWS Billing Product' in report_columns
+        assert 'AWS Instance Type' in report_columns
+        assert 'AWS Marketplace Product' in report_columns
+
+
+@pytest.mark.rhel_ver_match('N-1')
+def test_positive_cloud_billing_multiple_providers_enabled(
+    target_sat, module_setup_content, rhel_contenthost, module_org, default_location
+):
+    """Verify multiple cloud billing provider options can be enabled simultaneously
+
+    :id: h22i1hj5-i55l-04jm-6660-8ii548hj0j64
+
+    :CaseComponent: Hosts
+
+    :Team: Proton
+
+    :Verifies: SAT-39184
+
+    :expectedresults: When multiple cloud provider inputs are enabled,
+                      all corresponding columns appear in the report
+
+    :CaseImportance: High
+    """
+    client = rhel_contenthost
+    org, ak, _, _ = module_setup_content
+    client.register(org, None, ak.name, target_sat)
+    assert client.subscribed
+
+    with target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.location.select(default_location.name)
+        result_json = session.reporttemplate.generate(
+            'Host - Installed Products',
+            values={
+                'output_format': 'JSON',
+                'include_azure': 'yes',
+                'include_aws': 'yes',
+                'include_gcp': 'yes',
+            },
+        )
+        with open(result_json) as json_file:
+            data_json = json.load(json_file)
+
+        report_columns = data_json[0].keys()
+
+        # Verify all cloud provider columns appear
+        assert 'Azure Subscription ID' in report_columns
+        assert 'Azure Offer' in report_columns
+        assert 'AWS Account ID' in report_columns
+        assert 'AWS Billing Product' in report_columns
+        assert 'AWS Instance Type' in report_columns
+        assert 'AWS Marketplace Product' in report_columns
+        assert 'GCP License Code' in report_columns
+
+
 @pytest.mark.upgrade
 def test_positive_generate_subscriptions_report_json(
     session, module_org, module_setup_content, module_target_sat
