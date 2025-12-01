@@ -124,6 +124,7 @@ def register_system(
     )
     assert result.status == 0, f'Failed to register system: {system}\n {result}'
 
+
 def virtwho_cleanup():
     """Before running test cases, need to clean the environment.
     Do the following:
