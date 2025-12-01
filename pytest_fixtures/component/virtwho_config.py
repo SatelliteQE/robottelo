@@ -283,7 +283,7 @@ def deploy_type_cli(
             form_data_cli['hypervisor-type'],
             debug=True,
             org=org_module.label,
-            target=target_sat,
+            target_sat=target_sat,
         )
     elif deploy_type == 'organization-title':
         virtwho_config_cli['organization-title'] = org_module.title
@@ -299,7 +299,7 @@ def deploy_type_cli(
             form_data_cli['hypervisor-type'],
             debug=True,
             org=org_module.label,
-            target=target_sat,
+            target_sat=target_sat,
         )
     return hypervisor_name, guest_name
 
@@ -322,7 +322,7 @@ def deploy_type_api(
             form_data_api['hypervisor_type'],
             debug=True,
             org=org_module.label,
-            target=target_sat,
+            target_sat=target_sat,
         )
     elif "script" in deploy_type:
         script = virtwho_config_api.deploy_script()
@@ -331,7 +331,7 @@ def deploy_type_api(
             form_data_api['hypervisor_type'],
             debug=True,
             org=org_module.label,
-            target=target_sat,
+            target_sat=target_sat,
         )
     return hypervisor_name, guest_name
 
@@ -355,7 +355,7 @@ def deploy_type_ui(
             form_data_ui['hypervisor_type'],
             debug=True,
             org=org_module.label,
-            target=target_sat,
+            target_sat=target_sat,
         )
     elif "script" in deploy_type:
         script = values['deploy']['script']
@@ -364,7 +364,7 @@ def deploy_type_ui(
             form_data_ui['hypervisor_type'],
             debug=True,
             org=org_module.label,
-            target=target_sat,
+            target_sat=target_sat,
         )
     return hypervisor_name, guest_name
 
