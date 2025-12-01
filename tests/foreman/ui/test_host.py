@@ -3806,11 +3806,12 @@ def test_cloud_billing_details(
     :id: 88d8eaac-9149-4cbc-8913-4954f3f017f8
 
     :steps:
-        1. Create cloud provider facts file on registered host
-        2. Upload facts to Satellite
-        3. Navigate to Host Details page
-        4. Verify Cloud Billing Details card is displayed
-        5. Verify cloud provider-specific billing facts are shown
+        1. Register Content Host
+        2. Create cloud provider facts file on registered host
+        3. Upload facts to Satellite
+        4. Navigate to Host Details page
+        5. Verify Cloud Billing Details card is displayed
+        6. Verify cloud provider-specific billing facts are shown
 
     :expectedresults: Cloud billing details are correctly displayed in UI
 
@@ -3825,10 +3826,7 @@ def test_cloud_billing_details(
     client = rhel_contenthost
     client.add_rex_key(target_sat)
 
-    module_repos_collection_with_setup.setup_virtual_machine(
-        client,
-        enable_custom_repos=True,
-    )
+    module_repos_collection_with_setup.setup_virtual_machine(client)
 
     with target_sat.ui_session() as session:
         session.organization.select(module_org.name)
@@ -3848,7 +3846,8 @@ def test_cloud_billing_details(
 
         # Write cloud facts to host-billing.facts
         client.execute(f"cat > /etc/rhsm/facts/host-billing.facts << 'EOF'\n{facts_content}\nEOF")
-
+        # Note: In above step we are using a workaround by uploading facts to contenthost
+        # As in Cloud setup, cloud host cant send facts to Satellite due to different network(VPN vs Public Cloud)
         # Verify file created correctly
         result = client.execute('cat /etc/rhsm/facts/host-billing.facts')
         assert result.status == 0, 'Failed to read facts file'
