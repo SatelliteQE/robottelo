@@ -118,7 +118,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
                     }
                 )
 
-                host_info = session.host.get_details(fqdn)
+                host_info = session.host_new.get_details(fqdn)
                 assert 'Installed' in host_info['properties']['properties_table']['Build']
                 assert (
                     host_info['properties']['properties_table']['Host group']
@@ -136,7 +136,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
                 # Host Delete
                 with sat_azure.api_factory.satellite_setting('destroy_vm_on_host_delete=True'):
                     session.host.delete(fqdn)
-                assert not session.host.search(fqdn)
+                assert not session.host_new.search(fqdn)
 
                 # AzureRm Cloud assertion
                 assert not azurecloud_vm.exists
@@ -200,7 +200,7 @@ def test_positive_azurerm_host_provision_ud(
                     }
                 )
 
-                host_info = session.host.get_details(fqdn)
+                host_info = session.host_new.get_details(fqdn)
                 assert (
                     'Pending installation' in host_info['properties']['properties_table']['Build']
                 )
