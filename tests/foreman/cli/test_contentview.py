@@ -2952,7 +2952,9 @@ class TestContentView:
                 {'organization-id': module_org.id}
             )
 
-    def test_positive_user_with_all_cv_permissions(self, module_org, module_target_sat):
+    def test_positive_user_with_all_cv_permissions(
+        self, module_org, default_location, module_target_sat
+    ):
         """A user with all content view permissions is able to create,
         read, modify, promote, publish content views
 
@@ -2973,7 +2975,11 @@ class TestContentView:
         )
         password = gen_string('alphanumeric')
         user = module_target_sat.cli_factory.user(
-            {'password': password, 'organization-ids': module_org.id}
+            {
+                'password': password,
+                'organization-ids': module_org.id,
+                'location-ids': default_location.id,
+            }
         )
         role = module_target_sat.cli_factory.make_role({'organization-ids': module_org.id})
         # note: the filters inherit role organizations
