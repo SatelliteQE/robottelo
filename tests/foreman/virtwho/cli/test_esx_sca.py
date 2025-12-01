@@ -591,7 +591,11 @@ class TestVirtWhoConfigforEsx:
         ]
         command = get_configure_command(virtwho_config_cli['id'], org.name)
         deploy_configure_by_command(
-            command, form_data_cli['hypervisor-type'], debug=True, org=org.label, target_sat=target_sat
+            command,
+            form_data_cli['hypervisor-type'],
+            debug=True,
+            org=org.label,
+            target_sat=target_sat,
         )
         config_file = get_configure_file(virtwho_config_cli['id'])
         rhsm_username.append(get_configure_option('rhsm_username', config_file))
@@ -677,7 +681,11 @@ class TestVirtWhoConfigforEsx:
         ]
         command = get_configure_command(virtwho_config_cli['id'], org.name)
         deploy_configure_by_command(
-            command, form_data_cli['hypervisor-type'], debug=True, org=org.label, target_sat=target_sat
+            command,
+            form_data_cli['hypervisor-type'],
+            debug=True,
+            org=org.label,
+            target_sat=target_sat,
         )
         config_file_2 = get_configure_file(virtwho_config_cli['id'])
         owner_2 = get_configure_option('owner', config_file_2)
