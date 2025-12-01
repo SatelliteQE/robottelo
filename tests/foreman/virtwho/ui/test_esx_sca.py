@@ -92,7 +92,7 @@ class TestVirtwhoConfigforEsx:
             config_command,
             form_data_ui['hypervisor_type'],
             org=module_sca_manifest_org.label,
-            target=target_sat,
+            target_sat=target_sat,
         )
         assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == '1'
         org_session.virtwho_configure.edit(name, {'debug': False})
@@ -102,7 +102,7 @@ class TestVirtwhoConfigforEsx:
             config_command,
             form_data_ui['hypervisor_type'],
             org=module_sca_manifest_org.label,
-            target=target_sat,
+            target_sat=target_sat,
         )
         assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == '0'
 
@@ -140,7 +140,7 @@ class TestVirtwhoConfigforEsx:
                 config_command,
                 form_data_ui['hypervisor_type'],
                 org=module_sca_manifest_org.label,
-                target=target_sat,
+                target_sat=target_sat,
             )
             assert get_configure_option('interval', ETC_VIRTWHO_CONFIG) == value
 
@@ -170,7 +170,7 @@ class TestVirtwhoConfigforEsx:
                 config_command,
                 form_data_ui['hypervisor_type'],
                 org=module_sca_manifest_org.label,
-                target=target_sat,
+                target_sat=target_sat,
             )
             assert get_configure_option('hypervisor_id', config_file) == value
 
@@ -234,7 +234,7 @@ class TestVirtwhoConfigforEsx:
                     config_command,
                     form_data_ui['hypervisor_type'],
                     org=module_sca_manifest_org.label,
-                    target=target_sat,
+                    target_sat=target_sat,
                 )
                 if filter_type == "whitelist":
                     assert regex == get_configure_option('filter_hosts', config_file)
@@ -260,7 +260,7 @@ class TestVirtwhoConfigforEsx:
                     command,
                     form_data_ui['hypervisor_type'],
                     org=module_sca_manifest_org.label,
-                    target=target_sat,
+                    target_sat=target_sat,
                 )
                 config_file = get_configure_file(config_id)
                 results = org_session.virtwho_configure.read(name)
@@ -304,7 +304,7 @@ class TestVirtwhoConfigforEsx:
             form_data_ui['hypervisor_type'],
             debug=True,
             org=module_sca_manifest_org.label,
-            target=target_sat,
+            target_sat=target_sat,
         )
         time_now = org_session.browser.get_client_datetime()
         assert org_session.virtwho_configure.search(name)[0]['Status'] == 'ok'
@@ -344,7 +344,7 @@ class TestVirtwhoConfigforEsx:
             form_data_ui['hypervisor_type'],
             debug=True,
             org=module_sca_manifest_org.label,
-            target=target_sat,
+            target_sat=target_sat,
         )
         assert org_session.virtwho_configure.search(name)[0]['Status'] == 'ok'
         # Check the option "env=" should be removed from etc/virt-who.d/virt-who.conf
@@ -420,7 +420,7 @@ class TestVirtwhoConfigforEsx:
                 config_command,
                 form_data_ui['hypervisor_type'],
                 org=module_sca_manifest_org.label,
-                target=target_sat,
+                target_sat=target_sat,
             )
             assert org_session.virtwho_configure.search(name)[0]['Status'] == 'ok'
             org_session.virtwho_configure.delete(name)
@@ -465,7 +465,7 @@ class TestVirtwhoConfigforEsx:
                 command,
                 form_data_ui['hypervisor_type'],
                 org=module_sca_manifest_org.label,
-                target=target_sat,
+                target_sat=target_sat,
             )
             assert org_session.virtwho_configure.search(config_name)[0]['Status'] == 'ok'
             # Update the virt-who config file
@@ -525,7 +525,7 @@ class TestVirtwhoConfigforEsx:
                 command,
                 form_data_ui['hypervisor_type'],
                 org=module_sca_manifest_org.label,
-                target=target_sat,
+                target_sat=target_sat,
             )
             assert org_session.virtwho_configure.search(config_name)[0]['Status'] == 'ok'
             # Check the permissioin of Virt-who Viewer
@@ -590,7 +590,7 @@ class TestVirtwhoConfigforEsx:
                 command,
                 form_data_ui['hypervisor_type'],
                 org=module_sca_manifest_org.label,
-                target=target_sat,
+                target_sat=target_sat,
             )
             assert org_session.virtwho_configure.search(config_name)[0]['Status'] == 'ok'
             # Check the permissioin of Virt-who Manager
@@ -609,7 +609,7 @@ class TestVirtwhoConfigforEsx:
                     command,
                     form_data_ui['hypervisor_type'],
                     org=module_sca_manifest_org.label,
-                    target=target_sat,
+                    target_sat=target_sat,
                 )
                 assert newsession.virtwho_configure.search(new_virt_who_name)[0]['Status'] == 'ok'
                 # edit_virt_who_config
@@ -697,7 +697,7 @@ class TestVirtwhoConfigforEsx:
             config_command,
             form_data_ui['hypervisor_type'],
             org=module_sca_manifest_org.label,
-            target=target_sat,
+            target_sat=target_sat,
         )
         config_file = get_configure_file(config_id)
         assert get_configure_option('encrypted_password', config_file)

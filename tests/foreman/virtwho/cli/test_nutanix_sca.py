@@ -67,7 +67,7 @@ class TestVirtWhoConfigforNutanix:
                 command,
                 form_data_cli['hypervisor-type'],
                 org=module_sca_manifest_org.label,
-                target=target_sat,
+                target_sat=target_sat,
             )
             assert get_configure_option('hypervisor_id', config_file) == value
 
@@ -141,6 +141,6 @@ class TestVirtWhoConfigforNutanix:
             command,
             form_data_cli['hypervisor-type'],
             org=module_sca_manifest_org.label,
-            target=target_sat,
+            target_sat=target_sat,
         )
         assert get_configure_option("prism_central", config_file) == 'true'

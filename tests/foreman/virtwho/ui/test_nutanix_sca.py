@@ -81,7 +81,7 @@ class TestVirtwhoConfigforNutanix:
                 form_data_ui['hypervisor_type'],
                 debug=True,
                 org=module_sca_manifest_org.label,
-                target=target_sat,
+                target_sat=target_sat,
             )
             assert get_configure_option('hypervisor_id', config_file) == value
 
@@ -116,7 +116,7 @@ class TestVirtwhoConfigforNutanix:
                     form_data_ui['hypervisor_type'],
                     debug=True,
                     org=module_sca_manifest_org.label,
-                    target=target_sat,
+                    target_sat=target_sat,
                 )
             elif deploy_type == "script":
                 script = values['deploy']['script']
@@ -125,7 +125,7 @@ class TestVirtwhoConfigforNutanix:
                     form_data_ui['hypervisor_type'],
                     debug=True,
                     org=module_sca_manifest_org.label,
-                    target=target_sat,
+                    target_sat=target_sat,
                 )
             # Check the option "prism_central=true" should be set in etc/virt-who.d/virt-who.conf
             config_id = get_configure_id(name)
@@ -163,7 +163,7 @@ class TestVirtwhoConfigforNutanix:
             config_command,
             form_data_ui['hypervisor_type'],
             org=module_sca_manifest_org.label,
-            target=target_sat,
+            target_sat=target_sat,
         )
         assert get_configure_option('prism_central', config_file) == 'true'
 
@@ -199,7 +199,7 @@ class TestVirtwhoConfigforNutanix:
             form_data_ui['hypervisor_type'],
             debug=True,
             org=module_sca_manifest_org.label,
-            target=target_sat,
+            target_sat=target_sat,
         )
         results = org_session.virtwho_configure.read(name)
         assert str(results['overview']['ahv_internal_debug']) == 'False'
@@ -223,7 +223,7 @@ class TestVirtwhoConfigforNutanix:
             form_data_ui['hypervisor_type'],
             debug=True,
             org=module_sca_manifest_org.label,
-            target=target_sat,
+            target_sat=target_sat,
         )
         assert (
             get_hypervisor_ahv_mapping(form_data_ui['hypervisor_type']) == 'Host UUID found for VM'

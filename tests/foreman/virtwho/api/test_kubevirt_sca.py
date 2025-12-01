@@ -64,6 +64,6 @@ class TestVirtWhoConfigforKubevirt:
                 command,
                 form_data_api['hypervisor_type'],
                 org=module_sca_manifest_org.label,
-                target=target_sat,
+                target_sat=target_sat,
             )
             assert get_configure_option('hypervisor_id', config_file) == value

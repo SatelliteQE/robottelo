@@ -89,7 +89,7 @@ def runcmd(cmd, system=None, timeout=600000, output_format='base'):
 
 
 def register_system(
-    system, activation_key=None, org='Default_Organization', env='Library', target=None
+    system, activation_key=None, org='Default_Organization', env='Library', target_sat=None
 ):
     """Return True if the system is registered to satellite successfully.
 
@@ -97,7 +97,7 @@ def register_system(
     :param str activation_key: the activation key will be used to register.
     :param str org: Which organization will be used to register (org label).
     :param str env: Which environment will be used to register.
-    :param target: Satellite object for registration.
+    :param target_sat: Satellite object for registration.
     :raises: VirtWhoError: If failed to register the system.
     """
     # Get the guest hostname to check if it's already registered
@@ -113,13 +113,13 @@ def register_system(
 
     # Use the ContentHost's register() method with global registration
     if isinstance(org, str):
-        org = target.api.Organization().search(query={'search': f'label={org}'})[0]
+        org = target_sat.api.Organization().search(query={'search': f'label={org}'})[0]
 
     result = contenthost.register(
         org=org,
         loc=None,
         activation_keys=activation_key,
-        target=target,
+        target=target_sat,
         force=True,
     )
     assert result.status == 0, f'Failed to register system: {system}\n {result}'
@@ -324,24 +324,24 @@ def deploy_validation(hypervisor_type):
     return hypervisor_name, guest_name
 
 
-def get_virt_who_ak(org, target):
+def get_activation_key(org, target_sat):
     """Create a virt-who activation key for the given organization.
     :param str org: The label of the organization for which the activation key is created.
-    :param target: Satellite object for activation key
+    :param target_sat: Satellite object for activation key
     :return str: The name of the newly created activation key.
     """
     # Get the organization object from label
-    org_obj = target.api.Organization().search(query={'search': f'label={org}'})[0]
+    org_obj = target_sat.api.Organization().search(query={'search': f'label={org}'})[0]
     # Get the Library lifecycle environment for this organization
-    library_env = target.api.LifecycleEnvironment().search(
+    library_env = target_sat.api.LifecycleEnvironment().search(
         query={'search': f'name=Library AND organization_id={org_obj.id}'}
     )[0]
     # Get the default content view for this organization
-    default_cv = target.api.ContentView().search(
+    default_cv = target_sat.api.ContentView().search(
         query={'search': f'name="Default Organization View" AND organization_id={org_obj.id}'}
     )[0]
     # Create activation key with lifecycle environment and content view
-    ak = target.api.ActivationKey(
+    ak = target_sat.api.ActivationKey(
         organization=org_obj,
         environment=library_env,
         content_view=default_cv,
@@ -356,7 +356,7 @@ def deploy_configure_by_command(
     debug=False,
     org='Default_Organization',
     activation_key=None,
-    target=None,
+    target_sat=None,
 ):
     """Deploy and run virt-who service by the hammer command.
 
@@ -366,18 +366,18 @@ def deploy_configure_by_command(
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     :param str org: Organization Label
     :param str activation_key: Activation key for system registration (optional)
-    :param target: Satellite object for registration (optional)
+    :param target_sat: Satellite object for registration (optional)
     """
     virtwho_cleanup()
     guest_name, guest_uuid = get_guest_info(hypervisor_type)
     if Host.list({'search': guest_name}):
         Host.delete({'name': guest_name})
 
-    # If target is provided but activation_key is not, create one for global registration
-    if target and not activation_key:
-        activation_key = get_virt_who_ak(org, target)
+    # If target_sat is provided but activation_key is not, create one for global registration
+    if target_sat and not activation_key:
+        activation_key = get_activation_key(org, target_sat)
     register_system(
-        get_system(hypervisor_type), activation_key=activation_key, org=org, target=target
+        get_system(hypervisor_type), activation_key=activation_key, org=org, target_sat=target_sat
     )
     ret, stdout = runcmd(command)
     if ret != 0 or 'Finished successfully' not in stdout:
@@ -393,7 +393,7 @@ def deploy_configure_by_script(
     debug=False,
     org='Default_Organization',
     activation_key=None,
-    target=None,
+    target_sat=None,
 ):
     """Deploy and run virt-who service by the shell script.
     :param str script_content: get the script by UI or API.
@@ -401,7 +401,7 @@ def deploy_configure_by_script(
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     :param str org: Organization Label
     :param str activation_key: Activation key for system registration (optional)
-    :param target: Satellite object for registration (optional)
+    :param target_sat: Satellite object for registration (optional)
     """
     script_filename = "/tmp/deploy_script.sh"
     script_content = script_content.replace('&amp;', '&').replace('&gt;', '>').replace('&lt;', '<')
@@ -409,12 +409,12 @@ def deploy_configure_by_script(
     guest_name, guest_uuid = get_guest_info(hypervisor_type)
     if Host.list({'search': guest_name}):
         Host.delete({'name': guest_name})
-    # If target is provided but activation_key is not, create one for global registration
-    if target and not activation_key:
-        activation_key = get_virt_who_ak(org, target)
+    # If target_sat is provided but activation_key is not, create one for global registration
+    if target_sat and not activation_key:
+        activation_key = get_activation_key(org, target_sat)
 
     register_system(
-        get_system(hypervisor_type), activation_key=activation_key, org=org, target=target
+        get_system(hypervisor_type), activation_key=activation_key, org=org, target_sat=target_sat
     )
     with open(script_filename, 'w') as fp:
         fp.write(script_content)
