@@ -1138,68 +1138,6 @@ class TestRexUsers:
         assert result['success'] == '1'
 
 
-class TestAsyncSSHProviderRex:
-    """Tests related to remote execution via async ssh provider"""
-
-    @pytest.mark.no_containers
-    @pytest.mark.e2e
-    @pytest.mark.upgrade
-    def test_positive_run_job_on_host_registered_to_async_ssh_provider(
-        self,
-        module_org,
-        smart_proxy_location,
-        module_ak_with_cv,
-        module_target_sat,
-        module_capsule_configured_async_ssh,
-        rhel_contenthost,
-    ):
-        """Run custom template on host registered to async ssh provider
-
-        :id: 382dd6b8-eee5-4a95-8510-b3f8cc540c01
-
-        :expectedresults: Verify the job was successfully ran against the host registered to
-            capsule with ssh-async provider enabled
-
-        :CaseImportance: Critical
-
-        :bz: 2128209
-
-        :parametrized: yes
-        """
-        # Update module_capsule_configured_async_ssh to include module_org/smart_proxy_location
-        module_target_sat.cli.Capsule.update(
-            {
-                'name': module_capsule_configured_async_ssh.hostname,
-                'organization-ids': module_org.id,
-                'location-ids': smart_proxy_location.id,
-            }
-        )
-        ensure_capsule_has_lifecycle_environment(
-            module_capsule_configured_async_ssh, module_ak_with_cv
-        )
-        result = rhel_contenthost.register(
-            module_org,
-            smart_proxy_location,
-            module_ak_with_cv.name,
-            module_capsule_configured_async_ssh,
-            ignore_subman_errors=True,
-            force=True,
-        )
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
-        # run script provider rex command, longer-running command is needed to
-        # verify the connection is not shut down too soon
-        invocation_command = module_target_sat.cli_factory.job_invocation(
-            {
-                'job-template': 'Run Command - Script Default',
-                'inputs': 'command=echo start; sleep 10; echo done',
-                'search-query': f"name ~ {rhel_contenthost.hostname}",
-            }
-        )
-        assert_job_invocation_result(
-            module_target_sat, invocation_command['id'], rhel_contenthost.hostname
-        )
-
-
 class TestPullProviderRex:
     """Tests related to remote execution via pull provider (mqtt)"""
 

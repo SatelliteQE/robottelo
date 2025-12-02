@@ -72,7 +72,7 @@ def test_positive_maintenance_mode(request, sat_maintain, setup_sync_plan):
         'sync plans: disabled',
         'cron jobs: not running',
     ]
-    local_advisor_enabled = sat_maintain.local_advisor_enabled
+    iop_enabled = sat_maintain.iop_enabled
 
     # Verify maintenance-mode status
     mm_status = sat_maintain.cli.MaintenanceMode.status()
@@ -87,7 +87,7 @@ def test_positive_maintenance_mode(request, sat_maintain, setup_sync_plan):
     assert mm_is_enabled.status == 1
     assert 'Maintenance mode is Off' in mm_is_enabled.stdout
 
-    if local_advisor_enabled:
+    if iop_enabled:
         timer_status = sat_maintain.cli.Service.status(
             options={'only': 'iop-service-vuln-vmaas-sync.timer'}
         )
@@ -107,7 +107,7 @@ def test_positive_maintenance_mode(request, sat_maintain, setup_sync_plan):
         data_yml = yaml.safe_load(f)
     assert len(enable_sync_ids) == len(data_yml[':default'][':sync_plans'][':disabled'])
 
-    if local_advisor_enabled:
+    if iop_enabled:
         assert 'All timers stopped' in mm_start.stdout
         timer_status = sat_maintain.cli.Service.status(
             options={'only': 'iop-service-vuln-vmaas-sync.timer'}
@@ -148,7 +148,7 @@ def test_positive_maintenance_mode(request, sat_maintain, setup_sync_plan):
         data_yml = yaml.safe_load(f)
     assert len(enable_sync_ids) == len(data_yml[':default'][':sync_plans'][':enabled'])
 
-    if local_advisor_enabled:
+    if iop_enabled:
         assert 'All timers started' in mm_stop.stdout
         timer_status = sat_maintain.cli.Service.status(
             options={'only': 'iop-service-vuln-vmaas-sync.timer'}

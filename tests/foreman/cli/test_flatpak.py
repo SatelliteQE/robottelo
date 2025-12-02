@@ -37,7 +37,7 @@ def function_role(target_sat):
 
 
 @pytest.fixture
-def function_user(target_sat, function_role, function_org):
+def function_user(target_sat, function_role, function_org, default_location):
     """Non-admin user with an empty role assigned."""
     password = gen_string('alphanumeric')
     user = target_sat.api.User(
@@ -45,6 +45,7 @@ def function_user(target_sat, function_role, function_org):
         password=password,
         role=[function_role],
         organization=[function_org],
+        location=[default_location],
     ).create()
     user.password = password
     yield user

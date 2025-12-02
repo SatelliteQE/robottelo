@@ -220,7 +220,6 @@ class TestGCEHostProvisioningTestCase:
         return googleclient.get_vm(name='{}'.format(self.fullhostname.replace('.', '-')))
 
     @pytest.mark.e2e
-    @pytest.mark.pit_server
     @pytest.mark.skipif(
         (is_open('SAT-27997')),
         reason='Google CR APIs failing',

@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: RHCloud
+:CaseComponent: Insights-Advisor
 
 :Team: Proton
 

@@ -1,11 +1,11 @@
 # For running tests and checking code quality using these modules.
 pytest-cov==7.0.0
-redis==7.0.1
-pre-commit==4.4.0
-ruff==0.14.5
+redis==7.1.0
+pre-commit==4.5.0
+ruff==0.14.6
 
 # For generating documentation.
-sphinx==8.2.3
+sphinx==9.0.0
 sphinx-autoapi==3.6.1
 
 # For 'manage' interactive shell

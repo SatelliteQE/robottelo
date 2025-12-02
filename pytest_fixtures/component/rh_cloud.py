@@ -13,7 +13,7 @@ def enable_insights(host, satellite, org, activation_key):
         rhel_distro=f"rhel{host.os_version.major}",
     )
     # Sync inventory if using hosted Insights
-    if not satellite.local_advisor_enabled:
+    if not satellite.iop_enabled:
         satellite.generate_inventory_report(org)
         satellite.sync_inventory_status(org)
 
