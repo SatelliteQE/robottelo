@@ -715,6 +715,56 @@ def test_positive_cloud_billing_multiple_providers_enabled(
         assert 'GCP License Code' in report_columns
 
 
+@pytest.mark.rhel_ver_match('N-1')
+def test_positive_installed_products_hardware_model_column(
+    target_sat, module_setup_content, rhel_contenthost, module_org, default_location
+):
+    """Use provided Host - Installed Products report with Hardware Model column
+
+    :id: i33j2ik6-j66m-15kn-7771-9jj659ik1k75
+
+    :CaseComponent: Hosts
+
+    :Team: Proton
+
+    :expectedresults: The Host - Installed Products report is generated
+                      with Hardware Model column when 'Include Hardware Model' is checked
+
+    :CaseImportance: High
+    """
+    client = rhel_contenthost
+    org, ak, _, _ = module_setup_content
+    client.register(org, None, ak.name, target_sat)
+    assert client.subscribed
+
+    # Create a hardware model
+    hardware_model = target_sat.api.Model().create()
+
+    # Associate the hardware model with the host
+    host = target_sat.api.Host().search(query={'search': f'name={client.hostname}'})[0]
+    host.model = hardware_model
+    host.update(['model'])
+
+    with target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.location.select(default_location.name)
+        result_json = session.reporttemplate.generate(
+            'Host - Installed Products',
+            values={'output_format': 'JSON', 'include_hardware_model': 'yes'},
+        )
+        with open(result_json) as json_file:
+            data_json = json.load(json_file)
+
+        report_columns = data_json[0].keys()
+
+        # Verify Model column is present
+        assert 'Model' in report_columns
+
+        # Verify Model value
+        assert data_json[0]['Host Name'] == client.hostname
+        assert data_json[0]['Model'] == hardware_model.name
+
+
 @pytest.mark.upgrade
 def test_positive_generate_subscriptions_report_json(
     session, module_org, module_setup_content, module_target_sat
