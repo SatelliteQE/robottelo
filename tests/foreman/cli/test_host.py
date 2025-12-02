@@ -1858,64 +1858,12 @@ def test_positive_register(
 
 
 # -------------------------- MULTI-CV SCENARIOS -------------------------
-@pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('[^7]')
-def test_negative_multi_cv_registration(
-    module_org,
-    module_ak_with_cv,
-    module_lce,
-    module_lce_library,
-    module_published_cv,
-    module_promoted_cv,
-    target_sat,
-    rhel_contenthost,
-):
-    """Attempt to register a host to multiple content view environments.
-
-    :id: 52be9b92-55aa-44b7-8157-1998a8effb40
-
-    :steps:
-        1. Register a host with global reg, just to get the sub-man config and certs right
-        2. Unregister the host
-        3. Attempt to register the host with subscription-manager, passing multiple environments
-        4. Confirm that registration fails
-
-    :expectedresults: allow_multiple_content_views setting is not exposed, and defaults to false.
-        So registration fails because multiple environments are not allowed.
-
-    :CaseImportance: Critical
-
-    :CaseComponent: Hosts
-
-    :team: Proton
-
-    :parametrized: yes
-    """
-
-    # Register with global reg, just to get the sub-man config and certs right
-    result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
-    assert result.status == 0
-    assert rhel_contenthost.subscribed
-
-    # Unregister the host
-    unregister_result = rhel_contenthost.unregister()
-    assert unregister_result.status == 0
-
-    env_names = f"{module_lce_library.name}/{module_published_cv.name},{module_lce.name}/{module_promoted_cv.name}"
-
-    # Register the host with subscription-manager, passing multiple environments
-    res = rhel_contenthost.register_contenthost(module_org.label, lce=None, environments=env_names)
-    assert res.status == 70, (
-        f'Expecting error "Registering to multiple environments is not enabled"; instead got: {res.stderr}'
-    )
-
-
 @pytest.mark.rhel_ver_match('[^7]')
 def test_positive_multi_cv_registration(
-    session_multicv_sat,
-    session_multicv_org,
-    session_multicv_default_ak,
-    session_multicv_lce,
+    module_target_sat,
+    module_org,
+    module_default_ak,
+    module_lce,
     rhel_contenthost,
 ):
     """Register a host to multiple content view environments.
@@ -1941,27 +1889,25 @@ def test_positive_multi_cv_registration(
     """
 
     library_lce = (
-        session_multicv_sat.api.LifecycleEnvironment()
-        .search(query={'search': f'name=Library and organization_id={session_multicv_org.id}'})[0]
+        module_target_sat.api.LifecycleEnvironment()
+        .search(query={'search': f'name=Library and organization_id={module_org.id}'})[0]
         .read()
     )
 
     # Create a content view
-    cv1 = session_multicv_sat.api.ContentView(organization=session_multicv_org).create()
+    cv1 = module_target_sat.api.ContentView(organization=module_org).create()
     cv1.publish()
     cv1 = cv1.read()
 
     # Create a second content view
-    cv2 = session_multicv_sat.api.ContentView(organization=session_multicv_org).create()
+    cv2 = module_target_sat.api.ContentView(organization=module_org).create()
     cv2.publish()
     cv2 = cv2.read()
     cv2_version = cv2.version[0]
-    cv2_version.promote(data={'environment_ids': session_multicv_lce.id})
+    cv2_version.promote(data={'environment_ids': module_lce.id})
 
     # Register with global reg, just to get the sub-man config and certs right
-    result = rhel_contenthost.register(
-        session_multicv_org, None, session_multicv_default_ak.name, session_multicv_sat
-    )
+    result = rhel_contenthost.register(module_org, None, module_default_ak.name, module_target_sat)
     assert result.status == 0
     assert rhel_contenthost.subscribed
 
@@ -1970,17 +1916,15 @@ def test_positive_multi_cv_registration(
     assert unregister_result.status == 0
 
     # Register the host with subscription-manager, passing multiple environments
-    env_names = f"{library_lce.name}/{cv1.name},{session_multicv_lce.name}/{cv2.name}"
-    res = rhel_contenthost.register_contenthost(
-        session_multicv_org.label, lce=None, environments=env_names
-    )
+    env_names = f"{library_lce.name}/{cv1.name},{module_lce.name}/{cv2.name}"
+    res = rhel_contenthost.register_contenthost(module_org.label, lce=None, environments=env_names)
 
     # Confirm that registration succeeds
     assert res.status == 0
     assert rhel_contenthost.subscribed
 
     # Confirm that the host is registered to both environments
-    host = session_multicv_sat.cli.Host.info({'name': rhel_contenthost.hostname})
+    host = module_target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
     assert len(host['content-information']['content-view-environments']) == 2, (
         "Expected host to be registered to both environments"
     )
@@ -1988,10 +1932,10 @@ def test_positive_multi_cv_registration(
 
 @pytest.mark.rhel_ver_match('[^7]')
 def test_positive_multi_cv_assignment(
-    session_multicv_sat,
-    session_multicv_org,
-    session_multicv_default_ak,
-    session_multicv_lce,
+    module_target_sat,
+    module_org,
+    module_default_ak,
+    module_lce,
     rhel_contenthost,
 ):
     """Register a host and assign it to multiple content view environments with Hammer.
@@ -2015,37 +1959,35 @@ def test_positive_multi_cv_assignment(
     """
 
     library_lce = (
-        session_multicv_sat.api.LifecycleEnvironment()
-        .search(query={'search': f'name=Library and organization_id={session_multicv_org.id}'})[0]
+        module_target_sat.api.LifecycleEnvironment()
+        .search(query={'search': f'name=Library and organization_id={module_org.id}'})[0]
         .read()
     )
 
     # Create a content view
-    cv1 = session_multicv_sat.api.ContentView(organization=session_multicv_org).create()
+    cv1 = module_target_sat.api.ContentView(organization=module_org).create()
     cv1.publish()
     cv1 = cv1.read()
 
     # Create a second content view
-    cv2 = session_multicv_sat.api.ContentView(organization=session_multicv_org).create()
+    cv2 = module_target_sat.api.ContentView(organization=module_org).create()
     cv2.publish()
     cv2 = cv2.read()
     cv2_version = cv2.version[0]
-    cv2_version.promote(data={'environment_ids': session_multicv_lce.id})
+    cv2_version.promote(data={'environment_ids': module_lce.id})
 
     # Register with global registration
-    result = rhel_contenthost.register(
-        session_multicv_org, None, session_multicv_default_ak.name, session_multicv_sat
-    )
+    result = rhel_contenthost.register(module_org, None, module_default_ak.name, module_target_sat)
     assert result.status == 0
     assert rhel_contenthost.subscribed
 
     # Assign multiple content view environments to the host using hammer
-    env_names = f"{library_lce.name}/{cv1.name},{session_multicv_lce.name}/{cv2.name}"
-    host = session_multicv_sat.cli.Host.info({'name': rhel_contenthost.hostname})
-    session_multicv_sat.cli.Host.update({'id': host['id'], 'content-view-environments': env_names})
+    env_names = f"{library_lce.name}/{cv1.name},{module_lce.name}/{cv2.name}"
+    host = module_target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
+    module_target_sat.cli.Host.update({'id': host['id'], 'content-view-environments': env_names})
 
     # Confirm that the host is registered to both environments
-    host = session_multicv_sat.cli.Host.info({'name': rhel_contenthost.hostname})
+    host = module_target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
     assert len(host['content-information']['content-view-environments']) == 2, (
         "Expected host to be registered to both environments"
     )
@@ -2053,10 +1995,10 @@ def test_positive_multi_cv_assignment(
 
 @pytest.mark.rhel_ver_match('[^7]')
 def test_positive_multi_cv_host_repo_availability(
-    session_multicv_sat,
+    module_target_sat,
+    module_org,
+    module_default_ak,
     rhel_contenthost,
-    session_multicv_org,
-    session_multicv_default_ak,
 ):
     """Multi-environment hosts should have access to repositories from all of their content view environments.
 
@@ -2084,45 +2026,39 @@ def test_positive_multi_cv_host_repo_availability(
     """
 
     # Create two lifecycle environments
-    lce1 = session_multicv_sat.api.LifecycleEnvironment(organization=session_multicv_org).create()
-    lce2 = session_multicv_sat.api.LifecycleEnvironment(organization=session_multicv_org).create()
+    lce1 = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
+    lce2 = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
 
     # Create two synced custom repositories
     repo_instances = []
     for repo in ['RepoA', 'RepoB']:
-        repo_id = session_multicv_sat.api_factory.create_sync_custom_repo(
-            org_id=session_multicv_org.id,
+        repo_id = module_target_sat.api_factory.create_sync_custom_repo(
+            org_id=module_org.id,
             product_name=gen_string('alpha'),
             repo_name=repo,
             repo_url=settings.repos.fake_repo_zoo3,
         )
-        repo_instances.append(session_multicv_sat.api.Repository(id=repo_id).read())
+        repo_instances.append(module_target_sat.api.Repository(id=repo_id).read())
 
     repo_b = repo_instances.pop()
     repo_a = repo_instances.pop()
 
     # Create two content views, each with a repo in them, and promote them to their own lifecycle environment
 
-    cv1 = session_multicv_sat.api.ContentView(
-        organization=session_multicv_org, repository=[repo_a]
-    ).create()
+    cv1 = module_target_sat.api.ContentView(organization=module_org, repository=[repo_a]).create()
     cv1.publish()
     cv1 = cv1.read()
 
     module_published_cvv = cv1.read().version[0]
     module_published_cvv.promote(data={'environment_ids': lce1.id})
 
-    cv2 = session_multicv_sat.api.ContentView(
-        organization=session_multicv_org, repository=[repo_b]
-    ).create()
+    cv2 = module_target_sat.api.ContentView(organization=module_org, repository=[repo_b]).create()
     cv2.publish()
     cv2_content_view_version = cv2.read().version[0]
     cv2_content_view_version.promote(data={'environment_ids': lce2.id})
 
     # Register with global registration
-    result = rhel_contenthost.register(
-        session_multicv_org, None, session_multicv_default_ak.name, session_multicv_sat
-    )
+    result = rhel_contenthost.register(module_org, None, module_default_ak.name, module_target_sat)
     assert result.status == 0
     assert rhel_contenthost.subscribed
 
@@ -2130,7 +2066,7 @@ def test_positive_multi_cv_host_repo_availability(
     env_names = f"{lce2.name}/{cv2.name},{lce1.name}/{cv1.name}"
     rhel_contenthost.subscription_manager_environments_set(env_names)
 
-    host = session_multicv_sat.cli.Host.info({'name': rhel_contenthost.hostname})
+    host = module_target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
     repos = rhel_contenthost.subscription_manager_list_repos()
     # Confirm that the host is registered to both environments
     assert len(host['content-information']['content-view-environments']) == 2, (
