@@ -76,6 +76,7 @@ def module_ak_with_synced_repo(module_sca_manifest_org, module_target_sat):
         }
     )
 
+
 @pytest.fixture(scope='module')
 def module_default_ak(module_target_sat, module_org):
     return module_target_sat.api.ActivationKey(
