@@ -248,7 +248,11 @@ def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_
     @request.addfinalizer
     def _finalize():
         # Get table to original state
+        # with session:
+        # TODO TADY z nejakeho duvodu to kdyz se pouzije ui_session ma navic sloupec comment idfk
         with target_sat.ui_session() as session:
+            session.organization.select(api_values['host.organization'])
+            session.location.select(api_values['host.location'])
             session.all_hosts.manage_table_columns({header: True for header in stripped_headers})
 
     with session:
