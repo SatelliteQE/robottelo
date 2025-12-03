@@ -3477,10 +3477,14 @@ def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, 
     for host in tracer_hosts:
         host_names.append(host.hostname)
 
-        # Downgrade all packages specified in traces_to_test
+        # Create traces on both hosts
         for package in traces_to_test:
-            result = host.execute(f'yum -y downgrade {package}')
-            assert result.status == 0, f'Failed to downgrade {package} on {host.hostname}'
+            if package == 'kernel':
+                result = host.execute('yum -y upgrade kernel')
+                assert result.status == 0, f'Failed to upgrade kernel on {host.hostname}'
+            else:
+                result = host.execute(f'yum -y downgrade {package}')
+                assert result.status == 0, f'Failed to downgrade {package} on {host.hostname}'
 
     # Verify traces are detected on both hosts
     host_traces = {}
