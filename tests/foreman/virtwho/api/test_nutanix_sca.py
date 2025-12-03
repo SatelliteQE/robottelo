@@ -63,7 +63,10 @@ class TestVirtWhoConfigforNutanix:
             config_file = get_configure_file(virtwho_config_api.id)
             command = get_configure_command(virtwho_config_api.id, module_sca_manifest_org.name)
             deploy_configure_by_command(
-                command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
+                command,
+                form_data_api['hypervisor_type'],
+                org=module_sca_manifest_org.label,
+                target_sat=target_sat,
             )
             assert get_configure_option('hypervisor_id', config_file) == value
 
@@ -91,6 +94,7 @@ class TestVirtWhoConfigforNutanix:
                 form_data_api['hypervisor_type'],
                 debug=True,
                 org=module_sca_manifest_org.label,
+                target_sat=target_sat,
             )
         elif deploy_type == "script":
             script = virtwho_config.deploy_script()
@@ -99,6 +103,7 @@ class TestVirtWhoConfigforNutanix:
                 form_data_api['hypervisor_type'],
                 debug=True,
                 org=module_sca_manifest_org.label,
+                target_sat=target_sat,
             )
         # Check the option "prism_central=true" should be set in etc/virt-who.d/virt-who.conf
         config_file = get_configure_file(virtwho_config.id)
@@ -129,6 +134,9 @@ class TestVirtWhoConfigforNutanix:
         config_file = get_configure_file(virtwho_config_api.id)
         command = get_configure_command(virtwho_config_api.id, module_sca_manifest_org.name)
         deploy_configure_by_command(
-            command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
+            command,
+            form_data_api['hypervisor_type'],
+            org=module_sca_manifest_org.label,
+            target_sat=target_sat,
         )
         assert get_configure_option("prism_central", config_file) == 'true'
