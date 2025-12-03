@@ -775,7 +775,7 @@ class TestPodman:
         :Verifies: SAT-38954
         """
         image_name = 'fedora'
-        image_tag = f"{image_name}:test_tag"
+        image_tag = 'test_tag'
         image_1 = f'{image_name}:latest'
         image_2 = f'{image_name}:41'
         assert (
@@ -791,7 +791,9 @@ class TestPodman:
         image_2_id = module_target_sat.execute(f'podman images {image_2} -q')
         assert image_2_id
         # Podman pushes require lowercase org and product labels
-        distribution_path = f'{(module_org.label)}/{(module_product.label)}/{image_tag}'.lower()
+        distribution_path = (
+            f'{(module_org.label)}/{(module_product.label)}/{image_name}:{image_tag}'.lower()
+        )
         # Push both repos
         creds = f'{settings.server.admin_username}:{settings.server.admin_password}'
         result = module_target_sat.execute(
