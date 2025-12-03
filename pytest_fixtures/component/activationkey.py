@@ -75,3 +75,12 @@ def module_ak_with_synced_repo(module_sca_manifest_org, module_target_sat):
             'organization-id': module_sca_manifest_org.id,
         }
     )
+
+
+@pytest.fixture(scope='module')
+def module_default_ak(module_target_sat, module_org):
+    return module_target_sat.api.ActivationKey(
+        organization=module_org,
+        content_view=module_org.default_content_view.id,
+        environment=module_org.library.id,
+    ).create()
