@@ -114,9 +114,7 @@ def test_positive_service_list(sat_maintain):
     assert result.status == 0
     if isinstance(sat_maintain, Satellite):
         services = (
-            SATELLITE_SERVICES + IOP_SERVICES
-            if sat_maintain.local_advisor_enabled
-            else SATELLITE_SERVICES
+            SATELLITE_SERVICES + IOP_SERVICES if sat_maintain.iop_enabled else SATELLITE_SERVICES
         )
     else:
         services = CAPSULE_SERVICES

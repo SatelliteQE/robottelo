@@ -25,6 +25,7 @@ pytest_plugins = [
     'pytest_plugins.jira_comments',
     'pytest_plugins.select_random_tests',
     'pytest_plugins.capsule_n-minus',
+    'pytest_plugins.upstream_pr',
     # Fixtures
     'pytest_fixtures.core.broker',
     'pytest_fixtures.core.sat_cap_factory',

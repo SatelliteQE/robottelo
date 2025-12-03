@@ -314,14 +314,6 @@ def module_capsule_configured_ansible(module_capsule_configured):
     return module_capsule_configured
 
 
-@pytest.fixture(scope='module')
-def module_capsule_configured_async_ssh(module_capsule_configured):
-    """Configure the capsule instance with the satellite from settings.server.hostname,
-    enable MQTT broker"""
-    module_capsule_configured.set_rex_script_mode_provider('ssh-async')
-    return module_capsule_configured
-
-
 @pytest.fixture(scope='module', params=['IDM', 'AD'])
 def parametrized_enrolled_sat(
     request,

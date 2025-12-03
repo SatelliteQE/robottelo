@@ -97,12 +97,6 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
     indirect=True,
     ids=['auth_http_proxy', 'unauth_http_proxy'],
 )
-@pytest.mark.parametrize(
-    'module_target_sat_insights',
-    [True, False],
-    indirect=True,
-    ids=['hosted', 'local'],
-)
 def test_insights_client_registration_with_http_proxy(
     module_target_sat_insights,
     setup_http_proxy,
@@ -120,12 +114,12 @@ def test_insights_client_registration_with_http_proxy(
         1. Satellite with Default HTTP Proxy set.
 
     :steps:
-        1. Register a host with satellite.
-        2. Register host with insights.
-        3. Try insights-client register/unregister/test-connection/status
+        1. Register a Host with Satellite.
+        2. Register host with hosted Red Hat Lightspeed.
+        3. Verify `insights-client --(register|unregister|test-connection|status)`
 
     :expectedresults:
-        1. insights-client register/unregister/test-connection/status works with http proxy set.
+        1. `insights-client` commands work when Satellite has Default HTTP Proxy set.
 
     :BZ: 1959932
 
