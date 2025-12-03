@@ -41,6 +41,7 @@ def test_positive_leapp_upgrade_rhel(
     precondition_check_upgrade_and_install_leapp_tool,
     auth_type,
     module_sca_manifest_org,
+    module_location,
 ):
     """Test to upgrade RHEL host to next major RHEL release using leapp preupgrade and leapp upgrade
     job templates
