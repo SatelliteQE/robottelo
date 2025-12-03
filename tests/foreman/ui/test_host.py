@@ -210,7 +210,9 @@ def tracer_hosts(rex_contenthosts, target_sat):
 
 
 @pytest.mark.e2e
-def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_options, request):
+def test_positive_end_to_end(
+    session, module_global_params, target_sat, host_ui_options, request, ui_user
+):
     """Create a new Host with parameters, config group. Check host presence on
         the dashboard. Update name with 'new' prefix and delete.
 
@@ -248,7 +250,9 @@ def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_
     @request.addfinalizer
     def _finalize():
         # Get table to original state
-        with target_sat.ui_session() as session:
+        with target_sat.ui_session(user=ui_user.login, password=ui_user.password) as session:
+            session.organization.select(api_values['host.organization'])
+            session.location.select(api_values['host.location'])
             session.all_hosts.manage_table_columns({header: True for header in stripped_headers})
 
     with session:
