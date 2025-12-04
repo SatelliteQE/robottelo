@@ -605,7 +605,7 @@ class TestDockerActivationKey:
 class TestPodman:
     """Tests specific to using podman push/pull on Satellite
 
-    :CaseComponent: Repositories
+    :CaseComponent: ContainerImageManagement
 
     :team: Artemis
     """
@@ -758,3 +758,62 @@ class TestPodman:
         cvv = cv.read().version[0].read()
         assert cvv.docker_tag_count == 0
         assert cvv.docker_repository_count == 0
+
+    def test_podman_push_existing_tag(self, module_target_sat, module_product, module_org):
+        """Push two different container images to the same product with the same tag.
+
+        :id: 85be56e4-c6ad-414d-be0c-19c5ccf94bca
+
+        :steps:
+            1. Using podman, pull two images with different contents (different SHA hashes).
+            2. Push image one to a specific product with a specific tag.
+            3. Push image two to the same product and tag.
+
+        :expectedresults: When the second image is pushed, a second docker manifest is created on
+            the product. The oldest manifest's tag will be destroyed, and the new manifest will have that tag.
+
+        :Verifies: SAT-38954
+        """
+        image_name = 'fedora'
+        image_tag = 'test_tag'
+        image_1 = f'{image_name}:latest'
+        image_2 = f'{image_name}:41'
+        assert (
+            module_target_sat.execute(f'podman pull registry.fedoraproject.org/{image_1}').status
+            == 0
+        )
+        assert (
+            module_target_sat.execute(f'podman pull registry.fedoraproject.org/{image_2}').status
+            == 0
+        )
+        image_1_id = module_target_sat.execute(f'podman images {image_1} -q')
+        assert image_1_id
+        image_2_id = module_target_sat.execute(f'podman images {image_2} -q')
+        assert image_2_id
+        # Podman pushes require lowercase org and product labels
+        distribution_path = (
+            f'{(module_org.label)}/{(module_product.label)}/{image_name}:{image_tag}'.lower()
+        )
+        # Push both repos
+        creds = f'{settings.server.admin_username}:{settings.server.admin_password}'
+        result = module_target_sat.execute(
+            f'podman push --creds {creds} {image_1_id.stdout.strip()} {module_target_sat.hostname}/{distribution_path}'
+        )
+        assert result.status == 0, result.stderr
+        result = module_target_sat.execute(
+            f'podman push --creds {creds} {image_2_id.stdout.strip()} {module_target_sat.hostname}/{distribution_path}'
+        )
+        assert result.status == 0, result.stderr
+        repo = module_product.read().repository
+        repo_data = module_target_sat.api.Repository(id=repo[0].id).docker_manifests()['results']
+        # Verify the repository has two docker manifests, one manifest has the test tag, and one manifest has no tags.
+        assert repo_data[0]['tags'][0]['name'] == 'test_tag'
+        assert not repo_data[1]['tags']
+        # Check that the appropriate message is logged
+        log_message = f"Removing 1 duplicate docker tag associations in repository '{image_name}'"
+        assert (
+            module_target_sat.execute(
+                f"""grep "{log_message}" /var/log/foreman/production.log"""
+            ).status
+            == 0
+        )
