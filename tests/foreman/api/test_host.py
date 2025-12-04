@@ -1270,6 +1270,56 @@ def test_positive_list_hosts_thin_all(module_target_sat):
     assert 'architecture' not in keys
 
 
+def _create_transient_packages(target_sat, host, package_data):
+    """
+    Helper function to create transient packages for a host in the database.
+
+    Args:
+        target_sat: Satellite instance
+        host: Host object to associate packages with
+        package_data: List of package dictionaries with name, version, release, arch
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If package ID cannot be parsed from database response
+    """
+    for pkg in package_data:
+        epoch = pkg.get('epoch', '0')  # Default epoch to 0 if not specified
+        nvra = f"{pkg['name']}-{pkg['version']}-{pkg['release']}.{pkg['arch']}"
+        nvrea = f"{epoch}:{pkg['name']}-{pkg['version']}-{pkg['release']}.{pkg['arch']}"
+
+        # Insert package record using psql with tabular output format
+        sql_cmd = (
+            f"INSERT INTO katello_installed_packages "
+            f"(name, nvra, nvrea, version, release, arch, epoch) "
+            f"VALUES ('{pkg['name']}', '{nvra}', '{nvrea}', '{pkg['version']}', "
+            f"'{pkg['release']}', '{pkg['arch']}', '{epoch}') "
+            f"ON CONFLICT DO NOTHING;"
+        )
+        target_sat.execute(f'sudo -u postgres psql foreman -c "{sql_cmd}"')
+
+        # Get package ID using tabular output format for better parsing
+        select_cmd = f"SELECT id FROM katello_installed_packages WHERE nvra = '{nvra}'"
+        pkg_id_result = target_sat.execute(f'sudo -u postgres psql foreman -t -A -c "{select_cmd}"')
+
+        # Parse package ID more robustly
+        lines = pkg_id_result.stdout.strip().split('\n')
+        pkg_id = next((line.strip() for line in lines if line.strip().isdigit()), None)
+
+        # Add explicit assertion for better error handling
+        assert pkg_id is not None, f"Failed to get package ID for {nvra}. Output: {pkg_id_result.stdout}"
+
+        # Create host-package association
+        assoc_cmd = (
+            f"INSERT INTO katello_host_installed_packages "
+            f"(host_id, installed_package_id, persistence) "
+            f"VALUES ({host.id}, {pkg_id}, 'transient');"
+        )
+        target_sat.execute(f'sudo -u postgres psql foreman -c "{assoc_cmd}"')
+
+
 def test_positive_transient_packages_containerfile_command(target_sat):
     """Test the transient_packages containerfile_install_command endpoint
 
@@ -1283,9 +1333,11 @@ def test_positive_transient_packages_containerfile_command(target_sat):
 
     :expectedresults: The endpoint returns a properly formatted dnf install command
 
-    :Verifies: Issue katello#11585
+    :Verifies: SAT-36791
 
     :CaseImportance: High
+
+    :Team: Artemis
     """
     # Create a host
     host = target_sat.api.Host().create()
@@ -1297,30 +1349,8 @@ def test_positive_transient_packages_containerfile_command(target_sat):
         {'name': 'test-package-2', 'version': '2.1.3', 'release': '2.el9', 'arch': 'x86_64'},
     ]
 
-    # Insert transient packages using SQL (two-table structure)
-    for pkg in package_data:
-        epoch = pkg.get('epoch', '0')  # Default epoch to 0 if not specified
-        nvra = f"{pkg['name']}-{pkg['version']}-{pkg['release']}.{pkg['arch']}"
-        nvrea = f"{epoch}:{pkg['name']}-{pkg['version']}-{pkg['release']}.{pkg['arch']}"
-
-        # First, insert the package record
-        sql_cmd = f"INSERT INTO katello_installed_packages (name, nvra, nvrea, version, release, arch, epoch) VALUES ('{pkg['name']}', '{nvra}', '{nvrea}', '{pkg['version']}', '{pkg['release']}', '{pkg['arch']}', '{epoch}') ON CONFLICT DO NOTHING;"
-        target_sat.execute(f'sudo -u postgres psql foreman -c "{sql_cmd}"')
-
-        # Get the package ID
-        select_cmd = f"SELECT id FROM katello_installed_packages WHERE nvra = '{nvra}'"
-        pkg_id_result = target_sat.execute(f'sudo -u postgres psql foreman -c "{select_cmd}"')
-        # Extract the ID from psql output
-        lines = pkg_id_result.stdout.strip().split('\n')
-        pkg_id = None
-        for line in lines:
-            if line.strip().isdigit():
-                pkg_id = line.strip()
-                break
-
-        # Then, create the host-package association with transient persistence
-        assoc_cmd = f"INSERT INTO katello_host_installed_packages (host_id, installed_package_id, persistence) VALUES ({host.id}, {pkg_id}, 'transient');"
-        target_sat.execute(f'sudo -u postgres psql foreman -c "{assoc_cmd}"')
+    # Insert transient packages using helper function
+    _create_transient_packages(target_sat, host, package_data)
 
     # Call the containerfile_install_command endpoint using nailgun
     result = host.transient_packages_containerfile_install_command()
@@ -1349,9 +1379,11 @@ def test_positive_transient_packages_containerfile_command_with_search(target_sa
 
     :expectedresults: The endpoint returns a dnf install command with only filtered packages
 
-    :Verifies: Issue katello#11585
+    :Verifies: SAT-36791
 
-    :CaseImportance: Medium
+    :CaseImportance: High
+
+    :Team: Artemis
     """
     # Create a host
     host = target_sat.api.Host().create()
@@ -1363,30 +1395,8 @@ def test_positive_transient_packages_containerfile_command_with_search(target_sa
         {'name': 'vim', 'version': '9.0.1', 'release': '1.el9', 'arch': 'x86_64'},
     ]
 
-    # Insert transient packages (two-table structure)
-    for pkg in package_data:
-        epoch = pkg.get('epoch', '0')  # Default epoch to 0 if not specified
-        nvra = f"{pkg['name']}-{pkg['version']}-{pkg['release']}.{pkg['arch']}"
-        nvrea = f"{epoch}:{pkg['name']}-{pkg['version']}-{pkg['release']}.{pkg['arch']}"
-
-        # First, insert the package record
-        sql_cmd = f"INSERT INTO katello_installed_packages (name, nvra, nvrea, version, release, arch, epoch) VALUES ('{pkg['name']}', '{nvra}', '{nvrea}', '{pkg['version']}', '{pkg['release']}', '{pkg['arch']}', '{epoch}') ON CONFLICT DO NOTHING;"
-        target_sat.execute(f'sudo -u postgres psql foreman -c "{sql_cmd}"')
-
-        # Get the package ID
-        select_cmd = f"SELECT id FROM katello_installed_packages WHERE nvra = '{nvra}'"
-        pkg_id_result = target_sat.execute(f'sudo -u postgres psql foreman -c "{select_cmd}"')
-        # Extract the ID from psql output
-        lines = pkg_id_result.stdout.strip().split('\n')
-        pkg_id = None
-        for line in lines:
-            if line.strip().isdigit():
-                pkg_id = line.strip()
-                break
-
-        # Then, create the host-package association with transient persistence
-        assoc_cmd = f"INSERT INTO katello_host_installed_packages (host_id, installed_package_id, persistence) VALUES ({host.id}, {pkg_id}, 'transient');"
-        target_sat.execute(f'sudo -u postgres psql foreman -c "{assoc_cmd}"')
+    # Insert transient packages using helper function
+    _create_transient_packages(target_sat, host, package_data)
 
     # Call the endpoint with a search filter for only httpd
     result = host.transient_packages_containerfile_install_command(data={'search': 'name=httpd'})
@@ -1411,9 +1421,11 @@ def test_negative_transient_packages_containerfile_command_no_packages(target_sa
 
     :expectedresults: Endpoint returns 404 with appropriate message
 
-    :Verifies: Issue katello#11585
+    :Verifies: SAT-36791
 
-    :CaseImportance: Medium
+    :CaseImportance: High
+
+    :Team: Artemis
     """
     # Create a host without any packages
     host = target_sat.api.Host().create()
@@ -1438,36 +1450,18 @@ def test_negative_transient_packages_containerfile_command_search_no_match(targe
 
     :expectedresults: Endpoint returns 404 with message about no packages found
 
-    :Verifies: Issue katello#11585
+    :Verifies: SAT-36791
 
-    :CaseImportance: Low
+    :CaseImportance: High
+
+    :Team: Artemis
     """
     # Create a host
     host = target_sat.api.Host().create()
 
-    # Add a transient package (two-table structure)
-    epoch = '0'  # Default epoch
-    nvra = 'test-pkg-1.0.0-1.el9.x86_64'
-    nvrea = f'{epoch}:test-pkg-1.0.0-1.el9.x86_64'
-
-    # First, insert the package record
-    sql_cmd = f"INSERT INTO katello_installed_packages (name, nvra, nvrea, version, release, arch, epoch) VALUES ('test-pkg', '{nvra}', '{nvrea}', '1.0.0', '1.el9', 'x86_64', '{epoch}') ON CONFLICT DO NOTHING;"
-    target_sat.execute(f'sudo -u postgres psql foreman -c "{sql_cmd}"')
-
-    # Get the package ID
-    select_cmd = f"SELECT id FROM katello_installed_packages WHERE nvra = '{nvra}'"
-    pkg_id_result = target_sat.execute(f'sudo -u postgres psql foreman -c "{select_cmd}"')
-    # Extract the ID from psql output
-    lines = pkg_id_result.stdout.strip().split('\n')
-    pkg_id = None
-    for line in lines:
-        if line.strip().isdigit():
-            pkg_id = line.strip()
-            break
-
-    # Then, create the host-package association with transient persistence
-    assoc_cmd = f"INSERT INTO katello_host_installed_packages (host_id, installed_package_id, persistence) VALUES ({host.id}, {pkg_id}, 'transient');"
-    target_sat.execute(f'sudo -u postgres psql foreman -c "{assoc_cmd}"')
+    # Add a transient package using helper function
+    package_data = [{'name': 'test-pkg', 'version': '1.0.0', 'release': '1.el9', 'arch': 'x86_64'}]
+    _create_transient_packages(target_sat, host, package_data)
 
     # Call endpoint with search that won't match - should raise HTTPError
     with pytest.raises(HTTPError) as excinfo:
