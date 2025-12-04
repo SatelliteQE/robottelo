@@ -2173,6 +2173,7 @@ def test_positive_host_with_puppet(
     module_puppet_org,
     module_puppet_loc,
     module_puppet_environment,
+    module_puppet_lce_library,
 ):
     """Create update read and delete host with puppet environment
 
@@ -2182,34 +2183,21 @@ def test_positive_host_with_puppet(
 
     :CaseImportance: Critical
     """
-
-    host_template = session_puppet_enabled_sat.api.Host()
-    host_template.create_missing()
-    host = session_puppet_enabled_sat.cli_factory.make_host(
+    update_smart_proxy(session_puppet_enabled_sat, module_puppet_loc, session_puppet_enabled_proxy)
+    host = session_puppet_enabled_sat.cli_factory.make_fake_host(
         {
-            'architecture-id': host_template.architecture.id,
-            'domain-id': host_template.domain.id,
-            'puppet-environment-id': host_template.environment.id,
-            'location-id': host_template.location.id,
-            'mac': host_template.mac,
-            'medium-id': host_template.medium.id,
-            'name': host_template.name,
-            'operatingsystem-id': host_template.operatingsystem.id,
-            'organization-id': host_template.organization.id,
-            'partition-table-id': host_template.ptable.id,
+            'puppet-environment-id': module_puppet_environment.id,
+            'organization-id': module_puppet_org.id,
+            'location-id': module_puppet_loc.id,
+            'lifecycle-environment-id': module_puppet_lce_library.id,
+            'puppet-ca-proxy-id': session_puppet_enabled_proxy.id,
             'puppet-proxy-id': session_puppet_enabled_proxy.id,
-            'root-password': host_template.root_pass,
         }
     )
-    session_puppet_enabled_sat.api.Environment(
-        id=module_puppet_environment.id,
-        organization=[host_template.organization],
-        location=[host_template.location],
-    ).update(['location', 'organization'])
 
     session_puppet_enabled_sat.cli.Host.update(
         {
-            'name': host.name,
+            'name': host['name'],
             'puppet-environment': module_puppet_environment.name,
         }
     )
