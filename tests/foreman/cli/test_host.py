@@ -2702,7 +2702,7 @@ def test_positive_reregister_rhel(
     # remove local consumer certs
     rhel_contenthost.execute('rm -rf /etc/pki/consumer/*')
     status = rhel_contenthost.execute("subscription-manager status")
-    assert "Overall Status: Unknown" in status.stdout
+    assert "Overall Status: Not registered" in status.stdout
     # reregister host with force
     reregister = rhel_contenthost.register(
         function_org, None, function_ak_with_cv.name, target_sat, force=True
