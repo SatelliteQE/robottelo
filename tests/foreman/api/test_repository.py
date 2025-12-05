@@ -1913,7 +1913,7 @@ class TestDockerRepository:
         repo.sync()
         all_tags = target_sat.api.DockerTag().search(query={'per_page': '999'})
         manifest_lists = [t for t in all_tags if t.manifest['manifest_type'] == 'list']
-        assert len(manifest_lists) > 0, 'No manifests of "list" type found'
+        assert manifest_lists, 'No manifests of "list" type found'
         assert all('manifests' in lst.manifest for lst in manifest_lists)
         assert all(len(lst.manifest['manifests']) > 0 for lst in manifest_lists)
 
