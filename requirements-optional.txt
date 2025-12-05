@@ -5,7 +5,7 @@ pre-commit==4.5.0
 ruff==0.14.8
 
 # For generating documentation.
-sphinx==9.0.0
+sphinx==9.0.4
 sphinx-autoapi==3.6.1
 
 # For 'manage' interactive shell
