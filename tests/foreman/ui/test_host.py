@@ -210,9 +210,7 @@ def tracer_hosts(rex_contenthosts, target_sat):
 
 
 @pytest.mark.e2e
-def test_positive_end_to_end(
-    session, module_global_params, target_sat, host_ui_options, request, ui_user
-):
+def test_positive_end_to_end(module_global_params, target_sat, host_ui_options, request, ui_user):
     """Create a new Host with parameters, config group. Check host presence on
         the dashboard. Update name with 'new' prefix and delete.
 
@@ -255,7 +253,9 @@ def test_positive_end_to_end(
             session.location.select(api_values['host.location'])
             session.all_hosts.manage_table_columns({header: True for header in stripped_headers})
 
-    with session:
+    with target_sat.ui_session(user=ui_user.login, password=ui_user.password) as session:
+        session.organization.select(api_values['host.organization'])
+        session.location.select(api_values['host.location'])
         api_values.update(
             {
                 'parameters.host_params': host_parameters,
@@ -293,7 +293,7 @@ def test_positive_end_to_end(
         assert not target_sat.api.Host().search(query={'search': f'name="{new_host_name}"'})
 
 
-def test_positive_read_from_details_page(session, module_host_template):
+def test_positive_read_from_details_page(target_sat, module_host_template, ui_user):
     """Create new Host and read all its content through details page
 
     :id: ffba5d40-918c-440e-afbb-6b910db3a8fb
@@ -306,7 +306,7 @@ def test_positive_read_from_details_page(session, module_host_template):
     host = template.create()
     os_name = f'{template.operatingsystem.name} {template.operatingsystem.major}'
     host_name = host.name
-    with session:
+    with target_sat.ui_session(user=ui_user.login, password=ui_user.password) as session:
         assert session.host_new.search(host_name)[0]['Name'] == host_name
         values = session.host_new.get_details(host_name)
         assert values['overview']['host_status']['status'] == 'All statuses OK'
@@ -368,7 +368,7 @@ def test_read_host_with_ics_domain(
         assert values['details']['system_properties']['sys_properties']['name'] == host_name
 
 
-def test_positive_read_from_edit_page(session, host_ui_options):
+def test_positive_read_from_edit_page(target_sat, ui_user, host_ui_options):
     """Create new Host and read all its content through edit page
 
     :id: 758fcab3-b363-4bfc-8f5d-173098a7e72d
@@ -376,7 +376,8 @@ def test_positive_read_from_edit_page(session, host_ui_options):
     :expectedresults: Host is created and has expected content
     """
     api_values, host_name = host_ui_options
-    with session:
+    with target_sat.ui_session(user=ui_user.login, password=ui_user.password) as session:
+        session.organization.select(api_values['host.organization'])
         session.location.select(api_values['host.location'])
         session.host.create(api_values)
         assert session.host.search(host_name)[0]['Name'] == host_name
@@ -409,7 +410,13 @@ def test_positive_read_from_edit_page(session, host_ui_options):
 
 
 def test_positive_assign_taxonomies(
-    session, module_org, smart_proxy_location, target_sat, function_org, function_location_with_org
+    module_org,
+    smart_proxy_location,
+    target_sat,
+    function_org,
+    function_location_with_org,
+    ui_user,
+    host_ui_options,
 ):
     """Ensure Host organization and Location can be assigned.
 
@@ -418,8 +425,11 @@ def test_positive_assign_taxonomies(
     :expectedresults: Host Assign Organization and Location actions are
         working as expected.
     """
+
     host = target_sat.api.Host(organization=module_org, location=smart_proxy_location).create()
-    with session:
+    with target_sat.ui_session(user=ui_user.login, password=ui_user.password) as session:
+        session.organization.select(host_ui_options[0]['host.organization'])
+        session.location.select(host_ui_options[0]['host.location'])
         assert session.all_hosts.search(host.name)[0]['Name'] == host.name
         session.all_hosts.change_associations_organization(
             host_names=[host.name],
@@ -598,7 +608,7 @@ def test_positive_create_with_inherited_params(
         )
 
 
-def test_negative_delete_primary_interface(session, host_ui_options):
+def test_negative_delete_primary_interface(target_sat, host_ui_options, ui_user):
     """Attempt to delete primary interface of a host
 
     :id: bc747e2c-38d9-4920-b4ae-6010851f704e
@@ -611,7 +621,7 @@ def test_negative_delete_primary_interface(session, host_ui_options):
     """
     values, host_name = host_ui_options
     interface_id = values['interfaces.interface.device_identifier']
-    with session:
+    with target_sat.ui_session(user=ui_user.login, password=ui_user.password) as session:
         session.location.select(values['host.location'])
         session.host.create(values)
         with pytest.raises(DisabledWidgetError) as context:
