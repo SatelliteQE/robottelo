@@ -21,7 +21,6 @@ from wait_for import wait_for
 
 from robottelo import constants
 from robottelo.config import robottelo_tmp_dir
-from robottelo.constants import DEFAULT_CV, DEFAULT_ORG, ENVIRONMENT
 from robottelo.utils.io import get_local_file_data, get_remote_report_checksum
 
 inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
