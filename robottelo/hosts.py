@@ -1577,6 +1577,12 @@ class ContentHost(Host, ContentHostMixins):
                 satellite_repo=settings.repos.satellite_repo,
                 satmaintenance_repo=settings.repos.satmaintenance_repo,
             )
+        elif settings.server.version.source == 'upstream':
+            self.create_custom_repos(
+                foreman='https://yum.theforeman.org/nightly/el9/x86_64/',
+                foreman_plugins='https://yum.theforeman.org/plugins/nightly/el9/x86_64/',
+                katello='https://yum.theforeman.org/katello/nightly/katello/el9/x86_64/',
+            )
         else:
             # get ohsnap repofile
             self.download_repofile(
@@ -1954,6 +1960,55 @@ class Capsule(ContentHost, CapsuleMixins):
         """
         self.enable_satellite_or_capsule_module_for_rhel8()
         assert self.execute(f'dnf -y install {self.product_rpm_name}').status == 0
+
+    def install_satellite_foremanctl(self, enable_fapolicyd=False, enable_fips=False):
+        # Enable RHEL and Satellite repos
+        self.register_to_cdn()
+        self.setup_rhel_repos()
+        self.setup_satellite_repos()
+        assert self.execute('dnf copr enable -y @theforeman/foremanctl rhel-9-x86_64').status == 0
+        assert self.execute('dnf install -y foremanctl').status == 0
+
+        if enable_fapolicyd:
+            assert self.execute('dnf -y install fapolicyd').status == 0
+            assert self.execute('systemctl enable --now fapolicyd').status == 0
+            assert self.execute('systemctl is-active fapolicyd').status == 0
+        if enable_fips:
+            Broker().execute(
+                workflow='enable-fips',
+                target_vm=self.name,
+            )
+            self.connect()
+            assert self.is_fips_enabled()
+
+        # Configure Satellite firewall to open communication
+        assert (
+            self.execute(
+                '(which firewall-cmd || dnf -y install firewalld) && systemctl enable --now firewalld'
+            ).status
+            == 0
+        ), 'firewalld is not present and can\'t be installed'
+        assert (
+            self.execute(
+                'firewall-cmd --permanent --add-service RH-Satellite-6 && firewall-cmd --reload'
+            ).status
+            == 0
+        )
+        # Install Satellite and return result
+        assert (
+            self.execute(
+                f'foremanctl deploy --foreman-initial-admin-username {settings.server.admin_username} --foreman-initial-admin-password {settings.server.admin_password}',
+                timeout='30m',
+            ).status
+            == 0
+        )
+        assert (
+            self.execute(
+                'foremanctl deploy --add-feature foreman-proxy --add-feature hammer'
+            ).status
+            == 0
+        )
+        return
 
     def query_db(self, query, db='foreman', output_format='json'):
         """Execute a PostgreSQL query and return the result.
