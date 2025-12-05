@@ -1290,34 +1290,33 @@ def _create_transient_packages(target_sat, host, package_data):
         nvra = f"{pkg['name']}-{pkg['version']}-{pkg['release']}.{pkg['arch']}"
         nvrea = f"{epoch}:{pkg['name']}-{pkg['version']}-{pkg['release']}.{pkg['arch']}"
 
-        # Insert package record using psql with tabular output format
-        sql_cmd = (
+        # Insert package record using query_db
+        insert_query = (
             f"INSERT INTO katello_installed_packages "
             f"(name, nvra, nvrea, version, release, arch, epoch) "
             f"VALUES ('{pkg['name']}', '{nvra}', '{nvrea}', '{pkg['version']}', "
             f"'{pkg['release']}', '{pkg['arch']}', '{epoch}') "
-            f"ON CONFLICT DO NOTHING;"
+            f"ON CONFLICT DO NOTHING"
         )
-        target_sat.execute(f'sudo -u postgres psql foreman -c "{sql_cmd}"')
+        target_sat.query_db(insert_query, output_format='raw')
 
-        # Get package ID using tabular output format for better parsing
-        select_cmd = f"SELECT id FROM katello_installed_packages WHERE nvra = '{nvra}'"
-        pkg_id_result = target_sat.execute(f'sudo -u postgres psql foreman -t -A -c "{select_cmd}"')
+        # Get package ID using query_db with JSON output
+        select_query = f"SELECT id FROM katello_installed_packages WHERE nvra = '{nvra}'"
+        pkg_records = target_sat.query_db(select_query, output_format='json')
 
-        # Parse package ID more robustly
-        lines = pkg_id_result.stdout.strip().split('\n')
-        pkg_id = next((line.strip() for line in lines if line.strip().isdigit()), None)
+        # Extract package ID from JSON result
+        assert pkg_records is not None, f"No database response for nvra '{nvra}'"
+        assert len(pkg_records) > 0, f"No package found with nvra '{nvra}'"
+        pkg_id = pkg_records[0]['id']
+        assert pkg_id is not None, f"Failed to get package ID for {nvra}"
 
-        # Add explicit assertion for better error handling
-        assert pkg_id is not None, f"Failed to get package ID for {nvra}. Output: {pkg_id_result.stdout}"
-
-        # Create host-package association
-        assoc_cmd = (
+        # Create host-package association using query_db
+        assoc_query = (
             f"INSERT INTO katello_host_installed_packages "
             f"(host_id, installed_package_id, persistence) "
-            f"VALUES ({host.id}, {pkg_id}, 'transient');"
+            f"VALUES ({host.id}, {pkg_id}, 'transient')"
         )
-        target_sat.execute(f'sudo -u postgres psql foreman -c "{assoc_cmd}"')
+        target_sat.query_db(assoc_query, output_format='raw')
 
 
 def test_positive_transient_packages_containerfile_command(target_sat):
