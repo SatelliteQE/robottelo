@@ -205,8 +205,8 @@ def test_positive_gce_provision_end_to_end(
             )
             # 1. Host Creation Assertions
             # 1.1 UI based Assertions
-            host_info = session.host.get_details(hostname)
-            assert session.host.search(hostname)[0]['Name'] == hostname
+            host_info = session.host_new.get_details(hostname)
+            assert session.host_new.search(hostname)[0]['Name'] == hostname
             assert host_info['properties']['properties_table']['Build'] == 'Installed clear'
             # 1.2 GCE Backend Assertions
             gceapi_vm = googleclient.get_vm(gceapi_vmname)
@@ -280,7 +280,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
             )
             # 1. Host Creation Assertions
             # 1.1 UI based Assertions
-            host_info = session.host.get_details(hostname)
+            host_info = session.host_new.get_details(hostname)
             assert session.host.search(hostname)[0]['Name'] == hostname
             assert (
                 host_info['properties']['properties_table']['Build'] == 'Pending installation clear'
