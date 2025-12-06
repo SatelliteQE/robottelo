@@ -219,12 +219,45 @@ def test_positive_validate_capsule_certificate(capsule_certs_teardown):
     )
     assert result.status == 0, 'Extraction to working directory failed.'
 
-    # Extract the cert data from file cert-raw-data and write to cert-data
-    target_sat.execute(
-        'openssl x509 -noout -text -in {0}/ssl-build/{1}/{1}-apache.crt'
-        '>> {0}/ssl-build/{1}/cert-data'.format(
-            file_setup['tmp_dir'], file_setup['capsule_hostname']
+    # To verify older versions use '-apache.crt', newer versions use '-httpd.crt'
+    cert_base_path = f'{file_setup["tmp_dir"]}/ssl-build/{file_setup["capsule_hostname"]}/{file_setup["capsule_hostname"]}'
+    possible_cert_names = [
+        '-apache.crt',
+        '-httpd.crt',
+        '-server.crt',
+    ]
+
+    web_server_cert = None
+    for cert_suffix in possible_cert_names:
+        cert_path = f'{cert_base_path}{cert_suffix}'
+        result = target_sat.execute(f'test -f {cert_path}')
+        if result.status == 0:
+            web_server_cert = cert_path
+            break
+
+    if not web_server_cert:
+        # None of the expected cert files exist - show debug info
+        tar_contents = target_sat.execute(f'tar -tf {file_setup["tmp_dir"]}/capsule_certs.tar')
+        extracted_files = target_sat.execute(
+            f'find {file_setup["tmp_dir"]}/ssl-build -type f 2>/dev/null || echo "ssl-build not found"'
         )
+        expected_names = ', '.join([f'{cert_base_path}{name}' for name in possible_cert_names])
+        assert False, (
+            f'Web server certificate not found after tar extraction.\n'
+            f'Expected one of: {expected_names}\n\n'
+            f'Tar file contents:\n{tar_contents.stdout}\n\n'
+            f'Extracted files:\n{extracted_files.stdout}\n\n'
+            f'This may indicate an unexpected change in Satellite certificate generation.'
+        )
+
+    # Extract the cert data from the web server cert and write to cert-data
+    result = target_sat.execute(
+        f'openssl x509 -noout -text -in {web_server_cert} '
+        f'>> {file_setup["tmp_dir"]}/ssl-build/{file_setup["capsule_hostname"]}/cert-data'
+    )
+    assert result.status == 0, (
+        f'Failed to extract certificate data from {web_server_cert}\n'
+        f'Error: {result.stderr}'
     )
 
     # use same location on remote and local for cert_file
