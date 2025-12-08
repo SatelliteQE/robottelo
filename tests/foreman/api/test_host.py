@@ -1322,7 +1322,7 @@ def _create_transient_packages(target_sat, host, package_data):
 def test_positive_transient_packages_containerfile_command(target_sat):
     """Test the transient_packages containerfile_install_command endpoint
 
-    :id: a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d
+    :id: c642274c-583a-4662-9b5c-81654bd00a3a
 
     :steps:
         1. Create a host
@@ -1333,8 +1333,6 @@ def test_positive_transient_packages_containerfile_command(target_sat):
     :expectedresults: The endpoint returns a properly formatted dnf install command
 
     :Verifies: SAT-36791
-
-    :CaseImportance: High
 
     :Team: Artemis
     """
@@ -1368,7 +1366,7 @@ def test_positive_transient_packages_containerfile_command(target_sat):
 def test_positive_transient_packages_containerfile_command_with_search(target_sat):
     """Test the transient_packages containerfile_install_command endpoint with search parameter
 
-    :id: b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e
+    :id: a18eb2dc-f9b0-4f17-ac18-9b96a062ad63
 
     :steps:
         1. Create a host
@@ -1379,8 +1377,6 @@ def test_positive_transient_packages_containerfile_command_with_search(target_sa
     :expectedresults: The endpoint returns a dnf install command with only filtered packages
 
     :Verifies: SAT-36791
-
-    :CaseImportance: High
 
     :Team: Artemis
     """
@@ -1411,7 +1407,7 @@ def test_positive_transient_packages_containerfile_command_with_search(target_sa
 def test_negative_transient_packages_containerfile_command_no_packages(target_sat):
     """Test containerfile_install_command endpoint when no transient packages exist
 
-    :id: c3d4e5f6-a7b8-4c5d-0e1f-2a3b4c5d6e7f
+    :id: 86d3612e-2e2f-41fa-ab9a-7fbab7bd044b
 
     :steps:
         1. Create a host without transient packages
@@ -1422,8 +1418,6 @@ def test_negative_transient_packages_containerfile_command_no_packages(target_sa
 
     :Verifies: SAT-36791
 
-    :CaseImportance: High
-
     :Team: Artemis
     """
     # Create a host without any packages
@@ -1433,14 +1427,17 @@ def test_negative_transient_packages_containerfile_command_no_packages(target_sa
     with pytest.raises(HTTPError) as excinfo:
         host.transient_packages_containerfile_install_command()
 
-    # Verify it's a 404 error
+    # Verify it's a 404 error with proper response structure
     assert excinfo.value.response.status_code == http.client.NOT_FOUND
+    response_data = excinfo.value.response.json()
+    assert response_data['command'] is None
+    assert response_data['message'] == 'No transient packages found'
 
 
 def test_negative_transient_packages_containerfile_command_search_no_match(target_sat):
     """Test containerfile_install_command with search that matches no packages
 
-    :id: d4e5f6a7-b8c9-4d5e-1f2a-3b4c5d6e7f8a
+    :id: f6828240-6a37-4bc8-8595-8ceeaa9062c4
 
     :steps:
         1. Create a host with transient packages
@@ -1450,8 +1447,6 @@ def test_negative_transient_packages_containerfile_command_search_no_match(targe
     :expectedresults: Endpoint returns 404 with message about no packages found
 
     :Verifies: SAT-36791
-
-    :CaseImportance: High
 
     :Team: Artemis
     """
@@ -1468,8 +1463,11 @@ def test_negative_transient_packages_containerfile_command_search_no_match(targe
             data={'search': 'name=nonexistent-package'}
         )
 
-    # Verify it's a 404 error
+    # Verify it's a 404 error with proper response structure
     assert excinfo.value.response.status_code == http.client.NOT_FOUND
+    response_data = excinfo.value.response.json()
+    assert response_data['command'] is None
+    assert response_data['message'] == 'No transient packages found'
 
 
 class TestHostInterface:
