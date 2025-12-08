@@ -210,7 +210,9 @@ def tracer_hosts(rex_contenthosts, target_sat):
 
 
 @pytest.mark.e2e
-def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_options, request):
+def test_positive_end_to_end(
+    session, module_global_params, target_sat, host_ui_options, request, ui_user
+):
     """Create a new Host with parameters, config group. Check host presence on
         the dashboard. Update name with 'new' prefix and delete.
 
@@ -248,7 +250,9 @@ def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_
     @request.addfinalizer
     def _finalize():
         # Get table to original state
-        with target_sat.ui_session() as session:
+        with target_sat.ui_session(user=ui_user.login, password=ui_user.password) as session:
+            session.organization.select(api_values['host.organization'])
+            session.location.select(api_values['host.location'])
             session.all_hosts.manage_table_columns({header: True for header in stripped_headers})
 
     with session:
@@ -459,72 +463,6 @@ def test_positive_assign_taxonomies(
         assert (
             values['details']['system_properties']['sys_properties']['organization']
             == function_org.name
-        )
-
-
-@pytest.mark.skip_if_not_set('oscap')
-def test_positive_assign_compliance_policy(
-    session, scap_policy, second_scap_policy, target_sat, function_host
-):
-    """Ensure host compliance Policy can be assigned.
-
-    :id: 323661a4-e849-4cc2-aa39-4b4a5fe2abed
-
-    :expectedresults: Host Assign/Unassign Compliance Policy action is working as
-        expected.
-
-    :BZ: 1862135
-    :BlockedBy: SAT-38431
-    """
-    # TODO Rewrite for new all hosts page after SAT-38431 is completed
-
-    org = function_host.organization.read()
-    loc = function_host.location.read()
-    # add host organization and location to scap policy
-    content = target_sat.api.ScapContents(id=scap_policy['scap-content-id']).read()
-    content.organization.append(org)
-    content.location.append(loc)
-    target_sat.api.ScapContents(
-        id=scap_policy['scap-content-id'],
-        organization=content.organization,
-        location=content.location,
-    ).update(['organization', 'location'])
-    for sp in [scap_policy, second_scap_policy]:
-        target_sat.api.CompliancePolicies(
-            id=sp['id'],
-            organization=content.organization,
-            location=content.location,
-        ).update(['organization', 'location'])
-
-    with session:
-        session.organization.select(org_name=org.name)
-        session.location.select(loc_name=loc.name)
-        assert not session.host.search(f'compliance_policy = {scap_policy["name"]}')
-        assert session.host.search(function_host.name)[0]['Name'] == function_host.name
-        session.host.apply_action(
-            'Assign Compliance Policy', [function_host.name], {'policy': scap_policy['name']}
-        )
-        session.host.apply_action(
-            'Assign Compliance Policy', [function_host.name], {'policy': second_scap_policy['name']}
-        )
-        assert (
-            session.host.search(f'compliance_policy = {scap_policy["name"]}')[0]['Name']
-            == function_host.name
-        )
-        session.host.apply_action(
-            'Assign Compliance Policy', [function_host.name], {'policy': scap_policy['name']}
-        )
-        assert (
-            session.host.search(f'compliance_policy = {scap_policy["name"]}')[0]['Name']
-            == function_host.name
-        )
-        session.host.apply_action(
-            'Unassign Compliance Policy', [function_host.name], {'policy': scap_policy['name']}
-        )
-        assert not session.host.search(f'compliance_policy = {scap_policy["name"]}')
-        assert (
-            session.host.search(f'compliance_policy = {second_scap_policy["name"]}')[0]['Name']
-            == function_host.name
         )
 
 
@@ -3477,10 +3415,14 @@ def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, 
     for host in tracer_hosts:
         host_names.append(host.hostname)
 
-        # Downgrade all packages specified in traces_to_test
+        # Create traces on both hosts
         for package in traces_to_test:
-            result = host.execute(f'yum -y downgrade {package}')
-            assert result.status == 0, f'Failed to downgrade {package} on {host.hostname}'
+            if package == 'kernel':
+                result = host.execute('yum -y upgrade kernel')
+                assert result.status == 0, f'Failed to upgrade kernel on {host.hostname}'
+            else:
+                result = host.execute(f'yum -y downgrade {package}')
+                assert result.status == 0, f'Failed to downgrade {package} on {host.hostname}'
 
     # Verify traces are detected on both hosts
     host_traces = {}
