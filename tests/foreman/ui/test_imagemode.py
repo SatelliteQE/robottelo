@@ -391,14 +391,14 @@ def test_synced_repo_manifest_read(function_org, function_product, setting_updat
     :id: f7d9e328-a8af-4bc0-bb90-e5c612e8ff93
 
     :parametrized: yes
-    
+
     :steps:
         1. Sync a docker Repository
         2. Read the docker_manifest_list and docker_manifests information
         3. Navigate to the Container Images feature.
         4. Read the manifest information for a manifest list
         5. Read the manifest information for a child manifest
-        
+
     :expectedresults: The manifest list and child manifest details are listed correctly.
 
     :Verifies: SAT-38204, SAT-38201
