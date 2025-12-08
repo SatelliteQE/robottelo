@@ -1885,6 +1885,38 @@ class TestDockerRepository:
                 [len(m['annotations']) == expected_values['annotations_count'] for m in entity_data]
             ), 'Unexpected annotations count'
 
+    @pytest.mark.parametrize(
+        'repo_options',
+        **datafactory.parametrized(
+            {
+                settings.container.upstream_name: {
+                    'content_type': 'docker',
+                    'docker_upstream_name': settings.container.upstream_name,
+                    'name': gen_string('alphanumeric', 10),
+                    'url': settings.container.registry_hub,
+                }
+            }
+        ),
+        indirect=True,
+    )
+    def test_positive_manifests_lists_in_docker_tags(self, target_sat, repo_options, repo):
+        """Ensure list-type manifests of all docker tags contain nested manifests.
+
+        :id: 1d7ae5d9-ae93-4dd8-89d0-145a8e5481f6
+
+        :parametrized: yes
+
+        :setup: A container repo holding some manifest lists.
+
+        :expectedresults: All list-type manifests contain nested manifests.
+        """
+        repo.sync()
+        all_tags = target_sat.api.DockerTag().search(query={'per_page': '999'})
+        manifest_lists = [t for t in all_tags if t.manifest['manifest_type'] == 'list']
+        assert manifest_lists, 'No manifests of "list" type found'
+        assert all('manifests' in lst.manifest for lst in manifest_lists)
+        assert all(len(lst.manifest['manifests']) > 0 for lst in manifest_lists)
+
     @pytest.mark.skip(
         reason="Tests behavior that is no longer present in the same way, needs refactor"
     )
