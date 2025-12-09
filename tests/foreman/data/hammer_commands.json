@@ -20346,6 +20346,12 @@
                   "value": null
                 },
                 {
+                  "help": "Array of dependency repository ids to mirror along with the main repository",
+                  "name": "dependency-ids",
+                  "shortname": null,
+                  "value": "LIST"
+                },
+                {
                   "help": "VALUE/NUMBER             Name/Id of associated flatpak remote",
                   "name": "flatpak-remote",
                   "shortname": null,
