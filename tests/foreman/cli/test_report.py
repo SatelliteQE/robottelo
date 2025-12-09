@@ -141,7 +141,7 @@ def test_positive_run_puppet_agent_generate_report_when_no_message(
     # Adding IPv6 proxy for IPv6 communication
     rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
     client = rhel_contenthost
-    client.configure_puppet(
+    client.configure_openvox(
         proxy_hostname=sat.hostname,
         run_puppet_agent=False,
         install_puppet_agent7=(client_repo_ver == '1'),

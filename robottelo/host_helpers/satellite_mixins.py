@@ -35,6 +35,9 @@ class EnablePluginsSatellite:
 
     def enable_puppet_satellite(self):
         self.register_to_cdn()
+        self.create_custom_repos(
+            openvox=f'https://yum.voxpupuli.org/openvox8/el/{self.os_version.major}/x86_64/'
+        )
         enable_satellite_cmd = InstallerCommand(
             installer_args=PUPPET_SATELLITE_INSTALLER,
             installer_opts=PUPPET_COMMON_INSTALLER_OPTS,
