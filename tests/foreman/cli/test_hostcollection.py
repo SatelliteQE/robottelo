@@ -12,14 +12,11 @@
 
 """
 
-from broker import Broker
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.config import settings
 from robottelo.constants import DEFAULT_CV, ENVIRONMENT
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
-from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import (
     invalid_values_list,
     parametrized,
@@ -287,6 +284,7 @@ def test_positive_copy_by_id(module_org, module_target_sat):
 @pytest.mark.upgrade
 @pytest.mark.rhel_ver_match('N-2')
 def test_positive_register_host_ak_with_host_collection(module_org, module_ak_with_cv, target_sat, rhel_contenthost):
+
     """Attempt to register a host using activation key with host collection
 
     :id: 62459e8a-0cfa-44ff-b70c-7f55b4757d66
