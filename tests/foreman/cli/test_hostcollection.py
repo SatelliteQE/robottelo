@@ -15,6 +15,7 @@
 from fauxfactory import gen_string
 import pytest
 
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_CV, ENVIRONMENT
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.utils.datafactory import (
@@ -282,7 +283,7 @@ def test_positive_copy_by_id(module_org, module_target_sat):
 
 
 @pytest.mark.upgrade
-@pytest.mark.rhel_ver_match('N-2')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_register_host_ak_with_host_collection(
     module_org, module_ak_with_cv, target_sat, rhel_contenthost
 ):
