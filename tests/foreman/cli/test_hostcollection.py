@@ -283,8 +283,9 @@ def test_positive_copy_by_id(module_org, module_target_sat):
 
 @pytest.mark.upgrade
 @pytest.mark.rhel_ver_match('N-2')
-def test_positive_register_host_ak_with_host_collection(module_org, module_ak_with_cv, target_sat, rhel_contenthost):
-
+def test_positive_register_host_ak_with_host_collection(
+    module_org, module_ak_with_cv, target_sat, rhel_contenthost
+):
     """Attempt to register a host using activation key with host collection
 
     :id: 62459e8a-0cfa-44ff-b70c-7f55b4757d66
@@ -312,9 +313,7 @@ def test_positive_register_host_ak_with_host_collection(module_org, module_ak_wi
     assert rhel_contenthost.subscribed
     # note: when registering the host, it should be automatically added to the host-collection
     client_host = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
-    hosts = target_sat.cli.HostCollection.hosts(
-        {'id': hc['id'], 'organization-id': module_org.id}
-    )
+    hosts = target_sat.cli.HostCollection.hosts({'id': hc['id'], 'organization-id': module_org.id})
     assert len(hosts) == 2
     expected_hosts_ids = {host_info['id'], client_host['id']}
     hosts_ids = {host['id'] for host in hosts}
