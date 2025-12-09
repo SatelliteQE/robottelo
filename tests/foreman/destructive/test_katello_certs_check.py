@@ -226,6 +226,14 @@ def test_positive_validate_capsule_certificate(capsule_certs_teardown):
     )
     assert result.status == 0, f'Failed to extract certificate data\nError: {result.stderr}'
 
+    # Verify cert-data file was created and is non-empty
+    cert_data_path = f'{file_setup["tmp_dir"]}/ssl-build/{file_setup["capsule_hostname"]}/cert-data'
+    result = target_sat.execute(f'test -s {cert_data_path}')
+    assert result.status == 0, (
+        f'Certificate data file was not created or is empty: {cert_data_path}\n'
+        f'This may indicate the openssl extraction failed to write output.'
+    )
+
     # use same location on remote and local for cert_file
     target_sat.get(file_setup['caps_cert_file'])
 
