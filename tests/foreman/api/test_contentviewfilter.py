@@ -16,6 +16,7 @@ http://www.katello.org/docs/api/apidoc/content_view_filters.html
 
 """
 
+from datetime import UTC, datetime
 from random import randint
 
 from fauxfactory import gen_integer, gen_string
@@ -23,6 +24,7 @@ import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import settings
+from robottelo.constants import TIMESTAMP_FMT_DATE
 from robottelo.utils.datafactory import (
     parametrized,
     valid_data_list,
@@ -574,6 +576,34 @@ class TestContentViewFilterSearch:
 
 class TestContentViewFilterRule:
     """Tests for content view filter rules."""
+
+    def test_filter_by_date_rule(self, content_view, target_sat):
+        """Create an include/exclude filter, create a Start or End date rule, apply to content view.
+
+        :id: 97e9b768-62a9-4f2d-9ae2-5e8607a1a7d2
+
+        :expectedresults: Content View Rule can be created and published successfully,
+            and contains the appropriate results based on the date filter applied.
+
+        :Verifies: SAT-38788
+        """
+        content_view.publish()
+        content_view = content_view.read()
+        content_view_version_info = content_view.version[0].read()
+        assert content_view_version_info.errata_counts['security'] == 4
+        # Include by date filter
+        cvf = target_sat.api.ErratumByDateContentViewFilter(
+            content_view=content_view, inclusion=True
+        ).create()
+        # Create a date rule that excludes all the content
+        start_date = datetime.now(UTC).strftime(TIMESTAMP_FMT_DATE)
+        target_sat.api.ContentViewFilterRule(
+            content_view_filter=cvf, date_type='issued', start_date=start_date
+        ).create()
+        content_view.publish()
+        content_view = content_view.read()
+        content_view_version_info = content_view.version[0].read()
+        assert content_view_version_info.errata_counts['security'] == 0
 
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
