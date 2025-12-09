@@ -285,7 +285,7 @@ def test_positive_copy_by_id(module_org, module_target_sat):
 
 
 @pytest.mark.upgrade
-def test_positive_register_host_ak_with_host_collection(module_org, module_ak_with_cv, target_sat):
+def test_positive_register_host_ak_with_host_collection(module_org, module_ak_with_cv, target_sat, rhel7_contenthost):
     """Attempt to register a host using activation key with host collection
 
     :id: 62459e8a-0cfa-44ff-b70c-7f55b4757d66
@@ -309,18 +309,14 @@ def test_positive_register_host_ak_with_host_collection(module_org, module_ak_wi
         {'id': hc['id'], 'organization-id': module_org.id, 'host-ids': host_info['id']}
     )
 
-    with Broker(
-        nick='rhel7', deploy_network_type=settings.content_host.network_type, host_class=ContentHost
-    ) as client:
-        # register the client host with the current activation key
-        client.register(module_org, None, module_ak_with_cv.name, target_sat)
-        assert client.subscribed
-        # note: when registering the host, it should be automatically added to the host-collection
-        client_host = target_sat.cli.Host.info({'name': client.hostname})
-        hosts = target_sat.cli.HostCollection.hosts(
-            {'id': hc['id'], 'organization-id': module_org.id}
-        )
-        assert len(hosts) == 2
-        expected_hosts_ids = {host_info['id'], client_host['id']}
-        hosts_ids = {host['id'] for host in hosts}
-        assert hosts_ids == expected_hosts_ids
+    rhel7_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
+    assert rhel7_contenthost.subscribed
+    # note: when registering the host, it should be automatically added to the host-collection
+    client_host = target_sat.cli.Host.info({'name': rhel7_contenthost.hostname})
+    hosts = target_sat.cli.HostCollection.hosts(
+        {'id': hc['id'], 'organization-id': module_org.id}
+    )
+    assert len(hosts) == 2
+    expected_hosts_ids = {host_info['id'], client_host['id']}
+    hosts_ids = {host['id'] for host in hosts}
+    assert hosts_ids == expected_hosts_ids
