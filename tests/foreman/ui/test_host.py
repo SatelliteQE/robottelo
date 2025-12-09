@@ -2226,7 +2226,7 @@ def test_positive_page_redirect_after_update(target_sat, current_sat_location):
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_host_status_honors_taxonomies(
-    module_target_sat,
+    target_sat,
     test_name,
     rhel_contenthost,
     setup_content,
@@ -2249,7 +2249,7 @@ def test_host_status_honors_taxonomies(
 
     lce = default_org_lce
     # Create content view environment for the default org
-    content_view = module_target_sat.api.ContentView(organization=default_org).create()
+    content_view = target_sat.api.ContentView(organization=default_org).create()
     content_view.publish()
     published_cv = content_view.read()
     content_view_version = published_cv.version[0]
@@ -2257,7 +2257,7 @@ def test_host_status_honors_taxonomies(
 
     # default_org != org (== module_org)
     default_org_ak_name = gen_string('alpha')
-    module_target_sat.cli_factory.make_activation_key(
+    target_sat.cli_factory.make_activation_key(
         {
             'name': default_org_ak_name,
             'organization-id': default_org.id,
@@ -2268,15 +2268,15 @@ def test_host_status_honors_taxonomies(
     # register the host to default_org
     assert (
         rhel_contenthost.register(
-            default_org, default_location, default_org_ak_name, module_target_sat
+            default_org, default_location, default_org_ak_name, target_sat
         ).status
         == 0
     )
-    host_id = module_target_sat.cli.Host.info({'name': rhel_contenthost.hostname})['id']
+    host_id = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})['id']
     password = gen_string('alpha')
     login = gen_string('alpha')
     # the user is in org
-    module_target_sat.cli.User.create(
+    target_sat.cli.User.create(
         {
             'organization-id': org.id,
             'location-id': default_location.id,
@@ -2287,14 +2287,14 @@ def test_host_status_honors_taxonomies(
             'roles': ROLES,
         }
     )
-    with module_target_sat.ui_session(test_name, user=login, password=password) as session:
+    with target_sat.ui_session(test_name, user=login, password=password) as session:
         statuses = session.host.host_statuses()
     assert all(int(status['count'].split(': ')[1]) == 0 for status in statuses)
     # register the host to org
     assert rhel_contenthost.unregister().status == 0
-    module_target_sat.cli.Host.delete({'id': host_id})
-    assert rhel_contenthost.register(org, default_location, ak.name, module_target_sat).status == 0
-    with module_target_sat.ui_session(test_name, user=login, password=password) as session:
+    target_sat.cli.Host.delete({'id': host_id})
+    assert rhel_contenthost.register(org, default_location, ak.name, target_sat).status == 0
+    with target_sat.ui_session(test_name, user=login, password=password) as session:
         statuses = session.host.host_statuses()
     assert len([status for status in statuses if int(status['count'].split(': ')[1]) != 0]) == 1
 
