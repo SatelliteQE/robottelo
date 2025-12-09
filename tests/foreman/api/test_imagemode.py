@@ -14,6 +14,7 @@
 import json
 
 import pytest
+import requests
 
 from robottelo.config import settings
 from robottelo.constants import (
@@ -21,6 +22,7 @@ from robottelo.constants import (
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_7_CUSTOM_PACKAGE,
 )
+from tests.foreman.api.test_host import _create_transient_packages
 
 
 @pytest.mark.e2e
@@ -524,3 +526,256 @@ def test_bootc_rex_errata_install(target_sat, bootc_host, function_repos_collect
         must_succeed=True,
         poll_timeout=100,
     )
+
+
+def test_positive_host_packages_persistence_api(target_sat):
+    """Verify that package persistence info is exposed via /api/v2/hosts/:id/packages endpoint
+
+    :id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+
+    :steps:
+        1. Create a host
+        2. Add packages with different persistence values via SQL (transient, persistent, None)
+        3. Retrieve packages via /api/v2/hosts/:id/packages API endpoint
+        4. Verify persistence info is present and correct for each package
+
+    :expectedresults:
+        1. Packages with persistence='transient' are returned with correct value
+        2. Packages with persistence='persistent' are returned with correct value
+        3. Packages with persistence=None are returned with None/null value
+        4. All packages returned via API include the 'persistence' field
+
+    :Verifies: SAT-36788
+    """
+    # Create a host
+    host = target_sat.api.Host().create()
+
+    # Mock packages with different persistence values by directly inserting them via SQL
+    package_data = [
+        {
+            'name': 'transient-pkg',
+            'version': '1.0.0',
+            'release': '1.el10',
+            'arch': 'x86_64',
+            'persistence': 'transient',
+        },
+        {
+            'name': 'persistent-pkg',
+            'version': '2.0.0',
+            'release': '1.el10',
+            'arch': 'x86_64',
+            'persistence': 'persistent',
+        },
+        {
+            'name': 'unknown-pkg',
+            'version': '3.0.0',
+            'release': '1.el10',
+            'arch': 'x86_64',
+            'persistence': None,
+        },
+    ]
+
+    # Insert packages with persistence info using helper function
+    _create_transient_packages(target_sat, host, package_data)
+
+    # Call the /api/v2/hosts/:id/packages API endpoint
+    packages_url = f'{target_sat.url}/api/v2/hosts/{host.id}/packages'
+    auth = (settings.server.admin_username, settings.server.admin_password)
+    response = requests.get(packages_url, auth=auth, verify=False)
+
+    assert response.status_code == 200, f'Failed to retrieve packages: {response.text}'
+
+    # Parse the response
+    packages_response = response.json()
+    assert 'results' in packages_response, 'No results field in API response'
+    packages = packages_response['results']
+
+    # Verify that all packages are returned
+    assert len(packages) == 3, f'Expected 3 packages, got {len(packages)}'
+
+    # Verify each package has correct persistence info
+    transient_pkg = next((p for p in packages if p['name'] == 'transient-pkg'), None)
+    assert transient_pkg is not None, 'Transient package not found in API response'
+    assert 'persistence' in transient_pkg, 'Persistence field missing from transient package'
+    assert transient_pkg['persistence'] == 'transient', (
+        f"Expected persistence='transient', got '{transient_pkg['persistence']}'"
+    )
+
+    persistent_pkg = next((p for p in packages if p['name'] == 'persistent-pkg'), None)
+    assert persistent_pkg is not None, 'Persistent package not found in API response'
+    assert 'persistence' in persistent_pkg, 'Persistence field missing from persistent package'
+    assert persistent_pkg['persistence'] == 'persistent', (
+        f"Expected persistence='persistent', got '{persistent_pkg['persistence']}'"
+    )
+
+    unknown_pkg = next((p for p in packages if p['name'] == 'unknown-pkg'), None)
+    assert unknown_pkg is not None, 'Unknown package not found in API response'
+    assert 'persistence' in unknown_pkg, 'Persistence field missing from unknown package'
+    assert unknown_pkg['persistence'] is None, (
+        f"Expected persistence=None, got '{unknown_pkg['persistence']}'"
+    )
+
+    # Verify all packages have the persistence field
+    for pkg in packages:
+        assert 'persistence' in pkg, f"Package {pkg['name']} missing persistence field"
+
+
+def test_positive_transient_packages_only(target_sat):
+    """Verify API returns only transient packages when all packages are transient
+
+    :id: b2c3d4e5-f6a7-8901-bcde-f12345678901
+
+    :steps:
+        1. Create a host
+        2. Add only transient packages via SQL
+        3. Retrieve packages via /api/v2/hosts/:id/packages API endpoint
+        4. Verify all returned packages have persistence='transient'
+
+    :expectedresults:
+        1. All packages are returned with persistence='transient'
+        2. Persistence field is present for all packages
+
+    :Verifies: SAT-36788
+    """
+    # Create a host
+    host = target_sat.api.Host().create()
+
+    # Add only transient packages
+    package_data = [
+        {
+            'name': 'transient-pkg-1',
+            'version': '1.0.0',
+            'release': '1.el10',
+            'arch': 'x86_64',
+            'persistence': 'transient',
+        },
+        {
+            'name': 'transient-pkg-2',
+            'version': '2.0.0',
+            'release': '1.el10',
+            'arch': 'x86_64',
+            'persistence': 'transient',
+        },
+    ]
+
+    _create_transient_packages(target_sat, host, package_data)
+
+    # Call the API endpoint
+    packages_url = f'{target_sat.url}/api/v2/hosts/{host.id}/packages'
+    auth = (settings.server.admin_username, settings.server.admin_password)
+    response = requests.get(packages_url, auth=auth, verify=False)
+
+    assert response.status_code == 200
+    packages = response.json()['results']
+
+    # Verify all packages are transient
+    assert len(packages) == 2
+    for pkg in packages:
+        assert 'persistence' in pkg, f"Package {pkg['name']} missing persistence field"
+        assert pkg['persistence'] == 'transient', (
+            f"Expected all packages to be transient, but {pkg['name']} has persistence='{pkg['persistence']}'"
+        )
+
+
+def test_positive_persistent_packages_only(target_sat):
+    """Verify API returns only persistent packages when all packages are persistent
+
+    :id: c3d4e5f6-a7b8-9012-cdef-123456789012
+
+    :steps:
+        1. Create a host
+        2. Add only persistent packages via SQL
+        3. Retrieve packages via /api/v2/hosts/:id/packages API endpoint
+        4. Verify all returned packages have persistence='persistent'
+
+    :expectedresults:
+        1. All packages are returned with persistence='persistent'
+        2. Persistence field is present for all packages
+
+    :Verifies: SAT-36788
+    """
+    # Create a host
+    host = target_sat.api.Host().create()
+
+    # Add only persistent packages
+    package_data = [
+        {
+            'name': 'base-pkg-1',
+            'version': '1.0.0',
+            'release': '1.el10',
+            'arch': 'x86_64',
+            'persistence': 'persistent',
+        },
+        {
+            'name': 'base-pkg-2',
+            'version': '2.0.0',
+            'release': '1.el10',
+            'arch': 'x86_64',
+            'persistence': 'persistent',
+        },
+    ]
+
+    _create_transient_packages(target_sat, host, package_data)
+
+    # Call the API endpoint
+    packages_url = f'{target_sat.url}/api/v2/hosts/{host.id}/packages'
+    auth = (settings.server.admin_username, settings.server.admin_password)
+    response = requests.get(packages_url, auth=auth, verify=False)
+
+    assert response.status_code == 200
+    packages = response.json()['results']
+
+    # Verify all packages are persistent
+    assert len(packages) == 2
+    for pkg in packages:
+        assert 'persistence' in pkg, f"Package {pkg['name']} missing persistence field"
+        assert pkg['persistence'] == 'persistent', (
+            f"Expected all packages to be persistent, but {pkg['name']} has persistence='{pkg['persistence']}'"
+        )
+
+
+def test_positive_host_packages_persistence_api_empty_results(target_sat):
+    """Verify that package persistence API returns an empty result set for a host with no packages
+
+    :id: d4e5f6a7-b8c9-0123-def0-1234567890ab
+
+    :steps:
+        1. Create a host
+        2. Ensure host has no packages in katello_host_installed_packages
+        3. Call /api/v2/hosts/:id/packages API endpoint
+        4. Verify response is successful with empty results
+
+    :expectedresults:
+        1. Response status is 200
+        2. Results field is present and is an empty list
+        3. Total and subtotal are 0
+
+    :Verifies: SAT-36788
+    """
+    # Create a host
+    host = target_sat.api.Host().create()
+
+    # Ensure this host has no package persistence rows (it shouldn't by default, but let's be explicit)
+    target_sat.query_db(
+        f"DELETE FROM katello_host_installed_packages WHERE host_id = {host.id}",
+        output_format="raw",
+    )
+
+    # Call the packages API for a host with no installed packages
+    packages_url = f'{target_sat.url}/api/v2/hosts/{host.id}/packages'
+    auth = (settings.server.admin_username, settings.server.admin_password)
+    response = requests.get(packages_url, auth=auth, verify=False)
+
+    # Response should be successful even when there are no packages
+    assert response.status_code == 200
+
+    body = response.json()
+
+    # results key must be present and an empty list
+    assert "results" in body
+    assert isinstance(body["results"], list)
+    assert body["results"] == []
+
+    # total/subtotal should correctly represent the empty case
+    assert body.get("total") == 0
+    assert body.get("subtotal") == 0
