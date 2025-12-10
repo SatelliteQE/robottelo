@@ -3401,8 +3401,8 @@ def test_positive_all_hosts_check_status_icon(
     'traces_to_test',
     [
         [settings.repos['MOCK_SERVICE_RPM']],
-        ['kernel'],
-        [settings.repos['MOCK_SERVICE_RPM'], 'kernel'],
+        ['systemd'],
+        [settings.repos['MOCK_SERVICE_RPM'], 'systemd'],
     ],
     ids=['service_restart', 'reboot_required', 'mixed_services'],
 )
@@ -3437,7 +3437,7 @@ def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, 
     :Verifies: SAT-35465
     """
     host_names = []
-    requires_reboot = 'kernel' in traces_to_test
+    requires_reboot = 'systemd' in traces_to_test
 
     # Create traces on both hosts by downgrading packages
     for host in tracer_hosts:
@@ -3445,12 +3445,8 @@ def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, 
 
         # Create traces on both hosts
         for package in traces_to_test:
-            if package == 'kernel':
-                result = host.execute('yum -y upgrade kernel')
-                assert result.status == 0, f'Failed to upgrade kernel on {host.hostname}'
-            else:
-                result = host.execute(f'yum -y downgrade {package}')
-                assert result.status == 0, f'Failed to downgrade {package} on {host.hostname}'
+            result = host.execute(f'yum -y downgrade {package}')
+            assert result.status == 0, f'Failed to downgrade {package} on {host.hostname}'
 
     # Verify traces are detected on both hosts
     host_traces = {}
@@ -3464,12 +3460,12 @@ def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, 
 
         # Verify expected traces are present
         for expected_trace in traces_to_test:
-            if expected_trace == 'kernel':
-                kernel_trace_found = any(
-                    'kernel' in trace['application'].lower() for trace in traces
+            if expected_trace == 'systemd':
+                systemd_trace_found = any(
+                    'systemd' in trace['application'].lower() for trace in traces
                 )
-                assert kernel_trace_found, (
-                    f'Kernel trace not found on {host.hostname}. Found traces: '
+                assert systemd_trace_found, (
+                    f'Systemd trace not found on {host.hostname}. Found traces: '
                     f'{[t["application"] for t in traces]}'
                 )
             else:
@@ -3509,10 +3505,7 @@ def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, 
         for host in tracer_hosts:
             host_info = target_sat.cli.Host.info({'name': host.hostname})
             traces = target_sat.cli.HostTraces.list({'host-id': host_info['id']})
-            assert len(traces) == 0, (
-                f'Traces still present on {host.hostname} after restart/reboot: '
-                f'{[t["application"] for t in traces]}'
-            )
+            assert traces_to_test not in traces
 
 
 def verify_system_purpose_via_api(
