@@ -17,7 +17,7 @@ from nailgun import client
 from nailgun.entity_mixins import TaskFailedError
 import pytest
 
-from robottelo.config import get_credentials
+from robottelo.config import get_credentials, settings
 from robottelo.hosts import get_sat_version
 from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
@@ -253,7 +253,7 @@ def log_compare(satellite, host):
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('9')
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost):
     sat = ca_sat[0]
     host = rhel_contenthost
@@ -273,7 +273,7 @@ def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost):
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('9')
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_positive_ssh_ca_host_only(target_sat, ca_contenthost):
     sat = target_sat
     host = ca_contenthost[0]
@@ -293,7 +293,7 @@ def test_positive_ssh_ca_host_only(target_sat, ca_contenthost):
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('9')
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_positive_ssh_ca_sat_and_host(ca_sat, ca_contenthost):
     sat = ca_sat[0]
     sat_ca_file = ca_sat[1]
