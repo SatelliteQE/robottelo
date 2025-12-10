@@ -219,19 +219,17 @@ def test_positive_validate_capsule_certificate(capsule_certs_teardown):
     )
     assert result.status == 0, 'Extraction to working directory failed.'
 
-    # Extract the cert data from httpd cert and write to cert-data
-    result = target_sat.execute(
-        f'openssl x509 -noout -text -in {file_setup["tmp_dir"]}/ssl-build/{file_setup["capsule_hostname"]}/{file_setup["capsule_hostname"]}-httpd.crt '
-        f'>> {file_setup["tmp_dir"]}/ssl-build/{file_setup["capsule_hostname"]}/cert-data'
+    cert_file = (
+        f'{file_setup["tmp_dir"]}/ssl-build/{file_setup["capsule_hostname"]}/'
+        f'{file_setup["capsule_hostname"]}-apache.crt'
     )
-    assert result.status == 0, f'Failed to extract certificate data\nError: {result.stderr}'
 
-    # Verify cert-data file was created and is non-empty
-    cert_data_path = f'{file_setup["tmp_dir"]}/ssl-build/{file_setup["capsule_hostname"]}/cert-data'
-    result = target_sat.execute(f'test -s {cert_data_path}')
+    # Extract the cert data from apache cert and write to cert-data
+    result = target_sat.execute(
+        f'openssl x509 -noout -text -in {cert_file} > {file_setup["caps_cert_file"]}'
+    )
     assert result.status == 0, (
-        f'Certificate data file was not created or is empty: {cert_data_path}\n'
-        f'This may indicate the openssl extraction failed to write output.'
+        f'Failed to extract certificate data from {cert_file}\nError: {result.stderr}'
     )
 
     # use same location on remote and local for cert_file
