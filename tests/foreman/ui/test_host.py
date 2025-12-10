@@ -3505,7 +3505,11 @@ def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, 
         for host in tracer_hosts:
             host_info = target_sat.cli.Host.info({'name': host.hostname})
             traces = target_sat.cli.HostTraces.list({'host-id': host_info['id']})
-            assert traces_to_test not in traces
+            remaining_apps = {t['application'] for t in traces}
+            for app in traces_to_test:
+                assert app not in remaining_apps, (
+                    f'Trace {app} still present on {host.hostname} after restart/reboot'
+                )
 
 
 def verify_system_purpose_via_api(
