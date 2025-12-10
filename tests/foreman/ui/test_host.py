@@ -720,7 +720,7 @@ def test_positive_remove_parameter_non_admin_user(
 
 
 def test_negative_remove_parameter_non_admin_user(
-    test_name, module_org, smart_proxy_location, target_sat, expected_permissions
+    module_org, smart_proxy_location, module_target_sat, expected_permissions
 ):
     """Attempt to remove host parameter as a non-admin user with
     insufficient permissions
@@ -737,8 +737,8 @@ def test_negative_remove_parameter_non_admin_user(
 
     user_password = gen_string('alpha')
     parameter = {'name': gen_string('alpha'), 'value': gen_string('alpha')}
-    role = target_sat.api.Role(organization=[module_org]).create()
-    target_sat.api_factory.create_role_permissions(
+    role = module_target_sat.api.Role(organization=[module_org]).create()
+    module_target_sat.api_factory.create_role_permissions(
         role,
         {
             'Parameter': ['view_params'],
@@ -746,7 +746,7 @@ def test_negative_remove_parameter_non_admin_user(
             'Operatingsystem': ['view_operatingsystems'],
         },
     )
-    user = target_sat.api.User(
+    user = module_target_sat.api.User(
         role=[role],
         admin=False,
         password=user_password,
@@ -755,7 +755,7 @@ def test_negative_remove_parameter_non_admin_user(
         default_organization=module_org,
         default_location=smart_proxy_location,
     ).create()
-    host = target_sat.api.Host(
+    host = module_target_sat.api.Host(
         content_facet_attributes={
             'content_view_id': module_org.default_content_view.id,
             'lifecycle_environment_id': module_org.library.id,
@@ -764,7 +764,7 @@ def test_negative_remove_parameter_non_admin_user(
         organization=module_org,
         host_parameters_attributes=[parameter],
     ).create()
-    with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
+    with module_target_sat.ui_session(user=user.login, password=user_password) as session:
         values = session.host_new.read(host.name, 'parameters')
         assert values['parameters']['host_params'][0] == parameter
         with pytest.raises(NoSuchElementException) as context:
