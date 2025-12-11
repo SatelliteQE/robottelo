@@ -679,14 +679,15 @@ def test_positive_provision_end_to_end(
         assert values['Build']['Status'] == 'Installed'
         assert values['Execution']['Status'] == 'Last execution succeeded'
 
+        host = target_sat.api.Host().search(query={'search': f'name={host_fqdn}'})[0].read()
+        provisioning_host = ContentHost(host.ip)
+
+        # Wait for the host to be rebooted and SSH daemon to be started.
+        provisioning_host.wait_for_connection()
+
         # Verify SecureBoot is enabled on host after provisioning is completed successfully
         if pxe_loader.vm_firmware == 'uefi_secure_boot':
-            host = target_sat.api.Host().search(query={'host': host_name})[0].read()
-            provisioning_host = ContentHost(host.ip)
-            # Wait for the host to be rebooted and SSH daemon to be started.
-            provisioning_host.wait_for_connection()
             assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
 
         # Verify if assigned role is executed on the host, and correct host passwd is set
-        host = ContentHost(target_sat.api.Host().search(query={'host': host_name})[0].read().ip)
-        assert host.execute('yum list installed foreman_scap_client_bash').status == 0
+        assert provisioning_host.execute('yum list installed foreman_scap_client_bash').status == 0
