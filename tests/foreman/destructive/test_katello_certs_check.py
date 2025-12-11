@@ -219,12 +219,17 @@ def test_positive_validate_capsule_certificate(capsule_certs_teardown):
     )
     assert result.status == 0, 'Extraction to working directory failed.'
 
-    # Extract the cert data from file cert-raw-data and write to cert-data
-    target_sat.execute(
-        'openssl x509 -noout -text -in {0}/ssl-build/{1}/{1}-apache.crt'
-        '>> {0}/ssl-build/{1}/cert-data'.format(
-            file_setup['tmp_dir'], file_setup['capsule_hostname']
-        )
+    cert_file = (
+        f'{file_setup["tmp_dir"]}/ssl-build/{file_setup["capsule_hostname"]}/'
+        f'{file_setup["capsule_hostname"]}-apache.crt'
+    )
+
+    # Extract the cert data from apache cert and write to cert-data
+    result = target_sat.execute(
+        f'openssl x509 -noout -text -in {cert_file} > {file_setup["caps_cert_file"]}'
+    )
+    assert result.status == 0, (
+        f'Failed to extract certificate data from {cert_file}\nError: {result.stderr}'
     )
 
     # use same location on remote and local for cert_file
